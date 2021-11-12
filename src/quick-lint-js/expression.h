@@ -38,6 +38,7 @@ enum class expression_kind {
   _class,
   _delete,
   _invalid,
+  _missing,
   _new,
   _template,
   _typeof,
@@ -159,6 +160,7 @@ class expression {
   class _class;
   class _delete;
   class _invalid;
+  class _missing;
   class _new;
   class _template;
   class _typeof;
@@ -424,6 +426,20 @@ class expression::_invalid final : public expression {
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::_invalid>);
+
+class expression::_missing final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::_missing;
+
+  explicit _missing(source_code_span span) noexcept
+      : expression(kind), span_(span) {}
+
+  source_code_span span_impl() const noexcept { return this->span_; }
+
+ private:
+  source_code_span span_;
+};
+static_assert(expression_arena::is_allocatable<expression::_missing>);
 
 class expression::_new final : public expression {
  public:
@@ -1193,6 +1209,7 @@ inline auto expression::with_derived(Func &&func) {
     QLJS_EXPRESSION_CASE(_class)
     QLJS_EXPRESSION_CASE(_delete)
     QLJS_EXPRESSION_CASE(_invalid)
+    QLJS_EXPRESSION_CASE(_missing)
     QLJS_EXPRESSION_CASE(_new)
     QLJS_EXPRESSION_CASE(_template)
     QLJS_EXPRESSION_CASE(_typeof)

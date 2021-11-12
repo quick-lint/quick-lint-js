@@ -230,7 +230,7 @@ expression* parser::parse_primary_expression(precedence prec) {
         .in_operator = prec.in_operator,
         .is_typeof = (type == token_type::kw_typeof),
     });
-    if (child->kind() == expression_kind::_invalid) {
+    if (child->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
       });
@@ -257,7 +257,7 @@ expression* parser::parse_primary_expression(precedence prec) {
         .commas = false,
         .in_operator = prec.in_operator,
     });
-    if (child->kind() == expression_kind::_invalid) {
+    if (child->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
       });
@@ -302,8 +302,8 @@ expression* parser::parse_primary_expression(precedence prec) {
                 .left_paren = left_paren_span,
                 .right_paren = right_paren_span,
             });
-        expression* child = this->parse_expression();
-        return child;
+        return this->make_expression<expression::_invalid>(
+            source_code_span(left_paren_span.begin(), right_paren_span.end()));
       }
     }
 
@@ -462,7 +462,7 @@ expression* parser::parse_primary_expression(precedence prec) {
       }
     }
     expression* ast =
-        this->make_expression<expression::_invalid>(this->peek().span());
+        this->make_expression<expression::_missing>(this->peek().span());
     if (prec.binary_operators) {
       if (this->peek().type == token_type::less) {
         // <MyComponent /> (JSX)
@@ -543,7 +543,7 @@ expression* parser::parse_primary_expression(precedence prec) {
   case token_type::right_paren:
   case token_type::right_square:
   case token_type::semicolon:
-    return this->make_expression<expression::_invalid>(this->peek().span());
+    return this->make_expression<expression::_missing>(this->peek().span());
 
   default:
     QLJS_PARSER_UNIMPLEMENTED();
@@ -837,7 +837,7 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
 
     expression* child = this->parse_expression(prec);
 
-    if (child->kind() == expression_kind::_invalid) {
+    if (child->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
       });
@@ -909,7 +909,7 @@ next:
     this->skip();
     expression* rhs = children.emplace_back(this->parse_expression(
         precedence{.binary_operators = false, .commas = false}));
-    if (rhs->kind() == expression_kind::_invalid) {
+    if (rhs->kind() == expression_kind::_missing) {
       this->error_reporter_->report(
           error_missing_operand_for_operator{operator_span});
     }
@@ -953,6 +953,7 @@ next:
           error_invalid_expression_left_of_assignment{lhs->span()});
       break;
     case expression_kind::_invalid:
+    case expression_kind::_missing:
       // An error should have been reported elsewhere.
       break;
     case expression_kind::array:
@@ -965,7 +966,7 @@ next:
     }
     expression* rhs = this->parse_expression(
         precedence{.commas = false, .in_operator = prec.in_operator});
-    if (rhs->kind() == expression_kind::_invalid) {
+    if (rhs->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
       });
@@ -1123,7 +1124,7 @@ next:
           .where = question_span,
       });
       true_expression =
-          this->make_expression<expression::_invalid>(source_code_span(
+          this->make_expression<expression::_missing>(source_code_span(
               this->lexer_.end_of_previous_token(), this->peek().begin));
     } else {
       true_expression = this->parse_expression();
@@ -1138,7 +1139,7 @@ next:
               .question = question_span,
           });
       expression* false_expression =
-          this->make_expression<expression::_invalid>(expected_colon);
+          this->make_expression<expression::_missing>(expected_colon);
       return this->make_expression<expression::conditional>(
           condition, true_expression, false_expression);
     }
@@ -1146,7 +1147,7 @@ next:
     this->skip();
 
     expression* false_expression = this->parse_expression(prec);
-    if (false_expression->kind() == expression_kind::_invalid) {
+    if (false_expression->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = colon_span,
       });
@@ -1279,6 +1280,7 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::_class:
   case expression_kind::_delete:
   case expression_kind::_invalid:
+  case expression_kind::_missing:
   case expression_kind::_new:
   case expression_kind::_template:
   case expression_kind::_typeof:
@@ -1423,7 +1425,7 @@ expression* parser::parse_index_expression_remainder(expression* lhs) {
   const char8* end;
   switch (this->peek().type) {
   case token_type::right_square:
-    if (subscript->kind() == expression_kind::_invalid) {
+    if (subscript->kind() == expression_kind::_missing) {
       // expr[]  // Invalid.
       source_code_span right_square_span = this->peek().span();
       this->error_reporter_->report(error_indexing_requires_expression{
@@ -1703,7 +1705,7 @@ expression* parser::parse_object_literal() {
         case token_type::number:
         case token_type::string: {
           expression* value =
-              this->make_expression<expression::_invalid>(key_token.span());
+              this->make_expression<expression::_missing>(key_token.span());
           this->error_reporter_->report(
               error_invalid_lone_literal_in_object_literal{key_token.span()});
           entries.emplace_back(key, value);
@@ -1712,7 +1714,7 @@ expression* parser::parse_object_literal() {
 
         QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD : {
           expression* value =
-              this->make_expression<expression::_invalid>(key_token.span());
+              this->make_expression<expression::_missing>(key_token.span());
           this->error_reporter_->report(
               error_missing_value_for_object_literal_entry{
                   .key = key_token.span()});
@@ -2014,7 +2016,7 @@ expression* parser::parse_object_literal() {
         source_code_span key_span(left_square_span.begin(),
                                   this->lexer_.end_of_previous_token());
         expression* value =
-            this->make_expression<expression::_invalid>(key_span);
+            this->make_expression<expression::_missing>(key_span);
         this->error_reporter_->report(
             error_missing_value_for_object_literal_entry{.key = key_span});
         entries.emplace_back(key, value);
