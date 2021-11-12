@@ -282,7 +282,7 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"2+"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, ?)");
+    EXPECT_EQ(summarize(ast), "binary(literal, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_operand_for_operator, where,
@@ -292,7 +292,7 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"^2"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(?, literal)");
+    EXPECT_EQ(summarize(ast), "binary(missing, literal)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 0, u8"^"))));
@@ -306,7 +306,7 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
     SCOPED_TRACE(out_string8(code));
     test_parser p(code);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "upassign(?, literal)");
+    EXPECT_EQ(summarize(ast), "upassign(missing, literal)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 0, op))));
@@ -315,7 +315,7 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"2 * * 2"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, ?, literal)");
+    EXPECT_EQ(summarize(ast), "binary(literal, missing, literal)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_operand_for_operator, where,
@@ -325,7 +325,7 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"2 & & & 2"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, ?, ?, literal)");
+    EXPECT_EQ(summarize(ast), "binary(literal, missing, missing, literal)");
 
     EXPECT_THAT(
         p.errors(),
@@ -340,7 +340,7 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"(2*)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, ?)");
+    EXPECT_EQ(summarize(ast), "binary(literal, missing)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 2, u8"*"))));
@@ -499,7 +499,7 @@ TEST_F(test_parse_expression, conditional_expression_with_missing_condition) {
   {
     test_parser p(u8"? b : c"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(?, var b, var c)");
+    EXPECT_EQ(summarize(ast), "cond(missing, var b, var c)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 0, u8"?"))));
@@ -513,7 +513,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"a ? : c"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, ?, var c)");
+    EXPECT_EQ(summarize(ast), "cond(var a, missing, var c)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_operand_for_operator, where,
@@ -528,7 +528,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"a ? b : "_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, ?)");
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_operand_for_operator, where,
@@ -541,7 +541,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"(a ? b :)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, ?)");
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_operand_for_operator, where,
@@ -557,7 +557,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"a ? b "_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, ?)");
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(ERROR_TYPE_2_FIELDS(
@@ -571,7 +571,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"a ? b c"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, ?)");
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(ERROR_TYPE_2_FIELDS(
@@ -585,7 +585,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"(a ? b)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, ?)");
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(ERROR_TYPE_2_FIELDS(
@@ -786,7 +786,7 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
   {
     test_parser p(u8".;"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "dot(?, )");
+    EXPECT_EQ(summarize(ast), "dot(missing, )");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(
@@ -872,7 +872,7 @@ TEST_F(test_parse_expression, empty_indexing_expression) {
   {
     test_parser p(u8"xs[]"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "index(var xs, ?)");
+    EXPECT_EQ(summarize(ast), "index(var xs, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_indexing_requires_expression, squares,
@@ -1542,7 +1542,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
   {
     test_parser p(u8"--"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "rwunary(?)");
+    EXPECT_EQ(summarize(ast), "rwunary(missing)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 0, u8"--"))));
@@ -1551,7 +1551,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
   {
     test_parser p(u8"++;"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "rwunary(?)");
+    EXPECT_EQ(summarize(ast), "rwunary(missing)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 0, u8"++"))));
@@ -1560,7 +1560,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
   {
     test_parser p(u8"(-)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "unary(?)");
+    EXPECT_EQ(summarize(ast), "unary(missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_operand_for_operator, where,
@@ -1570,7 +1570,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
   {
     test_parser p(u8"!;"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "unary(?)");
+    EXPECT_EQ(summarize(ast), "unary(missing)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 0, u8"!"))));
@@ -1580,7 +1580,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
     test_parser p(u8"await}"_sv);
     auto guard = p.parser().enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "await(?)");
+    EXPECT_EQ(summarize(ast), "await(missing)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 0, u8"await"))));
@@ -2129,7 +2129,7 @@ TEST_F(test_parse_expression,
     {
       test_parser p(u8"{" + keyword + u8"}");
       expression* ast = p.parse_expression();
-      EXPECT_EQ(summarize(ast), "object(literal, ?)");
+      EXPECT_EQ(summarize(ast), "object(literal, missing)");
       EXPECT_THAT(p.errors(),
                   ElementsAre(ERROR_TYPE_FIELD(
                       error_missing_value_for_object_literal_entry, key,
@@ -2139,7 +2139,7 @@ TEST_F(test_parse_expression,
     {
       test_parser p(u8"{" + keyword + u8", other}");
       expression* ast = p.parse_expression();
-      EXPECT_EQ(summarize(ast), "object(literal, ?, literal, var other)");
+      EXPECT_EQ(summarize(ast), "object(literal, missing, literal, var other)");
       EXPECT_THAT(p.errors(),
                   ElementsAre(ERROR_TYPE_FIELD(
                       error_missing_value_for_object_literal_entry, key,
@@ -2244,7 +2244,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{1234}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, ?)");
+    EXPECT_EQ(summarize(ast), "object(literal, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_invalid_lone_literal_in_object_literal, where,
@@ -2254,7 +2254,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{'x'}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, ?)");
+    EXPECT_EQ(summarize(ast), "object(literal, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_invalid_lone_literal_in_object_literal, where,
@@ -2339,7 +2339,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{ [x] }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var x, ?)");
+    EXPECT_EQ(summarize(ast), "object(var x, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_value_for_object_literal_entry, key,
@@ -2349,7 +2349,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{ [x], other }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var x, ?, literal, var other)");
+    EXPECT_EQ(summarize(ast), "object(var x, missing, literal, var other)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_value_for_object_literal_entry, key,
@@ -2524,7 +2524,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"{ [key]; other }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var key, ?, literal, var other)");
+    EXPECT_EQ(summarize(ast), "object(var key, missing, literal, var other)");
     EXPECT_THAT(p.errors(),
                 UnorderedElementsAre(
                     ERROR_TYPE_FIELD(
@@ -2572,7 +2572,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"{ [key]< other }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var key, ?, literal, var other)");
+    EXPECT_EQ(summarize(ast), "object(var key, missing, literal, var other)");
     EXPECT_THAT(p.errors(),
                 UnorderedElementsAre(
                     ERROR_TYPE_FIELD(
@@ -3134,7 +3134,34 @@ TEST_F(test_parse_expression, invalid_parentheses) {
   {
     test_parser p(u8"()"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "?");
+    EXPECT_EQ(summarize(ast), "invalid");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_missing_expression_between_parentheses,
+            left_paren_to_right_paren, offsets_matcher(p.code(), 0, u8"()"),  //
+            left_paren, offsets_matcher(p.code(), 0, u8"("),                  //
+            right_paren, offsets_matcher(p.code(), strlen(u8"("), u8")"))));
+  }
+
+  {
+    test_parser p(u8"x = ()"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "assign(var x, invalid)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_missing_expression_between_parentheses,
+            left_paren_to_right_paren,
+            offsets_matcher(p.code(), strlen(u8"x = "), u8"()"),             //
+            left_paren, offsets_matcher(p.code(), strlen(u8"x = "), u8"("),  //
+            right_paren, offsets_matcher(p.code(), strlen(u8"x = ("), u8")"))));
+  }
+
+  {
+    test_parser p(u8"() = x"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "assign(invalid, var x)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(ERROR_TYPE_3_FIELDS(
@@ -3149,7 +3176,7 @@ TEST_F(test_parse_expression, invalid_keyword_in_expression) {
   {
     test_parser p(u8"debugger"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "?");
+    EXPECT_EQ(summarize(ast), "invalid");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_unexpected_token, token,
                                 offsets_matcher(p.code(), 0, u8"debugger"))));
@@ -3368,7 +3395,7 @@ TEST_F(test_parse_expression, jsx_is_not_supported) {
                               offsets_matcher(p.code(), 0, u8"<"))));
   EXPECT_EQ(p.range(ast).begin_offset(), 0);
   EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"<MyComponent"));
-  EXPECT_EQ(summarize(ast), "binary(?, var MyComponent)");
+  EXPECT_EQ(summarize(ast), "binary(missing, var MyComponent)");
 }
 
 std::string summarize(const expression& expression) {
@@ -3403,7 +3430,9 @@ std::string summarize(const expression& expression) {
   case expression_kind::_delete:
     return "delete(" + summarize(expression.child_0()) + ")";
   case expression_kind::_invalid:
-    return "?";
+    return "invalid";
+  case expression_kind::_missing:
+    return "missing";
   case expression_kind::_new:
     return "new(" + children() + ")";
   case expression_kind::_template:

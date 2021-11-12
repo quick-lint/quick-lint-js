@@ -728,6 +728,7 @@ class parser {
     };
     switch (ast->kind()) {
     case expression_kind::_invalid:
+    case expression_kind::_missing:
     case expression_kind::import:
     case expression_kind::literal:
     case expression_kind::new_target:
@@ -3600,6 +3601,7 @@ class parser {
     // function f(#bananas) {}  // Invalid.
     // function f(:) {}  // Invalid.
     case expression_kind::_invalid:
+    case expression_kind::_missing:
     case expression_kind::private_variable:
       // parse_expression already reported an error. Don't report another error
       // here.
