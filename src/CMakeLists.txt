@@ -254,6 +254,19 @@ if (TARGET quick-lint-js-licenses)
   )
 endif ()
 
+add_library(
+  quick-lint-js-boost-json
+  INTERFACE
+  #quick-lint-js/boost-json.h
+)
+target_include_directories(quick-lint-js-boost-json INTERFACE .)
+target_link_libraries(
+  quick-lint-js-boost-json
+  INTERFACE
+  boost_json
+  quick-lint-js-lib
+)
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
 #
