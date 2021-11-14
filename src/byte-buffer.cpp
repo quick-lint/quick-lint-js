@@ -51,10 +51,6 @@ byte_buffer::size_type& chunk_size(byte_buffer_chunk& c) noexcept {
 #endif
 }
 
-const std::byte* chunk_end(const byte_buffer_chunk& c) noexcept {
-  return chunk_begin(c) + chunk_size(c);
-}
-
 std::byte* chunk_end(byte_buffer_chunk& c) noexcept {
   return chunk_begin(c) + chunk_size(c);
 }
@@ -152,18 +148,10 @@ bool byte_buffer::empty() const noexcept {
 
 void byte_buffer::copy_to(void* raw_out) const {
   std::byte* out = reinterpret_cast<std::byte*>(raw_out);
-  for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size();
-       ++chunk_index) {
-    const byte_buffer_chunk* c = &this->chunks_[chunk_index];
-    const std::byte* c_begin = chunk_begin(*c);
-    const std::byte* c_end;
-    if (chunk_index == this->chunks_.size() - 1) {
-      c_end = this->cursor_;
-    } else {
-      c_end = chunk_end(*c);
-    }
-    out = std::copy(c_begin, c_end, out);
-  }
+  this->enumerate_chunks(
+      [&](const std::byte* c_begin, const std::byte* c_end) -> void {
+        out = std::copy(c_begin, c_end, out);
+      });
 }
 
 byte_buffer_iovec byte_buffer::to_iovec() && {
