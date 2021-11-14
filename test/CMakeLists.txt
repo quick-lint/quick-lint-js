@@ -101,6 +101,7 @@ target_link_libraries(
   gmock
   gmock_main
   gtest
+  quick-lint-js-boost-json
   quick-lint-js-lib
 )
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
