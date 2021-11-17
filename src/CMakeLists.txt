@@ -256,15 +256,15 @@ if (TARGET quick-lint-js-licenses)
   )
 endif ()
 
-add_library(
+quick_lint_js_add_library(
   quick-lint-js-boost-json
-  INTERFACE
-  #quick-lint-js/boost-json.h
+  boost-json.cpp
+  quick-lint-js/boost-json.h
 )
-target_include_directories(quick-lint-js-boost-json INTERFACE .)
+target_include_directories(quick-lint-js-boost-json PUBLIC .)
 target_link_libraries(
   quick-lint-js-boost-json
-  INTERFACE
+  PUBLIC
   boost_json
   quick-lint-js-lib
 )

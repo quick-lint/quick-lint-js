@@ -40,6 +40,13 @@ template <class... Keys>
                              Keys &&... keys) {
   return look_up_impl<Keys...>::look_up(root, std::forward<Keys>(keys)...);
 }
+
+::boost::json::array *if_array(::boost::json::object &,
+                               ::boost::json::string_view key);
+bool *if_bool(::boost::json::object &, ::boost::json::string_view key);
+std::int64_t *if_int64(::boost::json::object &, ::boost::json::string_view key);
+::boost::json::string *if_string(::boost::json::object &,
+                                 ::boost::json::string_view key);
 }
 
 #endif

@@ -1,35 +1,32 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_STRING_VIEW_H
-#define QUICK_LINT_JS_STRING_VIEW_H
+#ifndef QUICK_LINT_JS_BENCHMARK_CONFIG_H
+#define QUICK_LINT_JS_BENCHMARK_CONFIG_H
 
-#include <string_view>
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <vector>
 
 namespace quick_lint_js {
-template <class Char>
-inline bool starts_with(std::basic_string_view<Char> haystack,
-                        std::basic_string_view<Char> needle) noexcept {
-  return haystack.substr(0, needle.size()) == needle;
-}
+struct benchmark_config_server {
+  std::string name;
+  std::vector<std::string> command;
+  std::optional<std::string> cwd;
+  bool allow_incremental_changes = true;
+  std::int64_t diagnostics_messages_to_ignore = 0;
+  std::string initialization_options_json = "{}";
+  bool need_files_on_disk = false;
+  bool wait_for_empty_diagnostics_on_open = true;
+  std::string workspace_configuration_json = "{}";
+};
 
-inline bool ends_with(std::string_view haystack,
-                      std::string_view needle) noexcept {
-  return haystack.size() >= needle.size() &&
-         haystack.substr(haystack.size() - needle.size()) == needle;
-}
+struct benchmark_config {
+  std::vector<benchmark_config_server> servers;
 
-inline std::string_view remove_suffix_if_present(
-    std::string_view s, std::string_view suffix) noexcept {
-  if (ends_with(s, suffix)) {
-    s.remove_suffix(suffix.size());
-  }
-  return s;
-}
-
-inline bool contains(std::string_view haystack, std::string_view needle) {
-  return haystack.find(needle) != haystack.npos;
-}
+  static benchmark_config load_from_file(const char* config_path);
+};
 }
 
 #endif
