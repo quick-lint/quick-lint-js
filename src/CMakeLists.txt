@@ -32,6 +32,7 @@ install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
 quick_lint_js_add_library(
   quick-lint-js-lib
+  arg-parser.cpp
   assert.cpp
   basic-configuration-filesystem.cpp
   boost.cpp
@@ -83,6 +84,7 @@ quick_lint_js_add_library(
   pipe-writer.cpp
   pipe.cpp
   quick-lint-js/allocator.h
+  quick-lint-js/arg-parser.h
   quick-lint-js/assert.h
   quick-lint-js/basic-configuration-filesystem.h
   quick-lint-js/bit.h
