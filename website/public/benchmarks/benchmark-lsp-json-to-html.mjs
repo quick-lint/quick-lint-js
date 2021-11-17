@@ -118,15 +118,17 @@ unchecked: linear X axis (emphasizing time)."
   `;
 }
 
-export function parseCriterionJSON(criterionJSONFile) {
-  let criterion = JSON.parse(fs.readFileSync(criterionJSONFile, "utf-8"));
+export function parseBenchmarkLSPJSON(benchmarkLSPJSONFile) {
+  let benchmarkResults = JSON.parse(
+    fs.readFileSync(benchmarkLSPJSONFile, "utf-8")
+  );
   let seriess = [];
-  for (let series of criterion[2]) {
-    let name = series.reportName.split("/")[0];
-    let meanData = series.reportAnalysis.anMean;
-    let mean = meanData.estPoint;
-    let min = mean - meanData.estError.confIntLDX;
-    let max = mean + meanData.estError.confIntUDX;
+  for (let series of benchmarkResults.data) {
+    let name = series.benchmarkName.split("/")[0];
+    let durations = series.samples.durationPerIteration;
+    let mean = average(durations);
+    let min = Math.min(...durations);
+    let max = Math.max(...durations);
     seriess.push(
       new Series({
         name: name,
@@ -142,6 +144,10 @@ export function parseCriterionJSON(criterionJSONFile) {
     return 0;
   });
   return seriess;
+}
+
+function average(numbers) {
+  return numbers.reduce((a, b) => a + b, 0) / numbers.length;
 }
 
 class Series {
