@@ -7,7 +7,6 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/string-view.h>
-#include <string>
 #include <string_view>
 
 using namespace std::literals::string_view_literals;
@@ -35,8 +34,8 @@ bool arg_parser::match_flag_shorthand(char option_shorthand) noexcept {
   if (!this->option_.has_value()) {
     return false;
   }
-  bool matches = this->option_->arg_key == std::string{'-', option_shorthand};
-
+  std::string_view arg = this->option_->arg_key;
+  bool matches = arg.size() == 2 && arg[0] == '-' && arg[1] == option_shorthand;
   if (matches) {
     this->advance(1);
   }
