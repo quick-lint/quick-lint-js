@@ -41,6 +41,12 @@ header nav.main-nav li .current-page {
   padding: var(--nav-entry-padding);
 }
 
+/* Make the nav more compact by hiding all sub-nav entries except the current
+   one. */
+header nav.main-nav li li a:link {
+  display: none;
+}
+
 /* For sub-nav entries, show bullets (circles) connected with a vertical
    line. This visually groups the sub-nav entries under its parent nav entry.
 
@@ -60,7 +66,7 @@ header nav.main-nav li li a:link:before,
 header nav.main-nav li li .current-page:before {
   /* Vertical line */
   background-color: var(--bullets-line-color);
-  bottom: 0;
+  bottom: 50%;
   content: " ";
   display: inline-block;
   position: absolute;
@@ -92,11 +98,6 @@ header nav.main-nav li li a:link:after {
 }
 header nav.main-nav li li .current-page:after {
   background-color: var(--bullets-current-color);
-}
-header nav.main-nav li li:nth-last-child(1) a:link:before,
-header nav.main-nav li li:nth-last-child(1) .current-page:before {
-  /* Don't extend the vertical line past the bottom (last) bullet. */
-  bottom: 50%;
 }
 header nav.main-nav li li:first-child a:link:before,
 header nav.main-nav li li:first-child .current-page:before {
@@ -427,6 +428,17 @@ kbd.keystroke {
       --bullets-line-color: #073642;
       --bullets-link-color: #073642;
     }
+  }
+
+  /* Extend the vertical line through each bullet (but not the last bullet). */
+  .side-bar-nav header nav.main-nav li li:not(:nth-last-child(1)) a:link:before,
+  .side-bar-nav
+    header
+    nav.main-nav
+    li
+    li:not(:nth-last-child(1))
+    .current-page:before {
+    bottom: 0;
   }
 }
 
