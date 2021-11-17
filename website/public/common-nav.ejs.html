@@ -14,7 +14,8 @@
     if (/^\w+:/.test(uri)) {
       return uri;
     }
-    return path.posix.relative(currentURI, uri) + "/";
+    let suffix = uri.endsWith("/") ? "/" : "";
+    return path.posix.relative(currentURI, uri) + suffix;
   }
 
   let navigationPages = [
@@ -163,8 +164,18 @@
 <% } else { %>
 <h1><a href="<%= makeRelativeURI('/') %>">quick-lint-js</a></h1>
 <% } %> <% if (!locals.hideTagLine) { %>
-<p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
+<p class="tag-line">
+  quick-lint-js finds bugs in <br class="suggested-break" />JavaScript programs.
+</p>
 <% } %>
+<img
+  class="mascot"
+  src="<%= makeRelativeURI('/dusty.svg') %>"
+  title="Dusty"
+  alt=""
+  width="111"
+  height="86"
+/>
 
 <nav class="main-nav">
   <ul>
