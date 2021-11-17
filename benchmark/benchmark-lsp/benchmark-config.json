@@ -28,10 +28,6 @@
     {
       "name": "Deno-nolint",
       "command": ["deno", "lsp"],
-      "broken": [
-        "change-wait/tiny.js",
-        "open-wait-close/tiny.js"
-      ],
       "diagnosticsMessagesToIgnore": 1,
       "initializationOptions": {
         "enable": true,
