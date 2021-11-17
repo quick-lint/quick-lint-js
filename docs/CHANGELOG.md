@@ -40,8 +40,6 @@ Beta release.
 * Various crashes on invalid code have been fixed.
 * quick-lint-js consumes less memory for pathological code patterns.
 * VS Code: The extension no longer tries to load an ARM64 DLL on Windows x64.
-* VS Code and LSP server: In Windows debug builds, crashes no longer occur
-  spuriously when the filesystem changes.
 * The npm package and the manual builds are now much smaller and faster. (They
   were previously compiled in debug, unoptimized mode.)
 * `delete x` no longer reports a warning if `x` is a global variable.
