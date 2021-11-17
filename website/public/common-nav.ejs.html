@@ -160,6 +160,14 @@
   //%>
 </script>
 
+<% if (currentURI === "/") { %>
+<h1>quick-lint-js</h1>
+<% } else { %>
+<h1><a href="<%= makeRelativeURI('/') %>">quick-lint-js</a></h1>
+<% } %> <% if (!locals.hideTagLine) { %>
+<p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
+<% } %>
+
 <nav class="main-nav">
   <ul>
     <% if (currentURI !== "/") { %>
