@@ -11,6 +11,9 @@ International. See [LICENSE.txt](LICENSE.txt) for details.
   the left.
 * [`dusty-right.svg`](dusty-right.svg): quick-lint-js' mascot, Dusty, facing to
   the right.
+* [`dusty-right-200x200.png`](dusty-right-200x200.png): `dusty-right.svg` padded
+  and rasterized as a 200x200-pixel PNG. Used as quick-lint GitHub organization
+  icon.
 * [`dusty-right-256x256.png`](dusty-right-256x256.png): `dusty-right.svg` padded
   and rasterized as a 256x256-pixel PNG.
 * [`dusty-favicon.svg`](dusty-favicon.svg): quick-lint-js' mascot, Dusty,
