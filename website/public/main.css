@@ -114,7 +114,8 @@ header nav.main-nav li li:first-child .current-page:before {
 }
 
 header {
-  --mascot-height: calc(3rem + (2rem * 1.2));
+  --tag-line-height: calc(2rem * 1.2);
+  --mascot-height: calc(3rem + var(--tag-line-height));
   --mascot-width: var(--mascot-height) / 874.176 * 1126.752;
   display: grid;
   grid-template-areas:
@@ -122,7 +123,7 @@ header {
     "mascot tag-line main-nav"
     "breadcrumbs breadcrumbs main-nav";
   grid-template-columns: calc(var(--mascot-width) + 0.5rem) auto auto;
-  grid-template-rows: auto auto auto;
+  grid-template-rows: auto var(--tag-line-height) auto;
 }
 header > h1 {
   grid-area: title;
