@@ -1,4 +1,4 @@
-# ADR011: IO errors
+# ADR012: Assertions
 
 **Status**: Accepted and active.
 
