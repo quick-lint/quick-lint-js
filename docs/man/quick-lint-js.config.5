@@ -38,8 +38,6 @@ quick-lint-js.config \- configuration file for *quick\-lint\-js*(1)
 .SH "SYNOPSIS"
 .sp
 \f(CRquick\-lint\-js.config\fP
-.br
-\f(CR.quick\-lint\-js.config\fP
 .SH "DESCRIPTION"
 .sp
 The
@@ -138,18 +136,6 @@ If so, use it as the configuration file and stop.
 .  sp -1
 .  IP " 2." 4.2
 .\}
-Check if the file \f(CR.quick\-lint\-js.config\fP exists.
-If so, use it as the configuration file and stop.
-.RE
-.sp
-.RS 4
-.ie n \{\
-\h'-04' 3.\h'+01'\c
-.\}
-.el \{\
-.  sp -1
-.  IP " 3." 4.2
-.\}
 Go to step 5.
 .RE
 .RE
@@ -187,8 +173,7 @@ Remove the last component of the \fIcurrent directory\fP.
 Go to step 4.
 .RE
 .sp
-In short, quick\-lint\-js looks for \f(CRquick\-lint\-js.config\fP or \f(CR.quick\-lint\-js.config\fP in ancestor directories.
-If multiple files are found, \f(CRquick\-lint\-js.config\fP is used.
+In short, quick\-lint\-js looks for \f(CRquick\-lint\-js.config\fP in ancestor directories.
 .sp
 If no configuration file is found, quick\-lint\-js behaves as if a \f(CRquick\-lint\-js.config\fP file was found with contents \f(CR{}\fP.
 .sp
@@ -198,9 +183,9 @@ can be given to
 \fBquick\-lint\-js\fP(1).
 .SH "FORMAT"
 .sp
-\f(CRquick\-lint\-js.config\fP and \f(CR.quick\-lint\-js.config\fP files contain UTF\-8\-encoded JSON (per RFC 8259).
+\f(CRquick\-lint\-js.config\fP files contain UTF\-8\-encoded JSON (per RFC 8259).
 The top\-level object contains quick\-lint\-js configuration properties.
-A \f(CRquick\-lint\-js.config\fP or \f(CR.quick\-lint\-js.config\fP file with no configuration looks like this:
+A \f(CRquick\-lint\-js.config\fP file with no configuration looks like this:
 .sp
 .if n .RS 4
 .nf
@@ -210,7 +195,7 @@ A \f(CRquick\-lint\-js.config\fP or \f(CR.quick\-lint\-js.config\fP file with no
 .fi
 .if n .RE
 .sp
-\f(CRquick\-lint\-js.config\fP and \f(CR.quick\-lint\-js.config\fP do not support a dedicated comment syntax.
+\f(CRquick\-lint\-js.config\fP do not support a dedicated comment syntax.
 .SH "OPTIONS"
 .sp
 The quick\-lint\-js configuration object can contain one or more of the following keys:

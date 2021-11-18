@@ -708,12 +708,12 @@ TEST_F(test_linting_lsp_server,
        linting_uses_already_opened_shadowing_config_file) {
   this->lint_callback = [&](configuration& config, padded_string_view,
                             string8_view, string8_view, byte_buffer&) {
-    EXPECT_TRUE(config.globals().find(u8"haveConfigWithoutDot"sv));
-    EXPECT_FALSE(config.globals().find(u8"haveConfigWithDot"sv));
+    EXPECT_TRUE(config.globals().find(u8"haveInnerConfig"sv));
+    EXPECT_FALSE(config.globals().find(u8"haveOuterConfig"sv));
   };
 
-  this->fs.create_file(this->fs.rooted(".quick-lint-js.config"),
-                       u8R"({"globals": {"haveConfigWithDot": false}})");
+  this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
+                       u8R"({"globals": {"haveOuterConfig": false}})");
   this->server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -721,10 +721,11 @@ TEST_F(test_linting_lsp_server,
         "params": {
           "textDocument": {
             "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+                   this->fs.file_uri_prefix_8() +
+                   u8R"(inner/quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
-            "text": "{\"globals\": {\"haveConfigWithoutDot\": true}}"
+            "text": "{\"globals\": {\"haveInnerConfig\": true}}"
           }
         }
       })"));
@@ -735,7 +736,7 @@ TEST_F(test_linting_lsp_server,
         "params": {
           "textDocument": {
             "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+                   this->fs.file_uri_prefix_8() + u8R"(inner/test.js",
             "languageId": "javascript",
             "version": 10,
             "text": ""
@@ -1136,7 +1137,7 @@ TEST_F(test_linting_lsp_server,
         "params": {
           "textDocument": {
             "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(.quick-lint-js.config",
+                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"before\": true}}"
@@ -1150,7 +1151,7 @@ TEST_F(test_linting_lsp_server,
         "params": {
           "textDocument": {
             "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js",
+                   this->fs.file_uri_prefix_8() + u8R"(inner/test.js",
             "languageId": "javascript",
             "version": 10,
             "text": "original"
@@ -1158,8 +1159,8 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  // After opening test.js, create quick-lint-js.config which shadows
-  // .quick-lint-js.config.
+  // After opening test.js, create /inner/quick-lint-js.config which shadows
+  // /quick-lint-js.config.
   this->server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -1167,7 +1168,8 @@ TEST_F(test_linting_lsp_server,
         "params": {
           "textDocument": {
             "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(quick-lint-js.config",
+                   this->fs.file_uri_prefix_8() +
+                   u8R"(inner/quick-lint-js.config",
             "languageId": "plaintext",
             "version": 1,
             "text": "{\"globals\": {\"after\": true}}"
@@ -1192,7 +1194,7 @@ TEST_F(test_linting_lsp_server,
           "textDocument": {
             "version": 11,
             "uri": ")" +
-                   this->fs.file_uri_prefix_8() + u8R"(test.js"
+                   this->fs.file_uri_prefix_8() + u8R"(inner/test.js"
           },
           "contentChanges": [
             {
