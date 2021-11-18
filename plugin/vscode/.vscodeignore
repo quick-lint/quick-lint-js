@@ -1,9 +1,11 @@
 **/*
 
 !LICENSE
+!LICENSE-icon.txt
 !PERFORMANCE-TRACING.md
 !README.md
 !dist/*
 !extension.js
+!icon.png
 !package.json
 !performance-writer.js
