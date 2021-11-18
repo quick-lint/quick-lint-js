@@ -12,6 +12,8 @@
 #include <intrin.h>
 #endif
 
+// See ADR012 for rationale on the design of this module.
+
 #define QLJS_UNIMPLEMENTED() QLJS_ALWAYS_ASSERT(false)
 
 #define QLJS_ALWAYS_ASSERT(...)                                               \
