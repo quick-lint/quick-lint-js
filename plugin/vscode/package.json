@@ -40,8 +40,7 @@
       {
         "id": "json",
         "filenames": [
-          "quick-lint-js.config",
-          ".quick-lint-js.config"
+          "quick-lint-js.config"
         ]
       }
     ]

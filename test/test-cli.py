@@ -134,25 +134,24 @@ class TestQuickLintJSCLI(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
 
     def test_automatically_find_config_file(self) -> None:
-        for config_file_name in ("quick-lint-js.config", ".quick-lint-js.config"):
-            with tempfile.TemporaryDirectory() as test_directory:
-                test_file = pathlib.Path(test_directory) / "test.js"
-                test_file.write_text("console.log(myGlobalVariable);")
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("console.log(myGlobalVariable);")
 
-                config_file = pathlib.Path(test_directory) / config_file_name
-                config_file.write_text('{"globals":{"myGlobalVariable": true}}')
+            config_file = pathlib.Path(test_directory) / "quick-lint-js.config"
+            config_file.write_text('{"globals":{"myGlobalVariable": true}}')
 
-                result = subprocess.run(
-                    [
-                        get_quick_lint_js_executable_path(),
-                        str(test_file),
-                    ],
-                    capture_output=True,
-                    encoding="utf-8",
-                )
-                self.assertEqual(result.stderr, "")
-                self.assertEqual(result.stdout, "")
-                self.assertEqual(result.returncode, 0)
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    str(test_file),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.stderr, "")
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.returncode, 0)
 
     def test_stdin_does_not_automatically_find_config_file(self) -> None:
         with tempfile.TemporaryDirectory() as test_directory:

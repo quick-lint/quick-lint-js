@@ -182,39 +182,34 @@ configuration_loader::find_config_file_in_directory_and_ancestors(
   // config path: ./quick-lint-js.config
 
   for (;;) {
-    for (const std::string_view& file_name : {
-             "quick-lint-js.config"sv,
-             ".quick-lint-js.config"sv,
-         }) {
-      canonical_path config_path = parent_directory;
-      config_path.append_component(file_name);
-      QLJS_ASSERT(this->is_config_file_path(config_path.c_str()));
+    canonical_path config_path = parent_directory;
+    config_path.append_component("quick-lint-js.config"sv);
+    QLJS_ASSERT(this->is_config_file_path(config_path.c_str()));
 
-      if (loaded_config_file* config_file =
-              this->get_loaded_config(config_path)) {
-        return found_config_file{
-            .path = std::move(config_path),
-            .already_loaded = config_file,
-            .file_content = padded_string(),
-        };
-      }
-
-      result<padded_string, read_file_io_error> config_json =
-          this->fs_->read_file(config_path);
-      if (!config_json.ok()) {
-        if (config_json.error().io_error.is_file_not_found_error()) {
-          // Loop, looking for a different file.
-          continue;
-        }
-        return config_json.propagate();
-      }
+    if (loaded_config_file* config_file =
+            this->get_loaded_config(config_path)) {
       return found_config_file{
           .path = std::move(config_path),
-          .already_loaded = nullptr,
-          .file_content = std::move(*config_json),
+          .already_loaded = config_file,
+          .file_content = padded_string(),
       };
     }
 
+    result<padded_string, read_file_io_error> config_json =
+        this->fs_->read_file(config_path);
+    if (!config_json.ok()) {
+      if (config_json.error().io_error.is_file_not_found_error()) {
+        goto not_found;
+      }
+      return config_json.propagate();
+    }
+    return found_config_file{
+        .path = std::move(config_path),
+        .already_loaded = nullptr,
+        .file_content = std::move(*config_json),
+    };
+
+  not_found:
     // Loop, looking in parent directories.
     if (!parent_directory.parent()) {
       // We searched the root directory which has no parent.
@@ -498,9 +493,7 @@ bool configuration_loader::is_config_file_path(
 #define QLJS_PREFERRED_PATH_SEPARATOR "/"
 #endif
   return ends_with(file_path,
-                   QLJS_PREFERRED_PATH_SEPARATOR "quick-lint-js.config") ||
-         ends_with(file_path,
-                   QLJS_PREFERRED_PATH_SEPARATOR ".quick-lint-js.config");
+                   QLJS_PREFERRED_PATH_SEPARATOR "quick-lint-js.config");
 }
 }
 
