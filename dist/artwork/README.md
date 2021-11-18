@@ -13,5 +13,11 @@ International. See [LICENSE.txt](LICENSE.txt) for details.
   the right.
 * [`dusty-right-256x256.png`](dusty-right-256x256.png): `dusty-right.svg` padded
   and rasterized as a 256x256-pixel PNG.
+* [`dusty-favicon.svg`](dusty-favicon.svg): quick-lint-js' mascot, Dusty,
+  optimized for small rasterization.
+* [`dusty-favicon-16x16.png`](dusty-favicon-16x16.png): `dusty-favicon.svg`
+  rasterized as a 16x16-pixel PNG.
+* [`dusty-favicon-32x32.png`](dusty-favicon-32x32.png): `dusty-favicon.svg`
+  rasterized as a 32x32-pixel PNG.
 * [`dusty-color-guide.png`](dusty-color-guide.png): Dusty reference colors for
   color-matching.
