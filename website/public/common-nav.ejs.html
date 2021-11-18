@@ -6,17 +6,8 @@
 <script>
   //<%
   let ejs = await import("ejs");
-  let path = await import("path");
   let url = await import("url");
   let { html } = await import(url.pathToFileURL("../src/html-tag.mjs"));
-
-  function makeRelativeURI(uri) {
-    if (/^\w+:/.test(uri)) {
-      return uri;
-    }
-    let suffix = uri.endsWith("/") ? "/" : "";
-    return path.posix.relative(currentURI, uri) + suffix;
-  }
 
   let navigationPages = [
     {
