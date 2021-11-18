@@ -21,3 +21,8 @@ International. See [LICENSE.txt](LICENSE.txt) for details.
   rasterized as a 32x32-pixel PNG.
 * [`dusty-color-guide.png`](dusty-color-guide.png): Dusty reference colors for
   color-matching.
+* [`dusty-app.ico`](dusty-app.ico): Icon used for the Windows app. Generated
+  with the following command (needs
+  [iconutils](https://www.nongnu.org/icoutils/)):
+
+    $ icotool --create dusty-right-256x256.png dusty-favicon-32x32.png dusty-favicon-16x16.png --out dusty-app.ico

@@ -19,9 +19,16 @@ if (NEED_THREADS)
   find_package(Threads REQUIRED)
 endif ()
 
+set(EXTRA_SOURCES)
+if (WIN32)
+  list(APPEND EXTRA_SOURCES quick-lint-js.rc)
+  # TODO(strager): Add a dependency on dusty-icon.ico which is referenced by
+  # quick-lint-js.rc.
+endif ()
 quick_lint_js_add_executable(
   quick-lint-js
   main.cpp
+  ${EXTRA_SOURCES}
 )
 set_target_properties(quick-lint-js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
 target_link_libraries(quick-lint-js PRIVATE quick-lint-js-lib)
