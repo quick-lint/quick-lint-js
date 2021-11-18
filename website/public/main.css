@@ -368,7 +368,14 @@ kbd.keystroke {
     color: #eee8d5;
   }
   .side-bar-nav header nav.main-nav li a:hover {
-    background-color: #586e75;
+    --hover-background-color: #586e75;
+    background-color: var(--hover-background-color);
+    background: linear-gradient(
+      to left,
+      var(--hover-background-color) 0,
+      var(--hover-background-color) calc(var(--side-bar-width) + 1rem),
+      rgba(0, 0, 0, 0) calc(var(--side-bar-width) + 25rem)
+    );
   }
   @media (prefers-color-scheme: dark) {
     .side-bar-nav header nav.main-nav {
@@ -380,7 +387,7 @@ kbd.keystroke {
       color: #073642;
     }
     .side-bar-nav header nav.main-nav li a:hover {
-      background-color: #839496;
+      --hover-background-color: #839496;
     }
   }
 
