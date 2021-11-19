@@ -664,6 +664,12 @@ class expression::assignment final : public expression {
     return this->children_[narrow_cast<unsigned>(index)];
   }
 
+  void set_child(int index, expression *new_child) noexcept {
+    QLJS_ASSERT(index >= 0);
+    QLJS_ASSERT(index < static_cast<int>(this->children_.size()));
+    this->children_[narrow_cast<unsigned>(index)] = new_child;
+  }
+
   source_code_span span_impl() const noexcept {
     return source_code_span(this->children_.front()->span().begin(),
                             this->children_.back()->span().end());
