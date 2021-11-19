@@ -1027,7 +1027,7 @@ TEST(test_parse, while_without_body) {
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_body_for_while_statement, while_and_condition,
-                    offsets_matcher(&code, 0, u8"while (cond)"))));
+                    offsets_matcher(&code, strlen(u8"while (cond)"), u8""))));
   }
 }
 
