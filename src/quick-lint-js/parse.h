@@ -1878,12 +1878,13 @@ class parser {
       break;
     }
 
-    default:
+    default: {
+      const char8 *here = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_missing_body_for_switch_statement{
-          .switch_and_condition = source_code_span(
-              switch_token_span.begin(), this->lexer_.end_of_previous_token()),
+          .switch_and_condition = source_code_span(here, here),
       });
       return;
+    }
     }
     v.visit_enter_block_scope();
 
