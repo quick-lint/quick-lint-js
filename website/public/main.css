@@ -23,6 +23,9 @@ h1 {
   margin-top: 0;
   margin-bottom: 0;
 }
+h1 a:link {
+  text-decoration: none;
+}
 
 header nav.main-nav {
   margin-top: 0;
@@ -118,7 +121,7 @@ header nav.main-nav li li:first-child .current-page:before {
 }
 
 header {
-  --tag-line-height: calc(1rem + 2rem * 1.2); /* Assumes two lines. */
+  --tag-line-height: calc(0.5rem + 2rem * 1.2); /* Assumes two lines. */
   --title-height: calc(2rem * 1.2); /* Assumes no word-wrapping. */
   --mascot-height: calc(var(--title-height) + var(--tag-line-height));
   --mascot-width: var(--mascot-height) / 874.176 * 1126.752;
@@ -147,13 +150,27 @@ header > nav.breadcrumbs {
 }
 
 header > .tag-line {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   margin-bottom: 0;
 }
 header .mascot {
   align-self: start;
   width: var(--mascot-width);
   height: var(--mascot-height);
+}
+
+/* On smaller screens, put the mascot under the title. */
+@media only screen and (max-width: 32em) {
+  header {
+    --mascot-height: var(--tag-line-height);
+    grid-template-areas:
+      "title title main-nav"
+      "mascot tag-line main-nav"
+      "breadcrumbs breadcrumbs main-nav";
+  }
+  header > .mascot {
+    margin-top: 0.5rem;
+  }
 }
 
 footer,
@@ -470,10 +487,6 @@ kbd.keystroke {
     li:not(:nth-last-child(1))
     .current-page:before {
     bottom: 0;
-  }
-
-  .side-bar-nav .tag-line br.suggested-break {
-    display: none;
   }
 }
 
