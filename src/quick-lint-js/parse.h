@@ -3258,22 +3258,52 @@ class parser {
         QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
         case token_type::equal: {
           token equal_token = this->peek();
-          expression *ast = this->parse_expression_remainder(
-              variable,
-              precedence{.commas = false, .in_operator = allow_in_operator});
-          this->visit_binding_element(
-              ast, v, declaration_kind,
-              /*declaring_token=*/declaring_token.span());
-          bool is_assignment_not_allowed =
-              is_in_for_initializer &&
-              (this->peek().type == token_type::kw_of ||
-               (this->peek().type == token_type::kw_in &&
-                declaration_kind != variable_kind::_var));
-          if (is_assignment_not_allowed) {
+          expression::assignment *assignment_ast =
+              static_cast<expression::assignment *>(
+                  this->parse_expression_remainder(
+                      variable, precedence{.commas = false,
+                                           .in_operator = allow_in_operator}));
+
+          if (is_in_for_initializer && this->peek().type == token_type::kw_in) {
+            // for (var x = "initial" in obj)
+            // for (let x = "prop" in obj)  // Invalid.
+            // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
+            source_code_span in_token_span = this->peek().span();
+            QLJS_ASSERT(!allow_in_operator);
+
+            lexer_transaction transaction = this->lexer_.begin_transaction();
+            expression *in_ast = this->parse_expression_remainder(
+                assignment_ast->child_1(), precedence{.commas = false});
+            if (this->peek().type == token_type::semicolon) {
+              // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
+              this->lexer_.commit_transaction(std::move(transaction));
+              assignment_ast->set_child(1, in_ast);
+              this->error_reporter_->report(
+                  error_in_disallowed_in_c_style_for_loop{
+                      .in_token = in_token_span,
+                  });
+            } else {
+              this->lexer_.roll_back_transaction(std::move(transaction));
+              if (declaration_kind == variable_kind::_var) {
+                // for (var x = "initial" in obj)
+              } else {
+                // for (let x = "prop" in obj)  // Invalid.
+                this->error_reporter_->report(
+                    error_cannot_assign_to_loop_variable_in_for_of_or_in_loop{
+                        .equal_token = equal_token.span()});
+              }
+            }
+          } else if (is_in_for_initializer &&
+                     this->peek().type == token_type::kw_of) {
+            // for (var x = "initial" of obj)  // Invalid.
             this->error_reporter_->report(
                 error_cannot_assign_to_loop_variable_in_for_of_or_in_loop{
                     .equal_token = equal_token.span()});
           }
+
+          this->visit_binding_element(
+              assignment_ast, v, declaration_kind,
+              /*declaring_token=*/declaring_token.span());
           break;
         }
 
