@@ -42,6 +42,15 @@ describe("error documentation", () => {
     expect(doc.titleErrorDescription).toBe("title &#x67;oes here");
   });
 
+  it("title with extra colon", () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "# E123: banana: strawberry: apple\n"
+    );
+    expect(doc.titleErrorCode).toBe("E123");
+    expect(doc.titleErrorDescription).toBe("banana: strawberry: apple");
+  });
+
   it("level 2 heading is not title", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",

@@ -178,7 +178,7 @@ export class ErrorDocumentation {
         case "heading_close":
           if (inTitle) {
             let match = currentBlock.match(
-              /^(?<code>.*):\s*(?<description>.*)$/
+              /^(?<code>.*?):\s*(?<description>.*)$/
             );
             if (match !== null) {
               titleErrorCode = match.groups.code;
