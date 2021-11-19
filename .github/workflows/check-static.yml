@@ -32,11 +32,11 @@ jobs:
         run: |
           if [ -f ./build/src/clang-tidy-output.yml ]; then
             if grep -q "clang-analyzer" ./build/src/clang-tidy-output.yml; then
-              echo "clang-tidy-output.yml contains no errors"
-              exit 0
-            else
               echo "clang-tidy-output.yml contains errors"
               exit 1
+            else
+              echo "clang-tidy-output.yml contains no errors"
+              exit 0
             fi
           else
             echo "clang-tidy-output.yml does not exist"
