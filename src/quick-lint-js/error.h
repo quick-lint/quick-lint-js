@@ -58,6 +58,7 @@
         identifier declaration;                                                \
         identifier assignment;                                                 \
         variable_kind var_kind;                                                \
+        source_code_span assignment_operator;                                  \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE("assignment to const variable"), assignment)     \
           NOTE(QLJS_TRANSLATABLE("const variable declared here"),              \

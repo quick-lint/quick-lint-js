@@ -27,6 +27,7 @@ identifier identifier_of(const char8 (&name)[N]) {
 }
 
 TEST(test_buffering_visitor, buffers_all_visits) {
+  const char8 assignment_operator[] = u8"=";
   const char8 delete_keyword[] = u8"delete";
   const char8 function_name[] = u8"function";
   const char8 property_name[] = u8"property";
@@ -49,7 +50,8 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_keyword_variable_use(identifier_of(variable_name));
   v.visit_property_declaration(std::nullopt);
   v.visit_property_declaration(identifier_of(property_name));
-  v.visit_variable_assignment(identifier_of(variable_name));
+  v.visit_variable_assignment(identifier_of(variable_name),
+                              span_of(assignment_operator));
   v.visit_variable_declaration(identifier_of(variable_name),
                                variable_kind::_var);
   v.visit_variable_delete_use(identifier_of(variable_name),

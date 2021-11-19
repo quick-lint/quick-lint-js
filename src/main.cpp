@@ -292,7 +292,8 @@ class debug_visitor {
     std::cerr << '\n';
   }
 
-  void visit_variable_assignment(identifier name) {
+  void visit_variable_assignment(
+      identifier name, [[maybe_unused]] source_code_span assignment_operator) {
     std::cerr << "variable assignment: " << out_string8(name.normalized_name())
               << '\n';
   }
@@ -406,9 +407,10 @@ class multi_visitor {
     this->visitor_2_->visit_property_declaration(name);
   }
 
-  void visit_variable_assignment(identifier name) {
-    this->visitor_1_->visit_variable_assignment(name);
-    this->visitor_2_->visit_variable_assignment(name);
+  void visit_variable_assignment(identifier name,
+                                 source_code_span assignment_operator) {
+    this->visitor_1_->visit_variable_assignment(name, assignment_operator);
+    this->visitor_2_->visit_variable_assignment(name, assignment_operator);
   }
 
   void visit_variable_declaration(identifier name, variable_kind kind) {

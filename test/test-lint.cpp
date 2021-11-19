@@ -99,13 +99,15 @@ constexpr const char8 *non_writable_global_variables[] = {
 };
 
 TEST(test_lint, global_variables_are_usable) {
+  const char8 assignment_operator[] = u8"=";
   // Array = null;
   // Array;
   for (const char8 *global_variable : writable_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
     error_collector v;
     linter l(&v, &default_globals);
-    l.visit_variable_assignment(identifier_of(global_variable));
+    l.visit_variable_assignment(identifier_of(global_variable),
+                                span_of(assignment_operator));
     l.visit_variable_use(identifier_of(global_variable));
     l.visit_end_of_module();
     EXPECT_THAT(v.errors, IsEmpty());
@@ -123,13 +125,15 @@ TEST(test_lint, global_variables_are_usable) {
 }
 
 TEST(test_lint, immutable_global_variables_are_not_assignable) {
+  const char8 assignment_operator[] = u8"=";
   for (const char8 *global_variable : non_writable_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
 
     // NaN = null;  // ERROR
     error_collector v;
     linter l(&v, &default_globals);
-    l.visit_variable_assignment(identifier_of(global_variable));
+    l.visit_variable_assignment(identifier_of(global_variable),
+                                span_of(assignment_operator));
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
@@ -147,7 +151,8 @@ TEST(test_lint, immutable_global_variables_are_not_assignable) {
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
-    l.visit_variable_assignment(identifier_of(global_variable));
+    l.visit_variable_assignment(identifier_of(global_variable),
+                                span_of(assignment_operator));
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -1000,6 +1005,7 @@ TEST(test_lint, assign_to_mutable_variable) {
         variable_kind::_parameter}) {
     const char8 declaration[] = u8"x";
     const char8 assignment[] = u8"x";
+    const char8 assignment_operator[] = u8"=";
 
     // (() => {
     //   let x;  // x is mutable
@@ -1010,7 +1016,8 @@ TEST(test_lint, assign_to_mutable_variable) {
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(declaration), kind);
-    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_variable_assignment(identifier_of(assignment),
+                                span_of(assignment_operator));
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -1022,6 +1029,7 @@ TEST(test_lint, assign_to_mutable_variable_shadowing_immutable_variable) {
   const char8 immutable_declaration[] = u8"x";
   const char8 mutable_declaration[] = u8"x";
   const char8 assignment[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   // import x from ""; // x is immutable
   // (() => {
@@ -1036,7 +1044,8 @@ TEST(test_lint, assign_to_mutable_variable_shadowing_immutable_variable) {
   l.visit_enter_function_scope_body();
   l.visit_variable_declaration(identifier_of(mutable_declaration),
                                variable_kind::_let);
-  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_assignment(identifier_of(assignment),
+                              span_of(assignment_operator));
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
@@ -1046,6 +1055,7 @@ TEST(test_lint, assign_to_mutable_variable_shadowing_immutable_variable) {
 TEST(test_lint, assign_to_immutable_variable) {
   const char8 declaration[] = u8"x";
   const char8 assignment[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   for (variable_kind kind : {variable_kind::_const, variable_kind::_import}) {
     // (() => {
@@ -1057,15 +1067,18 @@ TEST(test_lint, assign_to_immutable_variable) {
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_declaration(identifier_of(declaration), kind);
-    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_variable_assignment(identifier_of(assignment),
+                                span_of(assignment_operator));
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_3_FIELDS(
-                              error_assignment_to_const_variable,      //
-                              assignment, span_matcher(assignment),    //
-                              declaration, span_matcher(declaration),  //
-                              var_kind, kind)));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_4_FIELDS(
+                    error_assignment_to_const_variable,                      //
+                    assignment, span_matcher(assignment),                    //
+                    declaration, span_matcher(declaration),                  //
+                    assignment_operator, span_matcher(assignment_operator),  //
+                    var_kind, kind)));
   }
 
   for (variable_kind kind : {variable_kind::_const, variable_kind::_import}) {
@@ -1077,7 +1090,8 @@ TEST(test_lint, assign_to_immutable_variable) {
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(declaration), kind);
     l.visit_enter_block_scope();
-    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_variable_assignment(identifier_of(assignment),
+                                span_of(assignment_operator));
     l.visit_exit_block_scope();
     l.visit_end_of_module();
 
@@ -1092,12 +1106,14 @@ TEST(test_lint, assign_to_immutable_variable) {
 TEST(test_lint, assign_to_immutable_variable_before_declaration) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   // x = 42;   // ERROR
   // const x;  // x is immutable
   error_collector v;
   linter l(&v, &default_globals);
-  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_assignment(identifier_of(assignment),
+                              span_of(assignment_operator));
   l.visit_variable_declaration(identifier_of(declaration),
                                variable_kind::_const);
   l.visit_end_of_module();
@@ -1113,6 +1129,7 @@ TEST(test_lint, assign_to_shadowing_immutable_variable_before_declaration) {
   const char8 outer_declaration[] = u8"x";
   const char8 assignment[] = u8"x";
   const char8 inner_declaration[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   // let x;      // x is shadowed.
   // {
@@ -1124,7 +1141,8 @@ TEST(test_lint, assign_to_shadowing_immutable_variable_before_declaration) {
   l.visit_variable_declaration(identifier_of(outer_declaration),
                                variable_kind::_let);
   l.visit_enter_block_scope();
-  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_assignment(identifier_of(assignment),
+                              span_of(assignment_operator));
   l.visit_variable_declaration(identifier_of(inner_declaration),
                                variable_kind::_const);
   l.visit_exit_block_scope();
@@ -1140,6 +1158,7 @@ TEST(test_lint, assign_to_shadowing_immutable_variable_before_declaration) {
 TEST(test_lint, assign_to_immutable_variable_declared_in_parent_scope) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   // const x;   // x is immutable
   // (() => {
@@ -1151,7 +1170,8 @@ TEST(test_lint, assign_to_immutable_variable_declared_in_parent_scope) {
                                variable_kind::_const);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
-  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_assignment(identifier_of(assignment),
+                              span_of(assignment_operator));
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
@@ -1165,6 +1185,7 @@ TEST(test_lint, assign_to_immutable_variable_declared_in_parent_scope) {
 TEST(test_lint, assign_to_immutable_variable_declared_later_in_parent_scope) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   // (() => {
   //   x = 42;  // ERROR
@@ -1174,7 +1195,8 @@ TEST(test_lint, assign_to_immutable_variable_declared_later_in_parent_scope) {
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
-  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_assignment(identifier_of(assignment),
+                              span_of(assignment_operator));
   l.visit_exit_function_scope();
   l.visit_variable_declaration(identifier_of(declaration),
                                variable_kind::_const);
@@ -1192,6 +1214,7 @@ TEST(test_lint,
   const char8 assignment[] = u8"x";
   const char8 outer_declaration[] = u8"x";
   const char8 inner_declaration[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   // let x;
   // {
@@ -1206,7 +1229,8 @@ TEST(test_lint,
                                variable_kind::_let);
   l.visit_enter_block_scope();
   l.visit_enter_block_scope();
-  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_assignment(identifier_of(assignment),
+                              span_of(assignment_operator));
   l.visit_exit_block_scope();
   l.visit_variable_declaration(identifier_of(inner_declaration),
                                variable_kind::_const);
@@ -1223,6 +1247,7 @@ TEST(test_lint,
 TEST(test_lint, assignment_to_const_variable_declared_in_grandparent_scope) {
   const char8 declaration[] = u8"x";
   const char8 assignment[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   // const x;
   // (() => {
@@ -1238,7 +1263,8 @@ TEST(test_lint, assignment_to_const_variable_declared_in_grandparent_scope) {
   l.visit_enter_function_scope_body();
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
-  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_assignment(identifier_of(assignment),
+                              span_of(assignment_operator));
   l.visit_exit_function_scope();
   l.visit_exit_function_scope();
   l.visit_end_of_module();
@@ -1252,11 +1278,13 @@ TEST(test_lint, assignment_to_const_variable_declared_in_grandparent_scope) {
 
 TEST(test_lint, assign_to_undeclared_variable) {
   const char8 assignment[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   // x = null;  // ERROR
   error_collector v;
   linter l(&v, &default_globals);
-  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_assignment(identifier_of(assignment),
+                              span_of(assignment_operator));
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
@@ -1266,6 +1294,7 @@ TEST(test_lint, assign_to_undeclared_variable) {
 
 TEST(test_lint, assign_inside_function_to_undeclared_variable) {
   const char8 assignment[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   // (function() {
   //   x = null;  // ERROR
@@ -1274,7 +1303,8 @@ TEST(test_lint, assign_inside_function_to_undeclared_variable) {
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
-  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_assignment(identifier_of(assignment),
+                              span_of(assignment_operator));
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
@@ -1286,12 +1316,14 @@ TEST(test_lint, assign_inside_function_to_undeclared_variable) {
 TEST(test_lint, assign_to_variable_before_declaration) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   // x = null;
   // let x;     // ERROR
   error_collector v;
   linter l(&v, &default_globals);
-  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_assignment(identifier_of(assignment),
+                              span_of(assignment_operator));
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
   l.visit_end_of_module();
 
@@ -1304,12 +1336,14 @@ TEST(test_lint, assign_to_variable_before_declaration) {
 TEST(test_lint, assign_to_variable_before_hoistable_declaration) {
   const char8 assignment[] = u8"x";
   const char8 declaration[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   // x = null;
   // var x;     // x is hoisted.
   error_collector v;
   linter l(&v, &default_globals);
-  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_assignment(identifier_of(assignment),
+                              span_of(assignment_operator));
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_var);
   l.visit_end_of_module();
 
@@ -1548,6 +1582,7 @@ TEST(
   const char8 outer_declaration[] = u8"v";
   const char8 inner_declaration[] = u8"v";
   const char8 assignment[] = u8"v";
+  const char8 assignment_operator[] = u8"=";
 
   // let v;
   // for (let _ of []) {
@@ -1560,7 +1595,8 @@ TEST(
   l.visit_variable_declaration(identifier_of(outer_declaration),
                                variable_kind::_let);
   l.visit_enter_for_scope();
-  l.visit_variable_assignment(identifier_of(assignment));
+  l.visit_variable_assignment(identifier_of(assignment),
+                              span_of(assignment_operator));
   l.visit_variable_declaration(identifier_of(inner_declaration),
                                variable_kind::_let);
   l.visit_exit_for_scope();
@@ -2377,12 +2413,14 @@ TEST(
   const char8 a_declaration[] = u8"a";
   const char8 b_declaration[] = u8"b";
   const char8 b_assignment[] = u8"b";
+  const char8 assignment_operator[] = u8"=";
 
   error_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
-  l.visit_variable_assignment(identifier_of(b_assignment));
+  l.visit_variable_assignment(identifier_of(b_assignment),
+                              span_of(assignment_operator));
   l.visit_exit_function_scope();
   l.visit_variable_declaration(identifier_of(a_declaration),
                                variable_kind::_const);
@@ -2399,6 +2437,7 @@ TEST(test_lint, with_does_not_propagate_variable_uses) {
   const char8 declaration[] = u8"a";
   const char8 assignment[] = u8"a";
   const char8 use[] = u8"a";
+  const char8 assignment_operator[] = u8"=";
 
   {
     // with({})
@@ -2424,7 +2463,8 @@ TEST(test_lint, with_does_not_propagate_variable_uses) {
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_const);
     l.visit_enter_with_scope();
-    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_variable_assignment(identifier_of(assignment),
+                                span_of(assignment_operator));
     l.visit_exit_with_scope();
     l.visit_end_of_module();
 
@@ -2440,7 +2480,8 @@ TEST(test_lint, with_does_not_propagate_variable_uses) {
     error_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_with_scope();
-    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_variable_assignment(identifier_of(assignment),
+                                span_of(assignment_operator));
     l.visit_exit_with_scope();
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_let);
@@ -2462,7 +2503,8 @@ TEST(test_lint, with_does_not_propagate_variable_uses) {
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_const);
-    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_variable_assignment(identifier_of(assignment),
+                                span_of(assignment_operator));
     l.visit_exit_block_scope();
     l.visit_exit_with_scope();
     l.visit_end_of_module();
@@ -2936,6 +2978,7 @@ TEST(
 TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
   const char8 use_eval[] = u8"eval";
   const char8 use[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   {
     // eval("var x = 42");
@@ -2945,7 +2988,8 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
     linter l(&v, &default_globals);
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_use(identifier_of(use));
-    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use),
+                                span_of(assignment_operator));
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -2963,7 +3007,8 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_exit_block_scope();
     l.visit_variable_use(identifier_of(use));
-    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use),
+                                span_of(assignment_operator));
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -2981,7 +3026,8 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
-    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use),
+                                span_of(assignment_operator));
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -2999,7 +3045,8 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
-    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use),
+                                span_of(assignment_operator));
     l.visit_exit_function_scope();
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_end_of_module();
@@ -3020,10 +3067,12 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
-    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use),
+                                span_of(assignment_operator));
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_use(identifier_of(use));
-    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use),
+                                span_of(assignment_operator));
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -3045,12 +3094,14 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use));
-    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use),
+                                span_of(assignment_operator));
     l.visit_enter_block_scope();
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_exit_block_scope();
     l.visit_variable_use(identifier_of(use));
-    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use),
+                                span_of(assignment_operator));
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -3062,6 +3113,7 @@ TEST(test_lint_eval,
      disable_variable_lookup_in_presence_of_eval_for_limited_scope) {
   const char8 use_eval[] = u8"eval";
   const char8 use[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   {
     // (function() {
@@ -3123,7 +3175,8 @@ TEST(test_lint_eval,
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_exit_function_scope();
     l.visit_variable_use(identifier_of(use));
-    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use),
+                                span_of(assignment_operator));
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -3173,7 +3226,8 @@ TEST(test_lint_eval,
                                  variable_kind::_let);
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_use(identifier_of(use));
-    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use),
+                                span_of(assignment_operator));
     l.visit_end_of_module();
 
     EXPECT_THAT(
@@ -3200,10 +3254,12 @@ TEST(test_lint_eval,
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
-    l.visit_variable_assignment(identifier_of(use_eval));
+    l.visit_variable_assignment(identifier_of(use_eval),
+                                span_of(assignment_operator));
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_use(identifier_of(use));
-    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use),
+                                span_of(assignment_operator));
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(eval_declaration),
                                  variable_kind::_var);
@@ -3223,6 +3279,7 @@ TEST(test_lint_eval,
 TEST(test_lint_eval, false_negatives_on_redeclaration_of_eval) {
   const char8 use_eval[] = u8"eval";
   const char8 use[] = u8"x";
+  const char8 assignment_operator[] = u8"=";
 
   {
     const char8 eval_declaration[] = u8"eval";
@@ -3241,7 +3298,8 @@ TEST(test_lint_eval, false_negatives_on_redeclaration_of_eval) {
     l.visit_enter_function_scope_body();
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_use(identifier_of(use));
-    l.visit_variable_assignment(identifier_of(use));
+    l.visit_variable_assignment(identifier_of(use),
+                                span_of(assignment_operator));
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
@@ -3267,7 +3325,8 @@ TEST(test_lint_eval, false_negatives_on_redeclaration_of_eval) {
                                  variable_kind::_const);
     l.visit_enter_block_scope();
     l.visit_variable_use(identifier_of(use_eval));
-    l.visit_variable_assignment(identifier_of(const_assignment));
+    l.visit_variable_assignment(identifier_of(const_assignment),
+                                span_of(assignment_operator));
     l.visit_exit_block_scope();
     l.visit_exit_function_scope();
     l.visit_end_of_module();

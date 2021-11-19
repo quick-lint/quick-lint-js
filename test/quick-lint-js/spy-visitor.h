@@ -119,7 +119,8 @@ struct spy_visitor : public error_collector {
   };
   std::vector<visited_property_declaration> property_declarations;
 
-  void visit_variable_assignment(identifier name) {
+  void visit_variable_assignment(identifier name,
+                                 source_code_span assignment_operator) {
     this->variable_assignments.emplace_back(
         visited_variable_assignment{string8(name.normalized_name())});
     this->visits.emplace_back("visit_variable_assignment");

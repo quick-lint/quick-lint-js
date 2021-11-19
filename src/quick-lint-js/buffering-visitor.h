@@ -81,7 +81,7 @@ class buffering_visitor {
         target.visit_property_declaration(std::nullopt);
         break;
       case visit_kind::variable_assignment:
-        target.visit_variable_assignment(v.name);
+        target.visit_variable_assignment(v.name, v.extra_span);
         break;
       case visit_kind::variable_delete_use:
         target.visit_variable_delete_use(v.name, v.extra_span);
@@ -167,7 +167,8 @@ class buffering_visitor {
     }
   }
 
-  void visit_variable_assignment(identifier name) {
+  void visit_variable_assignment(identifier name,
+                                 source_code_span assignment_operator) {
     this->visits_.emplace_back(visit_kind::variable_assignment, name);
   }
 
