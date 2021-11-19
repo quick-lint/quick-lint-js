@@ -2483,9 +2483,9 @@ class parser {
     bool parsed_body =
         this->parse_and_visit_statement_disallowing_declaration(v);
     if (!parsed_body) {
+      const char8 *here = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_missing_body_for_for_statement{
-          .for_and_header = source_code_span(
-              for_token_span.begin(), this->lexer_.end_of_previous_token()),
+          .for_and_header = source_code_span(here, here),
       });
     }
 
