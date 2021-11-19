@@ -48,7 +48,6 @@
   QLJS_ERROR_TYPE(                                                             \
       error_assignment_to_const_global_variable, "E002",                       \
       { identifier assignment; },                                              \
-                                                                               \
       ERROR(QLJS_TRANSLATABLE("assignment to const global variable"),          \
             assignment))                                                       \
                                                                                \
