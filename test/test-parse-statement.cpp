@@ -350,7 +350,7 @@ TEST(test_parse, catch_without_body) {
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_body_for_catch_clause, catch_token,
-                    offsets_matcher(&code, strlen(u8"try {} "), u8"catch"))));
+                    offsets_matcher(&code, strlen(u8"try {} catch"), u8""))));
   }
 }
 
