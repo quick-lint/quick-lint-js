@@ -186,6 +186,12 @@ void lsp_locator::cache_offsets_of_lines() {
   QLJS_ASSERT(this->offset_of_lines_.empty());
   QLJS_ASSERT(this->line_is_ascii_.empty());
 
+  constexpr int estimated_bytes_per_line = 64;
+  std::size_t estimated_lines =
+      narrow_cast<std::size_t>(this->input_.size() / estimated_bytes_per_line);
+  this->offset_of_lines_.reserve(estimated_lines);
+  this->line_is_ascii_.reserve(estimated_lines);
+
   this->offset_of_lines_.push_back(0);
   bool last_line_is_ascii;
   this->compute_offsets_of_lines(
