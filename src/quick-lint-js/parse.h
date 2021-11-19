@@ -1971,7 +1971,6 @@ class parser {
 
     if (this->peek().type == token_type::kw_catch) {
       parsed_catch = true;
-      source_code_span catch_token_span = this->peek().span();
       this->skip();
 
       v.visit_enter_block_scope();
@@ -2043,8 +2042,9 @@ class parser {
       if (this->peek().type == token_type::left_curly) {
         this->parse_and_visit_statement_block_no_scope(v);
       } else {
+        const char8 *here = this->lexer_.end_of_previous_token();
         this->error_reporter_->report(error_missing_body_for_catch_clause{
-            .catch_token = catch_token_span,
+            .catch_token = source_code_span(here, here),
         });
       }
       v.visit_exit_block_scope();
