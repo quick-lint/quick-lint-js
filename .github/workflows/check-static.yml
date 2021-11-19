@@ -28,15 +28,20 @@ jobs:
         run: cmake --build build 1>/dev/null
       - name: clang-tidy output
         run: cat ./build/src/clang-tidy-output.yml
-      - name: fail if clang-tidy-output.yml contains clang-analyzer-* errors
-        if:
-          - path: ./build/src/clang-tidy-output.yml
-          - value:
-              clang-analyzer-*
-            operator: contains
-            message: "clang-analyzer errors found"
-            level: error
-
+      - name: clang-tidy output check
+        run: |
+          if [ -f ./build/src/clang-tidy-output.yml ]; then
+            if grep -q "clang-analyzer" ./build/src/clang-tidy-output.yml; then
+              echo "clang-tidy-output.yml contains no errors"
+              exit 0
+            else
+              echo "clang-tidy-output.yml contains errors"
+              exit 1
+            fi
+          else
+            echo "clang-tidy-output.yml does not exist"
+            exit 0
+          fi
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
