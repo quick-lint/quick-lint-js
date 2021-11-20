@@ -49,8 +49,8 @@ Beta release.
 * JSX: Instead of reporting a bunch of errors, quick-lint-js now tells you that
   JSX syntax is not yet supported.
 * FreeBSD: Fixed build.
-* E0073 now points to to a more helpful place (where the parameter list belongs,
-  not the name of the function).
+* E0073, E0094, E0104, E0106, E0111, and E0119 now point to to a more helpful
+  place (implemented by strager and [Amir][]).
 * `for (let x = a in b; c; d) {}` now reports E0108 instead of reporting E0173,
   E0110, and E0110 again.
 
@@ -210,6 +210,7 @@ Beta release.
 [Downloads](https://c.quick-lint-js.com/releases/0.2.0/)
 
 [AidenThing]: https://github.com/AidenThing
+[Amir]: https://github.com/ahmafi
 [Daniel La Rocque]: https://github.com/dlarocque
 [David Vasileff]: https://github.com/dav000
 [Erlliam Mejia]: https://github.com/erlliam
