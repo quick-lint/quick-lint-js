@@ -228,6 +228,14 @@
 #define QLJS_HAVE_CHARCONV_HEADER 0
 #endif
 
+#if !defined(QLJS_HAVE_ARM_NEON)
+#if defined(__ARM_NEON)
+#define QLJS_HAVE_ARM_NEON 1
+#else
+#define QLJS_HAVE_ARM_NEON 0
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_X86_SSE2)
 #if defined(_M_AMD64) || defined(_M_X64) || \
     (defined(_M_IX86_FP) && _M_IX86_FP == 2) || defined(__SSE2__)

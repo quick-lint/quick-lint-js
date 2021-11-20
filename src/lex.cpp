@@ -1359,7 +1359,9 @@ lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
   // TODO(strager): Is the check for '\\' correct?
   QLJS_SLOW_ASSERT(this->is_identifier_byte(*input) || *input == u8'\\');
 
-#if QLJS_HAVE_X86_SSE2
+#if QLJS_HAVE_ARM_NEON
+  using char_vector = char_vector_16_neon;
+#elif QLJS_HAVE_X86_SSE2
   using char_vector = char_vector_16_sse2;
 #else
   using char_vector = char_vector_1;
@@ -1382,7 +1384,9 @@ lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
                         _SIDD_CMP_RANGES | _SIDD_LEAST_SIGNIFICANT |
                             _SIDD_NEGATIVE_POLARITY | _SIDD_UBYTE_OPS);
 #else
-#if QLJS_HAVE_X86_SSE2
+#if QLJS_HAVE_ARM_NEON
+    using bool_vector = bool_vector_16_neon;
+#elif QLJS_HAVE_X86_SSE2
     using bool_vector = bool_vector_16_sse2;
 #else
     using bool_vector = bool_vector_1;
