@@ -1415,7 +1415,6 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_class(Visitor &v, name_requirement require_name) {
     QLJS_ASSERT(this->peek().type == token_type::kw_class);
-    const char8 *class_keyword_begin = this->peek().begin;
 
     this->parse_and_visit_class_heading(v, /*require_name=*/require_name);
 
