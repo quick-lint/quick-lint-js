@@ -9,14 +9,6 @@ let VSCODE_WASM_MODULE_PATH_BROWSER = "dist/quick-lint-js-vscode.wasm";
 let VSCODE_WASM_MODULE_PATH_NODE_JS =
   "../public/demo/dist/quick-lint-js-vscode.wasm";
 
-class LintingCrashed extends Error {
-  constructor(originalError) {
-    super(String(originalError));
-    this.originalError = originalError;
-  }
-}
-exports.LintingCrashed = LintingCrashed;
-
 class DocumentLinterDisposed extends Error {}
 exports.DocumentLinterDisposed = DocumentLinterDisposed;
 
