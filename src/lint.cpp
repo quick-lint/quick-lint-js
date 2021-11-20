@@ -245,7 +245,7 @@ void linter::visit_exit_function_scope() {
 }
 
 void linter::visit_keyword_variable_use(identifier) {
-  // Ignore. The parser should have already reported E023.
+  // Ignore. The parser should have already reported E0023.
 }
 
 void linter::visit_property_declaration(std::optional<identifier>) {}

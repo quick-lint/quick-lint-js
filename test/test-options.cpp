@@ -409,13 +409,13 @@ TEST(test_options, print_version) {
 
 TEST(test_options, exit_fail_on) {
   {
-    options o = parse_options({"--exit-fail-on=E003", "file.js"});
+    options o = parse_options({"--exit-fail-on=E0003", "file.js"});
     EXPECT_TRUE(o.exit_fail_on.is_present(
         error_type::error_assignment_to_const_variable))
-        << "E003 should cause failure";
+        << "E0003 should cause failure";
     EXPECT_FALSE(o.exit_fail_on.is_present(
         error_type::error_big_int_literal_contains_decimal_point))
-        << "E005 should not cause failure";
+        << "E0005 should not cause failure";
   }
 }
 
@@ -495,7 +495,7 @@ TEST(test_options, dump_errors) {
 
     parsed_error_list parsed_errors;
     parsed_errors.included_categories.emplace_back("banana");
-    parsed_errors.excluded_codes.emplace_back("E999");
+    parsed_errors.excluded_codes.emplace_back("E9999");
     o.exit_fail_on.add(parsed_errors);
 
     std::ostringstream dumped_errors;
@@ -503,7 +503,7 @@ TEST(test_options, dump_errors) {
     EXPECT_FALSE(have_errors);
     EXPECT_EQ(dumped_errors.str(),
               "warning: unknown error category: banana\n"
-              "warning: unknown error code: E999\n");
+              "warning: unknown error code: E9999\n");
   }
 
   {
@@ -582,7 +582,7 @@ TEST(test_options, dump_errors) {
   {
     options o;
     o.lsp_server = true;
-    o.exit_fail_on.add(parse_error_list("E001"));
+    o.exit_fail_on.add(parse_error_list("E0001"));
 
     std::ostringstream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);

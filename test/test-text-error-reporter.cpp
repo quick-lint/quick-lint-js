@@ -46,8 +46,8 @@ TEST_F(test_text_error_reporter, change_source) {
 
   EXPECT_EQ(
       this->get_output(),
-      "hello.js:1:4: error: assignment to const global variable [E002]\n"
-      "world.js:1:5: error: assignment to const global variable [E002]\n");
+      "hello.js:1:4: error: assignment to const global variable [E0002]\n"
+      "world.js:1:5: error: assignment to const global variable [E0002]\n");
 }
 
 TEST_F(test_text_error_reporter, assignment_before_variable_declaration) {
@@ -61,9 +61,10 @@ TEST_F(test_text_error_reporter, assignment_before_variable_declaration) {
       error_assignment_before_variable_declaration{
           .assignment = identifier(assignment_span),
           .declaration = identifier(declaration_span)});
-  EXPECT_EQ(this->get_output(),
-            "FILE:1:1: error: variable assigned before its declaration [E001]\n"
-            "FILE:1:9: note: variable declared here [E001]\n");
+  EXPECT_EQ(
+      this->get_output(),
+      "FILE:1:1: error: variable assigned before its declaration [E0001]\n"
+      "FILE:1:9: note: variable declared here [E0001]\n");
 }
 
 TEST_F(test_text_error_reporter, assignment_to_const_global_variable) {
@@ -74,7 +75,7 @@ TEST_F(test_text_error_reporter, assignment_to_const_global_variable) {
   this->make_reporter(&input).report(
       error_assignment_to_const_global_variable{identifier(infinity_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:4: error: assignment to const global variable [E002]\n");
+            "FILE:1:4: error: assignment to const global variable [E0002]\n");
 }
 
 TEST_F(test_text_error_reporter, expected_parenthesis_around_if_condition) {
@@ -86,9 +87,9 @@ TEST_F(test_text_error_reporter, expected_parenthesis_around_if_condition) {
           .where = parenthesis_span,
           .token = '(',
       });
-  EXPECT_EQ(
-      this->get_output(),
-      "FILE:1:4: error: if statement is missing '(' around condition [E018]\n");
+  EXPECT_EQ(this->get_output(),
+            "FILE:1:4: error: if statement is missing '(' around condition "
+            "[E0018]\n");
 }
 
 TEST_F(test_text_error_reporter, redeclaration_of_variable) {
@@ -101,8 +102,8 @@ TEST_F(test_text_error_reporter, redeclaration_of_variable) {
   this->make_reporter(&input).report(error_redeclaration_of_variable{
       identifier(redeclaration_span), identifier(original_declaration_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:16: error: redeclaration of variable: myvar [E034]\n"
-            "FILE:1:5: note: variable already declared here [E034]\n");
+            "FILE:1:16: error: redeclaration of variable: myvar [E0034]\n"
+            "FILE:1:5: note: variable already declared here [E0034]\n");
 }
 
 TEST_F(test_text_error_reporter, unexpected_hash_character) {
@@ -112,7 +113,7 @@ TEST_F(test_text_error_reporter, unexpected_hash_character) {
 
   this->make_reporter(&input).report(
       error_unexpected_hash_character{hash_span});
-  EXPECT_EQ(this->get_output(), "FILE:1:1: error: unexpected '#' [E052]\n");
+  EXPECT_EQ(this->get_output(), "FILE:1:1: error: unexpected '#' [E0052]\n");
 }
 
 TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
@@ -123,7 +124,7 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
   this->make_reporter(&input).report(
       error_use_of_undeclared_variable{identifier(myvar_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:1: warning: use of undeclared variable: myvar [E057]\n");
+            "FILE:1:1: warning: use of undeclared variable: myvar [E0057]\n");
 }
 }
 }

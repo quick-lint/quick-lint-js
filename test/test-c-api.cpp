@@ -25,7 +25,7 @@ TEST(test_c_api_web_demo, lint_error_after_text_insertion) {
   EXPECT_EQ(diagnostics[1].code, nullptr);
 
   EXPECT_STREQ(diagnostics[0].message, "redeclaration of variable: x");
-  EXPECT_STREQ(diagnostics[0].code, "E034");
+  EXPECT_STREQ(diagnostics[0].code, "E0034");
   EXPECT_EQ(diagnostics[0].begin_offset, strlen(u8"let x;let "));
   EXPECT_EQ(diagnostics[0].end_offset, strlen(u8"let x;let x"));
 
@@ -48,7 +48,7 @@ TEST(test_c_api_web_demo, lint_new_error_after_second_text_insertion) {
   EXPECT_EQ(diagnostics[1].code, nullptr);
 
   EXPECT_STREQ(diagnostics[0].message, "redeclaration of variable: x");
-  EXPECT_STREQ(diagnostics[0].code, "E034");
+  EXPECT_STREQ(diagnostics[0].code, "E0034");
   EXPECT_EQ(diagnostics[0].begin_offset, strlen(u8"let x;let "));
   EXPECT_EQ(diagnostics[0].end_offset, strlen(u8"let x;let x"));
 

@@ -54,7 +54,7 @@ for (let extension of [".js", ".mjs", ".cjs"]) {
         let helloDiags = normalizeDiagnostics(helloURI);
         assert.deepStrictEqual(helloDiags, [
           {
-            code: "E034",
+            code: "E0034",
             message: "redeclaration of variable: x",
             severity: vscode.DiagnosticSeverity.Error,
             source: "quick-lint-js",
@@ -169,7 +169,7 @@ tests = {
       let helloDiags = normalizeDiagnostics(helloURI);
       assert.deepStrictEqual(helloDiags, [
         {
-          code: "E034",
+          code: "E0034",
           message: "redeclaration of variable: x",
           severity: vscode.DiagnosticSeverity.Error,
           source: "quick-lint-js",
@@ -383,9 +383,9 @@ tests = {
     });
     assert.deepStrictEqual(diags, [
       // redeclaration of variable 'x'
-      { code: "E034", severity: vscode.DiagnosticSeverity.Error },
+      { code: "E0034", severity: vscode.DiagnosticSeverity.Error },
       // use of undeclared variable 'undeclaredVariable'
-      { code: "E057", severity: vscode.DiagnosticSeverity.Warning },
+      { code: "E0057", severity: vscode.DiagnosticSeverity.Warning },
     ]);
   },
 
@@ -438,7 +438,7 @@ tests = {
       jsDiags.map(({ code, startLine }) => ({ code, startLine })),
       [
         {
-          code: "E057",
+          code: "E0057",
           startLine: 1, // document
         },
       ]
@@ -584,7 +584,7 @@ tests = {
       jsDiags.map(({ code, startLine }) => ({ code, startLine })),
       [
         {
-          code: "E057",
+          code: "E0057",
           startLine: 1, // testGlobalVariableFromDisk
         },
       ]
@@ -632,7 +632,7 @@ tests = {
     let configDiags = normalizeDiagnostics(configURI);
     assert.deepStrictEqual(
       configDiags.map(({ code }) => code),
-      ["E171"]
+      ["E0171"]
     );
   },
 
@@ -668,7 +668,7 @@ tests = {
     let configDiags = normalizeDiagnostics(configURI);
     assert.deepStrictEqual(
       configDiags.map(({ code }) => code),
-      ["E171"]
+      ["E0171"]
     );
   },
 
@@ -724,7 +724,7 @@ tests = {
         jsDiags.map(({ code, startLine }) => ({ code, startLine })),
         [
           {
-            code: "E057",
+            code: "E0057",
             startLine: 0, // testGlobalVariableFromEditor
           },
         ]
