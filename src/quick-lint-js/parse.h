@@ -1972,7 +1972,6 @@ class parser {
 
     if (this->peek().type == token_type::kw_catch) {
       parsed_catch = true;
-      source_code_span catch_token_span = this->peek().span();
       this->skip();
 
       v.visit_enter_block_scope();
