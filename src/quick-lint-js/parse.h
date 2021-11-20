@@ -1415,7 +1415,6 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_class(Visitor &v, name_requirement require_name) {
     QLJS_ASSERT(this->peek().type == token_type::kw_class);
-    const char8 *class_keyword_begin = this->peek().begin;
 
     this->parse_and_visit_class_heading(v, /*require_name=*/require_name);
 
@@ -1431,12 +1430,13 @@ class parser {
       this->skip();
       break;
 
-    default:
+    default: {
+      const char8 *here = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_missing_body_for_class{
-          .class_keyword_and_name_and_heritage = source_code_span(
-              class_keyword_begin, this->lexer_.end_of_previous_token()),
+          .class_keyword_and_name_and_heritage = source_code_span(here, here),
       });
       break;
+    }
     }
   }
 
