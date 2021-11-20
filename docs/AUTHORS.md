@@ -34,6 +34,7 @@ authored portions of quick-lint-js:
 * Frank Buss; fb@frank-buss.de; signed CLA-v1.md
 * Himanshu; himansingh24@gmail.com; signed CLA-v1.md
 * Jan Poonthong; janpoonthong628@gmail.com; signed CLA-v1.md
+* Jenny "Jennipuff" Wheat
 * Jesus Gil; jesusgil.dev@gmail.com; signed CLA-v1.md
 * Jesús Eduardo; jeduardo.fuentes@alumnos.udg.mx; signed CLA-v1.md
 * Jimmy Qiu; bottlewater072@gmail.com; signed CLA-v1.md
