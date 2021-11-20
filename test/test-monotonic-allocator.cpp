@@ -12,6 +12,10 @@
 
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-override")
 
+#if QLJS_HAVE_ARM_NEON
+#include <arm_neon.h>
+#endif
+
 #if QLJS_HAVE_X86_SSE2
 #include <emmintrin.h>
 #endif
@@ -22,6 +26,10 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-override")
 #else
 #define QLJS_HAVE_OVERALIGNED 0
 #endif
+
+// TODO(strager): For some reason, allocating a ::uint8x16_t crashes with
+// std::bad_alloc.
+#define QLJS_CAN_ALIGN_NEON 0
 
 #if defined(_MSC_VER)
 // TODO(strager): For some reason, allocating a __m128 crashes with
@@ -101,6 +109,13 @@ TEST(test_monotonic_allocator, filling_first_chunk_allocates_second_chunk) {
 struct alignas(std::max_align_t) overaligned_64 {};
 #endif
 
+#if QLJS_CAN_ALIGN_NEON
+struct neon_aligned {
+  ::uint8x16_t uint8x16;
+  ::uint64x2_t uint64x2;
+};
+#endif
+
 #if QLJS_CAN_ALIGN_SSE
 struct sse_aligned {
   __m128 m128;
@@ -111,6 +126,9 @@ struct sse_aligned {
 using test_monotonic_allocator_typed_types = ::testing::Types<
 #if QLJS_HAVE_OVERALIGNED
     overaligned_64,
+#endif
+#if QLJS_CAN_ALIGN_NEON
+    neon_aligned,
 #endif
 #if QLJS_CAN_ALIGN_SSE
     sse_aligned,
