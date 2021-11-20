@@ -32,6 +32,9 @@ Beta release.
   signatures are made with a self-signed certificate.
 * The Linux executables are now signed with a GPG signature (`.asc` files).
 * Vim: [coc.nvim][] is now supported.
+* quick-lint-js has a new mascot, Dusty. Say hello! (Artwork by [Jenny
+  "Jennipuff" Wheat][]);
+* Translations: German (implemented by [Nico Sonack][])
 
 ### Fixed
 
@@ -48,11 +51,18 @@ Beta release.
 * FreeBSD: Fixed build.
 * E0073 now points to to a more helpful place (where the parameter list belongs,
   not the name of the function).
+* `for (let x = a in b; c; d) {}` now reports E0108 instead of reporting E0173,
+  E0110, and E0110 again.
 
 ### Changed
 
 * Error codes now have four decimal digits instead of three. For example, E001
   is now called E0001.
+* quick-lint-js no longer looks for files named `.quick-lint-js.config`. To
+  configure quick-lint-js, name your file `quick-lint-js.config` instead.
+* LSP benchmarks have been rewritten. The new benchmarks should produce more
+  stable numbers and be fairer to linters with a high start-up time such as
+  Flow.
 
 ## 0.5.0 (2021-10-12)
 
@@ -204,10 +214,12 @@ Beta release.
 [David Vasileff]: https://github.com/dav000
 [Erlliam Mejia]: https://github.com/erlliam
 [Himanshu]: https://github.com/singalhimanshu
+[Jenny "Jennipuff" Wheat]: https://twitter.com/jennipaff
 [Jimmy Qiu]: https://github.com/lifeinData
 [Kim "Linden"]: https://github.com/Lindenbyte
 [Lee Wannacott]: https://github.com/LeeWannacott
 [Matheus Sousa]: https://github.com/keyehzy
+[Nico Sonack]: https://github.com/herrhotzenplotz
 [Shivam Mehta]: https://github.com/maniac-en
 [coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
