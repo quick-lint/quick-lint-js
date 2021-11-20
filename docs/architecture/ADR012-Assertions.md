@@ -16,12 +16,15 @@ called `assert`. Many C++ libraries have their own assertion macros.
 * `<quick-lint-js/assert.h>` defines custom assertion macros. `<cassert>` is
   avoided.
 * Defining `NDEBUG` disables assertions, except assertions marked `ALWAYS`.
-* A default CMake build (where `CMAKE_BUILD_TYPE=Debug`) enables assertions.
+* Defining `QLJS_DEBUG` enables extra assertions.
+* A default CMake build (where `CMAKE_BUILD_TYPE=None`) enables assertions.
+* An optimized CMake build (where `CMAKE_BUILD_TYPE=Release`) disables
+  assertions (except assertions marked `ALWAYS`).
 
 ## Consequences
 
-Assertions can slow down execution. At the time of writing, this negatively
-affects quick-lint-js' Debian package (where assertions are enabled), hurting
+Assertions can slow down execution. This used to negatively affect
+quick-lint-js' Debian package (where assertions are enabled), hurting
 quick-lint-js in benchmarks.
 
 A custom macro reduces usage of `[[maybe_unused]]`.

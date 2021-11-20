@@ -1145,7 +1145,7 @@ void lexer::parse_modern_octal_number() {
 }
 
 void lexer::parse_number() {
-  QLJS_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
+  QLJS_SLOW_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
   const char8* input = this->input_;
   const char8* number_begin = input;
 
@@ -1189,7 +1189,8 @@ void lexer::parse_number() {
       this->error_reporter_->report(error_big_int_literal_contains_exponent{
           source_code_span(number_begin, input)});
     }
-    QLJS_ASSERT(!(number_begin[0] == u8'0' && this->is_digit(number_begin[1])));
+    QLJS_SLOW_ASSERT(
+        !(number_begin[0] == u8'0' && this->is_digit(number_begin[1])));
   }
 
   switch (*input) {
@@ -1356,7 +1357,7 @@ QLJS_WARNING_POP
 lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
   const char8* identifier_begin = input;
   // TODO(strager): Is the check for '\\' correct?
-  QLJS_ASSERT(this->is_identifier_byte(*input) || *input == u8'\\');
+  QLJS_SLOW_ASSERT(this->is_identifier_byte(*input) || *input == u8'\\');
 
 #if QLJS_HAVE_X86_SSE2
   using char_vector = char_vector_16_sse2;
@@ -1410,9 +1411,10 @@ lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
     int identifier_character_count = count_identifier_characters(chars);
 
     for (int i = 0; i < identifier_character_count; ++i) {
-      QLJS_ASSERT(input[i] >= 0);
-      QLJS_ASSERT(this->is_ascii_character(input[i]));
-      QLJS_ASSERT(is_identifier_character(static_cast<char32_t>(input[i])));
+      QLJS_SLOW_ASSERT(input[i] >= 0);
+      QLJS_SLOW_ASSERT(this->is_ascii_character(input[i]));
+      QLJS_SLOW_ASSERT(
+          is_identifier_character(static_cast<char32_t>(input[i])));
     }
     input += identifier_character_count;
 
@@ -1726,7 +1728,7 @@ done:
 QLJS_WARNING_POP
 
 void lexer::skip_block_comment() {
-  QLJS_ASSERT(this->input_[0] == '/' && this->input_[1] == '*');
+  QLJS_SLOW_ASSERT(this->input_[0] == '/' && this->input_[1] == '*');
   const char8* c = this->input_ + 2;
 
 #if QLJS_HAVE_X86_SSE2

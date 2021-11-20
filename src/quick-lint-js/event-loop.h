@@ -94,9 +94,9 @@ class event_loop_base {
     std::array<char8, 1024> buffer;
     platform_file_ref pipe = this->const_derived().get_readable_pipe();
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-    QLJS_ASSERT(pipe.is_pipe_non_blocking());
+    QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 #else
-    QLJS_ASSERT(!pipe.is_pipe_non_blocking());
+    QLJS_SLOW_ASSERT(!pipe.is_pipe_non_blocking());
 #endif
     file_read_result read_result = pipe.read(buffer.data(), buffer.size());
     if (!read_result.ok()) {
@@ -169,7 +169,7 @@ class kqueue_event_loop : public event_loop_base<Derived> {
     {
       static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
       platform_file_ref pipe = this->const_derived().get_readable_pipe();
-      QLJS_ASSERT(pipe.is_pipe_non_blocking());
+      QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 
       std::array<struct ::kevent, 2> changes;
       std::size_t change_count = 0;
@@ -264,7 +264,7 @@ class poll_event_loop : public event_loop_base<Derived> {
 
       static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
       platform_file_ref pipe = this->const_derived().get_readable_pipe();
-      QLJS_ASSERT(pipe.is_pipe_non_blocking());
+      QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 
       std::array< ::pollfd, 3> pollfds;
       std::size_t pollfd_count = 0;

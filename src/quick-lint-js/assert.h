@@ -14,6 +14,32 @@
 
 // See ADR012 for rationale on the design of this module.
 
+// quick-lint-js uses three kinds of assertions:
+//
+// * QLJS_ALWAYS_ASSERT: enabled always
+// * QLJS_ASSERT: enabled by default;
+//                disabled by NDEBUG (e.g. CMAKE_BUILD_TYPE=Release)
+// * QLJS_SLOW_ASSERT: disabled by default;
+//                     enabled by QLJS_DEBUG (e.g. CMAKE_BUILD_TYPE=Debug)
+//
+// Note that dependencies of quick-lint-js might have their own assertions
+// controlled by their own flags.
+//
+//  CMAKE_BUILD_TYPE || QLJS_ASSERT | QLJS_SLOW_ASSERT | QLJS_ALWAYS_ASSERT
+// ------------------++-------------+------------------+--------------------
+//  Debug            || enabled     | enabled          | enabled
+//  MinSizeRel       || disabled    | disabled         | enabled
+//  None             || enabled     | disabled         | enabled
+//  RelWithDebInfo   || disabled    | disabled         | enabled
+//  Release          || disabled    | disabled         | enabled
+//
+//  NDEBUG  | QLJS_DEBUG || QLJS_ASSERT | QLJS_SLOW_ASSERT | QLJS_ALWAYS_ASSERT
+// ---------+------------++-------------+------------------+--------------------
+//  undef/0 | undef/0    || enabled     | disabled         | enabled
+//  1       | undef/0    || disabled    | disabled         | enabled
+//  undef/0 | 1          || enabled     | enabled          | enabled
+//  1       | 1          || disabled    | enabled          | enabled
+
 #define QLJS_UNIMPLEMENTED() QLJS_ALWAYS_ASSERT(false)
 
 #define QLJS_ALWAYS_ASSERT(...)                                               \
@@ -38,6 +64,12 @@
 #define QLJS_ASSERT(...) QLJS_NEVER_ASSERT(__VA_ARGS__)
 #else
 #define QLJS_ASSERT(...) QLJS_ALWAYS_ASSERT(__VA_ARGS__)
+#endif
+
+#if defined(QLJS_DEBUG) && QLJS_DEBUG
+#define QLJS_SLOW_ASSERT(...) QLJS_ALWAYS_ASSERT(__VA_ARGS__)
+#else
+#define QLJS_SLOW_ASSERT(...) QLJS_NEVER_ASSERT(__VA_ARGS__)
 #endif
 
 #define QLJS_ASSERT_TRAP() QLJS_CRASH_ALLOWING_CORE_DUMP()
