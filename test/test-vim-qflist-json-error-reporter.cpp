@@ -62,7 +62,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
   EXPECT_EQ(look_up(qflist, 0, "end_col"), 1);
   EXPECT_EQ(look_up(qflist, 0, "end_lnum"), 1);
   EXPECT_EQ(look_up(qflist, 0, "lnum"), 1);
-  EXPECT_EQ(look_up(qflist, 0, "nr"), "E001");
+  EXPECT_EQ(look_up(qflist, 0, "nr"), "E0001");
   EXPECT_EQ(look_up(qflist, 0, "type"), "E");
   EXPECT_EQ(look_up(qflist, 0, "text"),
             "variable assigned before its declaration");
@@ -202,7 +202,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
   EXPECT_EQ(look_up(qflist, 0, "end_col"), 11);
   EXPECT_EQ(look_up(qflist, 0, "end_lnum"), 1);
   EXPECT_EQ(look_up(qflist, 0, "lnum"), 1);
-  EXPECT_EQ(look_up(qflist, 0, "nr"), "E002");
+  EXPECT_EQ(look_up(qflist, 0, "nr"), "E0002");
   EXPECT_EQ(look_up(qflist, 0, "type"), "E");
   EXPECT_EQ(look_up(qflist, 0, "text"), "assignment to const global variable");
   EXPECT_EQ(look_up(qflist, 0, "vcol"), 0);
@@ -228,7 +228,7 @@ TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_variable) {
   EXPECT_EQ(look_up(qflist, 0, "end_col"), 20);
   EXPECT_EQ(look_up(qflist, 0, "end_lnum"), 1);
   EXPECT_EQ(look_up(qflist, 0, "lnum"), 1);
-  EXPECT_EQ(look_up(qflist, 0, "nr"), "E034");
+  EXPECT_EQ(look_up(qflist, 0, "nr"), "E0034");
   EXPECT_EQ(look_up(qflist, 0, "type"), "E");
   EXPECT_EQ(look_up(qflist, 0, "text"), "redeclaration of variable: myvar");
 }
@@ -250,7 +250,7 @@ TEST_F(test_vim_qflist_json_error_reporter, unexpected_hash_character) {
   EXPECT_EQ(look_up(qflist, 0, "end_col"), 1);
   EXPECT_EQ(look_up(qflist, 0, "end_lnum"), 1);
   EXPECT_EQ(look_up(qflist, 0, "lnum"), 1);
-  EXPECT_EQ(look_up(qflist, 0, "nr"), "E052");
+  EXPECT_EQ(look_up(qflist, 0, "nr"), "E0052");
   EXPECT_EQ(look_up(qflist, 0, "type"), "E");
   EXPECT_EQ(look_up(qflist, 0, "text"), "unexpected '#'");
 }
@@ -272,14 +272,14 @@ TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
   EXPECT_EQ(look_up(qflist, 0, "end_col"), 5);
   EXPECT_EQ(look_up(qflist, 0, "end_lnum"), 1);
   EXPECT_EQ(look_up(qflist, 0, "lnum"), 1);
-  EXPECT_EQ(look_up(qflist, 0, "nr"), "E057");
+  EXPECT_EQ(look_up(qflist, 0, "nr"), "E0057");
   EXPECT_EQ(look_up(qflist, 0, "text"), "use of undeclared variable: myvar");
   EXPECT_EQ(look_up(qflist, 0, "type"), "W");
 }
 
 TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
   constexpr diagnostic_info diag_info = {
-      .code = "E999",
+      .code = "E9999",
       .messages =
           {
               diagnostic_message_info{
@@ -316,7 +316,7 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
     source_code_span world_span;
   };
   constexpr diagnostic_info diag_info = {
-      .code = "E999",
+      .code = "E9999",
       .messages =
           {
               diagnostic_message_info{

@@ -10,34 +10,34 @@ import { ErrorDocumentation, codeHasBOM } from "../src/error-documentation.mjs";
 describe("error documentation", () => {
   it("error code from file path", () => {
     expect(
-      ErrorDocumentation.parseString("E123.md", "").filePathErrorCode
-    ).toBe("E123");
+      ErrorDocumentation.parseString("E0123.md", "").filePathErrorCode
+    ).toBe("E0123");
     expect(
-      ErrorDocumentation.parseString("path/to/E666.md", "").filePathErrorCode
-    ).toBe("E666");
+      ErrorDocumentation.parseString("path/to/E0666.md", "").filePathErrorCode
+    ).toBe("E0666");
     if (path === path.win32) {
       expect(
-        ErrorDocumentation.parseString("path\\to\\E666.md", "")
+        ErrorDocumentation.parseString("path\\to\\E0666.md", "")
           .filePathErrorCode
-      ).toBe("E666");
+      ).toBe("E0666");
     }
   });
 
   it("title", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "# E123: title goes here\n"
+      "# E0123: title goes here\n"
     );
-    expect(doc.titleErrorCode).toBe("E123");
+    expect(doc.titleErrorCode).toBe("E0123");
     expect(doc.titleErrorDescription).toBe("title goes here");
   });
 
   it("title with HTML entity", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "# E123: title &#x67;oes here\n"
+      "# E0123: title &#x67;oes here\n"
     );
-    expect(doc.titleErrorCode).toBe("E123");
+    expect(doc.titleErrorCode).toBe("E0123");
     // TODO(strager): Translate HTML entities.
     expect(doc.titleErrorDescription).toBe("title &#x67;oes here");
   });
@@ -45,16 +45,16 @@ describe("error documentation", () => {
   it("title with extra colon", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "# E123: banana: strawberry: apple\n"
+      "# E0123: banana: strawberry: apple\n"
     );
-    expect(doc.titleErrorCode).toBe("E123");
+    expect(doc.titleErrorCode).toBe("E0123");
     expect(doc.titleErrorDescription).toBe("banana: strawberry: apple");
   });
 
   it("level 2 heading is not title", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "## E123: title goes here\n"
+      "## E0123: title goes here\n"
     );
     expect(doc.titleErrorCode).toBe("");
     expect(doc.titleErrorDescription).toBe("");
@@ -195,7 +195,7 @@ wasn't that neat?
   it("many possibilities of html code has bom", () => {
     const possibilities = [
       "<mark>\u{feff}hello</mark>",
-      '<mark data-code="E123">\u{feff}hello</mark>',
+      '<mark data-code="E0123">\u{feff}hello</mark>',
       "\u{feff}<mark>world</mark>",
       "&#xfeff;hello",
       "&#65279;hello",
@@ -208,8 +208,8 @@ wasn't that neat?
   it("many possibilities of html code has NOT bom", () => {
     const possibilities = [
       "<mark>hello\u{feff}</mark>",
-      '<mark data-code="E123">hello\u{feff}</mark>',
-      '<mark data-code="E123">h\u{feff}ello</mark>',
+      '<mark data-code="E0123">hello\u{feff}</mark>',
+      '<mark data-code="E0123">h\u{feff}ello</mark>',
       "h\u{feff}ello<mark>world</mark>",
       "hello<mark>\u{feff}world</mark>",
     ];
@@ -228,7 +228,7 @@ wasn't that neat?
     expect(doc.diagnostics).toEqual([
       [
         {
-          code: "E034",
+          code: "E0034",
           message: "redeclaration of variable: x",
           severity: 1,
           begin: 11,
@@ -247,7 +247,7 @@ wasn't that neat?
     expect(doc.diagnostics).toEqual([
       [
         {
-          code: "E168",
+          code: "E0168",
           message: '"globals" must be an object',
           severity: 1,
           begin: 12,
@@ -283,7 +283,7 @@ wasn't that neat?
     expect(doc.diagnostics).toEqual([
       [
         {
-          code: "E057",
+          code: "E0057",
           message: "use of undeclared variable: console",
           severity: 2,
           begin: 0,

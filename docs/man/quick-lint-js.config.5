@@ -303,7 +303,7 @@ The following groups are supported for the \fBglobal\-groups\fP configuration pr
 .RS 4
 all possible global variables.
 All global variables are defined as shadowable and writable.
-This in effect suppresses E002, E033, E057, or E059 entirely (except if variables are also configured using the \fBglobals\fP configuration property).
+This in effect suppresses E0002, E0033, E0057, or E0059 entirely (except if variables are also configured using the \fBglobals\fP configuration property).
 This group is not enabled by default.
 .RE
 .sp
@@ -371,8 +371,8 @@ Such an application might have the following \f(CRquick\-lint\-js.config\fP file
 .ce
 \l'\n(.lu*25u/100u\(ap'
 .sp
-If you want to suppress E002, E033, E057, or E059, configure \fBglobals\fP or \fBglobal\-groups\fP.
-For example, if you\(cqre seeing a spurious warning E057 "use of undeclared variable: MyLibrary" (false positive), use the following configuration in \f(CRquick\-lint\-js.config\fP:
+If you want to suppress E0002, E0033, E0057, or E0059, configure \fBglobals\fP or \fBglobal\-groups\fP.
+For example, if you\(cqre seeing a spurious warning E0057 "use of undeclared variable: MyLibrary" (false positive), use the following configuration in \f(CRquick\-lint\-js.config\fP:
 .sp
 .if n .RS 4
 .nf
@@ -386,7 +386,7 @@ For example, if you\(cqre seeing a spurious warning E057 "use of undeclared vari
 .fi
 .if n .RE
 .sp
-If you are not seeing E002, E033, E057, or E059 (false negative), but you want to see E057 "use of undeclared variable: $", use one of the following configuration in \f(CRquick\-lint\-js.config\fP:
+If you are not seeing E0002, E0033, E0057, or E0059 (false negative), but you want to see E0057 "use of undeclared variable: $", use one of the following configuration in \f(CRquick\-lint\-js.config\fP:
 .sp
 .if n .RS 4
 .nf

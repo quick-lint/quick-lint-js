@@ -46,8 +46,13 @@ Beta release.
 * JSX: Instead of reporting a bunch of errors, quick-lint-js now tells you that
   JSX syntax is not yet supported.
 * FreeBSD: Fixed build.
-* E073 now points to to a more helpful place (where the parameter list belongs,
+* E0073 now points to to a more helpful place (where the parameter list belongs,
   not the name of the function).
+
+### Changed
+
+* Error codes now have four decimal digits instead of three. For example, E001
+  is now called E0001.
 
 ## 0.5.0 (2021-10-12)
 

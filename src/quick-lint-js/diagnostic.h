@@ -37,7 +37,7 @@ struct diagnostic_message_info {
 };
 
 struct diagnostic_info {
-  char code[5];
+  char code[6];
   diagnostic_message_info messages[2];
 };
 

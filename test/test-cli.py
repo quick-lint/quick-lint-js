@@ -49,7 +49,7 @@ class TestQuickLintJSCLI(unittest.TestCase):
                 encoding="utf-8",
             )
             self.assertEqual(result.returncode, 1)
-            self.assertIn("[E017]", result.stderr)
+            self.assertIn("[E0017]", result.stderr)
 
     def test_file_with_syntax_errors_with_non_matching_exit_fail_on_does_not_fail(
         self,
@@ -61,14 +61,14 @@ class TestQuickLintJSCLI(unittest.TestCase):
             result = subprocess.run(
                 [
                     get_quick_lint_js_executable_path(),
-                    "--exit-fail-on=E057",
+                    "--exit-fail-on=E0057",
                     str(test_file),
                 ],
                 capture_output=True,
                 encoding="utf-8",
             )
             self.assertEqual(result.returncode, 0)
-            self.assertIn("[E017]", result.stderr)  # Error should be printed
+            self.assertIn("[E0017]", result.stderr)  # Error should be printed
 
     def test_single_config_file(self) -> None:
         with tempfile.TemporaryDirectory() as test_directory:
@@ -216,11 +216,11 @@ class TestQuickLintJSCLI(unittest.TestCase):
 
             # test.js shouldn't be linted.
             self.assertNotIn("myGlobalVariable", result.stderr)
-            self.assertNotIn("E057", result.stderr)
+            self.assertNotIn("E0057", result.stderr)
 
             # quick-lint-js.config should have errors.
             self.assertIn("quick-lint-js.config", result.stderr)
-            self.assertIn("E164", result.stderr)
+            self.assertIn("E0164", result.stderr)
 
     def test_config_error_for_multiple_js_files_is_printed_only_once(self) -> None:
         with tempfile.TemporaryDirectory() as test_directory:
@@ -242,7 +242,7 @@ class TestQuickLintJSCLI(unittest.TestCase):
                 encoding="utf-8",
             )
             self.assertEqual(result.returncode, 1)
-            self.assertEqual(result.stderr.count("E164"), 1)
+            self.assertEqual(result.stderr.count("E0164"), 1)
 
     def test_errors_for_all_config_files_are_printed(self) -> None:
         with tempfile.TemporaryDirectory() as test_directory:
@@ -272,7 +272,7 @@ class TestQuickLintJSCLI(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn("dir1", result.stderr)
             self.assertIn("dir2", result.stderr)
-            self.assertEqual(result.stderr.count("E164"), 2)
+            self.assertEqual(result.stderr.count("E0164"), 2)
 
 
 if __name__ == "__main__":
