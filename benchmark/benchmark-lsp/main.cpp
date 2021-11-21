@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <memory>
 #include <quick-lint-js/arg-parser.h>
 #include <quick-lint-js/benchmark-config.h>
 #include <quick-lint-js/boost-json.h>
@@ -173,7 +174,7 @@ int main(int argc, char** argv) {
 
   for (benchmark_config_server& server_config : config.servers) {
     for (benchmark_factory& factory : benchmark_factories) {
-      benchmark* b = factory();
+      std::unique_ptr<benchmark> b = factory();
       if (!b->is_supported(server_config)) {
         continue;
       }
@@ -261,8 +262,8 @@ void run_benchmark(benchmark_factory& factory,
                    const benchmark_run_config& run_config,
                    benchmark_results_writer& results) {
   for (int i = 0; i < run_config.samples; ++i) {
-    benchmark* b = factory();
-    run_benchmark_once(b, server_config, run_config, results);
+    std::unique_ptr<benchmark> b = factory();
+    run_benchmark_once(b.get(), server_config, run_config, results);
   }
 }
 
