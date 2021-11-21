@@ -1,6 +1,6 @@
-# quick-lint-js
+# [quick-lint-js][]
 
-quick-lint-js finds bugs in your JavaScript code.
+[quick-lint-js][] finds bugs in your JavaScript code.
 
 quick-lint-js finds many bugs, including:
 
@@ -22,3 +22,5 @@ options.
 * [Neovim](https://quick-lint-js.com/install/neovim/)
 * [Emacs](https://quick-lint-js.com/install/emacs/)
 * [CLI & LSP server](https://quick-lint-js.com/install/cli/npm/)
+
+[quick-lint-js]: https://quick-lint-js.com/
