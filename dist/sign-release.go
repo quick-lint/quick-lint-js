@@ -8,6 +8,7 @@ import "archive/zip"
 import "bytes"
 import "compress/gzip"
 import "crypto/sha1"
+import "crypto/sha256"
 import "encoding/hex"
 import "errors"
 import "flag"
@@ -60,6 +61,7 @@ func main() {
 	sourceDir := flag.Args()[0]
 	destinationDir := flag.Args()[1]
 
+	hashes := ListOfHashes{}
 	err := filepath.Walk(sourceDir, func(sourcePath string, sourceInfo fs.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -80,6 +82,10 @@ func main() {
 			if err != nil {
 				return err
 			}
+
+			if err := hashes.AddHashOfFile(destinationPath, relativePath); err != nil {
+				return err
+			}
 		}
 		return nil
 	})
@@ -88,6 +94,23 @@ func main() {
 	}
 
 	if err := CheckUnsignedFiles(); err != nil {
+		log.Fatal(err)
+	}
+
+	hashesPath := filepath.Join(destinationDir, "SHA256SUMS")
+	if err := hashes.DumpSHA256HashesToFile(hashesPath); err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("signing with GPG: %s\n", hashesPath)
+	if _, err := GPGSignFile(hashesPath, signingStuff); err != nil {
+		log.Fatal(err)
+	}
+	if err := GPGVerifySignature(hashesPath, hashesPath+".asc", signingStuff); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := VerifySHA256SUMSFile(hashesPath); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -811,6 +834,58 @@ func WriteTarEntry(header *tar.Header, file io.Reader, output *tar.Writer) error
 	}
 	if bytesWritten != header.Size {
 		return fmt.Errorf("failed to write entire file")
+	}
+	return nil
+}
+
+type ListOfHashes struct {
+	SHA256Hashes bytes.Buffer
+}
+
+func (self *ListOfHashes) AddHashOfFile(path string, name string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	hasher := sha256.New()
+	if _, err := io.Copy(hasher, file); err != nil {
+		return err
+	}
+	self.SHA256Hashes.WriteString(fmt.Sprintf("%x", hasher.Sum(nil)))
+	self.SHA256Hashes.WriteString("  ")
+	self.SHA256Hashes.WriteString(name)
+	self.SHA256Hashes.WriteString("\n")
+	return nil
+}
+
+func (self *ListOfHashes) DumpSHA256HashesToFile(outPath string) error {
+	outFile, err := os.Create(outPath)
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+	data := self.SHA256Hashes.Bytes()
+	bytesWritten, err := outFile.Write(data)
+	if err != nil {
+		return err
+	}
+	if bytesWritten != len(data) {
+		return fmt.Errorf("failed to write entire file")
+	}
+	return nil
+}
+
+func VerifySHA256SUMSFile(hashesPath string) error {
+	process := exec.Command("shasum", "--algorithm", "256", "--check", "--", filepath.Base(hashesPath))
+	process.Stdout = os.Stdout
+	process.Stderr = os.Stderr
+	process.Dir = filepath.Dir(hashesPath)
+	if err := process.Start(); err != nil {
+		return err
+	}
+	if err := process.Wait(); err != nil {
+		return err
 	}
 	return nil
 }
