@@ -128,7 +128,7 @@ var filesToTransform map[string]map[string]FileTransformType = map[string]map[st
 	"manual/windows.zip": map[string]FileTransformType{
 		"bin/quick-lint-js.exe": MicrosoftOsslsigncode,
 	},
-	"npm/quick-lint-js-0.5.0.tgz": map[string]FileTransformType{
+	"npm/quick-lint-js-0.6.0.tgz": map[string]FileTransformType{
 		"package/darwin-aarch64/bin/quick-lint-js": AppleCodesign,
 		"package/darwin-x64/bin/quick-lint-js":     AppleCodesign,
 		"package/linux-arm/bin/quick-lint-js":      GPGSign,
@@ -137,7 +137,7 @@ var filesToTransform map[string]map[string]FileTransformType = map[string]map[st
 		"package/win32-arm64/bin/quick-lint-js":    MicrosoftOsslsigncode,
 		"package/win32-x64/bin/quick-lint-js":      MicrosoftOsslsigncode,
 	},
-	"vscode/quick-lint-js-0.5.0.vsix": map[string]FileTransformType{
+	"vscode/quick-lint-js-0.6.0.vsix": map[string]FileTransformType{
 		"extension/dist/quick-lint-js-vscode-node_darwin-arm64.node": AppleCodesign,
 		"extension/dist/quick-lint-js-vscode-node_darwin-x64.node":   AppleCodesign,
 		"extension/dist/quick-lint-js-vscode-node_linux-arm.node":    GPGSign,
