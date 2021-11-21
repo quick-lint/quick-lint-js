@@ -14,6 +14,7 @@ Follow the following steps to release a new version of quick-lint-js:
    * dist/debian/debian/changelog
    * dist/npm/BUILDING.md
    * dist/npm/package.json
+   * dist/sign-release.go
    * plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt
    * plugin/vscode-lsp/README.md
    * plugin/vscode-lsp/package.json
