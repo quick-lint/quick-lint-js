@@ -90,8 +90,7 @@ class event_loop_base {
   // Returns true when the pipe has closed. Returns false if the pipe might
   // still have data available (now or in the future).
   bool read_from_pipe() {
-    // TODO(strager): Pick buffer size intelligently.
-    std::array<char8, 1024> buffer;
+    std::array<char8, 65536> buffer;
     platform_file_ref pipe = this->const_derived().get_readable_pipe();
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
     QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
