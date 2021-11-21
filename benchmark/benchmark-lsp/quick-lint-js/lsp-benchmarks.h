@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_LSP_BENCHMARKS_H
 #define QUICK_LINT_JS_LSP_BENCHMARKS_H
 
+#include <memory>
 #include <quick-lint-js/lsp-server-process.h>
 #include <string>
 
@@ -30,7 +31,7 @@ class benchmark {
   }
 };
 
-using benchmark_factory = benchmark* (*)();
+using benchmark_factory = std::unique_ptr<benchmark> (*)();
 
 std::vector<benchmark_factory> get_benchmark_factories();
 }

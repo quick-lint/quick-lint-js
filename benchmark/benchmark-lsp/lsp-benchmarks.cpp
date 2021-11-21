@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/benchmark-config.h>
 #include <quick-lint-js/boost-json.h>
@@ -384,48 +385,54 @@ std::vector<benchmark_factory> get_benchmark_factories() {
   static source_file express_router_js = source_file::load("express-router.js");
 
   return std::vector<benchmark_factory>{
-      []() -> benchmark* { return new open_wait_close_benchmark(&tiny_js); },
-      []() -> benchmark* {
-        return new open_wait_close_benchmark(&edex_ui_filesystem_js);
+      []() -> std::unique_ptr<benchmark> {
+        return std::make_unique<open_wait_close_benchmark>(&tiny_js);
       },
-      []() -> benchmark* {
-        return new open_wait_close_benchmark(&express_router_js);
+      []() -> std::unique_ptr<benchmark> {
+        return std::make_unique<open_wait_close_benchmark>(
+            &edex_ui_filesystem_js);
       },
-      []() -> benchmark* { return new change_wait_benchmark(&tiny_js); },
-      []() -> benchmark* {
-        return new change_wait_benchmark(&edex_ui_filesystem_js);
+      []() -> std::unique_ptr<benchmark> {
+        return std::make_unique<open_wait_close_benchmark>(&express_router_js);
       },
-      []() -> benchmark* {
-        return new change_wait_benchmark(&express_router_js);
+      []() -> std::unique_ptr<benchmark> {
+        return std::make_unique<change_wait_benchmark>(&tiny_js);
       },
-      []() -> benchmark* {
-        return new incremental_change_wait_benchmark(
-            &express_router_js, [](int i, byte_buffer& out_changes) {
-              // In the "create Router#VERB functions" arrow function in
-              // express-router.js, replace 'method' (declaration and
-              // references) with 'm00001', then 'm00002', etc.
-              char replacement_text[10];
-              QLJS_ASSERT(i >= 0);
-              QLJS_ASSERT(i <= 99999);
-              std::snprintf(replacement_text, sizeof(replacement_text), "m%05d",
-                            i);
-              QLJS_ASSERT(std::strlen(replacement_text) == 6);
-              out_changes.append_copy(u8R"([{"text":")");
-              out_changes.append_copy(to_string8_view(replacement_text));
-              out_changes.append_copy(
-                  u8R"(","range":{"start":{"line":506,"character":39},"end":{"line":506,"character":45}}},)");
-              out_changes.append_copy(u8R"({"text":")");
-              out_changes.append_copy(to_string8_view(replacement_text));
-              out_changes.append_copy(
-                  u8R"(","range":{"start":{"line":507,"character":8},"end":{"line":507,"character":14}}},)");
-              out_changes.append_copy(u8R"({"text":")");
-              out_changes.append_copy(to_string8_view(replacement_text));
-              out_changes.append_copy(
-                  u8R"(","range":{"start":{"line":509,"character":10},"end":{"line":509,"character":16}}}])");
-            });
+      []() -> std::unique_ptr<benchmark> {
+        return std::make_unique<change_wait_benchmark>(&edex_ui_filesystem_js);
       },
-      []() -> benchmark* {
-        return new full_change_wait_benchmark(
+      []() -> std::unique_ptr<benchmark> {
+        return std::make_unique<change_wait_benchmark>(&express_router_js);
+      },
+      []() -> std::unique_ptr<benchmark> {
+        return std::make_unique<
+            incremental_change_wait_benchmark>(&express_router_js, [](int i,
+                                                                      byte_buffer&
+                                                                          out_changes) {
+          // In the "create Router#VERB functions" arrow function in
+          // express-router.js, replace 'method' (declaration and
+          // references) with 'm00001', then 'm00002', etc.
+          char replacement_text[10];
+          QLJS_ASSERT(i >= 0);
+          QLJS_ASSERT(i <= 99999);
+          std::snprintf(replacement_text, sizeof(replacement_text), "m%05d", i);
+          QLJS_ASSERT(std::strlen(replacement_text) == 6);
+          out_changes.append_copy(u8R"([{"text":")");
+          out_changes.append_copy(to_string8_view(replacement_text));
+          out_changes.append_copy(
+              u8R"(","range":{"start":{"line":506,"character":39},"end":{"line":506,"character":45}}},)");
+          out_changes.append_copy(u8R"({"text":")");
+          out_changes.append_copy(to_string8_view(replacement_text));
+          out_changes.append_copy(
+              u8R"(","range":{"start":{"line":507,"character":8},"end":{"line":507,"character":14}}},)");
+          out_changes.append_copy(u8R"({"text":")");
+          out_changes.append_copy(to_string8_view(replacement_text));
+          out_changes.append_copy(
+              u8R"(","range":{"start":{"line":509,"character":10},"end":{"line":509,"character":16}}}])");
+        });
+      },
+      []() -> std::unique_ptr<benchmark> {
+        return std::make_unique<full_change_wait_benchmark>(
             express_router_js.name, [](int i) {
               // In the "create Router#VERB functions" arrow function in
               // express-router.js, replace 'method' (declaration and
