@@ -86,6 +86,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	if err := CheckUnsignedFiles(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func RemoveTempDirs() {
@@ -129,13 +133,13 @@ var filesToTransform map[string]map[string]FileTransformType = map[string]map[st
 		"bin/quick-lint-js.exe": MicrosoftOsslsigncode,
 	},
 	"npm/quick-lint-js-0.6.0.tgz": map[string]FileTransformType{
-		"package/darwin-aarch64/bin/quick-lint-js": AppleCodesign,
-		"package/darwin-x64/bin/quick-lint-js":     AppleCodesign,
-		"package/linux-arm/bin/quick-lint-js":      GPGSign,
-		"package/linux-arm64/bin/quick-lint-js":    GPGSign,
-		"package/linux-x64/bin/quick-lint-js":      GPGSign,
-		"package/win32-arm64/bin/quick-lint-js":    MicrosoftOsslsigncode,
-		"package/win32-x64/bin/quick-lint-js":      MicrosoftOsslsigncode,
+		"package/darwin-aarch64/bin/quick-lint-js":  AppleCodesign,
+		"package/darwin-x64/bin/quick-lint-js":      AppleCodesign,
+		"package/linux-arm/bin/quick-lint-js":       GPGSign,
+		"package/linux-arm64/bin/quick-lint-js":     GPGSign,
+		"package/linux-x64/bin/quick-lint-js":       GPGSign,
+		"package/win32-arm64/bin/quick-lint-js.exe": MicrosoftOsslsigncode,
+		"package/win32-x64/bin/quick-lint-js.exe":   MicrosoftOsslsigncode,
 	},
 	"vscode/quick-lint-js-0.6.0.vsix": map[string]FileTransformType{
 		"extension/dist/quick-lint-js-vscode-node_darwin-arm64.node": AppleCodesign,
@@ -148,6 +152,23 @@ var filesToTransform map[string]map[string]FileTransformType = map[string]map[st
 		"extension/dist/quick-lint-js-vscode-node_win32-ia32.node":   MicrosoftOsslsigncode,
 		"extension/dist/quick-lint-js-vscode-node_win32-x64.node":    MicrosoftOsslsigncode,
 	},
+}
+
+func CheckUnsignedFiles() error {
+	foundError := false
+	for archiveName, membersToTransform := range filesToTransform {
+		for memberName, _ := range membersToTransform {
+			log.Printf(
+				"file should have been signed but wasn't: %s inside %s",
+				memberName,
+				archiveName)
+			foundError = true
+		}
+	}
+	if foundError {
+		return fmt.Errorf("one or more files were not signed")
+	}
+	return nil
 }
 
 // If the file is an archive and has a file which needs to be signed, sign the
@@ -280,7 +301,9 @@ func TransformTarGz(
 ) error {
 	return TransformTarGzGeneric(sourceFile, destinationFile,
 		func(path string, file io.Reader) (FileTransformResult, error) {
-			switch membersToTransform[path] {
+			transformType := membersToTransform[path]
+			delete(membersToTransform, path)
+			switch transformType {
 			case AppleCodesign:
 				log.Printf("signing with Apple codesign: %s:%s\n", sourceFilePath, path)
 				transform, err := AppleCodesignTransform(path, file, signingStuff)
@@ -393,7 +416,9 @@ func TransformZip(
 ) error {
 	return TransformZipGeneric(sourceFile, destinationFile,
 		func(path string, file io.Reader) (FileTransformResult, error) {
-			switch membersToTransform[path] {
+			transformType := membersToTransform[path]
+			delete(membersToTransform, path)
+			switch transformType {
 			case AppleCodesign:
 				log.Printf("signing with Apple codesign: %s:%s\n", sourceFile.Name(), path)
 				transform, err := AppleCodesignTransform(path, file, signingStuff)
