@@ -1,3 +1,9 @@
+quick-lint-js (0.6.0-1) unstable; urgency=medium
+
+  * New beta release.
+
+ -- Matthew "strager" Glazar <strager.nds@gmail.com>  Sat, 20 Nov 2021 16:32:38 -0700
+
 quick-lint-js (0.5.0-1) unstable; urgency=medium
 
   * New beta release.
