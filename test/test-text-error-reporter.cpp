@@ -26,6 +26,11 @@ class test_text_error_reporter : public ::testing::Test {
 
   std::string get_output() { return this->stream_.str(); }
 
+  std::string create_linked_error_code(std::string code) {
+    return "[\e]8;;https://quick-lint-js.com/errors/" + code + "\e\\" + code +
+           "\e]8;;\e\\]";
+  }
+
  private:
   std::ostringstream stream_;
   static constexpr const char *file_path_ = "FILE";
@@ -44,10 +49,11 @@ TEST_F(test_text_error_reporter, change_source) {
   reporter.report(error_assignment_to_const_global_variable{
       identifier(source_code_span(&input_2[5 - 1], &input_2[5 - 1]))});
 
-  EXPECT_EQ(
-      this->get_output(),
-      "hello.js:1:4: error: assignment to const global variable [E0002]\n"
-      "world.js:1:5: error: assignment to const global variable [E0002]\n");
+  EXPECT_EQ(this->get_output(),
+            "hello.js:1:4: error: assignment to const global variable " +
+                this->create_linked_error_code("E0002") + "\n" +
+                "world.js:1:5: error: assignment to const global variable " +
+                this->create_linked_error_code("E0002") + "\n");
 }
 
 TEST_F(test_text_error_reporter, assignment_before_variable_declaration) {
@@ -61,10 +67,11 @@ TEST_F(test_text_error_reporter, assignment_before_variable_declaration) {
       error_assignment_before_variable_declaration{
           .assignment = identifier(assignment_span),
           .declaration = identifier(declaration_span)});
-  EXPECT_EQ(
-      this->get_output(),
-      "FILE:1:1: error: variable assigned before its declaration [E0001]\n"
-      "FILE:1:9: note: variable declared here [E0001]\n");
+  EXPECT_EQ(this->get_output(),
+            "FILE:1:1: error: variable assigned before its declaration " +
+                this->create_linked_error_code("E0001") + "\n" +
+                "FILE:1:9: note: variable declared here " +
+                this->create_linked_error_code("E0001") + "\n");
 }
 
 TEST_F(test_text_error_reporter, assignment_to_const_global_variable) {
@@ -75,7 +82,8 @@ TEST_F(test_text_error_reporter, assignment_to_const_global_variable) {
   this->make_reporter(&input).report(
       error_assignment_to_const_global_variable{identifier(infinity_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:4: error: assignment to const global variable [E0002]\n");
+            "FILE:1:4: error: assignment to const global variable " +
+                this->create_linked_error_code("E0002") + "\n");
 }
 
 TEST_F(test_text_error_reporter, expected_parenthesis_around_if_condition) {
@@ -88,8 +96,8 @@ TEST_F(test_text_error_reporter, expected_parenthesis_around_if_condition) {
           .token = '(',
       });
   EXPECT_EQ(this->get_output(),
-            "FILE:1:4: error: if statement is missing '(' around condition "
-            "[E0018]\n");
+            "FILE:1:4: error: if statement is missing '(' around condition " +
+                this->create_linked_error_code("E0018") + "\n");
 }
 
 TEST_F(test_text_error_reporter, redeclaration_of_variable) {
@@ -102,8 +110,10 @@ TEST_F(test_text_error_reporter, redeclaration_of_variable) {
   this->make_reporter(&input).report(error_redeclaration_of_variable{
       identifier(redeclaration_span), identifier(original_declaration_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:16: error: redeclaration of variable: myvar [E0034]\n"
-            "FILE:1:5: note: variable already declared here [E0034]\n");
+            "FILE:1:16: error: redeclaration of variable: myvar " +
+                this->create_linked_error_code("E0034") + "\n" +
+                "FILE:1:5: note: variable already declared here " +
+                this->create_linked_error_code("E0034") + "\n");
 }
 
 TEST_F(test_text_error_reporter, unexpected_hash_character) {
@@ -113,7 +123,9 @@ TEST_F(test_text_error_reporter, unexpected_hash_character) {
 
   this->make_reporter(&input).report(
       error_unexpected_hash_character{hash_span});
-  EXPECT_EQ(this->get_output(), "FILE:1:1: error: unexpected '#' [E0052]\n");
+  EXPECT_EQ(this->get_output(), "FILE:1:1: error: unexpected '#' " +
+                                    this->create_linked_error_code("E0052") +
+                                    "\n");
 }
 
 TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
@@ -124,7 +136,8 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
   this->make_reporter(&input).report(
       error_use_of_undeclared_variable{identifier(myvar_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:1: warning: use of undeclared variable: myvar [E0057]\n");
+            "FILE:1:1: warning: use of undeclared variable: myvar " +
+                this->create_linked_error_code("E0057") + "\n");
 }
 }
 }

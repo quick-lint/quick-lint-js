@@ -63,7 +63,9 @@ void text_error_formatter::write_message_part(
 void text_error_formatter::write_after_message(std::string_view code,
                                                diagnostic_severity,
                                                const source_code_span &) {
-  this->output_ << " [" << code << "]\n";
+  this->output_ << " ["
+                << "\e]8;;https://quick-lint-js.com/errors/" << code << "\e\\"
+                << code << "\e]8;;\e\\]\n";
 }
 }
 
