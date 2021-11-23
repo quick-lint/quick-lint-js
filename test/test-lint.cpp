@@ -1095,11 +1095,13 @@ TEST(test_lint, assign_to_immutable_variable) {
     l.visit_exit_block_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_3_FIELDS(
-                              error_assignment_to_const_variable,      //
-                              assignment, span_matcher(assignment),    //
-                              declaration, span_matcher(declaration),  //
-                              var_kind, kind)));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_4_FIELDS(
+                    error_assignment_to_const_variable,                      //
+                    assignment, span_matcher(assignment),                    //
+                    declaration, span_matcher(declaration),                  //
+                    assignment_operator, span_matcher(assignment_operator),  //
+                    var_kind, kind)));
   }
 }
 
@@ -1175,11 +1177,13 @@ TEST(test_lint, assign_to_immutable_variable_declared_in_parent_scope) {
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_3_FIELDS(
-                            error_assignment_to_const_variable,      //
-                            assignment, span_matcher(assignment),    //
-                            declaration, span_matcher(declaration),  //
-                            var_kind, variable_kind::_const)));
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_4_FIELDS(
+                  error_assignment_to_const_variable,                      //
+                  assignment, span_matcher(assignment),                    //
+                  declaration, span_matcher(declaration),                  //
+                  assignment_operator, span_matcher(assignment_operator),  //
+                  var_kind, variable_kind::_const)));
 }
 
 TEST(test_lint, assign_to_immutable_variable_declared_later_in_parent_scope) {
@@ -1202,11 +1206,13 @@ TEST(test_lint, assign_to_immutable_variable_declared_later_in_parent_scope) {
                                variable_kind::_const);
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_3_FIELDS(
-                            error_assignment_to_const_variable,      //
-                            assignment, span_matcher(assignment),    //
-                            declaration, span_matcher(declaration),  //
-                            var_kind, variable_kind::_const)));
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_4_FIELDS(
+                  error_assignment_to_const_variable,                      //
+                  assignment, span_matcher(assignment),                    //
+                  declaration, span_matcher(declaration),                  //
+                  assignment_operator, span_matcher(assignment_operator),  //
+                  var_kind, variable_kind::_const)));
 }
 
 TEST(test_lint,
@@ -1269,11 +1275,13 @@ TEST(test_lint, assignment_to_const_variable_declared_in_grandparent_scope) {
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_3_FIELDS(
-                            error_assignment_to_const_variable,      //
-                            assignment, span_matcher(assignment),    //
-                            declaration, span_matcher(declaration),  //
-                            var_kind, variable_kind::_const)));
+  EXPECT_THAT(v.errors,
+              ElementsAre(ERROR_TYPE_4_FIELDS(
+                  error_assignment_to_const_variable,                      //
+                  assignment, span_matcher(assignment),                    //
+                  declaration, span_matcher(declaration),                  //
+                  assignment_operator, span_matcher(assignment_operator),  //
+                  var_kind, variable_kind::_const)));
 }
 
 TEST(test_lint, assign_to_undeclared_variable) {
@@ -2509,11 +2517,13 @@ TEST(test_lint, with_does_not_propagate_variable_uses) {
     l.visit_exit_with_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_3_FIELDS(
-                              error_assignment_to_const_variable,      //
-                              assignment, span_matcher(assignment),    //
-                              declaration, span_matcher(declaration),  //
-                              var_kind, variable_kind::_const)));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_4_FIELDS(
+                    error_assignment_to_const_variable,                      //
+                    assignment, span_matcher(assignment),                    //
+                    declaration, span_matcher(declaration),                  //
+                    assignment_operator, span_matcher(assignment_operator),  //
+                    var_kind, variable_kind::_const)));
   }
 
   {
