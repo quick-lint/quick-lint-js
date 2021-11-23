@@ -783,6 +783,7 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
                     error_missing_property_name_for_dot_operator, dot,
                     offsets_matcher(p.code(), strlen(u8"x"), u8"."))));
   }
+
   {
     test_parser p(u8".;"_sv);
     expression* ast = p.parse_expression();
@@ -794,6 +795,16 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
                              offsets_matcher(p.code(), 0, u8".")),
             ERROR_TYPE_FIELD(error_missing_property_name_for_dot_operator, dot,
                              offsets_matcher(p.code(), 0, u8"."))));
+  }
+
+  {
+    test_parser p(u8"console.('hello');"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(dot(var console, ), literal)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_property_name_for_dot_operator, dot,
+                    offsets_matcher(p.code(), strlen(u8"console"), u8"."))));
   }
 }
 
