@@ -52,9 +52,19 @@ for (let extension of [".js", ".mjs", ".cjs"]) {
 
       await pollAsync(async () => {
         let helloDiags = normalizeDiagnostics(helloURI);
+
         assert.deepStrictEqual(helloDiags, [
           {
-            code: "E0034",
+            code: {
+              target: {
+                scheme: "https",
+                authority: "quick-lint-js.com",
+                path: "/errors/E0034",
+                query: "",
+                fragment: "",
+              },
+              value: "E0034",
+            },
             message: "redeclaration of variable: x",
             severity: vscode.DiagnosticSeverity.Error,
             source: "quick-lint-js",
@@ -169,7 +179,16 @@ tests = {
       let helloDiags = normalizeDiagnostics(helloURI);
       assert.deepStrictEqual(helloDiags, [
         {
-          code: "E0034",
+          code: {
+            target: {
+              scheme: "https",
+              authority: "quick-lint-js.com",
+              path: "/errors/E0034",
+              query: "",
+              fragment: "",
+            },
+            value: "E0034",
+          },
           message: "redeclaration of variable: x",
           severity: vscode.DiagnosticSeverity.Error,
           source: "quick-lint-js",
@@ -383,9 +402,33 @@ tests = {
     });
     assert.deepStrictEqual(diags, [
       // redeclaration of variable 'x'
-      { code: "E0034", severity: vscode.DiagnosticSeverity.Error },
+      {
+        code: {
+          target: {
+            scheme: "https",
+            authority: "quick-lint-js.com",
+            path: "/errors/E0034",
+            query: "",
+            fragment: "",
+          },
+          value: "E0034",
+        },
+        severity: vscode.DiagnosticSeverity.Error,
+      },
       // use of undeclared variable 'undeclaredVariable'
-      { code: "E0057", severity: vscode.DiagnosticSeverity.Warning },
+      {
+        code: {
+          target: {
+            scheme: "https",
+            authority: "quick-lint-js.com",
+            path: "/errors/E0057",
+            query: "",
+            fragment: "",
+          },
+          value: "E0057",
+        },
+        severity: vscode.DiagnosticSeverity.Warning,
+      },
     ]);
   },
 
@@ -438,7 +481,16 @@ tests = {
       jsDiags.map(({ code, startLine }) => ({ code, startLine })),
       [
         {
-          code: "E0057",
+          code: {
+            target: {
+              scheme: "https",
+              authority: "quick-lint-js.com",
+              path: "/errors/E0057",
+              query: "",
+              fragment: "",
+            },
+            value: "E0057",
+          },
           startLine: 1, // document
         },
       ]
@@ -584,7 +636,16 @@ tests = {
       jsDiags.map(({ code, startLine }) => ({ code, startLine })),
       [
         {
-          code: "E0057",
+          code: {
+            target: {
+              scheme: "https",
+              authority: "quick-lint-js.com",
+              path: "/errors/E0057",
+              query: "",
+              fragment: "",
+            },
+            value: "E0057",
+          },
           startLine: 1, // testGlobalVariableFromDisk
         },
       ]
@@ -632,7 +693,18 @@ tests = {
     let configDiags = normalizeDiagnostics(configURI);
     assert.deepStrictEqual(
       configDiags.map(({ code }) => code),
-      ["E0171"]
+      [
+        {
+          target: {
+            scheme: "https",
+            authority: "quick-lint-js.com",
+            path: "/errors/E0171",
+            query: "",
+            fragment: "",
+          },
+          value: "E0171",
+        },
+      ]
     );
   },
 
@@ -668,7 +740,18 @@ tests = {
     let configDiags = normalizeDiagnostics(configURI);
     assert.deepStrictEqual(
       configDiags.map(({ code }) => code),
-      ["E0171"]
+      [
+        {
+          target: {
+            scheme: "https",
+            authority: "quick-lint-js.com",
+            path: "/errors/E0171",
+            query: "",
+            fragment: "",
+          },
+          value: "E0171",
+        },
+      ]
     );
   },
 

@@ -60,7 +60,22 @@ class vscode_error_formatter
             this->env_, reinterpret_cast<const char*>(this->message_.data())),
         /*severity=*/severity,
     });
-    diag.Set("code", ::Napi::String::New(this->env_, code.data(), code.size()));
+
+    char error_path[14];
+    sprintf(error_path, "/errors/%s", code.data());
+
+    ::Napi::Object uri = ::Napi::Object::New(this->env_);
+    uri.Set("scheme", ::Napi::String::New(this->env_, "https"));
+    uri.Set("authority", ::Napi::String::New(this->env_, "quick-lint-js.com"));
+    uri.Set("path", ::Napi::String::New(this->env_, error_path));
+    uri.Set("fragment", ::Napi::String::New(this->env_, ""));
+    uri.Set("query", ::Napi::String::New(this->env_, ""));
+
+    ::Napi::Object code_obj = ::Napi::Object::New(this->env_);
+    code_obj.Set("target", uri);
+    code_obj.Set("value", code.data());
+
+    diag.Set("code", code_obj);
     diag.Set("source", ::Napi::String::New(this->env_, "quick-lint-js"));
     this->diagnostics_.Set(this->diagnostics_.Length(), diag);
   }
