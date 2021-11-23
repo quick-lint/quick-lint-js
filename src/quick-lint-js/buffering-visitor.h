@@ -169,7 +169,8 @@ class buffering_visitor {
 
   void visit_variable_assignment(identifier name,
                                  source_code_span assignment_operator) {
-    this->visits_.emplace_back(visit_kind::variable_assignment, name);
+    this->visits_.emplace_back(visit_kind::variable_assignment, name,
+                               assignment_operator);
   }
 
   void visit_variable_declaration(identifier name, variable_kind kind) {
