@@ -55,6 +55,7 @@ if [ "${docker}" -eq 1 ]; then
     set -e
     set -u
     cd /qljs-aur
+    sudo pacman --sync --refresh
     ${script}
   "
 else
