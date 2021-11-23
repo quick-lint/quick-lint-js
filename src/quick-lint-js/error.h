@@ -60,7 +60,8 @@
         variable_kind var_kind;                                                \
         source_code_span assignment_operator;                                  \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("assignment to const variable"), assignment)     \
+      ERROR(QLJS_TRANSLATABLE("assignment to const variable"),                 \
+            assignment_operator)                                               \
           NOTE(QLJS_TRANSLATABLE("const variable declared here"),              \
                declaration))                                                   \
                                                                                \
