@@ -3,11 +3,14 @@
 
 FROM archlinux:base
 
-RUN pacman --sync --refresh --noconfirm binutils pacman-contrib sudo
+RUN pacman --sync --refresh --noconfirm binutils gnupg pacman-contrib sudo
 
 RUN useradd --create-home --shell /bin/sh qljs-builder && \
     printf 'qljs-builder ALL=(ALL) NOPASSWD: ALL\n' >/etc/sudoers.d/qljs-builder
 USER qljs-builder
+
+COPY quick-lint-js.gpg.key /tmp/quick-lint-js.gpg.key
+RUN gpg --import /tmp/quick-lint-js.gpg.key
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
