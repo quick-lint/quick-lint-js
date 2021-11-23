@@ -286,6 +286,30 @@ pre mark:empty::before {
   }
 }
 
+/* text-decoration-style: wavy; is buggy in several browsers:
+
+   * Wavy underline causes rendering artifacts
+     (https://github.com/quick-lint/quick-lint-js/issues/513)
+     * Brave version 1.31.91 Chromium: 95.0.4638.69 (Official Build) (64-bit)
+     * Brave version 1.32.106 Chromium: 96.0.4664.45 (Official Build) (arm64)
+     * Chromium version 96.0.4664.45 (Official Build) for Linux Mint (64-bit)
+     * Microsoft Edge version 91.0.864.15 (Official build) beta (64-bit)
+   * Doesn't show wavy underline if text is too narrow (font-dependent;
+     zoom-dependent)
+     * Chromium version 96.0.4664.45 (Official Build) for Linux Mint (64-bit)
+     * Microsoft Edge version 91.0.864.15 (Official build) beta (64-bit)
+   * Doesn't show wavy underline across full text sometimes
+     * Microsoft Edge version 91.0.864.15 (Official build) beta (64-bit)
+     * macOS Safari version 15.1 (17612.2.9.1.20)
+
+  For now, use a simpler underlining scheme on possibly-buggy browsers.
+*/
+@supports (not (-moz-appearance: none)) {
+  pre mark {
+    text-decoration-style: solid;
+  }
+}
+
 .install-logo,
 .os-logo {
   height: 1.2em;
