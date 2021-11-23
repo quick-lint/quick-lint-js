@@ -290,12 +290,14 @@ pre mark:empty::before {
 
    * Wavy underline causes rendering artifacts
      (https://github.com/quick-lint/quick-lint-js/issues/513)
+     * Not buggy: Brave version 0.61.51 Chromium: 73.0.3683.75 (Official Build) (64-bit)
      * Brave version 1.31.91 Chromium: 95.0.4638.69 (Official Build) (64-bit)
      * Brave version 1.32.106 Chromium: 96.0.4664.45 (Official Build) (arm64)
      * Chromium version 96.0.4664.45 (Official Build) for Linux Mint (64-bit)
      * Microsoft Edge version 91.0.864.15 (Official build) beta (64-bit)
    * Doesn't show wavy underline if text is too narrow (font-dependent;
      zoom-dependent)
+     * Brave version 0.61.51 Chromium: 73.0.3683.75 (Official Build) (64-bit)
      * Chromium version 96.0.4664.45 (Official Build) for Linux Mint (64-bit)
      * Microsoft Edge version 91.0.864.15 (Official build) beta (64-bit)
    * Doesn't show wavy underline across full text sometimes

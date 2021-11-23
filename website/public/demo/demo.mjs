@@ -120,7 +120,10 @@ function createErrorBox(
 }
 
 function removeErrorMessageBox() {
-  document.querySelector("#error-box")?.remove();
+  let errorBoxElement = document.querySelector("#error-box");
+  if (errorBoxElement !== null) {
+    errorBoxElement.remove();
+  }
 }
 
 function showErrorMessage(event) {

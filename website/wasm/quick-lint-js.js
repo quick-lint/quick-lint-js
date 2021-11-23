@@ -297,16 +297,23 @@ function encodeUTF8String(string, process) {
   let textUTF8Pointer = process._malloc(maxSize);
   try {
     let encoder = new TextEncoder();
-    let encodeResult = encoder.encodeInto(
-      string,
-      new Uint8Array(process._heap, textUTF8Pointer, maxSize)
-    );
-    if (encodeResult.read !== string.length) {
-      throw new Error(
-        `Assertion failure: expected encodeResult.read (${encodeResult.read}) to equal string.length (${string.length})`
+    let textUTF8Size;
+    if (typeof encoder.encodeInto === "function") {
+      let encodeResult = encoder.encodeInto(
+        string,
+        new Uint8Array(process._heap, textUTF8Pointer, maxSize)
       );
+      if (encodeResult.read !== string.length) {
+        throw new Error(
+          `Assertion failure: expected encodeResult.read (${encodeResult.read}) to equal string.length (${string.length})`
+        );
+      }
+      textUTF8Size = encodeResult.written;
+    } else {
+      let encoded = encoder.encode(string);
+      new Uint8Array(process._heap, textUTF8Pointer, maxSize).set(encoded);
+      textUTF8Size = encoded.length;
     }
-    let textUTF8Size = encodeResult.written;
     return {
       pointer: textUTF8Pointer,
       byteSize: textUTF8Size,
