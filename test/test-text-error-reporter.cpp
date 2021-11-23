@@ -27,8 +27,8 @@ class test_text_error_reporter : public ::testing::Test {
   std::string get_output() { return this->stream_.str(); }
 
   std::string create_linked_error_code(std::string code) {
-    return "[\e]8;;https://quick-lint-js.com/errors/" + code + "\e\\" + code +
-           "\e]8;;\e\\]";
+    return "[\x1B]8;;https://quick-lint-js.com/errors/" + code + "\x1B\\" +
+           code + "\x1B]8;;\x1B\\]";
   }
 
  private:
