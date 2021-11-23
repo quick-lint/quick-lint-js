@@ -31,22 +31,22 @@ Follow the following steps to release a new version of quick-lint-js:
 5. Wait for all GitHub Actions workflows to finish and to succeed.
 
 6. Download the build artifacts from the artifact server:
-   `rsync -av c.quick-lint-js.com:/var/www/c.quick-lint-js.com/builds/$YOUR_COMMIT_HASH/ builds/`
+   `rsync -av github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/builds/$YOUR_COMMIT_HASH/ builds/`
 
 7. Sign the build artifacts:
-   `go run dist/sign-releases.go -AppleCodesignIdentity=quick-lint-js -GPGIdentity=0327DE8F9CEF499851D19F6ED20BA9DCCF0E9D20 -PrivateKeyPKCS12=dist/certificates/quick-lint-js-PRIVATE.p12 builds/ signed-builds/`
+   `go run dist/sign-release.go -AppleCodesignIdentity=quick-lint-js -GPGIdentity=0327DE8F9CEF499851D19F6ED20BA9DCCF0E9D20 -PrivateKeyPKCS12=dist/certificates/quick-lint-js-PRIVATE.p12 builds/ signed-builds/`
    * **Warning**: This signing command only works on macOS hosts.
 
 8. Upload the signed build artifacts to the artifact server:
-   `rsync -av signed-builds/ c.quick-lint-js.com:/var/www/c.quick-lint-js.com/releases/$YOUR_VERSION_NUMBER/`
+   `rsync -av signed-builds/ github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/releases/$YOUR_VERSION_NUMBER/`
 
 9. Publish the packages:
    * With the `vscode/quick-lint-js-*.vsix` artifact:
-     `npx vsce publish --packagePath signed-builds/quick-lint-js-*.vsix`
+     `npx vsce publish --packagePath signed-builds/vscode/quick-lint-js-*.vsix`
    * With the `vscode/quick-lint-js-*.vsix` artifact:
-     `npx ovsx publish signed-builds/quick-lint-js-*.vsix --pat YOUR_ACCESS_TOKEN`
+     `npx ovsx publish signed-builds/vscode/quick-lint-js-*.vsix --pat YOUR_ACCESS_TOKEN`
    * With the `npm/quick-lint-js-*.tgz` artifact:
-     `npm publish signed-builds/quick-lint-js-*.tgz`
+     `npm publish signed-builds/npm/quick-lint-js-*.tgz`
    * Run the `dist/debian/sync-releases-to-apt` script.
 
 10. Publish the website: Run `./website/deploy.sh COMMIT_HASH_HERE`.
