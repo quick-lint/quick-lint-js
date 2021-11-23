@@ -113,6 +113,15 @@ func main() {
 	if err := VerifySHA256SUMSFile(hashesPath); err != nil {
 		log.Fatal(err)
 	}
+
+	sourceTarballPath := filepath.Join(destinationDir, "source/quick-lint-js-0.6.0.tar.gz")
+	log.Printf("signing with GPG: %s\n", sourceTarballPath)
+	if _, err := GPGSignFile(sourceTarballPath, signingStuff); err != nil {
+		log.Fatal(err)
+	}
+	if err := GPGVerifySignature(sourceTarballPath, sourceTarballPath+".asc", signingStuff); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func RemoveTempDirs() {
