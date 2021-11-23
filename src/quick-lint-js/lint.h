@@ -113,21 +113,29 @@ class linter {
   };
 
   struct used_variable {
-    explicit used_variable(identifier name, used_variable_kind kind) noexcept
-        : name(name), kind(kind) {
+    explicit used_variable(
+        identifier name, used_variable_kind kind,
+        std::optional<source_code_span> assignment_operator) noexcept
+        : name(name), kind(kind), assignment_operator(assignment_operator) {
       QLJS_ASSERT(kind != used_variable_kind::_delete);
     }
 
     // kind must be used_variable_kind::_delete.
-    explicit used_variable(identifier name, used_variable_kind kind,
-                           const char8 *delete_keyword_begin) noexcept
-        : name(name), delete_keyword_begin(delete_keyword_begin), kind(kind) {
+    explicit used_variable(
+        identifier name, used_variable_kind kind,
+        const char8 *delete_keyword_begin,
+        std::optional<source_code_span> assignment_operator) noexcept
+        : name(name),
+          delete_keyword_begin(delete_keyword_begin),
+          kind(kind),
+          assignment_operator(assignment_operator) {
       QLJS_ASSERT(kind == used_variable_kind::_delete);
     }
 
     identifier name;
     const char8 *delete_keyword_begin;  // used_variable_kind::_delete only
     used_variable_kind kind;
+    std::optional<source_code_span> assignment_operator;
   };
 
   class declared_variable_set {

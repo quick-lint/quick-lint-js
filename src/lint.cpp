@@ -331,7 +331,8 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
              case used_variable_kind::assignment:
                this->report_error_if_assignment_is_illegal(
                    declared, used_var.name,
-                   /*is_assigned_before_declaration=*/false, std::nullopt);
+                   /*is_assigned_before_declaration=*/false,
+                   used_var.assignment_operator);
                break;
              case used_variable_kind::_export:
                // TODO(strager): This shouldn't happen. export statements are
@@ -356,8 +357,8 @@ void linter::visit_variable_assignment(identifier name,
         var, name, /*is_assigned_before_declaration=*/false,
         assignment_operator);
   } else {
-    current_scope.variables_used.emplace_back(name,
-                                              used_variable_kind::assignment);
+    current_scope.variables_used.emplace_back(
+        name, used_variable_kind::assignment, assignment_operator);
   }
 }
 
@@ -378,7 +379,8 @@ void linter::visit_variable_delete_use(identifier name,
     });
   } else {
     current_scope.variables_used.emplace_back(name, used_variable_kind::_delete,
-                                              delete_keyword.begin());
+                                              delete_keyword.begin(),
+                                              std::nullopt);
   }
 }
 
@@ -400,7 +402,7 @@ void linter::visit_variable_use(identifier name, used_variable_kind use_kind) {
   bool variable_is_declared =
       current_scope.declared_variables.find(name) != nullptr;
   if (!variable_is_declared) {
-    current_scope.variables_used.emplace_back(name, use_kind);
+    current_scope.variables_used.emplace_back(name, use_kind, std::nullopt);
   }
 }
 
@@ -538,10 +540,9 @@ void linter::propagate_variable_uses_to_parent_scope(
       if (var) {
         // This variable was declared in the parent scope. Don't propagate.
         if (used_var.kind == used_variable_kind::assignment) {
-          // TODO(singalhimanshu): crashing
           this->report_error_if_assignment_is_illegal(
               var, used_var.name, /*is_assigned_before_declaration=*/false,
-              std::nullopt);
+              used_var.assignment_operator);
         }
       } else if (consume_arguments &&
                  used_var.name.normalized_name() == u8"arguments") {
@@ -570,7 +571,7 @@ void linter::propagate_variable_uses_to_parent_scope(
         if (used_var.kind == used_variable_kind::assignment) {
           this->report_error_if_assignment_is_illegal(
               var, used_var.name, /*is_assigned_before_declaration=*/false,
-              std::nullopt);
+              used_var.assignment_operator);
         }
       } else if (is_current_scope_function_name(used_var)) {
         // Treat this variable as declared in the current scope.
