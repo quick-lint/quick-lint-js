@@ -310,6 +310,11 @@
       ERROR(QLJS_TRANSLATABLE("depth limit exceeded"), token))                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_dot_dot_is_not_an_operator, "E0053", { source_code_span dots; },   \
+      ERROR(QLJS_TRANSLATABLE("missing property name between '.' and '.'"),    \
+            dots))                                                             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_else_has_no_if, "E0065", { source_code_span else_token; },         \
       ERROR(QLJS_TRANSLATABLE("'else' has no corresponding 'if'"),             \
             else_token))                                                       \

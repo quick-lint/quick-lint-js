@@ -806,6 +806,16 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
                     error_missing_property_name_for_dot_operator, dot,
                     offsets_matcher(p.code(), strlen(u8"console"), u8"."))));
   }
+
+  {
+    test_parser p(u8"'hello' .. 'world'"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(literal, literal)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_dot_dot_is_not_an_operator, dots,
+                    offsets_matcher(p.code(), strlen(u8"'hello' "), u8".."))));
+  }
 }
 
 TEST_F(test_parse_expression, parse_optional_dot_expressions) {

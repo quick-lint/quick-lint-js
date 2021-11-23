@@ -1031,6 +1031,18 @@ next:
       goto next;
     }
 
+    // x .. y
+    case token_type::dot: {
+      this->error_reporter_->report(error_dot_dot_is_not_an_operator{
+          .dots = source_code_span(dot_span.begin(), this->peek().end),
+      });
+      // Treat '..' as if it was a binary operator.
+      this->skip();
+      children.emplace_back(this->parse_expression(
+          precedence{.binary_operators = false, .commas = false}));
+      goto next;
+    }
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;
