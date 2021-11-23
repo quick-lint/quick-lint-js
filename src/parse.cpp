@@ -1015,6 +1015,7 @@ next:
     case token_type::comma:
     case token_type::end_of_file:
     case token_type::equal:
+    case token_type::left_paren:
     case token_type::minus:
     case token_type::plus:
     case token_type::question:
