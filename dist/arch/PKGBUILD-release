@@ -16,7 +16,7 @@ makedepends=(cmake gcc ninja)
 checkdepends=(icu)
 provides=()
 conflicts=(quick-lint-js)
-source=("${pkgname}-${pkgver}.tar.gz::https://github.com/quick-lint/${pkgname}/archive/refs/tags/${pkgver}.tar.gz")
+source=("${pkgname}-${pkgver}.tar.gz::https://c.quick-lint-js.com/releases/${pkgver}/source/quick-lint-js-${pkgver}.tar.gz")
 sha512sums=(SKIP)
 
 build() {
