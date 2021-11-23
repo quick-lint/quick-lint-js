@@ -16,8 +16,13 @@ makedepends=(cmake gcc ninja)
 checkdepends=(icu)
 provides=()
 conflicts=(quick-lint-js)
-source=("${pkgname}-${pkgver}.tar.gz::https://c.quick-lint-js.com/releases/${pkgver}/source/quick-lint-js-${pkgver}.tar.gz")
-sha512sums=(SKIP)
+source=(
+  "${pkgname}-${pkgver}.tar.gz::https://c.quick-lint-js.com/releases/${pkgver}/source/quick-lint-js-${pkgver}.tar.gz"
+  "${pkgname}-${pkgver}.tar.gz.asc::https://c.quick-lint-js.com/releases/${pkgver}/source/quick-lint-js-${pkgver}.tar.gz.asc"
+)
+sha512sums=(SKIP SKIP)
+# Matthew "strager" Glazar (quick-lint-js signing key) <strager.nds@gmail.com>
+validpgpkeys=(0327DE8F9CEF499851D19F6ED20BA9DCCF0E9D20)
 
 build() {
   cd "${pkgname}-${pkgver}"

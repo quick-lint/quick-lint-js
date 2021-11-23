@@ -16,7 +16,7 @@ docker=0
 test=0
 qljsaur=
 
-docker_image=ghcr.io/quick-lint/quick-lint-js-dist-arch:v2
+docker_image=ghcr.io/quick-lint/quick-lint-js-dist-arch:v3
 
 while [ "${#}" -ne 0 ]; do
   case "${1}" in
