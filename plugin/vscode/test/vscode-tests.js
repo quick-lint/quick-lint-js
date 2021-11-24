@@ -56,13 +56,7 @@ for (let extension of [".js", ".mjs", ".cjs"]) {
         assert.deepStrictEqual(helloDiags, [
           {
             code: {
-              target: {
-                scheme: "https",
-                authority: "quick-lint-js.com",
-                path: "/errors/E0034",
-                query: "",
-                fragment: "",
-              },
+              target: "https://quick-lint-js.com/errors/E0034",
               value: "E0034",
             },
             message: "redeclaration of variable: x",
@@ -180,13 +174,7 @@ tests = {
       assert.deepStrictEqual(helloDiags, [
         {
           code: {
-            target: {
-              scheme: "https",
-              authority: "quick-lint-js.com",
-              path: "/errors/E0034",
-              query: "",
-              fragment: "",
-            },
+            target: "https://quick-lint-js.com/errors/E0034",
             value: "E0034",
           },
           message: "redeclaration of variable: x",
@@ -404,13 +392,7 @@ tests = {
       // redeclaration of variable 'x'
       {
         code: {
-          target: {
-            scheme: "https",
-            authority: "quick-lint-js.com",
-            path: "/errors/E0034",
-            query: "",
-            fragment: "",
-          },
+          target: "https://quick-lint-js.com/errors/E0034",
           value: "E0034",
         },
         severity: vscode.DiagnosticSeverity.Error,
@@ -418,13 +400,7 @@ tests = {
       // use of undeclared variable 'undeclaredVariable'
       {
         code: {
-          target: {
-            scheme: "https",
-            authority: "quick-lint-js.com",
-            path: "/errors/E0057",
-            query: "",
-            fragment: "",
-          },
+          target: "https://quick-lint-js.com/errors/E0057",
           value: "E0057",
         },
         severity: vscode.DiagnosticSeverity.Warning,
@@ -482,13 +458,7 @@ tests = {
       [
         {
           code: {
-            target: {
-              scheme: "https",
-              authority: "quick-lint-js.com",
-              path: "/errors/E0057",
-              query: "",
-              fragment: "",
-            },
+            target: "https://quick-lint-js.com/errors/E0057",
             value: "E0057",
           },
           startLine: 1, // document
@@ -637,13 +607,7 @@ tests = {
       [
         {
           code: {
-            target: {
-              scheme: "https",
-              authority: "quick-lint-js.com",
-              path: "/errors/E0057",
-              query: "",
-              fragment: "",
-            },
+            target: "https://quick-lint-js.com/errors/E0057",
             value: "E0057",
           },
           startLine: 1, // testGlobalVariableFromDisk
@@ -695,13 +659,7 @@ tests = {
       configDiags.map(({ code }) => code),
       [
         {
-          target: {
-            scheme: "https",
-            authority: "quick-lint-js.com",
-            path: "/errors/E0171",
-            query: "",
-            fragment: "",
-          },
+          target: "https://quick-lint-js.com/errors/E0171",
           value: "E0171",
         },
       ]
@@ -742,13 +700,7 @@ tests = {
       configDiags.map(({ code }) => code),
       [
         {
-          target: {
-            scheme: "https",
-            authority: "quick-lint-js.com",
-            path: "/errors/E0171",
-            query: "",
-            fragment: "",
-          },
+          target: "https://quick-lint-js.com/errors/E0171",
           value: "E0171",
         },
       ]
@@ -807,7 +759,10 @@ tests = {
         jsDiags.map(({ code, startLine }) => ({ code, startLine })),
         [
           {
-            code: "E0057",
+            code: {
+              target: "https://quick-lint-js.com/errors/E0057",
+              value: "E0057",
+            },
             startLine: 0, // testGlobalVariableFromEditor
           },
         ]
@@ -1275,7 +1230,14 @@ function normalizeDiagnostics(vscodeDiagnosticsOrURI) {
     vscodeDiagnostics = vscodeDiagnosticsOrURI;
   }
   return vscodeDiagnostics.map((diag) => ({
-    code: diag.code,
+    code: {
+      target: `${diag.code.target.scheme}://${diag.code.target.authority}${
+        diag.code.target.path
+      }${diag.code.target.query ? "?" + diag.code.target.query : ""}${
+        diag.code.target.fragment ? "#" + diag.code.target.fragment : ""
+      }`,
+      value: diag.code.value,
+    },
     message: diag.message,
     source: diag.source,
     severity: diag.severity,
