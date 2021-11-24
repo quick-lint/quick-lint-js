@@ -10,7 +10,6 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/diagnostic.h>
-#include <quick-lint-js/gmo.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
@@ -135,7 +134,7 @@ template <class Derived>
 inline void diagnostic_formatter<Derived>::format(const diagnostic_info& info,
                                                   const void* diagnostic) {
   this->format_message(info.code, info.messages[0], diagnostic);
-  if (!info.messages[1].format.message().empty()) {
+  if (!info.messages[1].format.empty()) {
     this->format_message(info.code, info.messages[1], diagnostic);
   }
 }

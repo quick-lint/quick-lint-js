@@ -1,50 +1,28 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_DIAGNOSTIC_H
-#define QUICK_LINT_JS_DIAGNOSTIC_H
-
 #include <cstdint>
-#include <quick-lint-js/language.h>
-#include <quick-lint-js/translation.h>
+#include <gtest/gtest.h>
+#include <quick-lint-js/hash-fnv.h>
+#include <string_view>
+
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-enum class error_type;
-
-enum class diagnostic_severity : std::uint8_t {
-  error,
-  note,
-  warning,
-};
-
-enum class diagnostic_arg_type : std::uint8_t {
-  char8,
-  identifier,
-  source_code_span,
-  statement_kind,
-  variable_kind,
-};
-
-struct diagnostic_message_arg_info {
-  std::uint8_t offset;
-  diagnostic_arg_type type;
-};
-
-struct diagnostic_message_info {
-  translatable_message format;
-  diagnostic_severity severity;
-  diagnostic_message_arg_info args[3];
-};
-
-struct diagnostic_info {
-  char code[6];
-  diagnostic_message_info messages[2];
-};
-
-const diagnostic_info &get_diagnostic_info(error_type) noexcept;
+namespace {
+TEST(test_hash_fnv, fnv_1a_default_offset_basis) {
+  // https://datatracker.ietf.org/doc/html/draft-eastlake-fnv-17.html#page-26
+  EXPECT_EQ(hash_fnv_1a_64(""sv), 0xcbf29ce484222325ULL);
+  EXPECT_EQ(hash_fnv_1a_64("\0"sv), 0xaf63bd4c8601b7dfULL);
+  EXPECT_EQ(hash_fnv_1a_64("a"sv), 0xaf63dc4c8601ec8cULL);
+  EXPECT_EQ(hash_fnv_1a_64("a\0"sv), 0x089be207b544f1e4ULL);
+  EXPECT_EQ(hash_fnv_1a_64("foobar"sv), 0x85944171f73967e8ULL);
+  EXPECT_EQ(hash_fnv_1a_64("foobar\0"sv), 0x34531ca7168b8f38ULL);
+  // https://docs.aws.amazon.com/redshift/latest/dg/r_FNV_HASH.html
+  EXPECT_EQ(hash_fnv_1a_64("Amazon Redshift"sv), 0x6c048340799c899eULL);
 }
-
-#endif
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

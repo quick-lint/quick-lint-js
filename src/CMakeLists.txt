@@ -69,7 +69,6 @@ quick_lint_js_add_library(
   file.cpp
   global-variables-browser.cpp
   global-variables.cpp
-  gmo.cpp
   integer.cpp
   json.cpp
   language.cpp
@@ -105,7 +104,6 @@ quick_lint_js_add_library(
   quick-lint-js/cli-location.h
   quick-lint-js/configuration-loader.h
   quick-lint-js/configuration.h
-  quick-lint-js/constant-divider.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
   quick-lint-js/diagnostic-formatter.h
@@ -127,7 +125,7 @@ quick_lint_js_add_library(
   quick-lint-js/file.h
   quick-lint-js/force-inline.h
   quick-lint-js/global-variables.h
-  quick-lint-js/gmo.h
+  quick-lint-js/hash-fnv.h
   quick-lint-js/have.h
   quick-lint-js/integer.h
   quick-lint-js/json.h
@@ -159,7 +157,8 @@ quick_lint_js_add_library(
   quick-lint-js/simdjson.h
   quick-lint-js/temporary-directory.h
   quick-lint-js/text-error-reporter.h
-  quick-lint-js/translation-data.h
+  quick-lint-js/translation-table-generated.h
+  quick-lint-js/translation-table.h
   quick-lint-js/translation.h
   quick-lint-js/unreachable.h
   quick-lint-js/uri.h
@@ -174,7 +173,7 @@ quick_lint_js_add_library(
   simdjson.cpp
   temporary-directory.cpp
   text-error-reporter.cpp
-  translation-data.cpp
+  translation-table-generated.cpp
   translation.cpp
   uri.cpp
   utf-16.cpp

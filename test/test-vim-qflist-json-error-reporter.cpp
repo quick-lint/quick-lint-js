@@ -283,7 +283,7 @@ TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
       .messages =
           {
               diagnostic_message_info{
-                  .format = "something happened"_gmo_message,
+                  .format = "something happened"_translatable,
                   .severity = diagnostic_severity::error,
                   .args =
                       {
@@ -320,7 +320,7 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
       .messages =
           {
               diagnostic_message_info{
-                  .format = "something happened"_gmo_message,
+                  .format = "something happened"_translatable,
                   .severity = diagnostic_severity::error,
                   .args =
                       {
@@ -329,7 +329,7 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
                       },
               },
               diagnostic_message_info{
-                  .format = "here"_gmo_message,
+                  .format = "here"_translatable,
                   .severity = diagnostic_severity::note,
                   .args =
                       {

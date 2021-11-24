@@ -7,7 +7,6 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/diagnostic-formatter.h>
 #include <quick-lint-js/diagnostic.h>
-#include <quick-lint-js/gmo.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/location.h>
 #include <string_view>
@@ -63,7 +62,7 @@ TEST(test_diagnostic_formatter, origin_span) {
   };
 
   constexpr diagnostic_message_info message_info = {
-      .format = "something happened"_gmo_message,
+      .format = "something happened"_translatable,
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -80,7 +79,7 @@ TEST(test_diagnostic_formatter, origin_span) {
 
 TEST(test_diagnostic_formatter, single_span_simple_message) {
   constexpr diagnostic_message_info message_info = {
-      .format = "something happened"_gmo_message,
+      .format = "something happened"_translatable,
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -99,7 +98,7 @@ TEST(test_diagnostic_formatter, diagnostic_with_single_message) {
       .messages =
           {
               diagnostic_message_info{
-                  .format = "something happened"_gmo_message,
+                  .format = "something happened"_translatable,
                   .severity = diagnostic_severity::error,
                   .args =
                       {
@@ -120,7 +119,7 @@ TEST(test_diagnostic_formatter, diagnostic_with_two_messages) {
       .messages =
           {
               diagnostic_message_info{
-                  .format = "something happened"_gmo_message,
+                  .format = "something happened"_translatable,
                   .severity = diagnostic_severity::error,
                   .args =
                       {
@@ -128,7 +127,7 @@ TEST(test_diagnostic_formatter, diagnostic_with_two_messages) {
                       },
               },
               diagnostic_message_info{
-                  .format = "see here"_gmo_message,
+                  .format = "see here"_translatable,
                   .severity = diagnostic_severity::note,
                   .args =
                       {
@@ -147,7 +146,7 @@ TEST(test_diagnostic_formatter, diagnostic_with_two_messages) {
 
 TEST(test_diagnostic_formatter, message_with_zero_placeholder) {
   constexpr diagnostic_message_info message_info = {
-      .format = "this {0} looks fishy"_gmo_message,
+      .format = "this {0} looks fishy"_translatable,
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -169,7 +168,7 @@ TEST(test_diagnostic_formatter, message_with_extra_identifier_placeholder) {
     identifier world;
   };
   constexpr diagnostic_message_info message_info = {
-      .format = "this {1} looks fishy"_gmo_message,
+      .format = "this {1} looks fishy"_translatable,
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -197,7 +196,7 @@ TEST(test_diagnostic_formatter, message_with_multiple_span_placeholders) {
     source_code_span be_span;
   };
   constexpr diagnostic_message_info message_info = {
-      .format = "free {1} and {0} {1} {2}"_gmo_message,
+      .format = "free {1} and {0} {1} {2}"_translatable,
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -231,7 +230,7 @@ TEST(test_diagnostic_formatter, message_with_char_placeholder) {
     char8 c;
   };
   constexpr diagnostic_message_info message_info = {
-      .format = "what is this '{1}' nonsense?"_gmo_message,
+      .format = "what is this '{1}' nonsense?"_translatable,
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -252,7 +251,7 @@ TEST(test_diagnostic_formatter, message_with_char_placeholder) {
 
 TEST(test_diagnostic_formatter, message_with_escaped_curlies) {
   constexpr diagnostic_message_info message_info = {
-      .format = "a {{0} b }} c"_gmo_message,
+      .format = "a {{0} b }} c"_translatable,
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -274,7 +273,7 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
     statement_kind statement;
   };
   constexpr diagnostic_message_info headlinese_message_info = {
-      .format = "expected {1:headlinese}"_gmo_message,
+      .format = "expected {1:headlinese}"_translatable,
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -285,7 +284,7 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
           },
   };
   constexpr diagnostic_message_info singular_message_info = {
-      .format = "expected {1:singular}"_gmo_message,
+      .format = "expected {1:singular}"_translatable,
       .severity = diagnostic_severity::error,
       .args =
           {
