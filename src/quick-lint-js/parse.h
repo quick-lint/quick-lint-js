@@ -2970,12 +2970,14 @@ class parser {
     QLJS_ASSERT(this->peek().type == token_type::left_curly);
     this->skip();
     for (;;) {
+      bool left_is_keyword = false;
       switch (this->peek().type) {
       QLJS_CASE_RESERVED_KEYWORD:
       case token_type::reserved_keyword_with_escape_sequence:
         if (out_exported_bad_tokens) {
           out_exported_bad_tokens->emplace_back(this->peek());
         }
+        left_is_keyword = true;
         [[fallthrough]];
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier: {
@@ -3002,7 +3004,12 @@ class parser {
           }
         }
         if (is_export) {
-          v.visit_variable_export_use(left_name);
+          if (left_is_keyword) {
+            // Ignore. We will emit error_cannot_export_variable_named_keyword
+            // later.
+          } else {
+            v.visit_variable_export_use(left_name);
+          }
         } else {
           switch (right_token.type) {
           // import {myFunc} from 'other';
