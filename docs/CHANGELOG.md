@@ -6,6 +6,23 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Security
+
+* The source archive (`quick-lint-js-*.tar.gz`) is now signed with our GPG key.
+* Arch Linux: The release package on AUR now verifies that the source archive is
+  signed with our GPG key.
+
+### Added
+
+* New diagnostics: E0053
+* Parsing identifier is now optimized for ARM systems, including Apple Silicon.
+
+### Fixed
+
+* Reporting E0144 no longer also reports E0057.
+
 ## 0.6.0 (2021-11-20)
 
 Beta release.
