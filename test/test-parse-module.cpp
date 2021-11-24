@@ -279,10 +279,8 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_export_use"));  // (keyword)
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{keyword}));
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.variable_uses, IsEmpty());
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_cannot_export_variable_named_keyword, export_name,
@@ -295,10 +293,8 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_export_use"));  // (keyword)
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{keyword}));
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.variable_uses, IsEmpty());
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_cannot_export_variable_named_keyword, export_name,
@@ -315,8 +311,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
       spy_visitor v;
       parser p(&code, &v);
       EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{keyword}));
+      EXPECT_THAT(v.variable_uses, IsEmpty());
       EXPECT_THAT(
           v.errors,
           ElementsAre(ERROR_TYPE_FIELD(
@@ -330,8 +325,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
       spy_visitor v;
       parser p(&code, &v);
       EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{keyword}));
+      EXPECT_THAT(v.variable_uses, IsEmpty());
       EXPECT_THAT(
           v.errors,
           ElementsAre(ERROR_TYPE_FIELD(
