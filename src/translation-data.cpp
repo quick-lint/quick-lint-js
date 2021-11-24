@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-// This file is **GENERATED** by tools/compile-translations.
+// This file is **GENERATED** by tools/compile-translations.go.
 
 #include <cstdint>
 #include <quick-lint-js/locale.h>
