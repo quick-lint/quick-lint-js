@@ -13,6 +13,7 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/options.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
 
@@ -23,6 +24,9 @@ class text_error_reporter final : public error_reporter {
  public:
   explicit text_error_reporter(std::ostream &output);
 
+  explicit text_error_reporter(std::ostream &output,
+                               escape_errors escape_errors);
+
   void set_source(padded_string_view input, const char *file_name);
 
   void report_impl(error_type type, void *error) override;
@@ -31,12 +35,14 @@ class text_error_reporter final : public error_reporter {
   std::ostream &output_;
   std::optional<cli_locator> locator_;
   const char *file_path_;
+  escape_errors escape_errors_;
 };
 
 class text_error_formatter : public diagnostic_formatter<text_error_formatter> {
  public:
   explicit text_error_formatter(std::ostream &output, const char *file_path,
-                                cli_locator &locator);
+                                cli_locator &locator,
+                                bool format_escape_errors);
 
   void write_before_message(std::string_view code, diagnostic_severity,
                             const source_code_span &origin);
@@ -49,6 +55,7 @@ class text_error_formatter : public diagnostic_formatter<text_error_formatter> {
   std::ostream &output_;
   const char *file_path_;
   cli_locator &locator_;
+  bool format_escape_errors_;
 };
 }
 

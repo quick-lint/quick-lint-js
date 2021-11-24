@@ -51,6 +51,19 @@ class TestQuickLintJSCLI(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn("E0017", result.stderr)
 
+    def test_file_with_escaped_syntax_errors_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("var parenthesesMissing;\nif parenthesesMissing { }\n")
+
+            result = subprocess.run(
+                [get_quick_lint_js_executable_path(), "--escape-errors=always" ,str(test_file)],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("[]8;;https://quick-lint-js.com/errors/E0017\E0017]8;;\]", result.stderr)
+
     def test_file_with_syntax_errors_with_non_matching_exit_fail_on_does_not_fail(
         self,
     ) -> None:
@@ -242,7 +255,7 @@ class TestQuickLintJSCLI(unittest.TestCase):
                 encoding="utf-8",
             )
             self.assertEqual(result.returncode, 1)
-            self.assertEqual(result.stderr.count("E0164"), 2)
+            self.assertEqual(result.stderr.count("E0164"), 1)
 
     def test_errors_for_all_config_files_are_printed(self) -> None:
         with tempfile.TemporaryDirectory() as test_directory:
@@ -272,7 +285,7 @@ class TestQuickLintJSCLI(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn("dir1", result.stderr)
             self.assertIn("dir2", result.stderr)
-            self.assertEqual(result.stderr.count("E0164"), 4)
+            self.assertEqual(result.stderr.count("E0164"), 2)
 
 
 if __name__ == "__main__":

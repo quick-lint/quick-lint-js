@@ -54,12 +54,13 @@ namespace {
 class any_error_reporter {
  public:
   static any_error_reporter make(output_format format,
+                                 escape_errors escape_errors,
                                  compiled_error_list *exit_fail_on) {
     switch (format) {
     case output_format::default_format:
     case output_format::gnu_like:
       return any_error_reporter(error_tape<text_error_reporter>(
-          text_error_reporter(std::cerr), exit_fail_on));
+          text_error_reporter(std::cerr, escape_errors), exit_fail_on));
     case output_format::vim_qflist_json:
       return any_error_reporter(error_tape<vim_qflist_json_error_reporter>(
           vim_qflist_json_error_reporter(std::cout), exit_fail_on));
@@ -180,7 +181,8 @@ void handle_options(quick_lint_js::options o) {
   }
 
   quick_lint_js::any_error_reporter reporter =
-      quick_lint_js::any_error_reporter::make(o.output_format, &o.exit_fail_on);
+      quick_lint_js::any_error_reporter::make(o.output_format, o.escape_errors,
+                                              &o.exit_fail_on);
 
   configuration default_config;
   configuration_loader config_loader(
@@ -612,6 +614,11 @@ void print_help_message() {
   print_option("", "gnu-like (default if omitted)");
   print_option("", "vim-qflist-json");
   print_option("", "emacs-lisp");
+  print_option("--escape-errors=[WHEN]",
+               "Use escape sequences to show errors as hyperlinks.");
+  print_option("", "WHEN can be 'auto' (default if omitted), 'always',");
+  print_option("", "'never'. auto uses escape sequences when the standard");
+  print_option("", "error is a terminal");
   print_option("-v, --version", "Print version information");
   print_option("--vim-file-bufnr=[NUMBER]",
                "Select a vim buffer for outputting feedback");

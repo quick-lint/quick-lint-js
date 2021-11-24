@@ -71,6 +71,17 @@ options parse_options(int argc, char** argv) {
         o.error_unrecognized_options.emplace_back(arg_value);
       }
     } else if (const char* arg_value =
+                   parser.match_option_with_value("--escape-errors"sv)) {
+      if (arg_value == "auto"sv) {
+        o.escape_errors = quick_lint_js::escape_errors::auto_;
+      } else if (arg_value == "always"sv) {
+        o.escape_errors = quick_lint_js::escape_errors::always;
+      } else if (arg_value == "never"sv) {
+        o.escape_errors = quick_lint_js::escape_errors::never;
+      } else {
+        o.error_unrecognized_options.emplace_back(arg_value);
+      }
+    } else if (const char* arg_value =
                    parser.match_option_with_value("--config-file"sv)) {
       active_config_file = arg_value;
       o.has_config_file = true;
