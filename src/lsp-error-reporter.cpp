@@ -72,7 +72,7 @@ void lsp_error_formatter::write_before_message(std::string_view code,
   this->output_.append_copy(u8",\"code\":\"");
   this->output_.append_copy(to_string8_view(code));
   this->output_.append_copy(u8"\",\"codeDescription\":");
-  this->output_.append_copy(u8"{\"href\":\"https://quick-lint-js.com/errors/");
+  this->output_.append_copy(u8"{\"href\":\"https://quick-lint-js.com/errors/#");
   this->output_.append_copy(to_string8_view(code));
   this->output_.append_copy(u8"\"},\"source\":\"quick-lint-js\"");
   this->output_.append_copy(u8",\"message\":\"");

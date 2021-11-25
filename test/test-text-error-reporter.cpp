@@ -35,7 +35,7 @@ class test_text_error_reporter : public ::testing::Test {
   std::string get_output() { return this->stream_.str(); }
 
   std::string create_escape_error_code(std::string code) {
-    return "\x1B]8;;https://quick-lint-js.com/errors/" + code + "\x1B\\" +
+    return "\x1B]8;;https://quick-lint-js.com/errors/#" + code + "\x1B\\" +
            code + "\x1B]8;;\x1B\\";
   }
 

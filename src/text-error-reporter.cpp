@@ -36,7 +36,7 @@ void text_error_reporter::report_impl(error_type type, void *error) {
   QLJS_ASSERT(this->file_path_);
   QLJS_ASSERT(this->locator_.has_value());
 
-  bool format_escape_errors;
+  bool format_escape_errors = false;
 
   switch (this->escape_errors_) {
   case escape_errors::auto_:
@@ -102,7 +102,7 @@ void text_error_formatter::write_after_message(std::string_view code,
                                                diagnostic_severity,
                                                const source_code_span &) {
   if (this->format_escape_errors_) {
-    this->output_ << " [\x1B]8;;https://quick-lint-js.com/errors/" << code
+    this->output_ << " [\x1B]8;;https://quick-lint-js.com/errors/#" << code
                   << "\x1B\\" << code << "\x1B]8;;\x1B\\]\n";
   } else {
     this->output_ << " [" << code << "]\n";

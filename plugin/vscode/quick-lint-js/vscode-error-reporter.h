@@ -61,14 +61,13 @@ class vscode_error_formatter
         /*severity=*/severity,
     });
 
-    char error_path[14];  // "/errors/E0014" is 14 characters with \0
-    snprintf(error_path, sizeof(error_path), "/errors/%s", code.data());
-    QLJS_ASSERT(std::strlen(error_path) == 13);
-
     ::Napi::Value uri = this->vscode_->uri_class.New(
         {/*scheme*/ ::Napi::String::New(this->env_, "https"),
          /*authority*/ ::Napi::String::New(this->env_, "quick-lint-js.com"),
-         /*path*/ ::Napi::String::New(this->env_, error_path)});
+         /*path*/ ::Napi::String::New(this->env_, "/errors/"),
+         /*query*/ ::Napi::String::New(this->env_, ""),
+         /*fragment*/
+         ::Napi::String::New(this->env_, code.data(), code.size())});
 
     ::Napi::Object code_obj = ::Napi::Object::New(this->env_);
     code_obj.Set("target", uri);
