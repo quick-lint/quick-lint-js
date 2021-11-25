@@ -740,4 +740,4 @@ class FilesystemDisplay {
 module.exports = {
     FilesystemDisplay
 };
-if (false) undeclaredVariable.hasOwnProperty(); // Intentional error to force diagnostics.
+if (false) undeclaredVariable.hasOwnProperty() + 1; // Intentional error to force diagnostics.

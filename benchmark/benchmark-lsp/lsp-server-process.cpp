@@ -270,6 +270,13 @@ void lsp_server_process::handle_misc_message(::boost::json::object& message) {
       response.append_copy(u8R"(]})");
       this->send_message(std::move(response));
       return;
+    } else if (*method == "jshint/confirmLibraryUsage") {
+      byte_buffer response;
+      response.append_copy(u8R"({"jsonrpc":"2.0","id":)");
+      response.append_decimal_integer(look_up(message, "id").get_int64());
+      response.append_copy(u8R"(,"result":true})");
+      this->send_message(std::move(response));
+      return;
     }
   }
 }
