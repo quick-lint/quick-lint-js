@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "eslint-server": "*"
+    "eslint": "*",
+    "vscode-eslint": "https://github.com/microsoft/vscode-eslint/archive/cbb35d03497bb39043033defbad7fd80b2a89698.tar.gz"
   }
 }

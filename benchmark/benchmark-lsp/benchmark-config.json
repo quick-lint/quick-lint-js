@@ -1,14 +1,16 @@
 {
   "servers": [
     {
-      "name": "eslint-server",
-      "command": ["node", "./node_modules/eslint-server/lib/index.js", "--stdio"],
+      "name": "vscode-eslint",
+      "command": ["node", "./node_modules/vscode-eslint/server/out/eslintServer.js", "--stdio"],
       "cwd": "eslint/",
-      "allowIncrementalChanges": false,
       "workspaceConfiguration": {
+        "nodePath": null,
+        "rulesCustomizations": [],
         "run": "onType",
-        "validate": "probe"
-      }
+        "validate": "on"
+      },
+      "needFilesOnDisk": true
     },
     {
       "name": "Deno",

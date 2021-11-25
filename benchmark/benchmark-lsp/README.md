@@ -7,7 +7,9 @@ This directory contains a tool which measures the speed of LSP servers.
 Install the LSP servers you want to benchmark:
 
 * **Deno**: Install [Deno][]. Ensure the `deno` command is in `$PATH`.
-* **ESLint**: Run `yarn` in the `eslint/` directory.
+* **ESLint**: Run `yarn` in the `eslint/` directory. Then, run
+  `npm ci && npm run compile:server` in the `eslint/node_modules/vscode-eslint/`
+  directory.
 * **Flow**: Run `yarn` in the `flow/` directory.
 * **RSLint**: Install [RSLint's rslint_lsp crate][install-rslint]. Ensure the
   `rslint-lsp` command is in `$PATH`.
