@@ -1231,11 +1231,7 @@ function normalizeDiagnostics(vscodeDiagnosticsOrURI) {
   }
   return vscodeDiagnostics.map((diag) => ({
     code: {
-      target: `${diag.code.target.scheme}://${diag.code.target.authority}${
-        diag.code.target.path
-      }${diag.code.target.query ? "?" + diag.code.target.query : ""}${
-        diag.code.target.fragment ? "#" + diag.code.target.fragment : ""
-      }`,
+      target: diag.code.target.toString(true),
       value: diag.code.value,
     },
     message: diag.message,
