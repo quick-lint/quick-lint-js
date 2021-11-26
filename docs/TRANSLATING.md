@@ -10,7 +10,7 @@ script. Be sure to commit changes to the updated \*.pot, \*.po, and \*.mo files.
 
 After editing a translation file (\*.po), update the compiled .mo files
 (embedded within src/translation-data.cpp) by running the
-`tools/compile-translations` script. Be sure to commit changes to the updated
+`tools/compile-translations.go` script. Be sure to commit changes to the updated
 translation-data.cpp file
 
 ## Adding a new language (.po file)
