@@ -1,0 +1,17 @@
+name: clang-tidy analysis
+
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ZedThree/clang-tidy-review@v0.7.0
+        id: run-static-analysis
+        with:
+          clang_tidy_checks: clang-analyzer-*
+      - if: steps.run-static-analysis.outputs.total_comments > 0
+        run: exit 1
