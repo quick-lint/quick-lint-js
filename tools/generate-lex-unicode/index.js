@@ -161,10 +161,10 @@ function isIDContinue(codePoint) {
 }
 
 let ID_START_CODE_POINTS = new Set(
-  require("@unicode/unicode-13.0.0/Binary_Property/ID_Start/code-points.js")
+  require("@unicode/unicode-14.0.0/Binary_Property/ID_Start/code-points.js")
 );
 let ID_CONTINUE_CODE_POINTS = new Set(
-  require("@unicode/unicode-13.0.0/Binary_Property/ID_Continue/code-points.js")
+  require("@unicode/unicode-14.0.0/Binary_Property/ID_Continue/code-points.js")
 );
 
 // Pattern_White_Space
