@@ -11,20 +11,40 @@
 #include <quick-lint-js/text-error-reporter.h>
 #include <quick-lint-js/token.h>
 
-#if defined(_WIN32)
-#include <io.h>
-#include <stdio.h>
-#else
+#if !defined(_WIN32)
 #include <unistd.h>
 #endif
 
 namespace quick_lint_js {
 text_error_reporter::text_error_reporter(std::ostream &output)
-    : output_(output), escape_errors_(escape_errors::auto_) {}
+    : output_(output), format_escape_errors_(this->use_escape_if_auto()) {}
 
 text_error_reporter::text_error_reporter(std::ostream &output,
-                                         escape_errors escape_error)
-    : output_(output), escape_errors_(escape_error) {}
+                                         escape_errors escape_errors)
+    : output_(output) {
+  switch (escape_errors) {
+  case escape_errors::auto_:
+    if (this->use_escape_if_auto())
+      this->format_escape_errors_ = true;
+    else
+      this->format_escape_errors_ = false;
+    break;
+  case escape_errors::always:
+    this->format_escape_errors_ = true;
+    break;
+  case escape_errors::never:
+    this->format_escape_errors_ = false;
+    break;
+  }
+}
+
+bool text_error_reporter::use_escape_if_auto() {
+#if defined(_WIN32)
+  return false;
+#else
+  return this->output_.rdbuf() == std::cerr.rdbuf() && isatty(STDERR_FILENO);
+#endif
+}
 
 void text_error_reporter::set_source(padded_string_view input,
                                      const char *file_path) {
@@ -35,31 +55,11 @@ void text_error_reporter::set_source(padded_string_view input,
 void text_error_reporter::report_impl(error_type type, void *error) {
   QLJS_ASSERT(this->file_path_);
   QLJS_ASSERT(this->locator_.has_value());
-
-  bool format_escape_errors = false;
-
-  switch (this->escape_errors_) {
-  case escape_errors::auto_:
-#if defined(_WIN32)
-    if (this->output_.rdbuf() == std::cerr.rdbuf() && _isatty(_fileno(stderr)))
-#else
-    if (this->output_.rdbuf() == std::cerr.rdbuf() && isatty(fileno(stderr)))
-#endif
-      format_escape_errors = true;
-    else
-      format_escape_errors = false;
-    break;
-  case escape_errors::always:
-    format_escape_errors = true;
-    break;
-  case escape_errors::never:
-    format_escape_errors = false;
-    break;
-  }
-  text_error_formatter formatter(/*output=*/this->output_,
-                                 /*file_path=*/this->file_path_,
-                                 /*locator=*/*this->locator_,
-                                 /*format_escape_errors*/ format_escape_errors);
+  text_error_formatter formatter(
+      /*output=*/this->output_,
+      /*file_path=*/this->file_path_,
+      /*locator=*/*this->locator_,
+      /*format_escape_errors*/ this->format_escape_errors_);
   formatter.format(get_diagnostic_info(type), error);
 }
 

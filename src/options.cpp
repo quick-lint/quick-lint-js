@@ -70,8 +70,8 @@ options parse_options(int argc, char** argv) {
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }
-    } else if (const char* arg_value =
-                   parser.match_option_with_value("--escape-errors"sv)) {
+    } else if (const char* arg_value = parser.match_option_with_value(
+                   "--diagnostic-hyperlinks"sv)) {
       if (arg_value == "auto"sv) {
         o.escape_errors = quick_lint_js::escape_errors::auto_;
       } else if (arg_value == "always"sv) {

@@ -57,7 +57,7 @@ class TestQuickLintJSCLI(unittest.TestCase):
             test_file.write_text("var parenthesesMissing;\nif parenthesesMissing { }\n")
 
             result = subprocess.run(
-                [get_quick_lint_js_executable_path(), "--escape-errors=always" ,str(test_file)],
+                [get_quick_lint_js_executable_path(), "--diagnostic-hyperlinks=always" ,str(test_file)],
                 capture_output=True,
                 encoding="utf-8",
             )

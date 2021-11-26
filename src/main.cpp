@@ -614,11 +614,11 @@ void print_help_message() {
   print_option("", "gnu-like (default if omitted)");
   print_option("", "vim-qflist-json");
   print_option("", "emacs-lisp");
-  print_option("--escape-errors=[WHEN]",
-               "Use escape sequences to show errors as hyperlinks.");
-  print_option("", "WHEN can be 'auto' (default if omitted), 'always',");
-  print_option("", "'never'. auto uses escape sequences when the standard");
-  print_option("", "error is a terminal");
+  print_option("--diagnostic-hyperlinks=[WHEN]",
+               "Control if errors are shown as hyperlink. WHEN is one of:");
+  print_option("", "auto (default if omitted)");
+  print_option("", "always");
+  print_option("", "never");
   print_option("-v, --version", "Print version information");
   print_option("--vim-file-bufnr=[NUMBER]",
                "Select a vim buffer for outputting feedback");
