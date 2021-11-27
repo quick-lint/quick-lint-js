@@ -1,13 +1,16 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_MONOTONIC_ALLOCATOR_H
-#define QUICK_LINT_JS_MONOTONIC_ALLOCATOR_H
-
-#include <quick-lint-js/linked-bump-allocator.h>
+#ifndef QUICK_LINT_JS_MATH_H
+#define QUICK_LINT_JS_MATH_H
 
 namespace quick_lint_js {
-using monotonic_allocator = linked_bump_allocator<alignof(void*)>;
+// On some compilers, std::max is not constexpr. Define our own which is
+// constexpr.
+template <class T, class U>
+constexpr auto maximum(T x, U y) noexcept {
+  return x < y ? y : x;
+}
 }
 
 #endif

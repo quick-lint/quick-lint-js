@@ -131,6 +131,7 @@ quick_lint_js_add_library(
   quick-lint-js/json.h
   quick-lint-js/language.h
   quick-lint-js/lex.h
+  quick-lint-js/linked-bump-allocator.h
   quick-lint-js/lint.h
   quick-lint-js/locale.h
   quick-lint-js/location.h

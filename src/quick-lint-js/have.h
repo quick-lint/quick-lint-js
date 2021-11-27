@@ -93,6 +93,17 @@
 #define QLJS_HAVE_UNISTD_H 0
 #endif
 
+#if defined(QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H) && \
+    QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
+#elif defined(__has_include)
+#if __has_include(<sanitizer/asan_interface.h>)
+#define QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H)
+#define QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H 0
+#endif
+
 #if !defined(QLJS_HAVE_WINDOWS_H)
 #if defined(_WIN32)
 #define QLJS_HAVE_WINDOWS_H 1
@@ -375,6 +386,20 @@
 // TODO(strager): Set this to 1 if is_transparent is supported by
 // std::unordered_map::find (C++20).
 #define QLJS_HAVE_STD_TRANSPARENT_KEYS 0
+#endif
+
+#if !defined(QLJS_HAVE_SIZED_ALIGNED_NEW)
+// TODO(strager): Set this to 1 if operator new is supported with both a size
+// and an alignment. Our Debian build compiles and links but doesn't run with
+// this set, so be conservative and disable it for now.
+#define QLJS_HAVE_SIZED_ALIGNED_NEW 0
+#endif
+
+#if !defined(QLJS_HAVE_SIZED_ALIGNED_DELETE)
+// TODO(strager): Set this to 1 if operator delete is supported with both a size
+// and an alignment. Our Debian build compiles and links but doesn't run with
+// this set, so be conservative and disable it for now.
+#define QLJS_HAVE_SIZED_ALIGNED_DELETE 0
 #endif
 
 #endif

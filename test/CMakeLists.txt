@@ -51,6 +51,7 @@ quick_lint_js_add_executable(
   test-integer-hexadecimal.cpp
   test-json.cpp
   test-lex.cpp
+  test-linked-bump-allocator.cpp
   test-lint-parse.cpp
   test-lint.cpp
   test-locale.cpp
@@ -61,7 +62,6 @@ quick_lint_js_add_executable(
   test-lsp-pipe-writer.cpp
   test-lsp-server.cpp
   test-math-overflow.cpp
-  test-monotonic-allocator.cpp
   test-narrow-cast.cpp
   test-options.cpp
   test-padded-string.cpp
