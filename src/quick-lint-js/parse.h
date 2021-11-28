@@ -3673,8 +3673,16 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_expression(Visitor &v, precedence prec) {
+    monotonic_allocator &alloc = *this->expressions_.allocator();
+    auto rewind_state = alloc.prepare_for_rewind();
+
     expression *ast = this->parse_expression(prec);
-    this->visit_expression(ast, v, variable_context::rhs);
+    {
+      auto disable_guard = alloc.disable();
+      this->visit_expression(ast, v, variable_context::rhs);
+    }
+
+    alloc.rewind(std::move(rewind_state));
   }
 
   expression *parse_expression(precedence);

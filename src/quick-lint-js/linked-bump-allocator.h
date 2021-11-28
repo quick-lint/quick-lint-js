@@ -17,6 +17,12 @@
 #include <sanitizer/asan_interface.h>
 #endif
 
+#if defined(QLJS_DEBUG) && QLJS_DEBUG
+#define QLJS_DEBUG_BUMP_ALLOCATOR 1
+#else
+#define QLJS_DEBUG_BUMP_ALLOCATOR 0
+#endif
+
 namespace quick_lint_js {
 // A memory allocator with a few features:
 //
@@ -121,6 +127,7 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
   template <class T>
   bool try_grow_array_in_place(T* array, std::size_t old_size,
                                std::size_t new_size) {
+    this->assert_not_disabled();
     QLJS_ASSERT(new_size > old_size);
     std::size_t old_byte_size = this->align_up(old_size * sizeof(T));
     bool array_is_last_allocation =
@@ -155,6 +162,33 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
   boost::container::pmr::memory_resource* memory_resource() noexcept {
     return this;
   }
+
+  class disable_guard {
+   public:
+    ~disable_guard() {
+#if QLJS_DEBUG_BUMP_ALLOCATOR
+      this->alloc_->disabled_count_ -= 1;
+#endif
+    }
+
+   private:
+#if QLJS_DEBUG_BUMP_ALLOCATOR
+    explicit disable_guard(linked_bump_allocator* alloc) noexcept
+        : alloc_(alloc) {
+      this->alloc_->disabled_count_ -= 1;
+    }
+#else
+    explicit disable_guard(linked_bump_allocator*) noexcept {}
+#endif
+
+#if QLJS_DEBUG_BUMP_ALLOCATOR
+    linked_bump_allocator* alloc_;
+#endif
+
+    friend class linked_bump_allocator;
+  };
+
+  [[nodiscard]] disable_guard disable() noexcept { return disable_guard(this); }
 
  protected:
   void* do_allocate(std::size_t bytes, std::size_t align) override {
@@ -230,6 +264,7 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
 #endif
 
   [[nodiscard]] void* allocate_bytes(std::size_t size) {
+    this->assert_not_disabled();
     QLJS_SLOW_ASSERT(size % Alignment == 0);
     if (this->remaining_bytes_in_current_chunk() < size) {
       this->append_chunk(maximum(size, this->default_chunk_size));
@@ -268,9 +303,23 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
     this->chunk_end_ = this->chunk_->data_end();
   }
 
+  void assert_not_disabled() const {
+#if QLJS_DEBUG_BUMP_ALLOCATOR
+    QLJS_ALWAYS_ASSERT(!this->is_disabled());
+#endif
+  }
+
+#if QLJS_DEBUG_BUMP_ALLOCATOR
+  bool is_disabled() const noexcept { return this->disabled_count_ > 0; }
+#endif
+
   chunk_header* chunk_ = nullptr;
   char* next_allocation_ = nullptr;
   char* chunk_end_ = nullptr;
+
+#if QLJS_DEBUG_BUMP_ALLOCATOR
+  int disabled_count_ = 0;
+#endif
 };
 }
 
