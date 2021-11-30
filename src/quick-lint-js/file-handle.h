@@ -127,7 +127,7 @@ class windows_handle_file_ref {
   HANDLE handle_;
 
   static constexpr HANDLE invalid_handle_1 = nullptr;
-  static constexpr HANDLE invalid_handle_2 = INVALID_HANDLE_VALUE;
+  static inline const HANDLE invalid_handle_2 = INVALID_HANDLE_VALUE;
 };
 
 // windows_handle_file is the owner of a Win32 file handle.
