@@ -10,13 +10,25 @@ On a Debian-based machine, install dependencies for .deb generation:
     $ sudo apt-get install cmake debhelper dpkg-dev gcc-9 g++-9 git lintian
 
 Then, run the `build.sh` script will build
-`dist/debian/quick-lint-js_0.4.0-1_amd64.deb`,
-`dist/debian/quick-lint-js-vim_0.4.0-1_all.deb`, and related files.
+`dist/debian/quick-lint-js_0.6.0-1_amd64.deb`,
+`dist/debian/quick-lint-js-vim_0.6.0-1_all.deb`, and related files.
 
 ## Installing
 
 On a Debian-based system, after building the .deb file (per the above
 instructions), install the .deb file:
 
-    $ sudo dpkg -i dist/debian/quick-lint-js_0.4.0-1_amd64.deb
-    $ sudo dpkg -i dist/debian/quick-lint-js-vim_0.4.0-1_all.deb
+    $ sudo dpkg -i dist/debian/quick-lint-js_0.6.0-1_amd64.deb
+
+
+### Vim plugin
+
+If you want to install the vim plugin, you'll need to a few dependencies:
+
+* [ALE](https://github.com/dense-analysis/ale#3-installation) 
+* vim-addon-mannager `sudo apt-get install vim-addon-manager`
+
+Then you can install quick-lint-js-vim:
+
+    $ sudo dpkg -i dist/debian/quick-lint-js_0.6.0-1_amd64.deb
+    $ sudo dpkg -i dist/debian/quick-lint-js-vim_0.6.0-1_all.deb
