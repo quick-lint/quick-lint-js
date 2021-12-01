@@ -279,6 +279,11 @@ class debug_visitor {
     std::fprintf(stderr, "exited function scope\n");
   }
 
+  void visit_keyword_variable_use(identifier name) {
+    std::cerr << "keyword variable use: " << out_string8(name.normalized_name())
+              << '\n';
+  }
+
   void visit_property_declaration(std::optional<identifier> name) {
     std::cerr << "property declaration";
     if (name.has_value()) {
@@ -294,6 +299,12 @@ class debug_visitor {
 
   void visit_variable_declaration(identifier name, variable_kind) {
     std::cerr << "variable declaration: " << out_string8(name.normalized_name())
+              << '\n';
+  }
+
+  void visit_variable_delete_use(
+      identifier name, [[maybe_unused]] source_code_span delete_keyword) {
+    std::cerr << "variable delete use: " << out_string8(name.normalized_name())
               << '\n';
   }
 
@@ -385,6 +396,11 @@ class multi_visitor {
     this->visitor_2_->visit_exit_function_scope();
   }
 
+  void visit_keyword_variable_use(identifier name) {
+    this->visitor_1_->visit_keyword_variable_use(name);
+    this->visitor_2_->visit_keyword_variable_use(name);
+  }
+
   void visit_property_declaration(std::optional<identifier> name) {
     this->visitor_1_->visit_property_declaration(name);
     this->visitor_2_->visit_property_declaration(name);
@@ -398,6 +414,12 @@ class multi_visitor {
   void visit_variable_declaration(identifier name, variable_kind kind) {
     this->visitor_1_->visit_variable_declaration(name, kind);
     this->visitor_2_->visit_variable_declaration(name, kind);
+  }
+
+  void visit_variable_delete_use(identifier name,
+                                 source_code_span delete_keyword) {
+    this->visitor_1_->visit_variable_delete_use(name, delete_keyword);
+    this->visitor_2_->visit_variable_delete_use(name, delete_keyword);
   }
 
   void visit_variable_export_use(identifier name) {
@@ -498,6 +520,10 @@ void run_lsp_server() {
 #endif
 
 #if QLJS_HAVE_KQUEUE
+    void on_fs_changed_kevent(const struct ::kevent &event) {
+      this->fs_.handle_kqueue_event(event);
+    }
+
     void on_fs_changed_kevents() { this->filesystem_changed(); }
 #endif
 
@@ -570,7 +596,8 @@ void print_help_message() {
   };
 
   std::printf(
-      "Usage: quick-lint-js [OPTIONS]... [FILE]...\n\n"
+      "Usage: quick-lint-js [OPTIONS]... FILE [FILE...]\n"
+      "       quick-lint-js --lsp-server\n\n"
       "OPTIONS\n");
   print_option("--config-file=[FILE]",
                "Read configuration from a JSON file for later input files");
@@ -582,8 +609,9 @@ void print_help_message() {
                "Run in Language Server mode (for LSP-aware editors)");
   print_option("--output-format=[FORMAT]",
                "Format to print feedback where FORMAT is one of:");
-  print_option("",
-               "gnu-like (default if omitted), vim-qflist-json, emacs-lisp");
+  print_option("", "gnu-like (default if omitted)");
+  print_option("", "vim-qflist-json");
+  print_option("", "emacs-lisp");
   print_option("-v, --version", "Print version information");
   print_option("--vim-file-bufnr=[NUMBER]",
                "Select a vim buffer for outputting feedback");

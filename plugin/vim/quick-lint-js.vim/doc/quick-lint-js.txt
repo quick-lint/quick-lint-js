@@ -7,13 +7,15 @@
 This file contains instructions for installing and using the quick-lint-js
 plugin.
 
-This plugin version is designed for quick-lint-js version 0.4.0. Older or
-newer version might or might not work.
+This plugin version is designed for quick-lint-js version 0.6.0. Older or
+newer versions might or might not work.
 
 1. Installing quick-lint-js	|quick-lint-js-app-install|
 2. Installing the plugin	|quick-lint-js-vim-install|
 3. Configuring			|quick-lint-js-configure|
    3.1. ALE			|quick-lint-js-configure-ale|
+   3.2. coc.nvim		|quick-lint-js-configure-coc-nvim|
+   3.3. nvim-lspconfig		|quick-lint-js-configure-nvim-lspconfig|
 
 ==============================================================================
 1. Installing quick-lint-js		*quick-lint-js-app-install*
@@ -36,7 +38,7 @@ If you see this documentation, you have already installed the Vim plugin. Go
 to the next section, |quick-lint-js-configure|.
 
 If you see error code E149 ("Sorry, no help for quick-lint-js"), then you
-need to install the Vim plugin: https://quick-lint-js.com/install/#manual-vim
+need to install the Vim plugin: https://quick-lint-js.com/install/
 
 ==============================================================================
 3. Configuring 				*quick-lint-js-configure*
@@ -49,9 +51,11 @@ this plugin to work:
 
 * ALE - Asynchronous Lint Engine: |quick-lint-js-configure-ale|
   https://github.com/dense-analysis/ale
+* nvim-lspconfig: |quick-lint-js-configure-nvim-lspconfig|
+  https://github.com/neovim/nvim-lspconfig
 
 ==============================================================================
-4. Configuring for ALE			*quick-lint-js-configure-ale*
+3.1. Configuring for ALE			*quick-lint-js-configure-ale*
 
 The quick-lint-js Vim plugin comes with a plugin for ALE (Asynchronous Lint
 Engine). https://github.com/dense-analysis/ale
@@ -59,10 +63,14 @@ Engine). https://github.com/dense-analysis/ale
 Supported ALE versions: v2.1.1 or newer, and v3.0.0 or newer
 
 quick-lint-js is fast. To feel the speed, you should configure
-|g:ale_lint_delay|. Add the following code to your |vimrc| to make JavaScript
-linting as fast as possible: >
+|g:ale_lint_delay| and |g:ale_lint_on_text_changed|. Add the following code to
+your |vimrc| to make JavaScript linting as fast as possible: >
 
     let g:ale_lint_delay = 0
+    let g:ale_lint_on_text_changed = 'always'
+    if exists('#ALEEvents')
+      call ale#events#Init()
+    endif
 
 The quick-lint-js Vim plugin registers an ALE linter called `quick-lint-js`.
 If you enable |g:ale_linters_explicit|, add the following code to
@@ -103,5 +111,91 @@ For security reasons, we recommend leaving this variable at its default value
 (`v:true`). If this variable is set to `v:false`, then a malicious project
 could run arbitrary code on your computer through `node_modules` if you open a
 JavaScript file.
+
+==============================================================================
+3.2. Configuring for coc.nvim		*quick-lint-js-configure-coc-nvim*
+
+The quick-lint-js Vim plugin comes with a plugin for coc.nvim (Conquer of
+Completion). https://github.com/neoclide/coc.nvim
+
+Supported coc.nvim versions: v0.0.80 or newer
+
+quick-lint-js is fast. To feel the speed, you should configure
+`diagnostic.messageDelay` and `diagnostic.refreshOnInsertMode`. Add the
+following code to your |coc-configuration| (run `:CocConfig`) to make
+JavaScript linting as fast as possible: >
+
+  "diagnostic.messageDelay": 0,
+  "diagnostic.refreshOnInsertMode": true,
+
+Unfortunately, there is an unconfigurable 400 millisecond delay hard-coded
+into coc.nvim:
+https://github.com/neoclide/coc.nvim/blob/9f6e29b6f9661ebba10ff3df84de11d96c8a9e56/src/model/document.ts#L75,L78
+If you want linting to feel faster, try ALE or nvim-lspconfig instead of
+coc.nvim.
+
+You can customize this plugin's configuration by copy-pasting the following
+snippet into your |coc-configuration| then tweaking it according to
+|coc-config-languageserver|: >
+
+    "languageserver": {
+      "quick-lint-js": {
+        "args": ["--lsp-server"],
+        "command": "quick-lint-js",
+        "filetypes": ["javascript", "json"]
+      }
+    }
+
+==============================================================================
+3.3. Configuring for nvim-lspconfig	*quick-lint-js-configure-nvim-lspconfig*
+
+The quick-lint-js Vim plugin comes with a plugin for nvim-lspconfig.
+https://github.com/neovim/nvim-lspconfig
+
+To enable the plugin, add the following line to your |init.lua| or |init.vim|
+file: >
+
+    -- If you use init.lua:
+    require('lspconfig/quick_lint_js').setup {}
+
+    " If you use init.vim:
+    lua require('lspconfig/quick_lint_js').setup {}
+
+You may instead prefer to access the config object through the `lspconfig`
+module directly: >
+
+    require('lspconfig/quick_lint_js')
+    local nvim_lsp = require('lspconfig')
+    nvim_lsp.quick_lint_js.setup {}
+
+quick-lint-js is fast. To feel the speed, you might want to lint while in
+insert mode. Add the following code to your |init.lua| to make JavaScript
+linting as fast as possible: >
+
+    vim.lsp.handlers['textDocument/publishDiagnostics'] = vim.lsp.with(
+      vim.lsp.diagnostic.on_publish_diagnostics, {
+        update_in_insert = true,
+      }
+    )
+
+The `setup` function can take the following configuration options:
+
+cmd		*quick-lint-js-configure-nvim-lspconfig-cmd*
+  Default: `{"quick-lint-js", "--lsp-server"},`
+
+Set this option to a table of strings containing the operating system command
+for quick-lint-js. You must include the `"--lsp-server"` option.
+
+filetypes	*quick-lint-js-configure-nvim-lspconfig-filetypes*
+  Default: `{"javascript"}`
+
+Set this option to a table of strings to enable quick-lint-js for different
+|filetype|s.
+
+root_dir	*quick-lint-js-configure-nvim-lspconfig-root_dir*
+  Default: `"/"`
+
+Set this option to a directory string. Files opened in that directory (or any
+ancestor) will share the same instance of quick-lint-js.
 
  vim:tw=78:ts=8:noet:ft=help:norl:

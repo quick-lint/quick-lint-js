@@ -1,16 +1,22 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <boost/container/pmr/memory_resource.hpp>
+#include <boost/container/pmr/polymorphic_allocator.hpp>
+#include <deque>
 #include <memory>
+#include <quick-lint-js/allocator.h>
 #include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <type_traits>
-#include <vector>
 
 namespace quick_lint_js {
 struct buffering_error_reporter::impl {
+  explicit impl(boost::container::pmr::memory_resource *memory) noexcept
+      : memory_(memory) {}
+
   struct any_error {
     union underlying_error {
       explicit underlying_error() noexcept {}
@@ -27,11 +33,20 @@ struct buffering_error_reporter::impl {
     underlying_error error;
   };
 
-  std::vector<any_error> errors_;
+  boost::container::pmr::memory_resource *memory_;
+  std::deque<any_error, boost::container::pmr::polymorphic_allocator<any_error>>
+      errors_{this->memory_};
 };
 
-buffering_error_reporter::buffering_error_reporter()
-    : impl_(std::make_unique<impl>()) {}
+void buffering_error_reporter::impl_deleter::operator()(impl *i) noexcept {
+  if (i) {
+    delete_object(i->memory_, i);
+  }
+}
+
+buffering_error_reporter::buffering_error_reporter(
+    boost::container::pmr::memory_resource *memory)
+    : impl_(new_object<impl>(memory, memory)) {}
 
 buffering_error_reporter::buffering_error_reporter(
     buffering_error_reporter &&) = default;

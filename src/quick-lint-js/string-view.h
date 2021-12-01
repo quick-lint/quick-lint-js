@@ -26,6 +26,10 @@ inline std::string_view remove_suffix_if_present(
   }
   return s;
 }
+
+inline bool contains(std::string_view haystack, std::string_view needle) {
+  return haystack.find(needle) != haystack.npos;
+}
 }
 
 #endif

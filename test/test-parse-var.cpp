@@ -405,19 +405,42 @@ TEST(test_parse, parse_invalid_let) {
 
   {
     spy_visitor v;
+    padded_string code(u8"let x, `hello`;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_unexpected_token_in_variable_declaration, unexpected_token,
+            offsets_matcher(&code, strlen(u8"let x, "), u8"`hello`"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let x, `hello${world}`;"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_variable_use",          // world
+                                      "visit_end_of_module"));
+    // TODO(strager): Improve the span.
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_unexpected_token_in_variable_declaration, unexpected_token,
+            offsets_matcher(&code, strlen(u8"let x, "), u8"`hello${"))));
+  }
+
+  {
+    spy_visitor v;
     padded_string code(u8"let {debugger}"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 0);
-    EXPECT_THAT(
-        v.errors,
-        UnorderedElementsAre(
-            ERROR_TYPE_FIELD(
-                error_missing_value_for_object_literal_entry, key,
-                offsets_matcher(&code, strlen(u8"let {"), u8"debugger")),
-            ERROR_TYPE_FIELD(
-                error_invalid_binding_in_let_statement, where,
-                offsets_matcher(&code, strlen(u8"let {"), u8"debugger"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_value_for_object_literal_entry, key,
+                    offsets_matcher(&code, strlen(u8"let {"), u8"debugger"))));
   }
 
   {
@@ -427,13 +450,9 @@ TEST(test_parse, parse_invalid_let) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 0);
     EXPECT_THAT(v.errors,
-                UnorderedElementsAre(
-                    ERROR_TYPE_FIELD(
-                        error_invalid_lone_literal_in_object_literal, where,
-                        offsets_matcher(&code, strlen(u8"let {"), u8"42")),
-                    ERROR_TYPE_FIELD(
-                        error_invalid_binding_in_let_statement, where,
-                        offsets_matcher(&code, strlen(u8"let {"), u8"42"))));
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_invalid_lone_literal_in_object_literal, where,
+                    offsets_matcher(&code, strlen(u8"let {"), u8"42"))));
   }
 
   {
@@ -572,6 +591,20 @@ TEST(test_parse, parse_invalid_let) {
             offsets_matcher(&code, strlen(u8"let x "),
                             compound_assignment_operator),  //
             declaring_token, offsets_matcher(&code, 0, u8"let"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"let [42] = x;"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_EQ(v.variable_declarations.size(), 0);
+    // TODO(strager): Report a better message. We should say 'let statement',
+    // not 'parameter'.
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unexpected_literal_in_parameter_list, literal,
+                    offsets_matcher(&code, strlen(u8"let ["), u8"42"))));
   }
 }
 
@@ -1484,6 +1517,48 @@ TEST(test_parse, use_await_at_top_level_as_variable) {
                                       "visit_variable_use",         // x
                                       "visit_variable_assignment",  // await
                                       "visit_end_of_module"));
+  }
+
+  // TODO(#464): Interpret / as divide, not a regular expression.
+  if ((false)) {
+    spy_visitor v =
+        parse_and_visit_module(u8"await / await / await / await"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // await
+                                      "visit_variable_use",  // await
+                                      "visit_variable_use",  // await
+                                      "visit_variable_use",  // await
+                                      "visit_end_of_module"));
+  }
+}
+
+TEST(test_parse, forced_top_level_await_operator) {
+  {
+    padded_string code(u8"await p;"_sv);
+    spy_visitor v;
+    parser p(
+        &code, &v,
+        parser_options{
+            .top_level_await_mode = parser_top_level_await_mode::await_operator,
+        });
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // p
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"await;"_sv);
+    spy_visitor v;
+    parser p(
+        &code, &v,
+        parser_options{
+            .top_level_await_mode = parser_top_level_await_mode::await_operator,
+        });
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              error_missing_operand_for_operator, where,
+                              offsets_matcher(&code, 0, u8"await"))));
   }
 }
 

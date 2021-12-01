@@ -41,6 +41,9 @@ class padded_string {
   size_type size() const noexcept {
     return this->size_excluding_padding_bytes_;
   }
+  size_type padded_size() const noexcept {
+    return this->size() + this->padding_size;
+  }
 
   const char8 &operator[](size_type index) const noexcept {
     QLJS_ASSERT(index >= 0);

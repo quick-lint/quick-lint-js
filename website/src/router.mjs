@@ -163,6 +163,13 @@ export class Router {
         `<% ${prelude} %>${ejsHTML}`,
         {
           currentURI: currentURI,
+          makeRelativeURI: (uri) => {
+            if (/^\w+:/.test(uri)) {
+              return uri;
+            }
+            let suffix = uri.endsWith("/") ? "/" : "";
+            return path.posix.relative(currentURI, uri) + suffix;
+          },
           qljsVersionInfo: await getQuickLintJSVersionInfo(),
         },
         {

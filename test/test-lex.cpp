@@ -2424,6 +2424,23 @@ TEST_F(test_lex, insert_semicolon_after_rolling_back_transaction) {
   EXPECT_EQ(l.peek().type, token_type::number);
 }
 
+TEST_F(test_lex, unfinished_transaction_does_not_leak_memory) {
+  // This test relies on a leak checker such as Valgrind's memtest or
+  // Clang's LeakSanitizer.
+
+  padded_string code(u8"a b c d e f g"_sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+
+  [[maybe_unused]] lexer_transaction outer_transaction = l.begin_transaction();
+  l.skip();
+
+  [[maybe_unused]] lexer_transaction inner_transaction = l.begin_transaction();
+  l.skip();
+
+  // Don't end either transaction. The leak checker should report no leaks.
+}
+
 TEST_F(test_lex,
        is_initial_identifier_byte_agrees_with_is_initial_identifier_character) {
   constexpr char32_t min_code_point = U'\0';

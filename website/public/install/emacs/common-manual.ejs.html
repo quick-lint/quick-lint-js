@@ -1,0 +1,57 @@
+<%#
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+%>
+
+<h3>Install Emacs plugin</h3>
+<ol>
+  <li>
+    <!-- TODO(strager): Link to the latest release. -->
+    Download the
+    <a
+      href="https://c.quick-lint-js.com/builds/ded2225c591f061a8ec255d68df8cdd7c7b37c9c/emacs/quick-lint-js-emacs.zip"
+      >quick-lint-js Emacs plugin</a
+    >.
+  </li>
+  <li>
+    Extract
+    <code>quick-lint-js-emacs.zip</code>'s files into a directory somewhere safe
+    (for example, <code>~/.emacs/quick-lint-js-emacs/</code>).
+  </li>
+  <li>
+    Add the <code>quick-lint-js-emacs</code> directory to the Emacs
+    <a
+      href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Lisp-Libraries.html"
+      ><code>load-path</code> variable</a
+    >. For example, add the following line to your
+    <a
+      href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html"
+      >init file</a
+    >
+    (e.g. <code>~/.emacs</code>):
+    <pre><code style="elisp">(add-to-list 'load-path "~/.emacs/quick-lint-js-emacs")</code></pre>
+  </li>
+  <li>Restart Emacs.</li>
+</ol>
+
+<%#
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
+%>

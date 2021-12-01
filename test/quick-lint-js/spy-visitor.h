@@ -86,6 +86,12 @@ struct spy_visitor : public error_collector {
     this->visits.emplace_back("visit_exit_function_scope");
   }
 
+  void visit_keyword_variable_use(identifier name) {
+    this->variable_uses.emplace_back(
+        visited_variable_use{string8(name.normalized_name())});
+    this->visits.emplace_back("visit_keyword_variable_use");
+  }
+
   void visit_property_declaration() {
     this->visits.emplace_back("visit_property_declaration");
   }
@@ -151,6 +157,13 @@ struct spy_visitor : public error_collector {
     }
   };
   std::vector<visited_variable_declaration> variable_declarations;
+
+  void visit_variable_delete_use(
+      identifier name, [[maybe_unused]] source_code_span delete_keyword) {
+    this->variable_uses.emplace_back(
+        visited_variable_use{string8(name.normalized_name())});
+    this->visits.emplace_back("visit_variable_delete_use");
+  }
 
   void visit_variable_export_use(identifier name) {
     this->variable_uses.emplace_back(

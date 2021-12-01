@@ -42,6 +42,9 @@ namespace quick_lint_js {
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Delegate>
 concept event_loop_delegate = requires(Delegate d, const Delegate cd,
+#if QLJS_HAVE_KQUEUE
+                                       const struct ::kevent kqueue_event,
+#endif
 #if QLJS_HAVE_POLL
                                        const ::pollfd poll_event,
 #endif
@@ -60,6 +63,7 @@ concept event_loop_delegate = requires(Delegate d, const Delegate cd,
 #endif
 
 #if QLJS_HAVE_KQUEUE
+  {d.on_fs_changed_kevent(kqueue_event)};
   {d.on_fs_changed_kevents()};
 #endif
 };
@@ -86,13 +90,12 @@ class event_loop_base {
   // Returns true when the pipe has closed. Returns false if the pipe might
   // still have data available (now or in the future).
   bool read_from_pipe() {
-    // TODO(strager): Pick buffer size intelligently.
-    std::array<char8, 1024> buffer;
+    std::array<char8, 65536> buffer;
     platform_file_ref pipe = this->const_derived().get_readable_pipe();
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-    QLJS_ASSERT(pipe.is_pipe_non_blocking());
+    QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 #else
-    QLJS_ASSERT(!pipe.is_pipe_non_blocking());
+    QLJS_SLOW_ASSERT(!pipe.is_pipe_non_blocking());
 #endif
     file_read_result read_result = pipe.read(buffer.data(), buffer.size());
     if (!read_result.ok()) {
@@ -165,7 +168,7 @@ class kqueue_event_loop : public event_loop_base<Derived> {
     {
       static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
       platform_file_ref pipe = this->const_derived().get_readable_pipe();
-      QLJS_ASSERT(pipe.is_pipe_non_blocking());
+      QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 
       std::array<struct ::kevent, 2> changes;
       std::size_t change_count = 0;
@@ -224,6 +227,7 @@ class kqueue_event_loop : public event_loop_base<Derived> {
           break;
 
         case event_udata_fs_changed:
+          this->derived().on_fs_changed_kevent(event);
           fs_changed = true;
           break;
 
@@ -232,7 +236,9 @@ class kqueue_event_loop : public event_loop_base<Derived> {
           break;
         }
       }
-      this->derived().on_fs_changed_kevents();
+      if (fs_changed) {
+        this->derived().on_fs_changed_kevents();
+      }
     }
   }
 
@@ -257,7 +263,7 @@ class poll_event_loop : public event_loop_base<Derived> {
 
       static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
       platform_file_ref pipe = this->const_derived().get_readable_pipe();
-      QLJS_ASSERT(pipe.is_pipe_non_blocking());
+      QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 
       std::array< ::pollfd, 3> pollfds;
       std::size_t pollfd_count = 0;

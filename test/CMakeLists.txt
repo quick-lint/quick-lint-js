@@ -34,7 +34,6 @@ quick_lint_js_add_executable(
   test-cli-location.cpp
   test-configuration-loader.cpp
   test-configuration.cpp
-  test-constant-divider.cpp
   test-crash.cpp
   test-diagnostic-formatter.cpp
   test-diagnostic.cpp
@@ -47,7 +46,7 @@ quick_lint_js_add_executable(
   test-file-canonical.cpp
   test-file-path.cpp
   test-file.cpp
-  test-gmo.cpp
+  test-hash-fnv.cpp
   test-integer-decimal.cpp
   test-integer-hexadecimal.cpp
   test-json.cpp
@@ -70,6 +69,7 @@ quick_lint_js_add_executable(
   test-parse-expression-statement.cpp
   test-parse-expression.cpp
   test-parse-function.cpp
+  test-parse-jsx.cpp
   test-parse-loop.cpp
   test-parse-module.cpp
   test-parse-statement.cpp
@@ -100,6 +100,7 @@ target_link_libraries(
   gmock
   gmock_main
   gtest
+  quick-lint-js-boost-json
   quick-lint-js-lib
 )
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)

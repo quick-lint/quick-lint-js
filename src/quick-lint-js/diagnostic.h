@@ -5,8 +5,8 @@
 #define QUICK_LINT_JS_DIAGNOSTIC_H
 
 #include <cstdint>
-#include <quick-lint-js/gmo.h>
 #include <quick-lint-js/language.h>
+#include <quick-lint-js/translation.h>
 
 namespace quick_lint_js {
 enum class error_type;
@@ -31,13 +31,13 @@ struct diagnostic_message_arg_info {
 };
 
 struct diagnostic_message_info {
-  gmo_message format;
+  translatable_message format;
   diagnostic_severity severity;
   diagnostic_message_arg_info args[3];
 };
 
 struct diagnostic_info {
-  char code[5];
+  char code[6];
   diagnostic_message_info messages[2];
 };
 

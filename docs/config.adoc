@@ -18,8 +18,7 @@ quick-lint-js.config - configuration file for *quick-lint-js*(1)
 
 == Synopsis
 
-`quick-lint-js.config` +
-`.quick-lint-js.config`
+`quick-lint-js.config`
 
 endif::backend-manpage[]
 
@@ -53,15 +52,12 @@ quick-lint-js uses the following algorithm to find its configuration:
 4. Look for a configuration file in the _current directory_:
    a. Check if the file `quick-lint-js.config` exists.
       If so, use it as the configuration file and stop.
-   b. Check if the file `.quick-lint-js.config` exists.
-      If so, use it as the configuration file and stop.
-   c. Go to step 5.
+   b. Go to step 5.
 5. If the _current directory_ is a filesystem root, assume no configuration file and stop.
 6. Remove the last component of the _current directory_.
 7. Go to step 4.
 
-In short, quick-lint-js looks for `quick-lint-js.config` or `.quick-lint-js.config` in ancestor directories.
-If multiple files are found, `quick-lint-js.config` is used.
+In short, quick-lint-js looks for `quick-lint-js.config` in ancestor directories.
 
 If no configuration file is found, quick-lint-js behaves as if a `quick-lint-js.config` file was found with contents `{}`.
 
@@ -82,16 +78,16 @@ endif::[]
 
 == Format
 
-`quick-lint-js.config` and `.quick-lint-js.config` files contain UTF-8-encoded JSON (per RFC 8259).
+`quick-lint-js.config` files contain UTF-8-encoded JSON (per RFC 8259).
 The top-level object contains quick-lint-js configuration properties.
-A `quick-lint-js.config` or `.quick-lint-js.config` file with no configuration looks like this:
+A `quick-lint-js.config` file with no configuration looks like this:
 
 [source,json]
 ----
 {}
 ----
 
-`quick-lint-js.config` and `.quick-lint-js.config` do not support a dedicated comment syntax.
+`quick-lint-js.config` do not support a dedicated comment syntax.
 
 == Options
 
@@ -152,7 +148,7 @@ The following groups are supported for the *global-groups* configuration propert
 
 *literally-anything*:: all possible global variables.
 All global variables are defined as shadowable and writable.
-This in effect suppresses E002, E033, E057, or E059 entirely (except if variables are also configured using the *globals* configuration property).
+This in effect suppresses E0002, E0033, E0057, or E0059 entirely (except if variables are also configured using the *globals* configuration property).
 This group is not enabled by default.
 *browser*:: globals defined in HTML and DOM standards, including *window*, *alert*, and *console*.
 This group is enabled by default.
@@ -188,8 +184,8 @@ Such an application might have the following `quick-lint-js.config` file:
 
 '''
 
-If you want to suppress E002, E033, E057, or E059, configure *globals* or *global-groups*.
-For example, if you're seeing a spurious warning E057 "use of undeclared variable: MyLibrary" (false positive), use the following configuration in `quick-lint-js.config`:
+If you want to suppress E0002, E0033, E0057, or E0059, configure *globals* or *global-groups*.
+For example, if you're seeing a spurious warning E0057 "use of undeclared variable: MyLibrary" (false positive), use the following configuration in `quick-lint-js.config`:
 
 [source,json]
 ----
@@ -200,7 +196,7 @@ For example, if you're seeing a spurious warning E057 "use of undeclared variabl
 }
 ----
 
-If you are not seeing E002, E033, E057, or E059 (false negative), but you want to see E057 "use of undeclared variable: $", use one of the following configuration in `quick-lint-js.config`:
+If you are not seeing E0002, E0033, E0057, or E0059 (false negative), but you want to see E0057 "use of undeclared variable: $", use one of the following configuration in `quick-lint-js.config`:
 
 [source,json]
 ----

@@ -1,0 +1,43 @@
+<%#
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+%>
+
+<p>
+  Install quick-lint-js globally (on your machine) for use anywhere, including
+  the Vim plugin:
+</p>
+<blockquote>
+  <% if (os === "posix") { %>
+  <pre><code class="shell-session"><kbd>sudo npm install --global --unsafe-perm quick-lint-js</kbd></code></pre>
+  <% } else { %>
+  <pre><code class="shell-session"><kbd>npm install --global quick-lint-js</kbd></code></pre>
+  <% } %>
+</blockquote>
+<p>
+  Note: The Vim plugin does not use quick-lint-js if it is installed locally
+  within your project. The Vim plugin only uses quick-lint-js if it is globally
+  installed.
+</p>
+
+<%#
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
+%>

@@ -1,8 +1,8 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-set(SIMDJSON_JUST_LIBRARY ON CACHE INTERNAL "")
-set(SIMDJSON_BUILD_STATIC ON CACHE INTERNAL "")
+set(SIMDJSON_DEVELOPER_MODE OFF CACHE INTERNAL "")
+set(BUILD_SHARED_LIBS OFF)
 
 add_subdirectory(simdjson EXCLUDE_FROM_ALL)
 
@@ -11,11 +11,11 @@ target_compile_definitions(simdjson PUBLIC SIMDJSON_EXCEPTIONS=0)
 # HACK(strager): Avoid various warnings when including <simdjson.h>.
 get_property(
   SIMDJSON_INCLUDE_DIRECTORIES
-  TARGET simdjson-headers
+  TARGET simdjson
   PROPERTY INTERFACE_INCLUDE_DIRECTORIES
 )
 set_property(
-  TARGET simdjson-headers
+  TARGET simdjson
   APPEND PROPERTY
   INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
   "${SIMDJSON_INCLUDE_DIRECTORIES}"

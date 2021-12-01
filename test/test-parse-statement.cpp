@@ -350,7 +350,7 @@ TEST(test_parse, catch_without_body) {
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_body_for_catch_clause, catch_token,
-                    offsets_matcher(&code, strlen(u8"try {} "), u8"catch"))));
+                    offsets_matcher(&code, strlen(u8"try {} catch"), u8""))));
   }
 }
 
@@ -734,10 +734,11 @@ TEST(test_parse, switch_without_body) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // cond
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_missing_body_for_switch_statement,
-                              switch_and_condition,
-                              offsets_matcher(&code, 0, u8"switch (cond)"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_body_for_switch_statement, switch_and_condition,
+            offsets_matcher(&code, strlen(u8"switch (cond)"), u8""))));
   }
 }
 

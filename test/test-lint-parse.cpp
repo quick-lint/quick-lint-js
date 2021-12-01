@@ -176,6 +176,40 @@ TEST(test_lint, use_yield_label_in_non_generator_function) {
 
   EXPECT_THAT(v.errors, IsEmpty());
 }
+
+TEST(test_lint, escape_sequence_in_keyword_identifier) {
+  // The parser should not report a stray 'finally' keyword.
+  // The linter should not report that 'finally' is undeclared.
+  padded_string input(u8"let which = \\u{66}inally;"_sv);
+  error_collector v;
+  linter l(&v, &default_globals);
+  parser p(&input, &v);
+  p.parse_and_visit_module(l);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors,
+              ElementsAre(::testing::VariantWith<
+                          error_keywords_cannot_contain_escape_sequences>(
+                  ::testing::_)));
+}
+
+TEST(test_lint, delete_local_variable) {
+  padded_string input(
+      u8"function f(param) { let v; delete v; delete param; }"_sv);
+  error_collector v;
+  linter l(&v, &default_globals);
+  parser p(&input, &v);
+  p.parse_and_visit_module(l);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(
+      v.errors,
+      ElementsAre(
+          ::testing::VariantWith<error_redundant_delete_statement_on_variable>(
+              ::testing::_),
+          ::testing::VariantWith<error_redundant_delete_statement_on_variable>(
+              ::testing::_)));
+}
 }
 }
 

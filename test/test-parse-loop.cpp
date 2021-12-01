@@ -259,6 +259,46 @@ TEST(test_parse, c_style_for_loop_with_in_operator) {
                                       "visit_exit_block_scope",     //
                                       "visit_variable_use"));       // d
   }
+
+  {
+    padded_string code(u8"for (let x = a in b; c; d) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_in_disallowed_in_c_style_for_loop, in_token,
+            offsets_matcher(&code, strlen(u8"for (let x = a "), u8"in"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+                                      "visit_variable_use",          // a
+                                      "visit_variable_use",          // b
+                                      "visit_variable_declaration",  // x
+                                      "visit_variable_use",          // c
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope",      //
+                                      "visit_variable_use",          // d
+                                      "visit_exit_for_scope"));
+  }
+
+  {
+    padded_string code(u8"for (var x = a in b; c; d) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_in_disallowed_in_c_style_for_loop, in_token,
+            offsets_matcher(&code, strlen(u8"for (var x = a "), u8"in"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // a
+                                      "visit_variable_use",          // b
+                                      "visit_variable_declaration",  // x
+                                      "visit_variable_use",          // c
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope",      //
+                                      "visit_variable_use"));        // d
+  }
 }
 
 TEST(test_parse, for_loop_with_missing_component) {
@@ -878,10 +918,11 @@ TEST(test_parse, for_loop_without_body) {
                                       "visit_variable_use",          // myArray
                                       "visit_variable_declaration",  // x
                                       "visit_exit_for_scope"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_body_for_for_statement, for_and_header,
-                    offsets_matcher(&code, 0, u8"for (let x of myArray)"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_body_for_for_statement, for_and_header,
+            offsets_matcher(&code, strlen(u8"for (let x of myArray)"), u8""))));
   }
 
   {
@@ -898,8 +939,8 @@ TEST(test_parse, for_loop_without_body) {
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_body_for_for_statement, for_and_header,
-                    offsets_matcher(&code, strlen(u8"{ "),
-                                    u8"for (let x of myArray)"))));
+                    offsets_matcher(&code, strlen(u8"{ for (let x of myArray)"),
+                                    u8""))));
   }
 }
 
@@ -1027,7 +1068,7 @@ TEST(test_parse, while_without_body) {
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_body_for_while_statement, while_and_condition,
-                    offsets_matcher(&code, 0, u8"while (cond)"))));
+                    offsets_matcher(&code, strlen(u8"while (cond)"), u8""))));
   }
 }
 

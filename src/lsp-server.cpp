@@ -10,6 +10,7 @@
 #include <functional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/byte-buffer.h>
+#include <quick-lint-js/change-detecting-filesystem.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/document.h>
@@ -21,6 +22,7 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/simdjson.h>
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/uri.h>
@@ -35,17 +37,26 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-void append_raw_json(::simdjson::ondemand::value& value, byte_buffer& out);
-void append_raw_json(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value,
-    byte_buffer& out);
-string8_view get_raw_json(::simdjson::ondemand::value& value);
-
-string8_view make_string_view(::simdjson::ondemand::value& string);
-string8_view make_string_view(
+// Returns std::nullopt on failure (e.g. missing key or not a string).
+std::optional<string8_view> maybe_make_string_view(
+    ::simdjson::ondemand::value& string);
+std::optional<string8_view> maybe_make_string_view(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string);
 
-int get_int(::simdjson::simdjson_result<::simdjson::ondemand::value>&&);
+struct string_json_token {
+  string8_view data;
+  string8_view json;
+};
+
+// Returns std::nullopt on failure (e.g. missing key or not a string).
+std::optional<string_json_token> maybe_get_string_token(
+    ::simdjson::ondemand::value& string);
+std::optional<string_json_token> maybe_get_string_token(
+    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string);
+
+// Returns std::nullopt on failure (e.g. missing key or not an integer).
+std::optional<int> maybe_get_int(
+    ::simdjson::simdjson_result<::simdjson::ondemand::value>&&);
 }
 
 lsp_overlay_configuration_filesystem::lsp_overlay_configuration_filesystem(
@@ -58,7 +69,7 @@ lsp_overlay_configuration_filesystem::canonicalize_path(
   return this->underlying_fs_->canonicalize_path(path);
 }
 
-result<padded_string, read_file_io_error, watch_io_error>
+result<padded_string, read_file_io_error>
 lsp_overlay_configuration_filesystem::read_file(const canonical_path& path) {
 #if QLJS_HAVE_STD_TRANSPARENT_KEYS
   std::string_view key = path.path();
@@ -86,27 +97,20 @@ void lsp_overlay_configuration_filesystem::close_document(
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_request(
-    ::simdjson::ondemand::object& request, byte_buffer& response_json) {
-  std::string_view method;
-  if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
-  }
+    ::simdjson::ondemand::object& request, std::string_view method,
+    string8_view id_json, byte_buffer& response_json) {
   if (method == "initialize") {
-    this->handle_initialize_request(request, response_json);
+    this->handle_initialize_request(request, id_json, response_json);
   } else if (method == "shutdown") {
-    this->handle_shutdown_request(request, response_json);
+    this->handle_shutdown_request(request, id_json, response_json);
   } else {
-    QLJS_UNIMPLEMENTED();
+    this->write_method_not_found_error_response(response_json);
   }
 }
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_notification(
-    ::simdjson::ondemand::object& request) {
-  std::string_view method;
-  if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
-  }
+    ::simdjson::ondemand::object& request, std::string_view method) {
   if (method == "textDocument/didChange") {
     this->handle_text_document_did_change_notification(request);
   } else if (method == "textDocument/didOpen") {
@@ -126,7 +130,7 @@ void linting_lsp_server_handler<Linter>::handle_notification(
   } else if (method == "textDocument/willSave") {
     // Do nothing.
   } else {
-    QLJS_UNIMPLEMENTED();
+    // Ignore unknown notification methods.
   }
 }
 
@@ -158,9 +162,10 @@ void linting_lsp_server_handler<Linter>::add_watch_io_errors(
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_initialize_request(
-    ::simdjson::ondemand::object& request, byte_buffer& response_json) {
+    ::simdjson::ondemand::object&, string8_view id_json,
+    byte_buffer& response_json) {
   response_json.append_copy(u8R"--({"id":)--");
-  append_raw_json(request["id"], response_json);
+  response_json.append_copy(id_json);
   // clang-format off
   response_json.append_copy(
     u8R"--(,)--"
@@ -179,10 +184,11 @@ void linting_lsp_server_handler<Linter>::handle_initialize_request(
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_shutdown_request(
-    ::simdjson::ondemand::object& request, byte_buffer& response_json) {
+    ::simdjson::ondemand::object&, string8_view id_json,
+    byte_buffer& response_json) {
   this->shutdown_requested_ = true;
   response_json.append_copy(u8R"--({"jsonrpc":"2.0","id":)--");
-  append_raw_json(request["id"], response_json);
+  response_json.append_copy(id_json);
   response_json.append_copy(u8R"--(,"result":null})--");
 }
 
@@ -193,27 +199,30 @@ void linting_lsp_server_handler<Linter>::
   ::simdjson::ondemand::object text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
-  ::simdjson::ondemand::value uri;
-  if (text_document["uri"].get(uri) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+  std::optional<string_json_token> uri =
+      maybe_get_string_token(text_document["uri"]);
+  if (!uri.has_value()) {
+    // Ignore invalid notification.
+    return;
   }
-  string8_view uri_string = make_string_view(uri);
   ::simdjson::ondemand::value version;
   if (text_document["version"].get(version) !=
       ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
 
-  auto document_it = this->documents_.find(string8(make_string_view(uri)));
+  auto document_it = this->documents_.find(string8(uri->data));
   bool url_is_tracked = document_it != this->documents_.end();
   if (!url_is_tracked) {
     return;
   }
   document& doc = document_it->second;
 
-  std::string document_path = parse_file_from_lsp_uri(uri_string);
+  std::string document_path = parse_file_from_lsp_uri(uri->data);
   if (document_path.empty()) {
     // TODO(strager): Report a warning and use a default configuration.
     QLJS_UNIMPLEMENTED();
@@ -222,7 +231,8 @@ void linting_lsp_server_handler<Linter>::
   ::simdjson::ondemand::array changes;
   if (request["params"]["contentChanges"].get(changes) !=
       ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
   this->apply_document_changes(doc.doc, changes);
   doc.version_json = get_raw_json(version);
@@ -232,7 +242,7 @@ void linting_lsp_server_handler<Linter>::
     byte_buffer& notification_json =
         this->pending_notification_jsons_.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
-        *doc.config, doc.doc.string(), get_raw_json(uri), doc.version_json,
+        *doc.config, doc.doc.string(), uri->json, doc.version_json,
         notification_json);
     break;
   }
@@ -254,8 +264,13 @@ template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::
     handle_text_document_did_close_notification(
         ::simdjson::ondemand::object& request) {
-  string8_view uri = make_string_view(request["params"]["textDocument"]["uri"]);
-  std::string path = parse_file_from_lsp_uri(uri);
+  std::optional<string8_view> uri =
+      maybe_make_string_view(request["params"]["textDocument"]["uri"]);
+  if (!uri.has_value()) {
+    // Ignore invalid notification.
+    return;
+  }
+  std::string path = parse_file_from_lsp_uri(*uri);
   if (path.empty()) {
     // TODO(strager): Report a warning.
     QLJS_UNIMPLEMENTED();
@@ -263,7 +278,7 @@ void linting_lsp_server_handler<Linter>::
 
   this->config_loader_.unwatch_file(path);
   this->config_fs_.close_document(path);
-  this->documents_.erase(string8(uri));
+  this->documents_.erase(string8(*uri));
   // TODO(strager): Signal to configuration_loader and
   // change_detecting_filesystem_* that we no longer need to track changes to
   // this .js document's config file.
@@ -278,34 +293,44 @@ void linting_lsp_server_handler<Linter>::
   ::simdjson::ondemand::object text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
   std::string_view language_id;
   if (text_document["languageId"].get(language_id) !=
       ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
-  ::simdjson::ondemand::value uri;
-  if (text_document["uri"].get(uri) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+  std::optional<string_json_token> uri =
+      maybe_get_string_token(text_document["uri"]);
+  if (!uri.has_value()) {
+    // Ignore invalid notification.
+    return;
   }
-  string8_view uri_string = make_string_view(uri);
   ::simdjson::ondemand::value version;
   if (text_document["version"].get(version) !=
       ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    // Ignore invalid notification.
+    return;
   }
 
-  document& doc = this->documents_[string8(uri_string)];
+  document& doc = this->documents_[string8(uri->data)];
 
-  std::string document_path = parse_file_from_lsp_uri(uri_string);
+  std::string document_path = parse_file_from_lsp_uri(uri->data);
   if (document_path.empty()) {
     // TODO(strager): Report a warning and use a default configuration.
     QLJS_UNIMPLEMENTED();
   }
   this->config_fs_.open_document(document_path, &doc.doc);
 
-  doc.doc.set_text(make_string_view(text_document["text"]));
+  std::optional<string8_view> text =
+      maybe_make_string_view(text_document["text"]);
+  if (!text.has_value()) {
+    // Ignore invalid notification.
+    return;
+  }
+  doc.doc.set_text(*text);
   doc.version_json = get_raw_json(version);
 
   if (language_id == "javascript" || language_id == "js") {
@@ -335,7 +360,7 @@ void linting_lsp_server_handler<Linter>::
     byte_buffer& notification_json =
         this->pending_notification_jsons_.emplace_back();
     this->linter_.lint_and_get_diagnostics_notification(
-        *doc.config, doc.doc.string(), get_raw_json(uri), doc.version_json,
+        *doc.config, doc.doc.string(), uri->json, doc.version_json,
         notification_json);
   } else if (this->config_loader_.is_config_file_path(document_path)) {
     doc.type = document_type::config;
@@ -347,8 +372,7 @@ void linting_lsp_server_handler<Linter>::
     byte_buffer& config_diagnostics_json =
         this->pending_notification_jsons_.emplace_back();
     this->get_config_file_diagnostics_notification(
-        *config_file, get_raw_json(uri), doc.version_json,
-        config_diagnostics_json);
+        *config_file, uri->json, doc.version_json, config_diagnostics_json);
 
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
@@ -495,28 +519,74 @@ void linting_lsp_server_handler<Linter>::apply_document_changes(
     ::simdjson::ondemand::array& changes) {
   for (::simdjson::simdjson_result<::simdjson::ondemand::value> change :
        changes) {
-    string8_view change_text = make_string_view(change["text"]);
+    std::optional<string8_view> change_text =
+        maybe_make_string_view(change["text"]);
+    if (!change_text.has_value()) {
+      // Ignore invalid change.
+      continue;
+    }
     ::simdjson::ondemand::object raw_range;
     bool is_incremental =
         change["range"].get(raw_range) == ::simdjson::error_code::SUCCESS;
     if (is_incremental) {
+      std::optional<int> start_line = maybe_get_int(raw_range["start"]["line"]);
+      std::optional<int> start_character =
+          maybe_get_int(raw_range["start"]["character"]);
+      std::optional<int> end_line = maybe_get_int(raw_range["end"]["line"]);
+      std::optional<int> end_character =
+          maybe_get_int(raw_range["end"]["character"]);
+      if (!(start_line.has_value() && start_character.has_value() &&
+            end_line.has_value() && end_character.has_value())) {
+        // Ignore invalid change.
+        continue;
+      }
       lsp_range range = {
           .start =
               {
-                  .line = get_int(raw_range["start"]["line"]),
-                  .character = get_int(raw_range["start"]["character"]),
+                  .line = *start_line,
+                  .character = *start_character,
               },
           .end =
               {
-                  .line = get_int(raw_range["end"]["line"]),
-                  .character = get_int(raw_range["end"]["character"]),
+                  .line = *end_line,
+                  .character = *end_character,
               },
       };
-      doc.replace_text(range, change_text);
+      doc.replace_text(range, *change_text);
     } else {
-      doc.set_text(change_text);
+      doc.set_text(*change_text);
     }
   }
+}
+
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::write_method_not_found_error_response(
+    byte_buffer& response_json) {
+  // clang-format off
+  response_json.append_copy(u8R"({)"
+    u8R"("jsonrpc":"2.0",)"
+    u8R"("id":null,)"
+    u8R"("error":{)"
+      u8R"("code":-32601,)"
+      u8R"("message":"Method not found")"
+    u8R"(})"
+  u8R"(})");
+  // clang-format on
+}
+
+template <QLJS_LSP_LINTER Linter>
+void linting_lsp_server_handler<Linter>::write_invalid_request_error_response(
+    byte_buffer& response_json) {
+  // clang-format off
+  response_json.append_copy(u8R"({)"
+    u8R"("jsonrpc":"2.0",)"
+    u8R"("id":null,)"
+    u8R"("error":{)"
+      u8R"("code":-32600,)"
+      u8R"("message":"Invalid Request")"
+    u8R"(})"
+  u8R"(})");
+  // clang-format on
 }
 
 void lsp_javascript_linter::lint_and_get_diagnostics_notification(
@@ -574,42 +644,10 @@ template class linting_lsp_server_handler<lsp_javascript_linter>;
 template class linting_lsp_server_handler<mock_lsp_linter>;
 
 namespace {
-void append_raw_json(::simdjson::ondemand::value& value, byte_buffer& out) {
-  out.append_copy(get_raw_json(value));
-}
-
-void append_raw_json(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value,
-    byte_buffer& out) {
-  ::simdjson::ondemand::value real_value;
-  if (value.get(real_value) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
-  }
-  append_raw_json(real_value, out);
-}
-
-string8_view get_raw_json(::simdjson::ondemand::value& value) {
-  ::simdjson::ondemand::json_type type;
-  if (value.type().get(type) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
-  }
-  switch (type) {
-  case ::simdjson::ondemand::json_type::boolean:
-  case ::simdjson::ondemand::json_type::null:
-  case ::simdjson::ondemand::json_type::number:
-  case ::simdjson::ondemand::json_type::string:
-    return to_string8_view(value.raw_json_token());
-
-  case ::simdjson::ondemand::json_type::array:
-  case ::simdjson::ondemand::json_type::object:
-    QLJS_UNIMPLEMENTED();
-  }
-  QLJS_UNREACHABLE();
-}
-
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-string8_view make_string_view(::simdjson::ondemand::value& string) {
+std::optional<string8_view> maybe_make_string_view(
+    ::simdjson::ondemand::value& string) {
   std::string_view s;
   if (string.get(s) != ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
@@ -618,20 +656,45 @@ string8_view make_string_view(::simdjson::ondemand::value& string) {
 }
 QLJS_WARNING_POP
 
-string8_view make_string_view(
+std::optional<string8_view> maybe_make_string_view(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string) {
   ::simdjson::ondemand::value s;
   if (string.get(s) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    return std::nullopt;
   }
-  return make_string_view(s);
+  return maybe_make_string_view(s);
 }
 
-int get_int(
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
+std::optional<string_json_token> maybe_get_string_token(
+    ::simdjson::ondemand::value& string) {
+  std::string_view s;
+  if (string.get(s) != ::simdjson::error_code::SUCCESS) {
+    return std::nullopt;
+  }
+  string8_view data(reinterpret_cast<const char8*>(s.data()), s.size());
+  return string_json_token{
+      .data = data,
+      .json = to_string8_view(string.raw_json_token()),
+  };
+}
+QLJS_WARNING_POP
+
+std::optional<string_json_token> maybe_get_string_token(
+    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& string) {
+  ::simdjson::ondemand::value s;
+  if (string.get(s) != ::simdjson::error_code::SUCCESS) {
+    return std::nullopt;
+  }
+  return maybe_get_string_token(s);
+}
+
+std::optional<int> maybe_get_int(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& element) {
   std::int64_t int64;
   if (element.get(int64) != ::simdjson::error_code::SUCCESS) {
-    QLJS_UNIMPLEMENTED();
+    return std::nullopt;
   }
   if (!in_range<int>(int64)) {
     QLJS_UNIMPLEMENTED();

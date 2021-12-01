@@ -6,6 +6,7 @@
 #include <cstring>
 #include <optional>
 #include <ostream>
+#include <quick-lint-js/arg-parser.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -21,131 +22,6 @@ QLJS_WARNING_IGNORE_GCC("-Wshadow=local")
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-namespace {
-class arg_parser {
- public:
-  explicit arg_parser(int argc, char** argv) noexcept
-      : argc_(argc), argv_(argv) {
-    this->parse_current_arg();
-  }
-
-  arg_parser(const arg_parser&) = delete;
-  arg_parser& operator=(const arg_parser&) = delete;
-
-  const char* match_option_with_value(std::string_view option_name) noexcept {
-    if (!this->option_.has_value() || !this->option_->arg_value) {
-      return nullptr;
-    }
-    if (this->option_->arg_key != option_name) {
-      return nullptr;
-    }
-    const char* arg_value = this->option_->arg_value;
-    this->advance(this->option_->arg_has_equal ? 1 : 2);
-    return arg_value;
-  }
-
-  bool match_flag_shorthand(char option_shorthand) noexcept {
-    if (!this->option_.has_value()) {
-      return false;
-    }
-    bool matches = this->option_->arg_key == std::string{'-', option_shorthand};
-
-    if (matches) {
-      this->advance(1);
-    }
-    return matches;
-  }
-
-  bool match_flag_option(std::string_view full_option_name,
-                         std::string_view partial_option_name) noexcept {
-    if (!this->option_.has_value()) {
-      return false;
-    }
-    bool matches = starts_with(this->option_->arg_key, partial_option_name) &&
-                   starts_with(full_option_name, this->option_->arg_key);
-    if (matches) {
-      this->advance(1);
-    }
-    return matches;
-  }
-
-  const char* match_argument() noexcept {
-    if (this->option_.has_value()) {
-      return nullptr;
-    }
-    return this->match_anything();
-  }
-
-  const char* match_anything() noexcept {
-    const char* anything = this->current_arg();
-    this->advance(1);
-    return anything;
-  }
-
-  bool done() const noexcept { return this->current_arg_index_ >= this->argc_; }
-
- private:
-  void parse_current_arg() noexcept {
-    if (this->done()) {
-      return;
-    }
-    if (this->is_ignoring_options_) {
-      // Do nothing.
-    } else if (this->current_arg() == "--"sv) {
-      this->current_arg_index_ += 1;
-      if (this->done()) {
-        return;
-      }
-      this->is_ignoring_options_ = true;
-      this->option_ = std::nullopt;
-    } else if (this->current_arg() == "-"sv) {
-      this->option_ = std::nullopt;
-    } else if (this->current_arg()[0] == '-') {
-      const char* equal = std::strchr(this->current_arg(), '=');
-      option o;
-      o.arg_has_equal = equal != nullptr;
-      if (o.arg_has_equal) {
-        o.arg_key = std::string_view(
-            this->current_arg(),
-            narrow_cast<std::size_t>(equal - this->current_arg()));
-        o.arg_value = equal + 1;
-      } else {
-        o.arg_key = this->current_arg();
-        o.arg_value = this->current_arg_index_ + 1 < this->argc_
-                          ? this->argv_[this->current_arg_index_ + 1]
-                          : nullptr;
-      }
-      this->option_ = o;
-    } else {
-      this->option_ = std::nullopt;
-    }
-  }
-
-  void advance(int count) noexcept {
-    this->current_arg_index_ += count;
-    this->parse_current_arg();
-  }
-
-  const char* current_arg() noexcept {
-    QLJS_ASSERT(this->current_arg_index_ < this->argc_);
-    return this->argv_[this->current_arg_index_];
-  }
-
-  struct option {
-    std::string_view arg_key;
-    const char* arg_value;
-    bool arg_has_equal;
-  };
-
-  std::optional<option> option_;
-  bool is_ignoring_options_ = false;
-  int current_arg_index_ = 1;
-
-  int argc_;
-  char** argv_;
-};
-}
-
 options parse_options(int argc, char** argv) {
   options o;
 

@@ -12,16 +12,12 @@
     <link href="../main.css" rel="stylesheet" />
   </head>
   <body class="side-bar-nav">
-    <header>
-      <h1><a href="..">quick-lint-js</a></h1>
-      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
-      <%- await include("../common-nav.ejs.html") %>
-    </header>
+    <header><%- await include("../common-nav.ejs.html") %></header>
 
     <main>
       <h2>Install quick-lint-js</h2>
       <p>
-        Latest version: <%= qljsVersionInfo.version %> (beta) (released
+        Latest version: <%= qljsVersionInfo.version %> (released
         <time datetime="<%= qljsVersionInfo.releaseDate %>"
           ><%= new Intl.DateTimeFormat("en-US", {dateStyle: "long", timeZone:
           "UTC"}).format(new Date(qljsVersionInfo.releaseDate)) %></time
@@ -32,29 +28,73 @@
       <ul>
         <li>
           <a href="vscode/"
-            ><img class="install-logo" src="../vscode.png" alt="" /> Visual
-            Studio Code</a
+            ><img
+              class="install-logo"
+              src="../vscode.png"
+              alt=""
+              width="19"
+              height="19"
+            />
+            Visual Studio Code</a
           >
         </li>
         <li>
           <a href="vscodium/"
-            ><img class="install-logo" src="../open-vsx.svg" alt="" />
+            ><img
+              class="install-logo"
+              src="../open-vsx.svg"
+              alt=""
+              width="19"
+              height="19"
+            />
             VSCodium</a
           >
         </li>
         <li>
           <a href="vim/"
-            ><img class="install-logo" src="../vim.gif" alt="" /> Vim</a
+            ><img
+              class="install-logo"
+              src="../vim.gif"
+              alt=""
+              width="19"
+              height="19"
+            />
+            Vim</a
           >
         </li>
         <li>
-          <a href="vim/"
-            ><img class="install-logo" src="../neovim.svg" alt="" /> Neovim</a
+          <a href="neovim/"
+            ><img
+              class="install-logo"
+              src="../neovim.svg"
+              alt=""
+              width="19"
+              height="19"
+            />
+            Neovim</a
+          >
+        </li>
+        <li>
+          <a href="emacs/"
+            ><img
+              class="install-logo"
+              src="../emacs.svg"
+              alt=""
+              width="19"
+              height="19"
+            />
+            Emacs</a
           >
         </li>
         <li>
           <a href="cli/"
-            ><img class="install-logo" src="../gnome-terminal.svg" alt="" />
+            ><img
+              class="install-logo"
+              src="../gnome-terminal.svg"
+              alt=""
+              width="19"
+              height="19"
+            />
             <abbr title="command line interface">CLI</abbr> &amp;
             <abbr title="language server protocol">LSP</abbr> server</a
           >

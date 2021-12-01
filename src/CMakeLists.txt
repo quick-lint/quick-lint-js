@@ -19,9 +19,16 @@ if (NEED_THREADS)
   find_package(Threads REQUIRED)
 endif ()
 
+set(EXTRA_SOURCES)
+if (WIN32)
+  list(APPEND EXTRA_SOURCES quick-lint-js.rc)
+  # TODO(strager): Add a dependency on dusty-icon.ico which is referenced by
+  # quick-lint-js.rc.
+endif ()
 quick_lint_js_add_executable(
   quick-lint-js
   main.cpp
+  ${EXTRA_SOURCES}
 )
 set_target_properties(quick-lint-js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
 target_link_libraries(quick-lint-js PRIVATE quick-lint-js-lib)
@@ -32,6 +39,7 @@ install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
 quick_lint_js_add_library(
   quick-lint-js-lib
+  arg-parser.cpp
   assert.cpp
   basic-configuration-filesystem.cpp
   boost.cpp
@@ -42,6 +50,7 @@ quick_lint_js_add_library(
   change-detecting-filesystem-inotify.cpp
   change-detecting-filesystem-kqueue.cpp
   change-detecting-filesystem-win32.cpp
+  change-detecting-filesystem.cpp
   char8.cpp
   cli-location.cpp
   configuration-loader.cpp
@@ -60,7 +69,6 @@ quick_lint_js_add_library(
   file.cpp
   global-variables-browser.cpp
   global-variables.cpp
-  gmo.cpp
   integer.cpp
   json.cpp
   language.cpp
@@ -70,7 +78,7 @@ quick_lint_js_add_library(
   lint.cpp
   locale.cpp
   location.cpp
-  log.cpp
+  logger.cpp
   lsp-error-reporter.cpp
   lsp-location.cpp
   lsp-message-parser.cpp
@@ -81,6 +89,8 @@ quick_lint_js_add_library(
   parse.cpp
   pipe-writer.cpp
   pipe.cpp
+  quick-lint-js/allocator.h
+  quick-lint-js/arg-parser.h
   quick-lint-js/assert.h
   quick-lint-js/basic-configuration-filesystem.h
   quick-lint-js/bit.h
@@ -94,7 +104,6 @@ quick_lint_js_add_library(
   quick-lint-js/cli-location.h
   quick-lint-js/configuration-loader.h
   quick-lint-js/configuration.h
-  quick-lint-js/constant-divider.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
   quick-lint-js/diagnostic-formatter.h
@@ -116,7 +125,7 @@ quick_lint_js_add_library(
   quick-lint-js/file.h
   quick-lint-js/force-inline.h
   quick-lint-js/global-variables.h
-  quick-lint-js/gmo.h
+  quick-lint-js/hash-fnv.h
   quick-lint-js/have.h
   quick-lint-js/integer.h
   quick-lint-js/json.h
@@ -126,6 +135,7 @@ quick_lint_js_add_library(
   quick-lint-js/locale.h
   quick-lint-js/location.h
   quick-lint-js/log.h
+  quick-lint-js/logger.h
   quick-lint-js/lsp-endpoint.h
   quick-lint-js/lsp-error-reporter.h
   quick-lint-js/lsp-location.h
@@ -144,9 +154,11 @@ quick_lint_js_add_library(
   quick-lint-js/pipe.h
   quick-lint-js/result.h
   quick-lint-js/simd.h
+  quick-lint-js/simdjson.h
   quick-lint-js/temporary-directory.h
   quick-lint-js/text-error-reporter.h
-  quick-lint-js/translation-data.h
+  quick-lint-js/translation-table-generated.h
+  quick-lint-js/translation-table.h
   quick-lint-js/translation.h
   quick-lint-js/unreachable.h
   quick-lint-js/uri.h
@@ -158,9 +170,10 @@ quick_lint_js_add_library(
   quick-lint-js/vim-qflist-json-error-reporter.h
   quick-lint-js/warning.h
   quick-lint-js/web-demo-location.h
+  simdjson.cpp
   temporary-directory.cpp
   text-error-reporter.cpp
-  translation-data.cpp
+  translation-table-generated.cpp
   translation.cpp
   uri.cpp
   utf-16.cpp
@@ -248,6 +261,19 @@ if (TARGET quick-lint-js-licenses)
     RENAME copyright
   )
 endif ()
+
+quick_lint_js_add_library(
+  quick-lint-js-boost-json
+  boost-json.cpp
+  quick-lint-js/boost-json.h
+)
+target_include_directories(quick-lint-js-boost-json PUBLIC .)
+target_link_libraries(
+  quick-lint-js-boost-json
+  PUBLIC
+  boost_json
+  quick-lint-js-lib
+)
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar

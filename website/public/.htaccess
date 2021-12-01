@@ -6,6 +6,7 @@
   <Files "index.html">
     <If "%{REQUEST_URI} == '/index.html'">  # Not subdirectories.
       Header add Link "</main.css>;rel=preload"
+      Header add Link "</dusty.svg>;rel=preload"
       Header add Link "</vscode-demo.webp>;rel=preload"
     </If>
   </Files>

@@ -27,6 +27,7 @@ identifier identifier_of(const char8 (&name)[N]) {
 }
 
 TEST(test_buffering_visitor, buffers_all_visits) {
+  const char8 delete_keyword[] = u8"delete";
   const char8 function_name[] = u8"function";
   const char8 property_name[] = u8"property";
   const char8 variable_name[] = u8"variable";
@@ -45,11 +46,14 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_exit_class_scope();
   v.visit_exit_for_scope();
   v.visit_exit_function_scope();
+  v.visit_keyword_variable_use(identifier_of(variable_name));
   v.visit_property_declaration(std::nullopt);
   v.visit_property_declaration(identifier_of(property_name));
   v.visit_variable_assignment(identifier_of(variable_name));
   v.visit_variable_declaration(identifier_of(variable_name),
                                variable_kind::_var);
+  v.visit_variable_delete_use(identifier_of(variable_name),
+                              span_of(delete_keyword));
   v.visit_variable_export_use(identifier_of(variable_name));
   v.visit_variable_typeof_use(identifier_of(variable_name));
   v.visit_variable_use(identifier_of(variable_name));
@@ -70,10 +74,12 @@ TEST(test_buffering_visitor, buffers_all_visits) {
                           "visit_exit_class_scope",            //
                           "visit_exit_for_scope",              //
                           "visit_exit_function_scope",         //
+                          "visit_keyword_variable_use",        //
                           "visit_property_declaration",        //
                           "visit_property_declaration",        //
                           "visit_variable_assignment",         //
                           "visit_variable_declaration",        //
+                          "visit_variable_delete_use",         //
                           "visit_variable_export_use",         //
                           "visit_variable_typeof_use",         //
                           "visit_variable_use"));

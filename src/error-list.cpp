@@ -15,21 +15,22 @@
 namespace quick_lint_js {
 namespace {
 bool is_valid_error_code(std::string_view code) noexcept {
-  static constexpr int error_code_length = 4;
+  static constexpr int error_code_length = 5;
   using any_error_code = std::array<char, error_code_length>;
 
   struct hash_any_error_code {
     bool operator()(const any_error_code& code) const noexcept {
+      QLJS_SLOW_ASSERT(code[0] == 'E');
       std::uint32_t data;
-      static_assert(sizeof(data) == sizeof(code));
-      std::memcpy(&data, code.data(), sizeof(code));
+      static_assert(sizeof(data) == sizeof(code) - 1);
+      std::memcpy(&data, &code[1], sizeof(data));
       return std::hash<std::uint32_t>()(data);
     }
   };
 
   static constexpr auto make_any_error_code =
       [](const char* c) -> any_error_code {
-    return any_error_code{c[0], c[1], c[2], c[3]};
+    return any_error_code{c[0], c[1], c[2], c[3], c[4]};
   };
 
 #define QLJS_ERROR_TYPE(error_name, error_code, struct_body, format) \

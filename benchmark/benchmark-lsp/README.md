@@ -7,19 +7,26 @@ This directory contains a tool which measures the speed of LSP servers.
 Install the LSP servers you want to benchmark:
 
 * **Deno**: Install [Deno][]. Ensure the `deno` command is in `$PATH`.
-* **ESLint**: Run `npm install` in the `eslint/` directory.
-* **Flow**: Run `npm install` in the `flow/` directory.
+* **ESLint**: Run `yarn` in the `eslint/` directory.
+* **Flow**: Run `yarn` in the `flow/` directory.
 * **RSLint**: Install [RSLint's rslint_lsp crate][install-rslint]. Ensure the
   `rslint-lsp` command is in `$PATH`.
-* **TypeScript**: Run `npm install` in the `typescript/` directory.
+* **TypeScript**: Run `yarn` in the `typescript/` directory.
 * **quick-lint-js**: Install quick-lint-js. Ensure the `quick-lint-js` command
   is in `$PATH`.
 
 ## Building
 
-Install [Stack][], then run the following command:
+Install a compiler which supports C++20 coroutines (such as Clang version 12).
+[Configure quick-lint-js using CMake with
+`-DQUICK_LINT_JS_ENABLE_BENCHMARKS=YES`](../../docs/BUILDING.md). Build the
+`quick-lint-js-benchmark-lsp-servers` target. For example, on Linux:
 
-    $ stack build
+    $ mkdir build
+    $ cd build
+    $ CC=clang-12 CXX=clang++-12 CXXFLAGS=-stdlib=libc++ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DQUICK_LINT_JS_ENABLE_BENCHMARKS=YES ..
+    $ cd ..
+    $ ninja -C build quick-lint-js-lsp-benchmark-servers
 
 ## Running
 
@@ -27,20 +34,22 @@ Customize `benchmark-config.json` with the LSP servers you want to benchmark.
 
 Print a list of benchmarks:
 
-    $ stack run -- --list
-    Deno/change-wait/edex-ui-filesystem.class.js
-    Deno/change-wait/express-router.js
-    ...
-    quick-lint-js/open-wait-close/express-router.js
-    quick-lint-js/open-wait-close/tiny.js
+    $ ./build/benchmark/benchmark-lsp/quick-lint-js-benchmark-lsp-servers benchmark/benchmark-lsp/benchmark-config.json --list
+    eslint-server/open-wait-close/tiny.js
+    eslint-server/open-wait-close/edex-ui-filesystem.class.js
+    eslint-server/open-wait-close/express-router.js
+    eslint-server/change-wait/tiny.js
+    [snip]
+    TypeScript/incremental-change-wait/express-router.js
+    TypeScript/full-change-wait/express-router.js
 
-Run the benchmarks and generate an HTML report with graphs:
+Run the benchmarks and generate a JSON file for later processing:
 
-    $ stack run -- --output benchmark-report.html
+    $ ./build/benchmark/benchmark-lsp/quick-lint-js-benchmark-lsp-servers --output-json results.json benchmark/benchmark-lsp/benchmark-config.json
 
 Debug a single benchmark with an *N* of 5:
 
-    $ QLJS_BENCHMARK_LSP_DEBUG=1 stack run -- --iters 5 RSLint/change-wait
+    $ QLJS_BENCHMARK_LSP_DEBUG=1 ./build/benchmark/benchmark-lsp/quick-lint-js-benchmark-lsp-servers --iterations 5 benchmark/benchmark-lsp/benchmark-config.json RSLint/change-wait/tiny.js
 
 ## Benchmarks
 

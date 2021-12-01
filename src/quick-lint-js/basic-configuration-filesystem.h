@@ -21,7 +21,7 @@ class basic_configuration_filesystem : public configuration_filesystem {
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
+  result<padded_string, read_file_io_error> read_file(
       const canonical_path&) override;
 };
 }

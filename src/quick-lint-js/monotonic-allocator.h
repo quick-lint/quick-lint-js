@@ -6,6 +6,7 @@
 
 #include <boost/container/pmr/monotonic_buffer_resource.hpp>
 #include <boost/container/pmr/polymorphic_allocator.hpp>
+#include <quick-lint-js/allocator.h>
 #include <utility>
 
 namespace quick_lint_js {
@@ -13,9 +14,8 @@ class monotonic_allocator {
  public:
   template <class T, class... Args>
   [[nodiscard]] T *new_object(Args &&... args) {
-    T *result = this->standard_allocator<T>().allocate(1);
-    result = new (result) T(std::forward<Args>(args)...);
-    return result;
+    return quick_lint_js::new_object<T>(&this->memory_,
+                                        std::forward<Args>(args)...);
   }
 
   template <class T>

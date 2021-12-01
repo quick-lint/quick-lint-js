@@ -10,10 +10,10 @@
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.15
 .\"    Manual: \ \&
-.\"    Source: quick-lint-js version ﻿ 0.4.0
+.\"    Source: quick-lint-js version ﻿ 0.6.0
 .\"  Language: English
 .\"
-.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version ﻿ 0.4.0" "\ \&"
+.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version ﻿ 0.6.0" "\ \&"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -199,7 +199,7 @@ The order of predicates within an error list does not matter.
 Included predicates are processed first, adding to the set of error codes.
 Excluded predicates are processed second, removing from the set of error codes.
 .sp
-Error codes have the form \fBE000\fP, where \fI000\fP is three decimal digits (0\-9).
+Error codes have the form \fBE0000\fP, where \fI0000\fP is four decimal digits (0\-9).
 .sp
 The following error categories are supported:
 .sp
@@ -210,34 +210,34 @@ All error codes.
 .sp
 Example error lists:
 .sp
-\fBE102,E110\fP
+\fBE0102,E0110\fP
 .RS 4
-Only error codes E102 and E110, excluding all other error codes.
+Only error codes E0102 and E0110, excluding all other error codes.
 .RE
 .sp
-\fB\-E102\fP
+\fB\-E0102\fP
 .RS 4
-The default set of error codes, except for error code E102.
+The default set of error codes, except for error code E0102.
 .RE
 .sp
-\fB+E102\fP
+\fB+E0102\fP
 .RS 4
-The default set of error codes, and also error code E102.
+The default set of error codes, and also error code E0102.
 .RE
 .sp
-\fBall,\-E102\fP
+\fBall,\-E0102\fP
 .RS 4
-All error codes, except for error code E102.
+All error codes, except for error code E0102.
 .RE
 .sp
-\fBE100,\-E100,+E200\fP
+\fBE0100,\-E0100,+E0200\fP
 .RS 4
-Only error code E200, excluding all other error codes.
+Only error code E0200, excluding all other error codes.
 .RE
 .sp
-\fB+E200,\-E100,E100\fP
+\fB+E0200,\-E0100,E0100\fP
 .RS 4
-Only error code E200, excluding all other error codes.
+Only error code E0200, excluding all other error codes.
 .RE
 .SH "EXIT STATUS"
 .sp
@@ -272,11 +272,11 @@ To lint a file called \fIlib/index.js\fP, writing error messages to the terminal
 .nf
 .fam C
 $ \fBquick\-lint\-js\fP lib/index.js
-lib/index.js:1:20: error: variable used before declaration: language [E058]
-lib/index.js:2:7: note: variable declared here [E058]
-lib/index.js:3:1: error: assignment to const variable [E003]
-lib/index.js:1:7: note: const variable declared here [E003]
-lib/index.js:5:25: warning: use of undeclared variable: ocupation [E057]
+lib/index.js:1:20: error: variable used before declaration: language [E0058]
+lib/index.js:2:7: note: variable declared here [E0058]
+lib/index.js:3:1: error: assignment to const variable [E0003]
+lib/index.js:1:7: note: const variable declared here [E0003]
+lib/index.js:5:25: warning: use of undeclared variable: ocupation [E0057]
 .fam
 .fi
 .if n .RE
@@ -312,8 +312,8 @@ To lint a file called \fIbad.js\fP, but don\(cqt fail on use\-of\-undeclared\-va
 .if n .RS 4
 .nf
 .fam C
-$ \fBquick\-lint\-js\fP \-\-exit\-fail\-on=\-E057 bad.js
-bad.js:5:25: warning: use of undeclared variable: $ [E057]
+$ \fBquick\-lint\-js\fP \-\-exit\-fail\-on=\-E0057 bad.js
+bad.js:5:25: warning: use of undeclared variable: $ [E0057]
 $ echo $?
 0
 .fam
@@ -348,7 +348,7 @@ To lint a temporary file, but use the configuration file of a project:
 .nf
 .fam C
 $ \fBquick\-lint\-js\fP \-\-path\-for\-config\-search=src/server.js /tmp/unsaved12m1uz.js
-/tmp/unsaved12m1uz.js:12:5: warning: use of undeclared variable: document [E057]
+/tmp/unsaved12m1uz.js:12:5: warning: use of undeclared variable: document [E0057]
 .fam
 .fi
 .if n .RE

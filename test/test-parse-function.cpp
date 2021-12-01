@@ -562,10 +562,11 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
                                       "visit_variable_use",          // y
                                       "visit_variable_assignment",   // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_function_parameter_list, function_name,
-                    offsets_matcher(&code, strlen(u8"{ function "), u8"f"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, expected_parameter_list,
+            offsets_matcher(&code, strlen(u8"{ function f"), u8""))));
   }
 
   {
@@ -578,10 +579,11 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
                                       "visit_exit_function_scope",   // f
                                       "visit_variable_use",          // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_function_parameter_list, function_name,
-                    offsets_matcher(&code, strlen(u8"function "), u8"f"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, expected_parameter_list,
+            offsets_matcher(&code, strlen(u8"function f"), u8""))));
   }
 
   {
@@ -598,8 +600,8 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
         v.errors,
         UnorderedElementsAre(
             ERROR_TYPE_FIELD(
-                error_missing_function_parameter_list, function_name,
-                offsets_matcher(&code, strlen(u8"function "), u8"f")),
+                error_missing_function_parameter_list, expected_parameter_list,
+                offsets_matcher(&code, strlen(u8"function f"), u8"")),
             ERROR_TYPE_FIELD(
                 error_missing_operand_for_operator, where,
                 offsets_matcher(&code, strlen(u8"function f"), u8","))));
@@ -624,8 +626,8 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
         v.errors,
         UnorderedElementsAre(
             ERROR_TYPE_FIELD(
-                error_missing_function_parameter_list, function_name,
-                offsets_matcher(&code, strlen(u8"function "), u8"f")),
+                error_missing_function_parameter_list, expected_parameter_list,
+                offsets_matcher(&code, strlen(u8"function f"), u8"")),
             ERROR_TYPE_FIELD(
                 error_missing_operand_for_operator, where,
                 offsets_matcher(&code, strlen(u8"function f"), u8".")),
@@ -829,6 +831,184 @@ TEST(test_parse, arrow_function_without_parameter_list) {
   }
 }
 
+TEST(test_parse, function_with_invalid_parameters) {
+  for (string8_view parameter_list : {
+           u8"x << y"_sv,
+           u8"x.prop"_sv,
+           u8"html`<strong>hello</strong>`"_sv,
+       }) {
+    padded_string code(u8"function f(" + string8(parameter_list) + u8") {}");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ::testing::VariantWith<error_invalid_binding_in_let_statement>(
+                ::testing::_)));
+  }
+
+  {
+    padded_string code(u8"function f(42) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ::testing::VariantWith<error_unexpected_literal_in_parameter_list>(
+                ::testing::_)));
+  }
+}
+
+TEST(test_parse, arrow_function_with_invalid_parameters) {
+  for (string8_view parameter_list : {
+           u8"(new C())"_sv,
+           u8"(class{})"_sv,
+           u8"(typeof x)"_sv,
+           u8"(() => {})"_sv,
+           u8"(() => null)"_sv,
+           u8"(x ?\x3f= y)"_sv,
+           u8"(function f() {})"_sv,
+           u8"(function() {})"_sv,
+           u8"(x[y])"_sv,
+           u8"(x++)"_sv,
+           u8"(++x)"_sv,
+           u8"(~x)"_sv,
+           u8"(x?y:z)"_sv,
+           u8"(new.target)"_sv,
+           u8"(yield x)"_sv,
+           u8"(yield* x)"_sv,
+           u8"(x -= y)"_sv,
+           u8"(super)"_sv,
+           u8"([super])"_sv,
+           u8"([import])"_sv,
+
+           // TODO(strager): We should report
+           // error_unexpected_arrow_after_literal for these:
+           u8"(`<strong>${hello}</strong>`)"_sv,
+           u8"(html`<strong>hello</strong>`)"_sv,
+           u8"(html`<strong>${hello}</strong>`)"_sv,
+       }) {
+    padded_string code(u8"(" + string8(parameter_list) + u8" => {});");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::async_generator);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ::testing::VariantWith<error_invalid_binding_in_let_statement>(
+                ::testing::_)));
+  }
+
+  {
+    padded_string code(u8"((`<strong>hello</strong>`) => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_unexpected_arrow_after_literal, arrow,
+            offsets_matcher(&code, strlen(u8"((`<strong>hello</strong>`) "),
+                            u8"=>"))));
+  }
+
+  {
+    padded_string code(u8"([(x,)] => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::generator);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_stray_comma_in_let_statement, where,
+                    offsets_matcher(&code, strlen(u8"([(x"), u8","))));
+  }
+
+  {
+    padded_string code(u8"((yield) => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::generator);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(::testing::VariantWith<
+                            error_cannot_declare_yield_in_generator_function>(
+                    ::testing::_)));
+  }
+
+  {
+    padded_string code(u8"((#priv) => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    // TODO(strager): Show a more specific error which mentions parameters.
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(::testing::VariantWith<
+                    error_cannot_refer_to_private_variable_without_object>(
+            ::testing::_)));
+  }
+
+  {
+    padded_string code(u8"((42,) => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ::testing::VariantWith<error_unexpected_literal_in_parameter_list>(
+                ::testing::_)));
+  }
+
+  {
+    padded_string code(u8"((:) => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(::testing::VariantWith<error_unexpected_token>(
+                    ::testing::_)));
+  }
+}
+
+TEST(test_parse, arrow_function_expression_without_arrow_operator) {
+  {
+    padded_string code(u8"(() {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_arrow_operator_in_arrow_function, where,
+                    offsets_matcher(&code, strlen(u8"(() "), u8"{"))));
+  }
+
+  {
+    padded_string code(u8"(()\n{});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_arrow_operator_in_arrow_function, where,
+                    offsets_matcher(&code, strlen(u8"(()\n"), u8"{"))));
+  }
+}
+
 TEST(test_parse, generator_function_with_misplaced_star) {
   {
     padded_string code(u8"function f*(x) { yield x; }"_sv);
@@ -1001,6 +1181,30 @@ TEST(test_parse, generator_function_with_misplaced_star) {
             error_generator_function_star_belongs_before_name, function_name,
             offsets_matcher(&code, strlen(u8"let x = *async function "), u8"f"),
             star, offsets_matcher(&code, strlen(u8"let x = "), u8"*"))));
+  }
+
+  {
+    padded_string code(u8"let x = *function* f(y) { yield y; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_generator_function_star_belongs_after_keyword_function, star,
+            offsets_matcher(&code, strlen(u8"let x = "), u8"*"))));
+  }
+
+  {
+    padded_string code(u8"let x = *async function* f(y) { yield y; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_generator_function_star_belongs_after_keyword_function, star,
+            offsets_matcher(&code, strlen(u8"let x = "), u8"*"))));
   }
 }
 
@@ -1365,7 +1569,8 @@ TEST(test_parse, invalid_function_parameter) {
             ::testing::VariantWith<
                 error_missing_operator_between_expression_and_arrow_function>(
                 ::testing::_),
-            ERROR_TYPE_FIELD(error_invalid_parameter, parameter,
+            ERROR_TYPE_FIELD(error_unexpected_literal_in_parameter_list,
+                             literal,
                              offsets_matcher(&code, strlen(u8"g("), u8"42"))));
   }
 }

@@ -7,26 +7,32 @@ export function markEditorText(editor, window, marks) {
 }
 
 export function sanitizeMarks(marks) {
-  let result = [];
-  for (let mark of marks) {
-    let markAlreadyExists = result.some(
-      (resultMark) =>
-        resultMark.begin === mark.begin && resultMark.end == mark.end
-    );
-    if (markAlreadyExists) {
-      continue;
-    }
-    result.push(mark);
-  }
-  result.sort((a, b) => {
+  marks = [...marks];
+  marks.sort((a, b) => {
     if (a.begin < b.begin) {
       return -1;
     }
     if (a.begin > b.begin) {
       return +1;
     }
+    if (a.end < b.end) {
+      return +1;
+    }
+    if (a.end > b.end) {
+      return -1;
+    }
     return 0;
   });
+  let result = [];
+  for (let mark of marks) {
+    let markAlreadyExists = result.some(
+      (resultMark) => resultMark.begin === mark.begin
+    );
+    if (markAlreadyExists) {
+      continue;
+    }
+    result.push(mark);
+  }
   return result;
 }
 

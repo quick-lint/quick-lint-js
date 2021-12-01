@@ -32,13 +32,19 @@ jobs:
           run: |
             export CLANGSUFFIX="-7"
             apt-get -qq update
-            apt-get install -q -y clang-7 libfuzzer-7-dev cmake git wget zip ninja-build
+            apt-get install -q -y clang-7 libfuzzer-7-dev git wget zip ninja-build gnupg software-properties-common
+            wget -q -O - "https://raw.githubusercontent.com/simdjson/debian-ppa/master/key.gpg" | apt-key add -
+            apt-add-repository "deb https://raw.githubusercontent.com/simdjson/debian-ppa/master simdjson main"
+            apt-get -qq update
+            apt-get purge cmake cmake-data
+            apt-get -t simdjson -y install cmake
             mkdir -p build ; cd build
             cmake .. -GNinja \
                   -DCMAKE_CXX_COMPILER=clang++$CLANGSUFFIX \
                   -DCMAKE_C_COMPILER=clang$CLANGSUFFIX \
-                  -DSIMDJSON_BUILD_STATIC=Off \
-                  -DENABLE_FUZZING=On \
+                  -DBUILD_SHARED_LIBS=OFF \
+                  -DSIMDJSON_DEVELOPER_MODE=ON \
+                  -DSIMDJSON_ENABLE_FUZZING=On \
                   -DSIMDJSON_COMPETITION=OFF \
                   -DSIMDJSON_GOOGLE_BENCHMARKS=OFF \
                   -DSIMDJSON_DISABLE_DEPRECATED_API=On \
@@ -50,8 +56,8 @@ jobs:
             cd ..
             builddir=build
             cmake --build $builddir
-            wget --quiet https://dl.bintray.com/pauldreik/simdjson-fuzz-corpus/corpus/corpus.tar
-            tar xf corpus.tar && rm corpus.tar
+            wget -O corpus.tar.gz https://readonly:readonly@www.pauldreik.se/fuzzdata/index.php?project=simdjson
+            tar xf corpus.tar.gz
             fuzzernames=$(cmake --build $builddir --target print_all_fuzzernames |tail -n1)
             for fuzzer in $fuzzernames ; do
                exe=$builddir/fuzz/$fuzzer

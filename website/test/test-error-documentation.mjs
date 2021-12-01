@@ -10,42 +10,51 @@ import { ErrorDocumentation, codeHasBOM } from "../src/error-documentation.mjs";
 describe("error documentation", () => {
   it("error code from file path", () => {
     expect(
-      ErrorDocumentation.parseString("E123.md", "").filePathErrorCode
-    ).toBe("E123");
+      ErrorDocumentation.parseString("E0123.md", "").filePathErrorCode
+    ).toBe("E0123");
     expect(
-      ErrorDocumentation.parseString("path/to/E666.md", "").filePathErrorCode
-    ).toBe("E666");
+      ErrorDocumentation.parseString("path/to/E0666.md", "").filePathErrorCode
+    ).toBe("E0666");
     if (path === path.win32) {
       expect(
-        ErrorDocumentation.parseString("path\\to\\E666.md", "")
+        ErrorDocumentation.parseString("path\\to\\E0666.md", "")
           .filePathErrorCode
-      ).toBe("E666");
+      ).toBe("E0666");
     }
   });
 
   it("title", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "# E123: title goes here\n"
+      "# E0123: title goes here\n"
     );
-    expect(doc.titleErrorCode).toBe("E123");
+    expect(doc.titleErrorCode).toBe("E0123");
     expect(doc.titleErrorDescription).toBe("title goes here");
   });
 
   it("title with HTML entity", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "# E123: title &#x67;oes here\n"
+      "# E0123: title &#x67;oes here\n"
     );
-    expect(doc.titleErrorCode).toBe("E123");
+    expect(doc.titleErrorCode).toBe("E0123");
     // TODO(strager): Translate HTML entities.
     expect(doc.titleErrorDescription).toBe("title &#x67;oes here");
+  });
+
+  it("title with extra colon", () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "# E0123: banana: strawberry: apple\n"
+    );
+    expect(doc.titleErrorCode).toBe("E0123");
+    expect(doc.titleErrorDescription).toBe("banana: strawberry: apple");
   });
 
   it("level 2 heading is not title", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "## E123: title goes here\n"
+      "## E0123: title goes here\n"
     );
     expect(doc.titleErrorCode).toBe("");
     expect(doc.titleErrorDescription).toBe("");
@@ -172,11 +181,24 @@ wasn't that neat?
     );
   });
 
+  it("html wraps weird control characters", () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "code:\n\n```\n" + "BEL:\u0007\n" + "BS:\u0008\n" + "DEL:\u007f\n" + "```"
+    );
+    let html = doc.toHTML();
+    expect(html).toContain("BEL:<span class='unicode-bel'>\u0007</span>");
+    expect(html).toContain("BS:<span class='unicode-bs'>\u0008</span>");
+    expect(html).toContain("DEL:<span class='unicode-del'>\u007f</span>");
+  });
+
   it("many possibilities of html code has bom", () => {
     const possibilities = [
       "<mark>\u{feff}hello</mark>",
-      '<mark data-code="E123">\u{feff}hello</mark>',
+      '<mark data-code="E0123">\u{feff}hello</mark>',
       "\u{feff}<mark>world</mark>",
+      "&#xfeff;hello",
+      "&#65279;hello",
     ];
     possibilities.forEach((possibility) => {
       expect(codeHasBOM(possibility)).toBe(true);
@@ -186,8 +208,8 @@ wasn't that neat?
   it("many possibilities of html code has NOT bom", () => {
     const possibilities = [
       "<mark>hello\u{feff}</mark>",
-      '<mark data-code="E123">hello\u{feff}</mark>',
-      '<mark data-code="E123">h\u{feff}ello</mark>',
+      '<mark data-code="E0123">hello\u{feff}</mark>',
+      '<mark data-code="E0123">h\u{feff}ello</mark>',
       "h\u{feff}ello<mark>world</mark>",
       "hello<mark>\u{feff}world</mark>",
     ];
@@ -206,7 +228,7 @@ wasn't that neat?
     expect(doc.diagnostics).toEqual([
       [
         {
-          code: "E034",
+          code: "E0034",
           message: "redeclaration of variable: x",
           severity: 1,
           begin: 11,
@@ -225,7 +247,7 @@ wasn't that neat?
     expect(doc.diagnostics).toEqual([
       [
         {
-          code: "E168",
+          code: "E0168",
           message: '"globals" must be an object',
           severity: 1,
           begin: 12,
@@ -233,6 +255,43 @@ wasn't that neat?
         },
       ],
     ]);
+  });
+
+  it("config file for examples is null by default", async () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "```\nconsole.log();\n```"
+    );
+    expect(doc.configForExamples).toBeNull();
+    await doc.findDiagnosticsAsync();
+    expect(doc.diagnostics).toEqual([[]]);
+  });
+
+  it("config file for examples", async () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      '```config-for-examples\n{"global-groups": false}\n```\n\n    console.log();'
+    );
+    expect(doc.configForExamples).toEqual('{"global-groups": false}\n');
+    expect(doc.codeBlocks).toEqual([
+      {
+        language: "javascript",
+        text: "console.log();\n",
+      },
+    ]);
+    await doc.findDiagnosticsAsync();
+    expect(doc.diagnostics).toEqual([
+      [
+        {
+          code: "E0057",
+          message: "use of undeclared variable: console",
+          severity: 2,
+          begin: 0,
+          end: 7,
+        },
+      ],
+    ]);
+    expect(doc.toHTML()).not.toContain("global-groups");
   });
 });
 

@@ -5,5 +5,10 @@ g:ale_javascript_quick_lint_js_use_global	quick-lint-js.txt	/*g:ale_javascript_q
 quick-lint-js-app-install	quick-lint-js.txt	/*quick-lint-js-app-install*
 quick-lint-js-configure	quick-lint-js.txt	/*quick-lint-js-configure*
 quick-lint-js-configure-ale	quick-lint-js.txt	/*quick-lint-js-configure-ale*
+quick-lint-js-configure-coc-nvim	quick-lint-js.txt	/*quick-lint-js-configure-coc-nvim*
+quick-lint-js-configure-nvim-lspconfig	quick-lint-js.txt	/*quick-lint-js-configure-nvim-lspconfig*
+quick-lint-js-configure-nvim-lspconfig-cmd	quick-lint-js.txt	/*quick-lint-js-configure-nvim-lspconfig-cmd*
+quick-lint-js-configure-nvim-lspconfig-filetypes	quick-lint-js.txt	/*quick-lint-js-configure-nvim-lspconfig-filetypes*
+quick-lint-js-configure-nvim-lspconfig-root_dir	quick-lint-js.txt	/*quick-lint-js-configure-nvim-lspconfig-root_dir*
 quick-lint-js-vim-install	quick-lint-js.txt	/*quick-lint-js-vim-install*
 quick-lint-js.txt	quick-lint-js.txt	/*quick-lint-js.txt*

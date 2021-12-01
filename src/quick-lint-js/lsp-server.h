@@ -35,6 +35,7 @@ namespace quick_lint_js {
 class byte_buffer;
 class configuration;
 class configuration_filesystem;
+struct watch_io_error;
 
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Linter>
@@ -56,7 +57,7 @@ class lsp_overlay_configuration_filesystem : public configuration_filesystem {
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
+  result<padded_string, read_file_io_error> read_file(
       const canonical_path&) override;
 
   void open_document(const std::string&, document<lsp_locator>*);
@@ -80,8 +81,10 @@ class linting_lsp_server_handler {
         linter_(std::forward<LinterArgs>(linter_args)...) {}
 
   void handle_request(::simdjson::ondemand::object& request,
+                      std::string_view method, string8_view id_json,
                       byte_buffer& response_json);
-  void handle_notification(::simdjson::ondemand::object& request);
+  void handle_notification(::simdjson::ondemand::object& request,
+                           std::string_view method);
 
   void filesystem_changed();
 
@@ -112,8 +115,10 @@ class linting_lsp_server_handler {
   };
 
   void handle_initialize_request(::simdjson::ondemand::object& request,
+                                 string8_view id_json,
                                  byte_buffer& response_json);
   void handle_shutdown_request(::simdjson::ondemand::object& request,
+                               string8_view id_json,
                                byte_buffer& response_json);
 
   void handle_text_document_did_change_notification(
@@ -140,6 +145,9 @@ class linting_lsp_server_handler {
 
   static void apply_document_changes(quick_lint_js::document<lsp_locator>& doc,
                                      ::simdjson::ondemand::array& changes);
+
+  static void write_method_not_found_error_response(byte_buffer&);
+  static void write_invalid_request_error_response(byte_buffer&);
 
   lsp_overlay_configuration_filesystem config_fs_;
   configuration_loader config_loader_;

@@ -136,9 +136,8 @@ result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const std::string &path, canonicalize_observer *);
 }
 
-namespace std {
 template <>
-struct hash<quick_lint_js::canonical_path> {
+struct std::hash<quick_lint_js::canonical_path> {
   using is_transparent = void;
 
   std::size_t operator()(const quick_lint_js::canonical_path &path) const
@@ -150,7 +149,6 @@ struct hash<quick_lint_js::canonical_path> {
     return std::hash<std::string_view>()(path);
   }
 };
-}
 
 #endif
 

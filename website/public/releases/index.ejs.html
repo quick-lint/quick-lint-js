@@ -20,13 +20,17 @@
     <title>quick-lint-js: releases</title>
     <meta name="description" content="Older versions of quick-lint-js" />
     <link href="../main.css" rel="stylesheet" />
+    <style>
+      /* Clearly separate releases. */
+      h3 {
+        border-top: 1px solid #ccc;
+        padding-top: 2rem;
+        margin-top: 2rem;
+      }
+    </style>
   </head>
   <body class="side-bar-nav">
-    <header>
-      <h1><a href="..">quick-lint-js</a></h1>
-      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
-      <%- await include("../common-nav.ejs.html") %>
-    </header>
+    <header><%- await include("../common-nav.ejs.html") %></header>
 
     <main>
       <h2>Releases &amp; change log</h2>

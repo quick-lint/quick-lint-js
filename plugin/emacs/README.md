@@ -51,7 +51,10 @@ Usage example in your [Emacs initialization] file.
 
   ;; Remove the time to wait after last change before automatically checking
   ;; buffer.  The default is 0.5 (500ms)
-  (setq-local eglot-send-changes-idle-time 0))
+  (setq-local eglot-send-changes-idle-time 0)
+
+  ;; Optional: Make Eglot run automatically when `js-mode' is loaded
+  (eglot-ensure))
 (add-hook 'js-mode-hook #'my-eglot-quicklintjs-setup)
 ```
 
@@ -101,7 +104,7 @@ Usage example in your [Emacs initialization] file.
 
 ### Flymake
 
-Flymake is bultin on Emacs but it's supported only on major version 26 or
+Flymake is builtin on Emacs but it's supported only on major version 26 or
 higher.
 
 After loading flymake-quicklintjs, you can use `flymake-quicklintjs` function as

@@ -959,30 +959,24 @@ next:
 }
 
 lexer_transaction lexer::begin_transaction() {
-  error_reporter* new_error_reporter = new buffering_error_reporter();
-  return lexer_transaction{
-      .old_last_token = this->last_token_,
-      .old_last_last_token_end = this->last_last_token_end_,
-      .old_input = this->input_,
-      .old_error_reporter =
-          std::exchange(this->error_reporter_, new_error_reporter),
-  };
+  return lexer_transaction(
+      /*old_last_token=*/this->last_token_,
+      /*old_last_last_token_end=*/this->last_last_token_end_,
+      /*old_input=*/this->input_,
+      /*error_reporter_pointer=*/
+      &this->error_reporter_,
+      /*memory=*/&this->temporary_allocator_);
 }
 
 void lexer::commit_transaction(lexer_transaction&& transaction) {
   buffering_error_reporter* buffered_errors =
       static_cast<buffering_error_reporter*>(this->error_reporter_);
   buffered_errors->move_into(transaction.old_error_reporter);
-  delete buffered_errors;
 
   this->error_reporter_ = transaction.old_error_reporter;
 }
 
 void lexer::roll_back_transaction(lexer_transaction&& transaction) {
-  buffering_error_reporter* buffered_errors =
-      static_cast<buffering_error_reporter*>(this->error_reporter_);
-  delete buffered_errors;
-
   this->last_token_ = transaction.old_last_token;
   this->last_last_token_end_ = transaction.old_last_last_token_end;
   this->input_ = transaction.old_input;
@@ -1151,7 +1145,7 @@ void lexer::parse_modern_octal_number() {
 }
 
 void lexer::parse_number() {
-  QLJS_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
+  QLJS_SLOW_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
   const char8* input = this->input_;
   const char8* number_begin = input;
 
@@ -1195,7 +1189,8 @@ void lexer::parse_number() {
       this->error_reporter_->report(error_big_int_literal_contains_exponent{
           source_code_span(number_begin, input)});
     }
-    QLJS_ASSERT(!(number_begin[0] == u8'0' && this->is_digit(number_begin[1])));
+    QLJS_SLOW_ASSERT(
+        !(number_begin[0] == u8'0' && this->is_digit(number_begin[1])));
   }
 
   switch (*input) {
@@ -1362,9 +1357,11 @@ QLJS_WARNING_POP
 lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
   const char8* identifier_begin = input;
   // TODO(strager): Is the check for '\\' correct?
-  QLJS_ASSERT(this->is_identifier_byte(*input) || *input == u8'\\');
+  QLJS_SLOW_ASSERT(this->is_identifier_byte(*input) || *input == u8'\\');
 
-#if QLJS_HAVE_X86_SSE2
+#if QLJS_HAVE_ARM_NEON
+  using char_vector = char_vector_16_neon;
+#elif QLJS_HAVE_X86_SSE2
   using char_vector = char_vector_16_sse2;
 #else
   using char_vector = char_vector_1;
@@ -1387,7 +1384,9 @@ lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
                         _SIDD_CMP_RANGES | _SIDD_LEAST_SIGNIFICANT |
                             _SIDD_NEGATIVE_POLARITY | _SIDD_UBYTE_OPS);
 #else
-#if QLJS_HAVE_X86_SSE2
+#if QLJS_HAVE_ARM_NEON
+    using bool_vector = bool_vector_16_neon;
+#elif QLJS_HAVE_X86_SSE2
     using bool_vector = bool_vector_16_sse2;
 #else
     using bool_vector = bool_vector_1;
@@ -1416,9 +1415,10 @@ lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
     int identifier_character_count = count_identifier_characters(chars);
 
     for (int i = 0; i < identifier_character_count; ++i) {
-      QLJS_ASSERT(input[i] >= 0);
-      QLJS_ASSERT(this->is_ascii_character(input[i]));
-      QLJS_ASSERT(is_identifier_character(static_cast<char32_t>(input[i])));
+      QLJS_SLOW_ASSERT(input[i] >= 0);
+      QLJS_SLOW_ASSERT(this->is_ascii_character(input[i]));
+      QLJS_SLOW_ASSERT(
+          is_identifier_character(static_cast<char32_t>(input[i])));
     }
     input += identifier_character_count;
 
@@ -1732,7 +1732,7 @@ done:
 QLJS_WARNING_POP
 
 void lexer::skip_block_comment() {
-  QLJS_ASSERT(this->input_[0] == '/' && this->input_[1] == '*');
+  QLJS_SLOW_ASSERT(this->input_[0] == '/' && this->input_[1] == '*');
   const char8* c = this->input_ + 2;
 
 #if QLJS_HAVE_X86_SSE2

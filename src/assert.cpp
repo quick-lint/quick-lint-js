@@ -8,7 +8,10 @@ namespace quick_lint_js {
 void report_assertion_failure(const char *qljs_file_name, int qljs_line,
                               const char *qljs_function_name,
                               const char *message) {
-  std::fprintf(stderr, "%s:%d: internal check failed in %s: %s\n",
+  std::fprintf(stderr,
+               "%s:%d: internal check failed in %s: %s\n"
+               "quick-lint-js crashed. Please report this bug here:\n"
+               "https://quick-lint-js.com/crash-report/\n",
                qljs_file_name, qljs_line, qljs_function_name, message);
 }
 }

@@ -9,14 +9,6 @@ let VSCODE_WASM_MODULE_PATH_BROWSER = "dist/quick-lint-js-vscode.wasm";
 let VSCODE_WASM_MODULE_PATH_NODE_JS =
   "../public/demo/dist/quick-lint-js-vscode.wasm";
 
-class LintingCrashed extends Error {
-  constructor(originalError) {
-    super(String(originalError));
-    this.originalError = originalError;
-  }
-}
-exports.LintingCrashed = LintingCrashed;
-
 class DocumentLinterDisposed extends Error {}
 exports.DocumentLinterDisposed = DocumentLinterDisposed;
 
@@ -156,6 +148,7 @@ class Process {
     this._webDemoLint = wrap("qljs_web_demo_lint");
     this._webDemoLintAsConfigFile = wrap("qljs_web_demo_lint_as_config_file");
     this._webDemoSetText = wrap("qljs_web_demo_set_text");
+    this._webDemoSetConfigText = wrap("qljs_web_demo_set_config_text");
   }
 
   isTainted() {
@@ -213,6 +206,19 @@ class DocumentForWebDemo {
   lint() {
     let diagnosticsPointer = this._process._webDemoLint(this._wasmDoc);
     return this._parseDiagnostics(diagnosticsPointer);
+  }
+
+  setConfigText(text) {
+    let utf8Text = encodeUTF8String(text, this._process);
+    try {
+      this._process._webDemoSetConfigText(
+        this._wasmDoc,
+        utf8Text.pointer,
+        utf8Text.byteSize
+      );
+    } finally {
+      utf8Text.dispose();
+    }
   }
 
   lintAsConfigFile() {
@@ -291,16 +297,23 @@ function encodeUTF8String(string, process) {
   let textUTF8Pointer = process._malloc(maxSize);
   try {
     let encoder = new TextEncoder();
-    let encodeResult = encoder.encodeInto(
-      string,
-      new Uint8Array(process._heap, textUTF8Pointer, maxSize)
-    );
-    if (encodeResult.read !== string.length) {
-      throw new Error(
-        `Assertion failure: expected encodeResult.read (${encodeResult.read}) to equal string.length (${string.length})`
+    let textUTF8Size;
+    if (typeof encoder.encodeInto === "function") {
+      let encodeResult = encoder.encodeInto(
+        string,
+        new Uint8Array(process._heap, textUTF8Pointer, maxSize)
       );
+      if (encodeResult.read !== string.length) {
+        throw new Error(
+          `Assertion failure: expected encodeResult.read (${encodeResult.read}) to equal string.length (${string.length})`
+        );
+      }
+      textUTF8Size = encodeResult.written;
+    } else {
+      let encoded = encoder.encode(string);
+      new Uint8Array(process._heap, textUTF8Pointer, maxSize).set(encoded);
+      textUTF8Size = encoded.length;
     }
-    let textUTF8Size = encodeResult.written;
     return {
       pointer: textUTF8Pointer,
       byteSize: textUTF8Size,
