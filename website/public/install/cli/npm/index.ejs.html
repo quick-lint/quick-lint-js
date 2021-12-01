@@ -10,8 +10,6 @@
   </head>
   <body class="side-bar-nav">
     <header>
-      <h1><a href="../..">quick-lint-js</a></h1>
-      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
       <%- await include("../../../common-nav.ejs.html") %>
       <nav class="breadcrumbs">
         <ol>
@@ -29,7 +27,16 @@
           src="../../../gnome-terminal.svg"
           alt=""
           title="CLI and LSP server"
-        /><img class="os-logo" src="../../../npm.svg" alt="" title="npm" />
+          width="29"
+          height="29"
+        /><img
+          class="os-logo"
+          src="../../../npm.svg"
+          alt=""
+          title="npm"
+          width="29"
+          height="29"
+        />
         Install CLI and LSP server with npm
       </h2>
       <p>
@@ -39,18 +46,24 @@
           src="../../../linux.svg"
           alt="GNU/Linux"
           title="GNU/Linux"
+          width="19"
+          height="19"
         />
         <img
           class="os-logo"
           src="../../../macos.svg"
           alt="macOS"
           title="macOS"
+          width="19"
+          height="19"
         />
         <img
           class="os-logo"
           src="../../../windows.svg"
           alt="Windows"
           title="Windows"
+          width="19"
+          height="19"
         />
       </p>
 
@@ -60,15 +73,8 @@
         making it easy to install the CLI in your JavaScript project.
       </p>
 
-      <p>
-        In order to install quick-lint-js' npm package, you must first install
-        either the
-        <a
-          href="https://docs.npmjs.com/downloading-and-installing-node-js-and-npm"
-          >npm client</a
-        >
-        or <a href="https://yarnpkg.com/getting-started/install">yarn</a>.
-      </p>
+      <%- await include("../../common-npm-prerequisites.ejs.html",
+      {suggestLocalInstall: true}) %>
 
       <p>
         There are two ways to install quick-lint-js: within a project, or

@@ -16,7 +16,7 @@ QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
 
 namespace quick_lint_js {
 namespace {
-void benchmark_parse(benchmark::State &state) {
+void benchmark_parse_file(benchmark::State &state) {
   const char *source_path_env_var = "QLJS_PARSE_BENCHMARK_SOURCE_FILE";
   const char *source_path = std::getenv(source_path_env_var);
   if (!source_path || *source_path == '\0') {
@@ -34,7 +34,58 @@ void benchmark_parse(benchmark::State &state) {
     p.parse_and_visit_module(visitor);
   }
 }
-BENCHMARK(benchmark_parse);
+BENCHMARK(benchmark_parse_file);
+
+void benchmark_parse(benchmark::State &state, string8_view raw_source) {
+  padded_string source(raw_source);
+  for (auto _ : state) {
+    parser p(&source, &null_error_reporter::instance);
+    null_visitor visitor;
+    p.parse_and_visit_module(visitor);
+  }
+}
+BENCHMARK_CAPTURE(benchmark_parse, pathological_await_slash_in_function,
+                  u8R"(
+function f() {
+  await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+  ()=>{{{{{{{await/
+}
+)"_sv);
+BENCHMARK_CAPTURE(benchmark_parse, pathological_await_slash_top_level,
+                  u8R"(
+await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+()=>{{{{{{{await/
+)"_sv);
 }  // namespace
 }  // namespace quick_lint_js
 

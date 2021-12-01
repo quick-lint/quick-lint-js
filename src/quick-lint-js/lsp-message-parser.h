@@ -19,7 +19,7 @@ namespace quick_lint_js {
 class lsp_message_parser_base {
  protected:
   struct parsed_message_headers {
-    std::size_t content_length;
+    std::optional<std::size_t> content_length;
   };
 
   struct parsed_header {
@@ -93,6 +93,9 @@ class lsp_message_parser : private lsp_message_parser_base {
         parsed_message_headers headers = this->parse_message_headers(
             string8_view(headers_begin, narrow_cast<std::size_t>(
                                             content_begin - headers_begin)));
+        // If headers.content_length.has_value(), then switch to parsing the
+        // body. Otherwise, we received invalid headers, so recover by parsing
+        // headers again.
         this->pending_message_content_length_ = headers.content_length;
         headers_or_content_begin = content_begin;
       }

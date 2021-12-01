@@ -15,12 +15,20 @@ figure {
   margin-bottom: 1rem;
 }
 
-h1 {
+header {
   margin-top: 1rem;
 }
 
+h1 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+h1 a:link {
+  text-decoration: none;
+}
+
 header nav.main-nav {
-  margin-top: 1rem;
+  margin-top: 0;
   text-align: right;
 }
 header nav.main-nav > ul {
@@ -39,6 +47,12 @@ header nav.main-nav li.side-bar-only {
 header nav.main-nav li a:link,
 header nav.main-nav li .current-page {
   padding: var(--nav-entry-padding);
+}
+
+/* Make the nav more compact by hiding all sub-nav entries except the current
+   one. */
+header nav.main-nav li li a:link {
+  display: none;
 }
 
 /* For sub-nav entries, show bullets (circles) connected with a vertical
@@ -60,7 +74,7 @@ header nav.main-nav li li a:link:before,
 header nav.main-nav li li .current-page:before {
   /* Vertical line */
   background-color: var(--bullets-line-color);
-  bottom: 0;
+  bottom: 50%;
   content: " ";
   display: inline-block;
   position: absolute;
@@ -93,11 +107,6 @@ header nav.main-nav li li a:link:after {
 header nav.main-nav li li .current-page:after {
   background-color: var(--bullets-current-color);
 }
-header nav.main-nav li li:nth-last-child(1) a:link:before,
-header nav.main-nav li li:nth-last-child(1) .current-page:before {
-  /* Don't extend the vertical line past the bottom (last) bullet. */
-  bottom: 50%;
-}
 header nav.main-nav li li:first-child a:link:before,
 header nav.main-nav li li:first-child .current-page:before {
   /* Extend the vertical line to the baseline of the parent nav entry. */
@@ -112,14 +121,23 @@ header nav.main-nav li li:first-child .current-page:before {
 }
 
 header {
+  --tag-line-height: calc(0.5rem + 2rem * 1.2); /* Assumes two lines. */
+  --title-height: calc(2rem * 1.2); /* Assumes no word-wrapping. */
+  --mascot-height: calc(var(--title-height) + var(--tag-line-height));
+  --mascot-width: var(--mascot-height) / 874.176 * 1126.752;
   display: grid;
   grid-template-areas:
-    "title main-nav"
-    "tag-line main-nav"
-    "breadcrumbs main-nav";
+    "mascot title main-nav"
+    "mascot tag-line main-nav"
+    "breadcrumbs breadcrumbs main-nav";
+  grid-template-columns: calc(var(--mascot-width) + 0.5rem) auto auto;
+  grid-template-rows: auto minmax(var(--tag-line-height), auto) auto;
 }
 header > h1 {
   grid-area: title;
+}
+header > .mascot {
+  grid-area: mascot;
 }
 header > .tag-line {
   grid-area: tag-line;
@@ -131,10 +149,40 @@ header > nav.breadcrumbs {
   grid-area: breadcrumbs;
 }
 
+header > .tag-line {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+header .mascot {
+  align-self: start;
+  width: var(--mascot-width);
+  height: var(--mascot-height);
+}
+
+/* On smaller screens, put the mascot under the title. */
+@media only screen and (max-width: 32em) {
+  header {
+    --mascot-height: var(--tag-line-height);
+    grid-template-areas:
+      "title title main-nav"
+      "mascot tag-line main-nav"
+      "breadcrumbs breadcrumbs main-nav";
+  }
+  header > .mascot {
+    margin-top: 0.5rem;
+  }
+}
+
 footer,
 h2 {
   border-top: 1px solid #ccc;
   padding-top: 1rem;
+}
+hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin-left: 2rem;
+  margin-right: 2rem;
 }
 
 main > h2:first-child {
@@ -238,6 +286,32 @@ pre mark:empty::before {
   }
 }
 
+/* text-decoration-style: wavy; is buggy in several browsers:
+
+   * Wavy underline causes rendering artifacts
+     (https://github.com/quick-lint/quick-lint-js/issues/513)
+     * Not buggy: Brave version 0.61.51 Chromium: 73.0.3683.75 (Official Build) (64-bit)
+     * Brave version 1.31.91 Chromium: 95.0.4638.69 (Official Build) (64-bit)
+     * Brave version 1.32.106 Chromium: 96.0.4664.45 (Official Build) (arm64)
+     * Chromium version 96.0.4664.45 (Official Build) for Linux Mint (64-bit)
+     * Microsoft Edge version 91.0.864.15 (Official build) beta (64-bit)
+   * Doesn't show wavy underline if text is too narrow (font-dependent;
+     zoom-dependent)
+     * Brave version 0.61.51 Chromium: 73.0.3683.75 (Official Build) (64-bit)
+     * Chromium version 96.0.4664.45 (Official Build) for Linux Mint (64-bit)
+     * Microsoft Edge version 91.0.864.15 (Official build) beta (64-bit)
+   * Doesn't show wavy underline across full text sometimes
+     * Microsoft Edge version 91.0.864.15 (Official build) beta (64-bit)
+     * macOS Safari version 15.1 (17612.2.9.1.20)
+
+  For now, use a simpler underlining scheme on possibly-buggy browsers.
+*/
+@supports (not (-moz-appearance: none)) {
+  pre mark {
+    text-decoration-style: solid;
+  }
+}
+
 .install-logo,
 .os-logo {
   height: 1.2em;
@@ -284,6 +358,18 @@ code.shell-session kbd::before {
   content: "$ ";
 }
 
+/* Make keystrokes like "CTRL-S" and "RET" distinct from regular key presses. */
+kbd.keystroke {
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  padding: 0 0.25em;
+}
+@media (prefers-color-scheme: dark) {
+  kbd.keystroke {
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
 @media only screen and (min-width: 34em) and (max-width: 40em) {
   .os-column-table ul {
     margin-left: 0;
@@ -309,7 +395,7 @@ code.shell-session kbd::before {
 @media only screen and (min-width: 51em) {
   body.side-bar-nav {
     --page-width: 49em;
-    --side-bar-width: 7rem;
+    --side-bar-width: 8rem;
     max-width: var(--page-width);
   }
 
@@ -332,7 +418,14 @@ code.shell-session kbd::before {
     color: #eee8d5;
   }
   .side-bar-nav header nav.main-nav li a:hover {
-    background-color: #586e75;
+    --hover-background-color: #586e75;
+    background-color: var(--hover-background-color);
+    background: linear-gradient(
+      to left,
+      var(--hover-background-color) 0,
+      var(--hover-background-color) calc(var(--side-bar-width) + 1rem),
+      rgba(0, 0, 0, 0) calc(var(--side-bar-width) + 25rem)
+    );
   }
   @media (prefers-color-scheme: dark) {
     .side-bar-nav header nav.main-nav {
@@ -344,7 +437,7 @@ code.shell-session kbd::before {
       color: #073642;
     }
     .side-bar-nav header nav.main-nav li a:hover {
-      background-color: #839496;
+      --hover-background-color: #839496;
     }
   }
 
@@ -409,6 +502,17 @@ code.shell-session kbd::before {
       --bullets-line-color: #073642;
       --bullets-link-color: #073642;
     }
+  }
+
+  /* Extend the vertical line through each bullet (but not the last bullet). */
+  .side-bar-nav header nav.main-nav li li:not(:nth-last-child(1)) a:link:before,
+  .side-bar-nav
+    header
+    nav.main-nav
+    li
+    li:not(:nth-last-child(1))
+    .current-page:before {
+    bottom: 0;
   }
 }
 

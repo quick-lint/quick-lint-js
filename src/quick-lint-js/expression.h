@@ -36,7 +36,9 @@ class expression;
 
 enum class expression_kind {
   _class,
+  _delete,
   _invalid,
+  _missing,
   _new,
   _template,
   _typeof,
@@ -156,7 +158,9 @@ class expression {
   class expression_with_prefix_operator_base;
 
   class _class;
+  class _delete;
   class _invalid;
+  class _missing;
   class _new;
   class _template;
   class _typeof;
@@ -361,10 +365,33 @@ class expression::expression_with_prefix_operator_base : public expression {
                             this->child_->span().end());
   }
 
+  const char8 *unary_operator_begin() const noexcept {
+    return this->unary_operator_begin_;
+  }
+
  protected:
   const char8 *unary_operator_begin_;
   expression *child_;
 };
+
+class expression::_delete final
+    : public expression::expression_with_prefix_operator_base {
+ public:
+  static constexpr expression_kind kind = expression_kind::_delete;
+
+  explicit _delete(expression *child, source_code_span operator_span) noexcept
+      : expression::expression_with_prefix_operator_base(kind, child,
+                                                         operator_span) {
+    QLJS_ASSERT(operator_span.string_view() == u8"delete");
+  }
+
+  source_code_span unary_operator_span() {
+    const char8 *operator_begin = this->unary_operator_begin();
+    return source_code_span(operator_begin,
+                            operator_begin + strlen(u8"delete"));
+  }
+};
+static_assert(expression_arena::is_allocatable<expression::_delete>);
 
 class expression::_class : public expression {
  public:
@@ -399,6 +426,20 @@ class expression::_invalid final : public expression {
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::_invalid>);
+
+class expression::_missing final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::_missing;
+
+  explicit _missing(source_code_span span) noexcept
+      : expression(kind), span_(span) {}
+
+  source_code_span span_impl() const noexcept { return this->span_; }
+
+ private:
+  source_code_span span_;
+};
+static_assert(expression_arena::is_allocatable<expression::_missing>);
 
 class expression::_new final : public expression {
  public:
@@ -605,9 +646,9 @@ static_assert(expression_arena::is_allocatable<
 
 class expression::assignment final : public expression {
  public:
-  explicit assignment(expression_kind kind, expression *lhs,
-                      expression *rhs) noexcept
-      : expression(kind), children_{lhs, rhs} {
+  explicit assignment(expression_kind kind, expression *lhs, expression *rhs,
+                      source_code_span operator_span) noexcept
+      : expression(kind), children_{lhs, rhs}, operator_span_(operator_span) {
     QLJS_ASSERT(kind == expression_kind::assignment ||
                 kind == expression_kind::compound_assignment ||
                 kind == expression_kind::conditional_assignment);
@@ -623,13 +664,24 @@ class expression::assignment final : public expression {
     return this->children_[narrow_cast<unsigned>(index)];
   }
 
+  void set_child(int index, expression *new_child) noexcept {
+    QLJS_ASSERT(index >= 0);
+    QLJS_ASSERT(index < static_cast<int>(this->children_.size()));
+    this->children_[narrow_cast<unsigned>(index)] = new_child;
+  }
+
   source_code_span span_impl() const noexcept {
     return source_code_span(this->children_.front()->span().begin(),
                             this->children_.back()->span().end());
   }
 
+  source_code_span operator_span() const noexcept {
+    return this->operator_span_;
+  }
+
  private:
   std::array<expression *, 2> children_;
+  source_code_span operator_span_;
 };
 static_assert(expression_arena::is_allocatable<expression::assignment>);
 
@@ -1161,7 +1213,9 @@ inline auto expression::with_derived(Func &&func) {
 
   switch (this->kind()) {
     QLJS_EXPRESSION_CASE(_class)
+    QLJS_EXPRESSION_CASE(_delete)
     QLJS_EXPRESSION_CASE(_invalid)
+    QLJS_EXPRESSION_CASE(_missing)
     QLJS_EXPRESSION_CASE(_new)
     QLJS_EXPRESSION_CASE(_template)
     QLJS_EXPRESSION_CASE(_typeof)

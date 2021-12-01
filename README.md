@@ -1,9 +1,6 @@
-# quick-lint-js
+# <img src="dist/artwork/dusty-right.svg" alt="" title="Dusty, the quick-lint-js mascot" width="46.4" height="36" align="top"> quick-lint-js
 
 [quick-lint-js][] finds bugs in JavaScript programs.
-
-**Warning**: This is pre-release software. quick-lint-js is under active
-development and is unstable. Use at your own risk.
 
 quick-lint-js finds many bugs, including:
 

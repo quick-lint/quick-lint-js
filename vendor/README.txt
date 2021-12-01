@@ -169,17 +169,15 @@ consumption:
 The following patches have been manually applied:
 
 * simdjson-cmake-version.patch
-* simdjson-iostream.patch
-* simdjson-reenter-child-ub.patch
 
 Copyright: Copyright 2018-2019 The simdjson authors; various
-Download URL: https://github.com/simdjson/simdjson/archive/refs/tags/v0.9.6.tar.gz
-Download date: July 17, 2021
-Git commit: e9b893ff1b13c6a70135827c62b3f3d65938d135
-License file: simdjson/LICENSE; simdjson/src/to_chars.cpp; simdjson/windows/toni_ronnko_dirent.h; simdjson/windows/getopt.h; simdjson/include/simdjson/internal/isadetection.h
-License type: Apache-2.0; MIT; MIT; MIT(Old Style with legal disclaimer 2)/BSD-2-Clause; BSD-3-Clause
+Download URL: https://codeload.github.com/simdjson/simdjson/tar.gz/refs/tags/v1.0.0
+Download date: September 28, 2021
+Git commit: 3bd8b0b575f43403705dcce57d427944c11421f8
+License file: simdjson/LICENSE; simdjson/src/to_chars.cpp; simdjson/windows/toni_ronnko_dirent.h; simdjson/windows/getopt.h; simdjson/include/simdjson/internal/isadetection.h; simdjson/include/simdjson/nonstd/string_view.hpp
+License type: Apache-2.0; MIT; MIT; MIT(Old Style with legal disclaimer 2)/BSD-2-Clause; BSD-3-Clause; BSL-1.0
 Location: simdjson
 Project URL: https://github.com/simdjson/simdjson
-Release URL: https://github.com/simdjson/simdjson/releases/tag/v0.9.6
-Release date: June 6, 2021
-Version: 0.9.6
+Release URL: https://github.com/simdjson/simdjson/releases/tag/v1.0.0
+Release date: September 7, 2021
+Version: 1.0.0

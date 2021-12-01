@@ -22,6 +22,9 @@ if (QUICK_LINT_JS_ENABLE_LLVM_LIBFUZZER_TESTS)
   quick_lint_js_add_fuzz_executable(quick-lint-js-fuzz-lsp-server fuzz-lsp-server.cpp)
   target_link_libraries(quick-lint-js-fuzz-lsp-server PRIVATE quick-lint-js-lib)
 
+  quick_lint_js_add_fuzz_executable(quick-lint-js-fuzz-lsp-message-parser fuzz-lsp-message-parser.cpp)
+  target_link_libraries(quick-lint-js-fuzz-lsp-message-parser PRIVATE quick-lint-js-lib)
+
   quick_lint_js_add_fuzz_executable(quick-lint-js-fuzz-options fuzz-options.cpp)
   target_link_libraries(quick-lint-js-fuzz-options PRIVATE quick-lint-js-lib)
 

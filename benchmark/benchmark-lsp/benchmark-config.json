@@ -28,10 +28,6 @@
     {
       "name": "Deno-nolint",
       "command": ["deno", "lsp"],
-      "broken": [
-        "change-wait/tiny.js",
-        "open-wait-close/tiny.js"
-      ],
       "diagnosticsMessagesToIgnore": 1,
       "initializationOptions": {
         "enable": true,
@@ -60,7 +56,7 @@
       "allowIncrementalChanges": false
     },
     {
-      "name": "TypeScript-Theia",
+      "name": "TypeScript",
       "command": ["node", "./node_modules/.bin/typescript-language-server", "--stdio"],
       "cwd": "typescript/",
       "needFilesOnDisk": true

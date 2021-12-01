@@ -156,7 +156,7 @@ The order of predicates within an error list does not matter.
 Included predicates are processed first, adding to the set of error codes.
 Excluded predicates are processed second, removing from the set of error codes.
 
-Error codes have the form *E000*, where _000_ is three decimal digits (0-9).
+Error codes have the form *E0000*, where _0000_ is four decimal digits (0-9).
 
 The following error categories are supported:
 
@@ -165,23 +165,23 @@ The following error categories are supported:
 
 Example error lists:
 
-*E102,E110*::
-  Only error codes E102 and E110, excluding all other error codes.
+*E0102,E0110*::
+  Only error codes E0102 and E0110, excluding all other error codes.
 
-*-E102*::
-  The default set of error codes, except for error code E102.
+*-E0102*::
+  The default set of error codes, except for error code E0102.
 
-*+E102*::
-  The default set of error codes, and also error code E102.
+*+E0102*::
+  The default set of error codes, and also error code E0102.
 
-*all,-E102*::
-  All error codes, except for error code E102.
+*all,-E0102*::
+  All error codes, except for error code E0102.
 
-*E100,-E100,+E200*::
-  Only error code E200, excluding all other error codes.
+*E0100,-E0100,+E0200*::
+  Only error code E0200, excluding all other error codes.
 
-*+E200,-E100,E100*::
-  Only error code E200, excluding all other error codes.
+*+E0200,-E0100,E0100*::
+  Only error code E0200, excluding all other error codes.
 
 == Exit status
 
@@ -211,11 +211,11 @@ ____
 [subs=+quotes]
 ----
 $ *quick-lint-js* lib/index.js
-lib/index.js:1:20: error: variable used before declaration: language [E058]
-lib/index.js:2:7: note: variable declared here [E058]
-lib/index.js:3:1: error: assignment to const variable [E003]
-lib/index.js:1:7: note: const variable declared here [E003]
-lib/index.js:5:25: warning: use of undeclared variable: ocupation [E057]
+lib/index.js:1:20: error: variable used before declaration: language [E0058]
+lib/index.js:2:7: note: variable declared here [E0058]
+lib/index.js:3:1: error: assignment to const variable [E0003]
+lib/index.js:1:7: note: const variable declared here [E0003]
+lib/index.js:5:25: warning: use of undeclared variable: ocupation [E0057]
 ----
 ____
 
@@ -236,8 +236,8 @@ To lint a file called _bad.js_, but don't fail on use-of-undeclared-variable err
 ____
 [subs=+quotes]
 ----
-$ *quick-lint-js* --exit-fail-on=-E057 bad.js
-bad.js:5:25: warning: use of undeclared variable: $ [E057]
+$ *quick-lint-js* --exit-fail-on=-E0057 bad.js
+bad.js:5:25: warning: use of undeclared variable: $ [E0057]
 $ echo $?
 0
 ----
@@ -258,7 +258,7 @@ ____
 [subs=+quotes]
 ----
 $ *quick-lint-js* --path-for-config-search=src/server.js /tmp/unsaved12m1uz.js
-/tmp/unsaved12m1uz.js:12:5: warning: use of undeclared variable: document [E057]
+/tmp/unsaved12m1uz.js:12:5: warning: use of undeclared variable: document [E0057]
 ----
 ____
 

@@ -3,6 +3,15 @@
 This document describes the infrastructure used for managing builds, releases,
 and the website.
 
+## Local hardware
+
+### stracle
+
+stracle is a Mac mini (M1 Apple Silicon, 2020) in strager's basement.
+
+* GitHub Actions runner in a virtual machine
+* See `~/NOTES` on the host
+
 ## Hosted services
 
 ### c.quick-lint-js.com
@@ -107,6 +116,8 @@ GitHub hosts quick-lint-js' issue tracker:
 
 quick-lint-js uses GitHub Actions for continuous integration (aka automated
 building): <https://github.com/quick-lint/quick-lint-js/actions>
+
+Note: *stracle* runs a self-hosted GitHub Actions runner
 
 ### Open VSX Registry
 

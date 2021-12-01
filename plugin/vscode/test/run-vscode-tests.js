@@ -82,12 +82,13 @@ async function installVSCodeAsync(version, target) {
 }
 
 function getVSCodeVersionForTarget(target) {
-  if (
-    target.platform === "linux" &&
-    (target.arch === "arm" || target.arch === "arm64")
-  ) {
-    // HACK(strager): 1.49.x does not exist for linux-arm or linux-arm64.
-    return "1.50.1";
+  if (target.arch === "arm" || target.arch === "arm64") {
+    // HACK(strager): 1.49.x does not exist for darwin-arm64 or linux-arm or linux-arm64.
+    if (target.platform === "darwin") {
+      return "1.54.3";
+    } else {
+      return "1.50.1";
+    }
   } else {
     return "1.49.0";
   }

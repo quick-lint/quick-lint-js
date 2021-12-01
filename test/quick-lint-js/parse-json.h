@@ -5,13 +5,11 @@
 #define QUICK_LINT_JS_PARSE_JSON_H
 
 #include <boost/json/value.hpp>
-#include <cstddef>
 #include <iosfwd>
+#include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <simdjson.h>
 #include <string>
-#include <type_traits>
 #include <utility>
 
 namespace quick_lint_js {
@@ -23,37 +21,6 @@ namespace quick_lint_js {
 ::boost::json::value simdjson_to_boost_json(::simdjson::ondemand::value &);
 ::boost::json::value simdjson_to_boost_json(
     ::simdjson::simdjson_result<::simdjson::ondemand::value> &&);
-
-template <class... Keys>
-struct look_up_impl;
-
-template <class Key, class... OtherKeys>
-struct look_up_impl<Key, OtherKeys...> {
-  static ::boost::json::value look_up(const ::boost::json::value &root,
-                                      Key &&key, OtherKeys &&... other_keys) {
-    if constexpr (std::is_integral_v<Key>) {
-      return look_up_impl<OtherKeys...>::look_up(
-          root.as_array().at(narrow_cast<std::size_t>(key)),
-          std::forward<OtherKeys>(other_keys)...);
-    } else {
-      return look_up_impl<OtherKeys...>::look_up(
-          root.as_object().at(key), std::forward<OtherKeys>(other_keys)...);
-    }
-  }
-};
-
-template <>
-struct look_up_impl<> {
-  static ::boost::json::value look_up(const ::boost::json::value &root) {
-    return root;
-  }
-};
-
-template <class... Keys>
-::boost::json::value look_up(const ::boost::json::value &root,
-                             Keys &&... keys) {
-  return look_up_impl<Keys...>::look_up(root, std::forward<Keys>(keys)...);
-}
 }
 
 #endif

@@ -68,7 +68,7 @@ func TestMatchPath(t *testing.T) {
 func TestReverseStringSlice(t *testing.T) {
 	assertEqual := func(actual []string, expected []string) {
 		if !reflect.DeepEqual(actual, expected) {
-			t.Errorf("expected %#v, but got %#v", actual, expected)
+			t.Errorf("expected %#v, but got %#v", expected, actual)
 		}
 	}
 

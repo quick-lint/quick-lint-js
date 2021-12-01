@@ -28,17 +28,17 @@ TEST(test_error_list, compiled_default_matches_all_errors) {
 
 TEST(test_error_list, compiled_excluded_error_by_code) {
   parsed_error_list parsed_errors;
-  parsed_errors.excluded_codes.emplace_back("E003");
+  parsed_errors.excluded_codes.emplace_back("E0003");
 
   compiled_error_list errors;
   errors.add(parsed_errors);
 
   EXPECT_FALSE(
       errors.is_present(error_type::error_assignment_to_const_variable))
-      << "E003 should be disabled";
+      << "E0003 should be disabled";
   EXPECT_TRUE(errors.is_present(
       error_type::error_big_int_literal_contains_decimal_point))
-      << "E005 should be enabled";
+      << "E0005 should be enabled";
 
   EXPECT_THAT(errors.parse_errors("--testoption"), IsEmpty());
   EXPECT_THAT(errors.parse_warnings(), IsEmpty());
@@ -46,21 +46,21 @@ TEST(test_error_list, compiled_excluded_error_by_code) {
 
 TEST(test_error_list, compiled_excluded_then_included_error_by_code) {
   std::array<parsed_error_list, 2> parsed_error_lists;
-  parsed_error_lists[0].excluded_codes.emplace_back("E003");
-  parsed_error_lists[1].included_codes.emplace_back("E003");
+  parsed_error_lists[0].excluded_codes.emplace_back("E0003");
+  parsed_error_lists[1].included_codes.emplace_back("E0003");
 
   compiled_error_list errors;
   errors.add(parsed_error_lists[0]);
   errors.add(parsed_error_lists[1]);
 
   EXPECT_TRUE(errors.is_present(error_type::error_assignment_to_const_variable))
-      << "E003 should be enabled";
+      << "E0003 should be enabled";
 }
 
 TEST(test_error_list, compiled_included_then_excluded_error_by_code) {
   std::array<parsed_error_list, 2> parsed_error_lists;
-  parsed_error_lists[0].included_codes.emplace_back("E003");
-  parsed_error_lists[1].excluded_codes.emplace_back("E003");
+  parsed_error_lists[0].included_codes.emplace_back("E0003");
+  parsed_error_lists[1].excluded_codes.emplace_back("E0003");
 
   compiled_error_list errors;
   errors.add(parsed_error_lists[0]);
@@ -68,7 +68,7 @@ TEST(test_error_list, compiled_included_then_excluded_error_by_code) {
 
   EXPECT_FALSE(
       errors.is_present(error_type::error_assignment_to_const_variable))
-      << "E003 should be disabled";
+      << "E0003 should be disabled";
 }
 
 TEST(test_error_list, compiled_exclude_all_matches_no_errors) {
@@ -90,26 +90,26 @@ TEST(test_error_list, compiled_exclude_all_matches_no_errors) {
 TEST(test_error_list,
      compiled_override_and_include_code_matches_only_explicit) {
   parsed_error_list parsed_errors;
-  parsed_errors.included_codes.emplace_back("E003");
+  parsed_errors.included_codes.emplace_back("E0003");
   parsed_errors.override_defaults = true;
 
   compiled_error_list errors;
   errors.add(parsed_errors);
 
   EXPECT_TRUE(errors.is_present(error_type::error_assignment_to_const_variable))
-      << "E003 should be enabled";
+      << "E0003 should be enabled";
   EXPECT_FALSE(errors.is_present(
       error_type::error_big_int_literal_contains_decimal_point))
-      << "E005 (default) should be disabled";
+      << "E0005 (default) should be disabled";
 }
 
 TEST(test_error_list,
      compiled_include_code_then_override_matches_only_later_included_codes) {
   std::array<parsed_error_list, 2> parsed_error_lists;
-  parsed_error_lists[0].included_codes.emplace_back("E003");
+  parsed_error_lists[0].included_codes.emplace_back("E0003");
 
   parsed_error_lists[1].override_defaults = true;
-  parsed_error_lists[1].included_codes.emplace_back("E005");
+  parsed_error_lists[1].included_codes.emplace_back("E0005");
 
   compiled_error_list errors;
   errors.add(parsed_error_lists[0]);
@@ -117,34 +117,34 @@ TEST(test_error_list,
 
   EXPECT_FALSE(
       errors.is_present(error_type::error_assignment_to_const_variable))
-      << "E003 should be disabled";
+      << "E0003 should be disabled";
   EXPECT_TRUE(errors.is_present(
       error_type::error_big_int_literal_contains_decimal_point))
-      << "E005 should be enabled";
+      << "E0005 should be enabled";
 }
 
 TEST(test_error_list,
      compiled_exclude_all_and_include_code_matches_only_explicit) {
   parsed_error_list parsed_errors;
   parsed_errors.excluded_categories.emplace_back("all");
-  parsed_errors.included_codes.emplace_back("E003");
+  parsed_errors.included_codes.emplace_back("E0003");
 
   compiled_error_list errors;
   errors.add(parsed_errors);
 
   EXPECT_TRUE(errors.is_present(error_type::error_assignment_to_const_variable))
-      << "E003 should be enabled";
+      << "E0003 should be enabled";
   EXPECT_FALSE(errors.is_present(
       error_type::error_big_int_literal_contains_decimal_point))
-      << "E005 (all) should be disabled";
+      << "E0005 (all) should be disabled";
 }
 
 TEST(test_error_list,
      compiled_exclude_default_code_and_include_all_matches_excluded_code) {
   std::array<parsed_error_list, 2> parsed_error_lists;
   // These codes are enabled by default.
-  parsed_error_lists[0].excluded_codes.emplace_back("E003");
-  parsed_error_lists[0].excluded_codes.emplace_back("E005");
+  parsed_error_lists[0].excluded_codes.emplace_back("E0003");
+  parsed_error_lists[0].excluded_codes.emplace_back("E0005");
 
   parsed_error_lists[1].included_categories.emplace_back("all");
 
@@ -153,10 +153,10 @@ TEST(test_error_list,
   errors.add(parsed_error_lists[1]);
 
   EXPECT_TRUE(errors.is_present(error_type::error_assignment_to_const_variable))
-      << "E003 (all) should be enabled";
+      << "E0003 (all) should be enabled";
   EXPECT_TRUE(errors.is_present(
       error_type::error_big_int_literal_contains_decimal_point))
-      << "E005 (all) should be enabled";
+      << "E0005 (all) should be enabled";
 }
 
 TEST(test_error_list, compiling_invalid_category_is_an_error) {
@@ -174,21 +174,21 @@ TEST(test_error_list, compiling_invalid_category_is_an_error) {
 
 TEST(test_error_list, compiling_invalid_code_is_an_error) {
   parsed_error_list parsed_errors;
-  parsed_errors.included_codes.emplace_back("E999");
-  parsed_errors.excluded_codes.emplace_back("E000");
+  parsed_errors.included_codes.emplace_back("E9999");
+  parsed_errors.excluded_codes.emplace_back("E0000");
 
   compiled_error_list errors;
   errors.add(parsed_errors);
 
   EXPECT_THAT(errors.parse_warnings(),
-              UnorderedElementsAre("unknown error code: E999",
-                                   "unknown error code: E000"));
+              UnorderedElementsAre("unknown error code: E9999",
+                                   "unknown error code: E0000"));
 }
 
 TEST(test_error_list, compiling_empty_parsed_error_list_is_an_error) {
   std::array<parsed_error_list, 3> parsed_error_lists;
-  parsed_error_lists[0].included_codes.emplace_back("E003");
-  parsed_error_lists[2].excluded_codes.emplace_back("E003");
+  parsed_error_lists[0].included_codes.emplace_back("E0003");
+  parsed_error_lists[2].excluded_codes.emplace_back("E0003");
 
   compiled_error_list errors;
   errors.add(parsed_error_lists[0]);
@@ -217,16 +217,16 @@ TEST(test_error_list, empty_list_is_disallowed) {
 
 TEST(test_error_list, add_error_code_to_default) {
   {
-    parsed_error_list errors = parse_error_list("+E420");
-    EXPECT_THAT(errors.included_codes, ElementsAre("E420"));
+    parsed_error_list errors = parse_error_list("+E0420");
+    EXPECT_THAT(errors.included_codes, ElementsAre("E0420"));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 
   {
-    parsed_error_list errors = parse_error_list("+E420,+E069");
-    EXPECT_THAT(errors.included_codes, UnorderedElementsAre("E420", "E069"));
+    parsed_error_list errors = parse_error_list("+E0420,+E0069");
+    EXPECT_THAT(errors.included_codes, UnorderedElementsAre("E0420", "E0069"));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
@@ -235,16 +235,16 @@ TEST(test_error_list, add_error_code_to_default) {
 
 TEST(test_error_list, remove_error_code_from_default) {
   {
-    parsed_error_list errors = parse_error_list("-E420");
-    EXPECT_THAT(errors.excluded_codes, ElementsAre("E420"));
+    parsed_error_list errors = parse_error_list("-E0420");
+    EXPECT_THAT(errors.excluded_codes, ElementsAre("E0420"));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 
   {
-    parsed_error_list errors = parse_error_list("-E420,-E069");
-    EXPECT_THAT(errors.excluded_codes, UnorderedElementsAre("E420", "E069"));
+    parsed_error_list errors = parse_error_list("-E0420,-E0069");
+    EXPECT_THAT(errors.excluded_codes, UnorderedElementsAre("E0420", "E0069"));
     EXPECT_FALSE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
@@ -283,8 +283,8 @@ TEST(test_error_list, set_default_to_category) {
 
 TEST(test_error_list, set_default_to_error_code) {
   {
-    parsed_error_list errors = parse_error_list("E420");
-    EXPECT_THAT(errors.included_codes, ElementsAre("E420"));
+    parsed_error_list errors = parse_error_list("E0420");
+    EXPECT_THAT(errors.included_codes, ElementsAre("E0420"));
     EXPECT_TRUE(errors.override_defaults);
     EXPECT_FALSE(errors.error_missing_predicate());
     EXPECT_THAT(errors.unexpected, IsEmpty());
@@ -294,8 +294,8 @@ TEST(test_error_list, set_default_to_error_code) {
 TEST(test_error_list, mixed) {
   {
     parsed_error_list errors =
-        parse_error_list("+E420,warning,-pedantic,syntax-error");
-    EXPECT_THAT(errors.included_codes, ElementsAre("E420"));
+        parse_error_list("+E0420,warning,-pedantic,syntax-error");
+    EXPECT_THAT(errors.included_codes, ElementsAre("E0420"));
     EXPECT_THAT(errors.excluded_codes, IsEmpty());
     EXPECT_THAT(errors.included_categories,
                 ElementsAre("warning", "syntax-error"));
@@ -308,14 +308,14 @@ TEST(test_error_list, mixed) {
 
 TEST(test_error_list, whitespace_around_predicates_is_ignored) {
   {
-    parsed_error_list errors = parse_error_list("\t +E420 \t");
-    EXPECT_THAT(errors.included_codes, ElementsAre("E420"));
+    parsed_error_list errors = parse_error_list("\t +E0420 \t");
+    EXPECT_THAT(errors.included_codes, ElementsAre("E0420"));
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 
   {
-    parsed_error_list errors = parse_error_list(" +E420 , +E069");
-    EXPECT_THAT(errors.included_codes, UnorderedElementsAre("E420", "E069"));
+    parsed_error_list errors = parse_error_list(" +E0420 , +E0069");
+    EXPECT_THAT(errors.included_codes, UnorderedElementsAre("E0420", "E0069"));
     EXPECT_THAT(errors.unexpected, IsEmpty());
   }
 }
@@ -331,7 +331,7 @@ TEST(test_error_list, stray_commas_are_ignored) {
 
 TEST(test_error_list, unexpected_characters) {
   {
-    parsed_error_list errors = parse_error_list("~E420");
+    parsed_error_list errors = parse_error_list("~E0420");
     EXPECT_THAT(errors.unexpected, ElementsAre("~"));
   }
 

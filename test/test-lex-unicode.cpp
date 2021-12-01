@@ -24,7 +24,7 @@ std::string pretty(char32_t c) {
 }
 
 bool icu_data_is_valid() {
-  std::uint8_t minimum_unicode_version = 13;
+  std::uint8_t minimum_unicode_version = 14;
 
   UVersionInfo version;
   ::u_getUnicodeVersion(version);

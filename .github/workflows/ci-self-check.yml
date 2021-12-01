@@ -1,0 +1,48 @@
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+# These jobs ensure CI infrastructure is working as expected.
+
+name: CI self-check
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  # Double-check that our worker is still running scripts as ARM64 (not x86_64).
+  macos-arm:
+    name: macOS Apple Silicon (ARM64/AArch64)
+    runs-on: stracle-macos-aarch64
+    steps:
+      - name: check architecture
+        run: |
+          current_arch="$(arch)"
+          printf 'current arch: %s\n' "${current_arch}" >&2
+          case "${current_arch}" in
+            arm64*)
+              printf 'architecture OK\n' >&2
+              ;;
+            *)
+              printf 'error: unexpected architecture\n' >&2
+              exit 1
+              ;;
+          esac
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

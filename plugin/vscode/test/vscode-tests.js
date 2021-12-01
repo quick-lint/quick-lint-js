@@ -54,7 +54,7 @@ for (let extension of [".js", ".mjs", ".cjs"]) {
         let helloDiags = normalizeDiagnostics(helloURI);
         assert.deepStrictEqual(helloDiags, [
           {
-            code: "E034",
+            code: "E0034",
             message: "redeclaration of variable: x",
             severity: vscode.DiagnosticSeverity.Error,
             source: "quick-lint-js",
@@ -161,7 +161,7 @@ tests = {
     let helloEditor = await vscode.window.showTextDocument(helloDocument);
 
     // HACK(strager): Wait for VS Code to register its filesystem watchers.
-    await sleepAsync(100);
+    await sleepAsync(300);
 
     fs.writeFileSync(helloFilePath, "let x = 3;\nlet x = 4;\n");
 
@@ -169,7 +169,7 @@ tests = {
       let helloDiags = normalizeDiagnostics(helloURI);
       assert.deepStrictEqual(helloDiags, [
         {
-          code: "E034",
+          code: "E0034",
           message: "redeclaration of variable: x",
           severity: vscode.DiagnosticSeverity.Error,
           source: "quick-lint-js",
@@ -383,9 +383,9 @@ tests = {
     });
     assert.deepStrictEqual(diags, [
       // redeclaration of variable 'x'
-      { code: "E034", severity: vscode.DiagnosticSeverity.Error },
+      { code: "E0034", severity: vscode.DiagnosticSeverity.Error },
       // use of undeclared variable 'undeclaredVariable'
-      { code: "E057", severity: vscode.DiagnosticSeverity.Warning },
+      { code: "E0057", severity: vscode.DiagnosticSeverity.Warning },
     ]);
   },
 
@@ -438,7 +438,7 @@ tests = {
       jsDiags.map(({ code, startLine }) => ({ code, startLine })),
       [
         {
-          code: "E057",
+          code: "E0057",
           startLine: 1, // document
         },
       ]
@@ -584,7 +584,7 @@ tests = {
       jsDiags.map(({ code, startLine }) => ({ code, startLine })),
       [
         {
-          code: "E057",
+          code: "E0057",
           startLine: 1, // testGlobalVariableFromDisk
         },
       ]
@@ -632,7 +632,7 @@ tests = {
     let configDiags = normalizeDiagnostics(configURI);
     assert.deepStrictEqual(
       configDiags.map(({ code }) => code),
-      ["E171"]
+      ["E0171"]
     );
   },
 
@@ -668,7 +668,7 @@ tests = {
     let configDiags = normalizeDiagnostics(configURI);
     assert.deepStrictEqual(
       configDiags.map(({ code }) => code),
-      ["E171"]
+      ["E0171"]
     );
   },
 
@@ -724,7 +724,7 @@ tests = {
         jsDiags.map(({ code, startLine }) => ({ code, startLine })),
         [
           {
-            code: "E057",
+            code: "E0057",
             startLine: 0, // testGlobalVariableFromEditor
           },
         ]
@@ -788,6 +788,63 @@ tests = {
       );
       await waitUntilNoDiagnosticsAsync(jsURI);
     },
+
+  "no output channel by default": async ({ addCleanup }) => {
+    let outputChannelMocker = VSCodeOutputChannelMocker.mock({ addCleanup });
+
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let jsFilePath = path.join(scratchDirectory, "hello.js");
+    fs.writeFileSync(jsFilePath, "test;");
+    let jsURI = vscode.Uri.file(jsFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+    let jsEditor = await vscode.window.showTextDocument(
+      jsDocument,
+      vscode.ViewColumn.One
+    );
+
+    assert.deepStrictEqual(outputChannelMocker.getOutputChannels(), []);
+  },
+
+  "output channel gets messages if logging is enabled": async ({
+    addCleanup,
+  }) => {
+    let outputChannelMocker = VSCodeOutputChannelMocker.mock({ addCleanup });
+
+    await vscode.workspace
+      .getConfiguration("quick-lint-js")
+      .update("logging", "verbose", vscode.ConfigurationTarget.Workspace);
+    addCleanup(resetConfigurationAsync);
+
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let jsFilePath = path.join(scratchDirectory, "hello.js");
+    fs.writeFileSync(jsFilePath, "test;");
+    let jsURI = vscode.Uri.file(jsFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    let jsDocument = await vscode.workspace.openTextDocument(jsURI);
+    let jsEditor = await vscode.window.showTextDocument(
+      jsDocument,
+      vscode.ViewColumn.One
+    );
+
+    assert.deepStrictEqual(
+      outputChannelMocker.getOutputChannels().map((c) => c.name),
+      ["quick-lint-js"]
+    );
+    let channel = outputChannelMocker.getOutputChannels()[0];
+    assert.ok(
+      channel._data.length > 0,
+      "at least one message should have been logged by opening the file"
+    );
+  },
+
+  // TODO(strager): Allow user to turn logging on or off after loading the
+  // extension.
+
+  // TODO(strager): Allow the user to delete the extenion, thereby deleting
+  // the output channel.
 };
 
 if (os.platform() === "linux") {
@@ -1042,6 +1099,73 @@ class VSCodeMessageMocker {
   }
 }
 
+class VSCodeOutputChannelMocker {
+  static mock({ addCleanup }) {
+    let mocker = new VSCodeOutputChannelMocker();
+
+    let originalCreateOutputChannel = vscode.window.createOutputChannel;
+    addCleanup(() => {
+      vscode.window.createOutputChannel = originalCreateOutputChannel;
+    });
+    vscode.window.createOutputChannel = (name) => {
+      return mocker._createOutputChannel(name);
+    };
+
+    return mocker;
+  }
+
+  constructor() {
+    this._outputChannels = [];
+  }
+
+  getOutputChannels() {
+    return [...this._outputChannels];
+  }
+
+  _createOutputChannel(name) {
+    console.log(
+      `called: vscode.window.createOutputChannel(${JSON.stringify(name)})`
+    );
+    let channel = new FakeOutputChannel(name);
+    this._outputChannels.push(channel);
+    return channel;
+  }
+}
+
+class FakeOutputChannel /*:: implements vscode.OutputChannel */ {
+  constructor(name) {
+    this._name = name;
+    this._data = "";
+  }
+
+  get name() {
+    return this._name;
+  }
+
+  append(value) {
+    this._data += value;
+  }
+
+  appendLine(value) {
+    this.append(value);
+    this.append("\n");
+  }
+
+  clear() {
+    this._data = "";
+  }
+
+  show() {
+    // Ignore.
+  }
+
+  hide() {
+    // Ignore.
+  }
+
+  dispose() {}
+}
+
 function mockInotifyErrors({ addCleanup, addWatchError = 0, initError = 0 }) {
   qljsExtension.mockInotifyErrors(initError, addWatchError);
   addCleanup(() => {
@@ -1128,6 +1252,12 @@ async function pollAsync(callback) {
   await callback(); // Last attempt.
 }
 
+async function resetConfigurationAsync() {
+  await vscode.workspace
+    .getConfiguration("quick-lint-js")
+    .update("logging", undefined, vscode.ConfigurationTarget.Workspace);
+}
+
 async function runAsync() {
   // vscode-test activated the extension for us. We want tests to be activate and
   // deactivate the extension at will.
@@ -1140,6 +1270,9 @@ async function runAsync() {
   // because without its JavaScript file detection, our extension doesn't work.
   let vscodeConfig = vscode.workspace.getConfiguration();
   await vscodeConfig.update("javascript.validate.enable", false);
+
+  // Clean up configuration in case a previous run didn't clean it up.
+  await resetConfigurationAsync();
 
   await testMainAsync(tests, (message) => {
     throw new Error(message);

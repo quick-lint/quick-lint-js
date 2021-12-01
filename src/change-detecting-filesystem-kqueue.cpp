@@ -5,6 +5,7 @@
 
 #if QLJS_HAVE_KQUEUE
 
+#include <algorithm>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -16,6 +17,7 @@
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/log.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
@@ -39,6 +41,8 @@ int mockable_directory_open(const char* path, int flags) {
   }
   return ::open(path, flags);
 }
+
+std::string vnode_event_flags_to_string(std::uint32_t flags);
 }
 
 change_detecting_filesystem_kqueue::change_detecting_filesystem_kqueue(
@@ -55,7 +59,7 @@ change_detecting_filesystem_kqueue::canonicalize_path(const std::string& path) {
   return quick_lint_js::canonicalize_path(path, this);
 }
 
-result<padded_string, read_file_io_error, watch_io_error>
+result<padded_string, read_file_io_error>
 change_detecting_filesystem_kqueue::read_file(const canonical_path& path) {
   canonical_path directory = path;
   directory.parent();
@@ -74,7 +78,7 @@ change_detecting_filesystem_kqueue::read_file(const canonical_path& path) {
   // TODO(strager): Use openat. watch_directory opened a directory fd.
   posix_fd_file file(::open(path.c_str(), O_RDONLY));
   if (!file.valid()) {
-    return result<padded_string, read_file_io_error, watch_io_error>::failure<
+    return result<padded_string, read_file_io_error>::failure<
         read_file_io_error>(read_file_io_error{
         .path = path.c_str(),
         .io_error = posix_file_io_error{errno},
@@ -110,6 +114,27 @@ void change_detecting_filesystem_kqueue::on_canonicalize_child_of_directory(
   QLJS_UNREACHABLE();
 }
 
+void change_detecting_filesystem_kqueue::handle_kqueue_event(
+    const struct ::kevent& event) {
+  QLJS_ASSERT(event.filter == EVFILT_VNODE);
+
+  if (is_logging_enabled()) {
+    auto watched_file_it = std::find_if(
+        this->watched_files_.begin(), this->watched_files_.end(),
+        [&](auto& pair) -> bool {
+          return pair.second.fd.get() == narrow_cast<int>(event.ident);
+        });
+    if (watched_file_it == this->watched_files_.end()) {
+      QLJS_DEBUG_LOG("warning: got EVFILT_VNODE event for unknown fd %d\n",
+                     event.ident);
+    } else {
+      QLJS_DEBUG_LOG("note: got EVFILT_VNODE event for fd %d path %s: %s\n",
+                     event.ident, watched_file_it->first.c_str(),
+                     vnode_event_flags_to_string(event.fflags).c_str());
+    }
+  }
+}
+
 bool change_detecting_filesystem_kqueue::watch_directory(
     const canonical_path& directory) {
   int flags = O_RDONLY;
@@ -127,7 +152,7 @@ bool change_detecting_filesystem_kqueue::watch_directory(
         /*kev=*/&change,
         /*ident=*/fd.get(),
         /*filter=*/EVFILT_VNODE,
-        /*flags=*/EV_ADD | EV_ENABLE,
+        /*flags=*/EV_ADD | EV_CLEAR | EV_ENABLE,
         /*fflags=*/NOTE_ATTRIB | NOTE_RENAME | NOTE_WRITE,
         /*data=*/0,
         /*udata=*/this->udata_);
@@ -179,7 +204,7 @@ change_detecting_filesystem_kqueue::watch_file(canonical_path&& path,
         /*kev=*/&change,
         /*ident=*/fd.get(),
         /*filter=*/EVFILT_VNODE,
-        /*flags=*/EV_ADD | EV_ENABLE,
+        /*flags=*/EV_ADD | EV_CLEAR | EV_ENABLE,
         /*fflags=*/NOTE_ATTRIB | NOTE_WRITE,
         /*data=*/0,
         /*udata=*/this->udata_);
@@ -245,6 +270,42 @@ bool change_detecting_filesystem_kqueue::file_id::operator!=(
 change_detecting_filesystem_kqueue::watched_file::watched_file(
     posix_fd_file&& fd)
     : fd(std::move(fd)), id(file_id::from_open_file(this->fd.ref())) {}
+
+namespace {
+std::string vnode_event_flags_to_string(std::uint32_t flags) {
+  struct flag_entry {
+    std::uint32_t flag;
+    const char name[13];
+  };
+  static constexpr flag_entry known_flags[] = {
+    {NOTE_ATTRIB, "NOTE_ATTRIB"},
+    {NOTE_DELETE, "NOTE_DELETE"},
+    {NOTE_EXTEND, "NOTE_EXTEND"},
+    {NOTE_LINK, "NOTE_LINK"},
+    {NOTE_RENAME, "NOTE_RENAME"},
+    {NOTE_REVOKE, "NOTE_REVOKE"},
+    {NOTE_WRITE, "NOTE_WRITE"},
+#if defined(__APPLE__)
+    {NOTE_FUNLOCK, "NOTE_FUNLOCK"},
+#endif
+  };
+
+  if (flags == 0) {
+    return "<none>";
+  }
+
+  std::string result;
+  for (const flag_entry& flag : known_flags) {
+    if (flags & flag.flag) {
+      if (!result.empty()) {
+        result += "|";
+      }
+      result += flag.name;
+    }
+  }
+  return result;
+}
+}
 }
 
 #endif

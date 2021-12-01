@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_BUFFERING_ERROR_REPORTER_H
 #define QUICK_LINT_JS_BUFFERING_ERROR_REPORTER_H
 
+#include <boost/container/pmr/memory_resource.hpp>
 #include <memory>
 #include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
@@ -12,7 +13,7 @@
 namespace quick_lint_js {
 class buffering_error_reporter final : public error_reporter {
  public:
-  explicit buffering_error_reporter();
+  explicit buffering_error_reporter(boost::container::pmr::memory_resource *);
 
   buffering_error_reporter(buffering_error_reporter &&);
   buffering_error_reporter &operator=(buffering_error_reporter &&);
@@ -31,7 +32,11 @@ class buffering_error_reporter final : public error_reporter {
  private:
   struct impl;
 
-  std::unique_ptr<impl> impl_;
+  struct impl_deleter {
+    void operator()(impl *) noexcept;
+  };
+
+  std::unique_ptr<impl, impl_deleter> impl_;
 };
 }
 

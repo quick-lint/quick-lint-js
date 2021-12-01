@@ -60,10 +60,10 @@
                      25 31 :warning
                      "use of undeclared variable: foobar")))
             (errors-in (car (read-from-string
-                             "(((38 . 46) 0 \"E061\" \"missing name in \
-function statement\")((1 . 7) 2 \"E057\" \"use of undeclared variable: \
-foobar\")((16 . 22) 2 \"E057\" \"use of undeclared variable: foobar\")(\
-(25 . 31) 2 \"E057\" \"use of undeclared variable: foobar\"))"))))
+                             "(((38 . 46) 0 \"E0061\" \"missing name in \
+function statement\")((1 . 7) 2 \"E0057\" \"use of undeclared variable: \
+foobar\")((16 . 22) 2 \"E0057\" \"use of undeclared variable: foobar\")(\
+(25 . 31) 2 \"E0057\" \"use of undeclared variable: foobar\"))"))))
         (should (equal (flymake-quicklintjs--make-diagnostics js-buf errors-in)
                        diags)))))
 
@@ -116,14 +116,14 @@ foobar\")((16 . 22) 2 \"E057\" \"use of undeclared variable: foobar\")(\
      (flycheck-ert-should-syntax-check
       "test/error.js" 'js-mode
       '(1 1 error "missing name in function statement"
-          :id "E061" :checker javascript-quicklintjs
+          :id "E0061" :checker javascript-quicklintjs
           :end-line 1 :end-column 10)
       '(1 12 error "unclosed code block; expected '}' by end of file"
-          :id "E134" :checker javascript-quicklintjs
+          :id "E0134" :checker javascript-quicklintjs
           :end-line 1 :end-column 13)
       '(2 7 error
           "unexpected token in variable declaration; expected variable name"
-          :id "E114" :checker javascript-quicklintjs
+          :id "E0114" :checker javascript-quicklintjs
           :end-line 2 :end-column 10))))
 
   (flycheck-ert-def-checker-test
@@ -133,7 +133,7 @@ foobar\")((16 . 22) 2 \"E057\" \"use of undeclared variable: foobar\")(\
      (flycheck-ert-should-syntax-check
       "test/warning.js" 'js-mode
       '(1 1 warning "assignment to undeclared variable"
-          :id "E059" :checker javascript-quicklintjs
+          :id "E0059" :checker javascript-quicklintjs
           :end-line 1 :end-column 2)))))
 
 ;; quick-lint-js finds bugs in JavaScript programs.

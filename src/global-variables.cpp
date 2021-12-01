@@ -21,16 +21,18 @@ constexpr const char8 global_variables_ecmascript[] =
     u8"parseInt\0"
 
     // ECMA-262 18.3 Constructor Properties of the Global Object
-    u8"Array\0"
+    u8"AggregateError\0"
     u8"ArrayBuffer\0"
-    u8"BigInt\0"
+    u8"Array\0"
     u8"BigInt64Array\0"
+    u8"BigInt\0"
     u8"BigUint64Array\0"
     u8"Boolean\0"
     u8"DataView\0"
     u8"Date\0"
     u8"Error\0"
     u8"EvalError\0"
+    u8"FinalizationRegistry\0"
     u8"Float32Array\0"
     u8"Float64Array\0"
     u8"Function\0"
@@ -57,6 +59,7 @@ constexpr const char8 global_variables_ecmascript[] =
     u8"Uint8Array\0"
     u8"Uint8ClampedArray\0"
     u8"WeakMap\0"
+    u8"WeakRef\0"
     u8"WeakSet\0"
 
     // ECMA-262 18.4 Other Properties of the Global Object
@@ -179,7 +182,7 @@ const global_group global_groups[] = {
         .globals = global_variables_ecmascript,
         .non_writable_globals = global_variables_ecmascript_non_writable,
         .non_shadowable_globals = nullptr,
-        .globals_count = 51,
+        .globals_count = 54,
         .non_writable_globals_count = 3,
         .non_shadowable_globals_count = 0,
     },

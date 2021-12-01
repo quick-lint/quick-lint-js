@@ -8,13 +8,126 @@ Semantic Versioning.
 
 ## Unreleased
 
-Beta release.
+### Security
+
+* The source archive (`quick-lint-js-*.tar.gz`) is now signed with our GPG key.
+* Arch Linux: The release package on AUR now verifies that the source archive is
+  signed with our GPG key.
 
 ### Added
 
+* New diagnostics: E0053
+* Parsing identifier is now optimized for ARM systems, including Apple Silicon.
+
+### Fixed
+
+* Reporting E0144 no longer also reports E0057.
+
+## 0.6.0 (2021-11-20)
+
+Beta release.
+
+[Downloads](https://c.quick-lint-js.com/releases/0.6.0/)
+
+### Added
+
+* Various new diagnostics (implemented by [Himanshu][] and [Matheus Sousa][]).
+* VS Code: The new `quick-lint-js.logging` setting allows you to show
+  quick-lint-js' internal log messages in an Output window.
+* VS Code: Apple Silicon (e.g. M1) (ARM64) is now supported.
+* VS Code: Linux ARM (32-bit) is now supported.
+* Vim: Improved performance for ALE versions v2.5.0 and newer (and v3.0.0 and
+  newer). You should configure `g:ale_lint_on_text_changed` to `'always'` for
+  the best experience.
+* Vim: Improved performance of the ALE plugin by using the LSP server by
+  default.
+* The macOS and Windows binaries are now code-signed.
+* Emacs (Eglot): You no longer need to type `M-x eglot` in order to start
+  linting. Apply this fix by [adding `(eglot-ensure)` to your init
+  file](https://quick-lint-js.com/install/emacs/configure/#eglot).
+* quick-lint-js now understands the `AggregateError`, `FinalizationRegistry`,
+  and `WeakRef` ECMAScript global variables by default.
+* The macOS and Windows executables now include embedded code signatures. These
+  signatures are made with a self-signed certificate.
+* The Linux executables are now signed with a GPG signature (`.asc` files).
+* Vim: [coc.nvim][] is now supported.
+* quick-lint-js has a new mascot, Dusty. Say hello! (Artwork by [Jenny
+  "Jennipuff" Wheat][]);
+* Translations: German (implemented by [Nico Sonack][])
+
+### Fixed
+
+* macOS: quick-lint-js no longer hangs if a file is changed in your home
+  directory or project directory.
+* Various crashes on invalid code have been fixed.
+* quick-lint-js consumes less memory for pathological code patterns.
+* VS Code: The extension no longer tries to load an ARM64 DLL on Windows x64.
+* The npm package and the manual builds are now much smaller and faster. (They
+  were previously compiled in debug, unoptimized mode.)
+* `delete x` no longer reports a warning if `x` is a global variable.
+* JSX: Instead of reporting a bunch of errors, quick-lint-js now tells you that
+  JSX syntax is not yet supported.
+* FreeBSD: Fixed build.
+* E0073, E0094, E0104, E0106, E0111, and E0119 now point to to a more helpful
+  place (implemented by strager and [Amir][]).
+* `for (let x = a in b; c; d) {}` now reports E0108 instead of reporting E0173,
+  E0110, and E0110 again.
+
+### Changed
+
+* Error codes now have four decimal digits instead of three. For example, E001
+  is now called E0001.
+* quick-lint-js no longer looks for files named `.quick-lint-js.config`. To
+  configure quick-lint-js, name your file `quick-lint-js.config` instead.
+* LSP benchmarks have been rewritten. The new benchmarks should produce more
+  stable numbers and be fairer to linters with a high start-up time such as
+  Flow.
+
+## 0.5.0 (2021-10-12)
+
+Beta release.
+
+[Downloads](https://c.quick-lint-js.com/releases/0.5.0/)
+
+### Added
+
+* Various new errors (implemented by [Himanshu][]).
 * `quick-lint-js.config` now supports the [**literally-anything** global
   group][config-global-groups]. Use this option to disable all
   use-of-undeclared-variable warnings.
+* If quick-lint-js crashes, it will link to a page to [report
+  crashes](https://quick-lint-js.com/crash-report/).
+* VS Code: The plugin now works on Windows on ARM (64-bit).
+* VS Code: The plugin now works on Linux on ARM (32-bit and 64-bit).
+* The CLI and LSP server now compile on FreeBSD (amd64). However, we don't
+  provide FreeBSD pre-built executables.
+* Neovim: nvim-lspconfig is now supported by quick-lint-js' plugin (implemented
+  by [tiagovla][]).
+* VS Code: Contributors can now enable [performance
+  tracing](https://github.com/quick-lint/quick-lint-js/blob/1e7947ba71711479e04fe9100e2d09d202015926/plugin/vscode/PERFORMANCE-TRACING.md)
+  (implemented by [Jimmy Qiu][]).
+
+### Fixed
+
+* LSP, VS Code: Filesystem change watching failures no longer crash. These
+  failures can happen on Windows for directories on network shares, for example.
+* LSP: Unknown messages no longer crash the LSP server. This makes the LSP
+  server compatible with more clients, such as Neovim's built-in client.
+* `break await` and `break yield` no longer incorrectly reports errors (fixed by
+  [Himanshu][]).
+* `for (var x = ++y in []) {}` now parses correctly as valid JavaScript.
+* Vim: The plugin no longer crashes if a filename contains a newline character
+  (or certain other control characters).
+* LSP, VS Code: Config file changes are now recognized properly if any path
+  component contains a symbolic link (Linux and macOS).
+* quick-lint-js no longer warns about variables named `__dirname`,
+  `__filename`, `exports`, `module`, or `require` by default.
+* Parsing certain code patterns containing `await/` no longer takes excessive
+  memory and time.
+* Various crashes on invalid code have been fixed.
+* LSP, VS Code: Some memory leaks have been fixed.
+* Arch Linux: building should no longer fail with "The install of the
+  quick-lint-js target requires changing an RPATH from the build tree".
 
 ## 0.4.0 (2021-09-09)
 
@@ -116,14 +229,19 @@ Beta release.
 [Downloads](https://c.quick-lint-js.com/releases/0.2.0/)
 
 [AidenThing]: https://github.com/AidenThing
+[Amir]: https://github.com/ahmafi
 [Daniel La Rocque]: https://github.com/dlarocque
 [David Vasileff]: https://github.com/dav000
 [Erlliam Mejia]: https://github.com/erlliam
 [Himanshu]: https://github.com/singalhimanshu
+[Jenny "Jennipuff" Wheat]: https://twitter.com/jennipaff
 [Jimmy Qiu]: https://github.com/lifeinData
 [Kim "Linden"]: https://github.com/Lindenbyte
 [Lee Wannacott]: https://github.com/LeeWannacott
 [Matheus Sousa]: https://github.com/keyehzy
+[Nico Sonack]: https://github.com/herrhotzenplotz
 [Shivam Mehta]: https://github.com/maniac-en
+[coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
+[tiagovla]: https://github.com/tiagovla
 [wagner riffel]: https://github.com/wgrr

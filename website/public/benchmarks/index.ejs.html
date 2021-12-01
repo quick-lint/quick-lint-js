@@ -9,8 +9,8 @@
       let url = await import("url");
       let moduleCacheBust = "#" + Date.now();
 
-      let { parseCriterionJSON, makeBenchmarkHTML } = await import(
-        url.pathToFileURL("criterion-json-to-html.mjs") + moduleCacheBust
+      let { parseBenchmarkLSPJSON, makeBenchmarkHTML } = await import(
+        url.pathToFileURL("benchmark-lsp-json-to-html.mjs") + moduleCacheBust
       );
       //%>
     </script>
@@ -34,11 +34,7 @@
   </head>
 
   <body class="side-bar-nav">
-    <header>
-      <h1><a href="../">quick-lint-js</a></h1>
-      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
-      <%- await include("../common-nav.ejs.html") %>
-    </header>
+    <header><%- await include("../common-nav.ejs.html") %></header>
 
     <main>
       <p>
@@ -64,7 +60,7 @@
         </p>
         <h3>Results</h3>
         <%-
-        makeBenchmarkHTML(parseCriterionJSON("open-wait-close-express-router-js.json"));
+        makeBenchmarkHTML(parseBenchmarkLSPJSON("open-wait-close-express-router-js.json"));
         %>
         <h3>Setup (untimed)</h3>
         <ol>
@@ -97,31 +93,30 @@
         <ul>
           <li>
             <strong class="linter-name" style="--hue: 0">quick-lint-js</strong>
-            version 0.2.0
+            version 0.5.0 (Debian package)
           </li>
           <li>
             <strong class="linter-name" style="--hue: 120">RSLint</strong>
-            version b7a4eeb69dc00fedfee8&shy;1eaed3cf2ad36bcb2e2e (unreleased)
-            (with rustc version 1.51.0)
+            version v0.3.0 (with rustc version 1.56.1)
           </li>
           <li>
             <strong class="linter-name" style="--hue: 180">Flow</strong>
-            version 0.148.0
+            version 0.160.2
           </li>
           <li>
             <strong class="linter-name" style="--hue: 60">ESLint</strong>
-            version 5.16.0 (with eslint-server version 0.1.7 and Node version
-            v16.0.0)
+            version v5.16.0 (with eslint-server version 0.1.7 and Node version
+            v17.1.0)
           </li>
           <li>
             <strong class="linter-name" style="--hue: 240">Deno</strong>
-            version 1.9.1 (with V8 version 9.1.269.5 and TypeScript version
-            4.2.2)
+            version 1.16.1 (with V8 version 9.7.106.2 and TypeScript version
+            4.4.2)
           </li>
           <li>
             <strong class="linter-name" style="--hue: 300">TypeScript</strong>
-            version 4.2.4 (with Theia's language server version 0.5.1 and Node
-            version v16.0.0)
+            version 4.4.3 (with language server version 0.6.2 and Node version
+            v17.1.0)
           </li>
         </ul>
 
@@ -147,6 +142,22 @@
             >delays processing by 200 milliseconds</a
           >. This means that Deno appears to be much slower than it actually is,
           but this artificial latency does affect the editing experience.
+        </p>
+        <h3>TypeScript</h3>
+        <p>
+          TypeScript's LSP server (but not its Visual Studio Code extension)
+          delays processing by
+          <a
+            href="https://github.com/typescript-language-server/typescript-language-server/blob/103f00c0d969bf00345ae9f5f8c2d1882c710a01/src/lsp-server.ts#L250"
+            >200 milliseconds</a
+          >
+          +
+          <a
+            href="https://github.com/typescript-language-server/typescript-language-server/blob/103f00c0d969bf00345ae9f5f8c2d1882c710a01/src/diagnostic-queue.ts#L33"
+            >50 milliseconds</a
+          >. This means that TypeScript appears to be much slower than it
+          actually is, but this artificial latency does affect the editing
+          experience (in all editors except Visual Studio Code).
         </p>
       </article>
     </main>

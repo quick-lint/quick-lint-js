@@ -3,23 +3,54 @@ CMake version 3.10.2 on Ubuntu 18.04 Bionic.
 
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -1,4 +1,4 @@
--cmake_minimum_required(VERSION 3.13)
+@@ -1,11 +1,10 @@
+-cmake_minimum_required(VERSION 3.14)
 +cmake_minimum_required(VERSION 3.9)
- # CMP0025: Compiler id for Apple Clang is now AppleClang.
- # https://cmake.org/cmake/help/v3.17/policy/CMP0025.html
- cmake_policy(SET CMP0025 NEW)
-@@ -52,13 +52,6 @@ configure_package_config_file("${PROJECT_SOURCE_DIR}/cmake/simdjson-config.cmake
-       INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/simdjson"
-       NO_SET_AND_CHECK_MACRO
-       NO_CHECK_REQUIRED_COMPONENTS_MACRO)
--write_basic_package_version_file(
--      "${PROJECT_BINARY_DIR}/simdjson-config-version.cmake"
--      VERSION ${SIMDJSON_SEMANTIC_VERSION}
--      COMPATIBILITY SameMinorVersion)
--install(FILES "${PROJECT_BINARY_DIR}/simdjson-config.cmake"
--              "${PROJECT_BINARY_DIR}/simdjson-config-version.cmake"
--        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/simdjson")
 
+ project(
+     simdjson
+     # The version number is modified by tools/release.py
+     VERSION 1.0.0
+     DESCRIPTION "Parsing gigabytes of JSON per second"
+-    HOMEPAGE_URL "https://simdjson.org/"
+     LANGUAGES CXX C
+ )
+
+@@ -123,23 +122,8 @@ install(
+     COMPONENT simdjson_Development
+ )
+
+-install(
+-    TARGETS simdjson
+-    EXPORT simdjsonTargets
+-    RUNTIME COMPONENT simdjson_Runtime
+-    LIBRARY COMPONENT simdjson_Runtime
+-    NAMELINK_COMPONENT simdjson_Development
+-    ARCHIVE COMPONENT simdjson_Development
+-    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+-)
+-
+ configure_file(cmake/simdjson-config.cmake.in simdjson-config.cmake @ONLY)
+
+-write_basic_package_version_file(
+-    simdjson-config-version.cmake
+-    COMPATIBILITY SameMinorVersion
+-)
+-
+ set(
+     SIMDJSON_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/simdjson"
+     CACHE STRING "CMake package config location relative to the install prefix"
+@@ -154,13 +138,6 @@ install(
+     COMPONENT simdjson_Development
+ )
+
+-install(
+-    EXPORT simdjsonTargets
+-    NAMESPACE simdjson::
+-    DESTINATION "${SIMDJSON_INSTALL_CMAKEDIR}"
+-    COMPONENT example_Development
+-)
+-
  #
- # Compile tools / tests / benchmarks
+ # CPack
+ #

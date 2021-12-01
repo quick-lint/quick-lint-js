@@ -24,7 +24,7 @@ class null_configuration_filesystem : public configuration_filesystem {
     return canonical_path_result(std::string(path), /*existing_path_length=*/0);
   }
 
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
+  result<padded_string, read_file_io_error> read_file(
       const canonical_path& path) override {
 #if QLJS_HAVE_WINDOWS_H
     windows_file_io_error io_error = {ERROR_FILE_NOT_FOUND};
@@ -32,7 +32,7 @@ class null_configuration_filesystem : public configuration_filesystem {
 #if QLJS_HAVE_UNISTD_H
     posix_file_io_error io_error = {ENOENT};
 #endif
-    return result<padded_string, read_file_io_error, watch_io_error>::failure<
+    return result<padded_string, read_file_io_error>::failure<
         read_file_io_error>(read_file_io_error{
         .path = path.c_str(),
         .io_error = io_error,
@@ -62,8 +62,8 @@ int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
     i += sizeof(chunk_size);
     chunk_size = std::min(chunk_size, size_remaining());
 
-    server.append(
-        string8_view(reinterpret_cast<const char8*>(&data[i]), chunk_size));
+    string8_view message(reinterpret_cast<const char8*>(&data[i]), chunk_size);
+    server.message_parsed(message);
     i += chunk_size;
   }
 

@@ -23,6 +23,13 @@ export let documentationDirectoryPath = path.join(
 
 let markdownParser = new MarkdownIt("commonmark");
 
+async function makeQLJSProcessAsync() {
+  let factory = await createProcessFactoryAsync();
+  let process = await factory.createProcessAsync();
+  return process;
+}
+let qljsProcessPromise = makeQLJSProcessAsync();
+
 markdownParser.renderer.rules = {
   ...markdownParser.renderer.rules,
 
@@ -42,6 +49,10 @@ markdownParser.renderer.rules = {
 
   code_block(tokens, tokenIndex, options, env, self) {
     let token = tokens[tokenIndex];
+    if (token.info === "config-for-examples") {
+      // Don't show config snippets which configure other code blocks.
+      return "";
+    }
     let content = token.content;
 
     if (typeof env.dom === "undefined") {
@@ -72,6 +83,8 @@ markdownParser.renderer.rules = {
       );
     }
 
+    codeHTML = wrapASCIIControlCharacters(codeHTML);
+
     env.codeBlockIndex += 1;
     return `<figure><pre><code>${codeHTML}</code></pre></figure>`;
   },
@@ -82,6 +95,9 @@ markdownParser.renderer.rules = {
 };
 
 export function codeHasBOM(codeHTML) {
+  if (!/\ufeff|&#xfeff|&#65279/iu.test(codeHTML)) {
+    return false;
+  }
   const dom = new jsdom.JSDOM(codeHTML);
   return dom.window.document.firstChild.textContent.startsWith("\u{feff}");
 }
@@ -89,6 +105,7 @@ export function codeHasBOM(codeHTML) {
 export class ErrorDocumentation {
   constructor({
     codeBlocks,
+    configForExamples,
     filePath,
     markdownEnv,
     markdownTokens,
@@ -98,6 +115,7 @@ export class ErrorDocumentation {
     this._markdownEnv = markdownEnv;
     this._markdownTokens = markdownTokens;
     this.codeBlocks = codeBlocks;
+    this.configForExamples = configForExamples;
     this.filePath = filePath;
     this.titleErrorCode = titleErrorCode;
     this.titleErrorDescription = titleErrorDescription;
@@ -115,11 +133,13 @@ export class ErrorDocumentation {
     }
 
     this.diagnostics = [];
-    let factory = await createProcessFactoryAsync();
-    let process = await factory.createProcessAsync();
+    let process = await qljsProcessPromise;
     for (let i = 0; i < this.codeBlocks.length; ++i) {
       let doc = await process.createDocumentForWebDemoAsync();
       let { text, language } = this.codeBlocks[i];
+      if (this.configForExamples !== null) {
+        doc.setConfigText(this.configForExamples);
+      }
       doc.setText(text);
       let diagnostics =
         language === "quick-lint-js.config"
@@ -140,6 +160,7 @@ export class ErrorDocumentation {
     let tokens = markdownParser.parse(markdown, markdownEnv);
 
     let codeBlocks = [];
+    let configForExamples = null;
     let titleErrorCode = "";
     let titleErrorDescription = "";
 
@@ -157,7 +178,7 @@ export class ErrorDocumentation {
         case "heading_close":
           if (inTitle) {
             let match = currentBlock.match(
-              /^(?<code>.*):\s*(?<description>.*)$/
+              /^(?<code>.*?):\s*(?<description>.*)$/
             );
             if (match !== null) {
               titleErrorCode = match.groups.code;
@@ -171,10 +192,14 @@ export class ErrorDocumentation {
           break;
 
         case "fence":
-          codeBlocks.push({
-            text: token.content,
-            language: token.info || "javascript",
-          });
+          if (token.info === "config-for-examples") {
+            configForExamples = token.content;
+          } else {
+            codeBlocks.push({
+              text: token.content,
+              language: token.info || "javascript",
+            });
+          }
           break;
 
         case "inline":
@@ -187,6 +212,7 @@ export class ErrorDocumentation {
 
     return new ErrorDocumentation({
       codeBlocks: codeBlocks,
+      configForExamples: configForExamples,
       filePath: filePath,
       markdownEnv: markdownEnv,
       markdownTokens: tokens,
@@ -214,6 +240,14 @@ export class ErrorDocumentation {
     }
     if (this.codeBlocks.length === 0) {
       foundProblems.push(`${this.filePath}: error: missing code blocks`);
+    }
+    if (
+      this.codeBlocks.length === 1 &&
+      this.codeBlocks[0].text === "/* TODO */\n"
+    ) {
+      // Don't check in-progress documentation.
+      // TODO(strager): Remove this check.
+      return [];
     }
     await this.findDiagnosticsAsync();
     for (let i = 0; i < this.codeBlocks.length; ++i) {
@@ -290,6 +324,18 @@ export async function loadErrorDocumentationFilesAsync(rootPath) {
 }
 
 export class ProblemsError extends Error {}
+
+function wrapASCIIControlCharacters(html) {
+  let CONTROL_CHARACTER_TO_CSS_CLASS = {
+    "\u0007": "unicode-bel",
+    "\u0008": "unicode-bs",
+    "\u007f": "unicode-del",
+  };
+  return html.replace(/[\u0007\u0008\u007f]/g, (controlCharacter) => {
+    let cssClass = CONTROL_CHARACTER_TO_CSS_CLASS[controlCharacter];
+    return `<span class='${cssClass}'>${controlCharacter}</span>`;
+  });
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

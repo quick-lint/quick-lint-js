@@ -6,6 +6,10 @@
 let os = require("os");
 let path = require("path");
 let vscode = require("vscode");
+let process = require("process");
+let PerformanceWriter = require("./performance-writer");
+/* This is specifically for developers to toggle performance tracing on and off */
+let PerformanceWriterSwitch = false;
 
 let qljs = require(path.join(
   __dirname,
@@ -14,8 +18,12 @@ let qljs = require(path.join(
 
 let toDispose = [];
 
-async function activateAsync() {
+async function activateAsync(extensionContext) {
   let diagnostics = vscode.languages.createDiagnosticCollection();
+  let performanceWriter = null;
+  if (extensionContext) {
+    performanceWriter = new PerformanceWriter(extensionContext);
+  }
   toDispose.push(diagnostics);
 
   let workspace = qljs.createWorkspace({
@@ -35,7 +43,14 @@ async function activateAsync() {
       let isBogusEvent = event.contentChanges.length === 0;
       if (!isBogusEvent) {
         logErrors(() => {
+          let startTime = process.hrtime.bigint();
           workspace.documentChanged(event.document, event.contentChanges);
+          if (PerformanceWriterSwitch && extensionContext) {
+            performanceWriter.logLintDuration(
+              process.hrtime.bigint() - startTime,
+              event.document.fileName
+            );
+          }
         });
       }
     })

@@ -18,16 +18,49 @@ if (typeof window.ResizeObserver !== "undefined") {
 
 createProcessFactoryAsync()
   .then(async (processFactory) => {
-    let process = await processFactory.createProcessAsync();
-    let doc = await process.createDocumentForWebDemoAsync();
+    async function createDocumentAsync() {
+      let process = await processFactory.createProcessAsync();
+      let doc = await process.createDocumentForWebDemoAsync();
+      return doc;
+    }
+
+    let pendingDocument = null;
+    let doc = null;
+
+    function processCrashed() {
+      // Make the next call to lintAndUpdate call restartProcessThenLint.
+      doc = null;
+      pendingDocument = null;
+    }
+
+    function restartProcessThenLint() {
+      doc = null;
+      pendingDocument = createDocumentAsync().then((newDoc) => {
+        doc = newDoc;
+        pendingDocument = null;
+        lintAndUpdate();
+      });
+    }
 
     function lintAndUpdate() {
+      if (doc === null) {
+        restartProcessThenLint();
+        // restartProcess will call us later.
+        return;
+      }
+
       synchronizeContent();
 
-      // TODO(strager): On crash, show the error to the user.
       let input = codeInputElement.value;
-      doc.setText(input);
-      let marks = doc.lint();
+      let marks;
+      try {
+        doc.setText(input);
+        marks = doc.lint();
+      } catch (e) {
+        // TODO(strager): Show the error to the user.
+        marks = [];
+        processCrashed();
+      }
       markEditorText(shadowCodeInputElement, window, marks);
     }
     codeInputElement.addEventListener("input", (event) => {
@@ -87,7 +120,10 @@ function createErrorBox(
 }
 
 function removeErrorMessageBox() {
-  document.querySelector("#error-box")?.remove();
+  let errorBoxElement = document.querySelector("#error-box");
+  if (errorBoxElement !== null) {
+    errorBoxElement.remove();
+  }
 }
 
 function showErrorMessage(event) {

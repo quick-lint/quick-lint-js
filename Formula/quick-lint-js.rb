@@ -4,7 +4,7 @@
 class QuickLintJs < Formula
   desc "Find bugs in your JavaScript code"
   homepage "https://quick-lint-js.com/"
-  url "https://github.com/quick-lint/quick-lint-js/archive/refs/tags/#{File.read("version").split[0]}.tar.gz"
+  url "https://c.quick-lint-js.com/releases/0.6.0/source/quick-lint-js-0.6.0.tar.gz"
   head "https://github.com/quick-lint/quick-lint-js.git", :branch => "master"
   license "GPL-3.0-or-later"
 
@@ -20,6 +20,11 @@ class QuickLintJs < Formula
 
   test do
     system "quick-lint-js", "--version"
+  end
+
+  fails_with :clang do
+    build 1100  # Xcode 11.3.1
+    cause "Boost.JSON doesn't like Clang's std::string_view"
   end
 end
 

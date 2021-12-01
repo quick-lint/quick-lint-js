@@ -72,6 +72,7 @@
       .feature-comparison td.has-link > a {
         align-items: center;
         display: flex;
+        flex-direction: column;
         height: 100%;
         justify-content: center;
         text-decoration: none;
@@ -139,15 +140,11 @@
     </style>
   </head>
   <body>
-    <header>
-      <h1>quick-lint-js</h1>
-      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
-      <%- await include("./common-nav.ejs.html") %>
-    </header>
+    <header><%- await include("./common-nav.ejs.html") %></header>
 
     <main>
       <p>
-        <a href="benchmarks/"><strong>200× faster</strong> than ESLint</a>,
+        <a href="benchmarks/"><strong>160× faster</strong> than ESLint</a>,
         quick-lint-js gives you <strong>instant feedback</strong> as you code.
         <strong>Find bugs</strong> in your JavaScript before your finger leaves
         the keyboard. Lint any JavaScript file with
@@ -157,19 +154,21 @@
       <p><a href="demo/">Try it out in your browser.</a></p>
 
       <figure>
-        <picture style="width: 100%">
+        <picture style="width: 100%; height: auto" width="1324" height="526">
           <source srcset="vscode-demo.webp" type="image/webp" />
           <img
             src="vscode-demo.png"
-            style="width: 100%"
+            style="width: 100%; height: auto"
             alt="quick-lint-js running in Visual Studio Code"
+            width="1324"
+            height="526"
           />
         </picture>
       </figure>
 
       <h2>Install quick-lint-js</h2>
       <p>
-        Latest version: <%= qljsVersionInfo.version %> (beta) (released
+        Latest version: <%= qljsVersionInfo.version %> (released
         <time datetime="<%= qljsVersionInfo.releaseDate %>"
           ><%= new Intl.DateTimeFormat("en-US", {dateStyle: "long", timeZone:
           "UTC"}).format(new Date(qljsVersionInfo.releaseDate)) %></time
@@ -178,17 +177,6 @@
 
       <ul class="install-options">
         <li>
-          <a href="install/vim/"
-            ><img
-              class="install-logo"
-              src="vim.gif"
-              alt=""
-              aria-labelledby="install-vim"
-            />
-            <span id="install-vim">install Vim plugin</span></a
-          >
-        </li>
-        <li>
           <a
             href="https://marketplace.visualstudio.com/items?itemName=quick-lint.quick-lint-js"
             ><img
@@ -196,8 +184,36 @@
               src="vscode.png"
               alt=""
               aria-labelledby="install-vs-code"
+              width="19"
+              height="19"
             />
             <span id="install-vs-code">install VS Code plugin</span></a
+          >
+        </li>
+        <li>
+          <a href="install/neovim/"
+            ><img
+              class="install-logo"
+              src="neovim.svg"
+              alt=""
+              aria-labelledby="install-neovim"
+              width="19"
+              height="19"
+            />
+            <span id="install-neovim">install Neovim plugin</span></a
+          >
+        </li>
+        <li>
+          <a href="install/vim/"
+            ><img
+              class="install-logo"
+              src="vim.gif"
+              alt=""
+              aria-labelledby="install-vim"
+              width="19"
+              height="19"
+            />
+            <span id="install-vim">install Vim plugin</span></a
           >
         </li>
         <li>
@@ -207,6 +223,8 @@
               src="gnome-terminal.svg"
               alt=""
               aria-labelledby="install-cli"
+              width="19"
+              height="19"
             />
             <span id="install-cli">install CLI</span></a
           >
@@ -218,6 +236,8 @@
               src="npm.svg"
               alt=""
               aria-labelledby="install-npm"
+              width="19"
+              height="19"
             />
             <span id="install-npm">install CLI on npm</span></a
           >
@@ -241,9 +261,11 @@
           <tbody>
             <tr>
               <th colspan="2"><a href="benchmarks/">speed</a></th>
-              <td class="good quick-lint-js">
-                <span aria-labelledby="feature-speed-qljs-quick">🚀</span
-                ><br /><span id="feature-speed-qljs-quick">quick</span>
+              <td class="good quick-lint-js has-link">
+                <a href="benchmarks/"
+                  ><span aria-labelledby="feature-speed-qljs-quick">🚀</span
+                  ><br /><span id="feature-speed-qljs-quick">quick</span></a
+                >
               </td>
               <td class="meh">
                 <span aria-labelledby="feature-speed-eslint-capable">🐇</span
@@ -338,7 +360,7 @@
                   >&nbsp;*</span
                 >
               </td>
-              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
               <th colspan="2">TypeScript</th>
@@ -412,7 +434,12 @@
               <th class="has-link"><a href="install/vscode/">VS Code</a></th>
               <th class="has-link">
                 <a href="install/vscode/"
-                  ><img class="plugin-logo" src="vscode.png" alt=""
+                  ><img
+                    class="plugin-logo"
+                    src="vscode.png"
+                    alt=""
+                    width="19"
+                    height="19"
                 /></a>
               </th>
               <td class="good quick-lint-js has-link">
@@ -427,7 +454,12 @@
               <th class="has-link"><a href="install/vim/">Vim</a></th>
               <th class="has-link">
                 <a href="install/vim/"
-                  ><img class="plugin-logo" src="vim.gif" alt=""
+                  ><img
+                    class="plugin-logo"
+                    src="vim.gif"
+                    alt=""
+                    width="19"
+                    height="19"
                 /></a>
               </th>
               <td class="good quick-lint-js has-link">
@@ -439,8 +471,36 @@
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
+              <th class="has-link"><a href="install/vim/">Neovim</a></th>
+              <th class="has-link">
+                <a href="install/vim/"
+                  ><img
+                    class="plugin-logo"
+                    src="neovim.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                /></a>
+              </th>
+              <td class="good quick-lint-js has-link">
+                <a href="install/neovim/" aria-label="yes">✅</a>
+              </td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+            </tr>
+            <tr>
               <th>WebStorm</th>
-              <th><img class="plugin-logo" src="webstorm.svg" alt="" /></th>
+              <th>
+                <img
+                  class="plugin-logo"
+                  src="webstorm.svg"
+                  alt=""
+                  width="19"
+                  height="19"
+                />
+              </th>
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
@@ -449,7 +509,15 @@
             </tr>
             <tr>
               <th>Sublime Text</th>
-              <th><img class="plugin-logo" src="sublime-text.svg" alt="" /></th>
+              <th>
+                <img
+                  class="plugin-logo"
+                  src="sublime-text.svg"
+                  alt=""
+                  width="19"
+                  height="19"
+                />
+              </th>
               <td class="bad quick-lint-js">
                 <span aria-label="no">❌</span
                 ><span
@@ -467,7 +535,13 @@
             <tr>
               <th>Notepad++</th>
               <th>
-                <img class="plugin-logo" src="notepad-plus-plus.svg" alt="" />
+                <img
+                  class="plugin-logo"
+                  src="notepad-plus-plus.svg"
+                  alt=""
+                  width="19"
+                  height="19"
+                />
               </th>
 
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
@@ -478,7 +552,15 @@
             </tr>
             <tr>
               <th>Atom</th>
-              <th><img class="plugin-logo" src="atom.svg" alt="" /></th>
+              <th>
+                <img
+                  class="plugin-logo"
+                  src="atom.svg"
+                  alt=""
+                  width="19"
+                  height="19"
+                />
+              </th>
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
@@ -486,10 +568,19 @@
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th>Emacs</th>
-              <th><img class="plugin-logo" src="emacs.svg" alt="" /></th>
-              <td class="good quick-lint-js">
-                <span aria-label="yes">✅</span>
+              <th><a href="install/emacs/">Emacs</a></th>
+              <th>
+                <a href="install/emacs/"
+                  ><img
+                    class="plugin-logo"
+                    src="emacs.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                /></a>
+              </th>
+              <td class="good quick-lint-js has-link">
+                <a href="install/emacs/" aria-label="yes">✅</a>
               </td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
@@ -498,7 +589,15 @@
             </tr>
             <tr>
               <th>Codespaces</th>
-              <th><img class="plugin-logo" src="codespaces.png" alt="" /></th>
+              <th>
+                <img
+                  class="plugin-logo"
+                  src="codespaces.png"
+                  alt=""
+                  width="19"
+                  height="19"
+                />
+              </th>
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>

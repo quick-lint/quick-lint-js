@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html lang="en">
+  <head>
+    <%- await include("../../../common-head.ejs.html") %>
+    <title>quick-lint-js: configure Emacs plugin</title>
+    <meta name="description" content="Configure quick-lint-js's Emacs plugin" />
+    <link href="../../../main.css" rel="stylesheet" />
+    <style>
+      /* Make it harder to accidentally follow the wrong instructions. */
+      h3 {
+        border-top: 1px solid #ccc;
+        padding-top: 1rem;
+      }
+    </style>
+  </head>
+  <body class="side-bar-nav">
+    <%- await include("../common-header.ejs.html", {breadcrumbName:
+    `Configure`}) %>
+
+    <main>
+      <h2>
+        <img
+          class="install-logo"
+          src="../../../emacs.svg"
+          alt=""
+          title="Emacs"
+          width="29"
+          height="29"
+        />
+        Configuring the Emacs plugin
+      </h2>
+      <p>
+        After <a href="../">installing the Emacs plugin for quick-lint-js</a>,
+        you need to configure it.
+      </p>
+      <p>Choose the plugin you want to use with quick-lint-js:</p>
+      <ul>
+        <li><a href="#eglot">Eglot</a> (recommended)</li>
+        <li><a href="#flycheck">Flycheck</a></li>
+        <li><a href="#flymake">Flymake</a></li>
+        <li><a href="#lsp-mode">LSP Mode</a></li>
+      </ul>
+
+      <h3 id="eglot">Eglot</h3>
+      <p>
+        In your
+        <a
+          href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html"
+          >init file</a
+        >
+        (e.g. <code>~/.emacs</code>), load the
+        <code>eglot-quicklintjs</code> library:
+      </p>
+      <pre><code class="elisp">(require 'eglot-quicklintjs)</code></pre>
+      <p>
+        To speed up JavaScript linting, configure Eglot to send changes to
+        quick-lint-js immediately without delay by adding the following to your
+        init file:
+      </p>
+      <pre><code class="elisp">(defun my-eglot-quicklintjs-setup ()
+  "Configure eglot-quicklintjs for better experience."
+  ;; Optional: Remove the time to wait after last change before automatically
+  ;; checking buffer. The default is 0.5 (500ms)
+  (setq-local eglot-send-changes-idle-time 0)
+
+  ;; Optional: Make Eglot run automatically when `js-mode' is loaded
+  (eglot-ensure))
+(add-hook 'js-mode-hook #'my-eglot-quicklintjs-setup)</code></pre>
+
+      <h3 id="flycheck">Flycheck</h3>
+      <p>
+        In your
+        <a
+          href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html"
+          >init file</a
+        >
+        (e.g. <code>~/.emacs</code>), load the
+        <code>flycheck-quicklintjs</code> library and enable Flycheck for
+        JavaScript buffers:
+      </p>
+      <pre><code class="elisp">(require 'flycheck-quicklintjs)
+
+(defun my-flycheck-quicklintjs-setup ()
+  "Configure flycheck-quicklintjs for better experience."
+
+  ;; Enable Flycheck
+  (unless (bound-and-true-p flycheck-mode)
+    (flycheck-mode))
+
+  ;; Use quick-lint-js by default when in 'js-mode`
+  (flycheck-select-checker 'javascript-quicklintjs)
+
+  ;; Optional: Remove any delay after a change in buffer to run checkers.
+  ;; The default is 0.5 (500ms)
+  (setq-local flycheck-idle-change-delay 0)
+
+  ;; Optional: Run quick-lint-js program when the buffer is changed and when
+  ;; 'js-mode` is loaded
+  (setq-local flycheck-check-syntax-automatically '(mode-enabled idle-change)))
+(add-hook 'js-mode-hook #'my-flycheck-quicklintjs-setup)</code></pre>
+
+      <h3 id="flymake">Flymake</h3>
+      <p>
+        In your
+        <a
+          href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html"
+          >init file</a
+        >
+        (e.g. <code>~/.emacs</code>), load the
+        <code>flymake-quicklintjs</code> library and enable Flymake for
+        JavaScript buffers:
+      </p>
+      <pre><code class="elisp">(require 'flymake-quicklintjs)
+
+(defun my-flymake-quicklintjs-setup ()
+  "Configure flymake-quicklintjs for better experience."
+
+  ;; Enable Flymake
+  (unless (bound-and-true-p flymake-mode)
+    (flymake-mode))
+  (add-hook 'flymake-diagnostic-functions #'flymake-quicklintjs nil t)
+
+  ;; Optional: Remove the time to wait after last change before automatically
+  ;; checking buffer. The default is 0.5 (500ms)
+  (setq-local flymake-no-changes-timeout 0))
+(add-hook 'js-mode-hook #'my-flymake-quicklintjs-setup)</code></pre>
+
+      <h3 id="lsp-mode">LSP Mode</h3>
+      <p>
+        In your
+        <a
+          href="https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html"
+          >init file</a
+        >
+        (e.g. <code>~/.emacs</code>), load the
+        <code>lsp-quicklintjs</code> library:
+      </p>
+      <pre><code class="elisp">(require 'lsp-quicklintjs)</code></pre>
+      <p>
+        Then, open a JavaScript buffer and type
+        <kbd
+          ><kbd class="keystroke">M-x</kbd> lsp
+          <kbd class="keystroke">RET</kbd></kbd
+        >.
+      </p>
+      <p>
+        To speed up JavaScript linting, configure LSP Mode to send changes to
+        quick-lint-js immediately without delay by adding the following to your
+        init file:
+      </p>
+      <pre><code class="elisp">(defun my-lsp-quicklintjs-setup ()
+  "Configure lsp-quicklintjs for better experience."
+  ;; Optional: Remove the time to wait after last change before automatically
+  ;; checking buffer. The default is 0.5 (500ms)
+  (setq-local lsp-idle-delay 0))
+(add-hook 'js-mode-hook #'my-lsp-quicklintjs-setup)</code></pre>
+    </main>
+
+    <footer><%- await include("../../../common-footer-nav.ejs.html") %></footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!--
+Other files may have different copyright and may be licensed under different
+licenses. See license/ for details.
+-->

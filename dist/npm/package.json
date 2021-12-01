@@ -1,7 +1,7 @@
 {
   "name": "quick-lint-js",
   "description": "Find bugs in your JavaScript code",
-  "version": "0.4.0",
+  "version": "0.6.0",
   "keywords": [
     "quick",
     "lint",
@@ -40,7 +40,12 @@
     "url": "https://strager.net/"
   },
   "license": "GPL-3.0-or-later",
-  "repository": "https://github.com/quick-lint/quick-lint-js",
+  "homepage": "https://quick-lint-js.com/",
+  "repository": "github:quick-lint/quick-lint-js",
+  "bugs": {
+    "url": "https://github.com/quick-lint/quick-lint-js/issues/new",
+    "email": "project@hostname.com"
+  },
   "funding": [
     {
       "type": "individual",

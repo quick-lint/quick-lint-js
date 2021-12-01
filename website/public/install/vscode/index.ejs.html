@@ -13,8 +13,6 @@
   </head>
   <body class="side-bar-nav">
     <header>
-      <h1><a href="..">quick-lint-js</a></h1>
-      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
       <%- await include("../../common-nav.ejs.html") %>
       <nav class="breadcrumbs">
         <ol>
@@ -31,6 +29,8 @@
           src="../../vscode.png"
           alt=""
           title="Visual Studio Code"
+          width="29"
+          height="29"
         />
         Install for Visual Studio Code
       </h2>
@@ -41,13 +41,24 @@
           src="../../linux.svg"
           alt="GNU/Linux"
           title="GNU/Linux"
+          width="19"
+          height="19"
         />
-        <img class="os-logo" src="../../macos.svg" alt="macOS" title="macOS" />
+        <img
+          class="os-logo"
+          src="../../macos.svg"
+          alt="macOS"
+          title="macOS"
+          width="19"
+          height="19"
+        />
         <img
           class="os-logo"
           src="../../windows.svg"
           alt="Windows"
           title="Windows"
+          width="19"
+          height="19"
         />
       </p>
 
@@ -72,8 +83,14 @@
       </p>
       <p>
         <a href="../vscodium/"
-          ><img class="install-logo" src="../../open-vsx.svg" alt="" /> VSCodium
-          instructions</a
+          ><img
+            class="install-logo"
+            src="../../open-vsx.svg"
+            alt=""
+            width="19"
+            height="19"
+          />
+          VSCodium instructions</a
         >
       </p>
     </main>

@@ -2,11 +2,13 @@
   "name": "quick-lint-js",
   "description": "Find JavaScript bugs with quick-lint-js",
   "publisher": "quick-lint",
-  "version": "0.4.0",
+  "version": "0.6.0",
   "license": "SEE LICENSE IN LICENSE",
   "categories": [
     "Linters"
   ],
+  "homepage": "https://quick-lint-js.com/",
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.49.0"
   },
@@ -22,14 +24,24 @@
     "configuration": {
       "type": "object",
       "title": "quick-lint-js",
-      "properties": {}
+      "properties": {
+        "quick-lint-js.logging": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Log messages useful for quick-lint-js contributors."
+        }
+      }
     },
     "languages": [
       {
         "id": "json",
         "filenames": [
-          "quick-lint-js.config",
-          ".quick-lint-js.config"
+          "quick-lint-js.config"
         ]
       }
     ]

@@ -5,7 +5,6 @@
 #include <quick-lint-js/cpp.h>
 #include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/error.h>
-#include <quick-lint-js/gmo.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <utility>
@@ -28,7 +27,7 @@ class diagnostic_info_builder {
   // Each of Args must be a diagnostic_message_arg_info.
   template <class... Args>
   constexpr diagnostic_info_builder add(diagnostic_severity sev,
-                                        const gmo_message& message,
+                                        const translatable_message& message,
                                         const Args&... arg_infos) {
     diagnostic_message_info& message_info =
         this->info_.messages[this->current_message_index_++];

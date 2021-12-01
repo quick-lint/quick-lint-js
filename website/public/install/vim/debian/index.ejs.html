@@ -2,28 +2,10 @@
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
-  <head>
-    <%- await include("../../../common-head.ejs.html") %>
-    <title>quick-lint-js: install for Vim on Debian/Ubuntu</title>
-    <meta
-      name="description"
-      content="Install quick-lint-js's Vim plugin on Debian/Ubuntu"
-    />
-    <link href="../../../main.css" rel="stylesheet" />
-  </head>
+  <%- await include("../common-head.ejs.html", {where: "on Debian/Ubuntu"}) %>
   <body class="side-bar-nav">
-    <header>
-      <h1><a href="../..">quick-lint-js</a></h1>
-      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
-      <%- await include("../../../common-nav.ejs.html") %>
-      <nav class="breadcrumbs">
-        <ol>
-          <li><a href="../../">Install</a></li>
-          <li><a href="../">Vim</a></li>
-          <li>Debian/Ubuntu</li>
-        </ol>
-      </nav>
-    </header>
+    <%- await include("../common-header.ejs.html", {breadcrumbName:
+    "Debian/Ubuntu"}) %>
 
     <main>
       <h2>
@@ -32,16 +14,22 @@
           src="../../../vim.gif"
           alt=""
           title="Vim"
+          width="29"
+          height="29"
         /><img
           class="os-logo"
           src="../../../debian.svg"
           alt=""
           title="Debian"
+          width="29"
+          height="29"
         /><img
           class="install-logo"
           src="../../../ubuntu.svg"
           alt=""
           title="Ubuntu"
+          width="29"
+          height="29"
         />
         Install for Vim on Debian/Ubuntu
       </h2>
@@ -52,6 +40,8 @@
           src="../../../linux.svg"
           alt="GNU/Linux"
           title="GNU/Linux"
+          width="19"
+          height="19"
         />
       </p>
 

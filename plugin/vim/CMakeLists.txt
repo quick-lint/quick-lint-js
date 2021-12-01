@@ -21,6 +21,10 @@ install(
   FILES quick-lint-js.vim/ale_linters/javascript/quick_lint_js.vim
   DESTINATION "${QUICK_LINT_JS_INSTALL_NEOVIM_DIR}/ale_linters/javascript"
 )
+install(
+  FILES quick-lint-js.vim/lua/lspconfig/quick_lint_js.lua
+  DESTINATION "${QUICK_LINT_JS_INSTALL_NEOVIM_DIR}/lua/lspconfig"
+)
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar

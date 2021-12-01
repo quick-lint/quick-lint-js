@@ -25,7 +25,7 @@ TEST(test_c_api_web_demo, lint_error_after_text_insertion) {
   EXPECT_EQ(diagnostics[1].code, nullptr);
 
   EXPECT_STREQ(diagnostics[0].message, "redeclaration of variable: x");
-  EXPECT_STREQ(diagnostics[0].code, "E034");
+  EXPECT_STREQ(diagnostics[0].code, "E0034");
   EXPECT_EQ(diagnostics[0].begin_offset, strlen(u8"let x;let "));
   EXPECT_EQ(diagnostics[0].end_offset, strlen(u8"let x;let x"));
 
@@ -48,9 +48,25 @@ TEST(test_c_api_web_demo, lint_new_error_after_second_text_insertion) {
   EXPECT_EQ(diagnostics[1].code, nullptr);
 
   EXPECT_STREQ(diagnostics[0].message, "redeclaration of variable: x");
-  EXPECT_STREQ(diagnostics[0].code, "E034");
+  EXPECT_STREQ(diagnostics[0].code, "E0034");
   EXPECT_EQ(diagnostics[0].begin_offset, strlen(u8"let x;let "));
   EXPECT_EQ(diagnostics[0].end_offset, strlen(u8"let x;let x"));
+
+  qljs_web_demo_destroy_document(p);
+}
+
+TEST(test_c_api_web_demo, linting_uses_config) {
+  qljs_web_demo_document* p = qljs_web_demo_create_document();
+
+  const char8* config_text = u8R"({"globals": {"testGlobalVariable": true}})";
+  qljs_web_demo_set_config_text(p, config_text, strlen(config_text));
+
+  const char8* document_text = u8"testGlobalVariable;";
+  qljs_web_demo_set_text(p, document_text, strlen(document_text));
+
+  const qljs_web_demo_diagnostic* diagnostics = qljs_web_demo_lint(p);
+  EXPECT_EQ(diagnostics[0].message, nullptr);
+  EXPECT_EQ(diagnostics[0].code, nullptr);
 
   qljs_web_demo_destroy_document(p);
 }

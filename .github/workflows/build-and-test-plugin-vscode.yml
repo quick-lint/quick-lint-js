@@ -14,7 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - {runs_on: macos-10.15, name: "macOS", platform_arch: "darwin-x64", test: true, CC: /usr/local/opt/llvm/bin/clang, CXX: /usr/local/opt/llvm/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm/include -isystem /usr/local/opt/llvm/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm/lib/libc++.a /usr/local/opt/llvm/lib/libc++abi.a"}
+          - {runs_on: macos-10.15, name: "macOS x86_64", platform_arch: "darwin-x64", test: true, CC: /usr/local/opt/llvm/bin/clang, CXX: /usr/local/opt/llvm/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm/include -isystem /usr/local/opt/llvm/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm/lib/libc++.a /usr/local/opt/llvm/lib/libc++abi.a"}
+          - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", platform_arch: "darwin-arm64", test: true, CFLAGS: "-mmacosx-version-min=11.0"}
             # NOTE(strager): We test on Linux x86_64 in the build-extension job.
           - {runs_on: ubuntu-latest, name: "Linux x86_64", platform_arch: "linux-x64", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: ubuntu-latest, name: "Linux ARM", platform_arch: "linux-arm", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v2", CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
@@ -42,7 +43,7 @@ jobs:
       - name: C++ configure
         run: |
           env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
-          cmake ${CMAKE_C_COMPILER+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=NO -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -DQUICK_LINT_JS_ENABLE_VSCODE=YES -DCMAKE_POSITION_INDEPENDENT_CODE=YES ${CMAKE_EXTRA_FLAGS} -S . -B build
+          cmake ${CMAKE_C_COMPILER:+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER:+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=NO -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -DQUICK_LINT_JS_ENABLE_VSCODE=YES -DCMAKE_POSITION_INDEPENDENT_CODE=YES ${CMAKE_EXTRA_FLAGS} -S . -B build
         shell: bash
       - name: C++ build
         run: cmake --build build --config Release --target quick-lint-js-vscode-node quick-lint-js-vscode-node-licenses
@@ -82,7 +83,15 @@ jobs:
           path: ./plugin/vscode/dist/
       - uses: actions/download-artifact@v2
         with:
+          name: vscode-dist-linux-arm
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
           name: vscode-dist-linux-arm64
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-darwin-arm64
           path: ./plugin/vscode/dist/
       - uses: actions/download-artifact@v2
         with:

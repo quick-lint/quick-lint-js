@@ -21,9 +21,9 @@ static constexpr error_name_and_code all_errors[] = {
 };
 
 std::string next_unused_error_code() {
-  for (int i = 1; i <= 999; ++i) {
-    char code[6];
-    std::snprintf(code, sizeof(code), "E%03d", i);
+  for (int i = 1; i <= 9999; ++i) {
+    char code[7];
+    std::snprintf(code, sizeof(code), "E%04d", i);
     auto existing_it =
         std::find_if(std::begin(all_errors), std::end(all_errors),
                      [&](const error_name_and_code& error) {
@@ -54,13 +54,13 @@ TEST(test_error, error_codes_are_unique) {
 TEST(test_error, error_codes_are_well_formed) {
   for (const error_name_and_code& error : all_errors) {
 #if defined(_WIN32)
-    constexpr const char* error_pattern = R"(^E\d\d\d$)";
+    constexpr const char* error_pattern = R"(^E\d\d\d\d$)";
 #else
-    constexpr const char* error_pattern = R"(^E[0-9][0-9][0-9]$)";
+    constexpr const char* error_pattern = R"(^E[0-9][0-9][0-9][0-9]$)";
 #endif
     // Wrapping the code in std::string improves gtest diagnostics.
     EXPECT_THAT(std::string(error.code), ::testing::MatchesRegex(error_pattern))
-        << "error " << error.name << " should have a code like E123"
+        << "error " << error.name << " should have a code like E1234"
         << "\ntry this unused error code: " << next_unused_error_code();
   }
 }

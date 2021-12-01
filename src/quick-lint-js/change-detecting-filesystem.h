@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_CHANGE_DETECTING_FILESYSTEM_H
 #define QUICK_LINT_JS_CHANGE_DETECTING_FILESYSTEM_H
 
+#if defined(__EMSCRIPTEN__)
+// No filesystem on web.
+#else
+
 #include <memory>
 #include <optional>
 #include <quick-lint-js/configuration-loader.h>
@@ -34,6 +38,16 @@ struct kevent;
 #endif
 
 namespace quick_lint_js {
+struct watch_io_error {
+  std::string path;
+  platform_file_io_error io_error;
+
+  std::string to_string() const;
+
+  friend bool operator==(const watch_io_error&, const watch_io_error&) noexcept;
+  friend bool operator!=(const watch_io_error&, const watch_io_error&) noexcept;
+};
+
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
 #if QLJS_HAVE_INOTIFY
@@ -50,7 +64,7 @@ class change_detecting_filesystem_inotify : public configuration_filesystem,
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
+  result<padded_string, read_file_io_error> read_file(
       const canonical_path&) override;
 
   void on_canonicalize_child_of_directory(const char*) override;
@@ -88,13 +102,15 @@ class change_detecting_filesystem_kqueue : public configuration_filesystem,
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
+  result<padded_string, read_file_io_error> read_file(
       const canonical_path&) override;
 
   void on_canonicalize_child_of_directory(const char*) override;
   void on_canonicalize_child_of_directory(const wchar_t*) override;
 
   posix_fd_file_ref kqueue_fd() const noexcept { return this->kqueue_fd_; }
+
+  void handle_kqueue_event(const struct ::kevent&);
 
   std::vector<watch_io_error> take_watch_errors();
 
@@ -146,7 +162,7 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
 
   result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  result<padded_string, read_file_io_error, watch_io_error> read_file(
+  result<padded_string, read_file_io_error> read_file(
       const canonical_path&) override;
 
   windows_handle_file_ref io_completion_port() const noexcept {
@@ -195,15 +211,17 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
   windows_handle_file_ref io_completion_port_;
   ::ULONG_PTR completion_key_;
 
-  std::unordered_map<canonical_path, std::unique_ptr<watched_directory>>
+  std::unordered_map<canonical_path, std::unique_ptr<watched_directory> >
       watched_directories_;
-  std::vector<std::unique_ptr<watched_directory>>
+  std::vector<std::unique_ptr<watched_directory> >
       cancelling_watched_directories_;
   std::vector<watch_io_error> watch_errors_;
 };
 #endif
 QLJS_WARNING_POP
 }
+
+#endif
 
 #endif
 
