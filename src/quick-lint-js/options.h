@@ -17,7 +17,7 @@ enum class output_format {
   emacs_lisp,
 };
 
-enum class escape_errors { auto_, always, never };
+enum class option_when { auto_, always, never };
 
 struct file_to_lint {
   const char *path;
@@ -34,8 +34,8 @@ struct options {
   bool lsp_server = false;
   quick_lint_js::output_format output_format =
       quick_lint_js::output_format::default_format;
-  quick_lint_js::escape_errors escape_errors =
-      quick_lint_js::escape_errors::auto_;
+  quick_lint_js::option_when diagnostic_hyperlinks =
+      quick_lint_js::option_when::auto_;
   std::vector<file_to_lint> files_to_lint;
   compiled_error_list exit_fail_on;
 

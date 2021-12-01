@@ -49,14 +49,15 @@ Incompatible with *--lsp-server*.
 --
 
 *--diagnostic-hyperlinks*=_when_::
-  Control whether the errors are using escape sequences to show errors as hyperlinks or not.
+  Control whether to hyperlink error codes or not.
+  This option is only used if *--output-format=gnu-like*.
   _when_ is one of the following:
 +
 --
-- *auto* (default): shows errors as hyperlinks only if the error output is a terminal. On windows
-it behaves like 'never' because windows default terminals don't support escape sequences.
-- *always*: always shows errors as hyperlinks.
-- *never*: never shows errors as hyperlinks.
+- *auto* (default): shows error codes as hyperlinks only if the error output is a terminal.
+On Windows it behaves like 'never'.
+- *always*: always shows error codes as hyperlinks.
+- *never*: never shows error codes as hyperlinks.
 
 Incompatible with *--lsp-server*.
 --

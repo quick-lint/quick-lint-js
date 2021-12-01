@@ -24,8 +24,7 @@ class text_error_reporter final : public error_reporter {
  public:
   explicit text_error_reporter(std::ostream &output);
 
-  explicit text_error_reporter(std::ostream &output,
-                               escape_errors escape_errors);
+  explicit text_error_reporter(std::ostream &output, option_when escape_errors);
 
   void set_source(padded_string_view input, const char *file_name);
 
@@ -37,7 +36,7 @@ class text_error_reporter final : public error_reporter {
   const char *file_path_;
   bool format_escape_errors_;
 
-  bool use_escape_if_auto();
+  bool output_supports_escapes();
 };
 
 class text_error_formatter : public diagnostic_formatter<text_error_formatter> {

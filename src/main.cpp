@@ -54,7 +54,7 @@ namespace {
 class any_error_reporter {
  public:
   static any_error_reporter make(output_format format,
-                                 escape_errors escape_errors,
+                                 option_when escape_errors,
                                  compiled_error_list *exit_fail_on) {
     switch (format) {
     case output_format::default_format:
@@ -181,8 +181,8 @@ void handle_options(quick_lint_js::options o) {
   }
 
   quick_lint_js::any_error_reporter reporter =
-      quick_lint_js::any_error_reporter::make(o.output_format, o.escape_errors,
-                                              &o.exit_fail_on);
+      quick_lint_js::any_error_reporter::make(
+          o.output_format, o.diagnostic_hyperlinks, &o.exit_fail_on);
 
   configuration default_config;
   configuration_loader config_loader(
@@ -611,12 +611,13 @@ void print_help_message() {
                "Run in Language Server mode (for LSP-aware editors)");
   print_option("--output-format=[FORMAT]",
                "Format to print feedback where FORMAT is one of:");
-  print_option("", "gnu-like (default if omitted)");
+  print_option("", "gnu-like (default)");
   print_option("", "vim-qflist-json");
   print_option("", "emacs-lisp");
-  print_option("--diagnostic-hyperlinks=[WHEN]",
-               "Control if errors are shown as hyperlink. WHEN is one of:");
-  print_option("", "auto (default if omitted)");
+  print_option(
+      "--diagnostic-hyperlinks=[WHEN]",
+      "Control whether to hyperlink error codes or not. WHEN is one of:");
+  print_option("", "auto (default)");
   print_option("", "always");
   print_option("", "never");
   print_option("-v, --version", "Print version information");

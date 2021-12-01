@@ -26,7 +26,7 @@ class test_text_error_reporter : public ::testing::Test {
   }
 
   text_error_reporter make_reporter(padded_string_view input,
-                                    escape_errors escape_error) {
+                                    option_when escape_error) {
     text_error_reporter reporter(this->stream_, escape_error);
     reporter.set_source(input, this->file_path_);
     return reporter;
@@ -145,7 +145,7 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable_escaped_error) {
   source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
   ASSERT_EQ(myvar_span.string_view(), u8"myvar");
 
-  this->make_reporter(&input, escape_errors::always)
+  this->make_reporter(&input, option_when::always)
       .report(error_use_of_undeclared_variable{identifier(myvar_span)});
   EXPECT_EQ(this->get_output(),
             "FILE:1:1: warning: use of undeclared variable: myvar [" +

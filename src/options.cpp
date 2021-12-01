@@ -73,11 +73,11 @@ options parse_options(int argc, char** argv) {
     } else if (const char* arg_value = parser.match_option_with_value(
                    "--diagnostic-hyperlinks"sv)) {
       if (arg_value == "auto"sv) {
-        o.escape_errors = quick_lint_js::escape_errors::auto_;
+        o.diagnostic_hyperlinks = quick_lint_js::option_when::auto_;
       } else if (arg_value == "always"sv) {
-        o.escape_errors = quick_lint_js::escape_errors::always;
+        o.diagnostic_hyperlinks = quick_lint_js::option_when::always;
       } else if (arg_value == "never"sv) {
-        o.escape_errors = quick_lint_js::escape_errors::never;
+        o.diagnostic_hyperlinks = quick_lint_js::option_when::never;
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }

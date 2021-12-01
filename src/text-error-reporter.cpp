@@ -17,28 +17,25 @@
 
 namespace quick_lint_js {
 text_error_reporter::text_error_reporter(std::ostream &output)
-    : output_(output), format_escape_errors_(this->use_escape_if_auto()) {}
+    : output_(output), format_escape_errors_(this->output_supports_escapes()) {}
 
 text_error_reporter::text_error_reporter(std::ostream &output,
-                                         escape_errors escape_errors)
+                                         option_when escape_errors)
     : output_(output) {
   switch (escape_errors) {
-  case escape_errors::auto_:
-    if (this->use_escape_if_auto())
-      this->format_escape_errors_ = true;
-    else
-      this->format_escape_errors_ = false;
+  case option_when::auto_:
+    this->format_escape_errors_ = this->output_supports_escapes();
     break;
-  case escape_errors::always:
+  case option_when::always:
     this->format_escape_errors_ = true;
     break;
-  case escape_errors::never:
+  case option_when::never:
     this->format_escape_errors_ = false;
     break;
   }
 }
 
-bool text_error_reporter::use_escape_if_auto() {
+bool text_error_reporter::output_supports_escapes() {
 #if defined(_WIN32)
   return false;
 #else
@@ -59,7 +56,7 @@ void text_error_reporter::report_impl(error_type type, void *error) {
       /*output=*/this->output_,
       /*file_path=*/this->file_path_,
       /*locator=*/*this->locator_,
-      /*format_escape_errors*/ this->format_escape_errors_);
+      /*format_escape_errors=*/this->format_escape_errors_);
   formatter.format(get_diagnostic_info(type), error);
 }
 
