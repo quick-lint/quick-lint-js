@@ -103,7 +103,7 @@ target_link_libraries(
   quick-lint-js-boost-json
   quick-lint-js-lib
 )
-if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
+if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
   target_precompile_headers(
     quick-lint-js-test
     PRIVATE
@@ -160,7 +160,7 @@ if (ICU_FOUND)
     gtest
     quick-lint-js-lib
   )
-  if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
+  if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
     target_precompile_headers(
       quick-lint-js-test-lex-unicode
       PRIVATE
