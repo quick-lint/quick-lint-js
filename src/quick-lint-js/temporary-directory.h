@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_TEMPORARY_DIRECTORY_H
 #define QUICK_LINT_JS_TEMPORARY_DIRECTORY_H
 
+#if defined(__EMSCRIPTEN__)
+// No filesystem on web.
+#else
+
 #include <string>
 
 namespace quick_lint_js {
@@ -22,6 +26,8 @@ std::string get_current_working_directory();
 // Crashes on failure.
 void set_current_working_directory(const char* path);
 }
+
+#endif
 
 #endif
 
