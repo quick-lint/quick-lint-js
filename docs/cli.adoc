@@ -48,6 +48,20 @@ This command has two modes:
 Incompatible with *--lsp-server*.
 --
 
+*--diagnostic-hyperlinks*=_when_::
+  Control whether to hyperlink error codes or not.
+  This option is only used if *--output-format=gnu-like*.
+  _when_ is one of the following:
++
+--
+- *auto* (default): shows error codes as hyperlinks only if the error output is a terminal.
+On Windows it behaves like 'never'.
+- *always*: always shows error codes as hyperlinks.
+- *never*: never shows error codes as hyperlinks.
+
+Incompatible with *--lsp-server*.
+--
+
 *--vim-file-bufnr*=_number_::
   Set the _bufnr_ property for errors printed with the *--output-format=vim-qflist-json* option.
 +

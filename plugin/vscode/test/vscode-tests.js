@@ -52,9 +52,13 @@ for (let extension of [".js", ".mjs", ".cjs"]) {
 
       await pollAsync(async () => {
         let helloDiags = normalizeDiagnostics(helloURI);
+
         assert.deepStrictEqual(helloDiags, [
           {
-            code: "E0034",
+            code: {
+              target: "https://quick-lint-js.com/errors/#E0034",
+              value: "E0034",
+            },
             message: "redeclaration of variable: x",
             severity: vscode.DiagnosticSeverity.Error,
             source: "quick-lint-js",
@@ -169,7 +173,10 @@ tests = {
       let helloDiags = normalizeDiagnostics(helloURI);
       assert.deepStrictEqual(helloDiags, [
         {
-          code: "E0034",
+          code: {
+            target: "https://quick-lint-js.com/errors/#E0034",
+            value: "E0034",
+          },
           message: "redeclaration of variable: x",
           severity: vscode.DiagnosticSeverity.Error,
           source: "quick-lint-js",
@@ -383,9 +390,21 @@ tests = {
     });
     assert.deepStrictEqual(diags, [
       // redeclaration of variable 'x'
-      { code: "E0034", severity: vscode.DiagnosticSeverity.Error },
+      {
+        code: {
+          target: "https://quick-lint-js.com/errors/#E0034",
+          value: "E0034",
+        },
+        severity: vscode.DiagnosticSeverity.Error,
+      },
       // use of undeclared variable 'undeclaredVariable'
-      { code: "E0057", severity: vscode.DiagnosticSeverity.Warning },
+      {
+        code: {
+          target: "https://quick-lint-js.com/errors/#E0057",
+          value: "E0057",
+        },
+        severity: vscode.DiagnosticSeverity.Warning,
+      },
     ]);
   },
 
@@ -438,7 +457,10 @@ tests = {
       jsDiags.map(({ code, startLine }) => ({ code, startLine })),
       [
         {
-          code: "E0057",
+          code: {
+            target: "https://quick-lint-js.com/errors/#E0057",
+            value: "E0057",
+          },
           startLine: 1, // document
         },
       ]
@@ -584,7 +606,10 @@ tests = {
       jsDiags.map(({ code, startLine }) => ({ code, startLine })),
       [
         {
-          code: "E0057",
+          code: {
+            target: "https://quick-lint-js.com/errors/#E0057",
+            value: "E0057",
+          },
           startLine: 1, // testGlobalVariableFromDisk
         },
       ]
@@ -632,7 +657,12 @@ tests = {
     let configDiags = normalizeDiagnostics(configURI);
     assert.deepStrictEqual(
       configDiags.map(({ code }) => code),
-      ["E0171"]
+      [
+        {
+          target: "https://quick-lint-js.com/errors/#E0171",
+          value: "E0171",
+        },
+      ]
     );
   },
 
@@ -668,7 +698,12 @@ tests = {
     let configDiags = normalizeDiagnostics(configURI);
     assert.deepStrictEqual(
       configDiags.map(({ code }) => code),
-      ["E0171"]
+      [
+        {
+          target: "https://quick-lint-js.com/errors/#E0171",
+          value: "E0171",
+        },
+      ]
     );
   },
 
@@ -724,7 +759,10 @@ tests = {
         jsDiags.map(({ code, startLine }) => ({ code, startLine })),
         [
           {
-            code: "E0057",
+            code: {
+              target: "https://quick-lint-js.com/errors/#E0057",
+              value: "E0057",
+            },
             startLine: 0, // testGlobalVariableFromEditor
           },
         ]
@@ -1192,7 +1230,10 @@ function normalizeDiagnostics(vscodeDiagnosticsOrURI) {
     vscodeDiagnostics = vscodeDiagnosticsOrURI;
   }
   return vscodeDiagnostics.map((diag) => ({
-    code: diag.code,
+    code: {
+      target: diag.code.target.toString(true),
+      value: diag.code.value,
+    },
     message: diag.message,
     source: diag.source,
     severity: diag.severity,

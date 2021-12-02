@@ -62,6 +62,8 @@ TEST_F(test_lsp_error_reporter, big_int_literal_contains_decimal_point) {
             "BigInt literal contains decimal point");
   EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0005");
   EXPECT_EQ(look_up(diagnostics, 0, "source"), "quick-lint-js");
+  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
+            "https://quick-lint-js.com/errors/#E0005");
 }
 
 TEST_F(test_lsp_error_reporter, assignment_before_variable_declaration) {
@@ -88,6 +90,8 @@ TEST_F(test_lsp_error_reporter, assignment_before_variable_declaration) {
             "variable assigned before its declaration");
   EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0001");
   EXPECT_EQ(look_up(diagnostics, 0, "source"), "quick-lint-js");
+  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
+            "https://quick-lint-js.com/errors/#E0001");
   // TODO(#200): Show the declaration as relatedInformation.
 }
 
@@ -111,6 +115,8 @@ TEST_F(test_lsp_error_reporter, assignment_to_undeclared_variable) {
   EXPECT_EQ(look_up(diagnostics, 0, "message"),
             "assignment to undeclared variable");
   EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0059");
+  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
+            "https://quick-lint-js.com/errors/#E0059");
 }
 
 TEST_F(test_lsp_error_reporter, multiple_errors) {
