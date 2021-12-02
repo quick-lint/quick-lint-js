@@ -17,11 +17,24 @@ Semantic Versioning.
 ### Added
 
 * New diagnostics: E0053
-* Parsing identifier is now optimized for ARM systems, including Apple Silicon.
+* Improve error reporting of `Improve error on console.("hello")` and similar
+  code.
+* Reported errors now include a link to the website for a detailed explanation
+  (implemented by [Amir][]).
+* CLI: New `--diagnostic-hyperlinks` option (implemented by [Amir][]).
+* CLI: Fish and Zsh completions for the `--output-format` option now include
+  documentation for each value (implemented by [Amir][]).
 
 ### Fixed
 
 * Reporting E0144 no longer also reports E0057.
+* Variables can be named according to Unicode 14 (previously Unicode 13).
+
+### Optimized
+
+* Parsing identifier is now optimized for ARM systems, including Apple Silicon.
+* Diagnostic message translations consume less space in executables and also
+  take less time to process.
 
 ## 0.6.0 (2021-11-20)
 
