@@ -1,6 +1,13 @@
 {
   "dependencies": {
+    "@typescript-eslint/eslint-plugin": "*",
+    "@typescript-eslint/parser": "*",
     "eslint": "*",
+    "eslint-config-airbnb-base": "*",
+    "eslint-plugin-import": "*",
+    "eslint-plugin-react": "*",
+    "eslint-plugin-vue": "*",
+    "typescript": "*",
     "vscode-eslint": "https://github.com/microsoft/vscode-eslint/archive/cbb35d03497bb39043033defbad7fd80b2a89698.tar.gz"
   }
 }
