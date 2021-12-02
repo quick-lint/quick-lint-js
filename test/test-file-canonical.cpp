@@ -901,7 +901,8 @@ TEST_F(test_file_canonical, unsearchable_grandparent_directory) {
 }
 #endif
 
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
 TEST_F(test_file_canonical, canonical_path_posix_root) {
   {
     result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -981,7 +982,8 @@ TEST_F(test_file_canonical, canonical_path_win32_root) {
 }
 #endif
 
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
 TEST_F(test_file_canonical, parent_of_root_is_root_posix) {
   for (const char* root : {"/", "//"}) {
     canonical_path p(root);

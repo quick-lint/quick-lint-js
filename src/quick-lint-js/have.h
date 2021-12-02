@@ -115,7 +115,8 @@
 #endif
 
 #if !defined(QLJS_HAVE_DIRENT_H)
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
 #define QLJS_HAVE_DIRENT_H 1
 #else
 #define QLJS_HAVE_DIRENT_H 0
@@ -131,9 +132,10 @@
 #endif
 
 #if !defined(QLJS_HAVE_MKDTEMP)
-#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
-    ((defined(__APPLE__) || defined(__FreeBSD__)) &&          \
-     defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L)
+#if defined(QLJS_HAVE_UNISTD_H) &&                             \
+    ((defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
+     ((defined(__APPLE__) || defined(__FreeBSD__)) &&          \
+      defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L))
 #define QLJS_HAVE_MKDTEMP 1
 #else
 #define QLJS_HAVE_MKDTEMP 0
@@ -141,7 +143,8 @@
 #endif
 
 #if !defined(QLJS_HAVE_MKFIFO)
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 199009L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 199009L
 #define QLJS_HAVE_MKFIFO 1
 #else
 #define QLJS_HAVE_MKFIFO 0
@@ -149,7 +152,8 @@
 #endif
 
 #if !defined(QLJS_HAVE_GETPID)
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
 #define QLJS_HAVE_GETPID 1
 #else
 #define QLJS_HAVE_GETPID 0
@@ -165,7 +169,7 @@
 #endif
 
 #if !defined(QLJS_HAVE_PIPE)
-#if !defined(__EMSCRIPTEN__) && defined(_POSIX_VERSION) && \
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
     _POSIX_VERSION >= 200112L
 #define QLJS_HAVE_PIPE 1
 #else
@@ -174,9 +178,10 @@
 #endif
 
 #if !defined(QLJS_HAVE_REALPATH)
-#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
-    ((defined(__APPLE__) || defined(__FreeBSD__)) &&          \
-     defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L)
+#if defined(QLJS_HAVE_UNISTD_H) &&                             \
+    ((defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
+     ((defined(__APPLE__) || defined(__FreeBSD__)) &&          \
+      defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L))
 #define QLJS_HAVE_REALPATH 1
 #else
 #define QLJS_HAVE_REALPATH 0
@@ -184,7 +189,8 @@
 #endif
 
 #if !defined(QLJS_HAVE_POLL)
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
 #define QLJS_HAVE_POLL 1
 #else
 #define QLJS_HAVE_POLL 0
@@ -192,9 +198,10 @@
 #endif
 
 #if !defined(QLJS_HAVE_SETRLIMIT)
-#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
-    ((defined(__APPLE__) || defined(__FreeBSD__)) &&          \
-     defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L)
+#if defined(QLJS_HAVE_UNISTD_H) &&                             \
+    ((defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
+     ((defined(__APPLE__) || defined(__FreeBSD__)) &&          \
+      defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L))
 #define QLJS_HAVE_SETRLIMIT 1
 #else
 #define QLJS_HAVE_SETRLIMIT 0
@@ -202,7 +209,8 @@
 #endif
 
 #if !defined(QLJS_HAVE_UNAME)
-#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 198808L)
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 198808L
 #define QLJS_HAVE_UNAME 1
 #else
 #define QLJS_HAVE_UNAME 0
@@ -210,7 +218,8 @@
 #endif
 
 #if !defined(QLJS_HAVE_WRITEV)
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
 #define QLJS_HAVE_WRITEV 1
 #else
 #define QLJS_HAVE_WRITEV 0
