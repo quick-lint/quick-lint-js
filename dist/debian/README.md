@@ -20,15 +20,13 @@ instructions), install the .deb file:
 
     $ sudo dpkg -i dist/debian/quick-lint-js_0.6.0-1_amd64.deb
 
-
 ### Vim plugin
 
-If you want to install the vim plugin, you'll need to a few dependencies:
+For quick-lint-js support in vim, you will need to install a supported styling plugin - see the [quick-lint-js vim plugin documentation](https://github.com/quick-lint/quick-lint-js/blob/master/plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt) for options and instructions.
 
-* [ALE](https://github.com/dense-analysis/ale#3-installation) 
-* vim-addon-mannager `sudo apt-get install vim-addon-manager`
+Then, install quick-lint-js-vim and its dependencies:
 
-Then you can install quick-lint-js-vim:
-
+    $ sudo apt install vim-addon-manager
     $ sudo dpkg -i dist/debian/quick-lint-js_0.6.0-1_amd64.deb
     $ sudo dpkg -i dist/debian/quick-lint-js-vim_0.6.0-1_all.deb
+~
