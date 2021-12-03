@@ -101,6 +101,49 @@ Customize how errors are printed. \fIformat\fP is one of the following:
 Incompatible with \fB\-\-lsp\-server\fP.
 .RE
 .sp
+\fB\-\-diagnostic\-hyperlinks\fP=\fIwhen\fP
+.RS 4
+Control whether to hyperlink error codes or not.
+This option is only used if \fB\-\-output\-format=gnu\-like\fP.
+\fIwhen\fP is one of the following:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBauto\fP (default): shows error codes as hyperlinks only if the error output is a terminal.
+On Windows it behaves like \(aqnever\(aq.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBalways\fP: always shows error codes as hyperlinks.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBnever\fP: never shows error codes as hyperlinks.
+.RE
+.sp
+Incompatible with \fB\-\-lsp\-server\fP.
+.RE
+.sp
 \fB\-\-vim\-file\-bufnr\fP=\fInumber\fP
 .RS 4
 Set the \fIbufnr\fP property for errors printed with the \fB\-\-output\-format=vim\-qflist\-json\fP option.

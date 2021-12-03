@@ -136,16 +136,20 @@ export class ErrorDocumentation {
     let process = await qljsProcessPromise;
     for (let i = 0; i < this.codeBlocks.length; ++i) {
       let doc = await process.createDocumentForWebDemoAsync();
-      let { text, language } = this.codeBlocks[i];
-      if (this.configForExamples !== null) {
-        doc.setConfigText(this.configForExamples);
+      try {
+        let { text, language } = this.codeBlocks[i];
+        if (this.configForExamples !== null) {
+          doc.setConfigText(this.configForExamples);
+        }
+        doc.setText(text);
+        let diagnostics =
+          language === "quick-lint-js.config"
+            ? doc.lintAsConfigFile()
+            : doc.lint();
+        this.diagnostics.push(diagnostics);
+      } finally {
+        doc.dispose();
       }
-      doc.setText(text);
-      let diagnostics =
-        language === "quick-lint-js.config"
-          ? doc.lintAsConfigFile()
-          : doc.lint();
-      this.diagnostics.push(diagnostics);
     }
     assert.strictEqual(this.diagnostics.length, this.codeBlocks.length);
   }

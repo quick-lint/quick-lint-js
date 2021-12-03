@@ -1,9 +1,57 @@
 {
   "servers": [
     {
-      "name": "vscode-eslint",
-      "command": ["node", "./node_modules/vscode-eslint/server/out/eslintServer.js", "--stdio"],
-      "cwd": "eslint/",
+      "name": "vscode-eslint-airbnb",
+      "command": ["node", "../node_modules/vscode-eslint/server/out/eslintServer.js", "--stdio"],
+      "cwd": "eslint/airbnb/",
+      "workspaceConfiguration": {
+        "nodePath": null,
+        "rulesCustomizations": [],
+        "run": "onType",
+        "validate": "on"
+      },
+      "needFilesOnDisk": true
+    },
+    {
+      "name": "vscode-eslint-react",
+      "command": ["node", "../node_modules/vscode-eslint/server/out/eslintServer.js", "--stdio"],
+      "cwd": "eslint/react/",
+      "workspaceConfiguration": {
+        "nodePath": null,
+        "rulesCustomizations": [],
+        "run": "onType",
+        "validate": "on"
+      },
+      "needFilesOnDisk": true
+    },
+    {
+      "name": "vscode-eslint-typescript",
+      "command": ["node", "../node_modules/vscode-eslint/server/out/eslintServer.js", "--stdio"],
+      "cwd": "eslint/typescript/",
+      "workspaceConfiguration": {
+        "nodePath": null,
+        "rulesCustomizations": [],
+        "run": "onType",
+        "validate": "on"
+      },
+      "needFilesOnDisk": true
+    },
+    {
+      "name": "vscode-eslint-vanilla",
+      "command": ["node", "../node_modules/vscode-eslint/server/out/eslintServer.js", "--stdio"],
+      "cwd": "eslint/vanilla/",
+      "workspaceConfiguration": {
+        "nodePath": null,
+        "rulesCustomizations": [],
+        "run": "onType",
+        "validate": "on"
+      },
+      "needFilesOnDisk": true
+    },
+    {
+      "name": "vscode-eslint-vue",
+      "command": ["node", "../node_modules/vscode-eslint/server/out/eslintServer.js", "--stdio"],
+      "cwd": "eslint/vue/",
       "workspaceConfiguration": {
         "nodePath": null,
         "rulesCustomizations": [],

@@ -40,7 +40,8 @@
 #define QLJS_PATHS_WIN32 1
 #endif
 
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
 #define QLJS_PATHS_POSIX 1
 #define QLJS_PATHS_WIN32 0
 #endif

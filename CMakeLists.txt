@@ -16,6 +16,12 @@ include(GNUInstallDirs)
 option(QUICK_LINT_JS_ENABLE_BENCHMARKS "Build microbenchmark programs" OFF)
 option(QUICK_LINT_JS_ENABLE_VSCODE "Build VS Code extension bits" OFF)
 
+if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
+  option(QUICK_LINT_JS_PRECOMPILE_HEADERS "Use CMake's target_precompile_headers" ON)
+else ()
+  set(QUICK_LINT_JS_PRECOMPILE_HEADERS FALSE)
+endif ()
+
 set(
   QUICK_LINT_JS_INSTALL_LICENSES_DIR
   "${CMAKE_INSTALL_DOCDIR}"

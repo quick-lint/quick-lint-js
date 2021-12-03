@@ -271,8 +271,8 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
                         "end": {"line": 0, "character": 9}
                       },
                       "severity": 1,
-                        "message": "variable used before declaration: x"
-                      }
+                      "message": "variable used before declaration: x"
+                    }
                   ]
                 },
                 "jsonrpc":"2.0"
@@ -336,8 +336,12 @@ TEST_F(test_linting_lsp_server, opening_document_language_id_js_lints) {
                         "end": {"line": 0, "character": 9}
                       },
                       "severity": 1,
-                        "message": "variable used before declaration: x"
+                      "message": "variable used before declaration: x",
+                      "code": "E0058",
+                      "codeDescription": {
+                        "href": "https://quick-lint-js.com/errors/#E0058"
                       }
+                    }
                   ]
                 },
                 "jsonrpc":"2.0"
@@ -376,6 +380,9 @@ TEST_F(test_linting_lsp_server, opening_document_language_id_js_lints) {
   EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
   EXPECT_EQ(look_up(diagnostics, 0, "message"),
             "variable used before declaration: x");
+  EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0058");
+  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
+            "https://quick-lint-js.com/errors/#E0058");
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"let x = x;"));
 }
@@ -1662,6 +1669,9 @@ TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
   EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
   EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
   EXPECT_EQ(look_up(diagnostics, 0, "message"), "JSON syntax error");
+  EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0164");
+  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
+            "https://quick-lint-js.com/errors/#E0164");
 }
 
 TEST_F(test_linting_lsp_server,
@@ -1717,6 +1727,9 @@ TEST_F(test_linting_lsp_server,
   EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
   EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
   EXPECT_EQ(look_up(diagnostics, 0, "message"), "JSON syntax error");
+  EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0164");
+  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
+            "https://quick-lint-js.com/errors/#E0164");
 }
 
 TEST_F(test_linting_lsp_server,
@@ -2137,6 +2150,9 @@ TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
   EXPECT_EQ(look_up(diagnostics, 0, "message"),
             "variable used before declaration: x");
   EXPECT_EQ(look_up(diagnostics, 0, "source"), "quick-lint-js");
+  EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0058");
+  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
+            "https://quick-lint-js.com/errors/#E0058");
 }
 
 TEST(test_lsp_javascript_linter, linting_does_not_desync) {

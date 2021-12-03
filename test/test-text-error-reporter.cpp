@@ -6,6 +6,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/options.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/text-error-reporter.h>
 #include <sstream>
@@ -24,7 +25,19 @@ class test_text_error_reporter : public ::testing::Test {
     return reporter;
   }
 
+  text_error_reporter make_reporter(padded_string_view input,
+                                    option_when escape_error) {
+    text_error_reporter reporter(this->stream_, escape_error);
+    reporter.set_source(input, this->file_path_);
+    return reporter;
+  }
+
   std::string get_output() { return this->stream_.str(); }
+
+  std::string create_escape_error_code(std::string code) {
+    return "\x1B]8;;https://quick-lint-js.com/errors/#" + code + "\x1B\\" +
+           code + "\x1B]8;;\x1B\\";
+  }
 
  private:
   std::ostringstream stream_;
@@ -125,6 +138,18 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
       error_use_of_undeclared_variable{identifier(myvar_span)});
   EXPECT_EQ(this->get_output(),
             "FILE:1:1: warning: use of undeclared variable: myvar [E0057]\n");
+}
+
+TEST_F(test_text_error_reporter, use_of_undeclared_variable_escaped_error) {
+  padded_string input(u8"myvar;"_sv);
+  source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
+  ASSERT_EQ(myvar_span.string_view(), u8"myvar");
+
+  this->make_reporter(&input, option_when::always)
+      .report(error_use_of_undeclared_variable{identifier(myvar_span)});
+  EXPECT_EQ(this->get_output(),
+            "FILE:1:1: warning: use of undeclared variable: myvar [" +
+                this->create_escape_error_code("E0057") + "]\n");
 }
 }
 }

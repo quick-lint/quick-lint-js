@@ -35,6 +35,13 @@
         margin-right: 2em;
       }
 
+      /* Reduce horizontal scrolling for code samples on mobile. */
+      @media only screen and (max-width: 30em) {
+        figure {
+          margin-left: 0em;
+        }
+      }
+
       .table-of-contents a:link:not(:hover, :focus) {
         text-decoration: none;
       }

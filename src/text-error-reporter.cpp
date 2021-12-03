@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <iostream>
 #include <ostream>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
@@ -10,9 +11,37 @@
 #include <quick-lint-js/text-error-reporter.h>
 #include <quick-lint-js/token.h>
 
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+
 namespace quick_lint_js {
 text_error_reporter::text_error_reporter(std::ostream &output)
-    : output_(output) {}
+    : output_(output), format_escape_errors_(this->output_supports_escapes()) {}
+
+text_error_reporter::text_error_reporter(std::ostream &output,
+                                         option_when escape_errors)
+    : output_(output) {
+  switch (escape_errors) {
+  case option_when::auto_:
+    this->format_escape_errors_ = this->output_supports_escapes();
+    break;
+  case option_when::always:
+    this->format_escape_errors_ = true;
+    break;
+  case option_when::never:
+    this->format_escape_errors_ = false;
+    break;
+  }
+}
+
+bool text_error_reporter::output_supports_escapes() {
+#if defined(_WIN32)
+  return false;
+#else
+  return this->output_.rdbuf() == std::cerr.rdbuf() && isatty(STDERR_FILENO);
+#endif
+}
 
 void text_error_reporter::set_source(padded_string_view input,
                                      const char *file_path) {
@@ -23,16 +52,22 @@ void text_error_reporter::set_source(padded_string_view input,
 void text_error_reporter::report_impl(error_type type, void *error) {
   QLJS_ASSERT(this->file_path_);
   QLJS_ASSERT(this->locator_.has_value());
-  text_error_formatter formatter(/*output=*/this->output_,
-                                 /*file_path=*/this->file_path_,
-                                 /*locator=*/*this->locator_);
+  text_error_formatter formatter(
+      /*output=*/this->output_,
+      /*file_path=*/this->file_path_,
+      /*locator=*/*this->locator_,
+      /*format_escape_errors=*/this->format_escape_errors_);
   formatter.format(get_diagnostic_info(type), error);
 }
 
 text_error_formatter::text_error_formatter(std::ostream &output,
                                            const char *file_path,
-                                           cli_locator &locator)
-    : output_(output), file_path_(file_path), locator_(locator) {}
+                                           cli_locator &locator,
+                                           bool format_escape_errors)
+    : output_(output),
+      file_path_(file_path),
+      locator_(locator),
+      format_escape_errors_(format_escape_errors) {}
 
 void text_error_formatter::write_before_message(
     [[maybe_unused]] std::string_view code, diagnostic_severity sev,
@@ -63,7 +98,12 @@ void text_error_formatter::write_message_part(
 void text_error_formatter::write_after_message(std::string_view code,
                                                diagnostic_severity,
                                                const source_code_span &) {
-  this->output_ << " [" << code << "]\n";
+  if (this->format_escape_errors_) {
+    this->output_ << " [\x1B]8;;https://quick-lint-js.com/errors/#" << code
+                  << "\x1B\\" << code << "\x1B]8;;\x1B\\]\n";
+  } else {
+    this->output_ << " [" << code << "]\n";
+  }
 }
 }
 
