@@ -8,6 +8,9 @@ set(
   VIM_FILES
   ale_linters/javascript/quick_lint_js.vim
   autoload/quick_lint_js_ale.vim
+  doc/quick-lint-js.txt
+  doc/tags
+  plugin/quick-lint-js.vim
 )
 foreach (FILE IN LISTS VIM_FILES)
   get_filename_component(DIR "${FILE}" DIRECTORY)

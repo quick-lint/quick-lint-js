@@ -8,6 +8,9 @@ description: Find bugs in your JavaScript code with quick-lint-js
 files:
   - ale_linters/javascript/quick_lint_js.vim
   - autoload/quick_lint_js_ale.vim
+  - doc/quick-lint-js.txt
+  - doc/tags
+  - plugin/quick-lint-js.vim
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
