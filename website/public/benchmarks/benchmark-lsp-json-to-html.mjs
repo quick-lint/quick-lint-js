@@ -131,8 +131,8 @@ export function parseBenchmarkLSPJSON(benchmarkLSPJSONFile, seriesOptions) {
     let max = Math.max(...durations);
     seriess.push(
       new Series({
-        ...seriesOptions[name],
         name: name,
+        ...seriesOptions[name],
         minMS: min * 1000,
         avgMS: mean * 1000,
         maxMS: max * 1000,
