@@ -118,7 +118,7 @@ unchecked: linear X axis (emphasizing time)."
   `;
 }
 
-export function parseBenchmarkLSPJSON(benchmarkLSPJSONFile) {
+export function parseBenchmarkLSPJSON(benchmarkLSPJSONFile, seriesOptions) {
   let benchmarkResults = JSON.parse(
     fs.readFileSync(benchmarkLSPJSONFile, "utf-8")
   );
@@ -131,6 +131,7 @@ export function parseBenchmarkLSPJSON(benchmarkLSPJSONFile) {
     let max = Math.max(...durations);
     seriess.push(
       new Series({
+        ...seriesOptions[name],
         name: name,
         minMS: min * 1000,
         avgMS: mean * 1000,
@@ -151,24 +152,16 @@ function average(numbers) {
 }
 
 class Series {
-  constructor({ name, minMS, avgMS, maxMS }) {
+  constructor({ name, minMS, avgMS, maxMS, hue }) {
+    if (typeof hue === "undefined") {
+      throw new Error(`Missing hue for series: ${name}`);
+    }
+
     this.name = name;
     this.minMS = minMS;
     this.avgMS = avgMS;
     this.maxMS = maxMS;
-  }
-
-  get hue() {
-    let hues = {
-      "quick-lint-js": 0.0,
-      "eslint-server": 60.0,
-      RSLint: 120.0,
-      Flow: 180.0,
-      Deno: 240.0,
-      "Deno-nolint": 260.0,
-      TypeScript: 300.0,
-    };
-    return hues[this.name];
+    this.hue = hue;
   }
 }
 

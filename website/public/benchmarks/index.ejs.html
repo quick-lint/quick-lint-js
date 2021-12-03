@@ -12,6 +12,15 @@
       let { parseBenchmarkLSPJSON, makeBenchmarkHTML } = await import(
         url.pathToFileURL("benchmark-lsp-json-to-html.mjs") + moduleCacheBust
       );
+      let seriesOptions = {
+        "quick-lint-js": {hue: 0.0},
+        "eslint-server": {hue: 60.0},
+        RSLint: {hue: 120.0},
+        Flow: {hue: 180.0},
+        Deno: {hue: 240.0},
+        "Deno-nolint": {hue: 260.0},
+        TypeScript: {hue: 300.0},
+      };
       //%>
     </script>
     <title>quick-lint-js: benchmarks</title>
@@ -60,8 +69,8 @@
         </p>
         <h3>Results</h3>
         <%-
-        makeBenchmarkHTML(parseBenchmarkLSPJSON("open-wait-close-express-router-js.json"));
-        %>
+        makeBenchmarkHTML(parseBenchmarkLSPJSON("open-wait-close-express-router-js.json",
+        seriesOptions)); %>
         <h3>Setup (untimed)</h3>
         <ol>
           <li>Start the LSP server.</li>
