@@ -3431,6 +3431,8 @@ TEST_F(test_parse_expression, precedence) {
     binary,
     // Right-associative ternary operator.
     ternary_right,
+    // Right-associative prefix operator.
+    prefix,
   };
 
   static auto is_binary_level = [](level_type type) -> bool {
@@ -3439,6 +3441,7 @@ TEST_F(test_parse_expression, precedence) {
     case level_type::right:
     case level_type::binary:
       return true;
+    case level_type::prefix:
     case level_type::ternary_right:
       return false;
     }
@@ -3519,8 +3522,18 @@ TEST_F(test_parse_expression, precedence) {
       {level_type::binary, {{u8"+"}, {u8"-"}}},
       {level_type::binary, {{u8"*"}, {u8"/"}, {u8"%"}}},
       {level_type::binary, {{u8"**"}}},
-      // TODO(strager): Unary prefix operators:
-      // ! ~ + - ++ -- typeof void delete await
+      {level_type::prefix,
+       {
+           {u8"!", "unary"},
+           {u8"+", "unary"},
+           {u8"-", "unary"},
+           {u8"++", "rwunary"},
+           {u8"--", "rwunary"},
+           {u8"typeof ", "typeof"},
+           {u8"void ", "unary"},
+           {u8"delete ", "delete"},
+           // TODO(strager): await
+       }},
       // TODO(strager): Unary suffix operators: ++ --
       // TODO(strager): Unary prefix operator: new
       // TODO(strager): Operators: x.y, x[y], new x(y), x(y), x?.y
@@ -3537,6 +3550,8 @@ TEST_F(test_parse_expression, precedence) {
         break;
       case level_type::binary:
         ASSERT_STREQ(op.kind(), "binary");
+        break;
+      case level_type::prefix:
         break;
       case level_type::ternary_right:
         ASSERT_EQ(op.op, nullptr);
@@ -3559,21 +3574,29 @@ TEST_F(test_parse_expression, precedence) {
                         bool is_same_level) -> void {
     if (lo_type == level_type::binary && hi_type == level_type::binary) {
       // Associativity is not tracked.
+      // a*b+c
       check_expression(u8"a"s + hi_op.op + u8"b" + lo_op.op + u8"c",
                        "binary(var a, var b, var c)"s);
+      // a+b*c
       check_expression(u8"a"s + lo_op.op + u8"b" + hi_op.op + u8"c",
                        "binary(var a, var b, var c)"s);
     } else if (is_binary_level(lo_type) && is_binary_level(hi_type)) {
       if (!is_same_level || hi_type == level_type::right) {
+        // a=b+c
         check_expression(
             u8"a"s + lo_op.op + u8"b" + hi_op.op + u8"c",
             lo_op.kind() + "(var a, "s + hi_op.kind() + "(var b, var c))");
       }
       if (!is_same_level || hi_type == level_type::left) {
+        // a=b,c
         check_expression(
             u8"a"s + hi_op.op + u8"b" + lo_op.op + u8"c",
             lo_op.kind() + "("s + hi_op.kind() + "(var a, var b), var c)");
       }
+    } else if (is_binary_level(lo_type) && hi_type == level_type::prefix) {
+      // -a*b
+      check_expression(hi_op.op + u8"a"s + lo_op.op + u8"b",
+                       lo_op.kind() + "("s + hi_op.kind() + "(var a), var b)");
     } else if (is_binary_level(lo_type) &&
                hi_type == level_type::ternary_right) {
       ASSERT_STREQ(hi_op.kind(), "cond");
@@ -3603,6 +3626,14 @@ TEST_F(test_parse_expression, precedence) {
       check_expression(
           u8"a?b:c"s + hi_op.op + u8"d",
           "cond(var a, var b, "s + hi_op.kind() + "(var c, var d))");
+    } else if (hi_type == level_type::prefix &&
+               lo_type == level_type::ternary_right) {
+      ASSERT_STREQ(lo_op.kind(), "cond");
+      if (false) {  // TODO(strager): Fix.
+        // -a?b:c
+        check_expression(hi_op.op + u8"a?b:c"s,
+                         "cond("s + hi_op.kind() + "(var a), var b, var c)");
+      }
     } else {
       QLJS_UNREACHABLE();
     }
