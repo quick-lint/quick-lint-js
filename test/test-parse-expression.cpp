@@ -3429,13 +3429,34 @@ TEST_F(test_parse_expression, precedence) {
     // Binary operator. We don't track associativity of many binary expressions,
     // but if we do, we should remove this and use 'left' or 'right' instead.
     binary,
+    // Right-associative ternary operator.
+    ternary_right,
   };
+
+  static auto is_binary_level = [](level_type type) -> bool {
+    switch (type) {
+    case level_type::left:
+    case level_type::right:
+    case level_type::binary:
+      return true;
+    case level_type::ternary_right:
+      return false;
+    }
+    QLJS_UNREACHABLE();
+  };
+
   struct operator_type {
     const char8* op;
     const char* raw_kind;
 
     const char* kind() const noexcept {
-      return this->raw_kind ? this->raw_kind : "binary";
+      if (this->raw_kind) {
+        return this->raw_kind;
+      } else if (this->op) {
+        return "binary";
+      } else {
+        return "cond";
+      }
     }
   };
   struct precedence_level {
@@ -3471,7 +3492,7 @@ TEST_F(test_parse_expression, precedence) {
            {u8"?\x3f=", "condassign"},
            // TODO(strager): yield and yield*
        }},
-      // TODO(strager): ? : operator.
+      {level_type::ternary_right, {{/* special-cased */}}},
       {level_type::binary, {{u8"||"}, {u8"??"}}},
       {level_type::binary, {{u8"&&"}}},
       {level_type::binary, {{u8"|"}}},
@@ -3509,10 +3530,18 @@ TEST_F(test_parse_expression, precedence) {
   // Sanity check the table.
   for (const precedence_level& level : precedence_levels) {
     for (const operator_type& op : level.ops) {
-      if (level.type == level_type::binary) {
-        ASSERT_STREQ(op.kind(), "binary");
-      } else {
+      switch (level.type) {
+      case level_type::left:
+      case level_type::right:
         ASSERT_STRNE(op.kind(), "binary");
+        break;
+      case level_type::binary:
+        ASSERT_STREQ(op.kind(), "binary");
+        break;
+      case level_type::ternary_right:
+        ASSERT_EQ(op.op, nullptr);
+        ASSERT_STREQ(op.kind(), "cond");
+        break;
       }
     }
   }
@@ -3534,7 +3563,7 @@ TEST_F(test_parse_expression, precedence) {
                        "binary(var a, var b, var c)"s);
       check_expression(u8"a"s + lo_op.op + u8"b" + hi_op.op + u8"c",
                        "binary(var a, var b, var c)"s);
-    } else {
+    } else if (is_binary_level(lo_type) && is_binary_level(hi_type)) {
       if (!is_same_level || hi_type == level_type::right) {
         check_expression(
             u8"a"s + lo_op.op + u8"b" + hi_op.op + u8"c",
@@ -3545,6 +3574,37 @@ TEST_F(test_parse_expression, precedence) {
             u8"a"s + hi_op.op + u8"b" + lo_op.op + u8"c",
             lo_op.kind() + "("s + hi_op.kind() + "(var a, var b), var c)");
       }
+    } else if (is_binary_level(lo_type) &&
+               hi_type == level_type::ternary_right) {
+      ASSERT_STREQ(hi_op.kind(), "cond");
+      // a+b?c:d
+      check_expression(u8"a"s + lo_op.op + u8"b?c:d",
+                       lo_op.kind() + "(var a, cond(var b, var c, var d))"s);
+      // a?b+c:d
+      check_expression(
+          u8"a?b"s + lo_op.op + u8"c:d",
+          "cond(var a, "s + lo_op.kind() + "(var b, var c), var d)");
+      // a?b:c+d
+      check_expression(
+          u8"a?b:c"s + lo_op.op + u8"d",
+          "cond(var a, var b, "s + lo_op.kind() + "(var c, var d))");
+    } else if (is_binary_level(hi_type) &&
+               lo_type == level_type::ternary_right) {
+      ASSERT_STREQ(lo_op.kind(), "cond");
+      // a=b?c:d
+      check_expression(
+          u8"a"s + hi_op.op + u8"b?c:d",
+          "cond("s + hi_op.kind() + "(var a, var b), var c, var d)");
+      // a?b=c:d
+      check_expression(
+          u8"a?b"s + hi_op.op + u8"c:d",
+          "cond(var a, "s + hi_op.kind() + "(var b, var c), var d)");
+      // a?b:c=d
+      check_expression(
+          u8"a?b:c"s + hi_op.op + u8"d",
+          "cond(var a, var b, "s + hi_op.kind() + "(var c, var d))");
+    } else {
+      QLJS_UNREACHABLE();
     }
   };
 
