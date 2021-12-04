@@ -101,6 +101,9 @@ class expression_arena {
   using buffering_visitor_ptr = buffering_visitor *;
 
   template <class T>
+  using vector = bump_vector<T, monotonic_allocator>;
+
+  template <class T>
   static inline constexpr bool is_allocatable =
       std::is_trivially_destructible_v<std::remove_reference_t<T>>;
 
@@ -108,7 +111,10 @@ class expression_arena {
   expression *make_expression(Args &&... args);
 
   template <class T, std::size_t InSituCapacity>
-  array_ptr<T> make_array(vector<T, InSituCapacity> &&);
+  array_ptr<T> make_array(quick_lint_js::vector<T, InSituCapacity> &&);
+
+  template <class T>
+  array_ptr<T> make_array(bump_vector<T, monotonic_allocator> &&);
 
   template <class T>
   array_ptr<T> make_array(T *begin, T *end);
@@ -300,7 +306,18 @@ expression *expression_arena::make_expression(Args &&... args) {
 
 template <class T, std::size_t InSituCapacity>
 inline expression_arena::array_ptr<T> expression_arena::make_array(
-    vector<T, InSituCapacity> &&elements) {
+    quick_lint_js::vector<T, InSituCapacity> &&elements) {
+  array_ptr<T> result =
+      this->make_array(elements.data(), elements.data() + elements.size());
+  elements.clear();
+  return result;
+}
+
+template <class T>
+inline expression_arena::array_ptr<T> expression_arena::make_array(
+    bump_vector<T, monotonic_allocator> &&elements) {
+  // TODO(strager): Adopt the pointer if the elements.allocator_ is our
+  // allocator.
   array_ptr<T> result =
       this->make_array(elements.data(), elements.data() + elements.size());
   elements.clear();

@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_VECTOR_H
 #define QUICK_LINT_JS_VECTOR_H
 
+#include <algorithm>
 #include <boost/container/pmr/monotonic_buffer_resource.hpp>
 #include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <boost/container/pmr/unsynchronized_pool_resource.hpp>
@@ -12,10 +13,14 @@
 #include <cstdint>
 #include <iosfwd>
 #include <map>
+#include <memory>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/force-inline.h>
+#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/warning.h>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -213,6 +218,150 @@ class vector {
   using underlying_allocator = typename underlying_vector::allocator_type;
 
   underlying_vector data_;
+#if QLJS_FEATURE_VECTOR_PROFILING
+  const char *debug_owner_;
+#endif
+};
+
+template <class T, class BumpAllocator>
+class bump_vector {
+ public:
+  using value_type = T;
+  using size_type = std::size_t;
+  using difference_type = std::ptrdiff_t;
+  using reference = T &;
+  using const_reference = const T &;
+  using pointer = T *;
+  using const_pointer = const T *;
+  using iterator = T *;
+  using const_iterator = const T *;
+
+  static_assert(std::is_trivially_destructible_v<T>);
+
+  explicit bump_vector(const char *debug_owner [[maybe_unused]],
+                       BumpAllocator *allocator) noexcept
+      : allocator_(allocator)
+#if QLJS_FEATURE_VECTOR_PROFILING
+        ,
+        debug_owner_(debug_owner)
+#endif
+  {
+    this->add_instrumentation_entry(vector_instrumentation::event::create);
+  }
+
+  bump_vector(const bump_vector &) = delete;
+  bump_vector &operator=(const bump_vector &) = delete;
+
+  ~bump_vector() { this->clear(); }
+
+  bool empty() const noexcept { return this->data_ == this->data_end_; }
+  std::size_t size() const noexcept {
+    return narrow_cast<std::size_t>(this->data_end_ - this->data_);
+  }
+  std::size_t capacity() const noexcept {
+    return narrow_cast<std::size_t>(this->capacity_end_ - this->data_);
+  }
+
+  QLJS_FORCE_INLINE T *data() const noexcept { return this->data_; }
+
+  QLJS_FORCE_INLINE const T *begin() const noexcept { return this->data_; }
+  QLJS_FORCE_INLINE const T *end() const noexcept { return this->data_end_; }
+
+  QLJS_FORCE_INLINE T &front() noexcept {
+    QLJS_ASSERT(!this->empty());
+    return this->data_[0];
+  }
+  QLJS_FORCE_INLINE T &back() noexcept {
+    QLJS_ASSERT(!this->empty());
+    return this->data_end_[-1];
+  }
+
+  void reserve(std::size_t size) {
+    if (this->capacity() < size) {
+      this->reserve_grow(size);
+    }
+  }
+
+  void reserve_grow(std::size_t new_size) {
+    QLJS_ASSERT(new_size > this->capacity());
+    if (this->data_) {
+      bool grew = this->allocator_->try_grow_array_in_place(
+          this->data_,
+          /*old_size=*/this->capacity(),
+          /*new_size=*/new_size);
+      if (grew) {
+        this->capacity_end_ = this->data_ + new_size;
+      } else {
+        T *new_data =
+            this->allocator_->template allocate_uninitialized_array<T>(
+                new_size);
+        T *new_data_end =
+            std::uninitialized_move(this->data_, this->data_end_, new_data);
+        this->clear_no_event();
+        this->data_ = new_data;
+        this->data_end_ = new_data_end;
+        this->capacity_end_ = new_data + new_size;
+      }
+    } else {
+      this->data_ =
+          this->allocator_->template allocate_uninitialized_array<T>(new_size);
+      this->data_end_ = this->data_;
+      this->capacity_end_ = this->data_ + new_size;
+    }
+  }
+
+  template <class... Args>
+  QLJS_FORCE_INLINE T &emplace_back(Args &&... args) {
+    if (this->capacity_end_ == this->data_end_) {
+      this->reserve_grow(
+          (std::max)(this->capacity() + 1, this->capacity() * 2));
+    }
+    this->data_end_ = new (this->data_end_) T(std::forward<Args>(args)...);
+    T &result = *this->data_end_++;
+    this->add_instrumentation_entry(vector_instrumentation::event::append);
+    return result;
+  }
+
+  QLJS_FORCE_INLINE void clear() {
+    this->clear_no_event();
+    this->add_instrumentation_entry(vector_instrumentation::event::clear);
+  }
+
+ private:
+  void clear_no_event() {
+    if (this->data_) {
+      std::destroy(this->data_, this->data_end_);
+      this->allocator_->deallocate(
+          this->data_,
+          narrow_cast<std::size_t>(this->data_end_ - this->data_) * sizeof(T),
+          alignof(T));
+      this->data_ = nullptr;
+      this->data_end_ = nullptr;
+      this->capacity_end_ = nullptr;
+    }
+  }
+
+#if QLJS_FEATURE_VECTOR_PROFILING
+  QLJS_FORCE_INLINE void add_instrumentation_entry(
+      vector_instrumentation::event event) {
+    vector_instrumentation::instance.add_entry(
+        /*object_id=*/reinterpret_cast<std::uintptr_t>(this),
+        /*owner=*/this->debug_owner_,
+        /*event=*/event,
+        /*data_pointer=*/reinterpret_cast<std::uintptr_t>(this->data()),
+        /*size=*/this->size(),
+        /*capacity=*/this->capacity());
+  }
+#else
+  QLJS_FORCE_INLINE void add_instrumentation_entry(
+      vector_instrumentation::event) {}
+#endif
+
+  T *data_ = nullptr;
+  T *data_end_ = nullptr;
+  T *capacity_end_ = nullptr;
+
+  BumpAllocator *allocator_;
 #if QLJS_FEATURE_VECTOR_PROFILING
   const char *debug_owner_;
 #endif

@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 #include <map>
 #include <quick-lint-js/feature.h>
+#include <quick-lint-js/linked-bump-allocator.h>
 #include <quick-lint-js/vector.h>
 #include <sstream>
 
@@ -870,6 +871,91 @@ TEST(test_vector_instrumentation_dump_capacity_change_histogram,
       histogram, stream,
       vector_instrumentation::dump_capacity_change_options{});
   EXPECT_EQ(stream.str(), dump_capacity_change_header);
+}
+
+TEST(test_bump_vector, empty) {
+  linked_bump_allocator<alignof(int)> alloc;
+  bump_vector<int, decltype(alloc)> v("test", &alloc);
+  EXPECT_TRUE(v.empty());
+  EXPECT_EQ(v.size(), 0);
+  EXPECT_EQ(v.capacity(), 0);
+}
+
+TEST(test_bump_vector, append_into_reserved_memory) {
+  linked_bump_allocator<alignof(int)> alloc;
+  bump_vector<int, decltype(alloc)> v("test", &alloc);
+  v.reserve(2);
+  EXPECT_EQ(v.capacity(), 2);
+  EXPECT_EQ(v.size(), 0);
+
+  v.emplace_back(100);
+  EXPECT_EQ(v.capacity(), 2);
+  EXPECT_EQ(v.size(), 1);
+  EXPECT_THAT(v, ElementsAre(100));
+
+  v.emplace_back(200);
+  EXPECT_EQ(v.capacity(), 2);
+  EXPECT_EQ(v.size(), 2);
+  EXPECT_THAT(v, ElementsAre(100, 200));
+}
+
+TEST(test_bump_vector, append_into_new_memory) {
+  linked_bump_allocator<alignof(int)> alloc;
+  bump_vector<int, decltype(alloc)> v("test", &alloc);
+  EXPECT_EQ(v.capacity(), 0);
+  EXPECT_EQ(v.size(), 0);
+
+  v.emplace_back(100);
+  EXPECT_GT(v.capacity(), 0);
+  EXPECT_EQ(v.size(), 1);
+  EXPECT_THAT(v, ElementsAre(100));
+
+  v.emplace_back(200);
+  EXPECT_GT(v.capacity(), 0);
+  EXPECT_EQ(v.size(), 2);
+  EXPECT_THAT(v, ElementsAre(100, 200));
+}
+
+TEST(test_bump_vector, growing_allocation_in_place) {
+  linked_bump_allocator<alignof(int)> alloc;
+  bump_vector<int, decltype(alloc)> v("test", &alloc);
+  v.reserve(2);
+
+  v.emplace_back(100);
+  v.emplace_back(200);
+  EXPECT_EQ(v.capacity(), 2);
+  EXPECT_THAT(v, ElementsAre(100, 200));
+
+  v.emplace_back(300);
+  EXPECT_GT(v.capacity(), 2);
+  v.emplace_back(400);
+  EXPECT_THAT(v, ElementsAre(100, 200, 300, 400));
+}
+
+TEST(test_bump_vector, growing_allocation_by_copy) {
+  linked_bump_allocator<alignof(int)> alloc;
+  bump_vector<int, decltype(alloc)> v("test", &alloc);
+  v.reserve(2);
+
+  v.emplace_back(100);
+  v.emplace_back(200);
+  EXPECT_EQ(v.capacity(), 2);
+  EXPECT_THAT(v, ElementsAre(100, 200));
+  std::uintptr_t old_v_data_pointer =
+      reinterpret_cast<std::uintptr_t>(v.data());
+
+  // Prevent allocation from growing in-place.
+  int *middle_number = alloc.new_object<int>(42);
+
+  v.emplace_back(300);
+  EXPECT_GT(v.capacity(), 2);
+  v.emplace_back(400);
+  EXPECT_THAT(v, ElementsAre(100, 200, 300, 400));
+
+  EXPECT_NE(old_v_data_pointer, reinterpret_cast<std::uintptr_t>(v.data()))
+      << "growing vector should use new data pointer";
+  EXPECT_EQ(*middle_number, 42)
+      << "growing vector shouldn't change unrelated allocation";
 }
 }
 }

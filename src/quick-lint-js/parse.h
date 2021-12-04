@@ -3773,12 +3773,10 @@ class parser {
 
   void parse_arrow_function_expression_remainder(
       source_code_span arrow_span,
-      vector<expression *, /*InSituCapacity=*/2> &children,
-      bool allow_in_operator);
+      expression_arena::vector<expression *> &children, bool allow_in_operator);
   // Precondition: Current token is '=>'.
   void parse_arrow_function_expression_remainder(
-      vector<expression *, /*InSituCapacity=*/2> &children,
-      bool allow_in_operator);
+      expression_arena::vector<expression *> &children, bool allow_in_operator);
 
   expression *parse_call_expression_remainder(expression *callee);
   expression *parse_index_expression_remainder(expression *lhs);
