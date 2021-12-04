@@ -228,7 +228,7 @@ expression* parser::parse_primary_expression(precedence prec) {
         .math_or_logical_or_assignment = false,
         .commas = false,
         .in_operator = prec.in_operator,
-        .is_typeof = (type == token_type::kw_typeof),
+        .conditional_operator = false,
     });
     if (child->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
@@ -256,6 +256,7 @@ expression* parser::parse_primary_expression(precedence prec) {
         .math_or_logical_or_assignment = false,
         .commas = false,
         .in_operator = prec.in_operator,
+        .conditional_operator = false,
     });
     if (child->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
@@ -1123,7 +1124,7 @@ next:
 
   // x ? y : z  // Conditional operator.
   case token_type::question: {
-    if (prec.is_typeof) {
+    if (!prec.conditional_operator) {
       break;
     }
     source_code_span question_span = this->peek().span();

@@ -3629,11 +3629,9 @@ TEST_F(test_parse_expression, precedence) {
     } else if (hi_type == level_type::prefix &&
                lo_type == level_type::ternary_right) {
       ASSERT_STREQ(lo_op.kind(), "cond");
-      if (false) {  // TODO(strager): Fix.
-        // -a?b:c
-        check_expression(hi_op.op + u8"a?b:c"s,
-                         "cond("s + hi_op.kind() + "(var a), var b, var c)");
-      }
+      // -a?b:c
+      check_expression(hi_op.op + u8"a?b:c"s,
+                       "cond("s + hi_op.kind() + "(var a), var b, var c)");
     } else {
       QLJS_UNREACHABLE();
     }
