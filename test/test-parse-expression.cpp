@@ -24,6 +24,7 @@ using ::testing::_;
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 using ::testing::VariantWith;
+using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -77,7 +78,7 @@ class test_parse_expression : public ::testing::Test {
     test_parser& p = this->make_parser(input);
 
     expression* ast = p.parse_expression();
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors(), IsEmpty()) << out_string8(input);
     return ast;
   }
 
@@ -3417,6 +3418,149 @@ TEST_F(test_parse_expression, jsx_is_not_supported) {
   EXPECT_EQ(p.range(ast).begin_offset(), 0);
   EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"<MyComponent"));
   EXPECT_EQ(summarize(ast), "binary(missing, var MyComponent)");
+}
+
+TEST_F(test_parse_expression, precedence) {
+  enum class level_type {
+    // Left-associative binary operator.
+    left,
+    // Right-associative binary operator.
+    right,
+    // Binary operator. We don't track associativity of many binary expressions,
+    // but if we do, we should remove this and use 'left' or 'right' instead.
+    binary,
+  };
+  struct operator_type {
+    const char8* op;
+    const char* raw_kind;
+
+    const char* kind() const noexcept {
+      return this->raw_kind ? this->raw_kind : "binary";
+    }
+  };
+  struct precedence_level {
+    level_type type;
+    std::vector<operator_type> ops;
+  };
+
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_CLANG("-Wmissing-field-initializers")
+  QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
+  // In our table, lower index items have lower precedence.
+  static const precedence_level precedence_levels[] = {
+      // TODO(strager): Fix failures when testing e.g. "a,b+c".
+      // {level_type::binary, {{u8","}}},
+      {level_type::right,
+       {
+           {u8"=", "assign"},
+           {u8"+=", "upassign"},
+           {u8"-=", "upassign"},
+           {u8"**=", "upassign"},
+           {u8"*=", "upassign"},
+           {u8"/=", "upassign"},
+           {u8"%=", "upassign"},
+           {u8"<<=", "upassign"},
+           {u8">>=", "upassign"},
+           {u8">>>=", "upassign"},
+           {u8"&=", "upassign"},
+           {u8"^=", "upassign"},
+           {u8"|=", "upassign"},
+           {u8"&&=", "condassign"},
+           {u8"||=", "condassign"},
+           {u8"?\x3f=", "condassign"},
+           // TODO(strager): yield and yield*
+       }},
+      // TODO(strager): ? : operator.
+      {level_type::binary, {{u8"||"}, {u8"??"}}},
+      {level_type::binary, {{u8"&&"}}},
+      {level_type::binary, {{u8"|"}}},
+      {level_type::binary, {{u8"^"}}},
+      {level_type::binary, {{u8"&"}}},
+      {level_type::binary,
+       {
+           {u8"=="},
+           {u8"!="},
+           {u8"==="},
+           {u8"!=="},
+       }},
+      {level_type::binary,
+       {
+           {u8"<"},
+           {u8"<="},
+           {u8">"},
+           {u8">="},
+           // TODO(strager): Fix failures when testing e.g. "a in b+c".
+           // {u8" in "},
+           {u8" instanceof "},
+       }},
+      {level_type::binary, {{u8"<<"}, {u8">>"}, {u8">>>"}}},
+      {level_type::binary, {{u8"+"}, {u8"-"}}},
+      {level_type::binary, {{u8"*"}, {u8"/"}, {u8"%"}}},
+      {level_type::binary, {{u8"**"}}},
+      // TODO(strager): Unary prefix operators:
+      // ! ~ + - ++ -- typeof void delete await
+      // TODO(strager): Unary suffix operators: ++ --
+      // TODO(strager): Unary prefix operator: new
+      // TODO(strager): Operators: x.y, x[y], new x(y), x(y), x?.y
+  };
+  QLJS_WARNING_POP
+
+  // Sanity check the table.
+  for (const precedence_level& level : precedence_levels) {
+    for (const operator_type& op : level.ops) {
+      if (level.type == level_type::binary) {
+        ASSERT_STREQ(op.kind(), "binary");
+      } else {
+        ASSERT_STRNE(op.kind(), "binary");
+      }
+    }
+  }
+
+  static auto check_expression =
+      [](string8_view code, std::string_view expected_ast_summary) -> void {
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), expected_ast_summary);
+  };
+
+  static auto test = [](level_type lo_type, operator_type lo_op,
+                        level_type hi_type, operator_type hi_op,
+                        bool is_same_level) -> void {
+    if (lo_type == level_type::binary && hi_type == level_type::binary) {
+      // Associativity is not tracked.
+      check_expression(u8"a"s + hi_op.op + u8"b" + lo_op.op + u8"c",
+                       "binary(var a, var b, var c)"s);
+      check_expression(u8"a"s + lo_op.op + u8"b" + hi_op.op + u8"c",
+                       "binary(var a, var b, var c)"s);
+    } else {
+      if (!is_same_level || hi_type == level_type::right) {
+        check_expression(
+            u8"a"s + lo_op.op + u8"b" + hi_op.op + u8"c",
+            lo_op.kind() + "(var a, "s + hi_op.kind() + "(var b, var c))");
+      }
+      if (!is_same_level || hi_type == level_type::left) {
+        check_expression(
+            u8"a"s + hi_op.op + u8"b" + lo_op.op + u8"c",
+            lo_op.kind() + "("s + hi_op.kind() + "(var a, var b), var c)");
+      }
+    }
+  };
+
+  for (std::size_t hi_index = 0; hi_index < std::size(precedence_levels);
+       ++hi_index) {
+    const precedence_level& hi = precedence_levels[hi_index];
+    for (const operator_type& hi_op : hi.ops) {
+      for (std::size_t lo_index = 0; lo_index < hi_index; ++lo_index) {
+        bool is_same_level = hi_index == lo_index;
+        const precedence_level& lo = precedence_levels[lo_index];
+        for (const operator_type& lo_op : lo.ops) {
+          test(lo.type, lo_op, hi.type, hi_op, is_same_level);
+        }
+      }
+    }
+  }
 }
 
 std::string summarize(const expression& expression) {
