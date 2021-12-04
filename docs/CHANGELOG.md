@@ -29,12 +29,17 @@ Semantic Versioning.
 
 * Reporting E0144 no longer also reports E0057.
 * Variables can be named according to Unicode 14 (previously Unicode 13).
+* `void 0?a:b=c` no longer reports E0020.
+* Vim: The Debian package, the Arch Linux package, and the Homebrew package now
+  install the coc.nvim plugin and the plugin documentation.
 
 ### Optimized
 
 * Parsing identifier is now optimized for ARM systems, including Apple Silicon.
 * Diagnostic message translations consume less space in executables and also
   take less time to process.
+* Expression ASTs are now garbage-collected during parsing, reducing peak memory
+  usage (and as a side effect making parsing faster).
 
 ## 0.6.0 (2021-11-20)
 
