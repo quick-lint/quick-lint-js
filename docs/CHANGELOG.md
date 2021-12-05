@@ -32,6 +32,10 @@ Semantic Versioning.
 * `void 0?a:b=c` no longer reports E0020.
 * Vim: The Debian package, the Arch Linux package, and the Homebrew package now
   install the coc.nvim plugin and the plugin documentation.
+* Neovim: Fixed with newer versions of nvim-lspconfig
+  (since commit
+  [97da7ed12e](https://github.com/neovim/nvim-lspconfig/commit/97da7ed12e7e0d86e735e38a8170e941d4ed3e9a)
+  published November 25, 2021).
 
 ### Optimized
 
