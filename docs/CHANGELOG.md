@@ -16,7 +16,7 @@ Semantic Versioning.
 
 ### Added
 
-* New diagnostics: E0053
+* New diagnostics: E0053, E0179
 * Improve error reporting of `Improve error on console.("hello")` and similar
   code.
 * Reported errors now include a link to the website for a detailed explanation

@@ -1052,6 +1052,13 @@
             escape_sequence))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_return_statement_returns_nothing, "E0179",                         \
+      { source_code_span return_keyword; },                                    \
+      WARNING(                                                                 \
+          QLJS_TRANSLATABLE("return statement returns nothing (undefined)"),   \
+          return_keyword))                                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_stray_comma_in_let_statement, "E0036",                             \
       { source_code_span where; },                                             \
       ERROR(QLJS_TRANSLATABLE("stray comma in let statement"), where))         \
