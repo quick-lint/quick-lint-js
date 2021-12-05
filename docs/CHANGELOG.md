@@ -17,8 +17,7 @@ Semantic Versioning.
 ### Added
 
 * New diagnostics: E0053, E0179
-* Improve error reporting of `Improve error on console.("hello")` and similar
-  code.
+* Improve error reporting of `console.("hello")` and similar code.
 * Reported errors now include a link to the website for a detailed explanation
   (implemented by [Amir][]).
 * CLI: New `--diagnostic-hyperlinks` option (implemented by [Amir][]).
@@ -39,7 +38,8 @@ Semantic Versioning.
 
 ### Optimized
 
-* Parsing identifier is now optimized for ARM systems, including Apple Silicon.
+* Identifier parsing is now SIMD-optimized for ARM systems, including Apple
+  Silicon.
 * Diagnostic message translations consume less space in executables and also
   take less time to process.
 * Expression ASTs are now garbage-collected during parsing, reducing peak memory
