@@ -39,11 +39,14 @@ Semantic Versioning.
 ### Optimized
 
 * Identifier parsing is now SIMD-optimized for ARM systems, including Apple
-  Silicon.
+  Silicon. [See the patch
+  here.](https://github.com/quick-lint/quick-lint-js/commit/79cf6e71f42722a8eca28ab20f288abdc41ec162)
 * Diagnostic message translations consume less space in executables and also
-  take less time to process.
+  take less time to process. [See the patch
+  here.](https://github.com/quick-lint/quick-lint-js/commit/1dcedfe985a3a4ddf956d629907265e46b2c6aed)
 * Expression ASTs are now garbage-collected during parsing, reducing peak memory
-  usage (and as a side effect making parsing faster).
+  usage (and as a side effect making parsing faster). [See the patch
+  here.](https://github.com/quick-lint/quick-lint-js/commit/9d96b4c54c81fc95f1094f129bf1fdc5db8d02e3)
 
 ## 0.6.0 (2021-11-20)
 
