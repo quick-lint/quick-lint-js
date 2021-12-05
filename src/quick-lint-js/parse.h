@@ -187,6 +187,11 @@ class parser {
     v.visit_end_of_module();
   }
 
+  enum class parse_statement_type {
+    any_statement,
+    no_declarations,
+  };
+
   // If a statement was parsed, this function returns true.
   //
   // If a statement was not parsed (e.g. end of file), then:
@@ -194,8 +199,9 @@ class parser {
   // * no error is reported
   // * this function returns false
   template <QLJS_PARSE_VISITOR Visitor>
-  [[nodiscard]] bool parse_and_visit_statement(Visitor &v,
-                                               bool allow_declarations = true) {
+  [[nodiscard]] bool parse_and_visit_statement(
+      Visitor &v, parse_statement_type statement_type =
+                      parse_statement_type::any_statement) {
     depth_guard d_guard(this);
     auto parse_expression_end = [this]() -> void {
       while (this->peek().type == token_type::right_paren) {
@@ -247,7 +253,8 @@ class parser {
         this->skip();
         goto parse_statement;
       } else if (this->is_let_token_a_variable_reference(
-                     this->peek(), /*allow_declarations=*/allow_declarations)) {
+                     this->peek(), /*allow_declarations=*/statement_type !=
+                                       parse_statement_type::no_declarations)) {
         // Expression.
         this->lexer_.roll_back_transaction(std::move(transaction));
         expression *ast =
@@ -688,12 +695,6 @@ class parser {
     }
 
     return true;
-  }
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  [[nodiscard]] bool parse_and_visit_statement_disallowing_declaration(
-      Visitor &v) {
-    return this->parse_and_visit_statement(v, /*allow_declarations=*/false);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
@@ -2479,8 +2480,8 @@ class parser {
     this->error_on_class_statement(statement_kind::for_loop);
     this->error_on_function_statement(statement_kind::for_loop);
     this->error_on_lexical_declaration(statement_kind::for_loop);
-    bool parsed_body =
-        this->parse_and_visit_statement_disallowing_declaration(v);
+    bool parsed_body = this->parse_and_visit_statement(
+        v, parse_statement_type::no_declarations);
     if (!parsed_body) {
       const char8 *here = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_missing_body_for_for_statement{
@@ -2516,8 +2517,8 @@ class parser {
     this->error_on_class_statement(statement_kind::while_loop);
     this->error_on_function_statement(statement_kind::while_loop);
     this->error_on_lexical_declaration(statement_kind::while_loop);
-    bool parsed_body =
-        this->parse_and_visit_statement_disallowing_declaration(v);
+    bool parsed_body = this->parse_and_visit_statement(
+        v, parse_statement_type::no_declarations);
     if (!parsed_body) {
       const char8 *here = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_missing_body_for_while_statement{
@@ -2674,8 +2675,8 @@ class parser {
     this->error_on_lexical_declaration(statement_kind::with_statement);
 
     v.visit_enter_with_scope();
-    bool parsed_body =
-        this->parse_and_visit_statement_disallowing_declaration(v);
+    bool parsed_body = this->parse_and_visit_statement(
+        v, parse_statement_type::no_declarations);
     if (!parsed_body) {
       QLJS_PARSER_UNIMPLEMENTED();
     }
@@ -2709,8 +2710,8 @@ class parser {
         entered_block_scope = true;
       }
 
-      bool parsed_if_body =
-          this->parse_and_visit_statement_disallowing_declaration(v);
+      bool parsed_if_body = this->parse_and_visit_statement(
+          v, parse_statement_type::no_declarations);
       if (!parsed_if_body) {
         QLJS_PARSER_UNIMPLEMENTED();
       }
