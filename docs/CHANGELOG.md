@@ -20,7 +20,7 @@ Beta release.
 
 ### Added
 
-* New diagnostics: E0053, E0179
+* New diagnostics: [E0053][], [E0179][]
 * Improve error reporting of `console.("hello")` and similar code.
 * Reported errors now include a link to the website for a detailed explanation
   (implemented by [Amir][]).
@@ -30,9 +30,9 @@ Beta release.
 
 ### Fixed
 
-* Reporting E0144 no longer also reports E0057.
+* Reporting [E0144][] no longer also reports [E0057][].
 * Variables can be named according to Unicode 14 (previously Unicode 13).
-* `void 0?a:b=c` no longer reports E0020.
+* `void 0?a:b=c` no longer reports [E0020][].
 * Vim: The Debian package, the Arch Linux package, and the Homebrew package now
   install the coc.nvim plugin and the plugin documentation.
 * Neovim: Fixed with newer versions of nvim-lspconfig
@@ -97,10 +97,10 @@ Beta release.
 * JSX: Instead of reporting a bunch of errors, quick-lint-js now tells you that
   JSX syntax is not yet supported.
 * FreeBSD: Fixed build.
-* E0073, E0094, E0104, E0106, E0111, and E0119 now point to to a more helpful
-  place (implemented by strager and [Amir][]).
-* `for (let x = a in b; c; d) {}` now reports E0108 instead of reporting E0173,
-  E0110, and E0110 again.
+* [E0073][], [E0094][], [E0104][], [E0106][], [E0111][], and [E0119][] now point
+  to a more helpful place (implemented by strager and [Amir][]).
+* `for (let x = a in b; c; d) {}` now reports [E0108][] instead of reporting
+  [E0173][], [E0110][], and [E0110][] again.
 
 ### Changed
 
@@ -200,8 +200,8 @@ Beta release.
   anywhere in `$PATH`
 * Various crashes given invalid JavaScript no longer happen (implemented by
   [wagner riffel][] and [David Vasileff][])
-* `for (const x of xs)` no longer incorrectly reports E205 (missing initializer
-  in const declaration) (fixed by [Himanshu][])
+* `for (const x of xs)` no longer incorrectly reports [E205][E0205] (missing
+   initializer in const declaration) (fixed by [Himanshu][])
 * Windows: `quick-lint-js.config` files are now recognized if the containing
   directory contains non-ASCII characters
 * Fix SSE2 corruption on 32-bit Windows builds with MSVC.
@@ -274,3 +274,20 @@ Beta release.
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
 [tiagovla]: https://github.com/tiagovla
 [wagner riffel]: https://github.com/wgrr
+
+[E0001]: https://quick-lint-js.com/errors/#E0001
+[E0020]: https://quick-lint-js.com/errors/#E0020
+[E0053]: https://quick-lint-js.com/errors/#E0053
+[E0057]: https://quick-lint-js.com/errors/#E0057
+[E0073]: https://quick-lint-js.com/errors/#E0073
+[E0094]: https://quick-lint-js.com/errors/#E0094
+[E0104]: https://quick-lint-js.com/errors/#E0104
+[E0106]: https://quick-lint-js.com/errors/#E0106
+[E0108]: https://quick-lint-js.com/errors/#E0108
+[E0110]: https://quick-lint-js.com/errors/#E0110
+[E0111]: https://quick-lint-js.com/errors/#E0111
+[E0119]: https://quick-lint-js.com/errors/#E0119
+[E0144]: https://quick-lint-js.com/errors/#E0144
+[E0173]: https://quick-lint-js.com/errors/#E0173
+[E0179]: https://quick-lint-js.com/errors/#E0179
+[E0205]: https://quick-lint-js.com/errors/#E0205
