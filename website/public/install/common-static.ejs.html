@@ -47,6 +47,14 @@
           >Windows (x64)</a
         >
       </li>
+      <% if (qljsVersionInfo.version !== "0.7.0") { %>
+      <li>
+        <a
+          href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/windows-x86.zip"
+          >Windows (x86)</a
+        >
+      </li>
+      <% } %>
       <li>
         <a
           href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/windows-arm64.zip"
