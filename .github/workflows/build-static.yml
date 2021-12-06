@@ -191,7 +191,7 @@ jobs:
           mv quick-lint-js dist/npm/darwin-x64
 
           tar xf macos-aarch64.tar.gz
-          mv quick-lint-js dist/npm/darwin-aarch64
+          mv quick-lint-js dist/npm/darwin-arm64
 
           mkdir dist/npm/win32-x64
           unzip windows.zip -d dist/npm/win32-x64/
