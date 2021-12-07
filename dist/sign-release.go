@@ -114,7 +114,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sourceTarballPath := filepath.Join(destinationDir, "source/quick-lint-js-0.7.0.tar.gz")
+	sourceTarballPath := filepath.Join(destinationDir, "source/quick-lint-js-0.7.1.tar.gz")
 	log.Printf("signing with GPG: %s\n", sourceTarballPath)
 	if _, err := GPGSignFile(sourceTarballPath, signingStuff); err != nil {
 		log.Fatal(err)
@@ -164,7 +164,7 @@ var filesToTransform map[string]map[string]FileTransformType = map[string]map[st
 	"manual/windows.zip": map[string]FileTransformType{
 		"bin/quick-lint-js.exe": MicrosoftOsslsigncode,
 	},
-	"npm/quick-lint-js-0.7.0.tgz": map[string]FileTransformType{
+	"npm/quick-lint-js-0.7.1.tgz": map[string]FileTransformType{
 		"package/darwin-aarch64/bin/quick-lint-js":  AppleCodesign,
 		"package/darwin-x64/bin/quick-lint-js":      AppleCodesign,
 		"package/linux-arm/bin/quick-lint-js":       GPGSign,
@@ -173,7 +173,7 @@ var filesToTransform map[string]map[string]FileTransformType = map[string]map[st
 		"package/win32-arm64/bin/quick-lint-js.exe": MicrosoftOsslsigncode,
 		"package/win32-x64/bin/quick-lint-js.exe":   MicrosoftOsslsigncode,
 	},
-	"vscode/quick-lint-js-0.7.0.vsix": map[string]FileTransformType{
+	"vscode/quick-lint-js-0.7.1.vsix": map[string]FileTransformType{
 		"extension/dist/quick-lint-js-vscode-node_darwin-arm64.node": AppleCodesign,
 		"extension/dist/quick-lint-js-vscode-node_darwin-x64.node":   AppleCodesign,
 		"extension/dist/quick-lint-js-vscode-node_linux-arm.node":    GPGSign,

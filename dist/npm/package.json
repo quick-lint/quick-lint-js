@@ -1,7 +1,7 @@
 {
   "name": "quick-lint-js",
   "description": "Find bugs in your JavaScript code",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "keywords": [
     "quick",
     "lint",
