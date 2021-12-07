@@ -265,7 +265,8 @@ export class ErrorDocumentation {
         );
       }
 
-      let expectDiagnostic = i === 0;
+      let expectDiagnostic =
+        i === 0 || this.codeBlocks[i].language === "javascript-with-errors";
       if (expectDiagnostic) {
         if (diagnostics.length === 0) {
           foundProblems.push(

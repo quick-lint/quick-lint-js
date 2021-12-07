@@ -42,6 +42,16 @@
         }
       }
 
+      /* Visually separate adjacent code blocks. */
+      figure + figure {
+        border-top: 1px solid rgba(0, 0, 0, 0.2);
+      }
+      @media (prefers-color-scheme: dark) {
+        figure + figure {
+          border-top-color: rgba(255, 255, 255, 0.2);
+        }
+      }
+
       .table-of-contents a:link:not(:hover, :focus) {
         text-decoration: none;
       }
