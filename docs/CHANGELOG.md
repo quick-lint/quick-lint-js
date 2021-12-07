@@ -6,6 +6,20 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Added
+
+* npm: The npm package now installs on Windows when using the x86 (32-bit)
+  version of Node.js.
+* [E0036][] is now reported in more situations.
+
+### Fixed
+
+* npm: The npm package now installs on macOS Apple Silicon when using the
+  AArch64 (native) version of Node.js. (The package previously worked only on
+  macOS Intel, or when using x86_64 Node.js with Rosetta.)
+
 ## 0.7.0 (2021-12-05)
 
 Beta release.
@@ -277,6 +291,7 @@ Beta release.
 
 [E0001]: https://quick-lint-js.com/errors/#E0001
 [E0020]: https://quick-lint-js.com/errors/#E0020
+[E0036]: https://quick-lint-js.com/errors/#E0036
 [E0053]: https://quick-lint-js.com/errors/#E0053
 [E0057]: https://quick-lint-js.com/errors/#E0057
 [E0073]: https://quick-lint-js.com/errors/#E0073
