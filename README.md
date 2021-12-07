@@ -1,4 +1,4 @@
-# <img src="dist/artwork/dusty-right.svg" alt="" title="Dusty, the quick-lint-js mascot" width="46.4" height="36" align="top"> quick-lint-js
+# <img src="dist/artwork/dusty-right.svg" alt="" title="Dusty, the quick-lint-js mascot" width="46.4" height="36" align="top"> quick-lint-js: Hot Module Replacement for your IDE
 
 [quick-lint-js][] finds bugs in JavaScript programs.
 
