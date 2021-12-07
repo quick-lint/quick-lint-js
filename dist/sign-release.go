@@ -165,7 +165,7 @@ var filesToTransform map[string]map[string]FileTransformType = map[string]map[st
 		"bin/quick-lint-js.exe": MicrosoftOsslsigncode,
 	},
 	"npm/quick-lint-js-0.7.1.tgz": map[string]FileTransformType{
-		"package/darwin-aarch64/bin/quick-lint-js":  AppleCodesign,
+		"package/darwin-arm64/bin/quick-lint-js":    AppleCodesign,
 		"package/darwin-x64/bin/quick-lint-js":      AppleCodesign,
 		"package/linux-arm/bin/quick-lint-js":       GPGSign,
 		"package/linux-arm64/bin/quick-lint-js":     GPGSign,
