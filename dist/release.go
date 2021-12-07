@@ -102,7 +102,7 @@ var Steps []Step = []Step{
 		Title: "Upload the signed build artifacts",
 		Run: func() {
 			fmt.Printf("Upload the signed build artifacts to the artifact server:\n")
-			fmt.Printf("$ rsync -av signed-builds/ github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/releases/$YOUR_VERSION_NUMBER/`\n")
+			fmt.Printf("$ rsync -av signed-builds/ github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/releases/$YOUR_VERSION_NUMBER/\n")
 			WaitForDone()
 		},
 	},
