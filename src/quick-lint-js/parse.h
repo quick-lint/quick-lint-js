@@ -3482,7 +3482,6 @@ class parser {
       case token_type::minus:
       case token_type::plus:
       case token_type::question:
-      case token_type::semicolon:
       case token_type::slash:
         QLJS_PARSER_UNIMPLEMENTED();
         break;
@@ -3497,6 +3496,7 @@ class parser {
             v, precedence{.commas = false, .in_operator = allow_in_operator});
         break;
 
+      case token_type::semicolon:
       default:
         if (first_binding) {
           this->error_reporter_->report(error_let_with_no_bindings{let_span});
