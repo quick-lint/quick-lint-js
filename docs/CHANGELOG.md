@@ -6,6 +6,18 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Added
+
+* Windows: Clang-cl is now able to compile quick-lint-js for Windows.
+
+### Optimized
+
+* The Windows .exe is 51% smaller (2.30 MiB -> 1.14 MiB) by making a hash table
+  used for translations compile-time-only. [See the patch
+  here.](https://github.com/quick-lint/quick-lint-js/commit/408e7db762736081cfff05c82c997c5aea7f4ab5)
+
 ## 0.7.1 (2021-12-06)
 
 Beta release.
