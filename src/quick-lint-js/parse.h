@@ -3585,8 +3585,8 @@ class parser {
                     static_cast<expression::assignment *>(ast)->operator_span(),
             });
       } else {
-        this->error_reporter_->report(error_invalid_binding_in_let_statement{
-            .where = ast->span(),
+        this->error_reporter_->report(error_invalid_parameter{
+            .parameter = ast->span(),
         });
       }
       [[fallthrough]];
@@ -3668,8 +3668,8 @@ class parser {
     case expression_kind::unary_operator:
     case expression_kind::yield_many:
     case expression_kind::yield_one:
-      this->error_reporter_->report(error_invalid_binding_in_let_statement{
-          .where = ast->span(),
+      this->error_reporter_->report(error_invalid_parameter{
+          .parameter = ast->span(),
       });
       break;
 

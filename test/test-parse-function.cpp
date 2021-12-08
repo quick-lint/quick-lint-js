@@ -842,11 +842,9 @@ TEST(test_parse, function_with_invalid_parameters) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(
-            ::testing::VariantWith<error_invalid_binding_in_let_statement>(
-                ::testing::_)));
+    EXPECT_THAT(v.errors,
+                ElementsAre(::testing::VariantWith<error_invalid_parameter>(
+                    ::testing::_)));
   }
 
   {
@@ -897,11 +895,9 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::async_generator);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(
-            ::testing::VariantWith<error_invalid_binding_in_let_statement>(
-                ::testing::_)));
+    EXPECT_THAT(v.errors,
+                ElementsAre(::testing::VariantWith<error_invalid_parameter>(
+                    ::testing::_)));
   }
 
   {
