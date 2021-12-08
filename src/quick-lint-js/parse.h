@@ -3675,8 +3675,8 @@ class parser {
 
     // function f([(p,)]) {}  // Invalid.
     case expression_kind::trailing_comma:
-      this->error_reporter_->report(error_stray_comma_in_let_statement{
-          .where = static_cast<expression::trailing_comma *>(ast)->comma_span(),
+      this->error_reporter_->report(error_stray_comma_in_parameter_list{
+          .comma = static_cast<expression::trailing_comma *>(ast)->comma_span(),
       });
       break;
 

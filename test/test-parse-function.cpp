@@ -921,7 +921,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
-                    error_stray_comma_in_let_statement, where,
+                    error_stray_comma_in_parameter_list, comma,
                     offsets_matcher(&code, strlen(u8"([(x"), u8","))));
   }
 
