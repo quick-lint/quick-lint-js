@@ -921,8 +921,12 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
-                    error_stray_comma_in_parameter_list, comma,
+                    error_stray_comma_in_parameter, comma,
                     offsets_matcher(&code, strlen(u8"([(x"), u8","))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope"));
   }
 
   {

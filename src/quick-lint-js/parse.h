@@ -3675,9 +3675,11 @@ class parser {
 
     // function f([(p,)]) {}  // Invalid.
     case expression_kind::trailing_comma:
-      this->error_reporter_->report(error_stray_comma_in_parameter_list{
+      this->error_reporter_->report(error_stray_comma_in_parameter{
           .comma = static_cast<expression::trailing_comma *>(ast)->comma_span(),
       });
+      this->visit_binding_element(ast->child_0(), v, declaration_kind,
+                                  /*declaring_token=*/declaring_token);
       break;
 
     // function f(#bananas) {}  // Invalid.

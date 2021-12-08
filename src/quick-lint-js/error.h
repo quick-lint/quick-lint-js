@@ -1064,10 +1064,8 @@
       ERROR(QLJS_TRANSLATABLE("stray comma in let statement"), where))         \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_stray_comma_in_parameter_list, "E0180",                            \
-      { source_code_span comma; },                                             \
-      ERROR(QLJS_TRANSLATABLE("stray comma in function parameter list"),       \
-            comma))                                                            \
+      error_stray_comma_in_parameter, "E0180", { source_code_span comma; },    \
+      ERROR(QLJS_TRANSLATABLE("stray comma in function parameter"), comma))    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_typescript_enum_not_implemented, "E0127",                          \
