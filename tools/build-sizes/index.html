@@ -43,7 +43,7 @@ $ <kbd>sshfs github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/ ~/c.qui
         <li>
           Generate missing <code>build-sizes.json</code> files:
           <blockquote>
-            <pre><code>$ <kbd>qljs="${PWD}" ; for b in ~/c.quick-lint-js.com/builds/*; do if [ -f "${b}/build-sizes.json" ]; then continue ; fi ; (cd "${b}" ; "${qljs}/tools/build-sizes/collect-binary-sizes" . &gt;build-sizes.json) ; done</kbd></code></pre>
+            <pre><code>$ <kbd>go run tools/build-sizes/collect-many-binary-sizes.go ~/c.quick-lint-js.com/builds/</kbd></code></pre>
           </blockquote>
         </li>
 
