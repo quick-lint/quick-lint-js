@@ -109,6 +109,7 @@ export class ErrorDocumentation {
     filePath,
     markdownEnv,
     markdownTokens,
+    shouldCheckCodeBlocks,
     titleErrorCode,
     titleErrorDescription,
   }) {
@@ -117,6 +118,7 @@ export class ErrorDocumentation {
     this.codeBlocks = codeBlocks;
     this.configForExamples = configForExamples;
     this.filePath = filePath;
+    this.shouldCheckCodeBlocks = shouldCheckCodeBlocks;
     this.titleErrorCode = titleErrorCode;
     this.titleErrorDescription = titleErrorDescription;
     this.diagnostics = null;
@@ -165,6 +167,7 @@ export class ErrorDocumentation {
 
     let codeBlocks = [];
     let configForExamples = null;
+    let shouldCheckCodeBlocks = true;
     let titleErrorCode = "";
     let titleErrorDescription = "";
 
@@ -211,6 +214,12 @@ export class ErrorDocumentation {
             currentBlock += token.content;
           }
           break;
+
+        case "html_block":
+          if (/\bQLJS_NO_CHECK_CODE\b/.test(token.content)) {
+            shouldCheckCodeBlocks = false;
+          }
+          break;
       }
     }
 
@@ -220,6 +229,7 @@ export class ErrorDocumentation {
       filePath: filePath,
       markdownEnv: markdownEnv,
       markdownTokens: tokens,
+      shouldCheckCodeBlocks: shouldCheckCodeBlocks,
       titleErrorCode: titleErrorCode,
       titleErrorDescription: titleErrorDescription,
     });
@@ -242,9 +252,6 @@ export class ErrorDocumentation {
         `${this.filePath}: error: file name doesn't match error code in title (${this.titleErrorCode})`
       );
     }
-    if (this.codeBlocks.length === 0) {
-      foundProblems.push(`${this.filePath}: error: missing code blocks`);
-    }
     if (
       this.codeBlocks.length === 1 &&
       this.codeBlocks[0].text === "/* TODO */\n"
@@ -253,41 +260,48 @@ export class ErrorDocumentation {
       // TODO(strager): Remove this check.
       return [];
     }
-    await this.findDiagnosticsAsync();
-    for (let i = 0; i < this.codeBlocks.length; ++i) {
-      let diagnostics = this.diagnostics[i];
-
-      // TODO(strager): Fix quick-lint-js (or our documentation) and remove this
-      // workaround.
-      if (this.codeBlocks[i].language === "javascript-ignoring-extra-errors") {
-        diagnostics = diagnostics.filter(
-          (diag) => diag.code === this.titleErrorCode
-        );
+    if (this.shouldCheckCodeBlocks) {
+      if (this.codeBlocks.length === 0) {
+        foundProblems.push(`${this.filePath}: error: missing code blocks`);
       }
+      await this.findDiagnosticsAsync();
+      for (let i = 0; i < this.codeBlocks.length; ++i) {
+        let diagnostics = this.diagnostics[i];
 
-      let expectDiagnostic =
-        i === 0 || this.codeBlocks[i].language === "javascript-with-errors";
-      if (expectDiagnostic) {
-        if (diagnostics.length === 0) {
-          foundProblems.push(
-            `${this.filePath}: error: expected error in first code block but found no errors`
+        // TODO(strager): Fix quick-lint-js (or our documentation) and remove
+        // this workaround.
+        if (
+          this.codeBlocks[i].language === "javascript-ignoring-extra-errors"
+        ) {
+          diagnostics = diagnostics.filter(
+            (diag) => diag.code === this.titleErrorCode
           );
-        } else {
-          for (let diag of diagnostics) {
-            if (diag.code !== this.titleErrorCode) {
-              foundProblems.push(
-                `${this.filePath}: error: expected only ${this.titleErrorCode} errors in first code block but found ${diag.code}`
-              );
+        }
+
+        let expectDiagnostic =
+          i === 0 || this.codeBlocks[i].language === "javascript-with-errors";
+        if (expectDiagnostic) {
+          if (diagnostics.length === 0) {
+            foundProblems.push(
+              `${this.filePath}: error: expected error in first code block but found no errors`
+            );
+          } else {
+            for (let diag of diagnostics) {
+              if (diag.code !== this.titleErrorCode) {
+                foundProblems.push(
+                  `${this.filePath}: error: expected only ${this.titleErrorCode} errors in first code block but found ${diag.code}`
+                );
+              }
             }
           }
-        }
-      } else {
-        if (diagnostics.length !== 0) {
-          foundProblems.push(
-            `${this.filePath}: error: expected no error in code block #${
-              i + 1
-            } but found errors`
-          );
+        } else {
+          if (diagnostics.length !== 0) {
+            foundProblems.push(
+              `${this.filePath}: error: expected no error in code block #${
+                i + 1
+              } but found errors`
+            );
+          }
         }
       }
     }
