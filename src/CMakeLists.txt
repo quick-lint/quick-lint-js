@@ -104,6 +104,7 @@ quick_lint_js_add_library(
   quick-lint-js/cli-location.h
   quick-lint-js/configuration-loader.h
   quick-lint-js/configuration.h
+  quick-lint-js/consteval.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
   quick-lint-js/diagnostic-formatter.h

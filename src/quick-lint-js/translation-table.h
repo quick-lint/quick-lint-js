@@ -8,21 +8,11 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/hash-fnv.h>
 #include <quick-lint-js/locale.h>
-
-namespace quick_lint_js {
-struct translation_table_const_hash_entry {
-  std::uint16_t mapping_table_index;
-  std::string_view untranslated;
-};
-}
-
 #include <quick-lint-js/translation-table-generated.h>
 
 namespace quick_lint_js {
 // See tools/compile-translations.go for documentation on the format.
 struct translation_table {
-  using const_hash_entry = translation_table_const_hash_entry;
-
   struct mapping_entry {
     std::uint32_t string_offsets[translation_table_locale_count + 1];
   };
@@ -33,17 +23,10 @@ struct translation_table {
 
   static constexpr std::uint16_t unallocated_mapping_index = 0;
 
-  static constexpr std::uint16_t mapping_index_for_untranslated_string(
+  static QLJS_CONSTEVAL std::uint16_t mapping_index_for_untranslated_string(
       std::string_view s) noexcept {
-    std::uint64_t hash =
-        hash_fnv_1a_64(s, translation_table_const_hash_offset_basis);
-    const const_hash_entry& hash_entry = translation_table_const_hash_table
-        [hash % translation_table_const_hash_table_size];
-    if (hash_entry.untranslated == s) {
-      return hash_entry.mapping_table_index;
-    } else {
-      return unallocated_mapping_index;
-    }
+    return translation_table_const_hash_table_look_up(
+        s, unallocated_mapping_index);
   }
 };
 

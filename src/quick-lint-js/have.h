@@ -402,6 +402,14 @@
 #define QLJS_HAVE_SIZED_ALIGNED_DELETE 0
 #endif
 
+#if !defined(QLJS_HAVE_CONSTEVAL)
+#if defined(__cpp_consteval) && __cpp_consteval >= 201811L
+#define QLJS_HAVE_CONSTEVAL 1
+#else
+#define QLJS_HAVE_CONSTEVAL 0
+#endif
+#endif
+
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
