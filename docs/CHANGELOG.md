@@ -153,11 +153,14 @@ Beta release.
 
 * Error codes now have four decimal digits instead of three. For example, E001
   is now called E0001.
-* quick-lint-js no longer looks for files named `.quick-lint-js.config`. To
-  configure quick-lint-js, name your file `quick-lint-js.config` instead.
 * LSP benchmarks have been rewritten. The new benchmarks should produce more
   stable numbers and be fairer to linters with a high start-up time such as
   Flow.
+
+### Removed
+
+* quick-lint-js no longer looks for files named `.quick-lint-js.config`. To
+  configure quick-lint-js, name your file `quick-lint-js.config` instead.
 
 ## 0.5.0 (2021-10-12)
 
