@@ -1506,7 +1506,7 @@ TEST_F(test_lex, lex_identifier_with_malformed_escape_sequence) {
         EXPECT_THAT(
             errors,
             ElementsAre(ERROR_TYPE_FIELD(
-                error_unclosed_identifier_escape_sequence, escape_sequence,
+                error_expected_hex_digits_in_unicode_escape, escape_sequence,
                 offsets_matcher(input, strlen(u8"unterminated"), u8"\\u"))));
       });
   this->check_single_token_with_errors(
@@ -1515,7 +1515,7 @@ TEST_F(test_lex, lex_identifier_with_malformed_escape_sequence) {
         EXPECT_THAT(
             errors,
             ElementsAre(ERROR_TYPE_FIELD(
-                error_unclosed_identifier_escape_sequence, escape_sequence,
+                error_expected_hex_digits_in_unicode_escape, escape_sequence,
                 offsets_matcher(input, strlen(u8"unterminated"), u8"\\u012"))));
       });
   this->check_single_token_with_errors(

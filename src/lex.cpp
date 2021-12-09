@@ -1320,11 +1320,12 @@ const char8* lexer::parse_unicode_escape(const char8* input) noexcept {
     code_point_hex_begin = input;
     for (int i = 0; i < 4; ++i) {
       if (*input == '\0' && this->is_eof(input)) {
-        // TODO: Add an enum to error_unclosed_identifier_escape_sequence to
+        // TODO: Add an enum to error_expected_hex_digits_in_unicode_escape to
         // indicate whether the token is a template literal, a string literal
         // or an identifier.
-        this->error_reporter_->report(error_unclosed_identifier_escape_sequence{
-            .escape_sequence = get_escape_span()});
+        this->error_reporter_->report(
+            error_expected_hex_digits_in_unicode_escape{.escape_sequence =
+                                                            get_escape_span()});
         return input;
       }
       if (!this->is_hex_digit(*input)) {
@@ -1499,8 +1500,8 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
       for (int i = 0; i < 4; ++i) {
         if (*input == '\0' && this->is_eof(input)) {
           this->error_reporter_->report(
-              error_unclosed_identifier_escape_sequence{.escape_sequence =
-                                                            get_escape_span()});
+              error_expected_hex_digits_in_unicode_escape{
+                  .escape_sequence = get_escape_span()});
           normalized->append(escape_sequence_begin, input);
           return;
         }
