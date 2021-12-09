@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2021-11-16 19:19+0100\n"
+"POT-Creation-Date: 2021-12-08 23:21-0800\n"
 "PO-Revision-Date: 2021-06-16 00:13+0200\n"
 "Last-Translator: U-DESKTOP-7SNN35D\\Kim <kimlindbla@gmail.com>\n"
 "Language-Team: Swedish (Standard)\n"
@@ -202,6 +202,11 @@ msgstr ""
 #: src/quick-lint-js/error.h
 msgid "depth limit exceeded"
 msgstr "djup begränsning överskriden"
+
+#: src/quick-lint-js/error.h
+#, fuzzy
+msgid "missing property name between '.' and '.'"
+msgstr "saknar egenskaps namn efter '.' operatör"
 
 #: src/quick-lint-js/error.h
 msgid "'else' has no corresponding 'if'"
@@ -678,8 +683,17 @@ msgid "RegExp literal flags cannot contain Unicode escapes"
 msgstr "RegExplitterär kan inte innehålla Unicode flykttecken"
 
 #: src/quick-lint-js/error.h
+msgid "return statement returns nothing (undefined)"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "stray comma in let statement"
 msgstr "vilset komma i let påstående"
+
+#: src/quick-lint-js/error.h
+#, fuzzy
+msgid "stray comma in function parameter"
+msgstr "ogiltig funktions parameter"
 
 #: src/quick-lint-js/error.h
 msgid "TypeScript's 'enum' feature is not yet implemented by quick-lint-js"

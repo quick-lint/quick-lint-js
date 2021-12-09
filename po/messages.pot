@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2021-11-16 19:19+0100\n"
+"POT-Creation-Date: 2021-12-08 23:21-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -200,6 +200,10 @@ msgstr ""
 
 #: src/quick-lint-js/error.h
 msgid "depth limit exceeded"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing property name between '.' and '.'"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -664,7 +668,15 @@ msgid "RegExp literal flags cannot contain Unicode escapes"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "return statement returns nothing (undefined)"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "stray comma in let statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "stray comma in function parameter"
 msgstr ""
 
 #: src/quick-lint-js/error.h
