@@ -1481,24 +1481,6 @@ TEST_F(test_lex, lex_identifier_with_malformed_escape_sequence) {
                 error_expected_hex_digits_in_unicode_escape, escape_sequence,
                 offsets_matcher(input, strlen(u8"a"), u8"\\u{q}"))));
       });
-  this->check_single_token_with_errors(
-      u8"negative\\u{-42}codepoint", u8"negative\\u{-42}codepoint",
-      [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_expected_hex_digits_in_unicode_escape, escape_sequence,
-                offsets_matcher(input, strlen(u8"negative"), u8"\\u{-42}"))));
-      });
-  this->check_single_token_with_errors(
-      u8"negative\\u{-0}zero", u8"negative\\u{-0}zero",
-      [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_expected_hex_digits_in_unicode_escape, escape_sequence,
-                offsets_matcher(input, strlen(u8"negative"), u8"\\u{-0}"))));
-      });
 
   this->check_single_token_with_errors(
       u8"unterminated\\u", u8"unterminated\\u",
@@ -1535,6 +1517,27 @@ TEST_F(test_lex, lex_identifier_with_malformed_escape_sequence) {
                                 escape_sequence,
                                 offsets_matcher(input, strlen(u8"unterminated"),
                                                 u8"\\u{0123"))));
+      });
+
+  this->check_tokens_with_errors(
+      u8"unclosed\\u{0123 'string'",
+      {token_type::identifier, token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_FIELD(
+                error_unclosed_identifier_escape_sequence, escape_sequence,
+                offsets_matcher(input, strlen(u8"unclosed"), u8"\\u{0123"))));
+      });
+  this->check_tokens_with_errors(
+      u8"unclosed\\u{+=42",
+      {token_type::identifier, token_type::plus_equal, token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_FIELD(
+                error_unclosed_identifier_escape_sequence, escape_sequence,
+                offsets_matcher(input, strlen(u8"unclosed"), u8"\\u{"))));
       });
 }
 

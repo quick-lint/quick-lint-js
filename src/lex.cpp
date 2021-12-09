@@ -1295,7 +1295,7 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
     input += 3;  // Skip "\u{".
     bool found_non_hex_digit = false;
     while (*input != u8'}') {
-      if (*input == '\0' && this->is_eof(input)) {
+      if (!this->is_identifier_byte(*input)) {
         // TODO: Add an enum to error_unclosed_identifier_escape_sequence to
         // indicate whether the token is a template literal, a string literal
         // or an identifier.
