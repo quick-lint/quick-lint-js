@@ -730,6 +730,12 @@ def parse_link_map(raw_link_map: str) -> LinkMap:
                 )
                 if match is not None:
                     linked_archives.add(match.group("archive"))
+                match = re.match(
+                    r"^\s*\d+\s+\d+\s+\d+\s+(?P<archive>\S+\.a)\((?P<member>[^/]+\.o)\):\((?P<symbol>.*)\)$",
+                    line,
+                )
+                if match is not None:
+                    linked_archives.add(pathlib.Path(match.group("archive")).name)
     return LinkMap(linked_archives=linked_archives)
 
 
@@ -827,6 +833,31 @@ class TestLD64LinkMap(unittest.TestCase):
         self.assertEqual(
             link_map.linked_archives,
             {"/usr/local/opt/llvm/lib/libc++.a", "/usr/local/opt/llvm/lib/libc++abi.a"},
+        )
+
+
+class TestMoldLinkMap(unittest.TestCase):
+    def test_small_link_map(self) -> None:
+        raw_link_map = """\
+             VMA       Size Align Out     In      Symbol
+         2097152         64     8 
+         2097216        560     8 
+         2097776         28     1 .interp
+         2097804         32     4 .note.ABI-tag
+         2097804         32     4         /usr/lib/x86_64-linux-gnu/crt1.o:(.note.ABI-tag)
+         2491008     105120    16 .rodata
+         2491008        140     4         src/CMakeFiles/quick-lint-js.dir/main.cpp.o:(.rodata._ZN13quick_lint_js12lsp_endpointINS_26linting_lsp_server_handlerINS_21lsp_javascript_linterEEENS_15lsp_pipe_writerEE14message_parsedESt17basic_string_viewIDuSt11char_traitsIDuEE)
+         2511120          0     0                 simdjson::fallback::(anonymous namespace)::stringparsing::escape_map
+         2511376        192    16         src/libquick-lint-js-lib.a(buffering-error-reporter.cpp.o):(.rodata._ZZN13quick_lint_js24buffering_error_reporter11report_implENS_10error_typeEPvE11error_sizes)
+         2651424          8     4         /usr/lib/x86_64-linux-gnu/crti.o:(.fini)
+         2651424          0     0                 _fini
+               0    3085635     1 .debug_str
+               0       2432     8 
+"""
+        link_map = parse_link_map(raw_link_map)
+        self.assertEqual(
+            link_map.linked_archives,
+            {"libquick-lint-js-lib.a"},
         )
 
 
