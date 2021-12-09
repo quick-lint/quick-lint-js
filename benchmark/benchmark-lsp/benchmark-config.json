@@ -94,6 +94,7 @@
       "name": "Flow",
       "command": ["./run.sh"],
       "cwd": "flow/",
+      "diagnosticsMessagesToIgnoreAfterIncrementalChange": 1,
       "waitForEmptyDiagnosticsOnOpen": false
     },
     {

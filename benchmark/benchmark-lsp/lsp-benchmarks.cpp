@@ -260,7 +260,8 @@ class incremental_change_wait_benchmark : public benchmark {
     server.send_message(std::move(iteration.change_text_notification));
 
     ::boost::json::array diagnostics =
-        co_await server.wait_for_diagnostics_async(iteration.version);
+        co_await server.wait_for_diagnostics_after_incremental_change_async(
+            iteration.version);
     if (diagnostics.size() != this->expected_diagnostics.size()) {
       std::fprintf(stderr, "error: expected %zu diagnostics but got %zu\n",
                    this->expected_diagnostics.size(), diagnostics.size());

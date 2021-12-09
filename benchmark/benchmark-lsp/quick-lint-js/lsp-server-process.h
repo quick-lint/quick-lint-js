@@ -243,10 +243,18 @@ class lsp_server_process {
   // Respects diagnosticsMessagesToIgnore.
   lsp_task<::boost::json::array> wait_for_diagnostics_async(
       std::int64_t document_version);
+  lsp_task<::boost::json::array>
+  wait_for_diagnostics_after_incremental_change_async(
+      std::int64_t document_version);
+  lsp_task<::boost::json::array> wait_for_diagnostics_ignoring_async(
+      std::int64_t document_version, std::int64_t messages_to_ignore);
   lsp_task<::boost::json::array> wait_for_diagnostics_async(
       string8_view document_uri, std::int64_t document_version);
   template <class ParamsPredicate>
   lsp_task<::boost::json::array> wait_for_diagnostics_async(ParamsPredicate&&);
+  template <class ParamsPredicate>
+  lsp_task<::boost::json::array> wait_for_diagnostics_ignoring_async(
+      ParamsPredicate&&, std::int64_t messages_to_ignore);
 
   // Returns the entire notification object.
   // Respects diagnosticsMessagesToIgnore.
@@ -254,6 +262,9 @@ class lsp_server_process {
   template <class ParamsPredicate>
   lsp_task<::boost::json::object> wait_for_diagnostics_notification_async(
       ParamsPredicate&&);
+  template <class ParamsPredicate>
+  lsp_task<::boost::json::object> wait_for_diagnostics_notification_async(
+      ParamsPredicate&&, std::int64_t messages_to_ignore);
 
   // Returns the entire notification object.
   // Does not respect diagnosticsMessagesToIgnore; returns the first matching
@@ -359,6 +370,8 @@ class lsp_server_process {
         initialization_options_json_(config.initialization_options_json),
         workspace_configuration_json_(config.workspace_configuration_json),
         diagnostics_messages_to_ignore_(config.diagnostics_messages_to_ignore),
+        diagnostics_messages_to_ignore_after_incremental_change_(
+            config.diagnostics_messages_to_ignore_after_incremental_change),
         need_files_on_disk_(config.need_files_on_disk),
         pid_(pid),
         reader_(std::move(reader)),
@@ -370,6 +383,7 @@ class lsp_server_process {
   std::string initialization_options_json_;
   std::string workspace_configuration_json_;
   std::int64_t diagnostics_messages_to_ignore_;
+  std::int64_t diagnostics_messages_to_ignore_after_incremental_change_;
   bool need_files_on_disk_;
 
   ::pid_t pid_;
