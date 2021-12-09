@@ -1,3 +1,4 @@
+# Created by instructions in BUILDING.md.
 /.vscode-test/
 /dist/
 /node_modules/

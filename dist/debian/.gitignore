@@ -1,3 +1,4 @@
+# Created by build.sh.
 /quick-lint-js-*/
 /quick-lint-js-dbgsym*.deb
 /quick-lint-js-vim_*.deb
