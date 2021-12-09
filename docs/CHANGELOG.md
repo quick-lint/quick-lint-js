@@ -111,7 +111,7 @@ Beta release.
 * The Linux executables are now signed with a GPG signature (`.asc` files).
 * Vim: [coc.nvim][] is now supported.
 * quick-lint-js has a new mascot, Dusty. Say hello! (Artwork by [Jenny
-  "Jennipuff" Wheat][]);
+  "Jennipuff" Wheat][]).
 * Translations: German (implemented by [Nico Sonack][])
 
 ### Fixed
