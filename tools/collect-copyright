@@ -238,10 +238,12 @@ def dump_from_system_archives(
     )
     if system_package_manager is None:
         warn("Could not detect system package manager")
-        print("""## Other packages
+        print(
+            """## Other packages
 
 The following files are statically linked into quick-lint-js. Their copyright and licenses are unknown:
-""")
+"""
+        )
         for archive in sorted(linked_system_archives):
             print(f"* {archive}")
         return
