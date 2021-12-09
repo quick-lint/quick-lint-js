@@ -124,6 +124,8 @@ def dump_from_linkmap(
     extra_vendor_projects: typing.List[str],
 ) -> None:
     link_map = parse_link_map(link_map_file.read_text())
+    if not link_map.linked_archives:
+        warn("link map lists no archives; this is probably a bug in collect-copyright")
     linked_system_archives = [
         file for file in link_map.linked_archives if pathlib.Path(file).is_absolute()
     ]
