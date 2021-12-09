@@ -1529,7 +1529,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
     if (parse_result.ec == std::errc::result_out_of_range ||
         code_point >= 0x110000) {
       this->error_reporter_->report(
-          error_escaped_code_point_in_identifier_out_of_range{
+          error_escaped_code_point_in_unicode_out_of_range{
               .escape_sequence = get_escape_span()});
       normalized->append(escape_sequence_begin, input);
     } else if (!(is_initial_identifier_character

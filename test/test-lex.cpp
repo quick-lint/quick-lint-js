@@ -1545,7 +1545,7 @@ TEST_F(test_lex, lex_identifier_with_out_of_range_escaped_character) {
         EXPECT_THAT(
             errors,
             ElementsAre(ERROR_TYPE_FIELD(
-                error_escaped_code_point_in_identifier_out_of_range,
+                error_escaped_code_point_in_unicode_out_of_range,
                 escape_sequence,
                 offsets_matcher(input, strlen(u8"too"), u8"\\u{110000}"))));
       });
@@ -1554,7 +1554,7 @@ TEST_F(test_lex, lex_identifier_with_out_of_range_escaped_character) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(ERROR_TYPE_FIELD(
-                        error_escaped_code_point_in_identifier_out_of_range,
+                        error_escaped_code_point_in_unicode_out_of_range,
                         escape_sequence,
                         offsets_matcher(input, strlen(u8"waytoo"),
                                         u8"\\u{100000000000000}"))));
