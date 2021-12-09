@@ -12,6 +12,23 @@ Semantic Versioning.
 
 * Windows: Clang-cl is now able to compile quick-lint-js for Windows.
 
+### Fixed
+
+* `(typeof x)=>{}` and similar code now reports [E0151][] (invalid function
+  parameter) instead of [E0019][] (invalid binding in let statement).
+* `([(x,)] => {})` now declares `x` as a parameter instead of ignoring `x`
+  entirely. (It still produces [E0180][]).
+* `\u0` at the end of a file now reports [E0016][] (expected hexadecimal digits
+  in Unicode escape sequence) instead of [E0038][] (unclosed identifier escape
+  sequence)
+* `"\u{00a0:"` now reports only one error ([E0038][] (unclosed identifier escape
+  sequence)) instead of two ([E0038][] and [E0040][] (unclosed string literal)).
+
+### Changed
+
+* [E0013][] is no longer reported for identifiers such as `bird\u{360000}`.
+  [E0207][] is reported instead.
+
 ### Optimized
 
 * The Windows .exe is 51% smaller (2.30 MiB -> 1.14 MiB) by making a hash table
@@ -306,8 +323,13 @@ Beta release.
 [wagner riffel]: https://github.com/wgrr
 
 [E0001]: https://quick-lint-js.com/errors/#E0001
+[E0013]: https://quick-lint-js.com/errors/#E0013
+[E0016]: https://quick-lint-js.com/errors/#E0016
+[E0019]: https://quick-lint-js.com/errors/#E0019
 [E0020]: https://quick-lint-js.com/errors/#E0020
 [E0036]: https://quick-lint-js.com/errors/#E0036
+[E0038]: https://quick-lint-js.com/errors/#E0038
+[E0040]: https://quick-lint-js.com/errors/#E0040
 [E0053]: https://quick-lint-js.com/errors/#E0053
 [E0057]: https://quick-lint-js.com/errors/#E0057
 [E0073]: https://quick-lint-js.com/errors/#E0073
@@ -319,6 +341,9 @@ Beta release.
 [E0111]: https://quick-lint-js.com/errors/#E0111
 [E0119]: https://quick-lint-js.com/errors/#E0119
 [E0144]: https://quick-lint-js.com/errors/#E0144
+[E0151]: https://quick-lint-js.com/errors/#E0151
 [E0173]: https://quick-lint-js.com/errors/#E0173
 [E0179]: https://quick-lint-js.com/errors/#E0179
+[E0180]: https://quick-lint-js.com/errors/#E0180
 [E0205]: https://quick-lint-js.com/errors/#E0205
+[E0207]: https://quick-lint-js.com/errors/#E0207
