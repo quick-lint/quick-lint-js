@@ -830,11 +830,6 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
         await_token.identifier_name(), await_token.type);
   } else {
     source_code_span operator_span = await_token.span();
-    if (!(this->in_async_function_ || this->in_top_level_)) {
-      this->error_reporter_->report(error_await_operator_outside_async{
-          .await_operator = operator_span,
-      });
-    }
 
     buffering_error_reporter temp_error_reporter(&this->temporary_memory_);
     error_reporter* old_error_reporter =
@@ -847,7 +842,7 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
       });
-    } else if (this->in_async_function_ && this->is_arrow_kind(child) &&
+    } else if (this->is_arrow_kind(child) &&
                child->attributes() != function_attributes::async) {
       // await (param) => { }  // Invalid.
       this->lexer_.roll_back_transaction(std::move(transaction));
@@ -857,6 +852,12 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
       });
       // Re-parse as if the user wrote 'async' instead of 'await'.
       return this->parse_async_expression(await_token, prec);
+    }
+
+    if (!(this->in_async_function_ || this->in_top_level_)) {
+      this->error_reporter_->report(error_await_operator_outside_async{
+          .await_operator = operator_span,
+      });
     }
 
     this->lexer_.commit_transaction(std::move(transaction));
