@@ -962,9 +962,7 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
     test_parser p(u8"await x => {}"_sv);
     auto guard = p.parser().enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(ast->kind(), expression_kind::await);
-    EXPECT_EQ(ast->child_0()->kind(),
-              expression_kind::arrow_function_with_statements);
+    EXPECT_EQ(summarize(ast), "asyncarrowblock(var x)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_await_followed_by_arrow_function, await_operator,
@@ -975,9 +973,29 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
     test_parser p(u8"await () => {}"_sv);
     auto guard = p.parser().enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(ast->kind(), expression_kind::await);
-    EXPECT_EQ(ast->child_0()->kind(),
-              expression_kind::arrow_function_with_statements);
+    EXPECT_EQ(summarize(ast), "asyncarrowblock()");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_await_followed_by_arrow_function, await_operator,
+                    offsets_matcher(p.code(), 0, u8"await"))));
+  }
+
+  {
+    test_parser p(u8"await (param) => {}"_sv);
+    auto guard = p.parser().enter_function(function_attributes::async);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "asyncarrowblock(var param)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_await_followed_by_arrow_function, await_operator,
+                    offsets_matcher(p.code(), 0, u8"await"))));
+  }
+
+  {
+    test_parser p(u8"await (param) => { await param; }"_sv);
+    auto guard = p.parser().enter_function(function_attributes::async);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "asyncarrowblock(var param)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_await_followed_by_arrow_function, await_operator,
