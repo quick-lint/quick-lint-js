@@ -11,6 +11,10 @@ Semantic Versioning.
 ### Added
 
 * Windows: Clang-cl is now able to compile quick-lint-js for Windows.
+* [E0176][] is now reported if the desired arrow function has more than zero
+  parameters.
+* [E0178][] is now reported if the arrow function appears in top-level code or
+  inside a non-async function.
 
 ### Fixed
 
@@ -23,6 +27,8 @@ Semantic Versioning.
   sequence)
 * `"\u{00a0:"` now reports only one error ([E0038][] (unclosed identifier escape
   sequence)) instead of two ([E0038][] and [E0040][] (unclosed string literal)).
+* After reporting [E0178][], the arrow function is parsed as if it was async,
+  allowing the body to use `await` as an operator without error.
 
 ### Changed
 
@@ -346,6 +352,8 @@ Beta release.
 [E0144]: https://quick-lint-js.com/errors/#E0144
 [E0151]: https://quick-lint-js.com/errors/#E0151
 [E0173]: https://quick-lint-js.com/errors/#E0173
+[E0176]: https://quick-lint-js.com/errors/#E0176
+[E0178]: https://quick-lint-js.com/errors/#E0178
 [E0179]: https://quick-lint-js.com/errors/#E0179
 [E0180]: https://quick-lint-js.com/errors/#E0180
 [E0205]: https://quick-lint-js.com/errors/#E0205
