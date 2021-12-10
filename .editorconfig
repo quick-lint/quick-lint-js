@@ -49,6 +49,11 @@ indent_style = space
 [*.md]
 max_line_length = 80
 
+# Mimic rules for *.js and *.json.
+[docs/errors/*.md]
+indent_size = 2
+indent_style = space
+
 [*.nix]
 indent_size = 2
 indent_style = space
