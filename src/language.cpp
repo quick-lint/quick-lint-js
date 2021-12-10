@@ -20,6 +20,23 @@ std::ostream& operator<<(std::ostream& out, variable_kind kind) {
     QLJS_CASE(_parameter)
     QLJS_CASE(_var)
   }
+#undef QLJS_CASE
+  out << "???";
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, function_attributes attributes) {
+#define QLJS_CASE(a)           \
+  case function_attributes::a: \
+    out << #a;                 \
+    return out;
+  switch (attributes) {
+    QLJS_CASE(async)
+    QLJS_CASE(async_generator)
+    QLJS_CASE(generator)
+    QLJS_CASE(normal)
+  }
+#undef QLJS_CASE
   out << "???";
   return out;
 }

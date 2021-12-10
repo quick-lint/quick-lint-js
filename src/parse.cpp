@@ -1319,6 +1319,8 @@ void parser::parse_arrow_function_expression_remainder(
     // a + b => c
   }
   expression* lhs = children.back();
+  function_attributes attributes = function_attributes::normal;
+
   vector<expression*> parameters("parse_arrow_function_expression_remainder",
                                  &this->temporary_memory_);
   const char8* left_paren_begin = nullptr;
@@ -1370,12 +1372,29 @@ void parser::parse_arrow_function_expression_remainder(
     break;
 
   // f(x, y) => {}
-  case expression_kind::call:
-    if (this->peek().type == token_type::left_curly) {
-      left_paren_begin =
-          expression_cast<expression::call>(lhs)->left_paren_span().begin();
-      for (int i = 1; i < lhs->child_count(); ++i) {
-        parameters.emplace_back(lhs->child(i));
+  case expression_kind::call: {
+    expression::call* call = expression_cast<expression::call>(lhs);
+    // FIXME(strager): This check is duplicated.
+    bool is_async_arrow_using_with_await_operator =
+        call->child_0()->kind() == expression_kind::variable &&
+        call->child_0()->variable_identifier_token_type() ==
+            token_type::kw_await;
+    if (this->peek().type == token_type::left_curly ||
+        is_async_arrow_using_with_await_operator) {
+      if (is_async_arrow_using_with_await_operator) {
+        // await (x) => {}   // Invalid.
+        // await () => expr  // Invalid.
+        this->error_reporter_->report(error_await_followed_by_arrow_function{
+            .await_operator = call->child_0()->span(),
+        });
+        // Parse as if the user wrote 'async' instead of 'await'.
+        attributes = function_attributes::async;
+      } else {
+        // f() => {}         // Invalid.
+      }
+      left_paren_begin = call->left_paren_span().begin();
+      for (int i = 1; i < call->child_count(); ++i) {
+        parameters.emplace_back(call->child(i));
       }
       // We will report
       // error_missing_operator_between_expression_and_arrow_function
@@ -1383,6 +1402,7 @@ void parser::parse_arrow_function_expression_remainder(
       break;
     }
     [[fallthrough]];
+  }
 
   // f() => z
   // 42 => {}
@@ -1423,7 +1443,7 @@ void parser::parse_arrow_function_expression_remainder(
   }
 
   expression* arrow_function = this->parse_arrow_function_body(
-      function_attributes::normal,
+      /*attributes=*/attributes,
       /*parameter_list_begin=*/left_paren_begin,
       /*allow_in_operator=*/allow_in_operator,
       this->expressions_.make_array(std::move(parameters)));
@@ -2288,14 +2308,27 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
 
   case expression_kind::call: {
     expression::call* call = expression_cast<expression::call>(lhs);
-    this->error_reporter_->report(
-        error_missing_operator_between_expression_and_arrow_function{
-            .where = source_code_span(call->span().begin(),
-                                      call->left_paren_span().end()),
-        });
-    std::array<expression*, 2> children{lhs->child_0(), arrow_function};
-    return this->make_expression<expression::binary_operator>(
-        this->expressions_.make_array(std::move(children)));
+    // FIXME(strager): This check is duplicated.
+    bool is_async_arrow_using_with_await_operator =
+        call->child_0()->kind() == expression_kind::variable &&
+        call->child_0()->variable_identifier_token_type() ==
+            token_type::kw_await;
+    if (is_async_arrow_using_with_await_operator) {
+      // await (x) => {}   // Invalid.
+      // await () => expr  // Invalid.
+      // We treated 'await' as 'async' elsewhere. Don't report any error here.
+      return arrow_function;
+    } else {
+      // f() => {}         // Invalid.
+      this->error_reporter_->report(
+          error_missing_operator_between_expression_and_arrow_function{
+              .where = source_code_span(call->span().begin(),
+                                        call->left_paren_span().end()),
+          });
+      std::array<expression*, 2> children{lhs->child_0(), arrow_function};
+      return this->make_expression<expression::binary_operator>(
+          this->expressions_.make_array(std::move(children)));
+    }
   }
   }
 }
