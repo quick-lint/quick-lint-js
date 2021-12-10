@@ -9,9 +9,11 @@ set(
   ale_linters/javascript/quick_lint_js.vim
   autoload/quick_lint_js_ale.vim
   doc/quick-lint-js.txt
-  doc/tags
   plugin/quick-lint-js.vim
 )
+if (QUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS)
+  list(APPEND VIM_FILES doc/tags)
+endif ()
 foreach (FILE IN LISTS VIM_FILES)
   get_filename_component(DIR "${FILE}" DIRECTORY)
   install(

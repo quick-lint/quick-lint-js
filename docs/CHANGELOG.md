@@ -18,6 +18,9 @@ Semantic Versioning.
 
 ### Fixed
 
+* Arch Linux: The quick-lint-js package now installs correctly if you have
+  another Vim plugin package installed. The installation error was: "error: failed
+  to commit transaction (conflicting files)"
 * `(typeof x)=>{}` and similar code now reports [E0151][] (invalid function
   parameter) instead of [E0019][] (invalid binding in let statement).
 * `([(x,)] => {})` now declares `x` as a parameter instead of ignoring `x`
