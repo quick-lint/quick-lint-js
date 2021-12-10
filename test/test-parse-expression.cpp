@@ -958,13 +958,10 @@ TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
 }
 
 TEST_F(test_parse_expression, await_followed_by_arrow_function) {
-  for (function_attributes parent_function :
-       {function_attributes::async, function_attributes::normal}) {
-    SCOPED_TRACE(parent_function);
-
+  auto test = [](auto&& make_guard) -> void {
     {
       test_parser p(u8"await x => {}"_sv);
-      auto guard = p.parser().enter_function(parent_function);
+      [[maybe_unused]] auto guard = make_guard(p.parser());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "asyncarrowblock(var x)");
       EXPECT_THAT(p.errors(),
@@ -975,7 +972,7 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
 
     {
       test_parser p(u8"await () => {}"_sv);
-      auto guard = p.parser().enter_function(parent_function);
+      [[maybe_unused]] auto guard = make_guard(p.parser());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "asyncarrowblock()");
       EXPECT_THAT(p.errors(),
@@ -986,7 +983,7 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
 
     {
       test_parser p(u8"await (param) => {}"_sv);
-      auto guard = p.parser().enter_function(parent_function);
+      [[maybe_unused]] auto guard = make_guard(p.parser());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "asyncarrowblock(var param)");
       EXPECT_THAT(p.errors(),
@@ -997,7 +994,7 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
 
     {
       test_parser p(u8"await (param) => { await param; }"_sv);
-      auto guard = p.parser().enter_function(parent_function);
+      [[maybe_unused]] auto guard = make_guard(p.parser());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "asyncarrowblock(var param)");
       EXPECT_THAT(p.errors(),
@@ -1005,6 +1002,26 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
                       error_await_followed_by_arrow_function, await_operator,
                       offsets_matcher(p.code(), 0, u8"await"))));
     }
+  };
+
+  {
+    SCOPED_TRACE("in async function");
+    test(
+        [](parser& p) { return p.enter_function(function_attributes::async); });
+  }
+
+  {
+    SCOPED_TRACE("in non-async function");
+    test([](parser& p) {
+      return p.enter_function(function_attributes::normal);
+    });
+  }
+
+  {
+    SCOPED_TRACE("top-level");
+    test([](parser&) -> int {
+      return 0;  // No guard.
+    });
   }
 }
 
