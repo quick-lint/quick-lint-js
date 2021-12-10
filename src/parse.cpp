@@ -1205,6 +1205,26 @@ next:
     }
     break;
 
+  case token_type::left_curly: {
+    bool looks_like_arrow_function_body =
+        !this->peek().has_leading_newline && children.size() == 1 &&
+        // TODO(strager): Check for ',' operator explicitly, not any binary
+        // operator.
+        children.front()->kind() == expression_kind::binary_operator;
+    if (looks_like_arrow_function_body) {
+      source_code_span arrow_span = this->peek().span();
+      // (a, b) { return a + b; }  // Invalid.
+      this->error_reporter_->report(
+          error_missing_arrow_operator_in_arrow_function{
+              .where = arrow_span,
+          });
+      this->parse_arrow_function_expression_remainder(
+          /*arrow_span=*/arrow_span, children,
+          /*allow_in_operator=*/prec.in_operator);
+    }
+    break;
+  }
+
   case token_type::bang:
   case token_type::colon:
   case token_type::end_of_file:
@@ -1249,7 +1269,6 @@ next:
   case token_type::kw_while:
   case token_type::kw_with:
   case token_type::kw_yield:
-  case token_type::left_curly:
   case token_type::number:
   case token_type::private_identifier:
   case token_type::right_curly:
@@ -1270,8 +1289,17 @@ next:
 void parser::parse_arrow_function_expression_remainder(
     vector<expression*, /*InSituCapacity=*/2>& children,
     bool allow_in_operator) {
+  QLJS_ASSERT(this->peek().type == token_type::equal_greater);
   source_code_span arrow_span = this->peek().span();
   this->skip();
+  this->parse_arrow_function_expression_remainder(arrow_span, children,
+                                                  allow_in_operator);
+}
+
+void parser::parse_arrow_function_expression_remainder(
+    source_code_span arrow_span,
+    vector<expression*, /*InSituCapacity=*/2>& children,
+    bool allow_in_operator) {
   if (children.size() != 1) {
     // TODO(strager): We should report an error for code like this:
     // a + b => c
