@@ -312,6 +312,14 @@ pre mark:empty::before {
   }
 }
 
+pre mark.unmark {
+  text-decoration: none;
+  background-color: transparent;
+}
+pre mark.unmark:empty::before {
+  content: unset;
+}
+
 .install-logo,
 .os-logo {
   height: 1.2em;

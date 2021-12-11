@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../common-head.ejs.html") %>
+    <title>JavaScript syntax errors compared (2021)</title>
+    <script>
+      //<%
+      let url = await import("url");
+      let { html } = await import(url.pathToFileURL("../../../src/html-tag.mjs"));
+
+      let engines = [
+        {name: "Ba", fullName: "Babel", hue: 20.0},
+        {name: "ESL", fullName: "ESLint with Espree", hue: 225.7},
+        {name: "JSC", fullName: "JavaScriptCore (Safari)", hue: 122.9},
+        {name: "qljs", fullName: "quick-lint-js", hue: 277.1},
+        {name: "SM", fullName: "SpiderMonkey (Firefox)", hue: 71.4},
+        {name: "TS", fullName: "TypeScript", hue: 328.6},
+        {name: "V8", fullName: "V8 (Chrome)", hue: 174.3},
+      ];
+
+      let engineByName = {};
+      for (let engine of engines) {
+        engineByName[engine.name] = engine;
+      }
+
+      function codeExampleTableHTML(errorMessages) {
+        return html`
+          <table>
+            <thead>
+              <tr><th>Tool<th>Error message</tr>
+            </thead>
+            <tbody>
+              ${engines.map(engine => html`<tr
+                class="engine engine-${engine.name}">
+                  <th><abbr title="${engine.fullName}">${engine.name}</abbr></th>
+                  <td>${errorMessages[engine.name]}</td>
+                </tr>`)}
+          </tbody>
+        </table>`;
+      }
+
+      let codeExamples = {
+        "semi-instead-of-comma": html`<code class="javascript">;</code> instead of <code class="javascript">,</code></a>`,
+        "invalid-object-literal-key": html`Invalid object literal key</a>`,
+        "newline-after-return": html`Newline after <code class="javascript">return</code></a>`,
+        "missing-parens-around-parameter": html`Missing <code class="javascript">( )</code> around parameter</a>`,
+        "keyword-variable-name": html`Keyword variable name</a>`,
+        "missing-operator-between-expressions": html`Missing <code class="javascript">||</code> between expressions</a>`,
+        "elseif-instead-of-else-if": html`<code class="javascript">elseif</code> instead of <code class="javascript">else if</code></a>`,
+        "missing-comma-between-arguments": html`Missing <code class="javascript">,</code> between arguments</a>`,
+      };
+
+      let scores = {
+        "semi-instead-of-comma": { Ba: 5, ESL: 3, JSC: 1, SM: 1, TS: 5, V8: 3, qljs: 5, },
+        "invalid-object-literal-key": { Ba: 1, ESL: 3, JSC: 3, SM: 4, TS: 1, V8: 3, qljs: 1, },
+        "newline-after-return": { Ba: 1, ESL: 2, JSC: 2, SM: 2, TS: 1, V8: 2, qljs: 5, },
+        "missing-parens-around-parameter": { Ba: 1, ESL: 3, JSC: 4, SM: 5, TS: 1, V8: 4, qljs: 1, },
+        "keyword-variable-name": { Ba: 3, ESL: 3, JSC: 5, SM: 1, TS: 5, V8: 3, qljs: 3, },
+        "missing-operator-between-expressions": { Ba: 1, ESL: 3, JSC: 1, SM: 1, TS: 1, V8: 3, qljs: 1, },
+        "elseif-instead-of-else-if": { Ba: 1, ESL: 2, JSC: 2, SM: 2, TS: 1, V8: 2, qljs: 3, },
+        "missing-comma-between-arguments": { Ba: 4, ESL: 3, JSC: 1, SM: 1, TS: 4, V8: 3, qljs: 5, },
+      };
+
+      function totalScoreForEngine(engineName) {
+        let total = 0;
+        for (let codeExampleID in scores) {
+          total += scores[codeExampleID][engineName];
+        }
+        return total;
+      }
+
+      function averageValues(object) {
+        let count = 0;
+        let total = 0;
+        for (let key in object) {
+          count += 1;
+          total += object[key];
+        }
+        return total / count;
+      }
+
+      function abbr(engineName) {
+        let engine = engineByName[engineName];
+        return html`<abbr
+          title="${engine.fullName}"
+          class="engine engine-${engine.name}">${engine.name}</abbr>`;
+      }
+      let Ba = abbr("Ba");
+      let ESL = abbr("ESL");
+      let JSC = abbr("JSC");
+      let SM = abbr("SM");
+      let TS = abbr("TS");
+      let V8 = abbr("V8");
+      let qljs = abbr("qljs");
+
+      function rating(r) {
+        return `${r}/5:`;
+      }
+      //%>
+    </script>
+    <link href="../../main.css" rel="stylesheet" />
+    <style>
+      .code-example thead {
+        display: none;
+      }
+
+      abbr.engine,
+      #engines li.engine,
+      .code-example .engine {
+        color: hsl(var(--hue), 100%, 35%);
+      }
+      @media (prefers-color-scheme: dark) {
+        abbr.engine,
+        #engines li.engine,
+        .code-example .engine {
+          color: hsl(var(--hue), 100%, 70%);
+        }
+      }
+
+      <% for (let engine of engines) { %>
+      .engine-<%- engine.name %> {
+        --hue: <%- engine.hue %>;
+      }
+      <% } %>
+
+      table th {
+        text-align: left;
+      }
+
+      figure {
+        margin: 0;
+      }
+
+      code {
+        font-size: 1rem;
+      }
+
+      h3,
+      #code-examples section {
+        border-top: 1px solid #777;
+        padding-top: 0.5em;
+      }
+      #code-examples section > h4 {
+        margin-top: 0.5em;
+      }
+
+      .code-example {
+        display: grid;
+        grid-template-areas:
+          "code"
+          "table";
+        align-items: center;
+        grid-gap: 1rem;
+      }
+      .code-example figure {
+        grid-area: code;
+      }
+      .code-example pre {
+        margin: 0;
+        border: 1px dashed rgba(0, 0, 0, 0.3);
+        background-color: rgba(0, 0, 0, 0.03);
+        padding: 0.5rem;
+      }
+      @media (prefers-color-scheme: dark) {
+        .code-example pre {
+          border-color: rgba(255, 255, 255, 0.3);
+          background-color: rgba(0, 0, 0, 0.1);
+        }
+      }
+      .code-example figcaption {
+        font-style: italic;
+        margin-top: 0.5rem;
+      }
+      .code-example figcaption a:link:not(:hover) {
+        text-decoration: none;
+      }
+      .code-example table {
+        grid-area: table;
+      }
+      /* On bigger screens, put code and errors side-by-side. */
+      @media only screen and (min-width: 40em) {
+        .code-example {
+          grid-template-areas: "code table";
+        }
+      }
+
+      /* HACK(strager) */
+      .desktop-only {
+        display: none;
+      }
+      @media only screen and (min-width: 40em) {
+        p.desktop-only {
+          display: block;
+        }
+      }
+
+      .code-example table {
+        border-collapse: collapse;
+      }
+      .code-example table td,
+      .code-example table th {
+        padding: 0.25rem;
+      }
+
+      /* Deemphasize unselected rows. */
+      .code-example table.have-selection tbody tr:not(.selected) td,
+      .code-example table.have-selection tbody tr:not(.selected) th {
+        color: hsla(var(--hue), 40%, 35%, 0.4);
+      }
+      @media (prefers-color-scheme: dark) {
+        .code-example table.have-selection tbody tr:not(.selected) td,
+        .code-example table.have-selection tbody tr:not(.selected) th {
+          color: hsla(var(--hue), 60%, 70%, 0.4);
+        }
+      }
+
+      #summary table {
+        margin-left: auto;
+        margin-right: auto;
+      }
+      #summary table tbody th {
+        font-weight: normal;
+      }
+      #summary table thead th,
+      #summary table tbody td,
+      #summary table tfoot th {
+        padding-left: .5rem;
+        padding-right: .5rem;
+        text-align: center;
+      }
+      #summary table th,
+      #summary table td {
+        padding-top: 0.125rem;
+        padding-bottom: 0.125rem;
+      }
+      /* Shrink the summary table on small screens. */
+      @media only screen and (max-width: 40em) {
+        #summary table thead th,
+        #summary table tbody td,
+        #summary table tfoot th {
+          padding-left: .25rem;
+          padding-right: .25rem;
+        }
+      }
+      @media only screen and (max-width: 34em) {
+        #summary table thead th,
+        #summary table tbody td,
+        #summary table tfoot th {
+          padding-left: .125rem;
+          padding-right: .125rem;
+        }
+      }
+
+      /* Make the list of code example titles easier to read. */
+      #code-examples-toc a:link:not(:hover),
+      #summary table a:link:not(:hover) {
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header><%- await include("../../common-nav.ejs.html") %></header>
+
+    <main>
+      <h2>JavaScript syntax errors compared (2021)</h2>
+      <p class="subtitle">A JavaScript error beauty contest</p>
+
+      <p>
+        Written by <a href="https://strager.net/">strager</a> on
+        <time>2021-12-11</time>
+      </p>
+
+      <section id="table-of-contents">
+        <ul>
+          <li><a href="#introduction">Introduction</a></li>
+          <li><a href="#engines">Contestants</a></li>
+          <li><a href="#code-examples">Code samples</a></li>
+          <li><a href="#summary">Summary</a></li>
+        </ul>
+      </section>
+
+      <section id="introduction">
+        <h3>Introduction</h3>
+        <p>
+          Making mistakes is inevitable. Even JavaScript pros write syntax
+          errors. The words <em>unexpected token</em> are familiar to junior and
+          senior engineers alike.
+        </p>
+        <p>
+          How much time do us programmers waste hunting down syntax errors? I
+          don't know. Probably a lot. Luckily, modern compilers and editors try
+          to help us fix our mistakes.
+        </p>
+        <p>
+          Let's compare various tools to see how well they communicate
+          JavaScript syntax errors to programmers.
+        </p>
+      </section>
+
+      <section id="engines">
+        <h3>Contestants</h3>
+        <p>
+          To automate the bug-finding process, let's use two kinds of JavaScript
+          tools: tools you have to use (JS engines and transpilers) and static
+          analysis tools designed to find bugs (linters). We'll test the
+          following tools:
+        </p>
+        <ul>
+          <li class="engine engine-Ba">
+            Babel compiler (“Ba”) version v7.16.4
+          </li>
+          <li class="engine engine-ESL">
+            ESLint with the Espree parser (“ESL”) version v8.4.1
+          </li>
+          <li class="engine engine-JSC">
+            JavaScriptCore, used by Safari (“JSC”) version 278391
+          </li>
+          <li class="engine engine-qljs">
+            quick-lint-js (“qljs”) version 0.7.1
+          </li>
+          <li class="engine engine-SM">
+            SpiderMonkey, used by Mozilla Firefox (“SM”) version 90.0b2
+          </li>
+          <li class="engine engine-TS">
+            TypeScript compiler (“TS”) version 4.5.3
+          </li>
+          <li class="engine engine-V8">
+            V8, used by Google Chrome and Node.js (“V8”) version 9.3.62
+          </li>
+        </ul>
+      </section>
+
+      <section id="code-examples">
+        <h3>Code samples</h3>
+        <p>
+          There are so many syntax errors to choose from! Instead of inventing
+          code for demonstration, let's take JavaScript snippets from real
+          programmers on Stack Overflow:
+        </p>
+        <ul id="code-examples-toc">
+          <% for (let codeExampleID in codeExamples) { %>
+          <li>
+            <a href="#<%= codeExampleID %>"
+              ><%- codeExamples[codeExampleID] %></a
+            >
+          </li>
+          <% } %>
+        </ul>
+        <p class="desktop-only" style="padding-bottom: 10px">
+          Tip: Hover over the message on the right to show the error on the
+          left.
+        </p>
+        <p>
+          To compare tools, I rated each error message on a scale from 1 to 5:
+        </p>
+        <ol type="1">
+          <li value="5">Message suggests the correct solution</li>
+          <li value="4">
+            Message suggests a solution which is either incorrect, confusingly
+            worded, or in the wrong location
+          </li>
+          <li value="3">
+            Message explains the problem but does not suggest a solution
+          </li>
+          <li value="2">
+            Message explains a different problem or the problem in the wrong
+            location
+          </li>
+          <li value="1">
+            Message suggests an incorrect solution or misleads the user, or
+            there is no message reported at all
+          </li>
+        </ol>
+
+        <section id="semi-instead-of-comma">
+          <h4>
+            <code class="javascript">;</code> instead of
+            <code class="javascript">,</code>
+          </h4>
+          <div class="code-example">
+            <figure>
+              <pre><code type="javascript">$('.view-content').hoverscroll({
+    arrows: true,
+<mark class="engine-JSC"></mark>    arrowsOpacity: 0.7<mark class="engine-ESL"></mark><mark class="engine-Ba engine-qljs engine-SM engine-TS engine-V8">;</mark>
+});</code></pre>
+              <figcaption>
+                <a
+                  href="https://stackoverflow.com/questions/7494229/syntaxerror-unexpected-token"
+                  >Asked by Joe on Stack Overflow</a
+                ><br />
+                <a href="https://creativecommons.org/licenses/by-sa/3.0/"
+                  >(CC BY-SA 3.0)</a
+                >
+              </figcaption>
+            </figure>
+            <%- codeExampleTableHTML({ "Ba": `Unexpected token, expected ","`,
+            "ESL": `Unexpected token ;`, "JSC": `Unexpected token ';'. Expected
+            '}' to end an object literal.`, "SM": `missing } after property
+            list<br />note: { opened at line 1, column 31`, "TS": `','
+            expected.`, "V8": `Unexpected token ';'`, "qljs": `expected ','
+            between object literal entries`, }) %>
+          </div>
+          <p>
+            <%-rating(5)%> <%-Ba%>, <%-qljs%>, and <%-TS%> did a great job by
+            suggesting a solution to the problem.
+          </p>
+          <p>
+            <%-rating(3)%> <%-ESL%> and <%-V8%> reported the problem but did not
+            suggest a solution.
+          </p>
+          <p>
+            <%-rating(1)%> <%-JSC%> and <%-SM%> suggested incorrect solutions.
+          </p>
+        </section>
+
+        <section id="invalid-object-literal-key">
+          <h4>Invalid object literal key</h4>
+          <div class="code-example">
+            <figure>
+              <pre><code type="javascript">var company = new Company({
+  name: body.name,
+  address: body.address,
+<mark class="engine-JSC"></mark>  <mark class="engine-qljs">friends<mark class="engine-ESL"></mark><mark class="engine-Ba engine-SM engine-TS engine-V8">.</mark>name</mark><mark class="engine-qljs"></mark><mark class="engine-qljs engine-TS">:</mark> body<mark class="engine-TS">.</mark>friendName,
+  statuses: { status: "New" },
+});</code></pre>
+              <figcaption>
+                <a
+                  href="https://stackoverflow.com/questions/30285947/syntaxerror-unexpected-token"
+                  >Asked by jcubic on Stack Overflow</a
+                ><br />
+                <a href="https://creativecommons.org/licenses/by-sa/3.0/"
+                  >(CC BY-SA 3.0)</a
+                >
+              </figcaption>
+            </figure>
+            <%- codeExampleTableHTML({ "Ba": `Unexpected token, expected ","`,
+            "ESL": `Unexpected token .`, "JSC": `Unexpected token '.'. Expected
+            a ':' following the property name 'friends'.`, "SM": `missing :
+            after property id`, "TS": `',' expected.<br />
+            ',' expected.<br />
+            ',' expected.`, "V8": `Unexpected token '.'`, "qljs": `unexpected
+            expression; missing key for object entry<br />
+            missing comma between object literal entries<br />
+            token not implemented in parse_object_literal: colon`, }) %>
+          </div>
+          <p>
+            None of the tools suggested the correct solution to the problem.
+          </p>
+          <p>
+            <%-rating(4)%> <%-SM%> reported the problem and suggested a possible
+            a solution.
+          </p>
+          <p>
+            <%-rating(3)%> <%-JSC%> reported the problem and suggested a
+            possible a solution. However, the message is ambiguous because it
+            reports only a line number and because the line contains two '.'
+            characters.
+          </p>
+          <p>
+            <%-rating(3)%> <%-ESL%> and <%-V8%> reported the problem but did not
+            suggest a solution.
+          </p>
+          <p>
+            <%-rating(1)%> <%-Ba%>, <%-qljs%>, and <%-TS%> and suggested
+            incorrect solutions. qljs also crashed.
+          </p>
+        </section>
+
+        <section id="newline-after-return">
+          <h4>Newline after <code class="javascript">return</code></h4>
+          <div class="code-example">
+            <figure>
+              <pre><code type="javascript">var homeModelTemplate = function(){
+    <mark class="engine-qljs">return</mark>
+    {
+        fromDateSearch: new Date(),
+<mark class="engine-JSC"></mark>        <mark class="engine-qljs">toDateSearch</mark><mark class="engine-ESL"></mark><mark class="engine-Ba engine-qljs engine-SM engine-TS engine-V8">:</mark> new Date()
+    };
+};</code></pre>
+              <figcaption>
+                <a
+                  href="https://stackoverflow.com/questions/30733863/syntaxerror-homemodeltemplate-angularjs-model"
+                  >Asked anonymously on Stack Overflow</a
+                ><br />
+                <a href="https://creativecommons.org/licenses/by-sa/3.0/"
+                  >(CC BY-SA 3.0)</a
+                >
+              </figcaption>
+            </figure>
+            <%- codeExampleTableHTML({ "Ba": `Missing semicolon.`, "ESL":
+            `Unexpected token :`, "JSC": `Unexpected token ':'. Parse error.`,
+            "SM": `unexpected token: ':'`, "TS": `';' expected.`, "V8":
+            `Unexpected token ':'`, "qljs": `return statement returns nothing
+            (undefined)<br />
+            missing semicolon after statement<br />
+            unexpected token<br />
+            use of undeclared variable: toDateSearch`, }) %>
+          </div>
+          <p>
+            <%-rating(5)%> <%-qljs%> did a great job by reporting the real
+            problem and hinting at the solution. qljs also reported unrelated
+            errors.
+          </p>
+          <p>
+            <%-rating(2)%> <%-ESL%>, <%-JSC%>, <%-SM%>, and <%-V8%> reported a
+            symptom of the problem, but did not guide the programmer toward a
+            fix.
+          </p>
+          <p>
+            <%-rating(1)%> <%-Ba%> and <%-TS%> suggested incorrect solutions.
+          </p>
+        </section>
+
+        <section id="missing-parens-around-parameter">
+          <h4>Missing <code class="javascript">( )</code> around parameter</h4>
+          <div class="code-example">
+            <figure>
+              <pre><code type="javascript"><mark class="engine-JSC"></mark>colls.map(<mark class="engine-V8"><mark class="engine-SM">{</mark>id, ...other</mark>} <mark class="engine-ESL"></mark><mark class="engine-TS"><mark class="engine-Ba">=</mark>&gt;</mark> {
+  return <mark class="engine-TS">preview</mark>({
+    key: id,
+    ...other
+  })<mark class="engine-TS">;</mark>
+})</code></pre>
+              <figcaption>
+                <a
+                  href="https://stackoverflow.com/questions/65346043/syntaxerror-unexpected-token-expected"
+                  >Asked by Emile Bergeron<br />on Stack Overflow</a
+                ><br />
+                <a href="https://creativecommons.org/licenses/by-sa/4.0/"
+                  >(CC BY-SA 4.0)</a
+                >
+              </figcaption>
+            </figure>
+            <%- codeExampleTableHTML({ "Ba": `Unexpected token, expected ","`,
+            "ESL": `Unexpected token =&gt;`, "JSC": `Unexpected token '=&gt;'.
+            Expected ')' to end an argument list.`, "SM": `invalid
+            arrow-function arguments (parentheses around the arrow-function may
+            help)`, "TS": `',' expected.<br />
+            ':' expected.<br />
+            ',' expected.`, "V8": `Malformed arrow function parameter list`,
+            "qljs": `(no errors)`, }) %>
+          </div>
+          <p>
+            <%-rating(5)%> <%-SM%> did a great job by suggesting a solution to
+            the problem.
+          </p>
+          <p>
+            <%-rating(4)%> <%-JSC%> and <%-V8%> hinted at a solution to the
+            problem, but the message isn't as clear as SM's.
+          </p>
+          <p>
+            <%-rating(3)%> <%-ESL%> reported the problem but did not suggest a
+            solution.
+          </p>
+          <p>
+            <%-rating(1)%> <%-Ba%> and <%-TS%> suggested incorrect solutions. TS
+            also reported unrelated errors.
+          </p>
+          <p><%-rating(1)%> <%-qljs%> reported no error at all.</p>
+        </section>
+
+        <section id="keyword-variable-name">
+          <h4>Keyword variable name</h4>
+          <div class="code-example">
+            <figure>
+              <pre><code type="javascript"><mark class="engine-JSC"></mark>function Classes(<mark class="engine-ESL engine-qljs"></mark><mark class="engine-TS engine-V8"><mark class="engine-Ba engine-SM">c</mark>lass</mark><mark class="engine-TS">,</mark> <mark class="engine-TS">sched</mark><mark class="engine-TS">)</mark> {
+  this.class = class<mark class="engine-TS">;</mark>
+  this.scheduled = sched;
+}</code></pre>
+              <figcaption>
+                <a
+                  href="https://stackoverflow.com/questions/52285752/uncaught-syntaxerror-unexpected-token"
+                  >Asked by anonymous on Stack Overflow</a
+                ><br />
+                <a href="https://creativecommons.org/licenses/by-sa/4.0/"
+                  >(CC BY-SA 4.0)</a
+                >
+              </figcaption>
+            </figure>
+            <%- codeExampleTableHTML({ "Ba": `Unexpected keyword 'class'.`,
+            "ESL": `Unexpected keyword 'class'`, "JSC": `Cannot use the keyword
+            'class' as a parameter name.`, "SM": `missing formal parameter`,
+            "TS": `'class' is not allowed as a parameter name.<br />
+            '{' expected.<br />
+            Unexpected keyword or identifier.<br />
+            Declaration or statement expected.<br />
+            '{' expected.`, "V8": `Unexpected token 'class'`, "qljs": `token not
+            implemented in parse_and_visit_&shy;function_parameters: kw_class`,
+            }) %>
+          </div>
+          <p>
+            <%-rating(5)%> <%-JSC%> and <%-TS%> clearly reported the problem and
+            hinted at a solution. TS also reported unrelated errors.
+          </p>
+          <p>
+            <%-rating(3)%> <%-Ba%>, <%-ESL%>, <%-qljs%>, and <%-V8%> reported
+            the problem but did not suggest a solution. qljs also crashed.
+          </p>
+          <p><%-rating(1)%> <%-SM%> suggested an incorrect solution.</p>
+        </section>
+
+        <section id="missing-operator-between-expressions">
+          <h4>
+            Missing <code class="javascript">||</code> between expressions
+          </h4>
+          <div class="code-example">
+            <figure>
+              <pre
+                style="white-space: pre-wrap"
+              ><code type="javascript"><mark class="engine-JSC"></mark>while( s2[Y]=="#" || s2[Y+1] =="X"<mark class="engine-qljs"></mark><mark class="engine-Ba"></mark> <mark class="engine-ESL engine-TS engine-V8"><mark class="engine-SM">s</mark>3</mark>[Y]=="#" || s3[Y+1] =="X"<mark class="engine-qljs engine-TS">)</mark>;</code></pre>
+              <figcaption>
+                <a
+                  href="https://stackoverflow.com/questions/10542314/uncaught-syntaxerror-unexpected-identifier"
+                  >Asked by bdukes on Stack Overflow</a
+                ><br />
+                <a href="https://creativecommons.org/licenses/by-sa/3.0/"
+                  >(CC BY-SA 3.0)</a
+                >
+              </figcaption>
+            </figure>
+            <%- codeExampleTableHTML({ "Ba": `Unexpected token, expected ")"`,
+            "ESL": `Unexpected token s3`, "JSC": `Unexpected identifier 's3'.
+            Expected ')' to end a while loop condition.`, "SM": `missing ) after
+            condition`, "TS": `')' expected.<br />
+            ';' expected.`, "V8": `Unexpected identifier`, "qljs": `while loop
+            is missing ')' around condition<br />
+            unmatched parenthesis`, }) %>
+          </div>
+          <p>
+            None of the tools suggested the correct solution to the problem.
+          </p>
+          <p>
+            <%-rating(3)%> <%-ESL%> and <%-V8%> reported the problem but did not
+            suggest a solution.
+          </p>
+          <p>
+            <%-rating(1)%> <%-Ba%>, <%-JSC%>, <%-qljs%>, <%-SM%>, and <%-TS%>
+            suggested incorrect solutions to the problem.
+          </p>
+        </section>
+
+        <section id="elseif-instead-of-else-if">
+          <h4>
+            <code class="javascript">elseif</code> instead of
+            <code class="javascript">else if</code>
+          </h4>
+          <div class="code-example">
+            <figure>
+              <pre><code type="javascript">var car;
+if(input.val() == "Lamborghini") {
+    car = 389;
+<mark class="engine-JSC"></mark>}elseif(input.val() == "Ferrari")<mark class="engine-ESL engine-qljs"></mark><mark class="engine-Ba engine-SM engine-TS engine-V8">{</mark>
+    car = 349;
+}<mark class="engine-qljs engine-TS">else</mark>{
+    car = 0;
+}</code></pre>
+              <figcaption>
+                <a
+                  href="https://stackoverflow.com/questions/13954340/uncaught-syntaxerror-unexpected-number"
+                  >Asked by TooCooL on Stack Overflow</a
+                ><br />
+                <a href="https://creativecommons.org/licenses/by-sa/3.0/"
+                  >(CC BY-SA 3.0)</a
+                >
+              </figcaption>
+            </figure>
+            <%- codeExampleTableHTML({ "Ba": `Missing semicolon.`, "ESL":
+            `Unexpected token {`, "JSC": `Unexpected token '{'`, "SM":
+            `unexpected token: '{'`, "TS": `';' expected.<br />
+            Declaration or statement expected.`, "V8": `Unexpected token '{'`,
+            "qljs": `missing semicolon after statement<br />
+            'else' has no corresponding 'if'`, }) %>
+          </div>
+          <p>
+            <%-rating(3)%> <%-qljs%> reported that the
+            <code class="javascript">if</code> keyword was missing or misplaced.
+            However, qljs also suggested an incorrect solution to the problem.
+          </p>
+          <p>
+            <%-rating(2)%> <%-ESL%>, <%-JSC%>, <%-SM%>, and <%-V8%> reported an
+            unrelated problem but did not suggest a solution.
+          </p>
+          <p>
+            <%-rating(1)%> <%-Ba%> and <%-TS%> suggested incorrect solutions to
+            the problem.
+          </p>
+        </section>
+
+        <section id="missing-comma-between-arguments">
+          <h4>Missing <code class="javascript">,</code> between arguments</h4>
+          <div class="code-example">
+            <figure>
+              <pre><code type="javascript">$.ajax({
+  url: "loadcontent1.php",
+  data: {
+    lastid: 'postitem',
+  }<mark class="engine-qljs"></mark>
+<mark class="engine-JSC"></mark>  <mark class="engine-ESL engine-TS engine-V8"><mark class="engine-Ba engine-SM">s</mark>uccess</mark>: function(html) {
+    $("#content").append(html);
+  }
+});</code></pre>
+              <figcaption>
+                <a
+                  href="https://stackoverflow.com/questions/10741697/ajax-syntax-uncaught-syntaxerror-unexpected-identifier"
+                  >Asked by Felix Kling on Stack Overflow</a
+                ><br />
+                <a href="https://creativecommons.org/licenses/by-sa/3.0/"
+                  >(CC BY-SA 3.0)</a
+                >
+              </figcaption>
+            </figure>
+            <%- codeExampleTableHTML({ "Ba": `Unexpected token, expected ","`,
+            "ESL": `Unexpected token success`, "JSC": `Unexpected identifier
+            'success'. Expected '}' to end an object literal.`, "SM": `missing }
+            after property list`, "TS": `',' expected.`, "V8": `Unexpected
+            identifier`, "qljs": `missing comma between object literal entries`,
+            }) %>
+          </div>
+          <p>
+            <%-rating(5)%> <%-qljs%> did a great job by suggesting a solution to
+            the problem.
+          </p>
+          <p>
+            <%-rating(4)%> <%-Ba%> and <%-TS%> also suggested a solution to the
+            problem, but at a worse location than qljs.
+          </p>
+          <p>
+            <%-rating(3)%> <%-ESL%> and <%-V8%> reported the problem but did not
+            suggest a solution.
+          </p>
+          <p>
+            <%-rating(1)%> <%-JSC%> and <%-SM%> suggested incorrect solutions.
+          </p>
+        </section>
+      </section>
+
+      <section id="summary">
+        <h3>Summary</h3>
+        <table>
+          <caption>
+            Tool scores (1-5) for code samples
+          </caption>
+          <thead>
+            <tr>
+              <th>Code sample</th>
+              <% for (let engine of engines) { %>
+              <th><%- abbr(engine.name) %></th>
+              <% } %>
+              <th><abbr title="Average (mean)">avg</abbr></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (let codeExampleID in scores) { %>
+            <tr>
+              <th>
+                <a href="#<%= codeExampleID %>"
+                  ><%- codeExamples[codeExampleID] %></a
+                >
+              </th>
+              <% for (let engine of engines) { %>
+              <td><%= scores[codeExampleID][engine.name] %></td>
+              <% } %>
+              <td><%= averageValues(scores[codeExampleID]).toFixed(1) %></td>
+            </tr>
+            <% } %>
+
+            <tr>
+              <th>(total)</th>
+              <% for (let engine of engines) { %>
+              <td><%= totalScoreForEngine(engine.name) %></td>
+              <% } %>
+              <td><!-- No average. --></td>
+            </tr>
+          </tbody>
+
+          <tfoot>
+            <th>Code sample</th>
+            <% for (let engine of engines) { %>
+            <th><%- abbr(engine.name) %></th>
+            <% } %>
+            <th><abbr title="Average (mean)">avg</abbr></th>
+          </tfoot>
+        </table>
+
+        <p>
+          No tool was amazing all finding bugs in all of our code samples. To
+          get the best error experience, use a mix of tools, not just one tool.
+        </p>
+
+        <p>
+          <%-ESL%>, <%-qljs%>, and <%-V8%> stand out as good tools for debugging
+          syntax errors. ESL and V8 consistently do a decent job, never scoring
+          1 in any code sample.
+        </p>
+
+        <p>
+          <%-qljs%> and <%-TS%> are volatile, doing a great job (5/5) or a
+          terrible job (1/5) depending on the error in question.
+        </p>
+
+        <p>
+          Despite being tied for the worst tool overall, <%-SM%> beat all other
+          tools in two code samples.
+        </p>
+
+        <p>
+          <%-qljs%>, <%-TS%>, and <%-V8%> report good-quality error spans.
+          <%-Ba%>, <%-ESL%>, and <%-SM%> report only a single line-column
+          location, not a span. <%-JSC%> only reports line numbers, which makes
+          some messages (such as the one for
+          <a href="#invalid-object-literal-key">Invalid object literal key</a>)
+          ambiguous.
+        </p>
+
+        <p>
+          Most tools did a bad job in two of the code samples,
+          <a href="#missing-operator-between-expressions"
+            >missing <code class="javascript">||</code> between expressions</a
+          >
+          and
+          <a href="#elseif-instead-of-else-if"
+            ><code class="javascript">elseif</code> instead of
+            <code class="javascript">else if</code></a
+          >. Sometimes, broken code is hard to understand for computers.
+        </p>
+
+        <p>
+          <%-qljs%> and <%-TS%> try to recover after errors. Recovering is
+          helpful in an editor, but sometimes it leads to confusing reports. All
+          other tools stop at the first error.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      class CodeExample {
+        constructor(rootElement) {
+          this.rootElement = rootElement;
+          this.codeElement = rootElement.querySelector("figure code");
+          this.tableElement = rootElement.querySelector("table");
+        }
+
+        setUp() {
+          for (let engineElement of this.tableElement.querySelectorAll(
+            ".engine"
+          )) {
+            engineElement.addEventListener("mouseover", () => {
+              this.updateSelection(
+                CodeExample.getEngineNameFromElement(engineElement)
+              );
+            });
+            engineElement.addEventListener("mouseout", () => {
+              this.updateSelection(null);
+            });
+          }
+
+          for (let abbrElement of this.rootElement.querySelectorAll("p abbr")) {
+            abbrElement.addEventListener("mouseover", () => {
+              this.updateSelection(
+                CodeExample.getEngineNameFromElement(abbrElement)
+              );
+            });
+            abbrElement.addEventListener("mouseout", () => {
+              this.updateSelection(null);
+            });
+          }
+        }
+
+        static getEngineNameFromElement(element) {
+          return [...element.classList].find((cls) => /^engine-/.test(cls));
+        }
+
+        updateSelection(engineToSelect) {
+          let markElements = this.codeElement.querySelectorAll("mark");
+          if (engineToSelect) {
+            for (let markElement of markElements) {
+              markElement.classList.toggle(
+                "unmark",
+                !markElement.classList.contains(engineToSelect)
+              );
+            }
+          } else {
+            for (let markElement of markElements) {
+              markElement.classList.remove("unmark");
+            }
+          }
+
+          this.tableElement.classList.toggle(
+            "have-selection",
+            engineToSelect !== null
+          );
+          for (let rowElement of this.tableElement.querySelectorAll(
+            "tbody tr"
+          )) {
+            rowElement.classList.toggle(
+              "selected",
+              rowElement.classList.contains(engineToSelect)
+            );
+          }
+        }
+      }
+
+      for (let codeExampleElement of document.querySelectorAll(
+        "#code-examples > section"
+      )) {
+        let codeExample = new CodeExample(codeExampleElement);
+        codeExample.setUp();
+      }
+    </script>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
