@@ -289,9 +289,9 @@
           senior engineers alike.
         </p>
         <p>
-          How much time do us programmers waste hunting down syntax errors? I
-          don't know. Probably a lot. Luckily, modern compilers and editors try
-          to help us fix our mistakes.
+          How much time do programmers waste hunting down syntax errors? I don't
+          know. Probably a lot. Luckily, modern compilers and editors try to
+          help us fix our mistakes.
         </p>
         <p>
           Let's compare various tools to see how well they communicate
@@ -348,29 +348,26 @@
           </li>
           <% } %>
         </ul>
-        <p class="desktop-only" style="padding-bottom: 10px">
-          Tip: Hover over the message on the right to show the error on the
-          left.
-        </p>
         <p>
           To compare tools, I rated each error message on a scale from 1 to 5:
         </p>
         <ol type="1">
-          <li value="5">Message suggests the correct solution</li>
+          <li value="5">The message suggests the correct solution.</li>
           <li value="4">
-            Message suggests a solution which is either incorrect, confusingly
-            worded, or in the wrong location
+            The message suggests a technically correct solution. The suggestion
+            is confusingly worded, in the wrong location, or leads to more
+            problems.
           </li>
           <li value="3">
-            Message explains the problem but does not suggest a solution
+            The message explains the problem but does not suggest a solution.
           </li>
           <li value="2">
-            Message explains a different problem or the problem in the wrong
-            location
+            The message explains a different problem or the problem in the wrong
+            location.
           </li>
           <li value="1">
-            Message suggests an incorrect solution or misleads the user, or
-            there is no message reported at all
+            The message suggests an incorrect solution or misleads the user, or
+            there is no message reported at all.
           </li>
         </ol>
 
@@ -402,9 +399,16 @@
             expected.`, "V8": `Unexpected token ';'`, "qljs": `expected ','
             between object literal entries`, }) %>
           </div>
+          <p
+            class="desktop-only"
+            style="padding-bottom: 1rem; font-style: italic"
+          >
+            Tip: Hover over the message on the right to show the error on the
+            left.
+          </p>
           <p>
-            <%-rating(5)%> <%-Ba%>, <%-qljs%>, and <%-TS%> did a great job by
-            suggesting a solution to the problem.
+            <%-rating(5)%> <%-Ba%>, <%-qljs%>, and <%-TS%> did a great job. They
+            suggested a solution to the problem.
           </p>
           <p>
             <%-rating(3)%> <%-ESL%> and <%-V8%> reported the problem but did not
@@ -450,11 +454,11 @@
           </p>
           <p>
             <%-rating(4)%> <%-SM%> reported the problem and suggested a possible
-            a solution.
+            solution. However, the suggestion would lead to more syntax errors.
           </p>
           <p>
             <%-rating(3)%> <%-JSC%> reported the problem and suggested a
-            possible a solution. However, the message is ambiguous because it
+            possible solution. However, the message is ambiguous because it
             reports only a line number and because the line contains two '.'
             characters.
           </p>
@@ -499,8 +503,8 @@
             use of undeclared variable: toDateSearch`, }) %>
           </div>
           <p>
-            <%-rating(5)%> <%-qljs%> did a great job by reporting the real
-            problem and hinting at the solution. qljs also reported unrelated
+            <%-rating(5)%> <%-qljs%> did a great job. It reported the real
+            problem and hinted at the solution. qljs also reported unrelated
             errors.
           </p>
           <p>
@@ -543,7 +547,7 @@
             "qljs": `(no errors)`, }) %>
           </div>
           <p>
-            <%-rating(5)%> <%-SM%> did a great job by suggesting a solution to
+            <%-rating(5)%> <%-SM%> did a great job. It suggested a solution to
             the problem.
           </p>
           <p>
@@ -719,7 +723,7 @@ if(input.val() == "Lamborghini") {
             }) %>
           </div>
           <p>
-            <%-rating(5)%> <%-qljs%> did a great job by suggesting a solution to
+            <%-rating(5)%> <%-qljs%> did a great job. It suggested a solution to
             the problem.
           </p>
           <p>
@@ -785,8 +789,8 @@ if(input.val() == "Lamborghini") {
         </table>
 
         <p>
-          No tool was amazing all finding bugs in all of our code samples. To
-          get the best error experience, use a mix of tools, not just one tool.
+          No tool was amazing at finding bugs in all of our code samples. To get
+          the best error experience, use a mix of tools, not just one tool.
         </p>
 
         <p>
@@ -808,14 +812,13 @@ if(input.val() == "Lamborghini") {
         <p>
           <%-qljs%>, <%-TS%>, and <%-V8%> report good-quality error spans.
           <%-Ba%>, <%-ESL%>, and <%-SM%> report only a single line-column
-          location, not a span. <%-JSC%> only reports line numbers, which makes
-          some messages (such as the one for
-          <a href="#invalid-object-literal-key">Invalid object literal key</a>)
-          ambiguous.
+          location, not a span. <%-JSC%> only reports line numbers, making some
+          messages ambiguous (such as in
+          <a href="#invalid-object-literal-key">invalid object literal key</a>).
         </p>
 
         <p>
-          Most tools did a bad job in two of the code samples,
+          Most tools did a poor job in two code samples,
           <a href="#missing-operator-between-expressions"
             >missing <code class="javascript">||</code> between expressions</a
           >
