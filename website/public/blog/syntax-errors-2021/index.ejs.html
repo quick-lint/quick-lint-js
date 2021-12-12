@@ -196,6 +196,11 @@
         }
       }
 
+      .tip {
+        padding-bottom: 1rem;
+        font-style: italic;
+      }
+
       .code-example table {
         border-collapse: collapse;
       }
@@ -407,10 +412,7 @@
             expected.`, "V8": `Unexpected token ';'`, "qljs": `expected ','
             between object literal entries`, }) %>
           </div>
-          <p
-            class="desktop-only"
-            style="padding-bottom: 1rem; font-style: italic"
-          >
+          <p class="desktop-only tip">
             Tip: Hover over the message on the right to show the error on the
             left.
           </p>
@@ -463,6 +465,9 @@
             missing comma between object literal entries<br />
             token not implemented in parse_object_literal: colon`, }) %>
           </div>
+          <p class="desktop-only tip">
+            Tip: Hover over the tool names below to focus on the errors above.
+          </p>
           <p>
             None of the tools suggested the correct solution to the problem.
           </p>
