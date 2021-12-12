@@ -376,6 +376,14 @@
             <code class="javascript">;</code> instead of
             <code class="javascript">,</code>
           </h4>
+          <p>
+            Object literal properties are separated by commas (<code
+              class="javascript"
+              >,</code
+            >). Semicolons (<code class="javascript">;</code>) are not allowed.
+            The following code uses a semicolon instead of a colon in an object
+            literal:
+          </p>
           <div class="code-example">
             <figure>
               <pre><code type="javascript">$('.view-content').hoverscroll({
@@ -421,6 +429,12 @@
 
         <section id="invalid-object-literal-key">
           <h4>Invalid object literal key</h4>
+          <p>
+            Object literal property names must be simple identifiers or quoted
+            strings. The following code example tries to create a nested object
+            by writing a dot (<code class="javascript">.</code>) in the property
+            name:
+          </p>
           <div class="code-example">
             <figure>
               <pre><code type="javascript">var company = new Company({
@@ -474,6 +488,14 @@
 
         <section id="newline-after-return">
           <h4>Newline after <code class="javascript">return</code></h4>
+          <p>
+            If <code class="javascript">return</code> is immediately followed by
+            a newline character, <code class="javascript">undefined</code> is
+            returned, and the following code is interpreted as more statements.
+            The following code expects the
+            <code class="javascript">return</code> statement to return an object
+            literal:
+          </p>
           <div class="code-example">
             <figure>
               <pre><code type="javascript">var homeModelTemplate = function(){
@@ -519,6 +541,11 @@
 
         <section id="missing-parens-around-parameter">
           <h4>Missing <code class="javascript">( )</code> around parameter</h4>
+          <p>
+            If an arrow function has a single parameter, and that parameter is
+            an object destructuring, parentheses are required around the
+            parameter. The following code omits the parentheses:
+          </p>
           <div class="code-example">
             <figure>
               <pre><code type="javascript"><mark class="engine-JSC"></mark>colls.map(<mark class="engine-V8"><mark class="engine-SM">{</mark>id, ...other</mark>} <mark class="engine-ESL"></mark><mark class="engine-TS"><mark class="engine-Ba">=</mark>&gt;</mark> {
@@ -567,6 +594,11 @@
 
         <section id="keyword-variable-name">
           <h4>Keyword variable name</h4>
+          <p>
+            With a few exceptions for legacy reasons, function parameters cannot
+            be named a keyword. The following code tries to name a function
+            parameter <code class="javascript">class</code>, which is a keyword:
+          </p>
           <div class="code-example">
             <figure>
               <pre><code type="javascript"><mark class="engine-JSC"></mark>function Classes(<mark class="engine-ESL engine-qljs"></mark><mark class="engine-TS engine-V8"><mark class="engine-Ba engine-SM">c</mark>lass</mark><mark class="engine-TS">,</mark> <mark class="engine-TS">sched</mark><mark class="engine-TS">)</mark> {
@@ -609,6 +641,12 @@
           <h4>
             Missing <code class="javascript">||</code> between expressions
           </h4>
+          <p>
+            Expressions can't be next to each other without an operator in
+            between. The following code is missing the logical or operator
+            (<code class="javascript">||</code>) between two expressions in the
+            <code class="javascript">while</code> loop:
+          </p>
           <div class="code-example">
             <figure>
               <pre
@@ -650,6 +688,12 @@
             <code class="javascript">elseif</code> instead of
             <code class="javascript">else if</code>
           </h4>
+          <p>
+            <code class="javascript">elseif</code> is a keyword in some
+            languages, but not in JavaScript. The correct code is
+            <code class="javascript">else if</code> (two words). The following
+            code uses <code class="javascript">elseif</code> by mistake:
+          </p>
           <div class="code-example">
             <figure>
               <pre><code type="javascript">var car;
@@ -694,6 +738,11 @@ if(input.val() == "Lamborghini") {
 
         <section id="missing-comma-between-arguments">
           <h4>Missing <code class="javascript">,</code> between arguments</h4>
+          <p>
+            Function calls have a comma (<code class="javascript">,</code
+            >)-separated arguments. The following code forgets a comma between
+            two parameters:
+          </p>
           <div class="code-example">
             <figure>
               <pre><code type="javascript">$.ajax({
