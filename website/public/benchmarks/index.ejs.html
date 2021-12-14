@@ -73,8 +73,12 @@
       <article class="benchmark" id="incremental-change-wait-express-router-js">
         <h2>LSP: incremental-change-wait express-router.js</h2>
         <p>
-          This benchmark measures how long an LSP server takes to give
-          diagnostics to an editor.
+          An <dfn>LSP server</dfn> is software which plugs into your code
+          editor. It provides diagnostics (error squigglies), go-to-definition,
+          and auto-complete. This benchmark measures how long an LSP server
+          takes to give diagnostics after making a change in a JavaScript file
+          (e.g. after typing a character). In other words, it measures
+          <em>input latency</em>. Lower latency means a faster-feeling editor.
         </p>
         <h3>Results</h3>
         <%-
