@@ -378,6 +378,16 @@ kbd.keystroke {
   }
 }
 
+#error-box {
+  background-color: #252526;
+  color: yellow;
+  border: 1px solid #fff;
+  padding: 5px;
+  font-size: 0.8rem;
+  max-width: 300px;
+  z-index: 999999;
+}
+
 @media only screen and (min-width: 34em) and (max-width: 40em) {
   .os-column-table ul {
     margin-left: 0;

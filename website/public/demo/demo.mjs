@@ -3,6 +3,7 @@
 
 import { createProcessFactoryAsync } from "../../wasm/quick-lint-js.js";
 import { markEditorText } from "./editor.mjs";
+import {} from "../error-box.mjs";
 
 let codeInputElement = document.getElementById("code-input");
 let shadowCodeInputElement = document.getElementById("shadow-code-input");
@@ -87,73 +88,6 @@ function synchronizeSize() {
   shadowCodeInputElement.style.width = codeInputElement.style.width;
   shadowCodeInputElement.style.height = codeInputElement.style.height;
 }
-
-function showErrorMessageBox(mark, posCursorX) {
-  const div = createErrorBox(
-    mark,
-    posCursorX,
-    mark.attributes["data-message"].value,
-    mark.attributes["data-code"].value,
-    mark.attributes["data-severity"].value
-  );
-  let body = document.querySelector("body");
-  body.appendChild(div);
-}
-
-function createErrorBox(
-  markedElement,
-  posCursorX,
-  errorMessage,
-  code,
-  severity
-) {
-  // TODO: Change background color based of the severity
-  let div = document.createElement("div");
-  const { bottom } = markedElement.getBoundingClientRect();
-  div.setAttribute("id", "error-box");
-  div.innerText = `${code} - ${errorMessage}`;
-  div.style.position = "fixed";
-  div.style.overflow = "auto";
-  div.style.top = `${Math.trunc(bottom)}px`;
-  div.style.left = `${posCursorX}px`;
-  return div;
-}
-
-function removeErrorMessageBox() {
-  let errorBoxElement = document.querySelector("#error-box");
-  if (errorBoxElement !== null) {
-    errorBoxElement.remove();
-  }
-}
-
-function showErrorMessage(event) {
-  removeErrorMessageBox();
-
-  const shadowInput = document.querySelector("#shadow-code-input");
-  const marks = shadowInput.querySelectorAll("mark");
-  for (let mark of marks) {
-    const markRect = mark.getBoundingClientRect();
-    if (cursorOverMark(event.clientX, event.clientY, markRect)) {
-      showErrorMessageBox(mark, event.clientX);
-      break;
-    }
-  }
-}
-
-function cursorOverMark(cursorPosX, cursorPosY, markRect) {
-  const topDownIn = markRect.bottom >= cursorPosY && cursorPosY >= markRect.top;
-  const leftRightIn =
-    cursorPosX >= markRect.left && cursorPosX <= markRect.left + markRect.width;
-  return topDownIn && leftRightIn;
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const codeInput = document.querySelector("#code-input");
-  codeInput.addEventListener("mousemove", showErrorMessage);
-  codeInput.addEventListener("input", removeErrorMessageBox);
-  codeInput.addEventListener("click", removeErrorMessageBox);
-  codeInput.addEventListener("mouseout", removeErrorMessageBox);
-});
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
