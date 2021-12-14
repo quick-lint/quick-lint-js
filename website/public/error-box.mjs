@@ -6,7 +6,7 @@ function showErrorMessageBox(mark, posCursorX) {
     mark,
     posCursorX,
     mark.attributes["data-message"].value,
-    mark.attributes["data-code"].value,
+    mark.attributes["data-code"]?.value,
     mark.attributes["data-severity"].value
   );
   let body = document.querySelector("body");
@@ -24,7 +24,7 @@ function createErrorBox(
   let div = document.createElement("div");
   const { bottom } = markedElement.getBoundingClientRect();
   div.setAttribute("id", "error-box");
-  div.innerText = `${code} - ${errorMessage}`;
+  div.innerText = code ? `${code} - ${errorMessage}` : errorMessage;
   div.style.position = "fixed";
   div.style.overflow = "auto";
   div.style.top = `${Math.trunc(bottom)}px`;
@@ -39,11 +39,10 @@ function removeErrorMessageBox() {
   }
 }
 
-function showErrorMessage(event) {
+function showErrorMessage(event, markedElement) {
   removeErrorMessageBox();
 
-  const shadowInput = document.querySelector("#shadow-code-input");
-  const marks = shadowInput.querySelectorAll("mark");
+  const marks = markedElement.querySelectorAll("mark");
   for (let mark of marks) {
     const markRect = mark.getBoundingClientRect();
     if (cursorOverMark(event.clientX, event.clientY, markRect)) {
@@ -60,12 +59,30 @@ function cursorOverMark(cursorPosX, cursorPosY, markRect) {
   return topDownIn && leftRightIn;
 }
 
+// hoveredElement is an Element which the user might hover over.
+//
+// markedElement is an Element which contains <mark> Elements as descendants.
+//
+// hoveredElement can be the same as markedElement.
+function blessErrorMarksWithTooltip(hoveredElement, markedElement) {
+  hoveredElement.addEventListener("mousemove", (event) => {
+    showErrorMessage(event, markedElement);
+  });
+  hoveredElement.addEventListener("input", removeErrorMessageBox);
+  hoveredElement.addEventListener("click", removeErrorMessageBox);
+  hoveredElement.addEventListener("mouseout", removeErrorMessageBox);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const codeInput = document.querySelector("#code-input");
-  codeInput.addEventListener("mousemove", showErrorMessage);
-  codeInput.addEventListener("input", removeErrorMessageBox);
-  codeInput.addEventListener("click", removeErrorMessageBox);
-  codeInput.addEventListener("mouseout", removeErrorMessageBox);
+  const shadowInput = document.querySelector("#shadow-code-input");
+  if (codeInput !== null && shadowInput !== null) {
+    blessErrorMarksWithTooltip(codeInput, shadowInput);
+  }
+
+  for (let codeBlock of document.querySelectorAll("pre > code.javascript")) {
+    blessErrorMarksWithTooltip(codeBlock, codeBlock);
+  }
 });
 
 // quick-lint-js finds bugs in JavaScript programs.
