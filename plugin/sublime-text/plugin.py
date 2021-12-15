@@ -1,8 +1,6 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-"""Creates communication between plugin and C++ code."""
-
 import ctypes
 import os
 import platform
@@ -21,6 +19,7 @@ class Severity:
 
 
 if SUBLIME_TEXT_MAJOR_VERSION == "3":
+
     class Diagnostic(ctypes.Structure):
         _fields_ = [
             ("message", ctypes.c_char_p),
@@ -29,7 +28,9 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
             ("begin_offset", ctypes.c_int),
             ("end_offset", ctypes.c_int),
         ]
+
 elif SUBLIME_TEXT_MAJOR_VERSION == "4":
+
     class Diagnostic(ctypes.Structure):
         _fields_ = [
             ("message", ctypes.c_char_p),
@@ -41,55 +42,36 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
             ("end_character", ctypes.c_int),
         ]
 
-DiagnosticPointer = ctypes.POINTER(Diagnostic)
 
-
-class ErrorStructure(ctypes.Structure):
+class Error(ctypes.Structure):
     """Error layer used to communicate with the C++ code."""
 
-    # struct qljs_sublime_text_3_error {
-    #   const char* message;
-    # };
     _fields_ = [
         ("message", ctypes.c_char_p),
     ]
 
 
-ErrorStructurePointer = ctypes.POINTER(ErrorStructure)
-
-
-class ResultStructure(ctypes.Structure):
-    """Result layer used to communicate with the C++ code."""
-
-    # struct qljs_sublime_text_3_result {
-    #   union {
-    #     const qljs_sublime_text_3_diagnostic* diagnostics;
-    #     const qljs_sublime_text_3_error* error;
-    #   } value;
-    #   bool is_diagnostics;
-    # };
-    class ValueUnion(ctypes.Union):
+class Result(ctypes.Structure):
+    class Value(ctypes.Union):
         _fields_ = [
             ("diagnostics", DiagnosticPointer),
-            ("error", ErrorStructurePointer),
+            ("error", ErrorPointer),
         ]
 
     _fields_ = [
-        ("value", ValueUnion),
+        ("value", Value),
         ("is_diagnostics", ctypes.c_bool),
     ]
 
 
-ResultStructurePointer = ctypes.POINTER(ResultStructure)
-
-
-class ParserStructure(ctypes.Structure):
-    """Parser layer used to communicate with the C++ code."""
-
+class Parser(ctypes.Structure):
     _fields_ = []
 
 
-ParserStructurePointer = ctypes.POINTER(ParserStructure)
+DIAGNOSTIC_POINTER = ctypes.POINTER(Diagnostic)
+ERROR_POINTER = ctypes.POINTER(Error)
+RESULT_POINTER = ctypes.POINTER(Result)
+PARSER_POINTER = ctypes.POINTER(Parser)
 
 
 def get_script_directory_path():
@@ -131,6 +113,9 @@ def load_library():
     # load, all its dependencies are in the same directory. For ctypes
     # to find these dependencies, we will need to temporarily change
     # the current working directory to the same location of these dependencies.
+
+    # It's need multiple DLLs for load the library on Windows, for ctypes find
+    # these DLLs we need to change the current directory.
     with set_directory(lib_directory_path):
         lib = ctypes.CDLL(lib_path)
     return lib
@@ -164,20 +149,20 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
         lib = load_library()
 
         lib.qljs_sublime_text_3_create_parser.argtypes = []
-        lib.qljs_sublime_text_3_create_parser.restype = ParserStructurePointer
+        lib.qljs_sublime_text_3_create_parser.restype = ParserPointer
 
-        lib.qljs_sublime_text_3_destroy_parser.argtypes = [ParserStructurePointer]
+        lib.qljs_sublime_text_3_destroy_parser.argtypes = [ParserPointer]
         lib.qljs_sublime_text_3_destroy_parser.restype = None
 
         lib.qljs_sublime_text_3_set_text.argtypes = [
-            ParserStructurePointer,
+            ParserPointer,
             ctypes.c_void_p,
             ctypes.c_size_t,
         ]
-        lib.qljs_sublime_text_3_set_text.restype = ErrorStructurePointer
+        lib.qljs_sublime_text_3_set_text.restype = ErrorPointer
 
-        lib.qljs_sublime_text_3_lint.argtypes = [ParserStructurePointer]
-        lib.qljs_sublime_text_3_lint.restype = ResultStructurePointer
+        lib.qljs_sublime_text_3_lint.argtypes = [ParserPointer]
+        lib.qljs_sublime_text_3_lint.restype = ResultPointer
 
         return lib
 
@@ -268,13 +253,13 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
         lib = load_library()
 
         lib.qljs_sublime_text_4_create_parser.argtypes = []
-        lib.qljs_sublime_text_4_create_parser.restype = ParserStructurePointer
+        lib.qljs_sublime_text_4_create_parser.restype = ParserPointer
 
-        lib.qljs_sublime_text_4_destroy_parser.argtypes = [ParserStructurePointer]
+        lib.qljs_sublime_text_4_destroy_parser.argtypes = [ParserPointer]
         lib.qljs_sublime_text_4_destroy_parser.restype = None
 
         lib.qljs_sublime_text_4_replace_text.argtypes = [
-            ParserStructurePointer,
+            ParserPointer,
             ctypes.c_int,
             ctypes.c_int,
             ctypes.c_int,
@@ -282,10 +267,10 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
             ctypes.c_void_p,
             ctypes.c_size_t,
         ]
-        lib.qljs_sublime_text_4_replace_text.restype = ErrorStructurePointer
+        lib.qljs_sublime_text_4_replace_text.restype = ErrorPointer
 
-        lib.qljs_sublime_text_4_lint.argtypes = [ParserStructurePointer]
-        lib.qljs_sublime_text_4_lint.restype = ResultStructurePointer
+        lib.qljs_sublime_text_4_lint.argtypes = [ParserPointer]
+        lib.qljs_sublime_text_4_lint.restype = ResultPointer
 
         return lib
 
