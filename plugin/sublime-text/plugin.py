@@ -1,11 +1,11 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-import ctypes
 import contextlib
+import ctypes
+import html
 import os
 import platform
-import html
 
 import sublime
 import sublime_plugin
@@ -45,8 +45,6 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
 
 
 class Error(ctypes.Structure):
-    """Error layer used to communicate with the C++ code."""
-
     _fields_ = [
         ("message", ctypes.c_char_p),
     ]
