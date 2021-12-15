@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <deque>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <optional>

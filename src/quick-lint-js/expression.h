@@ -6,7 +6,6 @@
 
 #include <array>
 #include <boost/container/pmr/unsynchronized_pool_resource.hpp>
-#include <deque>
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
