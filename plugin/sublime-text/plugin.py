@@ -11,16 +11,15 @@ from os import path
 import sublime
 import sublime_plugin
 
-SUBLIME_TEXT_VERSION = sublime.version()
-SUBLIME_TEXT_MAJOR_VERSION = SUBLIME_TEXT_VERSION[0]
+from . import sublime_version
 
 
 class Severity:
-    error = 1
-    warning = 2
+    ERROR = 1
+    WARNING = 2
 
 
-if SUBLIME_TEXT_MAJOR_VERSION == "3":
+if sublime_version.MAJOR == "3":
 
     class Diagnostic(ctypes.Structure):
         _fields_ = [
