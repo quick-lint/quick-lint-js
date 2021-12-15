@@ -19,6 +19,7 @@
     EXPECT_FALSE((config).globals().find(u8"variableDoesNotExist"sv)); \
   } while (false)
 
+using ::testing::ElementsAre;
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {

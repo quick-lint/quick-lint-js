@@ -12,6 +12,7 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
 
+using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
 
