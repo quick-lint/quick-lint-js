@@ -45,6 +45,8 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
 
 
 class Error(ctypes.Structure):
+    """Error layer used to communicate with the C++ code."""
+
     _fields_ = [
         ("message", ctypes.c_char_p),
     ]
@@ -73,8 +75,12 @@ RESULT_POINTER = ctypes.POINTER(Result)
 PARSER_POINTER = ctypes.POINTER(Parser)
 
 
-def get_script_directory_path():
-    return os.path.dirname(os.path.realpath(__file__))
+def get_module_path():
+    return os.path.realpath(__file__)
+
+
+def get_directory(path)
+    return os.path.dirname(path)
 
 
 @contextlib.contextmanager
@@ -99,7 +105,7 @@ def load_library():
     else:
         raise OSError("Operating system not supported.")
 
-    lib_directory_path = get_script_directory_path()
+    lib_directory_path = get_directory(get_module_path())
     lib_path = lib_directory_path + directory_separator + lib_path_file
 
     # On Windows, for ctypes to load a library, it also needs to load
