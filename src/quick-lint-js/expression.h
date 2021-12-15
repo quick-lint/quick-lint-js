@@ -207,6 +207,8 @@ class expression {
 
   expression *child(int) const noexcept;
 
+  expression_arena::array_ptr<expression *> children() const noexcept;
+
   // Can be called at most once.
   template <QLJS_PARSE_VISITOR Visitor>
   void visit_children(Visitor &v, expression_arena &arena) {
@@ -231,12 +233,6 @@ class expression {
 
  protected:
   explicit expression(expression_kind kind) noexcept : kind_(kind) {}
-
-  int child_count_impl() const noexcept { QLJS_UNEXPECTED_EXPRESSION_KIND(); }
-
-  expression *child_impl(int) const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
 
   source_code_span span_impl() const noexcept {
     QLJS_UNEXPECTED_EXPRESSION_KIND();
@@ -325,11 +321,8 @@ class expression::expression_with_prefix_operator_base : public expression {
         unary_operator_begin_(operator_span.begin()),
         child_(child) {}
 
-  int child_count_impl() const noexcept { return 1; }
-
-  expression *child_impl([[maybe_unused]] int index) const noexcept {
-    QLJS_ASSERT(index == 0);
-    return this->child_;
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return expression_arena::array_ptr<expression *>(&this->child_, 1);
   }
 
   source_code_span span_impl() const noexcept {
@@ -418,10 +411,8 @@ class expression::_new final : public expression {
                 source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
 
-  int child_count_impl() const noexcept { return this->children_.size(); }
-
-  expression *child_impl(int index) const noexcept {
-    return this->children_[index];
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return this->children_;
   }
 
   source_code_span span_impl() const noexcept { return this->span_; }
@@ -440,10 +431,8 @@ class expression::_template final : public expression {
                      source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
 
-  int child_count_impl() const noexcept { return this->children_.size(); }
-
-  expression *child_impl(int index) const noexcept {
-    return this->children_[index];
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return this->children_;
   }
 
   source_code_span span_impl() const noexcept { return this->span_; }
@@ -473,10 +462,8 @@ class expression::array final : public expression {
                  source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
 
-  int child_count_impl() const noexcept { return this->children_.size(); }
-
-  expression *child_impl(int index) const noexcept {
-    return this->children_[index];
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return this->children_;
   }
 
   source_code_span span_impl() const noexcept { return this->span_; }
@@ -514,10 +501,8 @@ class expression::arrow_function_with_expression final : public expression {
     }
   }
 
-  int child_count_impl() const noexcept { return this->parameters_.size(); }
-
-  expression *child_impl(int index) const noexcept {
-    return this->parameters_[index];
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return this->parameters_;
   }
 
   source_code_span span_impl() const noexcept {
@@ -571,10 +556,8 @@ class expression::arrow_function_with_statements final : public expression {
     }
   }
 
-  int child_count_impl() const noexcept { return this->children_.size(); }
-
-  expression *child_impl(int index) const noexcept {
-    return this->children_[index];
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return this->children_;
   }
 
   source_code_span span_impl() const noexcept {
@@ -605,14 +588,9 @@ class expression::assignment final : public expression {
                 kind == expression_kind::conditional_assignment);
   }
 
-  int child_count_impl() const noexcept {
-    return narrow_cast<int>(this->children_.size());
-  }
-
-  expression *child_impl(int index) const noexcept {
-    QLJS_ASSERT(index >= 0);
-    QLJS_ASSERT(index < static_cast<int>(this->children_.size()));
-    return this->children_[narrow_cast<unsigned>(index)];
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return expression_arena::array_ptr<expression *>(
+        this->children_.data(), narrow_cast<int>(this->children_.size()));
   }
 
   void set_child(int index, expression *new_child) noexcept {
@@ -660,10 +638,8 @@ class expression::binary_operator final : public expression {
       expression_arena::array_ptr<expression *> children) noexcept
       : expression(kind), children_(children) {}
 
-  int child_count_impl() const noexcept { return this->children_.size(); }
-
-  expression *child_impl(int index) const noexcept {
-    return this->children_[index];
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return this->children_;
   }
 
   source_code_span span_impl() const noexcept {
@@ -690,10 +666,8 @@ class expression::call final : public expression {
     QLJS_ASSERT(left_paren_span.size() == 1);
   }
 
-  int child_count_impl() const noexcept { return this->children_.size(); }
-
-  expression *child_impl(int index) const noexcept {
-    return this->children_[index];
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return this->children_;
   }
 
   source_code_span span_impl() const noexcept {
@@ -721,14 +695,9 @@ class expression::conditional final : public expression {
                        expression *false_branch) noexcept
       : expression(kind), children_{condition, true_branch, false_branch} {}
 
-  int child_count_impl() const noexcept {
-    return narrow_cast<int>(this->children_.size());
-  }
-
-  expression *child_impl(int index) const noexcept {
-    QLJS_ASSERT(index >= 0);
-    QLJS_ASSERT(index < static_cast<int>(this->children_.size()));
-    return this->children_[narrow_cast<unsigned>(index)];
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return expression_arena::array_ptr<expression *>(
+        this->children_.data(), narrow_cast<int>(this->children_.size()));
   }
 
   source_code_span span_impl() const noexcept {
@@ -748,11 +717,8 @@ class expression::dot final : public expression {
   explicit dot(expression *lhs, identifier rhs) noexcept
       : expression(kind), variable_identifier_(rhs), child_(lhs) {}
 
-  int child_count_impl() const noexcept { return 1; }
-
-  expression *child_impl([[maybe_unused]] int index) const noexcept {
-    QLJS_ASSERT(index == 0);
-    return this->child_;
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return expression_arena::array_ptr<expression *>(&this->child_, 1);
   }
 
   source_code_span span_impl() const noexcept {
@@ -814,14 +780,9 @@ class expression::index final : public expression {
         index_subscript_end_(subscript_end),
         children_{container, subscript} {}
 
-  int child_count_impl() const noexcept {
-    return narrow_cast<int>(this->children_.size());
-  }
-
-  expression *child_impl(int index) const noexcept {
-    QLJS_ASSERT(index >= 0);
-    QLJS_ASSERT(index < static_cast<int>(this->children_.size()));
-    return this->children_[narrow_cast<unsigned>(index)];
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return expression_arena::array_ptr<expression *>(
+        this->children_.data(), narrow_cast<int>(this->children_.size()));
   }
 
   source_code_span span_impl() const noexcept {
@@ -942,11 +903,8 @@ class expression::rw_unary_suffix final : public expression {
         unary_operator_end_(operator_span.end()),
         child_(child) {}
 
-  int child_count_impl() const noexcept { return 1; }
-
-  expression *child_impl([[maybe_unused]] int index) const noexcept {
-    QLJS_ASSERT(index == 0);
-    return this->child_;
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return expression_arena::array_ptr<expression *>(&this->child_, 1);
   }
 
   source_code_span span_impl() const noexcept {
@@ -996,12 +954,8 @@ class expression::tagged_template_literal final : public expression {
     QLJS_ASSERT(!tag_and_template_children.empty());
   }
 
-  int child_count_impl() const noexcept {
-    return this->tag_and_template_children_.size();
-  }
-
-  expression *child_impl(int index) const noexcept {
-    return this->tag_and_template_children_[index];
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return this->tag_and_template_children_;
   }
 
   source_code_span span_impl() const noexcept {
@@ -1026,10 +980,8 @@ class expression::trailing_comma final : public expression {
     QLJS_ASSERT(comma_span.end() == comma_span.begin() + 1);
   }
 
-  int child_count_impl() const noexcept { return this->children_.size(); }
-
-  expression *child_impl(int index) const noexcept {
-    return this->children_[index];
+  expression_arena::array_ptr<expression *> children_impl() const noexcept {
+    return this->children_;
   }
 
   source_code_span span_impl() const noexcept {
@@ -1145,55 +1097,27 @@ inline token_type expression::variable_identifier_token_type() const noexcept {
 }
 
 inline int expression::child_count() const noexcept {
-#define QLJS_CASE(kind)       \
-  case expression_kind::kind: \
-    return static_cast<const expression::kind *>(this)->child_count_impl();
-
-  switch (this->kind_) {
-  case expression_kind::assignment:
-  case expression_kind::compound_assignment:
-  case expression_kind::conditional_assignment:
-    return static_cast<const expression::assignment *>(this)
-        ->child_count_impl();
-
-    QLJS_CASE(_delete)
-    QLJS_CASE(_new)
-    QLJS_CASE(_template)
-    QLJS_CASE(_typeof)
-    QLJS_CASE(array)
-    QLJS_CASE(arrow_function_with_expression)
-    QLJS_CASE(arrow_function_with_statements)
-    QLJS_CASE(await)
-    QLJS_CASE(binary_operator)
-    QLJS_CASE(call)
-    QLJS_CASE(conditional)
-    QLJS_CASE(dot)
-    QLJS_CASE(index)
-    QLJS_CASE(rw_unary_prefix)
-    QLJS_CASE(rw_unary_suffix)
-    QLJS_CASE(spread)
-    QLJS_CASE(tagged_template_literal)
-    QLJS_CASE(trailing_comma)
-    QLJS_CASE(unary_operator)
-    QLJS_CASE(yield_many)
-    QLJS_CASE(yield_one)
-
-  default:
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
-#undef QLJS_CASE
+  return this->children().size();
 }
 
 inline expression *expression::child(int index) const noexcept {
+  expression_arena::array_ptr<expression *> children = this->children();
+  QLJS_ASSERT(index >= 0);
+  QLJS_ASSERT(index < children.size());
+  return children[index];
+}
+
+inline expression_arena::array_ptr<expression *> expression::children() const
+    noexcept {
 #define QLJS_CASE(kind)       \
   case expression_kind::kind: \
-    return static_cast<const expression::kind *>(this)->child_impl(index);
+    return static_cast<const expression::kind *>(this)->children_impl();
 
   switch (this->kind_) {
   case expression_kind::assignment:
   case expression_kind::compound_assignment:
   case expression_kind::conditional_assignment:
-    return static_cast<const expression::assignment *>(this)->child_impl(index);
+    return static_cast<const expression::assignment *>(this)->children_impl();
 
     QLJS_CASE(_delete)
     QLJS_CASE(_new)
