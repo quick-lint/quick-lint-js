@@ -210,14 +210,16 @@ class expression {
   // Can be called at most once.
   template <QLJS_PARSE_VISITOR Visitor>
   void visit_children(Visitor &v, expression_arena &arena) {
-    buffering_visitor *child_visits = this->with_derived(
-        [](auto &self) { return self.take_child_visits_impl(); });
+    buffering_visitor *child_visits = this->take_child_visits();
     QLJS_ASSERT(
         child_visits &&
         "visit_children can be called at most once, but it was called twice");
     child_visits->move_into(v);
     arena.delete_buffering_visitor(child_visits);
   }
+
+  // Returns expression_arena::buffering_visitor_ptr.
+  buffering_visitor *take_child_visits() noexcept;
 
   int object_entry_count() const noexcept;
 
@@ -266,12 +268,6 @@ class expression {
   }
 
  private:
-  template <class Func>
-  auto with_derived(Func &&func);
-
-  template <class Func>
-  auto with_derived(Func &&func) const;
-
   expression_kind kind_;
 };
 
@@ -1203,104 +1199,225 @@ class expression::yield_one final
 };
 static_assert(expression_arena::is_allocatable<expression::yield_one>);
 
-template <class Func>
-inline auto expression::with_derived(Func &&func) {
-  using compound_assignment = assignment;
-  using conditional_assignment = assignment;
+inline identifier expression::variable_identifier() const noexcept {
+  switch (this->kind_) {
+  case expression_kind::dot:
+    return static_cast<const expression::dot *>(this)
+        ->variable_identifier_impl();
+  case expression_kind::named_function:
+    return static_cast<const expression::named_function *>(this)
+        ->variable_identifier_impl();
+  case expression_kind::private_variable:
+    return static_cast<const expression::private_variable *>(this)
+        ->variable_identifier_impl();
+  case expression_kind::variable:
+    return static_cast<const expression::variable *>(this)
+        ->variable_identifier_impl();
 
-#define QLJS_EXPRESSION_CASE(kind) \
-  case expression_kind::kind:      \
-    return func(static_cast<kind &>(*this));
+  default:
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+}
 
-  switch (this->kind()) {
-    QLJS_EXPRESSION_CASE(_class)
-    QLJS_EXPRESSION_CASE(_delete)
-    QLJS_EXPRESSION_CASE(_invalid)
-    QLJS_EXPRESSION_CASE(_missing)
-    QLJS_EXPRESSION_CASE(_new)
-    QLJS_EXPRESSION_CASE(_template)
-    QLJS_EXPRESSION_CASE(_typeof)
-    QLJS_EXPRESSION_CASE(array)
-    QLJS_EXPRESSION_CASE(arrow_function_with_expression)
-    QLJS_EXPRESSION_CASE(arrow_function_with_statements)
-    QLJS_EXPRESSION_CASE(assignment)
-    QLJS_EXPRESSION_CASE(await)
-    QLJS_EXPRESSION_CASE(binary_operator)
-    QLJS_EXPRESSION_CASE(call)
-    QLJS_EXPRESSION_CASE(compound_assignment)
-    QLJS_EXPRESSION_CASE(conditional)
-    QLJS_EXPRESSION_CASE(conditional_assignment)
-    QLJS_EXPRESSION_CASE(dot)
-    QLJS_EXPRESSION_CASE(function)
-    QLJS_EXPRESSION_CASE(import)
-    QLJS_EXPRESSION_CASE(index)
-    QLJS_EXPRESSION_CASE(literal)
-    QLJS_EXPRESSION_CASE(named_function)
-    QLJS_EXPRESSION_CASE(new_target)
-    QLJS_EXPRESSION_CASE(object)
-    QLJS_EXPRESSION_CASE(private_variable)
-    QLJS_EXPRESSION_CASE(rw_unary_prefix)
-    QLJS_EXPRESSION_CASE(rw_unary_suffix)
-    QLJS_EXPRESSION_CASE(spread)
-    QLJS_EXPRESSION_CASE(super)
-    QLJS_EXPRESSION_CASE(tagged_template_literal)
-    QLJS_EXPRESSION_CASE(trailing_comma)
-    QLJS_EXPRESSION_CASE(unary_operator)
-    QLJS_EXPRESSION_CASE(variable)
-    QLJS_EXPRESSION_CASE(yield_many)
-    QLJS_EXPRESSION_CASE(yield_none)
-    QLJS_EXPRESSION_CASE(yield_one)
+inline token_type expression::variable_identifier_token_type() const noexcept {
+  switch (this->kind_) {
+  case expression_kind::variable:
+    return static_cast<const expression::variable *>(this)
+        ->variable_identifier_token_type_impl();
+
+  default:
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+}
+
+inline int expression::child_count() const noexcept {
+#define QLJS_CASE(kind)       \
+  case expression_kind::kind: \
+    return static_cast<const expression::kind *>(this)->child_count_impl();
+
+  switch (this->kind_) {
+  case expression_kind::assignment:
+  case expression_kind::compound_assignment:
+  case expression_kind::conditional_assignment:
+    return static_cast<const expression::assignment *>(this)
+        ->child_count_impl();
+
+    QLJS_CASE(_delete)
+    QLJS_CASE(_new)
+    QLJS_CASE(_template)
+    QLJS_CASE(_typeof)
+    QLJS_CASE(array)
+    QLJS_CASE(arrow_function_with_expression)
+    QLJS_CASE(arrow_function_with_statements)
+    QLJS_CASE(await)
+    QLJS_CASE(binary_operator)
+    QLJS_CASE(call)
+    QLJS_CASE(conditional)
+    QLJS_CASE(dot)
+    QLJS_CASE(index)
+    QLJS_CASE(rw_unary_prefix)
+    QLJS_CASE(rw_unary_suffix)
+    QLJS_CASE(spread)
+    QLJS_CASE(tagged_template_literal)
+    QLJS_CASE(trailing_comma)
+    QLJS_CASE(unary_operator)
+    QLJS_CASE(yield_many)
+    QLJS_CASE(yield_one)
+
+  default:
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+#undef QLJS_CASE
+}
+
+inline expression *expression::child(int index) const noexcept {
+#define QLJS_CASE(kind)       \
+  case expression_kind::kind: \
+    return static_cast<const expression::kind *>(this)->child_impl(index);
+
+  switch (this->kind_) {
+  case expression_kind::assignment:
+  case expression_kind::compound_assignment:
+  case expression_kind::conditional_assignment:
+    return static_cast<const expression::assignment *>(this)->child_impl(index);
+
+    QLJS_CASE(_delete)
+    QLJS_CASE(_new)
+    QLJS_CASE(_template)
+    QLJS_CASE(_typeof)
+    QLJS_CASE(array)
+    QLJS_CASE(arrow_function_with_expression)
+    QLJS_CASE(arrow_function_with_statements)
+    QLJS_CASE(await)
+    QLJS_CASE(binary_operator)
+    QLJS_CASE(call)
+    QLJS_CASE(conditional)
+    QLJS_CASE(dot)
+    QLJS_CASE(index)
+    QLJS_CASE(rw_unary_prefix)
+    QLJS_CASE(rw_unary_suffix)
+    QLJS_CASE(spread)
+    QLJS_CASE(tagged_template_literal)
+    QLJS_CASE(trailing_comma)
+    QLJS_CASE(unary_operator)
+    QLJS_CASE(yield_many)
+    QLJS_CASE(yield_one)
+
+  default:
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+#undef QLJS_CASE
+}
+
+inline buffering_visitor *expression::take_child_visits() noexcept {
+  switch (this->kind_) {
+  case expression_kind::_class:
+    return static_cast<expression::_class *>(this)->take_child_visits_impl();
+  case expression_kind::arrow_function_with_statements:
+    return static_cast<expression::arrow_function_with_statements *>(this)
+        ->take_child_visits_impl();
+  case expression_kind::function:
+    return static_cast<expression::function *>(this)->take_child_visits_impl();
+  case expression_kind::named_function:
+    return static_cast<expression::named_function *>(this)
+        ->take_child_visits_impl();
+
+  default:
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+}
+
+inline int expression::object_entry_count() const noexcept {
+  switch (this->kind_) {
+  case expression_kind::object:
+    return static_cast<const expression::object *>(this)
+        ->object_entry_count_impl();
+
+  default:
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+}
+
+inline object_property_value_pair expression::object_entry(int index) const
+    noexcept {
+  switch (this->kind_) {
+  case expression_kind::object:
+    return static_cast<const expression::object *>(this)->object_entry_impl(
+        index);
+
+  default:
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+}
+
+inline source_code_span expression::span() const noexcept {
+#define QLJS_CASE(kind)       \
+  case expression_kind::kind: \
+    return static_cast<const kind *>(this)->span_impl();
+
+  switch (this->kind_) {
+  case expression_kind::assignment:
+  case expression_kind::compound_assignment:
+  case expression_kind::conditional_assignment:
+    return static_cast<const assignment *>(this)->span_impl();
+
+    QLJS_CASE(_class)
+    QLJS_CASE(_delete)
+    QLJS_CASE(_invalid)
+    QLJS_CASE(_missing)
+    QLJS_CASE(_new)
+    QLJS_CASE(_template)
+    QLJS_CASE(_typeof)
+    QLJS_CASE(array)
+    QLJS_CASE(arrow_function_with_expression)
+    QLJS_CASE(arrow_function_with_statements)
+    QLJS_CASE(await)
+    QLJS_CASE(binary_operator)
+    QLJS_CASE(call)
+    QLJS_CASE(conditional)
+    QLJS_CASE(dot)
+    QLJS_CASE(function)
+    QLJS_CASE(import)
+    QLJS_CASE(index)
+    QLJS_CASE(literal)
+    QLJS_CASE(named_function)
+    QLJS_CASE(new_target)
+    QLJS_CASE(object)
+    QLJS_CASE(private_variable)
+    QLJS_CASE(rw_unary_prefix)
+    QLJS_CASE(rw_unary_suffix)
+    QLJS_CASE(spread)
+    QLJS_CASE(super)
+    QLJS_CASE(tagged_template_literal)
+    QLJS_CASE(trailing_comma)
+    QLJS_CASE(unary_operator)
+    QLJS_CASE(variable)
+    QLJS_CASE(yield_many)
+    QLJS_CASE(yield_none)
+    QLJS_CASE(yield_one)
   }
   QLJS_UNREACHABLE();
 
 #undef QLJS_EXPRESSION_CASE
 }
 
-template <class Func>
-inline auto expression::with_derived(Func &&func) const {
-  return const_cast<expression *>(this)->with_derived(
-      [&func](const auto &self) { return func(self); });
-}
-
-inline identifier expression::variable_identifier() const noexcept {
-  return this->with_derived(
-      [](const auto &self) { return self.variable_identifier_impl(); });
-}
-
-inline token_type expression::variable_identifier_token_type() const noexcept {
-  return this->with_derived([](const auto &self) {
-    return self.variable_identifier_token_type_impl();
-  });
-}
-
-inline int expression::child_count() const noexcept {
-  return this->with_derived(
-      [](const auto &self) { return self.child_count_impl(); });
-}
-
-inline expression *expression::child(int index) const noexcept {
-  return this->with_derived(
-      [&](const auto &self) { return self.child_impl(index); });
-}
-
-inline int expression::object_entry_count() const noexcept {
-  return this->with_derived(
-      [](const auto &self) { return self.object_entry_count_impl(); });
-}
-
-inline object_property_value_pair expression::object_entry(int index) const
-    noexcept {
-  return this->with_derived(
-      [&](const auto &self) { return self.object_entry_impl(index); });
-}
-
-inline source_code_span expression::span() const noexcept {
-  return this->with_derived([](const auto &self) { return self.span_impl(); });
-}
-
 inline function_attributes expression::attributes() const noexcept {
-  return this->with_derived(
-      [](const auto &self) { return self.attributes_impl(); });
+  switch (this->kind_) {
+  case expression_kind::arrow_function_with_expression:
+    return static_cast<const expression::arrow_function_with_expression *>(this)
+        ->attributes_impl();
+  case expression_kind::arrow_function_with_statements:
+    return static_cast<const expression::arrow_function_with_statements *>(this)
+        ->attributes_impl();
+  case expression_kind::function:
+    return static_cast<const expression::function *>(this)->attributes_impl();
+  case expression_kind::named_function:
+    return static_cast<const expression::named_function *>(this)
+        ->attributes_impl();
+
+  default:
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
 }
 }
 
