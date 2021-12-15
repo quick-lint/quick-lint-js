@@ -761,7 +761,8 @@ class parser {
         this->visit_expression(ast->child(i), v, context);
       }
     };
-    auto visit_parameters = [&](int parameter_count) {
+    auto visit_parameters = [&]() {
+      int parameter_count = ast->child_count();
       for (int i = 0; i < parameter_count; ++i) {
         expression *parameter = ast->child(i);
         this->visit_binding_element(parameter, v, variable_kind::_parameter,
@@ -804,7 +805,7 @@ class parser {
       auto *arrow =
           static_cast<expression::arrow_function_with_expression *>(ast);
       v.visit_enter_function_scope();
-      visit_parameters(arrow->child_count());
+      visit_parameters();
       v.visit_enter_function_scope_body();
       this->visit_expression(arrow->body_, v, variable_context::rhs);
       v.visit_exit_function_scope();
@@ -812,7 +813,7 @@ class parser {
     }
     case expression_kind::arrow_function_with_statements:
       v.visit_enter_function_scope();
-      visit_parameters(ast->child_count());
+      visit_parameters();
       v.visit_enter_function_scope_body();
       ast->visit_children(v, this->expressions_);
       v.visit_exit_function_scope();
