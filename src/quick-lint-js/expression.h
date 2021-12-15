@@ -234,10 +234,6 @@ class expression {
  protected:
   explicit expression(expression_kind kind) noexcept : kind_(kind) {}
 
-  source_code_span span_impl() const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
-
  private:
   expression_kind kind_;
 };
@@ -321,11 +317,6 @@ class expression::expression_with_prefix_operator_base : public expression {
         unary_operator_begin_(operator_span.begin()),
         child_(child) {}
 
-  source_code_span span_impl() const noexcept {
-    return source_code_span(this->unary_operator_begin_,
-                            this->child_->span().end());
-  }
-
   const char8 *unary_operator_begin() const noexcept {
     return this->unary_operator_begin_;
   }
@@ -361,11 +352,8 @@ class expression::_class : public expression {
                   source_code_span span) noexcept
       : expression(kind), child_visits_(child_visits), span_(span) {}
 
-  source_code_span span_impl() const noexcept { return this->span_; }
-
   expression_arena::buffering_visitor_ptr child_visits_;
 
- private:
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::_class>);
@@ -377,9 +365,6 @@ class expression::_invalid final : public expression {
   explicit _invalid(source_code_span span) noexcept
       : expression(kind), span_(span) {}
 
-  source_code_span span_impl() const noexcept { return this->span_; }
-
- private:
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::_invalid>);
@@ -391,9 +376,6 @@ class expression::_missing final : public expression {
   explicit _missing(source_code_span span) noexcept
       : expression(kind), span_(span) {}
 
-  source_code_span span_impl() const noexcept { return this->span_; }
-
- private:
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::_missing>);
@@ -405,8 +387,6 @@ class expression::_new final : public expression {
   explicit _new(expression_arena::array_ptr<expression *> children,
                 source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
-
-  source_code_span span_impl() const noexcept { return this->span_; }
 
   source_code_span span_;
   expression_arena::array_ptr<expression *> children_;
@@ -420,8 +400,6 @@ class expression::_template final : public expression {
   explicit _template(expression_arena::array_ptr<expression *> children,
                      source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
-
-  source_code_span span_impl() const noexcept { return this->span_; }
 
   source_code_span span_;
   expression_arena::array_ptr<expression *> children_;
@@ -446,8 +424,6 @@ class expression::array final : public expression {
   explicit array(expression_arena::array_ptr<expression *> children,
                  source_code_span span) noexcept
       : expression(kind), span_(span), children_(children) {}
-
-  source_code_span span_impl() const noexcept { return this->span_; }
 
   source_code_span span_;
   expression_arena::array_ptr<expression *> children_;
@@ -478,16 +454,6 @@ class expression::arrow_function_with_expression final : public expression {
         body_(body) {
     if (!this->parameter_list_begin_) {
       QLJS_ASSERT(!this->parameters_.empty());
-    }
-  }
-
-  source_code_span span_impl() const noexcept {
-    if (this->parameter_list_begin_) {
-      return source_code_span(this->parameter_list_begin_,
-                              this->body_->span().end());
-    } else {
-      return source_code_span(this->parameters_.front()->span().begin(),
-                              this->body_->span().end());
     }
   }
 
@@ -532,15 +498,6 @@ class expression::arrow_function_with_statements final : public expression {
     }
   }
 
-  source_code_span span_impl() const noexcept {
-    if (this->parameter_list_begin_) {
-      return source_code_span(this->parameter_list_begin_, this->span_end_);
-    } else {
-      return source_code_span(this->children_.front()->span().begin(),
-                              span_end_);
-    }
-  }
-
   function_attributes function_attributes_;
   const char8 *parameter_list_begin_;
   const char8 *span_end_;
@@ -564,11 +521,6 @@ class expression::assignment final : public expression {
     QLJS_ASSERT(index >= 0);
     QLJS_ASSERT(index < static_cast<int>(this->children_.size()));
     this->children_[narrow_cast<unsigned>(index)] = new_child;
-  }
-
-  source_code_span span_impl() const noexcept {
-    return source_code_span(this->children_.front()->span().begin(),
-                            this->children_.back()->span().end());
   }
 
   source_code_span operator_span() const noexcept {
@@ -604,11 +556,6 @@ class expression::binary_operator final : public expression {
       expression_arena::array_ptr<expression *> children) noexcept
       : expression(kind), children_(children) {}
 
-  source_code_span span_impl() const noexcept {
-    return source_code_span(this->children_.front()->span().begin(),
-                            this->children_.back()->span().end());
-  }
-
   expression_arena::array_ptr<expression *> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::binary_operator>);
@@ -625,11 +572,6 @@ class expression::call final : public expression {
         span_end_(span_end),
         children_(children) {
     QLJS_ASSERT(left_paren_span.size() == 1);
-  }
-
-  source_code_span span_impl() const noexcept {
-    return source_code_span(this->children_.front()->span().begin(),
-                            this->span_end_);
   }
 
   source_code_span left_paren_span() const noexcept {
@@ -651,11 +593,6 @@ class expression::conditional final : public expression {
                        expression *false_branch) noexcept
       : expression(kind), children_{condition, true_branch, false_branch} {}
 
-  source_code_span span_impl() const noexcept {
-    return source_code_span(this->children_.front()->span().begin(),
-                            this->children_.back()->span().end());
-  }
-
   std::array<expression *, 3> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::conditional>);
@@ -666,11 +603,6 @@ class expression::dot final : public expression {
 
   explicit dot(expression *lhs, identifier rhs) noexcept
       : expression(kind), variable_identifier_(rhs), child_(lhs) {}
-
-  source_code_span span_impl() const noexcept {
-    return source_code_span(this->child_0()->span().begin(),
-                            this->variable_identifier_.span().end());
-  }
 
   identifier variable_identifier_;
   expression *child_;
@@ -689,13 +621,10 @@ class expression::function final : public expression {
         child_visits_(child_visits),
         span_(span) {}
 
-  source_code_span span_impl() const noexcept { return this->span_; }
-
   function_attributes function_attributes_;
 
   expression_arena::buffering_visitor_ptr child_visits_;
 
- private:
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::function>);
@@ -707,9 +636,6 @@ class expression::import final : public expression {
   explicit import(source_code_span span) noexcept
       : expression(kind), span_(span) {}
 
-  source_code_span span_impl() const noexcept { return this->span_; }
-
- private:
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::import>);
@@ -724,11 +650,6 @@ class expression::index final : public expression {
         index_subscript_end_(subscript_end),
         children_{container, subscript} {}
 
-  source_code_span span_impl() const noexcept {
-    return source_code_span(this->child_0()->span().begin(),
-                            this->index_subscript_end_);
-  }
-
   const char8 *index_subscript_end_;
   std::array<expression *, 2> children_;
 };
@@ -741,9 +662,6 @@ class expression::literal final : public expression {
   explicit literal(source_code_span span) noexcept
       : expression(kind), span_(span) {}
 
-  source_code_span span_impl() const noexcept { return this->span_; }
-
- private:
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::literal>);
@@ -761,15 +679,12 @@ class expression::named_function final : public expression {
         variable_identifier_(name),
         span_(span) {}
 
-  source_code_span span_impl() const noexcept { return this->span_; }
-
   function_attributes function_attributes_;
 
   expression_arena::buffering_visitor_ptr child_visits_;
 
   identifier variable_identifier_;
 
- private:
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::named_function>);
@@ -781,9 +696,6 @@ class expression::new_target final : public expression {
   explicit new_target(source_code_span span) noexcept
       : expression(kind), span_(span) {}
 
-  source_code_span span_impl() const noexcept { return this->span_; }
-
- private:
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::new_target>);
@@ -797,8 +709,6 @@ class expression::object final : public expression {
       source_code_span span) noexcept
       : expression(kind), span_(span), entries_(entries) {}
 
-  source_code_span span_impl() const noexcept { return this->span_; }
-
   source_code_span span_;
   expression_arena::array_ptr<object_property_value_pair> entries_;
 };
@@ -810,10 +720,6 @@ class expression::private_variable final : public expression {
 
   explicit private_variable(identifier variable_identifier) noexcept
       : expression(kind), variable_identifier_(variable_identifier) {}
-
-  source_code_span span_impl() const noexcept {
-    return this->variable_identifier_.span();
-  }
 
   identifier variable_identifier_;
 };
@@ -841,11 +747,6 @@ class expression::rw_unary_suffix final : public expression {
         unary_operator_end_(operator_span.end()),
         child_(child) {}
 
-  source_code_span span_impl() const noexcept {
-    return source_code_span(this->child_->span().begin(),
-                            this->unary_operator_end_);
-  }
-
   const char8 *unary_operator_end_;
   expression *child_;
 };
@@ -869,9 +770,6 @@ class expression::super final : public expression {
   explicit super(source_code_span span) noexcept
       : expression(kind), span_(span) {}
 
-  source_code_span span_impl() const noexcept { return this->span_; }
-
- private:
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::super>);
@@ -885,11 +783,6 @@ class expression::tagged_template_literal final : public expression {
         tag_and_template_children_(tag_and_template_children),
         template_span_end_(template_span.end()) {
     QLJS_ASSERT(!tag_and_template_children.empty());
-  }
-
-  source_code_span span_impl() const noexcept {
-    return source_code_span(this->tag_and_template_children_[0]->span().begin(),
-                            this->template_span_end_);
   }
 
   expression_arena::array_ptr<expression *> tag_and_template_children_;
@@ -906,11 +799,6 @@ class expression::trailing_comma final : public expression {
                           source_code_span comma_span) noexcept
       : expression(kind), children_(children), comma_end_(comma_span.end()) {
     QLJS_ASSERT(comma_span.end() == comma_span.begin() + 1);
-  }
-
-  source_code_span span_impl() const noexcept {
-    return source_code_span(this->children_.front()->span().begin(),
-                            this->comma_end_);
   }
 
   source_code_span comma_span() const noexcept {
@@ -943,10 +831,6 @@ class expression::variable final : public expression {
         type_(type),
         variable_identifier_(variable_identifier) {}
 
-  source_code_span span_impl() const noexcept {
-    return this->variable_identifier_.span();
-  }
-
   token_type type_;
 
   identifier variable_identifier_;
@@ -972,9 +856,6 @@ class expression::yield_none final : public expression {
   explicit yield_none(source_code_span span) noexcept
       : expression(kind), span_(span) {}
 
-  source_code_span span_impl() const noexcept { return this->span_; }
-
- private:
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::yield_none>);
@@ -1149,54 +1030,127 @@ inline object_property_value_pair expression::object_entry(int index) const
 }
 
 inline source_code_span expression::span() const noexcept {
-#define QLJS_CASE(kind)       \
-  case expression_kind::kind: \
-    return static_cast<const kind *>(this)->span_impl();
-
   switch (this->kind_) {
   case expression_kind::assignment:
   case expression_kind::compound_assignment:
-  case expression_kind::conditional_assignment:
-    return static_cast<const assignment *>(this)->span_impl();
+  case expression_kind::conditional_assignment: {
+    auto *assignment = static_cast<const expression::assignment *>(this);
+    return source_code_span(assignment->children_.front()->span().begin(),
+                            assignment->children_.back()->span().end());
+  }
 
-    QLJS_CASE(_class)
-    QLJS_CASE(_delete)
-    QLJS_CASE(_invalid)
-    QLJS_CASE(_missing)
-    QLJS_CASE(_new)
-    QLJS_CASE(_template)
-    QLJS_CASE(_typeof)
-    QLJS_CASE(array)
-    QLJS_CASE(arrow_function_with_expression)
-    QLJS_CASE(arrow_function_with_statements)
-    QLJS_CASE(await)
-    QLJS_CASE(binary_operator)
-    QLJS_CASE(call)
-    QLJS_CASE(conditional)
-    QLJS_CASE(dot)
-    QLJS_CASE(function)
-    QLJS_CASE(import)
-    QLJS_CASE(index)
-    QLJS_CASE(literal)
-    QLJS_CASE(named_function)
-    QLJS_CASE(new_target)
-    QLJS_CASE(object)
-    QLJS_CASE(private_variable)
-    QLJS_CASE(rw_unary_prefix)
-    QLJS_CASE(rw_unary_suffix)
-    QLJS_CASE(spread)
-    QLJS_CASE(super)
-    QLJS_CASE(tagged_template_literal)
-    QLJS_CASE(trailing_comma)
-    QLJS_CASE(unary_operator)
-    QLJS_CASE(variable)
-    QLJS_CASE(yield_many)
-    QLJS_CASE(yield_none)
-    QLJS_CASE(yield_one)
+  case expression_kind::_delete:
+  case expression_kind::_typeof:
+  case expression_kind::await:
+  case expression_kind::rw_unary_prefix:
+  case expression_kind::spread:
+  case expression_kind::unary_operator:
+  case expression_kind::yield_many:
+  case expression_kind::yield_one: {
+    auto *prefix =
+        static_cast<const expression::expression_with_prefix_operator_base *>(
+            this);
+    return source_code_span(prefix->unary_operator_begin_,
+                            prefix->child_->span().end());
+  }
+
+  case expression_kind::_class:
+    return static_cast<const _class *>(this)->span_;
+  case expression_kind::_invalid:
+    return static_cast<const _invalid *>(this)->span_;
+  case expression_kind::_missing:
+    return static_cast<const _missing *>(this)->span_;
+  case expression_kind::_new:
+    return static_cast<const _new *>(this)->span_;
+  case expression_kind::_template:
+    return static_cast<const _template *>(this)->span_;
+  case expression_kind::array:
+    return static_cast<const array *>(this)->span_;
+  case expression_kind::arrow_function_with_expression: {
+    auto *arrow =
+        static_cast<const expression::arrow_function_with_expression *>(this);
+    if (arrow->parameter_list_begin_) {
+      return source_code_span(arrow->parameter_list_begin_,
+                              arrow->body_->span().end());
+    } else {
+      return source_code_span(arrow->parameters_.front()->span().begin(),
+                              arrow->body_->span().end());
+    }
+  }
+  case expression_kind::arrow_function_with_statements: {
+    auto *arrow =
+        static_cast<const expression::arrow_function_with_statements *>(this);
+    if (arrow->parameter_list_begin_) {
+      return source_code_span(arrow->parameter_list_begin_, arrow->span_end_);
+    } else {
+      return source_code_span(arrow->children_.front()->span().begin(),
+                              arrow->span_end_);
+    }
+  }
+  case expression_kind::binary_operator: {
+    auto *binary = static_cast<const expression::binary_operator *>(this);
+    return source_code_span(binary->children_.front()->span().begin(),
+                            binary->children_.back()->span().end());
+  }
+  case expression_kind::call: {
+    auto *call = static_cast<const expression::call *>(this);
+    return source_code_span(call->children_.front()->span().begin(),
+                            call->span_end_);
+  }
+  case expression_kind::conditional: {
+    auto *conditional = static_cast<const expression::conditional *>(this);
+    return source_code_span(conditional->children_.front()->span().begin(),
+                            conditional->children_.back()->span().end());
+  }
+  case expression_kind::dot: {
+    auto *dot = static_cast<const expression::dot *>(this);
+    return source_code_span(dot->child_0()->span().begin(),
+                            dot->variable_identifier_.span().end());
+  }
+  case expression_kind::function:
+    return static_cast<const function *>(this)->span_;
+  case expression_kind::import:
+    return static_cast<const import *>(this)->span_;
+  case expression_kind::index: {
+    auto *index = static_cast<const expression::index *>(this);
+    return source_code_span(index->child_0()->span().begin(),
+                            index->index_subscript_end_);
+  }
+  case expression_kind::literal:
+    return static_cast<const literal *>(this)->span_;
+  case expression_kind::named_function:
+    return static_cast<const named_function *>(this)->span_;
+  case expression_kind::new_target:
+    return static_cast<const new_target *>(this)->span_;
+  case expression_kind::object:
+    return static_cast<const object *>(this)->span_;
+  case expression_kind::private_variable:
+    return static_cast<const private_variable *>(this)
+        ->variable_identifier_.span();
+  case expression_kind::rw_unary_suffix: {
+    auto *suffix = static_cast<const rw_unary_suffix *>(this);
+    return source_code_span(suffix->child_->span().begin(),
+                            suffix->unary_operator_end_);
+  }
+  case expression_kind::super:
+    return static_cast<const super *>(this)->span_;
+  case expression_kind::tagged_template_literal: {
+    auto *literal = static_cast<const tagged_template_literal *>(this);
+    return source_code_span(
+        literal->tag_and_template_children_[0]->span().begin(),
+        literal->template_span_end_);
+  }
+  case expression_kind::trailing_comma: {
+    auto *comma = static_cast<const trailing_comma *>(this);
+    return source_code_span(comma->children_.front()->span().begin(),
+                            comma->comma_end_);
+  }
+  case expression_kind::variable:
+    return static_cast<const variable *>(this)->variable_identifier_.span();
+  case expression_kind::yield_none:
+    return static_cast<const yield_none *>(this)->span_;
   }
   QLJS_UNREACHABLE();
-
-#undef QLJS_EXPRESSION_CASE
 }
 
 inline function_attributes expression::attributes() const noexcept {
