@@ -31,9 +31,9 @@ TEST(test_parse, jsx_is_not_supported) {
   spy_visitor v;
   parser p(&code, &v);
   p.parse_and_visit_module(v);
-  EXPECT_THAT(v.errors, Contains(ERROR_TYPE_FIELD(
-                            error_jsx_not_yet_implemented, jsx_start,
-                            offsets_matcher(&code, 0, u8"<"))));
+  EXPECT_THAT(v.errors, Contains(ERROR_TYPE_OFFSETS(
+                            &code, error_jsx_not_yet_implemented,  //
+                            jsx_start, 0, u8"<")));
 }
 
 #if QLJS_HAVE_SETJMP
@@ -43,9 +43,9 @@ TEST(test_parse, parsing_stops_on_jsx) {
   parser p(&code, &v);
   bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
   EXPECT_FALSE(ok);
-  EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                            error_jsx_not_yet_implemented, jsx_start,
-                            offsets_matcher(&code, 0, u8"<"))));
+  EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                            &code, error_jsx_not_yet_implemented,  //
+                            jsx_start, 0, u8"<")));
 }
 #endif
 }

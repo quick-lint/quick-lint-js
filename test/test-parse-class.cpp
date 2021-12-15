@@ -92,10 +92,9 @@ TEST(test_parse, class_statement_requires_a_name) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
                                       "visit_exit_class_scope"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_name_in_class_statement, class_keyword,
-                    offsets_matcher(&code, 0, u8"class"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_missing_name_in_class_statement,  //
+                              class_keyword, 0, u8"class")));
   }
 }
 
@@ -106,11 +105,10 @@ TEST(test_parse, class_statement_requires_a_body) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // C
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_missing_body_for_class, class_keyword_and_name_and_heritage,
-            offsets_matcher(&code, strlen(u8"class C"), u8""))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_missing_body_for_class,  //
+                              class_keyword_and_name_and_heritage,
+                              strlen(u8"class C"), u8"")));
   }
 
   {
@@ -122,12 +120,11 @@ TEST(test_parse, class_statement_requires_a_body) {
     EXPECT_THAT(
         v.errors,
         UnorderedElementsAre(
-            ERROR_TYPE_FIELD(error_missing_name_in_class_statement,
-                             class_keyword,
-                             offsets_matcher(&code, 0, u8"class")),
-            ERROR_TYPE_FIELD(error_missing_body_for_class,
-                             class_keyword_and_name_and_heritage,
-                             offsets_matcher(&code, strlen(u8"class"), u8""))));
+            ERROR_TYPE_OFFSETS(&code, error_missing_name_in_class_statement,  //
+                               class_keyword, 0, u8"class"),
+            ERROR_TYPE_OFFSETS(&code, error_missing_body_for_class,  //
+                               class_keyword_and_name_and_heritage,
+                               strlen(u8"class"), u8"")));
   }
 }
 
@@ -315,10 +312,10 @@ TEST(test_parse, class_statement_methods_with_arrow_operator) {
                             "visit_exit_class_scope"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_functions_or_methods_should_not_have_arrow_operator,
-            arrow_operator,
-            offsets_matcher(&code, strlen(u8"class C { method() "), u8"=>"))));
+        ElementsAre(ERROR_TYPE_OFFSETS(
+            &code,
+            error_functions_or_methods_should_not_have_arrow_operator,  //
+            arrow_operator, strlen(u8"class C { method() "), u8"=>")));
   }
 }
 
@@ -613,11 +610,10 @@ TEST(test_parse, class_methods_should_not_use_function_keyword) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
                                       "visit_exit_class_scope"));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_methods_should_not_use_function_keyword, function_token,
-            offsets_matcher(&code, strlen(u8"class C { "), u8"function"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_methods_should_not_use_function_keyword,  //
+                    function_token, strlen(u8"class C { "), u8"function")));
   }
 
   {
@@ -627,10 +623,9 @@ TEST(test_parse, class_methods_should_not_use_function_keyword) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_methods_should_not_use_function_keyword, function_token,
-            offsets_matcher(&code, strlen(u8"class C { async "),
-                            u8"function"))));
+        ElementsAre(ERROR_TYPE_OFFSETS(
+            &code, error_methods_should_not_use_function_keyword,  //
+            function_token, strlen(u8"class C { async "), u8"function")));
   }
 
   {
@@ -638,11 +633,10 @@ TEST(test_parse, class_methods_should_not_use_function_keyword) {
     padded_string code(u8"class C { function* f() {} }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_methods_should_not_use_function_keyword, function_token,
-            offsets_matcher(&code, strlen(u8"class C { "), u8"function"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_methods_should_not_use_function_keyword,  //
+                    function_token, strlen(u8"class C { "), u8"function")));
   }
 
   {
@@ -652,10 +646,9 @@ TEST(test_parse, class_methods_should_not_use_function_keyword) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_methods_should_not_use_function_keyword, function_token,
-            offsets_matcher(&code, strlen(u8"class C { static "),
-                            u8"function"))));
+        ElementsAre(ERROR_TYPE_OFFSETS(
+            &code, error_methods_should_not_use_function_keyword,  //
+            function_token, strlen(u8"class C { static "), u8"function")));
   }
 }
 
@@ -833,11 +826,10 @@ TEST(test_parse, class_method_without_parameter_list) {
                             "visit_variable_use",               // body
                             "visit_exit_function_scope",        // method
                             "visit_exit_class_scope"));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_missing_function_parameter_list, expected_parameter_list,
-            offsets_matcher(&code, strlen(u8"class C { method"), u8""))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_missing_function_parameter_list,  //
+                              expected_parameter_list,
+                              strlen(u8"class C { method"), u8"")));
   }
 
   {
@@ -845,12 +837,10 @@ TEST(test_parse, class_method_without_parameter_list) {
     padded_string code(u8"class C { [method+name] { body; } }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_missing_function_parameter_list, expected_parameter_list,
-            offsets_matcher(&code, strlen(u8"class C { [method+name]"),
-                            u8""))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_missing_function_parameter_list,  //
+                              expected_parameter_list,
+                              strlen(u8"class C { [method+name]"), u8"")));
   }
 
   {
@@ -858,12 +848,10 @@ TEST(test_parse, class_method_without_parameter_list) {
     padded_string code(u8"class C { 'method name' { body; } }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_missing_function_parameter_list, expected_parameter_list,
-            offsets_matcher(&code, strlen(u8"class C { 'method name'"),
-                            u8""))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_missing_function_parameter_list,  //
+                              expected_parameter_list,
+                              strlen(u8"class C { 'method name'"), u8"")));
   }
 }
 
@@ -886,10 +874,10 @@ TEST(test_parse, stray_identifier_before_class_method) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_token, token,
-                              offsets_matcher(&code, strlen(u8"class C { "),
-                                              u8"junkIdentifier"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_unexpected_token,  //
+                    token, strlen(u8"class C { "), u8"junkIdentifier")));
   }
 
   {
@@ -901,10 +889,10 @@ TEST(test_parse, stray_identifier_before_class_method) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"#method"}));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_token, token,
-                              offsets_matcher(&code, strlen(u8"class C { "),
-                                              u8"#junkIdentifier"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_unexpected_token,  //
+                    token, strlen(u8"class C { "), u8"#junkIdentifier")));
   }
 
   {
@@ -926,10 +914,10 @@ TEST(test_parse, stray_identifier_before_class_method) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_token, token,
-                              offsets_matcher(&code, strlen(u8"class C { "),
-                                              u8"junkIdentifier"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_unexpected_token,  //
+                    token, strlen(u8"class C { "), u8"junkIdentifier")));
   }
 }
 
@@ -943,10 +931,9 @@ TEST(test_parse, stray_left_curly_in_class_is_ignored) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unexpected_token, token,
-                    offsets_matcher(&code, strlen(u8"class C { "), u8"{"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_unexpected_token,  //
+                              token, strlen(u8"class C { "), u8"{")));
   }
 }
 
@@ -957,17 +944,14 @@ TEST(test_parse, stray_keyword_in_class_body) {
         u8"class C { if method(arg) { body; } instanceof myField; }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        UnorderedElementsAre(
-            ERROR_TYPE_FIELD(
-                error_unexpected_token, token,
-                offsets_matcher(&code, strlen(u8"class C { "), u8"if")),
-            ERROR_TYPE_FIELD(
-                error_unexpected_token, token,
-                offsets_matcher(&code,
-                                strlen(u8"class C { if method(arg) { body; } "),
-                                u8"instanceof"))));
+    EXPECT_THAT(v.errors,
+                UnorderedElementsAre(
+                    ERROR_TYPE_OFFSETS(&code, error_unexpected_token,  //
+                                       token, strlen(u8"class C { "), u8"if"),
+                    ERROR_TYPE_OFFSETS(
+                        &code, error_unexpected_token,  //
+                        token, strlen(u8"class C { if method(arg) { body; } "),
+                        u8"instanceof")));
   }
 }
 
@@ -1153,11 +1137,10 @@ TEST(test_parse, async_static_method_is_disallowed) {
                             "visit_exit_function_scope",        // m
                             "visit_exit_class_scope"));
 
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_async_static_method, async_static,
-            offsets_matcher(&code, strlen(u8"class C { "), u8"async static"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_async_static_method,  //
+                    async_static, strlen(u8"class C { "), u8"async static")));
   }
 
   {
@@ -1166,11 +1149,10 @@ TEST(test_parse, async_static_method_is_disallowed) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.property_declarations[0].name, u8"static");
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_async_static_method, async_static,
-            offsets_matcher(&code, strlen(u8"class C { "), u8"async static"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_async_static_method,  //
+                    async_static, strlen(u8"class C { "), u8"async static")));
   }
 
   {
@@ -1179,11 +1161,10 @@ TEST(test_parse, async_static_method_is_disallowed) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.property_declarations[0].name, u8"m");
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_async_static_method, async_static,
-            offsets_matcher(&code, strlen(u8"class C { "), u8"async static"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_async_static_method,  //
+                    async_static, strlen(u8"class C { "), u8"async static")));
   }
 }
 
@@ -1242,11 +1223,9 @@ TEST(test_parse, typescript_style_const_field) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.property_declarations,
                 ElementsAre(spy_visitor::visited_property_declaration{u8"f"}));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_typescript_style_const_field, const_token,
-            offsets_matcher(&code, strlen(u8"class C { "), u8"const"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_typescript_style_const_field,  //
+                              const_token, strlen(u8"class C { "), u8"const")));
   }
   {
     spy_visitor v;
@@ -1255,11 +1234,9 @@ TEST(test_parse, typescript_style_const_field) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.property_declarations,
                 ElementsAre(spy_visitor::visited_property_declaration{u8"f"}));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_typescript_style_const_field, const_token,
-            offsets_matcher(&code, strlen(u8"class C { "), u8"const"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_typescript_style_const_field,  //
+                              const_token, strlen(u8"class C { "), u8"const")));
   }
 }
 }

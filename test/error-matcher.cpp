@@ -1,12 +1,18 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <cstddef>
 #include <gmock/gmock.h>
+#include <optional>
 #include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error-matcher.h>
+#include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
-#include <variant>
+#include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/unreachable.h>
+#include <vector>
 
 namespace quick_lint_js {
 class offsets_matcher::span_impl
@@ -157,6 +163,98 @@ span_matcher::operator testing::Matcher<const identifier &>() const {
 span_matcher::operator testing::Matcher<const source_code_span &>() const {
   return testing::Matcher<const source_code_span &>(
       new span_impl(this->expected_));
+}
+
+source_code_span error_matcher::field::get_span(const void *error_object) const
+    noexcept {
+  const void *member_data =
+      reinterpret_cast<const char *>(error_object) + this->member_offset;
+  switch (this->member_type) {
+  case field_type::identifier:
+    return static_cast<const identifier *>(member_data)->span();
+  case field_type::source_code_span:
+    return *static_cast<const source_code_span *>(member_data);
+  }
+  QLJS_UNREACHABLE();
+}
+
+error_matcher::error_matcher(error_type type)
+    : state_{type, std::nullopt, {}} {}
+
+error_matcher::error_matcher(padded_string_view input, error_type type,
+                             field field_0)
+    : state_{type, input, {field_0}} {}
+
+error_matcher::error_matcher(padded_string_view input, error_type type,
+                             field field_0, field field_1)
+    : state_{type, input, {field_0, field_1}} {}
+
+error_matcher::error_matcher(padded_string_view input, error_type type,
+                             field field_0, field field_1, field field_2)
+    : state_{type, input, {field_0, field_1, field_2}} {}
+
+class error_matcher::impl
+    : public testing::MatcherInterface<const error_collector::error &> {
+ public:
+  explicit impl(state s) : state_(std::move(s)) {}
+
+  void DescribeTo(std::ostream *out) const override {
+    *out << "has type " << this->state_.type;
+    this->describe_fields_to(out);
+  }
+
+  void DescribeNegationTo(std::ostream *out) const override {
+    *out << "doesn't have type " << this->state_.type;
+    this->describe_fields_to(out);
+  }
+
+  void describe_fields_to(std::ostream *) const {
+    // TODO(strager)
+  }
+
+  bool MatchAndExplain(const error_collector::error &error,
+                       testing::MatchResultListener *listener) const override {
+    bool type_matches = error.type() == this->state_.type;
+    if (!type_matches) {
+      *listener << "whose type (" << error.type() << ") isn't "
+                << this->state_.type;
+      return false;
+    }
+
+    bool result = true;
+    bool is_first_field = true;
+    for (const field &f : this->state_.fields) {
+      QLJS_ASSERT(this->state_.input.has_value());
+      source_code_span span = f.get_span(error.data());
+      auto span_begin_offset = narrow_cast<cli_source_position::offset_type>(
+          span.begin() - this->state_.input->data());
+      auto span_end_offset = narrow_cast<cli_source_position::offset_type>(
+          span.end() - this->state_.input->data());
+      auto expected_end_offset = f.begin_offset + f.text.size();
+
+      bool span_matches = span_begin_offset == f.begin_offset &&
+                          span_end_offset == expected_end_offset;
+      if (!is_first_field) {
+        *listener << " and ";
+      }
+      *listener << "whose ." << f.member_name << " (" << span_begin_offset
+                << "-" << span_end_offset << ") "
+                << (span_matches ? "equals" : "doesn't equal") << " "
+                << f.begin_offset << "-" << expected_end_offset;
+      result = result && span_matches;
+      is_first_field = false;
+    }
+    return result;
+  }
+
+ private:
+  state state_;
+};
+
+/*implicit*/ error_matcher::operator testing::Matcher<
+    const error_collector::error &>() const {
+  return testing::Matcher<const error_collector::error &>(
+      new impl(this->state_));
 }
 }
 

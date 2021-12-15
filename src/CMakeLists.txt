@@ -63,6 +63,7 @@ quick_lint_js_add_library(
   emacs-location.cpp
   error-collector.cpp
   error-list.cpp
+  error.cpp
   file-canonical.cpp
   file-handle.cpp
   file-path.cpp

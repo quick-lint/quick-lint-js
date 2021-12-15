@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_ERROR_H
 #define QUICK_LINT_JS_ERROR_H
 
+#include <iosfwd>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/identifier.h>
@@ -1345,6 +1346,8 @@ enum class error_type {
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 };
+
+std::ostream& operator<<(std::ostream&, error_type);
 
 template <class Error>
 struct error_type_from_type_detail;

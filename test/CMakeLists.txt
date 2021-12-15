@@ -41,6 +41,7 @@ quick_lint_js_add_executable(
   test-emacs-lisp-error-reporter.cpp
   test-emacs-location.cpp
   test-error-list.cpp
+  test-error-matcher.cpp
   test-error.cpp
   test-event-loop.cpp
   test-file-canonical.cpp
