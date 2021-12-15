@@ -3330,7 +3330,7 @@ class parser {
             if (this->peek().type == token_type::semicolon) {
               // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
               this->lexer_.commit_transaction(std::move(transaction));
-              assignment_ast->set_child(1, in_ast);
+              assignment_ast->children_[1] = in_ast;
               this->error_reporter_->report(
                   error_in_disallowed_in_c_style_for_loop{
                       .in_token = in_token_span,
@@ -3579,11 +3579,11 @@ class parser {
 
     case expression_kind::compound_assignment:
       if (declaring_token.has_value()) {
+        auto *assignment = static_cast<expression::assignment *>(ast);
         this->error_reporter_->report(
             error_cannot_update_variable_during_declaration{
                 .declaring_token = *declaring_token,
-                .updating_operator =
-                    static_cast<expression::assignment *>(ast)->operator_span(),
+                .updating_operator = assignment->operator_span_,
             });
       } else {
         this->error_reporter_->report(error_invalid_parameter{

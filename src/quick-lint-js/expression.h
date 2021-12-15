@@ -317,10 +317,6 @@ class expression::expression_with_prefix_operator_base : public expression {
         unary_operator_begin_(operator_span.begin()),
         child_(child) {}
 
-  const char8 *unary_operator_begin() const noexcept {
-    return this->unary_operator_begin_;
-  }
-
   const char8 *unary_operator_begin_;
   expression *child_;
 };
@@ -337,7 +333,7 @@ class expression::_delete final
   }
 
   source_code_span unary_operator_span() {
-    const char8 *operator_begin = this->unary_operator_begin();
+    const char8 *operator_begin = unary_operator_begin_;
     return source_code_span(operator_begin,
                             operator_begin + strlen(u8"delete"));
   }
@@ -353,7 +349,6 @@ class expression::_class : public expression {
       : expression(kind), child_visits_(child_visits), span_(span) {}
 
   expression_arena::buffering_visitor_ptr child_visits_;
-
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::_class>);
@@ -517,16 +512,6 @@ class expression::assignment final : public expression {
                 kind == expression_kind::conditional_assignment);
   }
 
-  void set_child(int index, expression *new_child) noexcept {
-    QLJS_ASSERT(index >= 0);
-    QLJS_ASSERT(index < static_cast<int>(this->children_.size()));
-    this->children_[narrow_cast<unsigned>(index)] = new_child;
-  }
-
-  source_code_span operator_span() const noexcept {
-    return this->operator_span_;
-  }
-
   std::array<expression *, 2> children_;
   source_code_span operator_span_;
 };
@@ -622,9 +607,7 @@ class expression::function final : public expression {
         span_(span) {}
 
   function_attributes function_attributes_;
-
   expression_arena::buffering_visitor_ptr child_visits_;
-
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::function>);
@@ -680,11 +663,8 @@ class expression::named_function final : public expression {
         span_(span) {}
 
   function_attributes function_attributes_;
-
   expression_arena::buffering_visitor_ptr child_visits_;
-
   identifier variable_identifier_;
-
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::named_function>);
@@ -832,7 +812,6 @@ class expression::variable final : public expression {
         variable_identifier_(variable_identifier) {}
 
   token_type type_;
-
   identifier variable_identifier_;
 };
 static_assert(expression_arena::is_allocatable<expression::variable>);
