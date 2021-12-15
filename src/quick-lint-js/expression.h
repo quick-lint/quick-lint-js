@@ -232,38 +232,13 @@ class expression {
  protected:
   explicit expression(expression_kind kind) noexcept : kind_(kind) {}
 
-  identifier variable_identifier_impl() const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
-
-  token_type variable_identifier_token_type_impl() const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
-
   int child_count_impl() const noexcept { QLJS_UNEXPECTED_EXPRESSION_KIND(); }
 
   expression *child_impl(int) const noexcept {
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
 
-  int object_entry_count_impl() const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
-
-  object_property_value_pair object_entry_impl(int) const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
-
   source_code_span span_impl() const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
-
-  function_attributes attributes_impl() const noexcept {
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
-
-  // Returns expression_arena::buffering_visitor_ptr.
-  buffering_visitor *take_child_visits_impl() noexcept {
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
 
@@ -400,12 +375,9 @@ class expression::_class : public expression {
 
   source_code_span span_impl() const noexcept { return this->span_; }
 
-  expression_arena::buffering_visitor_ptr take_child_visits_impl() noexcept {
-    return std::exchange(this->child_visits_, nullptr);
-  }
+  expression_arena::buffering_visitor_ptr child_visits_;
 
  private:
-  expression_arena::buffering_visitor_ptr child_visits_;
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::_class>);
@@ -562,12 +534,9 @@ class expression::arrow_function_with_expression final : public expression {
     }
   }
 
-  function_attributes attributes_impl() const noexcept {
-    return this->function_attributes_;
-  }
+  function_attributes function_attributes_;
 
  private:
-  function_attributes function_attributes_;
   const char8 *parameter_list_begin_;
   expression_arena::array_ptr<expression *> parameters_;
   expression *body_;
@@ -623,15 +592,6 @@ class expression::arrow_function_with_statements final : public expression {
     }
   }
 
-  function_attributes attributes_impl() const noexcept {
-    return this->function_attributes_;
-  }
-
-  expression_arena::buffering_visitor_ptr take_child_visits_impl() noexcept {
-    return std::exchange(this->child_visits_, nullptr);
-  }
-
- private:
   function_attributes function_attributes_;
   const char8 *parameter_list_begin_;
   const char8 *span_end_;
@@ -801,17 +761,14 @@ class expression::dot final : public expression {
     return this->child_;
   }
 
-  identifier variable_identifier_impl() const noexcept {
-    return this->variable_identifier_;
-  }
-
   source_code_span span_impl() const noexcept {
     return source_code_span(this->child_0()->span().begin(),
                             this->variable_identifier_.span().end());
   }
 
- private:
   identifier variable_identifier_;
+
+ private:
   expression *child_;
 };
 static_assert(expression_arena::is_allocatable<expression::dot>);
@@ -830,17 +787,11 @@ class expression::function final : public expression {
 
   source_code_span span_impl() const noexcept { return this->span_; }
 
-  function_attributes attributes_impl() const noexcept {
-    return this->function_attributes_;
-  }
+  function_attributes function_attributes_;
 
-  expression_arena::buffering_visitor_ptr take_child_visits_impl() noexcept {
-    return std::exchange(this->child_visits_, nullptr);
-  }
+  expression_arena::buffering_visitor_ptr child_visits_;
 
  private:
-  function_attributes function_attributes_;
-  expression_arena::buffering_visitor_ptr child_visits_;
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::function>);
@@ -917,24 +868,15 @@ class expression::named_function final : public expression {
         variable_identifier_(name),
         span_(span) {}
 
-  identifier variable_identifier_impl() const noexcept {
-    return this->variable_identifier_;
-  }
-
   source_code_span span_impl() const noexcept { return this->span_; }
 
-  function_attributes attributes_impl() const noexcept {
-    return this->function_attributes_;
-  }
+  function_attributes function_attributes_;
 
-  expression_arena::buffering_visitor_ptr take_child_visits_impl() noexcept {
-    return std::exchange(this->child_visits_, nullptr);
-  }
+  expression_arena::buffering_visitor_ptr child_visits_;
+
+  identifier variable_identifier_;
 
  private:
-  function_attributes function_attributes_;
-  expression_arena::buffering_visitor_ptr child_visits_;
-  identifier variable_identifier_;
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::named_function>);
@@ -962,15 +904,8 @@ class expression::object final : public expression {
       source_code_span span) noexcept
       : expression(kind), span_(span), entries_(entries) {}
 
-  int object_entry_count_impl() const noexcept { return this->entries_.size(); }
-
-  object_property_value_pair object_entry_impl(int index) const noexcept {
-    return this->entries_[index];
-  }
-
   source_code_span span_impl() const noexcept { return this->span_; }
 
- private:
   source_code_span span_;
   expression_arena::array_ptr<object_property_value_pair> entries_;
 };
@@ -983,15 +918,10 @@ class expression::private_variable final : public expression {
   explicit private_variable(identifier variable_identifier) noexcept
       : expression(kind), variable_identifier_(variable_identifier) {}
 
-  identifier variable_identifier_impl() const noexcept {
-    return this->variable_identifier_;
-  }
-
   source_code_span span_impl() const noexcept {
     return this->variable_identifier_.span();
   }
 
- private:
   identifier variable_identifier_;
 };
 static_assert(expression_arena::is_allocatable<expression::private_variable>);
@@ -1144,20 +1074,12 @@ class expression::variable final : public expression {
         type_(type),
         variable_identifier_(variable_identifier) {}
 
-  identifier variable_identifier_impl() const noexcept {
-    return this->variable_identifier_;
-  }
-
-  token_type variable_identifier_token_type_impl() const noexcept {
-    return this->type_;
-  }
-
   source_code_span span_impl() const noexcept {
     return this->variable_identifier_.span();
   }
 
- private:
   token_type type_;
+
   identifier variable_identifier_;
 };
 static_assert(expression_arena::is_allocatable<expression::variable>);
@@ -1202,17 +1124,16 @@ static_assert(expression_arena::is_allocatable<expression::yield_one>);
 inline identifier expression::variable_identifier() const noexcept {
   switch (this->kind_) {
   case expression_kind::dot:
-    return static_cast<const expression::dot *>(this)
-        ->variable_identifier_impl();
+    return static_cast<const expression::dot *>(this)->variable_identifier_;
   case expression_kind::named_function:
     return static_cast<const expression::named_function *>(this)
-        ->variable_identifier_impl();
+        ->variable_identifier_;
   case expression_kind::private_variable:
     return static_cast<const expression::private_variable *>(this)
-        ->variable_identifier_impl();
+        ->variable_identifier_;
   case expression_kind::variable:
     return static_cast<const expression::variable *>(this)
-        ->variable_identifier_impl();
+        ->variable_identifier_;
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
@@ -1222,8 +1143,7 @@ inline identifier expression::variable_identifier() const noexcept {
 inline token_type expression::variable_identifier_token_type() const noexcept {
   switch (this->kind_) {
   case expression_kind::variable:
-    return static_cast<const expression::variable *>(this)
-        ->variable_identifier_token_type_impl();
+    return static_cast<const expression::variable *>(this)->type_;
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
@@ -1312,15 +1232,20 @@ inline expression *expression::child(int index) const noexcept {
 inline buffering_visitor *expression::take_child_visits() noexcept {
   switch (this->kind_) {
   case expression_kind::_class:
-    return static_cast<expression::_class *>(this)->take_child_visits_impl();
+    return std::exchange(static_cast<expression::_class *>(this)->child_visits_,
+                         nullptr);
   case expression_kind::arrow_function_with_statements:
-    return static_cast<expression::arrow_function_with_statements *>(this)
-        ->take_child_visits_impl();
+    return std::exchange(
+        static_cast<expression::arrow_function_with_statements *>(this)
+            ->child_visits_,
+        nullptr);
   case expression_kind::function:
-    return static_cast<expression::function *>(this)->take_child_visits_impl();
+    return std::exchange(
+        static_cast<expression::function *>(this)->child_visits_, nullptr);
   case expression_kind::named_function:
-    return static_cast<expression::named_function *>(this)
-        ->take_child_visits_impl();
+    return std::exchange(
+        static_cast<expression::named_function *>(this)->child_visits_,
+        nullptr);
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
@@ -1330,8 +1255,7 @@ inline buffering_visitor *expression::take_child_visits() noexcept {
 inline int expression::object_entry_count() const noexcept {
   switch (this->kind_) {
   case expression_kind::object:
-    return static_cast<const expression::object *>(this)
-        ->object_entry_count_impl();
+    return static_cast<const expression::object *>(this)->entries_.size();
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
@@ -1342,8 +1266,7 @@ inline object_property_value_pair expression::object_entry(int index) const
     noexcept {
   switch (this->kind_) {
   case expression_kind::object:
-    return static_cast<const expression::object *>(this)->object_entry_impl(
-        index);
+    return static_cast<const expression::object *>(this)->entries_[index];
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
@@ -1405,15 +1328,16 @@ inline function_attributes expression::attributes() const noexcept {
   switch (this->kind_) {
   case expression_kind::arrow_function_with_expression:
     return static_cast<const expression::arrow_function_with_expression *>(this)
-        ->attributes_impl();
+        ->function_attributes_;
   case expression_kind::arrow_function_with_statements:
     return static_cast<const expression::arrow_function_with_statements *>(this)
-        ->attributes_impl();
+        ->function_attributes_;
   case expression_kind::function:
-    return static_cast<const expression::function *>(this)->attributes_impl();
+    return static_cast<const expression::function *>(this)
+        ->function_attributes_;
   case expression_kind::named_function:
     return static_cast<const expression::named_function *>(this)
-        ->attributes_impl();
+        ->function_attributes_;
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
