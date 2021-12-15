@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <iostream>
 #include <ostream>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/json.h>
@@ -49,52 +48,39 @@ void vim_qflist_json_error_reporter::set_source(padded_string_view input,
 
 void vim_qflist_json_error_reporter::finish() { this->output_ << "]}"; }
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  void vim_qflist_json_error_reporter::report(name e) {       \
-    format_error(e, this->begin_error(code));                 \
-  }
-QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-
-vim_qflist_json_error_formatter vim_qflist_json_error_reporter::begin_error(
-    const char *code) {
+void vim_qflist_json_error_reporter::report_impl(error_type type, void *error) {
   if (this->need_comma_) {
     this->output_ << ",\n";
   }
   this->need_comma_ = true;
-  return this->format(code);
-}
-
-vim_qflist_json_error_formatter vim_qflist_json_error_reporter::format(
-    const char *code) {
   QLJS_ASSERT(this->locator_.has_value());
-  return vim_qflist_json_error_formatter(/*output=*/this->output_,
-                                         /*locator=*/*this->locator_,
-                                         /*file_name=*/this->file_name_,
-                                         /*bufnr=*/this->bufnr_,
-                                         /*code=*/code);
+  vim_qflist_json_error_formatter formatter(/*output=*/this->output_,
+                                            /*locator=*/*this->locator_,
+                                            /*file_name=*/this->file_name_,
+                                            /*bufnr=*/this->bufnr_);
+  formatter.format(get_diagnostic_info(type), error);
 }
 
 vim_qflist_json_error_formatter::vim_qflist_json_error_formatter(
     std::ostream &output, quick_lint_js::vim_locator &locator,
-    std::string_view file_name, std::string_view bufnr, const char *code)
+    std::string_view file_name, std::string_view bufnr)
     : output_(output),
       locator_(locator),
       file_name_(file_name),
-      bufnr_(bufnr),
-      code_(code) {}
+      bufnr_(bufnr) {}
 
 void vim_qflist_json_error_formatter::write_before_message(
-    severity sev, const source_code_span &origin) {
+    std::string_view code, diagnostic_severity sev,
+    const source_code_span &origin) {
   std::string_view severity_type{};
   switch (sev) {
-  case severity::error:
+  case diagnostic_severity::error:
     severity_type = "E";
     break;
-  case severity::note:
+  case diagnostic_severity::note:
     // Don't write notes. Only write the main message.
     return;
-  case severity::warning:
+  case diagnostic_severity::warning:
     severity_type = "W";
     break;
   }
@@ -104,13 +90,14 @@ void vim_qflist_json_error_formatter::write_before_message(
   this->output_ << "{\"col\": " << r.begin.col << ", \"lnum\": " << r.begin.lnum
                 << ", \"end_col\": " << end_col
                 << ", \"end_lnum\": " << r.end.lnum << ", \"type\": \""
-                << severity_type << "\", \"nr\": \"" << this->code_
+                << severity_type << "\", \"nr\": \"" << code
                 << "\", \"vcol\": 0, \"text\": \"";
 }
 
-void vim_qflist_json_error_formatter::write_message_part(severity sev,
-                                                         string8_view message) {
-  if (sev == severity::note) {
+void vim_qflist_json_error_formatter::write_message_part(
+    [[maybe_unused]] std::string_view code, diagnostic_severity sev,
+    string8_view message) {
+  if (sev == diagnostic_severity::note) {
     // Don't write notes. Only write the main message.
     return;
   }
@@ -119,8 +106,9 @@ void vim_qflist_json_error_formatter::write_message_part(severity sev,
 }
 
 void vim_qflist_json_error_formatter::write_after_message(
-    severity sev, const source_code_span &) {
-  if (sev == severity::note) {
+    [[maybe_unused]] std::string_view code, diagnostic_severity sev,
+    const source_code_span &) {
+  if (sev == diagnostic_severity::note) {
     // Don't write notes. Only write the main message.
     return;
   }

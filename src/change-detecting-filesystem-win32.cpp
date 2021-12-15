@@ -4,7 +4,6 @@
 #if defined(_WIN32)
 
 #include <Windows.h>
-#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -16,6 +15,7 @@
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/log.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
@@ -24,17 +24,6 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
-#if NDEBUG
-#define QLJS_LOG(...) \
-  do {                \
-  } while (false)
-#else
-#define QLJS_LOG(...)                    \
-  do {                                   \
-    ::std::fprintf(stderr, __VA_ARGS__); \
-  } while (false)
-#endif
 
 namespace quick_lint_js {
 namespace {
@@ -49,7 +38,36 @@ void swap_erase(Vector& v, Iterator it_to_remove) {
   std::swap(*it_to_remove, v.back());
   v.pop_back();
 }
+
+::BOOL WINAPI mockable_GetFileInformationByHandleEx(
+    ::HANDLE hFile, ::FILE_INFO_BY_HANDLE_CLASS FileInformationClass,
+    ::LPVOID lpFileInformation, ::DWORD dwBufferSize) {
+  if (mock_win32_force_directory_file_id_error != ERROR_SUCCESS) {
+    ::SetLastError(mock_win32_force_directory_file_id_error);
+    return FALSE;
+  }
+  return ::GetFileInformationByHandleEx(hFile, FileInformationClass,
+                                        lpFileInformation, dwBufferSize);
 }
+
+::BOOL mockable_DeviceIoControl(::HANDLE hDevice, ::DWORD dwIoControlCode,
+                                ::LPVOID lpInBuffer, ::DWORD nInBufferSize,
+                                ::LPVOID lpOutBuffer, ::DWORD nOutBufferSize,
+                                ::LPDWORD lpBytesReturned,
+                                ::LPOVERLAPPED lpOverlapped) {
+  if (mock_win32_force_directory_ioctl_error != ERROR_SUCCESS) {
+    ::SetLastError(mock_win32_force_directory_ioctl_error);
+    return FALSE;
+  }
+  return ::DeviceIoControl(hDevice, dwIoControlCode, lpInBuffer, nInBufferSize,
+                           lpOutBuffer, nOutBufferSize, lpBytesReturned,
+                           lpOverlapped);
+}
+}
+
+::DWORD mock_win32_force_directory_open_error = ERROR_SUCCESS;
+::DWORD mock_win32_force_directory_file_id_error = ERROR_SUCCESS;
+::DWORD mock_win32_force_directory_ioctl_error = ERROR_SUCCESS;
 
 // change_detecting_filesystem_win32 implements directory and file change
 // notifications using a little-known feature called oplocks.
@@ -82,22 +100,27 @@ change_detecting_filesystem_win32::~change_detecting_filesystem_win32() {
   // calling ExitProcess thus shouldn't call this destructor anyway.
 }
 
-boost::leaf::result<canonical_path_result>
+result<canonical_path_result, canonicalize_path_io_error>
 change_detecting_filesystem_win32::canonicalize_path(const std::string& path) {
-  return quick_lint_js::canonicalize_path_2(path);
+  return quick_lint_js::canonicalize_path(path);
 }
 
-boost::leaf::result<padded_string> change_detecting_filesystem_win32::read_file(
-    const canonical_path& path) {
+result<padded_string, read_file_io_error>
+change_detecting_filesystem_win32::read_file(const canonical_path& path) {
   canonical_path directory = path;
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    return boost::leaf::new_error(
-        boost::leaf::windows::e_LastError{::GetLastError()});
+    this->watch_errors_.emplace_back(watch_io_error{
+        .path = std::move(directory).path(),
+        .io_error = windows_file_io_error{::GetLastError()},
+    });
   }
 
-  return quick_lint_js::read_file(path.c_str());
+  result<padded_string, read_file_io_error> r =
+      quick_lint_js::read_file(path.c_str());
+  if (!r.ok()) return r.propagate();
+  return *std::move(r);
 }
 
 bool change_detecting_filesystem_win32::handle_event(
@@ -107,7 +130,6 @@ bool change_detecting_filesystem_win32::handle_event(
       watched_directory::from_oplock_overlapped(overlapped);
   switch (error) {
   case ERROR_SUCCESS:
-  case WAIT_TIMEOUT:  // FIXME(strager): Why do we sometimes get WAIT_TIMEOUT?
     this->handle_oplock_broke_event(dir, number_of_bytes_transferred);
     return true;
 
@@ -116,9 +138,26 @@ bool change_detecting_filesystem_win32::handle_event(
     return false;
 
   default:
+    std::fprintf(stderr,
+                 "error: change_detecting_filesystem_win32 received unexpected "
+                 "error: %u (number_of_bytes_transferred=%u)\n",
+                 error, number_of_bytes_transferred);
     QLJS_UNIMPLEMENTED();
     return true;
   }
+}
+
+void change_detecting_filesystem_win32::clear_watches() {
+  while (!this->watched_directories_.empty()) {
+    auto it = this->watched_directories_.begin();
+    this->cancel_watch(std::move(it->second));
+    this->watched_directories_.erase(it);
+  }
+}
+
+std::vector<watch_io_error>
+change_detecting_filesystem_win32::take_watch_errors() {
+  return std::exchange(this->watch_errors_, std::vector<watch_io_error>());
 }
 
 void change_detecting_filesystem_win32::cancel_watch(
@@ -154,9 +193,12 @@ bool change_detecting_filesystem_win32::watch_directory(
     return false;
   }
   FILE_ID_INFO directory_id;
-  if (!::GetFileInformationByHandleEx(directory_handle.get(), ::FileIdInfo,
-                                      &directory_id, sizeof(directory_id))) {
-    QLJS_UNIMPLEMENTED();
+  if (!mockable_GetFileInformationByHandleEx(directory_handle.get(),
+                                             ::FileIdInfo, &directory_id,
+                                             sizeof(directory_id))) {
+    // FIXME(strager): Should we close the directory handle? Should we continue
+    // to acquire an oplock anyway?
+    return false;
   }
 
   std::unique_ptr<watched_directory> new_dir =
@@ -173,7 +215,7 @@ bool change_detecting_filesystem_win32::watch_directory(
       return true;
     }
 
-    QLJS_LOG(
+    QLJS_DEBUG_LOG(
         "note: Directory handle %#llx: %s: Directory identity changed\n",
         reinterpret_cast<unsigned long long>(old_dir->directory_handle.get()),
         directory.c_str());
@@ -191,14 +233,15 @@ bool change_detecting_filesystem_win32::watch_directory(
           OPLOCK_LEVEL_CACHE_READ | OPLOCK_LEVEL_CACHE_HANDLE,
       .Flags = REQUEST_OPLOCK_INPUT_FLAG_REQUEST,
   };
-  BOOL ok = ::DeviceIoControl(/*hDevice=*/dir->directory_handle.get(),
-                              /*dwIoControlCode=*/FSCTL_REQUEST_OPLOCK,
-                              /*lpInBuffer=*/&request,
-                              /*nInBufferSize=*/sizeof(request),
-                              /*lpOutBuffer=*/&dir->oplock_response,
-                              /*nOutBufferSize=*/sizeof(dir->oplock_response),
-                              /*lpBytesReturned=*/nullptr,
-                              /*lpOverlapped=*/&dir->oplock_overlapped);
+  BOOL ok =
+      mockable_DeviceIoControl(/*hDevice=*/dir->directory_handle.get(),
+                               /*dwIoControlCode=*/FSCTL_REQUEST_OPLOCK,
+                               /*lpInBuffer=*/&request,
+                               /*nInBufferSize=*/sizeof(request),
+                               /*lpOutBuffer=*/&dir->oplock_response,
+                               /*nOutBufferSize=*/sizeof(dir->oplock_response),
+                               /*lpBytesReturned=*/nullptr,
+                               /*lpOverlapped=*/&dir->oplock_overlapped);
   if (ok) {
     // TODO(strager): Can this happen? I assume if this happens, the oplock was
     // immediately broken.
@@ -208,7 +251,8 @@ bool change_detecting_filesystem_win32::watch_directory(
     if (error == ERROR_IO_PENDING) {
       // run_io_thread will handle the oplock breaking.
     } else {
-      QLJS_UNIMPLEMENTED();
+      // FIXME(strager): Should we close the directory handle?
+      return false;
     }
   }
 
@@ -233,7 +277,20 @@ void change_detecting_filesystem_win32::handle_oplock_broke_event(
   auto directory_it = std::find_if(
       this->watched_directories_.begin(), this->watched_directories_.end(),
       [&](const auto& entry) { return entry.second.get() == dir; });
-  QLJS_ASSERT(directory_it != this->watched_directories_.end());
+  bool is_watched = directory_it != this->watched_directories_.end();
+  if (!is_watched) {
+    // An oplock broke, then someone called cancel_watch, then we polled the I/O
+    // Completion Port and saw that the oplock broke. We think the watch is in a
+    // cancelled state; the watched_directory is in
+    // cancelling_watched_directories_. Treat the event as a successful
+    // cancellation. This will close dir.directory_handle, releasing the held
+    // oplock.
+    QLJS_DEBUG_LOG(
+        "note: Directory handle %#llx: Oplock broke for cancelled watch\n",
+        reinterpret_cast<unsigned long long>(dir->directory_handle.get()));
+    this->handle_oplock_aborted_event(dir);
+    return;
+  }
 
   // A directory oplock breaks if any of the following happens:
   //
@@ -242,9 +299,10 @@ void change_detecting_filesystem_win32::handle_oplock_broke_event(
   // * A file in the directory is created, modified, or deleted.
   //
   // https://docs.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_request_oplock
-  QLJS_LOG("note: Directory handle %#llx: %s: Oplock broke\n",
-           reinterpret_cast<unsigned long long>(dir->directory_handle.get()),
-           directory_it->first.c_str());
+  QLJS_DEBUG_LOG(
+      "note: Directory handle %#llx: %s: Oplock broke\n",
+      reinterpret_cast<unsigned long long>(dir->directory_handle.get()),
+      directory_it->first.c_str());
   QLJS_ASSERT(number_of_bytes_transferred == sizeof(dir->oplock_response));
   QLJS_ASSERT(dir->oplock_response.Flags &
               REQUEST_OPLOCK_OUTPUT_FLAG_ACK_REQUIRED);

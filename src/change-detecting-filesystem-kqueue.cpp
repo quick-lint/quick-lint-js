@@ -5,9 +5,7 @@
 
 #if QLJS_HAVE_KQUEUE
 
-#include <boost/leaf/common.hpp>
-#include <boost/leaf/error.hpp>
-#include <boost/leaf/result.hpp>
+#include <algorithm>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -19,6 +17,7 @@
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/log.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
@@ -32,6 +31,20 @@
 #include <vector>
 
 namespace quick_lint_js {
+int mock_kqueue_force_directory_open_error = 0;
+
+namespace {
+int mockable_directory_open(const char* path, int flags) {
+  if (mock_kqueue_force_directory_open_error) {
+    errno = mock_kqueue_force_directory_open_error;
+    return -1;
+  }
+  return ::open(path, flags);
+}
+
+std::string vnode_event_flags_to_string(std::uint32_t flags);
+}
+
 change_detecting_filesystem_kqueue::change_detecting_filesystem_kqueue(
     posix_fd_file_ref kqueue_fd, void* udata)
     : kqueue_fd_(kqueue_fd), udata_(udata) {}
@@ -41,33 +54,94 @@ change_detecting_filesystem_kqueue::~change_detecting_filesystem_kqueue() {
   // kqueue_fd_ (I think).
 }
 
-boost::leaf::result<canonical_path_result>
+result<canonical_path_result, canonicalize_path_io_error>
 change_detecting_filesystem_kqueue::canonicalize_path(const std::string& path) {
-  return quick_lint_js::canonicalize_path_2(path);
+  return quick_lint_js::canonicalize_path(path, this);
 }
 
-boost::leaf::result<padded_string>
+result<padded_string, read_file_io_error>
 change_detecting_filesystem_kqueue::read_file(const canonical_path& path) {
   canonical_path directory = path;
   directory.parent();
   bool ok = this->watch_directory(directory);
   if (!ok) {
-    return boost::leaf::new_error(boost::leaf::e_errno{errno});
+    this->watch_errors_.emplace_back(watch_io_error{
+        .path = std::move(directory).path(),
+        .io_error = posix_file_io_error{errno},
+    });
+    // FIXME(strager): Recovering now is probably pointless. If watch_directory
+    // failed because open() returned EMFILE, then the following open() call is
+    // going to fail too. We should probably clean up open watches to make room
+    // for more file descriptors.
   }
 
   // TODO(strager): Use openat. watch_directory opened a directory fd.
   posix_fd_file file(::open(path.c_str(), O_RDONLY));
   if (!file.valid()) {
-    return boost::leaf::new_error(boost::leaf::e_errno{errno});
+    return result<padded_string, read_file_io_error>::failure<
+        read_file_io_error>(read_file_io_error{
+        .path = path.c_str(),
+        .io_error = posix_file_io_error{errno},
+    });
   }
 
   auto watch_it = this->watch_file(canonical_path(path), std::move(file));
-  return quick_lint_js::read_file(watch_it->second.fd.ref());
+  result<padded_string, read_file_io_error> r =
+      quick_lint_js::read_file(path.c_str(), watch_it->second.fd.ref());
+  if (!r.ok()) return r.propagate();
+  return *std::move(r);
+}
+
+void change_detecting_filesystem_kqueue::on_canonicalize_child_of_directory(
+    const char* path) {
+  bool ok = this->watch_directory(canonical_path(path));
+  if (!ok) {
+    this->watch_errors_.emplace_back(watch_io_error{
+        .path = path,
+        .io_error = posix_file_io_error{errno},
+    });
+  }
+}
+
+std::vector<watch_io_error>
+change_detecting_filesystem_kqueue::take_watch_errors() {
+  return std::exchange(this->watch_errors_, std::vector<watch_io_error>());
+}
+
+void change_detecting_filesystem_kqueue::on_canonicalize_child_of_directory(
+    const wchar_t*) {
+  // We don't use wchar_t paths on BSDs.
+  QLJS_UNREACHABLE();
+}
+
+void change_detecting_filesystem_kqueue::handle_kqueue_event(
+    const struct ::kevent& event) {
+  QLJS_ASSERT(event.filter == EVFILT_VNODE);
+
+  if (is_logging_enabled()) {
+    auto watched_file_it = std::find_if(
+        this->watched_files_.begin(), this->watched_files_.end(),
+        [&](auto& pair) -> bool {
+          return pair.second.fd.get() == narrow_cast<int>(event.ident);
+        });
+    if (watched_file_it == this->watched_files_.end()) {
+      QLJS_DEBUG_LOG("warning: got EVFILT_VNODE event for unknown fd %d\n",
+                     event.ident);
+    } else {
+      QLJS_DEBUG_LOG("note: got EVFILT_VNODE event for fd %d path %s: %s\n",
+                     event.ident, watched_file_it->first.c_str(),
+                     vnode_event_flags_to_string(event.fflags).c_str());
+    }
+  }
 }
 
 bool change_detecting_filesystem_kqueue::watch_directory(
     const canonical_path& directory) {
-  posix_fd_file dir(::open(directory.c_str(), O_RDONLY | O_EVTONLY));
+  int flags = O_RDONLY;
+#if defined(O_EVTONLY)
+  flags |= O_EVTONLY;
+#endif
+  posix_fd_file dir(mockable_directory_open(directory.c_str(), flags));
   if (!dir.valid()) {
     return false;
   }
@@ -78,8 +152,8 @@ bool change_detecting_filesystem_kqueue::watch_directory(
         /*kev=*/&change,
         /*ident=*/fd.get(),
         /*filter=*/EVFILT_VNODE,
-        /*flags=*/EV_ADD | EV_ENABLE,
-        /*fflags=*/NOTE_RENAME | NOTE_WRITE,
+        /*flags=*/EV_ADD | EV_CLEAR | EV_ENABLE,
+        /*fflags=*/NOTE_ATTRIB | NOTE_RENAME | NOTE_WRITE,
         /*data=*/0,
         /*udata=*/this->udata_);
 
@@ -130,8 +204,8 @@ change_detecting_filesystem_kqueue::watch_file(canonical_path&& path,
         /*kev=*/&change,
         /*ident=*/fd.get(),
         /*filter=*/EVFILT_VNODE,
-        /*flags=*/EV_ADD | EV_ENABLE,
-        /*fflags=*/NOTE_WRITE,
+        /*flags=*/EV_ADD | EV_CLEAR | EV_ENABLE,
+        /*fflags=*/NOTE_ATTRIB | NOTE_WRITE,
         /*data=*/0,
         /*udata=*/this->udata_);
 
@@ -196,6 +270,42 @@ bool change_detecting_filesystem_kqueue::file_id::operator!=(
 change_detecting_filesystem_kqueue::watched_file::watched_file(
     posix_fd_file&& fd)
     : fd(std::move(fd)), id(file_id::from_open_file(this->fd.ref())) {}
+
+namespace {
+std::string vnode_event_flags_to_string(std::uint32_t flags) {
+  struct flag_entry {
+    std::uint32_t flag;
+    const char name[13];
+  };
+  static constexpr flag_entry known_flags[] = {
+    {NOTE_ATTRIB, "NOTE_ATTRIB"},
+    {NOTE_DELETE, "NOTE_DELETE"},
+    {NOTE_EXTEND, "NOTE_EXTEND"},
+    {NOTE_LINK, "NOTE_LINK"},
+    {NOTE_RENAME, "NOTE_RENAME"},
+    {NOTE_REVOKE, "NOTE_REVOKE"},
+    {NOTE_WRITE, "NOTE_WRITE"},
+#if defined(__APPLE__)
+    {NOTE_FUNLOCK, "NOTE_FUNLOCK"},
+#endif
+  };
+
+  if (flags == 0) {
+    return "<none>";
+  }
+
+  std::string result;
+  for (const flag_entry& flag : known_flags) {
+    if (flags & flag.flag) {
+      if (!result.empty()) {
+        result += "|";
+      }
+      result += flag.name;
+    }
+  }
+  return result;
+}
+}
 }
 
 #endif

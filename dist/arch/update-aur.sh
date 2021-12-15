@@ -6,19 +6,68 @@
 set -e
 set -u
 
-if [ "${#}" -ne 1 ]; then
-  printf 'usage: %s /path/to/quick-lint-js-aur\n' "${0}" >&2
+here="$(cd "$(dirname "${0}")" && pwd)"
+
+print_usage() {
+  printf 'usage: %s [--docker] [--test] /path/to/quick-lint-js-aur\n' "${0}"
+}
+
+docker=0
+test=0
+qljsaur=
+
+docker_image=ghcr.io/quick-lint/quick-lint-js-dist-arch:v3
+
+while [ "${#}" -ne 0 ]; do
+  case "${1}" in
+    --docker) docker=1 ;;
+    --test) test=1 ;;
+    -*)
+      printf 'error: invalid option: %s\n' "${1}"
+      print_usage >&2
+      exit 1
+      ;;
+    *) qljsaur="$(cd "${1}" && pwd)" ;;
+  esac
+  shift
+done
+
+if [ -z "${qljsaur}" ]; then
+  print_usage >&2
   exit 1
 fi
 
-qljsaur="${1}"
-here="$(dirname "${0}")"
-
-cp "${here}/PKGBUILD-release" "${qljsaur}/PKGBUILD"
-updpkgsums "${qljsaur}/PKGBUILD"
-makepkg --printsrcinfo "${qljsaur}/PKGBUILD" >"${qljsaur}/.SRCINFO"
-
 cd "${qljsaur}"
+cp "${here}/PKGBUILD-release" PKGBUILD
+
+script="
+  updpkgsums PKGBUILD
+  makepkg --printsrcinfo PKGBUILD >.SRCINFO
+"
+if [ "${test}" -eq 1 ]; then
+  script="${script}
+  makepkg --install --force --syncdeps --noconfirm
+"
+fi
+
+if [ "${docker}" -eq 1 ]; then
+  docker run --interactive --tty --mount type=bind,source="${qljsaur}",destination=/qljs-aur "${docker_image}" sh -c "
+    set -e
+    set -u
+    cd /qljs-aur
+    sudo pacman --sync --refresh
+    ${script}
+  "
+else
+  if ! command -v updpkgsums >/dev/null; then
+    printf "warning: updpkgsums doesn't seem to be installed. Consider using --docker\n" >&2
+  fi
+  if ! command -v makepkg >/dev/null; then
+    printf "warning: makepkg doesn't seem to be installed. Consider using --docker\n" >&2
+  fi
+  eval "${script}"
+fi
+
 git add PKGBUILD .SRCINFO
 printf '\nChanges staged. Please commit and push.\n' >&2
 

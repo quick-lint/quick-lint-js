@@ -43,6 +43,7 @@ constexpr const char8 *writable_global_variables[] = {
     u8"parseInt",
 
     // ECMA-262 18.3 Constructor Properties of the Global Object
+    u8"AggregateError",
     u8"Array",
     u8"ArrayBuffer",
     u8"BigInt",
@@ -53,6 +54,7 @@ constexpr const char8 *writable_global_variables[] = {
     u8"Date",
     u8"Error",
     u8"EvalError",
+    u8"FinalizationRegistry",
     u8"Float32Array",
     u8"Float64Array",
     u8"Function",
@@ -79,6 +81,7 @@ constexpr const char8 *writable_global_variables[] = {
     u8"Uint8Array",
     u8"Uint8ClampedArray",
     u8"WeakMap",
+    u8"WeakRef",
     u8"WeakSet",
 
     // ECMA-262 18.4 Other Properties of the Global Object
@@ -96,21 +99,27 @@ constexpr const char8 *non_writable_global_variables[] = {
 };
 
 TEST(test_lint, global_variables_are_usable) {
-  error_collector v;
-  linter l(&v, &default_globals);
   // Array = null;
   // Array;
   for (const char8 *global_variable : writable_global_variables) {
+    SCOPED_TRACE(out_string8(global_variable));
+    error_collector v;
+    linter l(&v, &default_globals);
     l.visit_variable_assignment(identifier_of(global_variable));
     l.visit_variable_use(identifier_of(global_variable));
+    l.visit_end_of_module();
+    EXPECT_THAT(v.errors, IsEmpty());
   }
+
   // NaN;
   for (const char8 *global_variable : non_writable_global_variables) {
+    SCOPED_TRACE(out_string8(global_variable));
+    error_collector v;
+    linter l(&v, &default_globals);
     l.visit_variable_use(identifier_of(global_variable));
+    l.visit_end_of_module();
+    EXPECT_THAT(v.errors, IsEmpty());
   }
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
 }
 
 TEST(test_lint, immutable_global_variables_are_not_assignable) {
@@ -226,26 +235,23 @@ constexpr const char8 *nodejs_global_variables[] = {
     u8"undefined",
     u8"unescape",
 };
-
-constexpr const char8 *nodejs_commonjs_module_variables[] = {
-    u8"__dirname", u8"__filename", u8"exports", u8"module", u8"require",
-};
 }
 
 TEST(test_lint, nodejs_global_variables_are_usable) {
-  error_collector v;
-  linter l(&v, &default_globals);
   for (const char8 *global_variable : nodejs_global_variables) {
+    SCOPED_TRACE(out_string8(global_variable));
+    error_collector v;
+    linter l(&v, &default_globals);
     l.visit_variable_use(identifier_of(global_variable));
+    l.visit_end_of_module();
+    EXPECT_THAT(v.errors, IsEmpty());
   }
-  l.visit_end_of_module();
-
-  EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, nodejs_global_variables_are_shadowable) {
+TEST(test_lint, non_module_nodejs_global_variables_are_shadowable) {
   error_collector v;
   linter l(&v, &default_globals);
+  // Intentionally excluded: __dirname, __filename, exports, module, require
   for (const char8 *global_variable : nodejs_global_variables) {
     l.visit_variable_declaration(identifier_of(global_variable),
                                  variable_kind::_let);
@@ -255,28 +261,28 @@ TEST(test_lint, nodejs_global_variables_are_shadowable) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, nodejs_commonjs_module_variables_are_usable) {
+TEST(test_lint, any_variable_is_declarable_and_usable_if_opted_into) {
+  // This tests the "literally-anything" global group.
+
+  configuration config;
+  config.allow_literally_any_global_variable();
+
+  const char8 builtin_1_declaration[] = u8"Object";
+  const char8 builtin_2_use[] = u8"Array";
+  const char8 anything_1_declaration[] = u8"thisVariableDoesNotExistInAnyList";
+  const char8 anything_2_use[] = u8"iDoNotExistInAnyList";
+
   error_collector v;
-  linter l(&v, &default_globals);
-  for (const char8 *variable : nodejs_commonjs_module_variables) {
-    l.visit_variable_use(identifier_of(variable));
-  }
+  linter l(&v, &config.globals());
+  l.visit_variable_declaration(identifier_of(builtin_1_declaration),
+                               variable_kind::_let);
+  l.visit_variable_use(identifier_of(builtin_2_use));
+  l.visit_variable_declaration(identifier_of(anything_1_declaration),
+                               variable_kind::_let);
+  l.visit_variable_use(identifier_of(anything_2_use));
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors, IsEmpty());
-}
-
-TEST(test_lint, nodejs_commonjs_module_variables_cannot_be_redeclared) {
-  for (const char8 *variable : nodejs_commonjs_module_variables) {
-    error_collector v;
-    linter l(&v, &default_globals);
-    l.visit_variable_declaration(identifier_of(variable), variable_kind::_let);
-    l.visit_end_of_module();
-
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_redeclaration_of_global_variable,
-                              redeclaration, span_matcher(variable))));
-  }
 }
 
 TEST(test_lint, let_or_const_or_class_variable_use_before_declaration) {
@@ -567,8 +573,8 @@ TEST(test_lint, function_variable_use_before_declaration_in_block_scope) {
 
   EXPECT_THAT(v.errors,
               ElementsAre(ERROR_TYPE_2_FIELDS(
-                  error_function_call_before_declaration_in_blocked_scope,  //
-                  use, span_matcher(use),                                   //
+                  error_function_call_before_declaration_in_block_scope,  //
+                  use, span_matcher(use),                                 //
                   declaration, span_matcher(declaration))));
 }
 
@@ -625,8 +631,8 @@ TEST(test_lint,
 
   EXPECT_THAT(v.errors,
               ElementsAre(ERROR_TYPE_2_FIELDS(
-                  error_function_call_before_declaration_in_blocked_scope,  //
-                  use, span_matcher(use),                                   //
+                  error_function_call_before_declaration_in_block_scope,  //
+                  use, span_matcher(use),                                 //
                   declaration, span_matcher(declaration))));
 }
 
@@ -2698,6 +2704,118 @@ TEST(test_lint_magic_arguments, catch_variable_shadows_magic_arguments) {
 }
 
 // TODO(#204): 'arguments' should not be declared in arrow functions.
+
+TEST(test_lint_delete, deleting_local_variable_is_a_warning) {
+  const char8 declaration[] = u8"v";
+  padded_string delete_expression(u8"delete v"_sv);
+  source_code_span delete_keyword_span(delete_expression.data(),
+                                       delete_expression.data() + 6);
+  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
+  source_code_span deleted_variable_span(delete_expression.data() + 7,
+                                         delete_expression.data() + 8);
+  ASSERT_EQ(deleted_variable_span.string_view(), u8"v"_sv);
+
+  // (() => {
+  //   let v;
+  //   delete v;
+  // });
+  error_collector v;
+  linter l(&v, &default_globals);
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_variable_delete_use(identifier(deleted_variable_span),
+                              delete_keyword_span);
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(
+      v.errors,
+      ElementsAre(ERROR_TYPE_FIELD(
+          error_redundant_delete_statement_on_variable, delete_expression,
+          offsets_matcher(&delete_expression, 0, u8"delete x"))));
+}
+
+TEST(test_lint_delete, deleting_local_variable_declared_later_is_a_warning) {
+  const char8 declaration[] = u8"v";
+  padded_string delete_expression(u8"delete v"_sv);
+  source_code_span delete_keyword_span(delete_expression.data(),
+                                       delete_expression.data() + 6);
+  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
+  source_code_span deleted_variable_span(delete_expression.data() + 7,
+                                         delete_expression.data() + 8);
+  ASSERT_EQ(deleted_variable_span.string_view(), u8"v"_sv);
+
+  // (() => {
+  //   delete v;
+  //   let v;
+  // });
+  error_collector v;
+  linter l(&v, &default_globals);
+  l.visit_enter_function_scope();
+  l.visit_enter_function_scope_body();
+  l.visit_variable_delete_use(identifier(deleted_variable_span),
+                              delete_keyword_span);
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(
+      v.errors,
+      ElementsAre(ERROR_TYPE_FIELD(
+          error_redundant_delete_statement_on_variable, delete_expression,
+          offsets_matcher(&delete_expression, 0, u8"delete x"))));
+}
+
+TEST(test_lint_delete, deleting_declared_module_variable_is_a_warning) {
+  const char8 declaration[] = u8"v";
+  padded_string delete_expression(u8"delete v"_sv);
+  source_code_span delete_keyword_span(delete_expression.data(),
+                                       delete_expression.data() + 6);
+  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
+  source_code_span deleted_variable_span(delete_expression.data() + 7,
+                                         delete_expression.data() + 8);
+  ASSERT_EQ(deleted_variable_span.string_view(), u8"v"_sv);
+
+  // let v;
+  // delete v;
+  error_collector v;
+  linter l(&v, &default_globals);
+  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let);
+  l.visit_variable_delete_use(identifier(deleted_variable_span),
+                              delete_keyword_span);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(
+      v.errors,
+      ElementsAre(ERROR_TYPE_FIELD(
+          error_redundant_delete_statement_on_variable, delete_expression,
+          offsets_matcher(&delete_expression, 0, u8"delete x"))));
+}
+
+TEST(test_lint_delete, deleting_declared_global_variable_is_a_warning) {
+  padded_string code(u8"delete myGlobalVariable"_sv);
+  source_code_span delete_keyword_span(code.data(), code.data() + 6);
+  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
+  source_code_span deleted_variable_span(code.data() + 7, code.data() + 23);
+  ASSERT_EQ(deleted_variable_span.string_view(), u8"myGlobalVariable"_sv);
+
+  configuration config;
+  config.add_global_variable(global_declared_variable{
+      .name = u8"myGlobalVariable",
+      .is_writable = true,
+      .is_shadowable = true,
+  });
+
+  // delete myGlobalVariable;
+  error_collector v;
+  linter l(&v, &config.globals());
+  l.visit_variable_delete_use(identifier(deleted_variable_span),
+                              delete_keyword_span);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
 
 TEST(test_lint_typeof, using_undeclared_variable_in_typeof_is_not_an_error) {
   const char8 use[] = u8"v";

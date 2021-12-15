@@ -95,6 +95,23 @@ template const locale_entry<const std::uint8_t*>* find_locale_entry(
 template const locale_entry<int>* find_locale_entry(const locale_entry<int>*,
                                                     const char*);
 
+std::optional<int> find_locale(const char* locales, const char* locale_name) {
+  std::optional<int> found_entry = std::nullopt;
+  locale_name_combinations(locale_name,
+                           [&](std::string_view current_locale_name) -> bool {
+                             int i = 0;
+                             for (const char* l = locales; *l != '\0';
+                                  l += std::strlen(l) + 1, ++i) {
+                               if (l == current_locale_name) {
+                                 found_entry = i;
+                                 return false;
+                               }
+                             }
+                             return true;
+                           });
+  return found_entry;
+}
+
 std::vector<std::string> locale_name_combinations(const char* locale_name) {
   std::vector<std::string> locale_names;
   locale_name_combinations(locale_name,

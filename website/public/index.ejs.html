@@ -61,47 +61,29 @@
         font-size: 75%;
       }
 
-      .install-options {
+      /* Make the entire cell clickable. (How does this even work???) */
+      .feature-comparison table {
+        height: 0;
+      }
+      .feature-comparison td.has-link {
+        height: 100%;
+        padding: 0;
+      }
+      .feature-comparison td.has-link > a {
+        align-items: center;
         display: flex;
-        flex-wrap: wrap;
+        flex-direction: column;
+        height: 100%;
         justify-content: center;
-        margin: 0;
-        padding: 0;
-      }
-      .install-options > li {
-        list-style-type: none;
-        margin: 0.375rem 0.5rem;
-        padding: 0;
-        white-space: nowrap;
-      }
-
-      .install-options a {
-        /* Color from unofficial JavaScript logo: https://github.com/voodootikigod/logo.js */
-        background-color: rgb(240, 219, 79);
-        border-radius: 0.5rem;
-        display: inline-block;
-        font-weight: bold;
-        letter-spacing: 0.75px;
-        padding: 0.75rem 1.25rem 0.5em 1.25rem;
         text-decoration: none;
       }
-      .install-options a,
-      .install-options a:visited {
-        /* Color from unofficial JavaScript logo: https://github.com/voodootikigod/logo.js */
-        color: rgb(50, 51, 48);
+      .feature-comparison td.has-link > a:hover {
+        background-color: rgba(0, 0, 0, 0.05);
       }
-      .install-options a:hover {
-        /* Color from unofficial JavaScript logo: https://github.com/voodootikigod/logo.js */
-        background-color: rgba(240, 219, 79, 0.75);
-      }
-
-      .install-options {
-        line-height: 1.4em;
-      }
-      .install-logo {
-        height: 1.2em;
-        width: 1.2em;
-        vertical-align: text-bottom;
+      @media (prefers-color-scheme: dark) {
+        .feature-comparison td.has-link > a:hover {
+          background-color: rgba(255, 255, 255, 0.3);
+        }
       }
 
       .plugin-logo {
@@ -115,15 +97,11 @@
     </style>
   </head>
   <body>
-    <header>
-      <h1>quick-lint-js</h1>
-      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
-      <%- await include("./common-nav.ejs.html") %>
-    </header>
+    <header><%- await include("./common-nav.ejs.html") %></header>
 
     <main>
       <p>
-        <a href="benchmarks/"><strong>200× faster</strong> than ESLint</a>,
+        <a href="benchmarks/">Over <strong>110× faster</strong> than ESLint</a>,
         quick-lint-js gives you <strong>instant feedback</strong> as you code.
         <strong>Find bugs</strong> in your JavaScript before your finger leaves
         the keyboard. Lint any JavaScript file with
@@ -133,36 +111,28 @@
       <p><a href="demo/">Try it out in your browser.</a></p>
 
       <figure>
-        <object data="vscode-demo.webp" type="image/webp" style="width: 100%">
-          <video autoplay loop poster="vscode-demo.png" style="width: 100%">
-            <source src="vscode-demo.mp4" type="video/mp4" />
-            <img
-              src="vscode-demo.png"
-              style="width: 100%"
-              alt="quick-lint-js running in Visual Studio Code"
-            />
-          </video>
-        </object>
+        <picture style="width: 100%; height: auto" width="1324" height="526">
+          <source srcset="vscode-demo.webp" type="image/webp" />
+          <img
+            src="vscode-demo.png"
+            style="width: 100%; height: auto"
+            alt="quick-lint-js running in Visual Studio Code"
+            width="1324"
+            height="526"
+          />
+        </picture>
       </figure>
 
       <h2>Install quick-lint-js</h2>
       <p>
-        Latest version: 0.3.0 (beta) (released
-        <time datetime="2021-07-02">July 2, 2021</time>)
+        Latest version: <%= qljsVersionInfo.version %> (released
+        <time datetime="<%= qljsVersionInfo.releaseDate %>"
+          ><%= new Intl.DateTimeFormat("en-US", {dateStyle: "long", timeZone:
+          "UTC"}).format(new Date(qljsVersionInfo.releaseDate)) %></time
+        >)
       </p>
 
       <ul class="install-options">
-        <li>
-          <a href="install/#install-vim"
-            ><img
-              class="install-logo"
-              src="vim.gif"
-              alt=""
-              aria-labelledby="install-vim"
-            />
-            <span id="install-vim">install Vim plugin</span></a
-          >
-        </li>
         <li>
           <a
             href="https://marketplace.visualstudio.com/items?itemName=quick-lint.quick-lint-js"
@@ -171,17 +141,47 @@
               src="vscode.png"
               alt=""
               aria-labelledby="install-vs-code"
+              width="19"
+              height="19"
             />
             <span id="install-vs-code">install VS Code plugin</span></a
           >
         </li>
         <li>
-          <a href="install/#install-cli"
+          <a href="install/neovim/"
+            ><img
+              class="install-logo"
+              src="neovim.svg"
+              alt=""
+              aria-labelledby="install-neovim"
+              width="19"
+              height="19"
+            />
+            <span id="install-neovim">install Neovim plugin</span></a
+          >
+        </li>
+        <li>
+          <a href="install/vim/"
+            ><img
+              class="install-logo"
+              src="vim.gif"
+              alt=""
+              aria-labelledby="install-vim"
+              width="19"
+              height="19"
+            />
+            <span id="install-vim">install Vim plugin</span></a
+          >
+        </li>
+        <li>
+          <a href="install/cli/"
             ><img
               class="install-logo"
               src="gnome-terminal.svg"
               alt=""
               aria-labelledby="install-cli"
+              width="19"
+              height="19"
             />
             <span id="install-cli">install CLI</span></a
           >
@@ -193,6 +193,8 @@
               src="npm.svg"
               alt=""
               aria-labelledby="install-npm"
+              width="19"
+              height="19"
             />
             <span id="install-npm">install CLI on npm</span></a
           >
@@ -211,15 +213,16 @@
               <th><a href="https://jshint.com/">JSHint</a></th>
               <th><a href="https://rslint.org/">RSLint</a></th>
               <th><a href="https://deno.land/">Deno</a></th>
-              <th><a href="https://rome.tools/">Rome</a></th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <th colspan="2"><a href="benchmarks/">speed</a></th>
-              <td class="good quick-lint-js">
-                <span aria-labelledby="feature-speed-qljs-quick">🚀</span
-                ><br /><span id="feature-speed-qljs-quick">quick</span>
+              <td class="good quick-lint-js has-link">
+                <a href="benchmarks/"
+                  ><span aria-labelledby="feature-speed-qljs-quick">🚀</span
+                  ><br /><span id="feature-speed-qljs-quick">quick</span></a
+                >
               </td>
               <td class="meh">
                 <span aria-labelledby="feature-speed-eslint-capable">🐇</span
@@ -237,15 +240,10 @@
                 <span aria-labelledby="feature-speed-deno-lint-slow">🐢</span
                 ><br /><span id="feature-speed-deno-lint-slow">slow</span>
               </td>
-              <td class="bad">
-                <span aria-labelledby="feature-speed-rome-slow">🐢</span
-                ><br /><span id="feature-speed-rome-slow">slow</span>
-              </td>
             </tr>
             <tr>
               <th colspan="2">license</th>
               <td class="good quick-lint-js">free<br />GPLv3</td>
-              <td class="meh">open source<br />MIT</td>
               <td class="meh">open source<br />MIT</td>
               <td class="meh">open source<br />MIT</td>
               <td class="meh">open source<br />MIT</td>
@@ -271,7 +269,6 @@
                 >
               </td>
               <td class="bad"><span aria-label="hard">❌</span></td>
-              <td class="good"><span aria-label="easy">✅</span></td>
             </tr>
             <tr>
               <th colspan="2">easy setup</th>
@@ -288,10 +285,6 @@
               </td>
               <td class="good">
                 <span aria-label="easy">✅</span><br />zero config
-              </td>
-              <td class="meh">
-                <span aria-label="hard">❌</span><br />config or
-                <code>init</code>
               </td>
             </tr>
             <tr>
@@ -325,7 +318,6 @@
                 >
               </td>
               <td class="good"><span aria-label="yes">✅</span></td>
-              <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
               <th colspan="2">TypeScript</th>
@@ -358,7 +350,6 @@
                 >
               </td>
               <td class="good"><span aria-label="yes">✅</span></td>
-              <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
 
             <tr>
@@ -374,20 +365,16 @@
                 <a href="https://rslint.org/rules/">some</a>
               </td>
               <td class="meh"><a href="https://lint.deno.land/">some</a></td>
-              <td class="meh">
-                <a href="https://rome.tools/docs/lint/rules/">some</a>
-              </td>
             </tr>
             <tr>
               <th colspan="2">stable</th>
-              <td class="bad quick-lint-js">
-                <span aria-label="unstable">❌</span>
+              <td class="good quick-lint-js">
+                <span aria-label="stable">✅</span>
               </td>
               <td class="good"><span aria-label="stable">✅</span></td>
               <td class="good"><span aria-label="stable">✅</span></td>
               <td class="bad"><span aria-label="unstable">❌</span></td>
               <td class="good"><span aria-label="stable">✅</span></td>
-              <td class="bad"><span aria-label="unstable">❌</span></td>
             </tr>
           </tbody>
 
@@ -399,45 +386,95 @@
               <th><a href="https://jshint.com/">JSHint</a></th>
               <th><a href="https://rslint.org/">RSLint</a></th>
               <th><a href="https://deno.land/">Deno</a></th>
-              <th><a href="https://rome.tools/">Rome</a></th>
             </tr>
             <tr>
-              <th>VS Code</th>
-              <th><img class="plugin-logo" src="vscode.png" alt="" /></th>
-              <td class="good quick-lint-js">
-                <span aria-label="yes">✅</span>
+              <th class="has-link"><a href="install/vscode/">VS Code</a></th>
+              <th class="has-link">
+                <a href="install/vscode/"
+                  ><img
+                    class="plugin-logo"
+                    src="vscode.png"
+                    alt=""
+                    width="19"
+                    height="19"
+                /></a>
+              </th>
+              <td class="good quick-lint-js has-link">
+                <a href="install/vscode/" aria-label="yes">✅</a>
               </td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
-              <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th>Vim</th>
-              <th><img class="plugin-logo" src="vim.gif" alt="" /></th>
-              <td class="good quick-lint-js">
-                <span aria-label="yes">✅</span>
+              <th class="has-link"><a href="install/vim/">Vim</a></th>
+              <th class="has-link">
+                <a href="install/vim/"
+                  ><img
+                    class="plugin-logo"
+                    src="vim.gif"
+                    alt=""
+                    width="19"
+                    height="19"
+                /></a>
+              </th>
+              <td class="good quick-lint-js has-link">
+                <a href="install/vim/" aria-label="yes">✅</a>
               </td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
+            </tr>
+            <tr>
+              <th class="has-link"><a href="install/vim/">Neovim</a></th>
+              <th class="has-link">
+                <a href="install/vim/"
+                  ><img
+                    class="plugin-logo"
+                    src="neovim.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                /></a>
+              </th>
+              <td class="good quick-lint-js has-link">
+                <a href="install/neovim/" aria-label="yes">✅</a>
+              </td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="good"><span aria-label="yes">✅</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
               <th>WebStorm</th>
-              <th><img class="plugin-logo" src="webstorm.svg" alt="" /></th>
+              <th>
+                <img
+                  class="plugin-logo"
+                  src="webstorm.svg"
+                  alt=""
+                  width="19"
+                  height="19"
+                />
+              </th>
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
-              <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
               <th>Sublime Text</th>
-              <th><img class="plugin-logo" src="sublime-text.svg" alt="" /></th>
+              <th>
+                <img
+                  class="plugin-logo"
+                  src="sublime-text.svg"
+                  alt=""
+                  width="19"
+                  height="19"
+                />
+              </th>
               <td class="good quick-lint-js">
                 <span aria-label="yes">✅</span>
               </td>
@@ -445,12 +482,17 @@
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
-              <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
               <th>Notepad++</th>
               <th>
-                <img class="plugin-logo" src="notepad-plus-plus.svg" alt="" />
+                <img
+                  class="plugin-logo"
+                  src="notepad-plus-plus.svg"
+                  alt=""
+                  width="19"
+                  height="19"
+                />
               </th>
 
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
@@ -458,40 +500,72 @@
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
-              <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
               <th>Atom</th>
-              <th><img class="plugin-logo" src="atom.svg" alt="" /></th>
+              <th>
+                <img
+                  class="plugin-logo"
+                  src="atom.svg"
+                  alt=""
+                  width="19"
+                  height="19"
+                />
+              </th>
               <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
-              <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
-              <th>Emacs</th>
-              <th><img class="plugin-logo" src="emacs.svg" alt="" /></th>
-              <td class="good quick-lint-js">
-                <span aria-label="yes">✅</span>
+              <th><a href="install/emacs/">Emacs</a></th>
+              <th>
+                <a href="install/emacs/"
+                  ><img
+                    class="plugin-logo"
+                    src="emacs.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                /></a>
+              </th>
+              <td class="good quick-lint-js has-link">
+                <a href="install/emacs/" aria-label="yes">✅</a>
               </td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
+            </tr>
+            <tr>
+              <th>Codespaces</th>
+              <th>
+                <img
+                  class="plugin-logo"
+                  src="codespaces.png"
+                  alt=""
+                  width="19"
+                  height="19"
+                />
+              </th>
+              <td class="bad quick-lint-js"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
+              <td class="bad"><span aria-label="no">❌</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
-              <th colspan="2">LSP server</th>
-              <td class="good quick-lint-js">
-                <span aria-label="yes">✅</span>
+              <th colspan="2" class="has-link">
+                <a href="install/cli/">LSP server</a>
+              </th>
+              <td class="good quick-lint-js has-link">
+                <a href="install/cli/" aria-label="yes">✅</a>
               </td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="bad"><span aria-label="no">❌</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
-              <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
           </tbody>
         </table>

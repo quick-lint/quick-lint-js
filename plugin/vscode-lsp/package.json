@@ -2,7 +2,7 @@
   "name": "quick-lint-js-lsp",
   "description": "Find JavaScript bugs with quick-lint-js (LSP version, not recommended)",
   "publisher": "quick-lint",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.43.0"
   },
@@ -38,8 +38,7 @@
       {
         "id": "json",
         "filenames": [
-          "quick-lint-js.config",
-          ".quick-lint-js.config"
+          "quick-lint-js.config"
         ]
       }
     ]
@@ -51,7 +50,7 @@
     "vscode-languageclient": "^7.0.0"
   },
   "devDependencies": {
-    "prettier": "^2.3.0",
-    "vsce": "^1.93.0"
+    "prettier": "^2.4.1",
+    "vsce": "^1.100.0"
   }
 }

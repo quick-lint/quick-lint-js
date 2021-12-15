@@ -1,24 +1,26 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <boost/container/pmr/memory_resource.hpp>
+#include <boost/container/pmr/polymorphic_allocator.hpp>
+#include <deque>
 #include <memory>
+#include <quick-lint-js/allocator.h>
 #include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <type_traits>
-#include <vector>
 
 namespace quick_lint_js {
 struct buffering_error_reporter::impl {
-  struct any_error {
-    enum class error_kind {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) name,
-      QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-    };
+  explicit impl(boost::container::pmr::memory_resource *memory) noexcept
+      : memory_(memory) {}
 
+  struct any_error {
     union underlying_error {
+      explicit underlying_error() noexcept {}
+
 #define QLJS_ERROR_TYPE(name, code, struct_body, format)             \
   ::quick_lint_js::name name;                                        \
   static_assert(std::is_trivially_copyable_v<::quick_lint_js::name>, \
@@ -27,15 +29,24 @@ struct buffering_error_reporter::impl {
 #undef QLJS_ERROR_TYPE
     };
 
-    error_kind kind;
+    error_type type;
     underlying_error error;
   };
 
-  std::vector<any_error> errors_;
+  boost::container::pmr::memory_resource *memory_;
+  std::deque<any_error, boost::container::pmr::polymorphic_allocator<any_error>>
+      errors_{this->memory_};
 };
 
-buffering_error_reporter::buffering_error_reporter()
-    : impl_(std::make_unique<impl>()) {}
+void buffering_error_reporter::impl_deleter::operator()(impl *i) noexcept {
+  if (i) {
+    delete_object(i->memory_, i);
+  }
+}
+
+buffering_error_reporter::buffering_error_reporter(
+    boost::container::pmr::memory_resource *memory)
+    : impl_(new_object<impl>(memory, memory)) {}
 
 buffering_error_reporter::buffering_error_reporter(
     buffering_error_reporter &&) = default;
@@ -45,31 +56,35 @@ buffering_error_reporter &buffering_error_reporter::operator=(
 
 buffering_error_reporter::~buffering_error_reporter() = default;
 
+void buffering_error_reporter::report_impl(error_type type, void *error) {
+  static constexpr unsigned char error_sizes[] = {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  void buffering_error_reporter::report(name error) {    \
-    this->impl_->errors_.push_back(impl::any_error{      \
-        .kind = impl::any_error::error_kind::name,       \
-        .error = {.name = error},                        \
-    });                                                  \
-  }
-QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-
-void buffering_error_reporter::move_into(error_reporter *other) {
-  for (impl::any_error &error : this->impl_->errors_) {
-    switch (error.kind) {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  case impl::any_error::error_kind::name:                \
-    other->report(error.error.name);                     \
-    break;
+  sizeof(::quick_lint_js::name),
       QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
-    }
+  };
+
+  impl::any_error &e = this->impl_->errors_.emplace_back();
+  e.type = type;
+  std::memcpy(&e.error, error, error_sizes[static_cast<std::ptrdiff_t>(type)]);
+}
+
+void buffering_error_reporter::copy_into(error_reporter *other) const {
+  for (impl::any_error &error : this->impl_->errors_) {
+    other->report_impl(error.type, &error.error);
   }
+}
+
+void buffering_error_reporter::move_into(error_reporter *other) {
+  this->copy_into(other);
 }
 
 bool buffering_error_reporter::empty() const noexcept {
   return this->impl_->errors_.empty();
+}
+
+void buffering_error_reporter::clear() noexcept {
+  return this->impl_->errors_.clear();
 }
 }
 

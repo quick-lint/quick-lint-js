@@ -96,10 +96,22 @@ describe("markEditorText", () => {
     assert.strictEqual(editor.innerHTML, "hello<mark>world</mark>");
   });
 
-  it("add empty mark", () => {
+  it("add empty mark at beginning", () => {
+    let editor = preElementWithHTML("helloworld");
+    markEditorText(editor, dom.window, [{ begin: 0, end: 0 }]);
+    assert.strictEqual(editor.innerHTML, "<mark></mark>helloworld");
+  });
+
+  it("add empty mark in middle", () => {
     let editor = preElementWithHTML("helloworld");
     markEditorText(editor, dom.window, [{ begin: 5, end: 5 }]);
     assert.strictEqual(editor.innerHTML, "hello<mark></mark>world");
+  });
+
+  it("add empty mark at end", () => {
+    let editor = preElementWithHTML("helloworld");
+    markEditorText(editor, dom.window, [{ begin: 10, end: 10 }]);
+    assert.strictEqual(editor.innerHTML, "helloworld<mark></mark>");
   });
 
   it("add empty mark immediately after non-empty mark", () => {
@@ -121,6 +133,18 @@ describe("markEditorText", () => {
       { begin: 0, end: 5 },
     ]);
     assert.strictEqual(editor.innerHTML, "<mark>hello</mark>world");
+  });
+
+  it("overlapping marks with same begin are merged", () => {
+    let editor = preElementWithHTML("two errors please thanks");
+    markEditorText(editor, dom.window, [
+      { begin: 4, end: 10 }, // "errors"
+      { begin: 4, end: 17 }, // "errors please"
+    ]);
+    assert.strictEqual(
+      editor.innerHTML,
+      "two <mark>errors please</mark> thanks"
+    );
   });
 });
 

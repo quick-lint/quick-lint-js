@@ -1,0 +1,133 @@
+<%#
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+%>
+
+<h3 id="install-vim-plugin">Install Vim plugin</h3>
+<p>Install this plugin with your favorite Vim packaging system:</p>
+<ul>
+  <li>
+    <a href="#manual-vim-package">Vim package</a> (built into Vim 8.0 and newer)
+  </li>
+  <li><a href="#manual-vim-pathogen">Pathogen</a></li>
+  <li><a href="#manual-vim-vim-plug">Vim-Plug</a></li>
+  <li><a href="#manual-vim-vundle">Vundle</a></li>
+</ul>
+
+<h4 id="manual-vim-package">Install as a Vim package</h4>
+<p>This option requires Vim 8.0 or newer.</p>
+<ol>
+  <li>
+    <a
+      href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/vim/quick-lint-js-vim.zip"
+      >Download the quick-lint-js Vim plugin.</a
+    >
+  </li>
+  <li>
+    Add <code style="vim">packloadall</code> to your <% if (os === "windows") {
+    %> <code>%USERPROFILE%\_vimrc</code> file (or
+    <code>%USERPROFILE%\vimfiles\vimrc</code>) <% } else { %>
+    <code>~/.vimrc</code> file <% } %> if not already present.
+  </li>
+  <li>
+    Create the directory <% if (os === "windows") { %>
+    <code>%USERPROFILE%\vimfiles\pack\external\start\</code>. <% } else { %>
+    <code>~/.vim/pack/external/start/</code>. <% } %>
+  </li>
+  <li>
+    Copy the extracted
+    <code>quick-lint-js.vim</code> directory into the <% if (os === "windows") {
+    %>
+    <code>%USERPROFILE%\vimfiles\pack\external\start\</code>
+    <% } else { %>
+    <code>~/.vim/pack/external/start/</code>
+    <% } %> directory.
+  </li>
+  <li>Restart Vim.</li>
+</ol>
+
+<h4 id="manual-vim-pathogen">Install with Pathogen</h4>
+<p>
+  This option requires
+  <a href="https://github.com/tpope/vim-pathogen">Pathogen</a>.
+</p>
+<ol>
+  <li>
+    <a
+      href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/vim/quick-lint-js-vim.zip"
+      >Download the quick-lint-js Vim plugin.</a
+    >
+  </li>
+  <li>
+    Copy the extracted <code>quick-lint-js.vim</code> directory into the <% if
+    (os === "windows") { %>
+    <code>%USERPROFILE%\vimfiles\bundle\</code>
+    <% } else { %>
+    <code>~/.vim/bundle/</code>
+    <% } %> directory.
+  </li>
+  <li>Restart Vim.</li>
+</ol>
+
+<h4 id="manual-vim-vim-plug">Install with Vim-Plug</h4>
+<p>
+  This option requires
+  <a href="https://github.com/junegunn/vim-plug">Vim-Plug</a>.
+</p>
+<ol>
+  <li>
+    Add the following line to your <code>vimrc</code> file between
+    <code class="vim">call&nbsp;plug#begin(...)</code> and
+    <code class="vim">call&nbsp;plug#end()</code>:
+    <blockquote>
+      <pre><code class="vim">Plug 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim', 'tag': '<%= qljsVersionInfo.version %>'}</code></pre>
+    </blockquote>
+  </li>
+  <li>Restart Vim.</li>
+  <li>In Vim, run <code class="vim">:PlugInstall</code>.</li>
+</ol>
+
+<h4 id="manual-vim-vundle">Install with Vundle</h4>
+<p>
+  This option requires
+  <a href="https://github.com/VundleVim/Vundle.vim">Vundle</a>.
+</p>
+<p>
+  Using Vundle is <em>not recommended</em>. Vundle doesn't support version
+  pinning. We recommend using a
+  <a href="#install-vim-plugin">different Vim plugin manager</a>.
+</p>
+<ol>
+  <li>
+    Add the following line to your <code>vimrc</code> file between
+    <code class="vim">call&nbsp;vundle#begin(...)</code> and
+    <code class="vim">call&nbsp;vundle#end()</code>:
+    <blockquote>
+      <pre><code class="vim">Plugin 'quick-lint/quick-lint-js', {'rtp': 'plugin/vim/quick-lint-js.vim'}</code></pre>
+    </blockquote>
+  </li>
+  <li>Restart Vim.</li>
+  <li>In Vim, run <code class="vim">:PluginInstall</code>.</li>
+</ol>
+
+<%#
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
+%>

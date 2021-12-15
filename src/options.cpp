@@ -6,6 +6,7 @@
 #include <cstring>
 #include <optional>
 #include <ostream>
+#include <quick-lint-js/arg-parser.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -21,135 +22,11 @@ QLJS_WARNING_IGNORE_GCC("-Wshadow=local")
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-namespace {
-class arg_parser {
- public:
-  explicit arg_parser(int argc, char** argv) noexcept
-      : argc_(argc), argv_(argv) {
-    this->parse_current_arg();
-  }
-
-  arg_parser(const arg_parser&) = delete;
-  arg_parser& operator=(const arg_parser&) = delete;
-
-  const char* match_option_with_value(std::string_view option_name) noexcept {
-    if (!this->option_.has_value() || !this->option_->arg_value) {
-      return nullptr;
-    }
-    if (this->option_->arg_key != option_name) {
-      return nullptr;
-    }
-    const char* arg_value = this->option_->arg_value;
-    this->advance(this->option_->arg_has_equal ? 1 : 2);
-    return arg_value;
-  }
-
-  bool match_flag_shorthand(char option_shorthand) noexcept {
-    if (!this->option_.has_value()) {
-      return false;
-    }
-    bool matches = this->option_->arg_key == std::string{'-', option_shorthand};
-
-    if (matches) {
-      this->advance(1);
-    }
-    return matches;
-  }
-
-  bool match_flag_option(std::string_view full_option_name,
-                         std::string_view partial_option_name) noexcept {
-    if (!this->option_.has_value()) {
-      return false;
-    }
-    bool matches = starts_with(this->option_->arg_key, partial_option_name) &&
-                   starts_with(full_option_name, this->option_->arg_key);
-    if (matches) {
-      this->advance(1);
-    }
-    return matches;
-  }
-
-  const char* match_argument() noexcept {
-    if (this->option_.has_value()) {
-      return nullptr;
-    }
-    return this->match_anything();
-  }
-
-  const char* match_anything() noexcept {
-    const char* anything = this->current_arg();
-    this->advance(1);
-    return anything;
-  }
-
-  bool done() const noexcept { return this->current_arg_index_ >= this->argc_; }
-
- private:
-  void parse_current_arg() noexcept {
-    if (this->done()) {
-      return;
-    }
-    if (this->is_ignoring_options_) {
-      // Do nothing.
-    } else if (this->current_arg() == "--"sv) {
-      this->current_arg_index_ += 1;
-      if (this->done()) {
-        return;
-      }
-      this->is_ignoring_options_ = true;
-      this->option_ = std::nullopt;
-    } else if (this->current_arg() == "-"sv) {
-      this->option_ = std::nullopt;
-    } else if (this->current_arg()[0] == '-') {
-      const char* equal = std::strchr(this->current_arg(), '=');
-      option o;
-      o.arg_has_equal = equal != nullptr;
-      if (o.arg_has_equal) {
-        o.arg_key = std::string_view(
-            this->current_arg(),
-            narrow_cast<std::size_t>(equal - this->current_arg()));
-        o.arg_value = equal + 1;
-      } else {
-        o.arg_key = this->current_arg();
-        o.arg_value = this->current_arg_index_ + 1 < this->argc_
-                          ? this->argv_[this->current_arg_index_ + 1]
-                          : nullptr;
-      }
-      this->option_ = o;
-    } else {
-      this->option_ = std::nullopt;
-    }
-  }
-
-  void advance(int count) noexcept {
-    this->current_arg_index_ += count;
-    this->parse_current_arg();
-  }
-
-  const char* current_arg() noexcept {
-    QLJS_ASSERT(this->current_arg_index_ < this->argc_);
-    return this->argv_[this->current_arg_index_];
-  }
-
-  struct option {
-    std::string_view arg_key;
-    const char* arg_value;
-    bool arg_has_equal;
-  };
-
-  std::optional<option> option_;
-  bool is_ignoring_options_ = false;
-  int current_arg_index_ = 1;
-
-  int argc_;
-  char** argv_;
-};
-}
-
 options parse_options(int argc, char** argv) {
   options o;
 
   std::optional<int> next_vim_file_bufnr;
+  const char* next_path_for_config_search = nullptr;
   const char* active_config_file = nullptr;
   bool has_stdin = false;
 
@@ -163,6 +40,7 @@ options parse_options(int argc, char** argv) {
         }
         file_to_lint file{.path = "<stdin>",
                           .config_file = active_config_file,
+                          .path_for_config_search = next_path_for_config_search,
                           .is_stdin = true,
                           .vim_bufnr = next_vim_file_bufnr};
         has_stdin = true;
@@ -170,11 +48,13 @@ options parse_options(int argc, char** argv) {
       } else {
         file_to_lint file{.path = argument,
                           .config_file = active_config_file,
+                          .path_for_config_search = next_path_for_config_search,
                           .is_stdin = false,
                           .vim_bufnr = next_vim_file_bufnr};
         o.files_to_lint.emplace_back(file);
       }
 
+      next_path_for_config_search = nullptr;
       next_vim_file_bufnr = std::nullopt;
     } else if (parser.match_flag_option("--debug-parser-visits"sv,
                                         "--debug-p"sv)) {
@@ -185,6 +65,19 @@ options parse_options(int argc, char** argv) {
         o.output_format = quick_lint_js::output_format::gnu_like;
       } else if (arg_value == "vim-qflist-json"sv) {
         o.output_format = quick_lint_js::output_format::vim_qflist_json;
+      } else if (arg_value == "emacs-lisp"sv) {
+        o.output_format = quick_lint_js::output_format::emacs_lisp;
+      } else {
+        o.error_unrecognized_options.emplace_back(arg_value);
+      }
+    } else if (const char* arg_value = parser.match_option_with_value(
+                   "--diagnostic-hyperlinks"sv)) {
+      if (arg_value == "auto"sv) {
+        o.diagnostic_hyperlinks = quick_lint_js::option_when::auto_;
+      } else if (arg_value == "always"sv) {
+        o.diagnostic_hyperlinks = quick_lint_js::option_when::always;
+      } else if (arg_value == "never"sv) {
+        o.diagnostic_hyperlinks = quick_lint_js::option_when::never;
       } else {
         o.error_unrecognized_options.emplace_back(arg_value);
       }
@@ -192,6 +85,9 @@ options parse_options(int argc, char** argv) {
                    parser.match_option_with_value("--config-file"sv)) {
       active_config_file = arg_value;
       o.has_config_file = true;
+    } else if (const char* arg_value = parser.match_option_with_value(
+                   "--path-for-config-search"sv)) {
+      next_path_for_config_search = arg_value;
     } else if (const char* arg_value =
                    parser.match_option_with_value("--vim-file-bufnr"sv)) {
       int bufnr;
@@ -220,10 +116,12 @@ options parse_options(int argc, char** argv) {
       }
       file_to_lint file{.path = "<stdin>",
                         .config_file = active_config_file,
+                        .path_for_config_search = next_path_for_config_search,
                         .is_stdin = true,
                         .vim_bufnr = next_vim_file_bufnr};
       o.files_to_lint.emplace_back(file);
       has_stdin = true;
+      next_path_for_config_search = nullptr;
       next_vim_file_bufnr = std::nullopt;
     } else {
       const char* unrecognized = parser.match_anything();

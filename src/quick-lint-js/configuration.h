@@ -4,9 +4,12 @@
 #ifndef QUICK_LINT_JS_CONFIGURATION_H
 #define QUICK_LINT_JS_CONFIGURATION_H
 
+#include <array>
+#include <cstddef>
 #include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-canonical.h>
+#include <quick-lint-js/global-variables.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/padded-string.h>
@@ -14,37 +17,53 @@
 #include <vector>
 
 namespace quick_lint_js {
+class error_reporter;
+
 class configuration {
  public:
+  explicit configuration();
+
   const global_declared_variable_set& globals() noexcept;
 
-  const std::optional<canonical_path>& config_file_path() const;
-
   void reset_global_groups();
+  void allow_literally_any_global_variable();
   bool add_global_group(string8_view group_name);
 
-  global_declared_variable* add_global_variable(string8_view name);
+  void add_global_variable(global_declared_variable);
   void remove_global_variable(string8_view name);
 
-  void load_from_json(padded_string_view);
-  void set_config_file_path(const canonical_path&);
-  void set_config_file_path(canonical_path&&);
+  void load_from_json(padded_string_view, error_reporter*);
 
   void reset();
 
+  // TODO(strager): Move this out of the configuration class. It's only used by
+  // the CLI.
+  bool errors_were_reported = false;
+
  private:
-  void load_global_groups_from_json(simdjson::ondemand::value&);
-  void load_globals_from_json(simdjson::ondemand::object&);
+  bool load_global_groups_from_json(simdjson::ondemand::value&,
+                                    error_reporter*);
+  bool load_globals_from_json(simdjson::ondemand::object&, error_reporter*);
 
   bool should_remove_global_variable(string8_view name);
 
+  [[gnu::noinline]] void build_globals_from_groups();
+
+  // Returns false on parse error, and true otherwise.
+  template <class Error>
+  bool get_bool_or_default(
+      ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value,
+      bool* out, bool default_value, error_reporter*);
+
+  void report_json_error(padded_string_view json, error_reporter*);
+
   global_declared_variable_set globals_;
   std::vector<string8> globals_to_remove_;
-  std::optional<canonical_path> config_file_path_;
-  bool add_global_group_browser_ = true;
-  bool add_global_group_node_js_ = true;
-  bool add_global_group_ecmascript_ = true;
+  bool did_add_globals_from_groups_ = false;
+  std::array<bool, global_group_count> enabled_global_groups_;
+  bool literally_anything_global_group_enabled_ = false;
   monotonic_allocator string_allocator_;
+
   string8_view save_string(std::string_view s);
 };
 }

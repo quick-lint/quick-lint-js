@@ -259,6 +259,46 @@ TEST(test_parse, c_style_for_loop_with_in_operator) {
                                       "visit_exit_block_scope",     //
                                       "visit_variable_use"));       // d
   }
+
+  {
+    padded_string code(u8"for (let x = a in b; c; d) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_in_disallowed_in_c_style_for_loop, in_token,
+            offsets_matcher(&code, strlen(u8"for (let x = a "), u8"in"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+                                      "visit_variable_use",          // a
+                                      "visit_variable_use",          // b
+                                      "visit_variable_declaration",  // x
+                                      "visit_variable_use",          // c
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope",      //
+                                      "visit_variable_use",          // d
+                                      "visit_exit_for_scope"));
+  }
+
+  {
+    padded_string code(u8"for (var x = a in b; c; d) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_in_disallowed_in_c_style_for_loop, in_token,
+            offsets_matcher(&code, strlen(u8"for (var x = a "), u8"in"))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // a
+                                      "visit_variable_use",          // b
+                                      "visit_variable_declaration",  // x
+                                      "visit_variable_use",          // c
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope",      //
+                                      "visit_variable_use"));        // d
+  }
 }
 
 TEST(test_parse, for_loop_with_missing_component) {
@@ -538,6 +578,22 @@ TEST(test_parse, for_in_loop) {
   }
 
   {
+    padded_string code(u8"for (const x in []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_for_scope",       //
+                            "visit_variable_declaration",  // x
+                            "visit_enter_block_scope",     //
+                            "visit_exit_block_scope",      //
+                            "visit_exit_for_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_parse, for_in_loop_with_var_initializer) {
+  {
     spy_visitor v =
         parse_and_visit_statement(u8"for (var x = init in xs) { body; }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // init
@@ -555,17 +611,156 @@ TEST(test_parse, for_in_loop) {
                             spy_visitor::visited_variable_use{u8"body"}));
   }
 
-  // TODO(strager): Report error for the following code:
-  //
-  //   for (let x = init in xs) {}
-  //
-  // ('var' is allowed, but not 'let'.)
+  {
+    padded_string code(u8"for (var x = 10 in []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 
-  // TODO(strager): Report error for the following code:
-  //
-  //   for (var x = init of xs) {}
-  //
-  // (for-in is allowed, but not for-of.)
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = ++y in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_assignment",   // y
+                                      "visit_variable_declaration",  // x
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"for (var x = -y in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_declaration",  // x
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = y + z in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_use",          // z
+                                      "visit_variable_declaration",  // x
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = () => y in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_block_scope",          //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = (z) => y in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // z
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_block_scope",          //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = async () => y in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_block_scope",          //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = async (z) => y in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // z
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_block_scope",          //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_statement(u8"for (var x = y ? z : w in []) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_use",          // z
+                                      "visit_variable_use",          // w
+                                      "visit_variable_declaration",  // x
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
+    padded_string code(u8"for (var x = yield y in []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    auto guard = p.enter_function(function_attributes::generator);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+                                      "visit_variable_declaration",  // x
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_parse, invalid_for_in_loop) {
+  {
+    padded_string code(u8"for (const x = 10 in []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_for_scope",       //
+                            "visit_variable_declaration",  // x
+                            "visit_enter_block_scope",     //
+                            "visit_exit_block_scope",      //
+                            "visit_exit_for_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_assign_to_loop_variable_in_for_of_or_in_loop,
+                    equal_token,
+                    offsets_matcher(&code, strlen(u8"for (const x "), u8"="))));
+  }
+
+  {
+    padded_string code(u8"for (let x = 10 in []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_for_scope",       //
+                            "visit_variable_declaration",  // x
+                            "visit_enter_block_scope",     //
+                            "visit_exit_block_scope",      //
+                            "visit_exit_for_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_assign_to_loop_variable_in_for_of_or_in_loop,
+                    equal_token,
+                    offsets_matcher(&code, strlen(u8"for (let x "), u8"="))));
+  }
 }
 
 TEST(test_parse, for_of_loop) {
@@ -644,6 +839,73 @@ TEST(test_parse, for_of_loop) {
                     error_let_with_no_bindings, where,
                     offsets_matcher(&code, strlen(u8"for ("), u8"let"))));
   }
+
+  {
+    padded_string code(u8"for (const x of []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_for_scope",       //
+                            "visit_variable_declaration",  // x
+                            "visit_enter_block_scope",     //
+                            "visit_exit_block_scope",      //
+                            "visit_exit_for_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_parse, invalid_for_of_loop) {
+  {
+    padded_string code(u8"for (const x = 10 of []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_for_scope",       //
+                            "visit_variable_declaration",  // x
+                            "visit_enter_block_scope",     //
+                            "visit_exit_block_scope",      //
+                            "visit_exit_for_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_assign_to_loop_variable_in_for_of_or_in_loop,
+                    equal_token,
+                    offsets_matcher(&code, strlen(u8"for (const x "), u8"="))));
+  }
+
+  {
+    padded_string code(u8"for (let x = 10 of []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_for_scope",       //
+                            "visit_variable_declaration",  // x
+                            "visit_enter_block_scope",     //
+                            "visit_exit_block_scope",      //
+                            "visit_exit_for_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_assign_to_loop_variable_in_for_of_or_in_loop,
+                    equal_token,
+                    offsets_matcher(&code, strlen(u8"for (let x "), u8"="))));
+  }
+
+  {
+    padded_string code(u8"for (var x = 10 of []) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_assign_to_loop_variable_in_for_of_or_in_loop,
+                    equal_token,
+                    offsets_matcher(&code, strlen(u8"for (let x "), u8"="))));
+  }
 }
 
 TEST(test_parse, for_loop_without_body) {
@@ -656,10 +918,11 @@ TEST(test_parse, for_loop_without_body) {
                                       "visit_variable_use",          // myArray
                                       "visit_variable_declaration",  // x
                                       "visit_exit_for_scope"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_body_for_for_statement, for_and_header,
-                    offsets_matcher(&code, 0, u8"for (let x of myArray)"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_body_for_for_statement, for_and_header,
+            offsets_matcher(&code, strlen(u8"for (let x of myArray)"), u8""))));
   }
 
   {
@@ -676,8 +939,8 @@ TEST(test_parse, for_loop_without_body) {
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_body_for_for_statement, for_and_header,
-                    offsets_matcher(&code, strlen(u8"{ "),
-                                    u8"for (let x of myArray)"))));
+                    offsets_matcher(&code, strlen(u8"{ for (let x of myArray)"),
+                                    u8""))));
   }
 }
 
@@ -805,7 +1068,7 @@ TEST(test_parse, while_without_body) {
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_body_for_while_statement, while_and_condition,
-                    offsets_matcher(&code, 0, u8"while (cond)"))));
+                    offsets_matcher(&code, strlen(u8"while (cond)"), u8""))));
   }
 }
 

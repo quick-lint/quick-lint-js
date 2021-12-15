@@ -28,6 +28,8 @@ archive_to_vendor_project = {
     "libboost.a": "boost",
     "libquick-lint-js-lib.a": None,
     "libsimdjson.a": "simdjson",
+    "node-hook.lib": None,
+    "node-napi.lib": None,  # Dynamically linked.
     "quick-lint-js-lib.lib": None,
     "simdjson.lib": "simdjson",
     # HACK(strager): Ignore these libraries for now.
@@ -35,6 +37,7 @@ archive_to_vendor_project = {
     "LIBCMTD.lib": None,
     "MSVCRT.lib": None,
     "MSVCRTD.lib": None,
+    "delayimp.lib": None,
     "kernel32.lib": None,
     "libcpmt.lib": None,
     "libcpmtd.lib": None,
@@ -67,6 +70,12 @@ def main() -> None:
         help="Don't assume system package manager manages the standard library",
     )
     parser.add_argument(
+        "--extra-vendor-projects",
+        default=[],
+        help="Include license information for these projects from --vendor-readme",
+        nargs="+",
+    )
+    parser.add_argument(
         "--vendor-readme",
         required=False,
         default=str(pathlib.Path(__file__).parent / ".." / "vendor" / "README.txt"),
@@ -92,6 +101,37 @@ distributed under the following license:
 {markdown_block_quote(qljs_license_text)}
 
 Parts of quick-lint-js might be distributed under different licenses:
+
+# Arm Optimized Routines
+
+src/quick-lint-js/simd-neon-arm.h in quick-lint-js is derived from
+string/aarch64/memchr.S in Arm Optimized Routines.
+
+Source code of Arm Optimized Routines is available at:
+* https://github.com/ARM-software/optimized-routines/tree/7a9fd1603e1179b044406fb9b6cc5770d736cde7
+
+Copyright information for Arm Optimized Routines:
+> MIT License
+>
+> Copyright (c) 1999-2019, Arm Limited.
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
 """
     )
 
@@ -103,6 +143,7 @@ Parts of quick-lint-js might be distributed under different licenses:
         vendor_projects=vendor_projects,
         vendor_directory=vendor_readme_file.parent,
         is_cross_compiling_emscripten=args.cross_compiling_emscripten,
+        extra_vendor_projects=args.extra_vendor_projects,
     )
 
 
@@ -111,8 +152,11 @@ def dump_from_linkmap(
     vendor_projects: typing.List["VendorReadmeProject"],
     vendor_directory: pathlib.Path,
     is_cross_compiling_emscripten: bool,
+    extra_vendor_projects: typing.List[str],
 ) -> None:
     link_map = parse_link_map(link_map_file.read_text())
+    if not link_map.linked_archives:
+        warn("link map lists no archives; this is probably a bug in collect-copyright")
     linked_system_archives = [
         file for file in link_map.linked_archives if pathlib.Path(file).is_absolute()
     ]
@@ -123,6 +167,7 @@ def dump_from_linkmap(
     ]
     dump_from_vendor(
         linked_vendored_archives,
+        project_names=extra_vendor_projects,
         vendor_projects=vendor_projects,
         vendor_directory=vendor_directory,
     )
@@ -134,9 +179,11 @@ def dump_from_linkmap(
 
 def dump_from_vendor(
     archives: typing.List[str],
+    project_names: typing.List[str],
     vendor_projects: typing.List["VendorReadmeProject"],
     vendor_directory: pathlib.Path,
 ) -> None:
+    all_project_names = project_names
     for archive in sorted(archives):
         try:
             vendor_project_name = archive_to_vendor_project[pathlib.Path(archive).name]
@@ -145,13 +192,16 @@ def dump_from_vendor(
         if vendor_project_name is None:
             # Archive is quick-lint-js itself. Its license is handled elsewhere.
             continue
+        all_project_names.append(vendor_project_name)
 
+    all_project_names = sorted(set(all_project_names))
+    for vendor_project_name in all_project_names:
         matching_vendor_projects = [
             p for p in vendor_projects if p.project_name == vendor_project_name
         ]
         if len(matching_vendor_projects) != 1:
             raise Exception(
-                f"could not find vendor project for archive: {archive} (project name: {vendor_project_name}"
+                f"could not find vendor project for project name: {vendor_project_name}"
             ) from None
         vendor_project = matching_vendor_projects[0]
 
@@ -219,10 +269,12 @@ def dump_from_system_archives(
     )
     if system_package_manager is None:
         warn("Could not detect system package manager")
-        print("""## Other packages
+        print(
+            """## Other packages
 
 The following files are statically linked into quick-lint-js. Their copyright and licenses are unknown:
-""")
+"""
+        )
         for archive in sorted(linked_system_archives):
             print(f"* {archive}")
         return
@@ -362,8 +414,9 @@ def is_path_relative(root_path: str, sub_path: typing.Union[str, pathlib.Path]) 
 class Debian:
     class InstalledPackage(typing.NamedTuple):
         name: str
-        source: str
         version: str
+        source: str
+        source_version: str
         source_uris: typing.Tuple[str, ...]
 
     def packages_for_installed_files(
@@ -371,10 +424,13 @@ class Debian:
     ) -> typing.List[InstalledPackage]:
         package_names = self._dpkg_packages_for_installed_files(files)
         packages = self._get_installed_debian_packages(set(package_names))
+        logger.debug("Debian packages: %s", ", ".join(repr(p) for p in packages))
         packages = [
             p._replace(
                 source_uris=tuple(
-                    self._get_package_apt_source_uri(name=p.source, version=p.version)
+                    self._get_package_apt_source_uri(
+                        name=p.source, version=p.source_version
+                    )
                 )
             )
             for p in packages
@@ -415,7 +471,7 @@ class Debian:
             [
                 "dpkg-query",
                 "--show",
-                "--showformat=${binary:Package}\\t${Source}\\t${Version}\\t${db:Status-Status}\\n",
+                "--showformat=${binary:Package}\\t${source:Package}\\t${Version}\\t${source:Version}\\t${db:Status-Status}\\n",
                 "--",
             ]
             + list(package_names),
@@ -427,16 +483,21 @@ class Debian:
         packages = []
         for line in process.stdout.splitlines():
             parts = line.split("\t")
-            if parts[3] == "installed":
+            if parts[4] == "installed":
                 packages.append(
                     cls.InstalledPackage(
-                        name=parts[0], source=parts[1], version=parts[2], source_uris=()
+                        name=parts[0],
+                        source=parts[1],
+                        version=parts[2],
+                        source_version=parts[3],
+                        source_uris=(),
                     )
                 )
         return packages
 
     @classmethod
     def _get_package_apt_source_uri(cls, name: str, version: str) -> typing.List[str]:
+        logger.debug("getting source for package %s version %s", name, version)
         process = subprocess.run(
             ["apt-get", "source", "--print-uris", "-qq", "--", f"{name}={version}"],
             stdout=subprocess.PIPE,
@@ -596,7 +657,11 @@ class RedHat:
         self, files: typing.Iterable[str]
     ) -> typing.List[InstalledPackage]:
         package_names = [self._rpm_package_for_installed_file(f) for f in files]
-        packages = [self._get_rpm_package(name) for name in set(package_names)]
+        packages = [
+            self._get_rpm_package(name)
+            for name in set(package_names)
+            if name is not None
+        ]
         return packages
 
     def get_copyright(self, package: InstalledPackage) -> str:
@@ -613,14 +678,16 @@ class RedHat:
         raise error
 
     @staticmethod
-    def _rpm_package_for_installed_file(file_path: str) -> str:
+    def _rpm_package_for_installed_file(file_path: str) -> typing.Optional[str]:
         logger.debug("checking which RPM provides file %s", file_path)
         process = subprocess.run(
             ["rpm", "--query", "--whatprovides", "--", file_path],
             stdout=subprocess.PIPE,
             encoding="utf-8",
         )
-        process.check_returncode()
+        if process.returncode != 0:
+            warn(f"could not determine RPM package for file: {file_path}")
+            return None
         rpm_name = process.stdout.rstrip("\n")
         logger.debug("RPM %s provides file %s", rpm_name, file_path)
         return rpm_name
@@ -694,6 +761,12 @@ def parse_link_map(raw_link_map: str) -> LinkMap:
                 )
                 if match is not None:
                     linked_archives.add(match.group("archive"))
+                match = re.match(
+                    r"^\s*\d+\s+\d+\s+\d+\s+(?P<archive>\S+\.a)\((?P<member>[^/]+\.o)\):\((?P<symbol>.*)\)$",
+                    line,
+                )
+                if match is not None:
+                    linked_archives.add(pathlib.Path(match.group("archive")).name)
     return LinkMap(linked_archives=linked_archives)
 
 
@@ -791,6 +864,31 @@ class TestLD64LinkMap(unittest.TestCase):
         self.assertEqual(
             link_map.linked_archives,
             {"/usr/local/opt/llvm/lib/libc++.a", "/usr/local/opt/llvm/lib/libc++abi.a"},
+        )
+
+
+class TestMoldLinkMap(unittest.TestCase):
+    def test_small_link_map(self) -> None:
+        raw_link_map = """\
+             VMA       Size Align Out     In      Symbol
+         2097152         64     8 
+         2097216        560     8 
+         2097776         28     1 .interp
+         2097804         32     4 .note.ABI-tag
+         2097804         32     4         /usr/lib/x86_64-linux-gnu/crt1.o:(.note.ABI-tag)
+         2491008     105120    16 .rodata
+         2491008        140     4         src/CMakeFiles/quick-lint-js.dir/main.cpp.o:(.rodata._ZN13quick_lint_js12lsp_endpointINS_26linting_lsp_server_handlerINS_21lsp_javascript_linterEEENS_15lsp_pipe_writerEE14message_parsedESt17basic_string_viewIDuSt11char_traitsIDuEE)
+         2511120          0     0                 simdjson::fallback::(anonymous namespace)::stringparsing::escape_map
+         2511376        192    16         src/libquick-lint-js-lib.a(buffering-error-reporter.cpp.o):(.rodata._ZZN13quick_lint_js24buffering_error_reporter11report_implENS_10error_typeEPvE11error_sizes)
+         2651424          8     4         /usr/lib/x86_64-linux-gnu/crti.o:(.fini)
+         2651424          0     0                 _fini
+               0    3085635     1 .debug_str
+               0       2432     8 
+"""
+        link_map = parse_link_map(raw_link_map)
+        self.assertEqual(
+            link_map.linked_archives,
+            {"libquick-lint-js-lib.a"},
         )
 
 

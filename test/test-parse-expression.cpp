@@ -24,6 +24,7 @@ using ::testing::_;
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 using ::testing::VariantWith;
+using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -77,7 +78,7 @@ class test_parse_expression : public ::testing::Test {
     test_parser& p = this->make_parser(input);
 
     expression* ast = p.parse_expression();
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors(), IsEmpty()) << out_string8(input);
     return ast;
   }
 
@@ -282,7 +283,7 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"2+"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, ?)");
+    EXPECT_EQ(summarize(ast), "binary(literal, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_operand_for_operator, where,
@@ -292,16 +293,30 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"^2"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(?, literal)");
+    EXPECT_EQ(summarize(ast), "binary(missing, literal)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 0, u8"^"))));
   }
 
+  // NOTE(strager): "/=" is not tested here because "/=/" is a regular
+  // expression literal.
+  for (string8 op : {u8"*=", u8"%=", u8"+=", u8"-=", u8"<<=", u8">>=", u8">>>=",
+                     u8"&=", u8"^=", u8"|=", u8"**="}) {
+    string8 code = op + u8" 2";
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "upassign(missing, literal)");
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                                error_missing_operand_for_operator, where,
+                                offsets_matcher(p.code(), 0, op))));
+  }
+
   {
     test_parser p(u8"2 * * 2"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, ?, literal)");
+    EXPECT_EQ(summarize(ast), "binary(literal, missing, literal)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_operand_for_operator, where,
@@ -311,7 +326,7 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"2 & & & 2"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, ?, ?, literal)");
+    EXPECT_EQ(summarize(ast), "binary(literal, missing, missing, literal)");
 
     EXPECT_THAT(
         p.errors(),
@@ -326,7 +341,7 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"(2*)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, ?)");
+    EXPECT_EQ(summarize(ast), "binary(literal, missing)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 2, u8"*"))));
@@ -426,19 +441,13 @@ TEST_F(test_parse_expression, parse_typeof_conditional_operator) {
 
 TEST_F(test_parse_expression, delete_unary_operator) {
   {
-    test_parser p(u8"delete variable");
-    expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "unary(var variable)");
-    EXPECT_THAT(
-        p.errors(),
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_redundant_delete_statement_on_variable, delete_expression,
-            offsets_matcher(p.code(), 0, u8"delete variable"))));
+    expression* ast = this->parse_expression(u8"delete variable"_sv);
+    EXPECT_EQ(summarize(ast), "delete(var variable)");
   }
 
   {
     expression* ast = this->parse_expression(u8"delete variable.property"_sv);
-    EXPECT_EQ(summarize(ast), "unary(dot(var variable, property))");
+    EXPECT_EQ(summarize(ast), "delete(dot(var variable, property))");
   }
 }
 
@@ -491,7 +500,7 @@ TEST_F(test_parse_expression, conditional_expression_with_missing_condition) {
   {
     test_parser p(u8"? b : c"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(?, var b, var c)");
+    EXPECT_EQ(summarize(ast), "cond(missing, var b, var c)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 0, u8"?"))));
@@ -505,7 +514,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"a ? : c"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, ?, var c)");
+    EXPECT_EQ(summarize(ast), "cond(var a, missing, var c)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_operand_for_operator, where,
@@ -520,7 +529,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"a ? b : "_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, ?)");
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_operand_for_operator, where,
@@ -533,7 +542,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"(a ? b :)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, ?)");
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_operand_for_operator, where,
@@ -549,7 +558,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"a ? b "_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, ?)");
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(ERROR_TYPE_2_FIELDS(
@@ -563,7 +572,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"a ? b c"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, ?)");
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(ERROR_TYPE_2_FIELDS(
@@ -577,7 +586,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"(a ? b)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, ?)");
+    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(ERROR_TYPE_2_FIELDS(
@@ -689,7 +698,11 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
   }
 
   {
-    expression* ast = this->parse_expression(u8"x.#private"_sv);
+    spy_visitor v;
+    padded_string code(u8"x.#private"_sv);
+    parser p(&code, &v);
+    auto class_guard = p.enter_class();  // Allow to call private identifiers.
+    expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(var x, #private)");
   }
 }
@@ -761,6 +774,49 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
                 error_missing_property_name_for_dot_operator, dot,
                 offsets_matcher(p.code(), strlen(u8"x. ? y"), u8"."))));
   }
+
+  {
+    test_parser p(u8"x.;"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "dot(var x, )");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_property_name_for_dot_operator, dot,
+                    offsets_matcher(p.code(), strlen(u8"x"), u8"."))));
+  }
+
+  {
+    test_parser p(u8".;"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "dot(missing, )");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(
+            ERROR_TYPE_FIELD(error_missing_operand_for_operator, where,
+                             offsets_matcher(p.code(), 0, u8".")),
+            ERROR_TYPE_FIELD(error_missing_property_name_for_dot_operator, dot,
+                             offsets_matcher(p.code(), 0, u8"."))));
+  }
+
+  {
+    test_parser p(u8"console.('hello');"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(dot(var console, ), literal)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_property_name_for_dot_operator, dot,
+                    offsets_matcher(p.code(), strlen(u8"console"), u8"."))));
+  }
+
+  {
+    test_parser p(u8"'hello' .. 'world'"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(literal, literal)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_dot_dot_is_not_an_operator, dots,
+                    offsets_matcher(p.code(), strlen(u8"'hello' "), u8".."))));
+  }
 }
 
 TEST_F(test_parse_expression, parse_optional_dot_expressions) {
@@ -822,13 +878,23 @@ TEST_F(test_parse_expression, parse_unclosed_indexing_expression) {
                     error_unmatched_indexing_bracket, left_square,
                     offsets_matcher(p.code(), strlen(u8"xs"), u8"["))));
   }
+
+  {
+    test_parser p(u8"(xs[i)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "index(var xs, var i)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_unmatched_indexing_bracket, left_square,
+                    offsets_matcher(p.code(), strlen(u8"(xs"), u8"["))));
+  }
 }
 
 TEST_F(test_parse_expression, empty_indexing_expression) {
   {
     test_parser p(u8"xs[]"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "index(var xs, ?)");
+    EXPECT_EQ(summarize(ast), "index(var xs, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_indexing_requires_expression, squares,
@@ -891,6 +957,74 @@ TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
   }
 }
 
+TEST_F(test_parse_expression, await_followed_by_arrow_function) {
+  auto test = [](auto&& make_guard) -> void {
+    {
+      test_parser p(u8"await x => {}"_sv);
+      [[maybe_unused]] auto guard = make_guard(p.parser());
+      expression* ast = p.parse_expression();
+      EXPECT_EQ(summarize(ast), "asyncarrowblock(var x)");
+      EXPECT_THAT(p.errors(),
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_await_followed_by_arrow_function, await_operator,
+                      offsets_matcher(p.code(), 0, u8"await"))));
+    }
+
+    {
+      test_parser p(u8"await () => {}"_sv);
+      [[maybe_unused]] auto guard = make_guard(p.parser());
+      expression* ast = p.parse_expression();
+      EXPECT_EQ(summarize(ast), "asyncarrowblock()");
+      EXPECT_THAT(p.errors(),
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_await_followed_by_arrow_function, await_operator,
+                      offsets_matcher(p.code(), 0, u8"await"))));
+    }
+
+    {
+      test_parser p(u8"await (param) => {}"_sv);
+      [[maybe_unused]] auto guard = make_guard(p.parser());
+      expression* ast = p.parse_expression();
+      EXPECT_EQ(summarize(ast), "asyncarrowblock(var param)");
+      EXPECT_THAT(p.errors(),
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_await_followed_by_arrow_function, await_operator,
+                      offsets_matcher(p.code(), 0, u8"await"))));
+    }
+
+    {
+      test_parser p(u8"await (param) => { await param; }"_sv);
+      [[maybe_unused]] auto guard = make_guard(p.parser());
+      expression* ast = p.parse_expression();
+      EXPECT_EQ(summarize(ast), "asyncarrowblock(var param)");
+      EXPECT_THAT(p.errors(),
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_await_followed_by_arrow_function, await_operator,
+                      offsets_matcher(p.code(), 0, u8"await"))));
+    }
+  };
+
+  {
+    SCOPED_TRACE("in async function");
+    test(
+        [](parser& p) { return p.enter_function(function_attributes::async); });
+  }
+
+  {
+    SCOPED_TRACE("in non-async function");
+    test([](parser& p) {
+      return p.enter_function(function_attributes::normal);
+    });
+  }
+
+  {
+    SCOPED_TRACE("top-level");
+    test([](parser&) -> int {
+      return 0;  // No guard.
+    });
+  }
+}
+
 TEST_F(test_parse_expression,
        await_in_normal_function_vs_async_function_vs_top_level) {
   struct test_case {
@@ -919,6 +1053,7 @@ TEST_F(test_parse_expression,
          {u8"await async () => {}"_sv, nullptr, "await(asyncarrowblock())"},
          {u8"await await x"_sv,        nullptr, "await(await(var x))"},
          {u8"await class{}"_sv,        nullptr, "await(class)"},
+         {u8"await delete x.p"_sv,     nullptr, "await(delete(dot(var x, p)))"},
          {u8"await function() {}"_sv,  nullptr, "await(function)"},
          {u8"await /regexp/"_sv,       nullptr, "await(literal)"},
          {u8"await /=regexp/"_sv,      nullptr, "await(literal)"},
@@ -933,7 +1068,6 @@ TEST_F(test_parse_expression,
          {u8"await super"_sv,          nullptr, "await(super)"},
          {u8"await typeof x"_sv,       nullptr, "await(typeof(var x))"},
          {u8"await !x"_sv,             nullptr, "await(unary(var x))"},
-         {u8"await delete x.p"_sv,     nullptr, "await(unary(dot(var x, p)))"},
          {u8"await void x"_sv,         nullptr, "await(unary(var x))"},
          {u8"await ~x"_sv,             nullptr, "await(unary(var x))"},
          {u8"await as"_sv,             nullptr, "await(var as)"},
@@ -1027,7 +1161,7 @@ TEST_F(test_parse_expression,
         if (test.code == u8"await await x") {
           EXPECT_THAT(
               p.errors(),
-              ElementsAre(
+              UnorderedElementsAre(
                   ERROR_TYPE_FIELD(error_await_operator_outside_async,
                                    await_operator,
                                    offsets_matcher(p.code(), 0, u8"await")),  //
@@ -1470,7 +1604,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
   {
     test_parser p(u8"--"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "rwunary(?)");
+    EXPECT_EQ(summarize(ast), "rwunary(missing)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 0, u8"--"))));
@@ -1479,7 +1613,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
   {
     test_parser p(u8"++;"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "rwunary(?)");
+    EXPECT_EQ(summarize(ast), "rwunary(missing)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 0, u8"++"))));
@@ -1488,7 +1622,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
   {
     test_parser p(u8"(-)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "unary(?)");
+    EXPECT_EQ(summarize(ast), "unary(missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_operand_for_operator, where,
@@ -1498,7 +1632,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
   {
     test_parser p(u8"!;"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "unary(?)");
+    EXPECT_EQ(summarize(ast), "unary(missing)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 0, u8"!"))));
@@ -1508,7 +1642,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
     test_parser p(u8"await}"_sv);
     auto guard = p.parser().enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "await(?)");
+    EXPECT_EQ(summarize(ast), "await(missing)");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_missing_operand_for_operator, where,
                                 offsets_matcher(p.code(), 0, u8"await"))));
@@ -2057,7 +2191,7 @@ TEST_F(test_parse_expression,
     {
       test_parser p(u8"{" + keyword + u8"}");
       expression* ast = p.parse_expression();
-      EXPECT_EQ(summarize(ast), "object(literal, ?)");
+      EXPECT_EQ(summarize(ast), "object(literal, missing)");
       EXPECT_THAT(p.errors(),
                   ElementsAre(ERROR_TYPE_FIELD(
                       error_missing_value_for_object_literal_entry, key,
@@ -2067,7 +2201,7 @@ TEST_F(test_parse_expression,
     {
       test_parser p(u8"{" + keyword + u8", other}");
       expression* ast = p.parse_expression();
-      EXPECT_EQ(summarize(ast), "object(literal, ?, literal, var other)");
+      EXPECT_EQ(summarize(ast), "object(literal, missing, literal, var other)");
       EXPECT_THAT(p.errors(),
                   ElementsAre(ERROR_TYPE_FIELD(
                       error_missing_value_for_object_literal_entry, key,
@@ -2172,7 +2306,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{1234}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, ?)");
+    EXPECT_EQ(summarize(ast), "object(literal, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_invalid_lone_literal_in_object_literal, where,
@@ -2182,7 +2316,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{'x'}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, ?)");
+    EXPECT_EQ(summarize(ast), "object(literal, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_invalid_lone_literal_in_object_literal, where,
@@ -2213,20 +2347,22 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     test_parser p(u8"{async f}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal, function)");
-    EXPECT_THAT(p.errors(),
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_function_parameter_list, function_name,
-                    offsets_matcher(p.code(), strlen(u8"{async "), u8"f"))));
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, expected_parameter_list,
+            offsets_matcher(p.code(), strlen(u8"{async f"), u8""))));
   }
 
   {
     test_parser p(u8"{*f}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal, function)");
-    EXPECT_THAT(p.errors(),
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_function_parameter_list, function_name,
-                    offsets_matcher(p.code(), strlen(u8"{*"), u8"f"))));
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, expected_parameter_list,
+            offsets_matcher(p.code(), strlen(u8"{*f"), u8""))));
   }
 
   {
@@ -2265,7 +2401,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{ [x] }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var x, ?)");
+    EXPECT_EQ(summarize(ast), "object(var x, missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_value_for_object_literal_entry, key,
@@ -2275,7 +2411,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{ [x], other }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var x, ?, literal, var other)");
+    EXPECT_EQ(summarize(ast), "object(var x, missing, literal, var other)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_value_for_object_literal_entry, key,
@@ -2450,7 +2586,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"{ [key]; other }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var key, ?, literal, var other)");
+    EXPECT_EQ(summarize(ast), "object(var key, missing, literal, var other)");
     EXPECT_THAT(p.errors(),
                 UnorderedElementsAre(
                     ERROR_TYPE_FIELD(
@@ -2498,7 +2634,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"{ [key]< other }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var key, ?, literal, var other)");
+    EXPECT_EQ(summarize(ast), "object(var key, missing, literal, var other)");
     EXPECT_THAT(p.errors(),
                 UnorderedElementsAre(
                     ERROR_TYPE_FIELD(
@@ -3024,11 +3160,35 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
   {
     test_parser p(u8"(x, 42, y) => {body();}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "arrowblock(var x, var y)");
-    EXPECT_THAT(p.errors(),
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unexpected_literal_in_parameter_list, literal,
-                    offsets_matcher(p.code(), strlen(u8"(x, "), u8"42"))));
+    EXPECT_EQ(summarize(ast), "arrowblock(var x, literal, var y)");
+    EXPECT_THAT(p.errors(), IsEmpty())
+        << "reporting error_unexpected_literal_in_parameter_list is done "
+           "during visitation";
+  }
+}
+
+TEST_F(test_parse_expression, function_without_parameter_list) {
+  {
+    test_parser p(u8"function { return 42; }"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "function");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, expected_parameter_list,
+            offsets_matcher(p.code(), strlen(u8"function"), u8""))));
+  }
+
+  {
+    // e.g. if (x) { function }
+    test_parser p(u8"function }"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "function");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_missing_function_parameter_list, expected_parameter_list,
+            offsets_matcher(p.code(), strlen(u8"function"), u8""))));
   }
 }
 
@@ -3036,12 +3196,40 @@ TEST_F(test_parse_expression, invalid_parentheses) {
   {
     test_parser p(u8"()"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "?");
+    EXPECT_EQ(summarize(ast), "invalid");
     EXPECT_THAT(
         p.errors(),
-        ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_missing_expression_between_parentheses, left_paren,
-            offsets_matcher(p.code(), 0, u8"("),  //
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_missing_expression_between_parentheses,
+            left_paren_to_right_paren, offsets_matcher(p.code(), 0, u8"()"),  //
+            left_paren, offsets_matcher(p.code(), 0, u8"("),                  //
+            right_paren, offsets_matcher(p.code(), strlen(u8"("), u8")"))));
+  }
+
+  {
+    test_parser p(u8"x = ()"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "assign(var x, invalid)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_missing_expression_between_parentheses,
+            left_paren_to_right_paren,
+            offsets_matcher(p.code(), strlen(u8"x = "), u8"()"),             //
+            left_paren, offsets_matcher(p.code(), strlen(u8"x = "), u8"("),  //
+            right_paren, offsets_matcher(p.code(), strlen(u8"x = ("), u8")"))));
+  }
+
+  {
+    test_parser p(u8"() = x"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "assign(invalid, var x)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_missing_expression_between_parentheses,
+            left_paren_to_right_paren, offsets_matcher(p.code(), 0, u8"()"),  //
+            left_paren, offsets_matcher(p.code(), 0, u8"("),                  //
             right_paren, offsets_matcher(p.code(), strlen(u8"("), u8")"))));
   }
 }
@@ -3050,7 +3238,7 @@ TEST_F(test_parse_expression, invalid_keyword_in_expression) {
   {
     test_parser p(u8"debugger"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "?");
+    EXPECT_EQ(summarize(ast), "invalid");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
                                 error_unexpected_token, token,
                                 offsets_matcher(p.code(), 0, u8"debugger"))));
@@ -3257,6 +3445,253 @@ TEST_F(test_parse_expression, generator_misplaced_star) {
   EXPECT_EQ(p.range(ast).end_offset(), 16);
 }
 
+TEST_F(test_parse_expression, jsx_is_not_supported) {
+  // If parsing was not started with
+  // parse_and_visit_module_catching_fatal_parse_errors, then we can't halt
+  // parsing at the '<'. For error recovery, treat '<' as if it was a binary
+  // operator.
+  test_parser p(u8"<MyComponent attr={value}>hello</MyComponent>"_sv);
+  expression* ast = p.parse_expression();
+  EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_FIELD(
+                              error_jsx_not_yet_implemented, jsx_start,
+                              offsets_matcher(p.code(), 0, u8"<"))));
+  EXPECT_EQ(p.range(ast).begin_offset(), 0);
+  EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"<MyComponent"));
+  EXPECT_EQ(summarize(ast), "binary(missing, var MyComponent)");
+}
+
+TEST_F(test_parse_expression, precedence) {
+  enum class level_type {
+    // Left-associative binary operator.
+    left,
+    // Right-associative binary operator.
+    right,
+    // Binary operator. We don't track associativity of many binary expressions,
+    // but if we do, we should remove this and use 'left' or 'right' instead.
+    binary,
+    // Right-associative ternary operator.
+    ternary_right,
+    // Right-associative prefix operator.
+    prefix,
+  };
+
+  static auto is_binary_level = [](level_type type) -> bool {
+    switch (type) {
+    case level_type::left:
+    case level_type::right:
+    case level_type::binary:
+      return true;
+    case level_type::prefix:
+    case level_type::ternary_right:
+      return false;
+    }
+    QLJS_UNREACHABLE();
+  };
+
+  struct operator_type {
+    const char8* op;
+    const char* raw_kind;
+
+    const char* kind() const noexcept {
+      if (this->raw_kind) {
+        return this->raw_kind;
+      } else if (this->op) {
+        return "binary";
+      } else {
+        return "cond";
+      }
+    }
+  };
+  struct precedence_level {
+    level_type type;
+    std::vector<operator_type> ops;
+  };
+
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_CLANG("-Wmissing-field-initializers")
+  QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
+  // In our table, lower index items have lower precedence.
+  static const precedence_level precedence_levels[] = {
+      // TODO(strager): Fix failures when testing e.g. "a,b+c".
+      // {level_type::binary, {{u8","}}},
+      {level_type::right,
+       {
+           {u8"=", "assign"},
+           {u8"+=", "upassign"},
+           {u8"-=", "upassign"},
+           {u8"**=", "upassign"},
+           {u8"*=", "upassign"},
+           {u8"/=", "upassign"},
+           {u8"%=", "upassign"},
+           {u8"<<=", "upassign"},
+           {u8">>=", "upassign"},
+           {u8">>>=", "upassign"},
+           {u8"&=", "upassign"},
+           {u8"^=", "upassign"},
+           {u8"|=", "upassign"},
+           {u8"&&=", "condassign"},
+           {u8"||=", "condassign"},
+           {u8"?\x3f=", "condassign"},
+           // TODO(strager): yield and yield*
+       }},
+      {level_type::ternary_right, {{/* special-cased */}}},
+      {level_type::binary, {{u8"||"}, {u8"??"}}},
+      {level_type::binary, {{u8"&&"}}},
+      {level_type::binary, {{u8"|"}}},
+      {level_type::binary, {{u8"^"}}},
+      {level_type::binary, {{u8"&"}}},
+      {level_type::binary,
+       {
+           {u8"=="},
+           {u8"!="},
+           {u8"==="},
+           {u8"!=="},
+       }},
+      {level_type::binary,
+       {
+           {u8"<"},
+           {u8"<="},
+           {u8">"},
+           {u8">="},
+           // TODO(strager): Fix failures when testing e.g. "a in b+c".
+           // {u8" in "},
+           {u8" instanceof "},
+       }},
+      {level_type::binary, {{u8"<<"}, {u8">>"}, {u8">>>"}}},
+      {level_type::binary, {{u8"+"}, {u8"-"}}},
+      {level_type::binary, {{u8"*"}, {u8"/"}, {u8"%"}}},
+      {level_type::binary, {{u8"**"}}},
+      {level_type::prefix,
+       {
+           {u8"!", "unary"},
+           {u8"+", "unary"},
+           {u8"-", "unary"},
+           {u8"++", "rwunary"},
+           {u8"--", "rwunary"},
+           {u8"typeof ", "typeof"},
+           {u8"void ", "unary"},
+           {u8"delete ", "delete"},
+           // TODO(strager): await
+       }},
+      // TODO(strager): Unary suffix operators: ++ --
+      // TODO(strager): Unary prefix operator: new
+      // TODO(strager): Operators: x.y, x[y], new x(y), x(y), x?.y
+  };
+  QLJS_WARNING_POP
+
+  // Sanity check the table.
+  for (const precedence_level& level : precedence_levels) {
+    for (const operator_type& op : level.ops) {
+      switch (level.type) {
+      case level_type::left:
+      case level_type::right:
+        ASSERT_STRNE(op.kind(), "binary");
+        break;
+      case level_type::binary:
+        ASSERT_STREQ(op.kind(), "binary");
+        break;
+      case level_type::prefix:
+        break;
+      case level_type::ternary_right:
+        ASSERT_EQ(op.op, nullptr);
+        ASSERT_STREQ(op.kind(), "cond");
+        break;
+      }
+    }
+  }
+
+  static auto check_expression =
+      [](string8_view code, std::string_view expected_ast_summary) -> void {
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), expected_ast_summary);
+  };
+
+  static auto test = [](level_type lo_type, operator_type lo_op,
+                        level_type hi_type, operator_type hi_op,
+                        bool is_same_level) -> void {
+    if (lo_type == level_type::binary && hi_type == level_type::binary) {
+      // Associativity is not tracked.
+      // a*b+c
+      check_expression(u8"a"s + hi_op.op + u8"b" + lo_op.op + u8"c",
+                       "binary(var a, var b, var c)"s);
+      // a+b*c
+      check_expression(u8"a"s + lo_op.op + u8"b" + hi_op.op + u8"c",
+                       "binary(var a, var b, var c)"s);
+    } else if (is_binary_level(lo_type) && is_binary_level(hi_type)) {
+      if (!is_same_level || hi_type == level_type::right) {
+        // a=b+c
+        check_expression(
+            u8"a"s + lo_op.op + u8"b" + hi_op.op + u8"c",
+            lo_op.kind() + "(var a, "s + hi_op.kind() + "(var b, var c))");
+      }
+      if (!is_same_level || hi_type == level_type::left) {
+        // a=b,c
+        check_expression(
+            u8"a"s + hi_op.op + u8"b" + lo_op.op + u8"c",
+            lo_op.kind() + "("s + hi_op.kind() + "(var a, var b), var c)");
+      }
+    } else if (is_binary_level(lo_type) && hi_type == level_type::prefix) {
+      // -a*b
+      check_expression(hi_op.op + u8"a"s + lo_op.op + u8"b",
+                       lo_op.kind() + "("s + hi_op.kind() + "(var a), var b)");
+    } else if (is_binary_level(lo_type) &&
+               hi_type == level_type::ternary_right) {
+      ASSERT_STREQ(hi_op.kind(), "cond");
+      // a+b?c:d
+      check_expression(u8"a"s + lo_op.op + u8"b?c:d",
+                       lo_op.kind() + "(var a, cond(var b, var c, var d))"s);
+      // a?b+c:d
+      check_expression(
+          u8"a?b"s + lo_op.op + u8"c:d",
+          "cond(var a, "s + lo_op.kind() + "(var b, var c), var d)");
+      // a?b:c+d
+      check_expression(
+          u8"a?b:c"s + lo_op.op + u8"d",
+          "cond(var a, var b, "s + lo_op.kind() + "(var c, var d))");
+    } else if (is_binary_level(hi_type) &&
+               lo_type == level_type::ternary_right) {
+      ASSERT_STREQ(lo_op.kind(), "cond");
+      // a=b?c:d
+      check_expression(
+          u8"a"s + hi_op.op + u8"b?c:d",
+          "cond("s + hi_op.kind() + "(var a, var b), var c, var d)");
+      // a?b=c:d
+      check_expression(
+          u8"a?b"s + hi_op.op + u8"c:d",
+          "cond(var a, "s + hi_op.kind() + "(var b, var c), var d)");
+      // a?b:c=d
+      check_expression(
+          u8"a?b:c"s + hi_op.op + u8"d",
+          "cond(var a, var b, "s + hi_op.kind() + "(var c, var d))");
+    } else if (hi_type == level_type::prefix &&
+               lo_type == level_type::ternary_right) {
+      ASSERT_STREQ(lo_op.kind(), "cond");
+      // -a?b:c
+      check_expression(hi_op.op + u8"a?b:c"s,
+                       "cond("s + hi_op.kind() + "(var a), var b, var c)");
+    } else {
+      QLJS_UNREACHABLE();
+    }
+  };
+
+  for (std::size_t hi_index = 0; hi_index < std::size(precedence_levels);
+       ++hi_index) {
+    const precedence_level& hi = precedence_levels[hi_index];
+    for (const operator_type& hi_op : hi.ops) {
+      for (std::size_t lo_index = 0; lo_index < hi_index; ++lo_index) {
+        bool is_same_level = hi_index == lo_index;
+        const precedence_level& lo = precedence_levels[lo_index];
+        for (const operator_type& lo_op : lo.ops) {
+          test(lo.type, lo_op, hi.type, hi_op, is_same_level);
+        }
+      }
+    }
+  }
+}
+
 std::string summarize(const expression& expression) {
   auto children = [&] {
     std::string result;
@@ -3286,8 +3721,12 @@ std::string summarize(const expression& expression) {
   switch (expression.kind()) {
   case expression_kind::_class:
     return "class";
+  case expression_kind::_delete:
+    return "delete(" + summarize(expression.child_0()) + ")";
   case expression_kind::_invalid:
-    return "?";
+    return "invalid";
+  case expression_kind::_missing:
+    return "missing";
   case expression_kind::_new:
     return "new(" + children() + ")";
   case expression_kind::_template:

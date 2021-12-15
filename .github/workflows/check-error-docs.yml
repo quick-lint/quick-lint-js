@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-18.04
     container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
     steps:
-      - uses: mymindstorm/setup-emsdk@v7
+      - uses: quick-lint/setup-emsdk@v7
         with:
           version: 2.0.4
       - uses: actions/checkout@v2
@@ -23,7 +23,7 @@ jobs:
       - name: C++ build
         run: emmake cmake --build build --target quick-lint-js-vscode quick-lint-js-vscode-licenses
       - name: C++ install
-        run: emmake cmake --install build --component vscode --prefix wasm
+        run: emmake cmake --install build --component vscode --prefix website/public/demo
 
       - name: JS configure
         run: cd website && yarn install --production

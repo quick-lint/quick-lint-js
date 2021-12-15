@@ -6,6 +6,7 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace quick_lint_js {
@@ -28,6 +29,11 @@ class mbargv {
 };
 
 std::optional<std::wstring> mbstring_to_wstring(const char *mbstring);
+#endif
+
+std::size_t count_utf_8_code_units(std::u16string_view) noexcept;
+#if defined(_WIN32)
+std::size_t count_utf_8_code_units(std::wstring_view) noexcept;
 #endif
 }
 #endif

@@ -1,2 +1,6 @@
+# Created by instructions in README.md.
 /node_modules/
 /www/
+
+# Created by instructions in wasm/README.md.
+/build-emscripten/

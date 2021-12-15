@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <title>quick-lint-js build sizes</title>
+    <meta charset="utf-8" />
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <style>
+      .binary-size-chart {
+        height: 500px;
+      }
+
+      p.error {
+        color: #c00;
+      }
+
+      #instructions {
+        display: none;
+      }
+      body.error #instructions {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>quick-lint-js build sizes</h1>
+
+    <article id="instructions">
+      <p id="load-error" class="error"></p>
+      <p>Generate <code>data.json</code> by following these instructions:</p>
+      <ol>
+        <li>
+          Install LLVM, ensuring you have the <code>llvm-size</code> command.
+        </li>
+        <li>
+          Mount c.quick-lint-js.com using sshfs:
+          <blockquote>
+            <pre><code>$ <kbd>mkdir -p ~/c.quick-lint-js.com/</kbd>
+$ <kbd>sshfs github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/ ~/c.quick-lint-js.com/</kbd></code></pre>
+          </blockquote>
+        </li>
+        <li>
+          Generate missing <code>build-sizes.json</code> files:
+          <blockquote>
+            <pre><code>$ <kbd>go run tools/build-sizes/collect-many-binary-sizes.go ~/c.quick-lint-js.com/builds/</kbd></code></pre>
+          </blockquote>
+        </li>
+
+        <li>
+          Create <code>data.json</code>:
+          <blockquote>
+            <pre><code>$ <kbd>./tools/build-sizes/aggregate-binary-sizes ~/c.quick-lint-js.com/builds/ &gt;tools/build-sizes/data.json</kbd></code></pre>
+          </blockquote>
+        </li>
+      </ol>
+    </article>
+
+    <ul id="chart-index"></ul>
+    <script src="index.js"></script>
+  </body>
+</html>
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

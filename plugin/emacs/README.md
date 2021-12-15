@@ -51,7 +51,10 @@ Usage example in your [Emacs initialization] file.
 
   ;; Remove the time to wait after last change before automatically checking
   ;; buffer.  The default is 0.5 (500ms)
-  (setq-local eglot-send-changes-idle-time 0))
+  (setq-local eglot-send-changes-idle-time 0)
+
+  ;; Optional: Make Eglot run automatically when `js-mode' is loaded
+  (eglot-ensure))
 (add-hook 'js-mode-hook #'my-eglot-quicklintjs-setup)
 ```
 
@@ -59,7 +62,10 @@ Usage example in your [Emacs initialization] file.
 
 ### Flycheck
 
-First install the Flycheck, it's available on MELPA.
+First, [install
+Flycheck](https://www.flycheck.org/en/latest/user/installation.html). You can
+install it from MELPA by [adding the MELPA repository][install-MELPA] then
+running the following in Emacs:
 
 `M-x package-install RET flycheck RET`
 
@@ -98,7 +104,7 @@ Usage example in your [Emacs initialization] file.
 
 ### Flymake
 
-Flymake is bultin on Emacs but it's supported only on major version 26 or
+Flymake is builtin on Emacs but it's supported only on major version 26 or
 higher.
 
 After loading flymake-quicklintjs, you can use `flymake-quicklintjs` function as
@@ -129,7 +135,10 @@ Usage example in your [Emacs initialization] file.
 
 ### LSP Mode
 
-First install the LSP Mode, if you have MELPA configured simply:
+First, [install
+LSP Mode](https://emacs-lsp.github.io/lsp-mode/page/installation/). You can
+install it from MELPA by [adding the MELPA repository][install-MELPA] then
+running the following in Emacs:
 
 `M-x package-install RET lsp-mode RET`
 
@@ -167,3 +176,4 @@ https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html
 https://www.gnu.org/software/emacs/manual/html_node/emacs/Lisp-Libraries.html
 [ELPA]: https://elpa.gnu.org
 [MELPA]: https://melpa.org/#/getting-started
+[install-MELPA]: https://melpa.org/#/getting-started

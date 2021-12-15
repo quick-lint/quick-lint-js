@@ -10,15 +10,16 @@ quick_lint_js_add_executable(
   error-matcher.cpp
   parse-json.cpp
   parse-support.cpp
-  pipe.cpp
   quick-lint-js/array.h
   quick-lint-js/characters.h
   quick-lint-js/error-matcher.h
   quick-lint-js/file-matcher.h
   quick-lint-js/gtest.h
+  quick-lint-js/mock-inotify.h
+  quick-lint-js/mock-kqueue.h
+  quick-lint-js/mock-win32.h
   quick-lint-js/parse-json.h
   quick-lint-js/parse-support.h
-  quick-lint-js/pipe.h
   quick-lint-js/spy-lsp-endpoint-remote.h
   quick-lint-js/spy-lsp-message-parser.h
   quick-lint-js/spy-visitor.h
@@ -29,26 +30,28 @@ quick_lint_js_add_executable(
   test-buffering-error-reporter.cpp
   test-buffering-visitor.cpp
   test-byte-buffer.cpp
-  test-c-api-error-reporter.cpp
   test-c-api.cpp
   test-cli-location.cpp
   test-configuration-loader.cpp
   test-configuration.cpp
-  test-constant-divider.cpp
   test-crash.cpp
+  test-diagnostic-formatter.cpp
+  test-diagnostic.cpp
   test-document.cpp
-  test-error-formatter.cpp
+  test-emacs-lisp-error-reporter.cpp
+  test-emacs-location.cpp
   test-error-list.cpp
   test-error.cpp
   test-event-loop.cpp
   test-file-canonical.cpp
   test-file-path.cpp
   test-file.cpp
-  test-gmo.cpp
+  test-hash-fnv.cpp
   test-integer-decimal.cpp
   test-integer-hexadecimal.cpp
   test-json.cpp
   test-lex.cpp
+  test-linked-bump-allocator.cpp
   test-lint-parse.cpp
   test-lint.cpp
   test-locale.cpp
@@ -59,7 +62,6 @@ quick_lint_js_add_executable(
   test-lsp-pipe-writer.cpp
   test-lsp-server.cpp
   test-math-overflow.cpp
-  test-monotonic-allocator.cpp
   test-narrow-cast.cpp
   test-options.cpp
   test-padded-string.cpp
@@ -67,14 +69,18 @@ quick_lint_js_add_executable(
   test-parse-expression-statement.cpp
   test-parse-expression.cpp
   test-parse-function.cpp
+  test-parse-jsx.cpp
   test-parse-loop.cpp
   test-parse-module.cpp
   test-parse-statement.cpp
   test-parse-var.cpp
   test-parse.cpp
   test-pipe-writer.cpp
+  test-result.cpp
+  test-simd.cpp
   test-string-utilities.cpp
   test-string-view.cpp
+  test-temporary-directory.cpp
   test-text-error-reporter.cpp
   test-translation.cpp
   test-uri.cpp
@@ -91,13 +97,14 @@ target_link_libraries(
   quick-lint-js-test
   PRIVATE
   boost
+  boost_json
   gmock
   gmock_main
   gtest
-  jsoncpp_static
+  quick-lint-js-boost-json
   quick-lint-js-lib
 )
-if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
+if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
   target_precompile_headers(
     quick-lint-js-test
     PRIVATE
@@ -107,9 +114,6 @@ if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
     <gmock/gmock.h>
     <gtest/gtest.h>
     <iostream>
-    <json/reader.h>
-    <json/value.h>
-    <json/writer.h>
     <simdjson.h>
   )
 endif ()
@@ -157,7 +161,7 @@ if (ICU_FOUND)
     gtest
     quick-lint-js-lib
   )
-  if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
+  if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
     target_precompile_headers(
       quick-lint-js-test-lex-unicode
       PRIVATE

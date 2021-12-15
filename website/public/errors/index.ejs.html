@@ -35,6 +35,23 @@
         margin-right: 2em;
       }
 
+      /* Reduce horizontal scrolling for code samples on mobile. */
+      @media only screen and (max-width: 30em) {
+        figure {
+          margin-left: 0em;
+        }
+      }
+
+      /* Visually separate adjacent code blocks. */
+      figure + figure {
+        border-top: 1px solid rgba(0, 0, 0, 0.2);
+      }
+      @media (prefers-color-scheme: dark) {
+        figure + figure {
+          border-top-color: rgba(255, 255, 255, 0.2);
+        }
+      }
+
       .table-of-contents a:link:not(:hover, :focus) {
         text-decoration: none;
       }
@@ -47,16 +64,33 @@
         text-decoration: none;
       }
 
-      .unicode-bom:before {
-        content: "BOM";
+      .unicode-bom:before,
+      .unicode-bel:before,
+      .unicode-bs:before,
+      .unicode-del:before {
         background-color: #edbf66;
         border: 1px solid red;
         border-radius: 5px;
         padding: 1px 3px;
       }
+      .unicode-bom:before {
+        content: "BOM";
+      }
+      .unicode-bel:before {
+        content: "BEL";
+      }
+      .unicode-bs:before {
+        content: "BS";
+      }
+      .unicode-del:before {
+        content: "DEL";
+      }
 
       @media (prefers-color-scheme: dark) {
-        .unicode-bom:before {
+        .unicode-bom:before,
+        .unicode-bel:before,
+        .unicode-bs:before,
+        .unicode-del:before {
           background-color: #884444;
         }
       }
@@ -64,11 +98,7 @@
   </head>
 
   <body class="side-bar-nav">
-    <header>
-      <h1><a href="../">quick-lint-js</a></h1>
-      <p class="tag-line">quick-lint-js finds bugs in JavaScript programs.</p>
-      <%- await include("../common-nav.ejs.html") %>
-    </header>
+    <header><%- await include("../common-nav.ejs.html") %></header>
 
     <main>
       <p>

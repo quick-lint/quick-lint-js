@@ -5,7 +5,7 @@
 
 #include <cstring>
 #include <string>
-#include <iostream>
+#include <ostream>
 #include <iterator>
 #include <limits>
 #include <stdexcept>
@@ -208,7 +208,7 @@ public:
   // throughout return true if we can do the navigation, false
   // otherwise
 
-  // Withing a given scope (series of nodes at the same depth within either an
+  // Within a given scope (series of nodes at the same depth within either an
   // array or an object), we move forward.
   // Thus, given [true, null, {"a":1}, [1,2]], we would visit true, null, {
   // and [. At the object ({) or at the array ([), you can issue a "down" to

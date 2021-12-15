@@ -4,9 +4,14 @@
 #ifndef QUICK_LINT_JS_LEX_H
 #define QUICK_LINT_JS_LEX_H
 
+#include <boost/container/pmr/memory_resource.hpp>
+#include <boost/container/pmr/unsynchronized_pool_resource.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
+#include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/identifier.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -17,49 +22,6 @@
 namespace quick_lint_js {
 class error_reporter;
 struct lexer_transaction;
-
-class identifier {
- public:
-  // For tests only.
-  explicit identifier(source_code_span span) noexcept
-      : span_begin_(span.begin()),
-        normalized_begin_(this->span_begin_),
-        span_size_(narrow_cast<int>(span.end() - span.begin())),
-        normalized_size_(this->span_size_) {}
-
-  explicit identifier(source_code_span span, string8_view normalized) noexcept
-      : span_begin_(span.begin()),
-        normalized_begin_(normalized.data()),
-        span_size_(narrow_cast<int>(span.end() - span.begin())),
-        normalized_size_(narrow_cast<int>(normalized.size())) {}
-
-  explicit identifier(source_code_span span,
-                      const char8* normalized) noexcept = delete;
-
-  source_code_span span() const noexcept {
-    return source_code_span(this->span_begin_,
-                            this->span_begin_ + this->span_size_);
-  }
-
-  // normalized_name returns the variable's name with escape sequences resolved.
-  //
-  // For example, a variable named \u{61} in the source code will have
-  // normalized_name refer to u8"a".
-  //
-  // The returned pointers might not reside within the source code string. In
-  // other words, the normalized name might be heap-allocated. Call span()
-  // instead if you want pointers within the source code input.
-  string8_view normalized_name() const noexcept {
-    return string8_view(this->normalized_begin_,
-                        narrow_cast<std::size_t>(this->normalized_size_));
-  }
-
- private:
-  const char8* span_begin_;
-  const char8* normalized_begin_;
-  int span_size_;
-  int normalized_size_;
-};
 
 // A lexer reads JavaScript source code one token at a time.
 //
@@ -107,6 +69,10 @@ class lexer {
   //               token_type::slash_equal.
   // Postcondition: this->peek().type == token_type::regexp.
   void reparse_as_regexp();
+
+  // Returns true if a valid regexp literal is found
+  // Precondition: *regexp_begin == '/'
+  bool test_for_regexp(const char8* regexp_begin);
 
   // Save lexer state.
   //
@@ -223,7 +189,13 @@ class lexer {
   const char8* parse_decimal_digits_and_underscores(
       const char8* input) noexcept;
   const char8* parse_hex_digits_and_underscores(const char8* input) noexcept;
-  const char8* parse_unicode_escape(const char8* input) noexcept;
+
+  struct parsed_unicode_escape {
+    const char8* end;
+    std::optional<char32_t> code_point;
+  };
+
+  parsed_unicode_escape parse_unicode_escape(const char8* input) noexcept;
 
   parsed_identifier parse_identifier(const char8*);
   parsed_identifier parse_identifier_slow(const char8* input,
@@ -271,13 +243,33 @@ class lexer {
   padded_string_view original_input_;
 
   monotonic_allocator allocator_;
+  boost::container::pmr::unsynchronized_pool_resource temporary_allocator_;
 };
 
 struct lexer_transaction {
-  // Private to lexer. Do not read or modify.
+  // Private to lexer. Do not construct, read, or modify.
+
+  explicit lexer_transaction(token old_last_token,
+                             const char8* old_last_last_token_end,
+                             const char8* old_input,
+                             error_reporter** error_reporter_pointer,
+                             boost::container::pmr::memory_resource* memory)
+      : old_last_token(old_last_token),
+        old_last_last_token_end(old_last_last_token_end),
+        old_input(old_input),
+        reporter(memory),
+        old_error_reporter(
+            std::exchange(*error_reporter_pointer, &this->reporter)) {}
+
+  // Don't allow copying a transaction. lexer::error_reporter_ might point to
+  // lexer_transaction::error_reporter.
+  lexer_transaction(const lexer_transaction&) = delete;
+  lexer_transaction& operator=(const lexer_transaction&) = delete;
+
   token old_last_token;
   const char8* old_last_last_token_end;
   const char8* old_input;
+  buffering_error_reporter reporter;
   error_reporter* old_error_reporter;
 };
 }

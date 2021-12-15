@@ -2,7 +2,6 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
-#include <boost/leaf/result.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -20,13 +19,24 @@ class null_lsp_endpoint_remote {
 
 class null_configuration_filesystem : public configuration_filesystem {
  public:
-  boost::leaf::result<canonical_path_result> canonicalize_path(
+  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string& path) override {
     return canonical_path_result(std::string(path), /*existing_path_length=*/0);
   }
 
-  boost::leaf::result<padded_string> read_file(const canonical_path&) override {
-    return boost::leaf::new_error(boost::leaf::e_errno{ENOENT});
+  result<padded_string, read_file_io_error> read_file(
+      const canonical_path& path) override {
+#if QLJS_HAVE_WINDOWS_H
+    windows_file_io_error io_error = {ERROR_FILE_NOT_FOUND};
+#endif
+#if QLJS_HAVE_UNISTD_H
+    posix_file_io_error io_error = {ENOENT};
+#endif
+    return result<padded_string, read_file_io_error>::failure<
+        read_file_io_error>(read_file_io_error{
+        .path = path.c_str(),
+        .io_error = io_error,
+    });
   }
 };
 }
@@ -52,8 +62,8 @@ int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
     i += sizeof(chunk_size);
     chunk_size = std::min(chunk_size, size_remaining());
 
-    server.append(
-        string8_view(reinterpret_cast<const char8*>(&data[i]), chunk_size));
+    string8_view message(reinterpret_cast<const char8*>(&data[i]), chunk_size);
+    server.message_parsed(message);
     i += chunk_size;
   }
 

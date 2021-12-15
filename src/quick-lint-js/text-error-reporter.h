@@ -8,10 +8,12 @@
 #include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
-#include <quick-lint-js/error-formatter.h>
+#include <quick-lint-js/diagnostic-formatter.h>
+#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/options.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
 
@@ -22,35 +24,39 @@ class text_error_reporter final : public error_reporter {
  public:
   explicit text_error_reporter(std::ostream &output);
 
+  explicit text_error_reporter(std::ostream &output, option_when escape_errors);
+
   void set_source(padded_string_view input, const char *file_name);
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  void report(name) override;
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+  void report_impl(error_type type, void *error) override;
 
  private:
-  text_error_formatter format(const char *code);
-
   std::ostream &output_;
   std::optional<cli_locator> locator_;
   const char *file_path_;
+  bool format_escape_errors_;
+
+  bool output_supports_escapes();
 };
 
-class text_error_formatter : public error_formatter<text_error_formatter> {
+class text_error_formatter : public diagnostic_formatter<text_error_formatter> {
  public:
   explicit text_error_formatter(std::ostream &output, const char *file_path,
-                                cli_locator &locator, const char *code);
+                                cli_locator &locator,
+                                bool format_escape_errors);
 
-  void write_before_message(severity, const source_code_span &origin);
-  void write_message_part(severity, string8_view);
-  void write_after_message(severity, const source_code_span &origin);
+  void write_before_message(std::string_view code, diagnostic_severity,
+                            const source_code_span &origin);
+  void write_message_part(std::string_view code, diagnostic_severity,
+                          string8_view);
+  void write_after_message(std::string_view code, diagnostic_severity,
+                           const source_code_span &origin);
 
  private:
   std::ostream &output_;
   const char *file_path_;
   cli_locator &locator_;
-  const char *code_;
+  bool format_escape_errors_;
 };
 }
 

@@ -660,4 +660,4 @@ function wrap(old, fn) {
     fn.apply(this, args);
   };
 }
-let errorPlease, errorPlease; // Intentional error to force diagnostics.
+if (false) undeclaredVariable.hasOwnProperty(); // Intentional error to force diagnostics.

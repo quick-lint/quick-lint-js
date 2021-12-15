@@ -6,6 +6,7 @@ import esbuild from "esbuild-wasm";
 import fs from "fs";
 import mime from "mime";
 import path from "path";
+import { getQuickLintJSVersionInfo } from "./qljs-version.mjs";
 
 export class Router {
   constructor({ esbuildBundles, htmlRedirects, wwwRootPath }) {
@@ -100,6 +101,10 @@ export class Router {
       };
     }
 
+    if (path.basename(urlPath) === ".htaccess") {
+      return { type: "forbidden", why: "server-config" };
+    }
+
     if (isHiddenPath(urlPath)) {
       return { type: "missing", why: "ignored" };
     }
@@ -158,6 +163,14 @@ export class Router {
         `<% ${prelude} %>${ejsHTML}`,
         {
           currentURI: currentURI,
+          makeRelativeURI: (uri) => {
+            if (/^\w+:/.test(uri)) {
+              return uri;
+            }
+            let suffix = uri.endsWith("/") ? "/" : "";
+            return path.posix.relative(currentURI, uri) + suffix;
+          },
+          qljsVersionInfo: await getQuickLintJSVersionInfo(),
         },
         {
           async: true,

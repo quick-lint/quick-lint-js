@@ -48,6 +48,91 @@ TEST(test_parse, statement_starting_with_invalid_token) {
   }
 }
 
+TEST(test_parse, comma_not_allowed_between_class_methods) {
+  {
+    spy_visitor v;
+    padded_string code(
+        u8"class f { constructor() { this._a = false; }, ontext(text) { if (this._a) { process.stdout.write(text);}}}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_comma_not_allowed_between_class_methods,
+                    unexpected_comma, offsets_matcher(&code, 44, 45))));
+    EXPECT_THAT(
+        v.visits,
+        ElementsAre("visit_variable_declaration", "visit_enter_class_scope",
+                    "visit_property_declaration", "visit_enter_function_scope",
+                    "visit_enter_function_scope_body",
+                    "visit_exit_function_scope", "visit_property_declaration",
+                    "visit_enter_function_scope", "visit_variable_declaration",
+                    "visit_enter_function_scope_body",
+                    "visit_enter_block_scope", "visit_variable_use",
+                    "visit_variable_use", "visit_exit_block_scope",
+                    "visit_exit_function_scope", "visit_exit_class_scope"));
+  }
+}
+
+TEST(test_parse, commas_not_allowed_between_class_methods) {
+  {
+    spy_visitor v;
+    padded_string code(
+        u8"class f { ,,, constructor() { this._a = false; },,, ontext(text) { if (this._a) { process.stdout.write(text);}},,,}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 10, u8",")),
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 11, u8",")),
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 12, u8",")),
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 48, u8",")),
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 49, u8",")),
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 50, u8",")),
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 111, u8",")),
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 112, u8",")),
+            ERROR_TYPE_FIELD(error_comma_not_allowed_between_class_methods,
+                             unexpected_comma,
+                             offsets_matcher(&code, 113, u8","))));
+
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // class f
+                            "visit_enter_class_scope",          // {
+                            "visit_property_declaration",       // constructor
+                            "visit_enter_function_scope",       // ()
+                            "visit_enter_function_scope_body",  // {
+                            "visit_exit_function_scope",        // }
+                            "visit_property_declaration",       // ontext
+                            "visit_enter_function_scope",       // (
+                            "visit_variable_declaration",       // text)
+                            "visit_enter_function_scope_body",  // { if
+                            "visit_enter_block_scope",          // {
+                            "visit_variable_use",               // this._a
+                            "visit_variable_use",               // text
+                            "visit_exit_block_scope",           // }
+                            "visit_exit_function_scope",        // }
+                            "visit_exit_class_scope"            // }
+                            ));
+  }
+}
+
 TEST(test_parse, asi_for_statement_at_right_curly) {
   {
     spy_visitor v;
@@ -359,7 +444,7 @@ TEST(test_parse,
       spy_visitor v;
       parser p(&code, &v);
       p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+      EXPECT_THAT(v.visits, ElementsAre("visit_keyword_variable_use",  //
                                         "visit_end_of_module"));
       EXPECT_THAT(v.variable_uses,
                   ElementsAre(spy_visitor::visited_variable_use{keyword}));
@@ -375,7 +460,7 @@ TEST(test_parse,
       spy_visitor v;
       parser p(&code, &v);
       p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+      EXPECT_THAT(v.visits, ElementsAre("visit_keyword_variable_use",  //
                                         "visit_end_of_module"));
       EXPECT_THAT(v.variable_uses,
                   ElementsAre(spy_visitor::visited_variable_use{keyword}));
@@ -385,6 +470,95 @@ TEST(test_parse,
               error_keywords_cannot_contain_escape_sequences, escape_sequence,
               offsets_matcher(&code, strlen(u8"("), u8"\\u{??}"))));
     }
+  }
+}
+
+TEST(
+    test_parse,
+    reserved_keywords_with_escape_sequences_are_treated_as_identifiers_in_variable_declarations) {
+  {
+    padded_string code(u8"const \\u{69}f = 42;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"if", variable_kind::_const}));
+  }
+
+  {
+    padded_string code(u8"let \\u{69}f;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"if", variable_kind::_let}));
+  }
+
+  {
+    padded_string code(u8"var \\u{69}f;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"if", variable_kind::_var}));
+  }
+
+  {
+    padded_string code(u8"function g(\\u{69}f) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // g
+                                      "visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // if
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(
+                    spy_visitor::visited_variable_declaration{
+                        u8"g", variable_kind::_function},
+                    spy_visitor::visited_variable_declaration{
+                        u8"if", variable_kind::_parameter}));
+  }
+
+  {
+    padded_string code(u8"((\\u{69}f) => {})()"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // if
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"if", variable_kind::_parameter}));
   }
 }
 
@@ -556,6 +730,7 @@ string8 repeated_str(string8_view before, string8_view inner,
   return reps;
 }
 
+#if QLJS_HAVE_SETJMP
 TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   {
     for (const string8 &exps : {
@@ -606,6 +781,7 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
+#endif
 
 #if QLJS_HAVE_SETJMP
 TEST(test_overflow, parser_depth_limit_exceeded) {

@@ -1,8 +1,5 @@
 # quick-lint-js Visual Studio Code plugin
 
-**Warning**: This is pre-release software. quick-lint-js is under active
-development and is unstable. Use at your own risk.
-
 This extension finds bugs in your JavaScript code.
 
 quick-lint-js finds many bugs, including:

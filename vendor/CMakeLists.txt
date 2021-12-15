@@ -8,7 +8,8 @@ if (QUICK_LINT_JS_ENABLE_BENCHMARKS)
 endif ()
 include(boost.cmake)
 include(googletest.cmake)
-include(jsoncpp.cmake)
+include(node-addon-api.cmake)
+include(node.cmake)
 include(simdjson.cmake)
 
 # quick-lint-js finds bugs in JavaScript programs.

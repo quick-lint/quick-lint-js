@@ -49,7 +49,20 @@ class TestQuickLintJSCLI(unittest.TestCase):
                 encoding="utf-8",
             )
             self.assertEqual(result.returncode, 1)
-            self.assertIn("[E017]", result.stderr)
+            self.assertIn("E0017", result.stderr)
+
+    def test_file_with_escaped_syntax_errors_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("var parenthesesMissing;\nif parenthesesMissing { }\n")
+
+            result = subprocess.run(
+                [get_quick_lint_js_executable_path(), "--diagnostic-hyperlinks=always" ,str(test_file)],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("[]8;;https://quick-lint-js.com/errors/#E0017\E0017]8;;\]", result.stderr)
 
     def test_file_with_syntax_errors_with_non_matching_exit_fail_on_does_not_fail(
         self,
@@ -61,14 +74,14 @@ class TestQuickLintJSCLI(unittest.TestCase):
             result = subprocess.run(
                 [
                     get_quick_lint_js_executable_path(),
-                    "--exit-fail-on=E057",
+                    "--exit-fail-on=E0057",
                     str(test_file),
                 ],
                 capture_output=True,
                 encoding="utf-8",
             )
             self.assertEqual(result.returncode, 0)
-            self.assertIn("[E017]", result.stderr)  # Error should be printed
+            self.assertIn("E0017", result.stderr)  # Error should be printed
 
     def test_single_config_file(self) -> None:
         with tempfile.TemporaryDirectory() as test_directory:
@@ -87,6 +100,26 @@ class TestQuickLintJSCLI(unittest.TestCase):
                 ],
                 capture_output=True,
                 encoding="utf-8",
+            )
+            self.assertEqual(result.stderr, "")
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.returncode, 0)
+
+    def test_config_file_for_stdin(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            config_file = pathlib.Path(test_directory) / "config.json"
+            config_file.write_text('{"globals":{"myGlobalVariable": true}}')
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    "--config-file",
+                    str(config_file),
+                    "--stdin",
+                ],
+                capture_output=True,
+                encoding="utf-8",
+                input="console.log(myGlobalVariable);",
             )
             self.assertEqual(result.stderr, "")
             self.assertEqual(result.stdout, "")
@@ -114,25 +147,145 @@ class TestQuickLintJSCLI(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
 
     def test_automatically_find_config_file(self) -> None:
-        for config_file_name in ("quick-lint-js.config", ".quick-lint-js.config"):
-            with tempfile.TemporaryDirectory() as test_directory:
-                test_file = pathlib.Path(test_directory) / "test.js"
-                test_file.write_text("console.log(myGlobalVariable);")
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("console.log(myGlobalVariable);")
 
-                config_file = pathlib.Path(test_directory) / config_file_name
-                config_file.write_text('{"globals":{"myGlobalVariable": true}}')
+            config_file = pathlib.Path(test_directory) / "quick-lint-js.config"
+            config_file.write_text('{"globals":{"myGlobalVariable": true}}')
 
-                result = subprocess.run(
-                    [
-                        get_quick_lint_js_executable_path(),
-                        str(test_file),
-                    ],
-                    capture_output=True,
-                    encoding="utf-8",
-                )
-                self.assertEqual(result.stderr, "")
-                self.assertEqual(result.stdout, "")
-                self.assertEqual(result.returncode, 0)
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    str(test_file),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.stderr, "")
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.returncode, 0)
+
+    def test_stdin_does_not_automatically_find_config_file(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            config_file = pathlib.Path(test_directory) / "quick-lint-js.config"
+            config_file.write_text('{"global-groups":["emscripten"]}')
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    "--stdin",
+                ],
+                cwd=str(test_directory),
+                input="document",
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.stderr, "")
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.returncode, 0)
+
+    def test_automatically_find_config_file_given_path_for_config_search(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("console.log(myGlobalVariable);")
+
+            config_file_dir = pathlib.Path(test_directory) / "subdir"
+            config_file_dir.mkdir()
+            config_file = config_file_dir / "quick-lint-js.config"
+            config_file.write_text('{"globals":{"myGlobalVariable": true}}')
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    "--path-for-config-search",
+                    str(config_file_dir / "app.js"),
+                    str(test_file),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.stderr, "")
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(result.returncode, 0)
+
+    def test_config_file_parse_error_prevents_lint(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file = pathlib.Path(test_directory) / "test.js"
+            test_file.write_text("console.log(myGlobalVariable);")
+
+            config_file = pathlib.Path(test_directory) / "quick-lint-js.config"
+            config_file.write_text('INVALID JSON')
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    str(test_file),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.returncode, 1)
+
+            # test.js shouldn't be linted.
+            self.assertNotIn("myGlobalVariable", result.stderr)
+            self.assertNotIn("E0057", result.stderr)
+
+            # quick-lint-js.config should have errors.
+            self.assertIn("quick-lint-js.config", result.stderr)
+            self.assertIn("E0164", result.stderr)
+
+    def test_config_error_for_multiple_js_files_is_printed_only_once(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_file_1 = pathlib.Path(test_directory) / "test1.js"
+            test_file_1.write_text("")
+            test_file_2 = pathlib.Path(test_directory) / "test2.js"
+            test_file_2.write_text("")
+
+            config_file = pathlib.Path(test_directory) / "quick-lint-js.config"
+            config_file.write_text('INVALID JSON')
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    str(test_file_1),
+                    str(test_file_2),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertEqual(result.stderr.count("E0164"), 1)
+
+    def test_errors_for_all_config_files_are_printed(self) -> None:
+        with tempfile.TemporaryDirectory() as test_directory:
+            test_dir_1 = pathlib.Path(test_directory) / "dir1"
+            test_dir_1.mkdir()
+            test_file_1 = test_dir_1 / "test.js"
+            test_file_1.write_text("")
+            config_file_1 = test_dir_1 / "quick-lint-js.config"
+            config_file_1.write_text('INVALID JSON')
+
+            test_dir_2 = pathlib.Path(test_directory) / "dir2"
+            test_dir_2.mkdir()
+            test_file_2 = test_dir_2 / "test.js"
+            test_file_2.write_text("")
+            config_file_2 = test_dir_2 / "quick-lint-js.config"
+            config_file_2.write_text('INVALID JSON')
+
+            result = subprocess.run(
+                [
+                    get_quick_lint_js_executable_path(),
+                    str(test_file_1),
+                    str(test_file_2),
+                ],
+                capture_output=True,
+                encoding="utf-8",
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("dir1", result.stderr)
+            self.assertIn("dir2", result.stderr)
+            self.assertEqual(result.stderr.count("E0164"), 2)
 
 
 if __name__ == "__main__":

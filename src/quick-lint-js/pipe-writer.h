@@ -4,8 +4,13 @@
 #ifndef QUICK_LINT_JS_PIPE_WRITER_H
 #define QUICK_LINT_JS_PIPE_WRITER_H
 
+#if defined(__EMSCRIPTEN__)
+// No pipe_writer on the web.
+#else
+
 #include <condition_variable>
 #include <mutex>
+#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
@@ -26,8 +31,6 @@
 #endif
 
 namespace quick_lint_js {
-class byte_buffer_iovec;
-
 #if QLJS_PIPE_WRITER_SEPARATE_THREAD
 class background_thread_pipe_writer {
  public:
@@ -115,6 +118,8 @@ using pipe_writer = background_thread_pipe_writer;
 using pipe_writer = non_blocking_pipe_writer;
 #endif
 }
+
+#endif
 
 #endif
 

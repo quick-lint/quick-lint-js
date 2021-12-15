@@ -2,7 +2,12 @@ namespace simdjson {
 namespace SIMDJSON_IMPLEMENTATION {
 namespace ondemand {
 
+simdjson_really_inline parser::parser(size_t max_capacity) noexcept
+  : _max_capacity{max_capacity} {
+}
+
 simdjson_warn_unused simdjson_really_inline error_code parser::allocate(size_t new_capacity, size_t new_max_depth) noexcept {
+  if (new_capacity > max_capacity()) { return CAPACITY; }
   if (string_buf && new_capacity == capacity() && new_max_depth == max_depth()) { return SUCCESS; }
 
   // string_capacity copied from document::allocate
@@ -32,7 +37,7 @@ simdjson_warn_unused simdjson_really_inline simdjson_result<document> parser::it
   }
 
   // Run stage 1.
-  SIMDJSON_TRY( implementation->stage1(reinterpret_cast<const uint8_t *>(json.data()), json.length(), false) );
+  SIMDJSON_TRY( implementation->stage1(reinterpret_cast<const uint8_t *>(json.data()), json.length(), stage1_mode::regular) );
   return document::start({ reinterpret_cast<const uint8_t *>(json.data()), this });
 }
 
@@ -75,17 +80,42 @@ simdjson_warn_unused simdjson_really_inline simdjson_result<json_iterator> parse
   }
 
   // Run stage 1.
-  SIMDJSON_TRY( implementation->stage1(reinterpret_cast<const uint8_t *>(json.data()), json.length(), false) );
+  SIMDJSON_TRY( implementation->stage1(reinterpret_cast<const uint8_t *>(json.data()), json.length(), stage1_mode::regular) );
   return json_iterator(reinterpret_cast<const uint8_t *>(json.data()), this);
+}
+
+inline simdjson_result<document_stream> parser::iterate_many(const uint8_t *buf, size_t len, size_t batch_size) noexcept {
+  if(batch_size < MINIMAL_BATCH_SIZE) { batch_size = MINIMAL_BATCH_SIZE; }
+  return document_stream(*this, buf, len, batch_size);
+}
+inline simdjson_result<document_stream> parser::iterate_many(const char *buf, size_t len, size_t batch_size) noexcept {
+  return iterate_many(reinterpret_cast<const uint8_t *>(buf), len, batch_size);
+}
+inline simdjson_result<document_stream> parser::iterate_many(const std::string &s, size_t batch_size) noexcept {
+  return iterate_many(s.data(), s.length(), batch_size);
+}
+inline simdjson_result<document_stream> parser::iterate_many(const padded_string &s, size_t batch_size) noexcept {
+  return iterate_many(s.data(), s.length(), batch_size);
 }
 
 simdjson_really_inline size_t parser::capacity() const noexcept {
   return _capacity;
 }
+simdjson_really_inline size_t parser::max_capacity() const noexcept {
+  return _max_capacity;
+}
 simdjson_really_inline size_t parser::max_depth() const noexcept {
   return _max_depth;
 }
 
+simdjson_really_inline void parser::set_max_capacity(size_t max_capacity) noexcept {
+  size_t MINIMAL_DOCUMENT_CAPACITY = 32;
+  if(max_capacity < MINIMAL_DOCUMENT_CAPACITY) {
+    _max_capacity = max_capacity;
+  } else {
+    _max_capacity = MINIMAL_DOCUMENT_CAPACITY;
+  }
+}
 
 } // namespace ondemand
 } // namespace SIMDJSON_IMPLEMENTATION

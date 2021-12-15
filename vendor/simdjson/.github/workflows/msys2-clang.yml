@@ -1,12 +1,7 @@
 name: MSYS2-CLANG-CI
 
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+on: [push, pull_request]
+
 
 jobs:
   windows-mingw:
@@ -20,16 +15,16 @@ jobs:
       matrix:
         include:
           - msystem: "MINGW64"
-            install: mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-clang
+            install: mingw-w64-x86_64-libxml2 mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-clang
             type: Release
           - msystem: "MINGW32"
-            install: mingw-w64-i686-cmake mingw-w64-i686-ninja mingw-w64-i686-clang
+            install: mingw-w64-i686-libxml2 mingw-w64-i686-cmake mingw-w64-i686-ninja mingw-w64-i686-clang
             type: Release
           - msystem: "MINGW64"
-            install: mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-clang
+            install: mingw-w64-x86_64-libxml2 mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-clang
             type: Debug
           - msystem: "MINGW32"
-            install: mingw-w64-i686-cmake mingw-w64-i686-ninja mingw-w64-i686-clang
+            install: mingw-w64-i686-libxml2 mingw-w64-i686-cmake mingw-w64-i686-ninja mingw-w64-i686-clang
             type: Debug
     env:
       CMAKE_GENERATOR: Ninja
@@ -49,6 +44,6 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=${{ matrix.type }} -DSIMDJSON_BUILD_STATIC=ON -DSIMDJSON_DO_NOT_USE_THREADS_NO_MATTER_WHAT=ON ..
+          cmake -DSIMDJSON_DEVELOPER_MODE=ON -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=${{ matrix.type }} -DSIMDJSON_BUILD_STATIC=ON -DSIMDJSON_DO_NOT_USE_THREADS_NO_MATTER_WHAT=ON ..
           cmake --build . --verbose
           ctest -j4 --output-on-failure -LE explicitonly

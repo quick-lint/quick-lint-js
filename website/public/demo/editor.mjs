@@ -7,26 +7,32 @@ export function markEditorText(editor, window, marks) {
 }
 
 export function sanitizeMarks(marks) {
-  let result = [];
-  for (let mark of marks) {
-    let markAlreadyExists = result.some(
-      (resultMark) =>
-        resultMark.begin === mark.begin && resultMark.end == mark.end
-    );
-    if (markAlreadyExists) {
-      continue;
-    }
-    result.push(mark);
-  }
-  result.sort((a, b) => {
+  marks = [...marks];
+  marks.sort((a, b) => {
     if (a.begin < b.begin) {
       return -1;
     }
     if (a.begin > b.begin) {
       return +1;
     }
+    if (a.end < b.end) {
+      return +1;
+    }
+    if (a.end > b.end) {
+      return -1;
+    }
     return 0;
   });
+  let result = [];
+  for (let mark of marks) {
+    let markAlreadyExists = result.some(
+      (resultMark) => resultMark.begin === mark.begin
+    );
+    if (markAlreadyExists) {
+      continue;
+    }
+    result.push(mark);
+  }
   return result;
 }
 
@@ -106,7 +112,13 @@ class EditorMarker {
           mark.setAttribute("data-severity", currentMark.severity);
         }
 
-        if (this._markBeginNode === this._markEndNode.nextSibling) {
+        if (this._markBeginNode === null) {
+          // Special case: insert an empty <mark> at the end.
+          this._editor.appendChild(mark);
+        } else if (
+          this._markEndNode === null ||
+          this._markBeginNode === this._markEndNode.nextSibling
+        ) {
           // Special case: insert an empty <mark>.
           if (currentMark.begin !== currentMark.end) {
             throw new Error(
@@ -133,21 +145,19 @@ class EditorMarker {
       return currentNodeBeginOffset <= offset && offset <= currentNodeEndOffset;
     }
 
+    // Returns the first node which should be inside the <mark>.
     function splitNodeAtMarkBegin(splitIndex) {
       if (splitIndex === 0) {
         return currentNode;
       } else if (splitIndex === currentNode.textContent.length) {
-        if (currentNode.nextSibling === null) {
-          throw new Error("Can't happen");
-        } else {
-          return currentNode.nextSibling;
-        }
+        return currentNode.nextSibling;
       } else {
         let nextNode = splitTextNode(currentNode, splitIndex, self._window);
         return nextNode;
       }
     }
 
+    // Returns the last node which should be inside the <mark>.
     function splitNodeAtMarkEnd(splitIndex) {
       if (splitIndex === 0) {
         return currentNode.previousSibling;

@@ -4,13 +4,18 @@
 #ifndef QUICK_LINT_JS_CHANGE_DETECTING_FILESYSTEM_H
 #define QUICK_LINT_JS_CHANGE_DETECTING_FILESYSTEM_H
 
-#include <boost/leaf/result.hpp>
+#if defined(__EMSCRIPTEN__)
+// No filesystem on web.
+#else
+
 #include <memory>
+#include <optional>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/warning.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -29,47 +34,85 @@ struct kevent;
 
 #if QLJS_HAVE_WINDOWS_H
 #include <Windows.h>
+#include <winioctl.h>
 #endif
 
 namespace quick_lint_js {
+struct watch_io_error {
+  std::string path;
+  platform_file_io_error io_error;
+
+  std::string to_string() const;
+
+  friend bool operator==(const watch_io_error&, const watch_io_error&) noexcept;
+  friend bool operator!=(const watch_io_error&, const watch_io_error&) noexcept;
+};
+
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
 #if QLJS_HAVE_INOTIFY
+// For testing only:
+extern int mock_inotify_force_init_error;
+extern int mock_inotify_force_add_watch_error;
+
 // Not thread-safe.
-class change_detecting_filesystem_inotify : public configuration_filesystem {
+class change_detecting_filesystem_inotify : public configuration_filesystem,
+                                            public canonicalize_observer {
  public:
   explicit change_detecting_filesystem_inotify();
   ~change_detecting_filesystem_inotify() override;
 
-  boost::leaf::result<canonical_path_result> canonicalize_path(
+  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
+  result<padded_string, read_file_io_error> read_file(
+      const canonical_path&) override;
 
-  posix_fd_file_ref get_inotify_fd() noexcept;
+  void on_canonicalize_child_of_directory(const char*) override;
+  void on_canonicalize_child_of_directory(const wchar_t*) override;
+
+  std::optional<posix_fd_file_ref> get_inotify_fd() noexcept;
   void handle_poll_event(const ::pollfd& event);
+
+  std::vector<watch_io_error> take_watch_errors();
 
  private:
   // Sets errno and returns false on failure.
+  bool watch_directory(const char*);
   bool watch_directory(const canonical_path&);
 
   void read_inotify();
 
   std::vector<int> watch_descriptors_;
-  posix_fd_file inotify_fd_;
+  std::vector<watch_io_error> watch_errors_;
+  result<posix_fd_file, posix_file_io_error> inotify_fd_;
 };
 #endif
 
 #if QLJS_HAVE_KQUEUE
+// For testing only:
+extern int mock_kqueue_force_directory_open_error;
+
 // Not thread-safe.
-class change_detecting_filesystem_kqueue : public configuration_filesystem {
+class change_detecting_filesystem_kqueue : public configuration_filesystem,
+                                           canonicalize_observer {
  public:
   explicit change_detecting_filesystem_kqueue(posix_fd_file_ref kqueue_fd,
                                               void* udata);
   ~change_detecting_filesystem_kqueue() override;
 
-  boost::leaf::result<canonical_path_result> canonicalize_path(
+  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
+  result<padded_string, read_file_io_error> read_file(
+      const canonical_path&) override;
+
+  void on_canonicalize_child_of_directory(const char*) override;
+  void on_canonicalize_child_of_directory(const wchar_t*) override;
 
   posix_fd_file_ref kqueue_fd() const noexcept { return this->kqueue_fd_; }
+
+  void handle_kqueue_event(const struct ::kevent&);
+
+  std::vector<watch_io_error> take_watch_errors();
 
  private:
   struct file_id {
@@ -100,10 +143,16 @@ class change_detecting_filesystem_kqueue : public configuration_filesystem {
   void* udata_;
 
   std::unordered_map<canonical_path, watched_file> watched_files_;
+  std::vector<watch_io_error> watch_errors_;
 };
 #endif
 
 #if defined(_WIN32)
+// For testing only:
+extern ::DWORD mock_win32_force_directory_open_error;
+extern ::DWORD mock_win32_force_directory_file_id_error;
+extern ::DWORD mock_win32_force_directory_ioctl_error;
+
 // Not thread-safe.
 class change_detecting_filesystem_win32 : public configuration_filesystem {
  public:
@@ -111,9 +160,10 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
       windows_handle_file_ref io_completion_port, ::ULONG_PTR completion_key);
   ~change_detecting_filesystem_win32() override;
 
-  boost::leaf::result<canonical_path_result> canonicalize_path(
+  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
+  result<padded_string, read_file_io_error> read_file(
+      const canonical_path&) override;
 
   windows_handle_file_ref io_completion_port() const noexcept {
     return this->io_completion_port_;
@@ -123,6 +173,10 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
   // filesystem didn't change.
   bool handle_event(::OVERLAPPED*, ::DWORD number_of_bytes_transferred,
                     ::DWORD error);
+
+  void clear_watches();
+
+  std::vector<watch_io_error> take_watch_errors();
 
  private:
   struct watched_directory {
@@ -157,13 +211,17 @@ class change_detecting_filesystem_win32 : public configuration_filesystem {
   windows_handle_file_ref io_completion_port_;
   ::ULONG_PTR completion_key_;
 
-  std::unordered_map<canonical_path, std::unique_ptr<watched_directory>>
+  std::unordered_map<canonical_path, std::unique_ptr<watched_directory> >
       watched_directories_;
-  std::vector<std::unique_ptr<watched_directory>>
+  std::vector<std::unique_ptr<watched_directory> >
       cancelling_watched_directories_;
+  std::vector<watch_io_error> watch_errors_;
 };
 #endif
+QLJS_WARNING_POP
 }
+
+#endif
 
 #endif
 

@@ -2,15 +2,27 @@
 // See end of file for extended copyright information.
 
 import {
+  ErrorDocumentation,
   documentationDirectoryPath,
   loadErrorDocumentationFilesAsync,
   reportProblemsInDocumentsAsync,
 } from "./src/error-documentation.mjs";
 
 async function mainAsync() {
-  let documents = await loadErrorDocumentationFilesAsync(
-    documentationDirectoryPath
-  );
+  let files = process.argv.slice(2);
+  let documents;
+  if (files.length === 0) {
+    documents = await loadErrorDocumentationFilesAsync(
+      documentationDirectoryPath
+    );
+  } else {
+    documents = await Promise.all(
+      files.map(
+        async (fileName) =>
+          await await ErrorDocumentation.parseFileAsync(fileName)
+      )
+    );
+  }
   await reportProblemsInDocumentsAsync(documents);
 }
 

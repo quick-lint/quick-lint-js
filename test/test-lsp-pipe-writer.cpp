@@ -1,6 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if defined(__EMSCRIPTEN__)
+// No pipes on the web.
+#else
+
 #include <future>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -13,7 +17,7 @@
 #include <quick-lint-js/lsp-pipe-writer.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/pipe.h>
-#include <quick-lint-js/sloppy-result.h>
+#include <quick-lint-js/result.h>
 #include <thread>
 
 #if QLJS_HAVE_FCNTL_H
@@ -51,13 +55,15 @@ TEST_F(test_lsp_pipe_writer, small_message_includes_content_length) {
   this->writer.flush();
   this->pipe.writer.close();
 
-  sloppy_result<padded_string> data =
-      read_file_sloppy("<pipe>", this->pipe.reader.ref());
-  ASSERT_TRUE(data.ok()) << data.error();
+  result<padded_string, read_file_io_error> data =
+      read_file("<pipe>", this->pipe.reader.ref());
+  ASSERT_TRUE(data.ok()) << data.error().to_string();
   EXPECT_EQ(*data, u8"Content-Length: 2\r\n\r\nhi");
 }
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

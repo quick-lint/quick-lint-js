@@ -4,20 +4,25 @@
 #ifndef QUICK_LINT_JS_TRANSLATION_H
 #define QUICK_LINT_JS_TRANSLATION_H
 
+#include <cstdint>
 #include <optional>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/gmo.h>
+#include <quick-lint-js/consteval.h>
 #include <quick-lint-js/locale.h>
+#include <quick-lint-js/translation-table.h>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #define QLJS_TRANSLATE(...) \
-  (::quick_lint_js::translate(__VA_ARGS__##_gmo_message))
+  (::quick_lint_js::translate(__VA_ARGS__##_translatable))
 
-#define QLJS_TRANSLATABLE(...) (__VA_ARGS__##_gmo_message)
+#define QLJS_TRANSLATABLE(...) (__VA_ARGS__##_translatable)
 
 namespace quick_lint_js {
-const char8* translate(const gmo_message&);
+class translatable_message;
+
+const char8* translate(const translatable_message&);
 
 void initialize_translations_from_environment();
 void initialize_translations_from_locale(const char* locale_name);
@@ -25,18 +30,50 @@ void initialize_translations_from_locale(const char* locale_name);
 class translatable_messages {
  public:
   void use_messages_from_source_code();
-  bool use_messages_from_locale(
-      const char* locale_name,
-      const locale_entry<const std::uint8_t*>* gmo_files);
-  bool use_messages_from_locales(
-      const std::vector<std::string>& locale_names,
-      const locale_entry<const std::uint8_t*>* gmo_files);
+  bool use_messages_from_locale(const char* locale_name);
+  bool use_messages_from_locales(const std::vector<std::string>& locale_names);
 
-  const char* translate(const gmo_message& message);
+  const char* translate(const translatable_message& message);
 
  private:
-  std::optional<gmo_file> translation_;
+  std::optional<int> locale_index_;
 };
+
+// An un-translated message.
+class translatable_message {
+ public:
+  /*implicit*/ constexpr translatable_message()
+      : translation_table_mapping_index_(
+            translation_table::mapping_index_for_untranslated_string(
+                std::string_view())) {}
+
+  explicit QLJS_CONSTEVAL translatable_message(const char* raw_message,
+                                               int length)
+      : message_(raw_message),
+        translation_table_mapping_index_(
+            translation_table::mapping_index_for_untranslated_string(
+                std::string_view(raw_message,
+                                 static_cast<std::size_t>(length)))) {}
+
+  constexpr const char* c_str() const noexcept { return this->message_; }
+
+  constexpr bool empty() const noexcept {
+    return !this->message_ || this->message_[0] == '\0';
+  }
+
+  constexpr std::uint16_t translation_table_mapping_index() const noexcept {
+    return this->translation_table_mapping_index_;
+  }
+
+ private:
+  const char* message_ = "";
+  std::uint16_t translation_table_mapping_index_;
+};
+
+inline QLJS_CONSTEVAL translatable_message
+operator""_translatable(const char* raw_message, std::size_t length) {
+  return translatable_message(raw_message, static_cast<int>(length));
+}
 }
 
 #endif

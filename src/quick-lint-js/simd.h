@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_SIMD_H
 #define QUICK_LINT_JS_SIMD_H
 
+#include <cstdint>
 #include <quick-lint-js/bit.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/force-inline.h>
@@ -11,13 +12,17 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
 
+#if QLJS_HAVE_ARM_NEON
+#include <arm_neon.h>
+#endif
+
 #if QLJS_HAVE_X86_SSE2
 #include <emmintrin.h>
 #endif
 
 namespace quick_lint_js {
 #if QLJS_HAVE_X86_SSE2
-class bool_vector_16_sse2 {
+class alignas(__m128i) bool_vector_16_sse2 {
  public:
   static constexpr int size = 16;
 
@@ -52,7 +57,7 @@ class bool_vector_16_sse2 {
   __m128i data_;
 };
 
-class char_vector_16_sse2 {
+class alignas(__m128i) char_vector_16_sse2 {
  public:
   static constexpr int size = 16;
 
@@ -93,6 +98,76 @@ class char_vector_16_sse2 {
 
  private:
   __m128i data_;
+};
+#endif
+
+#if QLJS_HAVE_ARM_NEON
+class alignas(::uint8x16_t) bool_vector_16_neon {
+ public:
+  static constexpr int size = 16;
+
+  QLJS_FORCE_INLINE explicit bool_vector_16_neon(::uint8x16_t data) noexcept
+      : data_(data) {}
+
+  QLJS_FORCE_INLINE friend bool_vector_16_neon operator|(
+      bool_vector_16_neon x, bool_vector_16_neon y) noexcept {
+    return bool_vector_16_neon(::vorrq_u8(x.data_, y.data_));
+  }
+
+  QLJS_FORCE_INLINE friend bool_vector_16_neon operator&(
+      bool_vector_16_neon x, bool_vector_16_neon y) noexcept {
+    return bool_vector_16_neon(::vandq_u8(x.data_, y.data_));
+  }
+
+  QLJS_FORCE_INLINE int find_first_false() const noexcept;
+
+ private:
+  ::uint8x16_t data_;
+};
+
+class alignas(::uint8x16_t) char_vector_16_neon {
+ public:
+  static constexpr int size = 16;
+
+  QLJS_FORCE_INLINE explicit char_vector_16_neon(::uint8x16_t data) noexcept
+      : data_(data) {}
+
+  QLJS_FORCE_INLINE static char_vector_16_neon load(const char8* data) {
+    ::uint8x16_t vector;
+    std::memcpy(&vector, data, sizeof(vector));
+    return char_vector_16_neon(vector);
+  }
+
+  QLJS_FORCE_INLINE static char_vector_16_neon repeated(std::uint8_t c) {
+    return char_vector_16_neon(::vdupq_n_u8(c));
+  }
+
+  QLJS_FORCE_INLINE friend char_vector_16_neon operator|(
+      char_vector_16_neon x, char_vector_16_neon y) noexcept {
+    return char_vector_16_neon(::vorrq_u8(x.data_, y.data_));
+  }
+
+  QLJS_FORCE_INLINE friend bool_vector_16_neon operator==(
+      char_vector_16_neon x, char_vector_16_neon y) noexcept {
+    return bool_vector_16_neon(::vceqq_u8(x.data_, y.data_));
+  }
+
+  QLJS_FORCE_INLINE friend bool_vector_16_neon operator<(
+      char_vector_16_neon x, char_vector_16_neon y) noexcept {
+    return bool_vector_16_neon(::vcltq_u8(x.data_, y.data_));
+  }
+
+  QLJS_FORCE_INLINE friend bool_vector_16_neon operator>(
+      char_vector_16_neon x, char_vector_16_neon y) noexcept {
+    return bool_vector_16_neon(::vcgtq_u8(x.data_, y.data_));
+  }
+
+  QLJS_FORCE_INLINE ::uint8x16_t uint8x16() const noexcept {
+    return this->data_;
+  }
+
+ private:
+  ::uint8x16_t data_;
 };
 #endif
 
@@ -163,6 +238,9 @@ class char_vector_1 {
   std::uint8_t data_;
 };
 }
+
+// Some routines have a different copyright, thus are in a separate file.
+#include <quick-lint-js/simd-neon-arm.h>
 
 #endif
 

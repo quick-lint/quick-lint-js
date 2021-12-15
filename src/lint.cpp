@@ -5,7 +5,7 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
@@ -102,35 +102,64 @@ variable_kind global_declared_variable::kind() const noexcept {
 
 void global_declared_variable_set::add_predefined_global_variable(
     const char8 *name, bool is_writable) {
-  this->variables_.emplace_back(global_declared_variable{
+  this->add_global_variable(global_declared_variable{
       .name = name, .is_writable = is_writable, .is_shadowable = true});
 }
 
-void global_declared_variable_set::add_predefined_module_variable(
-    const char8 *name, bool is_writable) {
-  this->variables_.emplace_back(global_declared_variable{
-      .name = name, .is_writable = is_writable, .is_shadowable = false});
+void global_declared_variable_set::add_global_variable(
+    global_declared_variable global_variable) {
+  this->variables_[global_variable.is_shadowable][global_variable.is_writable]
+      .emplace(global_variable.name);
 }
 
-global_declared_variable *global_declared_variable_set::add_variable(
-    string8_view name) {
-  return &this->variables_.emplace_back(global_declared_variable{
-      .name = name, .is_writable = true, .is_shadowable = true});
+void global_declared_variable_set::add_literally_everything() {
+  this->all_variables_declared_ = true;
 }
 
-const global_declared_variable *global_declared_variable_set::find(
+void global_declared_variable_set::reserve_more_global_variables(
+    std::size_t extra_count, bool is_shadowable, bool is_writable) {
+  auto &vars = this->variables_[is_shadowable][is_writable];
+  vars.reserve(vars.size() + extra_count);
+}
+
+std::optional<global_declared_variable> global_declared_variable_set::find(
     identifier name) const noexcept {
   return this->find(name.normalized_name());
 }
 
-const global_declared_variable *global_declared_variable_set::find(
+std::optional<global_declared_variable> global_declared_variable_set::find(
     string8_view name) const noexcept {
-  for (const global_declared_variable &var : this->variables_) {
-    if (var.name == name) {
-      return &var;
+  for (bool is_shadowable : {false, true}) {
+    for (bool is_writable : {false, true}) {
+      if (this->variables_[is_shadowable][is_writable].count(name)) {
+        return global_declared_variable{
+            .name = name,
+            .is_writable = is_writable,
+            .is_shadowable = is_shadowable,
+        };
+      }
     }
   }
-  return nullptr;
+  if (this->all_variables_declared_) {
+    return global_declared_variable{
+        .name = name,
+        .is_writable = true,
+        .is_shadowable = true,
+    };
+  }
+  return std::nullopt;
+}
+
+std::vector<string8_view> global_declared_variable_set::get_all_variable_names()
+    const {
+  std::vector<string8_view> result;
+  for (bool is_shadowable : {false, true}) {
+    for (bool is_writable : {false, true}) {
+      auto &vars = this->variables_[is_shadowable][is_writable];
+      result.insert(result.end(), vars.begin(), vars.end());
+    }
+  }
+  return result;
 }
 
 linter::linter(error_reporter *error_reporter,
@@ -215,6 +244,10 @@ void linter::visit_exit_function_scope() {
   this->scopes_.pop();
 }
 
+void linter::visit_keyword_variable_use(identifier) {
+  // Ignore. The parser should have already reported E0023.
+}
+
 void linter::visit_property_declaration(std::optional<identifier>) {}
 
 void linter::visit_variable_declaration(identifier name, variable_kind kind) {
@@ -253,8 +286,17 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
             declared_variable_scope::declared_in_descendant_scope &&
         used_var.kind == used_variable_kind::use) {
       this->error_reporter_->report(
-          error_function_call_before_declaration_in_blocked_scope{used_var.name,
-                                                                  name});
+          error_function_call_before_declaration_in_block_scope{used_var.name,
+                                                                name});
+    }
+    if (used_var.kind == used_variable_kind::_delete) {
+      // TODO(strager): What if the variable was parenthesized? We should
+      // include the closing parenthesis.
+      this->error_reporter_->report(
+          error_redundant_delete_statement_on_variable{
+              .delete_expression = source_code_span(
+                  used_var.delete_keyword_begin, used_var.name.span().end()),
+          });
     }
     if (kind == variable_kind::_class || kind == variable_kind::_const ||
         kind == variable_kind::_let) {
@@ -268,6 +310,9 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
       case used_variable_kind::use:
         this->error_reporter_->report(
             error_variable_used_before_declaration{used_var.name, name});
+        break;
+      case used_variable_kind::_delete:
+        // Use before declaration is legal for delete.
         break;
       case used_variable_kind::_export:
         // Use before declaration is legal for variable exports.
@@ -291,6 +336,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
                // TODO(strager): This shouldn't happen. export statements are
                // not allowed inside functions.
                break;
+             case used_variable_kind::_delete:
              case used_variable_kind::_typeof:
              case used_variable_kind::use:
                break;
@@ -309,6 +355,27 @@ void linter::visit_variable_assignment(identifier name) {
   } else {
     current_scope.variables_used.emplace_back(name,
                                               used_variable_kind::assignment);
+  }
+}
+
+void linter::visit_variable_delete_use(identifier name,
+                                       source_code_span delete_keyword) {
+  QLJS_ASSERT(delete_keyword.end() <= name.span().begin());
+
+  QLJS_ASSERT(!this->scopes_.empty());
+  scope &current_scope = this->current_scope();
+  bool variable_is_declared =
+      current_scope.declared_variables.find(name) != nullptr;
+  if (variable_is_declared) {
+    // TODO(strager): What if the variable was parenthesized? We should include
+    // the closing parenthesis.
+    this->error_reporter_->report(error_redundant_delete_statement_on_variable{
+        .delete_expression =
+            source_code_span(delete_keyword.begin(), name.span().end()),
+    });
+  } else {
+    current_scope.variables_used.emplace_back(name, used_variable_kind::_delete,
+                                              delete_keyword.begin());
   }
 }
 
@@ -387,6 +454,10 @@ void linter::visit_end_of_module() {
         this->error_reporter_->report(
             error_assignment_to_undeclared_variable{used_var.name});
         break;
+      case used_variable_kind::_delete:
+        // TODO(strager): Report a warning if the global variable is not
+        // deletable.
+        break;
       case used_variable_kind::_export:
       case used_variable_kind::use:
         this->error_reporter_->report(
@@ -460,7 +531,7 @@ void linter::propagate_variable_uses_to_parent_scope(
   if (!has_eval_in_current_scope) {
     for (const used_variable &used_var : current_scope.variables_used) {
       QLJS_ASSERT(!current_scope.declared_variables.find(used_var.name));
-      const auto *var = parent_scope.declared_variables.find(used_var.name);
+      const auto var = parent_scope.declared_variables.find(used_var.name);
       if (var) {
         // This variable was declared in the parent scope. Don't propagate.
         if (used_var.kind == used_variable_kind::assignment) {
@@ -488,7 +559,7 @@ void linter::propagate_variable_uses_to_parent_scope(
   if (!has_eval_in_descendant_scope) {
     for (const used_variable &used_var :
          current_scope.variables_used_in_descendant_scope) {
-      const auto *var = parent_scope.declared_variables.find(used_var.name);
+      const auto var = parent_scope.declared_variables.find(used_var.name);
       if (var) {
         // This variable was declared in the parent scope. Don't propagate.
         if (used_var.kind == used_variable_kind::assignment) {
@@ -534,8 +605,9 @@ void linter::report_error_if_assignment_is_illegal(
 }
 
 void linter::report_error_if_assignment_is_illegal(
-    const global_declared_variable *var, const identifier &assignment,
-    bool is_assigned_before_declaration) const {
+    const std::optional<global_declared_variable> &var,
+    const identifier &assignment, bool is_assigned_before_declaration) const {
+  QLJS_ASSERT(var.has_value());
   this->report_error_if_assignment_is_illegal(
       /*kind=*/var->kind(),
       /*is_global_variable=*/true,
@@ -610,7 +682,7 @@ void linter::report_error_if_variable_declaration_conflicts_in_scope(
 
 void linter::report_error_if_variable_declaration_conflicts_in_scope(
     const global_scope &scope, const declared_variable &var) const {
-  const global_declared_variable *already_declared_variable =
+  std::optional<global_declared_variable> already_declared_variable =
       scope.declared_variables.find(var.declaration);
   if (already_declared_variable) {
     if (!already_declared_variable->is_shadowable) {

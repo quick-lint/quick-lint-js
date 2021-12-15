@@ -1,9 +1,12 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <boost/json/parse.hpp>
+#include <boost/json/value.hpp>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/json.h>
+#include <quick-lint-js/narrow-cast.h>
 #include <sstream>
 
 namespace quick_lint_js {
@@ -24,6 +27,48 @@ TEST(test_json, escapes_newlines) {
   std::ostringstream json;
   write_json_escaped_string(json, string8_view(u8"hello\nworld"));
   EXPECT_EQ(json.str(), R"(hello\nworld)");
+}
+
+TEST(test_json, escapes_tabs) {
+  std::ostringstream json;
+  write_json_escaped_string(json, string8_view(u8"hello\tworld"));
+  EXPECT_EQ(json.str(), R"(hello\tworld)");
+}
+
+TEST(test_json, escapes_carriage_returns) {
+  std::ostringstream json;
+  write_json_escaped_string(json, string8_view(u8"hello\rworld"));
+  EXPECT_EQ(json.str(), R"(hello\rworld)");
+}
+
+TEST(test_json, escapes_backspaces) {
+  std::ostringstream json;
+  write_json_escaped_string(json, string8_view(u8"hello\bworld"));
+  EXPECT_EQ(json.str(), R"(hello\bworld)");
+}
+
+TEST(test_json, escapes_form_feeds) {
+  std::ostringstream json;
+  write_json_escaped_string(json, string8_view(u8"hello\fworld"));
+  EXPECT_EQ(json.str(), R"(hello\fworld)");
+}
+
+TEST(test_json, ascii_characters_are_parsable_by_boost_json) {
+  for (int c = 0; c < 128; ++c) {
+    string8 string = string8(u8"hello") + narrow_cast<char8>(c) + u8"world";
+    SCOPED_TRACE(out_string8(string));
+
+    std::ostringstream json;
+    json << '"';
+    write_json_escaped_string(json, string8_view(string));
+    json << '"';
+    SCOPED_TRACE(json.str());
+
+    std::error_code error;
+    ::boost::json::value parsed = ::boost::json::parse(json.str(), error);
+    EXPECT_FALSE(error);
+    EXPECT_EQ(parsed, to_string_view(string));
+  }
 }
 }
 }

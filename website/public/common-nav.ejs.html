@@ -6,22 +6,114 @@
 <script>
   //<%
   let ejs = await import("ejs");
-  let path = await import("path");
   let url = await import("url");
   let { html } = await import(url.pathToFileURL("../src/html-tag.mjs"));
-
-  function makeRelativeURI(uri) {
-    if (/^\w+:/.test(uri)) {
-      return uri;
-    }
-    return path.posix.relative(currentURI, uri) + "/";
-  }
 
   let navigationPages = [
     {
       uri: "/install/",
       title: "Install",
-      subpages: [{ uri: "/releases/", title: "Releases" }],
+      subpages: [
+        { uri: "/install/emacs/", title: "Emacs", hidden: true },
+        {
+          uri: "/install/emacs/arch-linux/",
+          title: "Emacs Arch Linux",
+          hidden: true,
+        },
+        { uri: "/install/emacs/configure/", title: "Set up Emacs", hidden: true },
+        { uri: "/install/emacs/debian/", title: "Emacs Debian", hidden: true },
+        { uri: "/install/emacs/homebrew/", title: "Emacs Homebrew", hidden: true },
+        { uri: "/install/emacs/nix/", title: "Emacs Nix", hidden: true },
+        { uri: "/install/emacs/npm-posix/", title: "Emacs npm", hidden: true },
+        { uri: "/install/emacs/npm-windows/", title: "Emacs npm", hidden: true },
+        { uri: "/install/emacs/static-linux/", title: "Emacs Linux", hidden: true },
+        { uri: "/install/emacs/static-macos/", title: "Emacs macOS", hidden: true },
+        {
+          uri: "/install/emacs/static-windows/",
+          title: "Emacs Windows",
+          hidden: true,
+        },
+        { uri: "/install/neovim/", title: "Neovim", hidden: true },
+        {
+          uri: "/install/neovim/arch-linux/",
+          title: "Neovim Arch Linux",
+          hidden: true,
+        },
+        {
+          uri: "/install/neovim/debian/",
+          title: "Neovim Debian",
+          hidden: true,
+        },
+        {
+          uri: "/install/neovim/homebrew/",
+          title: "Neovim Homebrew",
+          hidden: true,
+        },
+        { uri: "/install/neovim/nix/", title: "Neovim Nix", hidden: true },
+        {
+          uri: "/install/neovim/npm-posix/",
+          title: "Neovim npm",
+          hidden: true,
+        },
+        {
+          uri: "/install/neovim/npm-windows/",
+          title: "Neovim npm",
+          hidden: true,
+        },
+        {
+          uri: "/install/neovim/static-linux/",
+          title: "Neovim Linux",
+          hidden: true,
+        },
+        {
+          uri: "/install/neovim/static-macos/",
+          title: "Neovim macOS",
+          hidden: true,
+        },
+        {
+          uri: "/install/neovim/static-windows/",
+          title: "Neovim Windows",
+          hidden: true,
+        },
+        { uri: "/install/vscode/", title: "VS Code", hidden: true },
+        { uri: "/install/vscodium/", title: "VSCodium", hidden: true },
+        { uri: "/install/vim/", title: "Vim", hidden: true },
+        {
+          uri: "/install/vim/arch-linux/",
+          title: "Vim Arch Linux",
+          hidden: true,
+        },
+        { uri: "/install/vim/debian/", title: "Vim Debian", hidden: true },
+        { uri: "/install/vim/homebrew/", title: "Vim Homebrew", hidden: true },
+        { uri: "/install/vim/nix/", title: "Vim Nix", hidden: true },
+        { uri: "/install/vim/npm-posix/", title: "Vim npm", hidden: true },
+        { uri: "/install/vim/npm-windows/", title: "Vim npm", hidden: true },
+        { uri: "/install/vim/static-linux/", title: "Vim Linux", hidden: true },
+        { uri: "/install/vim/static-macos/", title: "Vim macOS", hidden: true },
+        {
+          uri: "/install/vim/static-windows/",
+          title: "Vim Windows",
+          hidden: true,
+        },
+        { uri: "/install/cli/", title: "CLI", hidden: true },
+        {
+          uri: "/install/cli/arch-linux/",
+          title: "CLI Arch Linux",
+          hidden: true,
+        },
+        { uri: "/install/cli/debian/", title: "CLI Debian", hidden: true },
+        { uri: "/install/cli/homebrew/", title: "CLI Homebrew", hidden: true },
+        { uri: "/install/cli/nix/", title: "CLI Nix", hidden: true },
+        { uri: "/install/cli/npm/", title: "CLI npm", hidden: true },
+        { uri: "/install/cli/static-linux/", title: "CLI Linux", hidden: true },
+        { uri: "/install/cli/static-macos/", title: "CLI macOS", hidden: true },
+        {
+          uri: "/install/cli/static-windows/",
+          title: "CLI Windows",
+          hidden: true,
+        },
+        { uri: "/releases/", title: "Releases" },
+      ],
     },
     { uri: "/demo/", title: "Try online" },
     {
@@ -31,6 +123,11 @@
         { uri: "/errors/", title: "Errors" },
         { uri: "/cli/", title: "CLI" },
         { uri: "/config/", title: "Config" },
+        {
+          uri: "/contact/",
+          title: "Contact",
+        },
+        { uri: "/crash-report/", title: "Crash report", hidden: true },
       ],
     },
     { uri: "/benchmarks/", title: "Benchmarks" },
@@ -38,7 +135,22 @@
       uri: "https://github.com/quick-lint/quick-lint-js",
       title: "Code on GitHub",
     },
-    { uri: "/contact/", title: "Contact" },
+    {
+      uri: "/blog/",
+      title: "Blog",
+      subpages: [
+        {
+          uri: "/blog/syntax-errors-2021/",
+          title: "JS errors",
+          hidden: true
+        },
+        {
+          uri: "/blog/version-1.0/",
+          title: "Release 1.0",
+          hidden: true
+        },
+      ]
+    },
   ];
 
   function pageLinkHTML(page) {
@@ -54,7 +166,26 @@
   //%>
 </script>
 
-<nav>
+<% if (currentURI === "/") { %>
+<h1>quick-lint-js</h1>
+<% } else { %>
+<h1><a href="<%= makeRelativeURI('/') %>">quick-lint-js</a></h1>
+<% } %> <% if (!locals.hideTagLine) { %>
+<p class="tag-line">Find bugs in JavaScript programs.</p>
+<% } %> <% if (currentURI !== "/") { %><a
+  href="<%= makeRelativeURI('/') %>"
+  class="mascot"
+  ><% } %><img
+    class="mascot"
+    src="<%= makeRelativeURI('/dusty.svg') %>"
+    title="Dusty, the quick-lint-js mascot"
+    alt=""
+    width="111"
+    height="86"
+  /><% if (currentURI !== "/") { %></a
+><% } %>
+
+<nav class="main-nav">
   <ul>
     <% if (currentURI !== "/") { %>
     <li class="side-bar-only">
@@ -66,8 +197,9 @@
       currentURI || page.subpages.some(subpage => subpage.uri === currentURI)) {
       %>
       <ul>
-        <% for (let subpage of page.subpages) { %> <%- pageLinkHTML(subpage) %>
-        <% } %>
+        <% for (let subpage of page.subpages) { %> <% if (!subpage.hidden ||
+        subpage.uri === currentURI) { %> <%- pageLinkHTML(subpage) %> <% } %> <%
+        } %>
       </ul>
       <% } %>
     </li>

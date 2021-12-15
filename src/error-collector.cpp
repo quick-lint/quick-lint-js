@@ -1,29 +1,33 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <iostream>
+#include <ostream>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 
 namespace quick_lint_js {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  void error_collector::report(name e) {                      \
-    this->errors.emplace_back(std::move(e));                  \
-  }
-QLJS_X_ERROR_TYPES
+void error_collector::report_impl(error_type type, void *error) {
+  switch (type) {
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call)          \
+  case error_type::name:                                               \
+    this->errors.emplace_back(*reinterpret_cast<const name *>(error)); \
+    break;
+    QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
+  }
+}
 
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  error_collector::error::error(name &&data)                  \
-      : kind_(kind::kind_##name), variant_##name##_(std::move(data)) {}
+  error_collector::error::error(const name &data)             \
+      : type_(error_type::name), variant_##name##_(std::move(data)) {}
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
 const char *error_collector::error::error_code() const noexcept {
-  switch (this->kind_) {
+  switch (this->type_) {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  case error_collector::error::kind::kind_##name:             \
+  case error_type::name:                                      \
     return code;
     QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
@@ -34,7 +38,7 @@ const char *error_collector::error::error_code() const noexcept {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call)              \
   template <>                                                              \
   bool holds_alternative<name>(const error_collector::error &e) noexcept { \
-    return e.kind_ == error_collector::error::kind::kind_##name;           \
+    return e.type_ == error_type::name;                                    \
   }                                                                        \
                                                                            \
   template <>                                                              \
@@ -46,9 +50,9 @@ QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
 void PrintTo(const error_collector::error &e, std::ostream *out) {
-  switch (e.kind_) {
+  switch (e.type_) {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  case error_collector::error::kind::kind_##name:             \
+  case error_type::name:                                      \
     *out << #name;                                            \
     return;
     QLJS_X_ERROR_TYPES

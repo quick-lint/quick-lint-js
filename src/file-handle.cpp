@@ -2,9 +2,6 @@
 // See end of file for extended copyright information.
 
 #include <array>
-#include <boost/leaf/common.hpp>
-#include <boost/leaf/error.hpp>
-#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -15,6 +12,7 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/pipe.h>
 #include <quick-lint-js/program-report.h>
 #include <quick-lint-js/string-view.h>
 #include <string>
@@ -38,6 +36,42 @@
 #endif
 
 namespace quick_lint_js {
+#if QLJS_HAVE_WINDOWS_H
+bool windows_file_io_error::is_file_not_found_error() const noexcept {
+  return this->error == ERROR_FILE_NOT_FOUND;
+}
+
+std::string windows_file_io_error::to_string() const {
+  return windows_error_message(this->error);
+}
+
+bool operator==(windows_file_io_error lhs, windows_file_io_error rhs) noexcept {
+  return lhs.error == rhs.error;
+}
+
+bool operator!=(windows_file_io_error lhs, windows_file_io_error rhs) noexcept {
+  return !(lhs == rhs);
+}
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+bool posix_file_io_error::is_file_not_found_error() const noexcept {
+  return this->error == ENOENT;
+}
+
+std::string posix_file_io_error::to_string() const {
+  return std::strerror(this->error);
+}
+
+bool operator==(posix_file_io_error lhs, posix_file_io_error rhs) noexcept {
+  return lhs.error == rhs.error;
+}
+
+bool operator!=(posix_file_io_error lhs, posix_file_io_error rhs) noexcept {
+  return !(lhs == rhs);
+}
+#endif
+
 #if QLJS_HAVE_WINDOWS_H
 windows_handle_file_ref::windows_handle_file_ref(HANDLE handle) noexcept
     : handle_(handle) {}
@@ -63,7 +97,7 @@ file_read_result windows_handle_file_ref::read(void *buffer,
     case ERROR_NO_DATA:
       return 0;
     default:
-      return boost::leaf::new_error(boost::leaf::windows::e_LastError{error});
+      return file_read_result::failure(windows_file_io_error{error});
     };
   }
   // TODO(strager): Microsoft's documentation for ReadFile claims the following:
@@ -158,7 +192,9 @@ void windows_handle_file::close() {
   this->handle_ = this->invalid_handle_1;
 }
 
-windows_handle_file_ref windows_handle_file::ref() noexcept { return *this; }
+windows_handle_file_ref windows_handle_file::ref() const noexcept {
+  return *this;
+}
 #endif
 
 #if QLJS_HAVE_UNISTD_H
@@ -173,7 +209,7 @@ bool posix_fd_file_ref::valid() const noexcept {
   return this->fd_ != this->invalid_fd;
 }
 
-int posix_fd_file_ref::get() noexcept { return this->fd_; }
+int posix_fd_file_ref::get() const noexcept { return this->fd_; }
 
 file_read_result posix_fd_file_ref::read(void *buffer,
                                          int buffer_size) noexcept {
@@ -181,7 +217,7 @@ file_read_result posix_fd_file_ref::read(void *buffer,
   ::ssize_t read_size =
       ::read(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
   if (read_size == -1) {
-    return boost::leaf::new_error(boost::leaf::e_errno{errno});
+    return file_read_result::failure(posix_file_io_error{errno});
   }
   return read_size == 0 ? file_read_result::end_of_file()
                         : file_read_result(narrow_cast<int>(read_size));
@@ -223,6 +259,20 @@ std::size_t posix_fd_file_ref::get_pipe_buffer_size() {
 #elif defined(__APPLE__)
   // See BIG_PIPE_SIZE in <xnu>/bsd/sys/pipe.h.
   return 65536;
+#elif QLJS_HAVE_PIPE
+#warning "Size returned by get_pipe_buffer_size might be inaccurate"
+  pipe_fds pipe = make_pipe();
+  pipe.writer.set_pipe_non_blocking();
+  std::size_t pipe_buffer_size = 0;
+  for (;;) {
+    unsigned char c = 0;
+    std::optional<int> written = pipe.writer.write(&c, sizeof(c));
+    if (!written.has_value()) {
+      break;
+    }
+    pipe_buffer_size += *written;
+  }
+  return pipe_buffer_size;
 #else
 #error "Unknown platform"
 #endif
@@ -244,6 +294,8 @@ void posix_fd_file_ref::set_pipe_non_blocking() {
 std::string posix_fd_file_ref::get_last_error_message() {
   return std::strerror(errno);
 }
+
+posix_fd_file::posix_fd_file() noexcept = default;
 
 posix_fd_file::posix_fd_file(int fd) noexcept : posix_fd_file_ref(fd) {}
 
@@ -276,7 +328,7 @@ void posix_fd_file::close() {
   this->fd_ = invalid_fd;
 }
 
-posix_fd_file_ref posix_fd_file::ref() noexcept { return *this; }
+posix_fd_file_ref posix_fd_file::ref() const noexcept { return *this; }
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
@@ -287,7 +339,7 @@ std::string windows_error_message(DWORD error) {
       /*dwFlags=*/FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
           FORMAT_MESSAGE_IGNORE_INSERTS,
       /*lpSource=*/nullptr,
-      /*dwMessageId=*/::GetLastError(),
+      /*dwMessageId=*/error,
       /*dwLanguageId=*/0,
       /*lpBuffer=*/reinterpret_cast<LPSTR>(&get_last_error_message),
       /*nSize=*/(std::numeric_limits<DWORD>::max)(),
@@ -304,18 +356,6 @@ std::string windows_error_message(DWORD error) {
   std::string message_copy(message);
   static_cast<void>(::LocalFree(get_last_error_message));
   return message_copy;
-}
-#endif
-
-#if QLJS_HAVE_UNISTD_H
-std::string error_message(boost::leaf::e_errno error) {
-  return std::strerror(error.value);
-}
-#endif
-
-#if QLJS_HAVE_WINDOWS_H
-std::string error_message(boost::leaf::windows::e_LastError error) {
-  return windows_error_message(error.value);
 }
 #endif
 }

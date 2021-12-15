@@ -5,11 +5,13 @@
 #define QUICK_LINT_JS_LINT_H
 
 #include <optional>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse-visitor.h>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace quick_lint_js {
@@ -26,16 +28,29 @@ struct global_declared_variable {
 class global_declared_variable_set {
  public:
   void add_predefined_global_variable(const char8 *name, bool is_writable);
-  void add_predefined_module_variable(const char8 *name, bool is_writable);
-  global_declared_variable *add_variable(string8_view name);
 
-  void add_default_variables();
+  // FIXME(strager): Bug: if we add a variable with one set of flags (e.g.
+  // is_writable=false), then add it with a different set of flags (e.g.
+  // is_writable=true), then bad things might happen.
+  void add_global_variable(global_declared_variable);
 
-  const global_declared_variable *find(identifier name) const noexcept;
-  const global_declared_variable *find(string8_view name) const noexcept;
+  void add_literally_everything();
+
+  void reserve_more_global_variables(std::size_t extra_count,
+                                     bool is_shadowable, bool is_writable);
+
+  std::optional<global_declared_variable> find(identifier name) const noexcept;
+  std::optional<global_declared_variable> find(string8_view name) const
+      noexcept;
+
+  // For testing only:
+  std::vector<string8_view> get_all_variable_names() const;
 
  private:
-  std::vector<global_declared_variable> variables_;
+  // First index: is_shadowable
+  // Second index: is_writable
+  std::unordered_set<string8_view> variables_[2][2];
+  bool all_variables_declared_ = false;
 };
 
 // A linter is a parse_visitor which finds non-syntax bugs.
@@ -64,9 +79,12 @@ class linter {
   void visit_exit_class_scope();
   void visit_exit_for_scope();
   void visit_exit_function_scope();
+  void visit_keyword_variable_use(identifier name);
   void visit_property_declaration(std::optional<identifier>);
   void visit_variable_declaration(identifier name, variable_kind kind);
   void visit_variable_assignment(identifier name);
+  void visit_variable_delete_use(identifier name,
+                                 source_code_span delete_keyword);
   void visit_variable_export_use(identifier name);
   void visit_variable_typeof_use(identifier name);
   void visit_variable_use(identifier name);
@@ -85,6 +103,7 @@ class linter {
   };
 
   enum class used_variable_kind {
+    _delete,
     _export,
     _typeof,
     assignment,
@@ -93,9 +112,19 @@ class linter {
 
   struct used_variable {
     explicit used_variable(identifier name, used_variable_kind kind) noexcept
-        : name(name), kind(kind) {}
+        : name(name), kind(kind) {
+      QLJS_ASSERT(kind != used_variable_kind::_delete);
+    }
+
+    // kind must be used_variable_kind::_delete.
+    explicit used_variable(identifier name, used_variable_kind kind,
+                           const char8 *delete_keyword_begin) noexcept
+        : name(name), delete_keyword_begin(delete_keyword_begin), kind(kind) {
+      QLJS_ASSERT(kind == used_variable_kind::_delete);
+    }
 
     identifier name;
+    const char8 *delete_keyword_begin;  // used_variable_kind::_delete only
     used_variable_kind kind;
   };
 
@@ -192,8 +221,8 @@ class linter {
       const declared_variable *var, const identifier &assignment,
       bool is_assigned_before_declaration) const;
   void report_error_if_assignment_is_illegal(
-      const global_declared_variable *var, const identifier &assignment,
-      bool is_assigned_before_declaration) const;
+      const std::optional<global_declared_variable> &var,
+      const identifier &assignment, bool is_assigned_before_declaration) const;
   void report_error_if_assignment_is_illegal(
       variable_kind kind, bool is_global_variable,
       const identifier *declaration, const identifier &assignment,

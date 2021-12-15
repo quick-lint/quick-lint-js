@@ -1,6 +1,7 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 include(CheckCXXSourceCompiles)
 
@@ -63,8 +64,16 @@ endfunction ()
 
 function (quick_lint_js_configure_exception_handling)
   if (MSVC)
-    add_compile_options(/EHcs)
+    add_compile_options(/EHc-s-)
+    add_definitions(-D_HAS_EXCEPTIONS=0)
   endif ()
+  quick_lint_js_add_cxx_flag_if_supported(-fno-exceptions QUICK_LINT_JS_HAVE_FNO_EXCEPTIONS)
+endfunction ()
+
+# RTTI stands for Run-Time Type Information.
+function (quick_lint_js_configure_rtti)
+  quick_lint_js_add_cxx_flag_if_supported(-fno-rtti QUICK_LINT_JS_HAVE_FNO_RTTI)
+  quick_lint_js_add_cxx_flag_if_supported(/GR- QUICK_LINT_JS_HAVE_GR_)
 endfunction ()
 
 function (quick_lint_js_set_cxx_standard)
@@ -95,6 +104,22 @@ function (quick_lint_js_set_cxx_standard)
 
   set(CMAKE_CXX_STANDARD "${CMAKE_CXX_STANDARD}" PARENT_SCOPE)
   set(CMAKE_CXX_STANDARD_REQUIRED "${CMAKE_CXX_STANDARD_REQUIRED}" PARENT_SCOPE)
+
+  quick_lint_js_use_new_msvc_preprocessor()
+endfunction ()
+
+function (quick_lint_js_use_new_msvc_preprocessor)
+  # https://docs.microsoft.com/en-us/cpp/preprocessor/preprocessor-experimental-overview?view=msvc-160
+  quick_lint_js_add_c_cxx_flag_if_supported(/Zc:preprocessor QUICK_LINT_JS_HAVE_ZC_PREPROCESSOR)
+  if (NOT QUICK_LINT_JS_HAVE_ZC_PREPROCESSOR_C OR NOT QUICK_LINT_JS_HAVE_ZC_PREPROCESSOR_CXX)
+    quick_lint_js_add_c_cxx_flag_if_supported(/experimental:preprocessor QUICK_LINT_JS_HAVE_EXPERIMENTAL_PREPROCESSOR)
+  endif ()
+
+  # <Windows.h>, at least in SDK version 10.0.17763.0, has some bogus code when
+  # /Zc:preprocessor is enabled. Work around it.
+  quick_lint_js_get_supported_warning_options(/wd5105 WARNING_OPTIONS_TO_ADD)
+  add_compile_options(${WARNING_OPTIONS_TO_ADD})
+  add_definitions(-DWIN32_LEAN_AND_MEAN)
 endfunction ()
 
 function (quick_lint_js_add_warning_options_if_supported)
@@ -175,6 +200,43 @@ function (quick_lint_js_have_charconv OUT_VAR)
     "${QUICK_LINT_JS_HAVE_CHARCONV_AND_STD_TO_CHARS}"
     PARENT_SCOPE
   )
+endfunction ()
+
+function (quick_lint_js_add_c_cxx_flag_if_supported FLAG VAR)
+  quick_lint_js_add_c_flag_if_supported("${FLAG}" "${VAR}_C")
+  quick_lint_js_add_cxx_flag_if_supported("${FLAG}" "${VAR}_CXX")
+endfunction ()
+
+function (quick_lint_js_add_c_flag_if_supported FLAG VAR)
+  check_c_compiler_flag("${FLAG}" "${VAR}")
+  if ("${${VAR}}")
+    add_compile_options($<$<COMPILE_LANGUAGE:C>:${FLAG}>)
+  endif ()
+endfunction ()
+
+function (quick_lint_js_add_cxx_flag_if_supported FLAG VAR)
+  check_cxx_compiler_flag("${FLAG}" "${VAR}")
+  if ("${${VAR}}")
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:${FLAG}>)
+  endif ()
+endfunction ()
+
+function (quick_lint_js_add_cxx_linker_flag_if_supported FLAG VAR)
+  list(APPEND CMAKE_REQUIRED_LIBRARIES "${FLAG}")
+  check_cxx_source_compiles("int main() { return 0; }" "${VAR}")
+  if ("${${VAR}}")
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.18)
+      link_libraries("$<$<LINK_LANGUAGE:CXX>:${FLAG}>")
+    else ()
+      link_libraries("${FLAG}")
+    endif ()
+  endif ()
+endfunction ()
+
+function (quick_lint_js_enable_dead_code_stripping)
+  quick_lint_js_add_c_cxx_flag_if_supported(-fdata-sections QUICK_LINT_JS_HAVE_FDATA_SECTIONS)
+  quick_lint_js_add_c_cxx_flag_if_supported(-ffunction-sections QUICK_LINT_JS_HAVE_FFUNCTION_SECTIONS)
+  quick_lint_js_add_cxx_linker_flag_if_supported(-Wl,--gc-sections QUICK_LINT_JS_HAVE_GC_SECTIONS)
 endfunction ()
 
 # quick-lint-js finds bugs in JavaScript programs.

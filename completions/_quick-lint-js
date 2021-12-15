@@ -17,21 +17,16 @@ function _quick-lint-js() {
         '(- *)'--help'[Print help message]'
         '(- *)'--version'[Print version information]'
         '(--lsp-server)*:file:_files'
-        '(--config-file --stdin --exit-fail-on --output-format *)'--lsp-server'[Run quick-lint-js in LSP server mode]'
+        '(--config-file --stdin --exit-fail-on --diagnostic-hyperlinks --output-format *)'--lsp-server'[Run quick-lint-js in LSP server mode]'
         '(--lsp-server)--config-file=[Read configuration from a JSON file for later input files]:file:_files'
         '(--lsp-server)--stdin[Read standard input as a JavaScript file]'
         '(--lsp-server)--exit-fail-on=[Fail with a non-zero exit code if any of these errors are found (default\: "all")]'
-        '(--lsp-server)--output-format=[Format to print feedback where FORMAT is one of\: gnu-like (default if omitted), vim-qflist-json]:format:->format'
+        '(--lsp-server)--output-format=[Format to print feedback]:format:((vim-qflist-json\:"machine-readable JSON which can be given to Vim'\''s setqflist function" gnu-like\:"a human-readable format similar to GCC" emacs-lisp\:"Emacs Lisp association list format"))'
+        '(--lsp-server)--diagnostic-hyperlinks=[Control whether to hyperlink error codes or not]:when:((auto\:"shows error codes as hyperlinks only if the error output is a terminal" always\:"always shows error codes as hyperlinks" never\:"never shows error codes as hyperlinks"))'
         '--vim-file-bufnr=[Select a vim buffer for outputting feedback]')
 
-        _arguments -C -S "${args[@]}" && ret=0
+        _arguments -M "r:|[_]=* r:|=*" -S "${args[@]}" && ret=0
 
-        case "$state" in
-                format)
-                        formats=( 'vim-qflist-json' 'gnu-like' )
-                        _describe 'format' formats && ret=0
-                        ;;
-        esac
         return ret
 }
 

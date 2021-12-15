@@ -1,12 +1,27 @@
+# quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
-# See end of file for extended copyright information.
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2020-10-17 14:17+0100\n"
+"POT-Creation-Date: 2021-12-08 23:21-0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,6 +59,18 @@ msgid "assignment to undeclared variable"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "'await' is only allowed in async functions"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "'await' cannot be followed by an arrow function; use 'async' instead"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "'async static' is not allowed; write 'static async' instead"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "BigInt literal contains decimal point"
 msgstr ""
 
@@ -52,7 +79,23 @@ msgid "BigInt literal contains exponent"
 msgstr ""
 
 #: src/quick-lint-js/error.h
-msgid "BigInt literal has a leading 0 digit"
+msgid "C-style for loop is missing its third component"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "cannot assign to loop variable in for of/in loop"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "cannot access private identifier outside class"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "assigning to 'async' in a for-of loop requires parentheses"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "cannot declare 'await' inside async function"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -64,11 +107,107 @@ msgid "let statement cannot declare variables named 'let'"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "cannot declare variable named keyword '{0}'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "cannot declare 'yield' inside generator function"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "cannot declare and export variable with 'export default'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "cannot export variable named 'let'"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "cannot export variable named keyword '{0}'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "cannot import 'let'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "cannot import variable named keyword '{0}'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "cannot reference private variables without object; use 'this.'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "cannot update variable with '{0}' while declaring it"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "remove '{0}' to update an existing variable"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected 'catch' without 'try'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing body for {1:headlinese}"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "a class statement is not allowed as the body of {1:singular}"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "character is not allowed in identifiers"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "commas are not allowed after spread parameter"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "commas are not allowed between class methods"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "JSON syntax error"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "\"global-groups\" entries must be strings"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "\"global-groups\" must be a boolean or an array"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "\"globals\" descriptor must be a boolean or an object"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "\"globals\" descriptor \"shadowable\" property must be a boolean"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "\"globals\" descriptor \"writable\" property must be a boolean"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "\"globals\" must be an object"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "depth limit exceeded"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing property name between '.' and '.'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "'else' has no corresponding 'if'"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -80,7 +219,27 @@ msgid "code point out of range"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "code point in Unicode escape sequence must not be greater than U+10FFFF"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "extra ',' is not allowed between function call arguments"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "expected 'as' between '{1}' and '{2}'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "expected ',' between object literal entries"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "expected expression before newline"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "expected expression after 'case'"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -88,7 +247,111 @@ msgid "expected expression before semicolon"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "expected 'from \"name_of_module.mjs\"'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "expected 'from' before module specifier"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "expected hexadecimal digits in Unicode escape sequence"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "expected '{{'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "expected ')' to close function call"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "function call started here"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "do-while loop needs parentheses around condition"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "do-while loop is missing '{1}' around condition"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "if statement needs parentheses around condition"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "if statement is missing '{1}' around condition"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "switch statement needs parentheses around condition"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "switch statement is missing '{1}' around condition"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "while loop needs parentheses around condition"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "while loop is missing '{1}' around condition"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "with statement needs parentheses around expression"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "with statement is missing '{1}' around expression"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "expected variable name for 'catch'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "expected variable name for 'import'-'as'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "exporting requires 'default'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "exporting requires '{{' and '}'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "forwarding exports are only allowed in export-from"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected 'finally' without 'try'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "a function statement is not allowed as the body of {1:singular}"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "generator function '*' belongs after keyword function"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "generator function '*' belongs before function name"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "'in' disallowed in C-style for loop initializer"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "indexing requires an expression"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -100,7 +363,29 @@ msgid "invalid expression left of assignment"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "invalid hex escape sequence: {0}"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "invalid lone literal in object literal"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "invalid function parameter"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid ""
+"'.' operator needs a key name; use + to concatenate strings; use [] to "
+"access with a dynamic key"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "invalid UTF-8 sequence"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "React/JSX is not yet implemented"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -108,7 +393,95 @@ msgid "keywords cannot contain escape sequences"
 msgstr ""
 
 #: src/quick-lint-js/error.h
-msgid "let with no bindings"
+msgid "label named 'await' not allowed in async function"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "legacy octal literal may not be BigInt"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "legacy octal literals may not contain underscores"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "{0} with no bindings"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "a lexical declaration is not allowed as the body of {1:singular}"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "functions/methods should not have '=>'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "methods should not use the 'function' keyword"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing end of array; expected ']'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "array started here"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing arrow operator for arrow function"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing parameters for arrow function"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing body for catch clause"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing body for class"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing body for do-while loop"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing body for finally clause"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing body for 'for' loop"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing body for 'if' statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing body for 'switch' statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing body for try statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing body for while loop"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing catch or finally clause for try statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "try statement starts here"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing catch variable name between parentheses"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -116,15 +489,166 @@ msgid "missing comma between object literal entries"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "missing ',' between variable declarations"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing ':' in conditional expression"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "'?' creates a conditional expression"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing condition for if statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing condition for while statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing condition for switch statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing '=' after variable"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing expression between parentheses"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing header and body for 'for' loop"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "for loop needs an iterable, or condition and update clauses"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "use 'while' instead to loop until a condition is false"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing function parameter list"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing body for function"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing for loop header"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing initializer in const declaration"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected expression; missing key for object entry"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing name in function statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing name of class"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing name of exported class"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing name of exported function"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing name or parentheses for function"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "missing operand for operator"
 msgstr ""
 
 #: src/quick-lint-js/error.h
-msgid "missing semicolon after expression"
+msgid "redundant delete statement on variable"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing operator between expression and arrow function"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing property name after '.' operator"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing semicolon after statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing semicolon between condition and update parts of for loop"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing semicolon between init and condition parts of for loop"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid ""
+"incomplete export; expected 'export default ...' or 'export {{name}' or "
+"'export * from ...' or 'export class' or 'export function' or 'export let'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing value for object property"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing variable name"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing 'while (condition)' for do-while statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "do-while statement starts here"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid ""
+"newline is not allowed between 'async' and arrow function parameter list"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "arrow is here"
 msgstr ""
 
 #: src/quick-lint-js/error.h
 msgid "number literal contains consecutive underscores"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "number literal contains trailing underscore(s)"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "octal literal may not have exponent"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "octal literal may not have decimal"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "private properties are not allowed in object literals"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -140,7 +664,11 @@ msgid "variable already declared here"
 msgstr ""
 
 #: src/quick-lint-js/error.h
-msgid "RegExp literal cannot contain Unicode escapes"
+msgid "RegExp literal flags cannot contain Unicode escapes"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "return statement returns nothing (undefined)"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -148,11 +676,40 @@ msgid "stray comma in let statement"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "stray comma in function parameter"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "TypeScript's 'enum' feature is not yet implemented by quick-lint-js"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid ""
+"const fields within classes are only allowed in TypeScript, not JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "unclosed block comment"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "unopened block comment"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unclosed code block; expected '}' by end of file"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "unclosed identifier escape sequence"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unclosed object literal; expected '}'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "object literal started here"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -172,7 +729,23 @@ msgid "unexpected '@'"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "unexpected '{0}'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "expected parameter for arrow function, but got an expression instead"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "expected parameter for arrow function, but got a literal instead"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "unexpected '\\' in identifier"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected 'case' outside switch statement"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -184,15 +757,87 @@ msgid "unexpected control character"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "unexpected characters in binary literal"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected characters in octal literal"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected characters in hex literal"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected 'default' outside switch statement"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected literal in parameter list; expected parameter name"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "C-style for loops have only three semicolon-separated components"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "for-in loop expression cannot have semicolons"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "for-of loop expression cannot have semicolons"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "binary number literal has no digits"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "hex number literal has no digits"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "octal number literal has no digits"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "unexpected '#'"
 msgstr ""
 
 #: src/quick-lint-js/error.h
-msgid "unexpected identifier"
+msgid ""
+"unicode byte order mark (BOM) cannot appear before #! at beginning of script"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected identifier in expression; missing operator before"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected token"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid ""
+"unexpected token in export; expected 'export default ...' or 'export "
+"{{name}' or 'export * from ...' or 'export class' or 'export function' or "
+"'export let'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unexpected token in variable declaration; expected variable name"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unmatched indexing bracket"
 msgstr ""
 
 #: src/quick-lint-js/error.h
 msgid "unmatched parenthesis"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unmatched '}'"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -203,20 +848,18 @@ msgstr ""
 msgid "variable used before declaration: {0}"
 msgstr ""
 
-# quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew "strager" Glazar
-#
-# This file is part of quick-lint-js.
-#
-# quick-lint-js is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# quick-lint-js is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+#: src/quick-lint-js/error.h
+msgid "function called before declaration in block scope: {0}"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "function declared here"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "break can only be used inside of a loop or switch"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "continue can only be used inside of a loop"
+msgstr ""

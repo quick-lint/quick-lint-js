@@ -4,7 +4,10 @@
 #ifndef QUICK_LINT_JS_LSP_SERVER_H
 #define QUICK_LINT_JS_LSP_SERVER_H
 
-#include <boost/leaf/result.hpp>
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <cstddef>
 #include <functional>
 #include <quick-lint-js/assert.h>
@@ -20,6 +23,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <simdjson.h>
 #include <unordered_map>
+#include <vector>
 
 #if QLJS_HAVE_CXX_CONCEPTS
 #define QLJS_LSP_LINTER ::quick_lint_js::lsp_linter
@@ -31,6 +35,7 @@ namespace quick_lint_js {
 class byte_buffer;
 class configuration;
 class configuration_filesystem;
+struct watch_io_error;
 
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Linter>
@@ -50,9 +55,10 @@ class lsp_overlay_configuration_filesystem : public configuration_filesystem {
   explicit lsp_overlay_configuration_filesystem(
       configuration_filesystem* underlying_fs);
 
-  boost::leaf::result<canonical_path_result> canonicalize_path(
+  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string&) override;
-  boost::leaf::result<padded_string> read_file(const canonical_path&) override;
+  result<padded_string, read_file_io_error> read_file(
+      const canonical_path&) override;
 
   void open_document(const std::string&, document<lsp_locator>*);
   void close_document(const std::string&);
@@ -75,11 +81,22 @@ class linting_lsp_server_handler {
         linter_(std::forward<LinterArgs>(linter_args)...) {}
 
   void handle_request(::simdjson::ondemand::object& request,
+                      std::string_view method, string8_view id_json,
                       byte_buffer& response_json);
   void handle_notification(::simdjson::ondemand::object& request,
-                           std::vector<byte_buffer>& notification_jsons);
+                           std::string_view method);
 
-  void filesystem_changed(std::vector<byte_buffer>& notification_jsons);
+  void filesystem_changed();
+
+  template <class Func>
+  void take_pending_notification_jsons(Func&& callback) noexcept {
+    for (byte_buffer& notification_json : this->pending_notification_jsons_) {
+      callback(std::move(notification_json));
+    }
+    this->pending_notification_jsons_.clear();
+  }
+
+  void add_watch_io_errors(const std::vector<watch_io_error>&);
 
  private:
   enum class document_type {
@@ -98,31 +115,47 @@ class linting_lsp_server_handler {
   };
 
   void handle_initialize_request(::simdjson::ondemand::object& request,
+                                 string8_view id_json,
                                  byte_buffer& response_json);
   void handle_shutdown_request(::simdjson::ondemand::object& request,
+                               string8_view id_json,
                                byte_buffer& response_json);
 
   void handle_text_document_did_change_notification(
-      ::simdjson::ondemand::object& request,
-      std::vector<byte_buffer>& notification_jsons);
+      ::simdjson::ondemand::object& request);
   void handle_text_document_did_close_notification(
-      ::simdjson::ondemand::object& request,
-      std::vector<byte_buffer>& notification_jsons);
+      ::simdjson::ondemand::object& request);
   void handle_text_document_did_open_notification(
-      ::simdjson::ondemand::object& request,
-      std::vector<byte_buffer>& notification_jsons);
+      ::simdjson::ondemand::object& request);
 
   void handle_config_file_changes(
-      const std::vector<configuration_change>& config_changes,
-      std::vector<byte_buffer>& notification_jsons);
+      const std::vector<configuration_change>& config_changes);
+
+  void get_config_file_diagnostics_notification(loaded_config_file*,
+                                                string8_view uri_json,
+                                                string8_view version_json,
+                                                byte_buffer& notification_json);
+
+  void write_configuration_loader_error_notification(
+      std::string_view document_path, std::string_view error_details,
+      byte_buffer& out_json);
+  void write_configuration_errors_notification(std::string_view document_path,
+                                               loaded_config_file*,
+                                               byte_buffer& out_json);
 
   static void apply_document_changes(quick_lint_js::document<lsp_locator>& doc,
                                      ::simdjson::ondemand::array& changes);
 
+  static void write_method_not_found_error_response(byte_buffer&);
+  static void write_invalid_request_error_response(byte_buffer&);
+
   lsp_overlay_configuration_filesystem config_fs_;
   configuration_loader config_loader_;
+  configuration default_config_;
   Linter linter_;
   std::unordered_map<string8, document> documents_;
+  std::vector<byte_buffer> pending_notification_jsons_;
+  bool did_report_watch_io_error_ = false;
   bool shutdown_requested_ = false;
 };
 
@@ -161,6 +194,8 @@ class mock_lsp_linter {
 extern template class linting_lsp_server_handler<lsp_javascript_linter>;
 extern template class linting_lsp_server_handler<mock_lsp_linter>;
 }
+
+#endif
 
 #endif
 

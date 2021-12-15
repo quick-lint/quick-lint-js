@@ -235,11 +235,12 @@ TEST(test_parse, stray_right_parenthesis) {
 }
 
 TEST(test_parse, statement_starting_with_binary_only_operator) {
+  // '<' omitted. It is used for JSX.
   for (string8_view op : {
-           u8"!=", u8"!==", u8"%",  u8"&",          u8"&&", u8"*",
-           u8"**", u8",",   u8"<",  u8"<<",         u8"<=", u8"=",
-           u8"==", u8"===", u8">",  u8">=",         u8">>", u8">>>",
-           u8"??", u8"^",   u8"in", u8"instanceof", u8"|",
+           u8"!=",  u8"!==", u8"%",          u8"&",  u8"&&",  u8"*",
+           u8"**",  u8",",   u8"<<",         u8"<=", u8"=",   u8"==",
+           u8"===", u8">",   u8">=",         u8">>", u8">>>", u8"??",
+           u8"^",   u8"in",  u8"instanceof", u8"|",
        }) {
     padded_string code(string8(op) + u8" x");
     SCOPED_TRACE(code);
@@ -638,6 +639,22 @@ TEST(test_parse, object_literal) {
   }
 }
 
+TEST(test_parse, object_literal_method_with_arrow_operator) {
+  {
+    spy_visitor v;
+    padded_string code(u8"let o = {method() => {}}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_functions_or_methods_should_not_have_arrow_operator,
+            arrow_operator,
+            offsets_matcher(&code, strlen(u8"let o = {method() "), u8"=>"))));
+  }
+}
+
 TEST(test_parse, expression_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"console.log('hello');"_sv);
@@ -764,20 +781,6 @@ TEST(test_parse, expression_statement) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"delete x;"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_expression(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_redundant_delete_statement_on_variable,
-                              delete_expression,
-                              offsets_matcher(&code, 0, u8"delete x"))));
-  }
-
-  {
     padded_string code(u8"#myArray[index] = rhs;"_sv);
     spy_visitor v;
     parser p(&code, &v);
@@ -792,6 +795,44 @@ TEST(test_parse, expression_statement) {
         ElementsAre(::testing::VariantWith<
                     error_cannot_refer_to_private_variable_without_object>(
             ::testing::_)));
+  }
+}
+
+TEST(test_parse, delete_of_variable) {
+  spy_visitor v;
+  padded_string code(u8"delete x;"_sv);
+  parser p(&code, &v);
+  p.parse_and_visit_expression(v);
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_delete_use"));
+  EXPECT_THAT(v.variable_uses,
+              ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_parse, delete_of_expression) {
+  spy_visitor v;
+  padded_string code(u8"delete x.p;"_sv);
+  parser p(&code, &v);
+  p.parse_and_visit_expression(v);
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
+  EXPECT_THAT(v.variable_uses,
+              ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+}
+
+TEST(test_parse, cannot_reference_private_identifier_outside_class) {
+  {
+    padded_string code(u8"this.#x = 10;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.variable_uses, IsEmpty());
+    EXPECT_THAT(v.visits, IsEmpty());
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_access_private_identifier_outside_class,
+                    private_identifier,
+                    offsets_matcher(&code, strlen(u8"this."), u8"#x"))));
   }
 }
 
@@ -1142,6 +1183,37 @@ TEST(test_parse, trailing_comma_in_comma_expression_is_disallowed) {
   }
 }
 
+TEST(test_parse, handle_unexpected_keyword_in_expression) {
+  //
+  // keywords temporarily omitted because they will crash downstream
+  // ---
+  // catch    parse_expression_remainder
+  // do       parse_and_visit_do_while
+  // else     parse_and_visit_statement
+  // extends  parse_expression_remainder: kw_extends
+  // finally  parse_expression_remainder: kw_finally
+  // function parse_and_visit_function_parameters_and_body_no_scope
+  // with     internal check failed in narrow_cast
+  //
+  for (string8_view statement : {
+           u8"break"_sv,
+           u8"case"_sv,
+           u8"const"_sv,
+           u8"continue"_sv,
+           u8"default"_sv,
+           u8"export"_sv,
+           u8"try"_sv,
+           u8"var"_sv,
+       }) {
+    padded_string code(string8(u8"*\n"_sv) + string8(statement));
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, Not(IsEmpty()));
+  }
+}
+
 TEST(test_parse, incomplete_unary_expression_with_following_statement_keyword) {
   for (string8_view statement : {
            u8"for(;x;);"_sv,
@@ -1425,6 +1497,21 @@ TEST(test_parse, disallow_await_parameter_in_async_arrow_function) {
                 error_cannot_declare_await_in_async_function, name,
                 offsets_matcher(&code, strlen(u8"(async (await, await, "),
                                 u8"await"))));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"(async (await p) => {})"_sv);
+    parser p(&code, &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_cannot_declare_await_in_async_function, name,
+                    offsets_matcher(&code, strlen(u8"(async ("), u8"await"))));
+    // TODO(strager): We're ignoring 'p'. Should we treat it as a parameter?
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"await", variable_kind::_parameter}));
   }
 }
 }

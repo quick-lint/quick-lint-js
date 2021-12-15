@@ -1,6 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if !defined(__EMSCRIPTEN__)
+
 #include <algorithm>
 #include <cstddef>
 #include <optional>
@@ -30,11 +32,11 @@ const char8* lsp_message_parser_base::find_content_begin(
 }
 
 lsp_message_parser_base::parsed_message_headers
-lsp_message_parser_base::parse_message_headers(const char8* headers_begin) {
+lsp_message_parser_base::parse_message_headers(string8_view headers) {
   std::optional<std::size_t> content_length;
-  for (const char8* c = headers_begin;;) {
-    parsed_header header = parse_header(c);
-    c = header.next;
+  while (!headers.empty()) {
+    parsed_header header = parse_header(headers);
+    headers = header.remaining;
 
     if (header_is(header.name, u8"content-length")) {
       const char8* header_value_end = &header.value.data()[header.value.size()];
@@ -42,26 +44,26 @@ lsp_message_parser_base::parse_message_headers(const char8* headers_begin) {
       from_chars_result result = from_chars(
           reinterpret_cast<const char*>(header.value.data()),
           reinterpret_cast<const char*>(header_value_end), *content_length);
-      if (reinterpret_cast<const char8*>(result.ptr) != header_value_end ||
-          result.ec != std::errc{}) {
-        QLJS_UNIMPLEMENTED();
+      bool ok =
+          reinterpret_cast<const char8*>(result.ptr) == header_value_end &&
+          result.ec == std::errc{};
+      if (ok) {
+        // We found the content-type header. No need to look at other headers;
+        // we'd ignore them anyway.
+        break;
+      } else {
+        // Invalid header value. Ignore this header.
       }
-      // We found the content-type header. No need to look at other headers;
-      // we'd ignore them anyway.
-      break;
     } else {
       // Ignore unknown headers (including Content-Type).
     }
   }
 
-  if (!content_length.has_value()) {
-    QLJS_UNIMPLEMENTED();
-  }
-  return parsed_message_headers{.content_length = *content_length};
+  return parsed_message_headers{.content_length = content_length};
 }
 
 lsp_message_parser_base::parsed_header lsp_message_parser_base::parse_header(
-    const char8* c) {
+    string8_view data) {
   // tchar: https://tools.ietf.org/html/rfc7230#section-3.2
   // ALPHA and DIGIT: https://tools.ietf.org/html/rfc5234#appendix-B.1
   static constexpr const char8 tchar[] =
@@ -76,30 +78,56 @@ lsp_message_parser_base::parsed_header lsp_message_parser_base::parse_header(
   // OWS: https://tools.ietf.org/html/rfc7230#section-3.2.3
   static constexpr const char8 ows[] = u8" \t";
 
-  string8_view header_name(c, strspn(c, tchar));
-  c += header_name.size();
+  auto find_line_terminator = [](string8_view haystack) -> const char8* {
+    auto terminator_begin = std::search(haystack.begin(), haystack.end(), crlf,
+                                        crlf + strlen(crlf));
+    QLJS_ASSERT(terminator_begin != haystack.end());
+    return &*terminator_begin;
+  };
+
+  auto error_skip_line = [&]() -> parsed_header {
+    const char8* line_terminator = find_line_terminator(data);
+    return parsed_header{
+        .name = {},
+        .value = {},
+        .remaining = data.substr(narrow_cast<std::size_t>(
+            (line_terminator + strlen(crlf)) - data.data())),
+    };
+  };
+
+  std::size_t header_name_end_index = data.find_first_not_of(tchar);
+  QLJS_ASSERT(header_name_end_index != data.npos);  // We expect at least \r\n.
+  string8_view header_name = data.substr(0, header_name_end_index);
+  data = data.substr(header_name_end_index);
   if (header_name.empty()) {
-    QLJS_UNIMPLEMENTED();
+    return error_skip_line();
   }
 
-  if (*c != u8':') {
-    QLJS_UNIMPLEMENTED();
+  QLJS_ASSERT(!data.empty());
+  if (data[0] != u8':') {
+    return error_skip_line();
   }
-  c += 1;
+  data = data.substr(1);
 
-  c += strspn(c, ows);
-  const char8* header_value_begin = c;
-  const char8* header_terminator_begin = strstr(c, crlf);
-  QLJS_ASSERT(header_terminator_begin);
-  const char8* header_value_end = header_terminator_begin;
+  std::size_t header_value_index = data.find_first_not_of(ows);
+  QLJS_ASSERT(header_value_index != data.npos);  // We expect at least \r\n.
+  data = data.substr(header_value_index);
+
+  const char8* header_value_begin = data.data();
+  auto header_terminator_begin =
+      std::search(data.begin(), data.end(), crlf, crlf + strlen(crlf));
+  QLJS_ASSERT(header_terminator_begin != data.end());
+  const char8* header_value_end = &*header_terminator_begin;
+  string8_view header_value(
+      header_value_begin,
+      narrow_cast<std::size_t>(header_value_end - header_value_begin));
   // TODO(strager): Trim trailing whitespace.
+  data = data.substr(header_value.size() + strlen(crlf));
 
   return parsed_header{
       .name = header_name,
-      .value = string8_view(
-          header_value_begin,
-          narrow_cast<std::size_t>(header_value_end - header_value_begin)),
-      .next = header_terminator_begin + strlen(crlf),
+      .value = header_value,
+      .remaining = data,
   };
 }
 
@@ -120,6 +148,8 @@ bool lsp_message_parser_base::header_is(string8_view header_name,
                     });
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

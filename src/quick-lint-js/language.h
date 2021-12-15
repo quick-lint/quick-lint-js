@@ -34,6 +34,8 @@ enum class function_attributes {
   generator,
   normal,
 };
+
+std::ostream& operator<<(std::ostream&, function_attributes);
 }
 
 #endif

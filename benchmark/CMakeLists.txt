@@ -4,6 +4,8 @@
 cmake_minimum_required(VERSION 3.10)
 include(QuickLintJSTarget)
 
+add_subdirectory(benchmark-lsp)
+
 function (quick_lint_js_add_benchmark_executable TARGET_NAME)
   set(SOURCES "${ARGN}")
   quick_lint_js_add_executable("${TARGET_NAME}" ${SOURCES})
@@ -20,6 +22,10 @@ endfunction ()
 quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-cli-location
   benchmark-cli-location.cpp
+)
+quick_lint_js_add_benchmark_executable(
+  quick-lint-js-benchmark-configuration
+  benchmark-configuration.cpp
 )
 quick_lint_js_add_benchmark_executable(
   quick-lint-js-benchmark-configuration-loader

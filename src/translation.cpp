@@ -6,10 +6,8 @@
 #include <cstring>
 #include <optional>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/gmo.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/program-report.h>
-#include <quick-lint-js/translation-data.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/warning.h>
 #include <string>
@@ -74,7 +72,7 @@ void initialize_locale() {
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
-const char8* translate(const gmo_message& message) {
+const char8* translate(const translatable_message& message) {
   const char* translated_message = qljs_messages.translate(message);
   // HACK(strager): Assume message encoding is UTF-8.
   return reinterpret_cast<const char8*>(translated_message);
@@ -84,45 +82,40 @@ QLJS_WARNING_POP
 
 void initialize_translations_from_environment() {
   initialize_locale();
-  if (!qljs_messages.use_messages_from_locales(get_user_locale_preferences(),
-                                               gmo_files)) {
+  if (!qljs_messages.use_messages_from_locales(get_user_locale_preferences())) {
     qljs_messages.use_messages_from_source_code();
   }
 }
 
 void initialize_translations_from_locale(const char* locale_name) {
   initialize_locale();
-  if (!qljs_messages.use_messages_from_locale(locale_name, gmo_files)) {
+  if (!qljs_messages.use_messages_from_locale(locale_name)) {
     qljs_messages.use_messages_from_source_code();
   }
 }
 
 void translatable_messages::use_messages_from_source_code() {
-  this->translation_ = std::nullopt;
+  this->locale_index_ = std::nullopt;
 }
 
-bool translatable_messages::use_messages_from_locale(
-    const char* locale_name,
-    const locale_entry<const std::uint8_t*>* gmo_files) {
-  const locale_entry<const std::uint8_t*>* gmo_file_entry =
-      find_locale_entry(gmo_files, locale_name);
-  if (gmo_file_entry) {
-    this->translation_.emplace(gmo_file_entry->data);
+bool translatable_messages::use_messages_from_locale(const char* locale_name) {
+  std::optional<int> locale_index =
+      find_locale(translation_data.locale_table, locale_name);
+  if (locale_index.has_value()) {
+    this->locale_index_ = locale_index;
     return true;
   }
   return false;
 }
 
 bool translatable_messages::use_messages_from_locales(
-    const std::vector<std::string>& locale_names,
-    const locale_entry<const std::uint8_t*>* gmo_files) {
+    const std::vector<std::string>& locale_names) {
   for (const std::string& locale : locale_names) {
     if (locale == "C" || locale == "POSIX") {
       // Stop seaching. C/POSIX locale takes priority. See GNU gettext.
       break;
     }
-    bool found_messages =
-        this->use_messages_from_locale(locale.c_str(), gmo_files);
+    bool found_messages = this->use_messages_from_locale(locale.c_str());
     if (found_messages) {
       return true;
     }
@@ -130,11 +123,21 @@ bool translatable_messages::use_messages_from_locales(
   return false;
 }
 
-const char* translatable_messages::translate(const gmo_message& message) {
-  if (this->translation_.has_value()) {
-    return this->translation_->find_translation(message).data();
+const char* translatable_messages::translate(
+    const translatable_message& message) {
+  if (this->locale_index_.has_value()) {
+    std::uint16_t mapping_index = message.translation_table_mapping_index();
+    if (mapping_index == translation_data.unallocated_mapping_index) {
+      // The string is not in the translation table.
+      return message.c_str();
+    }
+    translation_table::mapping_entry& mapping =
+        translation_data.mapping_table[mapping_index];
+    std::uint32_t string_offset = mapping.string_offsets[*this->locale_index_];
+    return reinterpret_cast<const char*>(translation_data.string_table +
+                                         string_offset);
   } else {
-    return message.message.data();
+    return message.c_str();
   }
 }
 }

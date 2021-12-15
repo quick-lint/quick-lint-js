@@ -4,6 +4,9 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/error-matcher.h>
+#include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lint.h>
 #include <string_view>
@@ -20,6 +23,9 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
+void load_from_json(configuration&, padded_string_view json);
+void load_from_json(configuration&, string8_view json);
+
 TEST(test_configuration, browser_globals_are_present_by_default) {
   configuration c;
 
@@ -51,8 +57,9 @@ TEST(test_configuration, browser_globals_are_present_by_default) {
   };
   for (string8_view variable_name : global_variables) {
     SCOPED_TRACE(out_string8(variable_name));
-    const global_declared_variable* var = c.globals().find(variable_name);
-    ASSERT_TRUE(var);
+    std::optional<global_declared_variable> var =
+        c.globals().find(variable_name);
+    ASSERT_TRUE(var.has_value());
   }
 }
 
@@ -121,8 +128,9 @@ TEST(test_configuration, ecmascript_globals_are_present_by_default) {
   };
   for (string8_view variable_name : writable_global_variables) {
     SCOPED_TRACE(out_string8(variable_name));
-    const global_declared_variable* var = c.globals().find(variable_name);
-    ASSERT_TRUE(var);
+    std::optional<global_declared_variable> var =
+        c.globals().find(variable_name);
+    ASSERT_TRUE(var.has_value());
     EXPECT_TRUE(var->is_writable);
     EXPECT_TRUE(var->is_shadowable);
   }
@@ -135,8 +143,9 @@ TEST(test_configuration, ecmascript_globals_are_present_by_default) {
   };
   for (string8_view variable_name : non_writable_global_variables) {
     SCOPED_TRACE(out_string8(variable_name));
-    const global_declared_variable* var = c.globals().find(variable_name);
-    ASSERT_TRUE(var);
+    std::optional<global_declared_variable> var =
+        c.globals().find(variable_name);
+    ASSERT_TRUE(var.has_value());
     EXPECT_FALSE(var->is_writable);
     EXPECT_TRUE(var->is_shadowable);
   }
@@ -145,15 +154,26 @@ TEST(test_configuration, ecmascript_globals_are_present_by_default) {
 TEST(test_configuration, node_js_globals_are_present_by_default) {
   configuration c;
 
-  constexpr const char8* writable_commonjs_module_variables[] = {
+  constexpr const char8* writable_commonjs_variables[] = {
       u8"__dirname", u8"__filename", u8"exports", u8"module", u8"require",
   };
-  for (string8_view variable_name : writable_commonjs_module_variables) {
+  for (string8_view variable_name : writable_commonjs_variables) {
     SCOPED_TRACE(out_string8(variable_name));
-    const global_declared_variable* var = c.globals().find(variable_name);
-    ASSERT_TRUE(var);
+    std::optional<global_declared_variable> var =
+        c.globals().find(variable_name);
+    ASSERT_TRUE(var.has_value());
     EXPECT_TRUE(var->is_writable);
-    EXPECT_FALSE(var->is_shadowable);
+  }
+}
+
+TEST(test_configuration, default_globals_are_all_shadowable) {
+  configuration c;
+  for (string8_view variable_name : c.globals().get_all_variable_names()) {
+    SCOPED_TRACE(out_string8(variable_name));
+    std::optional<global_declared_variable> var =
+        c.globals().find(variable_name);
+    ASSERT_TRUE(var.has_value());
+    EXPECT_TRUE(var->is_shadowable);
   }
 }
 
@@ -165,28 +185,48 @@ TEST(test_configuration, missing_global_variable_does_not_exist_by_default) {
 TEST(test_configuration, add_new_global_variable) {
   configuration c;
 
-  global_declared_variable* var =
-      c.add_global_variable(u8"myGlobalVariable"_sv);
-  EXPECT_EQ(var->name, u8"myGlobalVariable"_sv);
-  EXPECT_TRUE(var->is_shadowable);
-  EXPECT_TRUE(var->is_writable);
+  c.add_global_variable(global_declared_variable{
+      .name = u8"myGlobalVariable"_sv,
+      .is_writable = true,
+      .is_shadowable = true,
+  });
 
-  const global_declared_variable* found_var =
+  std::optional<global_declared_variable> found_var =
       c.globals().find(u8"myGlobalVariable"_sv);
-  EXPECT_TRUE(found_var);
+  EXPECT_TRUE(found_var.has_value());
+  EXPECT_EQ(found_var->name, u8"myGlobalVariable"_sv);
+  EXPECT_TRUE(found_var->is_shadowable);
+  EXPECT_TRUE(found_var->is_writable);
 }
 
 TEST(test_configuration, added_global_variable_shadows_default) {
   configuration c;
 
-  global_declared_variable* var = c.add_global_variable(u8"Array"_sv);
-  var->is_shadowable = false;
-  var->is_writable = false;
+  c.add_global_variable(global_declared_variable{
+      .name = u8"Array"_sv,
+      .is_writable = false,
+      .is_shadowable = false,
+  });
 
-  const global_declared_variable* found_var = c.globals().find(u8"Array"_sv);
-  ASSERT_TRUE(found_var);
+  std::optional<global_declared_variable> found_var =
+      c.globals().find(u8"Array"_sv);
+  ASSERT_TRUE(found_var.has_value());
   EXPECT_FALSE(found_var->is_shadowable);
   EXPECT_FALSE(found_var->is_writable);
+}
+
+TEST(test_configuration,
+     adding_global_variable_does_not_disable_default_groups) {
+  configuration c;
+
+  c.add_global_variable(global_declared_variable{
+      .name = u8"testGlobalVariable"_sv,
+      .is_writable = true,
+      .is_shadowable = true,
+  });
+
+  EXPECT_TRUE(c.globals().find(u8"Array"_sv));
+  EXPECT_TRUE(c.globals().find(u8"console"_sv));
 }
 
 TEST(test_configuration, removed_global_variable_shadows_default) {
@@ -253,29 +293,74 @@ TEST(test_configuration, add_ecmascript_and_node_js_groups) {
   }
 }
 
+TEST(test_configuration, literally_anything_group_by_name) {
+  configuration c;
+  c.reset_global_groups();
+  EXPECT_TRUE(c.add_global_group(u8"literally-anything"sv));
+
+  EXPECT_TRUE(c.globals().find(u8"Array"sv));
+  EXPECT_TRUE(c.globals().find(u8"console"sv));
+  std::optional<global_declared_variable> found_var =
+      c.globals().find(u8"thisVariableWasNeverSpecifiedButStillExists"sv);
+  ASSERT_TRUE(found_var.has_value());
+  EXPECT_TRUE(found_var->is_shadowable);
+  EXPECT_TRUE(found_var->is_writable);
+}
+
+TEST(test_configuration,
+     literally_anything_group_preserves_other_global_properties) {
+  configuration c;
+  c.reset_global_groups();
+  EXPECT_TRUE(c.add_global_group(u8"ecmascript"sv));
+  EXPECT_TRUE(c.add_global_group(u8"literally-anything"sv));
+  EXPECT_TRUE(c.add_global_group(u8"node.js"sv));
+  c.add_global_variable(global_declared_variable{
+      .name = u8"testGlobalVariable"sv,
+      .is_writable = false,
+      .is_shadowable = false,
+  });
+  c.add_global_variable(global_declared_variable{
+      .name = u8"require"sv,
+      .is_writable = true,
+      .is_shadowable = false,
+  });
+
+  std::optional<global_declared_variable> found_var;
+
+  found_var = c.globals().find(u8"Array"sv);
+  EXPECT_TRUE(found_var->is_shadowable);
+  EXPECT_TRUE(found_var->is_writable);
+
+  found_var = c.globals().find(u8"require"sv);
+  EXPECT_FALSE(found_var->is_shadowable);
+  EXPECT_TRUE(found_var->is_writable);
+
+  found_var = c.globals().find(u8"Infinity"sv);
+  EXPECT_TRUE(found_var->is_shadowable);
+  EXPECT_FALSE(found_var->is_writable);
+
+  found_var = c.globals().find(u8"testGlobalVariable"sv);
+  EXPECT_FALSE(found_var->is_shadowable);
+  EXPECT_FALSE(found_var->is_writable);
+}
+
 TEST(test_configuration_json, empty_json_creates_default_config) {
   configuration c;
-
-  padded_string json(u8"{}"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8"{}"sv);
 
   EXPECT_DEFAULT_CONFIG(c);
 }
 
 TEST(test_configuration_json, true_global_groups_leaves_defaults) {
   configuration c;
-
-  padded_string json(u8R"({"global-groups": true})"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8R"({"global-groups": true})"sv);
 
   EXPECT_DEFAULT_CONFIG(c);
 }
 
 TEST(test_configuration_json, false_global_groups_disables_all_groups) {
   configuration c;
-
-  padded_string json(u8R"({"global-groups": false})"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8R"({"global-groups": false})"sv);
 
   EXPECT_FALSE(c.globals().find(u8"Array"sv));
   EXPECT_FALSE(c.globals().find(u8"console"sv));
@@ -283,9 +368,7 @@ TEST(test_configuration_json, false_global_groups_disables_all_groups) {
 
 TEST(test_configuration_json, empty_global_groups_disables_all_groups) {
   configuration c;
-
-  padded_string json(u8R"({"global-groups": []})"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8R"({"global-groups": []})"sv);
 
   EXPECT_FALSE(c.globals().find(u8"Array"sv));
   EXPECT_FALSE(c.globals().find(u8"console"sv));
@@ -293,9 +376,7 @@ TEST(test_configuration_json, empty_global_groups_disables_all_groups) {
 
 TEST(test_configuration_json, global_groups_with_node_js_enables_only_node_js) {
   configuration c;
-
-  padded_string json(u8R"({"global-groups": ["node.js"]})"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8R"({"global-groups": ["node.js"]})"sv);
 
   EXPECT_TRUE(c.globals().find(u8"console"sv));
   EXPECT_FALSE(c.globals().find(u8"Array"sv));
@@ -303,73 +384,62 @@ TEST(test_configuration_json, global_groups_with_node_js_enables_only_node_js) {
 
 TEST(test_configuration_json, empty_globals_leaves_defaults) {
   configuration c;
-
-  padded_string json(u8R"({"globals": {}})"sv);
-  c.load_from_json(&json);
+  load_from_json(c, u8R"({"globals": {}})"sv);
 
   EXPECT_DEFAULT_CONFIG(c);
 }
 
 TEST(test_configuration_json, true_global_is_usable) {
   configuration c;
+  load_from_json(c, u8R"({"globals": {"myTestGlobalVariable": true}})"sv);
 
-  padded_string json(u8R"({"globals": {"myTestGlobalVariable": true}})"sv);
-  c.load_from_json(&json);
-
-  const global_declared_variable* found_var =
+  std::optional<global_declared_variable> found_var =
       c.globals().find(u8"myTestGlobalVariable"_sv);
-  ASSERT_TRUE(found_var);
+  ASSERT_TRUE(found_var.has_value());
   EXPECT_TRUE(found_var->is_shadowable);
   EXPECT_TRUE(found_var->is_writable);
 }
 
 TEST(test_configuration_json, empty_object_global_is_usable) {
   configuration c;
+  load_from_json(c, u8R"({"globals": {"myTestGlobalVariable": {}}})"sv);
 
-  padded_string json(u8R"({"globals": {"myTestGlobalVariable": {}}})"sv);
-  c.load_from_json(&json);
-
-  const global_declared_variable* found_var =
+  std::optional<global_declared_variable> found_var =
       c.globals().find(u8"myTestGlobalVariable"_sv);
-  ASSERT_TRUE(found_var);
+  ASSERT_TRUE(found_var.has_value());
   EXPECT_TRUE(found_var->is_shadowable);
   EXPECT_TRUE(found_var->is_writable);
 }
 
 TEST(test_configuration_json, unwritable_global_is_not_writable) {
   configuration c;
+  load_from_json(
+      c, u8R"({"globals": {"myTestGlobalVariable": {"writable": false}}})"sv);
 
-  padded_string json(
-      u8R"({"globals": {"myTestGlobalVariable": {"writable": false}}})"sv);
-  c.load_from_json(&json);
-
-  const global_declared_variable* found_var =
+  std::optional<global_declared_variable> found_var =
       c.globals().find(u8"myTestGlobalVariable"_sv);
-  ASSERT_TRUE(found_var);
+  ASSERT_TRUE(found_var.has_value());
   EXPECT_TRUE(found_var->is_shadowable);
   EXPECT_FALSE(found_var->is_writable);
 }
 
 TEST(test_configuration_json, unshadowable_global_is_not_shadowable) {
   configuration c;
+  load_from_json(
+      c, u8R"({"globals": {"myTestGlobalVariable": {"shadowable": false}}})"sv);
 
-  padded_string json(
-      u8R"({"globals": {"myTestGlobalVariable": {"shadowable": false}}})"sv);
-  c.load_from_json(&json);
-
-  const global_declared_variable* found_var =
+  std::optional<global_declared_variable> found_var =
       c.globals().find(u8"myTestGlobalVariable"_sv);
-  ASSERT_TRUE(found_var);
+  ASSERT_TRUE(found_var.has_value());
   EXPECT_FALSE(found_var->is_shadowable);
   EXPECT_TRUE(found_var->is_writable);
 }
 
 TEST(test_configuration_json, false_global_overrides_global_group) {
   configuration c;
-
-  padded_string json(
+  load_from_json(
+      c,
       u8R"({"globals": {"console": false}, "global-groups": ["ecmascript", "node.js"]})"sv);
-  c.load_from_json(&json);
 
   EXPECT_TRUE(c.globals().find(u8"Array"_sv))
       << "ecmascript group should take effect";
@@ -377,6 +447,204 @@ TEST(test_configuration_json, false_global_overrides_global_group) {
       << "node.js group should take effect";
   EXPECT_FALSE(c.globals().find(u8"console"_sv))
       << "'console' from node.js group should overwritten";
+}
+
+TEST(test_configuration_json, invalid_json_reports_error) {
+  // TODO(strager): The following are erroneously treated as schema
+  // errors, but should be JSON parse errors:
+  // u8R"({"global-groups": {42}})"sv,
+  // u8R"({"globals":{"a":{"shadowable":[}}}})"sv,
+  for (string8_view json_string : {
+           u8R"({)"sv,
+           u8R"({"globals)"sv,
+           u8R"({"globals": {42}})"sv,
+           u8"{\"globals\":{\"globals\":\u0000{}}}}"sv,
+           u8R"({"globals":{"G":{":"}}})"sv,
+           u8R"({"globals":}})"sv,
+           u8R"({"global-groups":=)"sv,
+           u8R"({"globals":{"g":f}})"sv,
+           u8R"({"global-groups":[)"sv,
+           u8R"({"global-groups":t)"sv,
+       }) {
+    SCOPED_TRACE(out_string8(json_string));
+    configuration c;
+
+    padded_string json(json_string);
+    error_collector errors;
+    c.load_from_json(&json, &errors);
+
+    // TODO(strager): Check error_config_json_syntax_error::where.
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(::testing::VariantWith<error_config_json_syntax_error>(
+            ::testing::_)));
+  }
+}
+
+TEST(test_configuration_json, bad_schema_in_globals_reports_error) {
+  {
+    padded_string json(u8R"({"globals":["myGlobalVariable"]})"sv);
+    configuration c;
+    error_collector errors;
+    c.load_from_json(&json, &errors);
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_config_globals_type_mismatch, value,
+            offsets_matcher(&json, strlen(u8R"({"globals":)"), u8"["))));
+    EXPECT_FALSE(c.globals().find(u8"myGlobalVariable"_sv))
+        << "invalid global should be ignored";
+  }
+
+  {
+    padded_string json(
+        u8R"({"globals":{"testBefore":true,"testBad":"string","testAfter":true}})"sv);
+    configuration c;
+    error_collector errors;
+    c.load_from_json(&json, &errors);
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_config_globals_descriptor_type_mismatch, descriptor,
+            offsets_matcher(
+                &json, strlen(u8R"({"globals":{"testBefore":true,"testBad":)"),
+                u8R"("string")"))));
+
+    EXPECT_TRUE(c.globals().find(u8"testBefore"_sv))
+        << "valid globals before should work";
+    EXPECT_TRUE(c.globals().find(u8"testAfter"_sv))
+        << "valid globals after should work";
+    EXPECT_FALSE(c.globals().find(u8"testBad"_sv))
+        << "invalid global should be ignored";
+  }
+
+  {
+    padded_string json(
+        u8R"({"globals":{"testBefore":true,"testBad":{"writable":false,"shadowable":"string"},"testAfter":true}})"sv);
+    configuration c;
+    error_collector errors;
+    c.load_from_json(&json, &errors);
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_config_globals_descriptor_shadowable_type_mismatch, value,
+            offsets_matcher(
+                &json,
+                strlen(
+                    u8R"({"globals":{"testBefore":true,"testBad":{"writable":false,"shadowable":)"),
+                u8R"("string")"))));
+
+    EXPECT_TRUE(c.globals().find(u8"testBefore"_sv))
+        << "valid globals before should work";
+    EXPECT_TRUE(c.globals().find(u8"testAfter"_sv))
+        << "valid globals after should work";
+    std::optional<global_declared_variable> var =
+        c.globals().find(u8"testBad"_sv);
+    ASSERT_TRUE(var.has_value()) << "broken global should be present";
+    EXPECT_FALSE(var->is_writable)
+        << "valid property on broken global should work";
+    EXPECT_TRUE(var->is_shadowable)
+        << "invalid global property should be ignored (default)";
+  }
+
+  {
+    padded_string json(
+        u8R"({"globals":{"testBefore":true,"testBad":{"writable":"string","shadowable":false},"testAfter":true}})"sv);
+    configuration c;
+    error_collector errors;
+    c.load_from_json(&json, &errors);
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_config_globals_descriptor_writable_type_mismatch, value,
+            offsets_matcher(
+                &json,
+                strlen(
+                    u8R"({"globals":{"testBefore":true,"testBad":{"writable":)"),
+                u8R"("string")"))));
+
+    EXPECT_TRUE(c.globals().find(u8"testBefore"_sv))
+        << "valid globals before should work";
+    EXPECT_TRUE(c.globals().find(u8"testAfter"_sv))
+        << "valid globals after should work";
+    std::optional<global_declared_variable> var =
+        c.globals().find(u8"testBad"_sv);
+    ASSERT_TRUE(var.has_value()) << "broken global should be present";
+    EXPECT_TRUE(var->is_writable)
+        << "invalid global property should be ignored (default)";
+    EXPECT_FALSE(var->is_shadowable)
+        << "valid property on broken global should work";
+  }
+}
+
+TEST(test_configuration_json, bad_schema_in_global_groups_reports_error) {
+  {
+    padded_string json(u8R"({"global-groups":{"browser":true}})"sv);
+    configuration c;
+    error_collector errors;
+    c.load_from_json(&json, &errors);
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_config_global_groups_type_mismatch, value,
+            offsets_matcher(&json, strlen(u8R"({"global-groups":)"), u8"{"))));
+    EXPECT_TRUE(c.globals().find(u8"Array"_sv))
+        << "invalid global-groups should be ignored";
+  }
+
+  {
+    padded_string json(
+        u8R"({"global-groups":["browser",false,"ecmascript"]})"sv);
+    configuration c;
+    error_collector errors;
+    c.load_from_json(&json, &errors);
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_config_global_groups_group_type_mismatch, group,
+            offsets_matcher(&json, strlen(u8R"({"global-groups":["browser",)"),
+                            u8"false"))));
+
+    EXPECT_TRUE(c.globals().find(u8"Array"_sv))
+        << "valid group-groups entries should take effect\n"
+           "('Array' is from the 'ecmascript' group)";
+    EXPECT_TRUE(c.globals().find(u8"document"_sv))
+        << "valid group-groups entries should take effect\n"
+           "('document' is from the 'browser' group)";
+    EXPECT_FALSE(c.globals().find(u8"require"_sv))
+        << "invalid global-groups entry should be ignored; "
+           "it shouldn't cause the entire global-groups array to be ignored\n"
+           "('require' is a default)";
+  }
+}
+
+TEST(test_configuration_json, bad_global_error_excludes_trailing_whitespace) {
+  // simdjson's raw_json_token function returns trailing whitespace by default.
+  // Ensure the whitespace is not included in error messages.
+
+  // According to RFC 8259, whitespace characters are U+0009, U+000A, U+000D,
+  // and U+0020.
+  padded_string json(u8"{ \"globals\": { \"a\": \"b\"  \n\t\r }}"sv);
+  configuration c;
+  error_collector errors;
+  c.load_from_json(&json, &errors);
+
+  EXPECT_THAT(errors.errors,
+              ElementsAre(ERROR_TYPE_FIELD(
+                  error_config_globals_descriptor_type_mismatch, descriptor,
+                  offsets_matcher(&json, strlen(u8R"({ "globals": { "a": )"),
+                                  u8R"("b")"))));
+}
+
+void load_from_json(configuration& config, padded_string_view json) {
+  error_collector errors;
+  config.load_from_json(json, &errors);
+  EXPECT_THAT(errors.errors, ::testing::IsEmpty());
+}
+
+void load_from_json(configuration& config, string8_view json) {
+  padded_string padded_json(json);
+  load_from_json(config, &padded_json);
 }
 }
 }

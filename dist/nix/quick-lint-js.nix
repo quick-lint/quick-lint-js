@@ -13,7 +13,7 @@
 
 mkDerivation {
   pname = "quick-lint-js";
-  version = "0.3.0";
+  version = builtins.head (builtins.split "\n" (builtins.readFile ../../version));
 
   src = ../../.;
   unpackPhase = null;

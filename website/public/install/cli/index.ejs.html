@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html lang="en">
+  <head>
+    <%- await include("../../common-head.ejs.html") %>
+    <title>quick-lint-js: install CLI and LSP server</title>
+    <meta
+      name="description"
+      content="Install quick-lint-js's CLI and LSP server"
+    />
+    <link href="../../main.css" rel="stylesheet" />
+  </head>
+  <body class="side-bar-nav">
+    <header>
+      <%- await include("../../common-nav.ejs.html") %>
+      <nav class="breadcrumbs">
+        <ol>
+          <li><a href="../">Install</a></li>
+          <li>CLI &amp; LSP server</li>
+        </ol>
+      </nav>
+    </header>
+
+    <main>
+      <h2>
+        <img
+          class="install-logo"
+          src="../../gnome-terminal.svg"
+          alt=""
+          title="CLI and LSP server"
+          width="29"
+          height="29"
+        />
+        Install CLI and LSP server
+      </h2>
+      <p>Choose which operating system you want to install on:</p>
+
+      <figure>
+        <div class="os-column-table">
+          <div class="linux">
+            <h3>
+              <img
+                class="os-logo"
+                src="../../linux.svg"
+                alt=""
+                title=""
+                width="22"
+                height="22"
+              />&nbsp;GNU/Linux
+            </h3>
+            <ul>
+              <li>
+                <a href="debian/"
+                  ><img
+                    class="install-logo"
+                    src="../../debian.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                  />&nbsp;Debian</a
+                >
+              </li>
+              <li>
+                <a href="debian/"
+                  ><img
+                    class="install-logo"
+                    src="../../ubuntu.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                  />&nbsp;Ubuntu</a
+                >
+              </li>
+              <li>
+                <a href="arch-linux/"
+                  ><img
+                    class="install-logo"
+                    src="../../arch-linux.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                  />&nbsp;Arch Linux</a
+                >
+              </li>
+              <li>
+                <a href="nix/"
+                  ><img
+                    class="install-logo"
+                    src="../../nix.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                  />&nbsp;Nix</a
+                >
+              </li>
+              <li>
+                <a href="npm/"
+                  ><img
+                    class="install-logo"
+                    src="../../npm.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                  />&nbsp;npm<span class="footnote-marker"
+                    ><span
+                      aria-label="goodies not included"
+                      title="goodies not included"
+                      >&nbsp;*</span
+                    ><span
+                      aria-label="not installed globally"
+                      title="not installed globally"
+                      >†</span
+                    ></span
+                  ></a
+                >
+              </li>
+              <li>
+                <a href="static-linux/"
+                  >Manual<span class="footnote-marker"
+                    ><span
+                      aria-label="goodies not included"
+                      title="goodies not included"
+                      >&nbsp;*</span
+                    ></span
+                  ></a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div class="macos">
+            <h3>
+              <img
+                class="os-logo"
+                src="../../macos.svg"
+                alt=""
+                title=""
+                width="22"
+                height="22"
+              />&nbsp;macOS
+            </h3>
+            <ul>
+              <li>
+                <a href="homebrew/"
+                  ><img
+                    class="install-logo"
+                    src="../../homebrew.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                  />&nbsp;Homebrew</a
+                >
+              </li>
+              <li>
+                <a href="nix/"
+                  ><img
+                    class="install-logo"
+                    src="../../nix.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                  />&nbsp;Nix</a
+                >
+              </li>
+              <li>
+                <a href="npm/"
+                  ><img
+                    class="install-logo"
+                    src="../../npm.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                  />&nbsp;npm<span class="footnote-marker"
+                    ><span
+                      aria-label="goodies not included"
+                      title="goodies not included"
+                      >&nbsp;*</span
+                    ><span
+                      aria-label="not installed globally"
+                      title="not installed globally"
+                      >†</span
+                    ></span
+                  ></a
+                >
+              </li>
+              <li>
+                <a href="static-macos/"
+                  >Manual<span class="footnote-marker"
+                    ><span
+                      aria-label="goodies not included"
+                      title="goodies not included"
+                      >&nbsp;*</span
+                    ></span
+                  ></a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div class="windows">
+            <h3>
+              <img
+                class="os-logo"
+                src="../../windows.svg"
+                alt=""
+                title=""
+                width="22"
+                height="22"
+              />&nbsp;Windows
+            </h3>
+            <ul>
+              <li>
+                <a href="npm/"
+                  ><img
+                    class="install-logo"
+                    src="../../npm.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                  />&nbsp;npm<span class="footnote-marker"
+                    ><span
+                      aria-label="goodies not included"
+                      title="goodies not included"
+                      >&nbsp;*</span
+                    ><span
+                      aria-label="not installed globally"
+                      title="not installed globally"
+                      >†</span
+                    ></span
+                  ></a
+                >
+              </li>
+              <li>
+                <a href="static-windows/"
+                  >Manual<span class="footnote-marker"
+                    ><span
+                      aria-label="goodies not included"
+                      title="goodies not included"
+                      >&nbsp;*</span
+                    ></span
+                  ></a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <figcaption>
+          <p>
+            <span>*</span> This installation method might not install extras
+            such as documentation or shell completion plugins.
+          </p>
+          <p>
+            <span>†</span> The LSP server is not installed globally with this
+            installation method, so some editors might not be able to access it.
+          </p>
+        </figcaption>
+      </figure>
+    </main>
+
+    <footer><%- await include("../../common-footer-nav.ejs.html") %></footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<!--
+Other files may have different copyright and may be licensed under different
+licenses. See license/ for details.
+-->

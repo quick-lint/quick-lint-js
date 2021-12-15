@@ -1,6 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if !defined(__EMSCRIPTEN__)
+
 #include <algorithm>
 #include <array>
 #include <quick-lint-js/byte-buffer.h>
@@ -35,6 +37,8 @@ void lsp_pipe_writer::send_message(byte_buffer&& message) {
   this->write(std::move(message));
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

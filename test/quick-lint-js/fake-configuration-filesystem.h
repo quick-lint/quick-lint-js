@@ -4,9 +4,11 @@
 #ifndef QUICK_LINT_JS_FAKE_CONFIGURATION_FILESYSTEM_H
 #define QUICK_LINT_JS_FAKE_CONFIGURATION_FILESYSTEM_H
 
-#include <boost/leaf/common.hpp>
-#include <boost/leaf/error.hpp>
-#include <boost/leaf/result.hpp>
+#if defined(__EMSCRIPTEN__)
+// No filesystem on the web.
+#else
+
+#include <functional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
@@ -20,9 +22,19 @@
 namespace quick_lint_js {
 class fake_configuration_filesystem : public configuration_filesystem {
  public:
+  using read_file_result = result<padded_string, read_file_io_error>;
+
   // Create a new file, or modify an existing file.
   void create_file(const canonical_path& path, string8_view content) {
-    this->files_.insert_or_assign(path, content);
+    this->files_.insert_or_assign(
+        path, [content_string = string8(content)]() -> read_file_result {
+          return padded_string(string8_view(content_string));
+        });
+  }
+
+  void create_file(const canonical_path& path,
+                   std::function<read_file_result()> callback) {
+    this->files_.insert_or_assign(path, std::move(callback));
   }
 
   canonical_path rooted(const char* path) const {
@@ -51,31 +63,36 @@ class fake_configuration_filesystem : public configuration_filesystem {
 #endif
   }
 
-  boost::leaf::result<canonical_path_result> canonicalize_path(
+  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
       const std::string& path) override {
     // TODO(strager): Check if path components exist.
     return canonical_path_result(std::string(path), path.size());
   }
 
-  boost::leaf::result<padded_string> read_file(
+  result<padded_string, read_file_io_error> read_file(
       const canonical_path& path) override {
     auto file_it = this->files_.find(path);
     if (file_it == this->files_.end()) {
 #if QLJS_HAVE_WINDOWS_H
-      return boost::leaf::new_error(
-          boost::leaf::windows::e_LastError{ERROR_FILE_NOT_FOUND});
+      windows_file_io_error io_error = {ERROR_FILE_NOT_FOUND};
 #endif
 #if QLJS_HAVE_UNISTD_H
-      return boost::leaf::new_error(boost::leaf::e_errno{ENOENT});
+      posix_file_io_error io_error = {ENOENT};
 #endif
+      return read_file_result::failure<read_file_io_error>(read_file_io_error{
+          .path = std::string(path.path()),
+          .io_error = io_error,
+      });
     }
-    return padded_string(string8_view(file_it->second));
+    return file_it->second();
   }
 
  private:
-  std::unordered_map<canonical_path, string8> files_;
+  std::unordered_map<canonical_path, std::function<read_file_result()> > files_;
 };
 }
+
+#endif
 
 #endif
 

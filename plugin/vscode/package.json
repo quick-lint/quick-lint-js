@@ -2,18 +2,21 @@
   "name": "quick-lint-js",
   "description": "Find JavaScript bugs with quick-lint-js",
   "publisher": "quick-lint",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "license": "SEE LICENSE IN LICENSE",
   "categories": [
     "Linters"
   ],
+  "homepage": "https://quick-lint-js.com/",
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.49.0"
   },
   "activationEvents": [
-    "onLanguage:javascript"
+    "onLanguage:javascript",
+    "onLanguage:json"
   ],
-  "main": "./extension",
+  "main": "./extension.js",
   "extensionDependencies": [
     "vscode.javascript"
   ],
@@ -21,8 +24,27 @@
     "configuration": {
       "type": "object",
       "title": "quick-lint-js",
-      "properties": {}
-    }
+      "properties": {
+        "quick-lint-js.logging": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Log messages useful for quick-lint-js contributors."
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "json",
+        "filenames": [
+          "quick-lint-js.config"
+        ]
+      }
+    ]
   },
   "repository": {
     "type": "git",
@@ -32,17 +54,13 @@
     "url": "https://github.com/quick-lint/quick-lint-js/issues"
   },
   "scripts": {
-    "fmt": "prettier --write '*.js' 'test/*.js' 'test/mock/*.js' '*.json' '.vscode/*.json'",
-    "test": "node test/run-all-tests.js"
+    "fmt": "prettier --write '*.js' 'test/*.js' '*.json' '.vscode/*.json'",
+    "test": "node test/run-vscode-tests.js"
   },
   "devDependencies": {
     "colors": "1.4.0",
-    "prettier": "^2.3.0",
-    "tape": "5.2.2",
-    "vsce": "^1.93.0",
-    "vscode-test": "1.5.2"
-  },
-  "dependencies": {
-    "quick-lint-js-wasm": "../../wasm"
+    "prettier": "^2.4.1",
+    "vsce": "^1.100.0",
+    "vscode-test": "1.6.1"
   }
 }

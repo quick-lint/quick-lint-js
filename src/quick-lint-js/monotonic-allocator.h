@@ -4,37 +4,10 @@
 #ifndef QUICK_LINT_JS_MONOTONIC_ALLOCATOR_H
 #define QUICK_LINT_JS_MONOTONIC_ALLOCATOR_H
 
-#include <boost/container/pmr/monotonic_buffer_resource.hpp>
-#include <boost/container/pmr/polymorphic_allocator.hpp>
-#include <utility>
+#include <quick-lint-js/linked-bump-allocator.h>
 
 namespace quick_lint_js {
-class monotonic_allocator {
- public:
-  template <class T, class... Args>
-  [[nodiscard]] T *new_object(Args &&... args) {
-    T *result = this->standard_allocator<T>().allocate(1);
-    result = new (result) T(std::forward<Args>(args)...);
-    return result;
-  }
-
-  template <class T>
-  [[nodiscard]] T *allocate_uninitialized_array(std::size_t count) {
-    return this->standard_allocator<T>().allocate(count);
-  }
-
-  template <class T>
-  boost::container::pmr::polymorphic_allocator<T> standard_allocator() {
-    return boost::container::pmr::polymorphic_allocator<T>(&this->memory_);
-  }
-
-  boost::container::pmr::monotonic_buffer_resource *memory_resource() noexcept {
-    return &this->memory_;
-  }
-
- private:
-  boost::container::pmr::monotonic_buffer_resource memory_;
-};
+using monotonic_allocator = linked_bump_allocator<alignof(void*)>;
 }
 
 #endif

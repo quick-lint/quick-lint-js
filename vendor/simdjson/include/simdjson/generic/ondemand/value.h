@@ -69,10 +69,18 @@ public:
   /**
    * Cast this JSON value to an unsigned integer.
    *
-   * @returns A signed 64-bit integer.
+   * @returns A unsigned 64-bit integer.
    * @returns INCORRECT_TYPE If the JSON value is not a 64-bit unsigned integer.
    */
   simdjson_really_inline simdjson_result<uint64_t> get_uint64() noexcept;
+
+  /**
+   * Cast this JSON value (inside string) to a unsigned integer.
+   *
+   * @returns A unsigned 64-bit integer.
+   * @returns INCORRECT_TYPE If the JSON value is not a 64-bit unsigned integer.
+   */
+  simdjson_really_inline simdjson_result<uint64_t> get_uint64_in_string() noexcept;
 
   /**
    * Cast this JSON value to a signed integer.
@@ -83,12 +91,28 @@ public:
   simdjson_really_inline simdjson_result<int64_t> get_int64() noexcept;
 
   /**
+   * Cast this JSON value (inside string) to a signed integer.
+   *
+   * @returns A signed 64-bit integer.
+   * @returns INCORRECT_TYPE If the JSON value is not a 64-bit integer.
+   */
+  simdjson_really_inline simdjson_result<int64_t> get_int64_in_string() noexcept;
+
+  /**
    * Cast this JSON value to a double.
    *
    * @returns A double.
    * @returns INCORRECT_TYPE If the JSON value is not a valid floating-point number.
    */
   simdjson_really_inline simdjson_result<double> get_double() noexcept;
+
+  /**
+   * Cast this JSON value (inside string) to a double
+   *
+   * @returns A double.
+   * @returns INCORRECT_TYPE If the JSON value is not a valid floating-point number.
+   */
+  simdjson_really_inline simdjson_result<double> get_double_in_string() noexcept;
 
   /**
    * Cast this JSON value to a string.
@@ -208,7 +232,26 @@ public:
    * Part of the std::iterable interface.
    */
   simdjson_really_inline simdjson_result<array_iterator> end() & noexcept;
-
+  /**
+   * This method scans the array and counts the number of elements.
+   * The count_elements method should always be called before you have begun
+   * iterating through the array: it is expected that you are pointing at
+   * the beginning of the array.
+   * The runtime complexity is linear in the size of the array. After
+   * calling this function, if successful, the array is 'rewinded' at its
+   * beginning as if it had never been accessed. If the JSON is malformed (e.g.,
+   * there is a missing comma), then an error is returned and it is no longer
+   * safe to continue.
+   */
+  simdjson_really_inline simdjson_result<size_t> count_elements() & noexcept;
+  /**
+   * Get the value at the given index in the array. This function has linear-time complexity.
+   * This function should only be called once as the array iterator is not reset between each call.
+   *
+   * @return The value at the given index, or:
+   *         - INDEX_OUT_OF_BOUNDS if the array index is larger than an array length
+   */
+  simdjson_really_inline simdjson_result<value> at(size_t index) noexcept;
   /**
    * Look up a field by name on an object (order-sensitive).
    *
@@ -279,6 +322,85 @@ public:
   simdjson_really_inline simdjson_result<json_type> type() noexcept;
 
   /**
+   * Checks whether the value is a scalar (string, number, null, Boolean).
+   * Returns false when there it is an array or object.
+   *
+   * @returns true if the type is string, number, null, Boolean
+   * @error TAPE_ERROR when the JSON value is a bad token like "}" "," or "alse".
+   */
+  simdjson_really_inline simdjson_result<bool> is_scalar() noexcept;
+
+  /**
+   * Checks whether the value is a negative number.
+   *
+   * @returns true if the number if negative.
+   */
+  simdjson_really_inline bool is_negative() noexcept;
+  /**
+   * Checks whether the value is an integer number. Note that
+   * this requires to partially parse the number string. If
+   * the value is determined to be an integer, it may still
+   * not parse properly as an integer in subsequent steps
+   * (e.g., it might overflow).
+   *
+   * Performance note: if you call this function systematically
+   * before parsing a number, you may have fallen for a performance
+   * anti-pattern.
+   *
+   * @returns true if the number if negative.
+   */
+  simdjson_really_inline simdjson_result<bool> is_integer() noexcept;
+  /**
+   * Determine the number type (integer or floating-point number).
+   *
+   * get_number_type() is number_type::unsigned_integer if we have
+   * an integer greater or equal to 9223372036854775808
+   * get_number_type() is number_type::signed_integer if we have an
+   * integer that is less than 9223372036854775808
+   * Otherwise, get_number_type() has value number_type::floating_point_number
+   *
+   * This function requires processing the number string, but it is expected
+   * to be faster than get_number().get_number_type() because it is does not
+   * parse the number value.
+   *
+   * @returns the type of the number
+   */
+  simdjson_really_inline simdjson_result<number_type> get_number_type() noexcept;
+
+  /**
+   * Attempt to parse an ondemand::number. An ondemand::number may
+   * contain an integer value or a floating-point value, the simdjson
+   * library will autodetect the type. Thus it is a dynamically typed
+   * number. Before accessing the value, you must determine the detected
+   * type.
+   *
+   * number.get_number_type() is number_type::signed_integer if we have
+   * a integer in [-9223372036854775808,9223372036854775808)
+   * You can recover the value by calling number.get_int64() and you
+   * have that number.is_int64() is true.
+   *
+   * number.get_number_type() is number_type::unsigned_integer if we have
+   * an integer in [9223372036854775808,18446744073709551616)
+   * You can recover the value by calling number.get_uint64() and you
+   * have that number.is_uint64() is true.
+   *
+   * Otherwise, number.get_number_type() has value number_type::floating_point_number
+   * and we have a binary64 number.
+   * You can recover the value by calling number.get_double() and you
+   * have that number.is_double() is true.
+   *
+   * You must check the type before accessing the value: it is an error
+   * to call "get_int64()" when number.get_number_type() is not
+   * number_type::signed_integer and when number.is_int64() is false.
+   *
+   * Performance note: this is designed with performance in mind. When
+   * calling 'get_number()', you scan the number string only once, determining
+   * efficiently the type and storing it in an efficient manner.
+   */
+  simdjson_warn_unused simdjson_really_inline simdjson_result<number> get_number() noexcept;
+
+
+  /**
    * Get the raw JSON for this token.
    *
    * The string_view will always point into the input buffer.
@@ -302,6 +424,50 @@ public:
    * - null
    */
   simdjson_really_inline std::string_view raw_json_token() noexcept;
+
+  /**
+   * Get the value associated with the given JSON pointer.  We use the RFC 6901
+   * https://tools.ietf.org/html/rfc6901 standard.
+   *
+   *   ondemand::parser parser;
+   *   auto json = R"({ "foo": { "a": [ 10, 20, 30 ] }})"_padded;
+   *   auto doc = parser.iterate(json);
+   *   doc.at_pointer("/foo/a/1") == 20
+   *
+   * It is allowed for a key to be the empty string:
+   *
+   *   ondemand::parser parser;
+   *   auto json = R"({ "": { "a": [ 10, 20, 30 ] }})"_padded;
+   *   auto doc = parser.iterate(json);
+   *   doc.at_pointer("//a/1") == 20
+   *
+   * Note that at_pointer() called on the document automatically calls the document's rewind
+   * method between each call. It invalidates all previously accessed arrays, objects and values
+   * that have not been consumed.
+   *
+   * Calling at_pointer() on non-document instances (e.g., arrays and objects) is not
+   * standardized (by RFC 6901). We provide some experimental support for JSON pointers
+   * on non-document instances.  Yet it is not the case when calling at_pointer on an array
+   * or an object instance: there is no rewind and no invalidation.
+   *
+   * You may only call at_pointer on an array after it has been created, but before it has
+   * been first accessed. When calling at_pointer on an array, the pointer is advanced to
+   * the location indicated by the JSON pointer (in case of success). It is no longer possible
+   * to call at_pointer on the same array.
+   *
+   * You may call at_pointer more than once on an object, but each time the pointer is advanced
+   * to be within the value matched by the key indicated by the JSON pointer query. Thus any preceeding
+   * key (as well as the current key) can no longer be used with following JSON pointer calls.
+   *
+   * Also note that at_pointer() relies on find_field() which implies that we do not unescape keys when matching
+   *
+   * @return The value associated with the given JSON pointer, or:
+   *         - NO_SUCH_FIELD if a field does not exist in an object
+   *         - INDEX_OUT_OF_BOUNDS if an array index is larger than an array length
+   *         - INCORRECT_TYPE if a non-integer is used to access an array
+   *         - INVALID_JSON_POINTER if the JSON pointer is invalid and cannot be parsed
+   */
+  simdjson_really_inline simdjson_result<value> at_pointer(std::string_view json_pointer) noexcept;
 
 protected:
   /**
@@ -341,7 +507,6 @@ protected:
   friend class field;
   friend class object;
   friend struct simdjson_result<value>;
-  friend struct simdjson_result<document>;
   friend struct simdjson_result<field>;
 };
 
@@ -362,8 +527,11 @@ public:
   simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::object> get_object() noexcept;
 
   simdjson_really_inline simdjson_result<uint64_t> get_uint64() noexcept;
+  simdjson_really_inline simdjson_result<uint64_t> get_uint64_in_string() noexcept;
   simdjson_really_inline simdjson_result<int64_t> get_int64() noexcept;
+  simdjson_really_inline simdjson_result<int64_t> get_int64_in_string() noexcept;
   simdjson_really_inline simdjson_result<double> get_double() noexcept;
+  simdjson_really_inline simdjson_result<double> get_double_in_string() noexcept;
   simdjson_really_inline simdjson_result<std::string_view> get_string() noexcept;
   simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::raw_json_string> get_raw_json_string() noexcept;
   simdjson_really_inline simdjson_result<bool> get_bool() noexcept;
@@ -383,7 +551,8 @@ public:
   simdjson_really_inline operator SIMDJSON_IMPLEMENTATION::ondemand::raw_json_string() noexcept(false);
   simdjson_really_inline operator bool() noexcept(false);
 #endif
-
+  simdjson_really_inline simdjson_result<size_t> count_elements() & noexcept;
+  simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> at(size_t index) noexcept;
   simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array_iterator> begin() & noexcept;
   simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::array_iterator> end() & noexcept;
 
@@ -446,9 +615,16 @@ public:
    * let it throw an exception).
    */
   simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::json_type> type() noexcept;
+  simdjson_really_inline simdjson_result<bool> is_scalar() noexcept;
+  simdjson_really_inline simdjson_result<bool> is_negative() noexcept;
+  simdjson_really_inline simdjson_result<bool> is_integer() noexcept;
+  simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::number_type> get_number_type() noexcept;
+  simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::number> get_number() noexcept;
 
   /** @copydoc simdjson_really_inline std::string_view value::raw_json_token() const noexcept */
   simdjson_really_inline simdjson_result<std::string_view> raw_json_token() noexcept;
+
+  simdjson_really_inline simdjson_result<SIMDJSON_IMPLEMENTATION::ondemand::value> at_pointer(std::string_view json_pointer) noexcept;
 };
 
 } // namespace simdjson

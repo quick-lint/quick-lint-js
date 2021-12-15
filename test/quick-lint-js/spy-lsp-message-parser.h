@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_SPY_LSP_MESSAGE_PARSER_H
 #define QUICK_LINT_JS_SPY_LSP_MESSAGE_PARSER_H
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <condition_variable>
 #include <mutex>
 #include <quick-lint-js/char8.h>
@@ -40,6 +44,8 @@ class spy_lsp_message_parser
   std::vector<string8> messages_;
 };
 }
+
+#endif
 
 #endif
 

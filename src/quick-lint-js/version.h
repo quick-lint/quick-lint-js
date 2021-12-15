@@ -6,7 +6,12 @@
 
 #include <quick-lint-js/cpp.h>
 
-#define QUICK_LINT_JS_VERSION_STRING "0.3.0"
+// QUICK_LINT_JS_VERSION is normally defined by the build system (CMake).
+#if !defined(QUICK_LINT_JS_VERSION)
+#define QUICK_LINT_JS_VERSION UNKNOWN
+#endif
+
+#define QUICK_LINT_JS_VERSION_STRING QLJS_CPP_QUOTE(QUICK_LINT_JS_VERSION)
 #define QUICK_LINT_JS_VERSION_STRING_U8 \
   QLJS_CPP_CONCAT(u8, QUICK_LINT_JS_VERSION_STRING)
 

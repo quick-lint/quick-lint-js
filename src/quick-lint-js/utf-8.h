@@ -18,13 +18,12 @@ struct decode_utf_8_result {
 };
 
 decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
+std::size_t count_utf_8_characters(padded_string_view, std::size_t) noexcept;
 
 const char8* advance_lsp_characters_in_utf_8(string8_view,
                                              int character_count) noexcept;
 std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view,
                                              int offset) noexcept;
-std::ptrdiff_t count_code_points_in_utf_8(padded_string_view utf_8,
-                                          int offset) noexcept;
 }
 
 #endif

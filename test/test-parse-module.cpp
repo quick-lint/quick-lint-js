@@ -279,10 +279,8 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_export_use"));  // (keyword)
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{keyword}));
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.variable_uses, IsEmpty());
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_cannot_export_variable_named_keyword, export_name,
@@ -295,10 +293,8 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_export_use"));  // (keyword)
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{keyword}));
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.variable_uses, IsEmpty());
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_cannot_export_variable_named_keyword, export_name,
@@ -315,8 +311,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
       spy_visitor v;
       parser p(&code, &v);
       EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{keyword}));
+      EXPECT_THAT(v.variable_uses, IsEmpty());
       EXPECT_THAT(
           v.errors,
           ElementsAre(ERROR_TYPE_FIELD(
@@ -330,8 +325,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
       spy_visitor v;
       parser p(&code, &v);
       EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{keyword}));
+      EXPECT_THAT(v.variable_uses, IsEmpty());
       EXPECT_THAT(
           v.errors,
           ElementsAre(ERROR_TYPE_FIELD(
@@ -604,9 +598,11 @@ TEST(test_parse, import_star_without_as_keyword) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_expected_as_before_imported_namespace_alias, star_token,
-            offsets_matcher(&code, strlen(u8"import "), u8"*"),  //
+        ElementsAre(ERROR_TYPE_3_FIELDS(
+            error_expected_as_before_imported_namespace_alias,
+            star_through_alias_token,
+            offsets_matcher(&code, strlen(u8"import "), u8"* myExport"),     //
+            star_token, offsets_matcher(&code, strlen(u8"import "), u8"*"),  //
             alias,
             offsets_matcher(&code, strlen(u8"import * "), u8"myExport"))));
     EXPECT_THAT(v.visits,
@@ -638,6 +634,34 @@ TEST(test_parse, import_without_from_keyword) {
                     error_expected_from_and_module_specifier, where,
                     offsets_matcher(&code, strlen(u8"import { x }"), u8""))));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // x
+  }
+}
+
+TEST(test_parse, import_as_invalid_token) {
+  {
+    padded_string code(u8"import {myExport as 'string'} from 'module';"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_variable_name_for_import_as, unexpected_token,
+            offsets_matcher(&code, strlen(u8"import {myExport as "),
+                            u8"'string'"))));
+  }
+
+  {
+    padded_string code(u8"import {'myExport' as 'string'} from 'module';"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_FIELD(
+            error_expected_variable_name_for_import_as, unexpected_token,
+            offsets_matcher(&code, strlen(u8"import {'myExport' as "),
+                            u8"'string'"))));
   }
 }
 

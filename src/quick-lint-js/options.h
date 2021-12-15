@@ -14,11 +14,15 @@ enum class output_format {
   default_format,
   gnu_like,
   vim_qflist_json,
+  emacs_lisp,
 };
+
+enum class option_when { auto_, always, never };
 
 struct file_to_lint {
   const char *path;
   const char *config_file = nullptr;
+  const char *path_for_config_search = nullptr;
   bool is_stdin = false;
   std::optional<int> vim_bufnr;
 };
@@ -30,6 +34,8 @@ struct options {
   bool lsp_server = false;
   quick_lint_js::output_format output_format =
       quick_lint_js::output_format::default_format;
+  quick_lint_js::option_when diagnostic_hyperlinks =
+      quick_lint_js::option_when::auto_;
   std::vector<file_to_lint> files_to_lint;
   compiled_error_list exit_fail_on;
 

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/error-list.h>
 #include <quick-lint-js/error.h>
 #include <string>
@@ -14,21 +15,22 @@
 namespace quick_lint_js {
 namespace {
 bool is_valid_error_code(std::string_view code) noexcept {
-  static constexpr int error_code_length = 4;
+  static constexpr int error_code_length = 5;
   using any_error_code = std::array<char, error_code_length>;
 
   struct hash_any_error_code {
     bool operator()(const any_error_code& code) const noexcept {
+      QLJS_SLOW_ASSERT(code[0] == 'E');
       std::uint32_t data;
-      static_assert(sizeof(data) == sizeof(code));
-      std::memcpy(&data, code.data(), sizeof(code));
+      static_assert(sizeof(data) == sizeof(code) - 1);
+      std::memcpy(&data, &code[1], sizeof(data));
       return std::hash<std::uint32_t>()(data);
     }
   };
 
   static constexpr auto make_any_error_code =
       [](const char* c) -> any_error_code {
-    return any_error_code{c[0], c[1], c[2], c[3]};
+    return any_error_code{c[0], c[1], c[2], c[3], c[4]};
   };
 
 #define QLJS_ERROR_TYPE(error_name, error_code, struct_body, format) \
@@ -37,6 +39,7 @@ bool is_valid_error_code(std::string_view code) noexcept {
   QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
+  // TODO(strager): Use the codes from all_diagnostic_infos.
   static std::unordered_set<any_error_code, hash_any_error_code>
       valid_error_codes = {
 #define QLJS_ERROR_TYPE(error_name, error_code, struct_body, format) \
@@ -184,13 +187,11 @@ std::vector<std::string> compiled_error_list::parse_warnings() const {
   return warnings;
 }
 
-#define QLJS_ERROR_TYPE(error_name, error_code, struct_body, format)  \
-  template <>                                                         \
-  bool compiled_error_list::is_present<error_name>() const noexcept { \
-    return this->is_present(error_code);                              \
-  }
-QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+bool compiled_error_list::is_present(error_type type) const noexcept {
+  // TODO(strager): Use type as an index instead of converting it into a string.
+  const diagnostic_info& diag_info = get_diagnostic_info(type);
+  return this->is_present(diag_info.code);
+}
 
 bool compiled_error_list::is_present(const char* error_code) const noexcept {
   bool is_default = true;  // For now, all codes are enabled by default.

@@ -40,11 +40,6 @@ inline void PrintTo(const std::basic_string_view<char8_t> &s,
 #endif
 }
 
-// HACK(strager): Improve formatting of googletest diagnostics.
-namespace std {
-inline void PrintTo(const std::string_view &s, std::ostream *out) { *out << s; }
-}
-
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

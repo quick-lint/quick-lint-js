@@ -83,6 +83,33 @@ class byte_buffer {
   // this byte_buffer (aside from the destructor).
   byte_buffer_iovec to_iovec() &&;
 
+  template <class Func>
+  void enumerate_chunks(Func&& on_chunk) const {
+    for (std::size_t chunk_index = 0; chunk_index < this->chunks_.size();
+         ++chunk_index) {
+      const byte_buffer_chunk* c = &this->chunks_[chunk_index];
+      const std::byte* c_begin =
+#if QLJS_HAVE_WRITEV
+          reinterpret_cast<const std::byte*>(c->iov_base);
+#else
+          c->data;
+#endif
+      const std::byte* c_end;
+      if (chunk_index == this->chunks_.size() - 1) {
+        c_end = this->cursor_;
+      } else {
+        auto c_size =
+#if QLJS_HAVE_WRITEV
+            c->iov_len;
+#else
+            c->size;
+#endif
+        c_end = c_begin + c_size;
+      }
+      on_chunk(c_begin, c_end);
+    }
+  }
+
  private:
   void reserve(size_type extra_byte_count);
   void update_current_chunk_size() noexcept;

@@ -200,6 +200,8 @@ Nygard][ADR-bible].
 * [ADR008: Exceptions](ADR008-Exceptions.md)
 * [ADR009: Website](ADR009-Website.md)
 * [ADR010: LSP server](ADR010-LSP-server.md)
+* [ADR011: IO errors](ADR011-IO-errors.md)
+* [ADR012: Assertions](ADR012-Assertions.md)
 
 ### Rejected ADRs
 

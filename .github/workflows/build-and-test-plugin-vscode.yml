@@ -8,35 +8,120 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  build:
-    name: extension
+  build-and-test:
+    name: ${{ matrix.os.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - {runs_on: macos-10.15, name: "macOS x86_64", platform_arch: "darwin-x64", test: true, CC: /usr/local/opt/llvm/bin/clang, CXX: /usr/local/opt/llvm/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm/include -isystem /usr/local/opt/llvm/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm/lib/libc++.a /usr/local/opt/llvm/lib/libc++abi.a"}
+          - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", platform_arch: "darwin-arm64", test: true, CFLAGS: "-mmacosx-version-min=11.0"}
+            # NOTE(strager): We test on Linux x86_64 in the build-extension job.
+          - {runs_on: ubuntu-latest, name: "Linux x86_64", platform_arch: "linux-x64", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
+          - {runs_on: ubuntu-latest, name: "Linux ARM", platform_arch: "linux-arm", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v2", CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
+          - {runs_on: ubuntu-latest, name: "Linux AArch64", platform_arch: "linux-arm64", test: false, docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v1", CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-aarch64.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
+          - {runs_on: windows-latest, name: "Windows x86", platform_arch: "win32-ia32", test: true, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A Win32"}
+          - {runs_on: windows-latest, name: "Windows x64", platform_arch: "win32-x64", test: true, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A x64"}
+          - {runs_on: windows-latest, name: "Windows ARM", platform_arch: "win32-arm", test: false, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A ARM"}
+          - {runs_on: windows-latest, name: "Windows ARM64", platform_arch: "win32-arm64", test: false, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A ARM64"}
+    runs-on: ${{ matrix.os.runs_on }}
+    container: ${{ matrix.os.docker_container }}
+    env:
+      CMAKE_CXX_COMPILER: ${{ matrix.os.CXX }}
+      CMAKE_CXX_FLAGS: ${{ matrix.os.CFLAGS }}
+      CMAKE_C_COMPILER: ${{ matrix.os.CC }}
+      CMAKE_C_FLAGS: ${{ matrix.os.CFLAGS }}
+      CMAKE_EXE_LINKER_FLAGS: ${{ matrix.os.LDFLAGS }}
+      CMAKE_EXTRA_FLAGS: ${{ matrix.os.CMAKE_FLAGS }}
+      CMAKE_SHARED_LINKER_FLAGS: ${{ matrix.os.LDFLAGS }}
+      QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: C++ configure
+        run: |
+          env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
+          cmake ${CMAKE_C_COMPILER:+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER:+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=NO -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" -DQUICK_LINT_JS_ENABLE_VSCODE=YES -DCMAKE_POSITION_INDEPENDENT_CODE=YES ${CMAKE_EXTRA_FLAGS} -S . -B build
+        shell: bash
+      - name: C++ build
+        run: cmake --build build --config Release --target quick-lint-js-vscode-node quick-lint-js-vscode-node-licenses
+      - name: C++ install
+        run: cmake --install build --component vscode-node --prefix plugin/vscode
+
+      - name: JS configure
+        if: ${{ matrix.os.test }}
+        run: cd plugin/vscode && yarn
+      - name: JS test
+        if: ${{ matrix.os.test }}
+        run: |
+          cd plugin/vscode
+          yarn test --target ${{ matrix.os.platform_arch }}
+
+      - name: upload build to workflow
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: vscode-dist-${{ matrix.os.platform_arch }}
+          path: plugin/vscode/dist/
+
+  build-extension:
+    name: VS Code .vsix
+    needs: build-and-test
     runs-on: ubuntu-latest
     # TODO(strager): Use ghcr.io/quick-lint/quick-lint-js-github-builder.
     env:
       QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
     steps:
-      - uses: mymindstorm/setup-emsdk@v7
-        with:
-          version: 2.0.4
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: install build dependencies
-        run: |
-          export DEBIAN_FRONTEND=noninteractive
-          sudo apt-get update
-          sudo apt-get install -y ninja-build
-
-      - name: C++ configure
-        run: emcmake cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS='-O3 -flto' -DCMAKE_CXX_FLAGS='-O3 -fno-rtti -fno-exceptions -flto'
-      - name: C++ build
-        run: emmake cmake --build build --target quick-lint-js-vscode quick-lint-js-vscode-licenses
-      - name: C++ install
-        run: emmake cmake --install build --component vscode --prefix wasm
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-linux-x64
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-linux-arm
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-linux-arm64
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-darwin-arm64
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-darwin-x64
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-win32-ia32
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-win32-x64
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-win32-arm
+          path: ./plugin/vscode/dist/
+      - uses: actions/download-artifact@v2
+        with:
+          name: vscode-dist-win32-arm64
+          path: ./plugin/vscode/dist/
 
       - name: JS configure
         run: cd plugin/vscode && yarn
-      - name: JS test
+        # TODO(strager): Testing on Linux doesn't work inside a
+        # ghcr.io/quick-lint/quick-lint-js-github-builder Docker container. Fix
+        # the Docker image then move this testing on Linux into the
+        # build-and-test job.
+        # NOTE(strager): This only tests Linux x86_64, not other architectures.
+      - name: JS test (Linux)
         run: |
           DISPLAY=:1
           export DISPLAY
@@ -47,7 +132,7 @@ jobs:
           printf 'Started Xvfb\n' >&2
 
           cd plugin/vscode
-          yarn test
+          yarn test --target linux-x64
           kill %1
           wait || :
 

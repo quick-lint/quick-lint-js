@@ -1,13 +1,15 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if !defined(__EMSCRIPTEN__)
+
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include <limits.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/program-report.h>
 #include <quick-lint-js/temporary-directory.h>
@@ -36,7 +38,7 @@ namespace quick_lint_js {
 std::string make_temporary_directory() {
   std::string temp_directory_name = "/tmp/quick-lint-js.XXXXXX";
   if (!::mkdtemp(temp_directory_name.data())) {
-    std::cerr << "failed to create temporary directory\n";
+    std::fprintf(stderr, "failed to create temporary directory\n");
     std::abort();
   }
   return temp_directory_name;
@@ -66,7 +68,7 @@ std::string make_temporary_directory() {
     }
     return temp_directory_path.string();
   }
-  std::cerr << "failed to create temporary directory\n";
+  std::fprintf(stderr, "failed to create temporary directory\n");
   std::abort();
 }
 #else
@@ -75,7 +77,7 @@ std::string make_temporary_directory() {
 
 void create_directory(const std::string &path) {
 #if QLJS_HAVE_STD_FILESYSTEM
-  std::filesystem::create_directory(path);
+  std::filesystem::create_directory(to_string8(path));
 #else
   if (::mkdir(path.c_str(), 0755) != 0) {
     QLJS_REPORT_PROGRAM_ERROR("error: failed to create directory %s: %s\n",
@@ -96,9 +98,16 @@ void delete_directory_recursive(const std::string &path) {
   }
   while (::FTSENT *entry = ::fts_read(fts)) {
     switch (entry->fts_info) {
-    case FTS_D:
-      // Do nothing. We handle FTS_DP (post-order) instead.
+    case FTS_D: {
+      // Make sure the directory is traversable before traversing.
+      int rc = ::chmod(entry->fts_accpath, 0700);
+      if (rc != 0) {
+        std::fprintf(stderr,
+                     "warning: failed to change permissions for %s: %s\n",
+                     entry->fts_accpath, std::strerror(errno));
+      }
       break;
+    }
 
     case FTS_DP: {
       int rc = ::rmdir(entry->fts_accpath);
@@ -173,6 +182,8 @@ void set_current_working_directory(const char *path) {
 #endif
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

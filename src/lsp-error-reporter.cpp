@@ -1,6 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if !defined(__EMSCRIPTEN__)
+
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/json.h>
@@ -24,42 +26,32 @@ lsp_error_reporter::lsp_error_reporter(byte_buffer &output,
 
 void lsp_error_reporter::finish() { this->output_.append_copy(u8"]"); }
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  void lsp_error_reporter::report(name e) {                   \
-    format_error(e, this->begin_error(code));                 \
-  }
-QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-
-lsp_error_formatter lsp_error_reporter::begin_error(const char *code) {
+void lsp_error_reporter::report_impl(error_type type, void *error) {
   if (this->need_comma_) {
     this->output_.append_copy(u8",\n");
   }
   this->need_comma_ = true;
-  return this->format(code);
-}
-
-lsp_error_formatter lsp_error_reporter::format(const char *code) {
-  return lsp_error_formatter(/*output=*/this->output_,
-                             /*locator=*/this->locator_,
-                             /*code=*/code);
+  lsp_error_formatter formatter(/*output=*/this->output_,
+                                /*locator=*/this->locator_);
+  formatter.format(get_diagnostic_info(type), error);
 }
 
 lsp_error_formatter::lsp_error_formatter(byte_buffer &output,
-                                         lsp_locator &locator, const char *code)
-    : output_(output), locator_(locator), code_(code) {}
+                                         lsp_locator &locator)
+    : output_(output), locator_(locator) {}
 
-void lsp_error_formatter::write_before_message(severity sev,
+void lsp_error_formatter::write_before_message(std::string_view code,
+                                               diagnostic_severity sev,
                                                const source_code_span &origin) {
   char8 severity_type{};
   switch (sev) {
-  case severity::error:
+  case diagnostic_severity::error:
     severity_type = u8'1';
     break;
-  case severity::note:
+  case diagnostic_severity::note:
     // Don't write notes. Only write the main message.
     return;
-  case severity::warning:
+  case diagnostic_severity::warning:
     severity_type = u8'2';
     break;
   }
@@ -78,14 +70,18 @@ void lsp_error_formatter::write_before_message(severity sev,
   this->output_.append_copy(u8"}},\"severity\":");
   this->output_.append_copy(severity_type);
   this->output_.append_copy(u8",\"code\":\"");
-  this->output_.append_copy(reinterpret_cast<const char8 *>(this->code_));
-  this->output_.append_copy(u8"\",\"source\":\"quick-lint-js\"");
+  this->output_.append_copy(to_string8_view(code));
+  this->output_.append_copy(u8"\",\"codeDescription\":");
+  this->output_.append_copy(u8"{\"href\":\"https://quick-lint-js.com/errors/#");
+  this->output_.append_copy(to_string8_view(code));
+  this->output_.append_copy(u8"\"},\"source\":\"quick-lint-js\"");
   this->output_.append_copy(u8",\"message\":\"");
 }
 
-void lsp_error_formatter::write_message_part(severity sev,
-                                             string8_view message) {
-  if (sev == severity::note) {
+void lsp_error_formatter::write_message_part(
+    [[maybe_unused]] std::string_view code, diagnostic_severity sev,
+    string8_view message) {
+  if (sev == diagnostic_severity::note) {
     // Don't write notes. Only write the main message.
     return;
   }
@@ -93,9 +89,10 @@ void lsp_error_formatter::write_message_part(severity sev,
   write_json_escaped_string(this->output_, message);
 }
 
-void lsp_error_formatter::write_after_message(severity sev,
-                                              const source_code_span &) {
-  if (sev == severity::note) {
+void lsp_error_formatter::write_after_message(
+    [[maybe_unused]] std::string_view code, diagnostic_severity sev,
+    const source_code_span &) {
+  if (sev == diagnostic_severity::note) {
     // Don't write notes. Only write the main message.
     return;
   }
@@ -103,6 +100,8 @@ void lsp_error_formatter::write_after_message(severity sev,
   this->output_.append_copy(u8"\"}");
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

@@ -8,12 +8,12 @@
 '\" t
 .\"     Title: quick-lint-js
 .\"    Author: [see the "AUTHOR(S)" section]
-.\" Generator: Asciidoctor 2.0.10
+.\" Generator: Asciidoctor 2.0.15
 .\"    Manual: \ \&
-.\"    Source: quick-lint-js version 0.3.0
+.\"    Source: quick-lint-js version ﻿ 1.0.0
 .\"  Language: English
 .\"
-.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version 0.3.0" "\ \&"
+.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version ﻿ 1.0.0" "\ \&"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -34,7 +34,7 @@
 .  LINKSTYLE blue R < >
 .\}
 .SH "NAME"
-quick\-lint\-js \- find bugs in JavaScript programs
+quick-lint-js \- find bugs in JavaScript programs
 .SH "SYNOPSIS"
 .sp
 \fBquick\-lint\-js\fP [\fB\-\-output\-format\fP=\fIformat\fP] [<options>] \fIfile\fP [\fIfile\fP...]
@@ -87,6 +87,60 @@ Customize how errors are printed. \fIformat\fP is one of the following:
 \fBvim\-qflist\-json\fP: machine\-readable JSON which can be given to Vim\(cqs \fIsetqflist\fP function.
 .RE
 .sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBemacs\-lisp\fP: Emacs Lisp association list format.
+.RE
+.sp
+Incompatible with \fB\-\-lsp\-server\fP.
+.RE
+.sp
+\fB\-\-diagnostic\-hyperlinks\fP=\fIwhen\fP
+.RS 4
+Control whether to hyperlink error codes or not.
+This option is only used if \fB\-\-output\-format=gnu\-like\fP.
+\fIwhen\fP is one of the following:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBauto\fP (default): shows error codes as hyperlinks only if the error output is a terminal.
+On Windows it behaves like \(aqnever\(aq.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBalways\fP: always shows error codes as hyperlinks.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBnever\fP: never shows error codes as hyperlinks.
+.RE
+.sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .RE
 .sp
@@ -98,6 +152,21 @@ Set the \fIbufnr\fP property for errors printed with the \fB\-\-output\-format=v
 Therefore, if multiple input files are given, \fB\-\-vim\-file\-bufnr\fP can be specified multiple times.
 .RE
 .sp
+\fB\-\-path\-for\-config\-search\fP=\fIpath\fP
+.RS 4
+  For the following input file or \fB\-\-stdin\fP, use \fIpath\fP as the file\(cqs path when
+searching for a configuration file (see \fBquick\-lint\-js.config\fP(5)).
+.sp
+\fIpath\fP must be a syntactically\-valid path.
+\fIpath\fP does not need to exist in the filesystem.
+.sp
+\fB\-\-path\-for\-config\-search\fP applies only to the next input file given in the command line.
+Therefore, if multiple input files are given, \fB\-\-path\-for\-config\-search\fP can be specified multiple times.
+If \fB\-\-path\-for\-config\-search\fP is the last option, it has no effect.
+.sp
+Incompatible with \fB\-\-lsp\-server\fP.
+.RE
+.sp
 \fB\-\-config\-file\fP=\fIfile\fP
 .RS 4
 Read configuration options from \fIfile\fP and apply them to input files which are given later in the command line.
@@ -106,7 +175,7 @@ See \fBquick\-lint\-js.config\fP(5) for the format of configuration files.
 If \fB\-\-config\-file\fP is given twice, then the \fIfile\fP for the first \fB\-\-config\-file\fP option applies only to the input files between the two \fB\-\-config\-file\fP options, and the \fIfile\fP for the second \fB\-\-config\-file\fP option apples only to the input files after the second \fB\-\-config\-file\fP option.
 See the Example section for an example.
 .sp
-If \fB\-\-config\-file\fP is not given, an empty configuration file is assumed.
+If \fB\-\-config\-file\fP is not given, \fBquick\-lint\-js\fP searches for a configuration file according to the rules specified in \fBquick\-lint\-js.config\fP(5).
 .sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .RE
@@ -115,7 +184,7 @@ Incompatible with \fB\-\-lsp\-server\fP.
 .RS 4
 Cause \fBquick\-lint\-js\fP to exit with a non\-zero exit code if any of the discovered errors is listed in \fIerrors\fP.
 .sp
-See the Error lists section for a description of the format for \fIerrors\fP.
+See the [error\-lists] section for a description of the format for \fIerrors\fP.
 .sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .RE
@@ -123,6 +192,12 @@ Incompatible with \fB\-\-lsp\-server\fP.
 \fB\-\-stdin\fP
 .RS 4
 Read standard input as a JavaScript file.
+.sp
+If neither \fB\-\-config\-file\fP nor \fB\-\-path\-for\-config\-search\fP is specified, an empty configuration file is assumed.
+If \fB\-\-config\-file\fP is specified, \fIfile\fP is used for linting standard input.
+If \fB\-\-path\-for\-config\-search\fP is specified and \fB\-\-config\-file\fP is not specified,
+\fBquick\-lint\-js\fP searches for a configuration file according to the rules specified in \fBquick\-lint\-js.config\fP(5)
+starting from \fB\-\-path\-for\-config\-search\fP\(aqs \fIpath\fP.
 .sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .RE
@@ -134,12 +209,6 @@ Use this mode to integrate with code editors supporting LSP.
 An editor can send LSP requests and notifications to \fBquick\-lint\-js\fP via standard input, and receive LSP responses and notifications from standard output.
 .sp
 Incompatible with \fB\-\-output\-format\fP.
-.RE
-.sp
-\fB\-\-dump\-config\fP
-.RS 4
-Print quick\-lint\-js\(aq configuration and exit.
-\fBThis option is not yet implemented.\fP
 .RE
 .sp
 \fB\-h\fP, \fB\-\-help\fP
@@ -173,7 +242,7 @@ The order of predicates within an error list does not matter.
 Included predicates are processed first, adding to the set of error codes.
 Excluded predicates are processed second, removing from the set of error codes.
 .sp
-Error codes have the form \fBE000\fP, where \fI000\fP is three decimal digits (0\-9).
+Error codes have the form \fBE0000\fP, where \fI0000\fP is four decimal digits (0\-9).
 .sp
 The following error categories are supported:
 .sp
@@ -184,34 +253,34 @@ All error codes.
 .sp
 Example error lists:
 .sp
-\fBE102,E110\fP
+\fBE0102,E0110\fP
 .RS 4
-Only error codes E102 and E110, excluding all other error codes.
+Only error codes E0102 and E0110, excluding all other error codes.
 .RE
 .sp
-\fB\-E102\fP
+\fB\-E0102\fP
 .RS 4
-The default set of error codes, except for error code E102.
+The default set of error codes, except for error code E0102.
 .RE
 .sp
-\fB+E102\fP
+\fB+E0102\fP
 .RS 4
-The default set of error codes, and also error code E102.
+The default set of error codes, and also error code E0102.
 .RE
 .sp
-\fBall,\-E102\fP
+\fBall,\-E0102\fP
 .RS 4
-All error codes, except for error code E102.
+All error codes, except for error code E0102.
 .RE
 .sp
-\fBE100,\-E100,+E200\fP
+\fBE0100,\-E0100,+E0200\fP
 .RS 4
-Only error code E200, excluding all other error codes.
+Only error code E0200, excluding all other error codes.
 .RE
 .sp
-\fB+E200,\-E100,E100\fP
+\fB+E0200,\-E0100,E0100\fP
 .RS 4
-Only error code E200, excluding all other error codes.
+Only error code E0200, excluding all other error codes.
 .RE
 .SH "EXIT STATUS"
 .sp
@@ -244,12 +313,14 @@ To lint a file called \fIlib/index.js\fP, writing error messages to the terminal
 .sp
 .if n .RS 4
 .nf
+.fam C
 $ \fBquick\-lint\-js\fP lib/index.js
-lib/index.js:1:20: error: variable used before declaration: language [E058]
-lib/index.js:2:7: note: variable declared here [E058]
-lib/index.js:3:1: error: assignment to const variable [E003]
-lib/index.js:1:7: note: const variable declared here [E003]
-lib/index.js:5:25: warning: use of undeclared variable: ocupation [E057]
+lib/index.js:1:20: error: variable used before declaration: language [E0058]
+lib/index.js:2:7: note: variable declared here [E0058]
+lib/index.js:3:1: error: assignment to const variable [E0003]
+lib/index.js:1:7: note: const variable declared here [E0003]
+lib/index.js:5:25: warning: use of undeclared variable: ocupation [E0057]
+.fam
 .fi
 .if n .RE
 .br
@@ -262,11 +333,13 @@ To lint three files, writing machine\-readable messages to \fI/tmp/vim\-qflist.j
 .sp
 .if n .RS 4
 .nf
+.fam C
 $ \fBquick\-lint\-js\fP \-\-output\-format=vim\-qflist\-json \(rs
     \-\-vim\-bufnr=3 lib/pizza\-dough.js \(rs
     \-\-vim\-bufnr=4 lib/pizza\-sauce.js \(rs
     \-\-vim\-bufnr=6 lib/pineapple.js \(rs
     >/tmp/vim\-qflist.json
+.fam
 .fi
 .if n .RE
 .br
@@ -281,10 +354,12 @@ To lint a file called \fIbad.js\fP, but don\(cqt fail on use\-of\-undeclared\-va
 .sp
 .if n .RS 4
 .nf
-$ \fBquick\-lint\-js\fP \-\-exit\-fail\-on=\-E057 bad.js
-bad.js:5:25: warning: use of undeclared variable: $ [E057]
+.fam C
+$ \fBquick\-lint\-js\fP \-\-exit\-fail\-on=\-E0057 bad.js
+bad.js:5:25: warning: use of undeclared variable: $ [E0057]
 $ echo $?
 0
+.fam
 .fi
 .if n .RE
 .br
@@ -297,9 +372,27 @@ To lint source files with a strict configuration file and lint test files with a
 .sp
 .if n .RS 4
 .nf
+.fam C
 $ \fBquick\-lint\-js\fP \(rs
     \-\-config\-file strict\-quick\-lint\-js.config src/index.js src/helpers.js \(rs
     \-\-config\-file lax\-quick\-lint\-js.config test/test\-app.js
+.fam
+.fi
+.if n .RE
+.br
+.RE
+.ll
+.sp
+To lint a temporary file, but use the configuration file of a project:
+.RS 3
+.ll -.6i
+.sp
+.if n .RS 4
+.nf
+.fam C
+$ \fBquick\-lint\-js\fP \-\-path\-for\-config\-search=src/server.js /tmp/unsaved12m1uz.js
+/tmp/unsaved12m1uz.js:12:5: warning: use of undeclared variable: document [E0057]
+.fam
 .fi
 .if n .RE
 .br

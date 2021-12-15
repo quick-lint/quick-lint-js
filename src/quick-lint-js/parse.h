@@ -9,6 +9,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/expression.h>
 #include <quick-lint-js/have.h>
@@ -20,6 +21,7 @@
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/warning.h>
+#include <unordered_map>
 #include <utility>
 
 #if QLJS_HAVE_SETJMP
@@ -90,6 +92,17 @@
   } while (false)
 
 namespace quick_lint_js {
+enum class parser_top_level_await_mode {
+  auto_detect = 0,
+  await_operator,
+};
+
+// TODO(#465): Accept parser options from quick-lint-js.config or CLI options.
+struct parser_options {
+  parser_top_level_await_mode top_level_await_mode =
+      parser_top_level_await_mode::auto_detect;
+};
+
 // A parser reads JavaScript source code and calls the member functions of a
 // parse_visitor (visit_variable_declaration, visit_enter_function_scope, etc.).
 class parser {
@@ -103,7 +116,13 @@ class parser {
 
  public:
   explicit parser(padded_string_view input, error_reporter *error_reporter)
-      : lexer_(input, error_reporter), error_reporter_(error_reporter) {}
+      : parser(input, error_reporter, parser_options()) {}
+
+  explicit parser(padded_string_view input, error_reporter *error_reporter,
+                  parser_options options)
+      : lexer_(input, error_reporter),
+        error_reporter_(error_reporter),
+        options_(options) {}
 
   quick_lint_js::lexer &lexer() noexcept { return this->lexer_; }
 
@@ -145,7 +164,8 @@ class parser {
   void parse_and_visit_module(Visitor &v) {
     bool done = false;
     while (!done) {
-      bool parsed_statement = this->parse_and_visit_statement(v);
+      bool parsed_statement = this->parse_and_visit_statement(
+          v, parse_statement_type::any_statement_in_block);
       if (!parsed_statement) {
         switch (this->peek().type) {
         case token_type::end_of_file:
@@ -168,6 +188,12 @@ class parser {
     v.visit_end_of_module();
   }
 
+  enum class parse_statement_type {
+    any_statement,
+    any_statement_in_block,
+    no_declarations,
+  };
+
   // If a statement was parsed, this function returns true.
   //
   // If a statement was not parsed (e.g. end of file), then:
@@ -175,8 +201,9 @@ class parser {
   // * no error is reported
   // * this function returns false
   template <QLJS_PARSE_VISITOR Visitor>
-  [[nodiscard]] bool parse_and_visit_statement(Visitor &v,
-                                               bool allow_declarations = true) {
+  [[nodiscard]] bool parse_and_visit_statement(
+      Visitor &v, parse_statement_type statement_type =
+                      parse_statement_type::any_statement) {
     depth_guard d_guard(this);
     auto parse_expression_end = [this]() -> void {
       while (this->peek().type == token_type::right_paren) {
@@ -228,7 +255,8 @@ class parser {
         this->skip();
         goto parse_statement;
       } else if (this->is_let_token_a_variable_reference(
-                     this->peek(), /*allow_declarations=*/allow_declarations)) {
+                     this->peek(), /*allow_declarations=*/statement_type !=
+                                       parse_statement_type::no_declarations)) {
         // Expression.
         this->lexer_.roll_back_transaction(std::move(transaction));
         expression *ast =
@@ -411,6 +439,7 @@ class parser {
     case token_type::kw_set:
     case token_type::kw_static:
     case token_type::identifier: {
+      token_type ident_token_type = this->peek().type;
       identifier ident = this->peek().identifier_name();
       this->skip();
       switch (this->peek().type) {
@@ -422,7 +451,7 @@ class parser {
       // Expression statement.
       default:
         expression *ast = this->make_expression<expression::variable>(
-            ident, token_type::identifier);
+            ident, ident_token_type);
         ast = this->parse_expression_remainder(ast, precedence{});
         this->visit_expression(ast, v, variable_context::rhs);
         parse_expression_end();
@@ -438,11 +467,12 @@ class parser {
       goto parse_loop_label_or_expression_starting_with_identifier;
 
     // class C {}
-    case token_type::kw_class:
+    case token_type::kw_class: {
       this->parse_and_visit_class(
           v,
           /*require_name=*/name_requirement::required_for_statement);
       break;
+    }
 
     // switch (x) { default: ; }
     case token_type::kw_switch: {
@@ -453,7 +483,8 @@ class parser {
 
     // return;
     // return 42;
-    case token_type::kw_return:
+    case token_type::kw_return: {
+      source_code_span return_span = this->peek().span();
       this->skip();
       switch (this->peek().type) {
       case token_type::semicolon:
@@ -465,6 +496,43 @@ class parser {
 
       default:
         if (this->peek().has_leading_newline) {
+          switch (this->peek().type) {
+          // 'return' followed by a newline (ASI) followed by an expression.
+          case token_type::bang:
+          case token_type::complete_template:
+          case token_type::identifier:
+          case token_type::incomplete_template:
+          case token_type::kw_await:
+          case token_type::kw_false:
+          case token_type::kw_function:
+          case token_type::kw_new:
+          case token_type::kw_null:
+          case token_type::kw_super:
+          case token_type::kw_this:
+          case token_type::kw_true:
+          case token_type::kw_typeof:
+          case token_type::left_curly:  // Object literal.
+          case token_type::left_paren:
+          case token_type::left_square:  // Array literal.
+          case token_type::minus:
+          case token_type::number:
+          case token_type::plus:
+          case token_type::slash:        // Regular expression.
+          case token_type::slash_equal:  // Regular expression.
+          case token_type::string:
+          case token_type::tilde:
+            if (statement_type ==
+                parse_statement_type::any_statement_in_block) {
+              this->error_reporter_->report(
+                  error_return_statement_returns_nothing{
+                      .return_keyword = return_span,
+                  });
+            }
+            break;
+
+          default:
+            break;
+          }
           // Insert a semicolon, then consume it.
         } else {
           this->parse_and_visit_expression(v);
@@ -473,6 +541,7 @@ class parser {
         break;
       }
       break;
+    }
 
     // throw fit;
     case token_type::kw_throw:
@@ -575,6 +644,8 @@ class parser {
       switch (this->peek().type) {
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier:
+      case token_type::kw_await:
+      case token_type::kw_yield:
         if (this->peek().has_leading_newline) {
           // ASI.
           this->lexer_.insert_semicolon();
@@ -668,12 +739,6 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  [[nodiscard]] bool parse_and_visit_statement_disallowing_declaration(
-      Visitor &v) {
-    return this->parse_and_visit_statement(v, /*allow_declarations=*/false);
-  }
-
-  template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_expression(Visitor &v) {
     this->parse_and_visit_expression(v, precedence{});
   }
@@ -699,11 +764,13 @@ class parser {
     auto visit_parameters = [&](int parameter_count) {
       for (int i = 0; i < parameter_count; ++i) {
         expression *parameter = ast->child(i);
-        this->visit_binding_element(parameter, v, variable_kind::_parameter);
+        this->visit_binding_element(parameter, v, variable_kind::_parameter,
+                                    /*declaring_token=*/std::nullopt);
       }
     };
     switch (ast->kind()) {
     case expression_kind::_invalid:
+    case expression_kind::_missing:
     case expression_kind::import:
     case expression_kind::literal:
     case expression_kind::new_target:
@@ -772,6 +839,17 @@ class parser {
       }
       break;
     }
+    case expression_kind::_delete: {
+      expression *child = ast->child_0();
+      if (child->kind() == expression_kind::variable) {
+        v.visit_variable_delete_use(
+            child->variable_identifier(),
+            static_cast<expression::_delete *>(ast)->unary_operator_span());
+      } else {
+        this->visit_expression(child, v, context);
+      }
+      break;
+    }
     case expression_kind::await:
     case expression_kind::spread:
     case expression_kind::unary_operator:
@@ -812,7 +890,12 @@ class parser {
       case variable_context::lhs:
         break;
       case variable_context::rhs:
-        v.visit_variable_use(ast->variable_identifier());
+        if (ast->variable_identifier_token_type() ==
+            token_type::reserved_keyword_with_escape_sequence) {
+          v.visit_keyword_variable_use(ast->variable_identifier());
+        } else {
+          v.visit_variable_use(ast->variable_identifier());
+        }
         break;
       }
       break;
@@ -963,7 +1046,9 @@ class parser {
     // export {a, b, c} from "module";
     case token_type::left_curly: {
       buffering_visitor exports_visitor(this->buffering_visitor_memory());
-      std::vector<token> exported_bad_tokens;
+      vector<token> exported_bad_tokens(
+          "parse_and_visit_export exported_bad_tokens",
+          &this->temporary_memory_);
       this->parse_and_visit_named_exports_for_export(
           exports_visitor, /*out_exported_bad_tokens=*/exported_bad_tokens);
       if (this->peek().type == token_type::kw_from) {
@@ -1078,7 +1163,8 @@ class parser {
     this->skip();
 
     for (;;) {
-      bool parsed_statement = this->parse_and_visit_statement(v);
+      bool parsed_statement = this->parse_and_visit_statement(
+          v, parse_statement_type::any_statement_in_block);
       if (!parsed_statement) {
         switch (this->peek().type) {
         case token_type::right_curly:
@@ -1259,15 +1345,30 @@ class parser {
       }
       this->skip();
 
+      if (this->peek().type == token_type::equal_greater) {
+        this->error_reporter_->report(
+            error_functions_or_methods_should_not_have_arrow_operator{
+                .arrow_operator = this->peek().span(),
+            });
+        this->skip();
+      }
+
+      if (this->peek().type != token_type::left_curly) {
+        const char8 *expected_body = this->lexer_.end_of_previous_token();
+        this->error_reporter_->report(error_missing_function_body{
+            .expected_body = source_code_span(expected_body, expected_body)});
+
+        // Don't parse a function body.
+        return;
+      }
       break;
 
     // function f {}  // Invalid.
     case token_type::left_curly:
-      if (!name.has_value()) {
-        QLJS_PARSER_UNIMPLEMENTED();
-      }
       this->error_reporter_->report(error_missing_function_parameter_list{
-          .function_name = *name,
+          .expected_parameter_list =
+              source_code_span(this->lexer_.end_of_previous_token(),
+                               this->lexer_.end_of_previous_token()),
       });
       break;
 
@@ -1276,11 +1377,10 @@ class parser {
     case token_type::dot:
     case token_type::number:
     case token_type::right_curly:
-      if (!name.has_value()) {
-        QLJS_PARSER_UNIMPLEMENTED();
-      }
       this->error_reporter_->report(error_missing_function_parameter_list{
-          .function_name = *name,
+          .expected_parameter_list =
+              source_code_span(this->lexer_.end_of_previous_token(),
+                               this->lexer_.end_of_previous_token()),
       });
       // Don't parse a function body.
       return;
@@ -1295,6 +1395,8 @@ class parser {
     this->parse_and_visit_statement_block_no_scope(v);
   }
 
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_function_parameters(Visitor &v) {
     std::optional<source_code_span> last_parameter_spread_span = std::nullopt;
@@ -1318,10 +1420,13 @@ class parser {
       case token_type::identifier:
       case token_type::kw_yield:
       case token_type::left_curly:
-      case token_type::left_square: {
+      case token_type::left_square:
+      case token_type::number:
+      case token_type::reserved_keyword_with_escape_sequence: {
         expression *parameter = this->parse_expression(
             precedence{.commas = false, .in_operator = true});
-        this->visit_binding_element(parameter, v, variable_kind::_parameter);
+        this->visit_binding_element(parameter, v, variable_kind::_parameter,
+                                    /*declaring_token=*/std::nullopt);
         if (parameter->kind() == expression_kind::spread) {
           last_parameter_spread_span = parameter->span();
         } else {
@@ -1348,11 +1453,11 @@ class parser {
     }
   done:;
   }
+  QLJS_WARNING_POP
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_class(Visitor &v, name_requirement require_name) {
     QLJS_ASSERT(this->peek().type == token_type::kw_class);
-    const char8 *class_keyword_begin = this->peek().begin;
 
     this->parse_and_visit_class_heading(v, /*require_name=*/require_name);
 
@@ -1368,12 +1473,13 @@ class parser {
       this->skip();
       break;
 
-    default:
+    default: {
+      const char8 *here = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_missing_body_for_class{
-          .class_keyword_and_name_and_heritage = source_code_span(
-              class_keyword_begin, this->lexer_.end_of_previous_token()),
+          .class_keyword_and_name_and_heritage = source_code_span(here, here),
       });
       break;
+    }
     }
   }
 
@@ -1454,6 +1560,7 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_class_body(Visitor &v) {
+    class_guard g(this, std::exchange(this->in_class_, true));
     while (this->peek().type != token_type::right_curly) {
       this->parse_and_visit_class_member(v);
     }
@@ -1766,6 +1873,14 @@ class parser {
       this->skip();
       break;
 
+    case token_type::comma:
+      this->error_reporter_->report(
+          error_comma_not_allowed_between_class_methods{
+              .unexpected_comma = this->peek().span(),
+          });
+      this->skip();
+      break;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;
@@ -1806,12 +1921,13 @@ class parser {
       break;
     }
 
-    default:
+    default: {
+      const char8 *here = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_missing_body_for_switch_statement{
-          .switch_and_condition = source_code_span(
-              switch_token_span.begin(), this->lexer_.end_of_previous_token()),
+          .switch_and_condition = source_code_span(here, here),
       });
       return;
+    }
     }
     v.visit_enter_block_scope();
 
@@ -1847,7 +1963,8 @@ class parser {
         break;
 
       default: {
-        bool parsed_statement = this->parse_and_visit_statement(v);
+        bool parsed_statement = this->parse_and_visit_statement(
+            v, parse_statement_type::any_statement_in_block);
         if (!parsed_statement) {
           QLJS_PARSER_UNIMPLEMENTED();
         }
@@ -1898,7 +2015,6 @@ class parser {
 
     if (this->peek().type == token_type::kw_catch) {
       parsed_catch = true;
-      source_code_span catch_token_span = this->peek().span();
       this->skip();
 
       v.visit_enter_block_scope();
@@ -1935,13 +2051,17 @@ class parser {
 
         case token_type::left_curly:
         case token_type::left_square:
-          this->parse_and_visit_binding_element(v, variable_kind::_catch,
-                                                /*allow_in_operator=*/false);
+          this->parse_and_visit_binding_element(
+              v, variable_kind::_catch,
+              /*declaring_token=*/std::nullopt,
+              /*allow_in_operator=*/false);
           break;
 
         case token_type::right_paren:
           this->error_reporter_->report(
               error_missing_catch_variable_between_parentheses{
+                  .left_paren_to_right_paren = source_code_span(
+                      catch_left_paren_span.begin(), this->peek().end),
                   .left_paren = catch_left_paren_span,
                   .right_paren = this->peek().span(),
               });
@@ -1966,8 +2086,9 @@ class parser {
       if (this->peek().type == token_type::left_curly) {
         this->parse_and_visit_statement_block_no_scope(v);
       } else {
+        const char8 *here = this->lexer_.end_of_previous_token();
         this->error_reporter_->report(error_missing_body_for_catch_clause{
-            .catch_token = catch_token_span,
+            .catch_token = source_code_span(here, here),
         });
       }
       v.visit_exit_block_scope();
@@ -2231,16 +2352,22 @@ class parser {
         default:
           this->lexer_.roll_back_transaction(std::move(transaction));
           this->skip();  // Re-parse 'let'.
-          this->parse_and_visit_let_bindings(lhs, declaring_token,
-                                             /*allow_in_operator=*/false);
+          this->parse_and_visit_let_bindings(
+              lhs, declaring_token,
+              /*allow_in_operator=*/false,
+              /*allow_const_without_initializer=*/false,
+              /*is_in_for_initializer=*/true);
           break;
         }
       } else {
         // for (let i = 0; i < length; ++length) {}
         // for (let x of xs) {}
         this->lexer_.commit_transaction(std::move(transaction));
-        this->parse_and_visit_let_bindings(lhs, declaring_token,
-                                           /*allow_in_operator=*/false);
+        this->parse_and_visit_let_bindings(
+            lhs, declaring_token,
+            /*allow_in_operator=*/false,
+            /*allow_const_without_initializer=*/true,
+            /*is_in_for_initializer=*/true);
       }
       switch (this->peek().type) {
       // for (let i = 0; i < length; ++length) {}
@@ -2396,12 +2523,12 @@ class parser {
     this->error_on_class_statement(statement_kind::for_loop);
     this->error_on_function_statement(statement_kind::for_loop);
     this->error_on_lexical_declaration(statement_kind::for_loop);
-    bool parsed_body =
-        this->parse_and_visit_statement_disallowing_declaration(v);
+    bool parsed_body = this->parse_and_visit_statement(
+        v, parse_statement_type::no_declarations);
     if (!parsed_body) {
+      const char8 *here = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_missing_body_for_for_statement{
-          .for_and_header = source_code_span(
-              for_token_span.begin(), this->lexer_.end_of_previous_token()),
+          .for_and_header = source_code_span(here, here),
       });
     }
 
@@ -2433,12 +2560,12 @@ class parser {
     this->error_on_class_statement(statement_kind::while_loop);
     this->error_on_function_statement(statement_kind::while_loop);
     this->error_on_lexical_declaration(statement_kind::while_loop);
-    bool parsed_body =
-        this->parse_and_visit_statement_disallowing_declaration(v);
+    bool parsed_body = this->parse_and_visit_statement(
+        v, parse_statement_type::no_declarations);
     if (!parsed_body) {
+      const char8 *here = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_missing_body_for_while_statement{
-          .while_and_condition = source_code_span(
-              while_token_span.begin(), this->lexer_.end_of_previous_token()),
+          .while_and_condition = source_code_span(here, here),
       });
     }
   }
@@ -2591,8 +2718,8 @@ class parser {
     this->error_on_lexical_declaration(statement_kind::with_statement);
 
     v.visit_enter_with_scope();
-    bool parsed_body =
-        this->parse_and_visit_statement_disallowing_declaration(v);
+    bool parsed_body = this->parse_and_visit_statement(
+        v, parse_statement_type::no_declarations);
     if (!parsed_body) {
       QLJS_PARSER_UNIMPLEMENTED();
     }
@@ -2626,8 +2753,8 @@ class parser {
         entered_block_scope = true;
       }
 
-      bool parsed_if_body =
-          this->parse_and_visit_statement_disallowing_declaration(v);
+      bool parsed_if_body = this->parse_and_visit_statement(
+          v, parse_statement_type::no_declarations);
       if (!parsed_if_body) {
         QLJS_PARSER_UNIMPLEMENTED();
       }
@@ -2824,6 +2951,8 @@ class parser {
     case token_type::identifier:
       this->error_reporter_->report(
           error_expected_as_before_imported_namespace_alias{
+              .star_through_alias_token =
+                  source_code_span(star_span.begin(), this->peek().end),
               .alias = this->peek().span(),
               .star_token = star_span,
           });
@@ -2868,7 +2997,7 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_named_exports_for_export(
-      Visitor &v, std::vector<token> &out_exported_bad_tokens) {
+      Visitor &v, vector<token> &out_exported_bad_tokens) {
     this->parse_and_visit_named_exports(
         v, /*out_exported_bad_tokens=*/&out_exported_bad_tokens);
   }
@@ -2879,25 +3008,28 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_named_exports(
-      Visitor &v, std::vector<token> *out_exported_bad_tokens) {
+  void parse_and_visit_named_exports(Visitor &v,
+                                     vector<token> *out_exported_bad_tokens) {
     bool is_export = out_exported_bad_tokens != nullptr;
     QLJS_ASSERT(this->peek().type == token_type::left_curly);
     this->skip();
     for (;;) {
+      bool left_is_keyword = false;
       switch (this->peek().type) {
       QLJS_CASE_RESERVED_KEYWORD:
       case token_type::reserved_keyword_with_escape_sequence:
         if (out_exported_bad_tokens) {
           out_exported_bad_tokens->emplace_back(this->peek());
         }
+        left_is_keyword = true;
         [[fallthrough]];
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier: {
         identifier left_name = this->peek().identifier_name();
         token right_token = this->peek();
         this->skip();
-        if (this->peek().type == token_type::kw_as) {
+        bool has_as = this->peek().type == token_type::kw_as;
+        if (has_as) {
           this->skip();
           switch (this->peek().type) {
           case token_type::string:
@@ -2916,7 +3048,12 @@ class parser {
           }
         }
         if (is_export) {
-          v.visit_variable_export_use(left_name);
+          if (left_is_keyword) {
+            // Ignore. We will emit error_cannot_export_variable_named_keyword
+            // later.
+          } else {
+            v.visit_variable_export_use(left_name);
+          }
         } else {
           switch (right_token.type) {
           // import {myFunc} from 'other';
@@ -2928,6 +3065,8 @@ class parser {
               this->error_reporter_->report(
                   error_cannot_import_let{.import_name = right_token.span()});
             }
+            v.visit_variable_declaration(right_token.identifier_name(),
+                                         variable_kind::_import);
             break;
 
           // import {var} from 'other';  // Invalid.
@@ -2936,20 +3075,34 @@ class parser {
                 error_cannot_import_variable_named_keyword{
                     .import_name = right_token.identifier_name(),
                 });
+            // FIXME(strager): Declaring a variable with a keyword name is
+            // sketchy. Delete this?
+            v.visit_variable_declaration(right_token.identifier_name(),
+                                         variable_kind::_import);
             break;
 
           // import {\u{76}ar} from 'other';  // Invalid.
           case token_type::reserved_keyword_with_escape_sequence:
             right_token.report_errors_for_escape_sequences_in_keyword(
                 this->error_reporter_);
+            // FIXME(strager): Declaring a variable with a keyword name is
+            // sketchy. Delete this?
+            v.visit_variable_declaration(right_token.identifier_name(),
+                                         variable_kind::_import);
+            break;
+
+          case token_type::string:
+            QLJS_ASSERT(has_as);
+            this->error_reporter_->report(
+                error_expected_variable_name_for_import_as{
+                    .unexpected_token = right_token.span(),
+                });
             break;
 
           default:
             QLJS_UNIMPLEMENTED();
             break;
           }
-          v.visit_variable_declaration(right_token.identifier_name(),
-                                       variable_kind::_import);
         }
         break;
       }
@@ -3005,6 +3158,14 @@ class parser {
             this->skip();
             break;
 
+          case token_type::string:
+            this->error_reporter_->report(
+                error_expected_variable_name_for_import_as{
+                    .unexpected_token = this->peek().span(),
+                });
+            this->skip();
+            break;
+
           default:
             QLJS_PARSER_UNIMPLEMENTED();
             break;
@@ -3040,8 +3201,10 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_let_bindings(Visitor &v, token declaring_token,
-                                    bool allow_in_operator) {
+  void parse_and_visit_let_bindings(
+      Visitor &v, token declaring_token, bool allow_in_operator,
+      bool allow_const_without_initializer = false,
+      bool is_in_for_initializer = false) {
     variable_kind declaration_kind;
     switch (declaring_token.type) {
     case token_type::kw_const:
@@ -3058,15 +3221,22 @@ class parser {
       declaration_kind = variable_kind::_let;
       break;
     }
-    this->parse_and_visit_let_bindings(v, declaring_token, declaration_kind,
-                                       /*allow_in_operator=*/allow_in_operator);
+    this->parse_and_visit_let_bindings(
+        v, declaring_token, declaration_kind,
+        /*allow_in_operator=*/allow_in_operator,
+        /*allow_const_without_initializer=*/allow_const_without_initializer,
+        /*is_in_for_initializer=*/is_in_for_initializer);
   }
 
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
   // declaring_token is the const/let/var token.
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_let_bindings(Visitor &v, token declaring_token,
                                     variable_kind declaration_kind,
-                                    bool allow_in_operator) {
+                                    bool allow_in_operator,
+                                    bool allow_const_without_initializer,
+                                    bool is_in_for_initializer) {
     source_code_span let_span = declaring_token.span();
     bool first_binding = true;
     for (;;) {
@@ -3136,34 +3306,58 @@ class parser {
         this->skip();
         switch (this->peek().type) {
         // let x = 3;
-        initialize_variable:
+        // let x += 42;  // Invalid.
+        QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
         case token_type::equal: {
-          expression *ast = this->parse_expression_remainder(
-              variable,
-              precedence{.commas = false, .in_operator = allow_in_operator});
-          this->visit_binding_element(ast, v, declaration_kind);
+          token equal_token = this->peek();
+          expression::assignment *assignment_ast =
+              static_cast<expression::assignment *>(
+                  this->parse_expression_remainder(
+                      variable, precedence{.commas = false,
+                                           .in_operator = allow_in_operator}));
+
+          if (is_in_for_initializer && this->peek().type == token_type::kw_in) {
+            // for (var x = "initial" in obj)
+            // for (let x = "prop" in obj)  // Invalid.
+            // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
+            source_code_span in_token_span = this->peek().span();
+            QLJS_ASSERT(!allow_in_operator);
+
+            lexer_transaction transaction = this->lexer_.begin_transaction();
+            expression *in_ast = this->parse_expression_remainder(
+                assignment_ast->child_1(), precedence{.commas = false});
+            if (this->peek().type == token_type::semicolon) {
+              // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
+              this->lexer_.commit_transaction(std::move(transaction));
+              assignment_ast->set_child(1, in_ast);
+              this->error_reporter_->report(
+                  error_in_disallowed_in_c_style_for_loop{
+                      .in_token = in_token_span,
+                  });
+            } else {
+              this->lexer_.roll_back_transaction(std::move(transaction));
+              if (declaration_kind == variable_kind::_var) {
+                // for (var x = "initial" in obj)
+              } else {
+                // for (let x = "prop" in obj)  // Invalid.
+                this->error_reporter_->report(
+                    error_cannot_assign_to_loop_variable_in_for_of_or_in_loop{
+                        .equal_token = equal_token.span()});
+              }
+            }
+          } else if (is_in_for_initializer &&
+                     this->peek().type == token_type::kw_of) {
+            // for (var x = "initial" of obj)  // Invalid.
+            this->error_reporter_->report(
+                error_cannot_assign_to_loop_variable_in_for_of_or_in_loop{
+                    .equal_token = equal_token.span()});
+          }
+
+          this->visit_binding_element(
+              assignment_ast, v, declaration_kind,
+              /*declaring_token=*/declaring_token.span());
           break;
         }
-
-        // let x += 42;  // Invalid.
-        case token_type::ampersand_equal:
-        case token_type::circumflex_equal:
-        case token_type::greater_greater_equal:
-        case token_type::greater_greater_greater_equal:
-        case token_type::less_less_equal:
-        case token_type::minus_equal:
-        case token_type::percent_equal:
-        case token_type::pipe_equal:
-        case token_type::plus_equal:
-        case token_type::slash_equal:
-        case token_type::star_equal:
-        case token_type::star_star_equal:
-          this->error_reporter_->report(
-              error_cannot_update_variable_during_declaration{
-                  .declaring_token = declaring_token.span(),
-                  .updating_operator = this->peek().span(),
-              });
-          goto initialize_variable;
 
         case token_type::kw_await:
         case token_type::kw_class:
@@ -3173,7 +3367,9 @@ class parser {
         case token_type::kw_this:
         case token_type::kw_typeof: {
           if (this->peek().has_leading_newline) {
-            this->visit_binding_element(variable, v, declaration_kind);
+            this->visit_binding_element(
+                variable, v, declaration_kind,
+                /*declaring_token=*/declaring_token.span());
             this->lexer_.insert_semicolon();
             return;
           }
@@ -3183,7 +3379,9 @@ class parser {
           });
           this->parse_and_visit_expression(
               v, precedence{.commas = false, .in_operator = allow_in_operator});
-          this->visit_binding_element(variable, v, declaration_kind);
+          this->visit_binding_element(
+              variable, v, declaration_kind,
+              /*declaring_token=*/declaring_token.span());
           break;
         }
 
@@ -3191,20 +3389,32 @@ class parser {
         // let x, y;
         default:
           if (declaration_kind == variable_kind::_const) {
-            this->error_reporter_->report(
-                error_missing_initializer_in_const_declaration{
-                    .variable_name = variable->span()});
+            if (!allow_const_without_initializer) {
+              this->error_reporter_->report(
+                  error_missing_initializer_in_const_declaration{
+                      .variable_name = variable->span()});
+            }
           }
-          this->visit_binding_element(variable, v, declaration_kind);
+          this->visit_binding_element(
+              variable, v, declaration_kind,
+              /*declaring_token=*/declaring_token.span());
           break;
         }
         break;
       }
 
+      // \u{69}\u{66} // 'if', but escaped.
+      case token_type::reserved_keyword_with_escape_sequence:
+        this->lexer_.peek().report_errors_for_escape_sequences_in_keyword(
+            this->error_reporter_);
+        goto variable_name;
+
       case token_type::left_curly:
       case token_type::left_square:
         this->parse_and_visit_binding_element(
-            v, declaration_kind, /*allow_in_operator=*/allow_in_operator);
+            v, declaration_kind,
+            /*declaring_token=*/declaring_token.span(),
+            /*allow_in_operator=*/allow_in_operator);
         break;
 
       // let switch = 3;  // Invalid.
@@ -3245,7 +3455,18 @@ class parser {
       }
 
       // let 42;  // Invalid.
+      case token_type::complete_template:
       case token_type::number:
+        this->error_reporter_->report(
+            error_unexpected_token_in_variable_declaration{
+                .unexpected_token = this->peek().span(),
+            });
+        this->lexer_.insert_semicolon();
+        break;
+
+      // let v, `hello${world}`;  // Invalid.
+      case token_type::incomplete_template:
+        // TODO(strager): Improve the span.
         this->error_reporter_->report(
             error_unexpected_token_in_variable_declaration{
                 .unexpected_token = this->peek().span(),
@@ -3255,15 +3476,12 @@ class parser {
 
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
       case token_type::comma:
-      case token_type::complete_template:
       case token_type::dot:
       case token_type::equal_greater:
-      case token_type::incomplete_template:
       case token_type::left_paren:
       case token_type::minus:
       case token_type::plus:
       case token_type::question:
-      case token_type::semicolon:
       case token_type::slash:
         QLJS_PARSER_UNIMPLEMENTED();
         break;
@@ -3278,6 +3496,7 @@ class parser {
             v, precedence{.commas = false, .in_operator = allow_in_operator});
         break;
 
+      case token_type::semicolon:
       default:
         if (first_binding) {
           this->error_reporter_->report(error_let_with_no_bindings{let_span});
@@ -3291,6 +3510,7 @@ class parser {
       first_binding = false;
     }
   }
+  QLJS_WARNING_POP
 
   bool is_let_token_a_variable_reference(token following_token,
                                          bool allow_declarations) noexcept {
@@ -3336,35 +3556,54 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_binding_element(Visitor &v,
-                                       variable_kind declaration_kind,
-                                       bool allow_in_operator) {
+  void parse_and_visit_binding_element(
+      Visitor &v, variable_kind declaration_kind,
+      std::optional<source_code_span> declaring_token, bool allow_in_operator) {
     expression *ast = this->parse_expression(
         precedence{.commas = false, .in_operator = allow_in_operator});
-    this->visit_binding_element(ast, v, declaration_kind);
+    this->visit_binding_element(ast, v, declaration_kind, declaring_token);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
   void visit_binding_element(expression *ast, Visitor &v,
-                             variable_kind declaration_kind) {
+                             variable_kind declaration_kind,
+                             std::optional<source_code_span> declaring_token) {
     switch (ast->kind()) {
     case expression_kind::array:
       for (int i = 0; i < ast->child_count(); ++i) {
-        this->visit_binding_element(ast->child(i), v, declaration_kind);
+        this->visit_binding_element(ast->child(i), v, declaration_kind,
+                                    /*declaring_token=*/declaring_token);
       }
       break;
-    case expression_kind::assignment:
+
     case expression_kind::compound_assignment:
+      if (declaring_token.has_value()) {
+        this->error_reporter_->report(
+            error_cannot_update_variable_during_declaration{
+                .declaring_token = *declaring_token,
+                .updating_operator =
+                    static_cast<expression::assignment *>(ast)->operator_span(),
+            });
+      } else {
+        this->error_reporter_->report(error_invalid_parameter{
+            .parameter = ast->span(),
+        });
+      }
+      [[fallthrough]];
+    case expression_kind::assignment:
       this->visit_expression(ast->child_1(), v, variable_context::rhs);
-      this->visit_binding_element(ast->child_0(), v, declaration_kind);
+      this->visit_binding_element(ast->child_0(), v, declaration_kind,
+                                  /*declaring_token=*/declaring_token);
       break;
+
     case expression_kind::variable: {
       identifier ident = ast->variable_identifier();
       if ((declaration_kind == variable_kind::_const ||
            declaration_kind == variable_kind::_import ||
            declaration_kind == variable_kind::_let) &&
           ast->variable_identifier_token_type() == token_type::kw_let) {
-        // If this is an import, we would emit error_cannot_import_let instead.
+        // If this is an import, we would emit error_cannot_import_let
+        // instead.
         QLJS_ASSERT(declaration_kind != variable_kind::_import);
         this->error_reporter_->report(
             error_cannot_declare_variable_named_let_with_let{.name =
@@ -3376,11 +3615,13 @@ class parser {
     case expression_kind::object:
       for (int i = 0; i < ast->object_entry_count(); ++i) {
         expression *value = ast->object_entry(i).value;
-        this->visit_binding_element(value, v, declaration_kind);
+        this->visit_binding_element(value, v, declaration_kind,
+                                    /*declaring_token=*/declaring_token);
       }
       break;
     case expression_kind::spread:
-      this->visit_binding_element(ast->child_0(), v, declaration_kind);
+      this->visit_binding_element(ast->child_0(), v, declaration_kind,
+                                  /*declaring_token=*/declaring_token);
       break;
 
     case expression_kind::await: {
@@ -3404,21 +3645,62 @@ class parser {
       break;
     }
 
-    case expression_kind::_invalid:
-      this->error_reporter_->report(error_invalid_binding_in_let_statement{
-          .where = ast->span(),
-      });
-      break;
-
-    case expression_kind::call:
-    case expression_kind::literal:
+    case expression_kind::_class:
+    case expression_kind::_delete:
+    case expression_kind::_new:
+    case expression_kind::_template:
+    case expression_kind::_typeof:
+    case expression_kind::arrow_function_with_expression:
+    case expression_kind::arrow_function_with_statements:
+    case expression_kind::binary_operator:
+    case expression_kind::conditional:
+    case expression_kind::conditional_assignment:
+    case expression_kind::dot:
+    case expression_kind::function:
+    case expression_kind::import:
+    case expression_kind::index:
+    case expression_kind::named_function:
+    case expression_kind::new_target:
+    case expression_kind::rw_unary_prefix:
+    case expression_kind::rw_unary_suffix:
+    case expression_kind::super:
+    case expression_kind::tagged_template_literal:
+    case expression_kind::unary_operator:
+    case expression_kind::yield_many:
+    case expression_kind::yield_one:
       this->error_reporter_->report(error_invalid_parameter{
           .parameter = ast->span(),
       });
       break;
 
-    default:
-      QLJS_UNIMPLEMENTED();
+    // function f([(p,)]) {}  // Invalid.
+    case expression_kind::trailing_comma:
+      this->error_reporter_->report(error_stray_comma_in_parameter{
+          .comma = static_cast<expression::trailing_comma *>(ast)->comma_span(),
+      });
+      this->visit_binding_element(ast->child_0(), v, declaration_kind,
+                                  /*declaring_token=*/declaring_token);
+      break;
+
+    // function f(#bananas) {}  // Invalid.
+    // function f(:) {}  // Invalid.
+    case expression_kind::_invalid:
+    case expression_kind::_missing:
+    case expression_kind::private_variable:
+      // parse_expression already reported an error. Don't report another error
+      // here.
+      break;
+
+    case expression_kind::call:
+      this->error_reporter_->report(error_invalid_parameter{
+          .parameter = ast->span(),
+      });
+      break;
+
+    case expression_kind::literal:
+      this->error_reporter_->report(error_unexpected_literal_in_parameter_list{
+          .literal = ast->span(),
+      });
       break;
     }
   }
@@ -3429,16 +3711,24 @@ class parser {
     bool commas = true;
     bool in_operator = true;
 
-    // If true, parse unexpected trailing identifiers as part of the expression
-    // (and emit an error).
+    // If true, parse unexpected trailing identifiers as part of the
+    // expression (and emit an error).
     bool trailing_identifiers = false;
-    bool is_typeof = false;
+    bool conditional_operator = true;
   };
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_expression(Visitor &v, precedence prec) {
+    monotonic_allocator &alloc = *this->expressions_.allocator();
+    auto rewind_state = alloc.prepare_for_rewind();
+
     expression *ast = this->parse_expression(prec);
-    this->visit_expression(ast, v, variable_context::rhs);
+    {
+      auto disable_guard = alloc.disable();
+      this->visit_expression(ast, v, variable_context::rhs);
+    }
+
+    alloc.rewind(std::move(rewind_state));
   }
 
   expression *parse_expression(precedence);
@@ -3446,20 +3736,30 @@ class parser {
   expression *parse_primary_expression(precedence);
 
   expression *parse_async_expression(token async_token, precedence);
-  expression *parse_async_expression_only(token async_token);
+  expression *parse_async_expression_only(token async_token,
+                                          bool allow_in_operator);
   expression *parse_await_expression(token await_token, precedence prec);
 
   expression *parse_expression_remainder(expression *, precedence);
 
   void parse_arrow_function_expression_remainder(
-      vector<expression *, /*InSituCapacity=*/2> &children);
+      source_code_span arrow_span,
+      vector<expression *, /*InSituCapacity=*/2> &children,
+      bool allow_in_operator);
+  // Precondition: Current token is '=>'.
+  void parse_arrow_function_expression_remainder(
+      vector<expression *, /*InSituCapacity=*/2> &children,
+      bool allow_in_operator);
+
   expression *parse_call_expression_remainder(expression *callee);
   expression *parse_index_expression_remainder(expression *lhs);
 
   expression *parse_arrow_function_body(function_attributes,
-                                        const char8 *parameter_list_begin);
+                                        const char8 *parameter_list_begin,
+                                        bool allow_in_operator);
   expression *parse_arrow_function_body(
       function_attributes, const char8 *parameter_list_begin,
+      bool allow_in_operator,
       expression_arena::array_ptr<expression *> &&parameters);
   // Args is either of the following:
   // * expression_arena::array_ptr<expression*> &&parameters
@@ -3467,6 +3767,7 @@ class parser {
   template <class... Args>
   expression *parse_arrow_function_body_impl(function_attributes,
                                              const char8 *parameter_list_begin,
+                                             bool allow_in_operator,
                                              Args &&... args);
 
   expression *parse_function_expression(function_attributes,
@@ -3482,6 +3783,8 @@ class parser {
 
   expression *maybe_wrap_erroneous_arrow_function(expression *arrow_function,
                                                   expression *lhs);
+
+  bool is_arrow_kind(expression *ast) noexcept;
 
   void consume_semicolon();
 
@@ -3561,8 +3864,26 @@ class parser {
     int old_depth_;
   };
 
+  struct parse_expression_cache_key {
+    const char8 *begin;
+    bool in_top_level;
+    bool in_async_function;
+    bool in_generator_function;
+    bool in_loop_statement;
+    bool in_switch_statement;
+    bool in_class;
+
+    bool operator==(const parse_expression_cache_key &rhs) const noexcept;
+    bool operator!=(const parse_expression_cache_key &rhs) const noexcept;
+
+    struct hash {
+      std::size_t operator()(const parse_expression_cache_key &) const noexcept;
+    };
+  };
+
   quick_lint_js::lexer lexer_;
   error_reporter *error_reporter_;
+  parser_options options_;
   quick_lint_js::expression_arena expressions_;
 
   // Memory used for temporary memory allocations (e.g. vectors on the stack).
@@ -3577,6 +3898,24 @@ class parser {
   bool in_generator_function_ = false;
   bool in_loop_statement_ = false;
   bool in_switch_statement_ = false;
+  bool in_class_ = false;
+
+  // Cache of whether 'await' is an identifier or an operator. This cache is
+  // used to avoid quadratic run-time in code like the following:
+  //
+  //   await / await / await / await / await
+  //
+  // (In `await/await`, `await` is an identifier. But in `await/await/`, the
+  // first `await` is an operator.)
+  //
+  // The value of each entry indicates the conclusion:
+  // * true means 'await' looks like an identifier, thus '/' is the division
+  //   operator.
+  // * false means 'await' looks like an operator, thus '/' begins a regular
+  //   expression literal.
+  std::unordered_map<parse_expression_cache_key, bool,
+                     parse_expression_cache_key::hash>
+      await_slash_is_identifier_divide_cache_;
 
 #if QLJS_HAVE_SETJMP
   bool have_fatal_parse_error_jmp_buf_ = false;
@@ -3587,11 +3926,13 @@ class parser {
 
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
+  using class_guard = bool_guard<&parser::in_class_>;
 
  public:
   static constexpr const int stack_limit = 150;
   // For testing and internal use only.
   [[nodiscard]] loop_guard enter_loop();
+  [[nodiscard]] class_guard enter_class();
 };
 }
 

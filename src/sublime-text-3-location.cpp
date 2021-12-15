@@ -22,9 +22,9 @@ sublime_text_3_source_range sublime_text_3_locator::range(
 
 sublime_text_3_source_offset sublime_text_3_locator::position(
     const char8* c) const noexcept {
-  int byte_offset = narrow_cast<int>(c - this->input_.data());
+  std::size_t byte_offset = narrow_cast<std::size_t>(c - this->input_.data());
   return narrow_cast<sublime_text_3_source_offset>(
-      count_code_points_in_utf_8(this->input_, byte_offset));
+      count_utf_8_characters(this->input_, byte_offset));
 }
 }  // namespace quick_lint_js
 

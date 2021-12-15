@@ -4,11 +4,10 @@
 #ifndef QUICK_LINT_JS_FILE_HANDLE_H
 #define QUICK_LINT_JS_FILE_HANDLE_H
 
-#include <boost/leaf/common.hpp>
-#include <boost/leaf/result.hpp>
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/result.h>
 #include <string>
 
 #if QLJS_HAVE_UNISTD_H
@@ -20,6 +19,47 @@
 #endif
 
 namespace quick_lint_js {
+#if QLJS_HAVE_WINDOWS_H
+struct windows_file_io_error {
+  // Error code returned by Win32's GetLastError().
+  DWORD error;
+
+  bool is_file_not_found_error() const noexcept;
+
+  std::string to_string() const;
+
+  friend bool operator==(windows_file_io_error, windows_file_io_error) noexcept;
+  friend bool operator!=(windows_file_io_error, windows_file_io_error) noexcept;
+};
+#endif
+
+#if QLJS_HAVE_UNISTD_H
+struct posix_file_io_error {
+  // Error code stored in POSIX' errno variable.
+  int error;
+
+  bool is_file_not_found_error() const noexcept;
+
+  std::string to_string() const;
+
+  friend bool operator==(posix_file_io_error, posix_file_io_error) noexcept;
+  friend bool operator!=(posix_file_io_error, posix_file_io_error) noexcept;
+};
+#endif
+
+#if defined(__EMSCRIPTEN__)
+// No platform_file_io_error on the web.
+#elif QLJS_HAVE_WINDOWS_H
+using platform_file_io_error = windows_file_io_error;
+#elif QLJS_HAVE_UNISTD_H
+using platform_file_io_error = posix_file_io_error;
+#else
+#error "Unknown platform"
+#endif
+
+#if defined(__EMSCRIPTEN__)
+// No file_read_result on the web.
+#else
 // A file_read_result represents the effect of a call to
 // platform_file_ref::read.
 //
@@ -30,13 +70,13 @@ namespace quick_lint_js {
 //   end of file | false         | true
 //   error       | false         | false
 //   success     | true          | true
-//
-// Possible error types:
-//
-// * boost::leaf::e_errno
-// * boost::leaf::windows::e_LastError
-struct file_read_result : public boost::leaf::result<std::optional<int>> {
-  using boost::leaf::result<std::optional<int>>::result;
+struct file_read_result
+    : public result<std::optional<int>, platform_file_io_error> {
+  using base = result<std::optional<int>, platform_file_io_error>;
+
+  using base::result;
+
+  /*implicit*/ file_read_result(base &&r) : base(std::move(r)) {}
 
   /*implicit*/ file_read_result(int bytes_read)
       : file_read_result(std::optional<int>(bytes_read)) {}
@@ -44,8 +84,6 @@ struct file_read_result : public boost::leaf::result<std::optional<int>> {
   static file_read_result end_of_file() noexcept {
     return file_read_result(std::optional<int>());
   }
-
-  bool ok() const noexcept { return bool(*this); }
 
   bool at_end_of_file() const noexcept {
     return this->ok() && !this->value().has_value();
@@ -57,16 +95,10 @@ struct file_read_result : public boost::leaf::result<std::optional<int>> {
     return ***this;
   }
 };
+#endif
 
 #if QLJS_HAVE_WINDOWS_H
 std::string windows_error_message(DWORD error);
-#endif
-
-#if QLJS_HAVE_UNISTD_H
-std::string error_message(boost::leaf::e_errno);
-#endif
-#if QLJS_HAVE_WINDOWS_H
-std::string error_message(boost::leaf::windows::e_LastError);
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
@@ -95,7 +127,7 @@ class windows_handle_file_ref {
   HANDLE handle_;
 
   static constexpr HANDLE invalid_handle_1 = nullptr;
-  static constexpr HANDLE invalid_handle_2 = INVALID_HANDLE_VALUE;
+  static inline const HANDLE invalid_handle_2 = INVALID_HANDLE_VALUE;
 };
 
 // windows_handle_file is the owner of a Win32 file handle.
@@ -115,7 +147,7 @@ class windows_handle_file : private windows_handle_file_ref {
 
   void close();
 
-  windows_handle_file_ref ref() noexcept;
+  windows_handle_file_ref ref() const noexcept;
 
   using windows_handle_file_ref::get;
   using windows_handle_file_ref::get_last_error_message;
@@ -139,7 +171,7 @@ class posix_fd_file_ref {
 
   bool valid() const noexcept;
 
-  int get() noexcept;
+  int get() const noexcept;
 
   file_read_result read(void *buffer, int buffer_size) noexcept;
   std::optional<int> write(const void *buffer, int buffer_size) noexcept;
@@ -174,7 +206,7 @@ class posix_fd_file : private posix_fd_file_ref {
 
   void close();
 
-  posix_fd_file_ref ref() noexcept;
+  posix_fd_file_ref ref() const noexcept;
 
   using posix_fd_file_ref::get;
   using posix_fd_file_ref::get_last_error_message;
@@ -187,7 +219,9 @@ class posix_fd_file : private posix_fd_file_ref {
 };
 #endif
 
-#if QLJS_HAVE_WINDOWS_H
+#if defined(__EMSCRIPTEN__)
+// No platform_file or platform_file_ref on web.
+#elif QLJS_HAVE_WINDOWS_H
 using platform_file = windows_handle_file;
 using platform_file_ref = windows_handle_file_ref;
 #elif QLJS_HAVE_UNISTD_H

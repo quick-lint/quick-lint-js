@@ -83,14 +83,25 @@
 
 #if defined(QLJS_HAVE_UNISTD_H) && QLJS_HAVE_UNISTD_H
 #elif defined(__has_include)
-#if __has_include(<unistd.h>)
+#if __has_include(<unistd.h>) && !defined(__EMSCRIPTEN__)
 #define QLJS_HAVE_UNISTD_H 1
 #endif
-#elif defined(__unix__)
+#elif defined(__unix__) && !defined(__EMSCRIPTEN__)
 #define QLJS_HAVE_UNISTD_H 1
 #endif
 #if !defined(QLJS_HAVE_UNISTD_H)
 #define QLJS_HAVE_UNISTD_H 0
+#endif
+
+#if defined(QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H) && \
+    QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
+#elif defined(__has_include)
+#if __has_include(<sanitizer/asan_interface.h>)
+#define QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H)
+#define QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H 0
 #endif
 
 #if !defined(QLJS_HAVE_WINDOWS_H)
@@ -115,7 +126,8 @@
 #endif
 
 #if !defined(QLJS_HAVE_DIRENT_H)
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
 #define QLJS_HAVE_DIRENT_H 1
 #else
 #define QLJS_HAVE_DIRENT_H 0
@@ -131,9 +143,10 @@
 #endif
 
 #if !defined(QLJS_HAVE_MKDTEMP)
-#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
-    (defined(__APPLE__) && defined(_POSIX_VERSION) &&         \
-     _POSIX_VERSION >= 200112L)
+#if defined(QLJS_HAVE_UNISTD_H) &&                             \
+    ((defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
+     ((defined(__APPLE__) || defined(__FreeBSD__)) &&          \
+      defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L))
 #define QLJS_HAVE_MKDTEMP 1
 #else
 #define QLJS_HAVE_MKDTEMP 0
@@ -141,15 +154,34 @@
 #endif
 
 #if !defined(QLJS_HAVE_MKFIFO)
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 199009L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 199009L
 #define QLJS_HAVE_MKFIFO 1
 #else
 #define QLJS_HAVE_MKFIFO 0
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_GETPID)
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
+#define QLJS_HAVE_GETPID 1
+#else
+#define QLJS_HAVE_GETPID 0
+#endif
+#endif
+
+#if !defined(QLJS_HAVE_GETTID)
+#if defined(__linux__) && __GLIBC__ == 2 && __GLIBC_MINOR__ >= 30
+#define QLJS_HAVE_GETTID 1
+#else
+#define QLJS_HAVE_GETTID 0
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_PIPE)
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
 #define QLJS_HAVE_PIPE 1
 #else
 #define QLJS_HAVE_PIPE 0
@@ -157,9 +189,10 @@
 #endif
 
 #if !defined(QLJS_HAVE_REALPATH)
-#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
-    (defined(__APPLE__) && defined(_POSIX_VERSION) &&         \
-     _POSIX_VERSION >= 200112L)
+#if defined(QLJS_HAVE_UNISTD_H) &&                             \
+    ((defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
+     ((defined(__APPLE__) || defined(__FreeBSD__)) &&          \
+      defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L))
 #define QLJS_HAVE_REALPATH 1
 #else
 #define QLJS_HAVE_REALPATH 0
@@ -167,7 +200,8 @@
 #endif
 
 #if !defined(QLJS_HAVE_POLL)
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
 #define QLJS_HAVE_POLL 1
 #else
 #define QLJS_HAVE_POLL 0
@@ -175,9 +209,10 @@
 #endif
 
 #if !defined(QLJS_HAVE_SETRLIMIT)
-#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
-    (defined(__APPLE__) && defined(_POSIX_VERSION) &&         \
-     _POSIX_VERSION >= 200112L)
+#if defined(QLJS_HAVE_UNISTD_H) &&                             \
+    ((defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809L) || \
+     ((defined(__APPLE__) || defined(__FreeBSD__)) &&          \
+      defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L))
 #define QLJS_HAVE_SETRLIMIT 1
 #else
 #define QLJS_HAVE_SETRLIMIT 0
@@ -185,7 +220,8 @@
 #endif
 
 #if !defined(QLJS_HAVE_UNAME)
-#if (defined(_POSIX_VERSION) && _POSIX_VERSION >= 198808L)
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 198808L
 #define QLJS_HAVE_UNAME 1
 #else
 #define QLJS_HAVE_UNAME 0
@@ -193,7 +229,8 @@
 #endif
 
 #if !defined(QLJS_HAVE_WRITEV)
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
 #define QLJS_HAVE_WRITEV 1
 #else
 #define QLJS_HAVE_WRITEV 0
@@ -209,6 +246,14 @@
 #endif
 #if !defined(QLJS_HAVE_CHARCONV_HEADER)
 #define QLJS_HAVE_CHARCONV_HEADER 0
+#endif
+
+#if !defined(QLJS_HAVE_ARM_NEON)
+#if defined(__ARM_NEON)
+#define QLJS_HAVE_ARM_NEON 1
+#else
+#define QLJS_HAVE_ARM_NEON 0
+#endif
 #endif
 
 #if !defined(QLJS_HAVE_X86_SSE2)
@@ -321,7 +366,7 @@
 #endif
 
 #if !defined(QLJS_HAVE_KQUEUE)
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__FreeBSD__)
 #define QLJS_HAVE_KQUEUE 1
 #else
 #define QLJS_HAVE_KQUEUE 0
@@ -332,6 +377,28 @@
 // TODO(strager): Set this to 1 if is_transparent is supported by
 // std::unordered_map::find (C++20).
 #define QLJS_HAVE_STD_TRANSPARENT_KEYS 0
+#endif
+
+#if !defined(QLJS_HAVE_SIZED_ALIGNED_NEW)
+// TODO(strager): Set this to 1 if operator new is supported with both a size
+// and an alignment. Our Debian build compiles and links but doesn't run with
+// this set, so be conservative and disable it for now.
+#define QLJS_HAVE_SIZED_ALIGNED_NEW 0
+#endif
+
+#if !defined(QLJS_HAVE_SIZED_ALIGNED_DELETE)
+// TODO(strager): Set this to 1 if operator delete is supported with both a size
+// and an alignment. Our Debian build compiles and links but doesn't run with
+// this set, so be conservative and disable it for now.
+#define QLJS_HAVE_SIZED_ALIGNED_DELETE 0
+#endif
+
+#if !defined(QLJS_HAVE_CONSTEVAL)
+#if defined(__cpp_consteval) && __cpp_consteval >= 201811L
+#define QLJS_HAVE_CONSTEVAL 1
+#else
+#define QLJS_HAVE_CONSTEVAL 0
+#endif
 #endif
 
 #endif

@@ -19,7 +19,7 @@
   (setq package-user-dir cache-dir-name
         package-check-signature nil)
   (add-to-list 'package-archives
-               '("MELPA" . "https://stable.melpa.org/packages/"))
+               '("MELPA" . "https://melpa.org/packages/"))
   (package-initialize)
 
   (unless package-archive-contents
@@ -35,39 +35,65 @@
   (ert-run-tests-batch-and-exit))
 
 (defun def-flymake-tests ()
+  (require 'flymake-quicklintjs)
   (ert-deftest quicklintjs-flymake-parse-errors-and-warnings ()
     (skip-unless (>= emacs-major-version 26))
-    (require 'flymake-quicklintjs)
-    (let ((errors-buf (generate-new-buffer "*errors-buf*"))
-          (js-buf (generate-new-buffer "*js-buf*")))
+    (let ((js-buf (generate-new-buffer "*js-buf*")))
       (with-current-buffer js-buf
         (insert "foobar\n")
         (insert "/*💩*/   foobar  \n")
         (insert "foobar /*💩*/\n")
         (insert "function\n"))
-      (with-current-buffer errors-buf
-        (insert "<stdin>:4:1: error: missing name in function statement [E061]\n")
-        (insert "<stdin>:1:1: warning: use of undeclared variable: foobar [E057]\n")
-        (insert "<stdin>:2:12: warning: use of undeclared variable: foobar [E057]\n")
-        (insert "<stdin>:3:1: warning: use of undeclared variable: foobar [E057]\n")
-        (goto-char (point-min))
+      (goto-char (point-min))
+      (let ((diags (list
+                    (flymake-make-diagnostic
+                     js-buf 38 46 :error
+                     "missing name in function statement")
+                    (flymake-make-diagnostic
+                     js-buf 1 7 :warning
+                     "use of undeclared variable: foobar")
+                    (flymake-make-diagnostic
+                     js-buf 16 22 :warning
+                     "use of undeclared variable: foobar")
+                    (flymake-make-diagnostic
+                     js-buf
+                     25 31 :warning
+                     "use of undeclared variable: foobar")))
+            (errors-in (car (read-from-string
+                             "(((38 . 46) 0 \"E0061\" \"missing name in \
+function statement\")((1 . 7) 2 \"E0057\" \"use of undeclared variable: \
+foobar\")((16 . 22) 2 \"E0057\" \"use of undeclared variable: foobar\")(\
+(25 . 31) 2 \"E0057\" \"use of undeclared variable: foobar\"))"))))
+        (should (equal (flymake-quicklintjs--make-diagnostics js-buf errors-in)
+                       diags)))))
 
-        (let ((diags (list
-                      (flymake-make-diagnostic js-buf 25 31 :warning
-                                               "use of undeclared variable: foobar")
-                      (flymake-make-diagnostic js-buf 16 22 :warning
-                                               "use of undeclared variable: foobar")
-                      (flymake-make-diagnostic js-buf 1 7 :warning
-                                               "use of undeclared variable: foobar")
-                      (flymake-make-diagnostic js-buf 38 46 :error
-                                               "missing name in function statement"))))
-          (should (equal (flymake-quicklintjs--make-diagnostics js-buf) diags)))))))
+  (ert-deftest quicklintjs-exec-with-warning-returns-ok ()
+    (let ((js-buf (generate-new-buffer "*js-buf*"))
+          (out-buf (generate-new-buffer "*out-buf*")))
+      (with-current-buffer js-buf
+        (insert "foobar")
+        (should (equal (call-process-region (point-min) (point-max)
+                                            flymake-quicklintjs-program nil
+                                            out-buf nil "--stdin"
+                                            "--output-format=emacs-lisp") 0)))))
+
+  (ert-deftest quicklintjs-exec-with-error-returns-ok ()
+    (let ((js-buf (generate-new-buffer "*js-buf*"))
+          (out-buf (generate-new-buffer "*out-buf*")))
+      (with-current-buffer js-buf
+        (insert "function")
+        (should (equal (call-process-region
+                        (point-min) (point-max)
+                        flymake-quicklintjs-program nil
+                        out-buf nil "--stdin"
+                        "--output-format=emacs-lisp") 0))))))
 
 (defun def-eglot-tests ()
   (ert-deftest quicklintjs-is-in-eglot-servers ()
     (skip-unless (>= emacs-major-version 26))
     (require 'eglot-quicklintjs)
-    (should (member '(js-mode "quick-lint-js" "--lsp-server")  eglot-server-programs))))
+    (should (member '(js-mode "quick-lint-js" "--lsp-server")
+                    eglot-server-programs))))
 
 (defun def-lsp-tests ()
   (ert-deftest quicklintjs-is-in-lsp-clients ()
@@ -84,26 +110,31 @@
     (should (member 'javascript-quicklintjs flycheck-checkers)))
 
   (flycheck-ert-def-checker-test
-   javascript-quicklintjs javascript error
+   javascript-quicklintjs javascript error-file-checks
    (let ((flycheck-checker 'javascript-quicklintjs)
-         (inhibit-message t))
+         (inhibit-message 't))
      (flycheck-ert-should-syntax-check
-      "test/error.js" '(js-mode)
+      "test/error.js" 'js-mode
       '(1 1 error "missing name in function statement"
-          :id "E061" :checker javascript-quicklintjs)
+          :id "E0061" :checker javascript-quicklintjs
+          :end-line 1 :end-column 10)
       '(1 12 error "unclosed code block; expected '}' by end of file"
-          :id "E134" :checker javascript-quicklintjs)
-      '(2 7 error "unexpected token in variable declaration; expected variable name"
-          :id "E114" :checker javascript-quicklintjs))))
+          :id "E0134" :checker javascript-quicklintjs
+          :end-line 1 :end-column 13)
+      '(2 7 error
+          "unexpected token in variable declaration; expected variable name"
+          :id "E0114" :checker javascript-quicklintjs
+          :end-line 2 :end-column 10))))
 
   (flycheck-ert-def-checker-test
-   javascript-quicklintjs javascript warning
+   javascript-quicklintjs javascript warning-file-checks
    (let ((flycheck-checker 'javascript-quicklintjs)
-         (inhibit-message t))
+         (inhibit-message 't))
      (flycheck-ert-should-syntax-check
-      "test/warning.js" '(js-mode)
+      "test/warning.js" 'js-mode
       '(1 1 warning "assignment to undeclared variable"
-          :id "E059":checker javascript-quicklintjs)))))
+          :id "E0059" :checker javascript-quicklintjs
+          :end-line 1 :end-column 2)))))
 
 ;; quick-lint-js finds bugs in JavaScript programs.
 ;; Copyright (C) 2020  Matthew "strager" Glazar

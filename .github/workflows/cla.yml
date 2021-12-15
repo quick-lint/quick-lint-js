@@ -16,7 +16,7 @@ jobs:
       - name: CLA Assistant
         if: |
           github.event_name == 'pull_request_target' || github.event.comment.body == 'I have read and hereby agree to quick-lint-js'' Contributor License Agreement (CLA-v1.md).' || github.event.comment.body == 'recheck'
-        uses: cla-assistant/github-action@v2.1.2-beta
+        uses: quick-lint/cla-assistant-action@v2.1.2-beta
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PERSONAL_ACCESS_TOKEN : ${{ secrets.CLA_ASSISTANT_PERSONAL_ACCESS_TOKEN }}

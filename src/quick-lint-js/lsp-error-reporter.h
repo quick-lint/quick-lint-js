@@ -4,9 +4,15 @@
 #ifndef QUICK_LINT_JS_LSP_ERROR_REPORTER_H
 #define QUICK_LINT_JS_LSP_ERROR_REPORTER_H
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <optional>
 #include <quick-lint-js/byte-buffer.h>
-#include <quick-lint-js/error-formatter.h>
+#include <quick-lint-js/diagnostic-formatter.h>
+#include <quick-lint-js/diagnostic.h>
+#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp-location.h>
@@ -23,34 +29,31 @@ class lsp_error_reporter final : public error_reporter {
 
   void finish();
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  void report(name) override;
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+  void report_impl(error_type type, void *error) override;
 
  private:
-  lsp_error_formatter begin_error(const char *code);
-  lsp_error_formatter format(const char *code);
-
   byte_buffer &output_;
   lsp_locator locator_;
   bool need_comma_ = false;
 };
 
-class lsp_error_formatter : public error_formatter<lsp_error_formatter> {
+class lsp_error_formatter : public diagnostic_formatter<lsp_error_formatter> {
  public:
-  explicit lsp_error_formatter(byte_buffer &output, lsp_locator &,
-                               const char *code);
-  void write_before_message(severity, const source_code_span &origin);
-  void write_message_part(severity, string8_view);
-  void write_after_message(severity, const source_code_span &origin);
+  explicit lsp_error_formatter(byte_buffer &output, lsp_locator &);
+  void write_before_message(std::string_view code, diagnostic_severity,
+                            const source_code_span &origin);
+  void write_message_part(std::string_view code, diagnostic_severity,
+                          string8_view);
+  void write_after_message(std::string_view code, diagnostic_severity,
+                           const source_code_span &origin);
 
  private:
   byte_buffer &output_;
   lsp_locator &locator_;
-  const char *code_;
 };
 }
+
+#endif
 
 #endif
 

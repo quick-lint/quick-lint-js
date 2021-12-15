@@ -171,7 +171,7 @@ by the Open Source Initiative as Open Source licenses.
 More specifically and in strict accordance with the above paragraph, we agree to
 (sub)license the Contribution or any Materials containing, based on or derived
 from the Contribution only in accordance with our licensing policy available at:
-[https://github.com/quick-lint/quick-lint-js/blob/bd8ed0cf2ddda4939406a5b73101746772df28cc/COPYING]()
+<https://github.com/quick-lint/quick-lint-js/blob/bd8ed0cf2ddda4939406a5b73101746772df28cc/COPYING>
 
 We agree to license patents owned or controlled by You only to the extent
 necessary to (sub)license Your Contribution(s) and the combination of Your

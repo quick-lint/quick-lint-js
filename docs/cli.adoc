@@ -2,7 +2,8 @@
 // See end of file for extended copyright information.
 
 = quick-lint-js(1)
-:version: 0.3.0
+:version: ﻿ \
+include::../version[lines=1]
 :mansource: quick-lint-js version {version}
 :toc:
 :reproducible:
@@ -42,6 +43,21 @@ This command has two modes:
 --
 - *gnu-like* (default): a human-readable format similar to GCC.
 - *vim-qflist-json*: machine-readable JSON which can be given to Vim's _setqflist_ function.
+- *emacs-lisp*: Emacs Lisp association list format.
+
+Incompatible with *--lsp-server*.
+--
+
+*--diagnostic-hyperlinks*=_when_::
+  Control whether to hyperlink error codes or not.
+  This option is only used if *--output-format=gnu-like*.
+  _when_ is one of the following:
++
+--
+- *auto* (default): shows error codes as hyperlinks only if the error output is a terminal.
+On Windows it behaves like 'never'.
+- *always*: always shows error codes as hyperlinks.
+- *never*: never shows error codes as hyperlinks.
 
 Incompatible with *--lsp-server*.
 --
@@ -51,6 +67,24 @@ Incompatible with *--lsp-server*.
 +
 *--vim-file-bufnr* applies only to the next input file given in the command line.
 Therefore, if multiple input files are given, *--vim-file-bufnr* can be specified multiple times.
+
+*--path-for-config-search*=_path_::
+  For the following input file or *--stdin*, use _path_ as the file's path when
+ifdef::backend-manpage[]
+searching for a configuration file (see *quick-lint-js.config*(5)).
+endif::[]
+ifdef::backend-html5[]
+link:../config/[searching for a configuration file].
+endif::[]
++
+_path_ must be a syntactically-valid path.
+_path_ does not need to exist in the filesystem.
++
+*--path-for-config-search* applies only to the next input file given in the command line.
+Therefore, if multiple input files are given, *--path-for-config-search* can be specified multiple times.
+If *--path-for-config-search* is the last option, it has no effect.
++
+Incompatible with *--lsp-server*.
 
 [#config-file]
 *--config-file*=_file_::
@@ -65,7 +99,12 @@ endif::[]
 If *--config-file* is given twice, then the _file_ for the first *--config-file* option applies only to the input files between the two *--config-file* options, and the _file_ for the second *--config-file* option apples only to the input files after the second *--config-file* option.
 See the <<Example>> section for an example.
 +
-If *--config-file* is not given, an empty configuration file is assumed.
+ifdef::backend-manpage[]
+If *--config-file* is not given, *quick-lint-js* searches for a configuration file according to the rules specified in *quick-lint-js.config*(5).
+endif::[]
+ifdef::backend-html5[]
+If *--config-file* is not given, *quick-lint-js* link:../config/[searches for a configuration file].
+endif::[]
 +
 Incompatible with *--lsp-server*.
 
@@ -79,6 +118,17 @@ Incompatible with *--lsp-server*.
 *--stdin*::
   Read standard input as a JavaScript file.
 +
+If neither *--config-file* nor *--path-for-config-search* is specified, an empty configuration file is assumed.
+If *--config-file* is specified, _file_ is used for linting standard input.
+If *--path-for-config-search* is specified and *--config-file* is not specified,
+ifdef::backend-manpage[]
+*quick-lint-js* searches for a configuration file according to the rules specified in *quick-lint-js.config*(5)
+endif::[]
+ifdef::backend-html5[]
+*quick-lint-js* link:../config/[searches for a configuration file]
+endif::[]
+starting from *--path-for-config-search*'s _path_.
++
 Incompatible with *--lsp-server*.
 
 *--lsp*::
@@ -88,10 +138,6 @@ Incompatible with *--lsp-server*.
   An editor can send LSP requests and notifications to *quick-lint-js* via standard input, and receive LSP responses and notifications from standard output.
 +
 Incompatible with *--output-format*.
-
-*--dump-config*::
-  Print quick-lint-js' configuration and exit.
-  *This option is not yet implemented.*
 
 *-h*::
 *--help*::
@@ -124,7 +170,7 @@ The order of predicates within an error list does not matter.
 Included predicates are processed first, adding to the set of error codes.
 Excluded predicates are processed second, removing from the set of error codes.
 
-Error codes have the form *E000*, where _000_ is three decimal digits (0-9).
+Error codes have the form *E0000*, where _0000_ is four decimal digits (0-9).
 
 The following error categories are supported:
 
@@ -133,23 +179,23 @@ The following error categories are supported:
 
 Example error lists:
 
-*E102,E110*::
-  Only error codes E102 and E110, excluding all other error codes.
+*E0102,E0110*::
+  Only error codes E0102 and E0110, excluding all other error codes.
 
-*-E102*::
-  The default set of error codes, except for error code E102.
+*-E0102*::
+  The default set of error codes, except for error code E0102.
 
-*+E102*::
-  The default set of error codes, and also error code E102.
+*+E0102*::
+  The default set of error codes, and also error code E0102.
 
-*all,-E102*::
-  All error codes, except for error code E102.
+*all,-E0102*::
+  All error codes, except for error code E0102.
 
-*E100,-E100,+E200*::
-  Only error code E200, excluding all other error codes.
+*E0100,-E0100,+E0200*::
+  Only error code E0200, excluding all other error codes.
 
-*+E200,-E100,E100*::
-  Only error code E200, excluding all other error codes.
+*+E0200,-E0100,E0100*::
+  Only error code E0200, excluding all other error codes.
 
 == Exit status
 
@@ -179,11 +225,11 @@ ____
 [subs=+quotes]
 ----
 $ *quick-lint-js* lib/index.js
-lib/index.js:1:20: error: variable used before declaration: language [E058]
-lib/index.js:2:7: note: variable declared here [E058]
-lib/index.js:3:1: error: assignment to const variable [E003]
-lib/index.js:1:7: note: const variable declared here [E003]
-lib/index.js:5:25: warning: use of undeclared variable: ocupation [E057]
+lib/index.js:1:20: error: variable used before declaration: language [E0058]
+lib/index.js:2:7: note: variable declared here [E0058]
+lib/index.js:3:1: error: assignment to const variable [E0003]
+lib/index.js:1:7: note: const variable declared here [E0003]
+lib/index.js:5:25: warning: use of undeclared variable: ocupation [E0057]
 ----
 ____
 
@@ -204,8 +250,8 @@ To lint a file called _bad.js_, but don't fail on use-of-undeclared-variable err
 ____
 [subs=+quotes]
 ----
-$ *quick-lint-js* --exit-fail-on=-E057 bad.js
-bad.js:5:25: warning: use of undeclared variable: $ [E057]
+$ *quick-lint-js* --exit-fail-on=-E0057 bad.js
+bad.js:5:25: warning: use of undeclared variable: $ [E0057]
 $ echo $?
 0
 ----
@@ -218,6 +264,15 @@ ____
 $ *quick-lint-js* \
     --config-file strict-quick-lint-js.config src/index.js src/helpers.js \
     --config-file lax-quick-lint-js.config test/test-app.js
+----
+____
+
+To lint a temporary file, but use the configuration file of a project:
+____
+[subs=+quotes]
+----
+$ *quick-lint-js* --path-for-config-search=src/server.js /tmp/unsaved12m1uz.js
+/tmp/unsaved12m1uz.js:12:5: warning: use of undeclared variable: document [E0057]
 ----
 ____
 

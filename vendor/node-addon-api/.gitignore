@@ -1,0 +1,5 @@
+/node_modules
+/build
+/benchmark/build
+/benchmark/src
+/test/addon_build/addons

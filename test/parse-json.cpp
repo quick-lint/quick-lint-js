@@ -1,10 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <boost/json/parse.hpp>
+#include <boost/json/value.hpp>
 #include <cstdint>
 #include <gtest/gtest.h>
-#include <json/reader.h>
-#include <json/value.h>
 #include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
@@ -13,71 +13,39 @@
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>
 #include <sstream>
+#include <system_error>
 
 namespace quick_lint_js {
-::Json::Value parse_json(std::stringstream &stream) {
-  SCOPED_TRACE(stream.str());
-  stream.seekg(0);
-  ::Json::Value root;
-  ::Json::CharReaderBuilder builder;
-  builder.strictMode(&builder.settings_);
-  ::Json::String errors;
-  bool ok = ::Json::parseFromStream(builder, stream, &root, &errors);
-  EXPECT_TRUE(ok) << errors;
+::boost::json::value parse_boost_json(std::string_view json) {
+  std::error_code error;
+  ::boost::json::value root = ::boost::json::parse(json, error);
+  EXPECT_FALSE(error) << json;
   return root;
 }
 
-::Json::Value parse_json(const std::string &json) {
-  ::Json::Value result;
-  ::Json::String errors;
-  bool ok = parse_json(json, &result, &errors);
-  EXPECT_TRUE(ok) << errors;
-  return result;
-}
-
-bool parse_json(std::string_view json, ::Json::Value *result,
-                ::Json::String *errors) {
-  ::Json::CharReaderBuilder readerBuilder;
-  readerBuilder.strictMode(&readerBuilder.settings_);
-  std::unique_ptr<::Json::CharReader> reader(readerBuilder.newCharReader());
-  const char *json_chars = json.data();
-  bool ok = reader->parse(json_chars, &json_chars[json.size()], result, errors);
-  return ok;
-}
-
 #if QLJS_HAVE_CHAR8_T
-bool parse_json(string8_view json, ::Json::Value *result,
-                ::Json::String *errors) {
-  return parse_json(reinterpret_cast<const char *>(json.data()), result,
-                    errors);
+::boost::json::value parse_boost_json(string8_view json) {
+  return parse_boost_json(to_string_view(json));
 }
 #endif
 
-::Json::Value simdjson_to_jsoncpp(::simdjson::ondemand::value &value) {
+::boost::json::value simdjson_to_boost_json(
+    ::simdjson::ondemand::value &value) {
   std::string_view json = value.raw_json_token();
-
-  ::Json::CharReaderBuilder readerBuilder;
-  readerBuilder.strictMode(&readerBuilder.settings_);
-  readerBuilder.settings_["strictRoot"] = false;
-  std::unique_ptr<::Json::CharReader> reader(readerBuilder.newCharReader());
-
-  const char *json_chars = json.data();
-  ::Json::Value result;
-  [[maybe_unused]] ::Json::String errors;
-  bool ok =
-      reader->parse(json_chars, &json_chars[json.size()], &result, &errors);
-  QLJS_ASSERT(ok);
+  std::error_code error;
+  ::boost::json::value result = ::boost::json::parse(json, error);
+  EXPECT_FALSE(error);
   return result;
 }
 
-::Json::Value simdjson_to_jsoncpp(
+::boost::json::value simdjson_to_boost_json(
     ::simdjson::simdjson_result<::simdjson::ondemand::value> &&value) {
   ::simdjson::ondemand::value unwrapped_value;
   ::simdjson::error_code error = value.get(unwrapped_value);
   if (error != ::simdjson::error_code::SUCCESS) {
     QLJS_UNIMPLEMENTED();
   }
-  return simdjson_to_jsoncpp(unwrapped_value);
+  return simdjson_to_boost_json(unwrapped_value);
 }
 }
 

@@ -14,13 +14,18 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - {runs_on: macos-10.15, name: "macOS", archive_name: "macos", archive_extension: ".tar.gz", CC: /usr/local/opt/llvm/bin/clang, CXX: /usr/local/opt/llvm/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm/include -isystem /usr/local/opt/llvm/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm/lib/libc++.a /usr/local/opt/llvm/lib/libc++abi.a"}
-          - {runs_on: ubuntu-latest, name: "Linux", archive_name: "linux", archive_extension: ".tar.gz", CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
-          - {runs_on: windows-latest, name: "Windows", archive_name: "windows", archive_extension: ".zip", CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"}
+          - {runs_on: macos-10.15, name: "macOS x86_64", archive_name: "macos", archive_extension: ".tar.gz", test: true, CC: /usr/local/opt/llvm/bin/clang, CXX: /usr/local/opt/llvm/bin/clang++, CFLAGS: "-isystem /usr/local/opt/llvm/include -isystem /usr/local/opt/llvm/include/c++/v1 -mmacosx-version-min=10.9 -D_LIBCPP_DISABLE_AVAILABILITY", LDFLAGS: "-L/usr/local/opt/llvm/lib -mlinker-version=278 -nostdlib++ /usr/local/opt/llvm/lib/libc++.a /usr/local/opt/llvm/lib/libc++abi.a"}
+          - {runs_on: stracle-macos-aarch64, name: "macOS AArch64", archive_name: "macos-aarch64", archive_extension: ".tar.gz", test: true, CFLAGS: "-mmacosx-version-min=11.0"}
+          - {runs_on: ubuntu-latest, name: "Linux x86_64", archive_name: "linux", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", test: true, CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
+          - {runs_on: ubuntu-latest, name: "Linux ARM", archive_name: "linux-armhf", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v2", test: false, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
+          - {runs_on: ubuntu-latest, name: "Linux AArch64", archive_name: "linux-aarch64", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v1", test: false, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-aarch64.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
+          - {runs_on: windows-latest, name: "Windows x86", archive_name: "windows-x86", archive_extension: ".zip", test: true, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A Win32"}
+          - {runs_on: windows-latest, name: "Windows x64", archive_name: "windows", archive_extension: ".zip", test: true, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"}
+          - {runs_on: windows-latest, name: "Windows ARM", archive_name: "windows-arm", archive_extension: ".zip", test: false, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A ARM"}
+          - {runs_on: windows-latest, name: "Windows ARM64", archive_name: "windows-arm64", archive_extension: ".zip", test: false, CMAKE_FLAGS: "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -A ARM64"}
     runs-on: ${{ matrix.toolchain.runs_on }}
-    container: ${{ fromJSON('["", "ghcr.io/quick-lint/quick-lint-js-github-builder:v1"]')[matrix.toolchain.runs_on == 'ubuntu-latest'] }}
+    container: ${{ matrix.toolchain.docker_container }}
     env:
-      CMAKE_BUILD_TYPE: ${{ matrix.toolchain.CMAKE_BUILD_TYPE }}
       CMAKE_CXX_COMPILER: ${{ matrix.toolchain.CXX }}
       CMAKE_CXX_FLAGS: ${{ matrix.toolchain.CFLAGS }}
       CMAKE_C_COMPILER: ${{ matrix.toolchain.CC }}
@@ -37,21 +42,25 @@ jobs:
       - name: configure
         run: |
           env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
-          cmake ${CMAKE_C_COMPILER+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" -DBUILD_TESTING=NO -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" ${CMAKE_EXTRA_FLAGS} -S . -B build
+          cmake ${CMAKE_C_COMPILER:+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER:+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=NO -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" ${CMAKE_EXTRA_FLAGS} -S . -B build
         shell: bash
       - name: build
-        run: cmake --build build --config Release --target quick-lint-js quick-lint-js-licenses
+        run: cmake --build build --config Release
+      - name: test
+        if: ${{ matrix.toolchain.test }}
+        run: cd build && ctest --build-config Release --verbose
       - name: install
         run: cmake --install build --prefix usr
 
       - name: bundle build into .tar.gz
         if: ${{ matrix.toolchain.archive_extension == '.tar.gz' }}
         run: |
-          mv usr /tmp/quick-lint-js
-          tar czf ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }} -C /tmp/ quick-lint-js
+          mkdir temp
+          mv usr temp/quick-lint-js
+          tar czf ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }} -C temp/ quick-lint-js
       - name: bundle build into .zip
         if: ${{ matrix.toolchain.archive_extension == '.zip' }}
-        uses: papeloto/action-zip@v1
+        uses: quick-lint/action-zip@v1
         with:
           dest: ${{ matrix.toolchain.archive_name }}${{ matrix.toolchain.archive_extension }}
           files: usr/
@@ -139,24 +148,59 @@ jobs:
           path: ./
       - uses: actions/download-artifact@v2
         with:
+          name: quick-lint-js-linux-armhf-${{ github.sha }}
+          path: ./
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-linux-aarch64-${{ github.sha }}
+          path: ./
+      - uses: actions/download-artifact@v2
+        with:
           name: quick-lint-js-macos-${{ github.sha }}
           path: ./
       - uses: actions/download-artifact@v2
         with:
+          name: quick-lint-js-macos-aarch64-${{ github.sha }}
+          path: ./
+      - uses: actions/download-artifact@v2
+        with:
           name: quick-lint-js-windows-${{ github.sha }}
+          path: ./
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-windows-x86-${{ github.sha }}
+          path: ./
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-windows-arm64-${{ github.sha }}
           path: ./
       - name: extract downloaded archives
         run: |
           set -x
 
           tar xf linux.tar.gz
-          mv quick-lint-js dist/npm/linux
+          mv quick-lint-js dist/npm/linux-x64
+
+          tar xf linux-armhf.tar.gz
+          mv quick-lint-js dist/npm/linux-arm
+
+          tar xf linux-aarch64.tar.gz
+          mv quick-lint-js dist/npm/linux-arm64
 
           tar xf macos.tar.gz
-          mv quick-lint-js dist/npm/macos
+          mv quick-lint-js dist/npm/darwin-x64
 
-          mkdir dist/npm/windows
-          unzip windows.zip -d dist/npm/windows/
+          tar xf macos-aarch64.tar.gz
+          mv quick-lint-js dist/npm/darwin-arm64
+
+          mkdir dist/npm/win32-x64
+          unzip windows.zip -d dist/npm/win32-x64/
+
+          mkdir dist/npm/win32-arm64
+          unzip windows-arm64.zip -d dist/npm/win32-arm64/
+
+          mkdir dist/npm/win32-ia32
+          unzip windows-x86.zip -d dist/npm/win32-ia32/
 
       - name: package
         run: npm pack ./dist/npm

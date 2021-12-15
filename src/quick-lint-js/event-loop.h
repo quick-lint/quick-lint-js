@@ -4,9 +4,11 @@
 #ifndef QUICK_LINT_JS_EVENT_LOOP_H
 #define QUICK_LINT_JS_EVENT_LOOP_H
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <array>
-#include <boost/leaf/handle_errors.hpp>
-#include <boost/leaf/pred.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -40,6 +42,9 @@ namespace quick_lint_js {
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Delegate>
 concept event_loop_delegate = requires(Delegate d, const Delegate cd,
+#if QLJS_HAVE_KQUEUE
+                                       const struct ::kevent kqueue_event,
+#endif
 #if QLJS_HAVE_POLL
                                        const ::pollfd poll_event,
 #endif
@@ -58,6 +63,7 @@ concept event_loop_delegate = requires(Delegate d, const Delegate cd,
 #endif
 
 #if QLJS_HAVE_KQUEUE
+  {d.on_fs_changed_kevent(kqueue_event)};
   {d.on_fs_changed_kevents()};
 #endif
 };
@@ -84,43 +90,36 @@ class event_loop_base {
   // Returns true when the pipe has closed. Returns false if the pipe might
   // still have data available (now or in the future).
   bool read_from_pipe() {
-    return boost::leaf::try_handle_all(
-        [&]() -> boost::leaf::result<bool> {
-          // TODO(strager): Pick buffer size intelligently.
-          std::array<char8, 1024> buffer;
-          platform_file_ref pipe = this->const_derived().get_readable_pipe();
+    std::array<char8, 65536> buffer;
+    platform_file_ref pipe = this->const_derived().get_readable_pipe();
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-          QLJS_ASSERT(pipe.is_pipe_non_blocking());
+    QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 #else
-          QLJS_ASSERT(!pipe.is_pipe_non_blocking());
+    QLJS_SLOW_ASSERT(!pipe.is_pipe_non_blocking());
 #endif
-          file_read_result read_result =
-              pipe.read(buffer.data(), buffer.size());
-          if (!read_result) return read_result.error();
-          if (read_result.at_end_of_file()) {
-            return true;
-          } else {
-            QLJS_ASSERT(read_result.bytes_read() != 0);
-            std::lock_guard<std::mutex> lock(this->user_code_mutex_);
-            this->derived().append(string8_view(
-                buffer.data(),
-                narrow_cast<std::size_t>(read_result.bytes_read())));
-            return false;
-          }
-        },
+    file_read_result read_result = pipe.read(buffer.data(), buffer.size());
+    if (!read_result.ok()) {
 #if QLJS_HAVE_UNISTD_H
-        [](boost::leaf::match_value<boost::leaf::e_errno, EAGAIN>) -> bool {
+      if (read_result.error().error == EAGAIN) {
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
-          return false;
+        return false;
 #else
-          QLJS_UNREACHABLE();
+        QLJS_UNREACHABLE();
 #endif
-        },
+      }
 #endif
-        []() -> bool {
-          QLJS_UNIMPLEMENTED();
-          return true;
-        });
+      QLJS_UNIMPLEMENTED();
+      return true;
+    }
+    if (read_result.at_end_of_file()) {
+      return true;
+    } else {
+      QLJS_ASSERT(read_result.bytes_read() != 0);
+      std::lock_guard<std::mutex> lock(this->user_code_mutex_);
+      this->derived().append(string8_view(
+          buffer.data(), narrow_cast<std::size_t>(read_result.bytes_read())));
+      return false;
+    }
   }
 
 #if QLJS_HAVE_CXX_CONCEPTS
@@ -169,7 +168,7 @@ class kqueue_event_loop : public event_loop_base<Derived> {
     {
       static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
       platform_file_ref pipe = this->const_derived().get_readable_pipe();
-      QLJS_ASSERT(pipe.is_pipe_non_blocking());
+      QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 
       std::array<struct ::kevent, 2> changes;
       std::size_t change_count = 0;
@@ -228,6 +227,7 @@ class kqueue_event_loop : public event_loop_base<Derived> {
           break;
 
         case event_udata_fs_changed:
+          this->derived().on_fs_changed_kevent(event);
           fs_changed = true;
           break;
 
@@ -236,7 +236,9 @@ class kqueue_event_loop : public event_loop_base<Derived> {
           break;
         }
       }
-      this->derived().on_fs_changed_kevents();
+      if (fs_changed) {
+        this->derived().on_fs_changed_kevents();
+      }
     }
   }
 
@@ -261,9 +263,9 @@ class poll_event_loop : public event_loop_base<Derived> {
 
       static_assert(QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
       platform_file_ref pipe = this->const_derived().get_readable_pipe();
-      QLJS_ASSERT(pipe.is_pipe_non_blocking());
+      QLJS_SLOW_ASSERT(pipe.is_pipe_non_blocking());
 
-      std::array<::pollfd, 3> pollfds;
+      std::array< ::pollfd, 3> pollfds;
       std::size_t pollfd_count = 0;
 
       std::size_t read_pipe_index = pollfd_count++;
@@ -296,7 +298,7 @@ class poll_event_loop : public event_loop_base<Derived> {
 
       QLJS_ASSERT(pollfd_count > 0);
       QLJS_ASSERT(pollfd_count <= pollfds.size());
-      int rc = ::poll(pollfds.data(), narrow_cast<::nfds_t>(pollfd_count),
+      int rc = ::poll(pollfds.data(), narrow_cast< ::nfds_t>(pollfd_count),
                       /*timeout=*/-1);
       if (rc == -1) {
         QLJS_UNIMPLEMENTED();
@@ -445,6 +447,8 @@ inline windows_handle_file create_io_completion_port() noexcept {
 }
 #endif
 }
+
+#endif
 
 #endif
 

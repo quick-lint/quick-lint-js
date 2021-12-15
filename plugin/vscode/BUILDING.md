@@ -5,24 +5,29 @@ editor][VisualStudioCode].
 
 ## Building
 
-To build this extension, first [build the quick-lint-js-wasm
-package](../../wasm/README.md#Building).
+To build this extension, [configure quick-lint-js with
+CMake](../../docs/BUILDING.md) with `-DQUICK_LINT_JS_ENABLE_VSCODE=YES
+-DCMAKE_POSITION_INDEPENDENT_CODE=YES`, then run the following commands:
 
-Then, run the following command:
+    $ # Build the quick-lint-js Node.js addon:
+    $ cmake --build build --target quick-lint-js-vscode-node quick-lint-js-vscode-node-licenses
+
+    $ # Copy files into the VS Code extension:
+    $ cmake --install build --component vscode-node --prefix plugin/vscode
+
+Finally, run the following commands to create `quick-lint-js-1.0.0.vsix`:
 
     $ cd plugin/vscode/  # Navigate to this directory.
-    $ yarn install --force
-
-Finally, run the following command to create `quick-lint-js-0.3.0.vsix`:
-
+    $ yarn
     $ ./node_modules/.bin/vsce package --baseImagesUrl https://raw.githubusercontent.com/quick-lint/quick-lint-js/master/plugin/vscode/
 
 ## Testing
 
-After [building](#Building), run `yarn test` to run the automated test suite.
-Packaging is not necessary to run `yarn test`.
+After [building](#Building), run the following commands to run the automated
+test suite. Packaging is not necessary.
 
-[Ninja]: https://ninja-build.org/
-[Node.js]: https://nodejs.org/
+    $ cd plugin/vscode/  # Navigate to this directory.
+    $ yarn
+    $ yarn test
+
 [VisualStudioCode]: https://code.visualstudio.com/
-[emscripten-sdk]: https://emscripten.org/docs/getting_started/downloads.html

@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_LOCALE_H
 
 #include <cstring>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -28,6 +29,12 @@ extern template const locale_entry<const std::uint8_t*>* find_locale_entry(
     const locale_entry<const std::uint8_t*>* files, const char* locale_name);
 extern template const locale_entry<int>* find_locale_entry(
     const locale_entry<int>* files, const char* locale_name);
+
+// Returns the index of the matching locale.
+//
+// If locales is "en_US\0fr_FR\0de_DE\0", and locale_name is "fr_FR", then the
+// result will be 1.
+std::optional<int> find_locale(const char* locales, const char* locale_name);
 
 std::vector<std::string> locale_name_combinations(const char* locale_name);
 }

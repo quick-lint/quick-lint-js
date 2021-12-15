@@ -4,6 +4,10 @@
 // LSP specification:
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
@@ -11,6 +15,7 @@
 #include <vector>
 
 using ::testing::ElementsAre;
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -66,6 +71,37 @@ TEST(test_lsp_message_parser, two_messages) {
   EXPECT_THAT(parser.messages(), ElementsAre(u8"hello", u8"world"));
 }
 
+TEST(test_lsp_message_parser,
+     missing_content_length_is_treated_as_empty_message) {
+  spy_lsp_message_parser parser;
+  parser.append(
+      u8"not-content-length: 10\r\n\r\nContent-Length: 5\r\n\r\nhello"sv);
+  EXPECT_THAT(parser.messages(), ElementsAre(u8"hello"));
+}
+
+TEST(test_lsp_message_parser, content_length_with_not_number_is_ignored) {
+  spy_lsp_message_parser parser;
+  parser.append(u8"Content-Length: asdf\r\nContent-Length: 5\r\n\r\nhello"sv);
+  EXPECT_THAT(parser.messages(), ElementsAre(u8"hello"));
+}
+
+TEST(test_lsp_message_parser, malformed_headers_are_ignored) {
+  for (
+      string8_view message : {
+          // No header name:
+          u8"\r\nContent-Length: 5\r\n\r\nhello"sv,
+          // No header value:
+          u8"Content-Length\r\nContent-Length: 5\r\n\r\nhello"sv,
+          // Other:
+          u8"Content-Length Content-Length: 3\r\nContent-Length: 5\r\n\r\nhello"sv,
+      }) {
+    SCOPED_TRACE(out_string8(message));
+    spy_lsp_message_parser parser;
+    parser.append(message);
+    EXPECT_THAT(parser.messages(), ElementsAre(u8"hello"));
+  }
+}
+
 TEST(test_lsp_message_parser, two_messages_chunked) {
   {
     spy_lsp_message_parser parser;
@@ -83,6 +119,8 @@ TEST(test_lsp_message_parser, two_messages_chunked) {
 }
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

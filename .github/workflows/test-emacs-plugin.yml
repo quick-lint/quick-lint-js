@@ -28,6 +28,25 @@ jobs:
       - name: test
         run: ./plugin/emacs/test-emacs.sh
 
+      - name: package Emacs plugin
+        run: ./plugin/emacs/create-archive
+
+      - name: upload archive to workflow
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: web-demo-dist-${{ github.sha }}
+          path: plugin/emacs/quick-lint-js-emacs.zip
+      - name: upload archive to long-term storage
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
+        uses: quick-lint/sftp-upload@master
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: plugin/emacs/quick-lint-js-emacs.zip
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/emacs/
+          user: ${{ secrets.artifacts_user }}
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #

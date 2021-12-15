@@ -36,7 +36,7 @@ check_file_copyright_header_benchmark_lsp() {
 }
 
 error=0
-for file in $(find_non_vendor_files | matching '(\<CMakeLists\.txt|\.bt|\.c|\.cmake|\.cpp|\.go|\.gperf|\.h|\.hs|\.html|\.js|\.mjs|\.nix|\.po|\.pot|\.py|\.sh|\.vim|\.yaml)$'); do
+for file in $(find_non_vendor_files | matching '(\<CMakeLists\.txt|\.bt|\.c|\.cmake|\.cpp|\.go|\.gperf|\.h|\.hs|\.html|\.js|\.lua|\.mjs|\.nix|\.po|\.pot|\.py|\.sh|\.vim|\.yaml|\.yml)$'); do
   if ! check_file_copyright_header "${file}"; then
     printf 'error: file missing copyright: %s\n' "${file}"
     error=1

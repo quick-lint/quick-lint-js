@@ -15,7 +15,7 @@ Open after starting the local web server, open http://127.0.0.1:9001/ in your
 browser.
 
 If you want to work on the demo or on the error documentation, you need to
-[build quick-lint-js-wasm](../../../wasm/README.md).
+[build quick-lint-js for WebAssembly](wasm/README.md).
 
 After building quick-lint-js-wasm, you might need to re-install it with Yarn:
 
@@ -25,7 +25,7 @@ After building quick-lint-js-wasm, you might need to re-install it with Yarn:
 ## Packaging for deployment
 
 Prepare the website for publishing on GitHub pages by first building the [web
-demo](demo/README.md) and [quick-lint-js-wasm](../wasm/README.md).
+demo](demo/README.md) and [quick-lint-js for WebAssembly](wasm/README.md).
 
 Then, run `yarn build`:
 

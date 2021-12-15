@@ -1,10 +1,15 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
+#include <boost/json/serialize.hpp>
+#include <boost/json/value.hpp>
+#include <functional>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <json/value.h>
-#include <json/writer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp-endpoint.h>
@@ -12,6 +17,8 @@
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>
+
+QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
 
 using ::testing::IsEmpty;
 
@@ -23,12 +30,12 @@ string8 make_message(string8_view content) {
          string8(content);
 }
 
-string8 json_to_string(::Json::Value& value) {
-  return to_string8(::Json::writeString(::Json::StreamWriterBuilder(), value));
+string8 json_to_string(const ::boost::json::value& value) {
+  return to_string8(::boost::json::serialize(value));
 }
 
 std::string json_get_string(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value) {
+    ::simdjson::simdjson_result< ::simdjson::ondemand::value>&& value) {
   std::string_view s = "<not found>";
   EXPECT_EQ(value.get(s), ::simdjson::error_code::SUCCESS);
   return std::string(s);
@@ -37,20 +44,26 @@ std::string json_get_string(
 TEST(test_lsp_endpoint, single_unbatched_request) {
   struct mock_lsp_server_handler {
     void handle_request(::simdjson::ondemand::object& request,
+                        std::string_view method, string8_view id_json,
                         byte_buffer& response_json) {
       EXPECT_EQ(json_get_string(request["method"]), "testmethod");
+      EXPECT_EQ(method, "testmethod");
+      EXPECT_EQ(id_json, u8"3");
 
-      ::Json::Value response;
-      response["jsonrpc"] = "2.0";
-      response["id"] = simdjson_to_jsoncpp(request["id"]);
-      response["params"] = "testresponse";
+      ::boost::json::value response = {
+          {"jsonrpc", "2.0"},
+          {"id", simdjson_to_boost_json(request["id"])},
+          {"params", "testresponse"},
+      };
       response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(::simdjson::ondemand::object&,
-                             std::vector<byte_buffer>&) {
+    void handle_notification(::simdjson::ondemand::object&, std::string_view) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)>) noexcept {}
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
@@ -64,28 +77,34 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
       })"));
 
   ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_EQ(remote.messages[0]["id"], 3);
-  EXPECT_EQ(remote.messages[0]["params"], "testresponse");
+  EXPECT_EQ(look_up(remote.messages[0], "id"), 3);
+  EXPECT_EQ(look_up(remote.messages[0], "params"), "testresponse");
 }
 
 TEST(test_lsp_endpoint, batched_request) {
   struct mock_lsp_server_handler {
     void handle_request(::simdjson::ondemand::object& request,
+                        std::string_view method, string8_view id_json,
                         byte_buffer& response_json) {
       EXPECT_THAT(json_get_string(request["method"]),
                   ::testing::AnyOf("testmethod A", "testmethod B"));
+      EXPECT_THAT(method, ::testing::AnyOf("testmethod A", "testmethod B"));
+      EXPECT_THAT(id_json, ::testing::AnyOf(u8"3", u8"4"));
 
-      ::Json::Value response;
-      response["jsonrpc"] = "2.0";
-      response["id"] = simdjson_to_jsoncpp(request["id"]);
-      response["params"] = "testresponse";
+      ::boost::json::value response = {
+          {"jsonrpc", "2.0"},
+          {"id", simdjson_to_boost_json(request["id"])},
+          {"params", "testresponse"},
+      };
       response_json.append_copy(json_to_string(response));
     }
 
-    void handle_notification(::simdjson::ondemand::object&,
-                             std::vector<byte_buffer>&) {
+    void handle_notification(::simdjson::ondemand::object&, std::string_view) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)>) noexcept {}
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
@@ -107,9 +126,9 @@ TEST(test_lsp_endpoint, batched_request) {
       ])"));
 
   ASSERT_EQ(remote.messages.size(), 1);
-  ASSERT_EQ(remote.messages[0].size(), 2);
-  EXPECT_EQ(remote.messages[0][0]["id"], 3);
-  EXPECT_EQ(remote.messages[0][1]["id"], 4);
+  ASSERT_EQ(remote.messages[0].as_array().size(), 2);
+  EXPECT_EQ(look_up(remote.messages[0], 0, "id"), 3);
+  EXPECT_EQ(look_up(remote.messages[0], 1, "id"), 4);
 }
 
 TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
@@ -117,15 +136,20 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
   handle_notification_count = 0;
 
   struct mock_lsp_server_handler {
-    void handle_request(::simdjson::ondemand::object&, byte_buffer&) {
+    void handle_request(::simdjson::ondemand::object&, std::string_view,
+                        string8_view, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
     void handle_notification(::simdjson::ondemand::object& notification,
-                             std::vector<byte_buffer>&) {
+                             std::string_view method) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
+      EXPECT_EQ(method, "testmethod");
       handle_notification_count += 1;
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)>) noexcept {}
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
@@ -143,21 +167,35 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
 
 TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
   struct mock_lsp_server_handler {
-    void handle_request(::simdjson::ondemand::object&, byte_buffer&) {
+    void handle_request(::simdjson::ondemand::object&, std::string_view,
+                        string8_view, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
     void handle_notification(::simdjson::ondemand::object& notification,
-                             std::vector<byte_buffer>& notification_jsons) {
+                             std::string_view method) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
+      EXPECT_EQ(method, "testmethod");
 
-      ::Json::Value reply;
-      reply["jsonrpc"] = "2.0";
-      reply["method"] = "testreply";
-      reply["params"] = "testparams";
-      byte_buffer& notification_json = notification_jsons.emplace_back();
-      notification_json.append_copy(json_to_string(reply));
+      ::boost::json::value reply = {
+          {"jsonrpc", "2.0"},
+          {"method", "testreply"},
+          {"params", "testparams"},
+      };
+      this->pending_notifications.push_back(reply);
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)> callback) noexcept {
+      for (::boost::json::value& reply : this->pending_notifications) {
+        byte_buffer notification_json;
+        notification_json.append_copy(json_to_string(reply));
+        callback(std::move(notification_json));
+      }
+      this->pending_notifications.clear();
+    }
+
+    std::vector< ::boost::json::value> pending_notifications;
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
@@ -170,8 +208,8 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
       })"));
 
   ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_EQ(remote.messages[0]["method"], "testreply");
-  EXPECT_EQ(remote.messages[0]["params"], "testparams");
+  EXPECT_EQ(look_up(remote.messages[0], "method"), "testreply");
+  EXPECT_EQ(look_up(remote.messages[0], "params"), "testparams");
 }
 
 TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
@@ -179,15 +217,20 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
   handle_notification_count = 0;
 
   struct mock_lsp_server_handler {
-    void handle_request(::simdjson::ondemand::object&, byte_buffer&) {
+    void handle_request(::simdjson::ondemand::object&, std::string_view,
+                        string8_view, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
     void handle_notification(::simdjson::ondemand::object& notification,
-                             std::vector<byte_buffer>&) {
+                             std::string_view method) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
+      EXPECT_EQ(method, "testmethod");
       handle_notification_count += 1;
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)>) noexcept {}
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
@@ -201,27 +244,41 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
       }])"));
 
   ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_THAT(remote.messages[0], IsEmpty());
+  EXPECT_THAT(remote.messages[0].as_array(), IsEmpty());
   EXPECT_EQ(handle_notification_count, 1);
 }
 
 TEST(test_lsp_endpoint, batched_notification_with_reply) {
   struct mock_lsp_server_handler {
-    void handle_request(::simdjson::ondemand::object&, byte_buffer&) {
+    void handle_request(::simdjson::ondemand::object&, std::string_view,
+                        string8_view, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
     void handle_notification(::simdjson::ondemand::object& notification,
-                             std::vector<byte_buffer>& notification_jsons) {
+                             std::string_view method) {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
+      EXPECT_EQ(method, "testmethod");
 
-      ::Json::Value reply;
-      reply["jsonrpc"] = "2.0";
-      reply["method"] = "testreply";
-      reply["params"] = "testparams";
-      byte_buffer& notification_json = notification_jsons.emplace_back();
-      notification_json.append_copy(json_to_string(reply));
+      ::boost::json::value reply = {
+          {"jsonrpc", "2.0"},
+          {"method", "testreply"},
+          {"params", "testparams"},
+      };
+      this->pending_notifications.push_back(reply);
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)> callback) noexcept {
+      for (::boost::json::value& reply : this->pending_notifications) {
+        byte_buffer notification_json;
+        notification_json.append_copy(json_to_string(reply));
+        callback(std::move(notification_json));
+      }
+      this->pending_notifications.clear();
+    }
+
+    std::vector< ::boost::json::value> pending_notifications;
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
@@ -235,22 +292,25 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
       }])"));
 
   ASSERT_EQ(remote.messages.size(), 2);
-  EXPECT_THAT(remote.messages[0], IsEmpty());
-  EXPECT_EQ(remote.messages[1]["method"], "testreply");
-  EXPECT_EQ(remote.messages[1]["params"], "testparams");
+  EXPECT_THAT(remote.messages[0].as_array(), IsEmpty());
+  EXPECT_EQ(look_up(remote.messages[1], "method"), "testreply");
+  EXPECT_EQ(look_up(remote.messages[1], "params"), "testparams");
 }
 
 // https://www.jsonrpc.org/specification#error_object
 TEST(test_lsp_endpoint, malformed_json) {
   struct mock_lsp_server_handler {
-    void handle_request(::simdjson::ondemand::object&, byte_buffer&) {
+    void handle_request(::simdjson::ondemand::object&, std::string_view,
+                        string8_view, byte_buffer&) {
       ADD_FAILURE() << "handle_request should not be called";
     }
 
-    void handle_notification(::simdjson::ondemand::object&,
-                             std::vector<byte_buffer>&) {
+    void handle_notification(::simdjson::ondemand::object&, std::string_view) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
+
+    void take_pending_notification_jsons(
+        std::function<void(byte_buffer&&)>) noexcept {}
   };
   lsp_endpoint<mock_lsp_server_handler, spy_lsp_endpoint_remote> server;
   spy_lsp_endpoint_remote& remote = server.remote();
@@ -258,15 +318,17 @@ TEST(test_lsp_endpoint, malformed_json) {
   server.append(make_message(u8"{ malformed json! }"));
 
   ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_EQ(remote.messages[0]["jsonrpc"], "2.0");
-  EXPECT_EQ(remote.messages[0]["id"], ::Json::Value::nullSingleton());
-  EXPECT_FALSE(remote.messages[0].isMember("result"));
-  ASSERT_TRUE(remote.messages[0].isMember("error"));
-  EXPECT_EQ(remote.messages[0]["error"]["code"], -32700);
-  EXPECT_EQ(remote.messages[0]["error"]["message"], "Parse error");
+  EXPECT_EQ(look_up(remote.messages[0], "jsonrpc"), "2.0");
+  EXPECT_EQ(look_up(remote.messages[0], "id"), ::boost::json::value());
+  EXPECT_FALSE(look_up(remote.messages[0]).as_object().contains("result"));
+  ASSERT_TRUE(look_up(remote.messages[0]).as_object().contains("error"));
+  EXPECT_EQ(look_up(remote.messages[0], "error", "code"), -32700);
+  EXPECT_EQ(look_up(remote.messages[0], "error", "message"), "Parse error");
 }
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

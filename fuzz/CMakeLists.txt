@@ -13,11 +13,17 @@ if (QUICK_LINT_JS_ENABLE_LLVM_LIBFUZZER_TESTS)
     target_link_libraries("${TARGET}" PRIVATE -fsanitize=fuzzer)
   endfunction ()
 
+  quick_lint_js_add_fuzz_executable(quick-lint-js-fuzz-configuration-json fuzz-configuration-json.cpp)
+  target_link_libraries(quick-lint-js-fuzz-configuration-json PRIVATE quick-lint-js-lib)
+
   quick_lint_js_add_fuzz_executable(quick-lint-js-fuzz-lex fuzz-lex.cpp)
   target_link_libraries(quick-lint-js-fuzz-lex PRIVATE quick-lint-js-lib)
 
   quick_lint_js_add_fuzz_executable(quick-lint-js-fuzz-lsp-server fuzz-lsp-server.cpp)
   target_link_libraries(quick-lint-js-fuzz-lsp-server PRIVATE quick-lint-js-lib)
+
+  quick_lint_js_add_fuzz_executable(quick-lint-js-fuzz-lsp-message-parser fuzz-lsp-message-parser.cpp)
+  target_link_libraries(quick-lint-js-fuzz-lsp-message-parser PRIVATE quick-lint-js-lib)
 
   quick_lint_js_add_fuzz_executable(quick-lint-js-fuzz-options fuzz-options.cpp)
   target_link_libraries(quick-lint-js-fuzz-options PRIVATE quick-lint-js-lib)

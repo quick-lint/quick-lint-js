@@ -15,20 +15,18 @@ jobs:
     env:
       QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
     steps:
-      - uses: mymindstorm/setup-emsdk@v7
+      - uses: quick-lint/setup-emsdk@v7
         with:
           version: 2.0.4
       - name: checkout
         uses: actions/checkout@v2
 
       - name: C++ configure
-        run: emcmake cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS='-Os -flto' -DCMAKE_CXX_FLAGS='-Os -fno-rtti -fno-exceptions -flto'
+        run: emcmake cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS='-Os -flto' -DCMAKE_CXX_FLAGS='-Os -flto'
       - name: C++ build
         run: emmake cmake --build build --target quick-lint-js-vscode quick-lint-js-vscode-licenses
       - name: C++ install
-        run: |
-          emmake cmake --install build --component vscode --prefix wasm
-          emmake cmake --install build --component vscode --prefix website/public/demo
+        run: emmake cmake --install build --component vscode --prefix website/public/demo
 
       - name: JS configure
         run: cd website && yarn

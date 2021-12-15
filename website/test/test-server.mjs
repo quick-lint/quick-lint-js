@@ -260,6 +260,18 @@ describe("server", () => {
     });
   });
 
+  describe(".htaccess (Apache configuration)", () => {
+    it("should 403 if it exists", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, ".htaccess"),
+        'Header add Link "</main.css>;rel=preload"'
+      );
+
+      let response = await request.get("/.htaccess");
+      expect(response.status).toBe(403);
+    });
+  });
+
   describe(". components", () => {
     it("/./ should 404 even if / works", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "index.html"), "hello world");

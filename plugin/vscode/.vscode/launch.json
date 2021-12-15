@@ -9,27 +9,19 @@
       "args": ["--extensionDevelopmentPath=${workspaceRoot}"]
     },
     {
-      "name": "Run VS Code Tests",
+      "name": "Test",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "type": "extensionHost",
+      "env": {
+        "QLJS_TEST_FILTER": ""
+      },
       "args": [
+        "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceRoot}",
         "--extensionTestsPath=${workspaceRoot}/test/vscode-tests.js",
         "${workspaceRoot}/test/empty_test_workspace"
       ]
-    },
-    {
-      "name": "Run Other Tests",
-      "program": "${workspaceFolder}/test/other-tests.js",
-      "request": "launch",
-      "type": "pwa-node"
-    },
-    {
-      "name": "Run All Tests",
-      "program": "${workspaceFolder}/test/run-all-tests.js",
-      "request": "launch",
-      "type": "pwa-node"
     }
   ]
 }

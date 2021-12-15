@@ -5,6 +5,7 @@
 #include <benchmark/benchmark.h>
 #include <cstddef>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/basic-configuration-filesystem.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/json.h>
@@ -96,6 +97,86 @@ void benchmark_lsp_full_text_change_on_tiny_document(
       ::benchmark::Counter(change_count, ::benchmark::Counter::kIsRate);
 }
 BENCHMARK(benchmark_lsp_full_text_change_on_tiny_document);
+
+void benchmark_lsp_full_text_change_on_large_document(
+    ::benchmark::State& state) {
+  string8_view code_line = u8"console.log('HELLO');\n";
+  int line_count = 1000;
+
+  string8 document_text;
+  for (int line = 0; line < line_count; ++line) {
+    document_text += code_line;
+  }
+  string8 document_text_json =
+      to_json_escaped_string_with_quotes(document_text);
+
+  // TODO(strager): This performs undesired filesystem accesses! Make a
+  // null_configuration_filesystem.
+  basic_configuration_filesystem fs;
+  lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
+               null_lsp_writer>
+      lsp_server(std::forward_as_tuple(&fs), std::forward_as_tuple());
+
+  lsp_server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///benchmark.js",
+            "languageId": "javascript",
+            "version": 1000000000,
+            "text": )" +
+                   document_text_json + u8R"(
+          }
+        }
+      })"));
+
+  std::array<string8, 2> change_messages = {
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "file:///benchmark.js",
+            "version": 1000000000
+          },
+          "contentChanges": [
+            {
+              "text": )" +
+                   document_text_json + u8R"(
+            }
+          ]
+        }
+      })"),
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange",
+        "params": {
+          "textDocument": {
+            "uri": "file:///benchmark.js",
+            "version": 1000000001
+          },
+          "contentChanges": [
+            {
+              "text": )" +
+                   document_text_json + u8R"(
+            }
+          ]
+        }
+      })"),
+  };
+
+  for (auto _ : state) {
+    lsp_server.append(change_messages[0]);
+    lsp_server.append(change_messages[1]);
+  }
+  double iteration_count = static_cast<double>(state.iterations());
+  double change_count = iteration_count / 2.0;
+  state.counters["changes"] =
+      ::benchmark::Counter(change_count, ::benchmark::Counter::kIsRate);
+}
+BENCHMARK(benchmark_lsp_full_text_change_on_large_document);
 
 void benchmark_lsp_tiny_change_on_large_document(::benchmark::State& state) {
   string8_view code_line = u8"console.log('HELLO');\n";

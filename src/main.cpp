@@ -7,10 +7,13 @@
 #include <iomanip>
 #include <iostream>
 #include <optional>
+#include <quick-lint-js/basic-configuration-filesystem.h>
 #include <quick-lint-js/change-detecting-filesystem.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/emacs-lisp-error-reporter.h>
+#include <quick-lint-js/emacs-location.h>
 #include <quick-lint-js/error-list.h>
 #include <quick-lint-js/error-tape.h>
 #include <quick-lint-js/event-loop.h>
@@ -52,15 +55,19 @@ namespace {
 class any_error_reporter {
  public:
   static any_error_reporter make(output_format format,
+                                 option_when escape_errors,
                                  compiled_error_list *exit_fail_on) {
     switch (format) {
     case output_format::default_format:
     case output_format::gnu_like:
       return any_error_reporter(error_tape<text_error_reporter>(
-          text_error_reporter(std::cerr), exit_fail_on));
+          text_error_reporter(std::cerr, escape_errors), exit_fail_on));
     case output_format::vim_qflist_json:
       return any_error_reporter(error_tape<vim_qflist_json_error_reporter>(
           vim_qflist_json_error_reporter(std::cout), exit_fail_on));
+    case output_format::emacs_lisp:
+      return any_error_reporter(error_tape<emacs_lisp_error_reporter>(
+          emacs_lisp_error_reporter(std::cout), exit_fail_on));
     }
     QLJS_UNREACHABLE();
   }
@@ -73,6 +80,10 @@ class any_error_reporter {
                             error_tape<vim_qflist_json_error_reporter>,
                             reporter_type>) {
             r.get_reporter()->set_source(input, file.path, file.vim_bufnr);
+          } else if constexpr (std::is_base_of_v<
+                                   error_tape<emacs_lisp_error_reporter>,
+                                   reporter_type>) {
+            r.get_reporter()->set_source(input);
           } else {
             r.get_reporter()->set_source(input, file.path);
           }
@@ -97,6 +108,10 @@ class any_error_reporter {
                             error_tape<vim_qflist_json_error_reporter>,
                             reporter_type>) {
             r.get_reporter()->finish();
+          } else if constexpr (std::is_base_of_v<
+                                   error_tape<emacs_lisp_error_reporter>,
+                                   reporter_type>) {
+            r.get_reporter()->finish();
           }
         },
         this->tape_);
@@ -104,7 +119,8 @@ class any_error_reporter {
 
  private:
   using tape_variant = std::variant<error_tape<text_error_reporter>,
-                                    error_tape<vim_qflist_json_error_reporter>>;
+                                    error_tape<vim_qflist_json_error_reporter>,
+                                    error_tape<emacs_lisp_error_reporter>>;
 
   explicit any_error_reporter(tape_variant &&tape) : tape_(tape) {}
 
@@ -161,41 +177,59 @@ void handle_options(quick_lint_js::options o) {
     std::exit(EXIT_SUCCESS);
   }
   if (o.files_to_lint.empty()) {
-    std::cerr << "error: expected file name\n";
+    std::fprintf(stderr, "error: expected file name\n");
     std::exit(EXIT_FAILURE);
   }
 
+  quick_lint_js::any_error_reporter reporter =
+      quick_lint_js::any_error_reporter::make(
+          o.output_format, o.diagnostic_hyperlinks, &o.exit_fail_on);
+
+  configuration default_config;
   configuration_loader config_loader(
       basic_configuration_filesystem::instance());
-  quick_lint_js::any_error_reporter reporter =
-      quick_lint_js::any_error_reporter::make(o.output_format, &o.exit_fail_on);
-  for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
-    configuration_or_error config = config_loader.load_for_file(file);
-    if (!config.ok()) {
-      QLJS_REPORT_PROGRAM_ERROR("error: %s\n", config.error.c_str());
+  for (const file_to_lint &file : o.files_to_lint) {
+    auto config_result = config_loader.load_for_file(file);
+    if (!config_result.ok()) {
+      QLJS_REPORT_PROGRAM_ERROR("error: %s\n",
+                   config_result.error_to_string().c_str());
       std::exit(1);
     }
-    boost::leaf::try_handle_all(
-        [&]() -> boost::leaf::result<void> {
-          boost::leaf::result<padded_string> source =
-              file.is_stdin ? quick_lint_js::read_stdin()
-                            : quick_lint_js::read_file(file.path);
-          if (!source) return source.error();
-          reporter.set_source(&*source, file);
-          quick_lint_js::process_file(&*source, *config, reporter.get(),
-                                      o.print_parser_visits);
-          return {};
-        },
-        exit_on_read_file_error_handlers<void>(),
-        []() {
-          QLJS_ASSERT(false);
-          QLJS_REPORT_PROGRAM_ERROR("error: unknown error\n");
-          std::exit(1);
-        });
+    loaded_config_file *config_file = *config_result;
+    if (config_file && !config_file->config.errors_were_reported) {
+      reporter.set_source(&config_file->file_content,
+                          file_to_lint{
+                              .path = config_file->config_path->c_str(),
+                              .config_file = nullptr,
+                              .is_stdin = false,
+                              .vim_bufnr = std::nullopt,
+                          });
+      config_file->errors.copy_into(reporter.get());
+      config_file->config.errors_were_reported = true;
+    }
+  }
+
+  if (!reporter.get_error()) {
+    for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
+      auto config_result = config_loader.load_for_file(file);
+      QLJS_ASSERT(config_result.ok());
+      configuration *config =
+          *config_result ? &(*config_result)->config : &default_config;
+      result<padded_string, read_file_io_error> source =
+          file.is_stdin ? quick_lint_js::read_stdin()
+                        : quick_lint_js::read_file(file.path);
+      if (!source.ok()) {
+        source.error().print_and_exit();
+      }
+      reporter.set_source(&*source, file);
+      quick_lint_js::process_file(&*source, *config, reporter.get(),
+                                  o.print_parser_visits);
+    }
   }
   reporter.finish();
 
-  if (reporter.get_error() == true) {
+  if (reporter.get_error() == true &&
+      o.output_format != output_format::emacs_lisp) {
     std::exit(EXIT_FAILURE);
   }
 
@@ -204,40 +238,59 @@ void handle_options(quick_lint_js::options o) {
 
 class debug_visitor {
  public:
-  void visit_end_of_module() { std::cerr << "end of module\n"; }
+  void visit_end_of_module() { std::fprintf(stderr, "end of module\n"); }
 
-  void visit_enter_block_scope() { std::cerr << "entered block scope\n"; }
+  void visit_enter_block_scope() {
+    std::fprintf(stderr, "entered block scope\n");
+  }
 
-  void visit_enter_with_scope() { std::cerr << "entered with scope\n"; }
+  void visit_enter_with_scope() {
+    std::fprintf(stderr, "entered with scope\n");
+  }
 
-  void visit_enter_class_scope() { std::cerr << "entered class scope\n"; }
+  void visit_enter_class_scope() {
+    std::fprintf(stderr, "entered class scope\n");
+  }
 
-  void visit_enter_for_scope() { std::cerr << "entered for scope\n"; }
+  void visit_enter_for_scope() { std::fprintf(stderr, "entered for scope\n"); }
 
-  void visit_enter_function_scope() { std::cerr << "entered function scope\n"; }
+  void visit_enter_function_scope() {
+    std::fprintf(stderr, "entered function scope\n");
+  }
 
   void visit_enter_function_scope_body() {
-    std::cerr << "entered function scope body\n";
+    std::fprintf(stderr, "entered function scope body\n");
   }
 
   void visit_enter_named_function_scope(identifier) {
-    std::cerr << "entered named function scope\n";
+    std::fprintf(stderr, "entered named function scope\n");
   }
 
-  void visit_exit_block_scope() { std::cerr << "exited block scope\n"; }
+  void visit_exit_block_scope() {
+    std::fprintf(stderr, "exited block scope\n");
+  }
 
-  void visit_exit_with_scope() { std::cerr << "exited with scope\n"; }
+  void visit_exit_with_scope() { std::fprintf(stderr, "exited with scope\n"); }
 
-  void visit_exit_class_scope() { std::cerr << "exited class scope\n"; }
+  void visit_exit_class_scope() {
+    std::fprintf(stderr, "exited class scope\n");
+  }
 
-  void visit_exit_for_scope() { std::cerr << "exited for scope\n"; }
+  void visit_exit_for_scope() { std::fprintf(stderr, "exited for scope\n"); }
 
-  void visit_exit_function_scope() { std::cerr << "exited function scope\n"; }
+  void visit_exit_function_scope() {
+    std::fprintf(stderr, "exited function scope\n");
+  }
+
+  void visit_keyword_variable_use(identifier name) {
+    std::cerr << "keyword variable use: " << out_string8(name.normalized_name())
+              << '\n';
+  }
 
   void visit_property_declaration(std::optional<identifier> name) {
     std::cerr << "property declaration";
     if (name.has_value()) {
-      std::cerr << out_string8(name->normalized_name());
+      std::cerr << ": " << out_string8(name->normalized_name());
     }
     std::cerr << '\n';
   }
@@ -249,6 +302,12 @@ class debug_visitor {
 
   void visit_variable_declaration(identifier name, variable_kind) {
     std::cerr << "variable declaration: " << out_string8(name.normalized_name())
+              << '\n';
+  }
+
+  void visit_variable_delete_use(
+      identifier name, [[maybe_unused]] source_code_span delete_keyword) {
+    std::cerr << "variable delete use: " << out_string8(name.normalized_name())
               << '\n';
   }
 
@@ -340,6 +399,11 @@ class multi_visitor {
     this->visitor_2_->visit_exit_function_scope();
   }
 
+  void visit_keyword_variable_use(identifier name) {
+    this->visitor_1_->visit_keyword_variable_use(name);
+    this->visitor_2_->visit_keyword_variable_use(name);
+  }
+
   void visit_property_declaration(std::optional<identifier> name) {
     this->visitor_1_->visit_property_declaration(name);
     this->visitor_2_->visit_property_declaration(name);
@@ -353,6 +417,12 @@ class multi_visitor {
   void visit_variable_declaration(identifier name, variable_kind kind) {
     this->visitor_1_->visit_variable_declaration(name, kind);
     this->visitor_2_->visit_variable_declaration(name, kind);
+  }
+
+  void visit_variable_delete_use(identifier name,
+                                 source_code_span delete_keyword) {
+    this->visitor_1_->visit_variable_delete_use(name, delete_keyword);
+    this->visitor_2_->visit_variable_delete_use(name, delete_keyword);
   }
 
   void visit_variable_export_use(identifier name) {
@@ -381,8 +451,9 @@ void process_file(padded_string_view input, configuration &config,
                   error_reporter *error_reporter, bool print_parser_visits) {
   parser p(input, error_reporter);
   linter l(error_reporter, &config.globals());
-  // TODO(strager): Use parse_and_visit_module_catching_unimplemented instead of
-  // parse_and_visit_module to avoid crashing on QLJS_PARSER_UNIMPLEMENTED.
+  // TODO(strager): Use parse_and_visit_module_catching_fatal_parse_errors
+  // instead of parse_and_visit_module to avoid crashing on
+  // QLJS_PARSER_UNIMPLEMENTED.
   if (print_parser_visits) {
     buffering_visitor v(p.buffering_visitor_memory());
     p.parse_and_visit_module(v);
@@ -423,11 +494,17 @@ void run_lsp_server() {
           input_pipe_(input_pipe),
           endpoint_(std::forward_as_tuple(&this->fs_),
                     std::forward_as_tuple(output_pipe)) {
+      this->report_pending_watch_io_errors();
     }
 
     platform_file_ref get_readable_pipe() const { return this->input_pipe_; }
 
-    void append(string8_view data) { this->endpoint_.append(data); }
+    void append(string8_view data) {
+      this->endpoint_.append(data);
+      // TODO(strager): Only call report_pending_watch_io_errors after
+      // processing a full message.
+      this->report_pending_watch_io_errors();
+    }
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
     std::optional<posix_fd_file_ref> get_pipe_write_fd() {
@@ -446,7 +523,11 @@ void run_lsp_server() {
 #endif
 
 #if QLJS_HAVE_KQUEUE
-    void on_fs_changed_kevents() { this->endpoint_.filesystem_changed(); }
+    void on_fs_changed_kevent(const struct ::kevent &event) {
+      this->fs_.handle_kqueue_event(event);
+    }
+
+    void on_fs_changed_kevents() { this->filesystem_changed(); }
 #endif
 
 #if QLJS_HAVE_INOTIFY
@@ -456,7 +537,7 @@ void run_lsp_server() {
 
     void on_fs_changed_event(const ::pollfd &event) {
       this->fs_.handle_poll_event(event);
-      this->endpoint_.filesystem_changed();
+      this->filesystem_changed();
     }
 #endif
 
@@ -467,10 +548,21 @@ void run_lsp_server() {
       bool fs_changed = this->fs_.handle_event(
           overlapped, number_of_bytes_transferred, error);
       if (fs_changed) {
-        this->endpoint_.filesystem_changed();
+        this->filesystem_changed();
       }
     }
 #endif
+
+    void filesystem_changed() {
+      this->endpoint_.handler().filesystem_changed();
+      this->endpoint_.flush_pending_notifications();
+    }
+
+    void report_pending_watch_io_errors() {
+      this->endpoint_.handler().add_watch_io_errors(
+          this->fs_.take_watch_errors());
+      this->endpoint_.flush_pending_notifications();
+    }
 
    private:
 #if QLJS_HAVE_KQUEUE
@@ -503,11 +595,13 @@ void print_help_message() {
   int max_width = 36;
 
   auto print_option = [&](const char *abbr, const char *message) {
-    std::cout << std::setw(max_width) << std::left << abbr << message << '\n';
+    std::printf("%-*s%s\n", max_width, abbr, message);
   };
 
-  std::cout << "Usage: quick-lint-js [OPTIONS]... [FILE]...\n\n"
-            << "OPTIONS\n";
+  std::printf(
+      "Usage: quick-lint-js [OPTIONS]... FILE [FILE...]\n"
+      "       quick-lint-js --lsp-server\n\n"
+      "OPTIONS\n");
   print_option("--config-file=[FILE]",
                "Read configuration from a JSON file for later input files");
   print_option("--exit-fail-on=[CODES]",
@@ -518,7 +612,15 @@ void print_help_message() {
                "Run in Language Server mode (for LSP-aware editors)");
   print_option("--output-format=[FORMAT]",
                "Format to print feedback where FORMAT is one of:");
-  print_option("", "gnu-like (default if omitted), vim-qflist-json");
+  print_option("", "gnu-like (default)");
+  print_option("", "vim-qflist-json");
+  print_option("", "emacs-lisp");
+  print_option(
+      "--diagnostic-hyperlinks=[WHEN]",
+      "Control whether to hyperlink error codes or not. WHEN is one of:");
+  print_option("", "auto (default)");
+  print_option("", "always");
+  print_option("", "never");
   print_option("-v, --version", "Print version information");
   print_option("--vim-file-bufnr=[NUMBER]",
                "Select a vim buffer for outputting feedback");
@@ -529,16 +631,17 @@ void print_help_message() {
   mention_man_page = true;
 #endif
   if (mention_man_page) {
-    std::cout << "\nFor more information, run 'man quick-lint-js' or visit\n"
-                 "https://quick-lint-js.com/cli/\n";
+    std::printf(
+        "\nFor more information, run 'man quick-lint-js' or visit\n"
+        "https://quick-lint-js.com/cli/\n");
   } else {
-    std::cout
-        << "\nFor more information, visit https://quick-lint-js.com/cli/\n";
+    std::printf(
+        "\nFor more information, visit https://quick-lint-js.com/cli/\n");
   }
 }
 
 void print_version_information() {
-  std::cout << "quick-lint-js version " << QUICK_LINT_JS_VERSION_STRING << '\n';
+  std::puts("quick-lint-js version " QUICK_LINT_JS_VERSION_STRING);
 }
 }
 }

@@ -11,7 +11,7 @@ cd "$(dirname "${0}")/.."
 main() {
   update_template_file
   update_translation_files
-  ./tools/compile-translations
+  go run ./tools/compile-translations.go
 }
 
 update_template_file() {

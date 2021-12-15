@@ -5,14 +5,14 @@
 # Contributor: Shivam Mehta <sm.cse at gmail dot com>
 
 pkgname=quick-lint-js-git
-pkgver=0.3.0
+pkgver=1.0.0
 pkgrel=1
 pkgdesc="Find bugs in JavaScript programs"
 arch=(aarch64 arm armv6h armv7h i686 pentium4 x86_64)
 url="https://quick-lint-js.com/"
 license=(Apache Boost GPL3)
 depends=(gcc-libs)
-makedepends=(cmake git ninja)
+makedepends=(cmake gcc git ninja)
 checkdepends=(icu)
 provides=(quick-lint-js)
 conflicts=(quick-lint-js)
@@ -28,6 +28,7 @@ build() {
   cd quick-lint-js
   cmake -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_WITH_INSTALL_RPATH=YES \
     -DCMAKE_INSTALL_PREFIX=/usr \
     -DQUICK_LINT_JS_INSTALL_LICENSES_DIR="share/licenses/${pkgname}" \
     -S . -B build

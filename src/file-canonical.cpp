@@ -1,11 +1,9 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if !defined(__EMSCRIPTEN__)
+
 #include <algorithm>
-#include <boost/leaf/common.hpp>
-#include <boost/leaf/handle_errors.hpp>
-#include <boost/leaf/on_error.hpp>
-#include <boost/leaf/result.hpp>
 #include <cerrno>
 #include <climits>
 #include <cstddef>
@@ -19,6 +17,7 @@
 #include <quick-lint-js/file-path.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/result.h>
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/utf-16.h>
 #include <string>
@@ -41,7 +40,8 @@
 #define QLJS_PATHS_WIN32 1
 #endif
 
-#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#if defined(QLJS_HAVE_UNISTD_H) && defined(_POSIX_VERSION) && \
+    _POSIX_VERSION >= 200112L
 #define QLJS_PATHS_POSIX 1
 #define QLJS_PATHS_WIN32 0
 #endif
@@ -90,10 +90,65 @@ const std::string &string_for_error_message(const std::string &);
 #if QLJS_PATHS_WIN32
 std::string string_for_error_message(std::wstring_view);
 #endif
+
+struct canonicalizing_path_io_error {
+  path_string canonicalizing_path;
+  platform_file_io_error io_error;
+};
+
+class null_canonicalize_observer : public canonicalize_observer {
+ public:
+  static null_canonicalize_observer *instance() {
+    static null_canonicalize_observer singleton;
+    return &singleton;
+  }
+
+  void on_canonicalize_child_of_directory(const char *) override {}
+  void on_canonicalize_child_of_directory(const wchar_t *) override {}
+};
 }
 
 canonical_path::canonical_path(std::string &&path) : path_(std::move(path)) {
   QLJS_ASSERT(!this->path_.empty());
+
+#if QLJS_PATHS_POSIX
+  std::string_view p(this->path_);
+  while (!ends_with(p, "/")) {
+    std::size_t slash_index = p.find_last_of("/");
+    QLJS_ASSERT(slash_index != std::string::npos);
+    if (slash_index == 0 || slash_index == 1) {
+      // Preserve the slash for resulting root paths.
+      this->path_lengths_.push_back(slash_index + 1);
+      p = p.substr(0, slash_index + 1);
+    } else {
+      this->path_lengths_.push_back(slash_index);
+      p = p.substr(0, slash_index);
+    }
+  }
+  std::reverse(this->path_lengths_.begin(), this->path_lengths_.end());
+#elif QLJS_PATHS_WIN32
+  // TODO(strager): Avoid string conversions and copying.
+  std::optional<std::wstring> wpath = mbstring_to_wstring(this->path_.c_str());
+  QLJS_ASSERT(wpath.has_value());
+  for (;;) {
+    HRESULT result = ::PathCchRemoveFileSpec(wpath->data(), wpath->size() + 1);
+    switch (result) {
+    case S_OK:
+      this->path_lengths_.push_back(count_utf_8_code_units(wpath->c_str()));
+      break;
+    case S_FALSE:
+      // Path is a root path already.
+      goto done;
+    default:
+      QLJS_UNIMPLEMENTED();
+      break;
+    }
+  }
+done:
+  std::reverse(this->path_lengths_.begin(), this->path_lengths_.end());
+#else
+#error "Unsupported platform"
+#endif
 }
 
 std::string_view canonical_path::path() const &noexcept { return this->path_; }
@@ -131,6 +186,7 @@ bool operator!=(const canonical_path &lhs, std::string_view rhs) noexcept {
 }
 
 void canonical_path::append_component(std::string_view component) {
+  this->path_lengths_.push_back(this->path_.size());
   if (this->path_[this->path_.size() - 1] !=
       preferred_component_separator_char) {
     this->path_.push_back(preferred_component_separator_char);
@@ -139,112 +195,100 @@ void canonical_path::append_component(std::string_view component) {
 }
 
 bool canonical_path::parent() {
-#if QLJS_PATHS_POSIX
-  if (this->path_[this->path_.size() - 1] == '/') {
+  if (this->path_lengths_.empty()) {
     return false;
   }
-  std::size_t slash_index = this->path_.find_last_of("/");
-  QLJS_ASSERT(slash_index != std::string::npos);
-  if (slash_index == 0 || slash_index == 1) {
-    // Preserve the slash for resulting root paths.
-    this->path_.resize(slash_index + 1);
-  } else {
-    this->path_.resize(slash_index);
-  }
+  std::size_t path_length = this->path_lengths_.back();
+  this->path_lengths_.pop_back();
+  this->path_.resize(path_length);
   return true;
-#elif QLJS_PATHS_WIN32
-  // TODO(strager): Avoid string conversions and copying.
-  std::optional<std::wstring> wpath = mbstring_to_wstring(this->path_.c_str());
-  QLJS_ASSERT(wpath.has_value());
-  HRESULT result = ::PathCchRemoveFileSpec(wpath->data(), wpath->size() + 1);
-  switch (result) {
-  case S_OK:
-    wpath->resize(std::wcslen(wpath->data()));
-    this->path_ = std::filesystem::path(*wpath).string();
-    return true;
-  case S_FALSE:
-    // Path is a root path already.
-    return false;
-  default:
-    QLJS_UNIMPLEMENTED();
-    break;
-  }
-#else
-#error "Unsupported platform"
-#endif
 }
-
-canonical_path_result::canonical_path_result() {}
 
 canonical_path_result::canonical_path_result(std::string &&path,
                                              std::size_t existing_path_length)
     : path_(std::move(path)), existing_path_length_(existing_path_length) {}
 
 std::string_view canonical_path_result::path() const &noexcept {
-  QLJS_ASSERT(this->ok());
-  return this->path_->path();
+  return this->path_.path();
 }
 
 std::string &&canonical_path_result::path() && noexcept {
-  QLJS_ASSERT(this->ok());
-  return std::move(*this->path_).path();
+  return std::move(this->path_).path();
 }
 
 const char *canonical_path_result::c_str() const noexcept {
-  QLJS_ASSERT(this->ok());
-  return this->path_->c_str();
+  return this->path_.c_str();
 }
 
 const canonical_path &canonical_path_result::canonical() const &noexcept {
-  QLJS_ASSERT(this->ok());
-  return *this->path_;
+  return this->path_;
 }
 
 canonical_path &&canonical_path_result::canonical() && noexcept {
-  QLJS_ASSERT(this->ok());
-  return std::move(*this->path_);
-}
-
-std::string &&canonical_path_result::error() && noexcept {
-  QLJS_ASSERT(!this->ok());
-  return std::move(this->error_);
+  return std::move(this->path_);
 }
 
 bool canonical_path_result::have_missing_components() const noexcept {
-  QLJS_ASSERT(this->ok());
-  return this->existing_path_length_ != this->path_->path_.size();
+  return this->existing_path_length_ != this->path_.path_.size();
 }
 
 void canonical_path_result::drop_missing_components() {
-  QLJS_ASSERT(this->ok());
-  this->path_->path_.resize(this->existing_path_length_);
+  while (!this->path_.path_lengths_.empty() &&
+         this->path_.path_lengths_.back() >= this->existing_path_length_) {
+    this->path_.path_lengths_.pop_back();
+  }
+  this->path_.path_.resize(this->existing_path_length_);
 }
 
-canonical_path_result canonical_path_result::failure(std::string &&error) {
-  canonical_path_result result;
-  result.error_ = std::move(error);
-  QLJS_ASSERT(!result.ok());
-  return result;
+std::string canonicalize_path_io_error::to_string() const {
+  return "failed to canonicalize "s + this->input_path + ": "s +
+         this->canonicalizing_path + ": "s + this->io_error.to_string();
+}
+
+bool operator==(const canonicalize_path_io_error &lhs,
+                const canonicalize_path_io_error &rhs) noexcept {
+  return lhs.input_path == rhs.input_path &&
+         lhs.canonicalizing_path == rhs.canonicalizing_path &&
+         lhs.io_error == rhs.io_error;
+}
+
+bool operator!=(const canonicalize_path_io_error &lhs,
+                const canonicalize_path_io_error &rhs) noexcept {
+  return !(lhs == rhs);
 }
 
 namespace {
 template <class Derived>
 class path_canonicalizer_base {
  public:
-  explicit path_canonicalizer_base(path_string_view path)
-      : original_path_(path) {}
+  explicit path_canonicalizer_base(path_string_view path,
+                                   canonicalize_observer *observer)
+      : observer_(observer), original_path_(path) {}
 
-  boost::leaf::result<void> canonicalize() {
+  result<void, canonicalizing_path_io_error> canonicalize() {
     if (original_path_.empty()) {
-      return boost::leaf::new_error(e_invalid_argument_empty_path());
+#if QLJS_HAVE_WINDOWS_H
+      windows_file_io_error io_error = {ERROR_INVALID_PARAMETER};
+#elif QLJS_HAVE_UNISTD_H
+      posix_file_io_error io_error = {EINVAL};
+#else
+#error "Unsupported platform"
+#endif
+      return result<void, canonicalizing_path_io_error>::failure(
+          canonicalizing_path_io_error{
+              .canonicalizing_path = {},
+              .io_error = io_error,
+          });
     }
 
-    boost::leaf::result<void> ok = this->derived().process_start_of_path();
-    if (!ok) return ok.error();
+    result<void, canonicalizing_path_io_error> r =
+        this->derived().process_start_of_path();
+    if (!r.ok()) return r.propagate();
 
     while (!path_to_process_.empty()) {
-      boost::leaf::result<void> next_ok = process_next_component();
-      if (!next_ok) return next_ok.error();
+      result<void, canonicalizing_path_io_error> next_r =
+          process_next_component();
+      if (!next_r.ok()) return next_r.propagate();
     }
 
     if (need_root_slash_) {
@@ -270,7 +314,7 @@ class path_canonicalizer_base {
   };
 
  private:
-  boost::leaf::result<void> process_next_component() {
+  result<void, canonicalizing_path_io_error> process_next_component() {
     path_string_view component = parse_next_component();
     QLJS_ASSERT(!component.empty());
     if (component == dot) {
@@ -287,20 +331,31 @@ class path_canonicalizer_base {
     } else {
       std::size_t canonical_length_without_component = canonical_.size();
 
+      bool parent_path_exists = existing_path_length_ == 0;
+      if (parent_path_exists && canonical_length_without_component > 0) {
+        this->observer_->on_canonicalize_child_of_directory(canonical_.c_str());
+      }
+
       canonical_ += preferred_component_separator;
       canonical_ += component;
       need_root_slash_ = false;
 
-      if (existing_path_length_ != 0) {
+      if (!parent_path_exists) {
         // A parent path did not exist, so this path certainly does not exist.
         // Don't bother checking.
         skip_to_next_component();
         return {};
       }
 
-      boost::leaf::result<file_type> type =
+      result<file_type, platform_file_io_error> type =
           this->derived().get_file_type(canonical_);
-      if (!type) return type.error();
+      if (!type.ok()) {
+        return result<void, canonicalizing_path_io_error>::failure(
+            canonicalizing_path_io_error{
+                .canonicalizing_path = canonical_,
+                .io_error = type.error(),
+            });
+      }
       switch (*type) {
       case file_type::does_not_exist:
         if (existing_path_length_ == 0) {
@@ -317,15 +372,24 @@ class path_canonicalizer_base {
         // Extra components and trailing slashes are not allowed for regular
         // files, FIFOs, etc.
         if (!path_to_process_.empty()) {
-          return boost::leaf::new_error(
-              boost::leaf::e_errno{ENOTDIR},
-              e_canonicalizing_path{string_for_error_message(canonical_)});
+          return result<void, canonicalizing_path_io_error>::failure(
+              canonicalizing_path_io_error {
+                .canonicalizing_path = canonical_,
+#if QLJS_HAVE_UNISTD_H
+                .io_error = posix_file_io_error{ENOTDIR},
+#elif QLJS_HAVE_WINDOWS_H
+                .io_error = windows_file_io_error{ERROR_DIRECTORY},
+#else
+#error "Unsupported platform"
+#endif
+              });
         }
         break;
 
       case file_type::symlink: {
-        boost::leaf::result<void> ok = this->derived().resolve_symlink();
-        if (!ok) return ok.error();
+        quick_lint_js::result<void, canonicalizing_path_io_error> r =
+            this->derived().resolve_symlink();
+        if (!r.ok()) return r.propagate();
         break;
       }
       }
@@ -360,6 +424,7 @@ class path_canonicalizer_base {
     path_to_process_ = path_to_process_.substr(next_component_index);
   }
 
+  canonicalize_observer *observer_;
   path_string_view original_path_;
 
   // path_to_process_ points either to path (caller's input) or
@@ -397,7 +462,8 @@ class posix_path_canonicalizer
     return canonical_path_result(std::move(canonical_), existing_path_length_);
   }
 
-  boost::leaf::result<void> process_start_of_path() {
+  quick_lint_js::result<void, canonicalizing_path_io_error>
+  process_start_of_path() {
     bool is_absolute = !path_to_process_.empty() &&
                        path_to_process_[0] == preferred_component_separator;
     if (is_absolute) {
@@ -405,18 +471,25 @@ class posix_path_canonicalizer
       canonical_.clear();
       need_root_slash_ = true;
     } else {
-      boost::leaf::result<void> ok = load_cwd();
-      if (!ok) return ok.error();
+      quick_lint_js::result<void, posix_file_io_error> r = load_cwd();
+      if (!r.ok()) {
+        return quick_lint_js::result<void, canonicalizing_path_io_error>::
+            failure(canonicalizing_path_io_error{
+                .canonicalizing_path = path_string(this->path_to_process_),
+                .io_error = r.error(),
+            });
+      }
     }
     return {};
   }
 
-  boost::leaf::result<void> load_cwd() {
+  quick_lint_js::result<void, posix_file_io_error> load_cwd() {
     // TODO(strager): Is PATH_MAX sufficient? Do we need to keep growing our
     // buffer?
     canonical_.resize(PATH_MAX);
     if (!::getcwd(canonical_.data(), canonical_.size() + 1)) {
-      return boost::leaf::new_error(boost::leaf::e_errno{errno});
+      return quick_lint_js::result<void, posix_file_io_error>::failure(
+          posix_file_io_error{errno});
     }
     canonical_.resize(std::strlen(canonical_.c_str()));
 
@@ -430,16 +503,16 @@ class posix_path_canonicalizer
     }
   }
 
-  boost::leaf::result<file_type> get_file_type(const path_string &file_path) {
+  quick_lint_js::result<file_type, posix_file_io_error> get_file_type(
+      const path_string &file_path) {
     struct stat s;
     int lstat_rc = ::lstat(file_path.c_str(), &s);
     if (lstat_rc == -1) {
       if (errno == ENOENT) {
         return file_type::does_not_exist;
       }
-      return boost::leaf::new_error(
-          boost::leaf::e_errno{errno},
-          e_canonicalizing_path{string_for_error_message(canonical_)});
+      return quick_lint_js::result<file_type, posix_file_io_error>::failure(
+          posix_file_io_error{errno});
     }
     if (S_ISLNK(s.st_mode)) {
       return file_type::symlink;
@@ -450,10 +523,14 @@ class posix_path_canonicalizer
     return file_type::other;
   }
 
-  boost::leaf::result<void> resolve_symlink() {
+  quick_lint_js::result<void, canonicalizing_path_io_error> resolve_symlink() {
     symlink_depth_ += 1;
     if (symlink_depth_ >= symlink_depth_limit_) {
-      return boost::leaf::new_error(e_too_many_symlinks());
+      return quick_lint_js::result<void, canonicalizing_path_io_error>::failure(
+          canonicalizing_path_io_error{
+              .canonicalizing_path = canonical_,
+              .io_error = posix_file_io_error{ELOOP},
+          });
     }
 
     std::string &new_readlink_buffer =
@@ -461,9 +538,11 @@ class posix_path_canonicalizer
     int readlink_rc =
         read_symbolic_link(canonical_.c_str(), &new_readlink_buffer);
     if (readlink_rc == -1) {
-      return boost::leaf::new_error(
-          boost::leaf::e_errno{errno},
-          e_canonicalizing_path{string_for_error_message(canonical_)});
+      return quick_lint_js::result<void, canonicalizing_path_io_error>::failure(
+          canonicalizing_path_io_error{
+              .canonicalizing_path = canonical_,
+              .io_error = posix_file_io_error{errno},
+          });
     }
 
     // Rebase the remaining input components onto the readlink result.
@@ -481,7 +560,9 @@ class posix_path_canonicalizer
     // readlink_buffers_[used_readlink_buffer_] is no longer in use.
     swap_readlink_buffers();
 
-    process_start_of_path();
+    quick_lint_js::result<void, canonicalizing_path_io_error> r =
+        process_start_of_path();
+    if (!r.ok()) return r.propagate();
 
     return {};
   }
@@ -505,14 +586,18 @@ class windows_path_canonicalizer
 
   canonical_path_result result() {
     // HACK(strager): Convert UTF-16 to UTF-8.
-    // TODO(strager): existing_path_length_ is in UTF-16 code units, but it's
-    // interpreted as UTF-8 code units! Fix by storing a std::wstring in
-    // canonical_path.
-    return canonical_path_result(std::filesystem::path(canonical_).string(),
-                                 existing_path_length_);
+    std::string canonical_utf_8 =
+        to_string(std::filesystem::path(canonical_).u8string());
+    std::size_t existing_path_length_utf_8 =
+        count_utf_8_code_units(std::u16string_view(
+            reinterpret_cast<const char16_t *>(canonical_.data()),
+            existing_path_length_));
+    return canonical_path_result(std::move(canonical_utf_8),
+                                 existing_path_length_utf_8);
   }
 
-  boost::leaf::result<void> process_start_of_path() {
+  quick_lint_js::result<void, canonicalizing_path_io_error>
+  process_start_of_path() {
     std::wstring temp(path_to_process_);
 
     // The PathCch functions only support '\' as a directory separator. Convert
@@ -544,8 +629,14 @@ class windows_path_canonicalizer
 
     case HRESULT_FROM_WIN32(ERROR_INVALID_PARAMETER): {
       // Path is invalid or is relative. Assume that it is relative.
-      boost::leaf::result<void> ok = load_cwd();
-      if (!ok) return ok.error();
+      quick_lint_js::result<void, windows_file_io_error> r = load_cwd();
+      if (!r.ok()) {
+        return quick_lint_js::result<void, canonicalizing_path_io_error>::
+            failure(canonicalizing_path_io_error{
+                .canonicalizing_path = path_string(this->path_to_process_),
+                .io_error = r.error(),
+            });
+      }
       break;
     }
 
@@ -557,7 +648,7 @@ class windows_path_canonicalizer
     return {};
   }
 
-  boost::leaf::result<void> load_cwd() {
+  quick_lint_js::result<void, windows_file_io_error> load_cwd() {
     // size includes the null terminator.
     DWORD size = ::GetCurrentDirectoryW(0, nullptr);
     if (size == 0) {
@@ -597,16 +688,16 @@ class windows_path_canonicalizer
     canonical_.resize(std::wcslen(canonical_.data()));
   }
 
-  boost::leaf::result<file_type> get_file_type(const path_string &file_path) {
+  quick_lint_js::result<file_type, windows_file_io_error> get_file_type(
+      const path_string &file_path) {
     DWORD attributes = ::GetFileAttributesW(file_path.c_str());
     if (attributes == INVALID_FILE_ATTRIBUTES) {
       DWORD error = ::GetLastError();
       if (error == ERROR_FILE_NOT_FOUND) {
         return file_type::does_not_exist;
       }
-      return boost::leaf::new_error(
-          boost::leaf::windows::e_LastError{error},
-          e_canonicalizing_path{string_for_error_message(canonical_)});
+      return quick_lint_js::result<file_type, windows_file_io_error>::failure(
+          windows_file_io_error{error});
     }
     if (attributes & FILE_ATTRIBUTE_REPARSE_POINT) {
       return file_type::symlink;
@@ -617,7 +708,7 @@ class windows_path_canonicalizer
     return file_type::other;
   }
 
-  boost::leaf::result<void> resolve_symlink() {
+  quick_lint_js::result<void, canonicalizing_path_io_error> resolve_symlink() {
     // TODO(strager): Support symlinks on Windows.
     QLJS_UNIMPLEMENTED();
     return {};
@@ -631,51 +722,43 @@ class windows_path_canonicalizer
 #endif
 }
 
-boost::leaf::result<canonical_path_result> canonicalize_path_2(
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
     const char *path) {
-  auto api_guard = boost::leaf::on_error(e_api_canonicalize_path());
-  auto path_guard = boost::leaf::on_error(boost::leaf::e_file_name{path});
+  return canonicalize_path(path, null_canonicalize_observer::instance());
+}
+
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+    const std::string &path) {
+  return canonicalize_path(path.c_str());
+}
+
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+    const char *path, canonicalize_observer *observer) {
 #if defined(_WIN32)
   std::optional<std::wstring> wpath = mbstring_to_wstring(path);
   if (!wpath.has_value()) {
     QLJS_UNIMPLEMENTED();
   }
-  windows_path_canonicalizer canonicalizer(*wpath);
+  windows_path_canonicalizer canonicalizer(*wpath, observer);
 #else
-  posix_path_canonicalizer canonicalizer(path);
+  posix_path_canonicalizer canonicalizer(path, observer);
 #endif
-  boost::leaf::result<void> ok = canonicalizer.canonicalize();
-  if (!ok) return ok.error();
+  result<void, canonicalizing_path_io_error> r = canonicalizer.canonicalize();
+  if (!r.ok()) {
+    return result<canonical_path_result, canonicalize_path_io_error>::failure(
+        canonicalize_path_io_error{
+            .input_path = path,
+            .canonicalizing_path = string_for_error_message(
+                std::move(r.error().canonicalizing_path)),
+            .io_error = r.error().io_error,
+        });
+  }
   return canonicalizer.result();
 }
 
-boost::leaf::result<canonical_path_result> canonicalize_path_2(
-    const std::string &path) {
-  return canonicalize_path_2(path.c_str());
-}
-
-sloppy_result<canonical_path_result> canonicalize_path_sloppy(
-    const char *path) {
-  return boost::leaf::try_handle_all(
-      [&]() -> boost::leaf::result<sloppy_result<canonical_path_result>> {
-        boost::leaf::result<canonical_path_result> canonical =
-            canonicalize_path_2(path);
-        if (!canonical) return canonical.error();
-        return sloppy_result<canonical_path_result>(*canonical);
-      },
-      make_canonicalize_path_error_handlers([](std::string &&message) {
-        return sloppy_result<canonical_path_result>::failure(
-            std::move(message));
-      }),
-      []() {
-        QLJS_ASSERT(false);
-        return sloppy_result<canonical_path_result>::failure("unknown error");
-      });
-}
-
-sloppy_result<canonical_path_result> canonicalize_path_sloppy(
-    const std::string &path) {
-  return canonicalize_path_sloppy(path.c_str());
+result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
+    const std::string &path, canonicalize_observer *observer) {
+  return canonicalize_path(path.c_str(), observer);
 }
 
 namespace {
@@ -718,6 +801,8 @@ std::string string_for_error_message(std::wstring_view s) {
 #endif
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

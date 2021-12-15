@@ -1,8 +1,9 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import { createProcessFactoryAsync } from "quick-lint-js-wasm/quick-lint-js.js";
+import { createProcessFactoryAsync } from "../../wasm/quick-lint-js.js";
 import { markEditorText } from "./editor.mjs";
+import {} from "../error-box.mjs";
 
 let codeInputElement = document.getElementById("code-input");
 let shadowCodeInputElement = document.getElementById("shadow-code-input");
@@ -18,16 +19,49 @@ if (typeof window.ResizeObserver !== "undefined") {
 
 createProcessFactoryAsync()
   .then(async (processFactory) => {
-    let process = await processFactory.createProcessAsync();
-    let parser = await process.createParserForWebDemoAsync();
+    async function createDocumentAsync() {
+      let process = await processFactory.createProcessAsync();
+      let doc = await process.createDocumentForWebDemoAsync();
+      return doc;
+    }
+
+    let pendingDocument = null;
+    let doc = null;
+
+    function processCrashed() {
+      // Make the next call to lintAndUpdate call restartProcessThenLint.
+      doc = null;
+      pendingDocument = null;
+    }
+
+    function restartProcessThenLint() {
+      doc = null;
+      pendingDocument = createDocumentAsync().then((newDoc) => {
+        doc = newDoc;
+        pendingDocument = null;
+        lintAndUpdate();
+      });
+    }
 
     function lintAndUpdate() {
+      if (doc === null) {
+        restartProcessThenLint();
+        // restartProcess will call us later.
+        return;
+      }
+
       synchronizeContent();
 
-      // TODO(strager): On crash, show the error to the user.
       let input = codeInputElement.value;
-      parser.setText(input);
-      let marks = parser.lint();
+      let marks;
+      try {
+        doc.setText(input);
+        marks = doc.lint();
+      } catch (e) {
+        // TODO(strager): Show the error to the user.
+        marks = [];
+        processCrashed();
+      }
       markEditorText(shadowCodeInputElement, window, marks);
     }
     codeInputElement.addEventListener("input", (event) => {
@@ -54,70 +88,6 @@ function synchronizeSize() {
   shadowCodeInputElement.style.width = codeInputElement.style.width;
   shadowCodeInputElement.style.height = codeInputElement.style.height;
 }
-
-function showErrorMessageBox(mark, posCursorX) {
-  const div = createErrorBox(
-    mark,
-    posCursorX,
-    mark.attributes["data-message"].value,
-    mark.attributes["data-code"].value,
-    mark.attributes["data-severity"].value
-  );
-  let body = document.querySelector("body");
-  body.appendChild(div);
-}
-
-function createErrorBox(
-  markedElement,
-  posCursorX,
-  errorMessage,
-  code,
-  severity
-) {
-  // TODO: Change background color based of the severity
-  let div = document.createElement("div");
-  const { bottom } = markedElement.getBoundingClientRect();
-  div.setAttribute("id", "error-box");
-  div.innerText = `${code} - ${errorMessage}`;
-  div.style.position = "fixed";
-  div.style.overflow = "auto";
-  div.style.top = `${Math.trunc(bottom)}px`;
-  div.style.left = `${posCursorX}px`;
-  return div;
-}
-
-function removeErrorMessageBox() {
-  document.querySelector("#error-box")?.remove();
-}
-
-function showErrorMessage(event) {
-  removeErrorMessageBox();
-
-  const shadowInput = document.querySelector("#shadow-code-input");
-  const marks = shadowInput.querySelectorAll("mark");
-  for (let mark of marks) {
-    const markRect = mark.getBoundingClientRect();
-    if (cursorOverMark(event.clientX, event.clientY, markRect)) {
-      showErrorMessageBox(mark, event.clientX);
-      break;
-    }
-  }
-}
-
-function cursorOverMark(cursorPosX, cursorPosY, markRect) {
-  const topDownIn = markRect.bottom >= cursorPosY && cursorPosY >= markRect.top;
-  const leftRightIn =
-    cursorPosX >= markRect.left && cursorPosX <= markRect.left + markRect.width;
-  return topDownIn && leftRightIn;
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const codeInput = document.querySelector("#code-input");
-  codeInput.addEventListener("mousemove", showErrorMessage);
-  codeInput.addEventListener("input", removeErrorMessageBox);
-  codeInput.addEventListener("click", removeErrorMessageBox);
-  codeInput.addEventListener("mouseout", removeErrorMessageBox);
-});
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

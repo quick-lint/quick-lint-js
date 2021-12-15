@@ -1,7 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <algorithm>
 #include <cstddef>
+#include <memory>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/c-api-error-reporter.h>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
@@ -13,6 +16,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/web-demo-location.h>
+#include <vector>
 
 #if QLJS_SUBLIME_TEXT_PLUGIN
 #include <quick-lint-js/crash-handling.h>
@@ -23,7 +27,7 @@
 namespace quick_lint_js {
 namespace {
 template <class Locator, class ErrorReporter>
-class qljs_parser_base {
+class qljs_document_base {
  public:
   const auto* lint() {
     this->error_reporter_.reset();
@@ -31,10 +35,20 @@ class qljs_parser_base {
                                     &this->document_.locator());
     parser p(this->document_.string(), &this->error_reporter_);
     linter l(&this->error_reporter_, &this->config_.globals());
-    // TODO(strager): Use parse_and_visit_module_catching_unimplemented instead
-    // of parse_and_visit_module to avoid crashing on QLJS_PARSER_UNIMPLEMENTED.
+    // TODO(strager): Use parse_and_visit_module_catching_fatal_parse_errors
+    // instead of parse_and_visit_module to avoid crashing on
+    // QLJS_PARSER_UNIMPLEMENTED.
     p.parse_and_visit_module(l);
 
+    return this->error_reporter_.get_diagnostics();
+  }
+
+  const auto* lint_as_config_file() {
+    this->error_reporter_.reset();
+    this->error_reporter_.set_input(this->document_.string(),
+                                    &this->document_.locator());
+    configuration().load_from_json(this->document_.string(),
+                                   &this->error_reporter_);
     return this->error_reporter_.get_diagnostics();
   }
 
@@ -45,51 +59,8 @@ class qljs_parser_base {
 }
 }
 
-struct qljs_vscode_parser final
-    : public quick_lint_js::qljs_parser_base<
-          quick_lint_js::lsp_locator,
-          quick_lint_js::c_api_error_reporter<qljs_vscode_diagnostic,
-                                              quick_lint_js::lsp_locator>> {
- public:
-  void replace_text(int start_line, int start_character, int end_line,
-                    int end_character,
-                    quick_lint_js::string8_view replacement) {
-    using namespace quick_lint_js;
-
-    this->document_.replace_text(
-        lsp_range{
-            .start = {.line = start_line, .character = start_character},
-            .end = {.line = end_line, .character = end_character},
-        },
-        replacement);
-  }
-};
-
-qljs_vscode_parser* qljs_vscode_create_parser(void) {
-  qljs_vscode_parser* p = new qljs_vscode_parser();
-  return p;
-}
-
-void qljs_vscode_destroy_parser(qljs_vscode_parser* p) { delete p; }
-
-void qljs_vscode_replace_text(qljs_vscode_parser* p, int start_line,
-                              int start_character, int end_line,
-                              int end_character,
-                              const void* replacement_text_utf_8,
-                              size_t replacement_text_byte_count) {
-  p->replace_text(
-      start_line, start_character, end_line, end_character,
-      quick_lint_js::string8_view(
-          reinterpret_cast<const quick_lint_js::char8*>(replacement_text_utf_8),
-          replacement_text_byte_count));
-}
-
-const qljs_vscode_diagnostic* qljs_vscode_lint(qljs_vscode_parser* p) {
-  return p->lint();
-}
-
-struct qljs_web_demo_parser final
-    : public quick_lint_js::qljs_parser_base<
+struct qljs_web_demo_document final
+    : public quick_lint_js::qljs_document_base<
           quick_lint_js::web_demo_locator,
           quick_lint_js::c_api_error_reporter<
               qljs_web_demo_diagnostic, quick_lint_js::web_demo_locator>> {
@@ -97,29 +68,49 @@ struct qljs_web_demo_parser final
   void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);
   }
+
+  void set_config_text(quick_lint_js::string8_view text) {
+    quick_lint_js::padded_string padded_text(text);
+    this->config_.reset();
+    this->config_.load_from_json(&padded_text,
+                                 &quick_lint_js::null_error_reporter::instance);
+  }
 };
 
-qljs_web_demo_parser* qljs_web_demo_create_parser(void) {
-  qljs_web_demo_parser* p = new qljs_web_demo_parser();
+qljs_web_demo_document* qljs_web_demo_create_document(void) {
+  qljs_web_demo_document* p = new qljs_web_demo_document();
   return p;
 }
 
-void qljs_web_demo_destroy_parser(qljs_web_demo_parser* p) { delete p; }
+void qljs_web_demo_destroy_document(qljs_web_demo_document* p) { delete p; }
 
-void qljs_web_demo_set_text(qljs_web_demo_parser* p, const void* text_utf_8,
+void qljs_web_demo_set_text(qljs_web_demo_document* p, const void* text_utf_8,
                             size_t text_byte_count) {
   p->set_text(quick_lint_js::string8_view(
       reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
       text_byte_count));
 }
 
-const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_parser* p) {
+void qljs_web_demo_set_config_text(qljs_web_demo_document* p,
+                                   const void* text_utf_8,
+                                   size_t text_byte_count) {
+  p->set_config_text(quick_lint_js::string8_view(
+      reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
+      text_byte_count));
+}
+
+const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_document* p) {
   return p->lint();
+}
+
+const qljs_web_demo_diagnostic* qljs_web_demo_lint_as_config_file(
+    qljs_web_demo_document* p) {
+  return p->lint_as_config_file();
 }
 
 #if QLJS_SUBLIME_TEXT_PLUGIN
 struct qljs_sublime_text_3_parser final
-    : public quick_lint_js::qljs_parser_base<
+    : public quick_lint_js::qljs_document_base<
           quick_lint_js::sublime_text_3_locator,
           quick_lint_js::c_api_error_reporter<
               qljs_sublime_text_3_diagnostic,
@@ -172,7 +163,7 @@ const qljs_sublime_text_3_result* qljs_sublime_text_3_lint(
 }
 
 struct qljs_sublime_text_4_parser final
-    : public quick_lint_js::qljs_parser_base<
+    : public quick_lint_js::qljs_document_base<
           quick_lint_js::lsp_locator,
           quick_lint_js::c_api_error_reporter<qljs_sublime_text_4_diagnostic,
                                               quick_lint_js::lsp_locator>> {

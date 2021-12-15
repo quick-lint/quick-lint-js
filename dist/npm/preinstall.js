@@ -6,13 +6,14 @@
 let fs = require("fs");
 let path = require("path");
 
-let platformToExecutable = {
-  darwin: path.join("macos", "bin", "quick-lint-js"),
-  linux: path.join("linux", "bin", "quick-lint-js"),
-  win32: path.join("windows", "bin", "quick-lint-js.exe"),
+let platformToRelativeExecutable = {
+  "darwin": path.join("bin", "quick-lint-js"),
+  "linux": path.join("bin", "quick-lint-js"),
+  "win32": path.join("bin", "quick-lint-js.exe"),
 };
-let platformExecutable = platformToExecutable[process.platform];
-if (typeof platformExecutable === "undefined") {
+let platformAndArch = `${process.platform}-${process.arch}`;
+let relativeExecutable = platformToRelativeExecutable[process.platform];
+if (typeof relativeExecutable === "undefined") {
   console.error(
     `fatal: cannot install quick-lint-js on unsupported platform ${process.platform}`
   );
@@ -20,7 +21,7 @@ if (typeof platformExecutable === "undefined") {
 }
 
 fs.copyFileSync(
-  path.join(__dirname, platformExecutable),
+  path.join(__dirname, platformAndArch, relativeExecutable),
   path.join(__dirname, "quick-lint-js.exe"),
   fs.constants.COPYFILE_FICLONE
 );

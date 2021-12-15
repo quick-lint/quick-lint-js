@@ -7,6 +7,7 @@
 #include <iosfwd>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/token.h>
 #include <utility>
@@ -14,16 +15,13 @@
 
 namespace quick_lint_js {
 struct error_collector : public error_reporter {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  void report(name e) override;
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+  void report_impl(error_type type, void *error) override;
 
   // Like std::variant<(error types)>, but with much faster compilation.
   class error {
    public:
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  explicit error(name &&);
+  explicit error(const name &);
     QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
@@ -38,13 +36,7 @@ struct error_collector : public error_reporter {
     friend void PrintTo(const error &, std::ostream *);
 
    private:
-    enum class kind {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) kind_##name,
-      QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-    };
-
-    kind kind_;
+    error_type type_;
     union {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
   name variant_##name##_;

@@ -7,11 +7,7 @@
 call ale#Set('javascript_quick_lint_js_executable', 'quick-lint-js')
 call ale#Set('javascript_quick_lint_js_use_global', get(g:, 'ale_use_global_executables', v:true))
 
-" TODO(strager): Make quick-lint-js-lsp the default when the bugs have been
-" ironed out:
-" https://github.com/quick-lint/quick-lint-js/issues/111
-" https://github.com/quick-lint/quick-lint-js/issues/171
-let s:enable_lsp_linter = v:false
+let s:enable_lsp_linter = v:true
 
 if ale#Has('ale-2.4.0')
   let s:linter_command_callback_key = 'command'

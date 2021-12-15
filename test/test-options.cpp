@@ -101,6 +101,12 @@ TEST(test_options, output_format) {
     EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
     EXPECT_EQ(o.output_format, output_format::vim_qflist_json);
   }
+
+  {
+    options o = parse_options({"--output-format=emacs-lisp"});
+    EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
+    EXPECT_EQ(o.output_format, output_format::emacs_lisp);
+  }
 }
 
 TEST(test_options, invalid_output_format) {
@@ -173,6 +179,78 @@ TEST(test_options, vim_file_bufnr) {
     ASSERT_EQ(o.files_to_lint.size(), 2);
     EXPECT_EQ(o.files_to_lint[0].vim_bufnr, 1);
     EXPECT_EQ(o.files_to_lint[1].vim_bufnr, std::nullopt);
+  }
+}
+
+TEST(test_options, path_for_config_search) {
+  {
+    options o = parse_options({"one.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].path_for_config_search, nullptr);
+    EXPECT_EQ(o.files_to_lint[1].path_for_config_search, nullptr);
+  }
+
+  {
+    options o =
+        parse_options({"--path-for-config-search", "configme.js", "file.js"});
+    EXPECT_THAT(o.error_unrecognized_options, IsEmpty());
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_EQ(o.files_to_lint[0].path, "file.js"sv);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "configme.js");
+  }
+
+  {
+    options o = parse_options(
+        {"--path-for-config-search", "configme.js", "one.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "configme.js");
+    EXPECT_EQ(o.files_to_lint[1].path_for_config_search, nullptr);
+  }
+
+  {
+    options o = parse_options(
+        {"one.js", "--path-for-config-search=configme.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_EQ(o.files_to_lint[0].path_for_config_search, nullptr);
+    EXPECT_STREQ(o.files_to_lint[1].path_for_config_search, "configme.js");
+  }
+
+  {
+    options o =
+        parse_options({"--path-for-config-search=test/one.js", "/tmp/one.js",
+                       "--path-for-config-search=src/two.js", "/tmp/two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "test/one.js");
+    EXPECT_STREQ(o.files_to_lint[1].path_for_config_search, "src/two.js");
+  }
+
+  {
+    options o = parse_options({"--path-for-config-search=configme.js", "-"});
+    ASSERT_EQ(o.files_to_lint.size(), 1);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "configme.js");
+  }
+
+  {
+    options o = parse_options(
+        {"one.js", "--path-for-config-search=configme.js", "--stdin"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_STREQ(o.files_to_lint[1].path_for_config_search, "configme.js");
+  }
+
+  {
+    options o = parse_options(
+        {"--path-for-config-search=configme.js", "--", "one.js", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "configme.js");
+    EXPECT_EQ(o.files_to_lint[1].path_for_config_search, nullptr);
+  }
+
+  {
+    options o = parse_options(
+        {"--path-for-config-search=configme.js", "--stdin", "two.js"});
+    ASSERT_EQ(o.files_to_lint.size(), 2);
+    EXPECT_STREQ(o.files_to_lint[0].path_for_config_search, "configme.js");
+    EXPECT_EQ(o.files_to_lint[1].path_for_config_search, nullptr);
   }
 }
 
@@ -331,13 +409,13 @@ TEST(test_options, print_version) {
 
 TEST(test_options, exit_fail_on) {
   {
-    options o = parse_options({"--exit-fail-on=E003", "file.js"});
-    EXPECT_TRUE(o.exit_fail_on.is_present<error_assignment_to_const_variable>())
-        << "E003 should cause failure";
-    EXPECT_FALSE(
-        o.exit_fail_on
-            .is_present<error_big_int_literal_contains_decimal_point>())
-        << "E005 should not cause failure";
+    options o = parse_options({"--exit-fail-on=E0003", "file.js"});
+    EXPECT_TRUE(o.exit_fail_on.is_present(
+        error_type::error_assignment_to_const_variable))
+        << "E0003 should cause failure";
+    EXPECT_FALSE(o.exit_fail_on.is_present(
+        error_type::error_big_int_literal_contains_decimal_point))
+        << "E0005 should not cause failure";
   }
 }
 
@@ -417,7 +495,7 @@ TEST(test_options, dump_errors) {
 
     parsed_error_list parsed_errors;
     parsed_errors.included_categories.emplace_back("banana");
-    parsed_errors.excluded_codes.emplace_back("E999");
+    parsed_errors.excluded_codes.emplace_back("E9999");
     o.exit_fail_on.add(parsed_errors);
 
     std::ostringstream dumped_errors;
@@ -425,7 +503,7 @@ TEST(test_options, dump_errors) {
     EXPECT_FALSE(have_errors);
     EXPECT_EQ(dumped_errors.str(),
               "warning: unknown error category: banana\n"
-              "warning: unknown error code: E999\n");
+              "warning: unknown error code: E9999\n");
   }
 
   {
@@ -504,7 +582,7 @@ TEST(test_options, dump_errors) {
   {
     options o;
     o.lsp_server = true;
-    o.exit_fail_on.add(parse_error_list("E001"));
+    o.exit_fail_on.add(parse_error_list("E0001"));
 
     std::ostringstream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);

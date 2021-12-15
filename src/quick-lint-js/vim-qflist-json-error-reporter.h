@@ -6,7 +6,8 @@
 
 #include <iosfwd>
 #include <optional>
-#include <quick-lint-js/error-formatter.h>
+#include <quick-lint-js/diagnostic-formatter.h>
+#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
@@ -30,15 +31,9 @@ class vim_qflist_json_error_reporter final : public error_reporter {
 
   void finish();
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format) \
-  void report(name) override;
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+  void report_impl(error_type type, void *error) override;
 
  private:
-  vim_qflist_json_error_formatter begin_error(const char *code);
-  vim_qflist_json_error_formatter format(const char *code);
-
   std::ostream &output_;
   std::optional<vim_locator> locator_;
   std::string bufnr_;
@@ -47,23 +42,24 @@ class vim_qflist_json_error_reporter final : public error_reporter {
 };
 
 class vim_qflist_json_error_formatter
-    : public error_formatter<vim_qflist_json_error_formatter> {
+    : public diagnostic_formatter<vim_qflist_json_error_formatter> {
  public:
   explicit vim_qflist_json_error_formatter(std::ostream &output,
                                            quick_lint_js::vim_locator &locator,
                                            std::string_view file_name,
-                                           std::string_view bufnr,
-                                           const char *code);
-  void write_before_message(severity, const source_code_span &origin);
-  void write_message_part(severity, string8_view);
-  void write_after_message(severity, const source_code_span &origin);
+                                           std::string_view bufnr);
+  void write_before_message(std::string_view code, diagnostic_severity,
+                            const source_code_span &origin);
+  void write_message_part(std::string_view code, diagnostic_severity,
+                          string8_view);
+  void write_after_message(std::string_view code, diagnostic_severity,
+                           const source_code_span &origin);
 
  private:
   std::ostream &output_;
   quick_lint_js::vim_locator &locator_;
   std::string_view file_name_;
   std::string_view bufnr_;
-  const char *code_;
 };
 }
 

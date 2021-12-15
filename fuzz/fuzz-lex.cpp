@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/null-visitor.h>
