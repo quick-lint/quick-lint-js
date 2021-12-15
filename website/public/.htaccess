@@ -1,12 +1,15 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-# Optimize loads of the main page using HTTP/2 push.
+# Optimize loads of the main page and press release pages using HTTP/2 push.
 <IfModule http2_module>
   <Files "index.html">
-    <If "%{REQUEST_URI} == '/index.html'">  # Not subdirectories.
+    # Whitelist to avoid pushing for all subdirectories.
+    <If "%{REQUEST_URI} == '/index.html' || %{REQUEST_URI} == '/blog/version-1.0/index.html'">
       Header add Link "</main.css>;rel=preload"
       Header add Link "</dusty.svg>;rel=preload"
+    </If>
+    <If "%{REQUEST_URI} == '/index.html'">
       Header add Link "</vscode-demo.webp>;rel=preload"
     </If>
   </Files>

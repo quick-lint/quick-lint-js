@@ -571,11 +571,6 @@
       ERROR(QLJS_TRANSLATABLE("indexing requires an expression"), squares))    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_invalid_binding_in_let_statement, "E0019",                         \
-      { source_code_span where; },                                             \
-      ERROR(QLJS_TRANSLATABLE("invalid binding in let statement"), where))     \
-                                                                               \
-  QLJS_ERROR_TYPE(                                                             \
       error_invalid_expression_left_of_assignment, "E0020",                    \
       { source_code_span where; },                                             \
       ERROR(QLJS_TRANSLATABLE("invalid expression left of assignment"),        \
@@ -1052,9 +1047,20 @@
             escape_sequence))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_return_statement_returns_nothing, "E0179",                         \
+      { source_code_span return_keyword; },                                    \
+      WARNING(                                                                 \
+          QLJS_TRANSLATABLE("return statement returns nothing (undefined)"),   \
+          return_keyword))                                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_stray_comma_in_let_statement, "E0036",                             \
       { source_code_span where; },                                             \
       ERROR(QLJS_TRANSLATABLE("stray comma in let statement"), where))         \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_stray_comma_in_parameter, "E0180", { source_code_span comma; },    \
+      ERROR(QLJS_TRANSLATABLE("stray comma in function parameter"), comma))    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_typescript_enum_not_implemented, "E0127",                          \

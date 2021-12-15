@@ -1,6 +1,9 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#ifndef QUICK_LINT_JS_HASH_FNV_H
+#define QUICK_LINT_JS_HASH_FNV_H
+
 #include <cstdint>
 #include <string_view>
 
@@ -19,6 +22,8 @@ inline constexpr std::uint64_t hash_fnv_1a_64(std::string_view data) noexcept {
   return hash_fnv_1a_64(data, 0xcbf29ce484222325ULL);
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

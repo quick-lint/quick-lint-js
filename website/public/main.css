@@ -312,6 +312,14 @@ pre mark:empty::before {
   }
 }
 
+pre mark.unmark {
+  text-decoration: none;
+  background-color: transparent;
+}
+pre mark.unmark:empty::before {
+  content: unset;
+}
+
 .install-logo,
 .os-logo {
   height: 1.2em;
@@ -370,6 +378,16 @@ kbd.keystroke {
   }
 }
 
+#error-box {
+  background-color: #252526;
+  color: yellow;
+  border: 1px solid #fff;
+  padding: 5px;
+  font-size: 0.8rem;
+  max-width: 300px;
+  z-index: 999999;
+}
+
 @media only screen and (min-width: 34em) and (max-width: 40em) {
   .os-column-table ul {
     margin-left: 0;
@@ -386,6 +404,49 @@ kbd.keystroke {
   .os-column-table > * {
     border-left: 0;
   }
+}
+
+.install-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 1rem 0;
+  padding: 0;
+}
+.install-options > li {
+  list-style-type: none;
+  margin: 0.375rem 0.5rem;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.install-options a {
+  /* Color from unofficial JavaScript logo: https://github.com/voodootikigod/logo.js */
+  background-color: rgb(240, 219, 79);
+  border-radius: 0.5rem;
+  display: inline-block;
+  font-weight: bold;
+  letter-spacing: 0.75px;
+  padding: 0.75rem 1.25rem 0.5em 1.25rem;
+  text-decoration: none;
+}
+.install-options a,
+.install-options a:visited {
+  /* Color from unofficial JavaScript logo: https://github.com/voodootikigod/logo.js */
+  color: rgb(50, 51, 48);
+}
+.install-options a:hover {
+  /* Color from unofficial JavaScript logo: https://github.com/voodootikigod/logo.js */
+  background-color: rgba(240, 219, 79, 0.75);
+}
+
+.install-options {
+  line-height: 1.4em;
+}
+.install-logo {
+  height: 1.2em;
+  width: 1.2em;
+  vertical-align: text-bottom;
 }
 
 /* Side-bar navigation, if the viewport is wide enough. */

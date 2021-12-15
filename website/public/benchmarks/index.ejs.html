@@ -14,7 +14,11 @@
       );
       let seriesOptions = {
         "quick-lint-js": {hue: 0.0},
-        "eslint-server": {hue: 60.0, name: "ESLint"},
+        "vscode-eslint-vue": {hue: 40.0, name: "ESLint + Vue plugin"},
+        "vscode-eslint-react": {hue: 50.0, name: "ESLint + React plugin"},
+        "vscode-eslint-airbnb": {hue: 60.0, name: "ESLint + Airbnb rules"},
+        "vscode-eslint-vanilla": {hue: 70.0, name: "ESLint"},
+        "vscode-eslint-typescript": {hue: 80.0, name: "ESLint + TypeScript plugin"},
         RSLint: {hue: 120.0},
         Flow: {hue: 180.0},
         Deno: {hue: 240.0},
@@ -53,6 +57,11 @@
       </p>
       <ul>
         <li>
+          <a href="#incremental-change-wait-express-router-js"
+            >LSP: incremental-change-wait express-router.js</a
+          >
+        </li>
+        <li>
           <a href="#full-change-wait-express-router-js"
             >LSP: full-change-wait express-router.js</a
           >
@@ -61,15 +70,63 @@
         <li><a href="#comments">Comments</a></li>
       </ul>
 
+      <article class="benchmark" id="incremental-change-wait-express-router-js">
+        <h2>LSP: incremental-change-wait express-router.js</h2>
+        <p>
+          An <dfn>LSP server</dfn> is software which plugs into your code
+          editor. It provides diagnostics (error squigglies), go-to-definition,
+          and auto-complete. This benchmark measures how long an LSP server
+          takes to give diagnostics after making a change in a JavaScript file
+          (e.g. after typing a character). In other words, it measures
+          <em>input latency</em>. Lower latency means a faster-feeling editor.
+        </p>
+        <h3>Results</h3>
+        <%-
+        makeBenchmarkHTML(parseBenchmarkLSPJSON("incremental-change-wait-express-router-js.json",
+        seriesOptions)); %>
+        <h3>Setup (untimed)</h3>
+        <ol>
+          <li>Start the LSP server.</li>
+          <li>Wait for initialization to finish.</li>
+          <li>
+            Open one document with contents from
+            <a
+              href="https://github.com/expressjs/express/blob/508936853a6e311099c9985d4c11a4b1b8f6af07/lib/router/index.js"
+              >express-router.js</a
+            >.
+          </li>
+          <li>Wait for diagnostics.</li>
+        </ol>
+
+        <h3>Work (timed)</h3>
+        <p>Repeat the following steps <var>N</var> times:</p>
+        <ol>
+          <li>
+            Change a few characters in the document, sending small deltas in an
+            LSP message.
+          </li>
+          <li>Wait for diagnostics.</li>
+        </ol>
+      </article>
+
       <article class="benchmark" id="full-change-wait-express-router-js">
         <h2>LSP: full-change-wait express-router.js</h2>
         <p>
           This benchmark measures how long an LSP server takes to give
           diagnostics to an editor.
         </p>
+        <p>
+          This benchmark differs from the
+          <a href="#incremental-change-wait-express-router-js"
+            >incremental-change-wait benchmark</a
+          >
+          in that the editor gives the new version of the file entirely rather
+          than just the incremental changes. This is for compatibility with
+          linters such as RSLint which do not support incremental changes.
+        </p>
         <h3>Results</h3>
         <%-
-        makeBenchmarkHTML(parseBenchmarkLSPJSON("open-wait-close-express-router-js.json",
+        makeBenchmarkHTML(parseBenchmarkLSPJSON("full-change-wait-express-router-js.json",
         seriesOptions)); %>
         <h3>Setup (untimed)</h3>
         <ol>
@@ -102,7 +159,7 @@
         <ul>
           <li>
             <strong class="linter-name" style="--hue: 0">quick-lint-js</strong>
-            version 0.5.0 (Debian package)
+            version 1.0.0 (Debian package)
           </li>
           <li>
             <strong class="linter-name" style="--hue: 120">RSLint</strong>
@@ -110,22 +167,31 @@
           </li>
           <li>
             <strong class="linter-name" style="--hue: 180">Flow</strong>
-            version 0.160.2
+            version 0.166.1
           </li>
           <li>
             <strong class="linter-name" style="--hue: 60">ESLint</strong>
-            version v5.16.0 (with eslint-server version 0.1.7 and Node version
-            v17.1.0)
+            version v8.4.1
+            <ul>
+              <li>@typescript-eslint/eslint-plugin version 5.6.0</li>
+              <li>@typescript-eslint/parser version 5.6.0</li>
+              <li>eslint-plugin-vue version 8.2.0</li>
+              <li>
+                vscode-eslint commit
+                bb35d03497bb39043033&shy;defbad7fd80b2a89698
+              </li>
+              <li>Node version v17.2.0</li>
+            </ul>
           </li>
           <li>
             <strong class="linter-name" style="--hue: 240">Deno</strong>
-            version 1.16.1 (with V8 version 9.7.106.2 and TypeScript version
+            version 1.16.1 (with V8 version 9.7.106.15 and TypeScript version
             4.4.2)
           </li>
           <li>
             <strong class="linter-name" style="--hue: 300">TypeScript</strong>
-            version 4.4.3 (with language server version 0.6.2 and Node version
-            v17.1.0)
+            version 4.5.2 (with language server version 0.8.1 and Node version
+            v17.2.0)
           </li>
         </ul>
 

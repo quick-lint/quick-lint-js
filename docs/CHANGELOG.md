@@ -6,7 +6,69 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
-## Unreleased
+## 1.0.0 (2021-12-13)
+
+[Downloads](https://c.quick-lint-js.com/releases/1.0.0/)
+
+### Added
+
+* Windows: Clang-cl is now able to compile quick-lint-js for Windows.
+* [E0176][] is now reported if the desired arrow function has more than zero
+  parameters.
+* [E0178][] is now reported if the arrow function appears in top-level code or
+  inside a non-async function.
+
+### Fixed
+
+* Arch Linux: The quick-lint-js package now installs correctly if you have
+  another Vim plugin package installed. The installation error was: "error: failed
+  to commit transaction (conflicting files)"
+* `(typeof x)=>{}` and similar code now reports [E0151][] (invalid function
+  parameter) instead of [E0019][] (invalid binding in let statement).
+* `([(x,)] => {})` now declares `x` as a parameter instead of ignoring `x`
+  entirely. (It still produces [E0180][]).
+* `\u0` at the end of a file now reports [E0016][] (expected hexadecimal digits
+  in Unicode escape sequence) instead of [E0038][] (unclosed identifier escape
+  sequence)
+* `"\u{00a0:"` now reports only one error ([E0038][] (unclosed identifier escape
+  sequence)) instead of two ([E0038][] and [E0040][] (unclosed string literal)).
+* After reporting [E0178][], the arrow function is parsed as if it was async,
+  allowing the body to use `await` as an operator without error.
+
+### Changed
+
+* [E0013][] is no longer reported for identifiers such as `bird\u{360000}`.
+  [E0207][] is reported instead.
+
+### Optimized
+
+* The Windows .exe is 51% smaller (2.30 MiB -> 1.14 MiB) by making a hash table
+  used for translations compile-time-only. [See the patch
+  here.](https://github.com/quick-lint/quick-lint-js/commit/408e7db762736081cfff05c82c997c5aea7f4ab5)
+
+## 0.7.1 (2021-12-06)
+
+Beta release.
+
+[Downloads](https://c.quick-lint-js.com/releases/0.7.1/)
+
+### Added
+
+* npm: The npm package now installs on Windows when using the x86 (32-bit)
+  version of Node.js.
+* [E0036][] is now reported in more situations.
+
+### Fixed
+
+* npm: The npm package now installs on macOS Apple Silicon when using the
+  AArch64 (native) version of Node.js. (The package previously worked only on
+  macOS Intel, or when using x86_64 Node.js with Rosetta.)
+
+## 0.7.0 (2021-12-05)
+
+Beta release.
+
+[Downloads](https://c.quick-lint-js.com/releases/0.7.0/)
 
 ### Security
 
@@ -16,9 +78,8 @@ Semantic Versioning.
 
 ### Added
 
-* New diagnostics: E0053
-* Improve error reporting of `Improve error on console.("hello")` and similar
-  code.
+* New diagnostics: [E0053][], [E0179][]
+* Improve error reporting of `console.("hello")` and similar code.
 * Reported errors now include a link to the website for a detailed explanation
   (implemented by [Amir][]).
 * CLI: New `--diagnostic-hyperlinks` option (implemented by [Amir][]).
@@ -27,14 +88,27 @@ Semantic Versioning.
 
 ### Fixed
 
-* Reporting E0144 no longer also reports E0057.
+* Reporting [E0144][] no longer also reports [E0057][].
 * Variables can be named according to Unicode 14 (previously Unicode 13).
+* `void 0?a:b=c` no longer reports [E0020][].
+* Vim: The Debian package, the Arch Linux package, and the Homebrew package now
+  install the coc.nvim plugin and the plugin documentation.
+* Neovim: Fixed with newer versions of nvim-lspconfig
+  (since commit
+  [97da7ed12e](https://github.com/neovim/nvim-lspconfig/commit/97da7ed12e7e0d86e735e38a8170e941d4ed3e9a)
+  published November 25, 2021).
 
 ### Optimized
 
-* Parsing identifier is now optimized for ARM systems, including Apple Silicon.
+* Identifier parsing is now SIMD-optimized for ARM systems, including Apple
+  Silicon. [See the patch
+  here.](https://github.com/quick-lint/quick-lint-js/commit/79cf6e71f42722a8eca28ab20f288abdc41ec162)
 * Diagnostic message translations consume less space in executables and also
-  take less time to process.
+  take less time to process. [See the patch
+  here.](https://github.com/quick-lint/quick-lint-js/commit/1dcedfe985a3a4ddf956d629907265e46b2c6aed)
+* Expression ASTs are now garbage-collected during parsing, reducing peak memory
+  usage (and as a side effect making parsing faster). [See the patch
+  here.](https://github.com/quick-lint/quick-lint-js/commit/9d96b4c54c81fc95f1094f129bf1fdc5db8d02e3)
 
 ## 0.6.0 (2021-11-20)
 
@@ -65,7 +139,7 @@ Beta release.
 * The Linux executables are now signed with a GPG signature (`.asc` files).
 * Vim: [coc.nvim][] is now supported.
 * quick-lint-js has a new mascot, Dusty. Say hello! (Artwork by [Jenny
-  "Jennipuff" Wheat][]);
+  "Jennipuff" Wheat][]).
 * Translations: German (implemented by [Nico Sonack][])
 
 ### Fixed
@@ -81,20 +155,23 @@ Beta release.
 * JSX: Instead of reporting a bunch of errors, quick-lint-js now tells you that
   JSX syntax is not yet supported.
 * FreeBSD: Fixed build.
-* E0073, E0094, E0104, E0106, E0111, and E0119 now point to to a more helpful
-  place (implemented by strager and [Amir][]).
-* `for (let x = a in b; c; d) {}` now reports E0108 instead of reporting E0173,
-  E0110, and E0110 again.
+* [E0073][], [E0094][], [E0104][], [E0106][], [E0111][], and [E0119][] now point
+  to a more helpful place (implemented by strager and [Amir][]).
+* `for (let x = a in b; c; d) {}` now reports [E0108][] instead of reporting
+  [E0173][], [E0110][], and [E0110][] again.
 
 ### Changed
 
 * Error codes now have four decimal digits instead of three. For example, E001
   is now called E0001.
-* quick-lint-js no longer looks for files named `.quick-lint-js.config`. To
-  configure quick-lint-js, name your file `quick-lint-js.config` instead.
 * LSP benchmarks have been rewritten. The new benchmarks should produce more
   stable numbers and be fairer to linters with a high start-up time such as
   Flow.
+
+### Removed
+
+* quick-lint-js no longer looks for files named `.quick-lint-js.config`. To
+  configure quick-lint-js, name your file `quick-lint-js.config` instead.
 
 ## 0.5.0 (2021-10-12)
 
@@ -184,8 +261,8 @@ Beta release.
   anywhere in `$PATH`
 * Various crashes given invalid JavaScript no longer happen (implemented by
   [wagner riffel][] and [David Vasileff][])
-* `for (const x of xs)` no longer incorrectly reports E205 (missing initializer
-  in const declaration) (fixed by [Himanshu][])
+* `for (const x of xs)` no longer incorrectly reports [E205][E0205] (missing
+   initializer in const declaration) (fixed by [Himanshu][])
 * Windows: `quick-lint-js.config` files are now recognized if the containing
   directory contains non-ASCII characters
 * Fix SSE2 corruption on 32-bit Windows builds with MSVC.
@@ -258,3 +335,31 @@ Beta release.
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
 [tiagovla]: https://github.com/tiagovla
 [wagner riffel]: https://github.com/wgrr
+
+[E0001]: https://quick-lint-js.com/errors/#E0001
+[E0013]: https://quick-lint-js.com/errors/#E0013
+[E0016]: https://quick-lint-js.com/errors/#E0016
+[E0019]: https://quick-lint-js.com/errors/#E0019
+[E0020]: https://quick-lint-js.com/errors/#E0020
+[E0036]: https://quick-lint-js.com/errors/#E0036
+[E0038]: https://quick-lint-js.com/errors/#E0038
+[E0040]: https://quick-lint-js.com/errors/#E0040
+[E0053]: https://quick-lint-js.com/errors/#E0053
+[E0057]: https://quick-lint-js.com/errors/#E0057
+[E0073]: https://quick-lint-js.com/errors/#E0073
+[E0094]: https://quick-lint-js.com/errors/#E0094
+[E0104]: https://quick-lint-js.com/errors/#E0104
+[E0106]: https://quick-lint-js.com/errors/#E0106
+[E0108]: https://quick-lint-js.com/errors/#E0108
+[E0110]: https://quick-lint-js.com/errors/#E0110
+[E0111]: https://quick-lint-js.com/errors/#E0111
+[E0119]: https://quick-lint-js.com/errors/#E0119
+[E0144]: https://quick-lint-js.com/errors/#E0144
+[E0151]: https://quick-lint-js.com/errors/#E0151
+[E0173]: https://quick-lint-js.com/errors/#E0173
+[E0176]: https://quick-lint-js.com/errors/#E0176
+[E0178]: https://quick-lint-js.com/errors/#E0178
+[E0179]: https://quick-lint-js.com/errors/#E0179
+[E0180]: https://quick-lint-js.com/errors/#E0180
+[E0205]: https://quick-lint-js.com/errors/#E0205
+[E0207]: https://quick-lint-js.com/errors/#E0207

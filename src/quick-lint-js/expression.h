@@ -130,6 +130,8 @@ class expression_arena {
     return &this->buffering_visitor_memory_;
   }
 
+  monotonic_allocator *allocator() noexcept { return &this->allocator_; }
+
  private:
   template <class T, class... Args>
   T *allocate(Args &&... args) {

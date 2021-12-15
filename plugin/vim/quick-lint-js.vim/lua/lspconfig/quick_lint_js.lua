@@ -6,10 +6,9 @@
 -- https://github.com/neovim/nvim-lspconfig
 
 local lspconfig = require("lspconfig")
-local lspconfig_configs = require("lspconfig/configs")
 local lspconfig_util = require("lspconfig/util")
 
-lspconfig_configs.quick_lint_js = {
+local quick_lint_js_config = {
   default_config = {
     cmd = {"quick-lint-js", "--lsp-server"},
     filetypes = {"javascript"},
@@ -37,6 +36,23 @@ See https://quick-lint-js.com/install/ for the installation documentation.
     }
   }
 }
+
+require("lspconfig.configs").quick_lint_js = quick_lint_js_config
+
+-- HACK(strager): Since nvim-lspconfig commit 97da7ed12e [1] (November 25,
+-- 2021), we must register with the module named "lspconfig.configs". Prior to
+-- that commit, we must register with the module named "lspconfig/configs". This
+-- is a breaking change in nvim-lspconfig [2].
+--
+-- There doesn't seem to be a way to detect whether we're on the old version or
+-- the new version of nvim-lspconfig [3]. Register our config under both module
+-- names. (require() succeeds with both module names both before and after the
+-- breaking change.)
+--
+-- [1] https://github.com/neovim/nvim-lspconfig/commit/97da7ed12e7e0d86e735e38a8170e941d4ed3e9a
+-- [2] https://github.com/neovim/nvim-lspconfig/issues/1075#issuecomment-980801779
+-- [3] https://github.com/neovim/nvim-lspconfig/pull/1479#issuecomment-985950252
+require("lspconfig/configs").quick_lint_js = quick_lint_js_config
 
 -- Allow users to write:
 --   require("lspconfig/quick_lint_js").setup {}

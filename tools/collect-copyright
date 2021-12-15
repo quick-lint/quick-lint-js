@@ -101,6 +101,37 @@ distributed under the following license:
 {markdown_block_quote(qljs_license_text)}
 
 Parts of quick-lint-js might be distributed under different licenses:
+
+# Arm Optimized Routines
+
+src/quick-lint-js/simd-neon-arm.h in quick-lint-js is derived from
+string/aarch64/memchr.S in Arm Optimized Routines.
+
+Source code of Arm Optimized Routines is available at:
+* https://github.com/ARM-software/optimized-routines/tree/7a9fd1603e1179b044406fb9b6cc5770d736cde7
+
+Copyright information for Arm Optimized Routines:
+> MIT License
+>
+> Copyright (c) 1999-2019, Arm Limited.
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
 """
     )
 
@@ -124,6 +155,8 @@ def dump_from_linkmap(
     extra_vendor_projects: typing.List[str],
 ) -> None:
     link_map = parse_link_map(link_map_file.read_text())
+    if not link_map.linked_archives:
+        warn("link map lists no archives; this is probably a bug in collect-copyright")
     linked_system_archives = [
         file for file in link_map.linked_archives if pathlib.Path(file).is_absolute()
     ]
@@ -236,10 +269,12 @@ def dump_from_system_archives(
     )
     if system_package_manager is None:
         warn("Could not detect system package manager")
-        print("""## Other packages
+        print(
+            """## Other packages
 
 The following files are statically linked into quick-lint-js. Their copyright and licenses are unknown:
-""")
+"""
+        )
         for archive in sorted(linked_system_archives):
             print(f"* {archive}")
         return
@@ -726,6 +761,12 @@ def parse_link_map(raw_link_map: str) -> LinkMap:
                 )
                 if match is not None:
                     linked_archives.add(match.group("archive"))
+                match = re.match(
+                    r"^\s*\d+\s+\d+\s+\d+\s+(?P<archive>\S+\.a)\((?P<member>[^/]+\.o)\):\((?P<symbol>.*)\)$",
+                    line,
+                )
+                if match is not None:
+                    linked_archives.add(pathlib.Path(match.group("archive")).name)
     return LinkMap(linked_archives=linked_archives)
 
 
@@ -823,6 +864,31 @@ class TestLD64LinkMap(unittest.TestCase):
         self.assertEqual(
             link_map.linked_archives,
             {"/usr/local/opt/llvm/lib/libc++.a", "/usr/local/opt/llvm/lib/libc++abi.a"},
+        )
+
+
+class TestMoldLinkMap(unittest.TestCase):
+    def test_small_link_map(self) -> None:
+        raw_link_map = """\
+             VMA       Size Align Out     In      Symbol
+         2097152         64     8 
+         2097216        560     8 
+         2097776         28     1 .interp
+         2097804         32     4 .note.ABI-tag
+         2097804         32     4         /usr/lib/x86_64-linux-gnu/crt1.o:(.note.ABI-tag)
+         2491008     105120    16 .rodata
+         2491008        140     4         src/CMakeFiles/quick-lint-js.dir/main.cpp.o:(.rodata._ZN13quick_lint_js12lsp_endpointINS_26linting_lsp_server_handlerINS_21lsp_javascript_linterEEENS_15lsp_pipe_writerEE14message_parsedESt17basic_string_viewIDuSt11char_traitsIDuEE)
+         2511120          0     0                 simdjson::fallback::(anonymous namespace)::stringparsing::escape_map
+         2511376        192    16         src/libquick-lint-js-lib.a(buffering-error-reporter.cpp.o):(.rodata._ZZN13quick_lint_js24buffering_error_reporter11report_implENS_10error_typeEPvE11error_sizes)
+         2651424          8     4         /usr/lib/x86_64-linux-gnu/crti.o:(.fini)
+         2651424          0     0                 _fini
+               0    3085635     1 .debug_str
+               0       2432     8 
+"""
+        link_map = parse_link_map(raw_link_map)
+        self.assertEqual(
+            link_map.linked_archives,
+            {"libquick-lint-js-lib.a"},
         )
 
 

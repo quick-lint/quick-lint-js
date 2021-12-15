@@ -21,6 +21,7 @@
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 using ::testing::UnorderedElementsAre;
+using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -93,7 +94,29 @@ TEST(test_parse, return_statement_disallows_newline) {
     parser p(&code, &v);
 
     // Parse 'return'.
+    EXPECT_TRUE(p.parse_and_visit_statement(
+        v, parser::parse_statement_type::any_statement_in_block));
+    EXPECT_THAT(v.variable_uses, IsEmpty());
+
+    // Parse 'x' (separate statement from 'return')
     EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_return_statement_returns_nothing, return_keyword,
+                    offsets_matcher(&code, 0, u8"return"))));
+  }
+
+  {
+    padded_string code(u8"if (true) return\nx"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+
+    // Parse 'if (true) return'.
+    EXPECT_TRUE(p.parse_and_visit_statement(
+        v, parser::parse_statement_type::any_statement));
     EXPECT_THAT(v.variable_uses, IsEmpty());
 
     // Parse 'x' (separate statement from 'return')
@@ -104,6 +127,98 @@ TEST(test_parse, return_statement_disallows_newline) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
+  // TODO(strager): These cases might be dead code instead (e.g. a method call).
+  // Report a different error for potentially dead code.
+  // TODO(strager): This list is incomplete.
+  for (const char8* second_line : {
+           u8"!true",
+           u8"'string'",
+           u8"() => {}",
+           u8"(2 + 2)",
+           u8"+42",
+           u8"-42",
+           u8"/=pattern/",
+           u8"/pattern/",
+           u8"42",
+           u8"['a', 'b', 'c']",
+           u8"`template${withSubstitution}`",
+           u8"`template`",
+           u8"await myPromise",
+           u8"false",
+           u8"function f() { }",
+           u8"myVariable",
+           u8"new Promise()",
+           u8"null",
+           u8"super.method()",
+           u8"this",
+           u8"true",
+           u8"typeof banana",
+           u8"{}",
+           u8"~bits",
+           // TODO(strager): Contextual keywords (let, from, yield, etc.).
+           // TODO(strager): Function without name. (Must be an expression, not
+           // a statement.)
+           // TODO(strager): JSX.
+       }) {
+    {
+      padded_string code(u8"return\n"s + second_line);
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.errors,
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_return_statement_returns_nothing, return_keyword,
+                      offsets_matcher(&code, 0, u8"return"))));
+    }
+
+    {
+      padded_string code(u8"{ return\n"s + second_line + u8"}");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.errors,
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_return_statement_returns_nothing, return_keyword,
+                      offsets_matcher(&code, strlen(u8"{ "), u8"return"))));
+    }
+
+    {
+      padded_string code(u8"async function f() { return\n"s + second_line +
+                         u8"}");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.errors,
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_return_statement_returns_nothing, return_keyword,
+                      offsets_matcher(&code, strlen(u8"async function f() { "),
+                                      u8"return"))));
+    }
+
+    {
+      padded_string code(
+          u8"switch (cond) {\n"s
+          u8"default:\n"s
+          u8"return\n"s +
+          second_line + u8"}");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(ERROR_TYPE_FIELD(
+              error_return_statement_returns_nothing, return_keyword,
+              offsets_matcher(&code, strlen(u8"switch (cond) {\ndefault:\n"),
+                              u8"return"))));
+    }
+  }
+}
+
+TEST(test_parse, return_statement_disallows_newline_in_block) {
   {
     spy_visitor v = parse_and_visit_module(u8"for (let x of []) return\nx"_sv);
     EXPECT_THAT(v.visits,
@@ -111,6 +226,32 @@ TEST(test_parse, return_statement_disallows_newline) {
                             "visit_variable_declaration",  // x
                             "visit_exit_for_scope",        //
                             "visit_variable_use",          // x
+                            "visit_end_of_module"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_module(u8"if (cond) return\nx"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",  // cond
+                            "visit_variable_use",  // x
+                            "visit_end_of_module"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_module(u8"if (cond) {} else return\nx"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",       // cond
+                            "visit_enter_block_scope",  // (if)
+                            "visit_exit_block_scope",   // (if)
+                            "visit_variable_use",       // x
+                            "visit_end_of_module"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_module(u8"while (cond) return\nx"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",  // cond
+                            "visit_variable_use",  // x
                             "visit_end_of_module"));
   }
 }

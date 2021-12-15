@@ -228,7 +228,7 @@ expression* parser::parse_primary_expression(precedence prec) {
         .math_or_logical_or_assignment = false,
         .commas = false,
         .in_operator = prec.in_operator,
-        .is_typeof = (type == token_type::kw_typeof),
+        .conditional_operator = false,
     });
     if (child->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
@@ -256,6 +256,7 @@ expression* parser::parse_primary_expression(precedence prec) {
         .math_or_logical_or_assignment = false,
         .commas = false,
         .in_operator = prec.in_operator,
+        .conditional_operator = false,
     });
     if (child->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
@@ -829,11 +830,11 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
         await_token.identifier_name(), await_token.type);
   } else {
     source_code_span operator_span = await_token.span();
-    if (!(this->in_async_function_ || this->in_top_level_)) {
-      this->error_reporter_->report(error_await_operator_outside_async{
-          .await_operator = operator_span,
-      });
-    }
+
+    buffering_error_reporter temp_error_reporter(&this->temporary_memory_);
+    error_reporter* old_error_reporter =
+        std::exchange(this->error_reporter_, &temp_error_reporter);
+    lexer_transaction transaction = this->lexer_.begin_transaction();
 
     expression* child = this->parse_expression(prec);
 
@@ -841,12 +842,27 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
       });
-    } else if (this->in_async_function_ && this->is_arrow_kind(child) &&
+    } else if (this->is_arrow_kind(child) &&
                child->attributes() != function_attributes::async) {
+      // await (param) => { }  // Invalid.
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      this->error_reporter_ = old_error_reporter;
       this->error_reporter_->report(error_await_followed_by_arrow_function{
           .await_operator = operator_span,
       });
+      // Re-parse as if the user wrote 'async' instead of 'await'.
+      return this->parse_async_expression(await_token, prec);
     }
+
+    if (!(this->in_async_function_ || this->in_top_level_)) {
+      this->error_reporter_->report(error_await_operator_outside_async{
+          .await_operator = operator_span,
+      });
+    }
+
+    this->lexer_.commit_transaction(std::move(transaction));
+    temp_error_reporter.move_into(old_error_reporter);
+    this->error_reporter_ = old_error_reporter;
     return this->make_expression<expression::await>(child, operator_span);
   }
 }
@@ -1123,7 +1139,7 @@ next:
 
   // x ? y : z  // Conditional operator.
   case token_type::question: {
-    if (prec.is_typeof) {
+    if (!prec.conditional_operator) {
       break;
     }
     source_code_span question_span = this->peek().span();
@@ -1204,6 +1220,26 @@ next:
     }
     break;
 
+  case token_type::left_curly: {
+    bool looks_like_arrow_function_body =
+        !this->peek().has_leading_newline && children.size() == 1 &&
+        // TODO(strager): Check for ',' operator explicitly, not any binary
+        // operator.
+        children.front()->kind() == expression_kind::binary_operator;
+    if (looks_like_arrow_function_body) {
+      source_code_span arrow_span = this->peek().span();
+      // (a, b) { return a + b; }  // Invalid.
+      this->error_reporter_->report(
+          error_missing_arrow_operator_in_arrow_function{
+              .where = arrow_span,
+          });
+      this->parse_arrow_function_expression_remainder(
+          /*arrow_span=*/arrow_span, children,
+          /*allow_in_operator=*/prec.in_operator);
+    }
+    break;
+  }
+
   case token_type::bang:
   case token_type::colon:
   case token_type::end_of_file:
@@ -1248,7 +1284,6 @@ next:
   case token_type::kw_while:
   case token_type::kw_with:
   case token_type::kw_yield:
-  case token_type::left_curly:
   case token_type::number:
   case token_type::private_identifier:
   case token_type::right_curly:
@@ -1269,13 +1304,24 @@ next:
 void parser::parse_arrow_function_expression_remainder(
     vector<expression*, /*InSituCapacity=*/2>& children,
     bool allow_in_operator) {
+  QLJS_ASSERT(this->peek().type == token_type::equal_greater);
   source_code_span arrow_span = this->peek().span();
   this->skip();
+  this->parse_arrow_function_expression_remainder(arrow_span, children,
+                                                  allow_in_operator);
+}
+
+void parser::parse_arrow_function_expression_remainder(
+    source_code_span arrow_span,
+    vector<expression*, /*InSituCapacity=*/2>& children,
+    bool allow_in_operator) {
   if (children.size() != 1) {
     // TODO(strager): We should report an error for code like this:
     // a + b => c
   }
   expression* lhs = children.back();
+  function_attributes attributes = function_attributes::normal;
+
   vector<expression*> parameters("parse_arrow_function_expression_remainder",
                                  &this->temporary_memory_);
   const char8* left_paren_begin = nullptr;
@@ -1327,12 +1373,29 @@ void parser::parse_arrow_function_expression_remainder(
     break;
 
   // f(x, y) => {}
-  case expression_kind::call:
-    if (this->peek().type == token_type::left_curly) {
-      left_paren_begin =
-          expression_cast<expression::call>(lhs)->left_paren_span().begin();
-      for (int i = 1; i < lhs->child_count(); ++i) {
-        parameters.emplace_back(lhs->child(i));
+  case expression_kind::call: {
+    expression::call* call = expression_cast<expression::call>(lhs);
+    // FIXME(strager): This check is duplicated.
+    bool is_async_arrow_using_with_await_operator =
+        call->child_0()->kind() == expression_kind::variable &&
+        call->child_0()->variable_identifier_token_type() ==
+            token_type::kw_await;
+    if (this->peek().type == token_type::left_curly ||
+        is_async_arrow_using_with_await_operator) {
+      if (is_async_arrow_using_with_await_operator) {
+        // await (x) => {}   // Invalid.
+        // await () => expr  // Invalid.
+        this->error_reporter_->report(error_await_followed_by_arrow_function{
+            .await_operator = call->child_0()->span(),
+        });
+        // Parse as if the user wrote 'async' instead of 'await'.
+        attributes = function_attributes::async;
+      } else {
+        // f() => {}         // Invalid.
+      }
+      left_paren_begin = call->left_paren_span().begin();
+      for (int i = 1; i < call->child_count(); ++i) {
+        parameters.emplace_back(call->child(i));
       }
       // We will report
       // error_missing_operator_between_expression_and_arrow_function
@@ -1340,6 +1403,7 @@ void parser::parse_arrow_function_expression_remainder(
       break;
     }
     [[fallthrough]];
+  }
 
   // f() => z
   // 42 => {}
@@ -1380,7 +1444,7 @@ void parser::parse_arrow_function_expression_remainder(
   }
 
   expression* arrow_function = this->parse_arrow_function_body(
-      function_attributes::normal,
+      /*attributes=*/attributes,
       /*parameter_list_begin=*/left_paren_begin,
       /*allow_in_operator=*/allow_in_operator,
       this->expressions_.make_array(std::move(parameters)));
@@ -2245,14 +2309,27 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
 
   case expression_kind::call: {
     expression::call* call = expression_cast<expression::call>(lhs);
-    this->error_reporter_->report(
-        error_missing_operator_between_expression_and_arrow_function{
-            .where = source_code_span(call->span().begin(),
-                                      call->left_paren_span().end()),
-        });
-    std::array<expression*, 2> children{lhs->child_0(), arrow_function};
-    return this->make_expression<expression::binary_operator>(
-        this->expressions_.make_array(std::move(children)));
+    // FIXME(strager): This check is duplicated.
+    bool is_async_arrow_using_with_await_operator =
+        call->child_0()->kind() == expression_kind::variable &&
+        call->child_0()->variable_identifier_token_type() ==
+            token_type::kw_await;
+    if (is_async_arrow_using_with_await_operator) {
+      // await (x) => {}   // Invalid.
+      // await () => expr  // Invalid.
+      // We treated 'await' as 'async' elsewhere. Don't report any error here.
+      return arrow_function;
+    } else {
+      // f() => {}         // Invalid.
+      this->error_reporter_->report(
+          error_missing_operator_between_expression_and_arrow_function{
+              .where = source_code_span(call->span().begin(),
+                                        call->left_paren_span().end()),
+          });
+      std::array<expression*, 2> children{lhs->child_0(), arrow_function};
+      return this->make_expression<expression::binary_operator>(
+          this->expressions_.make_array(std::move(children)));
+    }
   }
   }
 }

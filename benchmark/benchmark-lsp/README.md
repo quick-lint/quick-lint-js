@@ -28,7 +28,7 @@ Install a compiler which supports C++20 coroutines (such as Clang version 12).
     $ cd build
     $ CC=clang-12 CXX=clang++-12 CXXFLAGS=-stdlib=libc++ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DQUICK_LINT_JS_ENABLE_BENCHMARKS=YES ..
     $ cd ..
-    $ ninja -C build quick-lint-js-lsp-benchmark-servers
+    $ ninja -C build quick-lint-js-benchmark-lsp-servers
 
 ## Running
 

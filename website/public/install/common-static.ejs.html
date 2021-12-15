@@ -12,21 +12,57 @@
       <li>
         <a
           href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/linux.tar.gz"
-          >GNU/Linux</a
+          >GNU/Linux (amd64)</a
+        >
+      </li>
+      <li>
+        <a
+          href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/linux-aarch64.tar.gz"
+          >GNU/Linux (aarch64)</a
+        >
+      </li>
+      <li>
+        <a
+          href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/linux-armhf.tar.gz"
+          >GNU/Linux (armhf)</a
         >
       </li>
       <% } else if (os === "macos") { %>
       <li>
         <a
+          href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/macos-aarch64.tar.gz"
+          >macOS (Apple Silicon)</a
+        >
+      </li>
+      <li>
+        <a
           href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/macos.tar.gz"
-          >macOS</a
+          >macOS (Intel)</a
         >
       </li>
       <% } else if (os === "windows") { %>
       <li>
         <a
           href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/windows.zip"
-          >Windows</a
+          >Windows (x64)</a
+        >
+      </li>
+      <li>
+        <a
+          href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/windows-x86.zip"
+          >Windows (x86)</a
+        >
+      </li>
+      <li>
+        <a
+          href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/windows-arm64.zip"
+          >Windows (ARM64)</a
+        >
+      </li>
+      <li>
+        <a
+          href="https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/manual/windows-arm.zip"
+          >Windows (ARM)</a
         >
       </li>
       <% } %>

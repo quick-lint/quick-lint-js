@@ -842,11 +842,9 @@ TEST(test_parse, function_with_invalid_parameters) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(
-            ::testing::VariantWith<error_invalid_binding_in_let_statement>(
-                ::testing::_)));
+    EXPECT_THAT(v.errors,
+                ElementsAre(::testing::VariantWith<error_invalid_parameter>(
+                    ::testing::_)));
   }
 
   {
@@ -897,11 +895,9 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::async_generator);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(
-            ::testing::VariantWith<error_invalid_binding_in_let_statement>(
-                ::testing::_)));
+    EXPECT_THAT(v.errors,
+                ElementsAre(::testing::VariantWith<error_invalid_parameter>(
+                    ::testing::_)));
   }
 
   {
@@ -925,8 +921,12 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_FIELD(
-                    error_stray_comma_in_let_statement, where,
+                    error_stray_comma_in_parameter, comma,
                     offsets_matcher(&code, strlen(u8"([(x"), u8","))));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope"));
   }
 
   {
@@ -1006,6 +1006,74 @@ TEST(test_parse, arrow_function_expression_without_arrow_operator) {
                 ElementsAre(ERROR_TYPE_FIELD(
                     error_missing_arrow_operator_in_arrow_function, where,
                     offsets_matcher(&code, strlen(u8"(()\n"), u8"{"))));
+  }
+
+  {
+    padded_string code(u8"((a, b) {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // a
+                                      "visit_variable_declaration",       // b
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_missing_arrow_operator_in_arrow_function, where,
+                    offsets_matcher(&code, strlen(u8"((a, b) "), u8"{"))));
+  }
+}
+
+TEST(test_parse, not_arrow_function_expression_without_arrow_operator) {
+  // These aren't arrow expressions, but might look like arrow expressions to a
+  // bad error-recovering parser.
+
+  {
+    padded_string code(u8"(a, b)\n{}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // a
+                                      "visit_variable_use",       // b
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"foo() {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // foo
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ::testing::VariantWith<error_missing_semicolon_after_statement>(
+                ::testing::_)));
+  }
+
+  if ((false)) {  // TODO(strager): Treat '+' differently from ','.
+    padded_string code(u8"(a+b) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // a
+                                      "visit_variable_use",       // b
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            ::testing::VariantWith<error_missing_semicolon_after_statement>(
+                ::testing::_)));
   }
 }
 

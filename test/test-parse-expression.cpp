@@ -24,6 +24,7 @@ using ::testing::_;
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 using ::testing::VariantWith;
+using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -77,7 +78,7 @@ class test_parse_expression : public ::testing::Test {
     test_parser& p = this->make_parser(input);
 
     expression* ast = p.parse_expression();
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors(), IsEmpty()) << out_string8(input);
     return ast;
   }
 
@@ -957,30 +958,70 @@ TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
 }
 
 TEST_F(test_parse_expression, await_followed_by_arrow_function) {
+  auto test = [](auto&& make_guard) -> void {
+    {
+      test_parser p(u8"await x => {}"_sv);
+      [[maybe_unused]] auto guard = make_guard(p.parser());
+      expression* ast = p.parse_expression();
+      EXPECT_EQ(summarize(ast), "asyncarrowblock(var x)");
+      EXPECT_THAT(p.errors(),
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_await_followed_by_arrow_function, await_operator,
+                      offsets_matcher(p.code(), 0, u8"await"))));
+    }
+
+    {
+      test_parser p(u8"await () => {}"_sv);
+      [[maybe_unused]] auto guard = make_guard(p.parser());
+      expression* ast = p.parse_expression();
+      EXPECT_EQ(summarize(ast), "asyncarrowblock()");
+      EXPECT_THAT(p.errors(),
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_await_followed_by_arrow_function, await_operator,
+                      offsets_matcher(p.code(), 0, u8"await"))));
+    }
+
+    {
+      test_parser p(u8"await (param) => {}"_sv);
+      [[maybe_unused]] auto guard = make_guard(p.parser());
+      expression* ast = p.parse_expression();
+      EXPECT_EQ(summarize(ast), "asyncarrowblock(var param)");
+      EXPECT_THAT(p.errors(),
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_await_followed_by_arrow_function, await_operator,
+                      offsets_matcher(p.code(), 0, u8"await"))));
+    }
+
+    {
+      test_parser p(u8"await (param) => { await param; }"_sv);
+      [[maybe_unused]] auto guard = make_guard(p.parser());
+      expression* ast = p.parse_expression();
+      EXPECT_EQ(summarize(ast), "asyncarrowblock(var param)");
+      EXPECT_THAT(p.errors(),
+                  ElementsAre(ERROR_TYPE_FIELD(
+                      error_await_followed_by_arrow_function, await_operator,
+                      offsets_matcher(p.code(), 0, u8"await"))));
+    }
+  };
+
   {
-    test_parser p(u8"await x => {}"_sv);
-    auto guard = p.parser().enter_function(function_attributes::async);
-    expression* ast = p.parse_expression();
-    EXPECT_EQ(ast->kind(), expression_kind::await);
-    EXPECT_EQ(ast->child_0()->kind(),
-              expression_kind::arrow_function_with_statements);
-    EXPECT_THAT(p.errors(),
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_await_followed_by_arrow_function, await_operator,
-                    offsets_matcher(p.code(), 0, u8"await"))));
+    SCOPED_TRACE("in async function");
+    test(
+        [](parser& p) { return p.enter_function(function_attributes::async); });
   }
 
   {
-    test_parser p(u8"await () => {}"_sv);
-    auto guard = p.parser().enter_function(function_attributes::async);
-    expression* ast = p.parse_expression();
-    EXPECT_EQ(ast->kind(), expression_kind::await);
-    EXPECT_EQ(ast->child_0()->kind(),
-              expression_kind::arrow_function_with_statements);
-    EXPECT_THAT(p.errors(),
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_await_followed_by_arrow_function, await_operator,
-                    offsets_matcher(p.code(), 0, u8"await"))));
+    SCOPED_TRACE("in non-async function");
+    test([](parser& p) {
+      return p.enter_function(function_attributes::normal);
+    });
+  }
+
+  {
+    SCOPED_TRACE("top-level");
+    test([](parser&) -> int {
+      return 0;  // No guard.
+    });
   }
 }
 
@@ -1120,7 +1161,7 @@ TEST_F(test_parse_expression,
         if (test.code == u8"await await x") {
           EXPECT_THAT(
               p.errors(),
-              ElementsAre(
+              UnorderedElementsAre(
                   ERROR_TYPE_FIELD(error_await_operator_outside_async,
                                    await_operator,
                                    offsets_matcher(p.code(), 0, u8"await")),  //
@@ -3417,6 +3458,238 @@ TEST_F(test_parse_expression, jsx_is_not_supported) {
   EXPECT_EQ(p.range(ast).begin_offset(), 0);
   EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"<MyComponent"));
   EXPECT_EQ(summarize(ast), "binary(missing, var MyComponent)");
+}
+
+TEST_F(test_parse_expression, precedence) {
+  enum class level_type {
+    // Left-associative binary operator.
+    left,
+    // Right-associative binary operator.
+    right,
+    // Binary operator. We don't track associativity of many binary expressions,
+    // but if we do, we should remove this and use 'left' or 'right' instead.
+    binary,
+    // Right-associative ternary operator.
+    ternary_right,
+    // Right-associative prefix operator.
+    prefix,
+  };
+
+  static auto is_binary_level = [](level_type type) -> bool {
+    switch (type) {
+    case level_type::left:
+    case level_type::right:
+    case level_type::binary:
+      return true;
+    case level_type::prefix:
+    case level_type::ternary_right:
+      return false;
+    }
+    QLJS_UNREACHABLE();
+  };
+
+  struct operator_type {
+    const char8* op;
+    const char* raw_kind;
+
+    const char* kind() const noexcept {
+      if (this->raw_kind) {
+        return this->raw_kind;
+      } else if (this->op) {
+        return "binary";
+      } else {
+        return "cond";
+      }
+    }
+  };
+  struct precedence_level {
+    level_type type;
+    std::vector<operator_type> ops;
+  };
+
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_CLANG("-Wmissing-field-initializers")
+  QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
+  // In our table, lower index items have lower precedence.
+  static const precedence_level precedence_levels[] = {
+      // TODO(strager): Fix failures when testing e.g. "a,b+c".
+      // {level_type::binary, {{u8","}}},
+      {level_type::right,
+       {
+           {u8"=", "assign"},
+           {u8"+=", "upassign"},
+           {u8"-=", "upassign"},
+           {u8"**=", "upassign"},
+           {u8"*=", "upassign"},
+           {u8"/=", "upassign"},
+           {u8"%=", "upassign"},
+           {u8"<<=", "upassign"},
+           {u8">>=", "upassign"},
+           {u8">>>=", "upassign"},
+           {u8"&=", "upassign"},
+           {u8"^=", "upassign"},
+           {u8"|=", "upassign"},
+           {u8"&&=", "condassign"},
+           {u8"||=", "condassign"},
+           {u8"?\x3f=", "condassign"},
+           // TODO(strager): yield and yield*
+       }},
+      {level_type::ternary_right, {{/* special-cased */}}},
+      {level_type::binary, {{u8"||"}, {u8"??"}}},
+      {level_type::binary, {{u8"&&"}}},
+      {level_type::binary, {{u8"|"}}},
+      {level_type::binary, {{u8"^"}}},
+      {level_type::binary, {{u8"&"}}},
+      {level_type::binary,
+       {
+           {u8"=="},
+           {u8"!="},
+           {u8"==="},
+           {u8"!=="},
+       }},
+      {level_type::binary,
+       {
+           {u8"<"},
+           {u8"<="},
+           {u8">"},
+           {u8">="},
+           // TODO(strager): Fix failures when testing e.g. "a in b+c".
+           // {u8" in "},
+           {u8" instanceof "},
+       }},
+      {level_type::binary, {{u8"<<"}, {u8">>"}, {u8">>>"}}},
+      {level_type::binary, {{u8"+"}, {u8"-"}}},
+      {level_type::binary, {{u8"*"}, {u8"/"}, {u8"%"}}},
+      {level_type::binary, {{u8"**"}}},
+      {level_type::prefix,
+       {
+           {u8"!", "unary"},
+           {u8"+", "unary"},
+           {u8"-", "unary"},
+           {u8"++", "rwunary"},
+           {u8"--", "rwunary"},
+           {u8"typeof ", "typeof"},
+           {u8"void ", "unary"},
+           {u8"delete ", "delete"},
+           // TODO(strager): await
+       }},
+      // TODO(strager): Unary suffix operators: ++ --
+      // TODO(strager): Unary prefix operator: new
+      // TODO(strager): Operators: x.y, x[y], new x(y), x(y), x?.y
+  };
+  QLJS_WARNING_POP
+
+  // Sanity check the table.
+  for (const precedence_level& level : precedence_levels) {
+    for (const operator_type& op : level.ops) {
+      switch (level.type) {
+      case level_type::left:
+      case level_type::right:
+        ASSERT_STRNE(op.kind(), "binary");
+        break;
+      case level_type::binary:
+        ASSERT_STREQ(op.kind(), "binary");
+        break;
+      case level_type::prefix:
+        break;
+      case level_type::ternary_right:
+        ASSERT_EQ(op.op, nullptr);
+        ASSERT_STREQ(op.kind(), "cond");
+        break;
+      }
+    }
+  }
+
+  static auto check_expression =
+      [](string8_view code, std::string_view expected_ast_summary) -> void {
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), expected_ast_summary);
+  };
+
+  static auto test = [](level_type lo_type, operator_type lo_op,
+                        level_type hi_type, operator_type hi_op,
+                        bool is_same_level) -> void {
+    if (lo_type == level_type::binary && hi_type == level_type::binary) {
+      // Associativity is not tracked.
+      // a*b+c
+      check_expression(u8"a"s + hi_op.op + u8"b" + lo_op.op + u8"c",
+                       "binary(var a, var b, var c)"s);
+      // a+b*c
+      check_expression(u8"a"s + lo_op.op + u8"b" + hi_op.op + u8"c",
+                       "binary(var a, var b, var c)"s);
+    } else if (is_binary_level(lo_type) && is_binary_level(hi_type)) {
+      if (!is_same_level || hi_type == level_type::right) {
+        // a=b+c
+        check_expression(
+            u8"a"s + lo_op.op + u8"b" + hi_op.op + u8"c",
+            lo_op.kind() + "(var a, "s + hi_op.kind() + "(var b, var c))");
+      }
+      if (!is_same_level || hi_type == level_type::left) {
+        // a=b,c
+        check_expression(
+            u8"a"s + hi_op.op + u8"b" + lo_op.op + u8"c",
+            lo_op.kind() + "("s + hi_op.kind() + "(var a, var b), var c)");
+      }
+    } else if (is_binary_level(lo_type) && hi_type == level_type::prefix) {
+      // -a*b
+      check_expression(hi_op.op + u8"a"s + lo_op.op + u8"b",
+                       lo_op.kind() + "("s + hi_op.kind() + "(var a), var b)");
+    } else if (is_binary_level(lo_type) &&
+               hi_type == level_type::ternary_right) {
+      ASSERT_STREQ(hi_op.kind(), "cond");
+      // a+b?c:d
+      check_expression(u8"a"s + lo_op.op + u8"b?c:d",
+                       lo_op.kind() + "(var a, cond(var b, var c, var d))"s);
+      // a?b+c:d
+      check_expression(
+          u8"a?b"s + lo_op.op + u8"c:d",
+          "cond(var a, "s + lo_op.kind() + "(var b, var c), var d)");
+      // a?b:c+d
+      check_expression(
+          u8"a?b:c"s + lo_op.op + u8"d",
+          "cond(var a, var b, "s + lo_op.kind() + "(var c, var d))");
+    } else if (is_binary_level(hi_type) &&
+               lo_type == level_type::ternary_right) {
+      ASSERT_STREQ(lo_op.kind(), "cond");
+      // a=b?c:d
+      check_expression(
+          u8"a"s + hi_op.op + u8"b?c:d",
+          "cond("s + hi_op.kind() + "(var a, var b), var c, var d)");
+      // a?b=c:d
+      check_expression(
+          u8"a?b"s + hi_op.op + u8"c:d",
+          "cond(var a, "s + hi_op.kind() + "(var b, var c), var d)");
+      // a?b:c=d
+      check_expression(
+          u8"a?b:c"s + hi_op.op + u8"d",
+          "cond(var a, var b, "s + hi_op.kind() + "(var c, var d))");
+    } else if (hi_type == level_type::prefix &&
+               lo_type == level_type::ternary_right) {
+      ASSERT_STREQ(lo_op.kind(), "cond");
+      // -a?b:c
+      check_expression(hi_op.op + u8"a?b:c"s,
+                       "cond("s + hi_op.kind() + "(var a), var b, var c)");
+    } else {
+      QLJS_UNREACHABLE();
+    }
+  };
+
+  for (std::size_t hi_index = 0; hi_index < std::size(precedence_levels);
+       ++hi_index) {
+    const precedence_level& hi = precedence_levels[hi_index];
+    for (const operator_type& hi_op : hi.ops) {
+      for (std::size_t lo_index = 0; lo_index < hi_index; ++lo_index) {
+        bool is_same_level = hi_index == lo_index;
+        const precedence_level& lo = precedence_levels[lo_index];
+        for (const operator_type& lo_op : lo.ops) {
+          test(lo.type, lo_op, hi.type, hi_op, is_same_level);
+        }
+      }
+    }
+  }
 }
 
 std::string summarize(const expression& expression) {

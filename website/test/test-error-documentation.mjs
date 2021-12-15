@@ -59,12 +59,14 @@ describe("error documentation", () => {
     expect(doc.titleErrorCode).toBe("");
     expect(doc.titleErrorDescription).toBe("");
   });
+
   it("no code blocks", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
       "paragraph goes here\n"
     );
     expect(doc.codeBlocks).toEqual([]);
+    expect(doc.shouldCheckCodeBlocks).toBeTrue();
   });
 
   it("one indented code block", () => {
@@ -292,6 +294,14 @@ wasn't that neat?
       ],
     ]);
     expect(doc.toHTML()).not.toContain("global-groups");
+  });
+
+  it("QLJS_NO_CHECK_CODE disables all code block checks", async () => {
+    let doc = ErrorDocumentation.parseString(
+      "E9999.md",
+      "# E9999: test\n\n<!-- QLJS_NO_CHECK_CODE -->\n\ndocs go here"
+    );
+    expect(doc.shouldCheckCodeBlocks).toBeFalse();
   });
 });
 

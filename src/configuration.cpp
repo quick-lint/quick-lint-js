@@ -141,7 +141,7 @@ void configuration::reset() {
     enabled = true;
   }
   this->literally_anything_global_group_enabled_ = false;
-  this->string_allocator_.memory_resource()->release();
+  this->string_allocator_.release();
 }
 
 bool configuration::load_global_groups_from_json(

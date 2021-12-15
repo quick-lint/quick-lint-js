@@ -11,6 +11,13 @@ benchmarks:
     $ ./build/benchmark/benchmark-lsp/quick-lint-js-benchmark-lsp-servers \
       --iterations 10 \
       --samples 10 \
-      --output-json website/public/benchmarks/open-wait-close-express-router-js.json \
+      --output-json website/public/benchmarks/full-change-wait-express-router-js.json \
       benchmark/benchmark-lsp/benchmark-config.json \
-      open-wait-close/express-router.js
+      full-change-wait/express-router.js
+
+    $ ./build/benchmark/benchmark-lsp/quick-lint-js-benchmark-lsp-servers \
+      --iterations 10 \
+      --samples 10 \
+      --output-json website/public/benchmarks/incremental-change-wait-express-router-js.json \
+      benchmark/benchmark-lsp/benchmark-config.json \
+      incremental-change-wait/express-router.js

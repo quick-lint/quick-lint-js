@@ -43,6 +43,11 @@ set(
   STRING
   "Install Vim files into this directory relative to CMAKE_INSTALL_PREFIX"
 )
+option(
+  QUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS
+  "Install a 'tags' file with Vim and Neovim documentation"
+  OFF
+)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 

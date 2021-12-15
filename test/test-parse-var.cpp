@@ -320,6 +320,18 @@ TEST(test_parse, parse_invalid_let) {
 
   {
     spy_visitor v;
+    padded_string code(u8"let a,;"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_FIELD(
+                    error_stray_comma_in_let_statement, where,
+                    offsets_matcher(&code, strlen(u8"let a"), u8","))));
+  }
+
+  {
+    spy_visitor v;
     padded_string code(u8"let x, 42"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));

@@ -1,0 +1,95 @@
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+# This file configures editors using the EditorConfig
+# scheme: https://editorconfig.org/
+
+root = true
+
+[*.{c,cpp,go,gperf,js,json,h,lua,md,mjs,nix,py,sh,txt,vim,yaml,yml}]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+[{.editorconfig,.clang-format}]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+
+[CMakeLists.txt]
+indent_size = 2
+indent_style = space
+max_line_length = 80
+[*.cmake]
+indent_size = 2
+indent_style = space
+max_line_length = 80
+
+# Keep in sync with ClangFormat.
+[*.{c,cpp,h,gperf}]
+indent_size = 2
+indent_style = space
+max_line_length = 80
+
+# Keep in sync with gofmt.
+[*.go]
+indent_size = tab
+indent_style = tab
+max_line_length = off
+
+# Keep in sync with Prettier.
+[*.{html,js,json,mjs}]
+indent_size = 2
+indent_style = space
+max_line_length = 80
+
+[*.lua]
+indent_size = 2
+indent_style = space
+
+[*.md]
+max_line_length = 80
+
+# Mimic rules for *.js and *.json.
+[docs/errors/*.md]
+indent_size = 2
+indent_style = space
+
+[*.nix]
+indent_size = 2
+indent_style = space
+
+# Keep in sync with Black.
+[*.py]
+indent_size = 4
+indent_style = space
+max_line_length = 88
+
+[*.sh]
+indent_size = 2
+indent_style = space
+
+[*.vim]
+indent_size = 2
+indent_style = space
+
+[*.{yaml,yml}]
+indent_size = 2
+indent_style = space
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

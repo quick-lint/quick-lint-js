@@ -8,6 +8,7 @@
 #include <boost/container/pmr/unsynchronized_pool_resource.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/identifier.h>
@@ -188,7 +189,13 @@ class lexer {
   const char8* parse_decimal_digits_and_underscores(
       const char8* input) noexcept;
   const char8* parse_hex_digits_and_underscores(const char8* input) noexcept;
-  const char8* parse_unicode_escape(const char8* input) noexcept;
+
+  struct parsed_unicode_escape {
+    const char8* end;
+    std::optional<char32_t> code_point;
+  };
+
+  parsed_unicode_escape parse_unicode_escape(const char8* input) noexcept;
 
   parsed_identifier parse_identifier(const char8*);
   parsed_identifier parse_identifier_slow(const char8* input,

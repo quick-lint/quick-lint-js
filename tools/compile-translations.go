@@ -346,6 +346,9 @@ func WriteTranslationTableHeader(table *TranslationTable, path string) error {
 
 #include <cstddef>
 #include <cstdint>
+#include <iterator>
+#include <quick-lint-js/consteval.h>
+#include <quick-lint-js/hash-fnv.h>
 #include <quick-lint-js/translation-table.h>
 #include <string_view>
 
@@ -357,25 +360,41 @@ using namespace std::literals::string_view_literals;
 	fmt.Fprintf(writer, "constexpr std::uint16_t translation_table_mapping_table_size = %d;\n", len(table.MappingTable))
 	fmt.Fprintf(writer, "constexpr std::size_t translation_table_string_table_size = %d;\n", len(table.StringTable))
 	fmt.Fprintf(writer, "constexpr std::size_t translation_table_locale_table_size = %d;\n", len(table.LocaleTable))
-	fmt.Fprintf(writer, "constexpr std::size_t translation_table_const_hash_table_size = %d;\n", len(table.ConstHashTable))
-	fmt.Fprintf(writer, "constexpr std::uint64_t translation_table_const_hash_offset_basis =\n    %dULL;\n", table.ConstHashOffsetBasis)
 	fmt.Fprintf(writer, "\n")
-	fmt.Fprintf(writer, "// clang-format off\n")
-	fmt.Fprintf(writer, "constexpr translation_table_const_hash_entry translation_table_const_hash_table\n    [translation_table_const_hash_table_size] = {\n")
-	for _, constHashEntry := range table.ConstHashTable {
-		fmt.Fprintf(writer, "        {%d, \"", constHashEntry.MappingTableIndex)
-		DumpStringLiteralBody(string(constHashEntry.Untranslated), writer)
-		writer.WriteString("\"sv},\n")
-	}
-	fmt.Fprintf(writer, "};\n")
-	fmt.Fprintf(writer, "// clang-format on\n")
 
 	writer.WriteString(
-		`}
+		`QLJS_CONSTEVAL std::uint16_t translation_table_const_hash_table_look_up(
+    std::string_view untranslated, std::uint16_t default_result) {
+  struct const_hash_entry {
+    std::uint16_t mapping_table_index;
+    const char* untranslated;
+  };
+
+  // clang-format off
+  constexpr const_hash_entry const_hash_table[] = {
+`)
+	for _, constHashEntry := range table.ConstHashTable {
+		fmt.Fprintf(writer, "          {%d, \"", constHashEntry.MappingTableIndex)
+		DumpStringLiteralBody(string(constHashEntry.Untranslated), writer)
+		writer.WriteString("\"},\n")
+	}
+	fmt.Fprintf(writer,
+		`  };
+  // clang-format on
+
+  std::uint64_t hash = hash_fnv_1a_64(untranslated, %dULL);
+  const const_hash_entry& hash_entry = const_hash_table[hash %% %d];
+  if (hash_entry.untranslated == untranslated) {
+    return hash_entry.mapping_table_index;
+  } else {
+    return default_result;
+  }
+}
+}
 
 #endif
 
-`)
+`, table.ConstHashOffsetBasis, len(table.ConstHashTable))
 	WriteCopyrightFooter(writer)
 
 	if err := writer.Flush(); err != nil {

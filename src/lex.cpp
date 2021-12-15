@@ -760,7 +760,7 @@ const char8* lexer::parse_string_literal() noexcept {
         }
         break;
       case 'u':
-        c = this->parse_unicode_escape(escape_sequence_start);
+        c = this->parse_unicode_escape(escape_sequence_start).end;
         break;
       default:
         ++c;
@@ -828,7 +828,7 @@ lexer::parsed_template_body lexer::parse_template_body(
           break;
         }
       case 'u':
-        c = this->parse_unicode_escape(escape_sequence_start);
+        c = this->parse_unicode_escape(escape_sequence_start).end;
         break;
       default:
         ++c;
@@ -1281,8 +1281,8 @@ const char8* lexer::parse_hex_digits_and_underscores(
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-// TODO: factor duplication with parse_identifier_slow
-const char8* lexer::parse_unicode_escape(const char8* input) noexcept {
+lexer::parsed_unicode_escape lexer::parse_unicode_escape(
+    const char8* input) noexcept {
   const char8* escape_sequence_begin = input;
   auto get_escape_span = [escape_sequence_begin, &input]() {
     return source_code_span(escape_sequence_begin, input);
@@ -1295,13 +1295,13 @@ const char8* lexer::parse_unicode_escape(const char8* input) noexcept {
     input += 3;  // Skip "\u{".
     bool found_non_hex_digit = false;
     while (*input != u8'}') {
-      if (*input == '\0' && this->is_eof(input)) {
+      if (!this->is_identifier_byte(*input)) {
         // TODO: Add an enum to error_unclosed_identifier_escape_sequence to
         // indicate whether the token is a template literal, a string literal
         // or an identifier.
         this->error_reporter_->report(error_unclosed_identifier_escape_sequence{
             .escape_sequence = get_escape_span()});
-        return input;
+        return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
       }
       if (!this->is_hex_digit(*input)) {
         found_non_hex_digit = true;
@@ -1313,26 +1313,27 @@ const char8* lexer::parse_unicode_escape(const char8* input) noexcept {
     if (found_non_hex_digit || code_point_hex_begin == code_point_hex_end) {
       this->error_reporter_->report(error_expected_hex_digits_in_unicode_escape{
           .escape_sequence = get_escape_span()});
-      return input;
+      return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
     }
   } else {
     input += 2;  // Skip "\u".
     code_point_hex_begin = input;
     for (int i = 0; i < 4; ++i) {
       if (*input == '\0' && this->is_eof(input)) {
-        // TODO: Add an enum to error_unclosed_identifier_escape_sequence to
+        // TODO: Add an enum to error_expected_hex_digits_in_unicode_escape to
         // indicate whether the token is a template literal, a string literal
         // or an identifier.
-        this->error_reporter_->report(error_unclosed_identifier_escape_sequence{
-            .escape_sequence = get_escape_span()});
-        return input;
+        this->error_reporter_->report(
+            error_expected_hex_digits_in_unicode_escape{.escape_sequence =
+                                                            get_escape_span()});
+        return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
       }
       if (!this->is_hex_digit(*input)) {
         this->error_reporter_->report(
             error_expected_hex_digits_in_unicode_escape{
                 .escape_sequence =
                     source_code_span(escape_sequence_begin, input + 1)});
-        return input;
+        return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
       }
       ++input;
     }
@@ -1344,13 +1345,15 @@ const char8* lexer::parse_unicode_escape(const char8* input) noexcept {
       reinterpret_cast<const char*>(code_point_hex_end), code_point);
   QLJS_ALWAYS_ASSERT(parse_result.ptr ==
                      reinterpret_cast<const char*>(code_point_hex_end));
-  if (parse_result.ec == std::errc::result_out_of_range ||
-      code_point >= 0x110000) {
+  if (parse_result.ec == std::errc::result_out_of_range) {
+    code_point = 0x110000;
+  }
+  if (code_point >= 0x110000) {
     this->error_reporter_->report(
         error_escaped_code_point_in_unicode_out_of_range{
             .escape_sequence = get_escape_span()});
   }
-  return input;
+  return parsed_unicode_escape{.end = input, .code_point = code_point};
 }
 QLJS_WARNING_POP
 
@@ -1460,91 +1463,36 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
       this->allocator_.standard_allocator<source_code_span>());
 
   auto parse_unicode_escape = [&]() {
-    const char8* escape_sequence_begin = input;
-    auto get_escape_span = [escape_sequence_begin, &input]() {
-      return source_code_span(escape_sequence_begin, input);
-    };
+    const char8* escape_begin = input;
+    parsed_unicode_escape escape = this->parse_unicode_escape(escape_begin);
 
-    const char8* code_point_hex_begin;
-    const char8* code_point_hex_end;
-    if (input[2] == u8'{') {
-      code_point_hex_begin = &input[3];
-      input += 3;  // Skip "\u{".
-      bool found_non_hex_digit = false;
-      while (*input != u8'}') {
-        if (*input == '\0' && this->is_eof(input)) {
-          this->error_reporter_->report(
-              error_unclosed_identifier_escape_sequence{.escape_sequence =
-                                                            get_escape_span()});
-          normalized->append(escape_sequence_begin, input);
-          return;
-        }
-        if (!this->is_hex_digit(*input)) {
-          found_non_hex_digit = true;
-        }
-        ++input;
-      }
-      code_point_hex_end = input;
-      ++input;  // Skip "}".
-      if (found_non_hex_digit || code_point_hex_begin == code_point_hex_end) {
+    if (escape.code_point.has_value()) {
+      bool is_initial_identifier_character = escape_begin == identifier_begin;
+      char32_t code_point = *escape.code_point;
+      if (code_point >= 0x110000) {
+        // parse_unicode_escape reported
+        // error_escaped_code_point_in_identifier_out_of_range already.
+        normalized->append(escape_begin, escape.end);
+      } else if (!(is_initial_identifier_character
+                       ? this->is_initial_identifier_character(code_point)
+                       : this->is_identifier_character(code_point))) {
         this->error_reporter_->report(
-            error_expected_hex_digits_in_unicode_escape{.escape_sequence =
-                                                            get_escape_span()});
-        normalized->append(escape_sequence_begin, input);
-        return;
+            error_escaped_character_disallowed_in_identifiers{
+                .escape_sequence = source_code_span(escape_begin, escape.end)});
+        normalized->append(escape_begin, escape.end);
+      } else {
+        normalized->append(4, u8'\0');
+        const char8* end = encode_utf_8(
+            code_point, &normalized->data()[normalized->size() - 4]);
+        normalized->resize(narrow_cast<std::size_t>(end - normalized->data()));
+        escape_sequences.emplace_back(escape_begin, escape.end);
       }
     } else {
-      input += 2;  // Skip "\u".
-      code_point_hex_begin = input;
-      for (int i = 0; i < 4; ++i) {
-        if (*input == '\0' && this->is_eof(input)) {
-          this->error_reporter_->report(
-              error_unclosed_identifier_escape_sequence{.escape_sequence =
-                                                            get_escape_span()});
-          normalized->append(escape_sequence_begin, input);
-          return;
-        }
-        if (!this->is_hex_digit(*input)) {
-          this->error_reporter_->report(
-              error_expected_hex_digits_in_unicode_escape{
-                  .escape_sequence =
-                      source_code_span(escape_sequence_begin, input + 1)});
-          normalized->append(escape_sequence_begin, input);
-          return;
-        }
-        ++input;
-      }
-      code_point_hex_end = input;
+      normalized->append(escape_begin, escape.end);
     }
-    bool is_initial_identifier_character =
-        escape_sequence_begin == identifier_begin;
 
-    char32_t code_point;
-    from_chars_result parse_result = from_chars_hex(
-        reinterpret_cast<const char*>(code_point_hex_begin),
-        reinterpret_cast<const char*>(code_point_hex_end), code_point);
-    QLJS_ALWAYS_ASSERT(parse_result.ptr ==
-                       reinterpret_cast<const char*>(code_point_hex_end));
-    if (parse_result.ec == std::errc::result_out_of_range ||
-        code_point >= 0x110000) {
-      this->error_reporter_->report(
-          error_escaped_code_point_in_identifier_out_of_range{
-              .escape_sequence = get_escape_span()});
-      normalized->append(escape_sequence_begin, input);
-    } else if (!(is_initial_identifier_character
-                     ? this->is_initial_identifier_character(code_point)
-                     : this->is_identifier_character(code_point))) {
-      this->error_reporter_->report(
-          error_escaped_character_disallowed_in_identifiers{
-              .escape_sequence = get_escape_span()});
-      normalized->append(escape_sequence_begin, input);
-    } else {
-      normalized->append(4, u8'\0');
-      const char8* end =
-          encode_utf_8(code_point, &normalized->data()[normalized->size() - 4]);
-      normalized->resize(narrow_cast<std::size_t>(end - normalized->data()));
-      escape_sequences.emplace_back(escape_sequence_begin, input);
-    }
+    QLJS_ASSERT(input != escape.end);
+    input = escape.end;
   };
 
   for (;;) {

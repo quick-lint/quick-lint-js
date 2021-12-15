@@ -47,6 +47,11 @@ benchmark_config benchmark_config::load_from_file(const char* config_path) {
             if_int64(server_object, "diagnosticsMessagesToIgnore")) {
       server.diagnostics_messages_to_ignore = *v;
     }
+    if (std::int64_t* v =
+            if_int64(server_object,
+                     "diagnosticsMessagesToIgnoreAfterIncrementalChange")) {
+      server.diagnostics_messages_to_ignore_after_incremental_change = *v;
+    }
     if (::boost::json::value* v =
             server_object.if_contains("initializationOptions")) {
       server.initialization_options_json = ::boost::json::serialize(*v);

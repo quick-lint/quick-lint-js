@@ -164,7 +164,8 @@ class parser {
   void parse_and_visit_module(Visitor &v) {
     bool done = false;
     while (!done) {
-      bool parsed_statement = this->parse_and_visit_statement(v);
+      bool parsed_statement = this->parse_and_visit_statement(
+          v, parse_statement_type::any_statement_in_block);
       if (!parsed_statement) {
         switch (this->peek().type) {
         case token_type::end_of_file:
@@ -187,6 +188,12 @@ class parser {
     v.visit_end_of_module();
   }
 
+  enum class parse_statement_type {
+    any_statement,
+    any_statement_in_block,
+    no_declarations,
+  };
+
   // If a statement was parsed, this function returns true.
   //
   // If a statement was not parsed (e.g. end of file), then:
@@ -194,8 +201,9 @@ class parser {
   // * no error is reported
   // * this function returns false
   template <QLJS_PARSE_VISITOR Visitor>
-  [[nodiscard]] bool parse_and_visit_statement(Visitor &v,
-                                               bool allow_declarations = true) {
+  [[nodiscard]] bool parse_and_visit_statement(
+      Visitor &v, parse_statement_type statement_type =
+                      parse_statement_type::any_statement) {
     depth_guard d_guard(this);
     auto parse_expression_end = [this]() -> void {
       while (this->peek().type == token_type::right_paren) {
@@ -247,7 +255,8 @@ class parser {
         this->skip();
         goto parse_statement;
       } else if (this->is_let_token_a_variable_reference(
-                     this->peek(), /*allow_declarations=*/allow_declarations)) {
+                     this->peek(), /*allow_declarations=*/statement_type !=
+                                       parse_statement_type::no_declarations)) {
         // Expression.
         this->lexer_.roll_back_transaction(std::move(transaction));
         expression *ast =
@@ -474,7 +483,8 @@ class parser {
 
     // return;
     // return 42;
-    case token_type::kw_return:
+    case token_type::kw_return: {
+      source_code_span return_span = this->peek().span();
       this->skip();
       switch (this->peek().type) {
       case token_type::semicolon:
@@ -486,6 +496,43 @@ class parser {
 
       default:
         if (this->peek().has_leading_newline) {
+          switch (this->peek().type) {
+          // 'return' followed by a newline (ASI) followed by an expression.
+          case token_type::bang:
+          case token_type::complete_template:
+          case token_type::identifier:
+          case token_type::incomplete_template:
+          case token_type::kw_await:
+          case token_type::kw_false:
+          case token_type::kw_function:
+          case token_type::kw_new:
+          case token_type::kw_null:
+          case token_type::kw_super:
+          case token_type::kw_this:
+          case token_type::kw_true:
+          case token_type::kw_typeof:
+          case token_type::left_curly:  // Object literal.
+          case token_type::left_paren:
+          case token_type::left_square:  // Array literal.
+          case token_type::minus:
+          case token_type::number:
+          case token_type::plus:
+          case token_type::slash:        // Regular expression.
+          case token_type::slash_equal:  // Regular expression.
+          case token_type::string:
+          case token_type::tilde:
+            if (statement_type ==
+                parse_statement_type::any_statement_in_block) {
+              this->error_reporter_->report(
+                  error_return_statement_returns_nothing{
+                      .return_keyword = return_span,
+                  });
+            }
+            break;
+
+          default:
+            break;
+          }
           // Insert a semicolon, then consume it.
         } else {
           this->parse_and_visit_expression(v);
@@ -494,6 +541,7 @@ class parser {
         break;
       }
       break;
+    }
 
     // throw fit;
     case token_type::kw_throw:
@@ -688,12 +736,6 @@ class parser {
     }
 
     return true;
-  }
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  [[nodiscard]] bool parse_and_visit_statement_disallowing_declaration(
-      Visitor &v) {
-    return this->parse_and_visit_statement(v, /*allow_declarations=*/false);
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
@@ -1121,7 +1163,8 @@ class parser {
     this->skip();
 
     for (;;) {
-      bool parsed_statement = this->parse_and_visit_statement(v);
+      bool parsed_statement = this->parse_and_visit_statement(
+          v, parse_statement_type::any_statement_in_block);
       if (!parsed_statement) {
         switch (this->peek().type) {
         case token_type::right_curly:
@@ -1920,7 +1963,8 @@ class parser {
         break;
 
       default: {
-        bool parsed_statement = this->parse_and_visit_statement(v);
+        bool parsed_statement = this->parse_and_visit_statement(
+            v, parse_statement_type::any_statement_in_block);
         if (!parsed_statement) {
           QLJS_PARSER_UNIMPLEMENTED();
         }
@@ -2479,8 +2523,8 @@ class parser {
     this->error_on_class_statement(statement_kind::for_loop);
     this->error_on_function_statement(statement_kind::for_loop);
     this->error_on_lexical_declaration(statement_kind::for_loop);
-    bool parsed_body =
-        this->parse_and_visit_statement_disallowing_declaration(v);
+    bool parsed_body = this->parse_and_visit_statement(
+        v, parse_statement_type::no_declarations);
     if (!parsed_body) {
       const char8 *here = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_missing_body_for_for_statement{
@@ -2516,8 +2560,8 @@ class parser {
     this->error_on_class_statement(statement_kind::while_loop);
     this->error_on_function_statement(statement_kind::while_loop);
     this->error_on_lexical_declaration(statement_kind::while_loop);
-    bool parsed_body =
-        this->parse_and_visit_statement_disallowing_declaration(v);
+    bool parsed_body = this->parse_and_visit_statement(
+        v, parse_statement_type::no_declarations);
     if (!parsed_body) {
       const char8 *here = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_missing_body_for_while_statement{
@@ -2674,8 +2718,8 @@ class parser {
     this->error_on_lexical_declaration(statement_kind::with_statement);
 
     v.visit_enter_with_scope();
-    bool parsed_body =
-        this->parse_and_visit_statement_disallowing_declaration(v);
+    bool parsed_body = this->parse_and_visit_statement(
+        v, parse_statement_type::no_declarations);
     if (!parsed_body) {
       QLJS_PARSER_UNIMPLEMENTED();
     }
@@ -2709,8 +2753,8 @@ class parser {
         entered_block_scope = true;
       }
 
-      bool parsed_if_body =
-          this->parse_and_visit_statement_disallowing_declaration(v);
+      bool parsed_if_body = this->parse_and_visit_statement(
+          v, parse_statement_type::no_declarations);
       if (!parsed_if_body) {
         QLJS_PARSER_UNIMPLEMENTED();
       }
@@ -3438,7 +3482,6 @@ class parser {
       case token_type::minus:
       case token_type::plus:
       case token_type::question:
-      case token_type::semicolon:
       case token_type::slash:
         QLJS_PARSER_UNIMPLEMENTED();
         break;
@@ -3453,6 +3496,7 @@ class parser {
             v, precedence{.commas = false, .in_operator = allow_in_operator});
         break;
 
+      case token_type::semicolon:
       default:
         if (first_binding) {
           this->error_reporter_->report(error_let_with_no_bindings{let_span});
@@ -3541,8 +3585,8 @@ class parser {
                     static_cast<expression::assignment *>(ast)->operator_span(),
             });
       } else {
-        this->error_reporter_->report(error_invalid_binding_in_let_statement{
-            .where = ast->span(),
+        this->error_reporter_->report(error_invalid_parameter{
+            .parameter = ast->span(),
         });
       }
       [[fallthrough]];
@@ -3624,16 +3668,18 @@ class parser {
     case expression_kind::unary_operator:
     case expression_kind::yield_many:
     case expression_kind::yield_one:
-      this->error_reporter_->report(error_invalid_binding_in_let_statement{
-          .where = ast->span(),
+      this->error_reporter_->report(error_invalid_parameter{
+          .parameter = ast->span(),
       });
       break;
 
     // function f([(p,)]) {}  // Invalid.
     case expression_kind::trailing_comma:
-      this->error_reporter_->report(error_stray_comma_in_let_statement{
-          .where = static_cast<expression::trailing_comma *>(ast)->comma_span(),
+      this->error_reporter_->report(error_stray_comma_in_parameter{
+          .comma = static_cast<expression::trailing_comma *>(ast)->comma_span(),
       });
+      this->visit_binding_element(ast->child_0(), v, declaration_kind,
+                                  /*declaring_token=*/declaring_token);
       break;
 
     // function f(#bananas) {}  // Invalid.
@@ -3668,13 +3714,21 @@ class parser {
     // If true, parse unexpected trailing identifiers as part of the
     // expression (and emit an error).
     bool trailing_identifiers = false;
-    bool is_typeof = false;
+    bool conditional_operator = true;
   };
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_expression(Visitor &v, precedence prec) {
+    monotonic_allocator &alloc = *this->expressions_.allocator();
+    auto rewind_state = alloc.prepare_for_rewind();
+
     expression *ast = this->parse_expression(prec);
-    this->visit_expression(ast, v, variable_context::rhs);
+    {
+      auto disable_guard = alloc.disable();
+      this->visit_expression(ast, v, variable_context::rhs);
+    }
+
+    alloc.rewind(std::move(rewind_state));
   }
 
   expression *parse_expression(precedence);
@@ -3689,8 +3743,14 @@ class parser {
   expression *parse_expression_remainder(expression *, precedence);
 
   void parse_arrow_function_expression_remainder(
+      source_code_span arrow_span,
       vector<expression *, /*InSituCapacity=*/2> &children,
       bool allow_in_operator);
+  // Precondition: Current token is '=>'.
+  void parse_arrow_function_expression_remainder(
+      vector<expression *, /*InSituCapacity=*/2> &children,
+      bool allow_in_operator);
+
   expression *parse_call_expression_remainder(expression *callee);
   expression *parse_index_expression_remainder(expression *lhs);
 
