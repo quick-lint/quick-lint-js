@@ -2,6 +2,7 @@
 # See end of file for extended copyright information.
 
 import ctypes
+import contextlib
 import os
 import platform
 import html
@@ -78,18 +79,13 @@ def get_script_directory_path():
     return os.path.dirname(os.path.realpath(__file__))
 
 
-class set_directory:
-    """Sets the cwd (current working directory) within the context."""
-
-    def __init__(self, path):
-        self.path = path
-        self.origin = os.getcwd()
-
-    def __enter__(self):
-        os.chdir(self.path)
-
-    def __exit__(self, exception_type, exception_value, traceback):
-        os.chdir(self.origin)
+@contextlib.contextmanager
+def changed_directory(path):
+    previous = os.getcwd()
+    try:
+        yield os.chdir(path)
+    finally:
+        os.chdir(previous)
 
 
 def load_library():
@@ -116,7 +112,7 @@ def load_library():
 
     # It's need multiple DLLs for load the library on Windows, for ctypes find
     # these DLLs we need to change the current directory.
-    with set_directory(lib_directory_path):
+    with changed_directory(lib_directory_path):
         lib = ctypes.CDLL(lib_path)
     return lib
 
