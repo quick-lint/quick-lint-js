@@ -2836,8 +2836,11 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
-    EXPECT_EQ(ast->child_count(), 1);
-    EXPECT_EQ(summarize(ast->child_0()), "var a");
+    EXPECT_EQ(ast->child_count(), 0);
+    EXPECT_EQ(
+        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
+                      ->body_),
+        "var a");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 7);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -2848,9 +2851,12 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
-    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
-    EXPECT_EQ(summarize(ast->child(1)), "var b");
+    EXPECT_EQ(
+        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
+                      ->body_),
+        "var b");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 6);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -2861,9 +2867,12 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
-    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
-    EXPECT_EQ(summarize(ast->child(1)), "var b");
+    EXPECT_EQ(
+        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
+                      ->body_),
+        "var b");
     // TODO(strager): Implement begin_offset.
     EXPECT_EQ(p.range(ast).end_offset(), 8);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -2874,10 +2883,13 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
-    EXPECT_EQ(ast->child_count(), 3);
+    EXPECT_EQ(ast->child_count(), 2);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_EQ(summarize(ast->child(1)), "var b");
-    EXPECT_EQ(summarize(ast->child(2)), "var c");
+    EXPECT_EQ(
+        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
+                      ->body_),
+        "var c");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -2947,10 +2959,13 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
-    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)),
               "object(literal, var a, literal, var b)");
-    EXPECT_EQ(summarize(ast->child(1)), "var c");
+    EXPECT_EQ(
+        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
+                      ->body_),
+        "var c");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -2959,9 +2974,12 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
-    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "array(var a, var b)");
-    EXPECT_EQ(summarize(ast->child(1)), "var c");
+    EXPECT_EQ(
+        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
+                      ->body_),
+        "var c");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -2970,9 +2988,12 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
-    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "spread(var args)");
-    EXPECT_EQ(summarize(ast->child(1)), "literal");
+    EXPECT_EQ(
+        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
+                      ->body_),
+        "literal");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
@@ -3009,8 +3030,11 @@ TEST_F(test_parse_expression, async_arrow_function) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
     EXPECT_EQ(ast->attributes(), function_attributes::async);
-    EXPECT_EQ(ast->child_count(), 1);
-    EXPECT_EQ(summarize(ast->child(0)), "var a");
+    EXPECT_EQ(ast->child_count(), 0);
+    EXPECT_EQ(
+        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
+                      ->body_),
+        "var a");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 13);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -3021,9 +3045,12 @@ TEST_F(test_parse_expression, async_arrow_function) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
     EXPECT_EQ(ast->attributes(), function_attributes::async);
-    EXPECT_EQ(ast->child_count(), 2);
+    EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var x");
-    EXPECT_EQ(summarize(ast->child(1)), "var y");
+    EXPECT_EQ(
+        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
+                      ->body_),
+        "var y");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -3736,8 +3763,17 @@ std::string summarize(const expression& expression) {
     return "typeof(" + summarize(expression.child_0()) + ")";
   case expression_kind::array:
     return "array(" + children() + ")";
-  case expression_kind::arrow_function_with_expression:
-    return function_attributes() + "arrowexpr(" + children() + ")";
+  case expression_kind::arrow_function_with_expression: {
+    auto& arrow =
+        static_cast<const expression::arrow_function_with_expression&>(
+            expression);
+    std::string result = function_attributes() + "arrowexpr(" + children();
+    if (arrow.child_count() != 0) {
+      result += ", ";
+    }
+    result += summarize(arrow.body_) + ")";
+    return result;
+  }
   case expression_kind::arrow_function_with_statements:
     return function_attributes() + "arrowblock(" + children() + ")";
   case expression_kind::assignment:

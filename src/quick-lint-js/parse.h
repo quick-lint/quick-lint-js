@@ -801,12 +801,12 @@ class parser {
       v.visit_exit_class_scope();
       break;
     case expression_kind::arrow_function_with_expression: {
+      auto *arrow =
+          static_cast<expression::arrow_function_with_expression *>(ast);
       v.visit_enter_function_scope();
-      int body_child_index = ast->child_count() - 1;
-      visit_parameters(body_child_index);
+      visit_parameters(arrow->child_count());
       v.visit_enter_function_scope_body();
-      this->visit_expression(ast->child(body_child_index), v,
-                             variable_context::rhs);
+      this->visit_expression(arrow->body_, v, variable_context::rhs);
       v.visit_exit_function_scope();
       break;
     }

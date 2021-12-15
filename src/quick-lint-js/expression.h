@@ -514,14 +514,10 @@ class expression::arrow_function_with_expression final : public expression {
     }
   }
 
-  int child_count_impl() const noexcept { return this->parameters_.size() + 1; }
+  int child_count_impl() const noexcept { return this->parameters_.size(); }
 
   expression *child_impl(int index) const noexcept {
-    if (index == this->parameters_.size()) {
-      return this->body_;
-    } else {
-      return this->parameters_[index];
-    }
+    return this->parameters_[index];
   }
 
   source_code_span span_impl() const noexcept {
@@ -535,8 +531,6 @@ class expression::arrow_function_with_expression final : public expression {
   }
 
   function_attributes function_attributes_;
-
- private:
   const char8 *parameter_list_begin_;
   expression_arena::array_ptr<expression *> parameters_;
   expression *body_;
