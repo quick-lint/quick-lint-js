@@ -1,11 +1,12 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+import collections
 import contextlib
 import ctypes
 import html
-import os
 import platform
+from os import path
 
 import sublime
 import sublime_plugin
@@ -69,10 +70,12 @@ class Parser(ctypes.Structure):
     _fields_ = []
 
 
-DIAGNOSTIC_POINTER = ctypes.POINTER(Diagnostic)
-ERROR_POINTER = ctypes.POINTER(Error)
-RESULT_POINTER = ctypes.POINTER(Result)
-PARSER_POINTER = ctypes.POINTER(Parser)
+ParserPointer = ctypes.POINTER(Parser)
+DiagnosticPointer = ctypes.POINTER(Diagnostic)
+ErrorPointer = ctypes.POINTER(Error)
+ResultPointer = ctypes.POINTER(Result)
+
+namedtuple("Library", ["filename"])
 
 
 def get_module_path():
@@ -116,6 +119,8 @@ def load_library():
 
     # It's need multiple DLLs for load the library on Windows, for ctypes find
     # these DLLs we need to change the current directory.
+
+    #
     with changed_directory(lib_directory_path):
         lib = ctypes.CDLL(lib_path)
     return lib
