@@ -75,15 +75,9 @@ DiagnosticPointer = ctypes.POINTER(Diagnostic)
 ErrorPointer = ctypes.POINTER(Error)
 ResultPointer = ctypes.POINTER(Result)
 
-namedtuple("Library", ["filename"])
-
 
 def get_module_path():
-    return os.path.realpath(__file__)
-
-
-def get_directory(path)
-    return os.path.dirname(path)
+    return path.realpath(__file__)
 
 
 @contextlib.contextmanager
@@ -96,20 +90,19 @@ def changed_directory(path):
 
 
 def load_library():
+    Library = namedtuple("Library", ["filename", "directory", "path", "object"])
+    library = Library()
     if platform.system() == "Windows":
-        lib_path_file = "quick-lint-js-lib.dll"
-        directory_separator = "\\"
+        library.filename = "quick-lint-js-lib.dll"
     elif platform.system() == "Darwin":
-        lib_path_file = "libquick-lint-js-lib.dylib"
-        directory_separator = "/"
+        library.filename = "libquick-lint-js-lib.dylib"
     elif platform.system() == "Linux":
-        lib_path_file = "libquick-lint-js-lib.so"
-        directory_separator = "/"
+        library.filename = "libquick-lint-js-lib.so"
     else:
         raise OSError("Operating system not supported.")
 
-    lib_directory_path = get_directory(get_module_path())
-    lib_path = lib_directory_path + directory_separator + lib_path_file
+    library.directory = path.dirname(get_module_path())
+    library.path = path.join(library.directory, library.filename)
 
     # On Windows, for ctypes to load a library, it also needs to load
     # the dependencies of that library in case the library we want to
@@ -122,7 +115,7 @@ def load_library():
 
     #
     with changed_directory(lib_directory_path):
-        lib = ctypes.CDLL(lib_path)
+        library.object = ctypes.CDLL(lib_path)
     return lib
 
 
