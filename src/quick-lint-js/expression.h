@@ -528,8 +528,8 @@ class expression::arrow_function_with_expression final : public expression {
       function_attributes attributes, expression *body,
       const char8 *parameter_list_begin) noexcept
       : expression(kind),
-        parameter_list_begin_(parameter_list_begin),
         function_attributes_(attributes),
+        parameter_list_begin_(parameter_list_begin),
         body_(body) {}
 
   explicit arrow_function_with_expression(
@@ -537,8 +537,8 @@ class expression::arrow_function_with_expression final : public expression {
       expression_arena::array_ptr<expression *> parameters, expression *body,
       const char8 *parameter_list_begin) noexcept
       : expression(kind),
-        parameter_list_begin_(parameter_list_begin),
         function_attributes_(attributes),
+        parameter_list_begin_(parameter_list_begin),
         parameters_(parameters),
         body_(body) {
     if (!this->parameter_list_begin_) {
@@ -571,8 +571,8 @@ class expression::arrow_function_with_expression final : public expression {
   }
 
  private:
-  const char8 *parameter_list_begin_;
   function_attributes function_attributes_;
+  const char8 *parameter_list_begin_;
   expression_arena::array_ptr<expression *> parameters_;
   expression *body_;
 };
