@@ -5,7 +5,6 @@
 #define QUICK_LINT_JS_TRANSLATION_H
 
 #include <cstdint>
-#include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/consteval.h>
 #include <quick-lint-js/locale.h>
@@ -36,7 +35,9 @@ class translatable_messages {
   const char* translate(const translatable_message& message);
 
  private:
-  std::optional<int> locale_index_;
+  static inline constexpr int invalid_locale_index = -1;
+
+  int locale_index_ = invalid_locale_index;
 };
 
 // An un-translated message.
