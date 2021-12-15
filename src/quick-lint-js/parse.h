@@ -940,7 +940,9 @@ class parser {
       }
       break;
     case expression_kind::variable:
-      v.visit_variable_assignment(ast->variable_identifier());
+      v.visit_variable_assignment(
+          ast->variable_identifier(),
+          static_cast<expression::assignment *>(ast)->operator_span());
       break;
     default:
       break;

@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include "quick-lint-js/location.h"
 #include <algorithm>
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -304,7 +305,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
       case used_variable_kind::assignment:
         this->report_error_if_assignment_is_illegal(
             declared, used_var.name,
-            /*is_assigned_before_declaration=*/true);
+            /*is_assigned_before_declaration=*/true, std::nullopt);
         break;
       case used_variable_kind::_typeof:
       case used_variable_kind::use:
@@ -330,7 +331,8 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
              case used_variable_kind::assignment:
                this->report_error_if_assignment_is_illegal(
                    declared, used_var.name,
-                   /*is_assigned_before_declaration=*/false);
+                   /*is_assigned_before_declaration=*/false,
+                   used_var.assignment_operator);
                break;
              case used_variable_kind::_export:
                // TODO(strager): This shouldn't happen. export statements are
@@ -345,16 +347,18 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
            });
 }
 
-void linter::visit_variable_assignment(identifier name) {
+void linter::visit_variable_assignment(identifier name,
+                                       source_code_span assignment_operator) {
   QLJS_ASSERT(!this->scopes_.empty());
   scope &current_scope = this->current_scope();
   const declared_variable *var = current_scope.declared_variables.find(name);
   if (var) {
     this->report_error_if_assignment_is_illegal(
-        var, name, /*is_assigned_before_declaration=*/false);
+        var, name, /*is_assigned_before_declaration=*/false,
+        assignment_operator);
   } else {
-    current_scope.variables_used.emplace_back(name,
-                                              used_variable_kind::assignment);
+    current_scope.variables_used.emplace_back(
+        name, used_variable_kind::assignment, assignment_operator);
   }
 }
 
@@ -375,7 +379,8 @@ void linter::visit_variable_delete_use(identifier name,
     });
   } else {
     current_scope.variables_used.emplace_back(name, used_variable_kind::_delete,
-                                              delete_keyword.begin());
+                                              delete_keyword.begin(),
+                                              std::nullopt);
   }
 }
 
@@ -397,7 +402,7 @@ void linter::visit_variable_use(identifier name, used_variable_kind use_kind) {
   bool variable_is_declared =
       current_scope.declared_variables.find(name) != nullptr;
   if (!variable_is_declared) {
-    current_scope.variables_used.emplace_back(name, use_kind);
+    current_scope.variables_used.emplace_back(name, use_kind, std::nullopt);
   }
 }
 
@@ -536,7 +541,8 @@ void linter::propagate_variable_uses_to_parent_scope(
         // This variable was declared in the parent scope. Don't propagate.
         if (used_var.kind == used_variable_kind::assignment) {
           this->report_error_if_assignment_is_illegal(
-              var, used_var.name, /*is_assigned_before_declaration=*/false);
+              var, used_var.name, /*is_assigned_before_declaration=*/false,
+              used_var.assignment_operator);
         }
       } else if (consume_arguments &&
                  used_var.name.normalized_name() == u8"arguments") {
@@ -564,7 +570,8 @@ void linter::propagate_variable_uses_to_parent_scope(
         // This variable was declared in the parent scope. Don't propagate.
         if (used_var.kind == used_variable_kind::assignment) {
           this->report_error_if_assignment_is_illegal(
-              var, used_var.name, /*is_assigned_before_declaration=*/false);
+              var, used_var.name, /*is_assigned_before_declaration=*/false,
+              used_var.assignment_operator);
         }
       } else if (is_current_scope_function_name(used_var)) {
         // Treat this variable as declared in the current scope.
@@ -595,30 +602,35 @@ void linter::propagate_variable_declarations_to_parent_scope() {
 
 void linter::report_error_if_assignment_is_illegal(
     const declared_variable *var, const identifier &assignment,
-    bool is_assigned_before_declaration) const {
+    bool is_assigned_before_declaration,
+    const std::optional<source_code_span> &assignment_operator) const {
   this->report_error_if_assignment_is_illegal(
       /*kind=*/var->kind,
       /*is_global_variable=*/false,
       /*declaration=*/&var->declaration,
       /*assignment=*/assignment,
-      /*is_assigned_before_declaration=*/is_assigned_before_declaration);
+      /*is_assigned_before_declaration=*/is_assigned_before_declaration,
+      /*assignment_operator=*/assignment_operator);
 }
 
 void linter::report_error_if_assignment_is_illegal(
     const std::optional<global_declared_variable> &var,
-    const identifier &assignment, bool is_assigned_before_declaration) const {
+    const identifier &assignment, bool is_assigned_before_declaration,
+    const std::optional<source_code_span> &assignment_operator) const {
   QLJS_ASSERT(var.has_value());
   this->report_error_if_assignment_is_illegal(
       /*kind=*/var->kind(),
       /*is_global_variable=*/true,
       /*declaration=*/nullptr,
       /*assignment=*/assignment,
-      /*is_assigned_before_declaration=*/is_assigned_before_declaration);
+      /*is_assigned_before_declaration=*/is_assigned_before_declaration,
+      /*assignment_operator=*/assignment_operator);
 }
 
 void linter::report_error_if_assignment_is_illegal(
     variable_kind kind, bool is_global_variable, const identifier *declaration,
-    const identifier &assignment, bool is_assigned_before_declaration) const {
+    const identifier &assignment, bool is_assigned_before_declaration,
+    const std::optional<source_code_span> &assignment_operator) const {
   if (is_global_variable) {
     QLJS_ASSERT(!declaration);
   } else {
@@ -637,8 +649,9 @@ void linter::report_error_if_assignment_is_illegal(
             error_assignment_to_const_variable_before_its_declaration{
                 *declaration, assignment, kind});
       } else {
-        this->error_reporter_->report(
-            error_assignment_to_const_variable{*declaration, assignment, kind});
+        QLJS_ASSERT(assignment_operator.has_value());
+        this->error_reporter_->report(error_assignment_to_const_variable{
+            *declaration, assignment, kind, assignment_operator.value()});
       }
     }
     break;

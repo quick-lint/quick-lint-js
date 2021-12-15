@@ -28,6 +28,15 @@
       ::testing::Field(#member_2, &error_type::member_2, matcher_2),   \
       ::testing::Field(#member_3, &error_type::member_3, matcher_3)))
 
+#define ERROR_TYPE_4_FIELDS(error_type, member_1, matcher_1, member_2, \
+                            matcher_2, member_3, matcher_3, member_4,  \
+                            matcher_4)                                 \
+  ::testing::VariantWith<error_type>(::testing::AllOf(                 \
+      ::testing::Field(#member_1, &error_type::member_1, matcher_1),   \
+      ::testing::Field(#member_2, &error_type::member_2, matcher_2),   \
+      ::testing::Field(#member_3, &error_type::member_3, matcher_3),   \
+      ::testing::Field(#member_4, &error_type::member_4, matcher_4)))
+
 namespace quick_lint_js {
 class offsets_matcher {
  public:

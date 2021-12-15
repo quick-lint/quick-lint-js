@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_LINT_H
 #define QUICK_LINT_JS_LINT_H
 
+#include "quick-lint-js/location.h"
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
@@ -82,7 +83,8 @@ class linter {
   void visit_keyword_variable_use(identifier name);
   void visit_property_declaration(std::optional<identifier>);
   void visit_variable_declaration(identifier name, variable_kind kind);
-  void visit_variable_assignment(identifier name);
+  void visit_variable_assignment(identifier name,
+                                 source_code_span assignment_operator);
   void visit_variable_delete_use(identifier name,
                                  source_code_span delete_keyword);
   void visit_variable_export_use(identifier name);
@@ -111,21 +113,29 @@ class linter {
   };
 
   struct used_variable {
-    explicit used_variable(identifier name, used_variable_kind kind) noexcept
-        : name(name), kind(kind) {
+    explicit used_variable(
+        identifier name, used_variable_kind kind,
+        std::optional<source_code_span> assignment_operator) noexcept
+        : name(name), kind(kind), assignment_operator(assignment_operator) {
       QLJS_ASSERT(kind != used_variable_kind::_delete);
     }
 
     // kind must be used_variable_kind::_delete.
-    explicit used_variable(identifier name, used_variable_kind kind,
-                           const char8 *delete_keyword_begin) noexcept
-        : name(name), delete_keyword_begin(delete_keyword_begin), kind(kind) {
+    explicit used_variable(
+        identifier name, used_variable_kind kind,
+        const char8 *delete_keyword_begin,
+        std::optional<source_code_span> assignment_operator) noexcept
+        : name(name),
+          delete_keyword_begin(delete_keyword_begin),
+          kind(kind),
+          assignment_operator(assignment_operator) {
       QLJS_ASSERT(kind == used_variable_kind::_delete);
     }
 
     identifier name;
     const char8 *delete_keyword_begin;  // used_variable_kind::_delete only
     used_variable_kind kind;
+    std::optional<source_code_span> assignment_operator;
   };
 
   class declared_variable_set {
@@ -219,14 +229,17 @@ class linter {
 
   void report_error_if_assignment_is_illegal(
       const declared_variable *var, const identifier &assignment,
-      bool is_assigned_before_declaration) const;
+      bool is_assigned_before_declaration,
+      const std::optional<source_code_span> &assignment_operator) const;
   void report_error_if_assignment_is_illegal(
       const std::optional<global_declared_variable> &var,
-      const identifier &assignment, bool is_assigned_before_declaration) const;
+      const identifier &assignment, bool is_assigned_before_declaration,
+      const std::optional<source_code_span> &assignment_operator) const;
   void report_error_if_assignment_is_illegal(
       variable_kind kind, bool is_global_variable,
       const identifier *declaration, const identifier &assignment,
-      bool is_assigned_before_declaration) const;
+      bool is_assigned_before_declaration,
+      const std::optional<source_code_span> &assignment_operator) const;
 
   void report_error_if_variable_declaration_conflicts_in_scope(
       const scope &scope, identifier name, variable_kind kind,
