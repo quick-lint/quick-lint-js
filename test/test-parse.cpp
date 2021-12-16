@@ -322,11 +322,9 @@ TEST(test_parse, asi_between_expression_statements) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"one"},
                             spy_visitor::visited_variable_use{u8"three"}));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(::testing::VariantWith<
-                    error_cannot_refer_to_private_variable_without_object>(
-            ::testing::_)));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE(
+                    error_cannot_refer_to_private_variable_without_object)));
   }
 }
 
@@ -480,10 +478,8 @@ TEST(
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(
-            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(
+                              error_keywords_cannot_contain_escape_sequences)));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
@@ -495,10 +491,8 @@ TEST(
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(
-            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(
+                              error_keywords_cannot_contain_escape_sequences)));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
@@ -510,10 +504,8 @@ TEST(
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(
-            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(
+                              error_keywords_cannot_contain_escape_sequences)));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
@@ -525,10 +517,8 @@ TEST(
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(
-            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(
+                              error_keywords_cannot_contain_escape_sequences)));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // g
                                       "visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // if
@@ -547,10 +537,8 @@ TEST(
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(
-            VariantWith<error_keywords_cannot_contain_escape_sequences>(_)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(
+                              error_keywords_cannot_contain_escape_sequences)));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // if
                                       "visit_enter_function_scope_body",  //
@@ -813,8 +801,7 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
     parser p(&code, &v);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    ElementsAre(
-        ::testing::VariantWith<error_depth_limit_exceeded>(::testing::_));
+    ElementsAre(ERROR_TYPE(error_depth_limit_exceeded));
   }
 
   {
@@ -825,8 +812,7 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
     parser p(&code, &v);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    ElementsAre(
-        ::testing::VariantWith<error_depth_limit_exceeded>(::testing::_));
+    ElementsAre(ERROR_TYPE(error_depth_limit_exceeded));
   }
 }
 #endif

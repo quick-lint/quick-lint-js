@@ -625,10 +625,8 @@ TEST_F(test_lex, lex_invalid_big_int_number) {
   this->check_tokens_with_errors(
       u8"0.1n"_sv, {token_type::number},
       [](padded_string_view, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(
-                VariantWith<error_big_int_literal_contains_decimal_point>(_)));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE(
+                                error_big_int_literal_contains_decimal_point)));
       });
 
   // Complain about both the decimal point and the leading 0 digit.
@@ -638,8 +636,8 @@ TEST_F(test_lex, lex_invalid_big_int_number) {
         EXPECT_THAT(
             errors,
             ElementsAre(
-                VariantWith<error_octal_literal_may_not_have_decimal>(_),
-                VariantWith<error_legacy_octal_literal_may_not_be_big_int>(_)));
+                ERROR_TYPE(error_octal_literal_may_not_have_decimal),
+                ERROR_TYPE(error_legacy_octal_literal_may_not_be_big_int)));
       });
 
   // Complain about everything. What a disaster.
@@ -649,9 +647,9 @@ TEST_F(test_lex, lex_invalid_big_int_number) {
         EXPECT_THAT(
             errors,
             ElementsAre(
-                VariantWith<error_octal_literal_may_not_have_decimal>(_),
-                VariantWith<error_octal_literal_may_not_have_exponent>(_),
-                VariantWith<error_legacy_octal_literal_may_not_be_big_int>(_)));
+                ERROR_TYPE(error_octal_literal_may_not_have_decimal),
+                ERROR_TYPE(error_octal_literal_may_not_have_exponent),
+                ERROR_TYPE(error_legacy_octal_literal_may_not_be_big_int)));
       });
 }
 

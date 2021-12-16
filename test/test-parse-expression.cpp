@@ -1539,8 +1539,7 @@ TEST_F(test_parse_expression, parse_invalid_assignment) {
 
     EXPECT_THAT(
         p.errors(),
-        ElementsAre(
-            VariantWith<error_invalid_expression_left_of_assignment>(_)));
+        ElementsAre(ERROR_TYPE(error_invalid_expression_left_of_assignment)));
   }
 }
 
@@ -2486,8 +2485,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
                                expression, strlen(u8"{"), u8"one " + op),
             // TODO(strager): Don't report
             // error_missing_comma_between_object_literal_entries.
-            ::testing::VariantWith<
-                error_missing_comma_between_object_literal_entries>(_)));
+            ERROR_TYPE(error_missing_comma_between_object_literal_entries)));
   }
 
   {
@@ -3445,10 +3443,9 @@ TEST_F(test_parse_expression,
       test_parser p(u8"{ function *" + property + u8"() {} }");
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal, function)");
-      EXPECT_THAT(
-          p.errors(),
-          ElementsAre(::testing::VariantWith<
-                      error_methods_should_not_use_function_keyword>(_)));
+      EXPECT_THAT(p.errors(),
+                  ElementsAre(ERROR_TYPE(
+                      error_methods_should_not_use_function_keyword)));
     }
   }
 }

@@ -475,10 +475,8 @@ TEST(test_configuration_json, invalid_json_reports_error) {
     c.load_from_json(&json, &errors);
 
     // TODO(strager): Check error_config_json_syntax_error::where.
-    EXPECT_THAT(
-        errors.errors,
-        ElementsAre(::testing::VariantWith<error_config_json_syntax_error>(
-            ::testing::_)));
+    EXPECT_THAT(errors.errors,
+                ElementsAre(ERROR_TYPE(error_config_json_syntax_error)));
   }
 }
 

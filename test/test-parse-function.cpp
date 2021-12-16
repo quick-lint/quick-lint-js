@@ -828,9 +828,7 @@ TEST(test_parse, function_with_invalid_parameters) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
-                ElementsAre(::testing::VariantWith<error_invalid_parameter>(
-                    ::testing::_)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(error_invalid_parameter)));
   }
 
   {
@@ -840,9 +838,7 @@ TEST(test_parse, function_with_invalid_parameters) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(
-            ::testing::VariantWith<error_unexpected_literal_in_parameter_list>(
-                ::testing::_)));
+        ElementsAre(ERROR_TYPE(error_unexpected_literal_in_parameter_list)));
   }
 }
 
@@ -881,9 +877,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::async_generator);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
-                ElementsAre(::testing::VariantWith<error_invalid_parameter>(
-                    ::testing::_)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(error_invalid_parameter)));
   }
 
   {
@@ -919,9 +913,8 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     auto guard = p.enter_function(function_attributes::generator);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(::testing::VariantWith<
-                            error_cannot_declare_yield_in_generator_function>(
-                    ::testing::_)));
+                ElementsAre(ERROR_TYPE(
+                    error_cannot_declare_yield_in_generator_function)));
   }
 
   {
@@ -930,11 +923,9 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     // TODO(strager): Show a more specific error which mentions parameters.
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(::testing::VariantWith<
-                    error_cannot_refer_to_private_variable_without_object>(
-            ::testing::_)));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE(
+                    error_cannot_refer_to_private_variable_without_object)));
   }
 
   {
@@ -944,9 +935,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(
-            ::testing::VariantWith<error_unexpected_literal_in_parameter_list>(
-                ::testing::_)));
+        ElementsAre(ERROR_TYPE(error_unexpected_literal_in_parameter_list)));
   }
 
   {
@@ -954,9 +943,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
-                ElementsAre(::testing::VariantWith<error_unexpected_token>(
-                    ::testing::_)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(error_unexpected_token)));
   }
 }
 
@@ -1037,9 +1024,7 @@ TEST(test_parse, not_arrow_function_expression_without_arrow_operator) {
                                       "visit_end_of_module"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(
-            ::testing::VariantWith<error_missing_semicolon_after_statement>(
-                ::testing::_)));
+        ElementsAre(ERROR_TYPE(error_missing_semicolon_after_statement)));
   }
 
   if ((false)) {  // TODO(strager): Treat '+' differently from ','.
@@ -1054,9 +1039,7 @@ TEST(test_parse, not_arrow_function_expression_without_arrow_operator) {
                                       "visit_end_of_module"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(
-            ::testing::VariantWith<error_missing_semicolon_after_statement>(
-                ::testing::_)));
+        ElementsAre(ERROR_TYPE(error_missing_semicolon_after_statement)));
   }
 }
 
@@ -1621,9 +1604,8 @@ TEST(test_parse, invalid_function_parameter) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(
-            ::testing::VariantWith<
-                error_missing_operator_between_expression_and_arrow_function>(
-                ::testing::_),
+            ERROR_TYPE(
+                error_missing_operator_between_expression_and_arrow_function),
             ERROR_TYPE_OFFSETS(&code,
                                error_unexpected_literal_in_parameter_list,  //
                                literal, strlen(u8"g("), u8"42")));
