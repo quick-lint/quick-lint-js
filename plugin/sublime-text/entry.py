@@ -106,40 +106,27 @@ def changed_directory(path):
 # TODO(cahian): Convert severity value to string ("Error"|"Warning")
 
 class Object:
-    def __init__(self, ):
+    def __init__(self, ):  # TODO(cahian): think in a good name for param
         version = Sublime.major_version()
         self.create_parser = getattr(, "qljs_st%d_create_parser" % (version))
         self.create_parser.argtypes = []
         self.create_parser.restype = Parser.pointer()
-
-
-        lib.qljs_sublime_text_3_create_parser.argtypes = []
-        lib.qljs_sublime_text_3_create_parser.restype = ParserPointer
-
-        lib.qljs_sublime_text_3_destroy_parser.argtypes = [ParserPointer]
-        lib.qljs_sublime_text_3_destroy_parser.restype = None
-
-        lib.qljs_sublime_text_3_set_text.argtypes = [
-            ParserPointer, c_void_p, c_size_t,  # fmt: skip
-        ]
-        lib.qljs_sublime_text_3_set_text.restype = ErrorPointer
-
-        lib.qljs_sublime_text_3_lint.argtypes = [ParserPointer]
-        lib.qljs_sublime_text_3_lint.restype = ResultPointer
-
-        lib.qljs_sublime_text_4_create_parser.argtypes = []
-        lib.qljs_sublime_text_4_create_parser.restype = ParserPointer
-
-        lib.qljs_sublime_text_4_destroy_parser.argtypes = [ParserPointer]
-        lib.qljs_sublime_text_4_destroy_parser.restype = None
-
-        lib.qljs_sublime_text_4_replace_text.argtypes = [
-            ParserPointer, c_int, c_int, c_int, c_int, c_void_p, c_size_t,  # fmt: skip
-        ]
-        lib.qljs_sublime_text_4_replace_text.restype = ErrorPointer
-
-        lib.qljs_sublime_text_4_lint.argtypes = [ParserPointer]
-        lib.qljs_sublime_text_4_lint.restype = ResultPointer
+        self.destroy_parser = getattr(, "qljs_st%d_destroy_parser" % (version))
+        self.destroy_parser.argtypes = [Parser.pointer()]
+        self.destroy_parser.restype = None
+        self.lint = getattr(, "qljs_st%d_lint" % (version))
+        self.lint.argtypes = [Parser.pointer()]
+        self.lint.restype = Result.pointer()
+        if version == "3":
+            self.set_text = .qljs_sublime_text_3_set_text
+            self.set_text.argtypes = [ParserPointer, c_void_p, c_size_t]
+            self.set_text.restype = Error.pointer()
+        elif version == "4":
+            self.replace_text = .qljs_sublime_text_4_replace_text
+            self.replace_text.argtypes = [
+                ParserPointer, c_int, c_int, c_int, c_int, c_void_p, c_size_t,  # fmt: skip
+            ]
+            self.replace_text.restype = Error.pointer()
 
 
 class Library:
