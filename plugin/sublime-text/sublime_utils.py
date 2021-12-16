@@ -6,7 +6,7 @@ import sublime
 
 #TODO(cahian): Add buffer class here
 
-def major_version() -> str:
+def major_version():
     return sublime.version()[0]
 
 

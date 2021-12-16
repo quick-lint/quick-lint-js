@@ -1,4 +1,4 @@
-# quick-lint-js Sublime Text plugin documentation
+# quick-lint-js Sublime Text plugin developer notes
 
 * [1. Views that belong to the same buffer]
 * [2. Won't on_load get called anyway?]

@@ -78,7 +78,7 @@ def get_module_path():
 
 
 @contextlib.contextmanager
-def changed_directory(path):
+def changed_directory(path: str):
     previous = os.getcwd()
     try:
         yield os.chdir(path)
@@ -116,10 +116,6 @@ def load_library():
     return library
 
 
-def display_error_message(message):
-    sublime.error_message("Error Message: quick-lint-js:\n" + message)
-
-
 class Error(Exception):
     """Error layer used to communicate with the plugin."""
 
@@ -131,11 +127,12 @@ class Error(Exception):
         return bool(self.message)
 
     def display_message(self):
-        display_error_message(self.message)
+        base = "Error Message: quick-lint-js:\n"
+        sublime.error_message(base + self.message)
 
 
-def is_ctypes_pointer_null(ctypes_pointer):
-    return not bool(ctypes_pointer)
+def is_pointer_null(pointer):
+    return not bool(pointer)
 
 
 if SUBLIME_TEXT_MAJOR_VERSION == "3":
@@ -198,11 +195,11 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
             self.view = view
             self.diagnostics = []
             self._ctypes_parser_pointer = Parser.lib.qljs_sublime_text_3_create_parser()
-            if is_ctypes_pointer_null(self._ctypes_parser_pointer):
+            if is_pointer_null(self._ctypes_parser_pointer):
                 raise MemoryError()
 
         def __del__(self):
-            if not is_ctypes_pointer_null(self._ctypes_parser_pointer):
+            if not is_pointer_null(self._ctypes_parser_pointer):
                 Parser.lib.qljs_sublime_text_3_destroy_parser(
                     self._ctypes_parser_pointer
                 )
@@ -219,7 +216,7 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
                 text_utf8,
                 text_len_utf8,
             )
-            if not is_ctypes_pointer_null(ctypes_error_pointer):
+            if not is_pointer_null(ctypes_error_pointer):
                 ctypes_error = ctypes_error_pointer.contents
                 raise Error(ctypes_error)
 
@@ -232,7 +229,7 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
                 ctypes_diagnostics_pointer = ctypes_result.value.diagnostics
                 diagnostics = []
                 for ctypes_diagnostic in ctypes_diagnostics_pointer:
-                    if is_ctypes_pointer_null(ctypes_diagnostic.message):
+                    if is_pointer_null(ctypes_diagnostic.message):
                         break
                     diagnostics.append(Diagnostic(ctypes_diagnostic))
                 self.diagnostics = diagnostics
@@ -310,11 +307,11 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
             self.view = view
             self.diagnostics = []
             self._ctypes_parser_pointer = Parser.lib.qljs_sublime_text_4_create_parser()
-            if is_ctypes_pointer_null(self._ctypes_parser_pointer):
+            if is_pointer_null(self._ctypes_parser_pointer):
                 raise MemoryError()
 
         def __del__(self):
-            if not is_ctypes_pointer_null(self._ctypes_parser_pointer):
+            if not is_pointer_null(self._ctypes_parser_pointer):
                 Parser.lib.qljs_sublime_text_4_destroy_parser(
                     self._ctypes_parser_pointer
                 )
@@ -329,7 +326,7 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
             ctypes_error_pointer = Parser.lib.qljs_sublime_text_4_replace_text(
                 self._ctypes_parser_pointer, 0, 0, 0, 0, text_utf8, text_len_utf8
             )
-            if not is_ctypes_pointer_null(ctypes_error_pointer):
+            if not is_pointer_null(ctypes_error_pointer):
                 ctypes_error = ctypes_error_pointer.contents
                 raise Error(ctypes_error)
 
@@ -345,7 +342,7 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
                 replacement_text_utf8,
                 replacement_text_len_utf8,
             )
-            if not is_ctypes_pointer_null(ctypes_error_pointer):
+            if not is_pointer_null(ctypes_error_pointer):
                 ctypes_error = ctypes_error_pointer.contents
                 raise Error(ctypes_error)
 
@@ -358,7 +355,7 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
                 ctypes_diagnostics_pointer = ctypes_result.value.diagnostics
                 diagnostics = []
                 for ctypes_diagnostic in ctypes_diagnostics_pointer:
-                    if is_ctypes_pointer_null(ctypes_diagnostic.message):
+                    if is_pointer_null(ctypes_diagnostic.message):
                         break
                     diagnostics.append(Diagnostic(ctypes_diagnostic, self.view))
                 self.diagnostics = diagnostics
