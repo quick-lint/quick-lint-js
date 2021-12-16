@@ -1979,7 +1979,6 @@ void expect_error(::boost::json::value& response, int error_code,
                   std::string_view error_message) {
   EXPECT_FALSE(response.as_object().contains("method"));
   EXPECT_EQ(look_up(response, "jsonrpc"), "2.0");
-  EXPECT_EQ(look_up(response, "id"), ::boost::json::value());
   EXPECT_EQ(look_up(response, "error", "code"), error_code);
   EXPECT_EQ(look_up(response, "error", "message"), error_message);
 }
@@ -1987,6 +1986,7 @@ void expect_error(::boost::json::value& response, int error_code,
 TEST_F(test_linting_lsp_server, invalid_json_in_request) {
   auto expect_parse_error = [](::boost::json::value& response) -> void {
     expect_error(response, -32700, "Parse error");
+    EXPECT_EQ(look_up(response, "id"), ::boost::json::value());
   };
 
   for (
@@ -2040,6 +2040,7 @@ TEST_F(test_linting_lsp_server, unimplemented_method_in_request_returns_error) {
 
   ASSERT_EQ(this->client.messages.size(), 1);
   ::boost::json::value response = this->client.messages[0];
+  EXPECT_EQ(look_up(response, "id"), 10);
   expect_error(response, -32601, "Method not found");
 }
 
@@ -2063,6 +2064,7 @@ TEST_F(test_linting_lsp_server, invalid_request_returns_error) {
     ASSERT_EQ(client.messages.size(), 1);
     ::boost::json::value response = client.messages[0];
     expect_error(response, -32600, "Invalid Request");
+    EXPECT_EQ(look_up(response, "id"), ::boost::json::value());
   }
 }
 

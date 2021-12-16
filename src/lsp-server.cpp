@@ -104,7 +104,7 @@ void linting_lsp_server_handler<Linter>::handle_request(
   } else if (method == "shutdown") {
     this->handle_shutdown_request(request, id_json, response_json);
   } else {
-    this->write_method_not_found_error_response(response_json);
+    this->write_method_not_found_error_response(id_json, response_json);
   }
 }
 
@@ -561,11 +561,13 @@ void linting_lsp_server_handler<Linter>::apply_document_changes(
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::write_method_not_found_error_response(
-    byte_buffer& response_json) {
+    string8_view request_id_json, byte_buffer& response_json) {
   // clang-format off
   response_json.append_copy(u8R"({)"
     u8R"("jsonrpc":"2.0",)"
-    u8R"("id":null,)"
+    u8R"("id":)");
+  response_json.append_copy(request_id_json);
+  response_json.append_copy(u8R"(,)"
     u8R"("error":{)"
       u8R"("code":-32601,)"
       u8R"("message":"Method not found")"

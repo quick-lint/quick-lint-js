@@ -146,7 +146,8 @@ class linting_lsp_server_handler {
   static void apply_document_changes(quick_lint_js::document<lsp_locator>& doc,
                                      ::simdjson::ondemand::array& changes);
 
-  static void write_method_not_found_error_response(byte_buffer&);
+  static void write_method_not_found_error_response(
+      string8_view request_id_json, byte_buffer&);
   static void write_invalid_request_error_response(byte_buffer&);
 
   lsp_overlay_configuration_filesystem config_fs_;
