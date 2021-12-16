@@ -4,7 +4,10 @@
 import sublime
 
 
-MAJOR = sublime.version()[0]
+#TODO(cahian): Add buffer class here
+
+def major_version() -> str:
+    return sublime.version()[0]
 
 
 # quick-lint-js finds bugs in JavaScript programs.

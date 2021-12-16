@@ -11,7 +11,7 @@ from os import path
 import sublime
 import sublime_plugin
 
-from . import sublime_version
+from . import sublime_utils
 
 
 class Severity:
@@ -19,7 +19,7 @@ class Severity:
     WARNING = 2
 
 
-if sublime_version.MAJOR == "3":
+if sublime_utils.major_version() == "3":
 
     class Diagnostic(ctypes.Structure):
         _fields_ = [
@@ -30,7 +30,7 @@ if sublime_version.MAJOR == "3":
             ("end_offset", ctypes.c_int),
         ]
 
-elif SUBLIME_TEXT_MAJOR_VERSION == "4":
+elif sublime_utils.major_version() == "4":
 
     class Diagnostic(ctypes.Structure):
         _fields_ = [
@@ -45,8 +45,6 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
 
 
 class Error(ctypes.Structure):
-    """Error layer used to communicate with the C++ code."""
-
     _fields_ = [
         ("message", ctypes.c_char_p),
     ]
@@ -113,9 +111,9 @@ def load_library():
     # these DLLs we need to change the current directory.
 
     #
-    with changed_directory(lib_directory_path):
+    with changed_directory(library.directory):
         library.object = ctypes.CDLL(lib_path)
-    return lib
+    return library
 
 
 def display_error_message(message):
