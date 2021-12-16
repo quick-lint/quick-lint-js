@@ -12,15 +12,15 @@ from os import path
 import sublime
 import sublime_plugin
 
-from .typing import Callable, T
 
-#TODO(cahian): Depois você pensa em dar tipo!
+# TODO(cahian): Apenas não use tipos não dá certo, ctypes não suporta
 
-def cache(func: Callable[..., T]) -> Callable[..., T]:
+
+def cache(func):
     return lru_cache(func, maxsize=None)
 
 
-def cached_property(func: Callable[..., T]) -> Callable[..., T]:
+def cached_property(func):
     return property(cache(func))
 
 
@@ -34,23 +34,18 @@ def composed(*decs):
 
 class Sublime:
     @composed(staticmethod, cache)
-    def major_version() -> str:
+    def major_version():
         return sublime.version()[0]
 
 
 class Structure:
-    @classmethod
-    def pointer(cls)
+    @composed(classmethod, cache)
+    def pointer(cls):
         return POINTER(cls)
 
 
-class Severity:
-    ERROR = 1
-    WARNING = 2
-
-
 class Diagnostic(Structure, ctypes.Structure):
-    if sublime_major_version() == "3":
+    if Sublime.major_version() == "3":
         _fields_ = [
             ("message", c_char_p),
             ("code", c_char_p),
@@ -58,7 +53,7 @@ class Diagnostic(Structure, ctypes.Structure):
             ("begin_offset", c_int),
             ("end_offset", c_int),
         ]
-    elif sublime_major_version() == "4":
+    elif Sublime.major_version() == "4":
         _fields_ = [
             ("message", c_char_p),
             ("code", c_char_p),
@@ -70,18 +65,17 @@ class Diagnostic(Structure, ctypes.Structure):
         ]
 
 
-
-class Error(ctypes.Structure):
+class Error(Structure, ctypes.Structure):
     _fields_ = [
         ("message", c_char_p),
     ]
 
 
-class Result(ctypes.Structure):
+class Result(Structure, ctypes.Structure):
     class Value(ctypes.Union):
         _fields_ = [
-            ("diagnostics", DiagnosticPointer),
-            ("error", ErrorPointer),
+            ("diagnostics", Diagnostic.pointer()),
+            ("error", Error.pointer()),
         ]
 
     _fields_ = [
@@ -90,22 +84,16 @@ class Result(ctypes.Structure):
     ]
 
 
-class Parser(ctypes.Structure):
+class Parser(Structure, ctypes.Structure):
     _fields_ = []
 
 
-DiagnosticP = ctypes.POINTER(Diagnostic)
-ParserP = ctypes.POINTER(Parser)
-ErrorP = ctypes.POINTER(Error)
-ResultP = ctypes.POINTER(Result)
-
-
-def get_module_path() -> str:
+def get_module_path():
     return path.realpath(__file__)
 
 
 @contextlib.contextmanager
-def changed_directory(path: str) -> Iterator[str]:
+def changed_directory(path):
     previous = os.getcwd()
     try:
         yield os.chdir(path)
@@ -115,11 +103,16 @@ def changed_directory(path: str) -> Iterator[str]:
 
 # OperatingSystemNotSupportedByPlugin exception
 
+# TODO(cahian): Convert severity value to string ("Error"|"Warning")
 
 class Object:
     def __init__(self, ):
-        version = 
-        self.create_parser = getattr(, "qljs_st%d_create_parser" % (sublime_mversion))
+        version = Sublime.major_version()
+        self.create_parser = getattr(, "qljs_st%d_create_parser" % (version))
+        self.create_parser.argtypes = []
+        self.create_parser.restype = Parser.pointer()
+
+
         lib.qljs_sublime_text_3_create_parser.argtypes = []
         lib.qljs_sublime_text_3_create_parser.restype = ParserPointer
 
