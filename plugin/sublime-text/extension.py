@@ -4,6 +4,7 @@
 import collections
 import contextlib
 import ctypes
+from functools import lru_cache
 import html
 import platform
 from os import path
@@ -11,8 +12,17 @@ from os import path
 import sublime
 import sublime_plugin
 
+from .typing import Callable, T
+
+def cache(func: Callable[..., T]) -> Callable[..., T]:
+    return lru_cache(func, maxsize=None)
 
 
+def cached_property(func):
+    return property(cache(func))
+
+
+@cache
 def sublime_major_version() -> str:
     return sublime.version()[0]
 
@@ -33,7 +43,7 @@ if sublime_major_version() == "3":
             ("end_offset", ctypes.c_int),
         ]
 
-elif sublime_utils.major_version() == "4":
+elif sublime_major_version() == "4":
 
     class Diagnostic(ctypes.Structure):
         _fields_ = [
@@ -66,17 +76,18 @@ class Result(ctypes.Structure):
     ]
 
 
+
 class Parser(ctypes.Structure):
     _fields_ = []
 
 
-ParserPointer = ctypes.POINTER(Parser)
 DiagnosticPointer = ctypes.POINTER(Diagnostic)
+ParserPointer = ctypes.POINTER(Parser)
 ErrorPointer = ctypes.POINTER(Error)
 ResultPointer = ctypes.POINTER(Result)
 
 
-def get_module_path():
+def get_module_path() -> str:
     return path.realpath(__file__)
 
 
