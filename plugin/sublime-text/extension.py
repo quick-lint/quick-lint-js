@@ -11,7 +11,10 @@ from os import path
 import sublime
 import sublime_plugin
 
-from . import sublime_utils
+
+
+def sublime_major_version() -> str:
+    return sublime.version()[0]
 
 
 class Severity:
@@ -19,7 +22,7 @@ class Severity:
     WARNING = 2
 
 
-if sublime_utils.major_version() == "3":
+if sublime_major_version() == "3":
 
     class Diagnostic(ctypes.Structure):
         _fields_ = [
@@ -86,6 +89,44 @@ def changed_directory(path: str):
         os.chdir(previous)
 
 
+# OperatingSystemNotSupportedByPlugin exception
+
+
+class Object:
+    def __init__(self, ):
+        lib.qljs_sublime_text_3_create_parser.argtypes = []
+        lib.qljs_sublime_text_3_create_parser.restype = ParserPointer
+
+        lib.qljs_sublime_text_3_destroy_parser.argtypes = [ParserPointer]
+        lib.qljs_sublime_text_3_destroy_parser.restype = None
+
+        lib.qljs_sublime_text_3_set_text.argtypes = [
+            ParserPointer,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+        ]
+        lib.qljs_sublime_text_3_set_text.restype = ErrorPointer
+
+        lib.qljs_sublime_text_3_lint.argtypes = [ParserPointer]
+        lib.qljs_sublime_text_3_lint.restype = ResultPointer
+
+
+class Library:
+    def __init__(self):
+        self.directory = path.dirname(get_module_path())
+        self.path = path.join(self.directory, self.filename)
+        with changed_directory(self.directory):
+            self.object = Object(ctypes.CDLL(self.path))
+
+    def filename():  # TODO: @cached_property
+        if platform.system() == "Windows":
+            return "quick-lint-js-lib.dll"
+        elif platform.system() == "Darwin":
+            return "libquick-lint-js-lib.dylib"
+        elif platform.system() == "Linux":
+            return "libquick-lint-js-lib.so"
+
+
 def load_library():
     Library = namedtuple("Library", ["filename", "directory", "path", "object"])
     library = Library()
@@ -115,6 +156,10 @@ def load_library():
         library.object = ctypes.CDLL(lib_path)
     return library
 
+
+# TODO(cahian): Very importart that you test if has async method and if not use normal
+# method
+# TODO(cahian): download typing library
 
 class Error(Exception):
     """Error layer used to communicate with the plugin."""

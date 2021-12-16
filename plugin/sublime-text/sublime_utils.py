@@ -6,8 +6,8 @@ import sublime
 
 #TODO(cahian): Add buffer class here
 
-def major_version():
-    return sublime.version()[0]
+# def major_version():
+#     return 
 
 
 # quick-lint-js finds bugs in JavaScript programs.
