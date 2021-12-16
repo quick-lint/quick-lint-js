@@ -3,7 +3,7 @@
 
 import collections
 import contextlib
-import ctypes
+from ctypes import c_char_p, c_int, c_bool, c_void_p, c_size_t, POINTER, CDLL
 from functools import lru_cache
 import html
 import platform
@@ -14,17 +14,34 @@ import sublime_plugin
 
 from .typing import Callable, T
 
+#TODO(cahian): Depois você pensa em dar tipo!
+
 def cache(func: Callable[..., T]) -> Callable[..., T]:
     return lru_cache(func, maxsize=None)
 
 
-def cached_property(func):
+def cached_property(func: Callable[..., T]) -> Callable[..., T]:
     return property(cache(func))
 
 
-@cache
-def sublime_major_version() -> str:
-    return sublime.version()[0]
+def composed(*decs):
+    def decorator(func):
+        for dec in reversed(decs):
+            func = dec(func)
+        return func
+    return decorator
+
+
+class Sublime:
+    @composed(staticmethod, cache)
+    def major_version() -> str:
+        return sublime.version()[0]
+
+
+class Structure:
+    @classmethod
+    def pointer(cls)
+        return POINTER(cls)
 
 
 class Severity:
@@ -32,34 +49,31 @@ class Severity:
     WARNING = 2
 
 
-if sublime_major_version() == "3":
-
-    class Diagnostic(ctypes.Structure):
+class Diagnostic(Structure, ctypes.Structure):
+    if sublime_major_version() == "3":
         _fields_ = [
-            ("message", ctypes.c_char_p),
-            ("code", ctypes.c_char_p),
-            ("severity", ctypes.c_int),
-            ("begin_offset", ctypes.c_int),
-            ("end_offset", ctypes.c_int),
+            ("message", c_char_p),
+            ("code", c_char_p),
+            ("severity", c_int),
+            ("begin_offset", c_int),
+            ("end_offset", c_int),
+        ]
+    elif sublime_major_version() == "4":
+        _fields_ = [
+            ("message", c_char_p),
+            ("code", c_char_p),
+            ("severity", c_int),
+            ("start_line", c_int),
+            ("start_character", c_int),
+            ("end_line", c_int),
+            ("end_character", c_int),
         ]
 
-elif sublime_major_version() == "4":
-
-    class Diagnostic(ctypes.Structure):
-        _fields_ = [
-            ("message", ctypes.c_char_p),
-            ("code", ctypes.c_char_p),
-            ("severity", ctypes.c_int),
-            ("start_line", ctypes.c_int),
-            ("start_character", ctypes.c_int),
-            ("end_line", ctypes.c_int),
-            ("end_character", ctypes.c_int),
-        ]
 
 
 class Error(ctypes.Structure):
     _fields_ = [
-        ("message", ctypes.c_char_p),
+        ("message", c_char_p),
     ]
 
 
@@ -72,19 +86,18 @@ class Result(ctypes.Structure):
 
     _fields_ = [
         ("value", Value),
-        ("is_diagnostics", ctypes.c_bool),
+        ("is_diagnostics", c_bool),
     ]
-
 
 
 class Parser(ctypes.Structure):
     _fields_ = []
 
 
-DiagnosticPointer = ctypes.POINTER(Diagnostic)
-ParserPointer = ctypes.POINTER(Parser)
-ErrorPointer = ctypes.POINTER(Error)
-ResultPointer = ctypes.POINTER(Result)
+DiagnosticP = ctypes.POINTER(Diagnostic)
+ParserP = ctypes.POINTER(Parser)
+ErrorP = ctypes.POINTER(Error)
+ResultP = ctypes.POINTER(Result)
 
 
 def get_module_path() -> str:
@@ -92,7 +105,7 @@ def get_module_path() -> str:
 
 
 @contextlib.contextmanager
-def changed_directory(path: str):
+def changed_directory(path: str) -> Iterator[str]:
     previous = os.getcwd()
     try:
         yield os.chdir(path)
@@ -105,6 +118,8 @@ def changed_directory(path: str):
 
 class Object:
     def __init__(self, ):
+        version = 
+        self.create_parser = getattr(, "qljs_st%d_create_parser" % (sublime_mversion))
         lib.qljs_sublime_text_3_create_parser.argtypes = []
         lib.qljs_sublime_text_3_create_parser.restype = ParserPointer
 
@@ -112,14 +127,26 @@ class Object:
         lib.qljs_sublime_text_3_destroy_parser.restype = None
 
         lib.qljs_sublime_text_3_set_text.argtypes = [
-            ParserPointer,
-            ctypes.c_void_p,
-            ctypes.c_size_t,
+            ParserPointer, c_void_p, c_size_t,  # fmt: skip
         ]
         lib.qljs_sublime_text_3_set_text.restype = ErrorPointer
 
         lib.qljs_sublime_text_3_lint.argtypes = [ParserPointer]
         lib.qljs_sublime_text_3_lint.restype = ResultPointer
+
+        lib.qljs_sublime_text_4_create_parser.argtypes = []
+        lib.qljs_sublime_text_4_create_parser.restype = ParserPointer
+
+        lib.qljs_sublime_text_4_destroy_parser.argtypes = [ParserPointer]
+        lib.qljs_sublime_text_4_destroy_parser.restype = None
+
+        lib.qljs_sublime_text_4_replace_text.argtypes = [
+            ParserPointer, c_int, c_int, c_int, c_int, c_void_p, c_size_t,  # fmt: skip
+        ]
+        lib.qljs_sublime_text_4_replace_text.restype = ErrorPointer
+
+        lib.qljs_sublime_text_4_lint.argtypes = [ParserPointer]
+        lib.qljs_sublime_text_4_lint.restype = ResultPointer
 
 
 class Library:
@@ -129,7 +156,8 @@ class Library:
         with changed_directory(self.directory):
             self.object = Object(ctypes.CDLL(self.path))
 
-    def filename():  # TODO: @cached_property
+    @cached_property
+    def filename():
         if platform.system() == "Windows":
             return "quick-lint-js-lib.dll"
         elif platform.system() == "Darwin":
@@ -172,6 +200,7 @@ def load_library():
 # method
 # TODO(cahian): download typing library
 
+
 class Error(Exception):
     """Error layer used to communicate with the plugin."""
 
@@ -204,8 +233,8 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
 
         lib.qljs_sublime_text_3_set_text.argtypes = [
             ParserPointer,
-            ctypes.c_void_p,
-            ctypes.c_size_t,
+            c_void_p,
+            c_size_t,
         ]
         lib.qljs_sublime_text_3_set_text.restype = ErrorPointer
 
@@ -308,12 +337,12 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
 
         lib.qljs_sublime_text_4_replace_text.argtypes = [
             ParserPointer,
-            ctypes.c_int,
-            ctypes.c_int,
-            ctypes.c_int,
-            ctypes.c_int,
-            ctypes.c_void_p,
-            ctypes.c_size_t,
+            c_int,
+            c_int,
+            c_int,
+            c_int,
+            c_void_p,
+            c_size_t,
         ]
         lib.qljs_sublime_text_4_replace_text.restype = ErrorPointer
 
