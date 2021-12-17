@@ -124,7 +124,8 @@ class Object:
         elif version == "4":
             self.replace_text = .qljs_sublime_text_4_replace_text
             self.replace_text.argtypes = [
-                ParserPointer, c_int, c_int, c_int, c_int, c_void_p, c_size_t,  # fmt: skip
+                ParserPointer, c_int, c_int, c_int, c_int, c_void_p, c_size_t,
+                # fmt: skip
             ]
             self.replace_text.restype = Error.pointer()
 
