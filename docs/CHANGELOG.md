@@ -6,6 +6,14 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Fixed
+
+* LSP: When responding to unsupported methods with error code -32601,
+  quick-lint-js now includes the request ID. (Previously, the `"id"` field was
+  always `null`.)
+
 ## 1.0.0 (2021-12-13)
 
 [Downloads](https://c.quick-lint-js.com/releases/1.0.0/)
