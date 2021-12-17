@@ -1,22 +1,13 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-import collections
-import contextlib
+from contextlib import contextmanager
 from ctypes import (
-    Structure,
-    Union,
-    c_char_p,
-    c_int,
-    c_bool,
-    c_void_p,
-    c_size_t,
-    POINTER,
-    CDLL,
+    Structure, Union, c_char_p, c_int, c_bool, c_void_p, c_size_t, POINTER, CDLL,  # fmt: skip
 )
 from functools import lru_cache
-import html
-import platform
+from html import escape
+from platform import system
 from os import path
 
 import sublime
@@ -49,13 +40,13 @@ class SublimeUtils:
         return sublime.version()[0]
 
 
-class BaseStructure:
+class BaseStructure(Structure):
     @composed(classmethod, cache)
     def pointer(cls):
         return POINTER(cls)
 
 
-class Diagnostic(BaseStructure, ctypes.Structure):
+class Diagnostic(BaseStructure):
     if SublimeUtils.major_version() == "3":
         _fields_ = [
             ("message", c_char_p),
@@ -150,11 +141,11 @@ class Library:
 
     @cached_property
     def filename():
-        if platform.system() == "Windows":
+        if system() == "Windows":
             return "quick-lint-js-lib.dll"
-        elif platform.system() == "Darwin":  # TODO: Remove lib prefix with CMake
+        elif system() == "Darwin":  # TODO: Remove lib prefix with CMake
             return "libquick-lint-js-lib.dylib"
-        elif platform.system() == "Linux":
+        elif system() == "Linux":
             return "libquick-lint-js-lib.so"
 
 
@@ -585,9 +576,9 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
             # > Parse Error: quot; code: Unknown entity
             # >
             content = minihtml % (
-                html.escape(diagnostic.message, quote=False),
-                html.escape(color, quote=False),
-                html.escape(diagnostic.code, quote=False),
+                escape(diagnostic.message, quote=False),
+                escape(color, quote=False),
+                escape(diagnostic.code, quote=False),
             )
 
             flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
@@ -760,9 +751,9 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
             """
             color = self.view.style_for_scope("comment.line")["foreground"]
             content = minihtml % (
-                html.escape(diagnostic.message),
-                html.escape(color),
-                html.escape(diagnostic.code),
+                escape(diagnostic.message),
+                escape(color),
+                escape(diagnostic.code),
             )
 
             flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
