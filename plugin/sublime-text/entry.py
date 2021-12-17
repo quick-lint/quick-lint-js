@@ -12,7 +12,7 @@ import sublime
 import sublime_plugin
 
 # TODO: Think in a better way to indentify system platform
-# TODO: Should I `from import` or only `import`
+# TODO: Should I `from import` or only `import`? Yes
 
 
 def cache(func):
