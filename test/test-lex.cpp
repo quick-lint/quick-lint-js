@@ -811,13 +811,10 @@ TEST_F(test_lex, lex_strings) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_unclosed_string_literal, string_literal,
-            offsets_matcher(
-                &input, 0,
-                narrow_cast<cli_source_position::offset_type>(input.size())))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input,
+                              error_unclosed_string_literal,  //
+                              string_literal, 0, input.string_view())));
   }
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
@@ -838,10 +835,10 @@ TEST_F(test_lex, lex_strings) {
         ElementsAre(
             ERROR_TYPE_OFFSETS(&input, error_unclosed_string_literal,  //
                                string_literal, 0, u8"'separated"),
-            ERROR_TYPE_FIELD(
-                error_unclosed_string_literal, string_literal,
-                offsets_matcher(&input, 15 + 2 * line_terminator.size(),
-                                16 + 2 * line_terminator.size()))));
+            ERROR_TYPE_OFFSETS(
+                &input, error_unclosed_string_literal, string_literal,  //
+                strlen(u8"'separatedhello") + 2 * line_terminator.size(),
+                u8"'")));
   }
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
@@ -1159,13 +1156,9 @@ TEST_F(test_lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().begin, &code[0]);
     EXPECT_EQ(l.peek().end, &code[code.size()]);
 
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_unclosed_regexp_literal, regexp_literal,
-            offsets_matcher(
-                &code, 0,
-                narrow_cast<cli_source_position::offset_type>(code.size())))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_unclosed_regexp_literal,  //
+                              regexp_literal, 0, code.string_view())));
 
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
@@ -1183,10 +1176,9 @@ TEST_F(test_lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().begin, &code[0]);
     EXPECT_EQ(l.peek().end, code.data() + strlen(u8"/first_line"));
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unclosed_regexp_literal, regexp_literal,
-                    offsets_matcher(&code, 0, strlen(u8"/first_line")))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_unclosed_regexp_literal,  //
+                              regexp_literal, 0, u8"/first_line")));
 
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -1205,10 +1197,9 @@ TEST_F(test_lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().begin, &code[0]);
     EXPECT_EQ(l.peek().end, code.data() + strlen(u8"/first[line"));
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unclosed_regexp_literal, regexp_literal,
-                    offsets_matcher(&code, 0, strlen(u8"/first[line")))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_unclosed_regexp_literal,  //
+                              regexp_literal, 0, u8"/first[line")));
 
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::identifier);
