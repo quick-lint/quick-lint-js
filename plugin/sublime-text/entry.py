@@ -36,6 +36,14 @@ class SublimeUtils:
 
 
 class BaseType:
+    def __init_subclass__(cls, /, default_name, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls.default_name = default_name
+
+    @classmethod
+    def define_fields(cls, fields):
+        cls._fields_ = list(fields.items())
+
     @composed(classmethod, cache)
     def pointer(cls):
         return ctypes.POINTER(cls)
