@@ -1358,7 +1358,22 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
 QLJS_WARNING_POP
 
 lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
-  const char8* identifier_begin = input;
+  const char8* begin = input;
+  const char8* end = this->parse_identifier_fast_only(input);
+  if (*end == u8'\\' || !this->is_ascii_character(*end)) {
+    return this->parse_identifier_slow(end,
+                                       /*identifier_begin=*/begin);
+  } else {
+    return parsed_identifier{
+        .after = end,
+        .normalized =
+            string8_view(begin, narrow_cast<std::size_t>(end - begin)),
+        .escape_sequences = {},
+    };
+  }
+}
+
+const char8* lexer::parse_identifier_fast_only(const char8* input) {
   // TODO(strager): Is the check for '\\' correct?
   QLJS_SLOW_ASSERT(this->is_identifier_byte(*input) || *input == u8'\\');
 
@@ -1428,18 +1443,7 @@ lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
     is_all_identifier_characters = identifier_character_count == chars.size;
   } while (is_all_identifier_characters);
 
-  if (*input == u8'\\' || !this->is_ascii_character(*input)) {
-    return this->parse_identifier_slow(input,
-                                       /*identifier_begin=*/identifier_begin);
-  } else {
-    return parsed_identifier{
-        .after = input,
-        .normalized =
-            string8_view(identifier_begin,
-                         narrow_cast<std::size_t>(input - identifier_begin)),
-        .escape_sequences = {},
-    };
-  }
+  return input;
 }
 
 QLJS_WARNING_PUSH

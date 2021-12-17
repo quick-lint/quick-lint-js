@@ -198,6 +198,7 @@ class lexer {
   parsed_unicode_escape parse_unicode_escape(const char8* input) noexcept;
 
   parsed_identifier parse_identifier(const char8*);
+  const char8* parse_identifier_fast_only(const char8*);
   parsed_identifier parse_identifier_slow(const char8* input,
                                           const char8* identifier_begin);
 
