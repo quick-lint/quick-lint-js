@@ -1,0 +1,24 @@
+[MASTER]
+
+# Use multiple processes to speed up Pylint.
+jobs=4
+
+
+[MESSAGES CONTROL]
+
+disable=duplicate-code,
+        import-error,
+        missing-function-docstring,
+        relative-beyond-top-level,
+        too-few-public-methods,
+
+
+[BASIC]
+
+# Regular expression which should only match function or class names that do
+# not require a docstring.
+no-docstring-rgx=(__.*__|main|test.*|.*test|.*Test)$
+
+# Minimum line length for functions/classes that require docstrings, shorter
+# ones are exempt.
+docstring-min-length=10

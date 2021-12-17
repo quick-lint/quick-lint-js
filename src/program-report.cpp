@@ -1,21 +1,11 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <cstdio>
-#include <quick-lint-js/assert.h>
 #include <quick-lint-js/program-report.h>
 
-namespace quick_lint_js {
-void report_assertion_failure(const char *qljs_file_name, int qljs_line,
-                              const char *qljs_function_name,
-                              const char *message) {
-  QLJS_REPORT_PROGRAM_FATAL_ERROR(
-      "%s:%d: internal check failed in %s: %s\n"
-      "quick-lint-js crashed. Please report this bug here:\n"
-      "https://quick-lint-js.com/crash-report/\n",
-      qljs_file_name, qljs_line, qljs_function_name, message);
-}
-}
+#if QLJS_SUBLIME_TEXT_PLUGIN
+char *qljs_sublime_text_program_error_reports = const_cast<char *>("");
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

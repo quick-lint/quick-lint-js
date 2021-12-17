@@ -4,3 +4,8 @@
 
 # Nix symlink. Created by instructions in docs/BUILDING.md.
 /result
+
+# Directories Created by JetBrains CLion.
+/.cache/
+/.idea/
+/cmake-build-*/

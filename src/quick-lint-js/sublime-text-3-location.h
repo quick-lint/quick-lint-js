@@ -1,21 +1,38 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <cstdio>
-#include <quick-lint-js/assert.h>
-#include <quick-lint-js/program-report.h>
+#ifndef QUICK_LINT_JS_SUBLIME_TEXT_3_LOCATION_H
+#define QUICK_LINT_JS_SUBLIME_TEXT_3_LOCATION_H
+
+#include <cstdint>
+#include <quick-lint-js/char8.h>
+#include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
-void report_assertion_failure(const char *qljs_file_name, int qljs_line,
-                              const char *qljs_function_name,
-                              const char *message) {
-  QLJS_REPORT_PROGRAM_FATAL_ERROR(
-      "%s:%d: internal check failed in %s: %s\n"
-      "quick-lint-js crashed. Please report this bug here:\n"
-      "https://quick-lint-js.com/crash-report/\n",
-      qljs_file_name, qljs_line, qljs_function_name, message);
-}
-}
+class source_code_span;
+
+using sublime_text_3_source_offset = std::uint32_t;
+
+struct sublime_text_3_source_range {
+  sublime_text_3_source_offset begin;
+  sublime_text_3_source_offset end;
+};
+
+class sublime_text_3_locator {
+ public:
+  using range_type = sublime_text_3_source_range;
+
+  explicit sublime_text_3_locator(padded_string_view input) noexcept;
+
+  sublime_text_3_source_range range(source_code_span) const;
+  sublime_text_3_source_offset position(const char8*) const noexcept;
+
+ private:
+  padded_string_view input_;
+};
+}  // namespace quick_lint_js
+
+#endif  // QUICK_LINT_JS_SUBLIME_TEXT_3_LOCATION_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

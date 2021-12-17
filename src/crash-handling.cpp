@@ -1,41 +1,50 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CRASH_H
-#define QUICK_LINT_JS_CRASH_H
-
+#include <cassert>
+#include <cstdio>
 #include <cstdlib>
-#include <quick-lint-js/have.h>
-
-#if QLJS_SUBLIME_TEXT_PLUGIN
 #include <quick-lint-js/crash-handling.h>
-#endif
-
-#if QLJS_HAVE_DEBUGBREAK
-#include <intrin.h>
-#endif
+#include <quick-lint-js/warning.h>
 
 #if QLJS_SUBLIME_TEXT_PLUGIN
-#define QLJS_CRASH_ALLOWING_CORE_DUMP() QLJS_SUBLIME_TEXT_THROW()
-#elif QLJS_HAVE_DEBUGBREAK
-#define QLJS_CRASH_ALLOWING_CORE_DUMP() ::__debugbreak()
-#elif QLJS_HAVE_BUILTIN_TRAP
-#define QLJS_CRASH_ALLOWING_CORE_DUMP() __builtin_trap()
+
+#if QLJS_HAVE_SIGSETJMP
+sigjmp_buf qljs_sublime_text_sigjmp_buf;
 #else
-#define QLJS_CRASH_ALLOWING_CORE_DUMP() ::std::abort()
+jmp_buf qljs_sublime_text_jmp_buf;
 #endif
 
-#define QLJS_CRASH_DISALLOWING_CORE_DUMP()   \
-  do {                                       \
-    ::quick_lint_js::disable_core_dumping(); \
-    QLJS_CRASH_ALLOWING_CORE_DUMP();         \
-  } while (false)
-
-namespace quick_lint_js {
-void disable_core_dumping();
+QLJS_WARNING_IGNORE_CLANG("-Wunused-parameter")
+QLJS_WARNING_IGNORE_GCC("-Wunused-parameter")
+void qljs_sublime_text_signal_handler(int signal_number) {
+  QLJS_SUBLIME_TEXT_THROW();
 }
 
+#if QLJS_SUBLIME_TEXT_PLUGIN_CRASH_HANDLING_TEST
+void qljs_sublime_text_test_crash_handling() {
+  static int num = 0;
+  if (num > 3) {
+    num = 0;
+  }
+  switch (num++) {
+  case 0:
+    std::fputs("case 0: std::abort();", stderr);
+    std::abort();
+  case 1:
+    std::fputs("case 1: assert(false);", stderr);
+    assert(false);
+  case 2:
+    std::fputs("case 2: *((unsigned int*)0) = 0xDEAD;", stderr);
+    *((unsigned int*)0) = 0xDEAD;
+  case 3:
+    std::fputs("case 3: raise(SIGSEGV);", stderr);
+    raise(SIGSEGV);
+  }
+}
 #endif
+
+#endif  // QLJS_SUBLIME_TEXT_PLUGIN
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

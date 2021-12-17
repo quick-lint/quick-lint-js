@@ -26,6 +26,7 @@ authored portions of quick-lint-js:
 * Angel Avila; angel.j.avila@gmail.com; signed CLA-v1.md
 * Biel A. P. (0xbiel); bielp07@gmail.com; signed CLA-v1.md
 * Brandon Conway; brandoncc@gmail.com; signed CLA-v1.md
+* Cahian Freire; cahianfreire@gmail.com; signed CLA-v1.md
 * Daniel La Rocque; dlarocque.contact@gmail.com; signed CLA-v1.md
 * David Vasileff; signed CLA-v1.md
 * Dylan Elliott; signed CLA-v1.md

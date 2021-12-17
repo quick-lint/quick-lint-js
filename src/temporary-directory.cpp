@@ -11,6 +11,7 @@
 #include <limits.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/program-report.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/unreachable.h>
 #include <random>
@@ -79,8 +80,8 @@ void create_directory(const std::string &path) {
   std::filesystem::create_directory(to_string8(path));
 #else
   if (::mkdir(path.c_str(), 0755) != 0) {
-    std::fprintf(stderr, "error: failed to create directory %s: %s\n",
-                 path.c_str(), std::strerror(errno));
+    QLJS_REPORT_PROGRAM_ERROR("error: failed to create directory %s: %s\n",
+                              path.c_str(), std::strerror(errno));
     std::terminate();
   }
 #endif
@@ -91,8 +92,8 @@ void delete_directory_recursive(const std::string &path) {
   char *paths[] = {const_cast<char *>(path.c_str()), nullptr};
   ::FTS *fts = ::fts_open(paths, FTS_PHYSICAL | FTS_XDEV, nullptr);
   if (!fts) {
-    std::fprintf(stderr, "fatal: fts_open failed to open %s: %s\n",
-                 path.c_str(), std::strerror(errno));
+    QLJS_REPORT_PROGRAM_FATAL_ERROR("fatal: fts_open failed to open %s: %s\n",
+                                    path.c_str(), std::strerror(errno));
     std::abort();
   }
   while (::FTSENT *entry = ::fts_read(fts)) {
@@ -111,8 +112,8 @@ void delete_directory_recursive(const std::string &path) {
     case FTS_DP: {
       int rc = ::rmdir(entry->fts_accpath);
       if (rc != 0) {
-        std::fprintf(stderr, "warning: failed to delete %s: %s\n",
-                     entry->fts_accpath, std::strerror(errno));
+        QLJS_REPORT_PROGRAM_WARNING("warning: failed to delete %s: %s\n",
+                                    entry->fts_accpath, std::strerror(errno));
       }
       break;
     }
@@ -123,8 +124,8 @@ void delete_directory_recursive(const std::string &path) {
     case FTS_DEFAULT: {
       int rc = ::unlink(entry->fts_accpath);
       if (rc != 0) {
-        std::fprintf(stderr, "warning: failed to delete %s: %s\n",
-                     entry->fts_accpath, std::strerror(errno));
+        QLJS_REPORT_PROGRAM_WARNING("warning: failed to delete %s: %s\n",
+                                    entry->fts_accpath, std::strerror(errno));
       }
       break;
     }
@@ -132,8 +133,9 @@ void delete_directory_recursive(const std::string &path) {
     case FTS_DNR:
     case FTS_ERR:
     case FTS_NS:
-      std::fprintf(stderr, "fatal: fts_read failed to read %s: %s\n",
-                   entry->fts_accpath, std::strerror(entry->fts_errno));
+      QLJS_REPORT_PROGRAM_FATAL_ERROR("fatal: fts_read failed to read %s: %s\n",
+                                      entry->fts_accpath,
+                                      std::strerror(entry->fts_errno));
       std::abort();
       break;
 
@@ -159,8 +161,8 @@ std::string get_current_working_directory() {
   std::string cwd;
   cwd.resize(PATH_MAX);
   if (!::getcwd(cwd.data(), cwd.size() + 1)) {
-    std::fprintf(stderr, "error: failed to get current directory: %s\n",
-                 std::strerror(errno));
+    QLJS_REPORT_PROGRAM_ERROR("error: failed to get current directory: %s\n",
+                              std::strerror(errno));
     std::terminate();
   }
   return cwd;
@@ -172,8 +174,9 @@ void set_current_working_directory(const char *path) {
   std::filesystem::current_path(path);
 #else
   if (::chdir(path) != 0) {
-    std::fprintf(stderr, "error: failed to set current directory to %s: %s\n",
-                 path, std::strerror(errno));
+    QLJS_REPORT_PROGRAM_ERROR(
+        "error: failed to set current directory to %s: %s\n", path,
+        std::strerror(errno));
     std::terminate();
   }
 #endif

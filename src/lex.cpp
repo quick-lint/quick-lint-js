@@ -17,6 +17,7 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/program-report.h>
 #include <quick-lint-js/simd.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
@@ -1023,10 +1024,10 @@ padded_string_view lexer::original_input() const noexcept {
 void lexer::debug_dump_location(const char8* c) const {
   cli_locator locator(this->original_input_);
   cli_source_position token_position = locator.position(this->peek().begin);
-  std::fprintf(stderr, "%p: file offset %zd, line %d, column %d\n",
-               reinterpret_cast<const void*>(c),
-               c - this->original_input_.data(), token_position.line_number,
-               token_position.column_number);
+  QLJS_REPORT_PROGRAM_DEBUG(
+      "%p: file offset %zd, line %d, column %d\n",
+      reinterpret_cast<const void*>(c), c - this->original_input_.data(),
+      token_position.line_number, token_position.column_number);
 }
 
 template <class Error>

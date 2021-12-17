@@ -9,6 +9,7 @@
 #include <quick-lint-js/crash.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/program-report.h>
 
 #if QLJS_HAVE_SETRLIMIT
 #include <sys/resource.h>
@@ -37,10 +38,10 @@ enum class core_style {
 core_style linux_detect_core_style() {
   int fd = ::open("/proc/sys/kernel/core_pattern", O_CLOEXEC | O_RDONLY);
   if (fd == -1) {
-    std::fprintf(stderr,
-                 "warning: failed to determine method to disable core "
-                 "dumping: %s\n",
-                 std::strerror(errno));
+    QLJS_REPORT_PROGRAM_WARNING(
+        "warning: failed to determine method to disable core "
+        "dumping: %s\n",
+        std::strerror(errno));
     return core_style::unknown;
   }
   posix_fd_file file(fd);
@@ -49,8 +50,7 @@ core_style linux_detect_core_style() {
   file_read_result read_result =
       file.read(core_pattern.data(), core_pattern.size());
   if (!read_result.ok()) {
-    std::fprintf(
-        stderr,
+    QLJS_REPORT_PROGRAM_WARNING(
         "warning: failed to determine method to disable core dumping: %s\n",
         read_result.error().to_string().c_str());
     return core_style::unknown;
@@ -79,8 +79,8 @@ void disable_core_dumping() {
   ::rlimit limits;
   rc = ::getrlimit(RLIMIT_CORE, &limits);
   if (rc == -1) {
-    std::fprintf(stderr, "warning: failed to disable core dumping: %s\n",
-                 std::strerror(errno));
+    QLJS_REPORT_PROGRAM_WARNING("warning: failed to disable core dumping: %s\n",
+                                std::strerror(errno));
     return;
   }
 
@@ -106,8 +106,8 @@ void disable_core_dumping() {
 
   rc = ::setrlimit(RLIMIT_CORE, &limits);
   if (rc == -1) {
-    std::fprintf(stderr, "warning: failed to disable core dumping: %s\n",
-                 std::strerror(errno));
+    QLJS_REPORT_PROGRAM_WARNING("warning: failed to disable core dumping: %s\n",
+                                std::strerror(errno));
   }
 }
 #elif defined(_WIN32)

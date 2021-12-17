@@ -2,6 +2,8 @@
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
+include(CheckCXXSymbolExists)
+include(CheckIncludeFileCXX)
 include(GNUInstallDirs)
 include(QuickLintJSCompiler)
 include(QuickLintJSCopyright)
@@ -56,6 +58,7 @@ quick_lint_js_add_library(
   configuration-loader.cpp
   configuration.cpp
   crash.cpp
+  crash-handling.cpp
   diagnostic-formatter.cpp
   diagnostic.cpp
   document.cpp
@@ -90,6 +93,7 @@ quick_lint_js_add_library(
   parse.cpp
   pipe-writer.cpp
   pipe.cpp
+  program-report.cpp
   quick-lint-js/allocator.h
   quick-lint-js/arg-parser.h
   quick-lint-js/assert.h
@@ -108,6 +112,7 @@ quick_lint_js_add_library(
   quick-lint-js/consteval.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
+  quick-lint-js/crash-handling.h
   quick-lint-js/diagnostic-formatter.h
   quick-lint-js/diagnostic.h
   quick-lint-js/document.h
@@ -155,9 +160,12 @@ quick_lint_js_add_library(
   quick-lint-js/parse.h
   quick-lint-js/pipe-writer.h
   quick-lint-js/pipe.h
+  quick-lint-js/program-report.h
   quick-lint-js/result.h
   quick-lint-js/simd.h
   quick-lint-js/simdjson.h
+  quick-lint-js/string-utilities.h
+  quick-lint-js/sublime-text-3-location.h
   quick-lint-js/temporary-directory.h
   quick-lint-js/text-error-reporter.h
   quick-lint-js/translation-table-generated.h
@@ -174,6 +182,8 @@ quick_lint_js_add_library(
   quick-lint-js/warning.h
   quick-lint-js/web-demo-location.h
   simdjson.cpp
+  string-utilities.cpp
+  sublime-text-3-location.cpp
   temporary-directory.cpp
   text-error-reporter.cpp
   translation-table-generated.cpp
@@ -232,6 +242,88 @@ if (NOT QUICK_LINT_JS_HAVE_CHARCONV)
     quick-lint-js-lib
     PUBLIC
     QLJS_HAVE_CHARCONV_HEADER=0
+  )
+endif ()
+
+CHECK_INCLUDE_FILE_CXX("csetjmp" QUICK_LINT_JS_CSETJMP_FOUND)
+if (NOT EMSCRIPTEN AND QUICK_LINT_JS_CSETJMP_FOUND)
+  set(QUICK_LINT_JS_HAVE_SETJMP ON)
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_HAVE_SETJMP=1
+  )
+else ()
+  set(QUICK_LINT_JS_HAVE_SETJMP OFF)
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_HAVE_SETJMP=0
+  )
+endif ()
+
+check_cxx_symbol_exists("sigsetjmp" "csetjmp" QUICK_LINT_JS_SIGSETJMP_FOUND)
+if (QUICK_LINT_JS_SIGSETJMP_FOUND)
+  set(QUICK_LINT_JS_HAVE_SIGSETJMP ON)
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_HAVE_SIGSETJMP=1
+  )
+else ()
+  set(QUICK_LINT_JS_HAVE_SIGSETJMP OFF)
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_HAVE_SIGSETJMP=0
+  )
+endif ()
+
+if (QUICK_LINT_JS_SUBLIME_TEXT_3 OR QUICK_LINT_JS_SUBLIME_TEXT_4)
+  set(QUICK_LINT_JS_SUBLIME_TEXT TRUE)
+endif ()
+
+if (QUICK_LINT_JS_SUBLIME_TEXT)
+  if (QUICK_LINT_JS_HAVE_SETJMP)
+    target_compile_definitions(
+      quick-lint-js-lib
+      PUBLIC
+      QLJS_SUBLIME_TEXT_PLUGIN=1
+    )
+  else ()
+    message(
+      FATAL_ERROR
+      "You need to have setjmp available to build the Sublime Text plugin."
+    )
+  endif ()
+else ()
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_SUBLIME_TEXT_PLUGIN=0
+  )
+endif ()
+
+
+if (QUICK_LINT_JS_SUBLIME_TEXT_CRASH_HANDLING_TEST)
+  if (QUICK_LINT_JS_SUBLIME_TEXT)
+    target_compile_definitions(
+      quick-lint-js-lib
+      PUBLIC
+      QLJS_SUBLIME_TEXT_PLUGIN_CRASH_HANDLING_TEST=1
+    )
+  else ()
+    message(
+      FATAL_ERROR
+      "You need to set QUICK_LINT_JS_SUBLIME_TEXT_3=ON or QUICK_LINT_JS_SUBLIME_TEXT_4=ON \
+to test the Sublime Text plugin's crash handling."
+    )
+  endif ()
+else ()
+  target_compile_definitions(
+    quick-lint-js-lib
+    PUBLIC
+    QLJS_SUBLIME_TEXT_PLUGIN_CRASH_HANDLING_TEST=0
   )
 endif ()
 
