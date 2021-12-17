@@ -166,7 +166,20 @@ class lexer {
   };
 
   void parse_bom_before_shebang();
+
+  // Skips leading whitespace and comments. Initializes this->last_token_ and
+  // this->last_last_token_end_.
   void parse_current_token();
+
+  // Does not skip whitespace.
+  //
+  // Returns false if a comment was found. Returns true if a token or EOF was
+  // found.
+  //
+  // Does not update this->last_last_token_end_. Assumes
+  // this->last_token_.has_leading_newline was previously initialized. Updates
+  // this->last_token_.begin and other members of this->last_token_.
+  bool try_parse_current_token();
 
   const char8* parse_string_literal() noexcept;
 

@@ -189,7 +189,12 @@ void lexer::parse_current_token() {
   this->last_token_.has_leading_newline = false;
   this->skip_whitespace();
 
-retry:
+  while (!this->try_parse_current_token()) {
+    // Loop.
+  }
+}
+
+bool lexer::try_parse_current_token() {
   this->last_token_.begin = this->input_;
   switch (this->input_[0]) {
   QLJS_CASE_DECIMAL_DIGIT:
@@ -365,7 +370,7 @@ retry:
         this->input_[3] == '-') {
       this->input_ += 4;
       this->skip_line_comment_body();
-      goto retry;
+      return false;
     } else if (this->input_[1] == '=') {
       this->last_token_.type = token_type::less_equal;
       this->input_ += 2;
@@ -430,7 +435,7 @@ retry:
       if (this->input_[2] == '>' && this->is_first_token_on_line()) {
         this->input_ += 3;
         this->skip_line_comment_body();
-        goto retry;
+        return false;
       } else {
         this->last_token_.type = token_type::minus_minus;
         this->input_ += 2;
@@ -477,7 +482,7 @@ retry:
             source_code_span(starpos, &this->input_[2])});
         this->input_ += 2;
         this->skip_whitespace();
-        goto retry;
+        return false;
       } else {
         this->last_token_.type = token_type::star;
         this->input_ += 1;
@@ -495,11 +500,11 @@ retry:
       this->input_ += 2;
     } else if (this->input_[1] == '*') {
       this->skip_block_comment();
-      goto retry;
+      return false;
     } else if (this->input_[1] == '/') {
       this->input_ += 2;
       this->skip_line_comment_body();
-      goto retry;
+      return false;
     } else {
       this->last_token_.type = token_type::slash;
       this->input_ += 1;
@@ -589,7 +594,7 @@ retry:
         this->input_ == this->original_input_.data()) {
       this->input_ += 2;
       this->skip_line_comment_body();
-      goto retry;
+      return false;
     } else if (this->is_initial_identifier_byte(this->input_[1])) {
       // Private identifier: #alphaNumeric
       parsed_identifier ident = this->parse_identifier(this->input_ + 1);
@@ -611,7 +616,7 @@ retry:
           source_code_span(&this->input_[0], &this->input_[1])});
       this->input_ += 1;
       this->skip_whitespace();
-      goto retry;
+      return false;
     }
     break;
 
@@ -655,7 +660,7 @@ retry:
         .character = source_code_span(this->input_, end)});
     this->input_ = end;
     this->skip_whitespace();
-    goto retry;
+    return false;
   }
 
   case u8'@': {
@@ -664,9 +669,11 @@ retry:
         .character = source_code_span(this->input_, end)});
     this->input_ = end;
     this->skip_whitespace();
-    goto retry;
+    return false;
   }
   }
+
+  return true;
 }
 
 bool lexer::test_for_regexp(const char8* regexp_begin) {
