@@ -202,6 +202,7 @@ Nygard][ADR-bible].
 * [ADR010: LSP server](ADR010-LSP-server.md)
 * [ADR011: IO errors](ADR011-IO-errors.md)
 * [ADR012: Assertions](ADR012-Assertions.md)
+* [ADR013: Dependencies](ADR013-Dependencies.md)
 
 ### Rejected ADRs
 
