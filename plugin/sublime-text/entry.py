@@ -2,21 +2,18 @@
 # See end of file for extended copyright information.
 
 import ctypes
+import html
+import os
 from contextlib import contextmanager
 from functools import lru_cache
-from html import escape
-from os import path
 from platform import system
 
 import sublime
 import sublime_plugin
 
-# TODO: Think in a better way to indentify system platform
-# TODO: Should I `from import` or only `import`? Yes
-
 
 def cache(func):
-    return lru_cache(func, maxsize=None)
+    return lru_cache(maxsize=None)(func)
 
 
 def cached_property(func):
@@ -32,7 +29,7 @@ def composed(*decs):
     return decorator
 
 
-class SublimeUtils:  # TODO: Utils or Util?
+class SublimeUtils:
     @composed(staticmethod, cache)
     def major_version():
         return sublime.version()[0]
@@ -44,7 +41,7 @@ class BaseType:
         return ctypes.POINTER(cls)
 
 
-class BaseStructure(BaseType, ctypes.Structure):
+class BaseStruct(BaseType, ctypes.Structure):
     pass
 
 
@@ -52,7 +49,7 @@ class BaseUnion(BaseType, ctypes.Union):
     pass
 
 
-class Diagnostic(BaseStructure):
+class Diagnostic(BaseStruct):
     if SublimeUtils.major_version() == "3":
         _fields_ = [
             ("message", ctypes.c_char_p),
@@ -73,13 +70,13 @@ class Diagnostic(BaseStructure):
         ]
 
 
-class Error(BaseStructure):
+class Error(BaseStruct):
     _fields_ = [
         ("message", ctypes.c_char_p),
     ]
 
 
-class Result(BaseStructure):
+class Result(BaseStruct):
     class Value(BaseUnion):
         _fields_ = [
             ("diagnostics", Diagnostic.pointer()),
@@ -92,15 +89,15 @@ class Result(BaseStructure):
     ]
 
 
-class Parser(BaseStructure):
+class Parser(BaseStruct):
     _fields_ = []
 
 
 def get_module_path():
-    return path.realpath(__file__)
+    return os.path.realpath(__file__)
 
 
-@contextlib.contextmanager
+@contextmanager
 def changed_directory(path):
     previous = os.getcwd()
     try:
@@ -127,7 +124,11 @@ class Object:
         self.lint.restype = Result.pointer()
         if version == "3":
             self.set_text = cdll.qljs_sublime_text_3_set_text
-            self.set_text.argtypes = [Parser.pointer(), ctypes.c_void_p, ctypes.c_size_t]
+            self.set_text.argtypes = [
+                Parser.pointer(),
+                ctypes.c_void_p,
+                ctypes.c_size_t,
+            ]
             self.set_text.restype = Error.pointer()
         elif version == "4":
             self.replace_text = cdll.qljs_sublime_text_4_replace_text
@@ -139,8 +140,8 @@ class Object:
 
 class Library:
     def __init__(self):
-        self.directory = path.dirname(get_module_path())
-        self.path = path.join(self.directory, self.filename)
+        self.directory = os.path.dirname(get_module_path())
+        self.path = os.path.join(self.directory, self.filename)
         with changed_directory(self.directory):
             self.object = Object(ctypes.ctypes.CDLL(self.path))
 
@@ -149,7 +150,7 @@ class Library:
         if system() == "Windows":
             return "quick-lint-js-lib.dll"
         elif system() == "Darwin":
-            return "libquick-lint-js-lib.dylib" # TODO: Remove lib prefix with CMake
+            return "libquick-lint-js-lib.dylib"  # TODO: Remove lib prefix with CMake
         elif system() == "Linux":
             return "libquick-lint-js-lib.so"
 
@@ -166,8 +167,8 @@ def load_library():
     else:
         raise OSError("Operating system not supported.")
 
-    library.directory = path.dirname(get_module_path())
-    library.path = path.join(library.directory, library.filename)
+    library.directory = os.path.dirname(get_module_path())
+    library.path = os.path.join(library.directory, library.filename)
 
     # On Windows, for ctypes to load a library, it also needs to load
     # the dependencies of that library in case the library we want to
@@ -579,9 +580,9 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
             # > Parse Error: quot; code: Unknown entity
             # >
             content = minihtml % (
-                escape(diagnostic.message, quote=False),
-                escape(color, quote=False),
-                escape(diagnostic.code, quote=False),
+                html.escape(diagnostic.message, quote=False),
+                html.escape(color, quote=False),
+                html.escape(diagnostic.code, quote=False),
             )
 
             flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
@@ -754,9 +755,9 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
             """
             color = self.view.style_for_scope("comment.line")["foreground"]
             content = minihtml % (
-                escape(diagnostic.message),
-                escape(color),
-                escape(diagnostic.code),
+                html.escape(diagnostic.message),
+                html.escape(color),
+                html.escape(diagnostic.code),
             )
 
             flags = sublime.HIDE_ON_MOUSE_MOVE_AWAY
