@@ -146,7 +146,7 @@ class Library:
             self.object = Object(ctypes.ctypes.CDLL(self.path))
 
     @cached_property
-    def filename():
+    def filename(self):
         if system() == "Windows":
             return "quick-lint-js-lib.dll"
         elif system() == "Darwin":
