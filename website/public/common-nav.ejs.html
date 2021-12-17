@@ -210,18 +210,16 @@
       <a href="<%= makeRelativeURI('/') %>">Home</a>
     </li>
     <% } %> <% for (let page of navigationPages) { %> <% if (page.subpages) { %>
-    <li>
-      <%- pageLinkHTML(page).replace("<" + "/li>", "") %> <% if (page.uri ===
-      currentURI || page.subpages.some(subpage => subpage.uri === currentURI)) {
+    <%- pageLinkHTML(page).replace("<" + "/li>", "") %> <% if (page.uri ===
+    currentURI || page.subpages.some(subpage => subpage.uri === currentURI)) {
+    %>
+    <ul>
+      <% for (let subpage of page.subpages) { %> <% if (!subpage.hidden ||
+      subpage.uri === currentURI) { %> <%- pageLinkHTML(subpage) %> <% } %> <% }
       %>
-      <ul>
-        <% for (let subpage of page.subpages) { %> <% if (!subpage.hidden ||
-        subpage.uri === currentURI) { %> <%- pageLinkHTML(subpage) %> <% } %> <%
-        } %>
-      </ul>
-      <% } %>
-    </li>
-    <% } else { %> <%- pageLinkHTML(page) %> <% } %> <% } %>
+    </ul>
+    <% } %> <%- "<" + "/li>" %> <% } else { %> <%- pageLinkHTML(page) %> <% } %>
+    <% } %>
   </ul>
 </nav>
 
