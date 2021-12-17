@@ -70,7 +70,10 @@ TEST(test_lex_unicode, is_identifier_character) {
         c == U'\u200c' ||  //
         c == U'\u200d' ||
         ::u_hasBinaryProperty(narrow_cast<::UChar32>(c), UCHAR_ID_CONTINUE);
-    EXPECT_EQ(lexer::is_identifier_character(c), expected) << pretty(c);
+    EXPECT_EQ(
+        lexer::is_identifier_character(c, lexer::identifier_kind::javascript),
+        expected)
+        << pretty(c);
   }
 }
 }

@@ -90,6 +90,11 @@ class test_lex : public ::testing::Test {
     return this->lexers_.back();
   }
 
+  // If true, tell check_tokens_with_errors, lex_to_eof, etc. to call
+  // lexer::skip_in_jsx instead of lexer::skip. This has no effect on the first
+  // token.
+  bool lex_jsx_tokens = false;
+
  private:
   std::deque<lexer> lexers_;
 };
@@ -2519,7 +2524,7 @@ TEST_F(test_lex, is_identifier_byte_agrees_with_is_identifier_character) {
   std::array<bool, 256> is_valid_byte = {};
   is_valid_byte[u8'\\'] = true;
   for (char32_t c = min_code_point; c <= max_code_point; ++c) {
-    if (lexer::is_identifier_character(c)) {
+    if (lexer::is_identifier_character(c, lexer::identifier_kind::javascript)) {
       char8 utf_8[10];
       encode_utf_8(c, utf_8);
       is_valid_byte[static_cast<std::uint8_t>(utf_8[0])] = true;
@@ -2530,6 +2535,112 @@ TEST_F(test_lex, is_identifier_byte_agrees_with_is_identifier_character) {
     EXPECT_EQ(lexer::is_identifier_byte(static_cast<char8>(byte)),
               is_valid_byte[byte])
         << "byte = 0x" << std::hex << byte;
+  }
+}
+
+TEST_F(test_lex, jsx_identifier) {
+  auto check_identifier = [](string8_view tag_code,
+                             string8_view expected_normalized) -> void {
+    SCOPED_TRACE(out_string8(tag_code));
+
+    padded_string code(u8"!" + string8(tag_code));
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '!'.
+
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(),
+              expected_normalized);
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  };
+
+  check_identifier(u8"div"_sv, u8"div"_sv);
+  check_identifier(u8"MyComponent"_sv, u8"MyComponent"_sv);
+  check_identifier(u8"my-web-component"_sv, u8"my-web-component"_sv);
+  check_identifier(u8"MY-WEB-COMPONENT"_sv, u8"MY-WEB-COMPONENT"_sv);
+  check_identifier(u8"test-0"_sv, u8"test-0"_sv);
+  check_identifier(u8"_component_"_sv, u8"_component_"_sv);
+  check_identifier(u8"$component$"_sv, u8"$component$"_sv);
+  check_identifier(u8"test-"_sv, u8"test-"_sv);
+
+  // NOTE(strager): Babel [1] and some other tools reject these. TypeScript
+  // allows these. My reading of the spec is that these are allowed.
+  //
+  // [1] https://github.com/babel/babel/issues/14060
+  check_identifier(u8"\\u{48}ello"_sv, u8"Hello"_sv);
+  check_identifier(u8"\\u{68}ello-world"_sv, u8"hello-world"_sv);
+
+  check_identifier(u8" div "_sv, u8"div"_sv);
+  check_identifier(u8"/**/div/**/"_sv, u8"div"_sv);
+  check_identifier(u8" banana-split "_sv, u8"banana-split"_sv);
+  check_identifier(u8"/**/banana-split/**/"_sv, u8"banana-split"_sv);
+
+  for (string8_view line_terminator : line_terminators) {
+    check_identifier(
+        string8(line_terminator) + u8"banana-split" + string8(line_terminator),
+        u8"banana-split"_sv);
+  }
+
+  check_identifier(u8"<!-- line comment\nbanana-split"_sv, u8"banana-split"_sv);
+  check_identifier(u8"\n--> line comment\nbanana-split"_sv,
+                   u8"banana-split"_sv);
+
+  check_identifier(u8"\u00c1gua"_sv, u8"\u00c1gua"_sv);
+  check_identifier(u8"\u00c1gua-"_sv, u8"\u00c1gua-"_sv);
+}
+
+TEST_F(test_lex, invalid_jsx_identifier) {
+  this->lex_jsx_tokens = true;
+
+  this->check_tokens_with_errors(
+      u8"<hello\\u{2d}world>",
+      {token_type::less, token_type::identifier, token_type::greater},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_escaped_hyphen_not_allowed_in_jsx_tag,  //
+                        escape_sequence, strlen(u8"<hello"), u8"\\u{2d}")));
+      });
+}
+
+TEST_F(test_lex, jsx_tag) {
+  {
+    padded_string code(u8"<svg:rect>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"svg"sv);
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::colon);
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"rect"sv);
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"<myModule.MyComponent>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"myModule"sv);
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::dot);
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"MyComponent"sv);
+
+    EXPECT_THAT(errors.errors, IsEmpty());
   }
 }
 
@@ -2639,7 +2750,11 @@ std::vector<token> test_lex::lex_to_eof(padded_string_view input,
   std::vector<token> tokens;
   while (l.peek().type != token_type::end_of_file) {
     tokens.push_back(l.peek());
-    l.skip();
+    if (this->lex_jsx_tokens) {
+      l.skip_in_jsx();
+    } else {
+      l.skip();
+    }
   }
   return tokens;
 }

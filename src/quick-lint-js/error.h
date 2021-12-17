@@ -340,6 +340,14 @@
             escape_sequence))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_escaped_hyphen_not_allowed_in_jsx_tag, "E0019",                    \
+      { source_code_span escape_sequence; },                                   \
+      ERROR(                                                                   \
+          QLJS_TRANSLATABLE(                                                   \
+              "escaping '-' is not allowed in tag names; write '-' instead"),  \
+          escape_sequence))                                                    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_extra_comma_not_allowed_between_arguments, "E0068",                \
       { source_code_span comma; },                                             \
       ERROR(QLJS_TRANSLATABLE(                                                 \

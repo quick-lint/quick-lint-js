@@ -35,6 +35,11 @@ struct lexer_transaction;
 // w\u0061t is rewritten to wat (followed by padding spaces).
 class lexer {
  public:
+  enum class identifier_kind {
+    javascript,
+    jsx,  // Allows '-'.
+  };
+
   explicit lexer(padded_string_view input, error_reporter*) noexcept;
 
   // Return information about the current token.
@@ -62,6 +67,11 @@ class lexer {
   //
   // The given template_begin is used for error reporting.
   void skip_in_template(const char8* template_begin);
+
+  // Like this->skip(), but interpret identifiers as JSX identifiers.
+  //
+  // JSX identifiers may contain '-'.
+  void skip_in_jsx();
 
   // Reparse a '/' or '/=' token as a regular expression literal.
   //
@@ -210,10 +220,11 @@ class lexer {
 
   parsed_unicode_escape parse_unicode_escape(const char8* input) noexcept;
 
-  parsed_identifier parse_identifier(const char8*);
+  parsed_identifier parse_identifier(const char8*, identifier_kind);
   const char8* parse_identifier_fast_only(const char8*);
   parsed_identifier parse_identifier_slow(const char8* input,
-                                          const char8* identifier_begin);
+                                          const char8* identifier_begin,
+                                          identifier_kind);
 
   void skip_whitespace();
   void skip_block_comment();
@@ -239,7 +250,7 @@ class lexer {
   static bool is_identifier_byte(char8 byte);
 
   static bool is_initial_identifier_character(char32_t code_point);
-  static bool is_identifier_character(char32_t code_point);
+  static bool is_identifier_character(char32_t code_point, identifier_kind);
 
  private:
   static bool is_non_ascii_whitespace_character(char32_t code_point);
