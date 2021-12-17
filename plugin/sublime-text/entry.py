@@ -3,7 +3,17 @@
 
 import collections
 import contextlib
-from ctypes import c_char_p, c_int, c_bool, c_void_p, c_size_t, POINTER, CDLL
+from ctypes import (
+    Structure,
+    Union,
+    c_char_p,
+    c_int,
+    c_bool,
+    c_void_p,
+    c_size_t,
+    POINTER,
+    CDLL,
+)
 from functools import lru_cache
 import html
 import platform
@@ -29,23 +39,24 @@ def composed(*decs):
         for dec in reversed(decs):
             func = dec(func)
         return func
+
     return decorator
 
 
-class Sublime:
+class SublimeUtils:
     @composed(staticmethod, cache)
     def major_version():
         return sublime.version()[0]
 
 
-class Structure:
+class BaseStructure:
     @composed(classmethod, cache)
     def pointer(cls):
         return POINTER(cls)
 
 
-class Diagnostic(Structure, ctypes.Structure):
-    if Sublime.major_version() == "3":
+class Diagnostic(BaseStructure, ctypes.Structure):
+    if SublimeUtils.major_version() == "3":
         _fields_ = [
             ("message", c_char_p),
             ("code", c_char_p),
@@ -53,7 +64,7 @@ class Diagnostic(Structure, ctypes.Structure):
             ("begin_offset", c_int),
             ("end_offset", c_int),
         ]
-    elif Sublime.major_version() == "4":
+    elif SublimeUtils.major_version() == "4":
         _fields_ = [
             ("message", c_char_p),
             ("code", c_char_p),
@@ -65,13 +76,13 @@ class Diagnostic(Structure, ctypes.Structure):
         ]
 
 
-class Error(Structure, ctypes.Structure):
+class Error(BaseStructure, ctypes.Structure):
     _fields_ = [
         ("message", c_char_p),
     ]
 
 
-class Result(Structure, ctypes.Structure):
+class Result(BaseStructure, ctypes.Structure):
     class Value(ctypes.Union):
         _fields_ = [
             ("diagnostics", Diagnostic.pointer()),
@@ -84,7 +95,7 @@ class Result(Structure, ctypes.Structure):
     ]
 
 
-class Parser(Structure, ctypes.Structure):
+class Parser(BaseStructure, ctypes.Structure):
     _fields_ = []
 
 
@@ -105,27 +116,27 @@ def changed_directory(path):
 
 # TODO(cahian): Convert severity value to string ("Error"|"Warning")
 
+
 class Object:
-    def __init__(self, ):  # TODO(cahian): think in a good name for param
-        version = Sublime.major_version()
-        self.create_parser = getattr(, "qljs_st%d_create_parser" % (version))
+    def __init__(self, cdll):  # TODO(cahian): think in a good name for param
+        version = SublimeUtils.major_version()
+        self.create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
         self.create_parser.argtypes = []
         self.create_parser.restype = Parser.pointer()
-        self.destroy_parser = getattr(, "qljs_st%d_destroy_parser" % (version))
+        self.destroy_parser = getattr(cdll, "qljs_st%d_destroy_parser" % (version))
         self.destroy_parser.argtypes = [Parser.pointer()]
         self.destroy_parser.restype = None
-        self.lint = getattr(, "qljs_st%d_lint" % (version))
+        self.lint = getattr(cdll, "qljs_st%d_lint" % (version))
         self.lint.argtypes = [Parser.pointer()]
         self.lint.restype = Result.pointer()
         if version == "3":
-            self.set_text = .qljs_sublime_text_3_set_text
-            self.set_text.argtypes = [ParserPointer, c_void_p, c_size_t]
+            self.set_text = cdll.qljs_sublime_text_3_set_text
+            self.set_text.argtypes = [Parser.pointer(), c_void_p, c_size_t]
             self.set_text.restype = Error.pointer()
         elif version == "4":
-            self.replace_text = .qljs_sublime_text_4_replace_text
+            self.replace_text = cdll.qljs_sublime_text_4_replace_text
             self.replace_text.argtypes = [
-                ParserPointer, c_int, c_int, c_int, c_int, c_void_p, c_size_t,
-                # fmt: skip
+                Parser.pointer(), c_int, c_int, c_int, c_int, c_void_p, c_size_t,  # fmt: skip
             ]
             self.replace_text.restype = Error.pointer()
 
@@ -141,7 +152,7 @@ class Library:
     def filename():
         if platform.system() == "Windows":
             return "quick-lint-js-lib.dll"
-        elif platform.system() == "Darwin":
+        elif platform.system() == "Darwin":  # TODO: Remove lib prefix with CMake
             return "libquick-lint-js-lib.dylib"
         elif platform.system() == "Linux":
             return "libquick-lint-js-lib.so"
@@ -168,10 +179,12 @@ def load_library():
     # to find these dependencies, we will need to temporarily change
     # the current working directory to the same location of these dependencies.
 
-    # It's need multiple DLLs for load the library on Windows, for ctypes find
+    # It's need multiple DLLs for load the library object on Windows, for ctypes find
     # these DLLs we need to change the current directory.
 
-    #
+    # It's need multiple DLLs for load the library object on Windows, these DLLs
+    # are all in the same folder, for ctypes find these DLLs we need to change
+    # the current directory.
     with changed_directory(library.directory):
         library.object = ctypes.CDLL(lib_path)
     return library
