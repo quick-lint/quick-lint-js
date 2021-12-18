@@ -101,6 +101,9 @@ enum class parser_top_level_await_mode {
 struct parser_options {
   parser_top_level_await_mode top_level_await_mode =
       parser_top_level_await_mode::auto_detect;
+
+  // If true, parse JSX langauge extensions: https://facebook.github.io/jsx/
+  bool jsx = false;
 };
 
 // A parser reads JavaScript source code and calls the member functions of a
@@ -869,6 +872,15 @@ class parser {
     case expression_kind::index:
       this->visit_expression(ast->child_0(), v, variable_context::rhs);
       this->visit_expression(ast->child_1(), v, variable_context::rhs);
+      break;
+    case expression_kind::jsx_element: {
+      auto *element = static_cast<expression::jsx_element *>(ast);
+      if (!element->is_intrinsic()) {
+        v.visit_variable_use(element->tag);
+      }
+      break;
+    }
+    case expression_kind::jsx_fragment:
       break;
     case expression_kind::object:
       for (int i = 0; i < ast->object_entry_count(); ++i) {
@@ -3646,6 +3658,11 @@ class parser {
       break;
     }
 
+    case expression_kind::jsx_element:
+      QLJS_UNIMPLEMENTED();
+    case expression_kind::jsx_fragment:
+      QLJS_UNIMPLEMENTED();
+
     case expression_kind::_class:
     case expression_kind::_delete:
     case expression_kind::_new:
@@ -3777,6 +3794,8 @@ class parser {
   expression *parse_object_literal();
 
   expression *parse_class_expression();
+
+  expression *parse_jsx_expression();
 
   expression *parse_template(std::optional<expression *> tag);
 

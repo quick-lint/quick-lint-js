@@ -67,6 +67,7 @@ quick_lint_js_add_executable(
   test-options.cpp
   test-padded-string.cpp
   test-parse-class.cpp
+  test-parse-expression-jsx.cpp
   test-parse-expression-statement.cpp
   test-parse-expression.cpp
   test-parse-function.cpp

@@ -44,9 +44,12 @@ std::string summarize(std::optional<expression*>);
 class test_parser {
  public:
   explicit test_parser(string8_view input)
+      : test_parser(input, parser_options()) {}
+
+  explicit test_parser(string8_view input, const parser_options& options)
       : code_(input),
         locator(&this->code_),
-        parser_(&this->code_, &this->errors_) {}
+        parser_(&this->code_, &this->errors_, options) {}
 
   expression* parse_expression() {
     expression* ast = this->parser_.parse_expression();
@@ -83,7 +86,12 @@ class test_parser {
 class test_parse_expression : public ::testing::Test {
  protected:
   expression* parse_expression(string8_view input) {
-    test_parser& p = this->make_parser(input);
+    return this->parse_expression(input, parser_options());
+  }
+
+  expression* parse_expression(string8_view input,
+                               const parser_options& options) {
+    test_parser& p = this->make_parser(input, options);
 
     expression* ast = p.parse_expression();
     EXPECT_THAT(p.errors(), ::testing::IsEmpty()) << out_string8(input);
@@ -94,11 +102,21 @@ class test_parse_expression : public ::testing::Test {
     return this->parsers_.emplace_back(input);
   }
 
+  test_parser& make_parser(string8_view input, const parser_options& options) {
+    return this->parsers_.emplace_back(input, options);
+  }
+
  private:
   std::deque<test_parser> parsers_;
 };
 
 namespace {
+constexpr parser_options jsx_options = [] {
+  parser_options options;
+  options.jsx = true;
+  return options;
+}();
+
 inline spy_visitor parse_and_visit_module(string8_view raw_code) {
   padded_string code(raw_code);
   spy_visitor v;

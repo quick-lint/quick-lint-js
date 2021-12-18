@@ -467,14 +467,7 @@ expression* parser::parse_primary_expression(precedence prec) {
     if (prec.binary_operators) {
       if (this->peek().type == token_type::less) {
         // <MyComponent /> (JSX)
-        this->error_reporter_->report(
-            error_jsx_not_yet_implemented{.jsx_start = this->peek().span()});
-#if QLJS_HAVE_SETJMP
-        if (this->have_fatal_parse_error_jmp_buf_) {
-          std::longjmp(this->fatal_parse_error_jmp_buf_, 1);
-          QLJS_UNREACHABLE();
-        }
-#endif
+        return this->parse_jsx_expression();
       } else {
         this->error_reporter_->report(
             error_missing_operand_for_operator{this->peek().span()});
@@ -1351,6 +1344,8 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::conditional_assignment:
   case expression_kind::function:
   case expression_kind::index:
+  case expression_kind::jsx_element:
+  case expression_kind::jsx_fragment:
   case expression_kind::named_function:
   case expression_kind::new_target:
   case expression_kind::private_variable:
@@ -2198,6 +2193,81 @@ expression* parser::parse_class_expression() {
 
   return this->make_expression<expression::_class>(
       v, source_code_span(span_begin, span_end));
+}
+
+expression* parser::parse_jsx_expression() {
+  QLJS_ASSERT(this->peek().type == token_type::less);
+
+  if (!this->options_.jsx) {
+    this->error_reporter_->report(
+        error_jsx_not_yet_implemented{.jsx_start = this->peek().span()});
+#if QLJS_HAVE_SETJMP
+    if (this->have_fatal_parse_error_jmp_buf_) {
+      std::longjmp(this->fatal_parse_error_jmp_buf_, 1);
+      QLJS_UNREACHABLE();
+    }
+#endif
+    return this->make_expression<expression::_missing>(this->peek().span());
+  }
+
+  const char8* jsx_begin = this->peek().begin;
+  this->lexer_.skip_in_jsx();
+  switch (this->peek().type) {
+  // <div>
+  case token_type::identifier: {
+    identifier tag = this->lexer_.peek().identifier_name();
+    this->lexer_.skip_in_jsx();
+    switch (this->peek().type) {
+    // <div>
+    case token_type::greater:
+      this->lexer_.skip_in_jsx();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::less);
+      this->lexer_.skip_in_jsx();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::slash);
+      this->lexer_.skip_in_jsx();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      this->lexer_.skip_in_jsx();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
+      break;
+
+    // <div />
+    case token_type::slash:
+      this->lexer_.skip_in_jsx();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
+      break;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+    }
+
+    const char8* jsx_end = this->peek().end;
+    this->lexer_.skip_in_jsx();
+    return this->make_expression<expression::jsx_element>(
+        /*less_begin=*/jsx_begin,
+        /*greater_end=*/jsx_end,
+        /*tag=*/tag);
+  }
+
+  // <> </>
+  case token_type::greater: {
+    this->lexer_.skip_in_jsx();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::less);
+    this->lexer_.skip_in_jsx();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::slash);
+    this->lexer_.skip_in_jsx();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
+
+    const char8* jsx_end = this->peek().end;
+    this->lexer_.skip_in_jsx();
+    return this->make_expression<expression::jsx_fragment>(
+        /*less_begin=*/jsx_begin,
+        /*greater_end=*/jsx_end);
+  }
+
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
+  }
 }
 
 expression* parser::parse_template(std::optional<expression*> tag) {

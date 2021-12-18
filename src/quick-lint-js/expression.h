@@ -16,6 +16,7 @@
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/parse-visitor.h>
+#include <quick-lint-js/string-view.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/vector.h>
@@ -55,6 +56,8 @@ enum class expression_kind {
   function,
   import,
   index,
+  jsx_element,
+  jsx_fragment,
   literal,
   named_function,
   new_target,
@@ -177,6 +180,8 @@ class expression {
   class function;
   class import;
   class index;
+  class jsx_element;
+  class jsx_fragment;
   class literal;
   class named_function;
   class new_target;
@@ -638,6 +643,40 @@ class expression::index final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::index>);
 
+class expression::jsx_element final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::jsx_element;
+
+  explicit jsx_element(const char8 *less_begin, const char8 *greater_end,
+                       const identifier &tag) noexcept
+      : expression(kind), span(less_begin, greater_end), tag(tag) {}
+
+  bool is_intrinsic() const noexcept {
+    // TODO(strager): Have the lexer do this work for us.
+    string8_view name = tag.normalized_name();
+    QLJS_ASSERT(!name.empty());
+    char8 first_char = name[0];
+    return (u8'a' <= first_char && first_char <= u8'z') ||
+           contains(name, u8'-');
+  }
+
+  source_code_span span;
+  identifier tag;
+};
+static_assert(expression_arena::is_allocatable<expression::jsx_element>);
+
+class expression::jsx_fragment final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::jsx_fragment;
+
+  explicit jsx_fragment(const char8 *less_begin,
+                        const char8 *greater_end) noexcept
+      : expression(kind), span(less_begin, greater_end) {}
+
+  source_code_span span;
+};
+static_assert(expression_arena::is_allocatable<expression::jsx_fragment>);
+
 class expression::literal final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::literal;
@@ -854,6 +893,8 @@ inline identifier expression::variable_identifier() const noexcept {
   switch (this->kind_) {
   case expression_kind::dot:
     return static_cast<const expression::dot *>(this)->variable_identifier_;
+  case expression_kind::jsx_element:
+    return static_cast<const expression::jsx_element *>(this)->tag;
   case expression_kind::named_function:
     return static_cast<const expression::named_function *>(this)
         ->variable_identifier_;
@@ -1095,6 +1136,10 @@ inline source_code_span expression::span() const noexcept {
     return source_code_span(index->child_0()->span().begin(),
                             index->index_subscript_end_);
   }
+  case expression_kind::jsx_element:
+    return static_cast<const jsx_element *>(this)->span;
+  case expression_kind::jsx_fragment:
+    return static_cast<const jsx_fragment *>(this)->span;
   case expression_kind::literal:
     return static_cast<const literal *>(this)->span_;
   case expression_kind::named_function:

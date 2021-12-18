@@ -30,6 +30,12 @@ inline std::string_view remove_suffix_if_present(
 inline bool contains(std::string_view haystack, std::string_view needle) {
   return haystack.find(needle) != haystack.npos;
 }
+
+template <class Char>
+inline bool contains(std::basic_string_view<Char> haystack,
+                     Char needle) noexcept {
+  return haystack.find(needle) != haystack.npos;
+}
 }
 
 #endif

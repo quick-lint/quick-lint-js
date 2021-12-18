@@ -20,16 +20,19 @@
 
 using ::testing::Contains;
 using ::testing::ElementsAre;
+using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse, jsx_is_not_supported) {
+TEST(test_parse_jsx, jsx_is_not_supported_in_vanilla_javascript) {
   // If parsing was not started with
   // parse_and_visit_module_catching_fatal_parse_errors, then we can't halt
   // parsing at the '<'. Error recovery will do a bad job.
   padded_string code(u8"<MyComponent attr={value}>hello</MyComponent>"_sv);
   spy_visitor v;
-  parser p(&code, &v);
+  parser_options options;
+  options.jsx = false;
+  parser p(&code, &v, options);
   p.parse_and_visit_module(v);
   EXPECT_THAT(v.errors, Contains(ERROR_TYPE_OFFSETS(
                             &code, error_jsx_not_yet_implemented,  //
@@ -37,10 +40,12 @@ TEST(test_parse, jsx_is_not_supported) {
 }
 
 #if QLJS_HAVE_SETJMP
-TEST(test_parse, parsing_stops_on_jsx) {
+TEST(test_parse_jsx, parsing_stops_on_jsx_in_vanilla_javascript) {
   padded_string code(u8"<MyComponent attr={value}>hello</MyComponent>"_sv);
   spy_visitor v;
-  parser p(&code, &v);
+  parser_options options;
+  options.jsx = false;
+  parser p(&code, &v, options);
   bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
   EXPECT_FALSE(ok);
   EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
@@ -48,6 +53,29 @@ TEST(test_parse, parsing_stops_on_jsx) {
                             jsx_start, 0, u8"<")));
 }
 #endif
+
+TEST(test_parse_jsx, empty_intrinsic_element) {
+  padded_string code(u8"c = <div></div>;"_sv);
+  spy_visitor v;
+  parser p(&code, &v, jsx_options);
+  p.parse_and_visit_module(v);
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_assignment",  // c
+                                    "visit_end_of_module"));
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_parse_jsx, empty_user_element) {
+  padded_string code(u8"c = <MyComponent></MyComponent>;"_sv);
+  spy_visitor v;
+  parser p(&code, &v, jsx_options);
+  p.parse_and_visit_module(v);
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // MyComponent
+                                    "visit_variable_assignment",  // c
+                                    "visit_end_of_module"));
+  EXPECT_THAT(v.variable_uses,
+              ElementsAre(spy_visitor::visited_variable_use{u8"MyComponent"}));
+  EXPECT_THAT(v.errors, IsEmpty());
+}
 }
 }
 
