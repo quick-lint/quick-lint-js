@@ -77,6 +77,7 @@ void emacs_lisp_error_formatter::write_after_message(
     return;
   }
   this->output_ << "\")";
+  this->output_.flush();
 }
 }
 

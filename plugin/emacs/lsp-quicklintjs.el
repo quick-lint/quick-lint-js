@@ -1,4 +1,27 @@
-;;; lsp-quicklintjs --- LSP support for quick-lint-js   -*- lexical-binding: t; -*-
+;;; lsp-quicklintjs.el --- LSP support for quick-lint-js   -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2020 Matthew "strager" Glazar
+
+;; Version: 0.0.1
+;; Author: Wagner Riffel <w@104d.net>
+;; URL: https://quick-lint-js.com
+;; Keywords: languages, tools
+;; Package-Requires: ((quicklintjs "0.0.1") (lsp-mode "7.0.1") (emacs "26.1"))
+
+;; This file is part of quick-lint-js.
+;;
+;; quick-lint-js is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; quick-lint-js is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -18,46 +41,32 @@
 ;;; Code:
 
 (require 'lsp-mode)
+(require 'quicklintjs)
 
-(defgroup lsp-quicklintjs nil
-  "quick-lint-js LSP Mode integration."
-  :link '(url-link :tag "Website" "https://quick-lint-js.com"))
+;;;###autoload
+(defun lsp-quicklintjs ()
+  "Like `lsp', but set root folder to `default-directory' to avoid project root\
+prompts."
+  (interactive)
+  ;; Don't mess with user's session state file
+  (set (make-local-variable 'lsp-session-file)
+       (expand-file-name (locate-user-emacs-file
+                          ".lsp-quicklintjs-session-v1")))
+  (let* ((session (lsp-session)))
+    (cl-pushnew (expand-file-name default-directory)
+                (lsp-session-folders session) :test 'equal)
+    (lsp--persist-session session))
+ (lsp))
 
-(defcustom lsp-quicklintjs-program "quick-lint-js"
-  "Path to quick-lint-js program to run."
-  :group 'lsp-quicklintjs
-  :type 'stringp)
-
-(defcustom lsp-quicklintjs-args nil
-  "Arguments to quick-lint-js."
-  :group 'lsp-quicklintjs
-  :type '(repeat string))
-
-(lsp-register-client
- (make-lsp-client
-  :new-connection (lsp-stdio-connection `(,lsp-quicklintjs-program "--lsp-server"
-                                                                     ,@lsp-quicklintjs-args))
-  :major-modes '(js-mode)
-  :server-id 'quick-lint-js))
+;;;###autoload
+(with-eval-after-load 'lsp-mode
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection `,(quicklintjs-find-program
+                                             "--lsp-server"))
+    :major-modes '(js-mode)
+    :server-id 'quick-lint-js)))
 
 (provide 'lsp-quicklintjs)
-
-;; quick-lint-js finds bugs in JavaScript programs.
-;; Copyright (C) 2020  Matthew Glazar
-;;
-;; This file is part of quick-lint-js.
-;;
-;; quick-lint-js is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-;;
-;; quick-lint-js is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; lsp-quicklintjs.el ends here
