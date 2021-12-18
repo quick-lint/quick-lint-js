@@ -30,8 +30,6 @@ using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {
-std::string string8_to_string(string8_view);
-
 TEST_F(test_parse_expression, parse_single_token_expression) {
   {
     test_parser p(u8"x"_sv);
@@ -635,8 +633,7 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
     SCOPED_TRACE(out_string8(keyword));
     string8 code = u8"promise." + keyword;
     expression* ast = this->parse_expression(code.c_str());
-    EXPECT_EQ(summarize(ast),
-              "dot(var promise, " + string8_to_string(keyword) + ")");
+    EXPECT_EQ(summarize(ast), "dot(var promise, " + to_string(keyword) + ")");
   }
 
   {
@@ -3643,14 +3640,6 @@ TEST_F(test_parse_expression, precedence) {
     }
   }
 }
-
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-std::string string8_to_string(string8_view sv) {
-  return std::string(
-      std::string_view(reinterpret_cast<const char*>(sv.data()), sv.size()));
-}
-QLJS_WARNING_POP
 }
 }
 
