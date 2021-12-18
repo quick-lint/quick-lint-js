@@ -2604,6 +2604,104 @@ TEST_F(test_lex, invalid_jsx_identifier) {
       });
 }
 
+TEST_F(test_lex, jsx_string) {
+  auto check_string = [](string8_view string_code) -> void {
+    SCOPED_TRACE(out_string8(string_code));
+
+    padded_string code(u8"!" + string8(string_code));
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '!'.
+
+    EXPECT_EQ(l.peek().type, token_type::string);
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  };
+
+  check_string(u8R"('hello')"sv);
+  check_string(u8R"("hello")"sv);
+
+  // Backslashes are ignored.
+  check_string(u8R"("hello\nworld")"sv);
+  check_string(u8R"("hello\")"sv);
+  check_string(u8R"("hello\\")"sv);
+  check_string(u8R"('hello\')"sv);
+  check_string(u8R"('hello\\')"sv);
+  check_string(u8R"('hello\u{}world')"sv);
+  check_string(u8R"('hello\u00xyworld')"sv);
+  check_string(u8R"('hello\u00')"sv);
+
+  // Null bytes are allowed.
+  check_string(u8"'hello\u0000world'"sv);
+  check_string(u8"'\u0000world'"sv);
+  check_string(u8"'hello\u0000'"sv);
+
+  // Line terminators are allowed.
+  for (string8_view line_terminator : line_terminators) {
+    check_string(u8"'hello" + string8(line_terminator) + u8"world'");
+  }
+}
+
+// Despite what the JSX specification says, comments are not interpreted in
+// attribute strings.
+// https://github.com/facebook/jsx/pull/133
+TEST_F(test_lex, jsx_string_ignores_comments) {
+  {
+    padded_string code(u8"! 'hello // '\nworld'"sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '!'.
+
+    EXPECT_EQ(l.peek().type, token_type::string);
+    EXPECT_EQ(l.peek().begin, &code[strlen(u8"! ")]);
+    EXPECT_EQ(l.peek().end, &code[strlen(u8"! 'hello // '")])
+        << "string should end at ', treating // as part of the string";
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"world");
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8R"(! "hello/* not"comment */world")"sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '!'.
+
+    EXPECT_EQ(l.peek().type, token_type::string);
+    EXPECT_EQ(l.peek().begin, &code[strlen(u8"! ")]);
+    EXPECT_EQ(l.peek().end, &code[strlen(u8R"(! "hello/* not")")])
+        << "string should end at \", treating /* as part of the string";
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"comment");
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+}
+
+TEST_F(test_lex, unterminated_jsx_string) {
+  padded_string code(u8"! 'hello"sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+  l.skip_in_jsx();  // Ignore '!'.
+
+  EXPECT_EQ(l.peek().type, token_type::string);
+  EXPECT_THAT(errors.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                 &code,
+                                 error_unclosed_jsx_string_literal,  //
+                                 string_literal_begin, strlen(u8"! "), u8"'")));
+
+  l.skip_in_jsx();
+  EXPECT_EQ(l.peek().type, token_type::end_of_file);
+}
+
 TEST_F(test_lex, jsx_tag) {
   {
     padded_string code(u8"<svg:rect>"_sv);

@@ -809,6 +809,23 @@ const char8* lexer::parse_string_literal() noexcept {
   }
 }
 
+const char8* lexer::parse_jsx_string_literal() noexcept {
+  char8 opening_quote = this->input_[0];
+  const char8* c = &this->input_[1];
+  for (; *c != opening_quote; ++c) {
+    if (*c == '\0' && this->is_eof(c)) {
+      this->error_reporter_->report(error_unclosed_jsx_string_literal{
+          .string_literal_begin =
+              source_code_span(&this->input_[0], &this->input_[1]),
+      });
+      return c;
+    }
+    // Loop.
+  }
+  ++c;
+  return c;
+}
+
 void lexer::skip_in_template(const char8* template_begin) {
   this->last_token_.begin = this->input_;
   parsed_template_body body = this->parse_template_body(
@@ -894,6 +911,13 @@ retry:
     this->last_token_.type = token_type::identifier;
     break;
   }
+
+  case '"':
+  case '\'':
+    this->input_ = this->parse_jsx_string_literal();
+    this->last_token_.type = token_type::string;
+    this->last_token_.end = this->input_;
+    break;
 
   default:
     if (!this->try_parse_current_token()) {

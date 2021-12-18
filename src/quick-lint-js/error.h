@@ -1128,6 +1128,12 @@
       ERROR(QLJS_TRANSLATABLE("unclosed string literal"), string_literal))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unclosed_jsx_string_literal, "E0181",                              \
+      { source_code_span string_literal_begin; },                              \
+      ERROR(QLJS_TRANSLATABLE("unclosed string literal"),                      \
+            string_literal_begin))                                             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unclosed_template, "E0041",                                        \
       { source_code_span incomplete_template; },                               \
       ERROR(QLJS_TRANSLATABLE("unclosed template"), incomplete_template))      \

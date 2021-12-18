@@ -68,9 +68,10 @@ class lexer {
   // The given template_begin is used for error reporting.
   void skip_in_template(const char8* template_begin);
 
-  // Like this->skip(), but interpret identifiers as JSX identifiers.
+  // Like this->skip(), but interpret identifiers and strings as JSX identifiers
+  // and strings.
   //
-  // JSX identifiers may contain '-'.
+  // JSX identifiers may contain '-'. JSX strings do not support '\' escapes.
   void skip_in_jsx();
 
   // Reparse a '/' or '/=' token as a regular expression literal.
@@ -192,6 +193,7 @@ class lexer {
   bool try_parse_current_token();
 
   const char8* parse_string_literal() noexcept;
+  const char8* parse_jsx_string_literal() noexcept;
 
   parsed_template_body parse_template_body(const char8* input,
                                            const char8* template_begin,
