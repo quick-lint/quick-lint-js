@@ -9,7 +9,7 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/options.h>
-#include <sstream>
+#include <quick-lint-js/output-stream.h>
 #include <string_view>
 #include <vector>
 
@@ -473,21 +473,23 @@ TEST(test_options, dump_errors) {
     options o;
     o.error_unrecognized_options.clear();
 
-    std::ostringstream dumped_errors;
+    memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
     EXPECT_FALSE(have_errors);
-    EXPECT_EQ(dumped_errors.str(), "");
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(), u8"");
   }
 
   {
     options o;
     o.error_unrecognized_options.push_back("--bad-option");
 
-    std::ostringstream dumped_errors;
+    memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
     EXPECT_TRUE(have_errors);
-    EXPECT_EQ(dumped_errors.str(),
-              "error: unrecognized option: --bad-option\n");
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"error: unrecognized option: --bad-option\n");
   }
 
   {
@@ -498,24 +500,26 @@ TEST(test_options, dump_errors) {
     parsed_errors.excluded_codes.emplace_back("E9999");
     o.exit_fail_on.add(parsed_errors);
 
-    std::ostringstream dumped_errors;
+    memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
     EXPECT_FALSE(have_errors);
-    EXPECT_EQ(dumped_errors.str(),
-              "warning: unknown error category: banana\n"
-              "warning: unknown error code: E9999\n");
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: unknown error category: banana\n"
+              u8"warning: unknown error code: E9999\n");
   }
 
   {
     options o;
     o.exit_fail_on.add(parsed_error_list());
 
-    std::ostringstream dumped_errors;
+    memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
     EXPECT_TRUE(have_errors);
-    EXPECT_EQ(
-        dumped_errors.str(),
-        "error: --exit-fail-on must be given at least one category or code\n");
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"error: --exit-fail-on must be given at least one category or "
+              u8"code\n");
   }
 
   {
@@ -523,10 +527,11 @@ TEST(test_options, dump_errors) {
     o.lsp_server = true;
     o.output_format = output_format::default_format;
 
-    std::ostringstream dumped_errors;
+    memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
     EXPECT_FALSE(have_errors);
-    EXPECT_EQ(dumped_errors.str(), "");
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(), u8"");
   }
 
   {
@@ -539,11 +544,12 @@ TEST(test_options, dump_errors) {
       o.lsp_server = true;
       o.output_format = format;
 
-      std::ostringstream dumped_errors;
+      memory_output_stream dumped_errors;
       bool have_errors = o.dump_errors(dumped_errors);
       EXPECT_FALSE(have_errors);
-      EXPECT_EQ(dumped_errors.str(),
-                "warning: --output-format ignored with --lsp-server\n");
+      dumped_errors.flush();
+      EXPECT_EQ(dumped_errors.get_flushed_string8(),
+                u8"warning: --output-format ignored with --lsp-server\n");
     }
   }
 
@@ -552,11 +558,12 @@ TEST(test_options, dump_errors) {
     o.lsp_server = true;
     o.has_config_file = true;
 
-    std::ostringstream dumped_errors;
+    memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
     EXPECT_FALSE(have_errors);
-    EXPECT_EQ(dumped_errors.str(),
-              "warning: --config-file ignored in --lsp-server mode\n");
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: --config-file ignored in --lsp-server mode\n");
   }
 
   {
@@ -571,12 +578,13 @@ TEST(test_options, dump_errors) {
     o.lsp_server = true;
     o.files_to_lint.emplace_back(file);
 
-    std::ostringstream dumped_errors;
+    memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
     EXPECT_FALSE(have_errors);
-    EXPECT_EQ(dumped_errors.str(),
-              "warning: ignoring files given on command line in "
-              "--lsp-server mode\n");
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: ignoring files given on command line in "
+              u8"--lsp-server mode\n");
   }
 
   {
@@ -584,11 +592,12 @@ TEST(test_options, dump_errors) {
     o.lsp_server = true;
     o.exit_fail_on.add(parse_error_list("E0001"));
 
-    std::ostringstream dumped_errors;
+    memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
     EXPECT_FALSE(have_errors);
-    EXPECT_EQ(dumped_errors.str(),
-              "warning: --exit-fail-on ignored with --lsp-server\n");
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: --exit-fail-on ignored with --lsp-server\n");
   }
 }
 }

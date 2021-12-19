@@ -193,7 +193,7 @@ void handle_options(quick_lint_js::options o) {
     quick_lint_js::print_version_information();
     std::exit(EXIT_SUCCESS);
   }
-  if (o.dump_errors(std::cerr)) {
+  if (o.dump_errors(*file_output_stream::get_stderr())) {
     std::exit(EXIT_FAILURE);
   }
   if (o.lsp_server) {

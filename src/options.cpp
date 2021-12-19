@@ -5,12 +5,12 @@
 #include <cstdlib>
 #include <cstring>
 #include <optional>
-#include <ostream>
 #include <quick-lint-js/arg-parser.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/options.h>
+#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/warning.h>
 #include <string_view>
@@ -134,37 +134,47 @@ done_parsing_options:
   return o;
 }
 
-bool options::dump_errors(std::ostream& out) const {
+bool options::dump_errors(output_stream& out) const {
   bool have_errors = false;
   if (this->lsp_server) {
     if (this->exit_fail_on.is_user_provided()) {
-      out << "warning: --exit-fail-on ignored with --lsp-server\n";
+      out.append_copy(
+          u8"warning: --exit-fail-on ignored with --lsp-server\n"sv);
     }
     if (this->output_format != output_format::default_format) {
-      out << "warning: --output-format ignored with --lsp-server\n";
+      out.append_copy(
+          u8"warning: --output-format ignored with --lsp-server\n"sv);
     }
     if (!this->files_to_lint.empty()) {
-      out << "warning: ignoring files given on command line in "
-             "--lsp-server mode\n";
+      out.append_copy(
+          u8"warning: ignoring files given on command line in --lsp-server mode\n"sv);
     }
     if (this->has_config_file) {
-      out << "warning: --config-file ignored in --lsp-server mode\n";
+      out.append_copy(
+          u8"warning: --config-file ignored in --lsp-server mode\n"sv);
     }
   }
   if (this->has_multiple_stdin) {
-    out << "warning: multiple standard input given on command line\n";
+    out.append_copy(
+        u8"warning: multiple standard input given on command line\n"sv);
   }
   for (const auto& option : this->error_unrecognized_options) {
-    out << "error: unrecognized option: " << option << '\n';
+    out.append_copy(u8"error: unrecognized option: "sv);
+    out.append_copy(to_string8_view(option));
+    out.append_copy(u8'\n');
     have_errors = true;
   }
   for (const std::string& error :
        this->exit_fail_on.parse_errors("--exit-fail-on")) {
-    out << "error: " << error << '\n';
+    out.append_copy(u8"error: "sv);
+    out.append_copy(to_string8_view(error));
+    out.append_copy(u8'\n');
     have_errors = true;
   }
   for (const std::string& warning : this->exit_fail_on.parse_warnings()) {
-    out << "warning: " << warning << '\n';
+    out.append_copy(u8"warning: "sv);
+    out.append_copy(to_string8_view(warning));
+    out.append_copy(u8'\n');
   }
   return have_errors;
 }
