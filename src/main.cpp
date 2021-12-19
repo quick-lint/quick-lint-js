@@ -51,6 +51,26 @@
 
 namespace quick_lint_js {
 namespace {
+bool stderr_supports_terminal_escapes() {
+#if defined(_WIN32)
+  return false;
+#else
+  return isatty(STDERR_FILENO);
+#endif
+}
+
+bool get_escape_errors(option_when escape_errors) {
+  switch (escape_errors) {
+  case option_when::auto_:
+    return stderr_supports_terminal_escapes();
+  case option_when::always:
+    return true;
+  case option_when::never:
+    return false;
+  }
+  QLJS_UNREACHABLE();
+}
+
 class any_error_reporter {
  public:
   static any_error_reporter make(output_format format,
@@ -60,7 +80,9 @@ class any_error_reporter {
     case output_format::default_format:
     case output_format::gnu_like:
       return any_error_reporter(error_tape<text_error_reporter>(
-          text_error_reporter(std::cerr, escape_errors), exit_fail_on));
+          text_error_reporter(
+              std::cerr, /*escape_errors=*/get_escape_errors(escape_errors)),
+          exit_fail_on));
     case output_format::vim_qflist_json:
       return any_error_reporter(error_tape<vim_qflist_json_error_reporter>(
           vim_qflist_json_error_reporter(std::cout), exit_fail_on));

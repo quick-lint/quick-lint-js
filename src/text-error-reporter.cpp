@@ -16,32 +16,9 @@
 #endif
 
 namespace quick_lint_js {
-text_error_reporter::text_error_reporter(std::ostream &output)
-    : output_(output), format_escape_errors_(this->output_supports_escapes()) {}
-
 text_error_reporter::text_error_reporter(std::ostream &output,
-                                         option_when escape_errors)
-    : output_(output) {
-  switch (escape_errors) {
-  case option_when::auto_:
-    this->format_escape_errors_ = this->output_supports_escapes();
-    break;
-  case option_when::always:
-    this->format_escape_errors_ = true;
-    break;
-  case option_when::never:
-    this->format_escape_errors_ = false;
-    break;
-  }
-}
-
-bool text_error_reporter::output_supports_escapes() {
-#if defined(_WIN32)
-  return false;
-#else
-  return this->output_.rdbuf() == std::cerr.rdbuf() && isatty(STDERR_FILENO);
-#endif
-}
+                                         bool escape_errors)
+    : output_(output), format_escape_errors_(escape_errors) {}
 
 void text_error_reporter::set_source(padded_string_view input,
                                      const char *file_path) {

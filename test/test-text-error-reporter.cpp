@@ -16,18 +16,17 @@ namespace {
 class test_text_error_reporter : public ::testing::Test {
  protected:
   text_error_reporter make_reporter() {
-    return text_error_reporter(this->stream_);
+    return text_error_reporter(this->stream_, /*escape_errors=*/false);
   }
 
   text_error_reporter make_reporter(padded_string_view input) {
-    text_error_reporter reporter(this->stream_);
-    reporter.set_source(input, this->file_path_);
-    return reporter;
+    return this->make_reporter(input, /*escape_errors=*/false);
   }
 
   text_error_reporter make_reporter(padded_string_view input,
-                                    option_when escape_error) {
-    text_error_reporter reporter(this->stream_, escape_error);
+                                    bool escape_errors) {
+    text_error_reporter reporter(this->stream_,
+                                 /*escape_errors=*/escape_errors);
     reporter.set_source(input, this->file_path_);
     return reporter;
   }
@@ -145,7 +144,7 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable_escaped_error) {
   source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
   ASSERT_EQ(myvar_span.string_view(), u8"myvar");
 
-  this->make_reporter(&input, option_when::always)
+  this->make_reporter(&input, /*escape_errors=*/true)
       .report(error_use_of_undeclared_variable{identifier(myvar_span)});
   EXPECT_EQ(this->get_output(),
             "FILE:1:1: warning: use of undeclared variable: myvar [" +
