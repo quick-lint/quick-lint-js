@@ -262,93 +262,132 @@ void handle_options(quick_lint_js::options o) {
 
 class debug_visitor {
  public:
-  void visit_end_of_module() { std::fprintf(stderr, "end of module\n"); }
+  void visit_end_of_module() {
+    this->output_->append_copy(u8"end of module\n"sv);
+    this->output_->flush();
+  }
 
   void visit_enter_block_scope() {
-    std::fprintf(stderr, "entered block scope\n");
+    this->output_->append_copy(u8"entered block scope\n"sv);
+    this->output_->flush();
   }
 
   void visit_enter_with_scope() {
-    std::fprintf(stderr, "entered with scope\n");
+    this->output_->append_copy(u8"entered with scope\n"sv);
+    this->output_->flush();
   }
 
   void visit_enter_class_scope() {
-    std::fprintf(stderr, "entered class scope\n");
+    this->output_->append_copy(u8"entered class scope\n"sv);
+    this->output_->flush();
   }
 
-  void visit_enter_for_scope() { std::fprintf(stderr, "entered for scope\n"); }
+  void visit_enter_for_scope() {
+    this->output_->append_copy(u8"entered for scope\n"sv);
+    this->output_->flush();
+  }
 
   void visit_enter_function_scope() {
-    std::fprintf(stderr, "entered function scope\n");
+    this->output_->append_copy(u8"entered function scope\n"sv);
+    this->output_->flush();
   }
 
   void visit_enter_function_scope_body() {
-    std::fprintf(stderr, "entered function scope body\n");
+    this->output_->append_copy(u8"entered function scope body\n"sv);
+    this->output_->flush();
   }
 
   void visit_enter_named_function_scope(identifier) {
-    std::fprintf(stderr, "entered named function scope\n");
+    this->output_->append_copy(u8"entered named function scope\n"sv);
+    this->output_->flush();
   }
 
   void visit_exit_block_scope() {
-    std::fprintf(stderr, "exited block scope\n");
+    this->output_->append_copy(u8"exited block scope\n"sv);
+    this->output_->flush();
   }
 
-  void visit_exit_with_scope() { std::fprintf(stderr, "exited with scope\n"); }
+  void visit_exit_with_scope() {
+    this->output_->append_copy(u8"exited with scope\n"sv);
+    this->output_->flush();
+  }
 
   void visit_exit_class_scope() {
-    std::fprintf(stderr, "exited class scope\n");
+    this->output_->append_copy(u8"exited class scope\n"sv);
+    this->output_->flush();
   }
 
-  void visit_exit_for_scope() { std::fprintf(stderr, "exited for scope\n"); }
+  void visit_exit_for_scope() {
+    this->output_->append_copy(u8"exited for scope\n"sv);
+    this->output_->flush();
+  }
 
   void visit_exit_function_scope() {
-    std::fprintf(stderr, "exited function scope\n");
+    this->output_->append_copy(u8"exited function scope\n"sv);
+    this->output_->flush();
   }
 
   void visit_keyword_variable_use(identifier name) {
-    std::cerr << "keyword variable use: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"keyword variable use: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_property_declaration(std::optional<identifier> name) {
-    std::cerr << "property declaration";
+    this->output_->append_copy(u8"property declaration"sv);
     if (name.has_value()) {
-      std::cerr << ": " << out_string8(name->normalized_name());
+      this->output_->append_copy(u8": "sv);
+      this->output_->append_copy(name->normalized_name());
     }
-    std::cerr << '\n';
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_variable_assignment(identifier name) {
-    std::cerr << "variable assignment: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"variable assignment: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_variable_declaration(identifier name, variable_kind) {
-    std::cerr << "variable declaration: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"variable declaration: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_variable_delete_use(
       identifier name, [[maybe_unused]] source_code_span delete_keyword) {
-    std::cerr << "variable delete use: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"variable delete use: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_variable_export_use(identifier name) {
-    std::cerr << "variable export use: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"variable export use: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_variable_typeof_use(identifier name) {
-    std::cerr << "variable typeof use: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"variable typeof use: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_variable_use(identifier name) {
-    std::cerr << "variable use: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"variable use: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
+
+  file_output_stream *output_ = file_output_stream::get_stderr();
 };
 QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(debug_visitor);
 
