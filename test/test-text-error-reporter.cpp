@@ -7,16 +7,19 @@
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/options.h>
+#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/text-error-reporter.h>
-#include <sstream>
+#include <string>
+
+using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {
 class test_text_error_reporter : public ::testing::Test {
  protected:
   text_error_reporter make_reporter() {
-    return text_error_reporter(this->stream_, /*escape_errors=*/false);
+    return text_error_reporter(&this->stream_, /*escape_errors=*/false);
   }
 
   text_error_reporter make_reporter(padded_string_view input) {
@@ -25,22 +28,25 @@ class test_text_error_reporter : public ::testing::Test {
 
   text_error_reporter make_reporter(padded_string_view input,
                                     bool escape_errors) {
-    text_error_reporter reporter(this->stream_,
+    text_error_reporter reporter(&this->stream_,
                                  /*escape_errors=*/escape_errors);
     reporter.set_source(input, this->file_path_);
     return reporter;
   }
 
-  std::string get_output() { return this->stream_.str(); }
+  string8 get_output() {
+    this->stream_.flush();
+    return this->stream_.get_flushed_string8();
+  }
 
-  std::string create_escape_error_code(std::string code) {
-    return "\x1B]8;;https://quick-lint-js.com/errors/#" + code + "\x1B\\" +
-           code + "\x1B]8;;\x1B\\";
+  string8 create_escape_error_code(const char8* code) {
+    return u8"\x1B]8;;https://quick-lint-js.com/errors/#"s + code + u8"\x1B\\" +
+           code + u8"\x1B]8;;\x1B\\";
   }
 
  private:
-  std::ostringstream stream_;
-  static constexpr const char *file_path_ = "FILE";
+  memory_output_stream stream_;
+  static constexpr const char* file_path_ = "FILE";
 };
 
 TEST_F(test_text_error_reporter, change_source) {
@@ -58,8 +64,8 @@ TEST_F(test_text_error_reporter, change_source) {
 
   EXPECT_EQ(
       this->get_output(),
-      "hello.js:1:4: error: assignment to const global variable [E0002]\n"
-      "world.js:1:5: error: assignment to const global variable [E0002]\n");
+      u8"hello.js:1:4: error: assignment to const global variable [E0002]\n"
+      u8"world.js:1:5: error: assignment to const global variable [E0002]\n");
 }
 
 TEST_F(test_text_error_reporter, assignment_before_variable_declaration) {
@@ -75,8 +81,8 @@ TEST_F(test_text_error_reporter, assignment_before_variable_declaration) {
           .declaration = identifier(declaration_span)});
   EXPECT_EQ(
       this->get_output(),
-      "FILE:1:1: error: variable assigned before its declaration [E0001]\n"
-      "FILE:1:9: note: variable declared here [E0001]\n");
+      u8"FILE:1:1: error: variable assigned before its declaration [E0001]\n"
+      u8"FILE:1:9: note: variable declared here [E0001]\n");
 }
 
 TEST_F(test_text_error_reporter, assignment_to_const_global_variable) {
@@ -87,7 +93,7 @@ TEST_F(test_text_error_reporter, assignment_to_const_global_variable) {
   this->make_reporter(&input).report(
       error_assignment_to_const_global_variable{identifier(infinity_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:4: error: assignment to const global variable [E0002]\n");
+            u8"FILE:1:4: error: assignment to const global variable [E0002]\n");
 }
 
 TEST_F(test_text_error_reporter, expected_parenthesis_around_if_condition) {
@@ -100,8 +106,8 @@ TEST_F(test_text_error_reporter, expected_parenthesis_around_if_condition) {
           .token = '(',
       });
   EXPECT_EQ(this->get_output(),
-            "FILE:1:4: error: if statement is missing '(' around condition "
-            "[E0018]\n");
+            u8"FILE:1:4: error: if statement is missing '(' around condition "
+            u8"[E0018]\n");
 }
 
 TEST_F(test_text_error_reporter, redeclaration_of_variable) {
@@ -114,8 +120,8 @@ TEST_F(test_text_error_reporter, redeclaration_of_variable) {
   this->make_reporter(&input).report(error_redeclaration_of_variable{
       identifier(redeclaration_span), identifier(original_declaration_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:16: error: redeclaration of variable: myvar [E0034]\n"
-            "FILE:1:5: note: variable already declared here [E0034]\n");
+            u8"FILE:1:16: error: redeclaration of variable: myvar [E0034]\n"
+            u8"FILE:1:5: note: variable already declared here [E0034]\n");
 }
 
 TEST_F(test_text_error_reporter, unexpected_hash_character) {
@@ -125,7 +131,7 @@ TEST_F(test_text_error_reporter, unexpected_hash_character) {
 
   this->make_reporter(&input).report(
       error_unexpected_hash_character{hash_span});
-  EXPECT_EQ(this->get_output(), "FILE:1:1: error: unexpected '#' [E0052]\n");
+  EXPECT_EQ(this->get_output(), u8"FILE:1:1: error: unexpected '#' [E0052]\n");
 }
 
 TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
@@ -136,7 +142,7 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
   this->make_reporter(&input).report(
       error_use_of_undeclared_variable{identifier(myvar_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:1: warning: use of undeclared variable: myvar [E0057]\n");
+            u8"FILE:1:1: warning: use of undeclared variable: myvar [E0057]\n");
 }
 
 TEST_F(test_text_error_reporter, use_of_undeclared_variable_escaped_error) {
@@ -147,8 +153,8 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable_escaped_error) {
   this->make_reporter(&input, /*escape_errors=*/true)
       .report(error_use_of_undeclared_variable{identifier(myvar_span)});
   EXPECT_EQ(this->get_output(),
-            "FILE:1:1: warning: use of undeclared variable: myvar [" +
-                this->create_escape_error_code("E0057") + "]\n");
+            u8"FILE:1:1: warning: use of undeclared variable: myvar [" +
+                this->create_escape_error_code(u8"E0057") + u8"]\n");
 }
 }
 }

@@ -65,6 +65,7 @@ quick_lint_js_add_executable(
   test-math-overflow.cpp
   test-narrow-cast.cpp
   test-options.cpp
+  test-output-stream.cpp
   test-padded-string.cpp
   test-parse-class.cpp
   test-parse-expression-jsx.cpp

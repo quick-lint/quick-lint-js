@@ -81,7 +81,8 @@ class any_error_reporter {
     case output_format::gnu_like:
       return any_error_reporter(error_tape<text_error_reporter>(
           text_error_reporter(
-              std::cerr, /*escape_errors=*/get_escape_errors(escape_errors)),
+              file_output_stream::get_stderr(),
+              /*escape_errors=*/get_escape_errors(escape_errors)),
           exit_fail_on));
     case output_format::vim_qflist_json:
       return any_error_reporter(error_tape<vim_qflist_json_error_reporter>(

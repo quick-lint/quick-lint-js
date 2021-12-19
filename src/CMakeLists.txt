@@ -86,6 +86,7 @@ quick_lint_js_add_library(
   lsp-pipe-writer.cpp
   lsp-server.cpp
   options.cpp
+  output-stream.cpp
   padded-string.cpp
   parse.cpp
   pipe-writer.cpp
@@ -150,6 +151,7 @@ quick_lint_js_add_library(
   quick-lint-js/null-visitor.h
   quick-lint-js/optional.h
   quick-lint-js/options.h
+  quick-lint-js/output-stream.h
   quick-lint-js/padded-string.h
   quick-lint-js/parse-visitor.h
   quick-lint-js/parse.h

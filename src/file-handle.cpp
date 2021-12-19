@@ -170,6 +170,14 @@ std::string windows_handle_file_ref::get_last_error_message() {
   return windows_error_message(::GetLastError());
 }
 
+windows_handle_file_ref windows_handle_file_ref::get_stdout() noexcept {
+  return windows_handle_file_ref(::GetStdHandle(STD_OUTPUT_HANDLE));
+}
+
+windows_handle_file_ref windows_handle_file_ref::get_stderr() noexcept {
+  return windows_handle_file_ref(::GetStdHandle(STD_ERROR_HANDLE));
+}
+
 windows_handle_file::windows_handle_file(HANDLE handle) noexcept
     : windows_handle_file_ref(handle) {}
 
@@ -292,6 +300,14 @@ void posix_fd_file_ref::set_pipe_non_blocking() {
 
 std::string posix_fd_file_ref::get_last_error_message() {
   return std::strerror(errno);
+}
+
+posix_fd_file_ref posix_fd_file_ref::get_stdout() noexcept {
+  return posix_fd_file_ref(STDOUT_FILENO);
+}
+
+posix_fd_file_ref posix_fd_file_ref::get_stderr() noexcept {
+  return posix_fd_file_ref(STDERR_FILENO);
 }
 
 posix_fd_file::posix_fd_file() noexcept = default;

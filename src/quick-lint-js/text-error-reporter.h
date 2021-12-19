@@ -4,7 +4,6 @@
 #ifndef QUICK_LINT_JS_TEXT_ERROR_REPORTER_H
 #define QUICK_LINT_JS_TEXT_ERROR_REPORTER_H
 
-#include <iosfwd>
 #include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
@@ -14,6 +13,7 @@
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/options.h>
+#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
 
@@ -22,14 +22,14 @@ class text_error_formatter;
 
 class text_error_reporter final : public error_reporter {
  public:
-  explicit text_error_reporter(std::ostream &output, bool escape_errors);
+  explicit text_error_reporter(output_stream *output, bool escape_errors);
 
   void set_source(padded_string_view input, const char *file_name);
 
   void report_impl(error_type type, void *error) override;
 
  private:
-  std::ostream &output_;
+  output_stream &output_;
   std::optional<cli_locator> locator_;
   const char *file_path_;
   bool format_escape_errors_;
@@ -37,7 +37,7 @@ class text_error_reporter final : public error_reporter {
 
 class text_error_formatter : public diagnostic_formatter<text_error_formatter> {
  public:
-  explicit text_error_formatter(std::ostream &output, const char *file_path,
+  explicit text_error_formatter(output_stream *output, const char *file_path,
                                 cli_locator &locator,
                                 bool format_escape_errors);
 
@@ -49,7 +49,7 @@ class text_error_formatter : public diagnostic_formatter<text_error_formatter> {
                            const source_code_span &origin);
 
  private:
-  std::ostream &output_;
+  output_stream &output_;
   const char *file_path_;
   cli_locator &locator_;
   bool format_escape_errors_;
