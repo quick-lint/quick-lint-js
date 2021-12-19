@@ -1,22 +1,24 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <ostream>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/optional.h>
+#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>
 #include <string>
 
+using namespace std::literals::string_view_literals;
+
 namespace quick_lint_js {
 vim_qflist_json_error_reporter::vim_qflist_json_error_reporter(
-    std::ostream &output)
-    : output_(output) {
-  this->output_ << "{\"qflist\": [";
+    output_stream *output)
+    : output_(*output) {
+  this->output_.append_copy(u8"{\"qflist\": ["sv);
 }
 
 void vim_qflist_json_error_reporter::set_source(padded_string_view input,
@@ -46,15 +48,17 @@ void vim_qflist_json_error_reporter::set_source(padded_string_view input,
   this->bufnr_ = std::to_string(vim_bufnr);
 }
 
-void vim_qflist_json_error_reporter::finish() { this->output_ << "]}"; }
+void vim_qflist_json_error_reporter::finish() {
+  this->output_.append_copy(u8"]}"sv);
+}
 
 void vim_qflist_json_error_reporter::report_impl(error_type type, void *error) {
   if (this->need_comma_) {
-    this->output_ << ",\n";
+    this->output_.append_copy(u8",\n"sv);
   }
   this->need_comma_ = true;
   QLJS_ASSERT(this->locator_.has_value());
-  vim_qflist_json_error_formatter formatter(/*output=*/this->output_,
+  vim_qflist_json_error_formatter formatter(/*output=*/&this->output_,
                                             /*locator=*/*this->locator_,
                                             /*file_name=*/this->file_name_,
                                             /*bufnr=*/this->bufnr_);
@@ -62,9 +66,9 @@ void vim_qflist_json_error_reporter::report_impl(error_type type, void *error) {
 }
 
 vim_qflist_json_error_formatter::vim_qflist_json_error_formatter(
-    std::ostream &output, quick_lint_js::vim_locator &locator,
+    output_stream *output, quick_lint_js::vim_locator &locator,
     std::string_view file_name, std::string_view bufnr)
-    : output_(output),
+    : output_(*output),
       locator_(locator),
       file_name_(file_name),
       bufnr_(bufnr) {}
@@ -72,26 +76,34 @@ vim_qflist_json_error_formatter::vim_qflist_json_error_formatter(
 void vim_qflist_json_error_formatter::write_before_message(
     std::string_view code, diagnostic_severity sev,
     const source_code_span &origin) {
-  std::string_view severity_type{};
+  string8_view severity_type{};
   switch (sev) {
   case diagnostic_severity::error:
-    severity_type = "E";
+    severity_type = u8"E"sv;
     break;
   case diagnostic_severity::note:
     // Don't write notes. Only write the main message.
     return;
   case diagnostic_severity::warning:
-    severity_type = "W";
+    severity_type = u8"W"sv;
     break;
   }
 
   vim_source_range r = this->locator_.range(origin);
   auto end_col = origin.begin() == origin.end() ? r.begin.col : (r.end.col - 1);
-  this->output_ << "{\"col\": " << r.begin.col << ", \"lnum\": " << r.begin.lnum
-                << ", \"end_col\": " << end_col
-                << ", \"end_lnum\": " << r.end.lnum << ", \"type\": \""
-                << severity_type << "\", \"nr\": \"" << code
-                << "\", \"vcol\": 0, \"text\": \"";
+  this->output_.append_copy(u8"{\"col\": "sv);
+  this->output_.append_decimal_integer(r.begin.col);
+  this->output_.append_copy(u8", \"lnum\": "sv);
+  this->output_.append_decimal_integer(r.begin.lnum);
+  this->output_.append_copy(u8", \"end_col\": "sv);
+  this->output_.append_decimal_integer(end_col);
+  this->output_.append_copy(u8", \"end_lnum\": "sv);
+  this->output_.append_decimal_integer(r.end.lnum);
+  this->output_.append_copy(u8", \"type\": \""sv);
+  this->output_.append_copy(severity_type);
+  this->output_.append_copy(u8"\", \"nr\": \""sv);
+  this->output_.append_copy(to_string8_view(code));
+  this->output_.append_copy(u8"\", \"vcol\": 0, \"text\": \""sv);
 }
 
 void vim_qflist_json_error_formatter::write_message_part(
@@ -113,16 +125,17 @@ void vim_qflist_json_error_formatter::write_after_message(
     return;
   }
 
-  this->output_ << '\"';
+  this->output_.append_copy(u8'\"');
   if (!this->bufnr_.empty()) {
-    this->output_ << ", \"bufnr\": " << this->bufnr_;
+    this->output_.append_copy(u8", \"bufnr\": "sv);
+    this->output_.append_copy(to_string8_view(this->bufnr_));
   }
   if (!this->file_name_.empty()) {
-    this->output_ << ", \"filename\": \"";
-    write_json_escaped_string(this->output_, this->file_name_);
-    this->output_ << '"';
+    this->output_.append_copy(u8", \"filename\": \""sv);
+    write_json_escaped_string(this->output_, to_string8_view(this->file_name_));
+    this->output_.append_copy(u8'"');
   }
-  this->output_ << '}';
+  this->output_.append_copy(u8'}');
 
   // If we don't flush, output is buffered. A lot of messages (e.g. over 4 KiB)
   // will fill the buffer and possibly force a flush in the middle of a message.

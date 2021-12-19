@@ -6,6 +6,7 @@
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/json.h>
+#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/unreachable.h>
 #include <sstream>
 #include <string>
@@ -93,6 +94,11 @@ template void write_json_escaped_string<char8_t>(
 #endif
 
 void write_json_escaped_string(byte_buffer &output, string8_view string) {
+  write_json_escaped_string_impl(
+      [&](const string8_view &s) { output.append_copy(s); }, string);
+}
+
+void write_json_escaped_string(output_stream &output, string8_view string) {
   write_json_escaped_string_impl(
       [&](const string8_view &s) { output.append_copy(s); }, string);
 }

@@ -4,12 +4,12 @@
 #ifndef QUICK_LINT_JS_VIM_QFLIST_JSON_ERROR_REPORTER_H
 #define QUICK_LINT_JS_VIM_QFLIST_JSON_ERROR_REPORTER_H
 
-#include <iosfwd>
 #include <optional>
 #include <quick-lint-js/diagnostic-formatter.h>
 #include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/vim-location.h>
@@ -20,7 +20,7 @@ class vim_qflist_json_error_formatter;
 
 class vim_qflist_json_error_reporter final : public error_reporter {
  public:
-  explicit vim_qflist_json_error_reporter(std::ostream &output);
+  explicit vim_qflist_json_error_reporter(output_stream *output);
 
   void set_source(padded_string_view input, const char *file_name,
                   int vim_bufnr);
@@ -34,7 +34,7 @@ class vim_qflist_json_error_reporter final : public error_reporter {
   void report_impl(error_type type, void *error) override;
 
  private:
-  std::ostream &output_;
+  output_stream &output_;
   std::optional<vim_locator> locator_;
   std::string bufnr_;
   std::string file_name_;
@@ -44,7 +44,7 @@ class vim_qflist_json_error_reporter final : public error_reporter {
 class vim_qflist_json_error_formatter
     : public diagnostic_formatter<vim_qflist_json_error_formatter> {
  public:
-  explicit vim_qflist_json_error_formatter(std::ostream &output,
+  explicit vim_qflist_json_error_formatter(output_stream *output,
                                            quick_lint_js::vim_locator &locator,
                                            std::string_view file_name,
                                            std::string_view bufnr);
@@ -56,7 +56,7 @@ class vim_qflist_json_error_formatter
                            const source_code_span &origin);
 
  private:
-  std::ostream &output_;
+  output_stream &output_;
   quick_lint_js::vim_locator &locator_;
   std::string_view file_name_;
   std::string_view bufnr_;

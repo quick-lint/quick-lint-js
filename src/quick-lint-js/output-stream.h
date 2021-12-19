@@ -102,6 +102,9 @@ class memory_output_stream final : public output_stream {
   // Return all of the flushed output, excluding unflushed output.
   string8 get_flushed_string8() const;
 
+  // Remove flushed and unflushed output.
+  void clear();
+
  protected:
   void flush_impl(string8_view) override;
 

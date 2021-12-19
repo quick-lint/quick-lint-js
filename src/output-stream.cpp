@@ -105,6 +105,11 @@ string8 memory_output_stream::get_flushed_string8() const {
   return this->data_;
 }
 
+void memory_output_stream::clear() {
+  this->flush();
+  this->data_.clear();
+}
+
 void memory_output_stream::flush_impl(string8_view data) {
   this->data_ += data;
 }

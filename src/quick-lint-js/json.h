@@ -11,6 +11,7 @@
 
 namespace quick_lint_js {
 class byte_buffer;
+class output_stream;
 
 template <class Char>
 void write_json_escaped_string(std::ostream &, std::basic_string_view<Char>);
@@ -23,6 +24,7 @@ extern template void write_json_escaped_string<char8_t>(
 #endif
 
 void write_json_escaped_string(byte_buffer &, string8_view);
+void write_json_escaped_string(output_stream &, string8_view);
 
 string8 to_json_escaped_string_with_quotes(string8_view);
 }
