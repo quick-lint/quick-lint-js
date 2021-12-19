@@ -7,23 +7,26 @@
 #include <quick-lint-js/emacs-lisp-error-reporter.h>
 #include <quick-lint-js/emacs-location.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/padded-string.h>
-#include <sstream>
 
 namespace quick_lint_js {
 namespace {
 class test_emacs_lisp_error_reporter : public ::testing::Test {
  protected:
   emacs_lisp_error_reporter make_reporter(padded_string_view input) {
-    emacs_lisp_error_reporter reporter(this->stream_);
+    emacs_lisp_error_reporter reporter(&this->stream_);
     reporter.set_source(input);
     return reporter;
   }
 
-  std::string get_output() { return this->stream_.str(); }
+  string8 get_output() {
+    this->stream_.flush();
+    return this->stream_.get_flushed_string8();
+  }
 
  private:
-  std::ostringstream stream_;
+  memory_output_stream stream_;
 };
 
 TEST_F(test_emacs_lisp_error_reporter, assignment_before_variable_declaration) {
@@ -40,7 +43,7 @@ TEST_F(test_emacs_lisp_error_reporter, assignment_before_variable_declaration) {
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
-      R"--((((1 . 2) 0 "E0001" "variable assigned before its declaration")))--");
+      u8R"--((((1 . 2) 0 "E0001" "variable assigned before its declaration")))--");
 }
 
 TEST_F(test_emacs_lisp_error_reporter, assignment_to_const_global_variable) {
@@ -55,7 +58,7 @@ TEST_F(test_emacs_lisp_error_reporter, assignment_to_const_global_variable) {
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
-      R"--((((4 . 12) 0 "E0002" "assignment to const global variable")))--");
+      u8R"--((((4 . 12) 0 "E0002" "assignment to const global variable")))--");
 }
 
 TEST_F(test_emacs_lisp_error_reporter,
@@ -70,7 +73,7 @@ TEST_F(test_emacs_lisp_error_reporter,
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
-      R"--((((4 . 4) 0 "E0018" "if statement is missing '(' around condition")))--");
+      u8R"--((((4 . 4) 0 "E0018" "if statement is missing '(' around condition")))--");
 }
 
 TEST_F(test_emacs_lisp_error_reporter, redeclaration_of_variable) {
@@ -86,7 +89,7 @@ TEST_F(test_emacs_lisp_error_reporter, redeclaration_of_variable) {
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
-      R"--((((16 . 21) 0 "E0034" "redeclaration of variable: myvar")))--");
+      u8R"--((((16 . 21) 0 "E0034" "redeclaration of variable: myvar")))--");
 }
 
 TEST_F(test_emacs_lisp_error_reporter,
@@ -103,7 +106,7 @@ TEST_F(test_emacs_lisp_error_reporter,
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
-      R"--((((21 . 26) 0 "E0034" "redeclaration of variable: myvar")))--");
+      u8R"--((((21 . 26) 0 "E0034" "redeclaration of variable: myvar")))--");
 }
 
 TEST_F(test_emacs_lisp_error_reporter, unexpected_hash_character) {
@@ -115,7 +118,7 @@ TEST_F(test_emacs_lisp_error_reporter, unexpected_hash_character) {
   reporter.report(error_unexpected_hash_character{hash_span});
   reporter.finish();
   EXPECT_EQ(this->get_output(),
-            R"--((((1 . 2) 0 "E0052" "unexpected '#'")))--");
+            u8R"--((((1 . 2) 0 "E0052" "unexpected '#'")))--");
 }
 
 TEST_F(test_emacs_lisp_error_reporter, use_of_undeclared_variable) {
@@ -126,8 +129,9 @@ TEST_F(test_emacs_lisp_error_reporter, use_of_undeclared_variable) {
   emacs_lisp_error_reporter reporter = this->make_reporter(&input);
   reporter.report(error_use_of_undeclared_variable{identifier(myvar_span)});
   reporter.finish();
-  EXPECT_EQ(this->get_output(),
-            R"--((((1 . 6) 2 "E0057" "use of undeclared variable: myvar")))--");
+  EXPECT_EQ(
+      this->get_output(),
+      u8R"--((((1 . 6) 2 "E0057" "use of undeclared variable: myvar")))--");
 }
 
 TEST_F(test_emacs_lisp_error_reporter,
@@ -141,7 +145,7 @@ TEST_F(test_emacs_lisp_error_reporter,
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
-      R"--((((6 . 11) 2 "E0057" "use of undeclared variable: myvar")))--");
+      u8R"--((((6 . 11) 2 "E0057" "use of undeclared variable: myvar")))--");
 }
 
 TEST_F(test_emacs_lisp_error_reporter, blackslash_is_escaped) {
@@ -152,7 +156,7 @@ TEST_F(test_emacs_lisp_error_reporter, blackslash_is_escaped) {
   reporter.report(error_unexpected_backslash_in_identifier{span});
   reporter.finish();
   EXPECT_EQ(this->get_output(),
-            R"--((((6 . 7) 0 "E0043" "unexpected '\\' in identifier")))--");
+            u8R"--((((6 . 7) 0 "E0043" "unexpected '\\' in identifier")))--");
 }
 
 TEST_F(test_emacs_lisp_error_reporter, double_quote_is_escaped) {
@@ -164,7 +168,7 @@ TEST_F(test_emacs_lisp_error_reporter, double_quote_is_escaped) {
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
-      R"--((((13 . 13) 0 "E0129" "expected 'from \"name_of_module.mjs\"'")))--");
+      u8R"--((((13 . 13) 0 "E0129" "expected 'from \"name_of_module.mjs\"'")))--");
 }
 }
 }

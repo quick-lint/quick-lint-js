@@ -1,22 +1,22 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <ostream>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/emacs-lisp-error-reporter.h>
 #include <quick-lint-js/emacs-location.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/optional.h>
+#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
 
 namespace quick_lint_js {
-emacs_lisp_error_reporter::emacs_lisp_error_reporter(std::ostream &output)
-    : output_(output) {
-  this->output_ << "(";
+emacs_lisp_error_reporter::emacs_lisp_error_reporter(output_stream *output)
+    : output_(*output) {
+  this->output_.append_copy(u8'(');
 }
 
-void emacs_lisp_error_reporter::finish() { this->output_ << ")"; }
+void emacs_lisp_error_reporter::finish() { this->output_.append_copy(u8')'); }
 
 void emacs_lisp_error_reporter::set_source(padded_string_view input) {
   this->locator_.emplace(input);
@@ -24,14 +24,14 @@ void emacs_lisp_error_reporter::set_source(padded_string_view input) {
 
 void emacs_lisp_error_reporter::report_impl(error_type type, void *error) {
   QLJS_ASSERT(this->locator_.has_value());
-  emacs_lisp_error_formatter formatter(/*output=*/this->output_,
+  emacs_lisp_error_formatter formatter(/*output=*/&this->output_,
                                        /*locator=*/*this->locator_);
   formatter.format(get_diagnostic_info(type), error);
 }
 
-emacs_lisp_error_formatter::emacs_lisp_error_formatter(std::ostream &output,
+emacs_lisp_error_formatter::emacs_lisp_error_formatter(output_stream *output,
                                                        emacs_locator &locator)
-    : output_(output), locator_(locator) {}
+    : output_(*output), locator_(locator) {}
 
 void emacs_lisp_error_formatter::write_before_message(
     std::string_view code, diagnostic_severity sev,
@@ -42,21 +42,27 @@ void emacs_lisp_error_formatter::write_before_message(
   emacs_source_range r = this->locator_.range(origin);
   emacs_source_position::offset_type beg = r.begin().offset;
   emacs_source_position::offset_type end = r.end().offset;
-  this->output_ << "((" << beg << " . " << end << ") " << static_cast<int>(sev)
-                << " "
-                << "\"" << code << "\" \"";
+  this->output_.append_copy(u8"(("sv);
+  this->output_.append_decimal_integer(beg);
+  this->output_.append_copy(u8" . "sv);
+  this->output_.append_decimal_integer(end);
+  this->output_.append_copy(u8") "sv);
+  this->output_.append_decimal_integer(static_cast<int>(sev));
+  this->output_.append_copy(u8" \""sv);
+  this->output_.append_copy(to_string8_view(code));
+  this->output_.append_copy(u8"\" \""sv);
 }
 
 namespace {
-void write_elisp_stringp_escaped_message(std::ostream &output,
+void write_elisp_stringp_escaped_message(output_stream &output,
                                          string8_view message) {
   for (const auto &v : message) {
     switch (v) {
     case '\\':
     case '"':
-      output << '\\';
+      output.append_copy(u8'\\');
     }
-    output << static_cast<char>(v);
+    output.append_copy(v);
   }
 }
 }
@@ -76,7 +82,7 @@ void emacs_lisp_error_formatter::write_after_message(
   if (sev == diagnostic_severity::note) {
     return;
   }
-  this->output_ << "\")";
+  this->output_.append_copy(u8"\")"sv);
 }
 }
 

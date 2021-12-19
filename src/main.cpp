@@ -90,7 +90,8 @@ class any_error_reporter {
           exit_fail_on));
     case output_format::emacs_lisp:
       return any_error_reporter(error_tape<emacs_lisp_error_reporter>(
-          emacs_lisp_error_reporter(std::cout), exit_fail_on));
+          emacs_lisp_error_reporter(file_output_stream::get_stdout()),
+          exit_fail_on));
     }
     QLJS_UNREACHABLE();
   }
