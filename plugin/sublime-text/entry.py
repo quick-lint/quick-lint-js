@@ -36,8 +36,10 @@ class SublimeUtils:
 
 
 class BaseType:
-    def __init_subclass__(cls, /, default_name, **kwargs):
+    def __init_subclass__(cls, /, **kwargs):
         super().__init_subclass__(**kwargs)
+        # TODO: try: except AttributeError: pass
+        cls._fields_ = list(cls.fields.items())
         cls.default_name = default_name
 
     @classmethod
@@ -66,6 +68,13 @@ class Diagnostic(BaseStruct):
             ("begin_offset", ctypes.c_int),
             ("end_offset", ctypes.c_int),
         ]
+        fields = {
+            "message":      ctypes.c_char_p,
+            "code":         ctypes.c_char_p,
+            "severity":     ctypes.c_int,
+            "begin_offset": ctypes.c_int,
+            "end_offset":   ctypes.c_int,
+        }
     elif SublimeUtils.major_version() == "4":
         _fields_ = [
             ("message", ctypes.c_char_p),
