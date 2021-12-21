@@ -104,7 +104,7 @@ class CRange(CStruct):
     }
 
 
-class CDiagnostic(Cstruct):
+class CDiagnostic(CStruct):
     fields = {
         "message": CTypes.char_p,
         "code": CTypes.char_p,
@@ -153,13 +153,13 @@ def changed_directory(path):
         os.chdir(previous)
 
 
-# TODO: Create an custom exception and one with "os not supported" message
-# TODO: Convert severity value to string ("Error"|"Warning")
-# TODO: Create structure for pass paramenters
+class CInterfaceException(Exception):
+    pass
 
 
-class Object:
-    def __init__(self, cdll):  # TODO: cdll is a good name?
+class CObject:
+    def __init__(self, path):
+        cdll = ctypes.CDLL(path)  # TODO: `cdll` is a good name?
         version = SublimeUtils.major_version()
         self.create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
         self.create_parser.argtypes = []
@@ -171,21 +171,21 @@ class Object:
         self.lint.argtypes = [Parser.pointer()]
         self.lint.restype = Result.pointer()
         if version == "3":
-            self.set_text = cdll.qljs_sublime_text_3_set_text
+            self.set_text = cdll.qljs_st_3_set_text
             self.set_text.argtypes = [Parser.pointer(), CText]
             self.set_text.restype = Error.pointer()
         elif version == "4":
-            self.replace_text = cdll.qljs_sublime_text_4_replace_text
+            self.replace_text = cdll.qljs_st_4_replace_text
             self.replace_text.argtypes = [Parser.pointer(), CRange, CText]
             self.replace_text.restype = Error.pointer()
 
 
-class Library:
+class CLibrary:
     def __init__(self):
         self.directory = os.path.dirname(get_module_path())
         self.path = os.path.join(self.directory, self.filename)
         with changed_directory(self.directory):
-            self.object = Object(ctypes.CDLL(self.path))
+            self.object = CObject(self.path)
 
     @cached_property
     def filename(self):  # TODO: Remove lib prefix with CMake
@@ -195,6 +195,11 @@ class Library:
             return "quick-lint-js-lib.dylib"
         elif system() == "Linux":
             return "quick-lint-js-lib.so"
+        else:
+            raise CInterfaceException("Operating System not supported.")
+
+
+# TODO: Convert severity value to string ("Error"|"Warning")
 
 
 def load_library():
