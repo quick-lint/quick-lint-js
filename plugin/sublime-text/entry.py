@@ -76,6 +76,27 @@ class CUnion(CComp, ctypes.Union):
     pass
 
 
+class CString(CStruct):
+    fields = {
+        "data":   CTypes.char_p,
+        "length": CTypes.size_t,
+    }
+
+
+class CPosition(CStruct):
+    fields = {
+        "line":      CTypes.uint,
+        "character": CTypes.uint,
+    }
+
+
+class CRange(CStruct):
+    fields = {
+        "start": CPosition,
+        "end":   CPosition,
+    }
+
+
 class CDiagnostic(Cstruct):
     if SublimeUtils.major_version() == "3":
         fields = {
@@ -119,20 +140,6 @@ class CResult(Cstruct):
 
 class CParser(Cstruct):
     fields = {}
-
-
-class CPosition(CStruct):
-    fields = {
-        "line":      CTypes.uint,
-        "character": CTypes.uint,
-    }
-
-
-class CRange(CStruct):
-    fields = {
-        "start": CPosition,
-        "end":   CPosition,
-    }
 
 
 def get_module_path():
