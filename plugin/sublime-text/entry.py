@@ -194,6 +194,11 @@ class CLibrary:
         # these DLLs are all in the same folder, for ctypes find these DLLs
         # we need to change the current working directory to that folder.
 
+        # On Windows, it's necessary change the current working directory to
+        # the directory of the object that will be loaded because different
+        # of Linux and macOS where we have one single file to load, on Windows
+        # we have multiple files to load
+
 
         with changed_directory(self.directory):
             self.object = CObject(self.path)
@@ -208,6 +213,12 @@ class CLibrary:
             return "quick-lint-js-lib.so"
         else:
             raise CInterfaceException("Operating system not supported.")
+
+
+class CtypesUtils:
+    @staticmethod
+    def is_pointer_null(pointer):
+        return not bool(pointer)
 
 
 # TODO: Convert severity value to string ("Error"|"Warning")
@@ -263,8 +274,6 @@ class Error(Exception):
         sublime.error_message(base + self.message)
 
 
-def is_pointer_null(pointer):
-    return not bool(pointer)
 
 
 if SUBLIME_TEXT_MAJOR_VERSION == "3":
