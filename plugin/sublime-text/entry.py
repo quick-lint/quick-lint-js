@@ -121,6 +121,20 @@ class CParser(Cstruct):
     fields = {}
 
 
+class CPosition(CStruct):
+    fields = {
+        "line":      CTypes.uint,
+        "character": CTypes.uint,
+    }
+
+
+class CRange(CStruct):
+    fields = {
+        "start": CPosition,
+        "end":   CPosition,
+    }
+
+
 def get_module_path():
     return os.path.realpath(__file__)
 
