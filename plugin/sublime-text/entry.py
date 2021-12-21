@@ -41,7 +41,7 @@ class SublimeUtils:
         return sublime.version()[0]
 
 
-class PrimitiveCTypesMetaclass(type):
+class CTypesMetaclass(type):
     def __new__(cls, clsname, clsbases, clsattrs):
         for attr in dir(ctypes):
             if attr.startswith("c_"):
@@ -51,7 +51,7 @@ class PrimitiveCTypesMetaclass(type):
         return super().__new__(cls, clsname, clsbases, clsattrs)
 
 
-class PrimitiveCTypes(object, metaclass=PrimitiveCTypesMetaclass):
+class CTypes(metaclass=CTypesMetaclass):
     pass
 
 
@@ -76,48 +76,48 @@ class BaseCUnion(BaseType, ctypes.Union):
     pass
 
 
-class Diagnostic(BaseStruct):
+class CDiagnostic(BaseCStruct):
     if SublimeUtils.major_version() == "3":
         fields = {
-            "message": ctypes.c_char_p,
-            "code": ctypes.c_char_p,
-            "severity": ctypes.c_int,
-            "begin_offset": ctypes.c_int,
-            "end_offset": ctypes.c_int,
+            "message":      CTypes.char_p,
+            "code":         CTypes.char_p,
+            "severity":     CTypes.int,
+            "begin_offset": CTypes.int,
+            "end_offset":   CTypes.int,
         }
     elif SublimeUtils.major_version() == "4":
         fields = {
-            "message": ctypes.c_char_p,
-            "code": ctypes.c_char_p,
-            "severity": ctypes.c_int,
-            "start_line": ctypes.c_int,
-            "start_character": ctypes.c_int,
-            "end_line": ctypes.c_int,
-            "end_character": ctypes.c_int,
+            "message":         CTypes.char_p,
+            "code":            CTypes.char_p,
+            "severity":        CTypes.int,
+            "start_line":      CTypes.int,
+            "start_character": CTypes.int,
+            "end_line":        CTypes.int,
+            "end_character":   CTypes.int,
         }
 
 
-class Error(BaseStruct):
+class CError(BaseCStruct):
     fields = {
-        "message": ctypes.c_char_p,
+        "message": CTypes.char_p,
     }
 
 
-class Result(BaseStruct):
-    class Value(BaseUnion):
-        _fields_ = [
-            ("diagnostics", Diagnostic.pointer()),
-            ("error", Error.pointer()),
-        ]
+class CResult(BaseCStruct):
+    class CValue(BaseCUnion):
+        fields = {
+            "diagnostics": CDiagnostic.pointer()),
+            "error": CError.pointer()),
+        }
 
-    _fields_ = [
-        ("value", Value),
-        ("is_diagnostics", ctypes.c_bool),
-    ]
+    fields = {
+        "value": CValue,
+        "is_diagnostics": CTypes.bool,
+    }
 
 
-class Parser(BaseStruct):
-    _fields_ = []
+class CParser(BaseCStruct):
+    fields = {}
 
 
 def get_module_path():
@@ -153,14 +153,14 @@ class Object:
             self.set_text = cdll.qljs_sublime_text_3_set_text
             self.set_text.argtypes = [
                 Parser.pointer(),
-                ctypes.c_void_p,
-                ctypes.c_size_t,
+                CTypes.void_p,
+                CTypes.size_t,
             ]
             self.set_text.restype = Error.pointer()
         elif version == "4":
             self.replace_text = cdll.qljs_sublime_text_4_replace_text
             self.replace_text.argtypes = [
-                Parser.pointer(), ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_void_p, ctypes.c_size_t,  # fmt: skip
+                Parser.pointer(), CTypes.int, CTypes.int, CTypes.int, CTypes.int, CTypes.void_p, CTypes.size_t,  # fmt: skip
             ]
             self.replace_text.restype = Error.pointer()
 
@@ -249,8 +249,8 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
 
         lib.qljs_sublime_text_3_set_text.argtypes = [
             ParserPointer,
-            ctypes.c_void_p,
-            ctypes.c_size_t,
+            CTypes.void_p,
+            CTypes.size_t,
         ]
         lib.qljs_sublime_text_3_set_text.restype = ErrorPointer
 
@@ -353,12 +353,12 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
 
         lib.qljs_sublime_text_4_replace_text.argtypes = [
             ParserPointer,
-            ctypes.c_int,
-            ctypes.c_int,
-            ctypes.c_int,
-            ctypes.c_int,
-            ctypes.c_void_p,
-            ctypes.c_size_t,
+            CTypes.int,
+            CTypes.int,
+            CTypes.int,
+            CTypes.int,
+            CTypes.void_p,
+            CTypes.size_t,
         ]
         lib.qljs_sublime_text_4_replace_text.restype = ErrorPointer
 
