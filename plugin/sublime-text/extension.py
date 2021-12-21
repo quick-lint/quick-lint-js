@@ -45,6 +45,12 @@ def remove_prefix(text, prefix):
     return text
 
 
+class CTypesUtils:
+    @staticmethod
+    def is_pointer_null(ptr):
+        return not bool(ptr)
+
+
 class CTypesMetaclass(type):
     def __new__(cls, clsname, clsbases, clsattrs):
         for attr in dir(ctypes):
@@ -59,7 +65,7 @@ class CTypes(metaclass=CTypesMetaclass):
     pass
 
 
-class CComp:  # NOTE: Composite/Compound
+class CStruct:
     def __init_subclass__(cls, /, **kwargs):
         super().__init_subclass__(**kwargs)
         try:
@@ -70,14 +76,6 @@ class CComp:  # NOTE: Composite/Compound
     @composed(classmethod, cache)
     def pointer(cls):
         return ctypes.POINTER(cls)
-
-
-class CStruct(CComp, ctypes.Structure):
-    pass
-
-
-class CUnion(CComp, ctypes.Union):
-    pass
 
 
 class CText(CStruct):
@@ -120,23 +118,10 @@ class CDiagnostic(CStruct):
         fields["range"] = CRange
 
 
-class CError(Cstruct):
-    fields = {
-        "message": CTypes.char_p,
-    }
-
-
-class CValue(CUnion):
-    fields = {
-        "diagnostics": CDiagnostic.pointer(),
-        "error": CError.pointer(),
-    }
-
-
 class CResult(Cstruct):
     fields = {
-        "value": CValue,
-        "is_diagnostics": CTypes.bool,
+        "diagnostics": CValue,
+        "is_failure": CTypes.bool,
     }
 
 
@@ -157,7 +142,7 @@ def changed_directory(path):
         os.chdir(previous)
 
 
-class CInterfaceException(Exception):
+class CException(Exception):
     pass
 
 
@@ -173,23 +158,33 @@ class CObject:
     def __init__(self, path):
         cdll = CObject.cdll()
         version = SublimeUtils.major_version()
-        self.create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
-        self.create_parser.argtypes = []
-        self.create_parser.restype = Parser.pointer()
+        self.c_create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
+        self.c_create_parser.argtypes = []
+        self.c_create_parser.restype = CParser.pointer()
         self.destroy_parser = getattr(cdll, "qljs_st%d_destroy_parser" % (version))
-        self.destroy_parser.argtypes = [Parser.pointer()]
+        self.destroy_parser.argtypes = [CParser.pointer()]
         self.destroy_parser.restype = None
-        self.lint = getattr(cdll, "qljs_st%d_lint" % (version))
-        self.lint.argtypes = [Parser.pointer()]
-        self.lint.restype = Result.pointer()
+        self.c_lint = getattr(cdll, "qljs_st%d_lint" % (version))
+        self.c_lint.argtypes = [CParser.pointer()]
+        self.c_lint.restype = CResult.pointer()
         if version == "3":
-            self.set_text = cdll.qljs_st_3_set_text
-            self.set_text.argtypes = [Parser.pointer(), CText]
-            self.set_text.restype = Error.pointer()
+            self.c_set_text = cdll.qljs_st_3_set_text
+            self.c_set_text.argtypes = [CParser.pointer(), CText]
+            self.c_set_text.restype = CError.pointer()
         elif version == "4":
-            self.replace_text = cdll.qljs_st_4_replace_text
-            self.replace_text.argtypes = [Parser.pointer(), CRange, CText]
-            self.replace_text.restype = Error.pointer()
+            self.c_replace_text = cdll.qljs_st_4_replace_text
+            self.c_replace_text.argtypes = [CParser.pointer(), CRange, CText]
+            self.c_replace_text.restype = CError.pointer()
+
+    def create_parser(self):
+        c_parser_p = self.c_create_parser()
+        if CTypesUtils.is_pointer_null(c_parser_p):
+            raise CInterfaceException("CParser unavailable.")
+        return c_parser_p
+
+    def lint(self, c_parser):
+        c_result_p = self.c_lint(c_parser)
+        c_result = c_result_p.contents
 
 
 class CLibrary:
@@ -213,14 +208,11 @@ class CLibrary:
             raise CInterfaceException("Operating system not supported.")
 
 
-class CTypesUtils:
-    @staticmethod
-    def is_pointer_null(pointer):
-        return not bool(pointer)
 
 
 # TODO: Convert severity value to string ("Error"|"Warning")
 # TODO: Very importart that you test if has async method and if not use normal method
+# TODO: Raise `CInterfaceException` rather than `MemoryError`
 
 class Parser:
     try:
