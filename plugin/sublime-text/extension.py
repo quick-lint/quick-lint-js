@@ -227,6 +227,20 @@ class Parser:
         c_lib = CLibrary()
     except CInterfaceException as ex:
         SublimeUtils.error_message(str(ex))
+    finally:
+        c_lib = None
+
+    def __init__(self, view):
+        self.view = view
+        self.diags = []
+        try:
+            self.c_parser = Parser.c_lib.object.create_parser()
+        except AttributeError:
+            raise ParserError("Library unavailable.")
+        except CInterfaceException:
+            raise ParserError("Internal parser unavailable.")
+        finally:
+            self.c_parser = None
 
 
 class Error(Exception):
