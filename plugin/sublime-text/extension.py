@@ -118,13 +118,6 @@ class CDiagnostic(CStruct):
         fields["range"] = CRange
 
 
-class CResult(Cstruct):
-    fields = {
-        "diagnostics": CDiagnostic.pointer(),
-        "is_failure": CTypes.bool,
-    }
-
-
 class CParser(Cstruct):
     fields = {}
 
@@ -161,32 +154,31 @@ class CObject:
         self.c_create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
         self.c_create_parser.argtypes = []
         self.c_create_parser.restype = CParser.pointer()
-        self.destroy_parser = getattr(cdll, "qljs_st%d_destroy_parser" % (version))
-        self.destroy_parser.argtypes = [CParser.pointer()]
-        self.destroy_parser.restype = None
-        self.c_lint = getattr(cdll, "qljs_st%d_lint" % (version))
-        self.c_lint.argtypes = [CParser.pointer()]
-        self.c_lint.restype = CResult.pointer()
+        self.c_destroy_parser = getattr(cdll, "qljs_st%d_destroy_parser" % (version))
+        self.c_destroy_parser.argtypes = [CParser.pointer()]
+        self.c_destroy_parser.restype = None
+        self.lint = getattr(cdll, "qljs_st%d_lint" % (version))
+        self.lint.argtypes = [CParser.pointer()]
+        self.lint.restype = CDiagnostic.pointer()
         if version == "3":
-            self.c_set_text = cdll.qljs_st_3_set_text
-            self.c_set_text.argtypes = [CParser.pointer(), CText]
-            self.c_set_text.restype = CError.pointer()
+            self.set_text = cdll.qljs_st_3_set_text
+            self.set_text.argtypes = [CParser.pointer(), CText]
+            self.set_text.restype = CError.pointer()
         elif version == "4":
-            self.c_replace_text = cdll.qljs_st_4_replace_text
-            self.c_replace_text.argtypes = [CParser.pointer(), CRange, CText]
-            self.c_replace_text.restype = CError.pointer()
+            self.replace_text = cdll.qljs_st_4_replace_text
+            self.replace_text.argtypes = [CParser.pointer(), CRange, CText]
+            self.replace_text.restype = CError.pointer()
 
     def create_parser(self):
         c_parser_p = self.c_create_parser()
         if CTypesUtils.is_pointer_null(c_parser_p):
-            raise CInterfaceException("CParser unavailable.")
+            raise CException("CParser unavailable.")
         return c_parser_p
 
-    def lint(self, c_parser):
-        c_result = self.c_lint(c_parser).contents  # Return pointer contents
-        if c_result.is_failure():
-            raise CInterfaceException("")
-        return c_result
+    def destroy_parser(self, c_parser_p):
+        if CTypesUtils.is_pointer_null(c_parser_p):
+            raise CException("Cannot free null pointer.")
+        self.c_destroy_parser(c_parser_p)
 
 
 class CLibrary:
@@ -196,7 +188,7 @@ class CLibrary:
         try:
             self.object = CObject(self.path)
         except OSError:
-            raise CInterfaceException("Failed to load library object.")
+            raise CException("Failed to load library object.")
 
     @cached_property
     def filename(self):  # TODO: Remove lib prefix with CMake
@@ -207,19 +199,18 @@ class CLibrary:
         elif system() == "Linux":
             return "quick-lint-js-lib.so"
         else:
-            raise CInterfaceException("Operating system not supported.")
-
-
+            raise CException("Operating system not supported.")
 
 
 # TODO: Convert severity value to string ("Error"|"Warning")
 # TODO: Very importart that you test if has async method and if not use normal method
-# TODO: Raise `CInterfaceException` rather than `MemoryError`
+# TODO: Raise `CException` rather than `MemoryError`
+
 
 class Parser:
     try:
         c_lib = CLibrary()
-    except CInterfaceException as ex:
+    except CException as ex:
         SublimeUtils.error_message(str(ex))
     finally:
         c_lib = None
@@ -228,13 +219,19 @@ class Parser:
         self.view = view
         self.diags = []
         try:
-            self.c_parser = Parser.c_lib.object.create_parser()
+            self.c_parser_p = Parser.c_lib.object.create_parser()
         except AttributeError:
             raise ParserError("Library unavailable.")
-        except CInterfaceException:
+        except CException:
             raise ParserError("Internal parser unavailable.")
         finally:
-            self.c_parser = None
+            self.c_parser_p = None
+
+    def delete():
+        try:
+            Parser.c_lib.object.destroy_parser(self.c_parser_p)
+        except CException:
+            raise ParserError("")
 
 
 class Error(Exception):
@@ -248,8 +245,6 @@ class Error(Exception):
     def display_message(self):
         base = "Error Message: quick-lint-js:\n"
         sublime.error_message(base + self.message)
-
-
 
 
 if SUBLIME_TEXT_MAJOR_VERSION == "3":
