@@ -52,6 +52,10 @@ def remove_prefix(text, prefix):
 
 class CTypesUtils:
     @staticmethod
+    def pointer(obj):
+        return ctypes.byref(obj)
+
+    @staticmethod
     def is_pointer_null(ptr):
         return not bool(ptr)
 
@@ -151,7 +155,7 @@ class CObject:
         # these DLLs are all in the same folder, for ctypes find these DLLs
         # we need to change the current working directory to that folder.
         with changed_directory(os.path.dirname(directory)):
-             return ctypes.CDLL(path)
+            return ctypes.CDLL(path)
 
     def __init__(self, path):
         cdll = CObject.cdll(path)
@@ -238,12 +242,21 @@ class Parser:
         except CException:
             raise ParserError("Cannot delete pointer.")
 
-    def set_text(self):
+    def set_text(self):  # TODO: Pointer???
         content = SublimeUtils.view_content(self.view)
         content = content.encode()
         c_text = CText(content, len(content))
         # TODO: In C Code, create `set_text` even in Sublime Text 4
         Parser.c_lib.object.set_text(self.c_parser_p, c_text)
+
+    def replace_text(self, change):
+        c_range = CRange(
+            CPosition(change.a.row, change.a.col_utf16),
+            CPosition(change.b.row, change.b.col_utf16),
+        )
+        content = change.str.encode()
+        c_text = CText(content, len(content))
+        Parser.c_lib.object.replace_text(self.c_parser_p, )
 
 
 class Error(Exception):
