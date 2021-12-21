@@ -29,16 +29,16 @@ def composed(*decs):
     return decorator
 
 
-def remove_prefix(text, prefix):
-    if text.startswith(prefix):
-        return text[len(prefix):]
-    return text
-
-
 class SublimeUtils:
     @composed(staticmethod, cache)
     def major_version():
         return sublime.version()[0]
+
+
+def remove_prefix(text, prefix):
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
 
 
 class CTypesMetaclass(type):
@@ -136,6 +136,7 @@ def changed_directory(path):
 
 # TODO: Create an custom exception and one with "os not supported" message
 # TODO: Convert severity value to string ("Error"|"Warning")
+# TODO: Create structure for pass paramenters
 
 
 class Object:
@@ -152,11 +153,7 @@ class Object:
         self.lint.restype = Result.pointer()
         if version == "3":
             self.set_text = cdll.qljs_sublime_text_3_set_text
-            self.set_text.argtypes = [
-                Parser.pointer(),
-                CTypes.void_p,
-                CTypes.size_t,
-            ]
+            self.set_text.argtypes = [Parser.pointer(), CTypes.void_p, CTypes.size_t]
             self.set_text.restype = Error.pointer()
         elif version == "4":
             self.replace_text = cdll.qljs_sublime_text_4_replace_text
@@ -174,13 +171,13 @@ class Library:
             self.object = Object(ctypes.CDLL(self.path))
 
     @cached_property
-    def filename(self):
+    def filename(self):  # TODO: Remove lib prefix with CMake
         if system() == "Windows":
             return "quick-lint-js-lib.dll"
         elif system() == "Darwin":
-            return "libquick-lint-js-lib.dylib"  # TODO: Remove lib prefix with CMake
+            return "quick-lint-js-lib.dylib"
         elif system() == "Linux":
-            return "libquick-lint-js-lib.so"
+            return "quick-lint-js-lib.so"
 
 
 def load_library():

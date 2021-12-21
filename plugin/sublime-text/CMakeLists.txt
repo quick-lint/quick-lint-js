@@ -3,7 +3,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-#### QUICK_LINT_JS_SUBLIME_TEXT ####
+## QUICK_LINT_JS_SUBLIME_TEXT ##################################################
 if (QUICK_LINT_JS_SUBLIME_TEXT_3 OR QUICK_LINT_JS_SUBLIME_TEXT_4)
   set(QUICK_LINT_JS_SUBLIME_TEXT TRUE)
 endif ()
