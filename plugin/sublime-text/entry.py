@@ -38,13 +38,10 @@ class SublimeUtils:
 class BaseType:
     def __init_subclass__(cls, /, **kwargs):
         super().__init_subclass__(**kwargs)
-        # TODO: try: except AttributeError: pass
-        cls._fields_ = list(cls.fields.items())
-        cls.default_name = default_name
-
-    @classmethod
-    def define_fields(cls, fields):
-        cls._fields_ = list(fields.items())
+        try:
+            cls._fields_ = list(cls.fields.items())
+        except AttributeError:
+            pass
 
     @composed(classmethod, cache)
     def pointer(cls):
@@ -61,30 +58,23 @@ class BaseUnion(BaseType, ctypes.Union):
 
 class Diagnostic(BaseStruct):
     if SublimeUtils.major_version() == "3":
-        _fields_ = [
-            ("message", ctypes.c_char_p),
-            ("code", ctypes.c_char_p),
-            ("severity", ctypes.c_int),
-            ("begin_offset", ctypes.c_int),
-            ("end_offset", ctypes.c_int),
-        ]
         fields = {
-            "message":      ctypes.c_char_p,
-            "code":         ctypes.c_char_p,
-            "severity":     ctypes.c_int,
+            "message": ctypes.c_char_p,
+            "code": ctypes.c_char_p,
+            "severity": ctypes.c_int,
             "begin_offset": ctypes.c_int,
-            "end_offset":   ctypes.c_int,
+            "end_offset": ctypes.c_int,
         }
     elif SublimeUtils.major_version() == "4":
-        _fields_ = [
-            ("message", ctypes.c_char_p),
-            ("code", ctypes.c_char_p),
-            ("severity", ctypes.c_int),
-            ("start_line", ctypes.c_int),
-            ("start_character", ctypes.c_int),
-            ("end_line", ctypes.c_int),
-            ("end_character", ctypes.c_int),
-        ]
+        fields = {
+            "message": ctypes.c_char_p,
+            "code": ctypes.c_char_p,
+            "severity": ctypes.c_int,
+            "start_line": ctypes.c_int,
+            "start_character": ctypes.c_int,
+            "end_line": ctypes.c_int,
+            "end_character": ctypes.c_int,
+        }
 
 
 class Error(BaseStruct):
