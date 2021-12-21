@@ -34,6 +34,10 @@ class SublimeUtils:
     def major_version():
         return sublime.version()[0]
 
+    @staticmethod
+    def error_message(msg):
+        sublime.error_message("quick-lint-js: " + msg)
+
 
 def remove_prefix(text, prefix):
     if text.startswith(prefix):
@@ -192,7 +196,10 @@ class CLibrary:
     def __init__(self):
         self.directory = os.path.dirname(get_module_path())
         self.path = os.path.join(self.directory, self.filename)
-        self.object = CObject(self.path)
+        try:
+            self.object = CObject(self.path)
+        except OSError:
+            raise CInterfaceException("Failed to load library object.")
 
     @cached_property
     def filename(self):  # TODO: Remove lib prefix with CMake
@@ -213,46 +220,16 @@ class CTypesUtils:
 
 
 # TODO: Convert severity value to string ("Error"|"Warning")
-
-
-def load_library():
-    Library = namedtuple("Library", ["filename", "directory", "path", "object"])
-    library = Library()
-    if platform.system() == "Windows":
-        library.filename = "quick-lint-js-lib.dll"
-    elif platform.system() == "Darwin":
-        library.filename = "libquick-lint-js-lib.dylib"
-    elif platform.system() == "Linux":
-        library.filename = "libquick-lint-js-lib.so"
-    else:
-        raise OSError("Operating system not supported.")
-
-    library.directory = os.path.dirname(get_module_path())
-    library.path = os.path.join(library.directory, library.filename)
-
-    # On Windows, for ctypes to load a library, it also needs to load
-    # the dependencies of that library in case the library we want to
-    # load, all its dependencies are in the same directory. For ctypes
-    # to find these dependencies, we will need to temporarily change
-    # the current working directory to the same location of these dependencies.
-
-    # It's need multiple DLLs for load the library object on Windows, for ctypes find
-    # these DLLs we need to change the current directory.
-
-    # It's need multiple DLLs for load the library object on Windows, these DLLs
-    # are all in the same folder, for ctypes find these DLLs we need to change
-    # the current working directory to that folder.
-    with changed_directory(library.directory):
-        library.object = ctypes.CDLL(lib_path)
-    return library
-
-
 # TODO: Very importart that you test if has async method and if not use normal method
+
+class Parser:
+    try:
+        c_lib = CLibrary()
+    except CInterfaceException as ex:
+        SublimeUtils.error_message(str(ex))
 
 
 class Error(Exception):
-    """Error layer used to communicate with the plugin."""
-
     def __init__(self, ctypes_error):
         self.message = ctypes_error.message.decode(encoding="utf-8")
         super().__init__(self.message)
@@ -269,30 +246,7 @@ class Error(Exception):
 
 if SUBLIME_TEXT_MAJOR_VERSION == "3":
 
-    def create_library():
-        lib = load_library()
-
-        lib.qljs_sublime_text_3_create_parser.argtypes = []
-        lib.qljs_sublime_text_3_create_parser.restype = ParserPointer
-
-        lib.qljs_sublime_text_3_destroy_parser.argtypes = [ParserPointer]
-        lib.qljs_sublime_text_3_destroy_parser.restype = None
-
-        lib.qljs_sublime_text_3_set_text.argtypes = [
-            ParserPointer,
-            CTypes.void_p,
-            CTypes.size_t,
-        ]
-        lib.qljs_sublime_text_3_set_text.restype = ErrorPointer
-
-        lib.qljs_sublime_text_3_lint.argtypes = [ParserPointer]
-        lib.qljs_sublime_text_3_lint.restype = ResultPointer
-
-        return lib
-
     class Diagnostic:
-        """Diagnostic layer used to communicate with the plugin."""
-
         def __init__(self, ctypes_diagnostic):
             self.message = ctypes_diagnostic.message.decode(encoding="utf-8")
             self.code = ctypes_diagnostic.code.decode(encoding="utf-8")
@@ -302,8 +256,6 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
             )
 
     class Parser:
-        """Parser layer used to communicate with the plugin."""
-
         try:
             lib = create_library()
         except OSError as error:
@@ -372,31 +324,6 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
                 raise Error(ctypes_error)
 
 elif SUBLIME_TEXT_MAJOR_VERSION == "4":
-
-    def create_library():
-        lib = load_library()
-
-        lib.qljs_sublime_text_4_create_parser.argtypes = []
-        lib.qljs_sublime_text_4_create_parser.restype = ParserPointer
-
-        lib.qljs_sublime_text_4_destroy_parser.argtypes = [ParserPointer]
-        lib.qljs_sublime_text_4_destroy_parser.restype = None
-
-        lib.qljs_sublime_text_4_replace_text.argtypes = [
-            ParserPointer,
-            CTypes.int,
-            CTypes.int,
-            CTypes.int,
-            CTypes.int,
-            CTypes.void_p,
-            CTypes.size_t,
-        ]
-        lib.qljs_sublime_text_4_replace_text.restype = ErrorPointer
-
-        lib.qljs_sublime_text_4_lint.argtypes = [ParserPointer]
-        lib.qljs_sublime_text_4_lint.restype = ResultPointer
-
-        return lib
 
     class Diagnostic:
         """Diagnostic layer used to communicate with the plugin."""
