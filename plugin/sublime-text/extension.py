@@ -4,6 +4,7 @@
 import ctypes
 import html
 import os
+from collections import namedtuple
 from contextlib import contextmanager
 from functools import lru_cache
 from platform import system
@@ -217,7 +218,12 @@ class CLibrary:
 
 # TODO: Convert severity value to string ("Error"|"Warning")
 # TODO: Very importart that you test if has async method and if not use normal method
-# TODO: Raise `CException` rather than `MemoryError`
+
+class Diagnostics:
+    Diagnostic = namedtuple("Diagnostic", [""])
+
+    def __init__(c_diagnostics_p):
+        pass
 
 
 class Parser:
@@ -258,6 +264,49 @@ class Parser:
         content = change.str.encode()
         c_text_p = CText(content, len(content)).pointer()
         Parser.c_lib.object.replace_text(self.c_parser_p, c_range_p, c_text_p)
+
+    def lint(self):
+        c_diagnostics_p = Parser.c_lib.lint(self.c_parser_p)
+        for c_diagnostic in c_diagnostics_p:
+
+
+        ctypes_result_pointer = Parser.lib.qljs_sublime_text_3_lint(
+            self._ctypes_parser_pointer
+        )
+        ctypes_result = ctypes_result_pointer.contents
+        if ctypes_result.is_diagnostics:
+            ctypes_diagnostics_pointer = ctypes_result.value.diagnostics
+            diagnostics = []
+            for ctypes_diagnostic in ctypes_diagnostics_pointer:
+                if is_pointer_null(ctypes_diagnostic.message):
+                    break
+                diagnostics.append(Diagnostic(ctypes_diagnostic))
+            self.diagnostics = diagnostics
+        else:
+            self.diagnostics = []
+            ctypes_error_pointer = ctypes_result.value.error
+            ctypes_error = ctypes_error_pointer.contents
+            raise Error(ctypes_error)
+
+
+        ctypes_result_pointer = Parser.lib.qljs_sublime_text_4_lint(
+            self._ctypes_parser_pointer
+        )
+        ctypes_result = ctypes_result_pointer.contents
+        if ctypes_result.is_diagnostics:
+            ctypes_diagnostics_pointer = ctypes_result.value.diagnostics
+            diagnostics = []
+            for ctypes_diagnostic in ctypes_diagnostics_pointer:
+                if is_pointer_null(ctypes_diagnostic.message):
+                    break
+                diagnostics.append(Diagnostic(ctypes_diagnostic, self.view))
+            self.diagnostics = diagnostics
+        else:
+            self.diagnostics = []
+            ctypes_error_pointer = ctypes_result.value.error
+            ctypes_error = ctypes_error_pointer.contents
+            raise Error(ctypes_error)
+
 
 
 class Error(Exception):
