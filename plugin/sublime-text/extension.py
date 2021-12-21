@@ -305,6 +305,10 @@ class Parser:
         self.diags = Diagnostic.from_pointer(c_diags_p, self.view)
 
 
+# TODO: self.diags or return?
+# TODO: views = set or list?
+
+
 class Buffer:
     def __init__(self, view):
         self.views = [view]
@@ -317,8 +321,49 @@ class Buffer:
         self.parser = Parser(view)
 
 
-# TODO: self.diags or return?
-# TODO: views = set or list?
+class BuffersManager:
+    def __init__(self):
+        self.buffers = {}
+
+    def add_view(self, view):
+        id_ = view.buffer_id()
+        if id_ not in self.buffers:
+            self.buffers[id_] = Buffer(view)
+        else:
+            self.buffers[id_].views.append(view)
+        return self.buffers[id_]
+
+    def remove_view(self, view):
+        id_ = view.buffer_id()
+        self.buffers[id_].views.remove(view)
+        if not self.buffers[id_].views:
+            del self.buffers[id_]
+
+
+class BuffersManager:
+    def __init__(self):
+        self.buffers = {}
+
+    def add_view(self, view):
+        id_ = view.buffer_id()
+        if id_ not in self.buffers:
+            self.buffers[id_] = Buffer(view)
+        else:
+            self.buffers[id_].views.add(view)
+        return self.buffers[id_]
+
+    def remove_view(self, view):
+        id_ = view.buffer_id()
+        if id_ not in self.buffers:
+            return
+        self.buffers[id_].views.discard(view)
+        if not self.buffers[id_].views:
+            del self.buffers[id_]
+
+    def get_buffer(self, id_):
+        return self.buffers[id_]
+
+
 
 # Just for the sake of clarity, you can think of a buffer as a block of
 # memory that contains the file's text and a view as a tab in the
@@ -327,25 +372,6 @@ class Buffer:
 if SUBLIME_TEXT_MAJOR_VERSION == "3":
 
 
-    class BuffersManager:
-        """Manages the buffers."""
-
-        def __init__(self):
-            self.buffers = {}
-
-        def add_view(self, view):
-            id_ = view.buffer_id()
-            if id_ not in self.buffers:
-                self.buffers[id_] = Buffer(view)
-            else:
-                self.buffers[id_].views.append(view)
-            return self.buffers[id_]
-
-        def remove_view(self, view):
-            id_ = view.buffer_id()
-            self.buffers[id_].views.remove(view)
-            if not self.buffers[id_].views:
-                del self.buffers[id_]
 
     class QuickLintJsListener(sublime_plugin.ViewEventListener):
         """Listens for events bound to a specific view."""
@@ -460,30 +486,6 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
 elif SUBLIME_TEXT_MAJOR_VERSION == "4":
 
 
-    class PluginBuffersManager:
-        """Manages the plugin buffers."""
-
-        def __init__(self):
-            self.plugin_buffers = {}
-
-        def add_view(self, view):
-            id_ = view.buffer_id()
-            if id_ not in self.plugin_buffers:
-                self.plugin_buffers[id_] = PluginBuffer(view)
-            else:
-                self.plugin_buffers[id_].views.add(view)
-            return self.plugin_buffers[id_]
-
-        def remove_view(self, view):
-            id_ = view.buffer_id()
-            if id_ not in self.plugin_buffers:
-                return
-            self.plugin_buffers[id_].views.discard(view)
-            if not self.plugin_buffers[id_].views:
-                del self.plugin_buffers[id_]
-
-        def get_plugin_buffer(self, id_):
-            return self.plugin_buffers[id_]
 
     class QuickLintJsListener:
         """Base for the listeners present in this plugin."""
