@@ -305,199 +305,20 @@ class Parser:
         self.diags = Diagnostic.from_pointer(c_diags_p, self.view)
 
 
-class Error(Exception):
-    def __init__(self, ctypes_error):
-        self.message = ctypes_error.message.decode(encoding="utf-8")
-        super().__init__(self.message)
-
-    def has_message(self):
-        return bool(self.message)
-
-    def display_message(self):
-        base = "Error Message: quick-lint-js:\n"
-        sublime.error_message(base + self.message)
+class Buffer:
+    def __init__(self, view):
+        self.views = [view]
+        self.parser = Parser(view)
 
 
-if SUBLIME_TEXT_MAJOR_VERSION == "3":
+class Buffer:
+    def __init__(self, view):
+        self.views = {view}
+        self.parser = Parser(view)
 
-    class Diagnostic:
-        def __init__(self, ctypes_diagnostic):
-            self.message = ctypes_diagnostic.message.decode(encoding="utf-8")
-            self.code = ctypes_diagnostic.code.decode(encoding="utf-8")
-            self.severity = ctypes_diagnostic.severity
-            self.region = sublime.Region(
-                ctypes_diagnostic.begin_offset, ctypes_diagnostic.end_offset
-            )
 
-    class Parser:
-        try:
-            lib = create_library()
-        except OSError as error:
-            display_error_message(repr(error))
-            lib = None
-            err = error
-
-        @classmethod
-        def is_working(cls):
-            """Tests if Parser is working."""
-            try:
-                cls(None)
-            except (OSError, MemoryError):
-                return False
-            return True
-
-        def __init__(self, view):
-            if Parser.lib is None:
-                self._ctypes_parser_pointer = None
-                raise OSError from Parser.err
-            self.view = view
-            self.diagnostics = []
-            self._ctypes_parser_pointer = Parser.lib.qljs_sublime_text_3_create_parser()
-            if is_pointer_null(self._ctypes_parser_pointer):
-                raise MemoryError()
-
-        def __del__(self):
-            if not is_pointer_null(self._ctypes_parser_pointer):
-                Parser.lib.qljs_sublime_text_3_destroy_parser(
-                    self._ctypes_parser_pointer
-                )
-                self._ctypes_parser_pointer = None
-
-        def set_text(self):
-            view_size = self.view.size()
-            all_region = sublime.Region(0, view_size)
-            all_content = self.view.substr(all_region)
-            text_utf8 = all_content.encode(encoding="utf-8")
-            text_len_utf8 = len(text_utf8)
-            ctypes_error_pointer = Parser.lib.qljs_sublime_text_3_set_text(
-                self._ctypes_parser_pointer,
-                text_utf8,
-                text_len_utf8,
-            )
-            if not is_pointer_null(ctypes_error_pointer):
-                ctypes_error = ctypes_error_pointer.contents
-                raise Error(ctypes_error)
-
-        def lint(self):
-            ctypes_result_pointer = Parser.lib.qljs_sublime_text_3_lint(
-                self._ctypes_parser_pointer
-            )
-            ctypes_result = ctypes_result_pointer.contents
-            if ctypes_result.is_diagnostics:
-                ctypes_diagnostics_pointer = ctypes_result.value.diagnostics
-                diagnostics = []
-                for ctypes_diagnostic in ctypes_diagnostics_pointer:
-                    if is_pointer_null(ctypes_diagnostic.message):
-                        break
-                    diagnostics.append(Diagnostic(ctypes_diagnostic))
-                self.diagnostics = diagnostics
-            else:
-                self.diagnostics = []
-                ctypes_error_pointer = ctypes_result.value.error
-                ctypes_error = ctypes_error_pointer.contents
-                raise Error(ctypes_error)
-
-elif SUBLIME_TEXT_MAJOR_VERSION == "4":
-
-    class Diagnostic:
-        """Diagnostic layer used to communicate with the plugin."""
-
-        def __init__(self, ctypes_diagnostic, view):
-            self.message = ctypes_diagnostic.message.decode(encoding="utf-8")
-            self.code = ctypes_diagnostic.code.decode(encoding="utf-8")
-            self.severity = ctypes_diagnostic.severity
-            start_point = view.text_point_utf16(
-                ctypes_diagnostic.start_line, ctypes_diagnostic.start_character
-            )
-            end_point = view.text_point_utf16(
-                ctypes_diagnostic.end_line, ctypes_diagnostic.end_character
-            )
-            self.region = sublime.Region(start_point, end_point)
-
-    class Parser:
-        """Parser layer used to communicate with the plugin."""
-
-        try:
-            lib = create_library()
-        except OSError as error:
-            display_error_message(repr(error))
-            lib = None
-            err = error
-
-        @classmethod
-        def is_working(cls):
-            """Tests if Parser is working."""
-            try:
-                cls(None)
-            except (OSError, MemoryError):
-                return False
-            return True
-
-        def __init__(self, view):
-            if Parser.lib is None:
-                self._ctypes_parser_pointer = None
-                raise OSError from Parser.err
-            self.view = view
-            self.diagnostics = []
-            self._ctypes_parser_pointer = Parser.lib.qljs_sublime_text_4_create_parser()
-            if is_pointer_null(self._ctypes_parser_pointer):
-                raise MemoryError()
-
-        def __del__(self):
-            if not is_pointer_null(self._ctypes_parser_pointer):
-                Parser.lib.qljs_sublime_text_4_destroy_parser(
-                    self._ctypes_parser_pointer
-                )
-                self._ctypes_parser_pointer = None
-
-        def set_text(self):
-            view_size = self.view.size()
-            all_region = sublime.Region(0, view_size)
-            all_content = self.view.substr(all_region)
-            text_utf8 = all_content.encode(encoding="utf-8")
-            text_len_utf8 = len(text_utf8)
-            ctypes_error_pointer = Parser.lib.qljs_sublime_text_4_replace_text(
-                self._ctypes_parser_pointer, 0, 0, 0, 0, text_utf8, text_len_utf8
-            )
-            if not is_pointer_null(ctypes_error_pointer):
-                ctypes_error = ctypes_error_pointer.contents
-                raise Error(ctypes_error)
-
-        def replace_text(self, change):
-            replacement_text_utf8 = change.str.encode(encoding="utf-8")
-            replacement_text_len_utf8 = len(replacement_text_utf8)
-            ctypes_error_pointer = Parser.lib.qljs_sublime_text_4_replace_text(
-                self._ctypes_parser_pointer,
-                change.a.row,
-                change.a.col_utf16,
-                change.b.row,
-                change.b.col_utf16,
-                replacement_text_utf8,
-                replacement_text_len_utf8,
-            )
-            if not is_pointer_null(ctypes_error_pointer):
-                ctypes_error = ctypes_error_pointer.contents
-                raise Error(ctypes_error)
-
-        def lint(self):
-            ctypes_result_pointer = Parser.lib.qljs_sublime_text_4_lint(
-                self._ctypes_parser_pointer
-            )
-            ctypes_result = ctypes_result_pointer.contents
-            if ctypes_result.is_diagnostics:
-                ctypes_diagnostics_pointer = ctypes_result.value.diagnostics
-                diagnostics = []
-                for ctypes_diagnostic in ctypes_diagnostics_pointer:
-                    if is_pointer_null(ctypes_diagnostic.message):
-                        break
-                    diagnostics.append(Diagnostic(ctypes_diagnostic, self.view))
-                self.diagnostics = diagnostics
-            else:
-                self.diagnostics = []
-                ctypes_error_pointer = ctypes_result.value.error
-                ctypes_error = ctypes_error_pointer.contents
-                raise Error(ctypes_error)
-
+# TODO: self.diags or return?
+# TODO: views = set or list?
 
 # Just for the sake of clarity, you can think of a buffer as a block of
 # memory that contains the file's text and a view as a tab in the
@@ -505,15 +326,6 @@ elif SUBLIME_TEXT_MAJOR_VERSION == "4":
 
 if SUBLIME_TEXT_MAJOR_VERSION == "3":
 
-    class Buffer:
-        """Represents the file's text buffer.
-
-        Multiple view objects may share the same buffer.
-        """
-
-        def __init__(self, view):
-            self.views = [view]
-            self.parser = Parser(view)
 
     class BuffersManager:
         """Manages the buffers."""
@@ -543,10 +355,6 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
         # if there are multiple views (tabs) of the same buffer (file),
         # they will all apply the same changes (have squiggly underlines
         # and pop-ups available).
-        #
-        # More details:
-        #     Inside the quick-lint-js/docs/SUBLIME_TEXT.md or
-        #     https://github.com/quick-lint/quick-lint-js/pull/328#issuecomment-869038036
 
         buffers_manager = BuffersManager()
 
@@ -651,17 +459,6 @@ if SUBLIME_TEXT_MAJOR_VERSION == "3":
 
 elif SUBLIME_TEXT_MAJOR_VERSION == "4":
 
-    class PluginBuffer:
-        """Represents the file's text buffer.
-
-        Implementation specifically for this plugin.
-
-        Multiple view objects may share the same buffer.
-        """
-
-        def __init__(self, view):
-            self.views = {view}
-            self.parser = Parser(view)
 
     class PluginBuffersManager:
         """Manages the plugin buffers."""
