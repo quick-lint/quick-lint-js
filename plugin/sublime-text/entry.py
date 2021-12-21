@@ -55,7 +55,7 @@ class CTypes(metaclass=CTypesMetaclass):
     pass
 
 
-class BaseCType:
+class CComp:
     def __init_subclass__(cls, /, **kwargs):
         super().__init_subclass__(**kwargs)
         try:
@@ -68,15 +68,15 @@ class BaseCType:
         return ctypes.POINTER(cls)
 
 
-class BaseCStruct(BaseType, ctypes.Structure):
+class CStruct(CComp, ctypes.Structure):
     pass
 
 
-class BaseCUnion(BaseType, ctypes.Union):
+class CUnion(CComp, ctypes.Union):
     pass
 
 
-class CDiagnostic(BaseCStruct):
+class CDiagnostic(Cstruct):
     if SublimeUtils.major_version() == "3":
         fields = {
             "message":      CTypes.char_p,
@@ -97,26 +97,27 @@ class CDiagnostic(BaseCStruct):
         }
 
 
-class CError(BaseCStruct):
+class CError(Cstruct):
     fields = {
         "message": CTypes.char_p,
     }
 
 
-class CResult(BaseCStruct):
-    class CValue(BaseCUnion):
-        fields = {
-            "diagnostics": CDiagnostic.pointer()),
-            "error": CError.pointer()),
-        }
-
+class CValue(CUnion):
     fields = {
-        "value": CValue,
+        "diagnostics": CDiagnostic.pointer()),
+        "error":       CError.pointer()),
+    }
+
+
+class CResult(Cstruct):
+    fields = {
+        "value":          CValue,
         "is_diagnostics": CTypes.bool,
     }
 
 
-class CParser(BaseCStruct):
+class CParser(Cstruct):
     fields = {}
 
 
