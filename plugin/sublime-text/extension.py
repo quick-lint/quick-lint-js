@@ -83,8 +83,12 @@ class CStruct:
             pass
 
     @composed(classmethod, cache)
-    def pointer(cls):
+    def pointer_type(cls):
         return ctypes.POINTER(cls)
+
+    @cache
+    def pointer(self):
+        return CTypesUtils.pointer(self)
 
 
 class CText(CStruct):
@@ -122,9 +126,9 @@ class CDiagnostic(CStruct):
         "severity": CTypes.int,
     }
     if SublimeUtils.major_version() == "3":
-        fields["region"] = CRegion
+        fields["region"] = CRegion.pointer()
     elif SublimeUtils.major_version() == "4":
-        fields["range"] = CRange
+        fields["range"] = CRange.pointer()
 
 
 class CParser(Cstruct):
@@ -242,21 +246,18 @@ class Parser:
         except CException:
             raise ParserError("Cannot delete pointer.")
 
-    def set_text(self):  # TODO: Pointer???
-        content = SublimeUtils.view_content(self.view)
-        content = content.encode()
-        c_text = CText(content, len(content))
-        # TODO: In C Code, create `set_text` even in Sublime Text 4
+    def set_text(self):
+        content = SublimeUtils.view_content(self.view).encode()
+        c_text_p = CText(content, len(content)).pointer()
         Parser.c_lib.object.set_text(self.c_parser_p, c_text)
 
     def replace_text(self, change):
-        c_range = CRange(
-            CPosition(change.a.row, change.a.col_utf16),
-            CPosition(change.b.row, change.b.col_utf16),
-        )
+        c_start = CPosition(change.a.row, change.a.col_utf16)
+        c_end = CPosition(change.b.row, change.b.col_utf16)
+        c_range_p = CRange(c_start, c_end).pointer()
         content = change.str.encode()
-        c_text = CText(content, len(content))
-        Parser.c_lib.object.replace_text(self.c_parser_p, )
+        c_text_p = CText(content, len(content)).pointer()
+        Parser.c_lib.object.replace_text(self.c_parser_p, c_range_p, c_text_p)
 
 
 class Error(Exception):
