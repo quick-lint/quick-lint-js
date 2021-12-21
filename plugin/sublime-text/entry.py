@@ -37,7 +37,7 @@ class SublimeUtils:
 
 def remove_prefix(text, prefix):
     if text.startswith(prefix):
-        return text[len(prefix):]
+        return text[len(prefix) :]
     return text
 
 
@@ -55,7 +55,7 @@ class CTypes(metaclass=CTypesMetaclass):
     pass
 
 
-class CComp:
+class CComp:  # NOTE: Composite/Compound
     def __init_subclass__(cls, /, **kwargs):
         super().__init_subclass__(**kwargs)
         try:
@@ -76,46 +76,44 @@ class CUnion(CComp, ctypes.Union):
     pass
 
 
-class CString(CStruct):
+class CText(CStruct):
     fields = {
-        "data":   CTypes.char_p,
+        "data": CTypes.char_p,
         "length": CTypes.size_t,
     }
 
 
 class CPosition(CStruct):
     fields = {
-        "line":      CTypes.uint,
+        "line": CTypes.uint,
         "character": CTypes.uint,
+    }
+
+
+class CRegion(CStruct):
+    fields = {
+        "start": CTypes.uint,
+        "end": CTypes.uint,
     }
 
 
 class CRange(CStruct):
     fields = {
         "start": CPosition,
-        "end":   CPosition,
+        "end": CPosition,
     }
 
 
 class CDiagnostic(Cstruct):
+    fields = {
+        "message": CTypes.char_p,
+        "code": CTypes.char_p,
+        "severity": CTypes.int,
+    }
     if SublimeUtils.major_version() == "3":
-        fields = {
-            "message":      CTypes.char_p,
-            "code":         CTypes.char_p,
-            "severity":     CTypes.int,
-            "begin_offset": CTypes.int,
-            "end_offset":   CTypes.int,
-        }
+        fields["region"] = CRegion
     elif SublimeUtils.major_version() == "4":
-        fields = {
-            "message":         CTypes.char_p,
-            "code":            CTypes.char_p,
-            "severity":        CTypes.int,
-            "start_line":      CTypes.int,
-            "start_character": CTypes.int,
-            "end_line":        CTypes.int,
-            "end_character":   CTypes.int,
-        }
+        fields["range"] = CRange
 
 
 class CError(Cstruct):
@@ -126,14 +124,14 @@ class CError(Cstruct):
 
 class CValue(CUnion):
     fields = {
-        "diagnostics": CDiagnostic.pointer()),
-        "error":       CError.pointer()),
+        "diagnostics": CDiagnostic.pointer(),
+        "error": CError.pointer(),
     }
 
 
 class CResult(Cstruct):
     fields = {
-        "value":          CValue,
+        "value": CValue,
         "is_diagnostics": CTypes.bool,
     }
 
@@ -174,13 +172,11 @@ class Object:
         self.lint.restype = Result.pointer()
         if version == "3":
             self.set_text = cdll.qljs_sublime_text_3_set_text
-            self.set_text.argtypes = [Parser.pointer(), CTypes.void_p, CTypes.size_t]
+            self.set_text.argtypes = [Parser.pointer(), CText]
             self.set_text.restype = Error.pointer()
         elif version == "4":
             self.replace_text = cdll.qljs_sublime_text_4_replace_text
-            self.replace_text.argtypes = [
-                Parser.pointer(), CTypes.int, CTypes.int, CTypes.int, CTypes.int, CTypes.void_p, CTypes.size_t,  # fmt: skip
-            ]
+            self.replace_text.argtypes = [Parser.pointer(), CRange, CText]
             self.replace_text.restype = Error.pointer()
 
 
