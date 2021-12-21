@@ -158,8 +158,16 @@ class CInterfaceException(Exception):
 
 
 class CObject:
+    @staticmethod
+    def cdll(path):  # TODO: `cdll` is a good name?
+        # It's need multiple DLLs for load the library object on Windows,
+        # these DLLs are all in the same folder, for ctypes find these DLLs
+        # we need to change the current working directory to that folder.
+        with changed_directory(self.directory):
+             return ctypes.CDLL(path)
+
     def __init__(self, path):
-        cdll = ctypes.CDLL(path)  # TODO: `cdll` is a good name?
+        cdll = CObject.cdll()
         version = SublimeUtils.major_version()
         self.create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
         self.create_parser.argtypes = []
@@ -184,24 +192,7 @@ class CLibrary:
     def __init__(self):
         self.directory = os.path.dirname(get_module_path())
         self.path = os.path.join(self.directory, self.filename)
-    # On Windows, for ctypes to load a library, it also needs to load
-    # the dependencies of that library in case the library we want to
-    # load, all its dependencies are in the same directory. For ctypes
-    # to find these dependencies, we will need to temporarily change
-    # the current working directory to the same location of these dependencies.
-
-        # It's need multiple DLLs for load the library object on Windows,
-        # these DLLs are all in the same folder, for ctypes find these DLLs
-        # we need to change the current working directory to that folder.
-
-        # On Windows, it's necessary change the current working directory to
-        # the directory of the object that will be loaded because different
-        # of Linux and macOS where we have one single file to load, on Windows
-        # we have multiple files to load
-
-
-        with changed_directory(self.directory):
-            self.object = CObject(self.path)
+        self.object = CObject(self.path)
 
     @cached_property
     def filename(self):  # TODO: Remove lib prefix with CMake
@@ -215,7 +206,7 @@ class CLibrary:
             raise CInterfaceException("Operating system not supported.")
 
 
-class CtypesUtils:
+class CTypesUtils:
     @staticmethod
     def is_pointer_null(pointer):
         return not bool(pointer)
