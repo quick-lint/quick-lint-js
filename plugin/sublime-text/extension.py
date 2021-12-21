@@ -120,7 +120,7 @@ class CDiagnostic(CStruct):
 
 class CResult(Cstruct):
     fields = {
-        "diagnostics": CValue,
+        "diagnostics": CDiagnostic.pointer(),
         "is_failure": CTypes.bool,
     }
 
@@ -183,8 +183,10 @@ class CObject:
         return c_parser_p
 
     def lint(self, c_parser):
-        c_result_p = self.c_lint(c_parser)
-        c_result = c_result_p.contents
+        c_result = self.c_lint(c_parser).contents  # Return pointer contents
+        if c_result.is_failure():
+            raise CInterfaceException("")
+        return c_result
 
 
 class CLibrary:
