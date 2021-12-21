@@ -38,6 +38,11 @@ class SublimeUtils:
     def error_message(msg):
         sublime.error_message("quick-lint-js: " + msg)
 
+    @staticmethod
+    def view_content(view):
+        region = sublime.Region(0, view.size())
+        return view.substr(region)
+
 
 def remove_prefix(text, prefix):
     if text.startswith(prefix):
@@ -80,7 +85,7 @@ class CStruct:
 
 class CText(CStruct):
     fields = {
-        "data": CTypes.char_p,
+        "content": CTypes.char_p,
         "length": CTypes.size_t,
     }
 
@@ -232,6 +237,13 @@ class Parser:
             Parser.c_lib.object.destroy_parser(self.c_parser_p)
         except CException:
             raise ParserError("Cannot delete pointer.")
+
+    def set_text(self):
+        content = SublimeUtils.view_content(self.view)
+        content = content.encode()
+        c_text = CText(content, len(content))
+        # TODO: In C Code, create `set_text` even in Sublime Text 4
+        Parser.c_lib.object.set_text(self.c_parser_p, c_text)
 
 
 class Error(Exception):
