@@ -13,6 +13,9 @@ import sublime
 import sublime_plugin
 
 
+# TODO: Very importart that you test if has async method and if not use normal method
+
+
 def cache(func):
     return lru_cache(maxsize=None)(func)
 
@@ -34,6 +37,14 @@ class SublimeUtils:
     @composed(staticmethod, cache)
     def major_version():
         return sublime.version()[0]
+
+    @composed(staticmethod, cache)
+    def is_three():
+        return SublimeUtils.major_version() == "3"
+
+    @composed(staticmethod, cache)
+    def is_four():
+        return SublimeUtils.major_version() == "4"
 
     @staticmethod
     def error_message(msg):
@@ -126,9 +137,9 @@ class CDiagnostic(CStruct):
         "code": CTypes.char_p,
         "severity": CTypes.int,
     }
-    if SublimeUtils.major_version() == "3":
+    if SublimeUtils.is_three():
         fields["region"] = CRegion.pointer()
-    elif SublimeUtils.major_version() == "4":
+    elif SublimeUtils.is_four():
         fields["range"] = CRange.pointer()
 
 
@@ -216,14 +227,38 @@ class CLibrary:
             raise CException("Operating system not supported.")
 
 
-# TODO: Convert severity value to string ("Error"|"Warning")
-# TODO: Very importart that you test if has async method and if not use normal method
+class Severity:
+    def __init__(self, value):
+        self.value
 
-class Diagnostics:
-    Diagnostic = namedtuple("Diagnostic", [""])
+    def is_error():
+        return self.value == 1
 
-    def __init__(c_diagnostics_p):
-        pass
+    def is_warning():
+        return self.value == 2
+
+
+class Diagnostic:
+    @classmethod
+    def from_pointer(cls, c_diags_p):
+        diags = []
+        for c_diag in c_diags_p:
+            if CTypesUtils.is_pointer_null(c_diag.message):
+                break
+            diags.append(Diagnostic(c_diag))
+        return diags
+
+    def __init__(self, c_diag, view):
+        self.message = c_diag.message.decode()
+        self.code = c_diag.code.decode()
+        self.severity = Severity(c_diag.severity)
+        if SublimeUtils.is_three():
+            start = c_diag.region.start
+            end = c_diag.region.end
+        elif SublimeUtils.is_four():
+            start = view.text_point_utf16(c_diag.start_line, c_diag.start_character)
+            end = view.text_point_utf16(c_diag.end_line, c_diag.end_character)
+        self.region = sublime.Region(start, end)
 
 
 class Parser:
@@ -266,47 +301,8 @@ class Parser:
         Parser.c_lib.object.replace_text(self.c_parser_p, c_range_p, c_text_p)
 
     def lint(self):
-        c_diagnostics_p = Parser.c_lib.lint(self.c_parser_p)
-        for c_diagnostic in c_diagnostics_p:
-
-
-        ctypes_result_pointer = Parser.lib.qljs_sublime_text_3_lint(
-            self._ctypes_parser_pointer
-        )
-        ctypes_result = ctypes_result_pointer.contents
-        if ctypes_result.is_diagnostics:
-            ctypes_diagnostics_pointer = ctypes_result.value.diagnostics
-            diagnostics = []
-            for ctypes_diagnostic in ctypes_diagnostics_pointer:
-                if is_pointer_null(ctypes_diagnostic.message):
-                    break
-                diagnostics.append(Diagnostic(ctypes_diagnostic))
-            self.diagnostics = diagnostics
-        else:
-            self.diagnostics = []
-            ctypes_error_pointer = ctypes_result.value.error
-            ctypes_error = ctypes_error_pointer.contents
-            raise Error(ctypes_error)
-
-
-        ctypes_result_pointer = Parser.lib.qljs_sublime_text_4_lint(
-            self._ctypes_parser_pointer
-        )
-        ctypes_result = ctypes_result_pointer.contents
-        if ctypes_result.is_diagnostics:
-            ctypes_diagnostics_pointer = ctypes_result.value.diagnostics
-            diagnostics = []
-            for ctypes_diagnostic in ctypes_diagnostics_pointer:
-                if is_pointer_null(ctypes_diagnostic.message):
-                    break
-                diagnostics.append(Diagnostic(ctypes_diagnostic, self.view))
-            self.diagnostics = diagnostics
-        else:
-            self.diagnostics = []
-            ctypes_error_pointer = ctypes_result.value.error
-            ctypes_error = ctypes_error_pointer.contents
-            raise Error(ctypes_error)
-
+        c_diags_p = Parser.c_lib.lint(self.c_parser_p)
+        self.diags = Diagnostic.from_pointer(c_diags_p, self.view)
 
 
 class Error(Exception):
