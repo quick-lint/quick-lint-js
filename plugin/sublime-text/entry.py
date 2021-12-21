@@ -184,6 +184,17 @@ class CLibrary:
     def __init__(self):
         self.directory = os.path.dirname(get_module_path())
         self.path = os.path.join(self.directory, self.filename)
+    # On Windows, for ctypes to load a library, it also needs to load
+    # the dependencies of that library in case the library we want to
+    # load, all its dependencies are in the same directory. For ctypes
+    # to find these dependencies, we will need to temporarily change
+    # the current working directory to the same location of these dependencies.
+
+        # It's need multiple DLLs for load the library object on Windows,
+        # these DLLs are all in the same folder, for ctypes find these DLLs
+        # we need to change the current working directory to that folder.
+
+
         with changed_directory(self.directory):
             self.object = CObject(self.path)
 
@@ -196,7 +207,7 @@ class CLibrary:
         elif system() == "Linux":
             return "quick-lint-js-lib.so"
         else:
-            raise CInterfaceException("Operating System not supported.")
+            raise CInterfaceException("Operating system not supported.")
 
 
 # TODO: Convert severity value to string ("Error"|"Warning")
@@ -228,7 +239,7 @@ def load_library():
 
     # It's need multiple DLLs for load the library object on Windows, these DLLs
     # are all in the same folder, for ctypes find these DLLs we need to change
-    # the current directory.
+    # the current working directory to that folder.
     with changed_directory(library.directory):
         library.object = ctypes.CDLL(lib_path)
     return library
