@@ -29,13 +29,33 @@ def composed(*decs):
     return decorator
 
 
+def remove_prefix(text, prefix):
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
+
+
 class SublimeUtils:
     @composed(staticmethod, cache)
     def major_version():
         return sublime.version()[0]
 
 
-class BaseType:
+class PrimitiveCTypesMetaclass(type):
+    def __new__(cls, clsname, clsbases, clsattrs):
+        for attr in dir(ctypes):
+            if attr.startswith("c_"):
+                name = remove_prefix(attr, "c_")
+                value = getattr(ctypes, attr)
+                clsattrs[name] = value
+        return super().__new__(cls, clsname, clsbases, clsattrs)
+
+
+class PrimitiveCTypes(object, metaclass=PrimitiveCTypesMetaclass):
+    pass
+
+
+class BaseCType:
     def __init_subclass__(cls, /, **kwargs):
         super().__init_subclass__(**kwargs)
         try:
@@ -48,11 +68,11 @@ class BaseType:
         return ctypes.POINTER(cls)
 
 
-class BaseStruct(BaseType, ctypes.Structure):
+class BaseCStruct(BaseType, ctypes.Structure):
     pass
 
 
-class BaseUnion(BaseType, ctypes.Union):
+class BaseCUnion(BaseType, ctypes.Union):
     pass
 
 
@@ -78,9 +98,9 @@ class Diagnostic(BaseStruct):
 
 
 class Error(BaseStruct):
-    _fields_ = [
-        ("message", ctypes.c_char_p),
-    ]
+    fields = {
+        "message": ctypes.c_char_p,
+    }
 
 
 class Result(BaseStruct):
@@ -150,7 +170,7 @@ class Library:
         self.directory = os.path.dirname(get_module_path())
         self.path = os.path.join(self.directory, self.filename)
         with changed_directory(self.directory):
-            self.object = Object(ctypes.ctypes.CDLL(self.path))
+            self.object = Object(ctypes.CDLL(self.path))
 
     @cached_property
     def filename(self):
