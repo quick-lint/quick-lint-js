@@ -145,11 +145,11 @@ class CObject:
         # It's need multiple DLLs for load the library object on Windows,
         # these DLLs are all in the same folder, for ctypes find these DLLs
         # we need to change the current working directory to that folder.
-        with changed_directory(self.directory):
+        with changed_directory(os.path.dirname(directory)):
              return ctypes.CDLL(path)
 
     def __init__(self, path):
-        cdll = CObject.cdll()
+        cdll = CObject.cdll(path)
         version = SublimeUtils.major_version()
         self.c_create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
         self.c_create_parser.argtypes = []
@@ -172,12 +172,12 @@ class CObject:
     def create_parser(self):
         c_parser_p = self.c_create_parser()
         if CTypesUtils.is_pointer_null(c_parser_p):
-            raise CException("CParser unavailable.")
+            raise CException("Parser unavailable.")
         return c_parser_p
 
     def destroy_parser(self, c_parser_p):
         if CTypesUtils.is_pointer_null(c_parser_p):
-            raise CException("Cannot free null pointer.")
+            raise CException("Cannot free nonexistent pointer.")
         self.c_destroy_parser(c_parser_p)
 
 
@@ -231,7 +231,7 @@ class Parser:
         try:
             Parser.c_lib.object.destroy_parser(self.c_parser_p)
         except CException:
-            raise ParserError("")
+            raise ParserError("Cannot delete pointer.")
 
 
 class Error(Exception):
