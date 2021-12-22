@@ -4,7 +4,6 @@
 import ctypes
 import html
 import os
-from collections import namedtuple
 from contextlib import contextmanager
 from functools import lru_cache
 from platform import system
@@ -38,13 +37,13 @@ class SublimeUtils:
     def major_version():
         return sublime.version()[0]
 
-    @composed(staticmethod, cache)
-    def is_three():
-        return SublimeUtils.major_version() == "3"
+    @composed(classmethod, cache)
+    def is_three(cls):
+        return cls.major_version() == "3"
 
     @composed(staticmethod, cache)
-    def is_four():
-        return SublimeUtils.major_version() == "4"
+    def is_four(cls):
+        return cls.major_version() == "4"
 
     @staticmethod
     def error_message(msg):
@@ -64,11 +63,11 @@ def remove_prefix(text, prefix):
 
 class CTypesUtils:
     @staticmethod
-    def pointer(obj):
+    def ptr(obj):
         return ctypes.byref(obj)
 
     @staticmethod
-    def is_pointer_null(ptr):
+    def is_ptr_null(ptr):
         return not bool(ptr)
 
 
@@ -95,12 +94,12 @@ class CStruct:
             pass
 
     @composed(classmethod, cache)
-    def pointer_type(cls):
+    def ptrtype(cls):
         return ctypes.POINTER(cls)
 
     @cache
-    def pointer(self):
-        return CTypesUtils.pointer(self)
+    def ptr(self):
+        return CTypesUtils.ptr(self)
 
 
 class CText(CStruct):
@@ -138,9 +137,9 @@ class CDiagnostic(CStruct):
         "severity": CTypes.int,
     }
     if SublimeUtils.is_three():
-        fields["region"] = CRegion.pointer()
+        fields["region"] = CRegion.ptrtype()
     elif SublimeUtils.is_four():
-        fields["range"] = CRange.pointer()
+        fields["range"] = CRange.ptrtype()
 
 
 class CParser(Cstruct):
@@ -178,31 +177,31 @@ class CObject:
         version = SublimeUtils.major_version()
         self.c_create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
         self.c_create_parser.argtypes = []
-        self.c_create_parser.restype = CParser.pointer()
+        self.c_create_parser.restype = CParser.ptrtype()
         self.c_destroy_parser = getattr(cdll, "qljs_st%d_destroy_parser" % (version))
-        self.c_destroy_parser.argtypes = [CParser.pointer()]
+        self.c_destroy_parser.argtypes = [CParser.ptrtype()]
         self.c_destroy_parser.restype = None
         self.lint = getattr(cdll, "qljs_st%d_lint" % (version))
-        self.lint.argtypes = [CParser.pointer()]
-        self.lint.restype = CDiagnostic.pointer()
+        self.lint.argtypes = [CParser.ptrtype()]
+        self.lint.restype = CDiagnostic.ptrtype()
         if version == "3":
             self.set_text = cdll.qljs_st_3_set_text
-            self.set_text.argtypes = [CParser.pointer(), CText]
-            self.set_text.restype = CError.pointer()
+            self.set_text.argtypes = [CParser.ptrtype(), CText]
+            self.set_text.restype = CError.ptrtype()
         elif version == "4":
             self.replace_text = cdll.qljs_st_4_replace_text
-            self.replace_text.argtypes = [CParser.pointer(), CRange, CText]
-            self.replace_text.restype = CError.pointer()
+            self.replace_text.argtypes = [CParser.ptrtype(), CRange, CText]
+            self.replace_text.restype = CError.ptrtype()
 
     def create_parser(self):
         c_parser_p = self.c_create_parser()
-        if CTypesUtils.is_pointer_null(c_parser_p):
+        if CTypesUtils.is_ptr_null(c_parser_p):
             raise CException("Parser unavailable.")
         return c_parser_p
 
     def destroy_parser(self, c_parser_p):
-        if CTypesUtils.is_pointer_null(c_parser_p):
-            raise CException("Cannot free nonexistent pointer.")
+        if CTypesUtils.is_ptr_null(c_parser_p):
+            raise CException("Cannot free nonexistent ptr.")
         self.c_destroy_parser(c_parser_p)
 
 
@@ -240,10 +239,10 @@ class Severity:
 
 class Diagnostic:
     @classmethod
-    def from_pointer(cls, c_diags_p):
+    def from_ptr(cls, c_diags_p):
         diags = []
         for c_diag in c_diags_p:
-            if CTypesUtils.is_pointer_null(c_diag.message):
+            if CTypesUtils.is_ptr_null(c_diag.message):
                 break
             diags.append(Diagnostic(c_diag))
         return diags
@@ -289,20 +288,20 @@ class Parser:
 
     def set_text(self):
         content = SublimeUtils.view_content(self.view).encode()
-        c_text_p = CText(content, len(content)).pointer()
+        c_text_p = CText(content, len(content)).ptr()
         Parser.c_lib.object.set_text(self.c_parser_p, c_text)
 
     def replace_text(self, change):
         c_start = CPosition(change.a.row, change.a.col_utf16)
         c_end = CPosition(change.b.row, change.b.col_utf16)
-        c_range_p = CRange(c_start, c_end).pointer()
+        c_range_p = CRange(c_start, c_end).ptr()
         content = change.str.encode()
-        c_text_p = CText(content, len(content)).pointer()
+        c_text_p = CText(content, len(content)).ptr()
         Parser.c_lib.object.replace_text(self.c_parser_p, c_range_p, c_text_p)
 
     def lint(self):
         c_diags_p = Parser.c_lib.lint(self.c_parser_p)
-        self.diags = Diagnostic.from_pointer(c_diags_p, self.view)
+        self.diags = Diagnostic.from_ptr(c_diags_p, self.view)
 
 
 # TODO: self.diags or return?
