@@ -651,9 +651,6 @@ static_assert(expression_arena::is_allocatable<expression::index>);
 
 class expression::jsx_base : public expression {
  public:
-  explicit jsx_base(expression_kind kind, source_code_span span) noexcept
-      : expression(kind), span(span) {}
-
   explicit jsx_base(expression_kind kind, source_code_span span,
                     expression_arena::array_ptr<expression *> children) noexcept
       : expression(kind), span(span), children(children) {}
@@ -666,10 +663,6 @@ static_assert(expression_arena::is_allocatable<expression::jsx_base>);
 class expression::jsx_element final : public jsx_base {
  public:
   static constexpr expression_kind kind = expression_kind::jsx_element;
-
-  explicit jsx_element(const char8 *less_begin, const char8 *greater_end,
-                       const identifier &tag) noexcept
-      : jsx_base(kind, source_code_span(less_begin, greater_end)), tag(tag) {}
 
   explicit jsx_element(
       const char8 *less_begin, const char8 *greater_end, const identifier &tag,
@@ -714,10 +707,6 @@ static_assert(
 class expression::jsx_fragment final : public jsx_base {
  public:
   static constexpr expression_kind kind = expression_kind::jsx_fragment;
-
-  explicit jsx_fragment(const char8 *less_begin,
-                        const char8 *greater_end) noexcept
-      : jsx_base(kind, source_code_span(less_begin, greater_end)) {}
 
   explicit jsx_fragment(
       const char8 *less_begin, const char8 *greater_end,
