@@ -53,19 +53,21 @@ class lexer {
   // Precondition: this->peek().type != token_type::end_of_file.
   void skip() { this->parse_current_token(); }
 
-  // Like this->skip(), but interpret '}' as ending an expression inside a
-  // template literal.
+  // After parsing a '}' (right_curly) token, call this function to interpret
+  // '}' as ending an expression inside a template literal.
   //
   // For example:
   //
   //   `senior ${language} engineer`
   //
-  // After seeing the 'language' token, the caller should use
+  // After seeing the '}' (right_curly) token, the caller should use
   // this->skip_in_template() so '} engineer`' is interpreted as part of the
   // template literal (instead of a '}' token, an 'engineer' token, and the
   // beginning of another template literal).
   //
   // The given template_begin is used for error reporting.
+  //
+  // Precondition: this->peek().type == token_type::right_curly
   void skip_in_template(const char8* template_begin);
 
   // Like this->skip(), but interpret identifiers and strings as JSX identifiers

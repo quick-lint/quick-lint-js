@@ -827,6 +827,7 @@ const char8* lexer::parse_jsx_string_literal() noexcept {
 }
 
 void lexer::skip_in_template(const char8* template_begin) {
+  QLJS_ASSERT(this->peek().type == token_type::right_curly);
   this->last_token_.begin = this->input_;
   parsed_template_body body = this->parse_template_body(
       this->input_, template_begin, this->error_reporter_);
