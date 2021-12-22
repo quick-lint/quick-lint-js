@@ -2261,44 +2261,67 @@ expression* parser::parse_jsx_element_or_fragment(identifier* tag,
     }
   }
 
-next:
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
   this->lexer_.skip_in_jsx_children();
 
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::less);
-  const char8* child_begin = this->peek().begin;
-  this->lexer_.skip_in_jsx();
+next:
   switch (this->peek().type) {
   // </current>
-  case token_type::slash: {
+  // <child>
+  case token_type::less: {
+    const char8* child_begin = this->peek().begin;
     this->lexer_.skip_in_jsx();
-    if (tag) {
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+    switch (this->peek().type) {
+    // </current>
+    case token_type::slash: {
       this->lexer_.skip_in_jsx();
-    }
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
-    const char8* greater_end = this->peek().end;
+      if (tag) {
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+        this->lexer_.skip_in_jsx();
+      }
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
+      const char8* greater_end = this->peek().end;
 
-    if (tag) {
-      return this->make_expression<expression::jsx_element>(
-          /*less_begin=*/less_begin,
-          /*greater_end=*/greater_end,
-          /*tag=*/*tag,
-          /*children=*/this->expressions_.make_array(std::move(children)));
-    } else {
-      return this->make_expression<expression::jsx_fragment>(
-          /*less_begin=*/less_begin,
-          /*greater_end=*/greater_end,
-          /*children=*/this->expressions_.make_array(std::move(children)));
+      if (tag) {
+        return this->make_expression<expression::jsx_element>(
+            /*less_begin=*/less_begin,
+            /*greater_end=*/greater_end,
+            /*tag=*/*tag,
+            /*children=*/this->expressions_.make_array(std::move(children)));
+      } else {
+        return this->make_expression<expression::jsx_fragment>(
+            /*less_begin=*/less_begin,
+            /*greater_end=*/greater_end,
+            /*children=*/this->expressions_.make_array(std::move(children)));
+      }
     }
+
+      // <child>
+    case token_type::identifier: {
+      identifier child_tag = this->peek().identifier_name();
+      this->lexer_.skip_in_jsx();
+      children.emplace_back(this->parse_jsx_element_or_fragment(
+          /*tag=*/&child_tag, /*greater_begin=*/child_begin));
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
+      this->lexer_.skip_in_jsx_children();
+      goto next;
+    }
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+    }
+    break;
   }
 
-    // <child>
-  case token_type::identifier: {
-    identifier child_tag = this->peek().identifier_name();
-    this->lexer_.skip_in_jsx();
-    children.emplace_back(this->parse_jsx_element_or_fragment(
-        /*tag=*/&child_tag, /*greater_begin=*/child_begin));
+  // {expression}
+  case token_type::left_curly: {
+    this->skip();
+    expression* ast = this->parse_expression();
+    children.emplace_back(ast);
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+    this->lexer_.skip_in_jsx_children();
     goto next;
   }
 

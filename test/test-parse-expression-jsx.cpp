@@ -184,6 +184,29 @@ TEST_F(test_parse_expression, fragment_with_element_children) {
               "jsxelement(span)))))");
   }
 }
+
+TEST_F(test_parse_expression, tag_with_expression_children) {
+  {
+    test_parser p(u8"<div>hello {name}!</div>"_sv, jsx_options);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxelement(div, var name)");
+    EXPECT_EQ(p.range(ast->child_0()).begin_offset(), strlen(u8"<div>hello {"));
+    EXPECT_EQ(p.range(ast->child_0()).end_offset(),
+              strlen(u8"<div>hello {name"));
+  }
+
+  {
+    expression* ast =
+        this->parse_expression(u8"<ul>{...listItems}</ul>"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast), "jsxelement(ul, spread(var listItems))");
+  }
+
+  {
+    expression* ast =
+        this->parse_expression(u8"<div>{a}{b}{c}</div>"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast), "jsxelement(div, var a, var b, var c)");
+  }
+}
 }
 }
 
