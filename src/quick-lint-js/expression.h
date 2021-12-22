@@ -651,6 +651,14 @@ class expression::jsx_element final : public expression {
                        const identifier &tag) noexcept
       : expression(kind), span(less_begin, greater_end), tag(tag) {}
 
+  explicit jsx_element(
+      const char8 *less_begin, const char8 *greater_end, const identifier &tag,
+      expression_arena::array_ptr<expression *> children) noexcept
+      : expression(kind),
+        span(less_begin, greater_end),
+        tag(tag),
+        children(children) {}
+
   bool is_intrinsic() const noexcept {
     // TODO(strager): Have the lexer do this work for us.
     string8_view name = tag.normalized_name();
@@ -662,6 +670,7 @@ class expression::jsx_element final : public expression {
 
   source_code_span span;
   identifier tag;
+  expression_arena::array_ptr<expression *> children;
 };
 static_assert(expression_arena::is_allocatable<expression::jsx_element>);
 
@@ -673,7 +682,13 @@ class expression::jsx_fragment final : public expression {
                         const char8 *greater_end) noexcept
       : expression(kind), span(less_begin, greater_end) {}
 
+  explicit jsx_fragment(
+      const char8 *less_begin, const char8 *greater_end,
+      expression_arena::array_ptr<expression *> children) noexcept
+      : expression(kind), span(less_begin, greater_end), children(children) {}
+
   source_code_span span;
+  expression_arena::array_ptr<expression *> children;
 };
 static_assert(expression_arena::is_allocatable<expression::jsx_fragment>);
 
@@ -987,6 +1002,14 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     auto *index = static_cast<const expression::index *>(this);
     return expression_arena::array_ptr<expression *>(
         index->children_.data(), narrow_cast<int>(index->children_.size()));
+  }
+  case expression_kind::jsx_element: {
+    auto *jsx = static_cast<const expression::jsx_element *>(this);
+    return jsx->children;
+  }
+  case expression_kind::jsx_fragment: {
+    auto *jsx = static_cast<const expression::jsx_fragment *>(this);
+    return jsx->children;
   }
   case expression_kind::rw_unary_suffix: {
     auto *rw_unary_suffix =

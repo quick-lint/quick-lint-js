@@ -107,10 +107,16 @@ std::string summarize(const expression& expression) {
   case expression_kind::jsx_element: {
     const auto& jsx =
         static_cast<const quick_lint_js::expression::jsx_element&>(expression);
-    return "jsxelement(" + to_string(jsx.tag.normalized_name()) + ")";
+    std::string result = "jsxelement(" + to_string(jsx.tag.normalized_name());
+    if (jsx.child_count() != 0) {
+      result += ", ";
+      result += children();
+    }
+    result += ")";
+    return result;
   }
   case expression_kind::jsx_fragment:
-    return "jsxfragment";
+    return "jsxfragment(" + children() + ")";
   case expression_kind::literal:
     return "literal";
   case expression_kind::named_function:

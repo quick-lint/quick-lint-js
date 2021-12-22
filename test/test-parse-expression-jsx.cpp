@@ -137,8 +137,51 @@ TEST_F(test_parse_expression, fragment_with_text_children) {
   {
     test_parser p(u8"<>hello world</>"_sv, jsx_options);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "jsxfragment");
+    EXPECT_EQ(summarize(ast), "jsxfragment()");
     EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"<>hello world</>"));
+  }
+}
+
+TEST_F(test_parse_expression, tag_with_element_children) {
+  {
+    test_parser p(u8"<div>hello <span>world</span>!</div>"_sv, jsx_options);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxelement(div, jsxelement(span))");
+    EXPECT_EQ(p.range(ast).begin_offset(), strlen(u8""));
+    EXPECT_EQ(p.range(ast).end_offset(),
+              strlen(u8"<div>hello <span>world</span>!</div>"));
+    EXPECT_EQ(p.range(ast->child_0()).begin_offset(), strlen(u8"<div>hello "));
+    EXPECT_EQ(p.range(ast->child_0()).end_offset(),
+              strlen(u8"<div>hello <span>world</span>"));
+  }
+}
+
+TEST_F(test_parse_expression, fragment_with_element_children) {
+  {
+    test_parser p(u8"<>hello <span>world</span>!</>"_sv, jsx_options);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxfragment(jsxelement(span))");
+    EXPECT_EQ(p.range(ast).begin_offset(), strlen(u8""));
+    EXPECT_EQ(p.range(ast).end_offset(),
+              strlen(u8"<>hello <span>world</span>!</>"));
+    EXPECT_EQ(p.range(ast->child_0()).begin_offset(), strlen(u8"<>hello "));
+    EXPECT_EQ(p.range(ast->child_0()).end_offset(),
+              strlen(u8"<>hello <span>world</span>"));
+  }
+
+  {
+    expression* ast = this->parse_expression(
+        u8"<><span>hello</span><span>world</span></>"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast),
+              "jsxfragment(jsxelement(span), jsxelement(span))");
+  }
+
+  {
+    expression* ast = this->parse_expression(
+        u8"<><ul><li><a><span>hello</span></a></li></ul></>"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast),
+              "jsxfragment(jsxelement(ul, jsxelement(li, jsxelement(a, "
+              "jsxelement(span)))))");
   }
 }
 }

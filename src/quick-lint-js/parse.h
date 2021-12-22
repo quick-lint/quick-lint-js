@@ -3796,6 +3796,14 @@ class parser {
   expression *parse_class_expression();
 
   expression *parse_jsx_expression();
+  // tag is optional. If it is nullptr, parse a fragment. Otherwise, parse an
+  // element.
+  //
+  // Precondition: previous token was '<' (for fragments) or an identifier (for
+  //               elements).
+  // Postcondition: current token is '>' or end_of_file.
+  expression *parse_jsx_element_or_fragment(identifier *tag,
+                                            const char8 *less_begin);
 
   expression *parse_template(std::optional<expression *> tag);
 

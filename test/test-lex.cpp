@@ -2839,21 +2839,71 @@ TEST_F(test_lex, jsx_expression_children) {
   this->lex_jsx_tokens = true;
 
   {
-    padded_string code(u8"<>hello {name}!<>"_sv);
+    padded_string code(u8"<>hello {name}!</>"_sv);
     error_collector errors;
     lexer l(&code, &errors);
+
+    // <>hello
+    EXPECT_EQ(l.peek().type, token_type::less);
     l.skip_in_jsx();
     EXPECT_EQ(l.peek().type, token_type::greater);
+
+    // {name}
     l.skip_in_jsx_children();
     EXPECT_EQ(l.peek().type, token_type::left_curly);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::identifier);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::right_curly);
+
+    // !</>
     l.skip_in_jsx_children();
     EXPECT_EQ(l.peek().type, token_type::less);
     l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.skip_in_jsx();
     EXPECT_EQ(l.peek().type, token_type::greater);
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+}
+
+TEST_F(test_lex, jsx_nested_children) {
+  this->lex_jsx_tokens = true;
+
+  {
+    padded_string code(u8"<>hello <span>world</span>!</>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    // <>hello
+    EXPECT_EQ(l.peek().type, token_type::less);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+
+    // <span>world</span>
+    l.skip_in_jsx_children();
+    EXPECT_EQ(l.peek().type, token_type::less);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+    l.skip_in_jsx_children();
+    EXPECT_EQ(l.peek().type, token_type::less);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+
+    // !</>
+    l.skip_in_jsx_children();
+    EXPECT_EQ(l.peek().type, token_type::less);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+
     EXPECT_THAT(errors.errors, IsEmpty());
   }
 }
