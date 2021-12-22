@@ -17,21 +17,52 @@ import sublime_plugin
 # TODO: Create 3 files: utils, cinterface, plugin
 
 
-def cache(func):
-    return lru_cache(maxsize=None)(func)
+class StringUtils:
+    @staticmethod
+    def remove_prefix(text, prefix):
+        if text.startswith(prefix):
+            return text[len(prefix) :]
+        return text
 
 
-def cached_property(func):
-    return property(cache(func))
+class CTypesUtils:
+    @staticmethod
+    def ptr(obj):
+        return ctypes.byref(obj)
+
+    @staticmethod
+    @cache  # TODO: cache?
+    def is_ptr_null(ptr):
+        return not bool(ptr)
 
 
-def composed(*decs):
-    def decorator(func):
-        for dec in reversed(decs):
-            func = dec(func)
-        return func
+class FunctoolsUtils:
+    @staticmethod
+    def cache(func):
+        return lru_cache(maxsize=None)(func)
 
-    return decorator
+    @staticmethod
+    def composed(*decs):
+        def decorator(func):
+            for dec in reversed(decs):
+                func = dec(func)
+            return func
+
+        return decorator
+
+
+class OsUtils:
+    @staticmethod
+    def get_module_path():
+        return os.path.realpath(__file__)
+
+    @composed(staticmethod, contextmanager)
+    def changed_directory(path):
+        previous = os.getcwd()
+        try:
+            yield os.chdir(path)
+        finally:
+            os.chdir(previous)
 
 
 class SublimeUtils:
@@ -55,22 +86,6 @@ class SublimeUtils:
     def view_content(view):
         region = sublime.Region(0, view.size())
         return view.substr(region)
-
-
-def remove_prefix(text, prefix):
-    if text.startswith(prefix):
-        return text[len(prefix) :]
-    return text
-
-
-class CTypesUtils:
-    @staticmethod
-    def ptr(obj):
-        return ctypes.byref(obj)
-
-    @staticmethod
-    def is_ptr_null(ptr):
-        return not bool(ptr)
 
 
 class CTypesMetaclass(type):
@@ -148,19 +163,6 @@ class CParser(Cstruct):
     fields = {}
 
 
-def get_module_path():
-    return os.path.realpath(__file__)
-
-
-@contextmanager
-def changed_directory(path):
-    previous = os.getcwd()
-    try:
-        yield os.chdir(path)
-    finally:
-        os.chdir(previous)
-
-
 class CException(Exception):
     pass
 
@@ -216,7 +218,7 @@ class CLibrary:
         except OSError:
             raise CException("Failed to load library object.")
 
-    @cached_property
+    @composed(property, cache)
     def filename(self):  # TODO: Remove lib prefix with CMake
         if system() == "Windows":
             return "quick-lint-js-lib.dll"
