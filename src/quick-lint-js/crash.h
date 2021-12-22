@@ -19,16 +19,6 @@
 #define QLJS_CRASH_ALLOWING_CORE_DUMP() ::std::abort()
 #endif
 
-#define QLJS_CRASH_DISALLOWING_CORE_DUMP()   \
-  do {                                       \
-    ::quick_lint_js::disable_core_dumping(); \
-    QLJS_CRASH_ALLOWING_CORE_DUMP();         \
-  } while (false)
-
-namespace quick_lint_js {
-void disable_core_dumping();
-}
-
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -2609,7 +2609,7 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
                token_position.column_number);
   std::fprintf(stderr, "\n");
 
-  QLJS_CRASH_DISALLOWING_CORE_DUMP();
+  QLJS_CRASH_ALLOWING_CORE_DUMP();
 }
 
 void parser::crash_on_depth_limit_exceeded() {
@@ -2625,7 +2625,7 @@ void parser::crash_on_depth_limit_exceeded() {
 
   std::fprintf(stderr, "Error: parser depth limit exceeded\n");
 
-  QLJS_CRASH_DISALLOWING_CORE_DUMP();
+  QLJS_CRASH_ALLOWING_CORE_DUMP();
 }
 
 parser::function_guard::function_guard(parser* p, bool was_in_top_level,

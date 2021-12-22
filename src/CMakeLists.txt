@@ -55,7 +55,6 @@ quick_lint_js_add_library(
   cli-location.cpp
   configuration-loader.cpp
   configuration.cpp
-  crash.cpp
   diagnostic-formatter.cpp
   diagnostic.cpp
   document.cpp
