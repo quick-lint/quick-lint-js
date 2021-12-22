@@ -2244,8 +2244,55 @@ expression* parser::parse_jsx_element_or_fragment(identifier* tag,
   vector<expression*> children("jsx_element children",
                                &this->temporary_memory_);
 
-  if (this->peek().type == token_type::slash) {
-    // <current />
+next_attribute:
+  switch (this->peek().type) {
+  // <current attribute='value'>
+  case token_type::identifier:
+    this->lexer_.skip_in_jsx();
+    if (this->peek().type == token_type::equal) {
+      this->lexer_.skip_in_jsx();
+      switch (this->peek().type) {
+      // <current attribute='value'>
+      case token_type::string:
+        this->lexer_.skip_in_jsx();
+        break;
+
+      // <current attribute={expression}>
+      case token_type::left_curly: {
+        this->lexer_.skip();
+        expression* ast = this->parse_expression();
+        children.emplace_back(ast);
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+        this->lexer_.skip_in_jsx();
+        break;
+      }
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
+    } else {
+      // <current attribute>
+    }
+    goto next_attribute;
+
+  // <current {...attributes}>
+  case token_type::left_curly: {
+    this->lexer_.skip();
+    expression* ast = this->parse_expression();
+    children.emplace_back(ast);
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+    this->lexer_.skip_in_jsx();
+    goto next_attribute;
+  }
+
+  // <current>
+  case token_type::greater:
+    this->lexer_.skip_in_jsx_children();
+    goto next;
+
+  // <current />
+  case token_type::slash: {
     this->lexer_.skip_in_jsx();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
     const char8* greater_end = this->peek().end;
@@ -2253,16 +2300,20 @@ expression* parser::parse_jsx_element_or_fragment(identifier* tag,
       return this->make_expression<expression::jsx_element>(
           /*less_begin=*/less_begin,
           /*greater_end=*/greater_end,
-          /*tag=*/*tag);
+          /*tag=*/*tag,
+          /*children=*/this->expressions_.make_array(std::move(children)));
     } else {
       return this->make_expression<expression::jsx_fragment>(
           /*less_begin=*/less_begin,
-          /*greater_end=*/greater_end);
+          /*greater_end=*/greater_end,
+          /*children=*/this->expressions_.make_array(std::move(children)));
     }
   }
 
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
-  this->lexer_.skip_in_jsx_children();
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
+  }
 
 next:
   switch (this->peek().type) {

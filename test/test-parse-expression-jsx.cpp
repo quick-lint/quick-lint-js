@@ -207,6 +207,39 @@ TEST_F(test_parse_expression, tag_with_expression_children) {
     ASSERT_EQ(summarize(ast), "jsxelement(div, var a, var b, var c)");
   }
 }
+
+TEST_F(test_parse_expression, tag_with_attributes) {
+  {
+    test_parser p(u8"<div className='header' />"_sv, jsx_options);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxelement(div)");
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(),
+              strlen(u8"<div className='header' />"));
+  }
+
+  {
+    test_parser p(u8"<div className={expr} />"_sv, jsx_options);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxelement(div, var expr)");
+    EXPECT_EQ(p.range(ast->child_0()).begin_offset(),
+              strlen(u8"<div className={"));
+    EXPECT_EQ(p.range(ast->child_0()).end_offset(),
+              strlen(u8"<div className={expr"));
+  }
+
+  {
+    expression* ast = this->parse_expression(
+        u8"<input type=\"checkbox\" checked />"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast), "jsxelement(input)");
+  }
+
+  {
+    expression* ast =
+        this->parse_expression(u8"<input {...attributes} />"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast), "jsxelement(input, spread(var attributes))");
+  }
+}
 }
 }
 
