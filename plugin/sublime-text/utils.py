@@ -1,8 +1,12 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-import sublime
+import ctypes
+import contextlib
+import functools
+import os
 
+import sublime
 
 class UString:
     @staticmethod
@@ -26,7 +30,7 @@ class UCTypes:
 class UFunctools:
     @staticmethod
     def cache(func):
-        return lru_cache(maxsize=None)(func)
+        return functools.lru_cache(maxsize=None)(func)
 
     @staticmethod
     def composed(*decs):
@@ -43,7 +47,7 @@ class USystem:
     def get_module_path():
         return os.path.realpath(__file__)
 
-    @composed(staticmethod, contextmanager)
+    @composed(staticmethod, contextlib.contextmanager)
     def changed_directory(path):
         previous = os.getcwd()
         try:

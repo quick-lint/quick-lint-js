@@ -1,22 +1,14 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-import ctypes
-import html
-import os
-from contextlib import contextmanager
-from functools import lru_cache
-from platform import system
-
-
-
 # TODO: Very importart that you test if has async method and if not use normal method
 # TODO: Replace all top-level functions by classes
 # TODO: Create 3 files: utils, cinterface, plugin
-
-
 # TODO: self.diags or return?
 # TODO: views = set or list?
+
+import html
+
 import sublime
 import sublime_plugin
 

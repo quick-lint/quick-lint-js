@@ -1,6 +1,10 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+import ctypes
+import platform
+import os
+
 
 class CTypesMetaclass(type):
     def __new__(cls, clsname, clsbases, clsattrs):  # TODO: With or without `c_`? With
@@ -134,11 +138,11 @@ class CLibrary:
 
     @composed(property, cache)
     def filename(self):  # TODO: Remove lib prefix with CMake
-        if system() == "Windows":
+        if platform.system() == "Windows":
             return "quick-lint-js-lib.dll"
-        elif system() == "Darwin":
+        elif platform.system() == "Darwin":
             return "quick-lint-js-lib.dylib"
-        elif system() == "Linux":
+        elif platform.system() == "Linux":
             return "quick-lint-js-lib.so"
         else:
             raise CException("Operating system not supported.")
