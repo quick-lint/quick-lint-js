@@ -8,7 +8,6 @@
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/unreachable.h>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <type_traits>

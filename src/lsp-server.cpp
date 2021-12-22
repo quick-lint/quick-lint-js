@@ -29,7 +29,6 @@
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>
-#include <sstream>
 #include <string>
 #include <utility>
 
