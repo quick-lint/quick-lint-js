@@ -104,8 +104,11 @@ std::string summarize(const expression& expression) {
     return "import";
   case expression_kind::index:
     return "index(" + children() + ")";
-  case expression_kind::jsx_element:
-    return "jsxelement";
+  case expression_kind::jsx_element: {
+    const auto& jsx =
+        static_cast<const quick_lint_js::expression::jsx_element&>(expression);
+    return "jsxelement(" + to_string(jsx.tag.normalized_name()) + ")";
+  }
   case expression_kind::jsx_fragment:
     return "jsxfragment";
   case expression_kind::literal:

@@ -1212,11 +1212,25 @@
           default_token))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_greater_in_jsx_text, "E0182",                           \
+      { source_code_span greater; },                                           \
+      ERROR(QLJS_TRANSLATABLE("'>' is not allowed directly in JSX text; "      \
+                              "write {{'>'} or &gt; instead"),                 \
+            greater))                                                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unexpected_literal_in_parameter_list, "E0159",                     \
       { source_code_span literal; },                                           \
       ERROR(QLJS_TRANSLATABLE("unexpected literal in parameter list; "         \
                               "expected parameter name"),                      \
             literal))                                                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_right_curly_in_jsx_text, "E0183",                       \
+      { source_code_span right_curly; },                                       \
+      ERROR(QLJS_TRANSLATABLE("'}' is not allowed directly in JSX text; "      \
+                              "write {{'}'} instead"),                         \
+            right_curly))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_semicolon_in_c_style_for_loop, "E0102",                 \

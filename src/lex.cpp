@@ -913,6 +913,12 @@ retry:
     break;
   }
 
+  case '>':
+    this->last_token_.type = token_type::greater;
+    this->input_ += 1;
+    this->last_token_.end = this->input_;
+    break;
+
   case '"':
   case '\'':
     this->input_ = this->parse_jsx_string_literal();
@@ -926,6 +932,13 @@ retry:
     }
     break;
   }
+}
+
+void lexer::skip_in_jsx_children() {
+  QLJS_ASSERT(this->peek().type == token_type::right_curly ||
+              this->peek().type == token_type::greater);
+  this->skip_jsx_text();
+  this->skip_in_jsx();
 }
 
 void lexer::reparse_as_regexp() {
@@ -1870,6 +1883,41 @@ void lexer::skip_line_comment_body() {
     }
   }
   this->last_token_.has_leading_newline = true;
+}
+
+void lexer::skip_jsx_text() {
+  const char8* c;
+  for (c = this->input_;; ++c) {
+    switch (*c) {
+    case u8'{':
+    case u8'<':
+      goto done;
+
+    case u8'>':
+      this->error_reporter_->report(error_unexpected_greater_in_jsx_text{
+          .greater = source_code_span(c, c + 1),
+      });
+      break;
+
+    case u8'}':
+      this->error_reporter_->report(error_unexpected_right_curly_in_jsx_text{
+          .right_curly = source_code_span(c, c + 1),
+      });
+      break;
+
+    case u8'\0':
+      if (this->is_eof(c)) {
+        goto done;
+      }
+      break;
+
+    default:
+      break;
+    }
+  }
+done:
+  // TODO(strager): Should we set has_leading_newline?
+  this->input_ = c;
 }
 
 bool lexer::is_eof(const char8* input) noexcept {

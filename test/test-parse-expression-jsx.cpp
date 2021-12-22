@@ -113,6 +113,15 @@ TEST_F(test_parse_expression, tag_with_no_children) {
   }
 }
 
+TEST_F(test_parse_expression, tag_with_text_children) {
+  {
+    test_parser p(u8"<div>hello world</div>"_sv, jsx_options);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxelement(div)");
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"<div>hello world</div>"));
+  }
+}
+
 TEST_F(test_parse_expression, fragment_with_no_children) {
   {
     test_parser p(u8"<></>"_sv, jsx_options);
@@ -121,6 +130,15 @@ TEST_F(test_parse_expression, fragment_with_no_children) {
     EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"<></>"));
+  }
+}
+
+TEST_F(test_parse_expression, fragment_with_text_children) {
+  {
+    test_parser p(u8"<>hello world</>"_sv, jsx_options);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "jsxfragment");
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"<>hello world</>"));
   }
 }
 }

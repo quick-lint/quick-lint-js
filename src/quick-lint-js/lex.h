@@ -70,11 +70,34 @@ class lexer {
   // Precondition: this->peek().type == token_type::right_curly
   void skip_in_template(const char8* template_begin);
 
-  // Like this->skip(), but interpret identifiers and strings as JSX identifiers
-  // and strings.
+  // Like this->skip(), except:
   //
-  // JSX identifiers may contain '-'. JSX strings do not support '\' escapes.
+  // * interpret identifiers as JSX identifiers (JSX identifiers may contain
+  //   '-')
+  // * interpret strings as JSX strings (JSX strings do not support '\' escapes)
+  // * interpret '>>', '>=', etc. as a '>' token followed by another token
   void skip_in_jsx();
+
+  // After parsing a '}' (right_curly) token, call this function to interpret
+  // '}' as ending an expression inside a JSX element.
+  //
+  // After parsing a '>' (greater) token, call this function to interpret '>' as
+  // the beginning of children for a JSX element.
+  //
+  // For example:
+  //
+  //   <div>Hello, {name}!!!</div>
+  //
+  // After seeing the '>' (greater) token, the caller should use
+  // this->skip_in_jsx_children() so 'Hello, {' is interpreted as text (instead
+  // of a 'Hello' identifier token, a ',' token, and a '{' token). After seeing
+  // the '}' (right_curly) token, the caller should use
+  // this->skip_in_jsx_children() so '!!!' is interpreted as text (instead of
+  // three '!' tokens).
+  //
+  // Precondition: this->peek().type == token_type::right_curly ||
+  //               this->peek().type == token_type::greater
+  void skip_in_jsx_children();
 
   // Reparse a '/' or '/=' token as a regular expression literal.
   //
@@ -233,6 +256,7 @@ class lexer {
   void skip_whitespace();
   void skip_block_comment();
   void skip_line_comment_body();
+  void skip_jsx_text();
 
   bool is_eof(const char8*) noexcept;
 

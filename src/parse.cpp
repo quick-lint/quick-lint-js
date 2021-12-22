@@ -2220,7 +2220,7 @@ expression* parser::parse_jsx_expression() {
     switch (this->peek().type) {
     // <div>
     case token_type::greater:
-      this->lexer_.skip_in_jsx();
+      this->lexer_.skip_in_jsx_children();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::less);
       this->lexer_.skip_in_jsx();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::slash);
@@ -2250,7 +2250,7 @@ expression* parser::parse_jsx_expression() {
 
   // <> </>
   case token_type::greater: {
-    this->lexer_.skip_in_jsx();
+    this->lexer_.skip_in_jsx_children();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::less);
     this->lexer_.skip_in_jsx();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::slash);

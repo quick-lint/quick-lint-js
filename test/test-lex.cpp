@@ -2742,6 +2742,122 @@ TEST_F(test_lex, jsx_tag) {
   }
 }
 
+TEST_F(test_lex, jsx_text_children) {
+  {
+    padded_string code(u8"<>hello world"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    l.skip_in_jsx_children();  // Skip '>'.
+
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"<>hello</>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    l.skip_in_jsx_children();  // Skip '>'.
+
+    EXPECT_EQ(l.peek().type, token_type::less);
+    EXPECT_EQ(l.peek().begin, &code[strlen(u8"<>hello")]);
+    EXPECT_EQ(l.peek().end, &code[strlen(u8"<>hello<")]);
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+
+  // '>=' might be interpreted as greater_equal by a buggy lexer, for example.
+  for (string8 text_begin : {u8"=", u8">", u8">>", u8">=", u8">>="}) {
+    padded_string code(u8"<>" + text_begin + u8"hello");
+    SCOPED_TRACE(code);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    EXPECT_EQ(l.peek().type, token_type::greater);
+    EXPECT_EQ(l.peek().begin, &code[strlen(u8"<")]);
+    EXPECT_EQ(l.peek().end, &code[strlen(u8"<>")]);
+    l.skip_in_jsx_children();
+
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+    if (text_begin == u8"=") {
+      EXPECT_THAT(errors.errors, IsEmpty());
+    } else if (text_begin == u8">" || text_begin == u8">=") {
+      EXPECT_THAT(errors.errors,
+                  ElementsAre(ERROR_TYPE_OFFSETS(
+                      &code, error_unexpected_greater_in_jsx_text,  //
+                      greater, strlen(u8"<>"), u8">")));
+    } else if (text_begin == u8">>" || text_begin == u8">>=") {
+      EXPECT_THAT(
+          errors.errors,
+          ElementsAre(ERROR_TYPE_OFFSETS(
+                          &code, error_unexpected_greater_in_jsx_text,  //
+                          greater, strlen(u8"<>"), u8">"),
+                      ERROR_TYPE_OFFSETS(
+                          &code, error_unexpected_greater_in_jsx_text,  //
+                          greater, strlen(u8"<>>"), u8">")));
+    } else {
+      QLJS_UNREACHABLE();
+    }
+  }
+}
+
+TEST_F(test_lex, jsx_illegal_text_children) {
+  {
+    padded_string code(u8"<>hello>world</>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    l.skip_in_jsx_children();  // Skip '>'.
+    EXPECT_EQ(l.peek().type, token_type::less);
+    EXPECT_THAT(errors.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_unexpected_greater_in_jsx_text,  //
+                    greater, strlen(u8"<>hello"), u8">")));
+  }
+
+  {
+    padded_string code(u8"<>hello}world</>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    l.skip_in_jsx_children();  // Skip '>'.
+    EXPECT_EQ(l.peek().type, token_type::less);
+    EXPECT_THAT(errors.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_unexpected_right_curly_in_jsx_text,  //
+                    right_curly, strlen(u8"<>hello"), u8"}")));
+  }
+}
+
+TEST_F(test_lex, jsx_expression_children) {
+  this->lex_jsx_tokens = true;
+
+  {
+    padded_string code(u8"<>hello {name}!<>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+    l.skip_in_jsx_children();
+    EXPECT_EQ(l.peek().type, token_type::left_curly);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::right_curly);
+    l.skip_in_jsx_children();
+    EXPECT_EQ(l.peek().type, token_type::less);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+}
+
 void test_lex::check_single_token(string8_view input,
                                   string8_view expected_identifier_name,
                                   source_location local_caller) {
