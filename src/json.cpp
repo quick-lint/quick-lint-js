@@ -70,28 +70,6 @@ void write_json_escaped_string_impl(WriteFunc &&write_string,
 }
 }
 
-template <class Char>
-void write_json_escaped_string(std::ostream &output,
-                               std::basic_string_view<Char> string) {
-  write_json_escaped_string_impl(
-      [&](const auto &s) {
-        if constexpr (std::is_same_v<std::decay_t<decltype(s)>,
-                                     std::string_view>) {
-          output << s;
-        } else {
-          output << out_string8(s);
-        }
-      },
-      string);
-}
-
-template void write_json_escaped_string<char>(std::ostream &,
-                                              std::basic_string_view<char>);
-#if QLJS_HAVE_CHAR8_T
-template void write_json_escaped_string<char8_t>(
-    std::ostream &, std::basic_string_view<char8_t>);
-#endif
-
 void write_json_escaped_string(byte_buffer &output, string8_view string) {
   write_json_escaped_string_impl(
       [&](const string8_view &s) { output.append_copy(s); }, string);

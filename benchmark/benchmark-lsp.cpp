@@ -11,8 +11,10 @@
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-server.h>
-#include <sstream>
+#include <quick-lint-js/output-stream.h>
 #include <string>
+
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 class byte_buffer;
@@ -182,8 +184,9 @@ void benchmark_lsp_tiny_change_on_large_document(::benchmark::State& state) {
   string8_view code_line = u8"console.log('HELLO');\n";
   int line_count = 1000;
 
-  std::ostringstream did_open_message_json;
-  did_open_message_json << R"(
+  memory_output_stream did_open_message_json;
+  did_open_message_json.append_copy(
+      u8R"(
     {
       "jsonrpc": "2.0",
       "method": "textDocument/didOpen",
@@ -192,14 +195,16 @@ void benchmark_lsp_tiny_change_on_large_document(::benchmark::State& state) {
           "uri": "file:///benchmark.js",
           "languageId": "javascript",
           "version": 1000000000,
-          "text": ")";
+          "text": ")"sv);
   for (int line = 0; line < line_count; ++line) {
     write_json_escaped_string(did_open_message_json, code_line);
   }
-  did_open_message_json << R"("
+  did_open_message_json.append_copy(
+      u8R"("
         }
       }
-    })";
+    })"sv);
+  did_open_message_json.flush();
 
   std::array<string8, 2> change_messages = {
       make_message(u8R"({
@@ -248,7 +253,7 @@ void benchmark_lsp_tiny_change_on_large_document(::benchmark::State& state) {
   lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
                null_lsp_writer>
       lsp_server(std::forward_as_tuple(&fs), std::forward_as_tuple());
-  lsp_server.append(make_message(to_string8(did_open_message_json.str())));
+  lsp_server.append(make_message(did_open_message_json.get_flushed_string8()));
 
   for (auto _ : state) {
     lsp_server.append(change_messages[0]);

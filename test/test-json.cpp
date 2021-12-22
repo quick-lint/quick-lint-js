@@ -7,50 +7,57 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <sstream>
+#include <quick-lint-js/output-stream.h>
 
 namespace quick_lint_js {
 namespace {
 TEST(test_json, escapes_backslashes) {
-  std::ostringstream json;
+  memory_output_stream json;
   write_json_escaped_string(json, string8_view(u8R"(hello\world)"));
-  EXPECT_EQ(json.str(), R"(hello\\world)");
+  json.flush();
+  EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\\world)");
 }
 
 TEST(test_json, escapes_double_quotes) {
-  std::ostringstream json;
+  memory_output_stream json;
   write_json_escaped_string(json, string8_view(u8R"(hello"world)"));
-  EXPECT_EQ(json.str(), R"(hello\"world)");
+  json.flush();
+  EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\"world)");
 }
 
 TEST(test_json, escapes_newlines) {
-  std::ostringstream json;
+  memory_output_stream json;
   write_json_escaped_string(json, string8_view(u8"hello\nworld"));
-  EXPECT_EQ(json.str(), R"(hello\nworld)");
+  json.flush();
+  EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\nworld)");
 }
 
 TEST(test_json, escapes_tabs) {
-  std::ostringstream json;
+  memory_output_stream json;
   write_json_escaped_string(json, string8_view(u8"hello\tworld"));
-  EXPECT_EQ(json.str(), R"(hello\tworld)");
+  json.flush();
+  EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\tworld)");
 }
 
 TEST(test_json, escapes_carriage_returns) {
-  std::ostringstream json;
+  memory_output_stream json;
   write_json_escaped_string(json, string8_view(u8"hello\rworld"));
-  EXPECT_EQ(json.str(), R"(hello\rworld)");
+  json.flush();
+  EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\rworld)");
 }
 
 TEST(test_json, escapes_backspaces) {
-  std::ostringstream json;
+  memory_output_stream json;
   write_json_escaped_string(json, string8_view(u8"hello\bworld"));
-  EXPECT_EQ(json.str(), R"(hello\bworld)");
+  json.flush();
+  EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\bworld)");
 }
 
 TEST(test_json, escapes_form_feeds) {
-  std::ostringstream json;
+  memory_output_stream json;
   write_json_escaped_string(json, string8_view(u8"hello\fworld"));
-  EXPECT_EQ(json.str(), R"(hello\fworld)");
+  json.flush();
+  EXPECT_EQ(json.get_flushed_string8(), u8R"(hello\fworld)");
 }
 
 TEST(test_json, ascii_characters_are_parsable_by_boost_json) {
@@ -58,14 +65,16 @@ TEST(test_json, ascii_characters_are_parsable_by_boost_json) {
     string8 string = string8(u8"hello") + narrow_cast<char8>(c) + u8"world";
     SCOPED_TRACE(out_string8(string));
 
-    std::ostringstream json;
-    json << '"';
+    memory_output_stream json;
+    json.append_copy(u8'"');
     write_json_escaped_string(json, string8_view(string));
-    json << '"';
-    SCOPED_TRACE(json.str());
+    json.append_copy(u8'"');
+    json.flush();
+    SCOPED_TRACE(out_string8(json.get_flushed_string8()));
 
     std::error_code error;
-    ::boost::json::value parsed = ::boost::json::parse(json.str(), error);
+    ::boost::json::value parsed =
+        ::boost::json::parse(to_string_view(json.get_flushed_string8()), error);
     EXPECT_FALSE(error);
     EXPECT_EQ(parsed, to_string_view(string));
   }
