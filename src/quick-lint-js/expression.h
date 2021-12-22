@@ -57,6 +57,7 @@ enum class expression_kind {
   import,
   index,
   jsx_element,
+  jsx_element_with_namespace,
   jsx_fragment,
   literal,
   named_function,
@@ -181,6 +182,7 @@ class expression {
   class import;
   class index;
   class jsx_element;
+  class jsx_element_with_namespace;
   class jsx_fragment;
   class literal;
   class named_function;
@@ -674,6 +676,31 @@ class expression::jsx_element final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::jsx_element>);
 
+class expression::jsx_element_with_namespace final : public expression {
+ public:
+  static constexpr expression_kind kind =
+      expression_kind::jsx_element_with_namespace;
+
+  explicit jsx_element_with_namespace(
+      const char8 *less_begin, const char8 *greater_end, const identifier &ns,
+      const identifier &tag,
+      expression_arena::array_ptr<expression *> children) noexcept
+      : expression(kind),
+        span(less_begin, greater_end),
+        ns(ns),
+        tag(tag),
+        children(children) {}
+
+  bool is_intrinsic() const noexcept { return true; }
+
+  source_code_span span;
+  identifier ns;   // Namespace (before ':').
+  identifier tag;  // After ':'.
+  expression_arena::array_ptr<expression *> children;
+};
+static_assert(
+    expression_arena::is_allocatable<expression::jsx_element_with_namespace>);
+
 class expression::jsx_fragment final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::jsx_fragment;
@@ -1007,6 +1034,11 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     auto *jsx = static_cast<const expression::jsx_element *>(this);
     return jsx->children;
   }
+  case expression_kind::jsx_element_with_namespace: {
+    auto *jsx =
+        static_cast<const expression::jsx_element_with_namespace *>(this);
+    return jsx->children;
+  }
   case expression_kind::jsx_fragment: {
     auto *jsx = static_cast<const expression::jsx_fragment *>(this);
     return jsx->children;
@@ -1161,6 +1193,8 @@ inline source_code_span expression::span() const noexcept {
   }
   case expression_kind::jsx_element:
     return static_cast<const jsx_element *>(this)->span;
+  case expression_kind::jsx_element_with_namespace:
+    return static_cast<const jsx_element_with_namespace *>(this)->span;
   case expression_kind::jsx_fragment:
     return static_cast<const jsx_fragment *>(this)->span;
   case expression_kind::literal:

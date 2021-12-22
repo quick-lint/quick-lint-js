@@ -1345,6 +1345,7 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::function:
   case expression_kind::index:
   case expression_kind::jsx_element:
+  case expression_kind::jsx_element_with_namespace:
   case expression_kind::jsx_fragment:
   case expression_kind::named_function:
   case expression_kind::new_target:
@@ -2241,8 +2242,25 @@ expression* parser::parse_jsx_expression() {
 
 expression* parser::parse_jsx_element_or_fragment(identifier* tag,
                                                   const char8* less_begin) {
+  // HACK(strager): If tag_namespace is nullopt, then there is no namespace and
+  // tag refers to the tag name. If tag_namespace is not nullopt, then there is
+  // a namespace and tag refers to the namespace name and tag_namespace refers
+  // to the tag name.
+  std::optional<identifier> tag_namespace = std::nullopt;
+
   vector<expression*> children("jsx_element children",
                                &this->temporary_memory_);
+
+  if (this->peek().type == token_type::colon) {
+    // <namespace:current />
+    if (!tag) {
+      QLJS_PARSER_UNIMPLEMENTED();
+    }
+    this->lexer_.skip_in_jsx();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+    tag_namespace = this->peek().identifier_name();
+    this->lexer_.skip_in_jsx();
+  }
 
 next_attribute:
   switch (this->peek().type) {
@@ -2296,7 +2314,14 @@ next_attribute:
     this->lexer_.skip_in_jsx();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
     const char8* greater_end = this->peek().end;
-    if (tag) {
+    if (tag_namespace.has_value()) {
+      return this->make_expression<expression::jsx_element_with_namespace>(
+          /*less_begin=*/less_begin,
+          /*greater_end=*/greater_end,
+          /*ns=*/*tag,
+          /*tag=*/*tag_namespace,
+          /*children=*/this->expressions_.make_array(std::move(children)));
+    } else if (tag) {
       return this->make_expression<expression::jsx_element>(
           /*less_begin=*/less_begin,
           /*greater_end=*/greater_end,
@@ -2324,16 +2349,30 @@ next:
     this->lexer_.skip_in_jsx();
     switch (this->peek().type) {
     // </current>
+    // </namespace:current>
     case token_type::slash: {
       this->lexer_.skip_in_jsx();
       if (tag) {
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
         this->lexer_.skip_in_jsx();
       }
+      if (this->peek().type == token_type::colon) {
+        // </namespace:current>
+        this->lexer_.skip_in_jsx();
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+        this->lexer_.skip_in_jsx();
+      }
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
       const char8* greater_end = this->peek().end;
 
-      if (tag) {
+      if (tag_namespace.has_value()) {
+        return this->make_expression<expression::jsx_element_with_namespace>(
+            /*less_begin=*/less_begin,
+            /*greater_end=*/greater_end,
+            /*ns=*/*tag,
+            /*tag=*/*tag_namespace,
+            /*children=*/this->expressions_.make_array(std::move(children)));
+      } else if (tag) {
         return this->make_expression<expression::jsx_element>(
             /*less_begin=*/less_begin,
             /*greater_end=*/greater_end,

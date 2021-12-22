@@ -880,6 +880,8 @@ class parser {
       }
       break;
     }
+    case expression_kind::jsx_element_with_namespace:
+      break;
     case expression_kind::jsx_fragment:
       break;
     case expression_kind::object:
@@ -3659,6 +3661,8 @@ class parser {
     }
 
     case expression_kind::jsx_element:
+      QLJS_UNIMPLEMENTED();
+    case expression_kind::jsx_element_with_namespace:
       QLJS_UNIMPLEMENTED();
     case expression_kind::jsx_fragment:
       QLJS_UNIMPLEMENTED();

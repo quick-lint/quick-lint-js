@@ -115,6 +115,19 @@ std::string summarize(const expression& expression) {
     result += ")";
     return result;
   }
+  case expression_kind::jsx_element_with_namespace: {
+    const auto& jsx = static_cast<
+        const quick_lint_js::expression::jsx_element_with_namespace&>(
+        expression);
+    std::string result = "jsxnselement(" + to_string(jsx.ns.normalized_name()) +
+                         ", " + to_string(jsx.tag.normalized_name());
+    if (jsx.child_count() != 0) {
+      result += ", ";
+      result += children();
+    }
+    result += ")";
+    return result;
+  }
   case expression_kind::jsx_fragment:
     return "jsxfragment(" + children() + ")";
   case expression_kind::literal:

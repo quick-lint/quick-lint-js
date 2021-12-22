@@ -240,6 +240,26 @@ TEST_F(test_parse_expression, tag_with_attributes) {
     ASSERT_EQ(summarize(ast), "jsxelement(input, spread(var attributes))");
   }
 }
+
+TEST_F(test_parse_expression, tag_with_namespace) {
+  {
+    test_parser p(u8"<svg:g />"_sv, jsx_options);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxnselement(svg, g)");
+  }
+
+  {
+    test_parser p(u8"<svg:g></svg:g>"_sv, jsx_options);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxnselement(svg, g)");
+  }
+
+  {
+    test_parser p(u8"<svg /* */ : /* */ g>< / svg : g >"_sv, jsx_options);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxnselement(svg, g)");
+  }
+}
 }
 }
 
