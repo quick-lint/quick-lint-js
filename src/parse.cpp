@@ -2252,23 +2252,21 @@ expression* parser::parse_jsx_element_or_fragment(identifier* tag,
                                &this->temporary_memory_);
 
   auto make_jsx_expression = [&](const char8* greater_end) -> expression* {
+    source_code_span span(less_begin, greater_end);
     if (tag_namespace.has_value()) {
       return this->make_expression<expression::jsx_element_with_namespace>(
-          /*less_begin=*/less_begin,
-          /*greater_end=*/greater_end,
+          /*span=*/span,
           /*ns=*/*tag,
           /*tag=*/*tag_namespace,
           /*children=*/this->expressions_.make_array(std::move(children)));
     } else if (tag) {
       return this->make_expression<expression::jsx_element>(
-          /*less_begin=*/less_begin,
-          /*greater_end=*/greater_end,
+          /*span=*/span,
           /*tag=*/*tag,
           /*children=*/this->expressions_.make_array(std::move(children)));
     } else {
       return this->make_expression<expression::jsx_fragment>(
-          /*less_begin=*/less_begin,
-          /*greater_end=*/greater_end,
+          /*span=*/span,
           /*children=*/this->expressions_.make_array(std::move(children)));
     }
   };

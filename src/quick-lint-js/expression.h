@@ -665,10 +665,9 @@ class expression::jsx_element final : public jsx_base {
   static constexpr expression_kind kind = expression_kind::jsx_element;
 
   explicit jsx_element(
-      const char8 *less_begin, const char8 *greater_end, const identifier &tag,
+      source_code_span span, const identifier &tag,
       expression_arena::array_ptr<expression *> children) noexcept
-      : jsx_base(kind, source_code_span(less_begin, greater_end), children),
-        tag(tag) {}
+      : jsx_base(kind, span, children), tag(tag) {}
 
   bool is_intrinsic() const noexcept {
     // TODO(strager): Have the lexer do this work for us.
@@ -689,12 +688,9 @@ class expression::jsx_element_with_namespace final : public jsx_base {
       expression_kind::jsx_element_with_namespace;
 
   explicit jsx_element_with_namespace(
-      const char8 *less_begin, const char8 *greater_end, const identifier &ns,
-      const identifier &tag,
+      source_code_span span, const identifier &ns, const identifier &tag,
       expression_arena::array_ptr<expression *> children) noexcept
-      : jsx_base(kind, source_code_span(less_begin, greater_end), children),
-        ns(ns),
-        tag(tag) {}
+      : jsx_base(kind, span, children), ns(ns), tag(tag) {}
 
   bool is_intrinsic() const noexcept { return true; }
 
@@ -709,9 +705,9 @@ class expression::jsx_fragment final : public jsx_base {
   static constexpr expression_kind kind = expression_kind::jsx_fragment;
 
   explicit jsx_fragment(
-      const char8 *less_begin, const char8 *greater_end,
+      source_code_span span,
       expression_arena::array_ptr<expression *> children) noexcept
-      : jsx_base(kind, source_code_span(less_begin, greater_end), children) {}
+      : jsx_base(kind, span, children) {}
 };
 static_assert(expression_arena::is_allocatable<expression::jsx_fragment>);
 
