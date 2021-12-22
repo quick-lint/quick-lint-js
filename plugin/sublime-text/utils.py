@@ -2,15 +2,16 @@
 # See end of file for extended copyright information.
 
 import ctypes
-import contextlib
-import functools
 import os
+from contextlib import contextmanager
+from functools import lru_cache
 
 import sublime
 
+
 class UString:
     @staticmethod
-    def remove_prefix(string, prefix):
+    def rmprefix(string, prefix):
         if string.startswith(prefix):
             return string[len(prefix) :]
         return string
@@ -22,7 +23,6 @@ class UCTypes:
         return ctypes.byref(obj)
 
     @staticmethod
-    @cache  # TODO: cache?
     def is_ptr_null(ptr):
         return not bool(ptr)
 
@@ -30,9 +30,22 @@ class UCTypes:
 class UFunctools:
     @staticmethod
     def cache(func):
-        return functools.lru_cache(maxsize=None)(func)
+        return lru_cache(maxsize=None)(func)
 
-    @staticmethod
+    @classmethod
+    def cached_staticmethod(cls, func):
+        return staticmethod(cls.cache(func))
+
+    @classmethod
+    def cached_classmethod(cls, func)
+        return classmethod(cls.cache(func))
+
+    @classmethod
+    def cached_property(func):
+        return property(cls.cache(func))
+
+    @staticmethod # TODO: Replace all composeds by cached_something
+    @cache
     def composed(*decs):
         def decorator(func):
             for dec in reversed(decs):
@@ -47,7 +60,8 @@ class USystem:
     def get_module_path():
         return os.path.realpath(__file__)
 
-    @composed(staticmethod, contextlib.contextmanager)
+    @staticmethod
+    @contextmanager
     def changed_directory(path):
         previous = os.getcwd()
         try:
