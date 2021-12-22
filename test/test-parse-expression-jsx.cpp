@@ -241,6 +241,26 @@ TEST_F(test_parse_expression, tag_with_attributes) {
   }
 }
 
+TEST_F(test_parse_expression, tag_with_namespace_attributes) {
+  {
+    expression* ast =
+        this->parse_expression(u8"<div custom:attr='val' />"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast), "jsxelement(div)");
+  }
+
+  {
+    expression* ast =
+        this->parse_expression(u8"<div custom:attr />"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast), "jsxelement(div)");
+  }
+
+  {
+    expression* ast =
+        this->parse_expression(u8"<div custom:attr={value} />"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast), "jsxelement(div, var value)");
+  }
+}
+
 TEST_F(test_parse_expression, tag_with_namespace) {
   {
     test_parser p(u8"<svg:g />"_sv, jsx_options);

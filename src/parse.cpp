@@ -2267,6 +2267,12 @@ next_attribute:
   // <current attribute='value'>
   case token_type::identifier:
     this->lexer_.skip_in_jsx();
+    if (this->peek().type == token_type::colon) {
+      // <current namespace:attribute>
+      this->lexer_.skip_in_jsx();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      this->lexer_.skip_in_jsx();
+    }
     if (this->peek().type == token_type::equal) {
       this->lexer_.skip_in_jsx();
       switch (this->peek().type) {
