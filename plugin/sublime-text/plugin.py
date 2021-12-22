@@ -13,6 +13,8 @@ import sublime_plugin
 
 
 # TODO: Very importart that you test if has async method and if not use normal method
+# TODO: Replace all top-level functions by classes
+# TODO: Create 3 files: utils, cinterface, plugin
 
 
 def cache(func):
