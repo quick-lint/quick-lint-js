@@ -1,6 +1,78 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+import sublime
+
+
+class UString:
+    @staticmethod
+    def remove_prefix(string, prefix):
+        if string.startswith(prefix):
+            return string[len(prefix) :]
+        return string
+
+
+class UCTypes:
+    @staticmethod
+    def ptr(obj):
+        return ctypes.byref(obj)
+
+    @staticmethod
+    @cache  # TODO: cache?
+    def is_ptr_null(ptr):
+        return not bool(ptr)
+
+
+class UFunctools:
+    @staticmethod
+    def cache(func):
+        return lru_cache(maxsize=None)(func)
+
+    @staticmethod
+    def composed(*decs):
+        def decorator(func):
+            for dec in reversed(decs):
+                func = dec(func)
+            return func
+
+        return decorator
+
+
+class USystem:
+    @staticmethod
+    def get_module_path():
+        return os.path.realpath(__file__)
+
+    @composed(staticmethod, contextmanager)
+    def changed_directory(path):
+        previous = os.getcwd()
+        try:
+            yield os.chdir(path)
+        finally:
+            os.chdir(previous)
+
+
+class USublime:
+    @composed(staticmethod, cache)
+    def major_version():
+        return sublime.version()[0]
+
+    @composed(classmethod, cache)
+    def is_three(cls):
+        return cls.major_version() == "3"
+
+    @composed(classmethod, cache)
+    def is_four(cls):
+        return cls.major_version() == "4"
+
+    @staticmethod
+    def error_message(msg):
+        sublime.error_message("quick-lint-js: " + msg)
+
+    @staticmethod
+    def view_content(view):
+        region = sublime.Region(0, view.size())
+        return view.substr(region)
 
 
 # quick-lint-js finds bugs in JavaScript programs.
