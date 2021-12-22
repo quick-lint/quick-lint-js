@@ -2251,6 +2251,28 @@ expression* parser::parse_jsx_element_or_fragment(identifier* tag,
   vector<expression*> children("jsx_element children",
                                &this->temporary_memory_);
 
+  auto make_jsx_expression = [&](const char8* greater_end) -> expression* {
+    if (tag_namespace.has_value()) {
+      return this->make_expression<expression::jsx_element_with_namespace>(
+          /*less_begin=*/less_begin,
+          /*greater_end=*/greater_end,
+          /*ns=*/*tag,
+          /*tag=*/*tag_namespace,
+          /*children=*/this->expressions_.make_array(std::move(children)));
+    } else if (tag) {
+      return this->make_expression<expression::jsx_element>(
+          /*less_begin=*/less_begin,
+          /*greater_end=*/greater_end,
+          /*tag=*/*tag,
+          /*children=*/this->expressions_.make_array(std::move(children)));
+    } else {
+      return this->make_expression<expression::jsx_fragment>(
+          /*less_begin=*/less_begin,
+          /*greater_end=*/greater_end,
+          /*children=*/this->expressions_.make_array(std::move(children)));
+    }
+  };
+
   if (this->peek().type == token_type::colon) {
     // <namespace:current />
     if (!tag) {
@@ -2320,25 +2342,7 @@ next_attribute:
     this->lexer_.skip_in_jsx();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
     const char8* greater_end = this->peek().end;
-    if (tag_namespace.has_value()) {
-      return this->make_expression<expression::jsx_element_with_namespace>(
-          /*less_begin=*/less_begin,
-          /*greater_end=*/greater_end,
-          /*ns=*/*tag,
-          /*tag=*/*tag_namespace,
-          /*children=*/this->expressions_.make_array(std::move(children)));
-    } else if (tag) {
-      return this->make_expression<expression::jsx_element>(
-          /*less_begin=*/less_begin,
-          /*greater_end=*/greater_end,
-          /*tag=*/*tag,
-          /*children=*/this->expressions_.make_array(std::move(children)));
-    } else {
-      return this->make_expression<expression::jsx_fragment>(
-          /*less_begin=*/less_begin,
-          /*greater_end=*/greater_end,
-          /*children=*/this->expressions_.make_array(std::move(children)));
-    }
+    return make_jsx_expression(greater_end);
   }
 
   default:
@@ -2370,26 +2374,7 @@ next:
       }
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
       const char8* greater_end = this->peek().end;
-
-      if (tag_namespace.has_value()) {
-        return this->make_expression<expression::jsx_element_with_namespace>(
-            /*less_begin=*/less_begin,
-            /*greater_end=*/greater_end,
-            /*ns=*/*tag,
-            /*tag=*/*tag_namespace,
-            /*children=*/this->expressions_.make_array(std::move(children)));
-      } else if (tag) {
-        return this->make_expression<expression::jsx_element>(
-            /*less_begin=*/less_begin,
-            /*greater_end=*/greater_end,
-            /*tag=*/*tag,
-            /*children=*/this->expressions_.make_array(std::move(children)));
-      } else {
-        return this->make_expression<expression::jsx_fragment>(
-            /*less_begin=*/less_begin,
-            /*greater_end=*/greater_end,
-            /*children=*/this->expressions_.make_array(std::move(children)));
-      }
+      return make_jsx_expression(greater_end);
     }
 
       // <child>
