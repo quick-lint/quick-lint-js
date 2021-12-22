@@ -259,6 +259,12 @@ TEST_F(test_parse_expression, tag_with_namespace_attributes) {
         this->parse_expression(u8"<div custom:attr={value} />"_sv, jsx_options);
     ASSERT_EQ(summarize(ast), "jsxelement(div, var value)");
   }
+
+  {
+    expression* ast = this->parse_expression(
+        u8"<div my-custom-ns-:my-attr-={value} />"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast), "jsxelement(div, var value)");
+  }
 }
 
 TEST_F(test_parse_expression, tag_with_namespace) {
@@ -278,6 +284,12 @@ TEST_F(test_parse_expression, tag_with_namespace) {
     test_parser p(u8"<svg /* */ : /* */ g>< / svg : g >"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxnselement(svg, g)");
+  }
+
+  {
+    expression* ast =
+        this->parse_expression(u8"<s-v-g-:g-></s-v-g-:g->"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast), "jsxnselement(s-v-g-, g-)");
   }
 }
 }
