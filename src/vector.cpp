@@ -7,7 +7,6 @@
 #include <cstdint>
 #include <cstdlib>
 #include <iomanip>
-#include <iostream>
 #include <limits>
 #include <map>
 #include <ostream>
@@ -15,6 +14,10 @@
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 #include <string>
+
+#if QLJS_FEATURE_VECTOR_PROFILING
+#include <iostream>
+#endif
 
 QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
 

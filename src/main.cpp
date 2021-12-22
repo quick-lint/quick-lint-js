@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstring>
 #include <iomanip>
-#include <iostream>
 #include <optional>
 #include <quick-lint-js/basic-configuration-filesystem.h>
 #include <quick-lint-js/change-detecting-filesystem.h>
