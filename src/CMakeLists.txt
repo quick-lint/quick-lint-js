@@ -303,29 +303,6 @@ else ()
   )
 endif ()
 
-
-if (QUICK_LINT_JS_SUBLIME_TEXT_CRASH_HANDLING_TEST)
-  if (QUICK_LINT_JS_SUBLIME_TEXT)
-    target_compile_definitions(
-      quick-lint-js-lib
-      PUBLIC
-      QLJS_SUBLIME_TEXT_PLUGIN_CRASH_HANDLING_TEST=1
-    )
-  else ()
-    message(
-      FATAL_ERROR
-      "You need to set QUICK_LINT_JS_SUBLIME_TEXT_3=ON or QUICK_LINT_JS_SUBLIME_TEXT_4=ON \
-to test the Sublime Text plugin's crash handling."
-    )
-  endif ()
-else ()
-  target_compile_definitions(
-    quick-lint-js-lib
-    PUBLIC
-    QLJS_SUBLIME_TEXT_PLUGIN_CRASH_HANDLING_TEST=0
-  )
-endif ()
-
 # HACK(strager): Work around GCC compiler bug. GCC 9.3.0 miscompiles a call to
 # strncmp, causing the length given to strncmp to be incorrect. (Perhaps we are
 # invoking undefined behaviour though with our string table offset pointer

@@ -1,8 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <quick-lint-js/crash-handling.h>
-#include <quick-lint-js/program-report.h>
 #include <quick-lint-js/sublime-text-3-location.h>
 
 
