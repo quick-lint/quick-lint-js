@@ -13,8 +13,12 @@
 #include <string_view>
 #include <vector>
 
-#define QLJS_TRANSLATE(...) \
-  (::quick_lint_js::translate(__VA_ARGS__##_translatable))
+#define QLJS_TRANSLATE(...)                          \
+  ([] {                                              \
+    static constexpr translatable_message _message = \
+        __VA_ARGS__##_translatable;                  \
+    return ::quick_lint_js::translate(_message);     \
+  }())
 
 #define QLJS_TRANSLATABLE(...) (__VA_ARGS__##_translatable)
 
