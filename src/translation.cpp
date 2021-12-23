@@ -63,7 +63,7 @@ std::vector<std::string> get_user_locale_preferences() {
 
 void initialize_locale() {
   if (!std::setlocale(LC_ALL, "")) {
-    QLJS_REPORT_PROGRAM_WARNING("warning: failed to set locale: %s\n",
+    ::std:fprintf("warning: failed to set locale: %s\n",
                                 std::strerror(errno));
   }
 }

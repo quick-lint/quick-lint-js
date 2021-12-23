@@ -87,7 +87,10 @@ class CLibrary:
         # these DLLs are all in the same folder, for ctypes find these DLLs
         # we need to change the current working directory to that folder.
         with changed_directory(directory):
-            cdll = ctypes.CDLL(filename)
+            try:
+                cdll = ctypes.CDLL(filename)
+            except OSError as err:
+                raise CException("") from err  # TODO: add message
 
         version = utils.sublime.major_version()
         self.c_create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
@@ -175,7 +178,7 @@ class Parser:
     try:
         c_lib = CLibrary()
     except CException as ex:
-        utils.sublime.error_message(str(ex))
+        sublime.error_message("quick-lint-js: " + str(ex))
     finally:
         c_lib = None
 

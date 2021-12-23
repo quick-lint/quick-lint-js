@@ -38,7 +38,7 @@ enum class core_style {
 core_style linux_detect_core_style() {
   int fd = ::open("/proc/sys/kernel/core_pattern", O_CLOEXEC | O_RDONLY);
   if (fd == -1) {
-    QLJS_REPORT_PROGRAM_WARNING(
+    ::std:fprintf(
         "warning: failed to determine method to disable core "
         "dumping: %s\n",
         std::strerror(errno));
@@ -50,7 +50,7 @@ core_style linux_detect_core_style() {
   file_read_result read_result =
       file.read(core_pattern.data(), core_pattern.size());
   if (!read_result.ok()) {
-    QLJS_REPORT_PROGRAM_WARNING(
+    ::std:fprintf(
         "warning: failed to determine method to disable core dumping: %s\n",
         read_result.error().to_string().c_str());
     return core_style::unknown;
@@ -79,7 +79,7 @@ void disable_core_dumping() {
   ::rlimit limits;
   rc = ::getrlimit(RLIMIT_CORE, &limits);
   if (rc == -1) {
-    QLJS_REPORT_PROGRAM_WARNING("warning: failed to disable core dumping: %s\n",
+    ::std:fprintf("warning: failed to disable core dumping: %s\n",
                                 std::strerror(errno));
     return;
   }
@@ -106,7 +106,7 @@ void disable_core_dumping() {
 
   rc = ::setrlimit(RLIMIT_CORE, &limits);
   if (rc == -1) {
-    QLJS_REPORT_PROGRAM_WARNING("warning: failed to disable core dumping: %s\n",
+    ::std:fprintf("warning: failed to disable core dumping: %s\n",
                                 std::strerror(errno));
   }
 }

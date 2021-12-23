@@ -2379,15 +2379,15 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
   qljs_sublime_text_test_crash_handling();
 #endif
 
-  QLJS_REPORT_PROGRAM_FATAL_ERROR(
+  ::std:fprintf(
       "%s:%d: fatal: token not implemented in %s: %s", qljs_file_name,
       qljs_line, qljs_function_name, to_string(this->peek().type));
   cli_locator locator(this->lexer_.original_input());
   cli_source_position token_position = locator.position(this->peek().begin);
-  QLJS_REPORT_PROGRAM_FATAL_ERROR(" on line %d column %d",
+  ::std:fprintf(" on line %d column %d",
                                   token_position.line_number,
                                   token_position.column_number);
-  QLJS_REPORT_PROGRAM_FATAL_ERROR("\n");
+  ::std:fprintf("\n");
 
   QLJS_CRASH_DISALLOWING_CORE_DUMP();
 }
@@ -2403,7 +2403,7 @@ void parser::crash_on_depth_limit_exceeded() {
   }
 #endif
 
-  QLJS_REPORT_PROGRAM_FATAL_ERROR("Error: parser depth limit exceeded\n");
+  ::std:fprintf("Error: parser depth limit exceeded\n");
 
   QLJS_CRASH_DISALLOWING_CORE_DUMP();
 }
