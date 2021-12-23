@@ -9,51 +9,10 @@
 #include <quick-lint-js/error.h>
 #include <string>
 #include <string_view>
-#include <unordered_set>
 #include <vector>
 
 namespace quick_lint_js {
 namespace {
-bool is_valid_error_code(std::string_view code) noexcept {
-  static constexpr int error_code_length = 5;
-  using any_error_code = std::array<char, error_code_length>;
-
-  struct hash_any_error_code {
-    bool operator()(const any_error_code& code) const noexcept {
-      QLJS_SLOW_ASSERT(code[0] == 'E');
-      std::uint32_t data;
-      static_assert(sizeof(data) == sizeof(code) - 1);
-      std::memcpy(&data, &code[1], sizeof(data));
-      return std::hash<std::uint32_t>()(data);
-    }
-  };
-
-  static constexpr auto make_any_error_code =
-      [](const char* c) -> any_error_code {
-    return any_error_code{c[0], c[1], c[2], c[3], c[4]};
-  };
-
-#define QLJS_ERROR_TYPE(error_name, error_code, struct_body, format) \
-  static_assert(sizeof(error_code) == error_code_length + 1,         \
-                "Error code " #error_code " should be 4 characters wide");
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-
-  // TODO(strager): Use the codes from all_diagnostic_infos.
-  static std::unordered_set<any_error_code, hash_any_error_code>
-      valid_error_codes = {
-#define QLJS_ERROR_TYPE(error_name, error_code, struct_body, format) \
-  make_any_error_code(error_code),
-          QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-      };
-
-  if (code.size() != error_code_length) {
-    return false;
-  }
-  return valid_error_codes.count(make_any_error_code(code.data())) > 0;
-}
-
 template <class Container, class T>
 bool contains(const Container& container, const T& item) {
   using std::begin;
@@ -139,17 +98,37 @@ parsed_error_list parse_error_list(const char* const raw_error_list) {
 }
 
 void compiled_error_list::add(const parsed_error_list& error_list) {
-  this->parsed_error_lists_.emplace_back(error_list);
+  auto add_code = [this](std::string_view code, auto& code_set) -> void {
+    std::optional<error_type> code_error_type = error_type_from_code_slow(code);
+    if (code_error_type.has_value()) {
+      code_set[static_cast<std::size_t>(*code_error_type)] = true;
+    } else {
+      this->unknown_codes_.emplace_back(code);
+    }
+  };
+
+  codes& c = this->parsed_error_lists_.emplace_back();
+  for (std::string_view code : error_list.included_codes) {
+    add_code(code, c.included_codes);
+  }
+  for (std::string_view code : error_list.excluded_codes) {
+    add_code(code, c.excluded_codes);
+  }
+  c.included_categories = error_list.included_categories;
+  c.excluded_categories = error_list.excluded_categories;
+  c.override_defaults = error_list.override_defaults;
+
+  if (error_list.error_missing_predicate()) {
+    this->has_missing_predicate_error_ = true;
+  }
 }
 
 std::vector<std::string> compiled_error_list::parse_errors(
     std::string_view cli_option_name) const {
   std::vector<std::string> errors;
-  for (const parsed_error_list& el : this->parsed_error_lists_) {
-    if (el.error_missing_predicate()) {
-      errors.emplace_back(std::string(cli_option_name) +
-                          " must be given at least one category or code");
-    }
+  if (this->has_missing_predicate_error_) {
+    errors.emplace_back(std::string(cli_option_name) +
+                        " must be given at least one category or code");
   }
   return errors;
 }
@@ -162,47 +141,35 @@ std::vector<std::string> compiled_error_list::parse_warnings() const {
       warnings.back().append(category);
     }
   };
-  auto check_code = [&warnings](std::string_view code) {
-    if (!is_valid_error_code(code)) {
-      warnings.emplace_back("unknown error code: ");
-      warnings.back().append(code);
-    }
-  };
 
-  for (const parsed_error_list& el : this->parsed_error_lists_) {
-    for (std::string_view category : el.included_categories) {
+  for (const codes& c : this->parsed_error_lists_) {
+    for (std::string_view category : c.included_categories) {
       check_category(category);
     }
-    for (std::string_view category : el.excluded_categories) {
+    for (std::string_view category : c.excluded_categories) {
       check_category(category);
-    }
-
-    for (std::string_view code : el.included_codes) {
-      check_code(code);
-    }
-    for (std::string_view code : el.excluded_codes) {
-      check_code(code);
     }
   }
+
+  for (std::string_view code : this->unknown_codes_) {
+    warnings.emplace_back("unknown error code: ");
+    warnings.back().append(code);
+  }
+
   return warnings;
 }
 
 bool compiled_error_list::is_present(error_type type) const noexcept {
-  // TODO(strager): Use type as an index instead of converting it into a string.
-  const diagnostic_info& diag_info = get_diagnostic_info(type);
-  return this->is_present(diag_info.code);
-}
-
-bool compiled_error_list::is_present(const char* error_code) const noexcept {
   bool is_default = true;  // For now, all codes are enabled by default.
   bool present = true;
-  for (const parsed_error_list& el : this->parsed_error_lists_) {
-    if (el.override_defaults || contains(el.excluded_codes, error_code) ||
-        (is_default && contains(el.excluded_categories, "all"))) {
+  for (const codes& c : this->parsed_error_lists_) {
+    std::size_t error_type_index = static_cast<std::size_t>(type);
+    if (c.override_defaults || c.excluded_codes[error_type_index] ||
+        (is_default && contains(c.excluded_categories, "all"))) {
       present = false;
     }
-    if (contains(el.included_codes, error_code) ||
-        (is_default && contains(el.included_categories, "all"))) {
+    if (c.included_codes[error_type_index] ||
+        (is_default && contains(c.included_categories, "all"))) {
       present = true;
     }
   }
