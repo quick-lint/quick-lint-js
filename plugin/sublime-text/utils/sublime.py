@@ -1,6 +1,33 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+from sublime import Region, error_message, version
+
+from ..utils.functools import cache
+
+
+@cache
+def majorversion():
+    return version()[0]
+
+
+@cache
+def isthree():
+    return majorversion() == "3"
+
+
+@cache
+def isfour():
+    return majorversion() == "4"
+
+
+def errormsg(msg):
+    error_message("quick-lint-js: " + msg)
+
+
+def viewcontent(view):
+    region = Region(0, view.size())
+    return view.substr(region)
 
 
 # quick-lint-js finds bugs in JavaScript programs.

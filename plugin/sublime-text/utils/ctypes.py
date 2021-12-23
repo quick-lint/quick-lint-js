@@ -1,11 +1,11 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-import ctypes
+from ctypes import byref
 
 
 def ptr(obj):
-    return ctypes.byref(obj)
+    return byref(obj)
 
 
 def is_ptr_null(ptr):

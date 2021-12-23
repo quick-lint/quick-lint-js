@@ -4,17 +4,6 @@
 import ctypes
 import platform
 import os
-from inspect import getmembers
-
-
-class CTypesMetaclass(type):
-    def __new__(cls, name, bases, attrs):
-        attrs = dict((mbr for mbr in getmembers(ctypes) if mbr[0].startswith("c_")))
-        return super().__new__(cls, name, bases, attrs)
-
-
-class CTypes(metaclass=CTypesMetaclass):
-    pass
 
 
 class CStruct:
@@ -36,22 +25,22 @@ class CStruct:
 
 class CText(CStruct):
     fields = {
-        "content": CTypes.char_p,
-        "length": CTypes.size_t,
+        "content": ctypes.c_char_p,
+        "length": ctypes.c_size_t,
     }
 
 
 class CPosition(CStruct):
     fields = {
-        "line": CTypes.uint,
-        "character": CTypes.uint,
+        "line": ctypes.c_uint,
+        "character": ctypes.c_uint,
     }
 
 
 class CRegion(CStruct):
     fields = {
-        "start": CTypes.uint,
-        "end": CTypes.uint,
+        "start": ctypes.c_uint,
+        "end": ctypes.c_uint,
     }
 
 
@@ -64,9 +53,9 @@ class CRange(CStruct):
 
 class CDiagnostic(CStruct):
     fields = {
-        "message": CTypes.char_p,
-        "code": CTypes.char_p,
-        "severity": CTypes.int,
+        "message": ctypes.c_char_p,
+        "code": ctypes.c_char_p,
+        "severity": ctypes.c_int,
     }
     if SublimeUtils.is_three():
         fields["region"] = CRegion.ptrtype()
