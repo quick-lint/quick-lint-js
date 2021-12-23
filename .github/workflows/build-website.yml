@@ -63,9 +63,10 @@ jobs:
       - name: check links (apache2)
         run: |
           sudo apt-get install apache2 -y
-          sudo service apache2 start
-          mkdir /var/www/quick-lint-js.com/www
-          cp -R website/* /var/www/quick-lint-js.com/www
+          sudo mkdir -p /var/www/quick-lint-js.com/www
+          sudo cp -R website/* /var/www/quick-lint-js.com/www
+          sudo sed -i "s,/var/www/html,/var/www/quick-lint-js.com,g" /etc/apache2/sites-enabled/000-default.conf
+          sudo service apache2 restart
         shell: bash
 
       - name: upload build to workflow
