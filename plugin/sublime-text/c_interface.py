@@ -2,26 +2,24 @@
 # See end of file for extended copyright information.
 
 import ctypes
-import platform
 import os
+import platform
 
 from . import utils
-# from .utils.functools import cache
 
 
 class CStruct(ctypes.Structure):
     def __init_subclass__(cls, /, **kwargs):
-        super().__init_subclass__(**kwargs)
         try:
             cls._fields_ = list(cls.fields.items())
         except AttributeError:
             pass
+        super().__init_subclass__(**kwargs)
 
-    @utils.functools.cached_classmethod
+    @classmethod
     def pointer_type(cls):
         return ctypes.POINTER(cls)
 
-    @utils.functools.cache
     def lightweight_pointer(self):
         return ctypes.byref(self)
 
@@ -117,25 +115,45 @@ class CObject:
 
 
 class CLibrary:
-    @cached_staticmethod
-    def get_directory():
-        return os.path.dirname(utils.operating_system.get_module_path())
-
-    @cached_staticmethod
-    def get_filename()
+    @staticmethod
+    def file_extension():
         if platform.system() == "Windows":
-            return "quick-lint-js-lib.dll"
+            return ".dll"
         elif platform.system() == "Darwin":
-            return "quick-lint-js-lib.dylib"
+            return ".dylib"
         elif platform.system() == "Linux":
-            return "quick-lint-js-lib.so"
-        raise CException("Operating system not supported.")
+            return ".so"
 
-    @classmethod
-    def create_library(cls):
-        directory = cls.get_directory()
-        filename = cls.get_filename()
-        path = os.path.join(directory, filename)
+    def __init__(self):
+        try:
+            directory = os.path.dirname(utils.os.get_module_path())
+            filename = "quick-lint-js-lib" + utils.os.get_shared_library_file_extension()
+        except OSError as err:
+            raise CException(str(err))
+        version = utils.sublime.major_version()
+        # It's need multiple DLLs for load the library object on Windows,
+        # these DLLs are all in the same folder, for ctypes find these DLLs
+        # we need to change the current working directory to that folder.
+        with changed_directory(directory):
+            cdll = ctypes.CDLL(filename)
+
+        self.c_create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
+        self.c_create_parser.argtypes = []
+        self.c_create_parser.restype = CParser.pointer_type()
+        self.c_destroy_parser = getattr(cdll, "qljs_st%d_destroy_parser" % (version))
+        self.c_destroy_parser.argtypes = [CParser.pointer_type()]
+        self.c_destroy_parser.restype = None
+        self.c_lint = getattr(cdll, "qljs_st%d_lint" % (version))
+        self.c_lint.argtypes = [CParser.pointer_type()]
+        self.c_lint.restype = CDiagnostic.pointer_type()
+        if version == "3":
+            self.c_set_text = cdll.qljs_st_3_set_text
+            self.c_set_text.argtypes = [CParser.pointer_type(), CText]
+            self.c_set_text.restype = CError.pointer_type()
+        elif version == "4":
+            self.c_replace_text = cdll.qljs_st_4_replace_text
+            self.c_replace_text.argtypes = [CParser.pointer_type(), CRange, CText]
+            self.c_replace_text.restype = CError.pointer_type()
 
 
 class CLibrary:
@@ -147,7 +165,7 @@ class CLibrary:
         except OSError:
             raise CException("Failed to load library object.")
 
-    @utils.functools.cached_property
+    @property
     def filename(self):  # TODO: Remove lib prefix with CMake
         pass
 

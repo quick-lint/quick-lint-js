@@ -4,20 +4,16 @@
 from sublime import Region, error_message, version
 
 from ..utils.string import get_first_character
-from ..utils.functools import cache
 
 
-@cache
 def get_major_version():
     return get_first_character(version())
 
 
-@cache
 def is_version_three():
     return get_major_version() == "3"
 
 
-@cache
 def is_version_four():
     return get_major_version() == "4"
 

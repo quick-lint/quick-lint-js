@@ -1,23 +1,22 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-from functools import lru_cache
+from contextlib import contextmanager
+from os import chdir, getcwd
+from os.path import realpath
 
 
-def cache(func):
-    return lru_cache(maxsize=None)(func)
+def get_module_path():
+    return realpath(__file__)
 
 
-def cached_staticmethod(func):
-    return staticmethod(cache(func))
-
-
-def cached_classmethod(func)
-    return classmethod(cache(func))
-
-
-def cached_property(func):
-    return property(cache(func))
+@contextmanager
+def changed_directory(path):
+    previous_path = getcwd()
+    try:
+        yield chdir(path)
+    finally:
+        chdir(previous_path)
 
 
 # quick-lint-js finds bugs in JavaScript programs.
