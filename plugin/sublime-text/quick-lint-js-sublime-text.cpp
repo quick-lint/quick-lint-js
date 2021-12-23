@@ -17,16 +17,24 @@ struct qljs_st_text {
   const char* content;
   std::size_t length;
 }
+#if QLJS_ST_PLUGIN_VERSION == 3
 
 struct qljs_st_position {
   unsigned int line;
   unsigned int character;
 }
+#elif QLJS_ST_PLUGIN_VERSION == 4
 
 struct qljs_st_region {
   unsigned int start;
   unsigned int end;
 }
+
+#else
+
+#error "Unsupported Sublime Text version"
+
+#endif
 
 struct qljs_st_3_diagnostic {
   const char* message;
