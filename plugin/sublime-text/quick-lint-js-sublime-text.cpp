@@ -15,7 +15,7 @@ using sublime_text_document =
 }  // namespace
 }  // namespace quick_lint_js
 
-struct qljs_st_parser final : public quick_lint_js::sublime_text_document {
+struct qljs_st_document final : public quick_lint_js::sublime_text_document {
  public:
   void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);
@@ -27,27 +27,27 @@ struct qljs_st_parser final : public quick_lint_js::sublime_text_document {
   }
 };
 
-qljs_st_parser* qljs_st_parser_new(void) { return new qljs_st_parser(); }
+qljs_st_document* qljs_st_document_new(void) { return new qljs_st_document(); }
 
-void qljs_st_parser_delete(qljs_st_parser* parser) { delete parser; }
+void qljs_st_document_delete(qljs_st_document* document) { delete document; }
 
-void qljs_st_parser_set_text(qljs_st_parser* parser, const qljs_st_text* text) {
+void qljs_st_document_set_text(qljs_st_document* document, const qljs_st_text* text) {
   auto content8 = reinterpret_cast<const quick_lint_js::char8*>(text->content);
   auto replacement8 = quick_lint_js::string8_view(content, text->length);
-  parser->set_text(replacement8);
+  document->set_text(replacement8);
 }
 
-void qljs_st_parser_replace_text(qljs_st_parser* parser,
+void qljs_st_document_replace_text(qljs_st_document* document,
                                  const qljs_st_range* range,
                                  const qljs_st_text* text) {
   auto lrange = reinterpret_cast<const quick_lint_js::lsp_range*>(range);
   auto content8 = reinterpret_cast<const quick_lint_js::char8*>(text->content);
   auto replacement8 = quick_lint_js::string8_view(content8, text->length);
-  parser->replace_text(lrange, replacement8);
+  document->replace_text(lrange, replacement8);
 }
 
-const qljs_st_diagnostic* qljs_st_parser_lint(qljs_st_parser* parser) {
-  return parser->lint();
+const qljs_st_diagnostic* qljs_st_document_lint(qljs_st_document* document) {
+  return document->lint();
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

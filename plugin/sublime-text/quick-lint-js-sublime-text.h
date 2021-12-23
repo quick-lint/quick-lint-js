@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-typedef struct qljs_st_parser qljs_st_parser;
+typedef struct qljs_st_document qljs_st_document;
 
 enum qljs_st_severity {
   qljs_st_severity_error = 1,
@@ -50,17 +50,18 @@ struct qljs_st_diagnostic {
 #endif
 };
 
-qljs_st_parser* qljs_st_parser_new(void);
+qljs_st_document* qljs_st_document_new(void);
 
-void qljs_st_parser_delete(qljs_st_parser* parser);
+void qljs_st_document_delete(qljs_st_document* document);
 
-void qljs_st_parser_set_text(qljs_st_parser* parser, const qljs_st_text* text);
+void qljs_st_document_set_text(qljs_st_document* document,
+                               const qljs_st_text* text);
 
-void qljs_st_parser_replace_text(qljs_st_parser* parser,
-                                 const qljs_st_range* range,
-                                 const qljs_st_text* text);
+void qljs_st_document_replace_text(qljs_st_document* document,
+                                   const qljs_st_range* range,
+                                   const qljs_st_text* text);
 
-const qljs_st_diagnostic* qljs_st_parser_lint(qljs_st_parser* parser);
+const qljs_st_diagnostic* qljs_st_document_lint(qljs_st_document* document);
 
 #if defined(__cplusplus)
 }
