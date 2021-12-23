@@ -2,23 +2,24 @@
 # See end of file for extended copyright information.
 
 from contextlib import contextmanager
-from os import chdir, getcwd, path
+from os import chdir, getcwd
+from os.path import realpath
 
 from ..utils.functools import cache
 
 
 @cache
 def get_module_path():
-    return path.realpath(__file__)
+    return realpath(__file__)
 
 
 @contextmanager
 def changed_directory(path):
-    prev = getcwd()
+    previous_path = getcwd()
     try:
         yield chdir(path)
     finally:
-        chdir(prev)
+        chdir(previous_path)
 
 
 # quick-lint-js finds bugs in JavaScript programs.

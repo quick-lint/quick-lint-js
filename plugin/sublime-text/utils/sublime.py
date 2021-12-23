@@ -3,29 +3,30 @@
 
 from sublime import Region, error_message, version
 
+from ..utils.string import get_first_character
 from ..utils.functools import cache
 
 
 @cache
-def majorversion():
-    return version()[0]
+def major_version():
+    return get_first_character(version())
 
 
 @cache
-def isthree():
+def is_three():
     return majorversion() == "3"
 
 
 @cache
-def isfour():
+def is_four():
     return majorversion() == "4"
 
 
-def errormsg(msg):
+def error_message_with_prefix(msg):
     error_message("quick-lint-js: " + msg)
 
 
-def viewcontent(view):
+def view_content(view):
     region = Region(0, view.size())
     return view.substr(region)
 

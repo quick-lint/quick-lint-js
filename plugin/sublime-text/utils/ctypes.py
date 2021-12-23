@@ -4,11 +4,11 @@
 from ctypes import byref
 
 
-def ptr(obj):
+def pointer(obj):
     return byref(obj)
 
 
-def is_ptr_null(ptr):
+def is_pointer_null(ptr):
     return not bool(ptr)
 
 

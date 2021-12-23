@@ -2,6 +2,10 @@
 # See end of file for extended copyright information.
 
 
+def get_first_character(str):
+    return str[0]
+
+
 def remove_prefix(str, prefix):
     if str.startswith(prefix):
         return str[len(prefix) :]
