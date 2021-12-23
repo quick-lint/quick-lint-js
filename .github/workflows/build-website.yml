@@ -51,6 +51,9 @@ jobs:
           ./ENV/bin/python ./tools/check-links http://localhost:9001/
           kill %1
         shell: bash
+      - name: install apache2
+        run: |
+          sudo apt install apache2
       - name: check links (build)
         run: |
           cd website/www/
