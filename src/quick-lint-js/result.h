@@ -126,21 +126,6 @@ class result_base {
     return std::visit(to_string_visitor(), this->data_);
   }
 
-  std::variant<Errors...> error_to_variant() const {
-    QLJS_ASSERT(!this->ok());
-    // TODO(strager): If std::is_same_v<Error, value_type>, then std::visit is
-    // incorrect.
-    return std::visit(to_variant_visitor<Errors...>(), this->data_);
-  }
-
-  template <class... NewErrors>
-  std::variant<NewErrors...> error_to_variant() const {
-    QLJS_ASSERT(!this->ok());
-    // TODO(strager): If std::is_same_v<Error, value_type>, then std::visit is
-    // incorrect.
-    return std::visit(to_variant_visitor<NewErrors...>(), this->data_);
-  }
-
   result_propagation<T, Errors...> propagate() & {
     QLJS_ASSERT(!this->ok());
     return result_propagation<T, Errors...>{*this};
@@ -222,18 +207,6 @@ class result_base {
   };
 
   template <class... NewErrors>
-  struct to_variant_visitor {
-    std::variant<NewErrors...> operator()(const value_type&) {
-      QLJS_UNREACHABLE();
-    }
-
-    template <class Error>
-    std::variant<NewErrors...> operator()(const Error& error) {
-      return std::variant<NewErrors...>(std::in_place_type<Error>, error);
-    }
-  };
-
-  template <class... NewErrors>
   struct copy_errors_visitor {
     quick_lint_js::result<void, NewErrors...> operator()(const value_type&) {
       return {};
@@ -265,7 +238,6 @@ class result : public result_base<T, Errors...> {
   using base::copy_errors;
   using base::error;
   using base::error_to_string;
-  using base::error_to_variant;
   using base::failure;
   using base::has_error;
   using base::ok;
@@ -292,7 +264,6 @@ class result<void, Errors...> : public result_base<void, Errors...> {
   using base::copy_errors;
   using base::error;
   using base::error_to_string;
-  using base::error_to_variant;
   using base::failure;
   using base::has_error;
   using base::ok;
@@ -313,7 +284,6 @@ class result<T, Error> : public result_base<T, Error> {
   using base::base;
   using base::copy_errors;
   using base::error_to_string;
-  using base::error_to_variant;
   using base::ok;
   using base::operator*;
   using base::operator->;
@@ -343,7 +313,6 @@ class result<void, Error> : public result_base<void, Error> {
   using base::base;
   using base::copy_errors;
   using base::error_to_string;
-  using base::error_to_variant;
   using base::ok;
   using base::operator=;
   using base::propagate;
