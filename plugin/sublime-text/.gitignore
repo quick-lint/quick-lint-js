@@ -1,4 +1,5 @@
 /.cmake/
+/__pycache__/
 /build/
 /venv/
 /cmake_install.cmake

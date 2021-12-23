@@ -1,50 +1,23 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-import ctypes
-import os
-from contextlib import contextmanager
 from functools import lru_cache
 
-import sublime
+
+def cache(func):
+    return lru_cache(maxsize=None)(func)
 
 
-class USystem:
-    @staticmethod
-    def get_module_path():
-        return os.path.realpath(__file__)
-
-    @staticmethod
-    @contextmanager
-    def changed_directory(path):
-        previous = os.getcwd()
-        try:
-            yield os.chdir(path)
-        finally:
-            os.chdir(previous)
+def cached_staticmethod(func):
+    return staticmethod(cache(func))
 
 
-class USublime:
-    @cached_staticmethod
-    def major_version():
-        return sublime.version()[0]
+def cached_classmethod(func)
+    return classmethod(cache(func))
 
-    @cached_classmethod
-    def is_three(cls):
-        return cls.major_version() == "3"
 
-    @cached_classmethod
-    def is_four(cls):
-        return cls.major_version() == "4"
-
-    @staticmethod
-    def error_message(msg):
-        sublime.error_message("quick-lint-js: " + msg)
-
-    @staticmethod
-    def view_content(view):
-        region = sublime.Region(0, view.size())
-        return view.substr(region)
+def cached_property(func):
+    return property(cache(func))
 
 
 # quick-lint-js finds bugs in JavaScript programs.

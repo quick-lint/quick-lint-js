@@ -4,16 +4,13 @@
 import ctypes
 import platform
 import os
+from inspect import getmembers
 
 
 class CTypesMetaclass(type):
-    def __new__(cls, clsname, clsbases, clsattrs):  # TODO: With or without `c_`? With
-        for attr in dir(ctypes):
-            if attr.startswith("c_"):
-                name = remove_prefix(attr, "c_")
-                value = getattr(ctypes, attr)
-                clsattrs[name] = value
-        return super().__new__(cls, clsname, clsbases, clsattrs)
+    def __new__(cls, name, bases, attrs):
+        attrs = dict((mbr for mbr in getmembers(ctypes) if mbr[0].startswith("c_")))
+        return super().__new__(cls, name, bases, attrs)
 
 
 class CTypes(metaclass=CTypesMetaclass):
@@ -28,7 +25,7 @@ class CStruct:
         except AttributeError:
             pass
 
-    @composed(classmethod, cache)
+    @cached_classmethod
     def ptrtype(cls):
         return ctypes.POINTER(cls)
 
@@ -136,7 +133,7 @@ class CLibrary:
         except OSError:
             raise CException("Failed to load library object.")
 
-    @composed(property, cache)
+    @cached_property
     def filename(self):  # TODO: Remove lib prefix with CMake
         if platform.system() == "Windows":
             return "quick-lint-js-lib.dll"
@@ -224,7 +221,6 @@ class Parser:
     def lint(self):
         c_diags_p = Parser.c_lib.lint(self.c_parser_p)
         self.diags = Diagnostic.from_ptr(c_diags_p, self.view)
-
 
 
 # quick-lint-js finds bugs in JavaScript programs.
