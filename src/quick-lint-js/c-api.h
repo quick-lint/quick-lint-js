@@ -39,6 +39,8 @@ const qljs_web_demo_diagnostic* qljs_web_demo_lint_as_config_file(
 }
 #endif
 
+#endif
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //

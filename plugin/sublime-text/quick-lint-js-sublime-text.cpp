@@ -2,57 +2,8 @@
 // See end of file for extended copyright information.
 
 #include <quick-lint-js-sublime-text-location.h>
+#include <quick-lint-js-sublime-text.h>
 #include <quick-lint-js/document-base.h>
-
-enum qljs_st_severity {
-  qljs_st_severity_error = 1,
-  qljs_st_severity_warning = 2,
-};
-
-struct qljs_st_text {
-  const char* content;
-  std::size_t length;
-};
-
-struct qljs_st_position {
-  unsigned int line;
-  unsigned int character;
-};
-
-#if QLJS_ST_PLUGIN_VERSION == 3
-struct qljs_st_region {
-  unsigned int start;
-  unsigned int end;
-};
-#else
-struct qljs_st_range {
-  qljs_st_position start;
-  qljs_st_position end;
-};
-#endif
-
-struct qljs_st_diagnostic {
-  const char* message;
-  const char* code;
-  qljs_st_severity_error severity;
-#if QLJS_ST_PLUGIN_VERSION == 3
-  const qljs_st_region* region;
-#else
-  const qljs_st_position* position;
-#endif
-};
-
-typedef struct qljs_st_parser qljs_st_parser;
-
-const qljs_st_parser* qljs_st_parser_new(void);
-
-void qljs_st_parser_delete(qljs_st_parser*);
-
-void qljs_st_parser_set_text(qljs_st_parser*, qljs_st_text*);
-
-void qljs_st_parser_replace_text(qljs_st_parser*, qljs_st_position*, qljs_st_text*);
-
-const qljs_st_diagnostic* qljs_st_parser_lint(qljs_st_parser*);
 
 namespace quick_lint_js {
 namespace {
@@ -63,41 +14,29 @@ using sublime_text_document =
 }  // namespace
 }  // namespace quick_lint_js
 
-typedef struct qljs_st_4_parser qljs_st_4_parser;
-
-struct qljs_st_4_diagnostic {
-  const char* message;
-  const char* code;
-  qljs_severity severity;
-  int start_line;
-  int start_character;
-  int end_line;
-  int end_character;
-};
-struct qljs_st_4_error {
-  const char* message;
-};
-struct qljs_st_4_result {
-  union {
-    const qljs_st_4_diagnostic* diagnostics;
-    const qljs_st_4_error* error;
-  } value;
-  bool is_diagnostics;
-};
-qljs_st_4_parser* qljs_st_4_create_parser(void);
-void qljs_st_4_destroy_parser(qljs_st_4_parser*);
-const qljs_st_4_error* qljs_st_4_replace_text(
-    qljs_st_4_parser* p, int start_line, int start_character, int end_line,
-    int end_character, const void* replacement_text_utf_8,
-    size_t replacement_text_byte_count);
-const qljs_st_4_result* qljs_st_4_lint(qljs_st_4_parser* p);
-
-struct qljs_st3_parser final : public quick_lint_js::st_document {
+struct qljs_st_parser final : public quick_lint_js::sublime_text_document {
  public:
   void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);
   }
 };
+
+qljs_st_parser* qljs_st_parser_new(void) { return new qljs_st_parser(); }
+
+void qljs_st_parser_delete(qljs_st_parser* parser) { delete parser; }
+
+void qljs_st_parser_set_text(qljs_st_parser* parser, const qljs_st_text* text) {
+#if QLJS_ST_PLUGIN_VERSION == 3
+#else
+
+#endif
+}
+
+void qljs_st_parser_replace_text(qljs_st_parser* parser,
+                                 const qljs_st_text* text,
+                                 const qljs_st_position* position) {}
+
+const qljs_st_diagnostic* qljs_st_parser_lint(qljs_st_parser*);
 
 qljs_st_3_parser* qljs_st_3_create_parser(void) {
   qljs_st_3_parser* p = new qljs_st_3_parser();

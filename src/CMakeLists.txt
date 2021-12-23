@@ -58,7 +58,6 @@ quick_lint_js_add_library(
   configuration-loader.cpp
   configuration.cpp
   crash.cpp
-  crash-handling.cpp
   diagnostic-formatter.cpp
   diagnostic.cpp
   document.cpp
@@ -92,7 +91,6 @@ quick_lint_js_add_library(
   parse.cpp
   pipe-writer.cpp
   pipe.cpp
-  program-report.cpp
   quick-lint-js/allocator.h
   quick-lint-js/arg-parser.h
   quick-lint-js/assert.h
@@ -111,7 +109,6 @@ quick_lint_js_add_library(
   quick-lint-js/consteval.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
-  quick-lint-js/crash-handling.h
   quick-lint-js/diagnostic-formatter.h
   quick-lint-js/diagnostic.h
   quick-lint-js/document.h
@@ -159,11 +156,9 @@ quick_lint_js_add_library(
   quick-lint-js/parse.h
   quick-lint-js/pipe-writer.h
   quick-lint-js/pipe.h
-  quick-lint-js/program-report.h
   quick-lint-js/result.h
   quick-lint-js/simd.h
   quick-lint-js/simdjson.h
-  quick-lint-js/string-utilities.h
   quick-lint-js/sublime-text-3-location.h
   quick-lint-js/temporary-directory.h
   quick-lint-js/text-error-reporter.h
@@ -181,7 +176,6 @@ quick_lint_js_add_library(
   quick-lint-js/warning.h
   quick-lint-js/web-demo-location.h
   simdjson.cpp
-  string-utilities.cpp
   sublime-text-3-location.cpp
   temporary-directory.cpp
   text-error-reporter.cpp
