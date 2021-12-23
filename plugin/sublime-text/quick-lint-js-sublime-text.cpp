@@ -8,9 +8,9 @@
 namespace quick_lint_js {
 namespace {
 using sublime_text_document =
-    quick_lint_js::document_base<quick_lint_js::sublime_text_3_locator,
+    quick_lint_js::document_base<quick_lint_js::sublime_text_locator,
                                  quick_lint_js::c_api_error_reporter,
-                                 qljs_sublime_text_diagnostic>;
+                                 qljs_st_diagnostic>;
 }  // namespace
 }  // namespace quick_lint_js
 
@@ -27,33 +27,22 @@ void qljs_st_parser_delete(qljs_st_parser* parser) { delete parser; }
 
 void qljs_st_parser_set_text(qljs_st_parser* parser, const qljs_st_text* text) {
 #if QLJS_ST_PLUGIN_VERSION == 3
+  auto content = reinterpret_cast<const quick_lint_js::char8*>(text->content);
+  auto replacement = quick_lint_js::string8_view(content, text->length);
+  parser->set_text(replacement);
 #else
-
 #endif
 }
 
 void qljs_st_parser_replace_text(qljs_st_parser* parser,
                                  const qljs_st_text* text,
-                                 const qljs_st_position* position) {}
-
-const qljs_st_diagnostic* qljs_st_parser_lint(qljs_st_parser*);
-
-qljs_st_3_parser* qljs_st_3_create_parser(void) {
-  qljs_st_3_parser* p = new qljs_st_3_parser();
-  return p;
+                                 const qljs_st_position* position) {
 }
 
-void qljs_st_3_destroy_parser(qljs_st_3_parser* p) { delete p; }
+const qljs_st_diagnostic* qljs_st_parser_lint(qljs_st_parser* parser) {
+  return parser->lint();
+}
 
-const qljs_st_3_error* qljs_st_3_set_text(qljs_st_3_parser* p,
-                                          const void* text_utf_8,
-                                          size_t text_byte_count) {
-  p->set_text(quick_lint_js::string8_view(
-      reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
-      text_byte_count));
-  return nullptr;
-}
-}
 
 const qljs_st_3_result* qljs_st_3_lint(qljs_st_3_parser* p) {
   return new qljs_st_3_result{.value = {.diagnostics = p->lint()},
