@@ -60,6 +60,7 @@ enum class expression_kind {
   import,
   index,
   jsx_element,
+  jsx_element_with_members,
   jsx_element_with_namespace,
   jsx_fragment,
   literal,
@@ -186,6 +187,7 @@ class expression {
   class import;
   class index;
   class jsx_element;
+  class jsx_element_with_members;
   class jsx_element_with_namespace;
   class jsx_fragment;
   class literal;
@@ -682,6 +684,23 @@ class expression::jsx_element final : public jsx_base {
 };
 static_assert(expression_arena::is_allocatable<expression::jsx_element>);
 
+class expression::jsx_element_with_members final : public jsx_base {
+ public:
+  static constexpr expression_kind kind =
+      expression_kind::jsx_element_with_members;
+
+  explicit jsx_element_with_members(
+      source_code_span span, expression_arena::array_ptr<identifier> members,
+      expression_arena::array_ptr<expression *> children) noexcept
+      : jsx_base(kind, span, children), members(members) {}
+
+  bool is_intrinsic() const noexcept { return false; }
+
+  expression_arena::array_ptr<identifier> members;
+};
+static_assert(
+    expression_arena::is_allocatable<expression::jsx_element_with_members>);
+
 class expression::jsx_element_with_namespace final : public jsx_base {
  public:
   static constexpr expression_kind kind =
@@ -1026,6 +1045,10 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     auto *jsx = static_cast<const expression::jsx_element *>(this);
     return jsx->children;
   }
+  case expression_kind::jsx_element_with_members: {
+    auto *jsx = static_cast<const expression::jsx_element_with_members *>(this);
+    return jsx->children;
+  }
   case expression_kind::jsx_element_with_namespace: {
     auto *jsx =
         static_cast<const expression::jsx_element_with_namespace *>(this);
@@ -1185,6 +1208,8 @@ inline source_code_span expression::span() const noexcept {
   }
   case expression_kind::jsx_element:
     return static_cast<const jsx_element *>(this)->span;
+  case expression_kind::jsx_element_with_members:
+    return static_cast<const jsx_element_with_members *>(this)->span;
   case expression_kind::jsx_element_with_namespace:
     return static_cast<const jsx_element_with_namespace *>(this)->span;
   case expression_kind::jsx_fragment:

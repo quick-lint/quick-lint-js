@@ -292,6 +292,28 @@ TEST_F(test_parse_expression, tag_with_namespace) {
     ASSERT_EQ(summarize(ast), "jsxnselement(s-v-g-, g-)");
   }
 }
+
+TEST_F(test_parse_expression, tag_with_member_expression) {
+  {
+    expression* ast =
+        this->parse_expression(u8"<mod.Component />"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast), "jsxmemberelement((mod, Component))");
+  }
+
+  {
+    expression* ast = this->parse_expression(
+        u8"<a.b.c.d.e>{child}</a.b.c.d.e>"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast), "jsxmemberelement((a, b, c, d, e), var child)");
+  }
+
+  {
+    // TODO(strager): Report an error for the following code. Both Babel and
+    // TypeScript fail to transpile.
+    expression* ast =
+        this->parse_expression(u8"<a-b.c-d></a-b.c-d>"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast), "jsxmemberelement((a-b, c-d))");
+  }
+}
 }
 }
 

@@ -1345,6 +1345,7 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::function:
   case expression_kind::index:
   case expression_kind::jsx_element:
+  case expression_kind::jsx_element_with_members:
   case expression_kind::jsx_element_with_namespace:
   case expression_kind::jsx_fragment:
   case expression_kind::named_function:
@@ -2249,6 +2250,11 @@ expression* parser::parse_jsx_element_or_fragment(identifier* tag,
   std::optional<identifier> temp_tag_storage = std::nullopt;
   identifier* tag_namespace = nullptr;
 
+  // For <div>, this is empty. For <module.submodule.Component>, this contains
+  // {"module", "submodule", "Component"}.
+  vector<identifier> tag_members("jsx_member_element parts",
+                                 &this->temporary_memory_);
+
   vector<expression*> children("jsx_element children",
                                &this->temporary_memory_);
 
@@ -2264,6 +2270,11 @@ expression* parser::parse_jsx_element_or_fragment(identifier* tag,
       return this->make_expression<expression::jsx_element>(
           /*span=*/span,
           /*tag=*/*tag,
+          /*children=*/this->expressions_.make_array(std::move(children)));
+    } else if (!tag_members.empty()) {
+      return this->make_expression<expression::jsx_element_with_members>(
+          /*span=*/span,
+          /*members=*/this->expressions_.make_array(std::move(tag_members)),
           /*children=*/this->expressions_.make_array(std::move(children)));
     } else {
       return this->make_expression<expression::jsx_fragment>(
@@ -2283,6 +2294,21 @@ expression* parser::parse_jsx_element_or_fragment(identifier* tag,
     tag_namespace = tag;
     tag = &*temp_tag_storage;
     this->lexer_.skip_in_jsx();
+  } else if (this->peek().type == token_type::dot) {
+    // <module.Component>
+    this->lexer_.skip_in_jsx();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+    tag_members.emplace_back(*tag);
+    tag = nullptr;  // Just in case. We don't want to accidentally use 'tag'.
+    tag_members.emplace_back(this->peek().identifier_name());
+    this->lexer_.skip_in_jsx();
+    while (this->peek().type == token_type::dot) {
+      // <module.submodule.Component>
+      this->lexer_.skip_in_jsx();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      tag_members.emplace_back(this->peek().identifier_name());
+      this->lexer_.skip_in_jsx();
+    }
   }
 
 next_attribute:
@@ -2372,6 +2398,16 @@ next:
         this->lexer_.skip_in_jsx();
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
         this->lexer_.skip_in_jsx();
+      }
+      if (!tag_members.empty()) {
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+        this->lexer_.skip_in_jsx();
+        while (this->peek().type == token_type::dot) {
+          // <module.submodule.Component>
+          this->lexer_.skip_in_jsx();
+          QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+          this->lexer_.skip_in_jsx();
+        }
       }
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
       const char8* greater_end = this->peek().end;
