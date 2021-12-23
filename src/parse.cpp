@@ -2242,22 +2242,23 @@ expression* parser::parse_jsx_expression() {
 
 expression* parser::parse_jsx_element_or_fragment(identifier* tag,
                                                   const char8* less_begin) {
-  // HACK(strager): If tag_namespace is nullopt, then there is no namespace and
-  // tag refers to the tag name. If tag_namespace is not nullopt, then there is
-  // a namespace and tag refers to the namespace name and tag_namespace refers
-  // to the tag name.
-  std::optional<identifier> tag_namespace = std::nullopt;
+  // If temp_tag_storage is nullopt, then there is no namespace. If
+  // temp_tag_storage is not nullopt, then it stores the tag name.
+  //
+  // Invariant: temp_tag_storage.has_value() == (tag_namespace != nullptr)
+  std::optional<identifier> temp_tag_storage = std::nullopt;
+  identifier* tag_namespace = nullptr;
 
   vector<expression*> children("jsx_element children",
                                &this->temporary_memory_);
 
   auto make_jsx_expression = [&](const char8* greater_end) -> expression* {
     source_code_span span(less_begin, greater_end);
-    if (tag_namespace.has_value()) {
+    if (tag_namespace) {
       return this->make_expression<expression::jsx_element_with_namespace>(
           /*span=*/span,
-          /*ns=*/*tag,
-          /*tag=*/*tag_namespace,
+          /*ns=*/*tag_namespace,
+          /*tag=*/*tag,
           /*children=*/this->expressions_.make_array(std::move(children)));
     } else if (tag) {
       return this->make_expression<expression::jsx_element>(
@@ -2278,7 +2279,9 @@ expression* parser::parse_jsx_element_or_fragment(identifier* tag,
     }
     this->lexer_.skip_in_jsx();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-    tag_namespace = this->peek().identifier_name();
+    temp_tag_storage = this->peek().identifier_name();
+    tag_namespace = tag;
+    tag = &*temp_tag_storage;
     this->lexer_.skip_in_jsx();
   }
 
