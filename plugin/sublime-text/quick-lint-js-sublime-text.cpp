@@ -10,9 +10,8 @@ namespace {
 // NOTE: Sublime Text 4 uses quick_lint_js::lsp_locator
 
 using sublime_text_document =
-    quick_lint_js::document_base<quick_lint_js::sublime_text_locator,
-                                 quick_lint_js::c_api_error_reporter,
-                                 qljs_st_diagnostic>;
+    document_base<sublime_text_locator, c_api_error_reporter,
+                  qljs_st_diagnostic>;
 }  // namespace
 }  // namespace quick_lint_js
 

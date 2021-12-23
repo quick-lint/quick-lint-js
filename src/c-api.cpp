@@ -9,8 +9,8 @@
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
-#include <quick-lint-js/document.h>
 #include <quick-lint-js/document-base.h>
+#include <quick-lint-js/document.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/lsp-location.h>
@@ -20,10 +20,9 @@
 #include <vector>
 
 struct qljs_web_demo_document final
-    : public quick_lint_js::qljs_document_base<
-          quick_lint_js::web_demo_locator,
-          quick_lint_js::c_api_error_reporter<
-              qljs_web_demo_diagnostic, quick_lint_js::web_demo_locator>> {
+    : public quick_lint_js::document_base<quick_lint_js::web_demo_locator,
+                                          quick_lint_js::c_api_error_reporter,
+                                          qljs_web_demo_diagnostic> {
  public:
   void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);

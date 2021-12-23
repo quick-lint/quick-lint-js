@@ -1,35 +1,39 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#ifndef QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
+#define QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
+
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/sublime-text-3-location.h>
-#include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
-sublime_text_3_locator::sublime_text_3_locator(
-    padded_string_view input) noexcept
-    : input_(input) {}
+using sublime_text_offset = unsigned int;
 
-sublime_text_3_source_range sublime_text_3_locator::range(
-    source_code_span span) const {
-  return sublime_text_3_source_range{
-      .begin = this->position(span.begin()),
-      .end = this->position(span.end()),
-  };
-}
+struct sublime_text_range {
+  sublime_text_offset begin;
+  sublime_text_offset end;
+};
 
-sublime_text_3_source_offset sublime_text_3_locator::position(
-    const char8* c) const noexcept {
-  std::size_t byte_offset = narrow_cast<std::size_t>(c - this->input_.data());
-  return narrow_cast<sublime_text_3_source_offset>(
-      count_utf_8_characters(this->input_, byte_offset));
-}
+class sublime_text_locator {
+ public:
+  using range_type = sublime_text_range;
+
+  explicit sublime_text_3_locator(padded_string_view input) noexcept;
+
+  sublime_text_range range(source_code_span) const;
+  sublime_text_offset position(const char8*) const noexcept;
+
+ private:
+  padded_string_view input_;
+};
 }  // namespace quick_lint_js
 
+#endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
+
 // quick-lint-js finds bugs in JavaScript programs.
-// Copyright (C) 2020  Matthew "strager" Glazar
+// Copyright (C) 2020  Matthew Glazar
 //
 // This file is part of quick-lint-js.
 //
