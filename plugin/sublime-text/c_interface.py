@@ -11,96 +11,106 @@ from . import utils
 class CStruct(ctypes.Structure):
     def __init_subclass__(cls, /, **kwargs):
         try:
-            cls._fields_ = list(cls.fields.items())
+            cls.CPointer = ctypes.POINTER(cls)
+            cls._fields_ = list(cls.c_fields.items())
         except AttributeError:
             pass
         super().__init_subclass__(**kwargs)
-
-    @classmethod
-    def pointer_type(cls):
-        return ctypes.POINTER(cls)
 
     def lightweight_pointer(self):
         return ctypes.byref(self)
 
 
 class CText(CStruct):
-    fields = {
+    c_fields = {
         "content": ctypes.c_char_p,
         "length": ctypes.c_size_t,
     }
 
 
 class CPosition(CStruct):
-    fields = {
+    c_fields = {
         "line": ctypes.c_uint,
         "character": ctypes.c_uint,
     }
 
 
 class CRegion(CStruct):
-    fields = {
+    c_fields = {
         "start": ctypes.c_uint,
         "end": ctypes.c_uint,
     }
 
 
 class CRange(CStruct):
-    fields = {
+    c_fields = {
         "start": CPosition,
         "end": CPosition,
     }
 
 
 class CDiagnostic(CStruct):
-    fields = {
+    c_fields = {
         "message": ctypes.c_char_p,
         "code": ctypes.c_char_p,
         "severity": ctypes.c_int,
     }
     if utils.sublime.is_version_three():
-        fields["region"] = CRegion.pointer_type()
+        c_fields["region"] = CRegion.CPointer
     elif utils.sublime.is_version_four():
-        fields["range"] = CRange.pointer_type()
+        c_fields["range"] = CRange.CPointer
 
 
 class CParser(Cstruct):
-    fields = {}
+    c_fields = {}
 
 
 class CException(Exception):
     pass
 
 
-class CObject:
+class CLibrary:
     @staticmethod
-    def cdll(path):  # TODO: `cdll` is a good name?
+    def get_file_extension():
+        if platform.system() == "Windows":
+            return ".dll"
+        elif platform.system() == "Darwin":
+            return ".dylib"
+        elif platform.system() == "Linux":
+            return ".so"
+        raise CException("Operating system not supported.")
+
+    def __init__(self):
+        directory = os.path.dirname(utils.os.get_module_path())
+        filename = "quick-lint-js-lib" + self.get_file_extension()
         # It's need multiple DLLs for load the library object on Windows,
         # these DLLs are all in the same folder, for ctypes find these DLLs
         # we need to change the current working directory to that folder.
-        with changed_directory(os.path.dirname(path)):
-            return ctypes.CDLL(path)
+        with changed_directory(directory):
+            cdll = ctypes.CDLL(filename)
 
-    def __init__(self, path):
-        cdll = CObject.cdll(path)
         version = utils.sublime.major_version()
         self.c_create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
         self.c_create_parser.argtypes = []
-        self.c_create_parser.restype = CParser.pointer_type()
+        self.c_create_parser.restype = CParser.CPointer
         self.c_destroy_parser = getattr(cdll, "qljs_st%d_destroy_parser" % (version))
-        self.c_destroy_parser.argtypes = [CParser.pointer_type()]
+        self.c_destroy_parser.argtypes = [CParser.CPointer]
         self.c_destroy_parser.restype = None
-        self.lint = getattr(cdll, "qljs_st%d_lint" % (version))
-        self.lint.argtypes = [CParser.pointer_type()]
-        self.lint.restype = CDiagnostic.pointer_type()
-        if version == "3":
-            self.set_text = cdll.qljs_st_3_set_text
-            self.set_text.argtypes = [CParser.pointer_type(), CText]
-            self.set_text.restype = CError.pointer_type()
-        elif version == "4":
-            self.replace_text = cdll.qljs_st_4_replace_text
-            self.replace_text.argtypes = [CParser.pointer_type(), CRange, CText]
-            self.replace_text.restype = CError.pointer_type()
+        if utils.sublime.is_version_three():
+            self.c_set_text = cdll.qljs_st_3_set_text
+            self.c_set_text.argtypes = [
+                CParser.CPointer, CText.CPointer,  # fmt: skip
+            ]
+            self.c_set_text.restype = CError.CPointer
+        elif utils.sublime.is_version_four():
+            self.c_replace_text = cdll.qljs_st_4_replace_text
+            self.c_replace_text.argtypes = [
+                CParser.CPointer, CRange.CPointer, CText.CPointer,  # fmt: skip
+            ]
+            self.c_replace_text.restype = CError.CPointer
+        self.c_lint = getattr(cdll, "qljs_st%d_lint" % (version))
+        self.c_lint.argtypes = [CParser.CPointer]
+        self.c_lint.restype = CDiagnostic.CPointer
 
     def create_parser(self):
         c_parser_p = self.c_create_parser()
@@ -113,61 +123,18 @@ class CObject:
             raise CException("Cannot free nonexistent pointer.")
         self.c_destroy_parser(c_parser_p)
 
+    if utils.sublime.is_version_three():
 
-class CLibrary:
-    @staticmethod
-    def file_extension():
-        if platform.system() == "Windows":
-            return ".dll"
-        elif platform.system() == "Darwin":
-            return ".dylib"
-        elif platform.system() == "Linux":
-            return ".so"
+        def set_text(self, c_parser_p, c_text_p):
+            return self.c_set_text(c_parser_p, c_text_p)
 
-    def __init__(self):
-        try:
-            directory = os.path.dirname(utils.os.get_module_path())
-            filename = "quick-lint-js-lib" + utils.os.get_shared_library_file_extension()
-        except OSError as err:
-            raise CException(str(err))
-        version = utils.sublime.major_version()
-        # It's need multiple DLLs for load the library object on Windows,
-        # these DLLs are all in the same folder, for ctypes find these DLLs
-        # we need to change the current working directory to that folder.
-        with changed_directory(directory):
-            cdll = ctypes.CDLL(filename)
+    elif utils.sublime.is_version_four():
 
-        self.c_create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
-        self.c_create_parser.argtypes = []
-        self.c_create_parser.restype = CParser.pointer_type()
-        self.c_destroy_parser = getattr(cdll, "qljs_st%d_destroy_parser" % (version))
-        self.c_destroy_parser.argtypes = [CParser.pointer_type()]
-        self.c_destroy_parser.restype = None
-        self.c_lint = getattr(cdll, "qljs_st%d_lint" % (version))
-        self.c_lint.argtypes = [CParser.pointer_type()]
-        self.c_lint.restype = CDiagnostic.pointer_type()
-        if version == "3":
-            self.c_set_text = cdll.qljs_st_3_set_text
-            self.c_set_text.argtypes = [CParser.pointer_type(), CText]
-            self.c_set_text.restype = CError.pointer_type()
-        elif version == "4":
-            self.c_replace_text = cdll.qljs_st_4_replace_text
-            self.c_replace_text.argtypes = [CParser.pointer_type(), CRange, CText]
-            self.c_replace_text.restype = CError.pointer_type()
+        def replace_text(self, c_parser_p, c_range_p, c_text_p):
+            return self.c_replace_text(c_parser_p, c_range_p, c_text_p)
 
-
-class CLibrary:
-    def __init__(self):
-        self.directory = os.path.dirname(get_module_path())
-        self.path = os.path.join(self.directory, self.filename)
-        try:
-            self.object = CObject(self.path)
-        except OSError:
-            raise CException("Failed to load library object.")
-
-    @property
-    def filename(self):  # TODO: Remove lib prefix with CMake
-        pass
+    def lint(self, c_parser_p):
+        return self.c_lint(c_parser_p)
 
 
 class Severity:
