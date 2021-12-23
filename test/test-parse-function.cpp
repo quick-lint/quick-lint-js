@@ -864,6 +864,10 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
            u8"(super)"_sv,
            u8"([super])"_sv,
            u8"([import])"_sv,
+           u8"(<jsx />)"_sv,
+           u8"(<jsx.Component />)"_sv,
+           u8"(<namespace:jsx />)"_sv,
+           u8"(<>JSX fragment</>)"_sv,
 
            // TODO(strager): We should report
            // error_unexpected_arrow_after_literal for these:
@@ -874,7 +878,9 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     padded_string code(u8"(" + string8(parameter_list) + u8" => {});");
     SCOPED_TRACE(code);
     spy_visitor v;
-    parser p(&code, &v);
+    parser_options options;
+    options.jsx = true;
+    parser p(&code, &v, options);
     auto guard = p.enter_function(function_attributes::async_generator);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(error_invalid_parameter)));
