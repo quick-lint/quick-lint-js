@@ -76,6 +76,174 @@ TEST(test_parse_jsx, empty_user_element) {
               ElementsAre(spy_visitor::visited_variable_use{u8"MyComponent"}));
   EXPECT_THAT(v.errors, IsEmpty());
 }
+
+TEST(test_parse_jsx, member_component) {
+  padded_string code(
+      u8"c = <module.submodule.MyComponent></module.submodule.MyComponent>;"_sv);
+  spy_visitor v;
+  parser p(&code, &v, jsx_options);
+  p.parse_and_visit_module(v);
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // module
+                                    "visit_variable_assignment",  // c
+                                    "visit_end_of_module"));
+  EXPECT_THAT(v.variable_uses,
+              ElementsAre(spy_visitor::visited_variable_use{u8"module"}));
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_parse_jsx, element_child_element) {
+  {
+    padded_string code(u8"c = <outer><INNER></INNER></outer>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"c = <OUTER><INNER></INNER></OUTER>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"OUTER"},
+                            spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"c = <NS:OUTER><INNER></INNER></NS:OUTER>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(
+        u8"c = <outer.Component><INNER></INNER></outer.Component>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"outer"},
+                            spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"c = <><INNER></INNER></>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_parse_jsx, element_child_expression) {
+  {
+    padded_string code(u8"c = <outer>{INNER}</outer>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"c = <OUTER>{INNER}</OUTER>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"OUTER"},
+                            spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"c = <NS:OUTER>{INNER}</NS:OUTER>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"c = <outer.Component>{INNER}</outer.Component>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"outer"},
+                            spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"c = <>{INNER}</>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_parse_jsx, element_attribute_expression) {
+  {
+    padded_string code(u8"c = <outer attr={attrValue}></outer>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"attrValue"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"c = <OUTER attr={attrValue}></OUTER>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"OUTER"},
+                            spy_visitor::visited_variable_use{u8"attrValue"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"c = <NS:OUTER attr={attrValue}></NS:OUTER>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"attrValue"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(
+        u8"c = <outer.Component attr={attrValue}></outer.Component>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"outer"},
+                            spy_visitor::visited_variable_use{u8"attrValue"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
 }
 }
 

@@ -878,13 +878,21 @@ class parser {
       if (!element->is_intrinsic()) {
         v.visit_variable_use(element->tag);
       }
+      visit_children();
       break;
     }
-    case expression_kind::jsx_element_with_members:
+    case expression_kind::jsx_element_with_members: {
+      auto *element = static_cast<expression::jsx_element_with_members *>(ast);
+      QLJS_ASSERT(element->members.size() >= 1);
+      v.visit_variable_use(element->members[0]);
+      visit_children();
       break;
+    }
     case expression_kind::jsx_element_with_namespace:
+      visit_children();
       break;
     case expression_kind::jsx_fragment:
+      visit_children();
       break;
     case expression_kind::object:
       for (int i = 0; i < ast->object_entry_count(); ++i) {
