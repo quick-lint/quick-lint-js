@@ -784,6 +784,13 @@ TEST(test_parse, expression_statement) {
                     error_cannot_refer_to_private_variable_without_object>(
             ::testing::_)));
   }
+
+  {
+    parser_options options;
+    options.jsx = true;
+    spy_visitor v = parse_and_visit_statement(u8"<MyJSXComponent />", options);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // MyJSXComponent
+  }
 }
 
 TEST(test_parse, delete_of_variable) {
