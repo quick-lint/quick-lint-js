@@ -32,13 +32,13 @@
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
+#include <quick-lint-js/variant.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>
 #include <string>
 #include <tuple>
 #include <unordered_map>
-#include <variant>
 
 #if QLJS_HAVE_KQUEUE
 #include <sys/event.h>
@@ -96,7 +96,7 @@ class any_error_reporter {
   }
 
   void set_source(padded_string_view input, const file_to_lint &file) {
-    std::visit(
+    visit(
         [&](auto &r) {
           using reporter_type = std::decay_t<decltype(r)>;
           if constexpr (std::is_base_of_v<
@@ -115,16 +115,15 @@ class any_error_reporter {
   }
 
   error_reporter *get() noexcept {
-    return std::visit([](error_reporter &r) { return &r; }, this->tape_);
+    return visit([](error_reporter &r) { return &r; }, this->tape_);
   }
 
   bool get_error() noexcept {
-    return std::visit([](auto &r) { return r.found_matching_error(); },
-                      this->tape_);
+    return visit([](auto &r) { return r.found_matching_error(); }, this->tape_);
   }
 
   void finish() {
-    std::visit(
+    visit(
         [&](auto &r) {
           using reporter_type = std::decay_t<decltype(r)>;
           if constexpr (std::is_base_of_v<
@@ -141,9 +140,9 @@ class any_error_reporter {
   }
 
  private:
-  using tape_variant = std::variant<error_tape<text_error_reporter>,
-                                    error_tape<vim_qflist_json_error_reporter>,
-                                    error_tape<emacs_lisp_error_reporter>>;
+  using tape_variant = variant<error_tape<text_error_reporter>,
+                               error_tape<vim_qflist_json_error_reporter>,
+                               error_tape<emacs_lisp_error_reporter>>;
 
   explicit any_error_reporter(tape_variant &&tape) : tape_(tape) {}
 
