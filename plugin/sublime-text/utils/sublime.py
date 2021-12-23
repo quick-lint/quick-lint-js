@@ -26,7 +26,6 @@ def plugin_error_message(msg):
     error_message("quick-lint-js: " + msg)
 
 
-# TODO: O nome da função deve ser a tradução de "ver o conteúdo todo"
 def view_entire_content(view):
     region = Region(0, view.size())
     return view.substr(region)
