@@ -119,6 +119,7 @@ TEST_F(test_parse_expression, tag_with_text_children) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(div)");
     EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"<div>hello world</div>"));
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
@@ -139,6 +140,7 @@ TEST_F(test_parse_expression, fragment_with_text_children) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxfragment()");
     EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"<>hello world</>"));
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
@@ -153,6 +155,7 @@ TEST_F(test_parse_expression, tag_with_element_children) {
     EXPECT_EQ(p.range(ast->child_0()).begin_offset(), strlen(u8"<div>hello "));
     EXPECT_EQ(p.range(ast->child_0()).end_offset(),
               strlen(u8"<div>hello <span>world</span>"));
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
@@ -167,6 +170,7 @@ TEST_F(test_parse_expression, fragment_with_element_children) {
     EXPECT_EQ(p.range(ast->child_0()).begin_offset(), strlen(u8"<>hello "));
     EXPECT_EQ(p.range(ast->child_0()).end_offset(),
               strlen(u8"<>hello <span>world</span>"));
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
@@ -193,6 +197,7 @@ TEST_F(test_parse_expression, tag_with_expression_children) {
     EXPECT_EQ(p.range(ast->child_0()).begin_offset(), strlen(u8"<div>hello {"));
     EXPECT_EQ(p.range(ast->child_0()).end_offset(),
               strlen(u8"<div>hello {name"));
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
@@ -216,6 +221,7 @@ TEST_F(test_parse_expression, tag_with_attributes) {
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(),
               strlen(u8"<div className='header' />"));
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
@@ -226,6 +232,7 @@ TEST_F(test_parse_expression, tag_with_attributes) {
               strlen(u8"<div className={"));
     EXPECT_EQ(p.range(ast->child_0()).end_offset(),
               strlen(u8"<div className={expr"));
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
@@ -269,20 +276,19 @@ TEST_F(test_parse_expression, tag_with_namespace_attributes) {
 
 TEST_F(test_parse_expression, tag_with_namespace) {
   {
-    test_parser p(u8"<svg:g />"_sv, jsx_options);
-    expression* ast = p.parse_expression();
+    expression* ast = this->parse_expression(u8"<svg:g />"_sv, jsx_options);
     ASSERT_EQ(summarize(ast), "jsxnselement(svg, g)");
   }
 
   {
-    test_parser p(u8"<svg:g></svg:g>"_sv, jsx_options);
-    expression* ast = p.parse_expression();
+    expression* ast =
+        this->parse_expression(u8"<svg:g></svg:g>"_sv, jsx_options);
     ASSERT_EQ(summarize(ast), "jsxnselement(svg, g)");
   }
 
   {
-    test_parser p(u8"<svg /* */ : /* */ g>< / svg : g >"_sv, jsx_options);
-    expression* ast = p.parse_expression();
+    expression* ast = this->parse_expression(
+        u8"<svg /* */ : /* */ g>< / svg : g >"_sv, jsx_options);
     ASSERT_EQ(summarize(ast), "jsxnselement(svg, g)");
   }
 
