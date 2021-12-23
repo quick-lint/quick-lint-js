@@ -46,7 +46,7 @@ struct qljs_st_diagnostic {
 #if QLJS_ST_PLUGIN_VERSION == 3
   const qljs_st_region* region;
 #else
-  const qljs_st_position* position;
+  const qljs_st_range* range;
 #endif
 };
 
@@ -57,8 +57,8 @@ void qljs_st_parser_delete(qljs_st_parser* parser);
 void qljs_st_parser_set_text(qljs_st_parser* parser, const qljs_st_text* text);
 
 void qljs_st_parser_replace_text(qljs_st_parser* parser,
-                                 const qljs_st_text* text,
-                                 const qljs_st_position* position);
+                                 const qljs_st_range* range,
+                                 const qljs_st_text* text);
 
 const qljs_st_diagnostic* qljs_st_parser_lint(qljs_st_parser* parser);
 
