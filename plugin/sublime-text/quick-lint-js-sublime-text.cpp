@@ -44,12 +44,15 @@ struct qljs_st_diagnostic {
 
 typedef struct qljs_st_parser qljs_st_parser;
 
-qljs_st_parser* qljs_st_create_parser(void);
-void qljs_st_destroy_parser(qljs_st_parser*);
-const qljs_st_error* qljs_st_3_set_text(qljs_st_3_parser*,
-                                          const void* text_utf_8,
-                                          size_t text_byte_count);
-const qljs_st_3_result* qljs_st_3_lint(qljs_st_3_parser*);
+const qljs_st_parser* qljs_st_parser_new(void);
+
+void qljs_st_parser_delete(qljs_st_parser*);
+
+void qljs_st_parser_set_text(qljs_st_parser*, qljs_st_text*);
+
+void qljs_st_parser_replace_text(qljs_st_parser*, qljs_st_position*, qljs_st_text*);
+
+const qljs_st_diagnostic* qljs_st_parser_lint(qljs_st_parser*);
 
 namespace quick_lint_js {
 namespace {
@@ -59,7 +62,6 @@ using sublime_text_document =
                                  qljs_sublime_text_diagnostic>;
 }  // namespace
 }  // namespace quick_lint_js
-
 
 typedef struct qljs_st_4_parser qljs_st_4_parser;
 
