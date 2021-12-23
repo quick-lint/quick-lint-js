@@ -241,8 +241,8 @@ class result_base {
 
     template <class Error>
     quick_lint_js::result<void, NewErrors...> operator()(const Error& error) {
-      return quick_lint_js::result<void, NewErrors...>::template failure<Error>(
-          error);
+      return quick_lint_js::result<void, NewErrors...>(
+          result_error_tag<Error>(), error);
     }
   };
 
