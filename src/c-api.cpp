@@ -10,6 +10,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/document.h>
+#include <quick-lint-js/document-base.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/lsp-location.h>
@@ -17,41 +18,6 @@
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/web-demo-location.h>
 #include <vector>
-
-namespace quick_lint_js {
-namespace {
-template <class Locator, class ErrorReporter>
-class qljs_document_base {
- public:
-  const auto* lint() {
-    this->error_reporter_.reset();
-    this->error_reporter_.set_input(this->document_.string(),
-                                    &this->document_.locator());
-    parser p(this->document_.string(), &this->error_reporter_);
-    linter l(&this->error_reporter_, &this->config_.globals());
-    // TODO(strager): Use parse_and_visit_module_catching_fatal_parse_errors
-    // instead of parse_and_visit_module to avoid crashing on
-    // QLJS_PARSER_UNIMPLEMENTED.
-    p.parse_and_visit_module(l);
-
-    return this->error_reporter_.get_diagnostics();
-  }
-
-  const auto* lint_as_config_file() {
-    this->error_reporter_.reset();
-    this->error_reporter_.set_input(this->document_.string(),
-                                    &this->document_.locator());
-    configuration().load_from_json(this->document_.string(),
-                                   &this->error_reporter_);
-    return this->error_reporter_.get_diagnostics();
-  }
-
-  quick_lint_js::document<Locator> document_;
-  ErrorReporter error_reporter_;
-  configuration config_;
-};
-}
-}
 
 struct qljs_web_demo_document final
     : public quick_lint_js::qljs_document_base<

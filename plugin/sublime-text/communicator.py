@@ -1,6 +1,8 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+"""The module entity the communicates with C/C++ library.""""
+
 import ctypes
 import os
 import platform
