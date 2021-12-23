@@ -13,7 +13,70 @@ using sublime_text_document =
 }  // namespace
 }  // namespace quick_lint_js
 
-struct qljs_st3_parser final : public quick_lint_js::sublime_text_document {
+struct qljs_st_text {
+  const char* content;
+  std::size_t length;
+}
+
+struct qljs_st_position {
+  unsigned int line;
+  unsigned int character;
+}
+
+struct qljs_st_region {
+  unsigned int start;
+  unsigned int end;
+}
+
+struct qljs_st_3_diagnostic {
+  const char* message;
+  const char* code;
+  qljs_severity severity;
+  int begin_offset;
+  int end_offset;
+};
+
+struct qljs_st_3_error {
+  const char* message;
+};
+
+qljs_st_3_parser* qljs_st_3_create_parser(void);
+void qljs_st_3_destroy_parser(qljs_st_3_parser*);
+const qljs_st_3_error* qljs_st_3_set_text(qljs_st_3_parser*,
+                                          const void* text_utf_8,
+                                          size_t text_byte_count);
+const qljs_st_3_result* qljs_st_3_lint(qljs_st_3_parser*);
+
+typedef struct qljs_st_4_parser qljs_st_4_parser;
+
+struct qljs_st_4_diagnostic {
+  const char* message;
+  const char* code;
+  qljs_severity severity;
+  int start_line;
+  int start_character;
+  int end_line;
+  int end_character;
+};
+struct qljs_st_4_error {
+  const char* message;
+};
+struct qljs_st_4_result {
+  union {
+    const qljs_st_4_diagnostic* diagnostics;
+    const qljs_st_4_error* error;
+  } value;
+  bool is_diagnostics;
+};
+qljs_st_4_parser* qljs_st_4_create_parser(void);
+void qljs_st_4_destroy_parser(qljs_st_4_parser*);
+const qljs_st_4_error* qljs_st_4_replace_text(
+    qljs_st_4_parser* p, int start_line, int start_character, int end_line,
+    int end_character, const void* replacement_text_utf_8,
+    size_t replacement_text_byte_count);
+const qljs_st_4_result* qljs_st_4_lint(qljs_st_4_parser* p);
+
+struct qljs_st3_parser final : public quick_lint_js::st_document {
  public:
   void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);
