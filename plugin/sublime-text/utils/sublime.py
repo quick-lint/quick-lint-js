@@ -8,25 +8,26 @@ from ..utils.functools import cache
 
 
 @cache
-def major_version():
+def get_major_version():
     return get_first_character(version())
 
 
 @cache
-def is_three():
-    return majorversion() == "3"
+def is_version_three():
+    return get_major_version() == "3"
 
 
 @cache
-def is_four():
-    return majorversion() == "4"
+def is_version_four():
+    return get_major_version() == "4"
 
 
-def error_message_with_prefix(msg):
+def plugin_error_message(msg):
     error_message("quick-lint-js: " + msg)
 
 
-def view_content(view):
+# TODO: O nome da função deve ser a tradução de "ver o conteúdo todo"
+def view_entire_content(view):
     region = Region(0, view.size())
     return view.substr(region)
 

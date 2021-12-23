@@ -1,12 +1,6 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-from ctypes import byref
-
-
-def pointer(obj):
-    return byref(obj)
-
 
 def is_pointer_null(ptr):
     return not bool(ptr)
