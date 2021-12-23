@@ -148,12 +148,43 @@ class result_base {
 
   result_propagation<T, Errors...> propagate() && = delete;
 
+  template <class... NewErrors>
+  quick_lint_js::result<void, NewErrors...> copy_errors() {
+    // TODO(strager): If any of NewErrors equals value_type, then std::visit is
+    // incorrect.
+    return std::visit(copy_errors_visitor<NewErrors...>(), this->data_);
+  }
+
+  // For tests.
+  template <class U>
+  friend bool holds_alternative(const result_base<T, Errors...>& r) noexcept {
+    // TODO(strager): Make this work properly if T is void.
+    return std::holds_alternative<U>(r.data_);
+  }
+
+  // For tests.
+  template <class U>
+  friend const U& get(const result_base<T, Errors...>& r) noexcept {
+    // TODO(strager): Make this work properly if T is void.
+    return std::get<U>(r.data_);
+  }
+
   value_type& operator*() & noexcept { return this->value(); }
   value_type&& operator*() && noexcept { return std::move(*this).value(); }
   const value_type& operator*() const& noexcept { return this->value(); }
 
   value_type* operator->() noexcept { return &this->value(); }
   const value_type* operator->() const noexcept { return &this->value(); }
+
+  friend bool operator==(const result_base& lhs,
+                         const result_base& rhs) noexcept {
+    return lhs.data_ == rhs.data_;
+  }
+
+  friend bool operator!=(const result_base& lhs,
+                         const result_base& rhs) noexcept {
+    return !(lhs == rhs);
+  }
 
  private:
   struct move_data_visitor {
@@ -202,6 +233,19 @@ class result_base {
     }
   };
 
+  template <class... NewErrors>
+  struct copy_errors_visitor {
+    quick_lint_js::result<void, NewErrors...> operator()(const value_type&) {
+      return {};
+    }
+
+    template <class Error>
+    quick_lint_js::result<void, NewErrors...> operator()(const Error& error) {
+      return quick_lint_js::result<void, NewErrors...>::template failure<Error>(
+          error);
+    }
+  };
+
   std::variant<value_type, Errors...> data_;
 
   template <class, class...>
@@ -212,12 +256,13 @@ class result_base {
 //
 // Errors must be unique. For example, result<int, char, char> is illegal.
 template <class T, class... Errors>
-class result : private result_base<T, Errors...> {
+class result : public result_base<T, Errors...> {
  private:
   using base = result_base<T, Errors...>;
 
  public:
   using base::base;
+  using base::copy_errors;
   using base::error;
   using base::error_to_string;
   using base::error_to_variant;
@@ -238,12 +283,13 @@ class result : private result_base<T, Errors...> {
 //
 // Errors must be unique. For example, result<void, char, char> is illegal.
 template <class... Errors>
-class result<void, Errors...> : private result_base<void, Errors...> {
+class result<void, Errors...> : public result_base<void, Errors...> {
  private:
   using base = result_base<void, Errors...>;
 
  public:
   using base::base;
+  using base::copy_errors;
   using base::error;
   using base::error_to_string;
   using base::error_to_variant;
@@ -259,12 +305,13 @@ class result<void, Errors...> : private result_base<void, Errors...> {
 
 // Like std::variant<T, Error>, but more ergonomic.
 template <class T, class Error>
-class result<T, Error> : private result_base<T, Error> {
+class result<T, Error> : public result_base<T, Error> {
  private:
   using base = result_base<T, Error>;
 
  public:
   using base::base;
+  using base::copy_errors;
   using base::error_to_string;
   using base::error_to_variant;
   using base::ok;
@@ -288,12 +335,13 @@ class result<T, Error> : private result_base<T, Error> {
 
 // Like std::optional<Error>, but with a similar interface to result<T, Error>.
 template <class Error>
-class result<void, Error> : private result_base<void, Error> {
+class result<void, Error> : public result_base<void, Error> {
  private:
   using base = result_base<void, Error>;
 
  public:
   using base::base;
+  using base::copy_errors;
   using base::error_to_string;
   using base::error_to_variant;
   using base::ok;

@@ -404,10 +404,7 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
         byte_buffer& message_json =
             this->pending_notification_jsons_.emplace_back();
         this->write_configuration_loader_error_notification(
-            document_path,
-            std::visit([](const auto& error) { return error.to_string(); },
-                       *change_it->error),
-            message_json);
+            document_path, change_it->error->error_to_string(), message_json);
       }
       configuration* config = change_it->config_file
                                   ? &change_it->config_file->config

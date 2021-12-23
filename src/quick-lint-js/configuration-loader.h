@@ -61,7 +61,8 @@ struct configuration_change {
   // a configuration file from being determined at all.
   //
   // Invariant: (error == nullptr) || (config_file == nullptr)
-  std::variant<canonicalize_path_io_error, read_file_io_error>*
+  // Invariant: (error == nullptr) || !error->ok()
+  result<void, canonicalize_path_io_error, read_file_io_error>*
       error;  // Sometimes nullptr.
 
   // token is the pointer given to
@@ -131,16 +132,14 @@ class configuration_loader {
   struct watched_config_path {
     std::string input_config_path;
     std::optional<canonical_path> actual_config_path;
-    std::optional<std::variant<canonicalize_path_io_error, read_file_io_error> >
-        error;
+    result<void, canonicalize_path_io_error, read_file_io_error> error;
     void* token;
   };
 
   struct watched_input_path {
     std::string input_path;
     std::optional<canonical_path> config_path;
-    std::optional<std::variant<canonicalize_path_io_error, read_file_io_error> >
-        error;
+    result<void, canonicalize_path_io_error, read_file_io_error> error;
     void* token;
   };
 
