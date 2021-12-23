@@ -4,6 +4,53 @@
 #include <quick-lint-js-sublime-text-location.h>
 #include <quick-lint-js/document-base.h>
 
+enum qljs_st_severity {
+  qljs_st_severity_error = 1,
+  qljs_st_severity_warning = 2,
+};
+
+struct qljs_st_text {
+  const char* content;
+  std::size_t length;
+};
+
+struct qljs_st_position {
+  unsigned int line;
+  unsigned int character;
+};
+
+#if QLJS_ST_PLUGIN_VERSION == 3
+struct qljs_st_region {
+  unsigned int start;
+  unsigned int end;
+};
+#else
+struct qljs_st_range {
+  qljs_st_position start;
+  qljs_st_position end;
+};
+#endif
+
+struct qljs_st_diagnostic {
+  const char* message;
+  const char* code;
+  qljs_st_severity_error severity;
+#if QLJS_ST_PLUGIN_VERSION == 3
+  const qljs_st_region* region;
+#else
+  const qljs_st_position* position;
+#endif
+};
+
+typedef struct qljs_st_parser qljs_st_parser;
+
+qljs_st_parser* qljs_st_create_parser(void);
+void qljs_st_destroy_parser(qljs_st_parser*);
+const qljs_st_error* qljs_st_3_set_text(qljs_st_3_parser*,
+                                          const void* text_utf_8,
+                                          size_t text_byte_count);
+const qljs_st_3_result* qljs_st_3_lint(qljs_st_3_parser*);
+
 namespace quick_lint_js {
 namespace {
 using sublime_text_document =
@@ -13,47 +60,6 @@ using sublime_text_document =
 }  // namespace
 }  // namespace quick_lint_js
 
-struct qljs_st_text {
-  const char* content;
-  std::size_t length;
-}
-#if QLJS_ST_PLUGIN_VERSION == 3
-
-struct qljs_st_position {
-  unsigned int line;
-  unsigned int character;
-}
-#elif QLJS_ST_PLUGIN_VERSION == 4
-
-struct qljs_st_region {
-  unsigned int start;
-  unsigned int end;
-}
-
-#else
-
-#error "Unsupported Sublime Text version"
-
-#endif
-
-struct qljs_st_3_diagnostic {
-  const char* message;
-  const char* code;
-  qljs_severity severity;
-  int begin_offset;
-  int end_offset;
-};
-
-struct qljs_st_3_error {
-  const char* message;
-};
-
-qljs_st_3_parser* qljs_st_3_create_parser(void);
-void qljs_st_3_destroy_parser(qljs_st_3_parser*);
-const qljs_st_3_error* qljs_st_3_set_text(qljs_st_3_parser*,
-                                          const void* text_utf_8,
-                                          size_t text_byte_count);
-const qljs_st_3_result* qljs_st_3_lint(qljs_st_3_parser*);
 
 typedef struct qljs_st_4_parser qljs_st_4_parser;
 

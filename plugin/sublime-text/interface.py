@@ -76,9 +76,8 @@ class CLibrary:
             return ".dll"
         elif platform.system() == "Darwin":
             return ".dylib"
-        elif platform.system() == "Linux":
+        else:
             return ".so"
-        raise CException("Operating system not supported.")
 
     def __init__(self):
         directory = os.path.dirname(utils.os.get_module_path())
