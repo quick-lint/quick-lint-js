@@ -1135,6 +1135,12 @@ inline source_code_span expression::span() const noexcept {
                             prefix->child_->span().end());
   }
 
+  case expression_kind::jsx_element:
+  case expression_kind::jsx_element_with_members:
+  case expression_kind::jsx_element_with_namespace:
+  case expression_kind::jsx_fragment:
+    return static_cast<const jsx_base *>(this)->span;
+
   case expression_kind::_class:
     return static_cast<const _class *>(this)->span_;
   case expression_kind::_invalid:
@@ -1197,14 +1203,6 @@ inline source_code_span expression::span() const noexcept {
     return source_code_span(index->child_0()->span().begin(),
                             index->index_subscript_end_);
   }
-  case expression_kind::jsx_element:
-    return static_cast<const jsx_element *>(this)->span;
-  case expression_kind::jsx_element_with_members:
-    return static_cast<const jsx_element_with_members *>(this)->span;
-  case expression_kind::jsx_element_with_namespace:
-    return static_cast<const jsx_element_with_namespace *>(this)->span;
-  case expression_kind::jsx_fragment:
-    return static_cast<const jsx_fragment *>(this)->span;
   case expression_kind::literal:
     return static_cast<const literal *>(this)->span_;
   case expression_kind::named_function:
