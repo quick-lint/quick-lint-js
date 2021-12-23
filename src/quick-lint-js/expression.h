@@ -1010,6 +1010,14 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     return expression_arena::array_ptr<expression *>(&ast->child_, 1);
   }
 
+  case expression_kind::jsx_element:
+  case expression_kind::jsx_element_with_members:
+  case expression_kind::jsx_element_with_namespace:
+  case expression_kind::jsx_fragment: {
+    auto *jsx = static_cast<const expression::jsx_base *>(this);
+    return jsx->children;
+  }
+
   case expression_kind::_new:
     return static_cast<const expression::_new *>(this)->children_;
   case expression_kind::_template:
@@ -1040,23 +1048,6 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     auto *index = static_cast<const expression::index *>(this);
     return expression_arena::array_ptr<expression *>(
         index->children_.data(), narrow_cast<int>(index->children_.size()));
-  }
-  case expression_kind::jsx_element: {
-    auto *jsx = static_cast<const expression::jsx_element *>(this);
-    return jsx->children;
-  }
-  case expression_kind::jsx_element_with_members: {
-    auto *jsx = static_cast<const expression::jsx_element_with_members *>(this);
-    return jsx->children;
-  }
-  case expression_kind::jsx_element_with_namespace: {
-    auto *jsx =
-        static_cast<const expression::jsx_element_with_namespace *>(this);
-    return jsx->children;
-  }
-  case expression_kind::jsx_fragment: {
-    auto *jsx = static_cast<const expression::jsx_fragment *>(this);
-    return jsx->children;
   }
   case expression_kind::rw_unary_suffix: {
     auto *rw_unary_suffix =
