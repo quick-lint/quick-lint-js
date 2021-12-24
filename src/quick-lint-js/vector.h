@@ -62,6 +62,24 @@ class vector_instrumentation {
       const std::map<std::string, std::map<std::size_t, int>> &, std::ostream &,
       const dump_options &options);
 
+  struct capacity_change_histogram {
+    // Number of times an append used existing capacity.
+    std::size_t appends_reusing_capacity = 0;
+    // Number of times an append caused capacity to increase.
+    std::size_t appends_growing_capacity = 0;
+  };
+
+  std::map<std::string, capacity_change_histogram>
+  capacity_change_histogram_by_owner() const;
+
+  struct dump_capacity_change_options {
+    int maximum_line_length = 80;
+  };
+
+  static void dump_capacity_change_histogram(
+      const std::map<std::string, capacity_change_histogram> &, std::ostream &,
+      const dump_capacity_change_options &);
+
   void add_entry(std::uintptr_t object_id, const char *owner,
                  vector_instrumentation::event event, std::size_t size,
                  std::size_t capacity);

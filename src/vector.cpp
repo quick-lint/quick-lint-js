@@ -153,6 +153,72 @@ void vector_instrumentation::dump_max_size_histogram(
   }
 }
 
+std::map<std::string, vector_instrumentation::capacity_change_histogram>
+vector_instrumentation::capacity_change_histogram_by_owner() const {
+  std::map<std::string, capacity_change_histogram> histogram;
+  std::map<std::uintptr_t, std::size_t> object_capacities;
+  for (const vector_instrumentation::entry &entry : this->entries_) {
+    capacity_change_histogram &h = histogram[entry.owner];
+    if (entry.event == event::append) {
+      auto old_object_capacity_it = object_capacities.find(entry.object_id);
+      QLJS_ASSERT(old_object_capacity_it != object_capacities.end());
+      if (old_object_capacity_it->second == entry.capacity) {
+        h.appends_reusing_capacity += 1;
+      } else {
+        h.appends_growing_capacity += 1;
+      }
+    }
+    object_capacities[entry.object_id] = entry.capacity;
+  }
+  return histogram;
+}
+
+void vector_instrumentation::dump_capacity_change_histogram(
+    const std::map<std::string, capacity_change_histogram> &histogram,
+    std::ostream &out, const dump_capacity_change_options &options) {
+  out << R"(vector capacity changes:
+(C=copied; -=used internal capacity)
+)";
+
+  int count_width = 1;
+  for (auto &[owner, h] : histogram) {
+    count_width = std::max(
+        count_width, narrow_cast<int>(std::max(
+                         std::to_string(h.appends_growing_capacity).size(),
+                         std::to_string(h.appends_reusing_capacity).size())));
+  }
+
+  for (auto &[owner, h] : histogram) {
+    std::size_t append_count =
+        h.appends_growing_capacity + h.appends_reusing_capacity;
+    if (append_count == 0) {
+      continue;
+    }
+
+    out << owner << ":\n";
+
+    // Example:
+    //  5C 15_ |CCCCC_______________|
+    out << std::setw(count_width) << h.appends_growing_capacity << "C "
+        << std::setw(count_width) << h.appends_reusing_capacity << "_ |";
+    int graph_columns =
+        options.maximum_line_length -
+        (count_width * 2 + narrow_cast<int>(std::strlen("C _ ||")));
+    int columns_growing_capacity =
+        narrow_cast<int>(narrow_cast<std::uintmax_t>(graph_columns) *
+                         h.appends_growing_capacity / append_count);  // 'C'
+    for (int i = 0; i < columns_growing_capacity; ++i) {
+      out << 'C';
+    }
+    int columns_reusing_capacity =
+        graph_columns - columns_growing_capacity;  // '_'
+    for (int i = 0; i < columns_reusing_capacity; ++i) {
+      out << '_';
+    }
+    out << "|\n";
+  }
+}
+
 void vector_instrumentation::add_entry(std::uintptr_t object_id,
                                        const char *owner,
                                        vector_instrumentation::event event,
@@ -178,6 +244,12 @@ void vector_instrumentation::register_dump_on_exit_if_requested() {
                                            .maximum_line_length = 80,
                                            .max_adjacent_empty_rows = 5,
                                        });
+      std::cerr << '\n';
+      instance.dump_capacity_change_histogram(
+          instance.capacity_change_histogram_by_owner(), std::cerr,
+          dump_capacity_change_options{
+              .maximum_line_length = 80,
+          });
     });
   }
 #endif
