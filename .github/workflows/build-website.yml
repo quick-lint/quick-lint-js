@@ -66,6 +66,7 @@ jobs:
           sudo mkdir -p /var/www/quick-lint-js.com/www
           sudo cp -R website/www/* /var/www/quick-lint-js.com/www
           sudo sed -i "s,/var/www/html,/var/www/quick-lint-js.com/www,g" /etc/apache2/sites-enabled/000-default.conf
+          sudo echo 'CustomLog /proc/self/fd/1 combined' >> /etc/apache2/apache2.conf
           sudo service apache2 restart
           ./ENV/bin/python ./tools/check-links http://localhost/
         shell: bash
