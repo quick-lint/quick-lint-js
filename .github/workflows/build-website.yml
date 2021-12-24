@@ -51,15 +51,6 @@ jobs:
           ./ENV/bin/python ./tools/check-links http://localhost:9001/
           kill %1
         shell: bash
-      - name: check links (build)
-        run: |
-          cd website/www/
-          python3.7 -m http.server 9002 &
-          sleep 0.5  # HACK(strager): Wait for server to start.
-          cd ../../
-          ./ENV/bin/python ./tools/check-links http://localhost:9002/
-          kill %1
-        shell: bash
       - name: check links (apache2)
         run: |
           sudo apt-get install apache2 -y
