@@ -497,8 +497,11 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
   histogram["test group"][2] = 25;
   histogram["test group"][3] = 1;
   std::ostringstream stream;
-  vector_instrumentation::dump_max_size_histogram(histogram, stream,
-                                                  /*maximum_line_length=*/20);
+  vector_instrumentation::dump_max_size_histogram(
+      histogram, stream,
+      vector_instrumentation::dump_options{
+          .maximum_line_length = 20,
+      });
   EXPECT_EQ(stream.str(), R"(Max sizes for test group:
 0  (57%)  **********
 1  (28%)  *****
@@ -512,8 +515,11 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
   std::map<std::string, std::map<std::size_t, int>> histogram;
   histogram["test group"][100] = 99999;
   std::ostringstream stream;
-  vector_instrumentation::dump_max_size_histogram(histogram, stream,
-                                                  /*maximum_line_length=*/20);
+  vector_instrumentation::dump_max_size_histogram(
+      histogram, stream,
+      vector_instrumentation::dump_options{
+          .maximum_line_length = 20,
+      });
   EXPECT_THAT(stream.str(), HasSubstr("\n100  (ALL)  ********\n"));
 }
 }

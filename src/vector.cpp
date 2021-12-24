@@ -80,13 +80,12 @@ vector_instrumentation::max_size_histogram_by_owner() const {
 void vector_instrumentation::dump_max_size_histogram(
     const std::map<std::string, std::map<std::size_t, int>> &histogram,
     std::ostream &out) {
-  return dump_max_size_histogram(
-      histogram, out, /*maximum_line_length=*/std::numeric_limits<int>::max());
+  return dump_max_size_histogram(histogram, out, dump_options());
 }
 
 void vector_instrumentation::dump_max_size_histogram(
     const std::map<std::string, std::map<std::size_t, int>> &histogram,
-    std::ostream &out, int maximum_line_length) {
+    std::ostream &out, const dump_options &options) {
   bool need_blank_line = false;
   for (const auto &[group_name, object_size_histogram] : histogram) {
     QLJS_ASSERT(!object_size_histogram.empty());
@@ -109,7 +108,7 @@ void vector_instrumentation::dump_max_size_histogram(
     int max_digits_in_legend = static_cast<int>(
         std::ceil(std::log10(static_cast<double>(max_object_size + 1))));
     int legend_length = max_digits_in_legend + 9;
-    int maximum_bar_length = maximum_line_length - legend_length;
+    int maximum_bar_length = options.maximum_line_length - legend_length;
     double bar_scale_factor = max_count > maximum_bar_length
                                   ? static_cast<double>(maximum_bar_length) /
                                         static_cast<double>(max_count)
@@ -166,7 +165,9 @@ void vector_instrumentation::register_dump_on_exit_if_requested() {
     std::atexit([]() -> void {
       instance.dump_max_size_histogram(instance.max_size_histogram_by_owner(),
                                        std::cerr,
-                                       /*maximum_line_length=*/80);
+                                       dump_options{
+                                           .maximum_line_length = 80,
+                                       });
     });
   }
 #endif

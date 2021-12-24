@@ -50,12 +50,16 @@ class vector_instrumentation {
   std::map<std::string, std::map<std::size_t, int>>
   max_size_histogram_by_owner() const;
 
+  struct dump_options {
+    int maximum_line_length = (std::numeric_limits<int>::max)();
+  };
+
   static void dump_max_size_histogram(
       const std::map<std::string, std::map<std::size_t, int>> &,
       std::ostream &);
   static void dump_max_size_histogram(
       const std::map<std::string, std::map<std::size_t, int>> &, std::ostream &,
-      int maximum_line_length);
+      const dump_options &options);
 
   void add_entry(std::uintptr_t object_id, const char *owner,
                  vector_instrumentation::event event, std::size_t size,
