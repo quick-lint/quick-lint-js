@@ -67,6 +67,8 @@ jobs:
           sudo cp -R website/* /var/www/quick-lint-js.com/www
           sudo sed -i "s,/var/www/html,/var/www/quick-lint-js.com,g" /etc/apache2/sites-enabled/000-default.conf
           sudo service apache2 restart
+          cd ../../
+          ./ENV/bin/python ./tools/check-links http://localhost/
         shell: bash
 
       - name: upload build to workflow
