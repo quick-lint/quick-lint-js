@@ -69,9 +69,12 @@ class vector_instrumentation {
       const dump_options &options);
 
   struct capacity_change_histogram {
+    // Number of times an append caused the vector to create its initial
+    // capacity.
+    std::size_t appends_initial_capacity = 0;
     // Number of times an append used existing capacity.
     std::size_t appends_reusing_capacity = 0;
-    // Number of times an append caused capacity to increase.
+    // Number of times an append caused capacity to increase, copying old items.
     std::size_t appends_growing_capacity = 0;
   };
 

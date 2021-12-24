@@ -156,19 +156,29 @@ void vector_instrumentation::dump_max_size_histogram(
 std::map<std::string, vector_instrumentation::capacity_change_histogram>
 vector_instrumentation::capacity_change_histogram_by_owner() const {
   std::map<std::string, capacity_change_histogram> histogram;
-  std::map<std::uintptr_t, std::size_t> object_capacities;
+  struct vector_info {
+    std::uintptr_t data_pointer;
+    std::size_t size;
+  };
+  std::map<std::uintptr_t, vector_info> objects;
   for (const vector_instrumentation::entry &entry : this->entries_) {
     capacity_change_histogram &h = histogram[entry.owner];
     if (entry.event == event::append) {
-      auto old_object_capacity_it = object_capacities.find(entry.object_id);
-      QLJS_ASSERT(old_object_capacity_it != object_capacities.end());
-      if (old_object_capacity_it->second == entry.capacity) {
+      auto old_object_it = objects.find(entry.object_id);
+      QLJS_ASSERT(old_object_it != objects.end());
+      vector_info &old_object = old_object_it->second;
+      if (old_object.data_pointer == entry.data_pointer) {
         h.appends_reusing_capacity += 1;
+      } else if (old_object.size == 0) {
+        h.appends_initial_capacity += 1;
       } else {
         h.appends_growing_capacity += 1;
       }
     }
-    object_capacities[entry.object_id] = entry.capacity;
+    objects[entry.object_id] = vector_info{
+        .data_pointer = entry.data_pointer,
+        .size = entry.size,
+    };
   }
   return histogram;
 }
@@ -177,20 +187,23 @@ void vector_instrumentation::dump_capacity_change_histogram(
     const std::map<std::string, capacity_change_histogram> &histogram,
     std::ostream &out, const dump_capacity_change_options &options) {
   out << R"(vector capacity changes:
-(C=copied; -=used internal capacity)
+(C=copied; z=initial alloc; -=used internal capacity)
 )";
 
   int count_width = 1;
   for (auto &[owner, h] : histogram) {
     count_width = std::max(
-        count_width, narrow_cast<int>(std::max(
-                         std::to_string(h.appends_growing_capacity).size(),
-                         std::to_string(h.appends_reusing_capacity).size())));
+        count_width,
+        narrow_cast<int>(std::max(
+            std::max(std::to_string(h.appends_growing_capacity).size(),
+                     std::to_string(h.appends_initial_capacity).size()),
+            std::to_string(h.appends_reusing_capacity).size())));
   }
 
   for (auto &[owner, h] : histogram) {
-    std::size_t append_count =
-        h.appends_growing_capacity + h.appends_reusing_capacity;
+    std::size_t append_count = h.appends_growing_capacity +
+                               h.appends_initial_capacity +
+                               h.appends_reusing_capacity;
     if (append_count == 0) {
       continue;
     }
@@ -198,20 +211,28 @@ void vector_instrumentation::dump_capacity_change_histogram(
     out << owner << ":\n";
 
     // Example:
-    //  5C 15_ |CCCCC_______________|
+    //  5C  0z 15_ |CCCCC_______________|
     out << std::setw(count_width) << h.appends_growing_capacity << "C "
+        << std::setw(count_width) << h.appends_initial_capacity << "z "
         << std::setw(count_width) << h.appends_reusing_capacity << "_ |";
     int graph_columns =
         options.maximum_line_length -
-        (count_width * 2 + narrow_cast<int>(std::strlen("C _ ||")));
+        (count_width * 3 + narrow_cast<int>(std::strlen("C z _ ||")));
     int columns_growing_capacity =
         narrow_cast<int>(narrow_cast<std::uintmax_t>(graph_columns) *
                          h.appends_growing_capacity / append_count);  // 'C'
     for (int i = 0; i < columns_growing_capacity; ++i) {
       out << 'C';
     }
+    int columns_initial_capacity =
+        narrow_cast<int>(narrow_cast<std::uintmax_t>(graph_columns) *
+                         h.appends_initial_capacity / append_count);  // 'z'
+    for (int i = 0; i < columns_initial_capacity; ++i) {
+      out << 'z';
+    }
     int columns_reusing_capacity =
-        graph_columns - columns_growing_capacity;  // '_'
+        graph_columns -
+        (columns_growing_capacity + columns_initial_capacity);  // '_'
     for (int i = 0; i < columns_reusing_capacity; ++i) {
       out << '_';
     }
