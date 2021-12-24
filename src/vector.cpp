@@ -114,11 +114,13 @@ void vector_instrumentation::dump_max_size_histogram(
                                         static_cast<double>(max_count)
                                   : 1.0;
 
-    for (std::size_t object_size = 0; object_size <= max_object_size;
-         ++object_size) {
-      auto entry_it = object_size_histogram.find(object_size);
-      int count =
-          entry_it == object_size_histogram.end() ? 0 : entry_it->second;
+    std::size_t next_object_size = 0;
+    for (auto &[object_size, count] : object_size_histogram) {
+      QLJS_ASSERT(count != 0);
+
+      for (std::size_t i = next_object_size; i < object_size; ++i) {
+        out << std::setw(max_digits_in_legend) << i << "  ( 0%)\n";
+      }
 
       out << std::setw(max_digits_in_legend) << object_size << "  (";
       if (count == total_count) {
@@ -130,16 +132,16 @@ void vector_instrumentation::dump_max_size_histogram(
       }
       out << ')';
 
-      if (count > 0) {
-        int bar_width =
-            std::max(1, static_cast<int>(std::floor(static_cast<double>(count) *
-                                                    bar_scale_factor)));
-        out << "  ";
-        for (int i = 0; i < bar_width; ++i) {
-          out << '*';
-        }
+      int bar_width =
+          std::max(1, static_cast<int>(std::floor(static_cast<double>(count) *
+                                                  bar_scale_factor)));
+      out << "  ";
+      for (int i = 0; i < bar_width; ++i) {
+        out << '*';
       }
       out << '\n';
+
+      next_object_size = object_size + 1;
     }
   }
 }
