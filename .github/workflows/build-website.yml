@@ -65,12 +65,12 @@ jobs:
           sudo apt-get install apache2 -y
           sudo mkdir -p /var/www/quick-lint-js.com/www
           sudo cp -R website/* /var/www/quick-lint-js.com/www
-          sudo sed -i "s,/var/www/html,/var/www/quick-lint-js.com,g" /etc/apache2/sites-enabled/000-default.conf
+          sudo sed -i "s,/var/www/html,/var/www/quick-lint-js.com/www,g" /etc/apache2/sites-enabled/000-default.conf
           sudo service apache2 restart
-          cd ../../
+          pwd
           ./ENV/bin/python ./tools/check-links http://localhost/
+          kill %1
         shell: bash
-
       - name: upload build to workflow
         uses: actions/upload-artifact@v2
         with:
