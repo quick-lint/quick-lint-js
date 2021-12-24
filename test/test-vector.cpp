@@ -653,7 +653,7 @@ TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
 }
 
 TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
-     append_After_moving) {
+     append_after_moving) {
   vector_instrumentation data;
   data.add_entry(
       /*object_id=*/100,
