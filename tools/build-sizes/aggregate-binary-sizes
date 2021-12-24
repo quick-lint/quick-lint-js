@@ -15,13 +15,15 @@ import unittest
 
 def main() -> None:
     parser = argparse.ArgumentParser(__doc__)
-    parser.add_argument("builds_directory")
+    parser.add_argument("build_sizes_directory")
     args = parser.parse_args()
 
-    builds_directory = pathlib.Path(args.builds_directory)
+    build_sizes_directory = pathlib.Path(args.build_sizes_directory)
     git_commits = get_git_commits()
     all_builds = []
-    for build_sizes_file in builds_directory.glob("*/build-sizes.json"):
+    for build_sizes_file in build_sizes_directory.iterdir():
+        if build_sizes_file.suffix != ".json":
+            continue
         content = build_sizes_file.read_text()
         if not content:
             sys.stderr.write(f"warning: file is empty: {build_sizes_file}\n")
