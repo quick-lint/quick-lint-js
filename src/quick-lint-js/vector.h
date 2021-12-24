@@ -52,6 +52,7 @@ class vector_instrumentation {
 
   struct dump_options {
     int maximum_line_length = (std::numeric_limits<int>::max)();
+    int max_adjacent_empty_rows = (std::numeric_limits<int>::max)();
   };
 
   static void dump_max_size_histogram(

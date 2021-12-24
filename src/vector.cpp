@@ -11,6 +11,7 @@
 #include <map>
 #include <ostream>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 #include <string>
@@ -118,8 +119,14 @@ void vector_instrumentation::dump_max_size_histogram(
     for (auto &[object_size, count] : object_size_histogram) {
       QLJS_ASSERT(count != 0);
 
-      for (std::size_t i = next_object_size; i < object_size; ++i) {
-        out << std::setw(max_digits_in_legend) << i << "  ( 0%)\n";
+      QLJS_ASSERT(options.max_adjacent_empty_rows > 0);
+      if (object_size - next_object_size >
+          narrow_cast<std::size_t>(options.max_adjacent_empty_rows)) {
+        out << "...\n";
+      } else {
+        for (std::size_t i = next_object_size; i < object_size; ++i) {
+          out << std::setw(max_digits_in_legend) << i << "  ( 0%)\n";
+        }
       }
 
       out << std::setw(max_digits_in_legend) << object_size << "  (";
@@ -169,6 +176,7 @@ void vector_instrumentation::register_dump_on_exit_if_requested() {
                                        std::cerr,
                                        dump_options{
                                            .maximum_line_length = 80,
+                                           .max_adjacent_empty_rows = 5,
                                        });
     });
   }

@@ -511,6 +511,29 @@ TEST(test_vector_instrumentation_dump_max_size_histogram,
 }
 
 TEST(test_vector_instrumentation_dump_max_size_histogram,
+     histogram_skips_many_empty_rows) {
+  std::map<std::string, std::map<std::size_t, int>> histogram;
+  auto &test_group = histogram["test group"];
+  test_group[0] = 1;
+  test_group[1] = 2;
+  test_group[2] = 1;
+  test_group[8] = 1;
+  std::ostringstream stream;
+  vector_instrumentation::dump_max_size_histogram(
+      histogram, stream,
+      vector_instrumentation::dump_options{
+          .max_adjacent_empty_rows = 3,
+      });
+  EXPECT_EQ(stream.str(), R"(Max sizes for test group:
+0  (20%)  *
+1  (40%)  **
+2  (20%)  *
+...
+8  (20%)  *
+)");
+}
+
+TEST(test_vector_instrumentation_dump_max_size_histogram,
      histogram_including_legend_is_limited_to_max_screen_width) {
   std::map<std::string, std::map<std::size_t, int>> histogram;
   histogram["test group"][100] = 99999;
