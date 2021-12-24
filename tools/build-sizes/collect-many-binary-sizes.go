@@ -21,11 +21,16 @@ func main() {
 	var err error
 
 	flag.Parse()
-	if flag.NArg() == 0 {
+	if flag.NArg() < 1 {
 		fmt.Fprintf(os.Stderr, "error: missing builds directory\n")
 		os.Exit(2)
 	}
+	if flag.NArg() < 2 {
+		fmt.Fprintf(os.Stderr, "error: missing build-sizes directory\n")
+		os.Exit(2)
+	}
 	buildsDirectoryPath := flag.Arg(0)
+	buildSizesDirectoryPath := flag.Arg(1)
 	workerCount := 8
 
 	CollectBinarySizesPath, err = filepath.Abs("./tools/build-sizes/collect-binary-sizes")
@@ -41,7 +46,7 @@ func main() {
 		workersFinished.Add(1)
 		go func() {
 			defer workersFinished.Done()
-			RunWorker(pathsChannel)
+			RunWorker(buildSizesDirectoryPath, pathsChannel)
 		}()
 	}
 
@@ -53,9 +58,9 @@ func main() {
 	workersFinished.Wait()
 }
 
-func RunWorker(pathsChannel chan string) {
+func RunWorker(buildSizesDirectoryPath string, pathsChannel chan string) {
 	for buildPath := range pathsChannel {
-		err := CollectBuildSizeIfNeeded(buildPath)
+		err := CollectBuildSizeIfNeeded(buildSizesDirectoryPath, buildPath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error processing %s: %v\n", buildPath, err)
 			// Continue.
@@ -63,8 +68,11 @@ func RunWorker(pathsChannel chan string) {
 	}
 }
 
-func CollectBuildSizeIfNeeded(buildPath string) error {
-	buildSizesJSONFilePath := path.Join(buildPath, "build-sizes.json")
+func CollectBuildSizeIfNeeded(buildSizesDirectoryPath string, buildPath string) error {
+	// TODO(strager): For performance, scan the
+	// build-sizes directory rather than statting each
+	// build-sizes/*.json file separately.
+	buildSizesJSONFilePath := path.Join(buildSizesDirectoryPath, path.Base(buildPath)+".json")
 	buildSizesJSONFileStat, err := os.Stat(buildSizesJSONFilePath)
 	if err == nil {
 		if buildSizesJSONFileStat.Size() != 0 {

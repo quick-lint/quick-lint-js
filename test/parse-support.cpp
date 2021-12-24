@@ -115,6 +115,28 @@ std::string summarize(const expression& expression) {
     result += ")";
     return result;
   }
+  case expression_kind::jsx_element_with_members: {
+    const auto& jsx =
+        static_cast<const quick_lint_js::expression::jsx_element_with_members&>(
+            expression);
+    std::string result = "jsxmemberelement((";
+    bool need_comma = false;
+    for (int i = 0; i < jsx.members.size(); ++i) {
+      if (need_comma) {
+        result += ", ";
+      }
+      result += to_string_view(jsx.members[i].normalized_name());
+      need_comma = true;
+    }
+    result += ")";
+
+    if (jsx.child_count() != 0) {
+      result += ", ";
+      result += children();
+    }
+    result += ")";
+    return result;
+  }
   case expression_kind::jsx_element_with_namespace: {
     const auto& jsx = static_cast<
         const quick_lint_js::expression::jsx_element_with_namespace&>(

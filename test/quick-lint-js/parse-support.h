@@ -126,13 +126,18 @@ inline spy_visitor parse_and_visit_module(string8_view raw_code) {
   return v;
 }
 
-inline spy_visitor parse_and_visit_statement(string8_view raw_code) {
+inline spy_visitor parse_and_visit_statement(string8_view raw_code,
+                                             parser_options options) {
   padded_string code(raw_code);
   spy_visitor v;
-  parser p(&code, &v);
+  parser p(&code, &v, options);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
   EXPECT_THAT(v.errors, ::testing::IsEmpty());
   return v;
+}
+
+inline spy_visitor parse_and_visit_statement(string8_view raw_code) {
+  return parse_and_visit_statement(raw_code, parser_options());
 }
 
 inline spy_visitor parse_and_visit_statement(string8_view raw_code,

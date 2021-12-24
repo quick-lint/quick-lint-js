@@ -878,11 +878,21 @@ class parser {
       if (!element->is_intrinsic()) {
         v.visit_variable_use(element->tag);
       }
+      visit_children();
+      break;
+    }
+    case expression_kind::jsx_element_with_members: {
+      auto *element = static_cast<expression::jsx_element_with_members *>(ast);
+      QLJS_ASSERT(element->members.size() >= 1);
+      v.visit_variable_use(element->members[0]);
+      visit_children();
       break;
     }
     case expression_kind::jsx_element_with_namespace:
+      visit_children();
       break;
     case expression_kind::jsx_fragment:
+      visit_children();
       break;
     case expression_kind::object:
       for (int i = 0; i < ast->object_entry_count(); ++i) {
@@ -3660,13 +3670,6 @@ class parser {
       break;
     }
 
-    case expression_kind::jsx_element:
-      QLJS_UNIMPLEMENTED();
-    case expression_kind::jsx_element_with_namespace:
-      QLJS_UNIMPLEMENTED();
-    case expression_kind::jsx_fragment:
-      QLJS_UNIMPLEMENTED();
-
     case expression_kind::_class:
     case expression_kind::_delete:
     case expression_kind::_new:
@@ -3681,6 +3684,10 @@ class parser {
     case expression_kind::function:
     case expression_kind::import:
     case expression_kind::index:
+    case expression_kind::jsx_element:
+    case expression_kind::jsx_element_with_members:
+    case expression_kind::jsx_element_with_namespace:
+    case expression_kind::jsx_fragment:
     case expression_kind::named_function:
     case expression_kind::new_target:
     case expression_kind::rw_unary_prefix:

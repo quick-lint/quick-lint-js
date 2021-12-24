@@ -1345,6 +1345,7 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::function:
   case expression_kind::index:
   case expression_kind::jsx_element:
+  case expression_kind::jsx_element_with_members:
   case expression_kind::jsx_element_with_namespace:
   case expression_kind::jsx_fragment:
   case expression_kind::named_function:
@@ -2242,14 +2243,45 @@ expression* parser::parse_jsx_expression() {
 
 expression* parser::parse_jsx_element_or_fragment(identifier* tag,
                                                   const char8* less_begin) {
-  // HACK(strager): If tag_namespace is nullopt, then there is no namespace and
-  // tag refers to the tag name. If tag_namespace is not nullopt, then there is
-  // a namespace and tag refers to the namespace name and tag_namespace refers
-  // to the tag name.
-  std::optional<identifier> tag_namespace = std::nullopt;
+  // If temp_tag_storage is nullopt, then there is no namespace. If
+  // temp_tag_storage is not nullopt, then it stores the tag name.
+  //
+  // Invariant: temp_tag_storage.has_value() == (tag_namespace != nullptr)
+  std::optional<identifier> temp_tag_storage = std::nullopt;
+  identifier* tag_namespace = nullptr;
+
+  // For <div>, this is empty. For <module.submodule.Component>, this contains
+  // {"module", "submodule", "Component"}.
+  vector<identifier> tag_members("jsx_member_element parts",
+                                 &this->temporary_memory_);
 
   vector<expression*> children("jsx_element children",
                                &this->temporary_memory_);
+
+  auto make_jsx_expression = [&](const char8* greater_end) -> expression* {
+    source_code_span span(less_begin, greater_end);
+    if (tag_namespace) {
+      return this->make_expression<expression::jsx_element_with_namespace>(
+          /*span=*/span,
+          /*ns=*/*tag_namespace,
+          /*tag=*/*tag,
+          /*children=*/this->expressions_.make_array(std::move(children)));
+    } else if (tag) {
+      return this->make_expression<expression::jsx_element>(
+          /*span=*/span,
+          /*tag=*/*tag,
+          /*children=*/this->expressions_.make_array(std::move(children)));
+    } else if (!tag_members.empty()) {
+      return this->make_expression<expression::jsx_element_with_members>(
+          /*span=*/span,
+          /*members=*/this->expressions_.make_array(std::move(tag_members)),
+          /*children=*/this->expressions_.make_array(std::move(children)));
+    } else {
+      return this->make_expression<expression::jsx_fragment>(
+          /*span=*/span,
+          /*children=*/this->expressions_.make_array(std::move(children)));
+    }
+  };
 
   if (this->peek().type == token_type::colon) {
     // <namespace:current />
@@ -2258,8 +2290,25 @@ expression* parser::parse_jsx_element_or_fragment(identifier* tag,
     }
     this->lexer_.skip_in_jsx();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-    tag_namespace = this->peek().identifier_name();
+    temp_tag_storage = this->peek().identifier_name();
+    tag_namespace = tag;
+    tag = &*temp_tag_storage;
     this->lexer_.skip_in_jsx();
+  } else if (this->peek().type == token_type::dot) {
+    // <module.Component>
+    this->lexer_.skip_in_jsx();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+    tag_members.emplace_back(*tag);
+    tag = nullptr;  // Just in case. We don't want to accidentally use 'tag'.
+    tag_members.emplace_back(this->peek().identifier_name());
+    this->lexer_.skip_in_jsx();
+    while (this->peek().type == token_type::dot) {
+      // <module.submodule.Component>
+      this->lexer_.skip_in_jsx();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      tag_members.emplace_back(this->peek().identifier_name());
+      this->lexer_.skip_in_jsx();
+    }
   }
 
 next_attribute:
@@ -2320,25 +2369,7 @@ next_attribute:
     this->lexer_.skip_in_jsx();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
     const char8* greater_end = this->peek().end;
-    if (tag_namespace.has_value()) {
-      return this->make_expression<expression::jsx_element_with_namespace>(
-          /*less_begin=*/less_begin,
-          /*greater_end=*/greater_end,
-          /*ns=*/*tag,
-          /*tag=*/*tag_namespace,
-          /*children=*/this->expressions_.make_array(std::move(children)));
-    } else if (tag) {
-      return this->make_expression<expression::jsx_element>(
-          /*less_begin=*/less_begin,
-          /*greater_end=*/greater_end,
-          /*tag=*/*tag,
-          /*children=*/this->expressions_.make_array(std::move(children)));
-    } else {
-      return this->make_expression<expression::jsx_fragment>(
-          /*less_begin=*/less_begin,
-          /*greater_end=*/greater_end,
-          /*children=*/this->expressions_.make_array(std::move(children)));
-    }
+    return make_jsx_expression(greater_end);
   }
 
   default:
@@ -2368,28 +2399,19 @@ next:
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
         this->lexer_.skip_in_jsx();
       }
+      if (!tag_members.empty()) {
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+        this->lexer_.skip_in_jsx();
+        while (this->peek().type == token_type::dot) {
+          // <module.submodule.Component>
+          this->lexer_.skip_in_jsx();
+          QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+          this->lexer_.skip_in_jsx();
+        }
+      }
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
       const char8* greater_end = this->peek().end;
-
-      if (tag_namespace.has_value()) {
-        return this->make_expression<expression::jsx_element_with_namespace>(
-            /*less_begin=*/less_begin,
-            /*greater_end=*/greater_end,
-            /*ns=*/*tag,
-            /*tag=*/*tag_namespace,
-            /*children=*/this->expressions_.make_array(std::move(children)));
-      } else if (tag) {
-        return this->make_expression<expression::jsx_element>(
-            /*less_begin=*/less_begin,
-            /*greater_end=*/greater_end,
-            /*tag=*/*tag,
-            /*children=*/this->expressions_.make_array(std::move(children)));
-      } else {
-        return this->make_expression<expression::jsx_fragment>(
-            /*less_begin=*/less_begin,
-            /*greater_end=*/greater_end,
-            /*children=*/this->expressions_.make_array(std::move(children)));
-      }
+      return make_jsx_expression(greater_end);
     }
 
       // <child>

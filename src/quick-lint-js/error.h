@@ -1391,6 +1391,12 @@ QLJS_X_ERROR_TYPES
 template <class Error>
 inline constexpr error_type error_type_from_type =
     error_type_from_type_detail<Error>::type;
+
+inline constexpr int error_type_count = 0
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) +1
+    QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+    ;
 }
 
 #endif

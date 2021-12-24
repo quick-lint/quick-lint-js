@@ -5,8 +5,10 @@
 #define QUICK_LINT_JS_DIAGNOSTIC_H
 
 #include <cstdint>
+#include <optional>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/translation.h>
+#include <string_view>
 
 namespace quick_lint_js {
 enum class error_type;
@@ -42,6 +44,8 @@ struct diagnostic_info {
 };
 
 const diagnostic_info &get_diagnostic_info(error_type) noexcept;
+std::optional<error_type> error_type_from_code_slow(
+    std::string_view code) noexcept;
 }
 
 #endif

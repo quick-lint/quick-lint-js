@@ -31,6 +31,9 @@
     QLJS_UNREACHABLE();                                                        \
   } while (false)
 
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_CLANG("-Wshadow-field")
+
 namespace quick_lint_js {
 class expression;
 
@@ -57,6 +60,7 @@ enum class expression_kind {
   import,
   index,
   jsx_element,
+  jsx_element_with_members,
   jsx_element_with_namespace,
   jsx_fragment,
   literal,
@@ -161,6 +165,7 @@ class expression_arena {
 class expression {
  public:
   class expression_with_prefix_operator_base;
+  class jsx_base;
 
   class _class;
   class _delete;
@@ -182,6 +187,7 @@ class expression {
   class import;
   class index;
   class jsx_element;
+  class jsx_element_with_members;
   class jsx_element_with_namespace;
   class jsx_fragment;
   class literal;
@@ -645,21 +651,25 @@ class expression::index final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::index>);
 
-class expression::jsx_element final : public expression {
+class expression::jsx_base : public expression {
+ public:
+  explicit jsx_base(expression_kind kind, source_code_span span,
+                    expression_arena::array_ptr<expression *> children) noexcept
+      : expression(kind), span(span), children(children) {}
+
+  source_code_span span;
+  expression_arena::array_ptr<expression *> children;
+};
+static_assert(expression_arena::is_allocatable<expression::jsx_base>);
+
+class expression::jsx_element final : public jsx_base {
  public:
   static constexpr expression_kind kind = expression_kind::jsx_element;
 
-  explicit jsx_element(const char8 *less_begin, const char8 *greater_end,
-                       const identifier &tag) noexcept
-      : expression(kind), span(less_begin, greater_end), tag(tag) {}
-
   explicit jsx_element(
-      const char8 *less_begin, const char8 *greater_end, const identifier &tag,
+      source_code_span span, const identifier &tag,
       expression_arena::array_ptr<expression *> children) noexcept
-      : expression(kind),
-        span(less_begin, greater_end),
-        tag(tag),
-        children(children) {}
+      : jsx_base(kind, span, children), tag(tag) {}
 
   bool is_intrinsic() const noexcept {
     // TODO(strager): Have the lexer do this work for us.
@@ -670,52 +680,53 @@ class expression::jsx_element final : public expression {
            contains(name, u8'-');
   }
 
-  source_code_span span;
   identifier tag;
-  expression_arena::array_ptr<expression *> children;
 };
 static_assert(expression_arena::is_allocatable<expression::jsx_element>);
 
-class expression::jsx_element_with_namespace final : public expression {
+class expression::jsx_element_with_members final : public jsx_base {
+ public:
+  static constexpr expression_kind kind =
+      expression_kind::jsx_element_with_members;
+
+  explicit jsx_element_with_members(
+      source_code_span span, expression_arena::array_ptr<identifier> members,
+      expression_arena::array_ptr<expression *> children) noexcept
+      : jsx_base(kind, span, children), members(members) {}
+
+  bool is_intrinsic() const noexcept { return false; }
+
+  expression_arena::array_ptr<identifier> members;
+};
+static_assert(
+    expression_arena::is_allocatable<expression::jsx_element_with_members>);
+
+class expression::jsx_element_with_namespace final : public jsx_base {
  public:
   static constexpr expression_kind kind =
       expression_kind::jsx_element_with_namespace;
 
   explicit jsx_element_with_namespace(
-      const char8 *less_begin, const char8 *greater_end, const identifier &ns,
-      const identifier &tag,
+      source_code_span span, const identifier &ns, const identifier &tag,
       expression_arena::array_ptr<expression *> children) noexcept
-      : expression(kind),
-        span(less_begin, greater_end),
-        ns(ns),
-        tag(tag),
-        children(children) {}
+      : jsx_base(kind, span, children), ns(ns), tag(tag) {}
 
   bool is_intrinsic() const noexcept { return true; }
 
-  source_code_span span;
   identifier ns;   // Namespace (before ':').
   identifier tag;  // After ':'.
-  expression_arena::array_ptr<expression *> children;
 };
 static_assert(
     expression_arena::is_allocatable<expression::jsx_element_with_namespace>);
 
-class expression::jsx_fragment final : public expression {
+class expression::jsx_fragment final : public jsx_base {
  public:
   static constexpr expression_kind kind = expression_kind::jsx_fragment;
 
-  explicit jsx_fragment(const char8 *less_begin,
-                        const char8 *greater_end) noexcept
-      : expression(kind), span(less_begin, greater_end) {}
-
   explicit jsx_fragment(
-      const char8 *less_begin, const char8 *greater_end,
+      source_code_span span,
       expression_arena::array_ptr<expression *> children) noexcept
-      : expression(kind), span(less_begin, greater_end), children(children) {}
-
-  source_code_span span;
-  expression_arena::array_ptr<expression *> children;
+      : jsx_base(kind, span, children) {}
 };
 static_assert(expression_arena::is_allocatable<expression::jsx_fragment>);
 
@@ -999,6 +1010,14 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     return expression_arena::array_ptr<expression *>(&ast->child_, 1);
   }
 
+  case expression_kind::jsx_element:
+  case expression_kind::jsx_element_with_members:
+  case expression_kind::jsx_element_with_namespace:
+  case expression_kind::jsx_fragment: {
+    auto *jsx = static_cast<const expression::jsx_base *>(this);
+    return jsx->children;
+  }
+
   case expression_kind::_new:
     return static_cast<const expression::_new *>(this)->children_;
   case expression_kind::_template:
@@ -1029,19 +1048,6 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     auto *index = static_cast<const expression::index *>(this);
     return expression_arena::array_ptr<expression *>(
         index->children_.data(), narrow_cast<int>(index->children_.size()));
-  }
-  case expression_kind::jsx_element: {
-    auto *jsx = static_cast<const expression::jsx_element *>(this);
-    return jsx->children;
-  }
-  case expression_kind::jsx_element_with_namespace: {
-    auto *jsx =
-        static_cast<const expression::jsx_element_with_namespace *>(this);
-    return jsx->children;
-  }
-  case expression_kind::jsx_fragment: {
-    auto *jsx = static_cast<const expression::jsx_fragment *>(this);
-    return jsx->children;
   }
   case expression_kind::rw_unary_suffix: {
     auto *rw_unary_suffix =
@@ -1129,6 +1135,12 @@ inline source_code_span expression::span() const noexcept {
                             prefix->child_->span().end());
   }
 
+  case expression_kind::jsx_element:
+  case expression_kind::jsx_element_with_members:
+  case expression_kind::jsx_element_with_namespace:
+  case expression_kind::jsx_fragment:
+    return static_cast<const jsx_base *>(this)->span;
+
   case expression_kind::_class:
     return static_cast<const _class *>(this)->span_;
   case expression_kind::_invalid:
@@ -1191,12 +1203,6 @@ inline source_code_span expression::span() const noexcept {
     return source_code_span(index->child_0()->span().begin(),
                             index->index_subscript_end_);
   }
-  case expression_kind::jsx_element:
-    return static_cast<const jsx_element *>(this)->span;
-  case expression_kind::jsx_element_with_namespace:
-    return static_cast<const jsx_element_with_namespace *>(this)->span;
-  case expression_kind::jsx_fragment:
-    return static_cast<const jsx_fragment *>(this)->span;
   case expression_kind::literal:
     return static_cast<const literal *>(this)->span_;
   case expression_kind::named_function:
@@ -1254,6 +1260,8 @@ inline function_attributes expression::attributes() const noexcept {
   }
 }
 }
+
+QLJS_WARNING_POP
 
 #undef QLJS_UNEXPECTED_EXPRESSION_KIND
 
