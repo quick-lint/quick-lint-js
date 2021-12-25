@@ -205,7 +205,6 @@ if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
     quick-lint-js-lib
     PUBLIC
     <boost/container/pmr/polymorphic_allocator.hpp>
-    <boost/container/small_vector.hpp>
     <cmath>
     <cstring>
     <simdjson.h>

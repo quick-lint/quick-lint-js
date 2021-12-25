@@ -113,7 +113,6 @@ if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
     PRIVATE
     <boost/container/pmr/monotonic_buffer_resource.hpp>
     <boost/container/pmr/polymorphic_allocator.hpp>
-    <boost/container/small_vector.hpp>
     <gmock/gmock.h>
     <gtest/gtest.h>
     <iostream>
