@@ -222,11 +222,13 @@ void vector_instrumentation::dump_capacity_change_histogram(
 void vector_instrumentation::add_entry(std::uintptr_t object_id,
                                        const char *owner,
                                        vector_instrumentation::event event,
+                                       std::uintptr_t data_pointer,
                                        std::size_t size, std::size_t capacity) {
   this->entries_.emplace_back(entry{
       .object_id = object_id,
       .owner = owner,
       .event = event,
+      .data_pointer = data_pointer,
       .size = size,
       .capacity = capacity,
   });

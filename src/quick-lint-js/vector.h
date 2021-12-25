@@ -34,6 +34,7 @@ class vector_instrumentation {
     std::uintptr_t object_id;
     const char *owner;
     vector_instrumentation::event event;
+    std::uintptr_t data_pointer;
     std::size_t size;
     std::size_t capacity;
 
@@ -81,7 +82,8 @@ class vector_instrumentation {
       const dump_capacity_change_options &);
 
   void add_entry(std::uintptr_t object_id, const char *owner,
-                 vector_instrumentation::event event, std::size_t size,
+                 vector_instrumentation::event event,
+                 std::uintptr_t data_pointer, std::size_t size,
                  std::size_t capacity);
 
   static void register_dump_on_exit_if_requested();
@@ -197,6 +199,7 @@ class vector {
         /*object_id=*/reinterpret_cast<std::uintptr_t>(this),
         /*owner=*/this->debug_owner_,
         /*event=*/event,
+        /*object_id=*/reinterpret_cast<std::uintptr_t>(this->data()),
         /*size=*/this->size(),
         /*capacity=*/this->capacity());
   }

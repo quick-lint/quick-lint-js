@@ -223,18 +223,21 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*object_id=*/1,
       /*owner=*/"first",
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/100,
       /*size=*/3,
       /*capacity=*/3);
   data.add_entry(
       /*object_id=*/2,
       /*owner=*/"second",
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/200,
       /*size=*/5,
       /*capacity=*/5);
   data.add_entry(
       /*object_id=*/3,
       /*owner=*/"third",
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/300,
       /*size=*/0,
       /*capacity=*/0);
 
@@ -256,24 +259,28 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*object_id=*/object_id,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/100,
       /*size=*/3,
       /*capacity=*/3);
   data.add_entry(
       /*object_id=*/object_id,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::append,
+      /*data_pointer=*/200,
       /*size=*/4,
       /*capacity=*/10);
   data.add_entry(
       /*object_id=*/object_id,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::append,
+      /*data_pointer=*/200,
       /*size=*/5,
       /*capacity=*/10);
   data.add_entry(
       /*object_id=*/object_id,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::clear,
+      /*data_pointer=*/200,
       /*size=*/0,
       /*capacity=*/10);
 
@@ -292,12 +299,14 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*object_id=*/object_id_1,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/100,
       /*size=*/3,
       /*capacity=*/3);
   data.add_entry(
       /*object_id=*/object_id_2,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/200,
       /*size=*/10,
       /*capacity=*/10);
 
@@ -305,12 +314,14 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*object_id=*/object_id_1,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::append,
+      /*data_pointer=*/110,
       /*size=*/4,
       /*capacity=*/4);
   data.add_entry(
       /*object_id=*/object_id_2,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/210,
       /*size=*/11,
       /*capacity=*/11);
 
@@ -330,12 +341,14 @@ TEST(
       /*object_id=*/object_id,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/100,
       /*size=*/3,
       /*capacity=*/3);
   data.add_entry(
       /*object_id=*/object_id,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::destroy,
+      /*data_pointer=*/100,
       /*size=*/3,
       /*capacity=*/3);
 
@@ -343,12 +356,14 @@ TEST(
       /*object_id=*/object_id,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/100,
       /*size=*/2,
       /*capacity=*/2);
   data.add_entry(
       /*object_id=*/object_id,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::destroy,
+      /*data_pointer=*/100,
       /*size=*/2,
       /*capacity=*/2);
 
@@ -369,6 +384,7 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*object_id=*/object_id_1,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/100,
       /*size=*/size,
       /*capacity=*/size);
 
@@ -376,12 +392,14 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*object_id=*/object_id_2_and_3,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/200,
       /*size=*/size - 3,
       /*capacity=*/size);
   data.add_entry(
       /*object_id=*/object_id_2_and_3,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::destroy,
+      /*data_pointer=*/200,
       /*size=*/size,
       /*capacity=*/size);
 
@@ -389,12 +407,14 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
       /*object_id=*/object_id_2_and_3,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/200,
       /*size=*/size - 5,
       /*capacity=*/size);
   data.add_entry(
       /*object_id=*/object_id_2_and_3,
       /*owner=*/owner,
       /*event=*/vector_instrumentation::event::destroy,
+      /*data_pointer=*/200,
       /*size=*/size,
       /*capacity=*/size);
 
@@ -560,18 +580,21 @@ TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
       /*object_id=*/1,
       /*owner=*/"first",
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/100,
       /*size=*/3,
       /*capacity=*/3);
   data.add_entry(
       /*object_id=*/2,
       /*owner=*/"second",
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/200,
       /*size=*/5,
       /*capacity=*/5);
   data.add_entry(
       /*object_id=*/3,
       /*owner=*/"third",
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/300,
       /*size=*/0,
       /*capacity=*/0);
 
@@ -593,24 +616,28 @@ TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
       /*object_id=*/1,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/100,
       /*size=*/0,
       /*capacity=*/3);
   data.add_entry(
       /*object_id=*/1,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::append,
+      /*data_pointer=*/100,
       /*size=*/1,
       /*capacity=*/3);
   data.add_entry(
       /*object_id=*/1,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::append,
+      /*data_pointer=*/100,
       /*size=*/2,
       /*capacity=*/3);
   data.add_entry(
       /*object_id=*/1,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::append,
+      /*data_pointer=*/100,
       /*size=*/3,
       /*capacity=*/3);
 
@@ -626,24 +653,28 @@ TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
       /*object_id=*/1,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/100,
       /*size=*/0,
       /*capacity=*/0);
   data.add_entry(
       /*object_id=*/1,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::append,
+      /*data_pointer=*/110,
       /*size=*/1,
       /*capacity=*/1);
   data.add_entry(
       /*object_id=*/1,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::append,
+      /*data_pointer=*/120,
       /*size=*/2,
       /*capacity=*/2);
   data.add_entry(
       /*object_id=*/1,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::append,
+      /*data_pointer=*/130,
       /*size=*/3,
       /*capacity=*/3);
 
@@ -659,42 +690,49 @@ TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
       /*object_id=*/100,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/100,
       /*size=*/1,
       /*capacity=*/3);
   data.add_entry(
       /*object_id=*/100,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::append,
+      /*data_pointer=*/100,
       /*size=*/2,
       /*capacity=*/3);
   data.add_entry(
       /*object_id=*/200,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/200,
       /*size=*/0,
       /*capacity=*/0);
   data.add_entry(
       /*object_id=*/200,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::assign,
+      /*data_pointer=*/200,
       /*size=*/2,
       /*capacity=*/3);
   data.add_entry(
       /*object_id=*/100,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::clear,
+      /*data_pointer=*/100,
       /*size=*/0,
       /*capacity=*/0);
   data.add_entry(
       /*object_id=*/200,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::append,
+      /*data_pointer=*/200,
       /*size=*/3,
       /*capacity=*/3);
   data.add_entry(
       /*object_id=*/200,
       /*owner=*/"myvector",
       /*event=*/vector_instrumentation::event::append,
+      /*data_pointer=*/280,
       /*size=*/4,
       /*capacity=*/8);
 
