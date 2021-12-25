@@ -110,9 +110,6 @@ class expression_arena {
   template <class Expression, class... Args>
   expression *make_expression(Args &&... args);
 
-  template <class T, std::size_t InSituCapacity>
-  array_ptr<T> make_array(quick_lint_js::vector<T, InSituCapacity> &&);
-
   template <class T>
   array_ptr<T> make_array(bump_vector<T, monotonic_allocator> &&);
 
@@ -301,15 +298,6 @@ template <class Expression, class... Args>
 expression *expression_arena::make_expression(Args &&... args) {
   expression *result(this->allocate<Expression>(std::forward<Args>(args)...));
   static_assert(is_allocatable<Expression>);
-  return result;
-}
-
-template <class T, std::size_t InSituCapacity>
-inline expression_arena::array_ptr<T> expression_arena::make_array(
-    quick_lint_js::vector<T, InSituCapacity> &&elements) {
-  array_ptr<T> result =
-      this->make_array(elements.data(), elements.data() + elements.size());
-  elements.clear();
   return result;
 }
 
