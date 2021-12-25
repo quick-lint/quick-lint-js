@@ -119,11 +119,11 @@ class raw_bump_vector {
   QLJS_FORCE_INLINE const T *begin() const noexcept { return this->data_; }
   QLJS_FORCE_INLINE const T *end() const noexcept { return this->data_end_; }
 
-  QLJS_FORCE_INLINE T &front() noexcept {
+  T &front() noexcept {
     QLJS_ASSERT(!this->empty());
     return this->data_[0];
   }
-  QLJS_FORCE_INLINE T &back() noexcept {
+  T &back() noexcept {
     QLJS_ASSERT(!this->empty());
     return this->data_end_[-1];
   }
@@ -163,7 +163,7 @@ class raw_bump_vector {
   }
 
   template <class... Args>
-  QLJS_FORCE_INLINE T &emplace_back(Args &&... args) {
+  T &emplace_back(Args &&... args) {
     if (this->capacity_end_ == this->data_end_) {
       this->reserve_grow_by_at_least(1);
     }
