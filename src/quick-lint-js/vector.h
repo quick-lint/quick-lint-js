@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <boost/container/pmr/polymorphic_allocator.hpp>
-#include <boost/container/small_vector.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/assert.h>
@@ -71,16 +70,6 @@ class uninstrumented_vector : private Vector {
   using Vector::reserve;
   using Vector::size;
 };
-
-#if QLJS_FEATURE_VECTOR_PROFILING
-template <class T, std::size_t InSituCapacity = 0>
-using vector = instrumented_vector<boost::container::small_vector<
-    T, InSituCapacity, boost::container::pmr::polymorphic_allocator<T>>>;
-#else
-template <class T, std::size_t InSituCapacity = 0>
-using vector = uninstrumented_vector<boost::container::small_vector<
-    T, InSituCapacity, boost::container::pmr::polymorphic_allocator<T>>>;
-#endif
 
 template <class T, class BumpAllocator>
 class raw_bump_vector {
