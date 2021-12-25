@@ -42,7 +42,7 @@ TEST_F(test_vector_instrumentation,
   const char *owner = "test vector";
   std::uintptr_t v_object_id;
   {
-    vector<int> v(owner, new_delete_resource());
+    vector<int> v(owner, vector<int>::allocator_type(new_delete_resource()));
     v_object_id = reinterpret_cast<std::uintptr_t>(&v);
   }
 
@@ -64,7 +64,8 @@ TEST_F(test_vector_instrumentation, creating_vector_from_range_adds_entry) {
   int data[3] = {1, 2, 3};
   const char *owner = "test vector";
 
-  vector<int> v(owner, new_delete_resource(), &data[0], &data[3]);
+  vector<int> v(owner, vector<int>::allocator_type(new_delete_resource()),
+                &data[0], &data[3]);
 
   std::uintptr_t v_object_id = reinterpret_cast<std::uintptr_t>(&v);
   EXPECT_THAT(
@@ -79,7 +80,8 @@ TEST_F(test_vector_instrumentation, creating_vector_from_range_adds_entry) {
 }
 
 TEST_F(test_vector_instrumentation, append_to_vector_adds_entries) {
-  vector<int> v("test vector", new_delete_resource());
+  vector<int> v("test vector",
+                vector<int>::allocator_type(new_delete_resource()));
   vector_instrumentation::instance.clear();
 
   v.emplace_back(100);
@@ -104,7 +106,8 @@ TEST_F(test_vector_instrumentation, append_to_vector_adds_entries) {
 }
 
 TEST_F(test_vector_instrumentation, clearing_vector_adds_entry) {
-  vector<int> v("test vector", new_delete_resource());
+  vector<int> v("test vector",
+                vector<int>::allocator_type(new_delete_resource()));
   v.emplace_back(100);
   v.emplace_back(200);
   vector_instrumentation::instance.clear();
@@ -120,7 +123,8 @@ TEST_F(test_vector_instrumentation, clearing_vector_adds_entry) {
 
 TEST_F(test_vector_instrumentation, moving_vector_with_new_owner_adds_entries) {
   const char *v_1_owner = "v1";
-  vector<int> v_1(v_1_owner, new_delete_resource());
+  vector<int> v_1(v_1_owner,
+                  vector<int>::allocator_type(new_delete_resource()));
   std::uintptr_t v_1_object_id = reinterpret_cast<std::uintptr_t>(&v_1);
   v_1.emplace_back(100);
   v_1.emplace_back(200);
@@ -149,7 +153,8 @@ TEST_F(test_vector_instrumentation, moving_vector_with_new_owner_adds_entries) {
 
 TEST_F(test_vector_instrumentation, moving_vector_with_no_owner_adds_entries) {
   const char *v_1_owner = "v1";
-  vector<int> v_1(v_1_owner, new_delete_resource());
+  vector<int> v_1(v_1_owner,
+                  vector<int>::allocator_type(new_delete_resource()));
   std::uintptr_t v_1_object_id = reinterpret_cast<std::uintptr_t>(&v_1);
   v_1.emplace_back(100);
   v_1.emplace_back(200);
@@ -177,11 +182,13 @@ TEST_F(test_vector_instrumentation, moving_vector_with_no_owner_adds_entries) {
 
 TEST_F(test_vector_instrumentation, move_assigning_vector_adds_entries) {
   const char *v_1_owner = "v1";
-  vector<int> v_1(v_1_owner, new_delete_resource());
+  vector<int> v_1(v_1_owner,
+                  vector<int>::allocator_type(new_delete_resource()));
   std::uintptr_t v_1_object_id = reinterpret_cast<std::uintptr_t>(&v_1);
   v_1.emplace_back(100);
   const char *v_2_owner = "v2";
-  vector<int> v_2(v_2_owner, new_delete_resource());
+  vector<int> v_2(v_2_owner,
+                  vector<int>::allocator_type(new_delete_resource()));
   v_2.emplace_back(200);
   v_2.emplace_back(300);
   std::uintptr_t v_2_object_id = reinterpret_cast<std::uintptr_t>(&v_2);

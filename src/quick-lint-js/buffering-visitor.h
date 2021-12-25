@@ -21,7 +21,7 @@ namespace quick_lint_js {
 class buffering_visitor {
  public:
   explicit buffering_visitor(boost::container::pmr::memory_resource *memory)
-      : visits_("buffering_visitor", memory) {}
+      : visits_("buffering_visitor", vector<visit>::allocator_type(memory)) {}
 
   template <QLJS_PARSE_VISITOR Visitor>
   void move_into(Visitor &target) {

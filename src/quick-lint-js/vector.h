@@ -100,12 +100,16 @@ class vector_instrumentation {
   std::vector<entry> entries_;
 };
 
-template <class T, std::size_t InSituCapacity = 0>
-class vector {
+template <class Vector>
+class instrumented_vector {
  public:
-  explicit vector(const char *debug_owner [[maybe_unused]],
-                  boost::container::pmr::memory_resource *memory) noexcept
-      : data_(underlying_allocator(memory))
+  using allocator_type = typename Vector::allocator_type;
+  using size_type = typename Vector::size_type;
+  using value_type = typename Vector::value_type;
+
+  explicit instrumented_vector(const char *debug_owner [[maybe_unused]],
+                               const allocator_type &allocator) noexcept
+      : data_(allocator)
 #if QLJS_FEATURE_VECTOR_PROFILING
         ,
         debug_owner_(debug_owner)
@@ -116,10 +120,10 @@ class vector {
 
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
-  explicit vector(const char *debug_owner [[maybe_unused]],
-                  boost::container::pmr::memory_resource *memory,
-                  const T *begin, const T *end)
-      : data_(begin, end, underlying_allocator(memory))
+  explicit instrumented_vector(const char *debug_owner [[maybe_unused]],
+                               const allocator_type &allocator,
+                               const value_type *begin, const value_type *end)
+      : data_(begin, end, allocator)
 #if QLJS_FEATURE_VECTOR_PROFILING
         ,
         debug_owner_(debug_owner)
@@ -129,16 +133,18 @@ class vector {
   }
   QLJS_WARNING_POP
 
-  vector(const vector &) = delete;
-  vector &operator=(const vector &) = delete;
+  instrumented_vector(const instrumented_vector &) = delete;
+  instrumented_vector &operator=(const instrumented_vector &) = delete;
 
 #if QLJS_FEATURE_VECTOR_PROFILING
-  vector(vector &&other) : vector(other.debug_owner_, std::move(other)) {}
+  instrumented_vector(instrumented_vector &&other)
+      : instrumented_vector(other.debug_owner_, std::move(other)) {}
 #else
-  vector(vector &&other) = default;
+  instrumented_vector(instrumented_vector &&other) = default;
 #endif
 
-  vector(const char *debug_owner [[maybe_unused]], vector &&other)
+  instrumented_vector(const char *debug_owner [[maybe_unused]],
+                      instrumented_vector &&other)
       : data_(std::move(other.data_))
 #if QLJS_FEATURE_VECTOR_PROFILING
         ,
@@ -149,47 +155,51 @@ class vector {
     other.add_instrumentation_entry(vector_instrumentation::event::clear);
   }
 
-  vector &operator=(vector &&other) {
+  instrumented_vector &operator=(instrumented_vector &&other) {
     this->data_ = std::move(other.data_);
     this->add_instrumentation_entry(vector_instrumentation::event::assign);
     other.add_instrumentation_entry(vector_instrumentation::event::clear);
     return *this;
   }
 
-  ~vector() {
+  ~instrumented_vector() {
     this->add_instrumentation_entry(vector_instrumentation::event::destroy);
   }
 
-  QLJS_FORCE_INLINE T *data() noexcept { return this->data_.data(); }
-  QLJS_FORCE_INLINE const T *data() const noexcept {
+  QLJS_FORCE_INLINE value_type *data() noexcept { return this->data_.data(); }
+  QLJS_FORCE_INLINE const value_type *data() const noexcept {
     return this->data_.data();
   }
 
-  QLJS_FORCE_INLINE std::size_t size() const noexcept {
+  QLJS_FORCE_INLINE size_type size() const noexcept {
     return this->data_.size();
   }
 
-  QLJS_FORCE_INLINE std::size_t capacity() const noexcept {
+  QLJS_FORCE_INLINE size_type capacity() const noexcept {
     return this->data_.capacity();
   }
 
   QLJS_FORCE_INLINE bool empty() const noexcept { return this->data_.empty(); }
 
-  QLJS_FORCE_INLINE T &front() noexcept { return this->data_.front(); }
+  QLJS_FORCE_INLINE value_type &front() noexcept { return this->data_.front(); }
 
-  QLJS_FORCE_INLINE T &back() noexcept { return this->data_.back(); }
+  QLJS_FORCE_INLINE value_type &back() noexcept { return this->data_.back(); }
 
-  QLJS_FORCE_INLINE T *begin() noexcept { return this->data(); }
-  QLJS_FORCE_INLINE T *end() noexcept { return this->begin() + this->size(); }
+  QLJS_FORCE_INLINE value_type *begin() noexcept { return this->data(); }
+  QLJS_FORCE_INLINE value_type *end() noexcept {
+    return this->begin() + this->size();
+  }
 
-  QLJS_FORCE_INLINE const T *begin() const noexcept { return this->data(); }
-  QLJS_FORCE_INLINE const T *end() const noexcept {
+  QLJS_FORCE_INLINE const value_type *begin() const noexcept {
+    return this->data();
+  }
+  QLJS_FORCE_INLINE const value_type *end() const noexcept {
     return this->begin() + this->size();
   }
 
   template <class... Args>
-  QLJS_FORCE_INLINE T &emplace_back(Args &&... args) {
-    T &result = this->data_.emplace_back(std::forward<Args>(args)...);
+  QLJS_FORCE_INLINE value_type &emplace_back(Args &&... args) {
+    value_type &result = this->data_.emplace_back(std::forward<Args>(args)...);
     this->add_instrumentation_entry(vector_instrumentation::event::append);
     return result;
   }
@@ -216,15 +226,15 @@ class vector {
       vector_instrumentation::event) {}
 #endif
 
-  using underlying_vector = boost::container::small_vector<
-      T, InSituCapacity, boost::container::pmr::polymorphic_allocator<T>>;
-  using underlying_allocator = typename underlying_vector::allocator_type;
-
-  underlying_vector data_;
+  Vector data_;
 #if QLJS_FEATURE_VECTOR_PROFILING
   const char *debug_owner_;
 #endif
 };
+
+template <class T, std::size_t InSituCapacity = 0>
+using vector = instrumented_vector<boost::container::small_vector<
+    T, InSituCapacity, boost::container::pmr::polymorphic_allocator<T>>>;
 
 template <class T, class BumpAllocator>
 class bump_vector {

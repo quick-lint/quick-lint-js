@@ -1073,7 +1073,7 @@ class parser {
       buffering_visitor exports_visitor(this->buffering_visitor_memory());
       vector<token> exported_bad_tokens(
           "parse_and_visit_export exported_bad_tokens",
-          &this->temporary_memory_);
+          vector<token>::allocator_type(&this->temporary_memory_));
       this->parse_and_visit_named_exports_for_export(
           exports_visitor, /*out_exported_bad_tokens=*/exported_bad_tokens);
       if (this->peek().type == token_type::kw_from) {
