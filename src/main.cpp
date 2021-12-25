@@ -33,6 +33,7 @@
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
 #include <quick-lint-js/variant.h>
+#include <quick-lint-js/vector-profiler.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>

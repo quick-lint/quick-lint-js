@@ -182,7 +182,7 @@ quick_lint_js_add_library(
   uri.cpp
   utf-16.cpp
   utf-8.cpp
-  vector.cpp
+  vector-profiler.cpp
   vim-location.cpp
   vim-qflist-json-error-reporter.cpp
   web-demo-location.cpp
