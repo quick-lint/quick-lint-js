@@ -316,8 +316,7 @@ class bump_vector {
   template <class... Args>
   QLJS_FORCE_INLINE T &emplace_back(Args &&... args) {
     if (this->capacity_end_ == this->data_end_) {
-      this->reserve_grow(
-          (std::max)(this->capacity() + 1, this->capacity() * 2));
+      this->reserve_grow_by_at_least(1);
     }
     this->data_end_ = new (this->data_end_) T(std::forward<Args>(args)...);
     T &result = *this->data_end_++;
@@ -342,6 +341,15 @@ class bump_vector {
       this->data_end_ = nullptr;
       this->capacity_end_ = nullptr;
     }
+  }
+
+  void reserve_grow_by_at_least(std::size_t minimum_new_entries) {
+    std::size_t old_capacity = this->capacity();
+    constexpr std::size_t minimum_capacity = 4;
+    std::size_t new_size = (std::max)(
+        (std::max)(minimum_capacity, old_capacity + minimum_new_entries),
+        old_capacity * 2);
+    this->reserve_grow(new_size);
   }
 
 #if QLJS_FEATURE_VECTOR_PROFILING
