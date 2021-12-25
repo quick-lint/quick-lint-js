@@ -33,17 +33,20 @@ using ::testing::UnorderedElementsAre;
 namespace quick_lint_js {
 namespace {
 #if QLJS_FEATURE_VECTOR_PROFILING
-class test_vector_instrumentation : public ::testing::Test {
+template <class T>
+using test_vector = instrumented_vector<std::vector<int>>;
+
+class test_instrumented_vector : public ::testing::Test {
  public:
   void SetUp() override { vector_instrumentation::instance.clear(); }
 };
 
-TEST_F(test_vector_instrumentation,
+TEST_F(test_instrumented_vector,
        creating_and_destroying_empty_vector_adds_entries) {
   const char *owner = "test vector";
   std::uintptr_t v_object_id;
   {
-    vector<int> v(owner, vector<int>::allocator_type(new_delete_resource()));
+    test_vector<int> v(owner, {});
     v_object_id = reinterpret_cast<std::uintptr_t>(&v);
   }
 
@@ -61,12 +64,11 @@ TEST_F(test_vector_instrumentation,
                          vector_instrumentation::event::destroy))));
 }
 
-TEST_F(test_vector_instrumentation, creating_vector_from_range_adds_entry) {
+TEST_F(test_instrumented_vector, creating_vector_from_range_adds_entry) {
   int data[3] = {1, 2, 3};
   const char *owner = "test vector";
 
-  vector<int> v(owner, vector<int>::allocator_type(new_delete_resource()),
-                &data[0], &data[3]);
+  test_vector<int> v(owner, {}, &data[0], &data[3]);
 
   std::uintptr_t v_object_id = reinterpret_cast<std::uintptr_t>(&v);
   EXPECT_THAT(
@@ -80,9 +82,8 @@ TEST_F(test_vector_instrumentation, creating_vector_from_range_adds_entry) {
                 FIELD(vector_instrumentation::entry, capacity, Ge(3)))));
 }
 
-TEST_F(test_vector_instrumentation, append_to_vector_adds_entries) {
-  vector<int> v("test vector",
-                vector<int>::allocator_type(new_delete_resource()));
+TEST_F(test_instrumented_vector, append_to_vector_adds_entries) {
+  test_vector<int> v("test vector", {});
   vector_instrumentation::instance.clear();
 
   v.emplace_back(100);
@@ -106,9 +107,8 @@ TEST_F(test_vector_instrumentation, append_to_vector_adds_entries) {
                         FIELD_EQ(vector_instrumentation::entry, size, 4))));
 }
 
-TEST_F(test_vector_instrumentation, clearing_vector_adds_entry) {
-  vector<int> v("test vector",
-                vector<int>::allocator_type(new_delete_resource()));
+TEST_F(test_instrumented_vector, clearing_vector_adds_entry) {
+  test_vector<int> v("test vector", {});
   v.emplace_back(100);
   v.emplace_back(200);
   vector_instrumentation::instance.clear();
@@ -122,17 +122,16 @@ TEST_F(test_vector_instrumentation, clearing_vector_adds_entry) {
                         FIELD_EQ(vector_instrumentation::entry, size, 0))));
 }
 
-TEST_F(test_vector_instrumentation, moving_vector_with_new_owner_adds_entries) {
+TEST_F(test_instrumented_vector, moving_vector_with_new_owner_adds_entries) {
   const char *v_1_owner = "v1";
-  vector<int> v_1(v_1_owner,
-                  vector<int>::allocator_type(new_delete_resource()));
+  test_vector<int> v_1(v_1_owner, {});
   std::uintptr_t v_1_object_id = reinterpret_cast<std::uintptr_t>(&v_1);
   v_1.emplace_back(100);
   v_1.emplace_back(200);
   vector_instrumentation::instance.clear();
 
   const char *v_2_owner = "v2";
-  vector<int> v_2(v_2_owner, std::move(v_1));
+  test_vector<int> v_2(v_2_owner, std::move(v_1));
   std::uintptr_t v_2_object_id = reinterpret_cast<std::uintptr_t>(&v_2);
 
   EXPECT_THAT(
@@ -152,16 +151,15 @@ TEST_F(test_vector_instrumentation, moving_vector_with_new_owner_adds_entries) {
               FIELD_EQ(vector_instrumentation::entry, size, 0))));
 }
 
-TEST_F(test_vector_instrumentation, moving_vector_with_no_owner_adds_entries) {
+TEST_F(test_instrumented_vector, moving_vector_with_no_owner_adds_entries) {
   const char *v_1_owner = "v1";
-  vector<int> v_1(v_1_owner,
-                  vector<int>::allocator_type(new_delete_resource()));
+  test_vector<int> v_1(v_1_owner, {});
   std::uintptr_t v_1_object_id = reinterpret_cast<std::uintptr_t>(&v_1);
   v_1.emplace_back(100);
   v_1.emplace_back(200);
   vector_instrumentation::instance.clear();
 
-  vector<int> v_2(std::move(v_1));
+  test_vector<int> v_2(std::move(v_1));
   std::uintptr_t v_2_object_id = reinterpret_cast<std::uintptr_t>(&v_2);
 
   EXPECT_THAT(
@@ -181,15 +179,13 @@ TEST_F(test_vector_instrumentation, moving_vector_with_no_owner_adds_entries) {
               FIELD_EQ(vector_instrumentation::entry, size, 0))));
 }
 
-TEST_F(test_vector_instrumentation, move_assigning_vector_adds_entries) {
+TEST_F(test_instrumented_vector, move_assigning_vector_adds_entries) {
   const char *v_1_owner = "v1";
-  vector<int> v_1(v_1_owner,
-                  vector<int>::allocator_type(new_delete_resource()));
+  test_vector<int> v_1(v_1_owner, {});
   std::uintptr_t v_1_object_id = reinterpret_cast<std::uintptr_t>(&v_1);
   v_1.emplace_back(100);
   const char *v_2_owner = "v2";
-  vector<int> v_2(v_2_owner,
-                  vector<int>::allocator_type(new_delete_resource()));
+  test_vector<int> v_2(v_2_owner, {});
   v_2.emplace_back(200);
   v_2.emplace_back(300);
   std::uintptr_t v_2_object_id = reinterpret_cast<std::uintptr_t>(&v_2);
@@ -216,7 +212,7 @@ TEST_F(test_vector_instrumentation, move_assigning_vector_adds_entries) {
 #else
 // Indicate that the real tests have been disabled because
 // QLJS_FEATURE_VECTOR_PROFILING is disabled.
-TEST(test_vector_instrumentation, DISABLED_) {}
+TEST(test_instrumented_vector, DISABLED_) {}
 #endif
 
 TEST(test_vector_instrumentation_max_size_histogram_by_owner, no_events) {
