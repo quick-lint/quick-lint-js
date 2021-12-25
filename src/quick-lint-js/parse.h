@@ -1072,9 +1072,9 @@ class parser {
     // export {a, b, c} from "module";
     case token_type::left_curly: {
       buffering_visitor exports_visitor(this->buffering_visitor_memory());
-      vector<token> exported_bad_tokens(
+      bump_vector<token, monotonic_allocator> exported_bad_tokens(
           "parse_and_visit_export exported_bad_tokens",
-          vector<token>::allocator_type(&this->temporary_memory_));
+          &this->temporary_memory_);
       this->parse_and_visit_named_exports_for_export(
           exports_visitor, /*out_exported_bad_tokens=*/exported_bad_tokens);
       if (this->peek().type == token_type::kw_from) {
@@ -1085,7 +1085,7 @@ class parser {
         // Ignore exported_keywords.
       } else {
         // export {a as default, b};
-        for (token &exported_bad_token : exported_bad_tokens) {
+        for (const token &exported_bad_token : exported_bad_tokens) {
           switch (exported_bad_token.type) {
           case token_type::reserved_keyword_with_escape_sequence:
             exported_bad_token.report_errors_for_escape_sequences_in_keyword(
@@ -3023,7 +3023,8 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_named_exports_for_export(
-      Visitor &v, vector<token> &out_exported_bad_tokens) {
+      Visitor &v,
+      bump_vector<token, monotonic_allocator> &out_exported_bad_tokens) {
     this->parse_and_visit_named_exports(
         v, /*out_exported_bad_tokens=*/&out_exported_bad_tokens);
   }
@@ -3034,8 +3035,9 @@ class parser {
   }
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_named_exports(Visitor &v,
-                                     vector<token> *out_exported_bad_tokens) {
+  void parse_and_visit_named_exports(
+      Visitor &v,
+      bump_vector<token, monotonic_allocator> *out_exported_bad_tokens) {
     bool is_export = out_exported_bad_tokens != nullptr;
     QLJS_ASSERT(this->peek().type == token_type::left_curly);
     this->skip();
@@ -3925,11 +3927,7 @@ class parser {
   quick_lint_js::expression_arena expressions_;
 
   // Memory used for temporary memory allocations (e.g. vectors on the stack).
-  //
-  // TODO(strager): Pick a better (faster and less memory-hungry) allocator.
-  // We probably need boost::container::small_vector integration for in-place
-  // resizing to get good performance.
-  boost::container::pmr::monotonic_buffer_resource temporary_memory_;
+  monotonic_allocator temporary_memory_;
 
   bool in_top_level_ = true;
   bool in_async_function_ = false;
