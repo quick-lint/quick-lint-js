@@ -777,7 +777,7 @@ TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
 
 // For some reason, boost::small_vector<T, 0>'s initial capacity after default
 // construction claims to be 1, even though the in-situ capacity is 0 and no
-// heap allocation was made. This test makes ure that such events don't confuse
+// heap allocation was made. This test makes sure that such events don't confuse
 // our analysis.
 TEST(test_vector_instrumentation_capacity_change_histogram_by_owner,
      initial_allocation_for_boost_small_vector) {
