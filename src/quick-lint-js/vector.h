@@ -104,6 +104,13 @@ template <class Vector>
 class instrumented_vector {
  public:
   using allocator_type = typename Vector::allocator_type;
+  using const_iterator = typename Vector::const_iterator;
+  using const_pointer = typename Vector::const_pointer;
+  using const_reference = typename Vector::const_reference;
+  using difference_type = typename Vector::difference_type;
+  using iterator = typename Vector::iterator;
+  using pointer = typename Vector::pointer;
+  using reference = typename Vector::reference;
   using size_type = typename Vector::size_type;
   using value_type = typename Vector::value_type;
 
@@ -209,6 +216,8 @@ class instrumented_vector {
     this->add_instrumentation_entry(vector_instrumentation::event::clear);
   }
 
+  void reserve(std::size_t new_capacity) { this->data_.reserve(new_capacity); }
+
  private:
 #if QLJS_FEATURE_VECTOR_PROFILING
   QLJS_FORCE_INLINE void add_instrumentation_entry(
@@ -237,9 +246,10 @@ using vector = instrumented_vector<boost::container::small_vector<
     T, InSituCapacity, boost::container::pmr::polymorphic_allocator<T>>>;
 
 template <class T, class BumpAllocator>
-class bump_vector {
+class raw_bump_vector {
  public:
   using value_type = T;
+  using allocator_type = BumpAllocator *;
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
   using reference = T &;
@@ -251,21 +261,13 @@ class bump_vector {
 
   static_assert(std::is_trivially_destructible_v<T>);
 
-  explicit bump_vector(const char *debug_owner [[maybe_unused]],
-                       BumpAllocator *allocator) noexcept
-      : allocator_(allocator)
-#if QLJS_FEATURE_VECTOR_PROFILING
-        ,
-        debug_owner_(debug_owner)
-#endif
-  {
-    this->add_instrumentation_entry(vector_instrumentation::event::create);
-  }
+  explicit raw_bump_vector(BumpAllocator *allocator) noexcept
+      : allocator_(allocator) {}
 
-  bump_vector(const bump_vector &) = delete;
-  bump_vector &operator=(const bump_vector &) = delete;
+  raw_bump_vector(const raw_bump_vector &) = delete;
+  raw_bump_vector &operator=(const raw_bump_vector &) = delete;
 
-  ~bump_vector() { this->clear(); }
+  ~raw_bump_vector() { this->clear(); }
 
   bool empty() const noexcept { return this->data_ == this->data_end_; }
   std::size_t size() const noexcept {
@@ -310,7 +312,7 @@ class bump_vector {
                 new_size);
         T *new_data_end =
             std::uninitialized_move(this->data_, this->data_end_, new_data);
-        this->clear_no_event();
+        this->clear();
         this->data_ = new_data;
         this->data_end_ = new_data_end;
         this->capacity_end_ = new_data + new_size;
@@ -330,17 +332,10 @@ class bump_vector {
     }
     this->data_end_ = new (this->data_end_) T(std::forward<Args>(args)...);
     T &result = *this->data_end_++;
-    this->add_instrumentation_entry(vector_instrumentation::event::append);
     return result;
   }
 
-  QLJS_FORCE_INLINE void clear() {
-    this->clear_no_event();
-    this->add_instrumentation_entry(vector_instrumentation::event::clear);
-  }
-
- private:
-  void clear_no_event() {
+  void clear() {
     if (this->data_) {
       std::destroy(this->data_, this->data_end_);
       this->allocator_->deallocate(
@@ -353,6 +348,7 @@ class bump_vector {
     }
   }
 
+ private:
   void reserve_grow_by_at_least(std::size_t minimum_new_entries) {
     std::size_t old_capacity = this->capacity();
     constexpr std::size_t minimum_capacity = 4;
@@ -362,31 +358,15 @@ class bump_vector {
     this->reserve_grow(new_size);
   }
 
-#if QLJS_FEATURE_VECTOR_PROFILING
-  QLJS_FORCE_INLINE void add_instrumentation_entry(
-      vector_instrumentation::event event) {
-    vector_instrumentation::instance.add_entry(
-        /*object_id=*/reinterpret_cast<std::uintptr_t>(this),
-        /*owner=*/this->debug_owner_,
-        /*event=*/event,
-        /*data_pointer=*/reinterpret_cast<std::uintptr_t>(this->data()),
-        /*size=*/this->size(),
-        /*capacity=*/this->capacity());
-  }
-#else
-  QLJS_FORCE_INLINE void add_instrumentation_entry(
-      vector_instrumentation::event) {}
-#endif
-
   T *data_ = nullptr;
   T *data_end_ = nullptr;
   T *capacity_end_ = nullptr;
 
   BumpAllocator *allocator_;
-#if QLJS_FEATURE_VECTOR_PROFILING
-  const char *debug_owner_;
-#endif
 };
+
+template <class T, class BumpAllocator>
+using bump_vector = instrumented_vector<raw_bump_vector<T, BumpAllocator>>;
 }
 
 #endif
