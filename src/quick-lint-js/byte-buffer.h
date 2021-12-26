@@ -118,6 +118,7 @@ class byte_buffer {
 
  private:
   void reserve(size_type extra_byte_count);
+  void grow(size_type extra_byte_count);
   void update_current_chunk_size() noexcept;
   void remove_current_chunk_if_empty();
 
