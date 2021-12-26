@@ -18,7 +18,7 @@ namespace quick_lint_js {
 vim_qflist_json_error_reporter::vim_qflist_json_error_reporter(
     output_stream *output)
     : output_(*output) {
-  this->output_.append_copy(u8"{\"qflist\": ["sv);
+  this->output_.append_literal(u8"{\"qflist\": ["sv);
 }
 
 void vim_qflist_json_error_reporter::set_source(padded_string_view input,
@@ -49,12 +49,12 @@ void vim_qflist_json_error_reporter::set_source(padded_string_view input,
 }
 
 void vim_qflist_json_error_reporter::finish() {
-  this->output_.append_copy(u8"]}"sv);
+  this->output_.append_literal(u8"]}"sv);
 }
 
 void vim_qflist_json_error_reporter::report_impl(error_type type, void *error) {
   if (this->need_comma_) {
-    this->output_.append_copy(u8",\n"sv);
+    this->output_.append_literal(u8",\n"sv);
   }
   this->need_comma_ = true;
   QLJS_ASSERT(this->locator_.has_value());
@@ -91,19 +91,19 @@ void vim_qflist_json_error_formatter::write_before_message(
 
   vim_source_range r = this->locator_.range(origin);
   auto end_col = origin.begin() == origin.end() ? r.begin.col : (r.end.col - 1);
-  this->output_.append_copy(u8"{\"col\": "sv);
+  this->output_.append_literal(u8"{\"col\": "sv);
   this->output_.append_decimal_integer(r.begin.col);
-  this->output_.append_copy(u8", \"lnum\": "sv);
+  this->output_.append_literal(u8", \"lnum\": "sv);
   this->output_.append_decimal_integer(r.begin.lnum);
-  this->output_.append_copy(u8", \"end_col\": "sv);
+  this->output_.append_literal(u8", \"end_col\": "sv);
   this->output_.append_decimal_integer(end_col);
-  this->output_.append_copy(u8", \"end_lnum\": "sv);
+  this->output_.append_literal(u8", \"end_lnum\": "sv);
   this->output_.append_decimal_integer(r.end.lnum);
-  this->output_.append_copy(u8", \"type\": \""sv);
+  this->output_.append_literal(u8", \"type\": \""sv);
   this->output_.append_copy(severity_type);
-  this->output_.append_copy(u8"\", \"nr\": \""sv);
+  this->output_.append_literal(u8"\", \"nr\": \""sv);
   this->output_.append_copy(to_string8_view(code));
-  this->output_.append_copy(u8"\", \"vcol\": 0, \"text\": \""sv);
+  this->output_.append_literal(u8"\", \"vcol\": 0, \"text\": \""sv);
 }
 
 void vim_qflist_json_error_formatter::write_message_part(
@@ -127,11 +127,11 @@ void vim_qflist_json_error_formatter::write_after_message(
 
   this->output_.append_copy(u8'\"');
   if (!this->bufnr_.empty()) {
-    this->output_.append_copy(u8", \"bufnr\": "sv);
+    this->output_.append_literal(u8", \"bufnr\": "sv);
     this->output_.append_copy(to_string8_view(this->bufnr_));
   }
   if (!this->file_name_.empty()) {
-    this->output_.append_copy(u8", \"filename\": \""sv);
+    this->output_.append_literal(u8", \"filename\": \""sv);
     write_json_escaped_string(this->output_, to_string8_view(this->file_name_));
     this->output_.append_copy(u8'"');
   }

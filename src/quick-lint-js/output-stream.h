@@ -16,6 +16,8 @@ namespace quick_lint_js {
 // output_stream is similar to std::basic_ostream<char8>.
 class output_stream {
  public:
+  static inline constexpr int minimum_buffer_size = 8;
+
   explicit output_stream();
   explicit output_stream(int buffer_size);
 
@@ -55,7 +57,20 @@ class output_stream {
   void append_copy(char8 data);
 
   // Do not call. Create a string8_view explicitly instead.
+  void append_copy(const char8* data) = delete;
   void append_copy(char8* data) = delete;
+
+  // Precondition: data.size() <= buffer_size
+  void append_copy_small(string8_view data);
+
+  // Optimize appending small string literals.
+  void append_literal(string8_view data) {
+    if (data.size() <= minimum_buffer_size) {
+      this->append_copy_small(data);
+    } else {
+      this->append_copy(data);
+    }
+  }
 
   void flush();
 
