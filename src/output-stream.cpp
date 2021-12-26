@@ -27,7 +27,7 @@ output_stream::output_stream(int buffer_size)
 
 output_stream::~output_stream() = default;
 
-void output_stream::append_copy(string8_view data) {
+[[gnu::noinline]] void output_stream::append_copy(string8_view data) {
   char8* out = this->reserve(narrow_cast<int>(data.size()));
   if (out) {
     std::copy(data.begin(), data.end(), out);

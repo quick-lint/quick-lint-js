@@ -53,7 +53,7 @@ class output_stream {
     });
   }
 
-  void append_copy(string8_view data);
+  [[gnu::noinline]] void append_copy(string8_view data);
   void append_copy(char8 data);
 
   // Do not call. Create a string8_view explicitly instead.
