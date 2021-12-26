@@ -53,7 +53,7 @@ jobs:
         shell: bash
       - name: check links (apache2)
         run: |
-          DEBIAN_FRONTEND=noninteractive sudo apt-get install apache2 -y
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install apache2 rsync -y
           sudo rsync --archive --delete website/www/ /var/www/html/
           sudo service apache2 reload
           ./ENV/bin/python ./tools/check-links http://localhost/
