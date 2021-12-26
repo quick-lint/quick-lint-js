@@ -53,7 +53,6 @@ jobs:
         shell: bash
       - name: check links (apache2)
         run: |
-          echo error >> website/public/.htaccess
           sudo DEBIAN_FRONTEND=noninteractive apt-get install apache2 rsync -y
           sudo rsync --archive --delete website/www/ /var/www/html/
           sudo service apache2 start
