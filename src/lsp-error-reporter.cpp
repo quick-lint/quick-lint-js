@@ -17,18 +17,20 @@
 
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
+using namespace std::literals::string_view_literals;
+
 namespace quick_lint_js {
 lsp_error_reporter::lsp_error_reporter(byte_buffer &output,
                                        padded_string_view input)
     : output_(output), locator_(input) {
-  this->output_.append_copy(u8"[");
+  this->output_.append_copy(u8"["sv);
 }
 
-void lsp_error_reporter::finish() { this->output_.append_copy(u8"]"); }
+void lsp_error_reporter::finish() { this->output_.append_copy(u8"]"sv); }
 
 void lsp_error_reporter::report_impl(error_type type, void *error) {
   if (this->need_comma_) {
-    this->output_.append_copy(u8",\n");
+    this->output_.append_copy(u8",\n"sv);
   }
   this->need_comma_ = true;
   lsp_error_formatter formatter(/*output=*/this->output_,
@@ -57,25 +59,26 @@ void lsp_error_formatter::write_before_message(std::string_view code,
   }
 
   lsp_range r = this->locator_.range(origin);
-  this->output_.append_copy(u8"{\"range\":{\"start\":");
-  this->output_.append_copy(u8"{\"line\":");
+  this->output_.append_copy(u8"{\"range\":{\"start\":"sv);
+  this->output_.append_copy(u8"{\"line\":"sv);
   this->output_.append_decimal_integer(r.start.line);
-  this->output_.append_copy(u8",\"character\":");
+  this->output_.append_copy(u8",\"character\":"sv);
   this->output_.append_decimal_integer(r.start.character);
-  this->output_.append_copy(u8"},\"end\":");
-  this->output_.append_copy(u8"{\"line\":");
+  this->output_.append_copy(u8"},\"end\":"sv);
+  this->output_.append_copy(u8"{\"line\":"sv);
   this->output_.append_decimal_integer(r.end.line);
-  this->output_.append_copy(u8",\"character\":");
+  this->output_.append_copy(u8",\"character\":"sv);
   this->output_.append_decimal_integer(r.end.character);
-  this->output_.append_copy(u8"}},\"severity\":");
+  this->output_.append_copy(u8"}},\"severity\":"sv);
   this->output_.append_copy(severity_type);
-  this->output_.append_copy(u8",\"code\":\"");
+  this->output_.append_copy(u8",\"code\":\""sv);
   this->output_.append_copy(to_string8_view(code));
-  this->output_.append_copy(u8"\",\"codeDescription\":");
-  this->output_.append_copy(u8"{\"href\":\"https://quick-lint-js.com/errors/#");
+  this->output_.append_copy(u8"\",\"codeDescription\":"sv);
+  this->output_.append_copy(
+      u8"{\"href\":\"https://quick-lint-js.com/errors/#"sv);
   this->output_.append_copy(to_string8_view(code));
-  this->output_.append_copy(u8"\"},\"source\":\"quick-lint-js\"");
-  this->output_.append_copy(u8",\"message\":\"");
+  this->output_.append_copy(u8"\"},\"source\":\"quick-lint-js\""sv);
+  this->output_.append_copy(u8",\"message\":\""sv);
 }
 
 void lsp_error_formatter::write_message_part(
@@ -97,7 +100,7 @@ void lsp_error_formatter::write_after_message(
     return;
   }
 
-  this->output_.append_copy(u8"\"}");
+  this->output_.append_copy(u8"\"}"sv);
 }
 }
 

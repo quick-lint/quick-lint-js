@@ -14,6 +14,8 @@
 #include <sys/uio.h>
 #endif
 
+using namespace std::literals::string_view_literals;
+
 namespace quick_lint_js {
 namespace {
 string8 get_data(const byte_buffer_iovec&);
@@ -47,7 +49,7 @@ TEST(test_byte_buffer, append_small_pieces_within_single_chunk) {
 TEST(test_byte_buffer, appending_copy_behaves_like_append_with_memcpy) {
   byte_buffer bb;
 
-  bb.append_copy(string8_view(u8"hello"));
+  bb.append_copy(u8"hello"sv);
 
   EXPECT_EQ(bb.size(), 5);
   std::vector<char8> data(bb.size());
@@ -146,7 +148,7 @@ TEST(test_byte_buffer, append_integer) {
 TEST(test_byte_buffer, prepend_copy_on_empty_behaves_like_append_copy) {
   byte_buffer bb;
 
-  bb.prepend_copy(u8"hello world");
+  bb.prepend_copy(u8"hello world"sv);
 
   EXPECT_EQ(bb.size(), 11);
   string8 data;
@@ -158,9 +160,9 @@ TEST(test_byte_buffer, prepend_copy_on_empty_behaves_like_append_copy) {
 TEST(test_byte_buffer, prepend_copy_on_non_empty) {
   byte_buffer bb;
 
-  bb.append_copy(u8" w");
-  bb.append_copy(u8"orld");
-  bb.prepend_copy(u8"hello");
+  bb.append_copy(u8" w"sv);
+  bb.append_copy(u8"orld"sv);
+  bb.prepend_copy(u8"hello"sv);
 
   EXPECT_EQ(bb.size(), 11);
   string8 data;
@@ -172,10 +174,10 @@ TEST(test_byte_buffer, prepend_copy_on_non_empty) {
 TEST(test_byte_buffer, prepend_copy_multiple_times) {
   byte_buffer bb;
 
-  bb.prepend_copy(u8"rld");
-  bb.prepend_copy(u8" wo");
-  bb.prepend_copy(u8"lo");
-  bb.prepend_copy(u8"hel");
+  bb.prepend_copy(u8"rld"sv);
+  bb.prepend_copy(u8" wo"sv);
+  bb.prepend_copy(u8"lo"sv);
+  bb.prepend_copy(u8"hel"sv);
 
   EXPECT_EQ(bb.size(), 11);
   string8 data;
@@ -187,9 +189,9 @@ TEST(test_byte_buffer, prepend_copy_multiple_times) {
 TEST(test_byte_buffer, append_copy_after_prepend_copy) {
   byte_buffer bb;
 
-  bb.append_copy(u8" wor");
-  bb.prepend_copy(u8"hello");
-  bb.append_copy(u8"ld");
+  bb.append_copy(u8" wor"sv);
+  bb.prepend_copy(u8"hello"sv);
+  bb.append_copy(u8"ld"sv);
 
   EXPECT_EQ(bb.size(), 11);
   string8 data;
@@ -201,8 +203,8 @@ TEST(test_byte_buffer, append_copy_after_prepend_copy) {
 TEST(test_byte_buffer, clear_after_small_appends) {
   byte_buffer bb;
 
-  bb.append_copy(u8"hello ");
-  bb.append_copy(u8"world");
+  bb.append_copy(u8"hello "sv);
+  bb.append_copy(u8"world"sv);
   bb.clear();
 
   EXPECT_EQ(bb.size(), 0);
@@ -222,9 +224,9 @@ TEST(test_byte_buffer, clear_after_big_appends) {
 TEST(test_byte_buffer, clear_then_append) {
   byte_buffer bb;
 
-  bb.append_copy(u8"hello ");
+  bb.append_copy(u8"hello "sv);
   bb.clear();
-  bb.append_copy(u8"world");
+  bb.append_copy(u8"world"sv);
 
   string8 data;
   data.resize(bb.size());
@@ -236,21 +238,21 @@ TEST(test_byte_buffer, append_byte_buffer_to_byte_buffer_iovec) {
   // Create three chunks for bb_1.
   byte_buffer bb_1;
   string8 bb_1_expected;
-  bb_1.append_copy(u8"hello");
+  bb_1.append_copy(u8"hello"sv);
   bb_1_expected.append(u8"hello");
   bb_1.append_copy(string8(byte_buffer::default_chunk_size * 2, '-'));
   bb_1_expected.append(string8(byte_buffer::default_chunk_size * 2, '-'));
-  bb_1.append_copy(u8"world");
+  bb_1.append_copy(u8"world"sv);
   bb_1_expected.append(u8"world");
 
   // Create three chunks for bb_2.
   byte_buffer bb_2;
   string8 bb_2_expected;
-  bb_2.append_copy(u8"HELLO");
+  bb_2.append_copy(u8"HELLO"sv);
   bb_2_expected.append(u8"HELLO");
   bb_2.append_copy(string8(byte_buffer::default_chunk_size * 2, '_'));
   bb_2_expected.append(string8(byte_buffer::default_chunk_size * 2, '_'));
-  bb_2.append_copy(u8"WORLD");
+  bb_2.append_copy(u8"WORLD"sv);
   bb_2_expected.append(u8"WORLD");
 
   byte_buffer_iovec iov = std::move(bb_1).to_iovec();
@@ -263,7 +265,7 @@ TEST(test_byte_buffer, append_byte_buffer_to_byte_buffer_iovec) {
 
 TEST(test_byte_buffer, append_empty_byte_buffer_to_byte_buffer_iovec) {
   byte_buffer bb_1;
-  bb_1.append_copy(u8"hello");
+  bb_1.append_copy(u8"hello"sv);
   byte_buffer_iovec iov = std::move(bb_1).to_iovec();
 
   byte_buffer bb_2;
@@ -278,7 +280,7 @@ TEST(test_byte_buffer,
   byte_buffer_iovec iov = std::move(bb_1).to_iovec();
 
   byte_buffer bb_2;
-  bb_2.append_copy(u8"hello");
+  bb_2.append_copy(u8"hello"sv);
   iov.append(std::move(bb_2));
 
   EXPECT_EQ(get_data(iov), u8"hello");
@@ -288,7 +290,7 @@ TEST(test_byte_buffer, append_byte_buffer_to_empty_byte_buffer_iovec) {
   byte_buffer_iovec iov(std::vector<byte_buffer_chunk>{});
 
   byte_buffer bb;
-  bb.append_copy(u8"hello");
+  bb.append_copy(u8"hello"sv);
   iov.append(std::move(bb));
 
   EXPECT_EQ(get_data(iov), u8"hello");
@@ -303,7 +305,7 @@ TEST(test_byte_buffer, append_byte_buffer_to_exhausted_byte_buffer_iovec) {
   iov.remove_front(strlen(u8"helloworld"));
 
   byte_buffer bb;
-  bb.append_copy(u8"hiya");
+  bb.append_copy(u8"hiya"sv);
   iov.append(std::move(bb));
 
   EXPECT_EQ(get_data(iov), u8"hiya");

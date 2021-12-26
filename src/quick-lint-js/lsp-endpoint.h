@@ -94,6 +94,8 @@ class lsp_endpoint
   }
 
   void message_parsed(string8_view message) {
+    using namespace std::literals::string_view_literals;
+
     // TODO(strager): Avoid copying the message.
     ::simdjson::padded_string padded_message(
         reinterpret_cast<const char*>(message.data()), message.size());
@@ -114,7 +116,7 @@ class lsp_endpoint
     bool is_batch_request = request_document.get(batched_requests) ==
                             ::simdjson::error_code::SUCCESS;
     if (is_batch_request) {
-      response_json.append_copy(u8"[");
+      response_json.append_copy(u8"["sv);
       std::size_t empty_response_json_size = response_json.size();
       for (::simdjson::simdjson_result< ::simdjson::ondemand::value>
                sub_request_or_error : batched_requests) {
@@ -127,12 +129,12 @@ class lsp_endpoint
                   empty_response_json_size);
         } else {
           if (response_json.size() != empty_response_json_size) {
-            response_json.append_copy(u8",");
+            response_json.append_copy(u8","sv);
           }
           this->write_json_parse_error_response(response_json);
         }
       }
-      response_json.append_copy(u8"]");
+      response_json.append_copy(u8"]"sv);
     } else {
       ::simdjson::ondemand::object request;
       if (request_document.get(request) == ::simdjson::error_code::SUCCESS) {
@@ -158,11 +160,13 @@ class lsp_endpoint
   void handle_message(::simdjson::ondemand::object& request,
                       byte_buffer& response_json,
                       bool add_comma_before_response) {
+    using namespace std::literals::string_view_literals;
+
     ::simdjson::ondemand::value id;
     switch (request["id"].get(id)) {
     case ::simdjson::error_code::SUCCESS: {
       if (add_comma_before_response) {
-        response_json.append_copy(u8",");
+        response_json.append_copy(u8","sv);
       }
       std::string_view method;
       if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
@@ -212,6 +216,7 @@ class lsp_endpoint
   }
 
   void write_json_parse_error_response(byte_buffer& response_json) {
+    using namespace std::literals::string_view_literals;
     // clang-format off
     response_json.append_copy(u8R"({)"
       u8R"("jsonrpc":"2.0",)"
@@ -220,11 +225,12 @@ class lsp_endpoint
         u8R"("code":-32700,)"
         u8R"("message":"Parse error")"
       u8R"(})"
-    u8R"(})");
+    u8R"(})"sv);
     // clang-format on
   }
 
   static void write_invalid_request_error_response(byte_buffer& response_json) {
+    using namespace std::literals::string_view_literals;
     // clang-format off
     response_json.append_copy(u8R"({)"
       u8R"("jsonrpc":"2.0",)"
@@ -233,7 +239,7 @@ class lsp_endpoint
         u8R"("code":-32600,)"
         u8R"("message":"Invalid Request")"
       u8R"(})"
-    u8R"(})");
+    u8R"(})"sv);
     // clang-format on
   }
 
