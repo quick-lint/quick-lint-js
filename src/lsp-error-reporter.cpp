@@ -59,13 +59,15 @@ void lsp_error_formatter::write_before_message(std::string_view code,
   }
 
   lsp_range r = this->locator_.range(origin);
-  this->output_.append_copy(u8"{\"range\":{\"start\":"sv);
-  this->output_.append_copy(u8"{\"line\":"sv);
+  this->output_.append_copy(
+      u8"{\"range\":{\"start\":"sv
+      u8"{\"line\":"sv);
   this->output_.append_decimal_integer(r.start.line);
   this->output_.append_copy(u8",\"character\":"sv);
   this->output_.append_decimal_integer(r.start.character);
-  this->output_.append_copy(u8"},\"end\":"sv);
-  this->output_.append_copy(u8"{\"line\":"sv);
+  this->output_.append_copy(
+      u8"},\"end\":"sv
+      u8"{\"line\":"sv);
   this->output_.append_decimal_integer(r.end.line);
   this->output_.append_copy(u8",\"character\":"sv);
   this->output_.append_decimal_integer(r.end.character);
@@ -73,12 +75,13 @@ void lsp_error_formatter::write_before_message(std::string_view code,
   this->output_.append_copy(severity_type);
   this->output_.append_copy(u8",\"code\":\""sv);
   this->output_.append_copy(to_string8_view(code));
-  this->output_.append_copy(u8"\",\"codeDescription\":"sv);
   this->output_.append_copy(
+      u8"\",\"codeDescription\":"sv
       u8"{\"href\":\"https://quick-lint-js.com/errors/#"sv);
   this->output_.append_copy(to_string8_view(code));
-  this->output_.append_copy(u8"\"},\"source\":\"quick-lint-js\""sv);
-  this->output_.append_copy(u8",\"message\":\""sv);
+  this->output_.append_copy(
+      u8"\"},\"source\":\"quick-lint-js\""sv
+      u8",\"message\":\""sv);
 }
 
 void lsp_error_formatter::write_message_part(
