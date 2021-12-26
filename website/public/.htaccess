@@ -2,6 +2,7 @@
 # See end of file for extended copyright information.
 
 # Optimize loads of the main page and press release pages using HTTP/2 push.
+error-test
 <IfModule http2_module>
   <Files "index.html">
     # Whitelist to avoid pushing for all subdirectories.
