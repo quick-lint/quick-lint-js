@@ -53,9 +53,9 @@ jobs:
         shell: bash
       - name: check links (apache2)
         run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install apache2 rsync -yq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install apache2 rsync -y
           sudo rsync --archive --delete website/www/ /var/www/html/
-          sudo service apache2 reload
+          sudo service apache2 start
           ./ENV/bin/python ./tools/check-links http://localhost/
         shell: bash
       - name: upload build to workflow
