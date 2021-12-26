@@ -68,7 +68,8 @@ class output_stream {
 
   std::unique_ptr<char8[]> buffer_;
   int buffer_size_;
-  int cursor_ = 0;
+  char8* cursor_ = this->buffer_.get();
+  char8* buffer_end_ = this->buffer_.get() + this->buffer_size_;
 };
 
 #if defined(__EMSCRIPTEN__)

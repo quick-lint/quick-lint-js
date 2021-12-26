@@ -45,19 +45,20 @@ void output_stream::append_copy(char8 data) {
 QLJS_WARNING_POP
 
 void output_stream::flush() {
-  this->flush_impl(string8_view(this->buffer_.get(),
-                                narrow_cast<std::size_t>(this->cursor_)));
-  this->cursor_ = 0;
+  this->flush_impl(string8_view(
+      this->buffer_.get(),
+      narrow_cast<std::size_t>(this->cursor_ - this->buffer_.get())));
+  this->cursor_ = this->buffer_.get();
 }
 
 char8* output_stream::reserve(int byte_count) {
   if (byte_count > this->buffer_size_) {
     return nullptr;
   }
-  if (this->cursor_ + byte_count >= this->buffer_size_) {
+  if (this->buffer_end_ - this->cursor_ < byte_count) {
     this->flush();
   }
-  char8* out = this->buffer_.get() + this->cursor_;
+  char8* out = this->cursor_;
   this->cursor_ += byte_count;
   return out;
 }
