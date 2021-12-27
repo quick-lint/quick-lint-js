@@ -2,102 +2,33 @@
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(QuickLintJsSublimeTextPackage)
 
-## QUICK_LINT_JS_SUBLIME_TEXT ##################################################
-if (QUICK_LINT_JS_SUBLIME_TEXT_3 OR QUICK_LINT_JS_SUBLIME_TEXT_4)
-  set(QUICK_LINT_JS_SUBLIME_TEXT TRUE)
-endif ()
+if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL "3")
+  # # NOTE(cahian): Maybe I don't need this code
+  # if (WIN32)
+  #   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  # endif ()
 
-# This code part is responsible for allowing CMake to RUN AGAIN
-# without errors if you don't declare BUILD_SHARED_LIBS=ON or
-# CMAKE_POSITION_INDEPENDENT_CODE=ON on the command line.
-#
-# For example, it allows the Ninja build system to re-run this
-# CMake file without problems.
-if (CACHED_BUILD_SHARED_LIBS)
-  set(BUILD_SHARED_LIBS ON)
-endif ()
-if (CACHED_CMAKE_POSITION_INDEPENDENT_CODE)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif ()
-if (BUILD_SHARED_LIBS)
-  set(CACHED_BUILD_SHARED_LIBS ON CACHE BOOL ON)
-endif ()
-if (CMAKE_POSITION_INDEPENDENT_CODE)
-  set(CACHED_CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL ON)
-endif ()
-if (WIN32)
-  if (CACHED_CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS)
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-  endif ()
-  if (CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS)
-    set(CACHED_CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL ON)
-  endif ()
-endif ()
+  quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)
 
-if (QUICK_LINT_JS_SUBLIME_TEXT)
-  #### FATAL_ERROR ####
-  if (NOT (BUILD_SHARED_LIBS AND CMAKE_POSITION_INDEPENDENT_CODE))
-    if (WIN32 AND NOT CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS)
-      message(
-        FATAL_ERROR
-        "You need to set BUILD_SHARED_LIBS=ON, CMAKE_POSITION_INDEPENDENT_CODE=ON, \
-and CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON to build the Sublime Text plugin."
-      )
-    else ()
-      message(
-        FATAL_ERROR
-        "You need to set BUILD_SHARED_LIBS=ON and CMAKE_POSITION_INDEPENDENT_CODE=ON \
-to build the Sublime Text plugin.")
-    endif ()
-  endif ()
-
-  #### SUBLIME_TEXT_PROJECT_VERSION ####
-  # 0.2.0 -> 0_2_0
-  string(REPLACE "." "_" SUBLIME_TEXT_PROJECT_VERSION "${PROJECT_VERSION}")
-  # 0_2_0 -> v0_2_0
-  string(PREPEND SUBLIME_TEXT_PROJECT_VERSION "v")
-
-  #### SUBLIME_TEXT_VERSION_TAG ####
-  if (QUICK_LINT_JS_SUBLIME_TEXT_3)
-    set(SUBLIME_TEXT_VERSION_TAG "st3")
-  elseif (QUICK_LINT_JS_SUBLIME_TEXT_4)
-    set(SUBLIME_TEXT_VERSION_TAG "st4")
-  endif ()
-
-  #### SUBLIME_TEXT_PACKAGE_PLATFORM ####
-  if (WIN32)
-    set(SUBLIME_TEXT_PACKAGE_SYSTEM_NAME "windows")
-  elseif (APPLE)
-    set(SUBLIME_TEXT_PACKAGE_SYSTEM_NAME "macosx")
-  elseif (UNIX AND "${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
-    set(SUBLIME_TEXT_PACKAGE_SYSTEM_NAME "linux")
-  else ()
-    message(
-      FATAL_ERROR
-      "You can only build the Sublime Text plugin on Windows, macOS, and Linux."
-    )
-  endif ()
-  string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" SUBLIME_TEXT_PACKAGE_SYSTEM_PROCESSOR)
-  set(
-    SUBLIME_TEXT_PACKAGE_PLATFORM
-    "${SUBLIME_TEXT_PACKAGE_SYSTEM_NAME}_${SUBLIME_TEXT_PACKAGE_SYSTEM_PROCESSOR}"
-  )
-
-  #### SUBLIME_TEXT_PACKAGE_PATH ####
-  set(
-    SUBLIME_TEXT_PACKAGE_PATH
-    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-${SUBLIME_TEXT_PROJECT_VERSION}-\
-${SUBLIME_TEXT_VERSION_TAG}-${SUBLIME_TEXT_PACKAGE_PLATFORM}"
+  quick_lint_js_add_library(
+    quick-lint-js-sublime-text
+    MODULE
+    quick-lint-js-sublime-text.cpp
+    quick-lint-js-sublime-text.h
+    quick-lint-js-sublime-text-location.cpp
+    quick-lint-js-sublime-text-location.h
   )
 
   #### SUBLIME_TEXT_PACKAGE_FILES ####
   set(
     SUBLIME_TEXT_PACKAGE_FILES
     $<TARGET_FILE:quick-lint-js-lib>
-    "${CMAKE_CURRENT_SOURCE_DIR}/${SUBLIME_TEXT_VERSION_TAG}/c_api.py"
-    "${CMAKE_CURRENT_SOURCE_DIR}/${SUBLIME_TEXT_VERSION_TAG}/plugin.py"
-    "${CMAKE_CURRENT_SOURCE_DIR}/${SUBLIME_TEXT_VERSION_TAG}/.python-version"
+    "${CMAKE_CURRENT_SOURCE_DIR}/interface.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/extension.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/.python-version"
     "${CMAKE_CURRENT_SOURCE_DIR}/.no-sublime-package"
   )
   if (WIN32)
