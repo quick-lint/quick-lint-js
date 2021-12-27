@@ -30,7 +30,7 @@ struct translation_table {
   }
 };
 
-extern translation_table translation_data;
+extern const translation_table translation_data;
 }
 
 #endif

@@ -420,7 +420,7 @@ func WriteTranslationTableSource(table *TranslationTable, path string) error {
 #include <quick-lint-js/translation-table.h>
 
 namespace quick_lint_js {
-translation_table translation_data = {
+const translation_table translation_data = {
     .mapping_table =
         {
 `)
