@@ -53,7 +53,7 @@ jobs:
         shell: bash
       - name: check links (apache2)
         run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install apache2 rsync -y
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install apache2 rsync openssh-client openssh-server -y
           sudo rsync --archive --delete website/www/ /var/www/html/
           sudo sed -i -e '0,/None/ s/AllowOverride\ None/AllowOverride\ FileInfo/' /etc/apache2/apache2.conf
           sudo service apache2 start
