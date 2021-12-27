@@ -38,9 +38,6 @@ jobs:
       - name: bundle site
         run: cd website && zip -r ../website.zip www
       
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-      
       - name: set up check-links
         run: |
           python3.7 -m venv ENV
@@ -77,7 +74,9 @@ jobs:
           private-key: ${{ secrets.artifacts_key }}
           remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/website/
           user: ${{ secrets.artifacts_user }}
-
+          
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
