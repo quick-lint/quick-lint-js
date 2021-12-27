@@ -55,7 +55,7 @@ jobs:
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get install apache2 rsync -y
           sudo rsync --archive --delete website/www/ /var/www/html/
-          sudo sed -e '0,/None/ s/None/FileInfo/' /etc/apache2/apache2.conf
+          sudo sed -i -e '0,/None/ s/None/FileInfo/' /etc/apache2/apache2.conf
           sudo service apache2 start
           ./ENV/bin/python ./tools/check-links http://localhost/
         shell: bash
