@@ -182,7 +182,7 @@ quick_lint_js_add_library(
   uri.cpp
   utf-16.cpp
   utf-8.cpp
-  vector.cpp
+  vector-profiler.cpp
   vim-location.cpp
   vim-qflist-json-error-reporter.cpp
   web-demo-location.cpp
@@ -205,7 +205,6 @@ if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
     quick-lint-js-lib
     PUBLIC
     <boost/container/pmr/polymorphic_allocator.hpp>
-    <boost/container/small_vector.hpp>
     <cmath>
     <cstring>
     <simdjson.h>

@@ -88,6 +88,7 @@ quick_lint_js_add_executable(
   test-uri.cpp
   test-utf-16.cpp
   test-utf-8.cpp
+  test-vector-profiler.cpp
   test-vector.cpp
   test-vim-location.cpp
   test-vim-qflist-json-error-reporter.cpp
@@ -112,7 +113,6 @@ if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
     PRIVATE
     <boost/container/pmr/monotonic_buffer_resource.hpp>
     <boost/container/pmr/polymorphic_allocator.hpp>
-    <boost/container/small_vector.hpp>
     <gmock/gmock.h>
     <gtest/gtest.h>
     <iostream>

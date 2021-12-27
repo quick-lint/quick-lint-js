@@ -21,11 +21,13 @@ output_stream::output_stream()
 
 output_stream::output_stream(int buffer_size)
     : buffer_(new char8[narrow_cast<std::size_t>(buffer_size)]),
-      buffer_size_(buffer_size) {}
+      buffer_size_(buffer_size) {
+  QLJS_ASSERT(this->buffer_size_ >= this->minimum_buffer_size);
+}
 
 output_stream::~output_stream() = default;
 
-void output_stream::append_copy(string8_view data) {
+[[gnu::noinline]] void output_stream::append_copy(string8_view data) {
   char8* out = this->reserve(narrow_cast<int>(data.size()));
   if (out) {
     std::copy(data.begin(), data.end(), out);
@@ -33,6 +35,14 @@ void output_stream::append_copy(string8_view data) {
     this->flush();
     this->flush_impl(data);
   }
+}
+
+void output_stream::append_copy_small(string8_view data) {
+  int data_size = narrow_cast<int>(data.size());
+  QLJS_ASSERT(data_size <= this->buffer_size_);
+  char8* out = this->reserve(data_size);
+  QLJS_ASSERT(out);
+  std::copy(data.begin(), data.end(), out);
 }
 
 QLJS_WARNING_PUSH
@@ -45,19 +55,21 @@ void output_stream::append_copy(char8 data) {
 QLJS_WARNING_POP
 
 void output_stream::flush() {
-  this->flush_impl(string8_view(this->buffer_.get(),
-                                narrow_cast<std::size_t>(this->cursor_)));
-  this->cursor_ = 0;
+  this->flush_impl(string8_view(
+      this->buffer_.get(),
+      narrow_cast<std::size_t>(this->cursor_ - this->buffer_.get())));
+  this->cursor_ = this->buffer_.get();
 }
 
 char8* output_stream::reserve(int byte_count) {
-  if (byte_count > this->buffer_size_) {
+  if (byte_count >= this->minimum_buffer_size &&
+      byte_count > this->buffer_size_) {
     return nullptr;
   }
-  if (this->cursor_ + byte_count >= this->buffer_size_) {
+  if (this->buffer_end_ - this->cursor_ < byte_count) {
     this->flush();
   }
-  char8* out = this->buffer_.get() + this->cursor_;
+  char8* out = this->cursor_;
   this->cursor_ += byte_count;
   return out;
 }

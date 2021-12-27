@@ -7,10 +7,10 @@
 #include <new>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/variant.h>
 #include <string>
 #include <type_traits>
 #include <utility>
-#include <variant>
 
 namespace quick_lint_js {
 template <class T, class... Errors>
@@ -34,7 +34,7 @@ class result_base {
  private:
   template <class U>
   using to_value_type =
-      std::conditional_t<std::is_same_v<U, void>, std::monostate, U>;
+      std::conditional_t<std::is_same_v<U, void>, monostate, U>;
 
   using result = quick_lint_js::result<T, Errors...>;
   using value_type = to_value_type<T>;
@@ -61,8 +61,9 @@ class result_base {
   // Private constructor used by propagate. Do not call directly.
   template <class U, class... OtherErrors>
   /*implicit*/ result_base(result_propagation<U, OtherErrors...>&& propagation)
-      : data_(std::visit(propagate_visitor<U>(),
-                         std::move(propagation.to_propagate).data_)) {}
+      : data_(quick_lint_js::visit(propagate_visitor<U>(),
+                                   std::move(propagation.to_propagate).data_)) {
+  }
 
   // TODO(strager): Allow copying.
   result_base(const result_base&) = delete;
@@ -73,7 +74,7 @@ class result_base {
 
   template <class... OtherErrors>
   /*implicit*/ result_base(quick_lint_js::result<T, OtherErrors...>&& other)
-      : data_(std::visit(move_data_visitor(), std::move(other).data_)) {}
+      : data_(visit(move_data_visitor(), std::move(other).data_)) {}
 
   template <class Error>
   static result failure(Error&& error) {
@@ -90,40 +91,40 @@ class result_base {
 
   value_type& value() & noexcept {
     QLJS_ASSERT(this->ok());
-    return std::get<0>(this->data_);
+    return get<0>(this->data_);
   }
 
   value_type&& value() && noexcept {
     QLJS_ASSERT(this->ok());
-    return std::get<0>(std::move(this->data_));
+    return get<0>(std::move(this->data_));
   }
 
   const value_type& value() const& noexcept {
     QLJS_ASSERT(this->ok());
-    return std::get<0>(this->data_);
+    return get<0>(this->data_);
   }
 
   template <class Error>
   bool has_error() const noexcept {
     // TODO(strager): If std::is_same_v<Error, value_type>, then
-    // std::holds_alternative is incorrect.
-    return std::holds_alternative<Error>(this->data_);
+    // holds_alternative is incorrect.
+    return holds_alternative<Error>(this->data_);
   }
 
   template <class Error>
   const Error& error() const noexcept {
     QLJS_ASSERT(!this->ok());
     QLJS_ASSERT(this->has_error<Error>());
-    // TODO(strager): If std::is_same_v<Error, value_type>, then std::get<Error>
+    // TODO(strager): If std::is_same_v<Error, value_type>, then get<Error>
     // is incorrect.
-    return std::get<Error>(this->data_);
+    return get<Error>(this->data_);
   }
 
   std::string error_to_string() const {
     QLJS_ASSERT(!this->ok());
-    // TODO(strager): If std::is_same_v<Error, value_type>, then std::visit is
+    // TODO(strager): If std::is_same_v<Error, value_type>, then visit is
     // incorrect.
-    return std::visit(to_string_visitor(), this->data_);
+    return visit(to_string_visitor(), this->data_);
   }
 
   result_propagation<T, Errors...> propagate() & {
@@ -135,23 +136,23 @@ class result_base {
 
   template <class... NewErrors>
   quick_lint_js::result<void, NewErrors...> copy_errors() {
-    // TODO(strager): If any of NewErrors equals value_type, then std::visit is
+    // TODO(strager): If any of NewErrors equals value_type, then visit is
     // incorrect.
-    return std::visit(copy_errors_visitor<NewErrors...>(), this->data_);
+    return visit(copy_errors_visitor<NewErrors...>(), this->data_);
   }
 
   // For tests.
   template <class U>
   friend bool holds_alternative(const result_base<T, Errors...>& r) noexcept {
     // TODO(strager): Make this work properly if T is void.
-    return std::holds_alternative<U>(r.data_);
+    return holds_alternative<U>(r.data_);
   }
 
   // For tests.
   template <class U>
   friend const U& get(const result_base<T, Errors...>& r) noexcept {
     // TODO(strager): Make this work properly if T is void.
-    return std::get<U>(r.data_);
+    return get<U>(r.data_);
   }
 
   value_type& operator*() & noexcept { return this->value(); }
@@ -177,22 +178,22 @@ class result_base {
     auto operator()(TOrError&& datum) {
       // TODO(strager): If (std::is_same_v<Errors, value_type> || ...),
       // then std::in_place_type is incorrect.
-      return std::variant<value_type, Errors...>(
+      return variant<value_type, Errors...>(
           std::in_place_type<std::decay_t<TOrError>>, std::move(datum));
     }
   };
 
   template <class U>
   struct propagate_visitor {
-    std::variant<value_type, Errors...> operator()(to_value_type<U>&&) {
+    variant<value_type, Errors...> operator()(to_value_type<U>&&) {
       QLJS_UNREACHABLE();
     }
 
     template <class Error>
-    std::variant<value_type, Errors...> operator()(Error&& error) {
+    variant<value_type, Errors...> operator()(Error&& error) {
       // TODO(strager): If (std::is_same_v<Errors, value_type> || ...), then
       // std::in_place_type is incorrect.
-      return std::variant<value_type, Errors...>(
+      return variant<value_type, Errors...>(
           std::in_place_type<std::decay_t<Error>>, std::move(error));
     }
   };
@@ -219,13 +220,13 @@ class result_base {
     }
   };
 
-  std::variant<value_type, Errors...> data_;
+  variant<value_type, Errors...> data_;
 
   template <class, class...>
   friend class result_base;
 };
 
-// Like std::variant<T, Errors...>, but more ergonomic.
+// Like variant<T, Errors...>, but more ergonomic.
 //
 // Errors must be unique. For example, result<int, char, char> is illegal.
 template <class T, class... Errors>
@@ -251,7 +252,7 @@ class result : public result_base<T, Errors...> {
   friend class result_base;
 };
 
-// Like std::variant<std::monostate, Errors...>, but more ergonomic.
+// Like variant<monostate, Errors...>, but more ergonomic.
 //
 // Errors must be unique. For example, result<void, char, char> is illegal.
 template <class... Errors>
@@ -274,7 +275,7 @@ class result<void, Errors...> : public result_base<void, Errors...> {
   friend class result_base;
 };
 
-// Like std::variant<T, Error>, but more ergonomic.
+// Like variant<T, Error>, but more ergonomic.
 template <class T, class Error>
 class result<T, Error> : public result_base<T, Error> {
  private:

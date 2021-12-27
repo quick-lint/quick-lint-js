@@ -42,15 +42,15 @@ void emacs_lisp_error_formatter::write_before_message(
   emacs_source_range r = this->locator_.range(origin);
   emacs_source_position::offset_type beg = r.begin().offset;
   emacs_source_position::offset_type end = r.end().offset;
-  this->output_.append_copy(u8"(("sv);
+  this->output_.append_literal(u8"(("sv);
   this->output_.append_decimal_integer(beg);
-  this->output_.append_copy(u8" . "sv);
+  this->output_.append_literal(u8" . "sv);
   this->output_.append_decimal_integer(end);
-  this->output_.append_copy(u8") "sv);
+  this->output_.append_literal(u8") "sv);
   this->output_.append_decimal_integer(static_cast<int>(sev));
-  this->output_.append_copy(u8" \""sv);
+  this->output_.append_literal(u8" \""sv);
   this->output_.append_copy(to_string8_view(code));
-  this->output_.append_copy(u8"\" \""sv);
+  this->output_.append_literal(u8"\" \""sv);
 }
 
 namespace {
@@ -82,7 +82,7 @@ void emacs_lisp_error_formatter::write_after_message(
   if (sev == diagnostic_severity::note) {
     return;
   }
-  this->output_.append_copy(u8"\")"sv);
+  this->output_.append_literal(u8"\")"sv);
 }
 }
 

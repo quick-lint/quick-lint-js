@@ -6,11 +6,14 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <iomanip>
 #include <limits>
 #include <map>
 #include <ostream>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/vector-profiler.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 #include <string>
@@ -80,13 +83,12 @@ vector_instrumentation::max_size_histogram_by_owner() const {
 void vector_instrumentation::dump_max_size_histogram(
     const std::map<std::string, std::map<std::size_t, int>> &histogram,
     std::ostream &out) {
-  return dump_max_size_histogram(
-      histogram, out, /*maximum_line_length=*/std::numeric_limits<int>::max());
+  return dump_max_size_histogram(histogram, out, dump_options());
 }
 
 void vector_instrumentation::dump_max_size_histogram(
     const std::map<std::string, std::map<std::size_t, int>> &histogram,
-    std::ostream &out, int maximum_line_length) {
+    std::ostream &out, const dump_options &options) {
   bool need_blank_line = false;
   for (const auto &[group_name, object_size_histogram] : histogram) {
     QLJS_ASSERT(!object_size_histogram.empty());
@@ -109,17 +111,25 @@ void vector_instrumentation::dump_max_size_histogram(
     int max_digits_in_legend = static_cast<int>(
         std::ceil(std::log10(static_cast<double>(max_object_size + 1))));
     int legend_length = max_digits_in_legend + 9;
-    int maximum_bar_length = maximum_line_length - legend_length;
+    int maximum_bar_length = options.maximum_line_length - legend_length;
     double bar_scale_factor = max_count > maximum_bar_length
                                   ? static_cast<double>(maximum_bar_length) /
                                         static_cast<double>(max_count)
                                   : 1.0;
 
-    for (std::size_t object_size = 0; object_size <= max_object_size;
-         ++object_size) {
-      auto entry_it = object_size_histogram.find(object_size);
-      int count =
-          entry_it == object_size_histogram.end() ? 0 : entry_it->second;
+    std::size_t next_object_size = 0;
+    for (auto &[object_size, count] : object_size_histogram) {
+      QLJS_ASSERT(count != 0);
+
+      QLJS_ASSERT(options.max_adjacent_empty_rows > 0);
+      if (object_size - next_object_size >
+          narrow_cast<std::size_t>(options.max_adjacent_empty_rows)) {
+        out << "...\n";
+      } else {
+        for (std::size_t i = next_object_size; i < object_size; ++i) {
+          out << std::setw(max_digits_in_legend) << i << "  ( 0%)\n";
+        }
+      }
 
       out << std::setw(max_digits_in_legend) << object_size << "  (";
       if (count == total_count) {
@@ -131,28 +141,117 @@ void vector_instrumentation::dump_max_size_histogram(
       }
       out << ')';
 
-      if (count > 0) {
-        int bar_width =
-            std::max(1, static_cast<int>(std::floor(static_cast<double>(count) *
-                                                    bar_scale_factor)));
-        out << "  ";
-        for (int i = 0; i < bar_width; ++i) {
-          out << '*';
-        }
+      int bar_width =
+          std::max(1, static_cast<int>(std::floor(static_cast<double>(count) *
+                                                  bar_scale_factor)));
+      out << "  ";
+      for (int i = 0; i < bar_width; ++i) {
+        out << '*';
       }
       out << '\n';
+
+      next_object_size = object_size + 1;
     }
+  }
+}
+
+std::map<std::string, vector_instrumentation::capacity_change_histogram>
+vector_instrumentation::capacity_change_histogram_by_owner() const {
+  std::map<std::string, capacity_change_histogram> histogram;
+  struct vector_info {
+    std::uintptr_t data_pointer;
+    std::size_t size;
+  };
+  std::map<std::uintptr_t, vector_info> objects;
+  for (const vector_instrumentation::entry &entry : this->entries_) {
+    capacity_change_histogram &h = histogram[entry.owner];
+    if (entry.event == event::append) {
+      auto old_object_it = objects.find(entry.object_id);
+      QLJS_ASSERT(old_object_it != objects.end());
+      vector_info &old_object = old_object_it->second;
+      if (old_object.data_pointer == entry.data_pointer) {
+        h.appends_reusing_capacity += 1;
+      } else if (old_object.size == 0) {
+        h.appends_initial_capacity += 1;
+      } else {
+        h.appends_growing_capacity += 1;
+      }
+    }
+    objects[entry.object_id] = vector_info{
+        .data_pointer = entry.data_pointer,
+        .size = entry.size,
+    };
+  }
+  return histogram;
+}
+
+void vector_instrumentation::dump_capacity_change_histogram(
+    const std::map<std::string, capacity_change_histogram> &histogram,
+    std::ostream &out, const dump_capacity_change_options &options) {
+  out << R"(vector capacity changes:
+(C=copied; z=initial alloc; -=used internal capacity)
+)";
+
+  int count_width = 1;
+  for (auto &[owner, h] : histogram) {
+    count_width = std::max(
+        count_width,
+        narrow_cast<int>(std::max(
+            std::max(std::to_string(h.appends_growing_capacity).size(),
+                     std::to_string(h.appends_initial_capacity).size()),
+            std::to_string(h.appends_reusing_capacity).size())));
+  }
+
+  for (auto &[owner, h] : histogram) {
+    std::size_t append_count = h.appends_growing_capacity +
+                               h.appends_initial_capacity +
+                               h.appends_reusing_capacity;
+    if (append_count == 0) {
+      continue;
+    }
+
+    out << owner << ":\n";
+
+    // Example:
+    //  5C  0z 15_ |CCCCC_______________|
+    out << std::setw(count_width) << h.appends_growing_capacity << "C "
+        << std::setw(count_width) << h.appends_initial_capacity << "z "
+        << std::setw(count_width) << h.appends_reusing_capacity << "_ |";
+    int graph_columns =
+        options.maximum_line_length -
+        (count_width * 3 + narrow_cast<int>(std::strlen("C z _ ||")));
+    int columns_growing_capacity =
+        narrow_cast<int>(narrow_cast<std::uintmax_t>(graph_columns) *
+                         h.appends_growing_capacity / append_count);  // 'C'
+    for (int i = 0; i < columns_growing_capacity; ++i) {
+      out << 'C';
+    }
+    int columns_initial_capacity =
+        narrow_cast<int>(narrow_cast<std::uintmax_t>(graph_columns) *
+                         h.appends_initial_capacity / append_count);  // 'z'
+    for (int i = 0; i < columns_initial_capacity; ++i) {
+      out << 'z';
+    }
+    int columns_reusing_capacity =
+        graph_columns -
+        (columns_growing_capacity + columns_initial_capacity);  // '_'
+    for (int i = 0; i < columns_reusing_capacity; ++i) {
+      out << '_';
+    }
+    out << "|\n";
   }
 }
 
 void vector_instrumentation::add_entry(std::uintptr_t object_id,
                                        const char *owner,
                                        vector_instrumentation::event event,
+                                       std::uintptr_t data_pointer,
                                        std::size_t size, std::size_t capacity) {
   this->entries_.emplace_back(entry{
       .object_id = object_id,
       .owner = owner,
       .event = event,
+      .data_pointer = data_pointer,
       .size = size,
       .capacity = capacity,
   });
@@ -166,7 +265,16 @@ void vector_instrumentation::register_dump_on_exit_if_requested() {
     std::atexit([]() -> void {
       instance.dump_max_size_histogram(instance.max_size_histogram_by_owner(),
                                        std::cerr,
-                                       /*maximum_line_length=*/80);
+                                       dump_options{
+                                           .maximum_line_length = 80,
+                                           .max_adjacent_empty_rows = 5,
+                                       });
+      std::cerr << '\n';
+      instance.dump_capacity_change_histogram(
+          instance.capacity_change_histogram_by_owner(), std::cerr,
+          dump_capacity_change_options{
+              .maximum_line_length = 80,
+          });
     });
   }
 #endif

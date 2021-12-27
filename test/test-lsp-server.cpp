@@ -277,7 +277,7 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
                 },
                 "jsonrpc":"2.0"
               }
-            )--");
+            )--"sv);
   };
 
   this->server.append(
@@ -346,7 +346,7 @@ TEST_F(test_linting_lsp_server, opening_document_language_id_js_lints) {
                 },
                 "jsonrpc":"2.0"
               }
-            )--");
+            )--"sv);
   };
 
   this->server.append(

@@ -2,7 +2,6 @@
 // See end of file for extended copyright information.
 
 #include <array>
-#include <boost/container/small_vector.hpp>
 #include <cstring>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/locale.h>
@@ -130,8 +129,9 @@ template <class Func>
 void locale_name_combinations(const char* locale_name, Func&& callback) {
   locale_parts parts = parse_locale(locale_name);
 
-  boost::container::small_vector<char, 32> locale;
-  locale.reserve(std::strlen(locale_name));
+  std::vector<char> locale;
+  std::size_t max_locale_size = std::strlen(locale_name);
+  locale.reserve(max_locale_size);
   locale.insert(locale.end(), parts.language().begin(), parts.language().end());
 
   unsigned present_parts_mask = 0;
@@ -170,6 +170,7 @@ void locale_name_combinations(const char* locale_name, Func&& callback) {
         locale.insert(locale.end(), part.begin(), part.end());
       }
     }
+    QLJS_ASSERT(locale.size() <= max_locale_size);
 
     bool keep_going = callback(std::string_view(locale.data(), locale.size()));
     if (!keep_going) {

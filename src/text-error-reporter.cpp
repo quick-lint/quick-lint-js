@@ -58,16 +58,16 @@ void text_error_formatter::write_before_message(
   this->output_.append_decimal_integer(p.line_number);
   this->output_.append_copy(u8':');
   this->output_.append_decimal_integer(p.column_number);
-  this->output_.append_copy(u8": "sv);
+  this->output_.append_literal(u8": "sv);
   switch (sev) {
   case diagnostic_severity::error:
-    this->output_.append_copy(u8"error: "sv);
+    this->output_.append_literal(u8"error: "sv);
     break;
   case diagnostic_severity::note:
-    this->output_.append_copy(u8"note: "sv);
+    this->output_.append_literal(u8"note: "sv);
     break;
   case diagnostic_severity::warning:
-    this->output_.append_copy(u8"warning: "sv);
+    this->output_.append_literal(u8"warning: "sv);
     break;
   }
 }
@@ -85,13 +85,13 @@ void text_error_formatter::write_after_message(std::string_view code,
     this->output_.append_copy(
         u8" [\x1B]8;;https://quick-lint-js.com/errors/#"sv);
     this->output_.append_copy(to_string8_view(code));
-    this->output_.append_copy(u8"\x1B\\"sv);
+    this->output_.append_literal(u8"\x1B\\"sv);
     this->output_.append_copy(to_string8_view(code));
-    this->output_.append_copy(u8"\x1B]8;;\x1B\\]\n"sv);
+    this->output_.append_literal(u8"\x1B]8;;\x1B\\]\n"sv);
   } else {
-    this->output_.append_copy(u8" ["sv);
+    this->output_.append_literal(u8" ["sv);
     this->output_.append_copy(to_string8_view(code));
-    this->output_.append_copy(u8"]\n"sv);
+    this->output_.append_literal(u8"]\n"sv);
   }
 }
 }

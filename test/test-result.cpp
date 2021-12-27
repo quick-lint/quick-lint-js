@@ -436,12 +436,22 @@ TYPED_TEST(test_result_error,
   struct e_a {};
   struct e_b {};
   struct e_c {};
-  result<TypeParam, e_b> r = result<TypeParam, e_b>::failure(e_b());
-  result<void, e_a, e_b, e_c> v = r.template copy_errors<e_a, e_b, e_c>();
-  EXPECT_FALSE(v.ok());
-  EXPECT_FALSE(v.template has_error<e_a>());
-  EXPECT_TRUE(v.template has_error<e_b>());
-  EXPECT_FALSE(v.template has_error<e_c>());
+
+  {
+    result<TypeParam, e_b> r = result<TypeParam, e_b>::failure(e_b());
+    result<void, e_a, e_b> v = r.template copy_errors<e_a, e_b>();
+    EXPECT_FALSE(v.ok());
+    EXPECT_FALSE(v.template has_error<e_a>());
+    EXPECT_TRUE(v.template has_error<e_b>());
+  }
+
+  {
+    result<TypeParam, e_b> r = result<TypeParam, e_b>::failure(e_b());
+    result<void, e_b, e_c> v = r.template copy_errors<e_b, e_c>();
+    EXPECT_FALSE(v.ok());
+    EXPECT_TRUE(v.template has_error<e_b>());
+    EXPECT_FALSE(v.template has_error<e_c>());
+  }
 }
 }
 }

@@ -162,10 +162,14 @@ byte_buffer_iovec byte_buffer::to_iovec() && {
 
 void byte_buffer::reserve(size_type extra_byte_count) {
   if (this->bytes_remaining_in_current_chunk() < extra_byte_count) {
-    this->update_current_chunk_size();
-    this->remove_current_chunk_if_empty();
-    this->add_new_chunk(std::max(default_chunk_size, extra_byte_count));
+    this->grow(extra_byte_count);
   }
+}
+
+[[gnu::noinline]] void byte_buffer::grow(size_type extra_byte_count) {
+  this->update_current_chunk_size();
+  this->remove_current_chunk_if_empty();
+  this->add_new_chunk(std::max(default_chunk_size, extra_byte_count));
 }
 
 void byte_buffer::update_current_chunk_size() noexcept {
