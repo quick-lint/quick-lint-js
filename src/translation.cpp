@@ -7,7 +7,6 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/have.h>
-#include <quick-lint-js/program-report.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/warning.h>
 #include <string>
@@ -63,7 +62,7 @@ std::vector<std::string> get_user_locale_preferences() {
 
 void initialize_locale() {
   if (!std::setlocale(LC_ALL, "")) {
-    ::std:fprintf("warning: failed to set locale: %s\n",
+    std::fprintf(stderr,"warning: failed to set locale: %s\n",
                                 std::strerror(errno));
   }
 }

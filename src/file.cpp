@@ -291,7 +291,7 @@ void write_file(const std::string &path, string8_view content) {
 void write_file(const char *path, string8_view content) {
   FILE *file = std::fopen(path, "wb");
   if (!file) {
-    ::std:fprintf(
+    std::fprintf(stderr,
         "fatal: failed to open file %s for writing: %s\n", path,
         std::strerror(errno));
     std::abort();
@@ -299,13 +299,13 @@ void write_file(const char *path, string8_view content) {
 
   std::size_t written = std::fwrite(content.data(), 1, content.size(), file);
   if (written != content.size()) {
-    ::std:fprintf(
+    std::fprintf(stderr,
         "fatal: failed to write entirely of file %s\n", path);
     std::abort();
   }
   std::fflush(file);
   if (std::ferror(file)) {
-    ::std:fprintf("fatal: failed to write file %s: %s\n",
+    std::fprintf(stderr,"fatal: failed to write file %s: %s\n",
                                     path, std::strerror(errno));
     std::abort();
   }

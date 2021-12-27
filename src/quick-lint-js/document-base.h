@@ -2,9 +2,11 @@
 // See end of file for extended copyright information.
 
 #include <quick-lint-js/document.h>
+#include <quick-lint-js/parse.h>
 
 namespace quick_lint_js {
-template <class Locator, class ErrorReporter, class Diagnostic>
+template <class Locator, template <class, class> class ErrorReporter,
+          class Diagnostic>
 class document_base {
  public:
   const auto* lint() {

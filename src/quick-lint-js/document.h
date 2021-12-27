@@ -7,7 +7,6 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/sublime-text-3-location.h>
 #include <quick-lint-js/web-demo-location.h>
 
 namespace quick_lint_js {

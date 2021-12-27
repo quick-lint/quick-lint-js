@@ -15,7 +15,6 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/program-report.h>
 #include <quick-lint-js/result.h>
 #include <string>
 
@@ -50,7 +49,7 @@ template <class Result>
 auto exit_on_read_file_error_handlers() {
   return make_read_file_error_handlers(
       [](const std::string &message) -> Result {
-        ::std:fprintf("error: %s\n", message.c_str());
+        std::fprintf(stderr,"error: %s\n", message.c_str());
         std::exit(1);
       });
 }
