@@ -9,13 +9,14 @@ namespace quick_lint_js {
 namespace {
 // NOTE: Sublime Text 4 uses quick_lint_js::lsp_locator
 
-using sublime_text_document =
-    document_base<sublime_text_locator, c_api_error_reporter,
+using sublime_text_document_base =
+    document_base<qljs_st_locator, c_api_error_reporter,
                   qljs_st_diagnostic>;
 }  // namespace
 }  // namespace quick_lint_js
 
-struct qljs_st_document final : public quick_lint_js::sublime_text_document {
+struct qljs_st_document final
+    : public quick_lint_js::sublime_text_document_base {
  public:
   void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);
@@ -31,15 +32,16 @@ qljs_st_document* qljs_st_document_new(void) { return new qljs_st_document(); }
 
 void qljs_st_document_delete(qljs_st_document* document) { delete document; }
 
-void qljs_st_document_set_text(qljs_st_document* document, const qljs_st_text* text) {
+void qljs_st_document_set_text(qljs_st_document* document,
+                               const qljs_st_text* text) {
   auto content8 = reinterpret_cast<const quick_lint_js::char8*>(text->content);
   auto replacement8 = quick_lint_js::string8_view(content, text->length);
   document->set_text(replacement8);
 }
 
 void qljs_st_document_replace_text(qljs_st_document* document,
-                                 const qljs_st_range* range,
-                                 const qljs_st_text* text) {
+                                   const qljs_st_range* range,
+                                   const qljs_st_text* text) {
   auto lrange = reinterpret_cast<const quick_lint_js::lsp_range*>(range);
   auto content8 = reinterpret_cast<const quick_lint_js::char8*>(text->content);
   auto replacement8 = quick_lint_js::string8_view(content8, text->length);

@@ -5,23 +5,26 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/utf-8.h>
 
-namespace quick_lint_js {
-sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
+#if QLJS_ST_PLUGIN_VERSION == 3
+qljs_st_locator::qljs_st_locator(padded_string_view input) noexcept
     : input_(input) {}
 
-sublime_text_range sublime_text_locator::range(source_code_span span) const {
+qljs_st_range qljs_st_locator::range(source_code_span span) const {
   auto begin = this->position(span.begin());
   auto end = this->position(span.end());
-  return sublime_text_range{.begin = begin, .end = end};
+  return qljs_st_range{.begin = begin, .end = end};
 }
 
-sublime_text_offset sublime_text_locator::position(const char8* c) const
-    noexcept {
+qljs_st_offset qljs_st_locator::position(const char8* c) const noexcept {
   std::size_t byte_offset = narrow_cast<std::size_t>(c - this->input_.data());
   std::size_t count = count_utf_8_characters(this->input_, byte_offset);
-  return narrow_cast<sublime_text_offset>(count);
+  return narrow_cast<qljs_st_offset>(count);
 }
-}  // namespace quick_lint_js
+#else
+qljs_st_locator::qljs_st_locator(padded_string_view input) noexcept {
+  quick_lint_js::lsp_locator(input)
+}
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar

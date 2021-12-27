@@ -31,7 +31,6 @@ class document {
 
 extern template class document<lsp_locator>;
 extern template class document<web_demo_locator>;
-extern template class document<sublime_text_3_locator>;
 }
 
 #endif

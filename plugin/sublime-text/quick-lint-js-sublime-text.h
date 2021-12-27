@@ -22,32 +22,11 @@ struct qljs_st_text {
   size_t length;
 };
 
-struct qljs_st_position {
-  unsigned int line;
-  unsigned int character;
-};
-
-#if QLJS_ST_PLUGIN_VERSION == 3
-struct qljs_st_region {
-  unsigned int start;
-  unsigned int end;
-};
-#else
-struct qljs_st_range {
-  qljs_st_position start;
-  qljs_st_position end;
-};
-#endif
-
 struct qljs_st_diagnostic {
   const char* message;
   const char* code;
-  qljs_st_severity_error severity;
-#if QLJS_ST_PLUGIN_VERSION == 3
-  const qljs_st_region* region;
-#else
+  qljs_st_severity severity;
   const qljs_st_range* range;
-#endif
 };
 
 qljs_st_document* qljs_st_document_new(void);

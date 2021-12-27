@@ -8,27 +8,69 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
 
-namespace quick_lint_js {
-using sublime_text_offset = unsigned int;
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
-struct sublime_text_range {
-  sublime_text_offset begin;
-  sublime_text_offset end;
+typedef struct qljs_st_locator qljs_st_locator;
+typedef unsigned int qljs_st_offset;
+
+#if QLJS_ST_PLUGIN_VERSION == 3
+struct qljs_st_range {
+  qljs_st_offset begin;
+  qljs_st_offset end;
 };
 
-class sublime_text_locator {
+struct qljs_st_locator {
  public:
-  using range_type = sublime_text_range;
+  using range_type = qljs_st_range;
+  using offset_type = qljs_st_offset;
 
-  explicit sublime_text_3_locator(padded_string_view input) noexcept;
+  explicit qljs_st_locator(padded_string_view input) noexcept;
 
-  sublime_text_range range(source_code_span) const;
-  sublime_text_offset position(const char8*) const noexcept;
+  range_type range(source_code_span) const;
+  offset_type position(const char8*) const noexcept;
 
  private:
   padded_string_view input_;
 };
-}  // namespace quick_lint_js
+#else
+#include <lsp-location.h>
+
+struct qljs_st_position {
+  qljs_st_offset line;
+  qljs_st_offset character;
+};
+
+struct qljs_st_range {
+  qljs_st_position start;
+  qljs_st_position end;
+};
+
+struct qljs_st_locator final : public quick_lint_js::lsp_locator {
+ public:
+  using range_type = qljs_st_range;
+  using offset_type = qljs_st_offset;
+  using position_type = qljs_st_position;
+
+  explicit qljs_st_locator(padded_string_view input) noexcept;
+
+  range_type range(source_code_span span) const;
+
+  position_type position(const char8 *source) const noexcept;
+
+  const char8 *from_position(position_type position) const noexcept;
+
+  void replace_text(range_type range,
+                    string8_view replacement_text,
+                    padded_string_view new_input);
+};
+
+#endif
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
