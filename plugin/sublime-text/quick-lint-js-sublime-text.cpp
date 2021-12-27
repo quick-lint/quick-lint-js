@@ -5,25 +5,25 @@
 #include <quick-lint-js-sublime-text.h>
 #include <quick-lint-js/document-base.h>
 
+namespace qljs = quick_lint_js;
+
 namespace quick_lint_js {
 namespace {
 // NOTE: Sublime Text 4 uses quick_lint_js::lsp_locator
 
 using sublime_text_document_base =
-    document_base<qljs_st_locator, c_api_error_reporter,
-                  qljs_st_diagnostic>;
+    document_base<qljs_st_locator, c_api_error_reporter, qljs_st_diagnostic>;
 }  // namespace
 }  // namespace quick_lint_js
 
-struct qljs_st_document final
-    : public quick_lint_js::sublime_text_document_base {
+struct qljs_st_document final : public qljs::sublime_text_document_base {
  public:
-  void set_text(quick_lint_js::string8_view replacement) {
+  void set_text(qljs::string8_view replacement) {
     this->document_.set_text(replacement);
   }
 
-  void replace_text(quick_lint_js::lsp_range range,
-                    quick_lint_js::string8_view replacement) {
+  void replace_text(qljs_st_locator::range_type range,
+                    qljs::string8_view replacement) {
     this->document_.replace_text(range, replacement);
   }
 };
@@ -34,17 +34,17 @@ void qljs_st_document_delete(qljs_st_document* document) { delete document; }
 
 void qljs_st_document_set_text(qljs_st_document* document,
                                const qljs_st_text* text) {
-  auto content8 = reinterpret_cast<const quick_lint_js::char8*>(text->content);
-  auto replacement8 = quick_lint_js::string8_view(content, text->length);
+  auto content8 = reinterpret_cast<const qljs::char8*>(text->content);
+  auto replacement8 = qljs::string8_view(content, text->length);
   document->set_text(replacement8);
 }
 
 void qljs_st_document_replace_text(qljs_st_document* document,
                                    const qljs_st_range* range,
                                    const qljs_st_text* text) {
-  auto lrange = reinterpret_cast<const quick_lint_js::lsp_range*>(range);
-  auto content8 = reinterpret_cast<const quick_lint_js::char8*>(text->content);
-  auto replacement8 = quick_lint_js::string8_view(content8, text->length);
+  auto lrange = reinterpret_cast<const qljs::lsp_range*>(range);
+  auto content8 = reinterpret_cast<const qljs::char8*>(text->content);
+  auto replacement8 = qljs::string8_view(content8, text->length);
   document->replace_text(lrange, replacement8);
 }
 

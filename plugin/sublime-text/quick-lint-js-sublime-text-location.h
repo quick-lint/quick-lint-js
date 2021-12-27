@@ -29,13 +29,13 @@ struct qljs_st_locator {
   using range_type = qljs_st_range;
   using offset_type = qljs_st_offset;
 
-  explicit qljs_st_locator(quick_lint_js::padded_string_view input) noexcept;
+  explicit qljs_st_locator(qljs::padded_string_view input) noexcept;
 
-  range_type range(quick_lint_js::source_code_span span) const;
-  offset_type position(const quick_lint_js::char8* ch) const noexcept;
+  range_type range(qljs::source_code_span span) const;
+  offset_type position(const qljs::char8* ch) const noexcept;
 
  private:
-  quick_lint_js::padded_string_view input_;
+  qljs::padded_string_view input_;
 };
 #else
 #include <lsp-location.h>
@@ -50,23 +50,22 @@ struct qljs_st_range {
   qljs_st_position end;
 };
 
-struct qljs_st_locator final : public quick_lint_js::lsp_locator {
+struct qljs_st_locator final : public qljs::lsp_locator {
  public:
   using range_type = qljs_st_range;
   using offset_type = qljs_st_offset;
   using position_type = qljs_st_position;
 
-  explicit qljs_st_locator(quick_lint_js::padded_string_view input) noexcept;
+  explicit qljs_st_locator(qljs::padded_string_view input) noexcept;
 
-  range_type range(quick_lint_js::source_code_span span) const;
+  range_type range(qljs::source_code_span span) const;
 
-  position_type position(const quick_lint_js::char8 *src) const noexcept;
+  position_type position(const qljs::char8 *source) const noexcept;
 
-  const quick_lint_js::char8 *from_position(position_type pos) const noexcept;
+  const qljs::char8 *from_position(position_type position) const noexcept;
 
-  void replace_text(range_type range,
-                    quick_lint_js::string8_view replacement_text,
-                    quick_lint_js::padded_string_view new_input);
+  void replace_text(range_type range, qljs::string8_view replacement_text,
+                    qljs::padded_string_view new_input);
 };
 #endif
 
