@@ -5,25 +5,46 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/utf-8.h>
 
+namespace qljs = quick_lint_js;
+
 #if QLJS_ST_PLUGIN_VERSION == 3
-qljs_st_locator::qljs_st_locator(padded_string_view input) noexcept
+qljs_st_locator::qljs_st_locator(qljs::padded_string_view input) noexcept
     : input_(input) {}
 
-qljs_st_range qljs_st_locator::range(source_code_span span) const {
+qljs_st_range qljs_st_locator::range(qljs::source_code_span span) const {
   auto begin = this->position(span.begin());
   auto end = this->position(span.end());
   return qljs_st_range{.begin = begin, .end = end};
 }
 
-qljs_st_offset qljs_st_locator::position(const char8* c) const noexcept {
-  std::size_t byte_offset = narrow_cast<std::size_t>(c - this->input_.data());
-  std::size_t count = count_utf_8_characters(this->input_, byte_offset);
+qljs_st_offset qljs_st_locator::position(const qljs::char8* ch) const noexcept {
+  auto byte_offset = qljs::narrow_cast<std::size_t>(ch - this->input_.data());
+  std::size_t count = qljs::count_utf_8_characters(this->input_, byte_offset);
   return narrow_cast<qljs_st_offset>(count);
 }
 #else
-qljs_st_locator::qljs_st_locator(padded_string_view input) noexcept {
-  quick_lint_js::lsp_locator(input)
+qljs_st_locator::qljs_st_locator(qljs::padded_string_view input) noexcept {
+  return lsp_locator(input);
 }
+
+qljs_st_locator::range_type qljs_st_locator::range(
+    source_code_span span) const {
+  return narrow_cast<qljs_st_locator::range_type>(lsp_locator::range(span));
+}
+
+qljs_st_locator::position_type qljs_st_locator::position(const char8 *src) const
+    noexcept {
+  return narrow_cast<qljs_st_locator::position_type>(lsp_locator::range(span));
+}
+
+const char8 *from_position(position_type position) const noexcept {
+  auto lposition = narrow_cast<lsp_locator::position_type>(position);
+  return lsp_locator::from_position(lposition);
+}
+
+void replace_text(range_type range, string8_view replacement_text,
+                  padded_string_view new_input);
+
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -33,6 +33,7 @@ class lsp_locator {
 
  public:
   using range_type = lsp_range;
+  using position_type = lsp_position;
 
   explicit lsp_locator(padded_string_view input) noexcept;
 
