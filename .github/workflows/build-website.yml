@@ -75,8 +75,8 @@ jobs:
           remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/website/
           user: ${{ secrets.artifacts_user }}
           
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
