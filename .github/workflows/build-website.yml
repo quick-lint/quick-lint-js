@@ -58,6 +58,7 @@ jobs:
           sudo sed -i -e '/None/ s/AllowOverride\ None/AllowOverride\ FileInfo/' /etc/apache2/apache2.conf
           sudo service apache2 start
           ./ENV/bin/python ./tools/check-links http://localhost/
+          cat /var/log/apache2/access.log
           cat /var/log/apache2/error.log
           cat /etc/apache2/apache2.conf
         shell: bash
