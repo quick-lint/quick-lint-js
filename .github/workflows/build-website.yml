@@ -58,9 +58,6 @@ jobs:
           sudo sed -i -e '/None/ s/AllowOverride\ None/AllowOverride\ FileInfo/' /etc/apache2/apache2.conf
           sudo service apache2 start
           ./ENV/bin/python ./tools/check-links http://localhost/
-          cat /var/log/apache2/access.log
-          cat /var/log/apache2/error.log
-          cat /etc/apache2/apache2.conf
         shell: bash
       - name: upload build to workflow
         uses: actions/upload-artifact@v2
@@ -78,8 +75,6 @@ jobs:
           remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/website/
           user: ${{ secrets.artifacts_user }}
           
-      #- name: Setup tmate session
-      #  uses: mxschmitt/action-tmate@v3
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
