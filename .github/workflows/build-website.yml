@@ -37,7 +37,10 @@ jobs:
         run: cd website && yarn build
       - name: bundle site
         run: cd website && zip -r ../website.zip www
-
+      
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+      
       - name: set up check-links
         run: |
           python3.7 -m venv ENV
