@@ -3,10 +3,10 @@
 
 # Optimize loads of the main page and press release pages using HTTP/2 push.
 <IfModule http2_module>
-test
   <Files "index.html">
     # Whitelist to avoid pushing for all subdirectories.
     <If "%{REQUEST_URI} == '/index.html' || %{REQUEST_URI} == '/blog/version-1.0/index.html'">
+    should-error-here
       Header add Link "</main.css>;rel=preload"
       Header add Link "</dusty.svg>;rel=preload"
     </If>
