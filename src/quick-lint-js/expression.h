@@ -304,11 +304,10 @@ expression *expression_arena::make_expression(Args &&... args) {
 template <class T>
 inline expression_arena::array_ptr<T> expression_arena::make_array(
     bump_vector<T, monotonic_allocator> &&elements) {
-  // TODO(strager): Adopt the pointer if the elements.allocator_ is our
-  // allocator.
-  array_ptr<T> result =
-      this->make_array(elements.data(), elements.data() + elements.size());
-  elements.clear();
+  QLJS_ASSERT(elements.get_allocator() == &this->allocator_);
+  // NOTE(strager): Adopt the pointer instead of copying.
+  array_ptr<T> result(elements.data(), narrow_cast<int>(elements.size()));
+  elements.release();
   return result;
 }
 

@@ -67,8 +67,12 @@ class uninstrumented_vector : private Vector {
   using Vector::empty;
   using Vector::end;
   using Vector::front;
+  using Vector::get_allocator;
   using Vector::reserve;
   using Vector::size;
+
+  // NOTE(strager): This is a non-standard function.
+  using Vector::release;
 };
 
 template <class T, class BumpAllocator>
@@ -94,6 +98,8 @@ class raw_bump_vector {
   raw_bump_vector &operator=(const raw_bump_vector &) = delete;
 
   ~raw_bump_vector() { this->clear(); }
+
+  BumpAllocator *get_allocator() const noexcept { return this->allocator_; }
 
   bool empty() const noexcept { return this->data_ == this->data_end_; }
   std::size_t size() const noexcept {
@@ -161,6 +167,14 @@ class raw_bump_vector {
     return result;
   }
 
+  // Like clear(), but doesn't touch the allocated memory. Objects remain alive
+  // and valid.
+  void release() {
+    this->data_ = nullptr;
+    this->data_end_ = nullptr;
+    this->capacity_end_ = nullptr;
+  }
+
   void clear() {
     if (this->data_) {
       std::destroy(this->data_, this->data_end_);
@@ -168,9 +182,7 @@ class raw_bump_vector {
           this->data_,
           narrow_cast<std::size_t>(this->data_end_ - this->data_) * sizeof(T),
           alignof(T));
-      this->data_ = nullptr;
-      this->data_end_ = nullptr;
-      this->capacity_end_ = nullptr;
+      this->release();
     }
   }
 

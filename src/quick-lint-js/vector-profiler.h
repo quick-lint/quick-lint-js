@@ -153,6 +153,10 @@ class instrumented_vector {
     this->add_instrumentation_entry(vector_instrumentation::event::destroy);
   }
 
+  QLJS_FORCE_INLINE allocator_type get_allocator() const noexcept {
+    return this->data_.get_allocator();
+  }
+
   QLJS_FORCE_INLINE value_type *data() noexcept { return this->data_.data(); }
   QLJS_FORCE_INLINE const value_type *data() const noexcept {
     return this->data_.data();
@@ -197,6 +201,9 @@ class instrumented_vector {
   }
 
   void reserve(std::size_t new_capacity) { this->data_.reserve(new_capacity); }
+
+  // NOTE(strager): This is a non-standard function.
+  void release() { this->data_.release(); }
 
  private:
   QLJS_FORCE_INLINE void add_instrumentation_entry(
