@@ -927,6 +927,10 @@
               delete_expression))                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_if_after_else, "E0184", { source_code_span expected_if; }, \
+      ERROR(QLJS_TRANSLATABLE("missing if after else"), expected_if))          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_operator_between_expression_and_arrow_function, "E0063",   \
       { source_code_span where; },                                             \
       ERROR(QLJS_TRANSLATABLE(                                                 \

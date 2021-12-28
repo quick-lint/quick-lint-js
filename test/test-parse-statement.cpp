@@ -715,6 +715,25 @@ TEST(test_parse, else_without_if) {
   }
 }
 
+TEST(test_parse, missing_if_after_else) {
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else (true) {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_OFFSETS(
+                        &code, error_missing_semicolon_after_statement,  //
+                        where, strlen(u8"if (false) {} else (true)"), u8""),
+                    ERROR_TYPE_OFFSETS(&code, error_missing_if_after_else,  //
+                                       expected_if,
+                                       strlen(u8"if (false) {} else"), u8"")));
+  }
+}
+
 TEST(test_parse, block_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"{ }"_sv);
