@@ -38,7 +38,7 @@ struct qljs_st_locator {
   qljs::padded_string_view input_;
 };
 #else
-#include <lsp-location.h>
+#include <quick-lint-js/lsp-location.h>
 
 struct qljs_st_position {
   qljs_st_offset line;

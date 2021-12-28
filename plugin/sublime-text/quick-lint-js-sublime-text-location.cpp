@@ -24,29 +24,31 @@ qljs_st_offset qljs_st_locator::position(const qljs::char8* ch) const noexcept {
 }
 #else
 qljs_st_locator::qljs_st_locator(qljs::padded_string_view input) noexcept {
-  return lsp_locator(input);
+  return qljs::lsp_locator(input);
 }
 
 qljs_st_locator::range_type qljs_st_locator::range(
     qljs::source_code_span span) const {
-  return narrow_cast<qljs_st_locator::range_type>(lsp_locator::range(span));
+  return narrow_cast<qljs_st_locator::range_type>(
+      qljs::lsp_locator::range(span));
 }
 
 qljs_st_locator::position_type qljs_st_locator::position(
     const qljs::char8 *source) const noexcept {
-  auto lposition = lsp_locator::position(span);
+  auto lposition = qljs::lsp_locator::position(span);
   return narrow_cast<qljs_st_locator::position_type>(lposition);
 }
 
 const char8 *from_position(position_type position) const noexcept {
-  auto lposition = narrow_cast<lsp_locator::position_type>(position);
-  return lsp_locator::from_position(lposition);
+  auto lposition = narrow_cast<qljs::lsp_locator::position_type>(position);
+  return qljs::lsp_locator::from_position(lposition);
 }
 
 void replace_text(range_type range, qljs::string8_view replacement_text,
                   qljs::padded_string_view new_input) {
-  auto lrange = narrow_cast<lsp_locator::range_type>(lsp_locator::range(span));
-  lsp_locator::replace_text(lrange, replacement_text, new_input)
+  auto lrange = narrow_cast<qljs::lsp_locator::range_type>(
+      qljs::lsp_locator::range(span));
+  qljs::lsp_locator::replace_text(lrange, replacement_text, new_input)
 }
 #endif
 

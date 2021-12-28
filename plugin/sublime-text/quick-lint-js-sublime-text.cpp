@@ -3,7 +3,9 @@
 
 #include <quick-lint-js-sublime-text-location.h>
 #include <quick-lint-js-sublime-text.h>
+#include <quick-lint-js/c-api-error-reporter.h>
 #include <quick-lint-js/document-base.h>
+#include <quick-lint-js/narrow-cast.h>
 
 namespace qljs = quick_lint_js;
 
@@ -35,14 +37,14 @@ void qljs_st_document_delete(qljs_st_document* document) { delete document; }
 void qljs_st_document_set_text(qljs_st_document* document,
                                const qljs_st_text* text) {
   auto content8 = reinterpret_cast<const qljs::char8*>(text->content);
-  auto replacement8 = qljs::string8_view(content, text->length);
+  auto replacement8 = qljs::string8_view(content8, text->length);
   document->set_text(replacement8);
 }
 
 void qljs_st_document_replace_text(qljs_st_document* document,
                                    const qljs_st_range* range,
                                    const qljs_st_text* text) {
-  auto lrange = reinterpret_cast<const qljs::lsp_range*>(range);
+  auto lrange = qljs::narrow_cast<const qljs_st_locator::range_type>(*range);
   auto content8 = reinterpret_cast<const qljs::char8*>(text->content);
   auto replacement8 = qljs::string8_view(content8, text->length);
   document->replace_text(lrange, replacement8);
