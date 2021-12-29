@@ -515,18 +515,24 @@ void process_file(padded_string_view input, configuration &config,
   p_options.jsx = true;
   parser p(input, error_reporter, p_options);
   linter l(error_reporter, &config.globals());
-  // TODO(strager): Use parse_and_visit_module_catching_fatal_parse_errors
-  // instead of parse_and_visit_module to avoid crashing on
-  // QLJS_PARSER_UNIMPLEMENTED.
+
+  auto run_parser = [&p](auto &visitor) -> void {
+#if QLJS_HAVE_SETJMP
+    p.parse_and_visit_module_catching_fatal_parse_errors(visitor);
+#else
+    p.parse_and_visit_module(visitor);
+#endif
+  };
+
   if (print_parser_visits) {
     buffering_visitor v(p.buffering_visitor_memory());
-    p.parse_and_visit_module(v);
+    run_parser(v);
 
     debug_visitor logger;
     multi_visitor visitor(&logger, &l);
     v.move_into(visitor);
   } else {
-    p.parse_and_visit_module(l);
+    run_parser(l);
   }
 }
 
