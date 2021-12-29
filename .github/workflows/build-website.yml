@@ -75,7 +75,7 @@ jobs:
           private-key: ${{ secrets.artifacts_key }}
           remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/website/
           user: ${{ secrets.artifacts_user }}
-          
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
