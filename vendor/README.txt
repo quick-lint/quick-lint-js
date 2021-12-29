@@ -39,7 +39,7 @@ release archive:
     $ cd ../../
     $ rm -r "${qljs_vendor}/boost/"
     $ mkdir "${qljs_vendor}/boost/"
-    $ boost_libs="boost/container/pmr/global_resource.hpp boost/container/pmr/memory_resource.hpp boost/container/pmr/monotonic_buffer_resource.hpp boost/container/pmr/polymorphic_allocator.hpp boost/container/pmr/unsynchronized_pool_resource.hpp boost/container/small_vector.hpp boost/json/parse.hpp boost/json.hpp boost/json/src.hpp boost/throw_exception.hpp"
+    $ boost_libs="boost/container/pmr/memory_resource.hpp boost/container/pmr/polymorphic_allocator.hpp boost/container/pmr/unsynchronized_pool_resource.hpp boost/json/parse.hpp boost/json.hpp boost/json/src.hpp boost/throw_exception.hpp"
     $ eval ./dist/bin/bcp ${boost_libs} "${qljs_vendor}/boost/"
     $ eval ./dist/bin/bcp --report ${boost_libs} "${qljs_vendor}/boost/report.html"
     $ cp LICENSE_1_0.txt "${qljs_vendor}/boost/"
