@@ -8,7 +8,7 @@ try
     \ 'quick-lint-js': {
       \ 'args': ['--lsp-server'],
       \ 'command': 'quick-lint-js',
-      \ 'filetypes': ['javascript', 'json'],
+      \ 'filetypes': ['javascript', 'javascriptreact', 'json'],
     \ }
   \ })
 catch /E117/
