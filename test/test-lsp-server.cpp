@@ -54,33 +54,27 @@ string8 make_message(string8_view content) {
 using endpoint = lsp_endpoint<linting_lsp_server_handler<mock_lsp_linter>,
                               spy_lsp_endpoint_remote>;
 
-template <class LinterCallback>
-std::unique_ptr<endpoint> make_endpoint(configuration_filesystem* fs,
-                                        LinterCallback&& linter_callback) {
-  return std::make_unique<endpoint>(
-      /*handler_args=*/std::forward_as_tuple(
-          fs, std::forward<LinterCallback>(linter_callback)),
-      /*remote_args=*/std::forward_as_tuple());
-}
-
-std::unique_ptr<endpoint> make_endpoint(configuration_filesystem* fs) {
-  return make_endpoint(fs, [](configuration&, padded_string_view, string8_view,
-                              string8_view, byte_buffer&) {});
-}
-
 class test_linting_lsp_server : public ::testing::Test {
  public:
-  explicit test_linting_lsp_server() {
-    this->server = make_endpoint(
-        &fs, [this](configuration& config, padded_string_view code,
-                    string8_view uri_json, string8_view version_json,
-                    byte_buffer& notification_json) {
-          this->lint_calls.emplace_back(code.string_view());
-          if (this->lint_callback) {
-            this->lint_callback(config, code, uri_json, version_json,
-                                notification_json);
-          }
-        });
+  explicit test_linting_lsp_server() { this->reset(); }
+
+  void reset() {
+    this->lint_callback = {};
+    this->lint_calls.clear();
+    this->fs.clear();
+    this->server = std::make_unique<endpoint>(
+        /*handler_args=*/std::forward_as_tuple(
+            &this->fs,
+            [this](configuration& config, padded_string_view code,
+                   string8_view uri_json, string8_view version_json,
+                   byte_buffer& notification_json) {
+              this->lint_calls.emplace_back(code.string_view());
+              if (this->lint_callback) {
+                this->lint_callback(config, code, uri_json, version_json,
+                                    notification_json);
+              }
+            }),
+        /*remote_args=*/std::forward_as_tuple());
     this->client = &server->remote();
   }
 
@@ -138,7 +132,7 @@ TEST_F(test_linting_lsp_server, initialize) {
 }
 
 // For the "id" field of a request, JSON-RPC allows numbers, strings, and null.
-TEST(test_linting_lsp_server_plain, initialize_with_different_request_ids) {
+TEST_F(test_linting_lsp_server, initialize_with_different_request_ids) {
   struct test_case {
     string8_view id_json;
     ::boost::json::value id;
@@ -157,11 +151,9 @@ TEST(test_linting_lsp_server_plain, initialize_with_different_request_ids) {
            test_case{u8R"("id value goes \"here\"")",
                      ::boost::json::value("id value goes \"here\"")},
        }) {
-    fake_configuration_filesystem fs;
-    std::unique_ptr<endpoint> server = make_endpoint(&fs);
-    spy_lsp_endpoint_remote& client = server->remote();
+    this->reset();
 
-    server->append(
+    this->server->append(
         make_message(u8R"({
           "jsonrpc": "2.0",
           "id": )" + string8(test.id_json) +
@@ -174,8 +166,8 @@ TEST(test_linting_lsp_server_plain, initialize_with_different_request_ids) {
           }
         })"));
 
-    ASSERT_EQ(client.messages.size(), 1);
-    EXPECT_EQ(client.messages[0].as_object()["id"], test.id);
+    ASSERT_EQ(this->client->messages.size(), 1);
+    EXPECT_EQ(this->client->messages[0].as_object()["id"], test.id);
   }
 }
 
@@ -2003,16 +1995,14 @@ TEST_F(test_linting_lsp_server, invalid_json_in_request) {
           u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": xxx, "params": {} })"sv,
       }) {
     SCOPED_TRACE(out_string8(message));
+    this->reset();
 
-    fake_configuration_filesystem fs;
-    std::unique_ptr<endpoint> server = make_endpoint(&fs);
-    spy_lsp_endpoint_remote& client = server->remote();
-    client.allow_batch_messages = true;
+    this->client->allow_batch_messages = true;
 
-    server->append(make_message(message));
+    this->server->append(make_message(message));
 
-    ASSERT_EQ(client.messages.size(), 1);
-    ::boost::json::value response = client.messages[0];
+    ASSERT_EQ(this->client->messages.size(), 1);
+    ::boost::json::value response = this->client->messages[0];
     if (::boost::json::array* sub_responses = response.if_array()) {
       for (::boost::json::value& sub_response : *sub_responses) {
         // TODO(strager): Batched JSON parse errors don't make any sense. We
@@ -2061,15 +2051,12 @@ TEST_F(test_linting_lsp_server, invalid_request_returns_error) {
           u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": {}, "params": {} })"sv,
       }) {
     SCOPED_TRACE(out_string8(message));
+    this->reset();
 
-    fake_configuration_filesystem fs;
-    std::unique_ptr<endpoint> server = make_endpoint(&fs);
-    spy_lsp_endpoint_remote& client = server->remote();
+    this->server->append(make_message(message));
 
-    server->append(make_message(message));
-
-    ASSERT_EQ(client.messages.size(), 1);
-    ::boost::json::value response = client.messages[0];
+    ASSERT_EQ(this->client->messages.size(), 1);
+    ::boost::json::value response = this->client->messages[0];
     expect_error(response, -32600, "Invalid Request");
     EXPECT_EQ(look_up(response, "id"), ::boost::json::value());
   }
@@ -2097,14 +2084,11 @@ TEST_F(test_linting_lsp_server, invalid_notification_is_ignored) {
           u8R"({ "jsonrpc": "2.0", "method": "textDocument/didChange", "params": { "textDocument": { "uri": "file:///test.js", "version": 2 }, "contentChanges": [ { "text": "", "range": { "start": { "line": 0, "character": 0 }, "end": { "line": 0, "character": null } } } ] } })"sv,
       }) {
     SCOPED_TRACE(out_string8(message));
-
-    fake_configuration_filesystem fs;
-    std::unique_ptr<endpoint> server = make_endpoint(&fs);
-    spy_lsp_endpoint_remote& client = server->remote();
+    this->reset();
 
     // Open a file so we can test textDocument/didChange (which behaves
     // differently if the file wasn't previously opened).
-    server->append(
+    this->server->append(
         make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -2118,10 +2102,10 @@ TEST_F(test_linting_lsp_server, invalid_notification_is_ignored) {
         }
       })"));
 
-    server->append(make_message(message));
+    this->server->append(make_message(message));
 
     // TODO(strager): Have the LSP server respond with a notification instead?
-    EXPECT_THAT(client.messages, IsEmpty());
+    EXPECT_THAT(this->client->messages, IsEmpty());
   }
 }
 
