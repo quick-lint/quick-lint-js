@@ -249,141 +249,75 @@ TEST_F(test_linting_lsp_server, dollar_notifications_are_ignored) {
 }
 
 TEST_F(test_linting_lsp_server, opening_document_lints) {
-  this->lint_callback = [&](configuration&, padded_string_view code,
-                            string8_view uri_json, string8_view version,
-                            byte_buffer& notification_json) {
-    EXPECT_EQ(code, u8"let x = x;");
-    EXPECT_EQ(uri_json, u8"\"file:///test.js\"");
-    EXPECT_EQ(version, u8"10"sv);
+  for (string8_view language_id : {u8"javascript"sv, u8"js"sv}) {
+    SCOPED_TRACE(out_string8(language_id));
+    this->reset();
 
-    notification_json.append_copy(
-        u8R"--(
-              {
-                "method":"textDocument/publishDiagnostics",
-                "params":{
-                  "uri": "file:///test.js",
-                  "version": 10,
-                  "diagnostics": [
-                    {
-                      "range": {
-                        "start": {"line": 0, "character": 8},
-                        "end": {"line": 0, "character": 9}
-                      },
-                      "severity": 1,
-                      "message": "variable used before declaration: x"
-                    }
-                  ]
-                },
-                "jsonrpc":"2.0"
-              }
-            )--"sv);
-  };
+    this->lint_callback = [&](configuration&, padded_string_view code,
+                              string8_view uri_json, string8_view version,
+                              byte_buffer& notification_json) {
+      EXPECT_EQ(code, u8"let x = x;");
+      EXPECT_EQ(uri_json, u8"\"file:///test.js\"");
+      EXPECT_EQ(version, u8"10"sv);
 
-  this->server->append(
-      make_message(u8R"({
-        "jsonrpc": "2.0",
-        "method": "textDocument/didOpen",
-        "params": {
-          "textDocument": {
-            "uri": "file:///test.js",
-            "languageId": "javascript",
-            "version": 10,
-            "text": "let x = x;"
-          }
-        }
-      })"));
-
-  ASSERT_EQ(this->client->messages.size(), 1);
-  ::boost::json::object response = this->client->messages[0].as_object();
-  EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
-  EXPECT_FALSE(response.contains("error"));
-  // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(look_up(response, "params", "uri"), "file:///test.js");
-  EXPECT_EQ(look_up(response, "params", "version"), 10);
-  ::boost::json::array diagnostics =
-      look_up(response, "params", "diagnostics").as_array();
-  EXPECT_EQ(diagnostics.size(), 1);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 8);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "character"), 9);
-  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
-  EXPECT_EQ(look_up(diagnostics, 0, "message"),
-            "variable used before declaration: x");
-
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8"let x = x;"));
-}
-
-TEST_F(test_linting_lsp_server, opening_document_language_id_js_lints) {
-  this->lint_callback = [&](configuration&, padded_string_view code,
-                            string8_view uri_json, string8_view version_json,
-                            byte_buffer& notification_json) {
-    EXPECT_EQ(code, u8"let x = x;");
-    EXPECT_EQ(uri_json, u8"\"file:///test.js\"");
-    EXPECT_EQ(version_json, u8"10");
-    notification_json.append_copy(
-        u8R"--(
-              {
-                "method":"textDocument/publishDiagnostics",
-                "params":{
-                  "uri": "file:///test.js",
-                  "version": 10,
-                  "diagnostics": [
-                    {
-                      "range": {
-                        "start": {"line": 0, "character": 8},
-                        "end": {"line": 0, "character": 9}
-                      },
-                      "severity": 1,
-                      "message": "variable used before declaration: x",
-                      "code": "E0058",
-                      "codeDescription": {
-                        "href": "https://quick-lint-js.com/errors/#E0058"
+      notification_json.append_copy(
+          u8R"--(
+                {
+                  "method":"textDocument/publishDiagnostics",
+                  "params":{
+                    "uri": "file:///test.js",
+                    "version": 10,
+                    "diagnostics": [
+                      {
+                        "range": {
+                          "start": {"line": 0, "character": 8},
+                          "end": {"line": 0, "character": 9}
+                        },
+                        "severity": 1,
+                        "message": "variable used before declaration: x"
                       }
-                    }
-                  ]
-                },
-                "jsonrpc":"2.0"
-              }
-            )--"sv);
-  };
+                    ]
+                  },
+                  "jsonrpc":"2.0"
+                }
+              )--"sv);
+    };
 
-  this->server->append(
-      make_message(u8R"({
-        "jsonrpc": "2.0",
-        "method": "textDocument/didOpen",
-        "params": {
-          "textDocument": {
-            "uri": "file:///test.js",
-            "languageId": "js",
-            "version": 10,
-            "text": "let x = x;"
+    this->server->append(
+        make_message(u8R"({
+          "jsonrpc": "2.0",
+          "method": "textDocument/didOpen",
+          "params": {
+            "textDocument": {
+              "uri": "file:///test.js",
+              "languageId": ")" +
+                     string8(language_id) + u8R"(",
+              "version": 10,
+              "text": "let x = x;"
+            }
           }
-        }
-      })"));
+        })"));
 
-  ASSERT_EQ(this->client->messages.size(), 1);
-  ::boost::json::object response = this->client->messages[0].as_object();
-  EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
-  EXPECT_FALSE(response.contains("error"));
-  // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(look_up(response, "params", "uri"), "file:///test.js");
-  EXPECT_EQ(look_up(response, "params", "version"), 10);
-  ::boost::json::array diagnostics =
-      look_up(response, "params", "diagnostics").as_array();
-  EXPECT_EQ(diagnostics.size(), 1);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 8);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
-  EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "character"), 9);
-  EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
-  EXPECT_EQ(look_up(diagnostics, 0, "message"),
-            "variable used before declaration: x");
-  EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0058");
-  EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
-            "https://quick-lint-js.com/errors/#E0058");
+    ASSERT_EQ(this->client->messages.size(), 1);
+    ::boost::json::object response = this->client->messages[0].as_object();
+    EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
+    EXPECT_FALSE(response.contains("error"));
+    // LSP PublishDiagnosticsParams:
+    EXPECT_EQ(look_up(response, "params", "uri"), "file:///test.js");
+    EXPECT_EQ(look_up(response, "params", "version"), 10);
+    ::boost::json::array diagnostics =
+        look_up(response, "params", "diagnostics").as_array();
+    EXPECT_EQ(diagnostics.size(), 1);
+    EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "line"), 0);
+    EXPECT_EQ(look_up(diagnostics, 0, "range", "start", "character"), 8);
+    EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "line"), 0);
+    EXPECT_EQ(look_up(diagnostics, 0, "range", "end", "character"), 9);
+    EXPECT_EQ(look_up(diagnostics, 0, "severity"), lsp_error_severity);
+    EXPECT_EQ(look_up(diagnostics, 0, "message"),
+              "variable used before declaration: x");
 
-  EXPECT_THAT(this->lint_calls, ElementsAre(u8"let x = x;"));
+    EXPECT_THAT(this->lint_calls, ElementsAre(u8"let x = x;"));
+  }
 }
 
 TEST_F(test_linting_lsp_server, changing_document_with_full_text_lints) {
