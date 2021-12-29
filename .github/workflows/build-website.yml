@@ -59,7 +59,7 @@ jobs:
           sudo service apache2 start
           ./ENV/bin/python ./tools/check-links http://localhost/
         shell: bash
-        
+
       - name: upload build to workflow
         uses: actions/upload-artifact@v2
         with:
