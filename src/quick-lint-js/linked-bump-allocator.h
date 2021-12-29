@@ -66,6 +66,25 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
     char* chunk_end_;
   };
 
+  // Calls allocator->rewind() when destructed.
+  class rewind_guard {
+   public:
+    explicit rewind_guard(linked_bump_allocator* allocator)
+        : allocator_(allocator), rewind_(allocator->prepare_for_rewind()) {}
+
+    rewind_guard(const rewind_guard&) = delete;
+    rewind_guard& operator=(const rewind_guard&) = delete;
+
+    rewind_guard(rewind_guard&&) = delete;
+    rewind_guard& operator=(rewind_guard&&) = delete;
+
+    ~rewind_guard() { this->allocator_->rewind(std::move(this->rewind_)); }
+
+   private:
+    linked_bump_allocator* allocator_;
+    rewind_state rewind_;
+  };
+
   rewind_state prepare_for_rewind() {
     return rewind_state{
         .chunk_ = this->chunk_,
@@ -104,6 +123,10 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
     this->did_deallocate_bytes(
         this->next_allocation_,
         narrow_cast<std::size_t>(this->chunk_end_ - this->next_allocation_));
+  }
+
+  [[nodiscard]] rewind_guard make_rewind_guard() noexcept {
+    return rewind_guard(this);
   }
 
   template <class T, class... Args>
