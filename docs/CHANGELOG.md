@@ -8,6 +8,10 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+* quick-lint-js now supports JSX syntax in both .js and .jsx files.
+
 ### Fixed
 
 * LSP: When responding to unsupported methods with error code -32601,
