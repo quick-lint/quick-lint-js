@@ -2,7 +2,7 @@
 # See end of file for extended copyright information.
 
 # Optimize loads of the main page and press release pages using HTTP/2 push.
-<IfModule http2_module>
+<IfModule http2_module
   <Files "index.html">
     # Whitelist to avoid pushing for all subdirectories.
     <If "%{REQUEST_URI} == '/index.html' || %{REQUEST_URI} == '/blog/version-1.0/index.html'">
