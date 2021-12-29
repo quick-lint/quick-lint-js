@@ -80,7 +80,6 @@ class Crawler:
 
         try:
             result = requests.get(self.site)
-            result.raise_for_status()
             soup = BeautifulSoup(result.text, "html.parser")
             self.visted_urls.append(self.site)
             self.visted_urls_soup[self.site] = soup
