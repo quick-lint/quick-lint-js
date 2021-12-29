@@ -101,7 +101,9 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
 
     vscode_error_reporter error_reporter(vscode, env,
                                          &this->document_.locator());
-    parser p(this->document_.string(), &error_reporter);
+    parser_options p_options;
+    p_options.jsx = true;
+    parser p(this->document_.string(), &error_reporter, p_options);
     linter l(&error_reporter, &this->config_->globals());
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);
     if (!ok) {
@@ -579,7 +581,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     }
 
     document_type type;
-    if (vscode_doc.language_id() == "javascript") {
+    std::string language_id = vscode_doc.language_id();
+    if (language_id == "javascript" || language_id == "javascriptreact") {
       type = document_type::lintable;
     } else if (file_path.has_value() &&
                this->config_loader_.is_config_file_path(*file_path)) {

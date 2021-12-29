@@ -21,7 +21,7 @@ let qljsExtension = require("../extension.js");
 
 let tests = {};
 
-for (let extension of [".js", ".mjs", ".cjs"]) {
+for (let extension of [".js", ".mjs", ".cjs", ".jsx"]) {
   tests = {
     ...tests,
 
@@ -152,6 +152,25 @@ tests = {
     assert.strictEqual(edited, true);
 
     await waitUntilAnyDiagnosticsAsync(jsURI);
+  },
+
+  "parser supports JSX": async ({ addCleanup }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let helloFilePath = path.join(scratchDirectory, "hello.jsx");
+    fs.writeFileSync(
+      helloFilePath,
+      "function MyComponent() { return <div></div>; }\n"
+    );
+    let helloURI = vscode.Uri.file(helloFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+    let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+    await pollAsync(async () => {
+      let helloDiags = normalizeDiagnostics(helloURI);
+      assert.deepStrictEqual(helloDiags, []);
+    });
   },
 
   "file on disk changes": async ({ addCleanup }) => {
