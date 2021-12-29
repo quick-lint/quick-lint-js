@@ -8,6 +8,7 @@
   },
   "activationEvents": [
     "onLanguage:javascript",
+    "onLanguage:javascriptreact",
     "onLanguage:json"
   ],
   "main": "./extension",

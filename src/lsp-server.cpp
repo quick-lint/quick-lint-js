@@ -332,7 +332,8 @@ void linting_lsp_server_handler<Linter>::
   doc.doc.set_text(*text);
   doc.version_json = get_raw_json(version);
 
-  if (language_id == "javascript" || language_id == "js") {
+  if (language_id == "javascript" || language_id == "javascriptreact" ||
+      language_id == "js") {
     doc.type = document_type::lintable;
     auto config_file =
         this->config_loader_.watch_and_load_for_file(document_path,
@@ -613,7 +614,9 @@ void lsp_javascript_linter::lint_and_get_diagnostics(
     byte_buffer& diagnostics_json) {
   lsp_error_reporter error_reporter(diagnostics_json, code);
 
-  parser p(code, &error_reporter);
+  parser_options p_options;
+  p_options.jsx = true;
+  parser p(code, &error_reporter, p_options);
   linter l(&error_reporter, &config.globals());
 #if QLJS_HAVE_SETJMP
   bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);
