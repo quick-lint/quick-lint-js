@@ -111,7 +111,6 @@ if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
   target_precompile_headers(
     quick-lint-js-test
     PRIVATE
-    <boost/container/pmr/monotonic_buffer_resource.hpp>
     <boost/container/pmr/polymorphic_allocator.hpp>
     <gmock/gmock.h>
     <gtest/gtest.h>

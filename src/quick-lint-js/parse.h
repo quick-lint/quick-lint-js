@@ -4,7 +4,6 @@
 #ifndef QUICK_LINT_JS_PARSE_H
 #define QUICK_LINT_JS_PARSE_H
 
-#include <boost/container/pmr/monotonic_buffer_resource.hpp>
 #include <cstdlib>
 #include <optional>
 #include <quick-lint-js/assert.h>
