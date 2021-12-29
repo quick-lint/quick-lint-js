@@ -4,14 +4,13 @@
 #ifndef QUICK_LINT_JS_LEX_H
 #define QUICK_LINT_JS_LEX_H
 
-#include <boost/container/pmr/memory_resource.hpp>
-#include <boost/container/pmr/unsynchronized_pool_resource.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/identifier.h>
+#include <quick-lint-js/linked-bump-allocator.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -296,21 +295,24 @@ class lexer {
   padded_string_view original_input_;
 
   monotonic_allocator allocator_;
-  boost::container::pmr::unsynchronized_pool_resource temporary_allocator_;
+  linked_bump_allocator<alignof(void*)> transaction_allocator_;
 };
 
 struct lexer_transaction {
   // Private to lexer. Do not construct, read, or modify.
 
+  using allocator_type = linked_bump_allocator<alignof(void*)>;
+
   explicit lexer_transaction(token old_last_token,
                              const char8* old_last_last_token_end,
                              const char8* old_input,
                              error_reporter** error_reporter_pointer,
-                             boost::container::pmr::memory_resource* memory)
-      : old_last_token(old_last_token),
+                             allocator_type* allocator)
+      : allocator_rewind(allocator),
+        old_last_token(old_last_token),
         old_last_last_token_end(old_last_last_token_end),
         old_input(old_input),
-        reporter(memory),
+        reporter(allocator),
         old_error_reporter(
             std::exchange(*error_reporter_pointer, &this->reporter)) {}
 
@@ -318,6 +320,10 @@ struct lexer_transaction {
   // lexer_transaction::error_reporter.
   lexer_transaction(const lexer_transaction&) = delete;
   lexer_transaction& operator=(const lexer_transaction&) = delete;
+
+  // Rewinds memory allocated by 'reporter'. Must be constructed before
+  // 'reporter' (thus destructed after 'reporter').
+  allocator_type::rewind_guard allocator_rewind;
 
   token old_last_token;
   const char8* old_last_last_token_end;
