@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <boost/container/pmr/global_resource.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <gmock/gmock.h>
