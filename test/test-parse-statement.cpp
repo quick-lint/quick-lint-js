@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <gmock/gmock-more-matchers.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
@@ -723,14 +724,42 @@ TEST(test_parse, missing_if_after_else) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
-                        &code, error_missing_semicolon_after_statement,  //
-                        where, strlen(u8"if (false) {} else (true)"), u8""),
-                    ERROR_TYPE_OFFSETS(&code, error_missing_if_after_else,  //
-                                       expected_if,
-                                       strlen(u8"if (false) {} else"), u8"")));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_if_after_else,  //
+                    expected_if, strlen(u8"if (false) {} else"), u8"")));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else true {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+    ElementsAre(
+        ERROR_TYPE_OFFSETS(&code, error_missing_semicolon_after_statement,  //
+                           where, strlen(u8"if (false) {} else true"), u8""));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else (true)\n{}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else (true); {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
