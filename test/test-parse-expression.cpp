@@ -282,7 +282,7 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"(2*)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, missing)");
+    EXPECT_EQ(summarize(ast), "paren(binary(literal, missing))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_OFFSETS(
                     p.code(), error_missing_operand_for_operator,  //
@@ -292,7 +292,8 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"2 * (3 + 4"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, binary(literal, literal))");
+    EXPECT_EQ(summarize(ast),
+              "binary(literal, paren(binary(literal, literal)))");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_OFFSETS(
                                 p.code(), error_unmatched_parenthesis,  //
                                 where, strlen(u8"2 * "), u8"(")));
@@ -301,7 +302,8 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"2 * (3 + (4"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, binary(literal, literal))");
+    EXPECT_EQ(summarize(ast),
+              "binary(literal, paren(binary(literal, paren(literal))))");
 
     EXPECT_THAT(
         p.errors(),
@@ -319,7 +321,7 @@ TEST_F(test_parse_expression, comma_expression_with_trailing_comma) {
     // lists, but comma expressions do not allow trailing commas.
     test_parser p(u8"(a, b, c,)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "trailingcomma(var a, var b, var c)");
+    EXPECT_EQ(summarize(ast), "paren(trailingcomma(var a, var b, var c))");
     EXPECT_THAT(p.errors(), IsEmpty())
         << "trailing comma expression emits no errors; errors are emitted "
            "depending on the context";
@@ -482,14 +484,14 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"(a ? b :)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
+    EXPECT_EQ(summarize(ast), "paren(cond(var a, var b, missing))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_OFFSETS(
                     p.code(), error_missing_operand_for_operator,  //
                     where, strlen(u8"(a ? b "), u8":")));
-    EXPECT_EQ(p.range(ast).begin_offset(), strlen(u8"("));
+    EXPECT_EQ(p.range(ast->child_0()).begin_offset(), strlen(u8"("));
     // TODO(strager): Fix end_offset to exclude the ')'.
-    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"(a ? b :)"));
+    EXPECT_EQ(p.range(ast->child_0()).end_offset(), strlen(u8"(a ? b :)"));
   }
 }
 
@@ -524,14 +526,14 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"(a ? b)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
+    EXPECT_EQ(summarize(ast), "paren(cond(var a, var b, missing))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_2_OFFSETS(
                     p.code(), error_missing_colon_in_conditional_expression,  //
                     expected_colon, strlen(u8"(a ? b"), u8"",                 //
                     question, strlen(u8"(a "), u8"?")));
-    EXPECT_EQ(p.range(ast).begin_offset(), strlen(u8"("));
-    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"(a ? b"));
+    EXPECT_EQ(p.range(ast->child_0()).begin_offset(), strlen(u8"("));
+    EXPECT_EQ(p.range(ast->child_0()).end_offset(), strlen(u8"(a ? b"));
   }
 }
 
@@ -672,7 +674,7 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
   {
     test_parser p(u8"(x.)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "dot(var x, )");
+    EXPECT_EQ(summarize(ast), "paren(dot(var x, ))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_OFFSETS(
                     p.code(), error_missing_property_name_for_dot_operator,  //
@@ -821,7 +823,7 @@ TEST_F(test_parse_expression, parse_unclosed_indexing_expression) {
   {
     test_parser p(u8"(xs[i)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "index(var xs, var i)");
+    EXPECT_EQ(summarize(ast), "paren(index(var xs, var i))");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_OFFSETS(
                                 p.code(), error_unmatched_indexing_bracket,  //
                                 left_square, strlen(u8"(xs"), u8"[")));
@@ -846,30 +848,33 @@ TEST_F(test_parse_expression, parse_parenthesized_expression) {
   {
     test_parser p(u8"(x)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "var x");
+    EXPECT_EQ(summarize(ast), "paren(var x)");
     EXPECT_THAT(p.errors(), IsEmpty());
-    EXPECT_EQ(p.range(ast).begin_offset(), 1);
-    EXPECT_EQ(p.range(ast).end_offset(), 2);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"(x)"));
+    EXPECT_EQ(p.range(ast->child_0()).begin_offset(), 1);
+    EXPECT_EQ(p.range(ast->child_0()).end_offset(), 2);
   }
 
   {
     expression* ast = this->parse_expression(u8"x+(y)"_sv);
-    EXPECT_EQ(summarize(ast), "binary(var x, var y)");
+    EXPECT_EQ(summarize(ast), "binary(var x, paren(var y))");
   }
 
   {
     expression* ast = this->parse_expression(u8"x+(y+z)"_sv);
-    EXPECT_EQ(summarize(ast), "binary(var x, binary(var y, var z))");
+    EXPECT_EQ(summarize(ast), "binary(var x, paren(binary(var y, var z)))");
   }
 
   {
     expression* ast = this->parse_expression(u8"(x+y)+z"_sv);
-    EXPECT_EQ(summarize(ast), "binary(binary(var x, var y), var z)");
+    EXPECT_EQ(summarize(ast), "binary(paren(binary(var x, var y)), var z)");
   }
 
   {
     expression* ast = this->parse_expression(u8"x+(y+z)+w"_sv);
-    EXPECT_EQ(summarize(ast), "binary(var x, binary(var y, var z), var w)");
+    EXPECT_EQ(summarize(ast),
+              "binary(var x, paren(binary(var y, var z)), var w)");
   }
 }
 
@@ -890,7 +895,7 @@ TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
     test_parser p(u8"await(x)"_sv);
     auto guard = p.parser().enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "await(var x)");
+    EXPECT_EQ(summarize(ast), "await(paren(var x))");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
@@ -979,7 +984,7 @@ TEST_F(test_parse_expression,
          {u8"await/re/g"_sv,       "binary(var await, var re, var g)",           "await(literal)"},
          {u8"await+x"_sv,          "binary(var await, var x)",                   "await(unary(var x))"},
          {u8"await-x"_sv,          "binary(var await, var x)",                   "await(unary(var x))"},
-         {u8"await(x)"_sv,         "call(var await, var x)",                     "await(var x)"},
+         {u8"await(x)"_sv,         "call(var await, var x)",                     "await(paren(var x))"},
          {u8"await[x]"_sv,         "index(var await, var x)",                    "await(array(var x))"},
          {u8"await++\nx"_sv,       "rwunarysuffix(var await)",                   "await(rwunary(var x))"},
          {u8"await--\nx"_sv,       "rwunarysuffix(var await)",                   "await(rwunary(var x))"},
@@ -1067,7 +1072,7 @@ TEST_F(test_parse_expression,
          {u8"await ^= x"_sv,          "upassign(var await, var x)",    nullptr},
          {u8"await |= x"_sv,          "upassign(var await, var x)",    nullptr},
          {u8"await"_sv,               "var await",                     nullptr},
-         {u8"(await)"_sv,             "var await",                     nullptr},
+         {u8"(await)"_sv,             "paren(var await)",              nullptr},
          {u8"await;"_sv,              "var await",                     nullptr},
 
          // TODO(strager): Fix these test cases:
@@ -1183,7 +1188,7 @@ TEST_F(test_parse_expression,
 
   {
     expression* ast = parse_expression_in_generator(u8"(yield)");
-    EXPECT_EQ(summarize(ast), "yieldnone");
+    EXPECT_EQ(summarize(ast), "paren(yieldnone)");
   }
 
   {
@@ -1250,7 +1255,7 @@ TEST_F(test_parse_expression, yield_unary_operator_inside_generator_functions) {
     test_parser p(u8"yield(x)"_sv);
     auto guard = p.parser().enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "yield(var x)");
+    EXPECT_EQ(summarize(ast), "yield(paren(var x))");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -1560,7 +1565,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
   {
     test_parser p(u8"(-)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "unary(missing)");
+    EXPECT_EQ(summarize(ast), "paren(unary(missing))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_OFFSETS(
                     p.code(), error_missing_operand_for_operator,  //
@@ -2204,7 +2209,7 @@ TEST_F(test_parse_expression, incomplete_object_literal) {
   {
     test_parser p(u8"({ p1, )"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, var p1)");
+    EXPECT_EQ(summarize(ast), "paren(object(literal, var p1))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_2_OFFSETS(
                     p.code(), error_unclosed_object_literal,  //
@@ -2626,7 +2631,8 @@ TEST_F(test_parse_expression, parse_comma_expression) {
 
   {
     expression* ast = this->parse_expression(u8"(x+(y,z)+w)"_sv);
-    EXPECT_EQ(summarize(ast), "binary(var x, binary(var y, var z), var w)");
+    EXPECT_EQ(summarize(ast),
+              "paren(binary(var x, paren(binary(var y, var z)), var w))");
   }
 
   {
@@ -3244,7 +3250,7 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
 
   {
     expression* ast = this->parse_expression(u8"(x+y).z"_sv);
-    EXPECT_EQ(summarize(ast), "dot(binary(var x, var y), z)");
+    EXPECT_EQ(summarize(ast), "dot(paren(binary(var x, var y)), z)");
   }
 
   {
@@ -3390,8 +3396,8 @@ TEST_F(test_parse_expression,
 TEST_F(test_parse_expression, generator_misplaced_star) {
   test_parser p(u8"(*function f(){})"_sv);
   expression* ast = p.parse_expression();
-  EXPECT_EQ(p.range(ast).begin_offset(), 1);
-  EXPECT_EQ(p.range(ast).end_offset(), 16);
+  EXPECT_EQ(p.range(ast->child_0()).begin_offset(), 1);
+  EXPECT_EQ(p.range(ast->child_0()).end_offset(), 16);
 }
 
 TEST_F(test_parse_expression, jsx_is_not_supported) {

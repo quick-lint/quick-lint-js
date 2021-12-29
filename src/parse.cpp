@@ -319,7 +319,10 @@ expression* parser::parse_primary_expression(precedence prec) {
           error_unmatched_parenthesis{left_paren_span});
       break;
     }
-    return child;
+    return this->make_expression<expression::paren>(
+        source_code_span(left_paren_span.begin(),
+                         this->lexer_.end_of_previous_token()),
+        child);
   }
 
   // async           // Identifer.
@@ -957,7 +960,7 @@ next:
     source_code_span operator_span = this->peek().span();
     this->skip();
     expression* lhs = build_expression();
-    switch (lhs->kind()) {
+    switch (lhs->without_paren()->kind()) {
     default:
       this->error_reporter_->report(
           error_invalid_expression_left_of_assignment{lhs->span()});
@@ -973,6 +976,8 @@ next:
     case expression_kind::variable:
     case expression_kind::private_variable:
       break;
+    case expression_kind::paren:
+      QLJS_UNREACHABLE();
     }
     expression* rhs = this->parse_expression(
         precedence{.commas = false, .in_operator = prec.in_operator});
@@ -1219,7 +1224,8 @@ next:
         !this->peek().has_leading_newline && children.size() == 1 &&
         // TODO(strager): Check for ',' operator explicitly, not any binary
         // operator.
-        children.front()->kind() == expression_kind::binary_operator;
+        children.front()->without_paren()->kind() ==
+            expression_kind::binary_operator;
     if (looks_like_arrow_function_body) {
       source_code_span arrow_span = this->peek().span();
       // (a, b) { return a + b; }  // Invalid.
@@ -1314,6 +1320,10 @@ void parser::parse_arrow_function_expression_remainder(
   expression* lhs = children.back();
   function_attributes attributes = function_attributes::normal;
 
+  if (lhs->kind() == expression_kind::paren) {
+    lhs = static_cast<expression::paren*>(lhs)->child_;
+  }
+
   expression_arena::vector<expression*> parameters(
       "parse_arrow_function_expression_remainder",
       this->expressions_.allocator());
@@ -1367,6 +1377,11 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::spread:
   case expression_kind::variable:
     parameters.emplace_back(lhs);
+    break;
+
+  // ((x)) => {}  // Invalid.
+  case expression_kind::paren:
+    // TODO(strager): Report an error.
     break;
 
   // f(x, y) => {}

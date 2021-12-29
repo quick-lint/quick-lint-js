@@ -835,7 +835,7 @@ class parser {
       break;
     }
     case expression_kind::_typeof: {
-      expression *child = ast->child_0();
+      expression *child = ast->child_0()->without_paren();
       if (child->kind() == expression_kind::variable) {
         v.visit_variable_typeof_use(child->variable_identifier());
       } else {
@@ -903,6 +903,9 @@ class parser {
         this->visit_expression(entry.value, v, context);
       }
       break;
+    case expression_kind::paren:
+      this->visit_expression(ast->child_0(), v, context);
+      break;
     case expression_kind::rw_unary_prefix:
     case expression_kind::rw_unary_suffix: {
       expression *child = ast->child_0();
@@ -962,6 +965,9 @@ class parser {
         expression *value = ast->object_entry(i).value;
         this->maybe_visit_assignment(value, v);
       }
+      break;
+    case expression_kind::paren:
+      this->maybe_visit_assignment(ast->child_0(), v);
       break;
     case expression_kind::variable:
       v.visit_variable_assignment(ast->variable_identifier());
@@ -3740,6 +3746,13 @@ class parser {
       this->error_reporter_->report(error_invalid_parameter{
           .parameter = ast->span(),
       });
+      break;
+
+    // function f([(arg)]) {}  // Invalid.
+    case expression_kind::paren:
+      // TODO(strager): Report an error.
+      this->visit_binding_element(ast->child_0(), v, declaration_kind,
+                                  /*declaring_token=*/declaring_token);
       break;
 
     case expression_kind::literal:

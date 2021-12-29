@@ -175,6 +175,8 @@ std::string summarize(const expression& expression) {
     result += ")";
     return result;
   }
+  case expression_kind::paren:
+    return "paren(" + summarize(expression.child_0()) + ")";
   case expression_kind::private_variable:
     return "var " +
            to_string(expression.variable_identifier().normalized_name());

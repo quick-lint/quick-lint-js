@@ -67,6 +67,7 @@ enum class expression_kind {
   named_function,
   new_target,
   object,
+  paren,
   private_variable,
   rw_unary_prefix,
   rw_unary_suffix,
@@ -197,6 +198,7 @@ class expression {
   class named_function;
   class new_target;
   class object;
+  class paren;
   class private_variable;
   class rw_unary_prefix;
   class rw_unary_suffix;
@@ -224,6 +226,9 @@ class expression {
   expression *child(int) const noexcept;
 
   expression_arena::array_ptr<expression *> children() const noexcept;
+
+  // Remove wrapping paren expressions, if any.e
+  expression *without_paren() const noexcept;
 
   // Can be called at most once.
   template <QLJS_PARSE_VISITOR Visitor>
@@ -790,6 +795,18 @@ class expression::object final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::object>);
 
+class expression::paren final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::paren;
+
+  explicit paren(source_code_span span, expression *child) noexcept
+      : expression(kind), span_(span), child_(child) {}
+
+  source_code_span span_;
+  expression *child_;
+};
+static_assert(expression_arena::is_allocatable<expression::paren>);
+
 class expression::private_variable final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::private_variable;
@@ -1053,6 +1070,10 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     return expression_arena::array_ptr<expression *>(
         index->children_.data(), narrow_cast<int>(index->children_.size()));
   }
+  case expression_kind::paren: {
+    auto *paren = static_cast<const expression::paren *>(this);
+    return expression_arena::array_ptr<expression *>(&paren->child_, 1);
+  }
   case expression_kind::rw_unary_suffix: {
     auto *rw_unary_suffix =
         static_cast<const expression::rw_unary_suffix *>(this);
@@ -1068,6 +1089,15 @@ inline expression_arena::array_ptr<expression *> expression::children() const
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
+}
+
+inline expression *expression::without_paren() const noexcept {
+  const expression *ast = this;
+  while (ast->kind_ == expression_kind::paren) {
+    ast = static_cast<const paren *>(ast)->child_;
+  }
+  // TODO(strager): Remove const_cast.
+  return const_cast<expression *>(ast);
 }
 
 inline buffering_visitor *expression::take_child_visits() noexcept {
@@ -1215,6 +1245,8 @@ inline source_code_span expression::span() const noexcept {
     return static_cast<const new_target *>(this)->span_;
   case expression_kind::object:
     return static_cast<const object *>(this)->span_;
+  case expression_kind::paren:
+    return static_cast<const paren *>(this)->span_;
   case expression_kind::private_variable:
     return static_cast<const private_variable *>(this)
         ->variable_identifier_.span();
