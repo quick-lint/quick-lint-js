@@ -511,7 +511,9 @@ QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(
 
 void process_file(padded_string_view input, configuration &config,
                   error_reporter *error_reporter, bool print_parser_visits) {
-  parser p(input, error_reporter);
+  parser_options p_options;
+  p_options.jsx = true;
+  parser p(input, error_reporter, p_options);
   linter l(error_reporter, &config.globals());
   // TODO(strager): Use parse_and_visit_module_catching_fatal_parse_errors
   // instead of parse_and_visit_module to avoid crashing on
