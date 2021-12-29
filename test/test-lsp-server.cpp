@@ -8,6 +8,7 @@
 #include <boost/json/value.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <memory>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/change-detecting-filesystem.h>
 #include <quick-lint-js/char8.h>
@@ -54,21 +55,35 @@ using endpoint = lsp_endpoint<linting_lsp_server_handler<mock_lsp_linter>,
                               spy_lsp_endpoint_remote>;
 
 template <class LinterCallback>
-endpoint make_endpoint(configuration_filesystem* fs,
-                       LinterCallback&& linter_callback) {
-  return endpoint(
+std::unique_ptr<endpoint> make_endpoint(configuration_filesystem* fs,
+                                        LinterCallback&& linter_callback) {
+  return std::make_unique<endpoint>(
       /*handler_args=*/std::forward_as_tuple(
           fs, std::forward<LinterCallback>(linter_callback)),
       /*remote_args=*/std::forward_as_tuple());
 }
 
-endpoint make_endpoint(configuration_filesystem* fs) {
+std::unique_ptr<endpoint> make_endpoint(configuration_filesystem* fs) {
   return make_endpoint(fs, [](configuration&, padded_string_view, string8_view,
                               string8_view, byte_buffer&) {});
 }
 
 class test_linting_lsp_server : public ::testing::Test {
  public:
+  explicit test_linting_lsp_server() {
+    this->server = make_endpoint(
+        &fs, [this](configuration& config, padded_string_view code,
+                    string8_view uri_json, string8_view version_json,
+                    byte_buffer& notification_json) {
+          this->lint_calls.emplace_back(code.string_view());
+          if (this->lint_callback) {
+            this->lint_callback(config, code, uri_json, version_json,
+                                notification_json);
+          }
+        });
+    this->client = &server->remote();
+  }
+
   std::function<void(configuration&, padded_string_view code,
                      string8_view uri_json, string8_view version,
                      byte_buffer& notification_json)>
@@ -76,17 +91,9 @@ class test_linting_lsp_server : public ::testing::Test {
   std::vector<string8> lint_calls;
 
   fake_configuration_filesystem fs;
-  endpoint server = make_endpoint(
-      &fs, [this](configuration& config, padded_string_view code,
-                  string8_view uri_json, string8_view version_json,
-                  byte_buffer& notification_json) {
-        this->lint_calls.emplace_back(code.string_view());
-        if (this->lint_callback) {
-          this->lint_callback(config, code, uri_json, version_json,
-                              notification_json);
-        }
-      });
-  spy_lsp_endpoint_remote& client = server.remote();
+
+  std::unique_ptr<endpoint> server;
+  spy_lsp_endpoint_remote* client;
 
   std::string config_file_load_error_message(const char* js_path,
                                              const char* error_path) {
@@ -102,7 +109,7 @@ class test_linting_lsp_server : public ::testing::Test {
 
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initialize
 TEST_F(test_linting_lsp_server, initialize) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "id": 1,
@@ -114,8 +121,8 @@ TEST_F(test_linting_lsp_server, initialize) {
         }
       })"));
 
-  ASSERT_EQ(this->client.messages.size(), 1);
-  ::boost::json::object response = this->client.messages[0].as_object();
+  ASSERT_EQ(this->client->messages.size(), 1);
+  ::boost::json::object response = this->client->messages[0].as_object();
   EXPECT_EQ(response["id"], 1);
   EXPECT_FALSE(response.contains("error"));
   // LSP InitializeResult:
@@ -151,10 +158,10 @@ TEST(test_linting_lsp_server_plain, initialize_with_different_request_ids) {
                      ::boost::json::value("id value goes \"here\"")},
        }) {
     fake_configuration_filesystem fs;
-    endpoint server = make_endpoint(&fs);
-    spy_lsp_endpoint_remote& client = server.remote();
+    std::unique_ptr<endpoint> server = make_endpoint(&fs);
+    spy_lsp_endpoint_remote& client = server->remote();
 
-    server.append(
+    server->append(
         make_message(u8R"({
           "jsonrpc": "2.0",
           "id": )" + string8(test.id_json) +
@@ -173,27 +180,27 @@ TEST(test_linting_lsp_server_plain, initialize_with_different_request_ids) {
 }
 
 TEST_F(test_linting_lsp_server, server_ignores_initialized_notification) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "initialized",
         "params": {}
       })"));
 
-  EXPECT_THAT(this->client.messages, IsEmpty());
+  EXPECT_THAT(this->client->messages, IsEmpty());
 }
 
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#shutdown
 TEST_F(test_linting_lsp_server, shutdown) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "id": 10,
         "method": "shutdown"
       })"));
 
-  ASSERT_EQ(this->client.messages.size(), 1);
-  ::boost::json::object response = this->client.messages[0].as_object();
+  ASSERT_EQ(this->client->messages.size(), 1);
+  ::boost::json::object response = this->client->messages[0].as_object();
   EXPECT_EQ(response["id"], 10);
   EXPECT_FALSE(response.contains("error"));
   EXPECT_EQ(response["result"], ::boost::json::value());
@@ -204,7 +211,7 @@ TEST_F(test_linting_lsp_server, shutdown) {
 TEST_F(test_linting_lsp_server,
        exit_without_shutdown_quits_program_with_exit_code_1) {
   auto send_exit = [this]() {
-    this->server.append(
+    this->server->append(
         make_message(u8R"({
           "jsonrpc": "2.0",
           "method": "exit"
@@ -219,16 +226,16 @@ TEST_F(test_linting_lsp_server,
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#exit
 TEST_F(test_linting_lsp_server,
        exit_with_shutdown_quits_program_with_exit_code_0) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "id": 10,
         "method": "shutdown"
       })"));
-  this->client.messages.clear();
+  this->client->messages.clear();
 
   auto send_exit = [this]() {
-    this->server.append(
+    this->server->append(
         make_message(u8R"({
           "jsonrpc": "2.0",
           "method": "exit"
@@ -241,12 +248,12 @@ TEST_F(test_linting_lsp_server,
 
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#dollarRequests
 TEST_F(test_linting_lsp_server, dollar_notifications_are_ignored) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "$/someNotification"
       })"));
-  EXPECT_THAT(this->client.messages, IsEmpty());
+  EXPECT_THAT(this->client->messages, IsEmpty());
 }
 
 TEST_F(test_linting_lsp_server, opening_document_lints) {
@@ -280,7 +287,7 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
             )--"sv);
   };
 
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -294,8 +301,8 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
         }
       })"));
 
-  ASSERT_EQ(this->client.messages.size(), 1);
-  ::boost::json::object response = this->client.messages[0].as_object();
+  ASSERT_EQ(this->client->messages.size(), 1);
+  ::boost::json::object response = this->client->messages[0].as_object();
   EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
   EXPECT_FALSE(response.contains("error"));
   // LSP PublishDiagnosticsParams:
@@ -349,7 +356,7 @@ TEST_F(test_linting_lsp_server, opening_document_language_id_js_lints) {
             )--"sv);
   };
 
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -363,8 +370,8 @@ TEST_F(test_linting_lsp_server, opening_document_language_id_js_lints) {
         }
       })"));
 
-  ASSERT_EQ(this->client.messages.size(), 1);
-  ::boost::json::object response = this->client.messages[0].as_object();
+  ASSERT_EQ(this->client->messages.size(), 1);
+  ::boost::json::object response = this->client->messages[0].as_object();
   EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
   EXPECT_FALSE(response.contains("error"));
   // LSP PublishDiagnosticsParams:
@@ -388,7 +395,7 @@ TEST_F(test_linting_lsp_server, opening_document_language_id_js_lints) {
 }
 
 TEST_F(test_linting_lsp_server, changing_document_with_full_text_lints) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -402,7 +409,7 @@ TEST_F(test_linting_lsp_server, changing_document_with_full_text_lints) {
         }
       })"));
   this->lint_calls.clear();
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -424,7 +431,7 @@ TEST_F(test_linting_lsp_server, changing_document_with_full_text_lints) {
 
 TEST_F(test_linting_lsp_server,
        changing_document_with_single_incremental_edit_lints) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -439,7 +446,7 @@ TEST_F(test_linting_lsp_server,
       })"));
   this->lint_calls.clear();
 
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -459,7 +466,7 @@ TEST_F(test_linting_lsp_server,
           ]
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -486,7 +493,7 @@ TEST_F(test_linting_lsp_server,
 
 TEST_F(test_linting_lsp_server,
        changing_document_with_multiple_incremental_edits_lints_only_once) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -501,7 +508,7 @@ TEST_F(test_linting_lsp_server,
       })"));
   this->lint_calls.clear();
 
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -541,7 +548,7 @@ TEST_F(test_linting_lsp_server, linting_uses_config_from_file) {
     EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"sv));
   };
 
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -562,7 +569,7 @@ TEST_F(test_linting_lsp_server, linting_uses_config_from_file) {
 TEST_F(
     test_linting_lsp_server,
     open_then_close_then_open_js_file_then_modify_config_file_lints_js_file) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -576,7 +583,7 @@ TEST_F(
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -590,7 +597,7 @@ TEST_F(
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didClose",
@@ -601,7 +608,7 @@ TEST_F(
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -622,7 +629,7 @@ TEST_F(
     EXPECT_FALSE(config.globals().find(u8"testGlobalVariableBefore"sv));
     EXPECT_TRUE(config.globals().find(u8"testGlobalVariableAfter"sv));
   };
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -653,7 +660,7 @@ TEST_F(test_linting_lsp_server,
     EXPECT_TRUE(config.globals().find(u8"testGlobalVariable"sv));
   };
 
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -679,7 +686,7 @@ TEST_F(test_linting_lsp_server, linting_uses_already_opened_config_file) {
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"modified": false}})");
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -693,7 +700,7 @@ TEST_F(test_linting_lsp_server, linting_uses_already_opened_config_file) {
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -721,7 +728,7 @@ TEST_F(test_linting_lsp_server,
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"haveOuterConfig": false}})");
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -736,7 +743,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -771,7 +778,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"before": true}})");
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -785,7 +792,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -800,7 +807,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_open_js_file) {
         }
       })"));
   // Change 'before' to 'after'.
-  server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -829,7 +836,7 @@ TEST_F(test_linting_lsp_server,
        editing_config_lints_latest_version_of_js_file) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"before": true}})");
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -843,7 +850,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -857,7 +864,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"));
-  server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -885,7 +892,7 @@ TEST_F(test_linting_lsp_server,
   this->lint_calls.clear();
 
   // Change 'before' to 'after'.
-  server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -934,7 +941,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"before": true}})");
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -950,7 +957,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
       })"));
 
   for (const char8* js_file : {u8"a.js", u8"b.js", u8"c.js"}) {
-    this->server.append(
+    this->server->append(
         make_message(u8R"({
           "jsonrpc": "2.0",
           "method": "textDocument/didOpen",
@@ -968,9 +975,9 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
   }
 
   this->lint_calls.clear();
-  this->client.messages.clear();
+  this->client->messages.clear();
   // Change 'before' to 'after'.
-  server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -997,7 +1004,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
                                               u8"/* c.js */"));
 
   std::vector<std::string> linted_uris;
-  for (::boost::json::value notification : this->client.messages) {
+  for (::boost::json::value notification : this->client->messages) {
     EXPECT_EQ(look_up(notification, "method"),
               "textDocument/publishDiagnostics");
     std::string uri(
@@ -1038,7 +1045,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
             )");
   };
 
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1053,7 +1060,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1070,7 +1077,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
       })"));
 
   for (const char8* js_file : {u8"dir-a/test.js", u8"dir-b/test.js"}) {
-    this->server.append(
+    this->server->append(
         make_message(u8R"({
           "jsonrpc": "2.0",
           "method": "textDocument/didOpen",
@@ -1088,10 +1095,10 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
   }
 
   this->lint_calls.clear();
-  this->client.messages.clear();
+  this->client->messages.clear();
   // Change 'a' to 'A' in dir-a/quick-lint-js.config (but leave
   // dir-b/quick-lint-js.config as-is).
-  server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -1117,7 +1124,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"/* dir-a/test.js */"));
 
   std::vector<std::string> linted_uris;
-  for (::boost::json::value notification : this->client.messages) {
+  for (::boost::json::value notification : this->client->messages) {
     EXPECT_EQ(look_up(notification, "method"),
               "textDocument/publishDiagnostics");
     std::string uri(
@@ -1137,7 +1144,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
 
 TEST_F(test_linting_lsp_server,
        editing_js_file_after_shadowing_config_uses_latest_config) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1151,7 +1158,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1168,7 +1175,7 @@ TEST_F(test_linting_lsp_server,
 
   // After opening test.js, create /inner/quick-lint-js.config which shadows
   // /quick-lint-js.config.
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1193,7 +1200,7 @@ TEST_F(test_linting_lsp_server,
     EXPECT_TRUE(config.globals().find(u8"after"sv));
   };
 
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -1231,7 +1238,7 @@ TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"before": true}})");
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1245,7 +1252,7 @@ TEST_F(test_linting_lsp_server, opening_config_relints_open_js_files) {
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1267,7 +1274,7 @@ TEST_F(test_linting_lsp_server,
        changing_config_on_filesystem_relints_open_js_files) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"before": true}})");
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1305,17 +1312,17 @@ TEST_F(test_linting_lsp_server,
       "jsonrpc": "2.0"
     })");
   };
-  this->client.messages.clear();
+  this->client->messages.clear();
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"after": true}})");
-  this->server.handler().filesystem_changed();
-  this->server.flush_pending_notifications();
+  this->server->handler().filesystem_changed();
+  this->server->flush_pending_notifications();
 
   EXPECT_TRUE(after_config_was_loaded);
 
-  ASSERT_THAT(this->client.messages, ElementsAre(::testing::_));
-  ::boost::json::object notification = this->client.messages[0].as_object();
+  ASSERT_THAT(this->client->messages, ElementsAre(::testing::_));
+  ::boost::json::object notification = this->client->messages[0].as_object();
   EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
 }
 
@@ -1330,7 +1337,7 @@ TEST_F(
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"v1": true}})");
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1344,7 +1351,7 @@ TEST_F(
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didClose",
@@ -1355,7 +1362,7 @@ TEST_F(
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1377,7 +1384,7 @@ TEST_F(test_linting_lsp_server,
        closing_open_config_reloads_config_from_filesystem) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"configFromFilesystem": true}})");
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1391,7 +1398,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1425,7 +1432,7 @@ TEST_F(test_linting_lsp_server,
       "jsonrpc": "2.0"
     })");
   };
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didClose",
@@ -1473,7 +1480,7 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
         })");
   };
 
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1491,12 +1498,12 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs"))
       << "should have linted despite config file being unloadable";
 
-  ASSERT_EQ(this->client.messages.size(), 2);
+  ASSERT_EQ(this->client->messages.size(), 2);
   std::size_t showMessageIndex =
-      look_up(this->client.messages[0], "method") == "window/showMessage" ? 0
-                                                                          : 1;
+      look_up(this->client->messages[0], "method") == "window/showMessage" ? 0
+                                                                           : 1;
   ::boost::json::object showMessageMessage =
-      this->client.messages[showMessageIndex].as_object();
+      this->client->messages[showMessageIndex].as_object();
   EXPECT_EQ(look_up(showMessageMessage, "method"), "window/showMessage");
   EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
             lsp_warning_message_type);
@@ -1532,7 +1539,7 @@ TEST_F(test_linting_lsp_server,
         })");
   };
 
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1550,12 +1557,12 @@ TEST_F(test_linting_lsp_server,
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs"))
       << "should have linted despite config file being unloadable";
 
-  ASSERT_EQ(this->client.messages.size(), 2);
+  ASSERT_EQ(this->client->messages.size(), 2);
   std::size_t showMessageIndex =
-      look_up(this->client.messages[0], "method") == "window/showMessage" ? 0
-                                                                          : 1;
+      look_up(this->client->messages[0], "method") == "window/showMessage" ? 0
+                                                                           : 1;
   ::boost::json::object showMessageMessage =
-      this->client.messages[showMessageIndex].as_object();
+      this->client->messages[showMessageIndex].as_object();
   EXPECT_EQ(look_up(showMessageMessage, "method"), "window/showMessage");
   EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
             lsp_warning_message_type);
@@ -1570,7 +1577,7 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"configFromFilesystem": true}})");
 
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1614,20 +1621,20 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
           "jsonrpc": "2.0"
         })");
   };
-  this->client.messages.clear();
-  this->server.handler().filesystem_changed();
-  this->server.flush_pending_notifications();
+  this->client->messages.clear();
+  this->server->handler().filesystem_changed();
+  this->server->flush_pending_notifications();
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs", u8"testjs"))
       << "should have linted twice: once on open, and once after config file "
          "changed";
 
-  ASSERT_EQ(this->client.messages.size(), 2);
+  ASSERT_EQ(this->client->messages.size(), 2);
   std::size_t showMessageIndex =
-      look_up(this->client.messages[0], "method") == "window/showMessage" ? 0
-                                                                          : 1;
+      look_up(this->client->messages[0], "method") == "window/showMessage" ? 0
+                                                                           : 1;
   ::boost::json::object showMessageMessage =
-      this->client.messages[showMessageIndex].as_object();
+      this->client->messages[showMessageIndex].as_object();
   EXPECT_EQ(look_up(showMessageMessage, "method"), "window/showMessage");
   EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
             lsp_warning_message_type);
@@ -1637,7 +1644,7 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
 }
 
 TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1652,8 +1659,8 @@ TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
         }
       })"));
 
-  ASSERT_EQ(this->client.messages.size(), 1);
-  ::boost::json::object response = this->client.messages[0].as_object();
+  ASSERT_EQ(this->client->messages.size(), 1);
+  ::boost::json::object response = this->client->messages[0].as_object();
   EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
   EXPECT_FALSE(response.contains("error"));
   // LSP PublishDiagnosticsParams:
@@ -1676,7 +1683,7 @@ TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
 
 TEST_F(test_linting_lsp_server,
        introducing_config_file_error_shows_diagnostics) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1691,8 +1698,8 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  this->client.messages.clear();
-  this->server.append(
+  this->client->messages.clear();
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -1710,8 +1717,8 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  ASSERT_EQ(this->client.messages.size(), 1);
-  ::boost::json::object response = this->client.messages[0].as_object();
+  ASSERT_EQ(this->client->messages.size(), 1);
+  ::boost::json::object response = this->client->messages[0].as_object();
   EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
   EXPECT_FALSE(response.contains("error"));
   // LSP PublishDiagnosticsParams:
@@ -1734,7 +1741,7 @@ TEST_F(test_linting_lsp_server,
 
 TEST_F(test_linting_lsp_server,
        changing_non_javascript_document_produces_no_lint) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1748,7 +1755,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
   this->lint_calls.clear();
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -1769,7 +1776,7 @@ TEST_F(test_linting_lsp_server,
 }
 
 TEST_F(test_linting_lsp_server, json_file_which_is_not_config_file_is_ignored) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1785,13 +1792,13 @@ TEST_F(test_linting_lsp_server, json_file_which_is_not_config_file_is_ignored) {
         }
       })"));
 
-  EXPECT_THAT(this->client.messages, IsEmpty());
+  EXPECT_THAT(this->client->messages, IsEmpty());
   EXPECT_THAT(this->lint_calls, IsEmpty());
 }
 
 TEST_F(test_linting_lsp_server,
        opening_non_javascript_file_does_not_cause_diagnostics) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1810,7 +1817,7 @@ TEST_F(test_linting_lsp_server,
 
 TEST_F(test_linting_lsp_server,
        closing_non_javascript_and_opening_javascript_lints) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1823,7 +1830,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didClose",
@@ -1834,7 +1841,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
   this->lint_calls.clear();
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1847,7 +1854,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -1869,7 +1876,7 @@ TEST_F(test_linting_lsp_server,
 
 TEST_F(test_linting_lsp_server,
        closing_javascript_and_opening_non_javascript_does_not_lint) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1882,7 +1889,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didClose",
@@ -1893,7 +1900,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
   this->lint_calls.clear();
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -1906,7 +1913,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"));
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didChange",
@@ -1927,7 +1934,7 @@ TEST_F(test_linting_lsp_server,
 }
 
 TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first) {
-  this->server.handler().add_watch_io_errors(std::vector<watch_io_error>{
+  this->server->handler().add_watch_io_errors(std::vector<watch_io_error>{
       watch_io_error{
           .path = "/banana",
           .io_error = generic_file_io_error,
@@ -1937,10 +1944,10 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first) {
           .io_error = generic_file_io_error,
       },
   });
-  this->server.flush_pending_notifications();
+  this->server->flush_pending_notifications();
 
-  ASSERT_EQ(this->client.messages.size(), 1);
-  ::boost::json::value show_message_message = this->client.messages[0];
+  ASSERT_EQ(this->client->messages.size(), 1);
+  ::boost::json::value show_message_message = this->client->messages[0];
   EXPECT_EQ(look_up(show_message_message, "method"), "window/showMessage");
   EXPECT_EQ(look_up(show_message_message, "params", "type"),
             lsp_warning_message_type);
@@ -1951,24 +1958,24 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first) {
 }
 
 TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first_ever) {
-  this->server.handler().add_watch_io_errors(std::vector<watch_io_error>{
+  this->server->handler().add_watch_io_errors(std::vector<watch_io_error>{
       watch_io_error{
           .path = "/banana",
           .io_error = generic_file_io_error,
       },
   });
-  this->server.flush_pending_notifications();
+  this->server->flush_pending_notifications();
   // Separate call to add_watch_io_errors:
-  this->server.handler().add_watch_io_errors(std::vector<watch_io_error>{
+  this->server->handler().add_watch_io_errors(std::vector<watch_io_error>{
       watch_io_error{
           .path = "/orange",
           .io_error = generic_file_io_error,
       },
   });
-  this->server.flush_pending_notifications();
+  this->server->flush_pending_notifications();
 
-  ASSERT_EQ(this->client.messages.size(), 1);
-  ::boost::json::value show_message_message = this->client.messages[0];
+  ASSERT_EQ(this->client->messages.size(), 1);
+  ::boost::json::value show_message_message = this->client->messages[0];
   ::boost::json::string message =
       look_up(show_message_message, "params", "message").as_string();
   EXPECT_THAT(message, ::testing::HasSubstr("/banana"));
@@ -1998,11 +2005,11 @@ TEST_F(test_linting_lsp_server, invalid_json_in_request) {
     SCOPED_TRACE(out_string8(message));
 
     fake_configuration_filesystem fs;
-    endpoint server = make_endpoint(&fs);
-    spy_lsp_endpoint_remote& client = server.remote();
+    std::unique_ptr<endpoint> server = make_endpoint(&fs);
+    spy_lsp_endpoint_remote& client = server->remote();
     client.allow_batch_messages = true;
 
-    server.append(make_message(message));
+    server->append(make_message(message));
 
     ASSERT_EQ(client.messages.size(), 1);
     ::boost::json::value response = client.messages[0];
@@ -2020,17 +2027,17 @@ TEST_F(test_linting_lsp_server, invalid_json_in_request) {
 
 TEST_F(test_linting_lsp_server,
        unimplemented_method_in_notification_is_ignored) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/shinyNewMethod",
         "params": {}
       })"));
-  EXPECT_THAT(this->client.messages, IsEmpty());
+  EXPECT_THAT(this->client->messages, IsEmpty());
 }
 
 TEST_F(test_linting_lsp_server, unimplemented_method_in_request_returns_error) {
-  this->server.append(
+  this->server->append(
       make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/shinyNewMethod",
@@ -2038,8 +2045,8 @@ TEST_F(test_linting_lsp_server, unimplemented_method_in_request_returns_error) {
         "params": {}
       })"));
 
-  ASSERT_EQ(this->client.messages.size(), 1);
-  ::boost::json::value response = this->client.messages[0];
+  ASSERT_EQ(this->client->messages.size(), 1);
+  ::boost::json::value response = this->client->messages[0];
   EXPECT_EQ(look_up(response, "id"), 10);
   expect_error(response, -32601, "Method not found");
 }
@@ -2056,10 +2063,10 @@ TEST_F(test_linting_lsp_server, invalid_request_returns_error) {
     SCOPED_TRACE(out_string8(message));
 
     fake_configuration_filesystem fs;
-    endpoint server = make_endpoint(&fs);
-    spy_lsp_endpoint_remote& client = server.remote();
+    std::unique_ptr<endpoint> server = make_endpoint(&fs);
+    spy_lsp_endpoint_remote& client = server->remote();
 
-    server.append(make_message(message));
+    server->append(make_message(message));
 
     ASSERT_EQ(client.messages.size(), 1);
     ::boost::json::value response = client.messages[0];
@@ -2092,12 +2099,12 @@ TEST_F(test_linting_lsp_server, invalid_notification_is_ignored) {
     SCOPED_TRACE(out_string8(message));
 
     fake_configuration_filesystem fs;
-    endpoint server = make_endpoint(&fs);
-    spy_lsp_endpoint_remote& client = server.remote();
+    std::unique_ptr<endpoint> server = make_endpoint(&fs);
+    spy_lsp_endpoint_remote& client = server->remote();
 
     // Open a file so we can test textDocument/didChange (which behaves
     // differently if the file wasn't previously opened).
-    server.append(
+    server->append(
         make_message(u8R"({
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -2111,7 +2118,7 @@ TEST_F(test_linting_lsp_server, invalid_notification_is_ignored) {
         }
       })"));
 
-    server.append(make_message(message));
+    server->append(make_message(message));
 
     // TODO(strager): Have the LSP server respond with a notification instead?
     EXPECT_THAT(client.messages, IsEmpty());
