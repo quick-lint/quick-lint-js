@@ -250,7 +250,7 @@ TEST_F(test_linting_lsp_server, dollar_notifications_are_ignored) {
 
 TEST_F(test_linting_lsp_server, opening_document_lints) {
   for (string8_view language_id :
-       {u8"javascript"sv, u8"js"sv, u8"javascriptreact"sv}) {
+       {u8"javascript"sv, u8"js"sv, u8"javascriptreact"sv, u8"js-jsx"sv}) {
     SCOPED_TRACE(out_string8(language_id));
     this->reset();
 

@@ -333,7 +333,7 @@ void linting_lsp_server_handler<Linter>::
   doc.version_json = get_raw_json(version);
 
   if (language_id == "javascript" || language_id == "javascriptreact" ||
-      language_id == "js") {
+      language_id == "js" || language_id == "js-jsx") {
     doc.type = document_type::lintable;
     auto config_file =
         this->config_loader_.watch_and_load_for_file(document_path,
