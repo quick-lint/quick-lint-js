@@ -24,8 +24,8 @@ After building quick-lint-js-wasm, you might need to re-install it with Yarn:
 
 ## Packaging for deployment
 
-Prepare the website for publishing on GitHub pages by first building the [web
-demo](demo/README.md) and [quick-lint-js for WebAssembly](wasm/README.md).
+Prepare the website for publishing on GitHub pages by first building
+[quick-lint-js for WebAssembly](wasm/README.md).
 
 Then, run `yarn build`:
 
