@@ -4055,8 +4055,6 @@ class parser {
 };
 }
 
-#undef QLJS_PARSER_UNIMPLEMENTED
-
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

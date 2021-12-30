@@ -38,9 +38,6 @@
 // Each parser stores a lexer object internally. From the caller's perspective,
 // the parser class takes characters as input.
 
-#define QLJS_PARSER_UNIMPLEMENTED() \
-  (this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__))
-
 namespace quick_lint_js {
 parser::function_guard parser::enter_function(function_attributes attributes) {
   bool was_in_top_level = this->in_top_level_;
