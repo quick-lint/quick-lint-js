@@ -48,6 +48,7 @@ void parser::visit_expression(expression* ast, Visitor& v,
     }
   };
   switch (ast->kind()) {
+  case expression_kind::_class:
   case expression_kind::_invalid:
   case expression_kind::_missing:
   case expression_kind::arrow_function_with_statements:
@@ -76,11 +77,6 @@ void parser::visit_expression(expression* ast, Visitor& v,
     visit_children();
     break;
   }
-  case expression_kind::_class:
-    v.visit_enter_class_scope();
-    ast->visit_children(v, this->expressions_);
-    v.visit_exit_class_scope();
-    break;
   case expression_kind::arrow_function_with_expression: {
     auto* arrow = static_cast<expression::arrow_function_with_expression*>(ast);
     v.visit_enter_function_scope();
@@ -2390,17 +2386,15 @@ expression* parser::parse_class_expression(Visitor& v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
   const char8* span_begin = this->peek().begin;
 
-  // TODO(strager): Use v instead.
-  (void)v;
-  buffering_visitor* body_v = this->expressions_.make_buffering_visitor();
+  v.visit_enter_class_scope();
   this->parse_and_visit_class_heading(
-      *body_v, /*require_name=*/name_requirement::optional);
+      v, /*require_name=*/name_requirement::optional);
 
   const char8* span_end;
   if (this->peek().type == token_type::left_curly) {
     this->skip();
 
-    this->parse_and_visit_class_body(*body_v);
+    this->parse_and_visit_class_body(v);
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
     span_end = this->peek().end;
@@ -2413,8 +2407,10 @@ expression* parser::parse_class_expression(Visitor& v) {
     });
   }
 
+  v.visit_exit_class_scope();
   return this->make_expression<expression::_class>(
-      body_v, source_code_span(span_begin, span_end));
+      this->expressions_.make_buffering_visitor(),
+      source_code_span(span_begin, span_end));
 }
 
 template <QLJS_PARSE_VISITOR Visitor>
