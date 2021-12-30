@@ -19,6 +19,9 @@ Semantic Versioning.
   always `null`.)
 * CLI: If a crash occurs due to [E0054][] or [E0203][], the CLI no longer
   crashes (e.g. with an illegal instruction error).
+* quick-lint-js no longer ignores elements of assigned arrays. For example,
+  `[fisrt, second] = s.split(' ');` will now report [E0057][] for `fisrt` (if
+  `fisrt` is not declared).
 
 ## 1.0.0 (2021-12-13)
 

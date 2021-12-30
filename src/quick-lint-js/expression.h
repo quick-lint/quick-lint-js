@@ -292,6 +292,9 @@ class expression_arena::array_ptr {
 
   int size() const noexcept { return this->size_; }
 
+  const T *begin() const noexcept { return this->data_; }
+  const T *end() const noexcept { return this->data_ + this->size_; }
+
   bool empty() const noexcept { return this->size() == 0; }
 
  private:

@@ -960,6 +960,11 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   void maybe_visit_assignment(expression *ast, Visitor &v) {
     switch (ast->kind()) {
+    case expression_kind::array:
+      for (expression *child : ast->children()) {
+        this->maybe_visit_assignment(child, v);
+      }
+      break;
     case expression_kind::object:
       for (int i = 0; i < ast->object_entry_count(); ++i) {
         expression *value = ast->object_entry(i).value;

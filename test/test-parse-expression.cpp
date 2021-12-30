@@ -1424,6 +1424,12 @@ TEST_F(test_parse_expression, parse_assignment) {
     expression* ast = this->parse_expression(u8"x,y=z,w"_sv);
     EXPECT_EQ(summarize(ast), "binary(var x, assign(var y, var z), var w)");
   }
+
+  {
+    expression* ast = this->parse_expression(u8"[x,y]=[z,w]"_sv);
+    EXPECT_EQ(summarize(ast),
+              "assign(array(var x, var y), array(var z, var w))");
+  }
 }
 
 TEST_F(test_parse_expression, parse_compound_assignment) {

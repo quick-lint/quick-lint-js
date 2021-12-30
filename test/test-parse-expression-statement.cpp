@@ -473,6 +473,15 @@ TEST(test_parse, parse_assignment) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"z"}));
   }
+
+  {
+    spy_visitor v = parse_and_visit_expression(u8"[x, y] = z"_sv);
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(spy_visitor::visited_variable_assignment{u8"x"},  //
+                            spy_visitor::visited_variable_assignment{u8"y"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"z"}));
+  }
 }
 
 TEST(test_parse, parse_compound_assignment) {
