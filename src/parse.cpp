@@ -744,10 +744,7 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
           return cache_it->second;
         }
 
-        buffering_error_reporter temp_error_reporter(&this->temporary_memory_);
-        error_reporter* old_error_reporter =
-            std::exchange(this->error_reporter_, &temp_error_reporter);
-        lexer_transaction transaction = this->lexer_.begin_transaction();
+        parser_transaction transaction = this->begin_transaction();
 
         if (this->in_top_level_) {
           // Try to parse the / as a regular expression literal.
@@ -759,11 +756,11 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
                   await_token.identifier_name(), await_token.type),
               prec);
         }
-        bool parsed_ok = temp_error_reporter.empty() &&
-                         !this->lexer_.transaction_has_lex_errors(transaction);
+        bool parsed_ok = transaction.reporter.empty() &&
+                         !this->lexer_.transaction_has_lex_errors(
+                             transaction.lex_transaction);
 
-        this->lexer_.roll_back_transaction(std::move(transaction));
-        this->error_reporter_ = old_error_reporter;
+        this->roll_back_transaction(std::move(transaction));
 
         bool is_identifier_result;
         if (this->in_top_level_) {
@@ -828,10 +825,7 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
   } else {
     source_code_span operator_span = await_token.span();
 
-    buffering_error_reporter temp_error_reporter(&this->temporary_memory_);
-    error_reporter* old_error_reporter =
-        std::exchange(this->error_reporter_, &temp_error_reporter);
-    lexer_transaction transaction = this->lexer_.begin_transaction();
+    parser_transaction transaction = this->begin_transaction();
 
     expression* child = this->parse_expression(prec);
 
@@ -842,8 +836,7 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
     } else if (this->is_arrow_kind(child) &&
                child->attributes() != function_attributes::async) {
       // await (param) => { }  // Invalid.
-      this->lexer_.roll_back_transaction(std::move(transaction));
-      this->error_reporter_ = old_error_reporter;
+      this->roll_back_transaction(std::move(transaction));
       this->error_reporter_->report(error_await_followed_by_arrow_function{
           .await_operator = operator_span,
       });
@@ -857,9 +850,7 @@ expression* parser::parse_await_expression(token await_token, precedence prec) {
       });
     }
 
-    this->lexer_.commit_transaction(std::move(transaction));
-    temp_error_reporter.move_into(old_error_reporter);
-    this->error_reporter_ = old_error_reporter;
+    this->commit_transaction(std::move(transaction));
     return this->make_expression<expression::await>(child, operator_span);
   }
 }
@@ -2624,6 +2615,25 @@ void parser::consume_semicolon() {
 bool parser::is_arrow_kind(expression* ast) noexcept {
   return ast->kind() == expression_kind::arrow_function_with_statements ||
          ast->kind() == expression_kind::arrow_function_with_expression;
+}
+
+parser_transaction parser::begin_transaction() {
+  return parser_transaction(&this->lexer_, &this->error_reporter_,
+                            &this->temporary_memory_);
+}
+
+void parser::commit_transaction(parser_transaction&& transaction) {
+  buffering_error_reporter* buffered_errors =
+      static_cast<buffering_error_reporter*>(this->error_reporter_);
+  buffered_errors->move_into(transaction.old_error_reporter);
+  this->error_reporter_ = transaction.old_error_reporter;
+
+  this->lexer_.commit_transaction(std::move(transaction.lex_transaction));
+}
+
+void parser::roll_back_transaction(parser_transaction&& transaction) {
+  this->error_reporter_ = transaction.old_error_reporter;
+  this->lexer_.roll_back_transaction(std::move(transaction.lex_transaction));
 }
 
 void parser::crash_on_unimplemented_token(const char* qljs_file_name,

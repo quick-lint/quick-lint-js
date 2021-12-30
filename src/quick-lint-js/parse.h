@@ -106,6 +106,22 @@ struct parser_options {
   bool jsx = false;
 };
 
+struct parser_transaction {
+  // Private to parser's transaction functions. Do not construct, read, or
+  // modify.
+
+  explicit parser_transaction(lexer *l, error_reporter **error_reporter_pointer,
+                              monotonic_allocator *allocator)
+      : lex_transaction(l->begin_transaction()),
+        reporter(allocator),
+        old_error_reporter(
+            std::exchange(*error_reporter_pointer, &this->reporter)) {}
+
+  lexer_transaction lex_transaction;
+  buffering_error_reporter reporter;
+  error_reporter *old_error_reporter;
+};
+
 // A parser reads JavaScript source code and calls the member functions of a
 // parse_visitor (visit_variable_declaration, visit_enter_function_scope, etc.).
 class parser {
@@ -3375,25 +3391,19 @@ class parser {
             source_code_span in_token_span = this->peek().span();
             QLJS_ASSERT(!allow_in_operator);
 
-            buffering_error_reporter temp_error_reporter(
-                &this->temporary_memory_);
-            error_reporter *old_error_reporter =
-                std::exchange(this->error_reporter_, &temp_error_reporter);
-            lexer_transaction transaction = this->lexer_.begin_transaction();
+            parser_transaction transaction = this->begin_transaction();
             expression *in_ast = this->parse_expression_remainder(
                 assignment_ast->child_1(), precedence{.commas = false});
             if (this->peek().type == token_type::semicolon) {
               // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
-              this->lexer_.commit_transaction(std::move(transaction));
-              this->error_reporter_ = old_error_reporter;
+              this->commit_transaction(std::move(transaction));
               assignment_ast->children_[1] = in_ast;
               this->error_reporter_->report(
                   error_in_disallowed_in_c_style_for_loop{
                       .in_token = in_token_span,
                   });
             } else {
-              this->lexer_.roll_back_transaction(std::move(transaction));
-              this->error_reporter_ = old_error_reporter;
+              this->roll_back_transaction(std::move(transaction));
               if (declaration_kind == variable_kind::_var) {
                 // for (var x = "initial" in obj)
               } else {
@@ -3865,6 +3875,44 @@ class parser {
 
   const token &peek() const noexcept { return this->lexer_.peek(); }
   void skip() noexcept { this->lexer_.skip(); }
+
+  // Save lexer and parser state.
+  //
+  // After calling begin_transaction, you must call either commit_transaction or
+  // roll_back_transaction with the returned transaction.
+  //
+  // You can call begin_transaction again before calling commit_transaction
+  // or roll_back_transaction. Doing so begins a nested transaction.
+  //
+  // Inside a transaction, errors are not reported until commit_transaction is
+  // called for the outer-most nested transaction.
+  //
+  // A parser transaction does not cover visits. Use a buffering_visitor
+  // if you need to optionally visit.
+  //
+  // A parser transaction does not cover variables such as in_async_function_.
+  // Use with care.
+  parser_transaction begin_transaction();
+
+  // After calling commit_transaction, it's almost as if you never called
+  // begin_transaction in the first place.
+  //
+  // commit_transaction does not restore the state of the parser or lexer when
+  // begin_transaction was called.
+  void commit_transaction(parser_transaction &&);
+
+  // Restore parser state to a prior version.
+  //
+  // After calling roll_back_transaction, it's as if you never called
+  // begin_transaction or subsequently called skip, insert_semicolon, or
+  // other functions.
+  //
+  // roll_back_transaction effectively undoes calls to parse_expression,
+  // skip, etc.
+  //
+  // Calling roll_back_transaction will not report parser or lexer errors which
+  // might have been reported if it weren't for begin_transaction.
+  void roll_back_transaction(parser_transaction &&);
 
   [[noreturn]] void crash_on_unimplemented_token(
       const char *qljs_file_name, int qljs_line,
