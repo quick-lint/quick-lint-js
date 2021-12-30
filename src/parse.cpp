@@ -2451,6 +2451,8 @@ next:
   default:
     QLJS_PARSER_UNIMPLEMENTED();
   }
+
+  QLJS_UNREACHABLE();
 }
 
 expression* parser::parse_template(std::optional<expression*> tag) {
