@@ -379,19 +379,19 @@ TEST(test_parse, parse_function_expression) {
   {
     spy_visitor v = parse_and_visit_statement(u8"(a, function(b) {c;}(d));"_sv);
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_use",               // a
-                            "visit_enter_function_scope",       //
+                ElementsAre("visit_enter_function_scope",       //
                             "visit_variable_declaration",       // b
                             "visit_enter_function_scope_body",  //
                             "visit_variable_use",               // c
                             "visit_exit_function_scope",        //
+                            "visit_variable_use",               // a
                             "visit_variable_use"));             // d
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"b", variable_kind::_parameter}));
     EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"a"},
-                            spy_visitor::visited_variable_use{u8"c"},
+                ElementsAre(spy_visitor::visited_variable_use{u8"c"},
+                            spy_visitor::visited_variable_use{u8"a"},
                             spy_visitor::visited_variable_use{u8"d"}));
   }
 
@@ -1289,10 +1289,10 @@ TEST(test_parse, star_before_async_or_function_is_not_generator_star) {
     parser p(&code, &v);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_use",                // async
-                            "visit_enter_named_function_scope",  // f
+                ElementsAre("visit_enter_named_function_scope",  // f
                             "visit_enter_function_scope_body",   //
                             "visit_exit_function_scope",         //
+                            "visit_variable_use",                // async
                             "visit_end_of_module"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
@@ -1304,10 +1304,10 @@ TEST(test_parse, star_before_async_or_function_is_not_generator_star) {
     parser p(&code, &v);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_use",                // console
-                            "visit_enter_named_function_scope",  // f
+                ElementsAre("visit_enter_named_function_scope",  // f
                             "visit_enter_function_scope_body",   //
                             "visit_exit_function_scope",         //
+                            "visit_variable_use",                // console
                             "visit_variable_use",                // console
                             "visit_end_of_module"));
     EXPECT_THAT(v.errors, IsEmpty());
@@ -1602,14 +1602,14 @@ TEST(test_parse, invalid_function_parameter) {
     spy_visitor v;
     parser p(&code, &v);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",               // g
-                                      "visit_enter_function_scope",       //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
+                                      "visit_variable_use",               // g
                                       "visit_end_of_module"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(
+        UnorderedElementsAre(
             ERROR_TYPE(
                 error_missing_operator_between_expression_and_arrow_function),
             ERROR_TYPE_OFFSETS(&code,
@@ -1618,27 +1618,22 @@ TEST(test_parse, invalid_function_parameter) {
   }
 }
 
-TEST(test_parse, function_body_is_visited_in_order) {
+TEST(test_parse, function_body_is_visited_first_in_expression) {
   for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
     padded_string code(u8"[a, " + string8(function) + u8", c];");
     SCOPED_TRACE(code);
     spy_visitor v = parse_and_visit_statement(&code);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",               // a
-                                      "visit_enter_function_scope",       //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // b
                                       "visit_exit_function_scope",        //
+                                      "visit_variable_use",               // a
                                       "visit_variable_use"));             // c
     EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"a"},
-                            spy_visitor::visited_variable_use{u8"b"},
+                ElementsAre(spy_visitor::visited_variable_use{u8"b"},
+                            spy_visitor::visited_variable_use{u8"a"},
                             spy_visitor::visited_variable_use{u8"c"}));
   }
-}
-
-TEST(test_parse, function_body_is_visited_out_of_order_during_assignment) {
-  // TODO(strager): We should be consistent about when a function body is
-  // visited. (See function_body_is_visited_in_order for a different ordering.)
 
   for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
     padded_string code(u8"[a, (" + string8(function) +

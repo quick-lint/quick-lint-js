@@ -881,13 +881,11 @@ void parser::parse_and_visit_function_declaration(
       // The function should have a name, but doesn't have a name. Perhaps the
       // user intended to include parentheses. Parse the function as an
       // expression instead of as a declaration.
-      buffering_visitor *function_visitor =
-          this->expressions_.make_buffering_visitor();
-      this->parse_and_visit_function_parameters_and_body_no_scope(
-          *function_visitor, /*name=*/std::nullopt, attributes);
+      this->parse_and_visit_function_parameters_and_body(
+          v, /*name=*/std::nullopt, attributes);
       const char8 *function_end = this->lexer_.end_of_previous_token();
       expression *function = this->make_expression<expression::function>(
-          attributes, function_visitor,
+          attributes, this->expressions_.make_buffering_visitor(),
           source_code_span(function_token_begin, function_end));
       expression *full_expression =
           this->parse_expression_remainder(v, function, precedence{});

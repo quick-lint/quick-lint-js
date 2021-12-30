@@ -3129,9 +3129,10 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
     test_parser p(u8"(x, 42, y) => {body();}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "arrowblock(var x, literal, var y)");
-    EXPECT_THAT(p.errors(), IsEmpty())
-        << "reporting error_unexpected_literal_in_parameter_list is done "
-           "during visitation";
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_OFFSETS(
+                                p.code(),
+                                error_unexpected_literal_in_parameter_list,  //
+                                literal, strlen(u8"(x, "), u8"42")));
   }
 }
 

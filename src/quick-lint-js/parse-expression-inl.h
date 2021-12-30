@@ -50,8 +50,11 @@ void parser::visit_expression(expression* ast, Visitor& v,
   switch (ast->kind()) {
   case expression_kind::_invalid:
   case expression_kind::_missing:
+  case expression_kind::arrow_function_with_statements:
+  case expression_kind::function:
   case expression_kind::import:
   case expression_kind::literal:
+  case expression_kind::named_function:
   case expression_kind::new_target:
   case expression_kind::private_variable:
   case expression_kind::super:
@@ -87,13 +90,6 @@ void parser::visit_expression(expression* ast, Visitor& v,
     v.visit_exit_function_scope();
     break;
   }
-  case expression_kind::arrow_function_with_statements:
-    v.visit_enter_function_scope();
-    visit_parameters();
-    v.visit_enter_function_scope_body();
-    ast->visit_children(v, this->expressions_);
-    v.visit_exit_function_scope();
-    break;
   case expression_kind::assignment: {
     expression* lhs = ast->child_0();
     expression* rhs = ast->child_1();
@@ -199,16 +195,6 @@ void parser::visit_expression(expression* ast, Visitor& v,
       }
       break;
     }
-    break;
-  case expression_kind::function:
-    v.visit_enter_function_scope();
-    ast->visit_children(v, this->expressions_);
-    v.visit_exit_function_scope();
-    break;
-  case expression_kind::named_function:
-    v.visit_enter_named_function_scope(ast->variable_identifier());
-    ast->visit_children(v, this->expressions_);
-    v.visit_exit_function_scope();
     break;
   }
 }
@@ -1747,12 +1733,30 @@ expression* parser::parse_arrow_function_body_impl(
     const char8* parameter_list_begin, bool allow_in_operator, Args&&... args) {
   function_guard guard = this->enter_function(attributes);
   if (this->peek().type == token_type::left_curly) {
-    // TODO(strager): Use v instead.
-    buffering_visitor* body_v = this->expressions_.make_buffering_visitor();
-    this->parse_and_visit_statement_block_no_scope(*body_v);
+    v.visit_enter_function_scope();
+
+    // TODO(strager): Avoid creating a temporary expression just to iterate over
+    // the parameters.
+    expression* ast =
+        this->make_expression<expression::arrow_function_with_statements>(
+            attributes, std::forward<Args>(args)...,
+            this->expressions_.make_buffering_visitor(), parameter_list_begin,
+            /*span_end=*/this->peek().begin);
+    int parameter_count = ast->child_count();
+    for (int i = 0; i < parameter_count; ++i) {
+      expression* parameter = ast->child(i);
+      this->visit_binding_element(parameter, v, variable_kind::_parameter,
+                                  /*declaring_token=*/std::nullopt);
+    }
+
+    v.visit_enter_function_scope_body();
+    this->parse_and_visit_statement_block_no_scope(v);
+    v.visit_exit_function_scope();
+
     const char8* span_end = this->lexer_.end_of_previous_token();
     return this->make_expression<expression::arrow_function_with_statements>(
-        attributes, std::forward<Args>(args)..., body_v, parameter_list_begin,
+        attributes, ast->children(),
+        this->expressions_.make_buffering_visitor(), parameter_list_begin,
         span_end);
   } else {
     expression* body =
@@ -1791,22 +1795,29 @@ expression* parser::parse_function_expression(Visitor& v,
   default:
     break;
   }
-  // TODO(strager): Use v instead.
-  (void)v;
-  buffering_visitor* body_v = this->expressions_.make_buffering_visitor();
+
+  if (function_name.has_value()) {
+    v.visit_enter_named_function_scope(*function_name);
+  } else {
+    v.visit_enter_function_scope();
+  }
   this->parse_and_visit_function_parameters_and_body_no_scope(
-      *body_v,
+      v,
       /*name=*/function_name.has_value()
           ? std::optional<source_code_span>(function_name->span())
           : std::nullopt,
       attributes);
+  v.visit_exit_function_scope();
+
   const char8* span_end = this->lexer_.end_of_previous_token();
   return function_name.has_value()
              ? this->make_expression<expression::named_function>(
-                   attributes, *function_name, body_v,
+                   attributes, *function_name,
+                   this->expressions_.make_buffering_visitor(),
                    source_code_span(span_begin, span_end))
              : this->make_expression<expression::function>(
-                   attributes, body_v, source_code_span(span_begin, span_end));
+                   attributes, this->expressions_.make_buffering_visitor(),
+                   source_code_span(span_begin, span_end));
 }
 
 template <QLJS_PARSE_VISITOR Visitor>
@@ -1861,12 +1872,10 @@ expression* parser::parse_object_literal(Visitor& v) {
   };
   auto parse_method_entry = [&](const char8* key_span_begin, expression* key,
                                 function_attributes attributes) -> void {
-    // TODO(strager): Use v instead.
-    buffering_visitor* body_v = this->expressions_.make_buffering_visitor();
     switch (this->peek().type) {
     default: {
-      this->parse_and_visit_function_parameters_and_body_no_scope(
-          *body_v,
+      this->parse_and_visit_function_parameters_and_body(
+          v,
           /*name=*/
           source_code_span(key_span_begin,
                            this->lexer_.end_of_previous_token()),
@@ -1884,7 +1893,8 @@ expression* parser::parse_object_literal(Visitor& v) {
 
     const char8* span_end = this->lexer_.end_of_previous_token();
     expression* func = this->make_expression<expression::function>(
-        attributes, body_v, source_code_span(key_span_begin, span_end));
+        attributes, this->expressions_.make_buffering_visitor(),
+        source_code_span(key_span_begin, span_end));
     entries.emplace_back(key, func);
   };
 
