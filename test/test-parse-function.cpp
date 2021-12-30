@@ -1617,6 +1617,47 @@ TEST(test_parse, invalid_function_parameter) {
                                literal, strlen(u8"g("), u8"42")));
   }
 }
+
+TEST(test_parse, function_body_is_visited_in_order) {
+  for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
+    padded_string code(u8"[a, " + string8(function) + u8", c];");
+    SCOPED_TRACE(code);
+    spy_visitor v = parse_and_visit_statement(&code);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",               // a
+                                      "visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // b
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_use"));             // c
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"a"},
+                            spy_visitor::visited_variable_use{u8"b"},
+                            spy_visitor::visited_variable_use{u8"c"}));
+  }
+}
+
+TEST(test_parse, function_body_is_visited_out_of_order_during_assignment) {
+  // TODO(strager): We should be consistent about when a function body is
+  // visited. (See function_body_is_visited_in_order for a different ordering.)
+
+  for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
+    padded_string code(u8"[a, (" + string8(function) +
+                       u8")().prop, c] = [1, 2, 3];");
+    SCOPED_TRACE(code);
+    spy_visitor v = parse_and_visit_statement(&code);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // b
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_assignment",        // a
+                                      "visit_variable_assignment"));      // c
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"b"}));
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(spy_visitor::visited_variable_assignment{u8"a"},
+                            spy_visitor::visited_variable_assignment{u8"c"}));
+  }
+}
 }
 }
 

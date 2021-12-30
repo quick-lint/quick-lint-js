@@ -140,6 +140,10 @@ inline spy_visitor parse_and_visit_statement(string8_view raw_code) {
   return parse_and_visit_statement(raw_code, parser_options());
 }
 
+inline spy_visitor parse_and_visit_statement(padded_string_view raw_code) {
+  return parse_and_visit_statement(raw_code.string_view());
+}
+
 inline spy_visitor parse_and_visit_statement(string8_view raw_code,
                                              function_attributes attributes) {
   padded_string code(raw_code);
