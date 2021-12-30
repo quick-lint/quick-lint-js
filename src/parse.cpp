@@ -39,6 +39,23 @@
 // the parser class takes characters as input.
 
 namespace quick_lint_js {
+parser_transaction::parser_transaction(lexer* l,
+                                       error_reporter** error_reporter_pointer,
+                                       monotonic_allocator* allocator)
+    : lex_transaction(l->begin_transaction()),
+      reporter(allocator),
+      old_error_reporter(
+          std::exchange(*error_reporter_pointer, &this->reporter)) {}
+
+parser::parser(padded_string_view input, error_reporter* error_reporter)
+    : parser(input, error_reporter, parser_options()) {}
+
+parser::parser(padded_string_view input, error_reporter* error_reporter,
+               parser_options options)
+    : lexer_(input, error_reporter),
+      error_reporter_(error_reporter),
+      options_(options) {}
+
 parser::function_guard parser::enter_function(function_attributes attributes) {
   bool was_in_top_level = this->in_top_level_;
   bool was_in_async_function = this->in_async_function_;
@@ -2589,6 +2606,176 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
   }
 }
 
+void parser::error_on_class_statement(statement_kind statement_kind) {
+  if (this->peek().type == token_type::kw_class) {
+    const char8* expected_body = this->lexer_.end_of_previous_token();
+    this->error_reporter_->report(error_class_statement_not_allowed_in_body{
+        .kind_of_statement = statement_kind,
+        .expected_body = source_code_span(expected_body, expected_body),
+        .class_keyword = this->peek().span(),
+    });
+  }
+}
+
+void parser::error_on_lexical_declaration(statement_kind statement_kind) {
+  bool is_lexical_declaration;
+  switch (this->peek().type) {
+  case token_type::kw_const:
+    is_lexical_declaration = true;
+    break;
+
+  case token_type::kw_let: {
+    lexer_transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    is_lexical_declaration = !this->is_let_token_a_variable_reference(
+        this->peek(), /*allow_declarations=*/false);
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    break;
+  }
+
+  default:
+    is_lexical_declaration = false;
+    break;
+  }
+  if (is_lexical_declaration) {
+    const char8* expected_body = this->lexer_.end_of_previous_token();
+    this->error_reporter_->report(error_lexical_declaration_not_allowed_in_body{
+        .kind_of_statement = statement_kind,
+        .expected_body = source_code_span(expected_body, expected_body),
+        .declaring_keyword = this->peek().span(),
+    });
+  }
+}
+
+void parser::error_on_function_statement(statement_kind statement_kind) {
+  std::optional<source_code_span> function_keywords =
+      this->is_maybe_function_statement();
+  if (function_keywords.has_value()) {
+    const char8* expected_body = this->lexer_.end_of_previous_token();
+    this->error_reporter_->report(error_function_statement_not_allowed_in_body{
+        .kind_of_statement = statement_kind,
+        .expected_body = source_code_span(expected_body, expected_body),
+        .function_keywords = *function_keywords,
+    });
+  }
+}
+
+std::optional<source_code_span> parser::is_maybe_function_statement() {
+  switch (this->peek().type) {
+    // function f() {}
+  case token_type::kw_function:
+    return this->peek().span();
+
+    // async;
+    // async function f() {}
+  case token_type::kw_async: {
+    lexer_transaction transaction = this->lexer_.begin_transaction();
+    const char8* async_begin = this->peek().begin;
+    this->skip();
+    if (this->peek().type == token_type::kw_function) {
+      source_code_span span(async_begin, this->peek().end);
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return span;
+    } else {
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return std::nullopt;
+    }
+  }
+
+  default:
+    return std::nullopt;
+  }
+}
+
+std::optional<function_attributes>
+parser::try_parse_function_with_leading_star() {
+  QLJS_ASSERT(this->peek().type == token_type::star);
+  token star_token = this->peek();
+  lexer_transaction transaction = this->lexer_.begin_transaction();
+  this->skip();
+  if (this->peek().has_leading_newline) {
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    return std::nullopt;
+  }
+
+  function_attributes attrb = function_attributes::generator;
+  bool has_leading_async = this->peek().type == token_type::kw_async;
+  // *async
+  if (has_leading_async) {
+    attrb = function_attributes::async_generator;
+    this->skip();
+  }
+
+  if (this->peek().type != token_type::kw_function) {
+    this->lexer_.roll_back_transaction(std::move(transaction));
+    return std::nullopt;
+  }
+
+  // *function f() {}
+  this->skip();
+  if (this->peek().type == token_type::identifier) {
+    this->error_reporter_->report(
+        error_generator_function_star_belongs_before_name{
+            .function_name = this->peek().span(),
+            .star = star_token.span(),
+        });
+  } else {
+    this->error_reporter_->report(
+        error_generator_function_star_belongs_after_keyword_function{
+            .star = star_token.span()});
+  }
+  this->lexer_.roll_back_transaction(std::move(transaction));
+  this->skip();
+  // *async function f() {}
+  if (has_leading_async) {
+    this->skip();
+  }
+  return attrb;
+}
+
+bool parser::is_let_token_a_variable_reference(
+    token following_token, bool allow_declarations) noexcept {
+  switch (following_token.type) {
+  QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL:
+  QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
+  QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
+  case token_type::comma:
+  case token_type::complete_template:
+  case token_type::dot:
+  case token_type::end_of_file:
+  case token_type::equal:
+  case token_type::equal_greater:
+  case token_type::incomplete_template:
+  case token_type::left_paren:
+  case token_type::minus:
+  case token_type::minus_minus:
+  case token_type::plus:
+  case token_type::plus_plus:
+  case token_type::question:
+  case token_type::semicolon:
+  case token_type::slash:
+    return true;
+
+  QLJS_CASE_RESERVED_KEYWORD:
+    if (following_token.type == token_type::kw_in ||
+        following_token.type == token_type::kw_instanceof) {
+      return true;
+    } else {
+      return following_token.has_leading_newline;
+    }
+
+  case token_type::left_square:
+    return false;
+
+  default:
+    if (!allow_declarations) {
+      return this->peek().has_leading_newline;
+    } else {
+      return false;
+    }
+  }
+}
+
 void parser::consume_semicolon() {
   switch (this->peek().type) {
   case token_type::semicolon:
@@ -2694,6 +2881,19 @@ parser::function_guard::~function_guard() noexcept {
   this->parser_->in_generator_function_ = this->was_in_generator_function_;
   this->parser_->in_loop_statement_ = this->was_in_loop_statement_;
   this->parser_->in_switch_statement_ = this->was_in_switch_statement_;
+}
+
+parser::depth_guard::depth_guard(parser* p) noexcept
+    : parser_(p), old_depth_(p->depth_) {
+  if (p->depth_ + 1 > p->stack_limit) {
+    p->crash_on_depth_limit_exceeded();
+  }
+  p->depth_++;
+}
+
+parser::depth_guard::~depth_guard() noexcept {
+  QLJS_ASSERT(this->parser_->depth_ == this->old_depth_ + 1);
+  this->parser_->depth_ = this->old_depth_;
 }
 
 bool parser::parse_expression_cache_key::operator==(
