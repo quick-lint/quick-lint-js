@@ -152,6 +152,7 @@ quick_lint_js_add_library(
   quick-lint-js/options.h
   quick-lint-js/output-stream.h
   quick-lint-js/padded-string.h
+  quick-lint-js/parse-expression-inl.h
   quick-lint-js/parse-statement-inl.h
   quick-lint-js/parse-visitor.h
   quick-lint-js/parse.h
