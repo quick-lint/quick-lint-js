@@ -131,7 +131,6 @@ class parser {
 
  public:
   explicit parser(padded_string_view input, error_reporter *error_reporter);
-
   explicit parser(padded_string_view input, error_reporter *error_reporter,
                   parser_options options);
 
@@ -208,21 +207,15 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void visit_expression(expression *ast, Visitor &v, variable_context context);
-
   template <QLJS_PARSE_VISITOR Visitor>
   void visit_assignment_expression(expression *lhs, expression *rhs,
                                    Visitor &v);
-
   template <QLJS_PARSE_VISITOR Visitor>
   void visit_compound_or_conditional_assignment_expression(expression *lhs,
                                                            expression *rhs,
                                                            Visitor &v);
-
   template <QLJS_PARSE_VISITOR Visitor>
   void maybe_visit_assignment(expression *ast, Visitor &v);
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_export(Visitor &v);
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_statement_block_no_scope(Visitor &v);
@@ -238,60 +231,17 @@ class parser {
                                             function_attributes attributes,
                                             const char8 *begin,
                                             name_requirement require_name);
-
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_function_parameters_and_body(
       Visitor &v, std::optional<source_code_span> name,
       function_attributes attributes);
-
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_function_parameters_and_body_no_scope(
       Visitor &v, std::optional<source_code_span> name,
       function_attributes attributes);
-
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_function_parameters(Visitor &v);
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_class(Visitor &v, name_requirement require_name);
-
-  // Parse the 'class' keyword, the class's optional name, and any extends
-  // clause.
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_class_heading(Visitor &v, name_requirement require_name);
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_class_body(Visitor &v);
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_class_member(Visitor &v);
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_switch(Visitor &v);
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_try_maybe_catch_maybe_finally(Visitor &v);
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  [[nodiscard]] bool parse_and_visit_catch_or_finally_or_both(Visitor &v);
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_do_while(Visitor &v);
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_for(Visitor &v);
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_while(Visitor &v);
-
-  void error_on_class_statement(statement_kind statement_kind);
-
-  void error_on_lexical_declaration(statement_kind statement_kind);
-
-  void error_on_function_statement(statement_kind statement_kind);
-
   std::optional<source_code_span> is_maybe_function_statement();
-
   // If the function returns nullopt, no tokens are consumed.
   //
   // If the function returns a function_attributes, tokens are consumed until
@@ -301,29 +251,57 @@ class parser {
   std::optional<function_attributes> try_parse_function_with_leading_star();
 
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_with(Visitor &v);
+  void parse_and_visit_class(Visitor &v, name_requirement require_name);
+  // Parse the 'class' keyword, the class's optional name, and any extends
+  // clause.
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_class_heading(Visitor &v, name_requirement require_name);
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_class_body(Visitor &v);
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_class_member(Visitor &v);
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_try_maybe_catch_maybe_finally(Visitor &v);
+  template <QLJS_PARSE_VISITOR Visitor>
+  [[nodiscard]] bool parse_and_visit_catch_or_finally_or_both(Visitor &v);
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_do_while(Visitor &v);
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_for(Visitor &v);
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_while(Visitor &v);
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_if(Visitor &v);
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_switch(Visitor &v);
+
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_with(Visitor &v);
 
   template <class ExpectedParenthesesError, class ExpectedParenthesisError,
             QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_parenthesized_expression(Visitor &v);
 
+  void error_on_class_statement(statement_kind statement_kind);
+  void error_on_lexical_declaration(statement_kind statement_kind);
+  void error_on_function_statement(statement_kind statement_kind);
+
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_import(Visitor &v);
-
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_name_space_import(Visitor &v);
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_named_exports_for_import(Visitor &v);
 
+  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_export(Visitor &v);
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_named_exports_for_export(
       Visitor &v,
       bump_vector<token, monotonic_allocator> &out_exported_bad_tokens);
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_named_exports_for_import(Visitor &v);
-
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_named_exports(
       Visitor &v,
@@ -331,13 +309,11 @@ class parser {
 
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_variable_declaration_statement(Visitor &v);
-
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_let_bindings(
       Visitor &v, token declaring_token, bool allow_in_operator,
       bool allow_const_without_initializer = false,
       bool is_in_for_initializer = false);
-
   // declaring_token is the const/let/var token.
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_let_bindings(Visitor &v, token declaring_token,
@@ -345,15 +321,12 @@ class parser {
                                     bool allow_in_operator,
                                     bool allow_const_without_initializer,
                                     bool is_in_for_initializer);
-
   bool is_let_token_a_variable_reference(token following_token,
                                          bool allow_declarations) noexcept;
-
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_binding_element(
       Visitor &v, variable_kind declaration_kind,
       std::optional<source_code_span> declaring_token, bool allow_in_operator);
-
   template <QLJS_PARSE_VISITOR Visitor>
   void visit_binding_element(expression *ast, Visitor &v,
                              variable_kind declaration_kind,
@@ -384,26 +357,20 @@ class parser {
   }
 
   expression *parse_expression(precedence);
-
   expression *parse_primary_expression(precedence);
-
   expression *parse_async_expression(token async_token, precedence);
   expression *parse_async_expression_only(token async_token,
                                           bool allow_in_operator);
   expression *parse_await_expression(token await_token, precedence prec);
-
   expression *parse_expression_remainder(expression *, precedence);
-
   void parse_arrow_function_expression_remainder(
       source_code_span arrow_span,
       expression_arena::vector<expression *> &children, bool allow_in_operator);
   // Precondition: Current token is '=>'.
   void parse_arrow_function_expression_remainder(
       expression_arena::vector<expression *> &children, bool allow_in_operator);
-
   expression *parse_call_expression_remainder(expression *callee);
   expression *parse_index_expression_remainder(expression *lhs);
-
   expression *parse_arrow_function_body(function_attributes,
                                         const char8 *parameter_list_begin,
                                         bool allow_in_operator);
@@ -419,14 +386,10 @@ class parser {
                                              const char8 *parameter_list_begin,
                                              bool allow_in_operator,
                                              Args &&... args);
-
   expression *parse_function_expression(function_attributes,
                                         const char8 *span_begin);
-
   expression *parse_object_literal();
-
   expression *parse_class_expression();
-
   expression *parse_jsx_expression();
   // tag is optional. If it is nullptr, parse a fragment. Otherwise, parse an
   // element.
@@ -436,9 +399,7 @@ class parser {
   // Postcondition: current token is '>' or end_of_file.
   expression *parse_jsx_element_or_fragment(identifier *tag,
                                             const char8 *less_begin);
-
   expression *parse_template(std::optional<expression *> tag);
-
   function_attributes parse_generator_star(function_attributes);
 
   expression *maybe_wrap_erroneous_arrow_function(expression *arrow_function,
