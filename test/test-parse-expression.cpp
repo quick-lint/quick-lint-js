@@ -643,7 +643,7 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
     padded_string code(u8"x.#private"_sv);
     parser p(&code, &v);
     auto class_guard = p.enter_class();  // Allow to call private identifiers.
-    expression* ast = p.parse_expression();
+    expression* ast = p.parse_expression(v);
     EXPECT_EQ(summarize(ast), "dot(var x, #private)");
   }
 }

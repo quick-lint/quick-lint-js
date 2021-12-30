@@ -110,7 +110,8 @@ parse_statement:
                                      parse_statement_type::no_declarations)) {
       // Expression.
       this->lexer_.roll_back_transaction(std::move(transaction));
-      expression *ast = this->parse_expression(precedence{.in_operator = true});
+      expression *ast =
+          this->parse_expression(v, precedence{.in_operator = true});
       this->visit_expression(ast, v, variable_context::rhs);
       parse_expression_end();
     } else {
@@ -164,7 +165,8 @@ parse_statement:
     case token_type::question:
     case token_type::semicolon:
     case token_type::slash: {
-      expression *ast = this->parse_async_expression(async_token, precedence{});
+      expression *ast =
+          this->parse_async_expression(v, async_token, precedence{});
       this->visit_expression(ast, v, variable_context::rhs);
       break;
     }
@@ -257,8 +259,9 @@ parse_statement:
       this->skip();
       goto parse_statement;
     } else {
-      expression *ast = this->parse_await_expression(await_token, precedence{});
-      ast = this->parse_expression_remainder(ast, precedence{});
+      expression *ast =
+          this->parse_await_expression(v, await_token, precedence{});
+      ast = this->parse_expression_remainder(v, ast, precedence{});
       this->visit_expression(ast, v, variable_context::rhs);
       parse_expression_end();
     }
@@ -300,7 +303,7 @@ parse_statement:
     default:
       expression *ast =
           this->make_expression<expression::variable>(ident, ident_token_type);
-      ast = this->parse_expression_remainder(ast, precedence{});
+      ast = this->parse_expression_remainder(v, ast, precedence{});
       this->visit_expression(ast, v, variable_context::rhs);
       parse_expression_end();
       break;
@@ -608,7 +611,7 @@ void parser::parse_and_visit_export(Visitor &v) {
             /*require_name=*/name_requirement::optional);
       } else {
         expression *ast =
-            this->parse_async_expression(async_token, precedence{});
+            this->parse_async_expression(v, async_token, precedence{});
         this->visit_expression(ast, v, variable_context::rhs);
         this->consume_semicolon();
       }
@@ -760,7 +763,7 @@ void parser::parse_and_visit_export(Visitor &v) {
     // export 2 + 2;    // Invalid.
   case token_type::identifier:
   case token_type::number: {
-    expression *ast = this->parse_expression();
+    expression *ast = this->parse_expression(v);
     switch (ast->kind()) {
     case expression_kind::variable:
       this->error_reporter_->report(error_exporting_requires_curlies{
@@ -887,7 +890,7 @@ void parser::parse_and_visit_function_declaration(
           attributes, function_visitor,
           source_code_span(function_token_begin, function_end));
       expression *full_expression =
-          this->parse_expression_remainder(function, precedence{});
+          this->parse_expression_remainder(v, function, precedence{});
       this->visit_expression(full_expression, v, variable_context::rhs);
 
       if (full_expression == function) {
@@ -1051,7 +1054,7 @@ void parser::parse_and_visit_function_parameters(Visitor &v) {
     case token_type::number:
     case token_type::reserved_keyword_with_escape_sequence: {
       expression *parameter = this->parse_expression(
-          precedence{.commas = false, .in_operator = true});
+          v, precedence{.commas = false, .in_operator = true});
       this->visit_binding_element(parameter, v, variable_kind::_parameter,
                                   /*declaring_token=*/std::nullopt);
       if (parameter->kind() == expression_kind::spread) {
@@ -1810,7 +1813,7 @@ void parser::parse_and_visit_for(Visitor &v) {
         case token_type::semicolon:
           this->skip();
           if (this->peek().type != token_type::right_paren) {
-            after_expression = this->parse_expression();
+            after_expression = this->parse_expression(v);
           }
           break;
 
@@ -1878,7 +1881,7 @@ void parser::parse_and_visit_for(Visitor &v) {
       source_code_span in_token_span = this->peek().span();
       this->skip();
 
-      expression *rhs = this->parse_expression();
+      expression *rhs = this->parse_expression(v);
       this->visit_assignment_expression(init_expression, rhs, v);
 
       if (this->peek().type == token_type::semicolon) {
@@ -1896,7 +1899,7 @@ void parser::parse_and_visit_for(Visitor &v) {
       // for (lhs of rhs) {}
     case token_type::kw_of: {
       this->skip();
-      expression *rhs = this->parse_expression();
+      expression *rhs = this->parse_expression(v);
       this->visit_assignment_expression(init_expression, rhs, v);
       for_loop_style = loop_style::for_of;
       break;
@@ -1948,7 +1951,7 @@ void parser::parse_and_visit_for(Visitor &v) {
       // for (let in myArray) {}
       this->lexer_.roll_back_transaction(std::move(transaction));
       expression *ast =
-          this->parse_expression(precedence{.in_operator = false});
+          this->parse_expression(v, precedence{.in_operator = false});
       this->visit_expression(ast, lhs, variable_context::lhs);
       this->maybe_visit_assignment(ast, lhs);
     } else if (declaring_token.type == token_type::kw_let &&
@@ -2009,7 +2012,7 @@ void parser::parse_and_visit_for(Visitor &v) {
       bool is_var_in = declaring_token.type == token_type::kw_var &&
                        for_loop_style == loop_style::for_in;
       this->skip();
-      expression *rhs = this->parse_expression();
+      expression *rhs = this->parse_expression(v);
       if (is_var_in) {
         // In the following code, 'init' is evaluated before 'array':
         //
@@ -2079,7 +2082,7 @@ void parser::parse_and_visit_for(Visitor &v) {
           async_token.identifier_name(), async_token.type);
     } else {
       init_expression =
-          this->parse_expression(precedence{.in_operator = false});
+          this->parse_expression(v, precedence{.in_operator = false});
     }
     parse_in_or_of_or_condition_update(v, init_expression);
     break;
@@ -2090,7 +2093,7 @@ void parser::parse_and_visit_for(Visitor &v) {
     // for (item in things) {}
   default: {
     expression *init_expression =
-        this->parse_expression(precedence{.in_operator = false});
+        this->parse_expression(v, precedence{.in_operator = false});
     parse_in_or_of_or_condition_update(v, init_expression);
     break;
   }
@@ -2384,7 +2387,8 @@ void parser::parse_and_visit_import(Visitor &v) {
   case token_type::dot:
   case token_type::left_paren: {
     expression *ast = this->parse_expression_remainder(
-        this->make_expression<expression::import>(import_span), precedence{});
+        v, this->make_expression<expression::import>(import_span),
+        precedence{});
     this->visit_expression(ast, v, variable_context::rhs);
     this->consume_semicolon();
     return;
@@ -2813,8 +2817,9 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
         expression::assignment *assignment_ast =
             static_cast<expression::assignment *>(
                 this->parse_expression_remainder(
-                    variable, precedence{.commas = false,
-                                         .in_operator = allow_in_operator}));
+                    v, variable,
+                    precedence{.commas = false,
+                               .in_operator = allow_in_operator}));
 
         if (is_in_for_initializer && this->peek().type == token_type::kw_in) {
           // for (var x = "initial" in obj)
@@ -2825,7 +2830,7 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
 
           parser_transaction transaction = this->begin_transaction();
           expression *in_ast = this->parse_expression_remainder(
-              assignment_ast->child_1(), precedence{.commas = false});
+              v, assignment_ast->child_1(), precedence{.commas = false});
           if (this->peek().type == token_type::semicolon) {
             // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
             this->commit_transaction(std::move(transaction));
@@ -3013,7 +3018,7 @@ void parser::parse_and_visit_binding_element(
     Visitor &v, variable_kind declaration_kind,
     std::optional<source_code_span> declaring_token, bool allow_in_operator) {
   expression *ast = this->parse_expression(
-      precedence{.commas = false, .in_operator = allow_in_operator});
+      v, precedence{.commas = false, .in_operator = allow_in_operator});
   this->visit_binding_element(ast, v, declaration_kind, declaring_token);
 }
 

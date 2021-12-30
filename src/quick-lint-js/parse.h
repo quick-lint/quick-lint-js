@@ -195,8 +195,10 @@ class parser {
     this->parse_and_visit_expression(v, precedence{});
   }
 
-  expression *parse_expression() {
-    return this->parse_expression(precedence{});
+  // The Visitor is only used for the bodies of arrow and function expressions.
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_expression(Visitor &v) {
+    return this->parse_expression(v, precedence{});
   }
 
  private:
@@ -349,57 +351,78 @@ class parser {
     monotonic_allocator &alloc = *this->expressions_.allocator();
     auto rewind_guard = alloc.make_rewind_guard();
 
-    expression *ast = this->parse_expression(prec);
+    expression *ast = this->parse_expression(v, prec);
     {
       auto disable_guard = alloc.disable();
       this->visit_expression(ast, v, variable_context::rhs);
     }
   }
 
-  expression *parse_expression(precedence);
-  expression *parse_primary_expression(precedence);
-  expression *parse_async_expression(token async_token, precedence);
-  expression *parse_async_expression_only(token async_token,
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_expression(Visitor &, precedence);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_primary_expression(Visitor &, precedence);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_async_expression(Visitor &, token async_token, precedence);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_async_expression_only(Visitor &, token async_token,
                                           bool allow_in_operator);
-  expression *parse_await_expression(token await_token, precedence prec);
-  expression *parse_expression_remainder(expression *, precedence);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_await_expression(Visitor &, token await_token,
+                                     precedence prec);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_expression_remainder(Visitor &, expression *, precedence);
+  template <QLJS_PARSE_VISITOR Visitor>
   void parse_arrow_function_expression_remainder(
-      source_code_span arrow_span,
+      Visitor &, source_code_span arrow_span,
       expression_arena::vector<expression *> &children, bool allow_in_operator);
   // Precondition: Current token is '=>'.
+  template <QLJS_PARSE_VISITOR Visitor>
   void parse_arrow_function_expression_remainder(
-      expression_arena::vector<expression *> &children, bool allow_in_operator);
-  expression *parse_call_expression_remainder(expression *callee);
-  expression *parse_index_expression_remainder(expression *lhs);
-  expression *parse_arrow_function_body(function_attributes,
+      Visitor &, expression_arena::vector<expression *> &children,
+      bool allow_in_operator);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_call_expression_remainder(Visitor &, expression *callee);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_index_expression_remainder(Visitor &, expression *lhs);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_arrow_function_body(Visitor &, function_attributes,
                                         const char8 *parameter_list_begin,
                                         bool allow_in_operator);
+  template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_arrow_function_body(
-      function_attributes, const char8 *parameter_list_begin,
+      Visitor &, function_attributes, const char8 *parameter_list_begin,
       bool allow_in_operator,
       expression_arena::array_ptr<expression *> &&parameters);
   // Args is either of the following:
   // * expression_arena::array_ptr<expression*> &&parameters
   // * (none)
-  template <class... Args>
-  expression *parse_arrow_function_body_impl(function_attributes,
+  template <class Visitor, class... Args>
+  expression *parse_arrow_function_body_impl(Visitor &, function_attributes,
                                              const char8 *parameter_list_begin,
                                              bool allow_in_operator,
                                              Args &&... args);
-  expression *parse_function_expression(function_attributes,
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_function_expression(Visitor &, function_attributes,
                                         const char8 *span_begin);
-  expression *parse_object_literal();
-  expression *parse_class_expression();
-  expression *parse_jsx_expression();
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_object_literal(Visitor &);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_class_expression(Visitor &);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_jsx_expression(Visitor &);
   // tag is optional. If it is nullptr, parse a fragment. Otherwise, parse an
   // element.
   //
   // Precondition: previous token was '<' (for fragments) or an identifier (for
   //               elements).
   // Postcondition: current token is '>' or end_of_file.
-  expression *parse_jsx_element_or_fragment(identifier *tag,
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_jsx_element_or_fragment(Visitor &, identifier *tag,
                                             const char8 *less_begin);
-  expression *parse_template(std::optional<expression *> tag);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_template(Visitor &, std::optional<expression *> tag);
+
   function_attributes parse_generator_star(function_attributes);
 
   expression *maybe_wrap_erroneous_arrow_function(expression *arrow_function,

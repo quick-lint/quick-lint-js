@@ -254,17 +254,19 @@ void parser::maybe_visit_assignment(expression* ast, Visitor& v) {
   }
 }
 
-inline expression* parser::parse_expression(precedence prec) {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_expression(Visitor& v, precedence prec) {
   depth_guard guard(this);
-  expression* ast = this->parse_primary_expression(prec);
+  expression* ast = this->parse_primary_expression(v, prec);
   if (!prec.binary_operators && prec.math_or_logical_or_assignment) {
     return ast;
   }
-  return this->parse_expression_remainder(ast, prec);
+  return this->parse_expression_remainder(v, ast, prec);
 }
 
 // TODO(strager): Why do we need precedence here? Could we get rid of prec?
-inline expression* parser::parse_primary_expression(precedence prec) {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
   switch (this->peek().type) {
   // f  // Variable name.
   identifier:
@@ -322,7 +324,7 @@ inline expression* parser::parse_primary_expression(precedence prec) {
 
   // `hello${world}`
   case token_type::incomplete_template: {
-    expression* ast = this->parse_template(/*tag=*/std::nullopt);
+    expression* ast = this->parse_template(v, /*tag=*/std::nullopt);
     return ast;
   }
 
@@ -331,7 +333,7 @@ inline expression* parser::parse_primary_expression(precedence prec) {
   case token_type::kw_await: {
     token await_token = this->peek();
     this->skip();
-    return this->parse_await_expression(await_token, prec);
+    return this->parse_await_expression(v, await_token, prec);
   }
 
   // yield       // Identifier.
@@ -358,13 +360,13 @@ inline expression* parser::parse_primary_expression(precedence prec) {
 
       case token_type::star: {
         this->skip();
-        expression* child = this->parse_expression(prec);
+        expression* child = this->parse_expression(v, prec);
         return this->make_expression<expression::yield_many>(child,
                                                              operator_span);
       }
 
       default: {
-        expression* child = this->parse_expression(prec);
+        expression* child = this->parse_expression(v, prec);
         return this->make_expression<expression::yield_one>(child,
                                                             operator_span);
       }
@@ -379,7 +381,7 @@ inline expression* parser::parse_primary_expression(precedence prec) {
   case token_type::dot_dot_dot: {
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression* child = this->parse_expression(precedence{.commas = false});
+    expression* child = this->parse_expression(v, precedence{.commas = false});
     return this->make_expression<expression::spread>(child, operator_span);
   }
 
@@ -395,13 +397,14 @@ inline expression* parser::parse_primary_expression(precedence prec) {
     token_type type = this->peek().type;
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression* child = this->parse_expression(precedence{
-        .binary_operators = true,
-        .math_or_logical_or_assignment = false,
-        .commas = false,
-        .in_operator = prec.in_operator,
-        .conditional_operator = false,
-    });
+    expression* child =
+        this->parse_expression(v, precedence{
+                                      .binary_operators = true,
+                                      .math_or_logical_or_assignment = false,
+                                      .commas = false,
+                                      .in_operator = prec.in_operator,
+                                      .conditional_operator = false,
+                                  });
     if (child->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
@@ -423,13 +426,14 @@ inline expression* parser::parse_primary_expression(precedence prec) {
   case token_type::plus_plus: {
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression* child = this->parse_expression(precedence{
-        .binary_operators = false,
-        .math_or_logical_or_assignment = false,
-        .commas = false,
-        .in_operator = prec.in_operator,
-        .conditional_operator = false,
-    });
+    expression* child =
+        this->parse_expression(v, precedence{
+                                      .binary_operators = false,
+                                      .math_or_logical_or_assignment = false,
+                                      .commas = false,
+                                      .in_operator = prec.in_operator,
+                                      .conditional_operator = false,
+                                  });
     if (child->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
@@ -463,7 +467,7 @@ inline expression* parser::parse_primary_expression(precedence prec) {
                   .where = this->peek().span()});
         }
         expression* ast = this->parse_arrow_function_body(
-            function_attributes::normal, left_paren_span.begin(),
+            v, function_attributes::normal, left_paren_span.begin(),
             /*allow_in_operator=*/prec.in_operator);
         return ast;
       } else {
@@ -481,7 +485,7 @@ inline expression* parser::parse_primary_expression(precedence prec) {
     }
 
     expression* child =
-        this->parse_expression(precedence{.trailing_identifiers = true});
+        this->parse_expression(v, precedence{.trailing_identifiers = true});
     switch (this->peek().type) {
     case token_type::right_paren:
       this->skip();
@@ -502,7 +506,7 @@ inline expression* parser::parse_primary_expression(precedence prec) {
   case token_type::kw_async: {
     token async_token = this->peek();
     this->skip();
-    return this->parse_async_expression(async_token, prec);
+    return this->parse_async_expression(v, async_token, prec);
   }
 
   // [x, 3, f()]  // Array literal.
@@ -525,7 +529,8 @@ inline expression* parser::parse_primary_expression(precedence prec) {
         continue;
       }
       const char8* child_begin = this->peek().begin;
-      expression* child = this->parse_expression(precedence{.commas = false});
+      expression* child =
+          this->parse_expression(v, precedence{.commas = false});
       if (this->peek().begin == child_begin) {
         // parse_expression parsed nothing.
         // TODO(strager): Should parse_expression return nullptr if it sees a
@@ -552,20 +557,20 @@ inline expression* parser::parse_primary_expression(precedence prec) {
 
   // {k: v}  // Object literal.
   case token_type::left_curly: {
-    expression* ast = this->parse_object_literal();
+    expression* ast = this->parse_object_literal(v);
     return ast;
   }
 
   // function() {}  // Function expression.
   case token_type::kw_function: {
     expression* function = this->parse_function_expression(
-        function_attributes::normal, this->peek().begin);
+        v, function_attributes::normal, this->peek().begin);
     return function;
   }
 
   // class {}
   case token_type::kw_class: {
-    expression* class_expression = this->parse_class_expression();
+    expression* class_expression = this->parse_class_expression(v);
     return class_expression;
   }
 
@@ -578,7 +583,7 @@ inline expression* parser::parse_primary_expression(precedence prec) {
     switch (this->peek().type) {
     // new XMLHttpRequest()
     default: {
-      expression* target = this->parse_expression(prec);
+      expression* target = this->parse_expression(v, prec);
       expression_arena::vector<expression*> children(
           "parse_expression new children", this->expressions_.allocator());
       if (target->kind() == expression_kind::call) {
@@ -633,7 +638,7 @@ inline expression* parser::parse_primary_expression(precedence prec) {
           this->try_parse_function_with_leading_star();
       if (attrb.has_value()) {
         expression* function =
-            this->parse_function_expression(attrb.value(), star_token.begin);
+            this->parse_function_expression(v, attrb.value(), star_token.begin);
         return function;
       }
     }
@@ -642,7 +647,7 @@ inline expression* parser::parse_primary_expression(precedence prec) {
     if (prec.binary_operators) {
       if (this->peek().type == token_type::less) {
         // <MyComponent /> (JSX)
-        return this->parse_jsx_expression();
+        return this->parse_jsx_expression(v);
       } else {
         this->error_reporter_->report(
             error_missing_operand_for_operator{this->peek().span()});
@@ -661,7 +666,7 @@ inline expression* parser::parse_primary_expression(precedence prec) {
     this->skip();
 
     expression* arrow_function = this->parse_arrow_function_body(
-        function_attributes::normal,
+        v, function_attributes::normal,
         /*parameter_list_begin=*/arrow_span.begin(),
         /*allow_in_operator=*/prec.in_operator);
     return arrow_function;
@@ -720,31 +725,33 @@ inline expression* parser::parse_primary_expression(precedence prec) {
   }
 }
 
-inline expression* parser::parse_async_expression(token async_token,
-                                                  precedence prec) {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_async_expression(Visitor& v, token async_token,
+                                           precedence prec) {
   expression* ast = this->parse_async_expression_only(
-      async_token, /*allow_in_operator=*/prec.in_operator);
+      v, async_token, /*allow_in_operator=*/prec.in_operator);
   if (!prec.binary_operators) {
     return ast;
   }
-  return this->parse_expression_remainder(ast, prec);
+  return this->parse_expression_remainder(v, ast, prec);
 }
 
-inline expression* parser::parse_async_expression_only(token async_token,
-                                                       bool allow_in_operator) {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_async_expression_only(Visitor& v, token async_token,
+                                                bool allow_in_operator) {
   const char8* async_begin = async_token.begin;
 
-  auto parse_arrow_function_arrow_and_body = [this, allow_in_operator,
-                                              async_begin](auto&& parameters) {
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
-    this->skip();
+  auto parse_arrow_function_arrow_and_body =
+      [this, allow_in_operator, async_begin, &v](auto&& parameters) {
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
+        this->skip();
 
-    expression* ast = this->parse_arrow_function_body(
-        function_attributes::async, async_begin,
-        /*allow_in_operator=*/allow_in_operator,
-        this->expressions_.make_array(std::move(parameters)));
-    return ast;
-  };
+        expression* ast = this->parse_arrow_function_body(
+            v, function_attributes::async, async_begin,
+            /*allow_in_operator=*/allow_in_operator,
+            this->expressions_.make_array(std::move(parameters)));
+        return ast;
+      };
 
   switch (this->peek().type) {
   // async () => {}  // Arrow function.
@@ -771,7 +778,7 @@ inline expression* parser::parse_async_expression_only(token async_token,
         continue;
       }
       parameters.emplace_back(
-          this->parse_expression(precedence{.commas = false}));
+          this->parse_expression(v, precedence{.commas = false}));
       if (this->peek().type != token_type::comma) {
         break;
       }
@@ -854,7 +861,7 @@ inline expression* parser::parse_async_expression_only(token async_token,
   // async function f(parameters) { statements; }
   case token_type::kw_function: {
     expression* function = this->parse_function_expression(
-        function_attributes::async, async_begin);
+        v, function_attributes::async, async_begin);
     return function;
   }
 
@@ -870,8 +877,9 @@ inline expression* parser::parse_async_expression_only(token async_token,
   QLJS_UNREACHABLE();
 }
 
-inline expression* parser::parse_await_expression(token await_token,
-                                                  precedence prec) {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_await_expression(Visitor& v, token await_token,
+                                           precedence prec) {
   bool is_identifier = [&]() -> bool {
     if (this->in_async_function_ ||
         (this->in_top_level_ &&
@@ -922,10 +930,11 @@ inline expression* parser::parse_await_expression(token await_token,
 
         if (this->in_top_level_) {
           // Try to parse the / as a regular expression literal.
-          [[maybe_unused]] expression* ast = this->parse_expression(prec);
+          [[maybe_unused]] expression* ast = this->parse_expression(v, prec);
         } else {
           // Try to parse the / as a binary division operator.
           [[maybe_unused]] expression* ast = this->parse_expression_remainder(
+              v,
               this->make_expression<expression::variable>(
                   await_token.identifier_name(), await_token.type),
               prec);
@@ -1001,7 +1010,7 @@ inline expression* parser::parse_await_expression(token await_token,
 
     parser_transaction transaction = this->begin_transaction();
 
-    expression* child = this->parse_expression(prec);
+    expression* child = this->parse_expression(v, prec);
 
     if (child->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
@@ -1015,7 +1024,7 @@ inline expression* parser::parse_await_expression(token await_token,
           .await_operator = operator_span,
       });
       // Re-parse as if the user wrote 'async' instead of 'await'.
-      return this->parse_async_expression(await_token, prec);
+      return this->parse_async_expression(v, await_token, prec);
     }
 
     if (!(this->in_async_function_ || this->in_top_level_)) {
@@ -1029,8 +1038,9 @@ inline expression* parser::parse_await_expression(token await_token,
   }
 }
 
-inline expression* parser::parse_expression_remainder(expression* ast,
-                                                      precedence prec) {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_expression_remainder(Visitor& v, expression* ast,
+                                               precedence prec) {
   if (prec.commas) {
     QLJS_ASSERT(prec.binary_operators);
   }
@@ -1066,7 +1076,7 @@ next:
     } else {
       // Comma expression: a, b, c
       expression* rhs = children.emplace_back(
-          this->parse_expression(precedence{.commas = false}));
+          this->parse_expression(v, precedence{.commas = false}));
       if (rhs->kind() == expression_kind::_invalid) {
         this->error_reporter_->report(
             error_missing_operand_for_operator{comma_span});
@@ -1086,7 +1096,7 @@ next:
     source_code_span operator_span = this->peek().span();
     this->skip();
     expression* rhs = children.emplace_back(this->parse_expression(
-        precedence{.binary_operators = false, .commas = false}));
+        v, precedence{.binary_operators = false, .commas = false}));
     if (rhs->kind() == expression_kind::_missing) {
       this->error_reporter_->report(
           error_missing_operand_for_operator{operator_span});
@@ -1096,7 +1106,7 @@ next:
 
   // f(x, y, z)  // Function call.
   case token_type::left_paren:
-    children.back() = this->parse_call_expression_remainder(children.back());
+    children.back() = this->parse_call_expression_remainder(v, children.back());
     goto next;
 
   // x += y
@@ -1145,7 +1155,7 @@ next:
       QLJS_UNREACHABLE();
     }
     expression* rhs = this->parse_expression(
-        precedence{.commas = false, .in_operator = prec.in_operator});
+        v, precedence{.commas = false, .in_operator = prec.in_operator});
     if (rhs->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = operator_span,
@@ -1219,7 +1229,7 @@ next:
       // Treat '..' as if it was a binary operator.
       this->skip();
       children.emplace_back(this->parse_expression(
-          precedence{.binary_operators = false, .commas = false}));
+          v, precedence{.binary_operators = false, .commas = false}));
       goto next;
     }
 
@@ -1251,17 +1261,19 @@ next:
     // tag?.`template${goes}here`
     case token_type::complete_template:
     case token_type::incomplete_template:
-      children.back() = this->parse_template(children.back());
+      children.back() = this->parse_template(v, children.back());
       goto next;
 
     // f?.(x, y)
     case token_type::left_paren:
-      children.back() = this->parse_call_expression_remainder(children.back());
+      children.back() =
+          this->parse_call_expression_remainder(v, children.back());
       goto next;
 
     // array?.[index]
     case token_type::left_square:
-      children.back() = this->parse_index_expression_remainder(children.back());
+      children.back() =
+          this->parse_index_expression_remainder(v, children.back());
       goto next;
 
     default:
@@ -1273,7 +1285,8 @@ next:
 
   // o[key]  // Indexing expression.
   case token_type::left_square: {
-    children.back() = parse_index_expression_remainder(children.back());
+    children.back() =
+        this->parse_index_expression_remainder(v, children.back());
     goto next;
   }
 
@@ -1298,7 +1311,7 @@ next:
       break;
     }
     this->skip();
-    children.emplace_back(this->parse_expression(prec));
+    children.emplace_back(this->parse_expression(v, prec));
     goto next;
 
   // x ? y : z  // Conditional operator.
@@ -1320,7 +1333,7 @@ next:
           this->make_expression<expression::_missing>(source_code_span(
               this->lexer_.end_of_previous_token(), this->peek().begin));
     } else {
-      true_expression = this->parse_expression();
+      true_expression = this->parse_expression(v);
     }
 
     if (this->peek().type != token_type::colon) {
@@ -1339,7 +1352,7 @@ next:
     source_code_span colon_span = this->peek().span();
     this->skip();
 
-    expression* false_expression = this->parse_expression(prec);
+    expression* false_expression = this->parse_expression(v, prec);
     if (false_expression->kind() == expression_kind::_missing) {
       this->error_reporter_->report(error_missing_operand_for_operator{
           .where = colon_span,
@@ -1353,7 +1366,7 @@ next:
   // (parameters, go, here) => expression-or-block // Arrow function.
   case token_type::equal_greater: {
     this->parse_arrow_function_expression_remainder(
-        children, /*allow_in_operator=*/prec.in_operator);
+        v, children, /*allow_in_operator=*/prec.in_operator);
     goto next;
   }
 
@@ -1362,7 +1375,7 @@ next:
   case token_type::complete_template:
   case token_type::incomplete_template: {
     expression* tag = children.back();
-    children.back() = this->parse_template(tag);
+    children.back() = this->parse_template(v, tag);
     goto next;
   }
 
@@ -1378,7 +1391,7 @@ next:
 
       // Behave as if a comma appeared before the identifier.
       expression* rhs = children.emplace_back(this->parse_expression(
-          precedence{.binary_operators = false, .commas = false}));
+          v, precedence{.binary_operators = false, .commas = false}));
       QLJS_ASSERT(rhs->kind() != expression_kind::_invalid);
       goto next;
     }
@@ -1399,7 +1412,7 @@ next:
               .where = arrow_span,
           });
       this->parse_arrow_function_expression_remainder(
-          /*arrow_span=*/arrow_span, children,
+          v, /*arrow_span=*/arrow_span, children,
           /*allow_in_operator=*/prec.in_operator);
     }
     break;
@@ -1466,17 +1479,20 @@ next:
   return build_expression();
 }
 
-inline void parser::parse_arrow_function_expression_remainder(
-    expression_arena::vector<expression*>& children, bool allow_in_operator) {
+template <QLJS_PARSE_VISITOR Visitor>
+void parser::parse_arrow_function_expression_remainder(
+    Visitor& v, expression_arena::vector<expression*>& children,
+    bool allow_in_operator) {
   QLJS_ASSERT(this->peek().type == token_type::equal_greater);
   source_code_span arrow_span = this->peek().span();
   this->skip();
-  this->parse_arrow_function_expression_remainder(arrow_span, children,
+  this->parse_arrow_function_expression_remainder(v, arrow_span, children,
                                                   allow_in_operator);
 }
 
-inline void parser::parse_arrow_function_expression_remainder(
-    source_code_span arrow_span,
+template <QLJS_PARSE_VISITOR Visitor>
+void parser::parse_arrow_function_expression_remainder(
+    Visitor& v, source_code_span arrow_span,
     expression_arena::vector<expression*>& children, bool allow_in_operator) {
   if (children.size() != 1) {
     // TODO(strager): We should report an error for code like this:
@@ -1609,7 +1625,7 @@ inline void parser::parse_arrow_function_expression_remainder(
     if (this->peek().type != token_type::left_curly) {
       // Treat the '=>' as if it was a binary operator (like '>=').
       children.emplace_back(this->parse_expression(
-          precedence{.binary_operators = false, .commas = false}));
+          v, precedence{.binary_operators = false, .commas = false}));
       return;
     }
     break;
@@ -1621,7 +1637,7 @@ inline void parser::parse_arrow_function_expression_remainder(
   }
 
   expression* arrow_function = this->parse_arrow_function_body(
-      /*attributes=*/attributes,
+      v, /*attributes=*/attributes,
       /*parameter_list_begin=*/left_paren_begin,
       /*allow_in_operator=*/allow_in_operator,
       this->expressions_.make_array(std::move(parameters)));
@@ -1629,7 +1645,9 @@ inline void parser::parse_arrow_function_expression_remainder(
       this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs);
 }
 
-inline expression* parser::parse_call_expression_remainder(expression* callee) {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_call_expression_remainder(Visitor& v,
+                                                    expression* callee) {
   source_code_span left_paren_span = this->peek().span();
   expression_arena::vector<expression*> call_children(
       "parse_expression_remainder call children",
@@ -1647,7 +1665,7 @@ inline expression* parser::parse_call_expression_remainder(expression* callee) {
       continue;
     }
     call_children.emplace_back(this->parse_expression(
-        precedence{.commas = false, .trailing_identifiers = true}));
+        v, precedence{.commas = false, .trailing_identifiers = true}));
     if (this->peek().type != token_type::comma) {
       break;
     }
@@ -1672,12 +1690,14 @@ inline expression* parser::parse_call_expression_remainder(expression* callee) {
       /*span_end=*/call_span_end);
 }
 
-inline expression* parser::parse_index_expression_remainder(expression* lhs) {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_index_expression_remainder(Visitor& v,
+                                                     expression* lhs) {
   QLJS_ASSERT(this->peek().type == token_type::left_square);
   source_code_span left_square_span = this->peek().span();
   this->skip();
   expression* subscript =
-      this->parse_expression(precedence{.trailing_identifiers = true});
+      this->parse_expression(v, precedence{.trailing_identifiers = true});
   const char8* end;
   switch (this->peek().type) {
   case token_type::right_square:
@@ -1702,46 +1722,53 @@ inline expression* parser::parse_index_expression_remainder(expression* lhs) {
   return this->make_expression<expression::index>(lhs, subscript, end);
 }
 
-inline expression* parser::parse_arrow_function_body(
-    function_attributes attributes, const char8* parameter_list_begin,
-    bool allow_in_operator) {
-  return this->parse_arrow_function_body_impl(attributes, parameter_list_begin,
-                                              allow_in_operator);
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_arrow_function_body(Visitor& v,
+                                              function_attributes attributes,
+                                              const char8* parameter_list_begin,
+                                              bool allow_in_operator) {
+  return this->parse_arrow_function_body_impl(
+      v, attributes, parameter_list_begin, allow_in_operator);
 }
 
-inline expression* parser::parse_arrow_function_body(
-    function_attributes attributes, const char8* parameter_list_begin,
-    bool allow_in_operator,
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_arrow_function_body(
+    Visitor& v, function_attributes attributes,
+    const char8* parameter_list_begin, bool allow_in_operator,
     expression_arena::array_ptr<expression*>&& parameters) {
-  return this->parse_arrow_function_body_impl(attributes, parameter_list_begin,
-                                              allow_in_operator,
-                                              std::move(parameters));
+  return this->parse_arrow_function_body_impl(
+      v, attributes, parameter_list_begin, allow_in_operator,
+      std::move(parameters));
 }
 
-template <class... Args>
+template <class Visitor, class... Args>
 expression* parser::parse_arrow_function_body_impl(
-    function_attributes attributes, const char8* parameter_list_begin,
-    bool allow_in_operator, Args&&... args) {
+    Visitor& v, function_attributes attributes,
+    const char8* parameter_list_begin, bool allow_in_operator, Args&&... args) {
   function_guard guard = this->enter_function(attributes);
   if (this->peek().type == token_type::left_curly) {
-    buffering_visitor* v = this->expressions_.make_buffering_visitor();
-    this->parse_and_visit_statement_block_no_scope(*v);
+    // TODO(strager): Use v instead.
+    buffering_visitor* body_v = this->expressions_.make_buffering_visitor();
+    this->parse_and_visit_statement_block_no_scope(*body_v);
     const char8* span_end = this->lexer_.end_of_previous_token();
     return this->make_expression<expression::arrow_function_with_statements>(
-        attributes, std::forward<Args>(args)..., v, parameter_list_begin,
+        attributes, std::forward<Args>(args)..., body_v, parameter_list_begin,
         span_end);
   } else {
-    expression* body = this->parse_expression(precedence{
-        .commas = false,
-        .in_operator = allow_in_operator,
-    });
+    expression* body =
+        this->parse_expression(v, precedence{
+                                      .commas = false,
+                                      .in_operator = allow_in_operator,
+                                  });
     return this->make_expression<expression::arrow_function_with_expression>(
         attributes, std::forward<Args>(args)..., body, parameter_list_begin);
   }
 }
 
-inline expression* parser::parse_function_expression(
-    function_attributes attributes, const char8* span_begin) {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_function_expression(Visitor& v,
+                                              function_attributes attributes,
+                                              const char8* span_begin) {
   QLJS_ASSERT(this->peek().type == token_type::kw_function);
   this->skip();
   attributes = this->parse_generator_star(attributes);
@@ -1764,9 +1791,11 @@ inline expression* parser::parse_function_expression(
   default:
     break;
   }
-  buffering_visitor* v = this->expressions_.make_buffering_visitor();
+  // TODO(strager): Use v instead.
+  (void)v;
+  buffering_visitor* body_v = this->expressions_.make_buffering_visitor();
   this->parse_and_visit_function_parameters_and_body_no_scope(
-      *v,
+      *body_v,
       /*name=*/function_name.has_value()
           ? std::optional<source_code_span>(function_name->span())
           : std::nullopt,
@@ -1774,13 +1803,14 @@ inline expression* parser::parse_function_expression(
   const char8* span_end = this->lexer_.end_of_previous_token();
   return function_name.has_value()
              ? this->make_expression<expression::named_function>(
-                   attributes, *function_name, v,
+                   attributes, *function_name, body_v,
                    source_code_span(span_begin, span_end))
              : this->make_expression<expression::function>(
-                   attributes, v, source_code_span(span_begin, span_end));
+                   attributes, body_v, source_code_span(span_begin, span_end));
 }
 
-inline expression* parser::parse_object_literal() {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_object_literal(Visitor& v) {
   QLJS_ASSERT(this->peek().type == token_type::left_curly);
   const char8* left_curly_begin = this->peek().begin;
   const char8* right_curly_end;
@@ -1789,12 +1819,12 @@ inline expression* parser::parse_object_literal() {
   expression_arena::vector<object_property_value_pair> entries(
       "parse_object_literal entries", this->expressions_.allocator());
   auto parse_value_expression = [&]() {
-    return this->parse_expression(precedence{.commas = false});
+    return this->parse_expression(v, precedence{.commas = false});
   };
-  auto parse_computed_property_name = [this]() -> expression* {
+  auto parse_computed_property_name = [this, &v]() -> expression* {
     QLJS_ASSERT(this->peek().type == token_type::left_square);
     this->skip();
-    expression* property_name = this->parse_expression();
+    expression* property_name = this->parse_expression(v);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
     this->skip();
     return property_name;
@@ -1819,7 +1849,7 @@ inline expression* parser::parse_object_literal() {
     source_code_span operator_span = this->peek().span();
     this->skip();
 
-    expression* rhs = this->parse_expression(precedence{.commas = false});
+    expression* rhs = this->parse_expression(v, precedence{.commas = false});
     expression* value = this->make_expression<expression::assignment>(
         expression_kind::assignment, lhs, rhs, operator_span);
     if (missing_key) {
@@ -1831,11 +1861,12 @@ inline expression* parser::parse_object_literal() {
   };
   auto parse_method_entry = [&](const char8* key_span_begin, expression* key,
                                 function_attributes attributes) -> void {
-    buffering_visitor* v = this->expressions_.make_buffering_visitor();
+    // TODO(strager): Use v instead.
+    buffering_visitor* body_v = this->expressions_.make_buffering_visitor();
     switch (this->peek().type) {
     default: {
       this->parse_and_visit_function_parameters_and_body_no_scope(
-          *v,
+          *body_v,
           /*name=*/
           source_code_span(key_span_begin,
                            this->lexer_.end_of_previous_token()),
@@ -1853,7 +1884,7 @@ inline expression* parser::parse_object_literal() {
 
     const char8* span_end = this->lexer_.end_of_previous_token();
     expression* func = this->make_expression<expression::function>(
-        attributes, v, source_code_span(key_span_begin, span_end));
+        attributes, body_v, source_code_span(key_span_begin, span_end));
     entries.emplace_back(key, func);
   };
 
@@ -2043,8 +2074,8 @@ inline expression* parser::parse_object_literal() {
               key_token.identifier_name(), key_token.type);
           break;
         }
-        expression* value =
-            this->parse_expression_remainder(lhs, precedence{.commas = false});
+        expression* value = this->parse_expression_remainder(
+            v, lhs, precedence{.commas = false});
         entries.emplace_back(key, value);
         this->error_reporter_->report(error_missing_key_for_object_entry{
             .expression = value->span(),
@@ -2350,19 +2381,22 @@ done:
       source_code_span(left_curly_begin, right_curly_end));
 }
 
-inline expression* parser::parse_class_expression() {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_class_expression(Visitor& v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
   const char8* span_begin = this->peek().begin;
 
-  buffering_visitor* v = this->expressions_.make_buffering_visitor();
+  // TODO(strager): Use v instead.
+  (void)v;
+  buffering_visitor* body_v = this->expressions_.make_buffering_visitor();
   this->parse_and_visit_class_heading(
-      *v, /*require_name=*/name_requirement::optional);
+      *body_v, /*require_name=*/name_requirement::optional);
 
   const char8* span_end;
   if (this->peek().type == token_type::left_curly) {
     this->skip();
 
-    this->parse_and_visit_class_body(*v);
+    this->parse_and_visit_class_body(*body_v);
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
     span_end = this->peek().end;
@@ -2376,10 +2410,11 @@ inline expression* parser::parse_class_expression() {
   }
 
   return this->make_expression<expression::_class>(
-      v, source_code_span(span_begin, span_end));
+      body_v, source_code_span(span_begin, span_end));
 }
 
-inline expression* parser::parse_jsx_expression() {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_jsx_expression(Visitor& v) {
   QLJS_ASSERT(this->peek().type == token_type::less);
 
   if (!this->options_.jsx) {
@@ -2402,7 +2437,7 @@ inline expression* parser::parse_jsx_expression() {
     identifier tag = this->peek().identifier_name();
     this->lexer_.skip_in_jsx();
     expression* ast = this->parse_jsx_element_or_fragment(
-        /*tag=*/&tag, /*greater_begin=*/jsx_begin);
+        v, /*tag=*/&tag, /*greater_begin=*/jsx_begin);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
     this->skip();
     return ast;
@@ -2411,7 +2446,7 @@ inline expression* parser::parse_jsx_expression() {
   // <> </>
   case token_type::greater: {
     expression* ast = this->parse_jsx_element_or_fragment(
-        /*tag=*/nullptr, /*greater_begin=*/jsx_begin);
+        v, /*tag=*/nullptr, /*greater_begin=*/jsx_begin);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
     this->lexer_.skip();
     return ast;
@@ -2423,8 +2458,9 @@ inline expression* parser::parse_jsx_expression() {
   }
 }
 
-inline expression* parser::parse_jsx_element_or_fragment(
-    identifier* tag, const char8* less_begin) {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_jsx_element_or_fragment(Visitor& v, identifier* tag,
+                                                  const char8* less_begin) {
   // If temp_tag_storage is nullopt, then there is no namespace. If
   // temp_tag_storage is not nullopt, then it stores the tag name.
   //
@@ -2515,7 +2551,7 @@ next_attribute:
       // <current attribute={expression}>
       case token_type::left_curly: {
         this->lexer_.skip();
-        expression* ast = this->parse_expression();
+        expression* ast = this->parse_expression(v);
         children.emplace_back(ast);
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
         this->lexer_.skip_in_jsx();
@@ -2534,7 +2570,7 @@ next_attribute:
   // <current {...attributes}>
   case token_type::left_curly: {
     this->lexer_.skip();
-    expression* ast = this->parse_expression();
+    expression* ast = this->parse_expression(v);
     children.emplace_back(ast);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
     this->lexer_.skip_in_jsx();
@@ -2601,7 +2637,7 @@ next:
       identifier child_tag = this->peek().identifier_name();
       this->lexer_.skip_in_jsx();
       children.emplace_back(this->parse_jsx_element_or_fragment(
-          /*tag=*/&child_tag, /*greater_begin=*/child_begin));
+          v, /*tag=*/&child_tag, /*greater_begin=*/child_begin));
 
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
       this->lexer_.skip_in_jsx_children();
@@ -2617,7 +2653,7 @@ next:
   // {expression}
   case token_type::left_curly: {
     this->skip();
-    expression* ast = this->parse_expression();
+    expression* ast = this->parse_expression(v);
     children.emplace_back(ast);
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
@@ -2632,7 +2668,8 @@ next:
   QLJS_UNREACHABLE();
 }
 
-inline expression* parser::parse_template(std::optional<expression*> tag) {
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_template(Visitor& v, std::optional<expression*> tag) {
   if (this->peek().type == token_type::complete_template) {
     if (!tag.has_value()) {
       QLJS_UNIMPLEMENTED();
@@ -2652,7 +2689,7 @@ inline expression* parser::parse_template(std::optional<expression*> tag) {
   for (;;) {
     QLJS_ASSERT(this->peek().type == token_type::incomplete_template);
     this->skip();
-    children.emplace_back(this->parse_expression());
+    children.emplace_back(this->parse_expression(v));
     switch (this->peek().type) {
     case token_type::right_curly:
       this->lexer_.skip_in_template(template_begin);

@@ -13,6 +13,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/null-visitor.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/spy-visitor.h>
@@ -52,7 +53,8 @@ class test_parser {
         parser_(&this->code_, &this->errors_, options) {}
 
   expression* parse_expression() {
-    expression* ast = this->parser_.parse_expression();
+    null_visitor v;
+    expression* ast = this->parser_.parse_expression(v);
     this->expressions_needing_cleanup_.push_back(ast);
     return ast;
   }
