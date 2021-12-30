@@ -718,6 +718,21 @@ TEST(test_parse, for_in_loop_with_var_initializer) {
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
+
+  // Previously, there was a bug which caused errors in parse_expression after
+  // 'in' to be reported twice.
+  {
+    padded_string code(u8"for (var x = 0 in ()) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+                                      "visit_enter_block_scope",     //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE(error_missing_expression_between_parentheses)));
+  }
 }
 
 TEST(test_parse, invalid_for_in_loop) {

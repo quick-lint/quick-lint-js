@@ -3375,12 +3375,17 @@ class parser {
             source_code_span in_token_span = this->peek().span();
             QLJS_ASSERT(!allow_in_operator);
 
+            buffering_error_reporter temp_error_reporter(
+                &this->temporary_memory_);
+            error_reporter *old_error_reporter =
+                std::exchange(this->error_reporter_, &temp_error_reporter);
             lexer_transaction transaction = this->lexer_.begin_transaction();
             expression *in_ast = this->parse_expression_remainder(
                 assignment_ast->child_1(), precedence{.commas = false});
             if (this->peek().type == token_type::semicolon) {
               // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
               this->lexer_.commit_transaction(std::move(transaction));
+              this->error_reporter_ = old_error_reporter;
               assignment_ast->children_[1] = in_ast;
               this->error_reporter_->report(
                   error_in_disallowed_in_c_style_for_loop{
@@ -3388,6 +3393,7 @@ class parser {
                   });
             } else {
               this->lexer_.roll_back_transaction(std::move(transaction));
+              this->error_reporter_ = old_error_reporter;
               if (declaration_kind == variable_kind::_var) {
                 // for (var x = "initial" in obj)
               } else {
