@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_BUMP_ALLOCATOR_H
-#define QUICK_LINT_JS_BUMP_ALLOCATOR_H
+#ifndef QUICK_LINT_JS_LINKED_BUMP_ALLOCATOR_H
+#define QUICK_LINT_JS_LINKED_BUMP_ALLOCATOR_H
 
 #include <boost/container/pmr/memory_resource.hpp>
 #include <cstddef>
