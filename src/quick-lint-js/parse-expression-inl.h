@@ -483,7 +483,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
         child);
   }
 
-  // async           // Identifer.
+  // async           // Identifier.
   // async () => {}  // Arrow function.
   case token_type::kw_async: {
     token async_token = this->peek();
