@@ -7,7 +7,6 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/buffering-error-reporter.h>
-#include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/error-reporter.h>
@@ -17,8 +16,6 @@
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
-#include <quick-lint-js/vector.h>
-#include <quick-lint-js/warning.h>
 #include <utility>
 
 #if QLJS_HAVE_SETJMP
