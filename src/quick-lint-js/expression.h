@@ -230,20 +230,6 @@ class expression {
   // Remove wrapping paren expressions, if any.e
   expression *without_paren() const noexcept;
 
-  // Can be called at most once.
-  template <QLJS_PARSE_VISITOR Visitor>
-  void visit_children(Visitor &v, expression_arena &arena) {
-    buffering_visitor *child_visits = this->take_child_visits();
-    QLJS_ASSERT(
-        child_visits &&
-        "visit_children can be called at most once, but it was called twice");
-    child_visits->move_into(v);
-    arena.delete_buffering_visitor(child_visits);
-  }
-
-  // Returns expression_arena::buffering_visitor_ptr.
-  buffering_visitor *take_child_visits() noexcept;
-
   int object_entry_count() const noexcept;
 
   object_property_value_pair object_entry(int) const noexcept;
@@ -1086,13 +1072,6 @@ inline expression *expression::without_paren() const noexcept {
   }
   // TODO(strager): Remove const_cast.
   return const_cast<expression *>(ast);
-}
-
-inline buffering_visitor *expression::take_child_visits() noexcept {
-  switch (this->kind_) {
-  default:
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
 }
 
 inline int expression::object_entry_count() const noexcept {
