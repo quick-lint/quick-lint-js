@@ -71,9 +71,7 @@
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE("assignment to import variable"), assignment)    \
           NOTE(QLJS_TRANSLATABLE("import variable declared here"),             \
-               declaration))
-                                                       \
-                                                                               \
+               declaration))                                                   \
   QLJS_ERROR_TYPE(                                                             \
       error_assignment_to_const_variable_before_its_declaration, "E0004",      \
       {                                                                        \
