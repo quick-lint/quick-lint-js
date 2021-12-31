@@ -644,7 +644,6 @@ void linter::report_error_if_assignment_is_illegal(
   case variable_kind::_import:
     this->error_reporter_->report(
               error_assignment_to_import_variable{*declaration, assignment, kind});
-        }
     break;
   case variable_kind::_catch:
   case variable_kind::_class:
