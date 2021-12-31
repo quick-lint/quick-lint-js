@@ -63,6 +63,8 @@ void parser::visit_expression(expression* ast, Visitor& v,
   case expression_kind::array:
   case expression_kind::binary_operator:
   case expression_kind::call:
+  case expression_kind::jsx_element_with_namespace:
+  case expression_kind::jsx_fragment:
   case expression_kind::tagged_template_literal:
     visit_children();
     break;
@@ -150,12 +152,6 @@ void parser::visit_expression(expression* ast, Visitor& v,
     visit_children();
     break;
   }
-  case expression_kind::jsx_element_with_namespace:
-    visit_children();
-    break;
-  case expression_kind::jsx_fragment:
-    visit_children();
-    break;
   case expression_kind::object:
     for (int i = 0; i < ast->object_entry_count(); ++i) {
       auto entry = ast->object_entry(i);
@@ -325,16 +321,14 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
       this->skip();
       switch (this->peek().type) {
       case token_type::colon:
+      case token_type::comma:
       case token_type::end_of_file:
+      case token_type::kw_in:
+      case token_type::question:
       case token_type::right_curly:
       case token_type::right_paren:
       case token_type::right_square:
       case token_type::semicolon:
-        return this->make_expression<expression::yield_none>(operator_span);
-
-      case token_type::comma:
-      case token_type::kw_in:
-      case token_type::question:
         return this->make_expression<expression::yield_none>(operator_span);
 
       case token_type::star: {
