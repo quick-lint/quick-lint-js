@@ -102,7 +102,7 @@ struct parser_options {
   parser_top_level_await_mode top_level_await_mode =
       parser_top_level_await_mode::auto_detect;
 
-  // If true, parse JSX langauge extensions: https://facebook.github.io/jsx/
+  // If true, parse JSX language extensions: https://facebook.github.io/jsx/
   bool jsx = false;
 };
 
