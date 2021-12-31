@@ -61,8 +61,7 @@
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE("assignment to const variable"), assignment)     \
           NOTE(QLJS_TRANSLATABLE("const variable declared here"),              \
-               declaration))
-  
+               declaration))                                                   \
   QLJS_ERROR_TYPE(                                                             \
       error_assignment_to_import_variable, "E0185",                            \
       {                                                                        \
