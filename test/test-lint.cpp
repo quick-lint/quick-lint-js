@@ -1108,7 +1108,7 @@ TEST(test_lint, assign_to_import_variable) {
                             error_assignment_to_import_variable,   //
                             assignment, span_matcher(assignment),    //
                             declaration, span_matcher(declaration),  //
-                            var_kind, variable_kind::_import));
+                            var_kind, variable_kind::_import)));
 }
 
 TEST(test_lint, assign_to_immutable_variable_before_declaration) {
