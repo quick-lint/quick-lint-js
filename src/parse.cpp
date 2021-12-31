@@ -129,8 +129,7 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
     return arrow_function;
 
   case expression_kind::trailing_comma: {
-    expression::trailing_comma* parameter_list =
-        expression_cast<expression::trailing_comma>(lhs);
+    auto* parameter_list = expression_cast<expression::trailing_comma>(lhs);
     expression* last_parameter =
         parameter_list->child(parameter_list->child_count() - 1);
     if (last_parameter->kind() == expression_kind::spread) {
@@ -144,7 +143,7 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
   }
 
   case expression_kind::call: {
-    expression::call* call = expression_cast<expression::call>(lhs);
+    auto* call = expression_cast<expression::call>(lhs);
     // FIXME(strager): This check is duplicated.
     bool is_async_arrow_using_with_await_operator =
         call->child_0()->kind() == expression_kind::variable &&
@@ -262,11 +261,11 @@ parser::try_parse_function_with_leading_star() {
     return std::nullopt;
   }
 
-  function_attributes attrb = function_attributes::generator;
+  function_attributes attributes = function_attributes::generator;
   bool has_leading_async = this->peek().type == token_type::kw_async;
   // *async
   if (has_leading_async) {
-    attrb = function_attributes::async_generator;
+    attributes = function_attributes::async_generator;
     this->skip();
   }
 
@@ -294,7 +293,7 @@ parser::try_parse_function_with_leading_star() {
   if (has_leading_async) {
     this->skip();
   }
-  return attrb;
+  return attributes;
 }
 
 bool parser::is_let_token_a_variable_reference(
@@ -373,7 +372,7 @@ parser_transaction parser::begin_transaction() {
 }
 
 void parser::commit_transaction(parser_transaction&& transaction) {
-  buffering_error_reporter* buffered_errors =
+  auto* buffered_errors =
       static_cast<buffering_error_reporter*>(this->error_reporter_);
   buffered_errors->move_into(transaction.old_error_reporter);
   this->error_reporter_ = transaction.old_error_reporter;

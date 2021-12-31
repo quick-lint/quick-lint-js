@@ -227,11 +227,11 @@ parse_statement:
       // * 42; // Invalid (missing operand).
       // *function f() {} // Invalid (misplaced '*').
       token star_token = this->peek();
-      std::optional<function_attributes> attrb =
+      std::optional<function_attributes> attributes =
           this->try_parse_function_with_leading_star();
-      if (attrb.has_value()) {
+      if (attributes.has_value()) {
         this->parse_and_visit_function_declaration(
-            v, attrb.value(),
+            v, attributes.value(),
             /*begin=*/star_token.begin,
             /*require_name=*/
             name_requirement::required_for_statement);
@@ -2280,8 +2280,7 @@ void parser::parse_and_visit_if(Visitor &v) {
       parse_and_visit_body();
     }
     bool has_left_curly = this->peek().type == token_type::left_curly;
-    if (this->peek().has_leading_newline == false && has_left_paren &&
-        has_left_curly) {
+    if (!this->peek().has_leading_newline && has_left_paren && has_left_curly) {
       // if (cond) {} else (cond) {} // Invalid
       this->error_reporter_->report(error_missing_if_after_else{
           .expected_if = source_code_span(end_of_else, end_of_else),
@@ -2815,12 +2814,10 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
       case token_type::equal: {
         token equal_token = this->peek();
-        expression::assignment *assignment_ast =
-            static_cast<expression::assignment *>(
-                this->parse_expression_remainder(
-                    v, variable,
-                    precedence{.commas = false,
-                               .in_operator = allow_in_operator}));
+        auto *assignment_ast = static_cast<expression::assignment *>(
+            this->parse_expression_remainder(
+                v, variable,
+                precedence{.commas = false, .in_operator = allow_in_operator}));
 
         if (is_in_for_initializer && this->peek().type == token_type::kw_in) {
           // for (var x = "initial" in obj)
@@ -3084,7 +3081,7 @@ void parser::visit_binding_element(
     break;
 
   case expression_kind::await: {
-    expression::await *await = expression_cast<expression::await>(ast);
+    auto *await = expression_cast<expression::await>(ast);
     identifier ident(await->unary_operator_span());
     v.visit_variable_declaration(ident, declaration_kind);
     this->error_reporter_->report(error_cannot_declare_await_in_async_function{

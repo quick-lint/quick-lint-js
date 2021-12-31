@@ -607,11 +607,11 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
   case token_type::question: {
     if (this->peek().type == token_type::star) {
       token star_token = this->peek();
-      std::optional<function_attributes> attrb =
+      std::optional<function_attributes> attributes =
           this->try_parse_function_with_leading_star();
-      if (attrb.has_value()) {
-        expression* function =
-            this->parse_function_expression(v, attrb.value(), star_token.begin);
+      if (attributes.has_value()) {
+        expression* function = this->parse_function_expression(
+            v, attributes.value(), star_token.begin);
         return function;
       }
     }
@@ -770,7 +770,7 @@ expression* parser::parse_async_expression_only(Visitor& v, token async_token,
                 .arrow = this->peek().span(),
             });
       }
-      for (auto parameter : parameters) {
+      for (auto* parameter : parameters) {
         if (parameter->kind() == expression_kind::variable &&
             parameter->variable_identifier_token_type() ==
                 token_type::kw_await) {
@@ -1539,7 +1539,7 @@ void parser::parse_arrow_function_expression_remainder(
 
   // f(x, y) => {}
   case expression_kind::call: {
-    expression::call* call = expression_cast<expression::call>(lhs);
+    auto* call = expression_cast<expression::call>(lhs);
     // FIXME(strager): This check is duplicated.
     bool is_async_arrow_using_with_await_operator =
         call->child_0()->kind() == expression_kind::variable &&
