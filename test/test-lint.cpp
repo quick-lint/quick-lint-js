@@ -1048,7 +1048,7 @@ TEST(test_lint, assign_to_immutable_variable) {
   const char8 declaration[] = u8"x";
   const char8 assignment[] = u8"x";
 
-  for (variable_kind kind : {variable_kind::_const, variable_kind::_import}) {
+  for (variable_kind kind : {variable_kind::_const}) {
     // (() => {
     //   const x;  // x is immutable
     //   x = 42;   // ERROR
@@ -1069,7 +1069,7 @@ TEST(test_lint, assign_to_immutable_variable) {
                               var_kind, kind)));
   }
 
-  for (variable_kind kind : {variable_kind::_const, variable_kind::_import}) {
+  for (variable_kind kind : {variable_kind::_const}) {
     // const x;   // x is immutable
     // {
     //   x = 42;  // ERROR
