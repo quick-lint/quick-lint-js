@@ -1739,8 +1739,7 @@ expression* parser::parse_arrow_function_body_impl(
     // the parameters.
     expression* ast =
         this->make_expression<expression::arrow_function_with_statements>(
-            attributes, std::forward<Args>(args)...,
-            this->expressions_.make_buffering_visitor(), parameter_list_begin,
+            attributes, std::forward<Args>(args)..., parameter_list_begin,
             /*span_end=*/this->peek().begin);
     int parameter_count = ast->child_count();
     for (int i = 0; i < parameter_count; ++i) {
@@ -1755,9 +1754,7 @@ expression* parser::parse_arrow_function_body_impl(
 
     const char8* span_end = this->lexer_.end_of_previous_token();
     return this->make_expression<expression::arrow_function_with_statements>(
-        attributes, ast->children(),
-        this->expressions_.make_buffering_visitor(), parameter_list_begin,
-        span_end);
+        attributes, ast->children(), parameter_list_begin, span_end);
   } else {
     expression* body =
         this->parse_expression(v, precedence{

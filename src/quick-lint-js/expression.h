@@ -490,28 +490,24 @@ class expression::arrow_function_with_statements final : public expression {
   static constexpr expression_kind kind =
       expression_kind::arrow_function_with_statements;
 
-  explicit arrow_function_with_statements(
-      function_attributes attributes,
-      expression_arena::buffering_visitor_ptr child_visits,
-      const char8 *parameter_list_begin, const char8 *span_end) noexcept
+  explicit arrow_function_with_statements(function_attributes attributes,
+                                          const char8 *parameter_list_begin,
+                                          const char8 *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
-        span_end_(span_end),
-        child_visits_(child_visits) {
+        span_end_(span_end) {
     QLJS_ASSERT(this->parameter_list_begin_);
   }
 
   explicit arrow_function_with_statements(
       function_attributes attributes,
       expression_arena::array_ptr<expression *> parameters,
-      expression_arena::buffering_visitor_ptr child_visits,
       const char8 *parameter_list_begin, const char8 *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
         span_end_(span_end),
-        child_visits_(child_visits),
         children_(parameters) {
     if (!this->parameter_list_begin_) {
       QLJS_ASSERT(!this->children_.empty());
@@ -521,7 +517,6 @@ class expression::arrow_function_with_statements final : public expression {
   function_attributes function_attributes_;
   const char8 *parameter_list_begin_;
   const char8 *span_end_;
-  expression_arena::buffering_visitor_ptr child_visits_;
   expression_arena::array_ptr<expression *> children_;
 };
 static_assert(expression_arena::is_allocatable<
@@ -1108,11 +1103,6 @@ inline buffering_visitor *expression::take_child_visits() noexcept {
   case expression_kind::_class:
     return std::exchange(static_cast<expression::_class *>(this)->child_visits_,
                          nullptr);
-  case expression_kind::arrow_function_with_statements:
-    return std::exchange(
-        static_cast<expression::arrow_function_with_statements *>(this)
-            ->child_visits_,
-        nullptr);
   case expression_kind::function:
     return std::exchange(
         static_cast<expression::function *>(this)->child_visits_, nullptr);
