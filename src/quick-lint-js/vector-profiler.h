@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <boost/container/pmr/polymorphic_allocator.hpp>
-#include <boost/container/pmr/unsynchronized_pool_resource.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <iosfwd>
