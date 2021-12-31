@@ -686,6 +686,8 @@ void parser::parse_and_visit_export(Visitor &v) {
     // export {a as default, b};
     // export {a, b, c} from "module";
   case token_type::left_curly: {
+    auto exports_visitor_rewind_guard =
+        this->buffering_visitor_memory_.make_rewind_guard();
     buffering_visitor exports_visitor(&this->buffering_visitor_memory_);
     bump_vector<token, monotonic_allocator> exported_bad_tokens(
         "parse_and_visit_export exported_bad_tokens", &this->temporary_memory_);
@@ -1938,6 +1940,8 @@ void parser::parse_and_visit_for(Visitor &v) {
 
     lexer_transaction transaction = this->lexer_.begin_transaction();
     this->skip();
+    auto lhs_visitor_rewind_guard =
+        this->buffering_visitor_memory_.make_rewind_guard();
     buffering_visitor lhs(&this->buffering_visitor_memory_);
     if (declaring_token.type == token_type::kw_let &&
         this->is_let_token_a_variable_reference(this->peek(),

@@ -558,9 +558,7 @@ class parser {
   // Memory used for temporary memory allocations (e.g. vectors on the stack).
   monotonic_allocator temporary_memory_;
 
-  // TODO(strager): unsynchronized_pool_resource is overkill. Pick a better
-  // allocator.
-  boost::container::pmr::unsynchronized_pool_resource buffering_visitor_memory_;
+  linked_bump_allocator<alignof(void *)> buffering_visitor_memory_;
 
   bool in_top_level_ = true;
   bool in_async_function_ = false;
