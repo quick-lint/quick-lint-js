@@ -1810,11 +1810,9 @@ expression* parser::parse_function_expression(Visitor& v,
   return function_name.has_value()
              ? this->make_expression<expression::named_function>(
                    attributes, *function_name,
-                   this->expressions_.make_buffering_visitor(),
                    source_code_span(span_begin, span_end))
              : this->make_expression<expression::function>(
-                   attributes, this->expressions_.make_buffering_visitor(),
-                   source_code_span(span_begin, span_end));
+                   attributes, source_code_span(span_begin, span_end));
 }
 
 template <QLJS_PARSE_VISITOR Visitor>
@@ -1890,8 +1888,7 @@ expression* parser::parse_object_literal(Visitor& v) {
 
     const char8* span_end = this->lexer_.end_of_previous_token();
     expression* func = this->make_expression<expression::function>(
-        attributes, this->expressions_.make_buffering_visitor(),
-        source_code_span(key_span_begin, span_end));
+        attributes, source_code_span(key_span_begin, span_end));
     entries.emplace_back(key, func);
   };
 

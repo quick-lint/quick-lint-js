@@ -885,8 +885,7 @@ void parser::parse_and_visit_function_declaration(
           v, /*name=*/std::nullopt, attributes);
       const char8 *function_end = this->lexer_.end_of_previous_token();
       expression *function = this->make_expression<expression::function>(
-          attributes, this->expressions_.make_buffering_visitor(),
-          source_code_span(function_token_begin, function_end));
+          attributes, source_code_span(function_token_begin, function_end));
       expression *full_expression =
           this->parse_expression_remainder(v, function, precedence{});
       this->visit_expression(full_expression, v, variable_context::rhs);

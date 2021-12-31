@@ -619,15 +619,10 @@ class expression::function final : public expression {
   static constexpr expression_kind kind = expression_kind::function;
 
   explicit function(function_attributes attributes,
-                    expression_arena::buffering_visitor_ptr child_visits,
                     source_code_span span) noexcept
-      : expression(kind),
-        function_attributes_(attributes),
-        child_visits_(child_visits),
-        span_(span) {}
+      : expression(kind), function_attributes_(attributes), span_(span) {}
 
   function_attributes function_attributes_;
-  expression_arena::buffering_visitor_ptr child_visits_;
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::function>);
@@ -753,16 +748,13 @@ class expression::named_function final : public expression {
   static constexpr expression_kind kind = expression_kind::named_function;
 
   explicit named_function(function_attributes attributes, identifier name,
-                          expression_arena::buffering_visitor_ptr child_visits,
                           source_code_span span) noexcept
       : expression(kind),
         function_attributes_(attributes),
-        child_visits_(child_visits),
         variable_identifier_(name),
         span_(span) {}
 
   function_attributes function_attributes_;
-  expression_arena::buffering_visitor_ptr child_visits_;
   identifier variable_identifier_;
   source_code_span span_;
 };
@@ -1103,14 +1095,6 @@ inline buffering_visitor *expression::take_child_visits() noexcept {
   case expression_kind::_class:
     return std::exchange(static_cast<expression::_class *>(this)->child_visits_,
                          nullptr);
-  case expression_kind::function:
-    return std::exchange(
-        static_cast<expression::function *>(this)->child_visits_, nullptr);
-  case expression_kind::named_function:
-    return std::exchange(
-        static_cast<expression::named_function *>(this)->child_visits_,
-        nullptr);
-
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
