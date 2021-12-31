@@ -34,15 +34,12 @@ template <QLJS_PARSE_VISITOR Visitor>
 void parser::visit_expression(expression* ast, Visitor& v,
                               parser::variable_context context) {
   auto visit_children = [&] {
-    int child_count = ast->child_count();
-    for (int i = 0; i < child_count; ++i) {
-      this->visit_expression(ast->child(i), v, context);
+    for (expression* child : ast->children()) {
+      this->visit_expression(child, v, context);
     }
   };
   auto visit_parameters = [&]() {
-    int parameter_count = ast->child_count();
-    for (int i = 0; i < parameter_count; ++i) {
-      expression* parameter = ast->child(i);
+    for (expression* parameter : ast->children()) {
       this->visit_binding_element(parameter, v, variable_kind::_parameter,
                                   /*declaring_token=*/std::nullopt);
     }
@@ -569,8 +566,8 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
       expression_arena::vector<expression*> children(
           "parse_expression new children", this->expressions_.allocator());
       if (target->kind() == expression_kind::call) {
-        for (int i = 0; i < target->child_count(); ++i) {
-          children.emplace_back(target->child(i));
+        for (expression* child : target->children()) {
+          children.emplace_back(child);
         }
       } else {
         children.emplace_back(target);
@@ -1496,8 +1493,7 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::trailing_comma:
     // TODO(strager): Only allow comma expressions, not '(2+3) => 5', for
     // example.
-    for (int i = 0; i < lhs->child_count(); ++i) {
-      expression* parameter = lhs->child(i);
+    for (expression* parameter : lhs->children()) {
       parameters.emplace_back(parameter);
     }
     break;
@@ -1737,9 +1733,7 @@ expression* parser::parse_arrow_function_body_impl(
         this->make_expression<expression::arrow_function_with_statements>(
             attributes, std::forward<Args>(args)..., parameter_list_begin,
             /*span_end=*/this->peek().begin);
-    int parameter_count = ast->child_count();
-    for (int i = 0; i < parameter_count; ++i) {
-      expression* parameter = ast->child(i);
+    for (expression* parameter : ast->children()) {
       this->visit_binding_element(parameter, v, variable_kind::_parameter,
                                   /*declaring_token=*/std::nullopt);
     }

@@ -3029,8 +3029,8 @@ void parser::visit_binding_element(
     std::optional<source_code_span> declaring_token) {
   switch (ast->kind()) {
   case expression_kind::array:
-    for (int i = 0; i < ast->child_count(); ++i) {
-      this->visit_binding_element(ast->child(i), v, declaration_kind,
+    for (expression *item : ast->children()) {
+      this->visit_binding_element(item, v, declaration_kind,
                                   /*declaring_token=*/declaring_token);
     }
     break;
