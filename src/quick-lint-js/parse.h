@@ -136,11 +136,6 @@ class parser {
 
   quick_lint_js::lexer &lexer() noexcept { return this->lexer_; }
 
-  // For testing only.
-  quick_lint_js::expression_arena &expression_arena() noexcept {
-    return this->expressions_;
-  }
-
   // For testing and internal use only.
   [[nodiscard]] function_guard enter_function(function_attributes);
 
