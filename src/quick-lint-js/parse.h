@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_PARSE_H
 #define QUICK_LINT_JS_PARSE_H
 
+#include <boost/container/pmr/unsynchronized_pool_resource.hpp>
 #include <cstdlib>
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -139,11 +140,6 @@ class parser {
   // For testing only.
   quick_lint_js::expression_arena &expression_arena() noexcept {
     return this->expressions_;
-  }
-
-  // HACK(strager): This shouldn't be public.
-  boost::container::pmr::memory_resource *buffering_visitor_memory() noexcept {
-    return this->expressions_.buffering_visitor_memory();
   }
 
   // For testing and internal use only.
@@ -561,6 +557,10 @@ class parser {
 
   // Memory used for temporary memory allocations (e.g. vectors on the stack).
   monotonic_allocator temporary_memory_;
+
+  // TODO(strager): unsynchronized_pool_resource is overkill. Pick a better
+  // allocator.
+  boost::container::pmr::unsynchronized_pool_resource buffering_visitor_memory_;
 
   bool in_top_level_ = true;
   bool in_async_function_ = false;

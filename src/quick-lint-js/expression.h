@@ -5,7 +5,6 @@
 #define QUICK_LINT_JS_EXPRESSION_H
 
 #include <array>
-#include <boost/container/pmr/unsynchronized_pool_resource.hpp>
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -120,27 +119,6 @@ class expression_arena {
   template <class T, std::size_t Size>
   array_ptr<T> make_array(std::array<T, Size> &&);
 
-  buffering_visitor_ptr make_buffering_visitor() {
-    // See matching deallocation in delete_buffering_visitor.
-    boost::container::pmr::polymorphic_allocator<buffering_visitor> allocator(
-        &this->buffering_visitor_memory_);
-    buffering_visitor *result = allocator.allocate(1);
-    result = new (result) buffering_visitor(&this->buffering_visitor_memory_);
-    return result;
-  }
-
-  void delete_buffering_visitor(buffering_visitor_ptr visitor) {
-    // See matching allocation in make_buffering_visitor.
-    boost::container::pmr::polymorphic_allocator<buffering_visitor> allocator(
-        &this->buffering_visitor_memory_);
-    visitor->~buffering_visitor();
-    allocator.deallocate(visitor, 1);
-  }
-
-  boost::container::pmr::memory_resource *buffering_visitor_memory() noexcept {
-    return &this->buffering_visitor_memory_;
-  }
-
   monotonic_allocator *allocator() noexcept { return &this->allocator_; }
 
  private:
@@ -160,10 +138,6 @@ class expression_arena {
   }
 
   monotonic_allocator allocator_;
-
-  // TODO(strager): unsynchronized_pool_resource is overkill. Pick a better
-  // allocator.
-  boost::container::pmr::unsynchronized_pool_resource buffering_visitor_memory_;
 };
 
 class expression {
