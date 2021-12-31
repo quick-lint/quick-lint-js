@@ -369,11 +369,9 @@ class expression::_class : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::_class;
 
-  explicit _class(expression_arena::buffering_visitor_ptr child_visits,
-                  source_code_span span) noexcept
-      : expression(kind), child_visits_(child_visits), span_(span) {}
+  explicit _class(source_code_span span) noexcept
+      : expression(kind), span_(span) {}
 
-  expression_arena::buffering_visitor_ptr child_visits_;
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::_class>);
@@ -1092,9 +1090,6 @@ inline expression *expression::without_paren() const noexcept {
 
 inline buffering_visitor *expression::take_child_visits() noexcept {
   switch (this->kind_) {
-  case expression_kind::_class:
-    return std::exchange(static_cast<expression::_class *>(this)->child_visits_,
-                         nullptr);
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }

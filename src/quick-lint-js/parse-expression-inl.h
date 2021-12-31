@@ -2409,7 +2409,6 @@ expression* parser::parse_class_expression(Visitor& v) {
 
   v.visit_exit_class_scope();
   return this->make_expression<expression::_class>(
-      this->expressions_.make_buffering_visitor(),
       source_code_span(span_begin, span_end));
 }
 
