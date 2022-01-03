@@ -11,7 +11,32 @@
 extern "C" {
 #endif
 
-typedef struct qljs_st_document qljs_st_document;
+#if QUICK_LINT_JS_SUBLIME_TEXT_3
+typedef struct qljs_st_range {
+  qljs_st_offset start;
+  qljs_st_offset end;
+} qljs_st_range;
+#else
+typedef struct qljs_st_position {
+  qljs_st_offset line;
+  qljs_st_offset character;
+} qljs_st_position;
+
+typedef struct qljs_st_range {
+  qljs_st_position start;
+  qljs_st_position end;
+} qljs_st_range;
+#endif
+
+typedef enum qljs_st_severity {
+  qljs_st_severity_error = 1,
+  qljs_st_severity_warning = 2,
+} qljs_st_severity;
+
+typedef struct qljs_st_text {
+  const char* content;
+  size_t length;
+} qljs_st_text;
 
 typedef struct qljs_st_diagnostic {
   const qljs_st_range* range;
@@ -20,15 +45,9 @@ typedef struct qljs_st_diagnostic {
   const char* message;
 } qljs_st_diagnostic;
 
-typedef struct qljs_st_text {
-  const char* content;
-  size_t length;
-} qljs_st_text;
-
-typedef enum qljs_st_severity {
-  qljs_st_severity_error = 1,
-  qljs_st_severity_warning = 2,
-} qljs_st_severity;
+typedef unsigned int qljs_st_offset;
+typedef struct qljs_st_locator qljs_st_locator;
+typedef struct qljs_st_document qljs_st_document;
 
 qljs_st_document* qljs_st_document_new(void);
 

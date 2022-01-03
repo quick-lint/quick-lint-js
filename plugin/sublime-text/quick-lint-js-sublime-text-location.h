@@ -8,29 +8,6 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
-typedef struct qljs_st_locator qljs_st_locator;
-typedef unsigned int qljs_st_offset;
-
-#if QUICK_LINT_JS_SUBLIME_TEXT_3
-typedef struct qljs_st_range {
-  qljs_st_offset start;
-  qljs_st_offset end;
-} qljs_st_range;
-#else
-typedef struct qljs_st_position {
-  qljs_st_offset line;
-  qljs_st_offset character;
-} qljs_st_position;
-
-typedef struct qljs_st_range {
-  qljs_st_position start;
-  qljs_st_position end;
-} qljs_st_range;
-#endif
 
 #if QLJS_ST_PLUGIN_VERSION == 3
 
