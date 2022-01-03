@@ -4,40 +4,43 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_H
 
+#include <quick-lint-js-sublime-text-location.h>
 #include <stddef.h>
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-typedef struct st_document st_document;
+typedef struct qljs_st_document qljs_st_document;
 
-typedef struct st_diagnostic {
-  const st_range* range;
-  st_severity severity;
+typedef struct qljs_st_diagnostic {
+  const qljs_st_range* range;
+  qljs_st_severity severity;
   const char* code;
   const char* message;
-} st_diagnostic;
+} qljs_st_diagnostic;
 
-typedef struct st_text {
+typedef struct qljs_st_text {
   const char* content;
   size_t length;
-} st_text;
+} qljs_st_text;
 
-typedef enum st_severity {
-  st_severity_error = 1,
-  st_severity_warning = 2,
-} st_severity;
+typedef enum qljs_st_severity {
+  qljs_st_severity_error = 1,
+  qljs_st_severity_warning = 2,
+} qljs_st_severity;
 
-st_document* st_document_new(void);
+qljs_st_document* qljs_st_document_new(void);
 
-void st_document_delete(st_document* self);
+void qljs_st_document_delete(qljs_st_document* d);
 
-void st_document_set_text(st_document* self, const st_text* text);
+void qljs_st_document_set_text(qljs_st_document* d, qljs_st_text* text);
 
-void st_document_replace_text(st_document* self, const st_range* range, const st_text* text);
+void qljs_st_document_replace_text(qljs_st_document* d,
+                                   const qljs_st_range* range,
+                                   const qljs_st_text* text);
 
-const st_diagnostic* st_document_lint(st_document* document);
+const qljs_st_diagnostic* qljs_st_document_lint(qljs_st_document* d);
 
 #if defined(__cplusplus)
 }

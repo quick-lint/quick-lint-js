@@ -12,17 +12,27 @@
 extern "C" {
 #endif
 
-namespace qljs = quick_lint_js;
-
 typedef struct qljs_st_locator qljs_st_locator;
-
 typedef unsigned int qljs_st_offset;
 
-#if QLJS_ST_PLUGIN_VERSION == 3
+#if QUICK_LINT_JS_SUBLIME_TEXT_3
 struct qljs_st_range {
-  qljs_st_offset begin;
+  qljs_st_offset start;
   qljs_st_offset end;
 };
+#else
+struct qljs_st_position {
+  qljs_st_offset line;
+  qljs_st_offset character;
+};
+
+struct qljs_st_range {
+  qljs_st_position start;
+  qljs_st_position end;
+};
+#endif
+
+#if QLJS_ST_PLUGIN_VERSION == 3
 
 struct qljs_st_locator {
  public:
@@ -40,15 +50,6 @@ struct qljs_st_locator {
 #else
 #include <quick-lint-js/lsp-location.h>
 
-struct qljs_st_position {
-  qljs_st_offset line;
-  qljs_st_offset character;
-};
-
-struct qljs_st_range {
-  qljs_st_position start;
-  qljs_st_position end;
-};
 
 struct qljs_st_locator final : public qljs::lsp_locator {
  public:
