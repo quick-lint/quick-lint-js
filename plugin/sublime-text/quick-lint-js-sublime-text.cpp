@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <quick-lint-js-sublime-text-location.h>
 #include <quick-lint-js-sublime-text.h>
 #include <quick-lint-js/c-api-error-reporter.h>
 #include <quick-lint-js/document-base.h>

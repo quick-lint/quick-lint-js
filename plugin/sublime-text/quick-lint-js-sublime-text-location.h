@@ -4,13 +4,13 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
+#include <quick-lint-js-sublime-text.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
 
-
-#if QLJS_ST_PLUGIN_VERSION == 3
-
+namespace quick_lint_js {
+#if QUICK_LINT_JS_SUBLIME_TEXT_3
 struct qljs_st_locator {
  public:
   using range_type = qljs_st_range;
@@ -25,10 +25,7 @@ struct qljs_st_locator {
   qljs::padded_string_view input_;
 };
 #else
-#include <quick-lint-js/lsp-location.h>
-
-
-struct qljs_st_locator final : public qljs::lsp_locator {
+struct qljs_st_locator {
  public:
   using range_type = qljs_st_range;
   using offset_type = qljs_st_offset;
@@ -45,12 +42,8 @@ struct qljs_st_locator final : public qljs::lsp_locator {
   void replace_text(range_type range, qljs::string8_view replacement_text,
                     qljs::padded_string_view new_input);
 };
+}  // namespace quick_lint_js
 #endif
-
-#if defined(__cplusplus)
-}
-#endif
-
 #endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
 // quick-lint-js finds bugs in JavaScript programs.

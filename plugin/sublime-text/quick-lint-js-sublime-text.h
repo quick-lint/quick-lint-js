@@ -4,7 +4,6 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_H
 
-#include <quick-lint-js-sublime-text-location.h>
 #include <stddef.h>
 
 #if defined(__cplusplus)
