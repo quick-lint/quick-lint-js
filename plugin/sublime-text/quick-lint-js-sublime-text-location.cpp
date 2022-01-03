@@ -2,9 +2,9 @@
 // See end of file for extended copyright information.
 
 #include <quick-lint-js-sublime-text-location.h>
+#include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/utf-8.h>
-#include <quick-lint-js/lsp-location.h>
 
 namespace qljs = quick_lint_js;
 

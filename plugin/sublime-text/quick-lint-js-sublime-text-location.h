@@ -18,7 +18,7 @@ struct sublime_text_locator {
   explicit qljs_st_locator(padded_string_view input) noexcept;
 
   range_type range(source_code_span span) const;
-  offset_type position(const char8* ch) const noexcept;
+  offset_type position(const char8 *ch) const noexcept;
 
 #if !QUICK_LINT_JS_SUBLIME_TEXT_3
   using position_type = qljs_st_position;
@@ -28,6 +28,26 @@ struct sublime_text_locator {
 #endif
  private:
   padded_string_view input_;
+
+#if !QUICK_LINT_JS_SUBLIME_TEXT_3
+  std::vector<offset_type> offset_of_lines_;
+  std::vector<unsigned char> line_is_ascii_;
+
+  // old_offset_of_lines_ and old_line_is_ascii_ are used for double buffering
+  // of offset_of_lines_ and line_is_ascii_. This reduces allocations.
+  std::vector<offset_type> old_offset_of_lines_;
+  std::vector<unsigned char> old_line_is_ascii_;
+
+  void cache_offsets_of_lines();
+  void compute_offsets_of_lines(const char8 *begin, const char8 *end,
+                                bool *out_last_line_is_ascii);
+
+  int find_line_at_offset(offset_type offset) const;
+
+  offset_type offset(const char8 *) const noexcept;
+
+  lsp_position position(int line_number, offset_type offset) const noexcept;
+#endif
 };
 }  // namespace quick_lint_js
 #endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
