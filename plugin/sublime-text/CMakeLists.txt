@@ -8,6 +8,13 @@ include(QuickLintJSCopyright)
 include(QuickLintJSTarget)
 
 if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL "3")
+  # Add colored compiler output
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+   add_compile_options(-fdiagnostics-color=always)
+  elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+   add_compile_options(-fcolor-diagnostics)
+  endif ()
+
   # quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)
 
   # Config
@@ -18,7 +25,6 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL "3")
 
   # TODO: Normalize procesor package
   # TODO: Write varible to file
-
   quick_lint_js_add_library(
     quick-lint-js-sublime-text
     MODULE

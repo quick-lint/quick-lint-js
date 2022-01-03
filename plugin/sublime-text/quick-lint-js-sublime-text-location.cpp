@@ -18,37 +18,37 @@ qljs_st_range qljs_st_locator::range(qljs::source_code_span span) const {
 }
 
 qljs_st_offset qljs_st_locator::position(const qljs::char8* ch) const noexcept {
-  auto byte_offset = qljs::narrow_cast<std::size_t>(ch - this->input_.data());
+  auto byte_offset = reinterpret_cast<std::size_t>(ch - this->input_.data());
   std::size_t count = qljs::count_utf_8_characters(this->input_, byte_offset);
-  return qljs::narrow_cast<qljs_st_offset>(count);
+  return reinterpret_cast<qljs_st_offset>(count);
 }
 #else
-qljs_st_locator::qljs_st_locator(qljs::padded_string_view input) noexcept {
-  return qljs::lsp_locator(input);
-}
+qljs_st_locator::qljs_st_locator(qljs::padded_string_view input) noexcept
+    : lsp_locator(input) {}
 
 qljs_st_locator::range_type qljs_st_locator::range(
     qljs::source_code_span span) const {
-  return narrow_cast<qljs_st_locator::range_type>(
+  return reinterpret_cast<qljs_st_locator::range_type>(
       qljs::lsp_locator::range(span));
 }
 
 qljs_st_locator::position_type qljs_st_locator::position(
     const qljs::char8 *source) const noexcept {
-  auto lposition = qljs::lsp_locator::position(span);
-  return narrow_cast<qljs_st_locator::position_type>(lposition);
+  return reinterpret_cast<qljs_st_locator::position_type>(
+      qljs::lsp_locator::position(source));
 }
 
-const char8 *from_position(position_type position) const noexcept {
-  auto lposition = narrow_cast<qljs::lsp_locator::position_type>(position);
-  return qljs::lsp_locator::from_position(lposition);
+const qljs::char8 *qljs_st_locator::from_position(
+    qljs_st_locator::position_type position) const noexcept {
+  auto lpos = reinterpret_cast<qljs::lsp_locator::position_type>(position);
+  return qljs::lsp_locator::from_position(lpos);
 }
 
-void replace_text(range_type range, qljs::string8_view replacement_text,
-                  qljs::padded_string_view new_input) {
-  auto lrange = narrow_cast<qljs::lsp_locator::range_type>(
-      qljs::lsp_locator::range(span));
-  qljs::lsp_locator::replace_text(lrange, replacement_text, new_input)
+void qljs_st_locator::replace_text(qljs_st_locator::range_type range,
+                                   qljs::string8_view replacement_text,
+                                   qljs::padded_string_view new_input) {
+  auto lrange = reinterpret_cast<qljs::lsp_locator::range_type>(range);
+  qljs::lsp_locator::replace_text(lrange, replacement_text, new_input);
 }
 #endif
 
