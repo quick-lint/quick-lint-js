@@ -16,20 +16,20 @@ typedef struct qljs_st_locator qljs_st_locator;
 typedef unsigned int qljs_st_offset;
 
 #if QUICK_LINT_JS_SUBLIME_TEXT_3
-struct qljs_st_range {
+typedef struct qljs_st_range {
   qljs_st_offset start;
   qljs_st_offset end;
-};
+} qljs_st_range;
 #else
-struct qljs_st_position {
+typedef struct qljs_st_position {
   qljs_st_offset line;
   qljs_st_offset character;
-};
+} qljs_st_position;
 
-struct qljs_st_range {
+typedef struct qljs_st_range {
   qljs_st_position start;
   qljs_st_position end;
-};
+} qljs_st_range;
 #endif
 
 #if QLJS_ST_PLUGIN_VERSION == 3
