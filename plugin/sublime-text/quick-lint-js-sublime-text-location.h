@@ -42,8 +42,8 @@ struct qljs_st_locator {
   void replace_text(range_type range, qljs::string8_view replacement_text,
                     qljs::padded_string_view new_input);
 };
-}  // namespace quick_lint_js
 #endif
+}  // namespace quick_lint_js
 #endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
 // quick-lint-js finds bugs in JavaScript programs.
