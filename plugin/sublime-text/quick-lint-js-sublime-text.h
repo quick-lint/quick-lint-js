@@ -10,37 +10,34 @@
 extern "C" {
 #endif
 
-typedef struct qljs_st_document qljs_st_document;
+typedef struct st_document st_document;
 
-enum qljs_st_severity {
-  qljs_st_severity_error = 1,
-  qljs_st_severity_warning = 2,
-};
+typedef struct st_diagnostic {
+  const st_range* range;
+  st_severity severity;
+  const char* code;
+  const char* message;
+} st_diagnostic;
 
-struct qljs_st_text {
+typedef struct st_text {
   const char* content;
   size_t length;
-};
+} st_text;
 
-struct qljs_st_diagnostic {
-  const char* message;
-  const char* code;
-  qljs_st_severity severity;
-  const qljs_st_range* range;
-};
+typedef enum st_severity {
+  st_severity_error = 1,
+  st_severity_warning = 2,
+} st_severity;
 
-qljs_st_document* qljs_st_document_new(void);
+st_document* st_document_new(void);
 
-void qljs_st_document_delete(qljs_st_document* document);
+void st_document_delete(st_document* self);
 
-void qljs_st_document_set_text(qljs_st_document* document,
-                               const qljs_st_text* text);
+void st_document_set_text(st_document* self, const st_text* text);
 
-void qljs_st_document_replace_text(qljs_st_document* document,
-                                   const qljs_st_range* range,
-                                   const qljs_st_text* text);
+void st_document_replace_text(st_document* self, const st_range* range, const st_text* text);
 
-const qljs_st_diagnostic* qljs_st_document_lint(qljs_st_document* document);
+const st_diagnostic* st_document_lint(st_document* document);
 
 #if defined(__cplusplus)
 }
