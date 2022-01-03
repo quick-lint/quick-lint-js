@@ -10,39 +10,25 @@
 #include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
-#if QUICK_LINT_JS_SUBLIME_TEXT_3
-struct qljs_st_locator {
+struct sublime_text_locator {
  public:
   using range_type = qljs_st_range;
   using offset_type = qljs_st_offset;
 
-  explicit qljs_st_locator(qljs::padded_string_view input) noexcept;
+  explicit qljs_st_locator(padded_string_view input) noexcept;
 
-  range_type range(qljs::source_code_span span) const;
-  offset_type position(const qljs::char8* ch) const noexcept;
+  range_type range(source_code_span span) const;
+  offset_type position(const char8* ch) const noexcept;
 
- private:
-  qljs::padded_string_view input_;
-};
-#else
-struct qljs_st_locator {
- public:
-  using range_type = qljs_st_range;
-  using offset_type = qljs_st_offset;
+#if !QUICK_LINT_JS_SUBLIME_TEXT_3
   using position_type = qljs_st_position;
-
-  explicit qljs_st_locator(qljs::padded_string_view input) noexcept;
-
-  range_type range(qljs::source_code_span span) const;
-
-  position_type position(const qljs::char8 *source) const noexcept;
-
-  const qljs::char8 *from_position(position_type position) const noexcept;
-
-  void replace_text(range_type range, qljs::string8_view replacement_text,
-                    qljs::padded_string_view new_input);
-};
+  const char8 *from_position(position_type position) const noexcept;
+  void replace_text(range_type range, string8_view replacement_text,
+                    padded_string_view new_input);
 #endif
+ private:
+  padded_string_view input_;
+};
 }  // namespace quick_lint_js
 #endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
