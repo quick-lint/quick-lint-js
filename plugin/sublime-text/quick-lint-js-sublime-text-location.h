@@ -50,7 +50,7 @@ struct sublime_text_locator {
   void compute_offsets_of_lines(const char8 *begin, const char8 *end,
                                 bool *out_last_line_is_ascii);
 
-  int find_line_at_offset(offset_type offset) const;
+  offset_type find_line_at_offset(offset_type offset) const;
 
   offset_type offset(const char8 *) const noexcept;
 
