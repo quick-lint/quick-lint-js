@@ -7,10 +7,16 @@
 #include <quick-lint-js/document-base.h>
 #include <quick-lint-js/narrow-cast.h>
 
+namespace quick_lint_js {
+namespace {
+using sublime_text_diagnostic = qljs_st_diagnostic;
+}  // namespace
+}  // namespace quick_lint_js
+
 using qljs_st_document_base =
     quick_lint_js::document_base<quick_lint_js::sublime_text_locator,
                                  quick_lint_js::c_api_error_reporter,
-                                 qljs_st_diagnostic>;
+                                 quick_lint_js::sublime_text_diagnostic>;
 
 struct qljs_st_document final : public qljs_st_document_base {
  public:
@@ -18,7 +24,7 @@ struct qljs_st_document final : public qljs_st_document_base {
     this->document_.set_text(replacement);
   }
 
-  void replace_text(sublime_text_range range, string8_view replacement) {
+  void replace_text(range_type range, string8_view replacement) {
     this->document_.replace_text(range, replacement);
   }
 };
@@ -37,11 +43,9 @@ void qljs_st_document_set_text(qljs_st_document* document,
 void qljs_st_document_replace_text(qljs_st_document* document,
                                    const qljs_st_range* range,
                                    const qljs_st_text* text) {
-  auto lrange =
-      quick_lint_js::narrow_cast<const qljs_st_locator::range_type>(*range);
   auto content8 = reinterpret_cast<const quick_lint_js::char8*>(text->content);
   auto replacement8 = quick_lint_js::string8_view(content8, text->length);
-  document->replace_text(lrange, replacement8);
+  document->replace_text(range, replacement8);
 }
 
 const qljs_st_diagnostic* qljs_st_document_lint(qljs_st_document* document) {
