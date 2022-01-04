@@ -13,7 +13,12 @@ extern "C" {
 typedef unsigned int qljs_st_offset;
 typedef struct qljs_st_document qljs_st_document;
 
-#if QUICK_LINT_JS_SUBLIME_TEXT_VERSION != 3
+#if QLJS_ST_VERSION == 3
+typedef struct qljs_st_range {
+  qljs_st_offset begin;
+  qljs_st_offset end;
+} qljs_st_range;
+#elif QLJS_ST_VERSION > 3
 typedef struct qljs_st_position {
   qljs_st_offset line;
   qljs_st_offset character;
@@ -24,10 +29,7 @@ typedef struct qljs_st_range {
   qljs_st_position end;
 } qljs_st_range;
 #else
-typedef struct qljs_st_range {
-  qljs_st_offset begin;
-  qljs_st_offset end;
-} qljs_st_range;
+#error "Unsupported Sublime Text version"
 #endif
 
 typedef enum qljs_st_severity {
