@@ -9,8 +9,11 @@ On a Debian-based machine, install dependencies for .deb generation:
 
     $ sudo apt-get install cmake debhelper dpkg-dev gcc-9 g++-9 git lintian
 
-Then, run the `build.sh` script will build
-`dist/debian/quick-lint-js_1.0.0-1_amd64.deb`,
+Then, run the `build.sh` script:
+
+    $ ./dist/debian/build.sh
+
+The above command will create `dist/debian/quick-lint-js_1.0.0-1_amd64.deb`,
 `dist/debian/quick-lint-js-vim_1.0.0-1_all.deb`, and related files.
 
 ## Installing
