@@ -10,6 +10,10 @@
 extern "C" {
 #endif
 
+typedef unsigned int qljs_st_offset;
+typedef struct qljs_st_locator qljs_st_locator;
+typedef struct qljs_st_document qljs_st_document;
+
 #if !QUICK_LINT_JS_SUBLIME_TEXT_3
 typedef struct qljs_st_position {
   qljs_st_offset line;
@@ -43,10 +47,6 @@ typedef struct qljs_st_diagnostic {
   const char* code;
   const char* message;
 } qljs_st_diagnostic;
-
-typedef unsigned int qljs_st_offset;
-typedef struct qljs_st_locator qljs_st_locator;
-typedef struct qljs_st_document qljs_st_document;
 
 qljs_st_document* qljs_st_document_new(void);
 
