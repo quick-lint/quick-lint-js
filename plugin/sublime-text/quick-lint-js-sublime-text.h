@@ -11,10 +11,9 @@ extern "C" {
 #endif
 
 typedef unsigned int qljs_st_offset;
-typedef struct qljs_st_locator qljs_st_locator;
 typedef struct qljs_st_document qljs_st_document;
 
-#if !QUICK_LINT_JS_SUBLIME_TEXT_3
+#if QUICK_LINT_JS_SUBLIME_TEXT_VERSION != 3
 typedef struct qljs_st_position {
   qljs_st_offset line;
   qljs_st_offset character;
@@ -26,7 +25,7 @@ typedef struct qljs_st_range {
 } qljs_st_range;
 #else
 typedef struct qljs_st_range {
-  qljs_st_offset start;
+  qljs_st_offset begin;
   qljs_st_offset end;
 } qljs_st_range;
 #endif
@@ -54,7 +53,7 @@ void qljs_st_document_delete(qljs_st_document* d);
 
 void qljs_st_document_set_text(qljs_st_document* d, qljs_st_text* text);
 
-#if !QUICK_LINT_JS_SUBLIME_TEXT_3
+#if QUICK_LINT_JS_SUBLIME_TEXT_VERSION != 3
 void qljs_st_document_replace_text(qljs_st_document* d,
                                    const qljs_st_range* range,
                                    const qljs_st_text* text);

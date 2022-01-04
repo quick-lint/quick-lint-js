@@ -7,16 +7,12 @@
 #include <quick-lint-js/document-base.h>
 #include <quick-lint-js/narrow-cast.h>
 
-namespace quick_lint_js {
-namespace {
-// using sublime_text_locator
-// using sublime_text_error_reporter = c_api_error_reporter;
+using qljs_st_document_base =
+    quick_lint_js::document_base<quick_lint_js::sublime_text_locator,
+                                 quick_lint_js::c_api_error_reporter,
+                                 qljs_st_diagnostic>;
 
-using sublime_text_document_base =
-    document_base<sublime_text_locator, sublime_text_error_reporter,
-                  sublime_text_diagnostic>;
-
-struct sublime_text_document final : public sublime_text_document_base {
+struct qljs_st_document final : public qljs_st_document_base {
  public:
   void set_text(string8_view replacement) {
     this->document_.set_text(replacement);
@@ -26,8 +22,6 @@ struct sublime_text_document final : public sublime_text_document_base {
     this->document_.replace_text(range, replacement);
   }
 };
-}  // namespace
-}  // namespace quick_lint_js
 
 qljs_st_document* qljs_st_document_new(void) { return new qljs_st_document(); }
 

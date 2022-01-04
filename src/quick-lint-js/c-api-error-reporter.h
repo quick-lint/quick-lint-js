@@ -21,7 +21,6 @@ struct qljs_web_demo_diagnostic;
 namespace quick_lint_js {
 class lsp_locator;
 class web_demo_locator;
-class sublime_text_3_locator;
 
 template <class Diagnostic, class Locator>
 class c_api_error_formatter;
