@@ -627,7 +627,6 @@ void linter::report_error_if_assignment_is_illegal(
 
   switch (kind) {
   case variable_kind::_const:
-  case variable_kind::_import:
     if (is_global_variable) {
       this->error_reporter_->report(
           error_assignment_to_const_global_variable{assignment});
@@ -636,14 +635,15 @@ void linter::report_error_if_assignment_is_illegal(
         this->error_reporter_->report(
             error_assignment_to_const_variable_before_its_declaration{
                 *declaration, assignment, kind});
-      } else if (kind == variable_kind::_import) {
-        this->error_reporter_->report(error_assignment_to_imported_variable{
-            *declaration, assignment, kind});
       } else {
         this->error_reporter_->report(
             error_assignment_to_const_variable{*declaration, assignment, kind});
       }
     }
+    break;
+  case variable_kind::_import:
+    this->error_reporter_->report(error_assignment_to_imported_variable{
+        *declaration, assignment, kind});
     break;
   case variable_kind::_catch:
   case variable_kind::_class:
