@@ -20,11 +20,12 @@ using qljs_st_document_base =
 
 struct qljs_st_document final : public qljs_st_document_base {
  public:
-  void set_text(string8_view replacement) {
+  void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);
   }
 
-  void replace_text(range_type range, string8_view replacement) {
+  void replace_text(quick_lint_js::sublime_text_locator::range_type range,
+                    quick_lint_js::string8_view replacement) {
     this->document_.replace_text(range, replacement);
   }
 };
@@ -40,13 +41,15 @@ void qljs_st_document_set_text(qljs_st_document* document,
   document->set_text(replacement8);
 }
 
+#if QUICK_LINT_JS_SUBLIME_TEXT_VERSION != 3
 void qljs_st_document_replace_text(qljs_st_document* document,
                                    const qljs_st_range* range,
                                    const qljs_st_text* text) {
   auto content8 = reinterpret_cast<const quick_lint_js::char8*>(text->content);
   auto replacement8 = quick_lint_js::string8_view(content8, text->length);
-  document->replace_text(range, replacement8);
+  document->replace_text(*range, replacement8);
 }
+#endif
 
 const qljs_st_diagnostic* qljs_st_document_lint(qljs_st_document* document) {
   return document->lint();
