@@ -14,7 +14,7 @@ struct sublime_text_locator {
  public:
   using range_type = qljs_st_range;
   using offset_type = qljs_st_offset;
-#if QUICK_LINT_JS_SUBLIME_TEXT_VERSION != 3
+#if QLJS_ST_HAVE_INCREMENTAL_CHANGES
   using position_type = qljs_st_position;
 #endif
 
@@ -22,13 +22,13 @@ struct sublime_text_locator {
 
   range_type range(source_code_span span) const;
 
-#if QUICK_LINT_JS_SUBLIME_TEXT_VERSION == 3
+#if QLJS_ST_HAVE_INCREMENTAL_CHANGES
+  position_type position(const char8 *ch) const noexcept;
+#else
   offset_type position(const char8 *ch) const noexcept;
 #endif
 
-#if QUICK_LINT_JS_SUBLIME_TEXT_VERSION != 3
-  position_type position(const char8 *ch) const noexcept;
-
+#if QLJS_ST_HAVE_INCREMENTAL_CHANGES
   const char8 *from_position(position_type position) const noexcept;
 
   void replace_text(range_type range, string8_view replacement_text,
@@ -37,7 +37,7 @@ struct sublime_text_locator {
  private:
   padded_string_view input_;
 
-#if QUICK_LINT_JS_SUBLIME_TEXT_VERSION != 3
+#if QLJS_ST_HAVE_INCREMENTAL_CHANGES
   std::vector<offset_type> offset_of_lines_;
   std::vector<unsigned char> line_is_ascii_;
   // old_offset_of_lines_ and old_line_is_ascii_ are used for double buffering

@@ -8,7 +8,7 @@
 #include <quick-lint-js/utf-8.h>
 
 namespace quick_lint_js {
-#if QUICK_LINT_JS_SUBLIME_TEXT_VERSION != 3
+#if QLJS_ST_HAVE_INCREMENTAL_CHANGES
 namespace {
 // Like std::transform with an std::back_insert_iterator, but more efficient for
 // std::vector<int>.

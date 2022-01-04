@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_H
 
+#include <quick-lint-js-sublime-text-have.h>
 #include <stddef.h>
 
 #if defined(__cplusplus)
@@ -13,12 +14,7 @@ extern "C" {
 typedef unsigned int qljs_st_offset;
 typedef struct qljs_st_document qljs_st_document;
 
-#if QLJS_ST_VERSION == 3
-typedef struct qljs_st_range {
-  qljs_st_offset begin;
-  qljs_st_offset end;
-} qljs_st_range;
-#elif QLJS_ST_VERSION > 3
+#if QLJS_ST_HAVE_INCREMENTAL_CHANGES
 typedef struct qljs_st_position {
   qljs_st_offset line;
   qljs_st_offset character;
@@ -29,7 +25,10 @@ typedef struct qljs_st_range {
   qljs_st_position end;
 } qljs_st_range;
 #else
-#error "Unsupported Sublime Text version"
+typedef struct qljs_st_range {
+  qljs_st_offset begin;
+  qljs_st_offset end;
+} qljs_st_range;
 #endif
 
 typedef enum qljs_st_severity {
@@ -55,7 +54,7 @@ void qljs_st_document_delete(qljs_st_document* d);
 
 void qljs_st_document_set_text(qljs_st_document* d, qljs_st_text* text);
 
-#if QUICK_LINT_JS_SUBLIME_TEXT_VERSION != 3
+#if QLJS_ST_HAVE_INCREMENTAL_CHANGES
 void qljs_st_document_replace_text(qljs_st_document* d,
                                    const qljs_st_range* range,
                                    const qljs_st_text* text);

@@ -41,7 +41,7 @@ void qljs_st_document_set_text(qljs_st_document* document,
   document->set_text(replacement8);
 }
 
-#if QUICK_LINT_JS_SUBLIME_TEXT_VERSION != 3
+#if QLJS_ST_HAVE_INCREMENTAL_CHANGES
 void qljs_st_document_replace_text(qljs_st_document* document,
                                    const qljs_st_range* range,
                                    const qljs_st_text* text) {
