@@ -232,19 +232,6 @@ void insert_back_transform(InputIt input_begin, InputIt input_end,
 }
 }  // namespace
 
-bool operator==(const lsp_position& lhs, const lsp_position& rhs) noexcept {
-  return lhs.line == rhs.line && lhs.character == rhs.character;
-}
-
-bool operator!=(const lsp_position& lhs, const lsp_position& rhs) noexcept {
-  return !(lhs == rhs);
-}
-
-std::ostream& operator<<(std::ostream& stream, const lsp_position& position) {
-  stream << "line " << position.line << " character " << position.character;
-  return stream;
-}
-
 sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
     : input_(input) {
   this->cache_offsets_of_lines();

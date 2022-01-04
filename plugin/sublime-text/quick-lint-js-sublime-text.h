@@ -6,26 +6,18 @@
 
 #include <quick-lint-js-sublime-text-have.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
 typedef unsigned int qljs_st_offset;
-typedef struct qljs_st_document qljs_st_document;
 
 #if QLJS_ST_HAVE_INCREMENTAL_CHANGES
 typedef struct qljs_st_position {
   qljs_st_offset line;
   qljs_st_offset character;
-
-#if defined(__cplusplus)
-  friend bool operator==(const lsp_position&, const lsp_position&) noexcept;
-
-  friend bool operator!=(const lsp_position&, const lsp_position&) noexcept;
-
-  friend std::ostream& operator<<(std::ostream&, const lsp_position&);
-#endif
 } qljs_st_position;
 
 typedef struct qljs_st_range {
@@ -49,12 +41,18 @@ typedef struct qljs_st_text {
   size_t length;
 } qljs_st_text;
 
+qljs_st_text* qljs_st_text_new(void);
+
+void qljs_st_text_delete(qljs_st_text* t);
+
 typedef struct qljs_st_diagnostic {
   const qljs_st_range* range;
   qljs_st_severity severity;
   const char* code;
   const char* message;
 } qljs_st_diagnostic;
+
+typedef struct qljs_st_document qljs_st_document;
 
 qljs_st_document* qljs_st_document_new(void);
 
