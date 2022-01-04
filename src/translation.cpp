@@ -15,6 +15,8 @@
 
 using namespace std::literals::string_view_literals;
 
+QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
+
 namespace quick_lint_js {
 namespace {
 translatable_messages qljs_messages;
@@ -68,16 +70,11 @@ void initialize_locale() {
 }
 }
 
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-
 const char8* translate(const translatable_message& message) {
   const char* translated_message = qljs_messages.translate(message);
   // HACK(strager): Assume message encoding is UTF-8.
   return reinterpret_cast<const char8*>(translated_message);
 }
-
-QLJS_WARNING_POP
 
 void initialize_translations_from_environment() {
   initialize_locale();
@@ -94,14 +91,15 @@ void initialize_translations_from_locale(const char* locale_name) {
 }
 
 void translatable_messages::use_messages_from_source_code() {
-  this->locale_index_ = std::nullopt;
+  this->locale_index_ = this->invalid_locale_index;
 }
 
 bool translatable_messages::use_messages_from_locale(const char* locale_name) {
   std::optional<int> locale_index =
       find_locale(translation_data.locale_table, locale_name);
   if (locale_index.has_value()) {
-    this->locale_index_ = locale_index;
+    QLJS_ASSERT(*locale_index != this->invalid_locale_index);
+    this->locale_index_ = *locale_index;
     return true;
   }
   return false;
@@ -124,15 +122,15 @@ bool translatable_messages::use_messages_from_locales(
 
 const char* translatable_messages::translate(
     const translatable_message& message) {
-  if (this->locale_index_.has_value()) {
+  if (this->locale_index_ != this->invalid_locale_index) {
     std::uint16_t mapping_index = message.translation_table_mapping_index();
     if (mapping_index == translation_data.unallocated_mapping_index) {
       // The string is not in the translation table.
       return message.c_str();
     }
-    translation_table::mapping_entry& mapping =
+    const translation_table::mapping_entry& mapping =
         translation_data.mapping_table[mapping_index];
-    std::uint32_t string_offset = mapping.string_offsets[*this->locale_index_];
+    std::uint32_t string_offset = mapping.string_offsets[this->locale_index_];
     return reinterpret_cast<const char*>(translation_data.string_table +
                                          string_offset);
   } else {

@@ -47,6 +47,13 @@ class ProcessCrashedWithUnknownError extends ProcessCrashed {
 }
 exports.ProcessCrashedWithUnknownError = ProcessCrashedWithUnknownError;
 
+// Unique object used by the setjmp/longjmp implementation.
+class LongJumpToken {}
+let LONG_JUMP_TOKEN = new LongJumpToken();
+
+// HACK(strager): I don't know what this is for exactly.
+let tempRet0 = 0;
+
 // A compiled WebAssembly module.
 class ProcessFactory {
   constructor(wasmModule) {
@@ -54,7 +61,59 @@ class ProcessFactory {
   }
 
   async createProcessAsync() {
+    let cachedIndirectFunction = null;
+    let cachedIndirectFunctionIndex = -1;
+
+    function longjmp(env, value) {
+      if (value === 0) {
+        value = 1;
+      }
+      wasmInstance.exports.setThrew(env, value);
+      throw LONG_JUMP_TOKEN;
+    }
+
     let wasmInstance = await WebAssembly.instantiate(this._wasmModule, {
+      env: {
+        // Called by setjmp.
+        invoke_vii: (functionIndex, arg0, arg1) => {
+          // Accessing __indirect_function_table can be slow (a few
+          // microseconds). Cache the result. At the time of writing, we expect
+          // only one functionIndex to be used over and over for the web demo.
+          let func;
+          if (functionIndex === cachedIndirectFunctionIndex) {
+            func = cachedIndirectFunction;
+          } else {
+            func =
+              wasmInstance.exports.__indirect_function_table.get(functionIndex);
+            cachedIndirectFunction = func;
+            cachedIndirectFunctionIndex = functionIndex;
+          }
+
+          let oldStackPointer = wasmInstance.exports.stackSave();
+          try {
+            func(arg0, arg1);
+          } catch (e) {
+            wasmInstance.exports.stackRestore(oldStackPointer);
+            if (e === LONG_JUMP_TOKEN) {
+              let env = 1; // TODO(strager): Why this particular value?
+              wasmInstance.exports.setThrew(env, /*value=*/ 0);
+            } else {
+              throw e;
+            }
+          }
+        },
+
+        // Called by longjmp. Different names are for different Emscripten
+        // versions and configurations.
+        _emscripten_throw_longjmp: longjmp,
+        emscripten_longjmp: longjmp,
+        emscripten_longjmp_jmpbuf: longjmp,
+
+        getTempRet0: () => tempRet0,
+        setTempRet0: (temp) => {
+          tempRet0 = temp;
+        },
+      },
       wasi_snapshot_preview1: {
         fd_close: () => {
           throw new Error("Not implemented: fd_close");

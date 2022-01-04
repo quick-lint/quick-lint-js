@@ -5,14 +5,14 @@
 #define QUICK_LINT_JS_BUFFERING_VISITOR_H
 
 #include <boost/container/pmr/memory_resource.hpp>
+#include <boost/container/pmr/polymorphic_allocator.hpp>
+#include <deque>
 #include <optional>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse-visitor.h>
-#include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 #include <utility>
-#include <vector>
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_MSVC(26495)  // Variable is uninitialized.
@@ -21,7 +21,7 @@ namespace quick_lint_js {
 class buffering_visitor {
  public:
   explicit buffering_visitor(boost::container::pmr::memory_resource *memory)
-      : visits_("buffering_visitor", memory) {}
+      : visits_(memory) {}
 
   template <QLJS_PARSE_VISITOR Visitor>
   void move_into(Visitor &target) {
@@ -253,7 +253,8 @@ class buffering_visitor {
     };
   };
 
-  vector<visit> visits_;
+  std::deque<visit, boost::container::pmr::polymorphic_allocator<visit>>
+      visits_;
 };
 QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(buffering_visitor);
 }

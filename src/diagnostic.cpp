@@ -2,11 +2,14 @@
 // See end of file for extended copyright information.
 
 #include <cstring>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/cpp.h>
 #include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/warning.h>
+#include <string_view>
 #include <utility>
 
 namespace quick_lint_js {
@@ -122,6 +125,23 @@ constexpr const diagnostic_info all_diagnostic_infos[] = {
 const diagnostic_info& get_diagnostic_info(error_type type) noexcept {
   return all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)];
 }
+
+QLJS_WARNING_PUSH
+// GCC thinks that all_diagnostic_infos[i].code is not null-terminated, but it
+// is.
+QLJS_WARNING_IGNORE_GCC("-Wstringop-overflow")
+
+std::optional<error_type> error_type_from_code_slow(
+    std::string_view code) noexcept {
+  for (int i = 0; i < error_type_count; ++i) {
+    if (all_diagnostic_infos[i].code == code) {
+      return static_cast<error_type>(i);
+    }
+  }
+  return std::nullopt;
+}
+
+QLJS_WARNING_POP
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

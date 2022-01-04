@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_ERROR_LIST_H
 
 #include <array>
+#include <bitset>
 #include <quick-lint-js/error.h>
 #include <string>
 #include <string_view>
@@ -36,9 +37,19 @@ class compiled_error_list {
   bool is_user_provided() const noexcept;
 
  private:
-  bool is_present(const char* error_code) const noexcept;
+  struct codes {
+    std::bitset<error_type_count> included_codes;
+    std::bitset<error_type_count> excluded_codes;
+    std::vector<std::string_view> included_categories;
+    std::vector<std::string_view> excluded_categories;
+    bool override_defaults;
+  };
 
-  std::vector<parsed_error_list> parsed_error_lists_;
+  std::vector<codes> parsed_error_lists_;
+
+  // Collected errors and warnings:
+  std::vector<std::string_view> unknown_codes_;
+  bool has_missing_predicate_error_ = false;
 };
 }
 

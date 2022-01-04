@@ -358,7 +358,7 @@
 #endif
 
 #if !defined(QLJS_HAVE_SETJMP) && defined(__has_include)
-#if !defined(__EMSCRIPTEN__) && __has_include(<csetjmp>)
+#if __has_include(<csetjmp>)
 #define QLJS_HAVE_SETJMP 1
 #endif
 #endif

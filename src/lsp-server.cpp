@@ -29,7 +29,6 @@
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>
-#include <sstream>
 #include <string>
 #include <utility>
 
@@ -104,7 +103,7 @@ void linting_lsp_server_handler<Linter>::handle_request(
   } else if (method == "shutdown") {
     this->handle_shutdown_request(request, id_json, response_json);
   } else {
-    this->write_method_not_found_error_response(response_json);
+    this->write_method_not_found_error_response(id_json, response_json);
   }
 }
 
@@ -152,10 +151,10 @@ void linting_lsp_server_handler<Linter>::add_watch_io_errors(
       u8R"--("method":"window/showMessage",)--"
       u8R"--("params":{)--"
         u8R"--("type":2,)--"
-        u8R"--("message":")--");
+        u8R"--("message":")--"sv);
     // clang-format on
     write_json_escaped_string(out_json, to_string8_view(errors[0].to_string()));
-    out_json.append_copy(u8"\"}}");
+    out_json.append_copy(u8"\"}}"sv);
     this->did_report_watch_io_error_ = true;
   }
 }
@@ -164,7 +163,7 @@ template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::handle_initialize_request(
     ::simdjson::ondemand::object&, string8_view id_json,
     byte_buffer& response_json) {
-  response_json.append_copy(u8R"--({"id":)--");
+  response_json.append_copy(u8R"--({"id":)--"sv);
   response_json.append_copy(id_json);
   // clang-format off
   response_json.append_copy(
@@ -178,7 +177,7 @@ void linting_lsp_server_handler<Linter>::handle_initialize_request(
         u8R"--("version":")--" QUICK_LINT_JS_VERSION_STRING_U8
       u8R"--("})--"
     u8R"--(},)--"
-    u8R"--("jsonrpc":"2.0"})--");
+    u8R"--("jsonrpc":"2.0"})--"sv);
   // clang-format on
 }
 
@@ -187,9 +186,9 @@ void linting_lsp_server_handler<Linter>::handle_shutdown_request(
     ::simdjson::ondemand::object&, string8_view id_json,
     byte_buffer& response_json) {
   this->shutdown_requested_ = true;
-  response_json.append_copy(u8R"--({"jsonrpc":"2.0","id":)--");
+  response_json.append_copy(u8R"--({"jsonrpc":"2.0","id":)--"sv);
   response_json.append_copy(id_json);
-  response_json.append_copy(u8R"--(,"result":null})--");
+  response_json.append_copy(u8R"--(,"result":null})--"sv);
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -333,7 +332,8 @@ void linting_lsp_server_handler<Linter>::
   doc.doc.set_text(*text);
   doc.version_json = get_raw_json(version);
 
-  if (language_id == "javascript" || language_id == "js") {
+  if (language_id == "javascript" || language_id == "javascriptreact" ||
+      language_id == "js" || language_id == "js-jsx") {
     doc.type = document_type::lintable;
     auto config_file =
         this->config_loader_.watch_and_load_for_file(document_path,
@@ -405,10 +405,7 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
         byte_buffer& message_json =
             this->pending_notification_jsons_.emplace_back();
         this->write_configuration_loader_error_notification(
-            document_path,
-            std::visit([](const auto& error) { return error.to_string(); },
-                       *change_it->error),
-            message_json);
+            document_path, change_it->error->error_to_string(), message_json);
       }
       configuration* config = change_it->config_file
                                   ? &change_it->config_file->config
@@ -457,20 +454,20 @@ void linting_lsp_server_handler<Linter>::
     u8R"--({)--"
       u8R"--("method":"textDocument/publishDiagnostics",)--"
       u8R"--("params":{)--"
-        u8R"--("uri":)--");
+        u8R"--("uri":)--"sv);
   // clang-format on
   notification_json.append_copy(uri_json);
 
-  notification_json.append_copy(u8R"--(,"version":)--");
+  notification_json.append_copy(u8R"--(,"version":)--"sv);
   notification_json.append_copy(version_json);
 
-  notification_json.append_copy(u8R"--(,"diagnostics":)--");
+  notification_json.append_copy(u8R"--(,"diagnostics":)--"sv);
   lsp_error_reporter error_reporter(notification_json,
                                     &config_file->file_content);
   config_file->errors.copy_into(&error_reporter);
   error_reporter.finish();
 
-  notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--");
+  notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--"sv);
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -484,12 +481,12 @@ void linting_lsp_server_handler<Linter>::
     u8R"--("method":"window/showMessage",)--"
     u8R"--("params":{)--"
       u8R"--("type":2,)--"
-      u8R"--("message":"Failed to load configuration file for )--");
+      u8R"--("message":"Failed to load configuration file for )--"sv);
   // clang-format on
   write_json_escaped_string(out_json, to_string8_view(document_path));
-  out_json.append_copy(u8". Using default configuration.\\nError details: ");
+  out_json.append_copy(u8". Using default configuration.\\nError details: "sv);
   write_json_escaped_string(out_json, to_string8_view(error_details));
-  out_json.append_copy(u8"\"}}");
+  out_json.append_copy(u8"\"}}"sv);
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -503,14 +500,14 @@ void linting_lsp_server_handler<Linter>::
     u8R"--("method":"window/showMessage",)--"
     u8R"--("params":{)--"
       u8R"--("type":2,)--"
-      u8R"--("message":"Problems found in the config file for )--");
+      u8R"--("message":"Problems found in the config file for )--"sv);
   // clang-format on
   write_json_escaped_string(out_json, to_string8_view(document_path));
-  out_json.append_copy(u8" (");
+  out_json.append_copy(u8" ("sv);
   QLJS_ASSERT(config_file->config_path);
   write_json_escaped_string(out_json,
                             to_string8_view(config_file->config_path->path()));
-  out_json.append_copy(u8").\"}}");
+  out_json.append_copy(u8").\"}}"sv);
 }
 
 template <QLJS_LSP_LINTER Linter>
@@ -561,16 +558,18 @@ void linting_lsp_server_handler<Linter>::apply_document_changes(
 
 template <QLJS_LSP_LINTER Linter>
 void linting_lsp_server_handler<Linter>::write_method_not_found_error_response(
-    byte_buffer& response_json) {
+    string8_view request_id_json, byte_buffer& response_json) {
   // clang-format off
   response_json.append_copy(u8R"({)"
     u8R"("jsonrpc":"2.0",)"
-    u8R"("id":null,)"
+    u8R"("id":)"sv);
+  response_json.append_copy(request_id_json);
+  response_json.append_copy(u8R"(,)"
     u8R"("error":{)"
       u8R"("code":-32601,)"
       u8R"("message":"Method not found")"
     u8R"(})"
-  u8R"(})");
+  u8R"(})"sv);
   // clang-format on
 }
 
@@ -585,7 +584,7 @@ void linting_lsp_server_handler<Linter>::write_invalid_request_error_response(
       u8R"("code":-32600,)"
       u8R"("message":"Invalid Request")"
     u8R"(})"
-  u8R"(})");
+  u8R"(})"sv);
   // clang-format on
 }
 
@@ -597,17 +596,17 @@ void lsp_javascript_linter::lint_and_get_diagnostics_notification(
     u8R"--({)--"
       u8R"--("method":"textDocument/publishDiagnostics",)--"
       u8R"--("params":{)--"
-        u8R"--("uri":)--");
+        u8R"--("uri":)--"sv);
   // clang-format on
   notification_json.append_copy(uri_json);
 
-  notification_json.append_copy(u8R"--(,"version":)--");
+  notification_json.append_copy(u8R"--(,"version":)--"sv);
   notification_json.append_copy(version_json);
 
-  notification_json.append_copy(u8R"--(,"diagnostics":)--");
+  notification_json.append_copy(u8R"--(,"diagnostics":)--"sv);
   this->lint_and_get_diagnostics(config, code, notification_json);
 
-  notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--");
+  notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--"sv);
 }
 
 void lsp_javascript_linter::lint_and_get_diagnostics(
@@ -615,7 +614,9 @@ void lsp_javascript_linter::lint_and_get_diagnostics(
     byte_buffer& diagnostics_json) {
   lsp_error_reporter error_reporter(diagnostics_json, code);
 
-  parser p(code, &error_reporter);
+  parser_options p_options;
+  p_options.jsx = true;
+  parser p(code, &error_reporter, p_options);
   linter l(&error_reporter, &config.globals());
 #if QLJS_HAVE_SETJMP
   bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);

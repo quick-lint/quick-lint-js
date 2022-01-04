@@ -25,7 +25,9 @@ struct error_collector : public error_reporter {
     QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
+    error_type type() const noexcept;
     const char *error_code() const noexcept;
+    const void *data() const noexcept;
 
     template <class Error>
     friend const Error &get(const error &) noexcept;

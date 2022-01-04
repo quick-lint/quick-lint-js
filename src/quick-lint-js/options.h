@@ -4,12 +4,13 @@
 #ifndef QUICK_LINT_JS_OPTIONS_H
 #define QUICK_LINT_JS_OPTIONS_H
 
-#include <iosfwd>
 #include <optional>
 #include <quick-lint-js/error-list.h>
 #include <vector>
 
 namespace quick_lint_js {
+class output_stream;
+
 enum class output_format {
   default_format,
   gnu_like,
@@ -43,7 +44,7 @@ struct options {
   bool has_multiple_stdin = false;
   bool has_config_file = false;
 
-  bool dump_errors(std::ostream &) const;
+  bool dump_errors(output_stream &) const;
 };
 
 options parse_options(int argc, char **argv);

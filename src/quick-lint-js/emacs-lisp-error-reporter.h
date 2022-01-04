@@ -4,7 +4,6 @@
 #ifndef QUICK_LINT_JS_EMACS_ERROR_REPORTER_H
 #define QUICK_LINT_JS_EMACS_ERROR_REPORTER_H
 
-#include <iosfwd>
 #include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/diagnostic-formatter.h>
@@ -13,6 +12,7 @@
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
 
@@ -21,7 +21,7 @@ class emacs_lisp_error_formatter;
 
 class emacs_lisp_error_reporter final : public error_reporter {
  public:
-  explicit emacs_lisp_error_reporter(std::ostream &output);
+  explicit emacs_lisp_error_reporter(output_stream *output);
 
   void set_source(padded_string_view input);
   void finish();
@@ -29,14 +29,14 @@ class emacs_lisp_error_reporter final : public error_reporter {
   void report_impl(error_type type, void *error) override;
 
  private:
-  std::ostream &output_;
+  output_stream &output_;
   std::optional<emacs_locator> locator_;
 };
 
 class emacs_lisp_error_formatter
     : public diagnostic_formatter<emacs_lisp_error_formatter> {
  public:
-  explicit emacs_lisp_error_formatter(std::ostream &output,
+  explicit emacs_lisp_error_formatter(output_stream *output,
                                       emacs_locator &locator);
 
   void write_before_message(std::string_view code, diagnostic_severity,
@@ -47,7 +47,7 @@ class emacs_lisp_error_formatter
                            const source_code_span &origin);
 
  private:
-  std::ostream &output_;
+  output_stream &output_;
   emacs_locator &locator_;
 };
 }

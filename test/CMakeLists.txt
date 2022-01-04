@@ -41,6 +41,7 @@ quick_lint_js_add_executable(
   test-emacs-lisp-error-reporter.cpp
   test-emacs-location.cpp
   test-error-list.cpp
+  test-error-matcher.cpp
   test-error.cpp
   test-event-loop.cpp
   test-file-canonical.cpp
@@ -64,8 +65,10 @@ quick_lint_js_add_executable(
   test-math-overflow.cpp
   test-narrow-cast.cpp
   test-options.cpp
+  test-output-stream.cpp
   test-padded-string.cpp
   test-parse-class.cpp
+  test-parse-expression-jsx.cpp
   test-parse-expression-statement.cpp
   test-parse-expression.cpp
   test-parse-function.cpp
@@ -85,6 +88,7 @@ quick_lint_js_add_executable(
   test-uri.cpp
   test-utf-16.cpp
   test-utf-8.cpp
+  test-vector-profiler.cpp
   test-vector.cpp
   test-vim-location.cpp
   test-vim-qflist-json-error-reporter.cpp
@@ -107,9 +111,7 @@ if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
   target_precompile_headers(
     quick-lint-js-test
     PRIVATE
-    <boost/container/pmr/monotonic_buffer_resource.hpp>
     <boost/container/pmr/polymorphic_allocator.hpp>
-    <boost/container/small_vector.hpp>
     <gmock/gmock.h>
     <gtest/gtest.h>
     <iostream>

@@ -1479,9 +1479,11 @@ TEST_F(test_configuration_loader,
   auto loaded_config =
       loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(loaded_config.error_to_variant(),
-              IS_POSIX_READ_FILE_IO_ERROR(
-                  canonicalize_path(config_file)->c_str(), EACCES));
+  EXPECT_THAT(
+      (loaded_config
+           .copy_errors<canonicalize_path_io_error, read_file_io_error>()),
+      IS_POSIX_READ_FILE_IO_ERROR(canonicalize_path(config_file)->c_str(),
+                                  EACCES));
 
   EXPECT_EQ(::chmod(config_file.c_str(), 0600), 0)
       << "failed to make " << config_file
@@ -1521,9 +1523,11 @@ TEST_F(test_configuration_loader,
   auto loaded_config =
       loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(loaded_config.error_to_variant(),
-              IS_POSIX_READ_FILE_IO_ERROR(
-                  canonicalize_path(config_file)->c_str(), EACCES));
+  EXPECT_THAT(
+      (loaded_config
+           .copy_errors<canonicalize_path_io_error, read_file_io_error>()),
+      IS_POSIX_READ_FILE_IO_ERROR(canonicalize_path(config_file)->c_str(),
+                                  EACCES));
 
   EXPECT_EQ(::chmod(config_file.c_str(), 0600), 0)
       << "failed to make " << config_file
@@ -1558,9 +1562,11 @@ TEST_F(test_configuration_loader,
   auto loaded_config =
       loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(loaded_config.error_to_variant(),
-              IS_POSIX_READ_FILE_IO_ERROR(
-                  canonicalize_path(config_file)->c_str(), EACCES));
+  EXPECT_THAT(
+      (loaded_config
+           .copy_errors<canonicalize_path_io_error, read_file_io_error>()),
+      IS_POSIX_READ_FILE_IO_ERROR(canonicalize_path(config_file)->c_str(),
+                                  EACCES));
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -1584,9 +1590,11 @@ TEST_F(test_configuration_loader,
   auto loaded_config =
       loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(loaded_config.error_to_variant(),
-              IS_POSIX_READ_FILE_IO_ERROR(
-                  canonicalize_path(config_file)->c_str(), EACCES));
+  EXPECT_THAT(
+      (loaded_config
+           .copy_errors<canonicalize_path_io_error, read_file_io_error>()),
+      IS_POSIX_READ_FILE_IO_ERROR(canonicalize_path(config_file)->c_str(),
+                                  EACCES));
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -1784,9 +1792,11 @@ TEST_F(test_configuration_loader,
   auto loaded_config =
       loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(loaded_config.error_to_variant(),
-              IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
-                  js_file, js_file_canonical_path, EACCES))
+  EXPECT_THAT(
+      (loaded_config
+           .copy_errors<canonicalize_path_io_error, read_file_io_error>()),
+      IS_POSIX_CANONICALIZE_PATH_IO_ERROR(js_file, js_file_canonical_path,
+                                          EACCES))
       << loaded_config.error_to_string();
 
   EXPECT_EQ(::chmod(dir.c_str(), 0700), 0)
@@ -1822,9 +1832,11 @@ TEST_F(
   auto loaded_config =
       loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(loaded_config.error_to_variant(),
-              IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
-                  config_file, config_file_canonical_path, EACCES))
+  EXPECT_THAT(
+      (loaded_config
+           .copy_errors<canonicalize_path_io_error, read_file_io_error>()),
+      IS_POSIX_CANONICALIZE_PATH_IO_ERROR(config_file,
+                                          config_file_canonical_path, EACCES))
       << loaded_config.error_to_string();
 
   EXPECT_EQ(::chmod(dir.c_str(), 0700), 0)
@@ -1932,9 +1944,11 @@ TEST_F(test_configuration_loader,
   auto loaded_config =
       loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(loaded_config.error_to_variant(),
-              IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
-                  js_file, js_file_canonical_path, EACCES))
+  EXPECT_THAT(
+      (loaded_config
+           .copy_errors<canonicalize_path_io_error, read_file_io_error>()),
+      IS_POSIX_CANONICALIZE_PATH_IO_ERROR(js_file, js_file_canonical_path,
+                                          EACCES))
       << loaded_config.error_to_string();
 
   std::vector<configuration_change> changes =
@@ -1962,9 +1976,11 @@ TEST_F(test_configuration_loader,
   auto loaded_config =
       loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
   EXPECT_FALSE(loaded_config.ok());
-  EXPECT_THAT(loaded_config.error_to_variant(),
-              IS_POSIX_CANONICALIZE_PATH_IO_ERROR(
-                  config_file, config_file_canonical_path, EACCES))
+  EXPECT_THAT(
+      (loaded_config
+           .copy_errors<canonicalize_path_io_error, read_file_io_error>()),
+      IS_POSIX_CANONICALIZE_PATH_IO_ERROR(config_file,
+                                          config_file_canonical_path, EACCES))
       << loaded_config.error_to_string();
 
   std::vector<configuration_change> changes =

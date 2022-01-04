@@ -24,6 +24,8 @@ void error_collector::report_impl(error_type type, void *error) {
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
+error_type error_collector::error::type() const noexcept { return this->type_; }
+
 const char *error_collector::error::error_code() const noexcept {
   switch (this->type_) {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
@@ -33,6 +35,10 @@ const char *error_collector::error::error_code() const noexcept {
 #undef QLJS_ERROR_TYPE
   }
   QLJS_UNREACHABLE();
+}
+
+const void *error_collector::error::data() const noexcept {
+  return &this->variant_error_unexpected_token_;  // Arbitrary member.
 }
 
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call)              \
@@ -50,15 +56,7 @@ QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 
 void PrintTo(const error_collector::error &e, std::ostream *out) {
-  switch (e.type_) {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  case error_type::name:                                      \
-    *out << #name;                                            \
-    return;
-    QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
-  }
-  QLJS_UNREACHABLE();
+  *out << e.type_;
 }
 
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \

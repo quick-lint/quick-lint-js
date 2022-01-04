@@ -51,6 +51,11 @@ class padded_string {
     return this->data_[narrow_cast<unsigned>(index)];
   }
 
+  const char8 &operator[](std::size_t index) const noexcept {
+    QLJS_ASSERT(index <= narrow_cast<std::size_t>(this->size()));
+    return this->data_[index];
+  }
+
   void resize(size_type new_size);
   void resize_grow_uninitialized(size_type new_size);
 

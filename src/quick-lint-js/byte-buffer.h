@@ -71,6 +71,12 @@ class byte_buffer {
 
   void prepend_copy(string8_view data);
 
+  // Do not call. Create a string8_view explicitly instead.
+  void append_copy(const char8* data) = delete;
+  void append_copy(char8* data) = delete;
+  void prepend_copy(const char8* data) = delete;
+  void prepend_copy(char8* data) = delete;
+
   void clear();
 
   size_type size() const noexcept;
@@ -112,6 +118,7 @@ class byte_buffer {
 
  private:
   void reserve(size_type extra_byte_count);
+  void grow(size_type extra_byte_count);
   void update_current_chunk_size() noexcept;
   void remove_current_chunk_if_empty();
 

@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-json.h>
 #include <quick-lint-js/vim-location.h>
@@ -14,30 +15,32 @@ namespace {
 class test_vim_qflist_json_error_reporter : public ::testing::Test {
  protected:
   vim_qflist_json_error_reporter make_reporter() {
-    return vim_qflist_json_error_reporter(this->stream_);
+    return vim_qflist_json_error_reporter(&this->stream_);
   }
 
   vim_qflist_json_error_reporter make_reporter(padded_string_view input,
                                                int vim_bufnr) {
-    vim_qflist_json_error_reporter reporter(this->stream_);
+    vim_qflist_json_error_reporter reporter(&this->stream_);
     reporter.set_source(input, /*vim_bufnr=*/vim_bufnr);
     return reporter;
   }
 
   vim_qflist_json_error_reporter make_reporter(padded_string_view input,
                                                const char *file_name) {
-    vim_qflist_json_error_reporter reporter(this->stream_);
+    vim_qflist_json_error_reporter reporter(&this->stream_);
     reporter.set_source(input, /*file_name=*/file_name);
     return reporter;
   }
 
   ::boost::json::value parse_json() {
-    ::boost::json::value root = parse_boost_json(this->stream_.str());
-    this->stream_ = std::stringstream();
+    this->stream_.flush();
+    ::boost::json::value root =
+        parse_boost_json(this->stream_.get_flushed_string8());
+    this->stream_.clear();
     return root;
   }
 
-  std::stringstream stream_;
+  memory_output_stream stream_;
 };
 
 TEST_F(test_vim_qflist_json_error_reporter,
@@ -297,12 +300,14 @@ TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
   source_code_span hello_span(&code[0], &code[5]);
   vim_locator locator(&code);
 
-  std::stringstream stream;
-  vim_qflist_json_error_formatter formatter(stream, locator, "FILE",
+  memory_output_stream stream;
+  vim_qflist_json_error_formatter formatter(&stream, locator, "FILE",
                                             /*bufnr=*/std::string_view());
   formatter.format(diag_info, &hello_span);
+  stream.flush();
 
-  ::boost::json::object object = parse_boost_json(stream.str()).as_object();
+  ::boost::json::object object =
+      parse_boost_json(stream.get_flushed_string8()).as_object();
   EXPECT_EQ(object["col"], 1);
   EXPECT_EQ(object["end_col"], 5);
   EXPECT_EQ(object["end_lnum"], 1);
@@ -343,16 +348,18 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
   padded_string code(u8"hello world"_sv);
   vim_locator locator(&code);
 
-  std::stringstream stream;
+  memory_output_stream stream;
   test_diag diag = {
       .hello_span = source_code_span(&code[0], &code[5]),
       .world_span = source_code_span(&code[6], &code[11]),
   };
-  vim_qflist_json_error_formatter formatter(stream, locator, "FILE",
+  vim_qflist_json_error_formatter formatter(&stream, locator, "FILE",
                                             /*bufnr=*/std::string_view());
   formatter.format(diag_info, &diag);
+  stream.flush();
 
-  ::boost::json::object object = parse_boost_json(stream.str()).as_object();
+  ::boost::json::object object =
+      parse_boost_json(stream.get_flushed_string8()).as_object();
   EXPECT_EQ(object["col"], 1);
   EXPECT_EQ(object["end_col"], 5);
   EXPECT_EQ(object["end_lnum"], 1);

@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_ERROR_H
 #define QUICK_LINT_JS_ERROR_H
 
+#include <iosfwd>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/identifier.h>
@@ -337,6 +338,14 @@
       ERROR(QLJS_TRANSLATABLE("code point in Unicode escape sequence must "    \
                               "not be greater than U+10FFFF"),                 \
             escape_sequence))                                                  \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_escaped_hyphen_not_allowed_in_jsx_tag, "E0019",                    \
+      { source_code_span escape_sequence; },                                   \
+      ERROR(                                                                   \
+          QLJS_TRANSLATABLE(                                                   \
+              "escaping '-' is not allowed in tag names; write '-' instead"),  \
+          escape_sequence))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_extra_comma_not_allowed_between_arguments, "E0068",                \
@@ -918,6 +927,10 @@
               delete_expression))                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_if_after_else, "E0184", { source_code_span expected_if; }, \
+      ERROR(QLJS_TRANSLATABLE("missing 'if' after 'else'"), expected_if))      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_operator_between_expression_and_arrow_function, "E0063",   \
       { source_code_span where; },                                             \
       ERROR(QLJS_TRANSLATABLE(                                                 \
@@ -1119,6 +1132,12 @@
       ERROR(QLJS_TRANSLATABLE("unclosed string literal"), string_literal))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unclosed_jsx_string_literal, "E0181",                              \
+      { source_code_span string_literal_begin; },                              \
+      ERROR(QLJS_TRANSLATABLE("unclosed string literal"),                      \
+            string_literal_begin))                                             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unclosed_template, "E0041",                                        \
       { source_code_span incomplete_template; },                               \
       ERROR(QLJS_TRANSLATABLE("unclosed template"), incomplete_template))      \
@@ -1197,11 +1216,25 @@
           default_token))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_greater_in_jsx_text, "E0182",                           \
+      { source_code_span greater; },                                           \
+      ERROR(QLJS_TRANSLATABLE("'>' is not allowed directly in JSX text; "      \
+                              "write {{'>'} or &gt; instead"),                 \
+            greater))                                                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unexpected_literal_in_parameter_list, "E0159",                     \
       { source_code_span literal; },                                           \
       ERROR(QLJS_TRANSLATABLE("unexpected literal in parameter list; "         \
                               "expected parameter name"),                      \
             literal))                                                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unexpected_right_curly_in_jsx_text, "E0183",                       \
+      { source_code_span right_curly; },                                       \
+      ERROR(QLJS_TRANSLATABLE("'}' is not allowed directly in JSX text; "      \
+                              "write {{'}'} instead"),                         \
+            right_curly))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_semicolon_in_c_style_for_loop, "E0102",                 \
@@ -1346,6 +1379,8 @@ enum class error_type {
 #undef QLJS_ERROR_TYPE
 };
 
+std::ostream& operator<<(std::ostream&, error_type);
+
 template <class Error>
 struct error_type_from_type_detail;
 
@@ -1360,6 +1395,12 @@ QLJS_X_ERROR_TYPES
 template <class Error>
 inline constexpr error_type error_type_from_type =
     error_type_from_type_detail<Error>::type;
+
+inline constexpr int error_type_count = 0
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) +1
+    QLJS_X_ERROR_TYPES
+#undef QLJS_ERROR_TYPE
+    ;
 }
 
 #endif

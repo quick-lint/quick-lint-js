@@ -6,6 +6,23 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Added
+
+* quick-lint-js now supports JSX syntax in both .js and .jsx files.
+
+### Fixed
+
+* LSP: When responding to unsupported methods with error code -32601,
+  quick-lint-js now includes the request ID. (Previously, the `"id"` field was
+  always `null`.)
+* CLI: If a crash occurs due to [E0054][] or [E0203][], the CLI no longer
+  crashes (e.g. with an illegal instruction error).
+* quick-lint-js no longer ignores elements of assigned arrays. For example,
+  `[fisrt, second] = s.split(' ');` will now report [E0057][] for `fisrt` (if
+  `fisrt` is not declared).
+
 ## 1.0.0 (2021-12-13)
 
 [Downloads](https://c.quick-lint-js.com/releases/1.0.0/)
@@ -345,6 +362,7 @@ Beta release.
 [E0038]: https://quick-lint-js.com/errors/#E0038
 [E0040]: https://quick-lint-js.com/errors/#E0040
 [E0053]: https://quick-lint-js.com/errors/#E0053
+[E0054]: https://quick-lint-js.com/errors/#E0054
 [E0057]: https://quick-lint-js.com/errors/#E0057
 [E0073]: https://quick-lint-js.com/errors/#E0073
 [E0094]: https://quick-lint-js.com/errors/#E0094
@@ -361,5 +379,6 @@ Beta release.
 [E0178]: https://quick-lint-js.com/errors/#E0178
 [E0179]: https://quick-lint-js.com/errors/#E0179
 [E0180]: https://quick-lint-js.com/errors/#E0180
+[E0203]: https://quick-lint-js.com/errors/#E0203
 [E0205]: https://quick-lint-js.com/errors/#E0205
 [E0207]: https://quick-lint-js.com/errors/#E0207

@@ -7,6 +7,7 @@ import argparse
 import collections
 import json
 import pathlib
+import re
 import subprocess
 import sys
 import typing
@@ -15,13 +16,15 @@ import unittest
 
 def main() -> None:
     parser = argparse.ArgumentParser(__doc__)
-    parser.add_argument("builds_directory")
+    parser.add_argument("build_sizes_directory")
     args = parser.parse_args()
 
-    builds_directory = pathlib.Path(args.builds_directory)
+    build_sizes_directory = pathlib.Path(args.build_sizes_directory)
     git_commits = get_git_commits()
     all_builds = []
-    for build_sizes_file in builds_directory.glob("*/build-sizes.json"):
+    for build_sizes_file in build_sizes_directory.iterdir():
+        if build_sizes_file.suffix != ".json":
+            continue
         content = build_sizes_file.read_text()
         if not content:
             sys.stderr.write(f"warning: file is empty: {build_sizes_file}\n")
@@ -155,6 +158,100 @@ class TestGroupBuildSizes(unittest.TestCase):
             ],
         )
 
+    def test_builds_with_different_version_numbers_are_grouped_together(self) -> None:
+        builds = [
+            {
+                "readme": {"Git-Commit": "2"},
+                "sizes": [
+                    {
+                        "name": [
+                            "npm/quick-lint-js-0.2.0.tgz",
+                            "package/linux/bin/quick-lint-js",
+                        ],
+                        "type": "exe",
+                        "size": 100,
+                    },
+                    {
+                        "name": [
+                            "npm/quick-lint-js-0.2.0.tgz",
+                            "package/windows/bin/quick-lint-js.exe",
+                        ],
+                        "type": "exe",
+                        "size": 150,
+                    },
+                    {
+                        "name": ["debian/quick-lint-js_0.2.0-1_amd64.deb"],
+                        "type": "file",
+                        "size": 175,
+                    },
+                ],
+            },
+            {
+                "readme": {"Git-Commit": "3"},
+                "sizes": [
+                    {
+                        "name": [
+                            "npm/quick-lint-js-0.3.0.tgz",
+                            "package/linux/bin/quick-lint-js",
+                        ],
+                        "type": "exe",
+                        "size": 200,
+                    },
+                    {
+                        "name": [
+                            "npm/quick-lint-js-0.3.0.tgz",
+                            "package/windows/bin/quick-lint-js.exe",
+                        ],
+                        "type": "exe",
+                        "size": 250,
+                    },
+                    {
+                        "name": ["debian/quick-lint-js_0.3.0-1_amd64.deb"],
+                        "type": "file",
+                        "size": 275,
+                    },
+                ],
+            },
+        ]
+        git_rev_list = ["2", "3"]
+
+        grouped_builds = group_build_sizes(builds, git_rev_list=git_rev_list)
+        self.assertEqual(
+            grouped_builds,
+            [
+                {
+                    "name": ["debian/quick-lint-js_*-1_amd64.deb"],
+                    "type": "file",
+                    "sizes": [
+                        {"commit": "2", "size": 175},
+                        {"commit": "3", "size": 275},
+                    ],
+                },
+                {
+                    "name": [
+                        "npm/quick-lint-js-*.tgz",
+                        "package/linux/bin/quick-lint-js",
+                    ],
+                    "type": "exe",
+                    "sizes": [
+                        {"commit": "2", "size": 100},
+                        {"commit": "3", "size": 200},
+                    ],
+                },
+                {
+                    "name": [
+                        "npm/quick-lint-js-*.tgz",
+                        "package/windows/bin/quick-lint-js.exe",
+                    ],
+                    "type": "exe",
+                    "sizes": [
+                        {"commit": "2", "size": 150},
+                        {"commit": "3", "size": 250},
+                    ],
+                },
+            ],
+        )
+
 
 def group_build_sizes(
     builds: typing.List, git_rev_list: typing.List[str]
@@ -174,7 +271,13 @@ def group_build_sizes(
         type: str
 
     def series_key_for_sample(sample) -> SeriesKey:
-        return SeriesKey(name=tuple(sample["name"]), type=sample["type"])
+        return SeriesKey(
+            name=tuple(scrub_version_number(part) for part in sample["name"]),
+            type=sample["type"],
+        )
+
+    def scrub_version_number(s: str) -> str:
+        return re.sub(r"(^|(?<=\D))\d+\.\d+\.\d+(?=\D|$)", "*", s)
 
     all_series_keys = set()
     for build in builds:

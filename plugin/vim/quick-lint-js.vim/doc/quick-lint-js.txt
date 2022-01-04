@@ -142,7 +142,7 @@ snippet into your |coc-configuration| then tweaking it according to
       "quick-lint-js": {
         "args": ["--lsp-server"],
         "command": "quick-lint-js",
-        "filetypes": ["javascript", "json"]
+        "filetypes": ["javascript", "javascriptreact", "json"]
       }
     }
 

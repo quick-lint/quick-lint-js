@@ -55,7 +55,6 @@ quick_lint_js_add_library(
   cli-location.cpp
   configuration-loader.cpp
   configuration.cpp
-  crash.cpp
   diagnostic-formatter.cpp
   diagnostic.cpp
   document.cpp
@@ -63,6 +62,7 @@ quick_lint_js_add_library(
   emacs-location.cpp
   error-collector.cpp
   error-list.cpp
+  error.cpp
   file-canonical.cpp
   file-handle.cpp
   file-path.cpp
@@ -85,6 +85,7 @@ quick_lint_js_add_library(
   lsp-pipe-writer.cpp
   lsp-server.cpp
   options.cpp
+  output-stream.cpp
   padded-string.cpp
   parse.cpp
   pipe-writer.cpp
@@ -149,7 +150,10 @@ quick_lint_js_add_library(
   quick-lint-js/null-visitor.h
   quick-lint-js/optional.h
   quick-lint-js/options.h
+  quick-lint-js/output-stream.h
   quick-lint-js/padded-string.h
+  quick-lint-js/parse-expression-inl.h
+  quick-lint-js/parse-statement-inl.h
   quick-lint-js/parse-visitor.h
   quick-lint-js/parse.h
   quick-lint-js/pipe-writer.h
@@ -180,7 +184,7 @@ quick_lint_js_add_library(
   uri.cpp
   utf-16.cpp
   utf-8.cpp
-  vector.cpp
+  vector-profiler.cpp
   vim-location.cpp
   vim-qflist-json-error-reporter.cpp
   web-demo-location.cpp
@@ -203,7 +207,6 @@ if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
     quick-lint-js-lib
     PUBLIC
     <boost/container/pmr/polymorphic_allocator.hpp>
-    <boost/container/small_vector.hpp>
     <cmath>
     <cstring>
     <simdjson.h>

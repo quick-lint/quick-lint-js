@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstring>
 #include <iomanip>
-#include <iostream>
 #include <optional>
 #include <quick-lint-js/basic-configuration-filesystem.h>
 #include <quick-lint-js/change-detecting-filesystem.h>
@@ -33,13 +32,14 @@
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
+#include <quick-lint-js/variant.h>
+#include <quick-lint-js/vector-profiler.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>
 #include <string>
 #include <tuple>
 #include <unordered_map>
-#include <variant>
 
 #if QLJS_HAVE_KQUEUE
 #include <sys/event.h>
@@ -51,6 +51,26 @@
 
 namespace quick_lint_js {
 namespace {
+bool stderr_supports_terminal_escapes() {
+#if defined(_WIN32)
+  return false;
+#else
+  return isatty(STDERR_FILENO);
+#endif
+}
+
+bool get_escape_errors(option_when escape_errors) {
+  switch (escape_errors) {
+  case option_when::auto_:
+    return stderr_supports_terminal_escapes();
+  case option_when::always:
+    return true;
+  case option_when::never:
+    return false;
+  }
+  QLJS_UNREACHABLE();
+}
+
 class any_error_reporter {
  public:
   static any_error_reporter make(output_format format,
@@ -60,19 +80,24 @@ class any_error_reporter {
     case output_format::default_format:
     case output_format::gnu_like:
       return any_error_reporter(error_tape<text_error_reporter>(
-          text_error_reporter(std::cerr, escape_errors), exit_fail_on));
+          text_error_reporter(
+              file_output_stream::get_stderr(),
+              /*escape_errors=*/get_escape_errors(escape_errors)),
+          exit_fail_on));
     case output_format::vim_qflist_json:
       return any_error_reporter(error_tape<vim_qflist_json_error_reporter>(
-          vim_qflist_json_error_reporter(std::cout), exit_fail_on));
+          vim_qflist_json_error_reporter(file_output_stream::get_stdout()),
+          exit_fail_on));
     case output_format::emacs_lisp:
       return any_error_reporter(error_tape<emacs_lisp_error_reporter>(
-          emacs_lisp_error_reporter(std::cout), exit_fail_on));
+          emacs_lisp_error_reporter(file_output_stream::get_stdout()),
+          exit_fail_on));
     }
     QLJS_UNREACHABLE();
   }
 
   void set_source(padded_string_view input, const file_to_lint &file) {
-    std::visit(
+    visit(
         [&](auto &r) {
           using reporter_type = std::decay_t<decltype(r)>;
           if constexpr (std::is_base_of_v<
@@ -91,16 +116,15 @@ class any_error_reporter {
   }
 
   error_reporter *get() noexcept {
-    return std::visit([](error_reporter &r) { return &r; }, this->tape_);
+    return visit([](error_reporter &r) { return &r; }, this->tape_);
   }
 
   bool get_error() noexcept {
-    return std::visit([](auto &r) { return r.found_matching_error(); },
-                      this->tape_);
+    return visit([](auto &r) { return r.found_matching_error(); }, this->tape_);
   }
 
   void finish() {
-    std::visit(
+    visit(
         [&](auto &r) {
           using reporter_type = std::decay_t<decltype(r)>;
           if constexpr (std::is_base_of_v<
@@ -117,9 +141,9 @@ class any_error_reporter {
   }
 
  private:
-  using tape_variant = std::variant<error_tape<text_error_reporter>,
-                                    error_tape<vim_qflist_json_error_reporter>,
-                                    error_tape<emacs_lisp_error_reporter>>;
+  using tape_variant = variant<error_tape<text_error_reporter>,
+                               error_tape<vim_qflist_json_error_reporter>,
+                               error_tape<emacs_lisp_error_reporter>>;
 
   explicit any_error_reporter(tape_variant &&tape) : tape_(tape) {}
 
@@ -168,7 +192,7 @@ void handle_options(quick_lint_js::options o) {
     quick_lint_js::print_version_information();
     std::exit(EXIT_SUCCESS);
   }
-  if (o.dump_errors(std::cerr)) {
+  if (o.dump_errors(*file_output_stream::get_stderr())) {
     std::exit(EXIT_FAILURE);
   }
   if (o.lsp_server) {
@@ -237,93 +261,132 @@ void handle_options(quick_lint_js::options o) {
 
 class debug_visitor {
  public:
-  void visit_end_of_module() { std::fprintf(stderr, "end of module\n"); }
+  void visit_end_of_module() {
+    this->output_->append_copy(u8"end of module\n"sv);
+    this->output_->flush();
+  }
 
   void visit_enter_block_scope() {
-    std::fprintf(stderr, "entered block scope\n");
+    this->output_->append_copy(u8"entered block scope\n"sv);
+    this->output_->flush();
   }
 
   void visit_enter_with_scope() {
-    std::fprintf(stderr, "entered with scope\n");
+    this->output_->append_copy(u8"entered with scope\n"sv);
+    this->output_->flush();
   }
 
   void visit_enter_class_scope() {
-    std::fprintf(stderr, "entered class scope\n");
+    this->output_->append_copy(u8"entered class scope\n"sv);
+    this->output_->flush();
   }
 
-  void visit_enter_for_scope() { std::fprintf(stderr, "entered for scope\n"); }
+  void visit_enter_for_scope() {
+    this->output_->append_copy(u8"entered for scope\n"sv);
+    this->output_->flush();
+  }
 
   void visit_enter_function_scope() {
-    std::fprintf(stderr, "entered function scope\n");
+    this->output_->append_copy(u8"entered function scope\n"sv);
+    this->output_->flush();
   }
 
   void visit_enter_function_scope_body() {
-    std::fprintf(stderr, "entered function scope body\n");
+    this->output_->append_copy(u8"entered function scope body\n"sv);
+    this->output_->flush();
   }
 
   void visit_enter_named_function_scope(identifier) {
-    std::fprintf(stderr, "entered named function scope\n");
+    this->output_->append_copy(u8"entered named function scope\n"sv);
+    this->output_->flush();
   }
 
   void visit_exit_block_scope() {
-    std::fprintf(stderr, "exited block scope\n");
+    this->output_->append_copy(u8"exited block scope\n"sv);
+    this->output_->flush();
   }
 
-  void visit_exit_with_scope() { std::fprintf(stderr, "exited with scope\n"); }
+  void visit_exit_with_scope() {
+    this->output_->append_copy(u8"exited with scope\n"sv);
+    this->output_->flush();
+  }
 
   void visit_exit_class_scope() {
-    std::fprintf(stderr, "exited class scope\n");
+    this->output_->append_copy(u8"exited class scope\n"sv);
+    this->output_->flush();
   }
 
-  void visit_exit_for_scope() { std::fprintf(stderr, "exited for scope\n"); }
+  void visit_exit_for_scope() {
+    this->output_->append_copy(u8"exited for scope\n"sv);
+    this->output_->flush();
+  }
 
   void visit_exit_function_scope() {
-    std::fprintf(stderr, "exited function scope\n");
+    this->output_->append_copy(u8"exited function scope\n"sv);
+    this->output_->flush();
   }
 
   void visit_keyword_variable_use(identifier name) {
-    std::cerr << "keyword variable use: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"keyword variable use: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_property_declaration(std::optional<identifier> name) {
-    std::cerr << "property declaration";
+    this->output_->append_copy(u8"property declaration"sv);
     if (name.has_value()) {
-      std::cerr << ": " << out_string8(name->normalized_name());
+      this->output_->append_copy(u8": "sv);
+      this->output_->append_copy(name->normalized_name());
     }
-    std::cerr << '\n';
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_variable_assignment(identifier name) {
-    std::cerr << "variable assignment: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"variable assignment: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_variable_declaration(identifier name, variable_kind) {
-    std::cerr << "variable declaration: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"variable declaration: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_variable_delete_use(
       identifier name, [[maybe_unused]] source_code_span delete_keyword) {
-    std::cerr << "variable delete use: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"variable delete use: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_variable_export_use(identifier name) {
-    std::cerr << "variable export use: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"variable export use: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_variable_typeof_use(identifier name) {
-    std::cerr << "variable typeof use: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"variable typeof use: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
 
   void visit_variable_use(identifier name) {
-    std::cerr << "variable use: " << out_string8(name.normalized_name())
-              << '\n';
+    this->output_->append_copy(u8"variable use: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
   }
+
+  file_output_stream *output_ = file_output_stream::get_stderr();
 };
 QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(debug_visitor);
 
@@ -448,20 +511,29 @@ QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(
 
 void process_file(padded_string_view input, configuration &config,
                   error_reporter *error_reporter, bool print_parser_visits) {
-  parser p(input, error_reporter);
+  parser_options p_options;
+  p_options.jsx = true;
+  parser p(input, error_reporter, p_options);
   linter l(error_reporter, &config.globals());
-  // TODO(strager): Use parse_and_visit_module_catching_fatal_parse_errors
-  // instead of parse_and_visit_module to avoid crashing on
-  // QLJS_PARSER_UNIMPLEMENTED.
+
+  auto run_parser = [&p](auto &visitor) -> void {
+#if QLJS_HAVE_SETJMP
+    p.parse_and_visit_module_catching_fatal_parse_errors(visitor);
+#else
+    p.parse_and_visit_module(visitor);
+#endif
+  };
+
   if (print_parser_visits) {
-    buffering_visitor v(p.buffering_visitor_memory());
-    p.parse_and_visit_module(v);
+    linked_bump_allocator<alignof(void *)> v_allocator;
+    buffering_visitor v(&v_allocator);
+    run_parser(v);
 
     debug_visitor logger;
     multi_visitor visitor(&logger, &l);
     v.move_into(visitor);
   } else {
-    p.parse_and_visit_module(l);
+    run_parser(l);
   }
 }
 

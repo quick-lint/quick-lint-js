@@ -30,6 +30,7 @@ using namespace std::literals::string_view_literals;
 using ::testing::_;
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
+using ::testing::UnorderedElementsAre;
 using ::testing::VariantWith;
 
 // Like EXPECT_THAT, but using the 'caller' variable for source locations.
@@ -89,6 +90,11 @@ class test_lex : public ::testing::Test {
     return this->lexers_.back();
   }
 
+  // If true, tell check_tokens_with_errors, lex_to_eof, etc. to call
+  // lexer::skip_in_jsx instead of lexer::skip. This has no effect on the first
+  // token.
+  bool lex_jsx_tokens = false;
+
  private:
   std::deque<lexer> lexers_;
 };
@@ -107,10 +113,9 @@ TEST_F(test_lex, lex_block_comments) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unclosed_block_comment, comment_open,
-                    offsets_matcher(&input, strlen(u8"hello "), u8"/*"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unclosed_block_comment,  //
+                              comment_open, strlen(u8"hello "), u8"/*")));
   }
 }
 
@@ -122,10 +127,9 @@ TEST_F(test_lex, lex_unopened_block_comment) {
     EXPECT_EQ(l.peek().type, token_type::identifier);
     l.skip();  // end of file
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unopened_block_comment, comment_close,
-                    offsets_matcher(&input, strlen(u8"hello "), u8"*/"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unopened_block_comment,  //
+                              comment_close, strlen(u8"hello "), u8"*/")));
   }
   {
     error_collector v;
@@ -137,10 +141,9 @@ TEST_F(test_lex, lex_unopened_block_comment) {
     }
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unopened_block_comment, comment_close,
-                    offsets_matcher(&input, strlen(u8"*-----"), u8"*/"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unopened_block_comment,  //
+                              comment_close, strlen(u8"*-----"), u8"*/")));
   }
   {
     error_collector v;
@@ -154,10 +157,9 @@ TEST_F(test_lex, lex_unopened_block_comment) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unopened_block_comment, comment_close,
-                    offsets_matcher(&input, strlen(u8"******"), u8"*/"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unopened_block_comment,  //
+                              comment_close, strlen(u8"******"), u8"*/")));
   }
   {
     error_collector v;
@@ -165,9 +167,9 @@ TEST_F(test_lex, lex_unopened_block_comment) {
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unopened_block_comment, comment_close,
-                              offsets_matcher(&input, 0, u8"*/"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unopened_block_comment,  //
+                              comment_close, 0, u8"*/")));
   }
   {
     error_collector v;
@@ -176,9 +178,9 @@ TEST_F(test_lex, lex_unopened_block_comment) {
     EXPECT_EQ(l.peek().type, token_type::star);
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unopened_block_comment, comment_close,
-                              offsets_matcher(&input, strlen(u8"*"), u8"*/"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unopened_block_comment,  //
+                              comment_close, strlen(u8"*"), u8"*/")));
   }
 }
 
@@ -338,32 +340,31 @@ TEST_F(test_lex, fail_lex_binary_number_no_digits) {
   this->check_tokens_with_errors(
       u8"0b"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_no_digits_in_binary_number, characters,
-                                offsets_matcher(input, 0, u8"0b"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_no_digits_in_binary_number,  //
+                                characters, 0, u8"0b")));
       });
   this->check_tokens_with_errors(
       u8"0bn"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_no_digits_in_binary_number, characters,
-                                offsets_matcher(input, 0, u8"0bn"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_no_digits_in_binary_number,  //
+                                characters, 0, u8"0bn")));
       });
   this->check_tokens_with_errors(
       u8"0b;"_sv, {token_type::number, token_type::semicolon},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_no_digits_in_binary_number, characters,
-                                offsets_matcher(input, 0, u8"0b"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_no_digits_in_binary_number,  //
+                                characters, 0, u8"0b")));
       });
   this->check_tokens_with_errors(
       u8"[0b]"_sv,
       {token_type::left_square, token_type::number, token_type::right_square},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_no_digits_in_binary_number, characters,
-                        offsets_matcher(input, strlen(u8"["), u8"0b"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_no_digits_in_binary_number,  //
+                                characters, strlen(u8"["), u8"0b")));
       });
 }
 
@@ -371,11 +372,10 @@ TEST_F(test_lex, fail_lex_binary_number) {
   this->check_tokens_with_errors(
       u8"0b1.1"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_unexpected_characters_in_binary_number, characters,
-                offsets_matcher(input, strlen(u8"0b1"), u8".1"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unexpected_characters_in_binary_number,  //
+                        characters, strlen(u8"0b1"), u8".1")));
       });
 }
 
@@ -394,25 +394,24 @@ TEST_F(test_lex, fail_lex_modern_octal_number_no_digits) {
   this->check_tokens_with_errors(
       u8"0o"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_no_digits_in_octal_number, characters,
-                                offsets_matcher(input, 0, u8"0o"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_no_digits_in_octal_number,  //
+                                characters, 0, u8"0o")));
       });
   this->check_tokens_with_errors(
       u8"0o;"_sv, {token_type::number, token_type::semicolon},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_no_digits_in_octal_number, characters,
-                                offsets_matcher(input, 0, u8"0o"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_no_digits_in_octal_number,  //
+                                characters, 0, u8"0o")));
       });
   this->check_tokens_with_errors(
       u8"[0o]"_sv,
       {token_type::left_square, token_type::number, token_type::right_square},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_no_digits_in_octal_number, characters,
-                        offsets_matcher(input, strlen(u8"["), u8"0o"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_no_digits_in_octal_number,  //
+                                characters, strlen(u8"["), u8"0o")));
       });
 }
 
@@ -421,18 +420,18 @@ TEST_F(test_lex, fail_lex_modern_octal_numbers) {
       u8"0o58"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_unexpected_characters_in_octal_number, characters,
-                        offsets_matcher(input, strlen(u8"0o5"), u8"8"))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unexpected_characters_in_octal_number,  //
+                        characters, strlen(u8"0o5"), u8"8")));
       });
 
   this->check_tokens_with_errors(
       u8"0o58.2"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_unexpected_characters_in_octal_number, characters,
-                        offsets_matcher(input, strlen(u8"0o5"), u8"8.2"))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unexpected_characters_in_octal_number,  //
+                        characters, strlen(u8"0o5"), u8"8.2")));
       });
 }
 
@@ -455,18 +454,18 @@ TEST_F(test_lex, fail_lex_legacy_octal_numbers) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_legacy_octal_literal_may_not_be_big_int, characters,
-                offsets_matcher(input, strlen(u8"0123"), u8"n"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_legacy_octal_literal_may_not_be_big_int,  //
+                characters, strlen(u8"0123"), u8"n")));
       });
 
   this->check_tokens_with_errors(
       u8"052.2"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_octal_literal_may_not_have_decimal, characters,
-                        offsets_matcher(input, strlen(u8"052"), u8"."))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_octal_literal_may_not_have_decimal,  //
+                        characters, strlen(u8"052"), u8".")));
       });
 }
 
@@ -479,19 +478,21 @@ TEST_F(test_lex, legacy_octal_numbers_cannot_contain_underscores) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_legacy_octal_literal_may_not_contain_underscores,
-                underscores, offsets_matcher(input, strlen(u8"0775"), u8"_"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input,
+                error_legacy_octal_literal_may_not_contain_underscores,  //
+                underscores, strlen(u8"0775"), u8"_")));
       });
 
   this->check_tokens_with_errors(
       u8"0775____775"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_legacy_octal_literal_may_not_contain_underscores,
-                        underscores,
-                        offsets_matcher(input, strlen(u8"0775"), u8"____"))));
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input,
+                error_legacy_octal_literal_may_not_contain_underscores,  //
+                underscores, strlen(u8"0775"), u8"____")));
       });
 }
 
@@ -508,32 +509,31 @@ TEST_F(test_lex, fail_lex_hex_number_no_digits) {
   this->check_tokens_with_errors(
       u8"0x"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_no_digits_in_hex_number, characters,
-                                offsets_matcher(input, 0, u8"0x"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_no_digits_in_hex_number,  //
+                                characters, 0, u8"0x")));
       });
   this->check_tokens_with_errors(
       u8"0xn"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_no_digits_in_hex_number, characters,
-                                offsets_matcher(input, 0, u8"0xn"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_no_digits_in_hex_number,  //
+                                characters, 0, u8"0xn")));
       });
   this->check_tokens_with_errors(
       u8"0x;"_sv, {token_type::number, token_type::semicolon},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_no_digits_in_hex_number, characters,
-                                offsets_matcher(input, 0, u8"0x"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_no_digits_in_hex_number,  //
+                                characters, 0, u8"0x")));
       });
   this->check_tokens_with_errors(
       u8"[0x]"_sv,
       {token_type::left_square, token_type::number, token_type::right_square},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_no_digits_in_hex_number, characters,
-                        offsets_matcher(input, strlen(u8"["), u8"0x"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_no_digits_in_hex_number,  //
+                                characters, strlen(u8"["), u8"0x")));
       });
 }
 
@@ -542,9 +542,9 @@ TEST_F(test_lex, fail_lex_hex_number) {
       u8"0xf.f"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_unexpected_characters_in_hex_number, characters,
-                        offsets_matcher(input, strlen(u8"0xf"), u8".f"))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unexpected_characters_in_hex_number,  //
+                        characters, strlen(u8"0xf"), u8".f")));
       });
 }
 
@@ -553,60 +553,58 @@ TEST_F(test_lex, lex_number_with_trailing_garbage) {
       u8"123abcd"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_unexpected_characters_in_number, characters,
-                        offsets_matcher(input, strlen(u8"123"), u8"abcd"))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unexpected_characters_in_number,  //
+                        characters, strlen(u8"123"), u8"abcd")));
       });
   this->check_tokens_with_errors(
       u8"123e f"_sv, {token_type::number, token_type::identifier},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_unexpected_characters_in_number, characters,
-                        offsets_matcher(input, strlen(u8"123"), u8"e"))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unexpected_characters_in_number,  //
+                        characters, strlen(u8"123"), u8"e")));
       });
   this->check_tokens_with_errors(
       u8"123e-f"_sv,
       {token_type::number, token_type::minus, token_type::identifier},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_unexpected_characters_in_number, characters,
-                        offsets_matcher(input, strlen(u8"123"), u8"e"))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unexpected_characters_in_number,  //
+                        characters, strlen(u8"123"), u8"e")));
       });
   this->check_tokens_with_errors(
       u8"0b01234"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_unexpected_characters_in_binary_number, characters,
-                offsets_matcher(input, strlen(u8"0b01"), u8"234"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unexpected_characters_in_binary_number,  //
+                        characters, strlen(u8"0b01"), u8"234")));
       });
   this->check_tokens_with_errors(
       u8"0b0h0lla"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_unexpected_characters_in_binary_number, characters,
-                offsets_matcher(input, strlen(u8"0b0"), u8"h0lla"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unexpected_characters_in_binary_number,  //
+                        characters, strlen(u8"0b0"), u8"h0lla")));
       });
   this->check_tokens_with_errors(
       u8"0xabjjw"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_unexpected_characters_in_hex_number, characters,
-                        offsets_matcher(input, strlen(u8"0xab"), u8"jjw"))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unexpected_characters_in_hex_number,  //
+                        characters, strlen(u8"0xab"), u8"jjw")));
       });
   this->check_tokens_with_errors(
       u8"0o69"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_unexpected_characters_in_octal_number, characters,
-                        offsets_matcher(input, strlen(u8"0o6"), u8"9"))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unexpected_characters_in_octal_number,  //
+                        characters, strlen(u8"0o6"), u8"9")));
       });
 }
 
@@ -614,26 +612,26 @@ TEST_F(test_lex, lex_invalid_big_int_number) {
   this->check_tokens_with_errors(
       u8"12.34n"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_big_int_literal_contains_decimal_point,
-                                where, offsets_matcher(input, 0, u8"12.34n"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_big_int_literal_contains_decimal_point,  //
+                        where, 0, u8"12.34n")));
       });
   this->check_tokens_with_errors(
       u8"1e3n"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_big_int_literal_contains_exponent, where,
-                                offsets_matcher(input, 0, u8"1e3n"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_big_int_literal_contains_exponent,  //
+                        where, 0, u8"1e3n")));
       });
 
   // Only complain about the decimal point, not the leading 0 digit.
   this->check_tokens_with_errors(
       u8"0.1n"_sv, {token_type::number},
       [](padded_string_view, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(
-                VariantWith<error_big_int_literal_contains_decimal_point>(_)));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE(
+                                error_big_int_literal_contains_decimal_point)));
       });
 
   // Complain about both the decimal point and the leading 0 digit.
@@ -643,8 +641,8 @@ TEST_F(test_lex, lex_invalid_big_int_number) {
         EXPECT_THAT(
             errors,
             ElementsAre(
-                VariantWith<error_octal_literal_may_not_have_decimal>(_),
-                VariantWith<error_legacy_octal_literal_may_not_be_big_int>(_)));
+                ERROR_TYPE(error_octal_literal_may_not_have_decimal),
+                ERROR_TYPE(error_legacy_octal_literal_may_not_be_big_int)));
       });
 
   // Complain about everything. What a disaster.
@@ -654,9 +652,9 @@ TEST_F(test_lex, lex_invalid_big_int_number) {
         EXPECT_THAT(
             errors,
             ElementsAre(
-                VariantWith<error_octal_literal_may_not_have_decimal>(_),
-                VariantWith<error_octal_literal_may_not_have_exponent>(_),
-                VariantWith<error_legacy_octal_literal_may_not_be_big_int>(_)));
+                ERROR_TYPE(error_octal_literal_may_not_have_decimal),
+                ERROR_TYPE(error_octal_literal_may_not_have_exponent),
+                ERROR_TYPE(error_legacy_octal_literal_may_not_be_big_int)));
       });
 }
 
@@ -666,9 +664,10 @@ TEST_F(test_lex, lex_number_with_double_underscore) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_number_literal_contains_consecutive_underscores,
-                underscores, offsets_matcher(input, strlen(u8"123"), u8"__"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input,
+                error_number_literal_contains_consecutive_underscores,  //
+                underscores, strlen(u8"123"), u8"__")));
       });
 }
 
@@ -676,38 +675,42 @@ TEST_F(test_lex, lex_number_with_many_underscores) {
   this->check_tokens_with_errors(
       u8"123_____000"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_number_literal_contains_consecutive_underscores,
-                        underscores,
-                        offsets_matcher(input, strlen(u8"123"), u8"_____"))));
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input,
+                error_number_literal_contains_consecutive_underscores,  //
+                underscores, strlen(u8"123"), u8"_____")));
       });
   this->check_tokens_with_errors(
       u8"0xfee_____eed"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_number_literal_contains_consecutive_underscores,
-                        underscores,
-                        offsets_matcher(input, strlen(u8"0xfee"), u8"_____"))));
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input,
+                error_number_literal_contains_consecutive_underscores,  //
+                underscores, strlen(u8"0xfee"), u8"_____")));
       });
   this->check_tokens_with_errors(
       u8"0o777_____000"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_number_literal_contains_consecutive_underscores,
-                        underscores,
-                        offsets_matcher(input, strlen(u8"0o777"), u8"_____"))));
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input,
+                error_number_literal_contains_consecutive_underscores,  //
+                underscores, strlen(u8"0o777"), u8"_____")));
       });
   this->check_tokens_with_errors(
       u8"0b111_____000"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_number_literal_contains_consecutive_underscores,
-                        underscores,
-                        offsets_matcher(input, strlen(u8"0b111"), u8"_____"))));
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input,
+                error_number_literal_contains_consecutive_underscores,  //
+                underscores, strlen(u8"0b111"), u8"_____")));
       });
 }
 
@@ -724,13 +727,14 @@ TEST_F(test_lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(
-            ERROR_TYPE_FIELD(
-                error_number_literal_contains_consecutive_underscores,
-                underscores, offsets_matcher(&input, strlen(u8"123"), u8"__")),
-            ERROR_TYPE_FIELD(
-                error_number_literal_contains_consecutive_underscores,
-                underscores,
-                offsets_matcher(&input, strlen(u8"123__45"), u8"___"))));
+            ERROR_TYPE_OFFSETS(
+                &input,
+                error_number_literal_contains_consecutive_underscores,  //
+                underscores, strlen(u8"123"), u8"__"),
+            ERROR_TYPE_OFFSETS(
+                &input,
+                error_number_literal_contains_consecutive_underscores,  //
+                underscores, strlen(u8"123__45"), u8"___")));
   }
 }
 
@@ -740,9 +744,9 @@ TEST_F(test_lex, lex_number_with_trailing_underscore) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_number_literal_contains_trailing_underscores, underscores,
-                offsets_matcher(input, strlen(u8"123456"), u8"_"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_number_literal_contains_trailing_underscores,  //
+                underscores, strlen(u8"123456"), u8"_")));
       });
 }
 
@@ -752,9 +756,9 @@ TEST_F(test_lex, lex_number_with_trailing_underscores) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_number_literal_contains_trailing_underscores, underscores,
-                offsets_matcher(input, strlen(u8"123456"), u8"___"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_number_literal_contains_trailing_underscores,  //
+                underscores, strlen(u8"123456"), u8"___")));
       });
 }
 
@@ -775,10 +779,9 @@ TEST_F(test_lex, lex_strings) {
   this->check_tokens_with_errors(
       u8R"("unterminated)", {token_type::string},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_unclosed_string_literal, string_literal,
-                        offsets_matcher(input, 0, u8R"("unterminated)"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_unclosed_string_literal,  //
+                                string_literal, 0, u8R"("unterminated)")));
       });
 
   for (string8_view line_terminator : line_terminators) {
@@ -800,9 +803,9 @@ TEST_F(test_lex, lex_strings) {
     EXPECT_EQ(l.peek().type, token_type::identifier);
     EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"hello");
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unclosed_string_literal, string_literal,
-                              offsets_matcher(&input, 0, u8"'unterminated"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unclosed_string_literal,  //
+                              string_literal, 0, u8"'unterminated")));
   }
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
@@ -813,13 +816,10 @@ TEST_F(test_lex, lex_strings) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_unclosed_string_literal, string_literal,
-            offsets_matcher(
-                &input, 0,
-                narrow_cast<cli_source_position::offset_type>(input.size())))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input,
+                              error_unclosed_string_literal,  //
+                              string_literal, 0, input.string_view())));
   }
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
@@ -838,12 +838,12 @@ TEST_F(test_lex, lex_strings) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(
-            ERROR_TYPE_FIELD(error_unclosed_string_literal, string_literal,
-                             offsets_matcher(&input, 0, u8"'separated")),
-            ERROR_TYPE_FIELD(
-                error_unclosed_string_literal, string_literal,
-                offsets_matcher(&input, 15 + 2 * line_terminator.size(),
-                                16 + 2 * line_terminator.size()))));
+            ERROR_TYPE_OFFSETS(&input, error_unclosed_string_literal,  //
+                               string_literal, 0, u8"'separated"),
+            ERROR_TYPE_OFFSETS(
+                &input, error_unclosed_string_literal, string_literal,  //
+                strlen(u8"'separatedhello") + 2 * line_terminator.size(),
+                u8"'")));
   }
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
@@ -869,20 +869,18 @@ TEST_F(test_lex, lex_strings) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_unclosed_string_literal, string_literal,
-            offsets_matcher(&input, strlen(u8"let x = "), u8"'hello"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &input, error_unclosed_string_literal,  //
+                    string_literal, strlen(u8"let x = "), u8"'hello")));
   }
 
   this->check_tokens_with_errors(
       u8"'unterminated\\"_sv, {token_type::string},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_unclosed_string_literal, string_literal,
-                        offsets_matcher(input, 0, u8"'unterminated\\"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_unclosed_string_literal,  //
+                                string_literal, 0, u8"'unterminated\\")));
       });
 
   this->check_tokens_with_errors(
@@ -891,11 +889,10 @@ TEST_F(test_lex, lex_strings) {
         EXPECT_THAT(
             errors,
             UnorderedElementsAre(
-                ERROR_TYPE_FIELD(
-                    error_invalid_hex_escape_sequence, escape_sequence,
-                    offsets_matcher(input, strlen(u8"'"), u8"\\x")),
-                ERROR_TYPE_FIELD(error_unclosed_string_literal, string_literal,
-                                 offsets_matcher(input, 0, u8"'\\x"))));
+                ERROR_TYPE_OFFSETS(input, error_invalid_hex_escape_sequence,  //
+                                   escape_sequence, strlen(u8"'"), u8"\\x"),
+                ERROR_TYPE_OFFSETS(input, error_unclosed_string_literal,  //
+                                   string_literal, 0, u8"'\\x")));
       });
 
   this->check_tokens_with_errors(
@@ -904,20 +901,18 @@ TEST_F(test_lex, lex_strings) {
         EXPECT_THAT(
             errors,
             UnorderedElementsAre(
-                ERROR_TYPE_FIELD(
-                    error_invalid_hex_escape_sequence, escape_sequence,
-                    offsets_matcher(input, strlen(u8"'"), u8"\\x")),
-                ERROR_TYPE_FIELD(error_unclosed_string_literal, string_literal,
-                                 offsets_matcher(input, 0, u8"'\\x1"))));
+                ERROR_TYPE_OFFSETS(input, error_invalid_hex_escape_sequence,  //
+                                   escape_sequence, strlen(u8"'"), u8"\\x"),
+                ERROR_TYPE_OFFSETS(input, error_unclosed_string_literal,  //
+                                   string_literal, 0, u8"'\\x1")));
       });
 
   this->check_tokens_with_errors(
       u8"'\\x'", {token_type::string},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_invalid_hex_escape_sequence, escape_sequence,
-                        offsets_matcher(input, strlen(u8"'"), u8"\\x"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_invalid_hex_escape_sequence,  //
+                                escape_sequence, strlen(u8"'"), u8"\\x")));
       });
 
   this->check_tokens_with_errors(
@@ -926,36 +921,33 @@ TEST_F(test_lex, lex_strings) {
         EXPECT_THAT(
             errors,
             UnorderedElementsAre(
-                ERROR_TYPE_FIELD(
-                    error_invalid_hex_escape_sequence, escape_sequence,
-                    offsets_matcher(input, strlen(u8"'"), u8"\\x")),
-                ERROR_TYPE_FIELD(
-                    error_invalid_hex_escape_sequence, escape_sequence,
-                    offsets_matcher(input, strlen(u8"'\\x"), u8"\\x"))));
+                ERROR_TYPE_OFFSETS(input, error_invalid_hex_escape_sequence,  //
+                                   escape_sequence, strlen(u8"'"), u8"\\x"),
+                ERROR_TYPE_OFFSETS(input, error_invalid_hex_escape_sequence,  //
+                                   escape_sequence, strlen(u8"'\\x"),
+                                   u8"\\x")));
       });
 
   this->check_tokens_with_errors(
       u8"'\\x1 \\xff \\xg '", {token_type::string},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    UnorderedElementsAre(
-                        ERROR_TYPE_FIELD(
-                            error_invalid_hex_escape_sequence, escape_sequence,
-                            offsets_matcher(input, strlen(u8"'"), u8"\\x")),
-                        ERROR_TYPE_FIELD(
-                            error_invalid_hex_escape_sequence, escape_sequence,
-                            offsets_matcher(input, strlen(u8"'\\x1 \\xff "),
-                                            u8"\\x"))));
+        EXPECT_THAT(
+            errors,
+            UnorderedElementsAre(
+                ERROR_TYPE_OFFSETS(input, error_invalid_hex_escape_sequence,  //
+                                   escape_sequence, strlen(u8"'"), u8"\\x"),
+                ERROR_TYPE_OFFSETS(input, error_invalid_hex_escape_sequence,  //
+                                   escape_sequence, strlen(u8"'\\x1 \\xff "),
+                                   u8"\\x")));
       });
 
   this->check_tokens_with_errors(
       u8"'hello\\u'", {token_type::string},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_expected_hex_digits_in_unicode_escape, escape_sequence,
-                offsets_matcher(input, strlen(u8"'hello"), u8"\\u'"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_expected_hex_digits_in_unicode_escape,  //
+                        escape_sequence, strlen(u8"'hello"), u8"\\u'")));
       });
 
   this->check_tokens_with_errors(
@@ -963,10 +955,9 @@ TEST_F(test_lex, lex_strings) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_escaped_code_point_in_unicode_out_of_range,
-                escape_sequence,
-                offsets_matcher(input, strlen(u8"'hello"), u8"\\u{110000}"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_code_point_in_unicode_out_of_range,  //
+                escape_sequence, strlen(u8"'hello"), u8"\\u{110000}")));
       });
 
   // TODO(#187): Report octal escape sequences in strict mode.
@@ -1063,9 +1054,9 @@ world`)",
   this->check_tokens_with_errors(
       u8"`unterminated"_sv, {token_type::complete_template},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_unclosed_template, incomplete_template,
-                                offsets_matcher(input, 0, u8"`unterminated"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_unclosed_template,  //
+                                incomplete_template, 0, u8"`unterminated")));
       });
 
   {
@@ -1083,29 +1074,26 @@ world`)",
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unclosed_template, incomplete_template,
-                    offsets_matcher(&input, 0, u8"`${un}terminated"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unclosed_template,  //
+                              incomplete_template, 0, u8"`${un}terminated")));
   }
 
   this->check_tokens_with_errors(
       u8"`unterminated\\"_sv, {token_type::complete_template},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_unclosed_template, incomplete_template,
-                        offsets_matcher(input, 0, u8"`unterminated\\"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_unclosed_template,  //
+                                incomplete_template, 0, u8"`unterminated\\")));
       });
 
   this->check_tokens_with_errors(
       u8"`hello\\u`"_sv, {token_type::complete_template},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_expected_hex_digits_in_unicode_escape, escape_sequence,
-                offsets_matcher(input, strlen(u8"`hello"), u8"\\u`"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_expected_hex_digits_in_unicode_escape,  //
+                        escape_sequence, strlen(u8"`hello"), u8"\\u`")));
       });
 
   this->check_tokens_with_errors(
@@ -1113,10 +1101,9 @@ world`)",
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_escaped_code_point_in_unicode_out_of_range,
-                escape_sequence,
-                offsets_matcher(input, strlen(u8"`hello"), u8"\\u{110000}"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_code_point_in_unicode_out_of_range,  //
+                escape_sequence, strlen(u8"`hello"), u8"\\u{110000}")));
       });
 }
 
@@ -1174,13 +1161,9 @@ TEST_F(test_lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().begin, &code[0]);
     EXPECT_EQ(l.peek().end, &code[code.size()]);
 
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_unclosed_regexp_literal, regexp_literal,
-            offsets_matcher(
-                &code, 0,
-                narrow_cast<cli_source_position::offset_type>(code.size())))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_unclosed_regexp_literal,  //
+                              regexp_literal, 0, code.string_view())));
 
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
@@ -1198,10 +1181,9 @@ TEST_F(test_lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().begin, &code[0]);
     EXPECT_EQ(l.peek().end, code.data() + strlen(u8"/first_line"));
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unclosed_regexp_literal, regexp_literal,
-                    offsets_matcher(&code, 0, strlen(u8"/first_line")))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_unclosed_regexp_literal,  //
+                              regexp_literal, 0, u8"/first_line")));
 
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -1220,10 +1202,9 @@ TEST_F(test_lex, lex_regular_expression_literals) {
     EXPECT_EQ(l.peek().begin, &code[0]);
     EXPECT_EQ(l.peek().end, code.data() + strlen(u8"/first[line"));
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unclosed_regexp_literal, regexp_literal,
-                    offsets_matcher(&code, 0, strlen(u8"/first[line")))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_unclosed_regexp_literal,  //
+                              regexp_literal, 0, u8"/first[line")));
 
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -1262,11 +1243,11 @@ TEST_F(test_lex, lex_unicode_escape_in_regular_expression_literal_flags) {
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-  EXPECT_THAT(errors.errors,
-              ElementsAre(ERROR_TYPE_FIELD(
-                  error_regexp_literal_flags_cannot_contain_unicode_escapes,
-                  escape_sequence,
-                  offsets_matcher(&input, strlen(u8"/hello/"), u8"\\u{67}"))));
+  EXPECT_THAT(
+      errors.errors,
+      ElementsAre(ERROR_TYPE_OFFSETS(
+          &input, error_regexp_literal_flags_cannot_contain_unicode_escapes,  //
+          escape_sequence, strlen(u8"/hello/"), u8"\\u{67}")));
 }
 
 TEST_F(test_lex, lex_non_ascii_in_regular_expression_literal_flags) {
@@ -1411,133 +1392,123 @@ TEST_F(test_lex, lex_identifier_with_malformed_escape_sequence) {
   this->check_single_token_with_errors(
       u8" are\\ufriendly ", u8"are\\ufriendly",
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_expected_hex_digits_in_unicode_escape, escape_sequence,
-                offsets_matcher(input, strlen(u8" are"), u8"\\ufr"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_expected_hex_digits_in_unicode_escape,  //
+                        escape_sequence, strlen(u8" are"), u8"\\ufr")));
       });
   this->check_tokens_with_errors(
       u8"are\\uf riendly"_sv, {token_type::identifier, token_type::identifier},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_expected_hex_digits_in_unicode_escape, escape_sequence,
-                offsets_matcher(input, strlen(u8"are"), u8"\\uf "))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_expected_hex_digits_in_unicode_escape,  //
+                        escape_sequence, strlen(u8"are"), u8"\\uf ")));
       });
   this->check_single_token_with_errors(
       u8"stray\\backslash", u8"stray\\backslash",
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_unexpected_backslash_in_identifier, backslash,
-                        offsets_matcher(input, strlen(u8"stray"), u8"\\"))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unexpected_backslash_in_identifier,  //
+                        backslash, strlen(u8"stray"), u8"\\")));
       });
   this->check_single_token_with_errors(
       u8"stray\\", u8"stray\\",
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_unexpected_backslash_in_identifier, backslash,
-                        offsets_matcher(input, strlen(u8"stray"), u8"\\"))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unexpected_backslash_in_identifier,  //
+                        backslash, strlen(u8"stray"), u8"\\")));
       });
   this->check_tokens_with_errors(
       u8"hello\\u}world"_sv,
       {token_type::identifier, token_type::right_curly, token_type::identifier},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_expected_hex_digits_in_unicode_escape, escape_sequence,
-                offsets_matcher(input, strlen(u8"hello"), u8"\\u}"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_expected_hex_digits_in_unicode_escape,  //
+                        escape_sequence, strlen(u8"hello"), u8"\\u}")));
       });
   this->check_tokens_with_errors(
       u8"negative\\u-0041"_sv,
       {token_type::identifier, token_type::minus, token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_expected_hex_digits_in_unicode_escape, escape_sequence,
-                offsets_matcher(input, strlen(u8"negative"), u8"\\u-"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_expected_hex_digits_in_unicode_escape,  //
+                        escape_sequence, strlen(u8"negative"), u8"\\u-")));
       });
 
   this->check_single_token_with_errors(
       u8"a\\u{}b", u8"a\\u{}b",
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_expected_hex_digits_in_unicode_escape, escape_sequence,
-                offsets_matcher(input, strlen(u8"a"), u8"\\u{}"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_expected_hex_digits_in_unicode_escape,  //
+                        escape_sequence, strlen(u8"a"), u8"\\u{}")));
       });
   this->check_single_token_with_errors(
       u8"a\\u{q}b", u8"a\\u{q}b",
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_expected_hex_digits_in_unicode_escape, escape_sequence,
-                offsets_matcher(input, strlen(u8"a"), u8"\\u{q}"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_expected_hex_digits_in_unicode_escape,  //
+                        escape_sequence, strlen(u8"a"), u8"\\u{q}")));
       });
 
   this->check_single_token_with_errors(
       u8"unterminated\\u", u8"unterminated\\u",
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_expected_hex_digits_in_unicode_escape, escape_sequence,
-                offsets_matcher(input, strlen(u8"unterminated"), u8"\\u"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_expected_hex_digits_in_unicode_escape,  //
+                        escape_sequence, strlen(u8"unterminated"), u8"\\u")));
       });
   this->check_single_token_with_errors(
       u8"unterminated\\u012", u8"unterminated\\u012",
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_expected_hex_digits_in_unicode_escape, escape_sequence,
-                offsets_matcher(input, strlen(u8"unterminated"), u8"\\u012"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_expected_hex_digits_in_unicode_escape,  //
+                escape_sequence, strlen(u8"unterminated"), u8"\\u012")));
       });
   this->check_single_token_with_errors(
       u8"unterminated\\u{", u8"unterminated\\u{",
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_unclosed_identifier_escape_sequence, escape_sequence,
-                offsets_matcher(input, strlen(u8"unterminated"), u8"\\u{"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unclosed_identifier_escape_sequence,  //
+                        escape_sequence, strlen(u8"unterminated"), u8"\\u{")));
       });
   this->check_single_token_with_errors(
       u8"unterminated\\u{0123", u8"unterminated\\u{0123",
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_unclosed_identifier_escape_sequence,
-                                escape_sequence,
-                                offsets_matcher(input, strlen(u8"unterminated"),
-                                                u8"\\u{0123"))));
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_unclosed_identifier_escape_sequence,  //
+                escape_sequence, strlen(u8"unterminated"), u8"\\u{0123")));
       });
 
   this->check_tokens_with_errors(
       u8"unclosed\\u{0123 'string'",
       {token_type::identifier, token_type::string},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_unclosed_identifier_escape_sequence, escape_sequence,
-                offsets_matcher(input, strlen(u8"unclosed"), u8"\\u{0123"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unclosed_identifier_escape_sequence,  //
+                        escape_sequence, strlen(u8"unclosed"), u8"\\u{0123")));
       });
   this->check_tokens_with_errors(
       u8"unclosed\\u{+=42",
       {token_type::identifier, token_type::plus_equal, token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_unclosed_identifier_escape_sequence, escape_sequence,
-                offsets_matcher(input, strlen(u8"unclosed"), u8"\\u{"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_unclosed_identifier_escape_sequence,  //
+                        escape_sequence, strlen(u8"unclosed"), u8"\\u{")));
       });
 }
 
@@ -1547,20 +1518,19 @@ TEST_F(test_lex, lex_identifier_with_out_of_range_escaped_character) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_escaped_code_point_in_unicode_out_of_range,
-                escape_sequence,
-                offsets_matcher(input, strlen(u8"too"), u8"\\u{110000}"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_code_point_in_unicode_out_of_range,  //
+                escape_sequence, strlen(u8"too"), u8"\\u{110000}")));
       });
   this->check_single_token_with_errors(
       u8"waytoo\\u{100000000000000}big", u8"waytoo\\u{100000000000000}big",
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_escaped_code_point_in_unicode_out_of_range,
-                        escape_sequence,
-                        offsets_matcher(input, strlen(u8"waytoo"),
-                                        u8"\\u{100000000000000}"))));
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_code_point_in_unicode_out_of_range,  //
+                escape_sequence, strlen(u8"waytoo"),
+                u8"\\u{100000000000000}")));
       });
 }
 
@@ -1605,48 +1575,45 @@ TEST_F(test_lex, lex_identifier_with_disallowed_character_escape_sequence) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_escaped_character_disallowed_in_identifiers,
-                escape_sequence,
-                offsets_matcher(input, strlen(u8"illegal"), u8"\\u0020"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_character_disallowed_in_identifiers,  //
+                escape_sequence, strlen(u8"illegal"), u8"\\u0020")));
       });
   this->check_single_token_with_errors(
       u8"illegal\\u{0020}", u8"illegal\\u{0020}",
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_escaped_character_disallowed_in_identifiers,
-                escape_sequence,
-                offsets_matcher(input, strlen(u8"illegal"), u8"\\u{0020}"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_character_disallowed_in_identifiers,  //
+                escape_sequence, strlen(u8"illegal"), u8"\\u{0020}")));
       });
   this->check_single_token_with_errors(
       u8"\\u{20}illegal", u8"\\u{20}illegal",
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_escaped_character_disallowed_in_identifiers,
-                escape_sequence, offsets_matcher(input, 0, u8"\\u{20}"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_character_disallowed_in_identifiers,  //
+                escape_sequence, 0, u8"\\u{20}")));
       });
   this->check_single_token_with_errors(
       u8"illegal\\u{10ffff}", u8"illegal\\u{10ffff}",
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_escaped_character_disallowed_in_identifiers,
-                escape_sequence,
-                offsets_matcher(input, strlen(u8"illegal"), u8"\\u{10ffff}"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_character_disallowed_in_identifiers,  //
+                escape_sequence, strlen(u8"illegal"), u8"\\u{10ffff}")));
       });
   this->check_single_token_with_errors(
       u8"\\u{10ffff}illegal", u8"\\u{10ffff}illegal",
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_escaped_character_disallowed_in_identifiers,
-                escape_sequence, offsets_matcher(input, 0, u8"\\u{10ffff}"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_character_disallowed_in_identifiers,  //
+                escape_sequence, 0, u8"\\u{10ffff}")));
       });
 
   // U+005c is \ (backslash)
@@ -1655,19 +1622,18 @@ TEST_F(test_lex, lex_identifier_with_disallowed_character_escape_sequence) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_escaped_character_disallowed_in_identifiers,
-                escape_sequence, offsets_matcher(input, 0, u8"\\u{5c}"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_character_disallowed_in_identifiers,  //
+                escape_sequence, 0, u8"\\u{5c}")));
       });
   this->check_single_token_with_errors(
       u8"illegal\\u{5c}u0061", u8"illegal\\u{5c}u0061",
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_escaped_character_disallowed_in_identifiers,
-                escape_sequence,
-                offsets_matcher(input, strlen(u8"illegal"), u8"\\u{5c}"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_character_disallowed_in_identifiers,  //
+                escape_sequence, strlen(u8"illegal"), u8"\\u{5c}")));
       });
 }
 
@@ -1675,19 +1641,18 @@ TEST_F(test_lex, lex_identifier_with_disallowed_non_ascii_character) {
   this->check_single_token_with_errors(
       u8"illegal\U0010ffff", u8"illegal\U0010ffff",
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_character_disallowed_in_identifiers, character,
-                offsets_matcher(input, strlen(u8"illegal"), u8"\U0010ffff"))));
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_character_disallowed_in_identifiers,  //
+                        character, strlen(u8"illegal"), u8"\U0010ffff")));
       });
   this->check_single_token_with_errors(
       u8"\U0010ffffillegal", u8"\U0010ffffillegal",
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_character_disallowed_in_identifiers, character,
-                        offsets_matcher(input, 0, u8"\U0010ffff"))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_character_disallowed_in_identifiers,  //
+                        character, 0, u8"\U0010ffff")));
       });
 }
 
@@ -1698,9 +1663,9 @@ TEST_F(test_lex, lex_identifier_with_disallowed_escaped_initial_character) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_escaped_character_disallowed_in_identifiers,
-                escape_sequence, offsets_matcher(input, 0, u8"\\u{30}"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_character_disallowed_in_identifiers,  //
+                escape_sequence, 0, u8"\\u{30}")));
       });
 
   this->check_single_token_with_errors(
@@ -1708,9 +1673,9 @@ TEST_F(test_lex, lex_identifier_with_disallowed_escaped_initial_character) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(
             errors,
-            ElementsAre(ERROR_TYPE_FIELD(
-                error_escaped_character_disallowed_in_identifiers,
-                escape_sequence, offsets_matcher(input, 0, u8"\\u0816"))));
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_character_disallowed_in_identifiers,  //
+                escape_sequence, 0, u8"\\u0816")));
       });
 }
 
@@ -1719,9 +1684,9 @@ TEST_F(test_lex, lex_identifier_with_disallowed_non_ascii_initial_character) {
       u8"\u0816illegal", u8"\u0816illegal",
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_character_disallowed_in_identifiers, character,
-                        offsets_matcher(input, 0, u8"\u0816"))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_character_disallowed_in_identifiers,  //
+                        character, 0, u8"\u0816")));
       });
 }
 
@@ -1791,17 +1756,17 @@ TEST_F(test_lex,
       u8"#\u0816illegal", u8"#\u0816illegal",
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_character_disallowed_in_identifiers, character,
-                        offsets_matcher(input, strlen(u8"#"), u8"\u0816"))));
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_character_disallowed_in_identifiers,  //
+                        character, strlen(u8"#"), u8"\u0816")));
       });
 
   this->check_tokens_with_errors(
       u8"#123", {token_type::number},
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_FIELD(
-                                error_unexpected_hash_character, where,
-                                offsets_matcher(input, 0, u8"#"))));
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                input, error_unexpected_hash_character,  //
+                                where, 0, u8"#")));
       });
 }
 
@@ -1810,21 +1775,21 @@ TEST_F(test_lex, private_identifier_with_disallowed_escaped_initial_character) {
   this->check_single_token_with_errors(
       u8"#\\u{30}illegal", u8"#\\u{30}illegal",
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_escaped_character_disallowed_in_identifiers,
-                        escape_sequence,
-                        offsets_matcher(input, strlen(u8"#"), u8"\\u{30}"))));
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_character_disallowed_in_identifiers,  //
+                escape_sequence, strlen(u8"#"), u8"\\u{30}")));
       });
 
   this->check_single_token_with_errors(
       u8"#\\u0816illegal", u8"#\\u0816illegal",
       [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_FIELD(
-                        error_escaped_character_disallowed_in_identifiers,
-                        escape_sequence,
-                        offsets_matcher(input, strlen(u8"#"), u8"\\u0816"))));
+        EXPECT_THAT(
+            errors,
+            ElementsAre(ERROR_TYPE_OFFSETS(
+                input, error_escaped_character_disallowed_in_identifiers,  //
+                escape_sequence, strlen(u8"#"), u8"\\u0816")));
       });
 }
 
@@ -1896,9 +1861,9 @@ TEST_F(
 
     l.peek().report_errors_for_escape_sequences_in_keyword(&errors);
     EXPECT_THAT(errors.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_keywords_cannot_contain_escape_sequences,
-                    escape_sequence, offsets_matcher(&code, 0, u8"\\u{??}"))));
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_keywords_cannot_contain_escape_sequences,  //
+                    escape_sequence, 0, u8"\\u{??}")));
   }
 }
 
@@ -2074,9 +2039,9 @@ TEST_F(test_lex, lex_not_shebang) {
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_hash_character, where,
-                              offsets_matcher(&input, 0, u8"#"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unexpected_hash_character,  //
+                              where, 0, u8"#")));
   }
 
   // '#!' must be on the first line.
@@ -2086,9 +2051,9 @@ TEST_F(test_lex, lex_not_shebang) {
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_hash_character, where,
-                              offsets_matcher(&input, strlen(u8"\n"), u8"#"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unexpected_hash_character,  //
+                              where, strlen(u8"\n"), u8"#")));
   }
 
   // Whitespace must not appear before '#!'.
@@ -2098,9 +2063,9 @@ TEST_F(test_lex, lex_not_shebang) {
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_hash_character, where,
-                              offsets_matcher(&input, strlen(u8"  "), u8"#"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unexpected_hash_character,  //
+                              where, strlen(u8"  "), u8"#")));
   }
 
   {
@@ -2112,9 +2077,9 @@ TEST_F(test_lex, lex_not_shebang) {
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_escaped_character_disallowed_in_identifiers, escape_sequence,
-            offsets_matcher(&input, strlen(u8"#"), u8"\\u{21}"))));
+        ElementsAre(ERROR_TYPE_OFFSETS(
+            &input, error_escaped_character_disallowed_in_identifiers,  //
+            escape_sequence, strlen(u8"#"), u8"\\u{21}")));
   }
 }
 
@@ -2126,9 +2091,9 @@ TEST_F(test_lex, lex_unexpected_bom_before_shebang) {
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::end_of_file) << "# should be skipped";
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_bom_before_shebang, bom,
-                              offsets_matcher(&input, 0, u8"\ufeff"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unexpected_bom_before_shebang,  //
+                              bom, 0, u8"\ufeff")));
   }
 }
 
@@ -2143,10 +2108,9 @@ TEST_F(test_lex, lex_invalid_common_characters_are_disallowed) {
     l.skip();
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unexpected_at_character, character,
-                    offsets_matcher(&input, strlen(u8"hello "), u8"@"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unexpected_at_character,  //
+                              character, strlen(u8"hello "), u8"@")));
   }
 }
 
@@ -2159,9 +2123,9 @@ TEST_F(test_lex, ascii_control_characters_are_disallowed) {
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::identifier)
         << "control character should be skipped";
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unexpected_control_character, character,
-                              offsets_matcher(&input, 0, control_character))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &input, error_unexpected_control_character,  //
+                              character, 0, control_character)));
   }
 }
 
@@ -2560,7 +2524,7 @@ TEST_F(test_lex, is_identifier_byte_agrees_with_is_identifier_character) {
   std::array<bool, 256> is_valid_byte = {};
   is_valid_byte[u8'\\'] = true;
   for (char32_t c = min_code_point; c <= max_code_point; ++c) {
-    if (lexer::is_identifier_character(c)) {
+    if (lexer::is_identifier_character(c, lexer::identifier_kind::javascript)) {
       char8 utf_8[10];
       encode_utf_8(c, utf_8);
       is_valid_byte[static_cast<std::uint8_t>(utf_8[0])] = true;
@@ -2571,6 +2535,376 @@ TEST_F(test_lex, is_identifier_byte_agrees_with_is_identifier_character) {
     EXPECT_EQ(lexer::is_identifier_byte(static_cast<char8>(byte)),
               is_valid_byte[byte])
         << "byte = 0x" << std::hex << byte;
+  }
+}
+
+TEST_F(test_lex, jsx_identifier) {
+  auto check_identifier = [](string8_view tag_code,
+                             string8_view expected_normalized) -> void {
+    SCOPED_TRACE(out_string8(tag_code));
+
+    padded_string code(u8"!" + string8(tag_code));
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '!'.
+
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(),
+              expected_normalized);
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  };
+
+  check_identifier(u8"div"_sv, u8"div"_sv);
+  check_identifier(u8"MyComponent"_sv, u8"MyComponent"_sv);
+  check_identifier(u8"my-web-component"_sv, u8"my-web-component"_sv);
+  check_identifier(u8"MY-WEB-COMPONENT"_sv, u8"MY-WEB-COMPONENT"_sv);
+  check_identifier(u8"test-0"_sv, u8"test-0"_sv);
+  check_identifier(u8"_component_"_sv, u8"_component_"_sv);
+  check_identifier(u8"$component$"_sv, u8"$component$"_sv);
+  check_identifier(u8"test-"_sv, u8"test-"_sv);
+
+  // NOTE(strager): Babel [1] and some other tools reject these. TypeScript
+  // allows these. My reading of the spec is that these are allowed.
+  //
+  // [1] https://github.com/babel/babel/issues/14060
+  check_identifier(u8"\\u{48}ello"_sv, u8"Hello"_sv);
+  check_identifier(u8"\\u{68}ello-world"_sv, u8"hello-world"_sv);
+
+  check_identifier(u8" div "_sv, u8"div"_sv);
+  check_identifier(u8"/**/div/**/"_sv, u8"div"_sv);
+  check_identifier(u8" banana-split "_sv, u8"banana-split"_sv);
+  check_identifier(u8"/**/banana-split/**/"_sv, u8"banana-split"_sv);
+
+  for (string8_view line_terminator : line_terminators) {
+    check_identifier(
+        string8(line_terminator) + u8"banana-split" + string8(line_terminator),
+        u8"banana-split"_sv);
+  }
+
+  check_identifier(u8"<!-- line comment\nbanana-split"_sv, u8"banana-split"_sv);
+  check_identifier(u8"\n--> line comment\nbanana-split"_sv,
+                   u8"banana-split"_sv);
+
+  check_identifier(u8"\u00c1gua"_sv, u8"\u00c1gua"_sv);
+  check_identifier(u8"\u00c1gua-"_sv, u8"\u00c1gua-"_sv);
+}
+
+TEST_F(test_lex, invalid_jsx_identifier) {
+  this->lex_jsx_tokens = true;
+
+  this->check_tokens_with_errors(
+      u8"<hello\\u{2d}world>",
+      {token_type::less, token_type::identifier, token_type::greater},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(ERROR_TYPE_OFFSETS(
+                        input, error_escaped_hyphen_not_allowed_in_jsx_tag,  //
+                        escape_sequence, strlen(u8"<hello"), u8"\\u{2d}")));
+      });
+}
+
+TEST_F(test_lex, jsx_string) {
+  auto check_string = [](string8_view string_code) -> void {
+    SCOPED_TRACE(out_string8(string_code));
+
+    padded_string code(u8"!" + string8(string_code));
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '!'.
+
+    EXPECT_EQ(l.peek().type, token_type::string);
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  };
+
+  check_string(u8R"('hello')"sv);
+  check_string(u8R"("hello")"sv);
+
+  // Backslashes are ignored.
+  check_string(u8R"("hello\nworld")"sv);
+  check_string(u8R"("hello\")"sv);
+  check_string(u8R"("hello\\")"sv);
+  check_string(u8R"('hello\')"sv);
+  check_string(u8R"('hello\\')"sv);
+  check_string(u8R"('hello\u{}world')"sv);
+  check_string(u8R"('hello\u00xyworld')"sv);
+  check_string(u8R"('hello\u00')"sv);
+
+  // Null bytes are allowed.
+  check_string(u8"'hello\u0000world'"sv);
+  check_string(u8"'\u0000world'"sv);
+  check_string(u8"'hello\u0000'"sv);
+
+  // Line terminators are allowed.
+  for (string8_view line_terminator : line_terminators) {
+    check_string(u8"'hello" + string8(line_terminator) + u8"world'");
+  }
+}
+
+// Despite what the JSX specification says, comments are not interpreted in
+// attribute strings.
+// https://github.com/facebook/jsx/pull/133
+TEST_F(test_lex, jsx_string_ignores_comments) {
+  {
+    padded_string code(u8"! 'hello // '\nworld'"sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '!'.
+
+    EXPECT_EQ(l.peek().type, token_type::string);
+    EXPECT_EQ(l.peek().begin, &code[strlen(u8"! ")]);
+    EXPECT_EQ(l.peek().end, &code[strlen(u8"! 'hello // '")])
+        << "string should end at ', treating // as part of the string";
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"world");
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8R"(! "hello/* not"comment */world")"sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '!'.
+
+    EXPECT_EQ(l.peek().type, token_type::string);
+    EXPECT_EQ(l.peek().begin, &code[strlen(u8"! ")]);
+    EXPECT_EQ(l.peek().end, &code[strlen(u8R"(! "hello/* not")")])
+        << "string should end at \", treating /* as part of the string";
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"comment");
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+}
+
+TEST_F(test_lex, unterminated_jsx_string) {
+  padded_string code(u8"! 'hello"sv);
+  error_collector errors;
+  lexer l(&code, &errors);
+  l.skip_in_jsx();  // Ignore '!'.
+
+  EXPECT_EQ(l.peek().type, token_type::string);
+  EXPECT_THAT(errors.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                                 &code,
+                                 error_unclosed_jsx_string_literal,  //
+                                 string_literal_begin, strlen(u8"! "), u8"'")));
+
+  l.skip_in_jsx();
+  EXPECT_EQ(l.peek().type, token_type::end_of_file);
+}
+
+TEST_F(test_lex, jsx_tag) {
+  {
+    padded_string code(u8"<svg:rect>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"svg"sv);
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::colon);
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"rect"sv);
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"<myModule.MyComponent>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"myModule"sv);
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::dot);
+
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"MyComponent"sv);
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+}
+
+TEST_F(test_lex, jsx_text_children) {
+  {
+    padded_string code(u8"<>hello world"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    l.skip_in_jsx_children();  // Skip '>'.
+
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"<>hello</>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    l.skip_in_jsx_children();  // Skip '>'.
+
+    EXPECT_EQ(l.peek().type, token_type::less);
+    EXPECT_EQ(l.peek().begin, &code[strlen(u8"<>hello")]);
+    EXPECT_EQ(l.peek().end, &code[strlen(u8"<>hello<")]);
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+
+  // '>=' might be interpreted as greater_equal by a buggy lexer, for example.
+  for (string8 text_begin : {u8"=", u8">", u8">>", u8">=", u8">>="}) {
+    padded_string code(u8"<>" + text_begin + u8"hello");
+    SCOPED_TRACE(code);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    EXPECT_EQ(l.peek().type, token_type::greater);
+    EXPECT_EQ(l.peek().begin, &code[strlen(u8"<")]);
+    EXPECT_EQ(l.peek().end, &code[strlen(u8"<>")]);
+    l.skip_in_jsx_children();
+
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+    if (text_begin == u8"=") {
+      EXPECT_THAT(errors.errors, IsEmpty());
+    } else if (text_begin == u8">" || text_begin == u8">=") {
+      EXPECT_THAT(errors.errors,
+                  ElementsAre(ERROR_TYPE_OFFSETS(
+                      &code, error_unexpected_greater_in_jsx_text,  //
+                      greater, strlen(u8"<>"), u8">")));
+    } else if (text_begin == u8">>" || text_begin == u8">>=") {
+      EXPECT_THAT(
+          errors.errors,
+          ElementsAre(ERROR_TYPE_OFFSETS(
+                          &code, error_unexpected_greater_in_jsx_text,  //
+                          greater, strlen(u8"<>"), u8">"),
+                      ERROR_TYPE_OFFSETS(
+                          &code, error_unexpected_greater_in_jsx_text,  //
+                          greater, strlen(u8"<>>"), u8">")));
+    } else {
+      QLJS_UNREACHABLE();
+    }
+  }
+}
+
+TEST_F(test_lex, jsx_illegal_text_children) {
+  {
+    padded_string code(u8"<>hello>world</>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    l.skip_in_jsx_children();  // Skip '>'.
+    EXPECT_EQ(l.peek().type, token_type::less);
+    EXPECT_THAT(errors.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_unexpected_greater_in_jsx_text,  //
+                    greater, strlen(u8"<>hello"), u8">")));
+  }
+
+  {
+    padded_string code(u8"<>hello}world</>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    l.skip_in_jsx();  // Ignore '<'.
+
+    l.skip_in_jsx_children();  // Skip '>'.
+    EXPECT_EQ(l.peek().type, token_type::less);
+    EXPECT_THAT(errors.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_unexpected_right_curly_in_jsx_text,  //
+                    right_curly, strlen(u8"<>hello"), u8"}")));
+  }
+}
+
+TEST_F(test_lex, jsx_expression_children) {
+  this->lex_jsx_tokens = true;
+
+  {
+    padded_string code(u8"<>hello {name}!</>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+
+    // <>hello
+    EXPECT_EQ(l.peek().type, token_type::less);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+
+    // {name}
+    l.skip_in_jsx_children();
+    EXPECT_EQ(l.peek().type, token_type::left_curly);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::right_curly);
+
+    // !</>
+    l.skip_in_jsx_children();
+    EXPECT_EQ(l.peek().type, token_type::less);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+
+    EXPECT_THAT(errors.errors, IsEmpty());
+  }
+}
+
+TEST_F(test_lex, jsx_nested_children) {
+  this->lex_jsx_tokens = true;
+
+  {
+    padded_string code(u8"<>hello <span>world</span>!</>"_sv);
+    error_collector errors;
+    lexer l(&code, &errors);
+    // <>hello
+    EXPECT_EQ(l.peek().type, token_type::less);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+
+    // <span>world</span>
+    l.skip_in_jsx_children();
+    EXPECT_EQ(l.peek().type, token_type::less);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+    l.skip_in_jsx_children();
+    EXPECT_EQ(l.peek().type, token_type::less);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+
+    // !</>
+    l.skip_in_jsx_children();
+    EXPECT_EQ(l.peek().type, token_type::less);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::slash);
+    l.skip_in_jsx();
+    EXPECT_EQ(l.peek().type, token_type::greater);
+
+    EXPECT_THAT(errors.errors, IsEmpty());
   }
 }
 
@@ -2680,7 +3014,11 @@ std::vector<token> test_lex::lex_to_eof(padded_string_view input,
   std::vector<token> tokens;
   while (l.peek().type != token_type::end_of_file) {
     tokens.push_back(l.peek());
-    l.skip();
+    if (this->lex_jsx_tokens) {
+      l.skip_in_jsx();
+    } else {
+      l.skip();
+    }
   }
   return tokens;
 }

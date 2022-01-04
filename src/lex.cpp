@@ -101,6 +101,21 @@
   case '8':                     \
   case '9'
 
+#define QLJS_CASE_CHAR8(byte_code) case static_cast<char8>(byte_code)
+
+#define QLJS_CASE_NON_ASCII QLJS_CASE_NON_ASCII_(QLJS_CASE_CHAR8)
+// clang-format off
+#define QLJS_CASE_NON_ASCII_(c) \
+  c(0x80):c(0x81):c(0x82):c(0x83):c(0x84):c(0x85):c(0x86):c(0x87):c(0x88):c(0x89):c(0x8a):c(0x8b):c(0x8c):c(0x8d):c(0x8e):c(0x8f): \
+  c(0x90):c(0x91):c(0x92):c(0x93):c(0x94):c(0x95):c(0x96):c(0x97):c(0x98):c(0x99):c(0x9a):c(0x9b):c(0x9c):c(0x9d):c(0x9e):c(0x9f): \
+  c(0xa0):c(0xa1):c(0xa2):c(0xa3):c(0xa4):c(0xa5):c(0xa6):c(0xa7):c(0xa8):c(0xa9):c(0xaa):c(0xab):c(0xac):c(0xad):c(0xae):c(0xaf): \
+  c(0xb0):c(0xb1):c(0xb2):c(0xb3):c(0xb4):c(0xb5):c(0xb6):c(0xb7):c(0xb8):c(0xb9):c(0xba):c(0xbb):c(0xbc):c(0xbd):c(0xbe):c(0xbf): \
+  c(0xc0):c(0xc1):c(0xc2):c(0xc3):c(0xc4):c(0xc5):c(0xc6):c(0xc7):c(0xc8):c(0xc9):c(0xca):c(0xcb):c(0xcc):c(0xcd):c(0xce):c(0xcf): \
+  c(0xd0):c(0xd1):c(0xd2):c(0xd3):c(0xd4):c(0xd5):c(0xd6):c(0xd7):c(0xd8):c(0xd9):c(0xda):c(0xdb):c(0xdc):c(0xdd):c(0xde):c(0xdf): \
+  c(0xe0):c(0xe1):c(0xe2):c(0xe3):c(0xe4):c(0xe5):c(0xe6):c(0xe7):c(0xe8):c(0xe9):c(0xea):c(0xeb):c(0xec):c(0xed):c(0xee):c(0xef): \
+  c(0xf0):c(0xf1):c(0xf2):c(0xf3):c(0xf4):c(0xf5):c(0xf6):c(0xf7):c(0xf8):c(0xf9):c(0xfa):c(0xfb):c(0xfc):c(0xfd):c(0xfe):c(0xff)
+// clang-format on
+
 namespace quick_lint_js {
 namespace {
 bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
@@ -189,7 +204,12 @@ void lexer::parse_current_token() {
   this->last_token_.has_leading_newline = false;
   this->skip_whitespace();
 
-retry:
+  while (!this->try_parse_current_token()) {
+    // Loop.
+  }
+}
+
+bool lexer::try_parse_current_token() {
   this->last_token_.begin = this->input_;
   switch (this->input_[0]) {
   QLJS_CASE_DECIMAL_DIGIT:
@@ -226,7 +246,8 @@ retry:
     break;
 
   QLJS_CASE_IDENTIFIER_START : {
-    parsed_identifier ident = this->parse_identifier(this->input_);
+    parsed_identifier ident =
+        this->parse_identifier(this->input_, identifier_kind::javascript);
     this->input_ = ident.after;
     this->last_token_.normalized_identifier = ident.normalized;
     this->last_token_.end = ident.after;
@@ -262,8 +283,8 @@ retry:
 
   // Non-ASCII or control character.
   default: {
-    parsed_identifier ident =
-        this->parse_identifier_slow(this->input_, this->input_);
+    parsed_identifier ident = this->parse_identifier_slow(
+        this->input_, this->input_, identifier_kind::javascript);
     this->input_ = ident.after;
     this->last_token_.normalized_identifier = ident.normalized;
     this->last_token_.end = ident.after;
@@ -365,7 +386,7 @@ retry:
         this->input_[3] == '-') {
       this->input_ += 4;
       this->skip_line_comment_body();
-      goto retry;
+      return false;
     } else if (this->input_[1] == '=') {
       this->last_token_.type = token_type::less_equal;
       this->input_ += 2;
@@ -430,7 +451,7 @@ retry:
       if (this->input_[2] == '>' && this->is_first_token_on_line()) {
         this->input_ += 3;
         this->skip_line_comment_body();
-        goto retry;
+        return false;
       } else {
         this->last_token_.type = token_type::minus_minus;
         this->input_ += 2;
@@ -477,7 +498,7 @@ retry:
             source_code_span(starpos, &this->input_[2])});
         this->input_ += 2;
         this->skip_whitespace();
-        goto retry;
+        return false;
       } else {
         this->last_token_.type = token_type::star;
         this->input_ += 1;
@@ -495,11 +516,11 @@ retry:
       this->input_ += 2;
     } else if (this->input_[1] == '*') {
       this->skip_block_comment();
-      goto retry;
+      return false;
     } else if (this->input_[1] == '/') {
       this->input_ += 2;
       this->skip_line_comment_body();
-      goto retry;
+      return false;
     } else {
       this->last_token_.type = token_type::slash;
       this->input_ += 1;
@@ -589,10 +610,11 @@ retry:
         this->input_ == this->original_input_.data()) {
       this->input_ += 2;
       this->skip_line_comment_body();
-      goto retry;
+      return false;
     } else if (this->is_initial_identifier_byte(this->input_[1])) {
       // Private identifier: #alphaNumeric
-      parsed_identifier ident = this->parse_identifier(this->input_ + 1);
+      parsed_identifier ident =
+          this->parse_identifier(this->input_ + 1, identifier_kind::javascript);
       if (ident.normalized.data() == this->input_ + 1) {
         // Include the '#'.
         ident.normalized =
@@ -611,7 +633,7 @@ retry:
           source_code_span(&this->input_[0], &this->input_[1])});
       this->input_ += 1;
       this->skip_whitespace();
-      goto retry;
+      return false;
     }
     break;
 
@@ -655,7 +677,7 @@ retry:
         .character = source_code_span(this->input_, end)});
     this->input_ = end;
     this->skip_whitespace();
-    goto retry;
+    return false;
   }
 
   case u8'@': {
@@ -664,9 +686,11 @@ retry:
         .character = source_code_span(this->input_, end)});
     this->input_ = end;
     this->skip_whitespace();
-    goto retry;
+    return false;
   }
   }
+
+  return true;
 }
 
 bool lexer::test_for_regexp(const char8* regexp_begin) {
@@ -785,7 +809,25 @@ const char8* lexer::parse_string_literal() noexcept {
   }
 }
 
+const char8* lexer::parse_jsx_string_literal() noexcept {
+  char8 opening_quote = this->input_[0];
+  const char8* c = &this->input_[1];
+  for (; *c != opening_quote; ++c) {
+    if (*c == '\0' && this->is_eof(c)) {
+      this->error_reporter_->report(error_unclosed_jsx_string_literal{
+          .string_literal_begin =
+              source_code_span(&this->input_[0], &this->input_[1]),
+      });
+      return c;
+    }
+    // Loop.
+  }
+  ++c;
+  return c;
+}
+
 void lexer::skip_in_template(const char8* template_begin) {
+  QLJS_ASSERT(this->peek().type == token_type::right_curly);
   this->last_token_.begin = this->input_;
   parsed_template_body body = this->parse_template_body(
       this->input_, template_begin, this->error_reporter_);
@@ -850,6 +892,53 @@ lexer::parsed_template_body lexer::parse_template_body(
       break;
     }
   }
+}
+
+void lexer::skip_in_jsx() {
+  this->last_last_token_end_ = const_cast<char8*>(this->last_token_.end);
+  this->last_token_.has_leading_newline = false;
+  this->skip_whitespace();
+
+retry:
+  this->last_token_.begin = this->input_;
+  switch (this->input_[0]) {
+  QLJS_CASE_IDENTIFIER_START:
+  QLJS_CASE_NON_ASCII : {
+    parsed_identifier ident =
+        this->parse_identifier(this->input_, identifier_kind::jsx);
+    this->input_ = ident.after;
+    this->last_token_.normalized_identifier = ident.normalized;
+    this->last_token_.end = ident.after;
+    this->last_token_.type = token_type::identifier;
+    break;
+  }
+
+  case '>':
+    this->last_token_.type = token_type::greater;
+    this->input_ += 1;
+    this->last_token_.end = this->input_;
+    break;
+
+  case '"':
+  case '\'':
+    this->input_ = this->parse_jsx_string_literal();
+    this->last_token_.type = token_type::string;
+    this->last_token_.end = this->input_;
+    break;
+
+  default:
+    if (!this->try_parse_current_token()) {
+      goto retry;
+    }
+    break;
+  }
+}
+
+void lexer::skip_in_jsx_children() {
+  QLJS_ASSERT(this->peek().type == token_type::right_curly ||
+              this->peek().type == token_type::greater);
+  this->skip_jsx_text();
+  this->skip_in_jsx();
 }
 
 void lexer::reparse_as_regexp() {
@@ -926,7 +1015,8 @@ next:
     ++c;
     // TODO(strager): Is the check for '\\' correct?
     if (this->is_identifier_byte(*c) || *c == u8'\\') {
-      parsed_identifier ident = this->parse_identifier(c);
+      parsed_identifier ident =
+          this->parse_identifier(c, identifier_kind::javascript);
       c = ident.after;
       if (ident.escape_sequences) {
         for (const source_code_span& escape_sequence :
@@ -965,7 +1055,7 @@ lexer_transaction lexer::begin_transaction() {
       /*old_input=*/this->input_,
       /*error_reporter_pointer=*/
       &this->error_reporter_,
-      /*memory=*/&this->temporary_allocator_);
+      /*memory=*/&this->transaction_allocator_);
 }
 
 void lexer::commit_transaction(lexer_transaction&& transaction) {
@@ -1151,7 +1241,9 @@ void lexer::parse_number() {
 
   auto consume_garbage = [this, &input]() {
     const char8* garbage_begin = input;
-    const char8* garbage_end = this->parse_identifier(garbage_begin).after;
+    const char8* garbage_end =
+        this->parse_identifier(garbage_begin, identifier_kind::javascript)
+            .after;
     this->error_reporter_->report(error_unexpected_characters_in_number{
         source_code_span(garbage_begin, garbage_end)});
     input = garbage_end;
@@ -1357,8 +1449,25 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
 }
 QLJS_WARNING_POP
 
-lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
-  const char8* identifier_begin = input;
+lexer::parsed_identifier lexer::parse_identifier(const char8* input,
+                                                 identifier_kind kind) {
+  const char8* begin = input;
+  const char8* end = this->parse_identifier_fast_only(input);
+  if (*end == u8'\\' || (kind == identifier_kind::jsx && *end == u8'-') ||
+      !this->is_ascii_character(*end)) {
+    return this->parse_identifier_slow(end,
+                                       /*identifier_begin=*/begin, kind);
+  } else {
+    return parsed_identifier{
+        .after = end,
+        .normalized =
+            string8_view(begin, narrow_cast<std::size_t>(end - begin)),
+        .escape_sequences = {},
+    };
+  }
+}
+
+const char8* lexer::parse_identifier_fast_only(const char8* input) {
   // TODO(strager): Is the check for '\\' correct?
   QLJS_SLOW_ASSERT(this->is_identifier_byte(*input) || *input == u8'\\');
 
@@ -1420,32 +1529,21 @@ lexer::parsed_identifier lexer::parse_identifier(const char8* input) {
     for (int i = 0; i < identifier_character_count; ++i) {
       QLJS_SLOW_ASSERT(input[i] >= 0);
       QLJS_SLOW_ASSERT(this->is_ascii_character(input[i]));
-      QLJS_SLOW_ASSERT(
-          is_identifier_character(static_cast<char32_t>(input[i])));
+      QLJS_SLOW_ASSERT(is_identifier_character(static_cast<char32_t>(input[i]),
+                                               identifier_kind::javascript));
     }
     input += identifier_character_count;
 
     is_all_identifier_characters = identifier_character_count == chars.size;
   } while (is_all_identifier_characters);
 
-  if (*input == u8'\\' || !this->is_ascii_character(*input)) {
-    return this->parse_identifier_slow(input,
-                                       /*identifier_begin=*/identifier_begin);
-  } else {
-    return parsed_identifier{
-        .after = input,
-        .normalized =
-            string8_view(identifier_begin,
-                         narrow_cast<std::size_t>(input - identifier_begin)),
-        .escape_sequences = {},
-    };
-  }
+  return input;
 }
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 lexer::parsed_identifier lexer::parse_identifier_slow(
-    const char8* input, const char8* identifier_begin) {
+    const char8* input, const char8* identifier_begin, identifier_kind kind) {
   bool is_private_identifier =
       identifier_begin != this->original_input_.data() &&
       identifier_begin[-1] == u8'#';
@@ -1473,9 +1571,16 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
         // parse_unicode_escape reported
         // error_escaped_code_point_in_identifier_out_of_range already.
         normalized->append(escape_begin, escape.end);
+      } else if (!is_initial_identifier_character &&
+                 kind == identifier_kind::jsx && code_point == u'-') {
+        this->error_reporter_->report(
+            error_escaped_hyphen_not_allowed_in_jsx_tag{
+                .escape_sequence = source_code_span(escape_begin, escape.end)});
+        normalized->append(escape_begin, escape.end);
       } else if (!(is_initial_identifier_character
                        ? this->is_initial_identifier_character(code_point)
-                       : this->is_identifier_character(code_point))) {
+                       : this->is_identifier_character(
+                             code_point, identifier_kind::javascript))) {
         this->error_reporter_->report(
             error_escaped_character_disallowed_in_identifiers{
                 .escape_sequence = source_code_span(escape_begin, escape.end)});
@@ -1541,7 +1646,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
       bool is_legal_character =
           is_initial_identifier_character
               ? this->is_initial_identifier_character(code_point)
-              : this->is_identifier_character(code_point);
+              : this->is_identifier_character(code_point, kind);
       if (!is_legal_character) {
         if (this->is_ascii_character(code_point) ||
             this->is_non_ascii_whitespace_character(code_point)) {
@@ -1780,6 +1885,41 @@ void lexer::skip_line_comment_body() {
   this->last_token_.has_leading_newline = true;
 }
 
+void lexer::skip_jsx_text() {
+  const char8* c;
+  for (c = this->input_;; ++c) {
+    switch (*c) {
+    case u8'{':
+    case u8'<':
+      goto done;
+
+    case u8'>':
+      this->error_reporter_->report(error_unexpected_greater_in_jsx_text{
+          .greater = source_code_span(c, c + 1),
+      });
+      break;
+
+    case u8'}':
+      this->error_reporter_->report(error_unexpected_right_curly_in_jsx_text{
+          .right_curly = source_code_span(c, c + 1),
+      });
+      break;
+
+    case u8'\0':
+      if (this->is_eof(c)) {
+        goto done;
+      }
+      break;
+
+    default:
+      break;
+    }
+  }
+done:
+  // TODO(strager): Should we set has_leading_newline?
+  this->input_ = c;
+}
+
 bool lexer::is_eof(const char8* input) noexcept {
   QLJS_ASSERT(*input == u8'\0');
   return input == this->original_input_.null_terminator();
@@ -1874,7 +2014,10 @@ bool lexer::is_initial_identifier_character(char32_t code_point) {
                                   code_point);
 }
 
-bool lexer::is_identifier_character(char32_t code_point) {
+bool lexer::is_identifier_character(char32_t code_point, identifier_kind kind) {
+  if (kind == identifier_kind::jsx && code_point == u'-') {
+    return true;
+  }
   return look_up_in_unicode_table(identifier_part_chunk_indexes,
                                   identifier_part_chunk_indexes_size,
                                   code_point);

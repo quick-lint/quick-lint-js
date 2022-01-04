@@ -123,6 +123,9 @@ class windows_handle_file_ref {
 
   static std::string get_last_error_message();
 
+  static windows_handle_file_ref get_stdout() noexcept;
+  static windows_handle_file_ref get_stderr() noexcept;
+
  protected:
   HANDLE handle_;
 
@@ -181,6 +184,9 @@ class posix_fd_file_ref {
   std::size_t get_pipe_buffer_size();
 
   static std::string get_last_error_message();
+
+  static posix_fd_file_ref get_stdout() noexcept;
+  static posix_fd_file_ref get_stderr() noexcept;
 
  protected:
   static constexpr int invalid_fd = -1;

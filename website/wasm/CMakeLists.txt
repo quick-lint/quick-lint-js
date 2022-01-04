@@ -18,6 +18,7 @@ if (EMSCRIPTEN)
     "-sEXPORTED_FUNCTIONS=[\"_qljs_web_demo_create_document\",\"_qljs_web_demo_destroy_document\",\"_qljs_web_demo_set_text\",\"_qljs_web_demo_set_config_text\",\"_qljs_web_demo_lint\",\"_qljs_web_demo_lint_as_config_file\",\"_malloc\",\"_free\"]"
     -sASSERTIONS=0
     -sSTANDALONE_WASM=1
+    -sSUPPORT_LONGJMP=1
     --no-entry
   )
   set_target_properties(quick-lint-js-vscode PROPERTIES SUFFIX .wasm)

@@ -388,18 +388,18 @@ TYPED_TEST(test_result_error, error_to_string_with_first_error_type) {
   EXPECT_EQ(error.error_to_string(), "e_a data = hello");
 }
 
-TYPED_TEST(test_result_error, error_to_variant_with_single_error) {
+TYPED_TEST(test_result_error, copy_errors_with_single_error) {
   struct e_a {
     std::string data;
   };
   result<TypeParam, e_a> r =
       result<TypeParam, e_a>::failure(e_a{.data = "hello"});
-  std::variant<e_a> v = r.error_to_variant();
-  EXPECT_EQ(v.index(), 0);
-  EXPECT_EQ(std::get<e_a>(v).data, "hello");
+  result<void, e_a> v = r.template copy_errors<e_a>();
+  EXPECT_FALSE(v.ok());
+  EXPECT_EQ(v.error().data, "hello");
 }
 
-TYPED_TEST(test_result_error, error_to_variant_with_first_error) {
+TYPED_TEST(test_result_error, copy_errors_with_first_error) {
   struct e_a {
     std::string data;
   };
@@ -408,12 +408,14 @@ TYPED_TEST(test_result_error, error_to_variant_with_first_error) {
   };
   result<TypeParam, e_a, e_b> r =
       result<TypeParam, e_a, e_b>::failure(e_a{.data = "hello"});
-  std::variant<e_a, e_b> v = r.error_to_variant();
-  EXPECT_EQ(v.index(), 0);
-  EXPECT_EQ(std::get<e_a>(v).data, "hello");
+  result<void, e_a, e_b> v = r.template copy_errors<e_a, e_b>();
+  EXPECT_FALSE(v.ok());
+  EXPECT_TRUE(v.template has_error<e_a>());
+  EXPECT_FALSE(v.template has_error<e_b>());
+  EXPECT_EQ(v.template error<e_a>().data, "hello");
 }
 
-TYPED_TEST(test_result_error, error_to_variant_with_second_error) {
+TYPED_TEST(test_result_error, copy_errors_with_second_error) {
   struct e_a {
     std::string data;
   };
@@ -422,20 +424,34 @@ TYPED_TEST(test_result_error, error_to_variant_with_second_error) {
   };
   result<TypeParam, e_a, e_b> r =
       result<TypeParam, e_a, e_b>::failure(e_b{.data = 42});
-  std::variant<e_a, e_b> v = r.error_to_variant();
-  EXPECT_EQ(v.index(), 1);
-  EXPECT_EQ(std::get<e_b>(v).data, 42);
+  result<void, e_a, e_b> v = r.template copy_errors<e_a, e_b>();
+  EXPECT_FALSE(v.ok());
+  EXPECT_FALSE(v.template has_error<e_a>());
+  EXPECT_TRUE(v.template has_error<e_b>());
+  EXPECT_EQ(v.template error<e_b>().data, 42);
 }
 
 TYPED_TEST(test_result_error,
-           error_to_variant_with_single_error_adding_error_types) {
+           copy_errors_with_single_error_adding_error_types) {
   struct e_a {};
   struct e_b {};
   struct e_c {};
-  result<TypeParam, e_b> r = result<TypeParam, e_b>::failure(e_b());
-  std::variant<e_a, e_b, e_c> v = r.template error_to_variant<e_a, e_b, e_c>();
-  EXPECT_EQ(v.index(), 1);
-  EXPECT_TRUE(std::holds_alternative<e_b>(v));
+
+  {
+    result<TypeParam, e_b> r = result<TypeParam, e_b>::failure(e_b());
+    result<void, e_a, e_b> v = r.template copy_errors<e_a, e_b>();
+    EXPECT_FALSE(v.ok());
+    EXPECT_FALSE(v.template has_error<e_a>());
+    EXPECT_TRUE(v.template has_error<e_b>());
+  }
+
+  {
+    result<TypeParam, e_b> r = result<TypeParam, e_b>::failure(e_b());
+    result<void, e_b, e_c> v = r.template copy_errors<e_b, e_c>();
+    EXPECT_FALSE(v.ok());
+    EXPECT_TRUE(v.template has_error<e_b>());
+    EXPECT_FALSE(v.template has_error<e_c>());
+  }
 }
 }
 }

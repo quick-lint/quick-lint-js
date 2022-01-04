@@ -5,21 +5,29 @@
 #define QUICK_LINT_JS_PARSE_SUPPORT_H
 
 #include <array>
+#include <deque>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <optional>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/null-visitor.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/spy-visitor.h>
+#include <string>
 #include <string_view>
 #include <vector>
 
 namespace quick_lint_js {
+class expression;
+
 extern template void parser::parse_and_visit_module<spy_visitor>(
-    spy_visitor &v);
+    spy_visitor& v);
 extern template bool parser::parse_and_visit_statement<spy_visitor>(
-    spy_visitor &v, parser::parse_statement_type);
+    spy_visitor& v, parser::parse_statement_type);
 
 // Escape the first character in the given keyword with a JavaScript identifier
 // escape sequence (\u{..}).
@@ -30,7 +38,87 @@ extern template bool parser::parse_and_visit_statement<spy_visitor>(
 // byte for the replaced character.
 string8 escape_first_character_in_keyword(string8_view keyword);
 
+std::string summarize(const expression&);
+std::string summarize(expression*);
+std::string summarize(std::optional<expression*>);
+
+class test_parser {
+ public:
+  explicit test_parser(string8_view input)
+      : test_parser(input, parser_options()) {}
+
+  explicit test_parser(string8_view input, const parser_options& options)
+      : code_(input),
+        locator(&this->code_),
+        parser_(&this->code_, &this->errors_, options) {}
+
+  expression* parse_expression() {
+    null_visitor v;
+    expression* ast = this->parser_.parse_expression(v);
+    this->expressions_needing_cleanup_.push_back(ast);
+    return ast;
+  }
+
+  const std::vector<error_collector::error>& errors() const noexcept {
+    return this->errors_.errors;
+  }
+
+  cli_source_range range(expression* ast) { return this->range(ast->span()); }
+
+  cli_source_range range(source_code_span span) {
+    return this->locator.range(span);
+  }
+
+  padded_string_view code() const noexcept { return &this->code_; }
+
+  quick_lint_js::parser& parser() noexcept { return this->parser_; }
+
+ private:
+  padded_string code_;
+
+ public:
+  cli_locator locator;
+
+ private:
+  error_collector errors_;
+  quick_lint_js::parser parser_;
+  std::vector<expression*> expressions_needing_cleanup_;
+};
+
+class test_parse_expression : public ::testing::Test {
+ protected:
+  expression* parse_expression(string8_view input) {
+    return this->parse_expression(input, parser_options());
+  }
+
+  expression* parse_expression(string8_view input,
+                               const parser_options& options) {
+    test_parser& p = this->make_parser(input, options);
+
+    expression* ast = p.parse_expression();
+    EXPECT_THAT(p.errors(), ::testing::IsEmpty()) << out_string8(input);
+    return ast;
+  }
+
+  test_parser& make_parser(string8_view input) {
+    return this->parsers_.emplace_back(input);
+  }
+
+  test_parser& make_parser(string8_view input, const parser_options& options) {
+    return this->parsers_.emplace_back(input, options);
+  }
+
+ private:
+  std::deque<test_parser> parsers_;
+};
+
 namespace {
+constexpr parser_options jsx_options = [] {
+  parser_options options;
+  options.jsx = true;
+  return options;
+}();
+
 inline spy_visitor parse_and_visit_module(string8_view raw_code) {
   padded_string code(raw_code);
   spy_visitor v;
@@ -40,13 +128,22 @@ inline spy_visitor parse_and_visit_module(string8_view raw_code) {
   return v;
 }
 
-inline spy_visitor parse_and_visit_statement(string8_view raw_code) {
+inline spy_visitor parse_and_visit_statement(string8_view raw_code,
+                                             parser_options options) {
   padded_string code(raw_code);
   spy_visitor v;
-  parser p(&code, &v);
+  parser p(&code, &v, options);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
   EXPECT_THAT(v.errors, ::testing::IsEmpty());
   return v;
+}
+
+inline spy_visitor parse_and_visit_statement(string8_view raw_code) {
+  return parse_and_visit_statement(raw_code, parser_options());
+}
+
+inline spy_visitor parse_and_visit_statement(padded_string_view raw_code) {
+  return parse_and_visit_statement(raw_code.string_view());
 }
 
 inline spy_visitor parse_and_visit_statement(string8_view raw_code,
@@ -81,16 +178,15 @@ constexpr inline std::array reserved_keywords = make_array(
 // Exclusions from BindingIdentifier (ReservedWord except 'await' and 'yield')
 // https://262.ecma-international.org/11.0/#prod-ReservedWord
 // https://262.ecma-international.org/11.0/#prod-BindingIdentifier
-std::vector<const char8 *> inline disallowed_binding_identifier_keywords =
-    []() {
-      std::vector<const char8 *> result;
-      for (const char8 *keyword : reserved_keywords) {
-        if (!(keyword == u8"await"_sv || keyword == u8"yield"_sv)) {
-          result.push_back(keyword);
-        }
-      }
-      return result;
-    }();
+std::vector<const char8*> inline disallowed_binding_identifier_keywords = []() {
+  std::vector<const char8*> result;
+  for (const char8* keyword : reserved_keywords) {
+    if (!(keyword == u8"await"_sv || keyword == u8"yield"_sv)) {
+      result.push_back(keyword);
+    }
+  }
+  return result;
+}();
 
 constexpr std::array inline contextual_keywords =
     make_array(u8"as", u8"async", u8"from", u8"get", u8"let", u8"meta", u8"of",

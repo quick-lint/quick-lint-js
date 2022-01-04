@@ -29,10 +29,7 @@ class qljs_document_base {
                                     &this->document_.locator());
     parser p(this->document_.string(), &this->error_reporter_);
     linter l(&this->error_reporter_, &this->config_.globals());
-    // TODO(strager): Use parse_and_visit_module_catching_fatal_parse_errors
-    // instead of parse_and_visit_module to avoid crashing on
-    // QLJS_PARSER_UNIMPLEMENTED.
-    p.parse_and_visit_module(l);
+    p.parse_and_visit_module_catching_fatal_parse_errors(l);
 
     return this->error_reporter_.get_diagnostics();
   }

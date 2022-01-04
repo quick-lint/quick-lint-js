@@ -4,14 +4,13 @@
 #ifndef QUICK_LINT_JS_LEX_H
 #define QUICK_LINT_JS_LEX_H
 
-#include <boost/container/pmr/memory_resource.hpp>
-#include <boost/container/pmr/unsynchronized_pool_resource.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/identifier.h>
+#include <quick-lint-js/linked-bump-allocator.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -35,6 +34,11 @@ struct lexer_transaction;
 // w\u0061t is rewritten to wat (followed by padding spaces).
 class lexer {
  public:
+  enum class identifier_kind {
+    javascript,
+    jsx,  // Allows '-'.
+  };
+
   explicit lexer(padded_string_view input, error_reporter*) noexcept;
 
   // Return information about the current token.
@@ -48,20 +52,51 @@ class lexer {
   // Precondition: this->peek().type != token_type::end_of_file.
   void skip() { this->parse_current_token(); }
 
-  // Like this->skip(), but interpret '}' as ending an expression inside a
-  // template literal.
+  // After parsing a '}' (right_curly) token, call this function to interpret
+  // '}' as ending an expression inside a template literal.
   //
   // For example:
   //
   //   `senior ${language} engineer`
   //
-  // After seeing the 'language' token, the caller should use
+  // After seeing the '}' (right_curly) token, the caller should use
   // this->skip_in_template() so '} engineer`' is interpreted as part of the
   // template literal (instead of a '}' token, an 'engineer' token, and the
   // beginning of another template literal).
   //
   // The given template_begin is used for error reporting.
+  //
+  // Precondition: this->peek().type == token_type::right_curly
   void skip_in_template(const char8* template_begin);
+
+  // Like this->skip(), except:
+  //
+  // * interpret identifiers as JSX identifiers (JSX identifiers may contain
+  //   '-')
+  // * interpret strings as JSX strings (JSX strings do not support '\' escapes)
+  // * interpret '>>', '>=', etc. as a '>' token followed by another token
+  void skip_in_jsx();
+
+  // After parsing a '}' (right_curly) token, call this function to interpret
+  // '}' as ending an expression inside a JSX element.
+  //
+  // After parsing a '>' (greater) token, call this function to interpret '>' as
+  // the beginning of children for a JSX element.
+  //
+  // For example:
+  //
+  //   <div>Hello, {name}!!!</div>
+  //
+  // After seeing the '>' (greater) token, the caller should use
+  // this->skip_in_jsx_children() so 'Hello, {' is interpreted as text (instead
+  // of a 'Hello' identifier token, a ',' token, and a '{' token). After seeing
+  // the '}' (right_curly) token, the caller should use
+  // this->skip_in_jsx_children() so '!!!' is interpreted as text (instead of
+  // three '!' tokens).
+  //
+  // Precondition: this->peek().type == token_type::right_curly ||
+  //               this->peek().type == token_type::greater
+  void skip_in_jsx_children();
 
   // Reparse a '/' or '/=' token as a regular expression literal.
   //
@@ -166,9 +201,23 @@ class lexer {
   };
 
   void parse_bom_before_shebang();
+
+  // Skips leading whitespace and comments. Initializes this->last_token_ and
+  // this->last_last_token_end_.
   void parse_current_token();
 
+  // Does not skip whitespace.
+  //
+  // Returns false if a comment was found. Returns true if a token or EOF was
+  // found.
+  //
+  // Does not update this->last_last_token_end_. Assumes
+  // this->last_token_.has_leading_newline was previously initialized. Updates
+  // this->last_token_.begin and other members of this->last_token_.
+  bool try_parse_current_token();
+
   const char8* parse_string_literal() noexcept;
+  const char8* parse_jsx_string_literal() noexcept;
 
   parsed_template_body parse_template_body(const char8* input,
                                            const char8* template_begin,
@@ -197,13 +246,16 @@ class lexer {
 
   parsed_unicode_escape parse_unicode_escape(const char8* input) noexcept;
 
-  parsed_identifier parse_identifier(const char8*);
+  parsed_identifier parse_identifier(const char8*, identifier_kind);
+  const char8* parse_identifier_fast_only(const char8*);
   parsed_identifier parse_identifier_slow(const char8* input,
-                                          const char8* identifier_begin);
+                                          const char8* identifier_begin,
+                                          identifier_kind);
 
   void skip_whitespace();
   void skip_block_comment();
   void skip_line_comment_body();
+  void skip_jsx_text();
 
   bool is_eof(const char8*) noexcept;
 
@@ -225,7 +277,7 @@ class lexer {
   static bool is_identifier_byte(char8 byte);
 
   static bool is_initial_identifier_character(char32_t code_point);
-  static bool is_identifier_character(char32_t code_point);
+  static bool is_identifier_character(char32_t code_point, identifier_kind);
 
  private:
   static bool is_non_ascii_whitespace_character(char32_t code_point);
@@ -243,21 +295,24 @@ class lexer {
   padded_string_view original_input_;
 
   monotonic_allocator allocator_;
-  boost::container::pmr::unsynchronized_pool_resource temporary_allocator_;
+  linked_bump_allocator<alignof(void*)> transaction_allocator_;
 };
 
 struct lexer_transaction {
   // Private to lexer. Do not construct, read, or modify.
 
+  using allocator_type = linked_bump_allocator<alignof(void*)>;
+
   explicit lexer_transaction(token old_last_token,
                              const char8* old_last_last_token_end,
                              const char8* old_input,
                              error_reporter** error_reporter_pointer,
-                             boost::container::pmr::memory_resource* memory)
-      : old_last_token(old_last_token),
+                             allocator_type* allocator)
+      : allocator_rewind(allocator),
+        old_last_token(old_last_token),
         old_last_last_token_end(old_last_last_token_end),
         old_input(old_input),
-        reporter(memory),
+        reporter(allocator),
         old_error_reporter(
             std::exchange(*error_reporter_pointer, &this->reporter)) {}
 
@@ -265,6 +320,10 @@ struct lexer_transaction {
   // lexer_transaction::error_reporter.
   lexer_transaction(const lexer_transaction&) = delete;
   lexer_transaction& operator=(const lexer_transaction&) = delete;
+
+  // Rewinds memory allocated by 'reporter'. Must be constructed before
+  // 'reporter' (thus destructed after 'reporter').
+  allocator_type::rewind_guard allocator_rewind;
 
   token old_last_token;
   const char8* old_last_last_token_end;

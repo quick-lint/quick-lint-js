@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <gmock/gmock-more-matchers.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
@@ -103,10 +104,9 @@ TEST(test_parse, return_statement_disallows_newline) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
 
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_return_statement_returns_nothing, return_keyword,
-                    offsets_matcher(&code, 0, u8"return"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_return_statement_returns_nothing,  //
+                              return_keyword, 0, u8"return")));
   }
 
   {
@@ -167,9 +167,9 @@ TEST(test_parse, return_statement_disallows_newline) {
       parser p(&code, &v);
       p.parse_and_visit_module(v);
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_FIELD(
-                      error_return_statement_returns_nothing, return_keyword,
-                      offsets_matcher(&code, 0, u8"return"))));
+                  ElementsAre(ERROR_TYPE_OFFSETS(
+                      &code, error_return_statement_returns_nothing,  //
+                      return_keyword, 0, u8"return")));
     }
 
     {
@@ -179,9 +179,9 @@ TEST(test_parse, return_statement_disallows_newline) {
       parser p(&code, &v);
       p.parse_and_visit_module(v);
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_FIELD(
-                      error_return_statement_returns_nothing, return_keyword,
-                      offsets_matcher(&code, strlen(u8"{ "), u8"return"))));
+                  ElementsAre(ERROR_TYPE_OFFSETS(
+                      &code, error_return_statement_returns_nothing,  //
+                      return_keyword, strlen(u8"{ "), u8"return")));
     }
 
     {
@@ -191,11 +191,11 @@ TEST(test_parse, return_statement_disallows_newline) {
       spy_visitor v;
       parser p(&code, &v);
       p.parse_and_visit_module(v);
-      EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_FIELD(
-                      error_return_statement_returns_nothing, return_keyword,
-                      offsets_matcher(&code, strlen(u8"async function f() { "),
-                                      u8"return"))));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(ERROR_TYPE_OFFSETS(
+              &code, error_return_statement_returns_nothing,  //
+              return_keyword, strlen(u8"async function f() { "), u8"return")));
     }
 
     {
@@ -208,12 +208,11 @@ TEST(test_parse, return_statement_disallows_newline) {
       spy_visitor v;
       parser p(&code, &v);
       p.parse_and_visit_module(v);
-      EXPECT_THAT(
-          v.errors,
-          ElementsAre(ERROR_TYPE_FIELD(
-              error_return_statement_returns_nothing, return_keyword,
-              offsets_matcher(&code, strlen(u8"switch (cond) {\ndefault:\n"),
-                              u8"return"))));
+      EXPECT_THAT(v.errors,
+                  ElementsAre(ERROR_TYPE_OFFSETS(
+                      &code, error_return_statement_returns_nothing,  //
+                      return_keyword, strlen(u8"switch (cond) {\ndefault:\n"),
+                      u8"return")));
     }
   }
 }
@@ -270,9 +269,9 @@ TEST(test_parse, throw_statement) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_expected_expression_before_semicolon, where,
-                    offsets_matcher(&code, strlen(u8"throw"), u8";"))));
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_expected_expression_before_semicolon,  //
+                    where, strlen(u8"throw"), u8";")));
   }
 
   {
@@ -281,9 +280,9 @@ TEST(test_parse, throw_statement) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_expected_expression_before_newline, where,
-                    offsets_matcher(&code, strlen(u8"throw"), u8""))));
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_expected_expression_before_newline,  //
+                    where, strlen(u8"throw"), u8"")));
   }
 }
 
@@ -401,9 +400,9 @@ TEST(test_parse, catch_without_try) {
                                       "visit_variable_use",          // body
                                       "visit_exit_block_scope",      //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_catch_without_try, catch_token,
-                              offsets_matcher(&code, 0, u8"catch"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_catch_without_try,  //
+                              catch_token, 0, u8"catch")));
   }
 
   {
@@ -419,9 +418,9 @@ TEST(test_parse, catch_without_try) {
                                       "visit_variable_use",          // body
                                       "visit_exit_block_scope",      //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_catch_without_try, catch_token,
-                              offsets_matcher(&code, 0, u8"catch"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_catch_without_try,  //
+                              catch_token, 0, u8"catch")));
   }
 }
 
@@ -435,9 +434,9 @@ TEST(test_parse, finally_without_try) {
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope",   //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_finally_without_try, finally_token,
-                              offsets_matcher(&code, 0, u8"finally"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_finally_without_try,  //
+                              finally_token, 0, u8"finally")));
   }
 }
 
@@ -454,11 +453,10 @@ TEST(test_parse, try_without_catch_or_finally) {
                                       "visit_end_of_module"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_missing_catch_or_finally_for_try_statement, try_token,
-            offsets_matcher(&code, 0, u8"try"),  //
-            expected_catch_or_finally,
-            offsets_matcher(&code, strlen(u8"try { tryBody; }"), u8""))));
+        ElementsAre(ERROR_TYPE_2_OFFSETS(
+            &code, error_missing_catch_or_finally_for_try_statement,  //
+            try_token, 0, u8"try",                                    //
+            expected_catch_or_finally, strlen(u8"try { tryBody; }"), u8"")));
   }
 }
 
@@ -470,9 +468,9 @@ TEST(test_parse, try_without_body) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_missing_body_for_try_statement, try_token,
-                              offsets_matcher(&code, 0, u8"try"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_missing_body_for_try_statement,  //
+                              try_token, 0, u8"try")));
   }
 }
 
@@ -488,10 +486,9 @@ TEST(test_parse, catch_without_body) {
                                       "visit_exit_block_scope",      // (catch)
                                       "visit_variable_declaration",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_body_for_catch_clause, catch_token,
-                    offsets_matcher(&code, strlen(u8"try {} catch"), u8""))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_missing_body_for_catch_clause,  //
+                              catch_token, strlen(u8"try {} catch"), u8"")));
   }
 }
 
@@ -506,9 +503,9 @@ TEST(test_parse, finally_without_body) {
                                       "visit_variable_declaration",  // x
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_body_for_finally_clause, finally_token,
-                    offsets_matcher(&code, strlen(u8"try {} "), u8"finally"))));
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_body_for_finally_clause,  //
+                    finally_token, strlen(u8"try {} "), u8"finally")));
   }
 }
 
@@ -548,11 +545,10 @@ TEST(test_parse, catch_without_variable_name_in_parentheses) {
                             "visit_variable_use",       // body
                             "visit_exit_block_scope",   // (catch)
                             "visit_end_of_module"));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_expected_variable_name_for_catch, unexpected_token,
-            offsets_matcher(&code, strlen(u8"try {} catch ("), u8"'ball'"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_expected_variable_name_for_catch,  //
+                    unexpected_token, strlen(u8"try {} catch ("), u8"'ball'")));
   }
 }
 
@@ -600,10 +596,9 @@ TEST(test_parse, if_without_body) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // a
                                       "visit_variable_use"));  // e
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_body_for_if_statement, expected_body,
-                    offsets_matcher(&code, strlen(u8"if (a)"), u8""))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_missing_body_for_if_statement,  //
+                              expected_body, strlen(u8"if (a)"), u8"")));
   }
 
   {
@@ -614,10 +609,9 @@ TEST(test_parse, if_without_body) {
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // a
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_body_for_if_statement, expected_body,
-                    offsets_matcher(&code, strlen(u8"{\nif (a)"), u8""))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_missing_body_for_if_statement,  //
+                              expected_body, strlen(u8"{\nif (a)"), u8"")));
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // a
@@ -632,10 +626,9 @@ TEST(test_parse, if_without_body) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // a
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_body_for_if_statement, expected_body,
-                    offsets_matcher(&code, strlen(u8"if (a)"), u8""))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_missing_body_for_if_statement,  //
+                              expected_body, strlen(u8"if (a)"), u8"")));
   }
 }
 
@@ -650,9 +643,9 @@ TEST(test_parse, if_without_parens) {
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_expected_parentheses_around_if_condition, condition,
-                    offsets_matcher(&code, strlen(u8"if "), u8"cond"))));
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_expected_parentheses_around_if_condition,  //
+                    condition, strlen(u8"if "), u8"cond")));
   }
 
   {
@@ -701,9 +694,10 @@ TEST(test_parse, if_without_condition) {
                                       "visit_enter_block_scope",   // (else)
                                       "visit_variable_use",        // nay
                                       "visit_exit_block_scope"));  // (else)
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_missing_condition_for_if_statement,
-                              if_keyword, offsets_matcher(&code, 0, u8"if"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_condition_for_if_statement,  //
+                    if_keyword, 0, u8"if")));
   }
 }
 
@@ -716,9 +710,56 @@ TEST(test_parse, else_without_if) {
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_else_has_no_if, else_token,
-                              offsets_matcher(&code, 0, u8"else"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(&code, error_else_has_no_if,  //
+                                               else_token, 0, u8"else")));
+  }
+}
+
+TEST(test_parse, missing_if_after_else) {
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else (true) {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_if_after_else,  //
+                    expected_if, strlen(u8"if (false) {} else"), u8"")));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else true {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+    ElementsAre(
+        ERROR_TYPE_OFFSETS(&code, error_missing_semicolon_after_statement,  //
+                           where, strlen(u8"if (false) {} else true"), u8""));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else (true)\n{}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else (true); {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
@@ -752,9 +793,9 @@ TEST(test_parse, incomplete_block_statement) {
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // a
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_unclosed_code_block, block_open,
-                              offsets_matcher(&code, 0, u8"{"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_unclosed_code_block,  //
+                              block_open, 0, u8"{")));
   }
 }
 
@@ -812,9 +853,9 @@ TEST(test_parse, switch_without_parens) {
                                       "visit_exit_block_scope"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_expected_parentheses_around_switch_condition, condition,
-            offsets_matcher(&code, strlen(u8"switch "), u8"cond"))));
+        ElementsAre(ERROR_TYPE_OFFSETS(
+            &code, error_expected_parentheses_around_switch_condition,  //
+            condition, strlen(u8"switch "), u8"cond")));
   }
 
   {
@@ -862,9 +903,9 @@ TEST(test_parse, switch_without_condition) {
                                       "visit_variable_use",       // ONE
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_missing_condition_for_switch_statement,
-                    switch_keyword, offsets_matcher(&code, 0, u8"switch"))));
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_condition_for_switch_statement,  //
+                    switch_keyword, 0, u8"switch")));
   }
 }
 
@@ -875,11 +916,10 @@ TEST(test_parse, switch_without_body) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // cond
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_missing_body_for_switch_statement, switch_and_condition,
-            offsets_matcher(&code, strlen(u8"switch (cond)"), u8""))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_body_for_switch_statement,  //
+                    switch_and_condition, strlen(u8"switch (cond)"), u8"")));
   }
 }
 
@@ -894,9 +934,9 @@ TEST(test_parse, switch_without_body_curlies) {
                                       "visit_variable_use",       // a
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_expected_left_curly, expected_left_curly,
-                    offsets_matcher(&code, strlen(u8"switch (cond)"), u8""))));
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_expected_left_curly,  //
+                    expected_left_curly, strlen(u8"switch (cond)"), u8"")));
   }
 
   {
@@ -909,9 +949,9 @@ TEST(test_parse, switch_without_body_curlies) {
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_expected_left_curly, expected_left_curly,
-                    offsets_matcher(&code, strlen(u8"switch (cond)"), u8""))));
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_expected_left_curly,  //
+                    expected_left_curly, strlen(u8"switch (cond)"), u8"")));
   }
 }
 
@@ -925,11 +965,10 @@ TEST(test_parse, switch_case_without_expression) {
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // banana
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_expected_expression_for_switch_case, case_token,
-            offsets_matcher(&code, strlen(u8"switch (cond) { "), u8"case"))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_expected_expression_for_switch_case,  //
+                    case_token, strlen(u8"switch (cond) { "), u8"case")));
   }
 }
 
@@ -942,9 +981,9 @@ TEST(test_parse, switch_clause_outside_switch_statement) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unexpected_case_outside_switch_statement, case_token,
-                    offsets_matcher(&code, 0, u8"case"))));
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_unexpected_case_outside_switch_statement,  //
+                    case_token, 0, u8"case")));
   }
 
   {
@@ -957,9 +996,9 @@ TEST(test_parse, switch_clause_outside_switch_statement) {
                                       "visit_exit_block_scope",   //
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unexpected_case_outside_switch_statement, case_token,
-                    offsets_matcher(&code, 0, u8"case"))));
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_unexpected_case_outside_switch_statement,  //
+                    case_token, 0, u8"case")));
   }
 
   {
@@ -969,10 +1008,11 @@ TEST(test_parse, switch_clause_outside_switch_statement) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // next
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unexpected_default_outside_switch_statement,
-                    default_token, offsets_matcher(&code, 0, u8"default"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_OFFSETS(
+            &code, error_unexpected_default_outside_switch_statement,  //
+            default_token, 0, u8"default")));
   }
 
   {
@@ -983,10 +1023,11 @@ TEST(test_parse, switch_clause_outside_switch_statement) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_variable_use",  // body
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_unexpected_default_outside_switch_statement,
-                    default_token, offsets_matcher(&code, 0, u8"default"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_OFFSETS(
+            &code, error_unexpected_default_outside_switch_statement,  //
+            default_token, 0, u8"default")));
   }
 }
 
@@ -1026,9 +1067,9 @@ TEST(test_parse, with_statement_without_parens) {
                             "visit_exit_with_scope"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_FIELD(
-            error_expected_parentheses_around_with_expression, expression,
-            offsets_matcher(&code, strlen(u8"with "), u8"cond"))));
+        ElementsAre(ERROR_TYPE_OFFSETS(
+            &code, error_expected_parentheses_around_with_expression,  //
+            expression, strlen(u8"with "), u8"cond")));
   }
 
   {
@@ -1145,12 +1186,10 @@ TEST(test_parse, disallow_label_named_await_in_async_function) {
                                     "visit_exit_function_scope"));
   EXPECT_THAT(
       v.errors,
-      ElementsAre(ERROR_TYPE_2_FIELDS(
-          error_label_named_await_not_allowed_in_async_function, await,
-          offsets_matcher(&code, strlen(u8"async function f() {"), u8"await"),
-          colon,
-          offsets_matcher(&code, strlen(u8"async function f() {await"),
-                          u8":"))));
+      ElementsAre(ERROR_TYPE_2_OFFSETS(
+          &code, error_label_named_await_not_allowed_in_async_function,  //
+          await, strlen(u8"async function f() {"), u8"await",            //
+          colon, strlen(u8"async function f() {await"), u8":")));
 }
 
 TEST(test_parse, disallow_label_named_yield_in_generator_function) {
@@ -1165,13 +1204,10 @@ TEST(test_parse, disallow_label_named_yield_in_generator_function) {
   EXPECT_THAT(
       v.errors,
       ElementsAre(
-          ERROR_TYPE_FIELD(
-              error_missing_semicolon_after_statement, where,
-              offsets_matcher(&code, strlen(u8"function *f() {yield"), u8"")),
-          ERROR_TYPE_FIELD(
-              error_unexpected_token, token,
-              offsets_matcher(&code, strlen(u8"function *f() {yield"),
-                              u8":"))));
+          ERROR_TYPE_OFFSETS(&code, error_missing_semicolon_after_statement,  //
+                             where, strlen(u8"function *f() {yield"), u8""),
+          ERROR_TYPE_OFFSETS(&code, error_unexpected_token,  //
+                             token, strlen(u8"function *f() {yield"), u8":")));
 }
 
 TEST(test_parse, enum_statement_not_yet_implemented) {
@@ -1183,10 +1219,9 @@ TEST(test_parse, enum_statement_not_yet_implemented) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
                                       "visit_variable_declaration",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(
-                    error_typescript_enum_not_implemented, enum_keyword,
-                    offsets_matcher(&code, 0, u8"enum"))));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_typescript_enum_not_implemented,  //
+                              enum_keyword, 0, u8"enum")));
   }
 }
 }

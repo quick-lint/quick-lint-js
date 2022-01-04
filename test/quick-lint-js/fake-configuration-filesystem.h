@@ -87,6 +87,8 @@ class fake_configuration_filesystem : public configuration_filesystem {
     return file_it->second();
   }
 
+  void clear() { this->files_.clear(); }
+
  private:
   std::unordered_map<canonical_path, std::function<read_file_result()> > files_;
 };

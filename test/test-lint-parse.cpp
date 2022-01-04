@@ -29,10 +29,10 @@ TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
   EXPECT_TRUE(p.parse_and_visit_statement(l));
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_FIELDS(
-                            error_variable_used_before_declaration,  //
-                            use, offsets_matcher(&input, 8, 9),      //
-                            declaration, offsets_matcher(&input, 11, 12))));
+  EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_OFFSETS(
+                            &input, error_variable_used_before_declaration,  //
+                            use, 8, u8"y",                                   //
+                            declaration, 11, u8"y")));
 }
 
 TEST(
@@ -187,10 +187,9 @@ TEST(test_lint, escape_sequence_in_keyword_identifier) {
   p.parse_and_visit_module(l);
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors,
-              ElementsAre(::testing::VariantWith<
-                          error_keywords_cannot_contain_escape_sequences>(
-                  ::testing::_)));
+  EXPECT_THAT(
+      v.errors,
+      ElementsAre(ERROR_TYPE(error_keywords_cannot_contain_escape_sequences)));
 }
 
 TEST(test_lint, delete_local_variable) {
@@ -204,11 +203,8 @@ TEST(test_lint, delete_local_variable) {
 
   EXPECT_THAT(
       v.errors,
-      ElementsAre(
-          ::testing::VariantWith<error_redundant_delete_statement_on_variable>(
-              ::testing::_),
-          ::testing::VariantWith<error_redundant_delete_statement_on_variable>(
-              ::testing::_)));
+      ElementsAre(ERROR_TYPE(error_redundant_delete_statement_on_variable),
+                  ERROR_TYPE(error_redundant_delete_statement_on_variable)));
 }
 }
 }

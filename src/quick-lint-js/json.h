@@ -4,25 +4,16 @@
 #ifndef QUICK_LINT_JS_JSON_H
 #define QUICK_LINT_JS_JSON_H
 
-#include <iosfwd>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <string>
 
 namespace quick_lint_js {
 class byte_buffer;
-
-template <class Char>
-void write_json_escaped_string(std::ostream &, std::basic_string_view<Char>);
-
-extern template void write_json_escaped_string<char>(
-    std::ostream &, std::basic_string_view<char>);
-#if QLJS_HAVE_CHAR8_T
-extern template void write_json_escaped_string<char8_t>(
-    std::ostream &, std::basic_string_view<char8_t>);
-#endif
+class output_stream;
 
 void write_json_escaped_string(byte_buffer &, string8_view);
+void write_json_escaped_string(output_stream &, string8_view);
 
 string8 to_json_escaped_string_with_quotes(string8_view);
 }
