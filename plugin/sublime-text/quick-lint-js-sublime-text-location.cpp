@@ -26,36 +26,27 @@ void insert_back_transform(InputIt input_begin, InputIt input_end,
 }
 }  // namespace
 
-bool operator==(const lsp_position &lhs, const lsp_position &rhs) noexcept {
-  return lhs.line == rhs.line && lhs.character == rhs.character;
-}
-
-bool operator!=(const lsp_position &lhs, const lsp_position &rhs) noexcept {
-  return !(lhs == rhs);
-}
-
-std::ostream &operator<<(std::ostream &stream, const lsp_position &position) {
-  stream << "line " << position.line << " character " << position.character;
-  return stream;
-}
-
-lsp_locator::lsp_locator(padded_string_view input) noexcept : input_(input) {
+sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
+    : input_(input) {
   this->cache_offsets_of_lines();
 }
 
-lsp_range lsp_locator::range(source_code_span span) const {
-  lsp_position start = this->position(span.begin());
-  lsp_position end = this->position(span.end());
-  return lsp_range{.start = start, .end = end};
+sublime_text_locator::range_type sublime_text_locator::range(
+    source_code_span span) const {
+  auto start = this->position(span.begin());
+  auto end = this->position(span.end());
+  return sublime_text_locator::range_type{.start = start, .end = end};
 }
 
-lsp_position lsp_locator::position(const char8 *source) const noexcept {
+sublime_text_locator::position_type sublime_text_locator::position(
+    const char8 *source) const noexcept {
   offset_type offset = this->offset(source);
   int line_number = this->find_line_at_offset(offset);
   return this->position(line_number, offset);
 }
 
-const char8 *lsp_locator::from_position(lsp_position position) const noexcept {
+const char8 *sublime_text_locator::from_position(
+    sublime_text_locator::position_type position) const noexcept {
   int line = position.line;
   int character = position.character;
   if (line < 0 || character < 0) {
@@ -121,8 +112,9 @@ const char8 *lsp_locator::from_position(lsp_position position) const noexcept {
   }
 }
 
-void lsp_locator::replace_text(lsp_range range, string8_view replacement_text,
-                               padded_string_view new_input) {
+void sublime_text_locator::replace_text(sublime_text_locator::range_type range,
+                                        string8_view replacement_text,
+                                        padded_string_view new_input) {
   offset_type start_offset = narrow_cast<offset_type>(
       this->from_position(range.start) - this->input_.data());
   offset_type end_offset = narrow_cast<offset_type>(
@@ -184,7 +176,7 @@ void lsp_locator::replace_text(lsp_range range, string8_view replacement_text,
   QLJS_ASSERT(this->offset_of_lines_.size() == this->line_is_ascii_.size());
 }
 
-void lsp_locator::cache_offsets_of_lines() {
+void sublime_text_locator::cache_offsets_of_lines() {
   QLJS_ASSERT(this->offset_of_lines_.empty());
   QLJS_ASSERT(this->line_is_ascii_.empty());
 
@@ -197,8 +189,8 @@ void lsp_locator::cache_offsets_of_lines() {
   this->line_is_ascii_.push_back(last_line_is_ascii);
 }
 
-void lsp_locator::compute_offsets_of_lines(const char8 *begin, const char8 *end,
-                                           bool *out_last_line_is_ascii) {
+void sublime_text_locator::compute_offsets_of_lines(
+    const char8 *begin, const char8 *end, bool *out_last_line_is_ascii) {
   auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
     this->offset_of_lines_.push_back(
         narrow_cast<offset_type>(beginning_of_line - this->input_.data()));
@@ -229,7 +221,7 @@ void lsp_locator::compute_offsets_of_lines(const char8 *begin, const char8 *end,
   *out_last_line_is_ascii = is_line_ascii();
 }
 
-int lsp_locator::find_line_at_offset(offset_type offset) const {
+int sublime_text_locator::find_line_at_offset(offset_type offset) const {
   QLJS_ASSERT(!this->offset_of_lines_.empty());
   auto offset_of_following_line_it = std::upper_bound(
       this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
@@ -237,13 +229,13 @@ int lsp_locator::find_line_at_offset(offset_type offset) const {
                           this->offset_of_lines_.begin());
 }
 
-lsp_locator::offset_type lsp_locator::offset(const char8 *source) const
-    noexcept {
+sublime_text_locator::offset_type sublime_text_locator::offset(
+    const char8 *source) const noexcept {
   return narrow_cast<offset_type>(source - this->input_.data());
 }
 
-lsp_position lsp_locator::position(int line_number, offset_type offset) const
-    noexcept {
+sublime_text_locator::position_type sublime_text_locator::position(
+    int line_number, offset_type offset) const noexcept {
   offset_type beginning_of_line_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line_number)];
   bool line_is_ascii =
@@ -258,7 +250,8 @@ lsp_position lsp_locator::position(int line_number, offset_type offset) const
         offset - beginning_of_line_offset));
   }
 
-  return lsp_position{.line = line_number, .character = character};
+  return sublime_text_locator::position_type{.line = line_number,
+                                             .character = character};
 }
 
 sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
@@ -267,26 +260,26 @@ sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
 sublime_text_locator::range_type sublime_text_locator::range(
     source_code_span span) const {
   return reinterpret_cast<sublime_text_locator::range_type>(
-      lsp_locator::range(span));
+      sublime_text_locator::range(span));
 }
 
 sublime_text_locator::position_type sublime_text_locator::position(
     const char8 *source) const noexcept {
   return reinterpret_cast<sublime_text_locator::position_type>(
-      lsp_locator::position(source));
+      sublime_text_locator::position(source));
 }
 
 const char8 *sublime_text_locator::from_position(
     sublime_text_locator::position_type position) const noexcept {
-  auto lpos = reinterpret_cast<lsp_locator::position_type>(position);
-  return lsp_locator::from_position(lpos);
+  auto lpos = reinterpret_cast<sublime_text_locator::position_type>(position);
+  return sublime_text_locator::from_position(lpos);
 }
 
 void sublime_text_locator::replace_text(sublime_text_locator::range_type range,
                                         string8_view replacement_text,
                                         padded_string_view new_input) {
-  auto lrange = reinterpret_cast<lsp_locator::range_type>(range);
-  lsp_locator::replace_text(lrange, replacement_text, new_input);
+  auto lrange = reinterpret_cast<sublime_text_locator::range_type>(range);
+  sublime_text_locator::replace_text(lrange, replacement_text, new_input);
 }
 #else
 sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
