@@ -1,5 +1,8 @@
 BinPackArguments: false
 BinPackParameters: false
+BraceWrapping:
+    AfterFunction: true
+BreakBeforeBraces: Custom
 ColumnLimit: 88
 DerivePointerAlignment: false
 PointerAlignment: Right

@@ -17,16 +17,19 @@ struct sublime_text_range final : public qljs_st_range {
 
 struct sublime_text_position final : public qljs_st_position {
   friend inline bool operator==(const qljs_st_position &,
-                                const qljs_st_position &) noexcept {
+                                const qljs_st_position &) noexcept
+  {
     return lhs.line == rhs.line && lhs.character == rhs.character;
   }
 
   friend inline bool operator!=(const qljs_st_position &,
-                                const qljs_st_position &) noexcept {
+                                const qljs_st_position &) noexcept
+  {
     return !(lhs == rhs);
   }
 
-  friend inline std::ostream &operator<<(std::ostream &, const lsp_position &) {
+  friend inline std::ostream &operator<<(std::ostream &, const lsp_position &)
+  {
     stream << "line " << position.line << " character " << position.character;
     return stream;
   }
