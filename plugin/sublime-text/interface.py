@@ -8,6 +8,8 @@ import platform
 from . import utils
 
 
+c_offset = ctypes.c_uint
+
 class CStruct(ctypes.Structure):
     def __init_subclass__(cls, /, **kwargs):
         try:

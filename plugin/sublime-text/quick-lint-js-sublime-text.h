@@ -6,13 +6,24 @@
 
 #include <quick-lint-js-sublime-text-have.h>
 #include <stddef.h>
-#include <stdbool.h>
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
 typedef unsigned int qljs_st_offset;
+
+typedef enum qljs_st_severity {
+  qljs_st_severity_error = 1,
+  qljs_st_severity_warning = 2,
+} qljs_st_severity;
+
+typedef struct qljs_st_diagnostic {
+  const qljs_st_range* range;
+  qljs_st_severity severity;
+  const char* code;
+  const char* message;
+} qljs_st_diagnostic;
 
 #if QLJS_ST_HAVE_INCREMENTAL_CHANGES
 typedef struct qljs_st_position {
@@ -29,30 +40,23 @@ typedef struct qljs_st_range {
   qljs_st_offset begin;
   qljs_st_offset end;
 } qljs_st_range;
+
+qljs_st_range* qljs_st_range_new(qljs_st_offset begin, qljs_st_offset end);
 #endif
 
-typedef enum qljs_st_severity {
-  qljs_st_severity_error = 1,
-  qljs_st_severity_warning = 2,
-} qljs_st_severity;
+void qljs_st_range_delete(qljs_st_range* t);
 
 typedef struct qljs_st_text {
   const char* content;
   size_t length;
 } qljs_st_text;
 
-qljs_st_text* qljs_st_text_new(void);
+qljs_st_text* qljs_st_text_new(const char* content, size_t length);
 
 void qljs_st_text_delete(qljs_st_text* t);
 
-typedef struct qljs_st_diagnostic {
-  const qljs_st_range* range;
-  qljs_st_severity severity;
-  const char* code;
-  const char* message;
-} qljs_st_diagnostic;
-
-typedef struct qljs_st_document qljs_st_document;
+typedef struct qljs_st_document {
+} qljs_st_document;
 
 qljs_st_document* qljs_st_document_new(void);
 
