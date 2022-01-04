@@ -232,6 +232,19 @@ void insert_back_transform(InputIt input_begin, InputIt input_end,
 }
 }  // namespace
 
+bool operator==(const lsp_position &lhs, const lsp_position &rhs) noexcept {
+  return lhs.line == rhs.line && lhs.character == rhs.character;
+}
+
+bool operator!=(const lsp_position &lhs, const lsp_position &rhs) noexcept {
+  return !(lhs == rhs);
+}
+
+std::ostream &operator<<(std::ostream &stream, const lsp_position &position) {
+  stream << "line " << position.line << " character " << position.character;
+  return stream;
+}
+
 sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
     : input_(input) {
   this->cache_offsets_of_lines();
@@ -239,15 +252,15 @@ sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
 
 sublime_text_locator::range_type sublime_text_locator::range(
     source_code_span span) const {
-  auto start = this->position(span.begin());
-  auto end = this->position(span.end());
+  position_type start = this->position(span.begin());
+  position_type end = this->position(span.end());
   return range_type{.start = start, .end = end};
 }
 
 sublime_text_locator::position_type sublime_text_locator::position(
     const char8 *source) const noexcept {
-  auto offset = this->offset(source);
-  auto line_number = this->find_line_at_offset(offset);
+  offset_type offset = this->offset(source);
+  offset_type line_number = this->find_line_at_offset(offset);
   return this->position(line_number, offset);
 }
 
