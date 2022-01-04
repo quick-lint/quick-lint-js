@@ -49,15 +49,15 @@ const char8 *sublime_text_locator::from_position(
     sublime_text_locator::position_type position) const noexcept {
   auto line = position.line;
   auto character = position.character;
-  auto number_of_lines = narrow_cast<int>(this->offset_of_lines_.size());
+  auto number_of_lines = this->offset_of_lines_.size();
   if (line >= number_of_lines) {
     return this->input_.null_terminator();
   }
 
   auto line_begin_offset = this->offset_of_lines_[line];
   bool line_is_ascii = this->line_is_ascii_[line];
-  bool is_last_line = line == number_of_lines - 1;
-  if (is_last_line) {
+  // Is last line.
+  if (line == number_of_lines - 1) {
     auto line_length = this->input_.size() - line_begin_offset;
     if (line_is_ascii) {
       if (character > line_length) {
@@ -66,18 +66,15 @@ const char8 *sublime_text_locator::from_position(
         return &this->input_[line_begin_offset + character];
       }
     } else {
-      string8_view line_string(&this->input_[line_begin_offset],
-                               narrow_cast<std::size_t>(line_length));
+      string8_view line_string(&this->input_[line_begin_offset], line_length);
       return advance_lsp_characters_in_utf_8(line_string, character);
     }
   } else {
-    auto line_end_offset =
-        this->offset_of_lines_[narrow_cast<std::size_t>(line + 1)];
+    auto line_end_offset = this->offset_of_lines_[line + 1];
     auto line_length_including_terminator = line_end_offset - line_begin_offset;
     if (line_is_ascii) {
-      bool character_is_out_of_bounds =
-          character >= line_length_including_terminator - 1;
-      if (character_is_out_of_bounds) {
+      // Character is out of bounds.
+      if (character >= line_length_including_terminator - 1) {
         if (line_length_including_terminator >= 2 &&
             this->input_[line_end_offset - 2] == u8'\r' &&
             this->input_[line_end_offset - 1] == u8'\n') {
@@ -91,16 +88,15 @@ const char8 *sublime_text_locator::from_position(
         return &this->input_[line_begin_offset + character];
       }
     } else {
-      auto line_terminator_length =
-          line_length_including_terminator >= 2 &&
-                  this->input_[line_end_offset - 2] == u8'\r' &&
-                  this->input_[line_end_offset - 1] == u8'\n'
-              ? 2
-              : 1;
-      auto line_length =
-          line_length_including_terminator - line_terminator_length;
-      string8_view line_string(&this->input_[line_begin_offset],
-                               narrow_cast<std::size_t>(line_length));
+      if (line_length_including_terminator >= 2 &&
+          this->input_[line_end_offset - 2] == u8'\r' &&
+          this->input_[line_end_offset - 1] == u8'\n') {
+        auto line_terminator_length = 2;
+      } else {
+        auto line_terminator_length = 1;
+      }
+      auto line_length = line_length_including_terminator - line_terminator_length;
+      string8_view line_string(&this->input_[line_begin_offset], line_length);
       return advance_lsp_characters_in_utf_8(line_string, character);
     }
   }
