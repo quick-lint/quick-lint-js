@@ -12,27 +12,28 @@
 namespace quick_lint_js {
 using sublime_text_offset = unsigned int;
 
-struct sublime_text_range final : public qljs_st_range {}
+struct sublime_text_range final : public qljs_st_range {
+}
 
 struct sublime_text_position final : public qljs_st_position {
-  friend inline bool operator==(const qljs_st_position&,
-                                const qljs_st_position&) noexcept {
+  friend inline bool operator==(const qljs_st_position &,
+                                const qljs_st_position &) noexcept {
     return lhs.line == rhs.line && lhs.character == rhs.character;
   }
 
-  friend inline bool operator!=(const qljs_st_position&,
-                                const qljs_st_position&) noexcept {
+  friend inline bool operator!=(const qljs_st_position &,
+                                const qljs_st_position &) noexcept {
     return !(lhs == rhs);
   }
 
-  friend inline std::ostream& operator<<(std::ostream&, const lsp_position&) {
+  friend inline std::ostream &operator<<(std::ostream &, const lsp_position &) {
     stream << "line " << position.line << " character " << position.character;
     return stream;
   }
 }
 
 struct sublime_text_locator {
- public:
+public:
   using range_type = qljs_st_range;
   using offset_type = qljs_st_offset;
 #if QLJS_ST_HAVE_INCREMENTAL_CHANGES
@@ -44,18 +45,19 @@ struct sublime_text_locator {
   range_type range(source_code_span span) const;
 
 #if QLJS_ST_HAVE_INCREMENTAL_CHANGES
-  position_type position(const char8* ch) const noexcept;
+  position_type position(const char8 *ch) const noexcept;
 #else
-  offset_type position(const char8* ch) const noexcept;
+  offset_type position(const char8 *ch) const noexcept;
 #endif
 
 #if QLJS_ST_HAVE_INCREMENTAL_CHANGES
-  const char8* from_position(position_type position) const noexcept;
+  const char8 *from_position(position_type position) const noexcept;
 
-  void replace_text(range_type range, string8_view replacement_text,
+  void replace_text(range_type range,
+                    string8_view replacement_text,
                     padded_string_view new_input);
 #endif
- private:
+private:
   padded_string_view input_;
 
 #if QLJS_ST_HAVE_INCREMENTAL_CHANGES
@@ -68,18 +70,19 @@ struct sublime_text_locator {
 
   void cache_offsets_of_lines();
 
-  void compute_offsets_of_lines(const char8* begin, const char8* end,
-                                bool* out_last_line_is_ascii);
+  void compute_offsets_of_lines(const char8 *begin,
+                                const char8 *end,
+                                bool *out_last_line_is_ascii);
 
   offset_type find_line_at_offset(offset_type offset) const;
 
-  offset_type offset(const char8*) const noexcept;
+  offset_type offset(const char8 *) const noexcept;
 
   position_type position(int line_number, offset_type offset) const noexcept;
 #endif
 };
-}  // namespace quick_lint_js
-#endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
+} // namespace quick_lint_js
+#endif // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
