@@ -21,5 +21,5 @@ The above command will create `dist/debian/quick-lint-js_1.0.0-1_amd64.deb`,
 On a Debian-based system, after building the .deb file (per the above
 instructions), install the .deb file:
 
-    $ sudo dpkg -i dist/debian/quick-lint-js_1.0.0-1_amd64.deb
-    $ sudo dpkg -i dist/debian/quick-lint-js-vim_1.0.0-1_all.deb
+    $ sudo apt-get install ./dist/debian/quick-lint-js_1.0.0-1_amd64.deb
+    $ sudo apt-get install ./dist/debian/quick-lint-js-vim_1.0.0-1_all.deb
