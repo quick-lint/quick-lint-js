@@ -222,9 +222,9 @@ template <class InputIt, class Output, class Transformer>
 void insert_back_transform(InputIt input_begin, InputIt input_end,
                            Output &output, Transformer &&transformer) {
   using difference_type = typename Output::difference_type;
-  auto original_size = output.size();
-  auto input_size = narrow_cast<std::size_t>(input_end - input_begin);
-  auto final_size = original_size + input_size;
+  std::size_t original_size = output.size();
+  std::size_t input_size = narrow_cast<std::size_t>(input_end - input_begin);
+  std::size_t final_size = original_size + input_size;
   output.resize(final_size);
   auto output_it = output.begin() + narrow_cast<difference_type>(original_size);
   output_it = std::transform(input_begin, input_end, output_it, transformer);
@@ -258,15 +258,15 @@ const char8 *sublime_text_locator::from_position(
         return line == number_of_lines - 1;
       }
 
-  auto line = position.line;
-  auto character = position.character;
+  auto current_line = position.line;
+  auto current_character = position.character;
   auto number_of_lines = this->offset_of_lines_.size();
   if (line >= number_of_lines) {
     return this->input_.null_terminator();
   }
 
-  auto line_begin_offset = this->offset_of_lines_[line];
-  bool line_is_ascii = this->line_is_ascii_[line];
+  auto current_line_begin_offset = this->offset_of_lines_[line];
+  bool current_line_is_ascii = this->line_is_ascii_[line];
   if (is_last_line(line, number_of_lines)) {
     auto line_length = this->input_.size() - line_begin_offset;
     if (line_is_ascii) {
