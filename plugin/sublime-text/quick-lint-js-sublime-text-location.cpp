@@ -9,7 +9,7 @@
 
 namespace quick_lint_js {
 #if QLJS_ST_HAVE_INCREMENTAL_CHANGES
-const char8 *lsp_locator::from_position(lsp_position position) const noexcept {
+const char8* lsp_locator::from_position(lsp_position position) const noexcept {
   int line = position.line;
   int character = position.character;
   if (line < 0 || character < 0) {
@@ -151,9 +151,9 @@ void lsp_locator::cache_offsets_of_lines() {
   this->line_is_ascii_.push_back(last_line_is_ascii);
 }
 
-void lsp_locator::compute_offsets_of_lines(const char8 *begin, const char8 *end,
-                                           bool *out_last_line_is_ascii) {
-  auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
+void lsp_locator::compute_offsets_of_lines(const char8* begin, const char8* end,
+                                           bool* out_last_line_is_ascii) {
+  auto add_beginning_of_line = [this](const char8* beginning_of_line) -> void {
     this->offset_of_lines_.push_back(
         narrow_cast<offset_type>(beginning_of_line - this->input_.data()));
   };
@@ -164,7 +164,7 @@ void lsp_locator::compute_offsets_of_lines(const char8 *begin, const char8 *end,
     flags = 0;
   };
 
-  for (const char8 *c = begin; c != end;) {
+  for (const char8* c = begin; c != end;) {
     flags |= static_cast<std::uint8_t>(*c);
     if (*c == u8'\n' || *c == u8'\r') {
       if (c[0] == u8'\r' && c[1] == u8'\n') {
@@ -191,7 +191,7 @@ int lsp_locator::find_line_at_offset(offset_type offset) const {
                           this->offset_of_lines_.begin());
 }
 
-lsp_locator::offset_type lsp_locator::offset(const char8 *source) const
+lsp_locator::offset_type lsp_locator::offset(const char8* source) const
     noexcept {
   return narrow_cast<offset_type>(source - this->input_.data());
 }
@@ -220,7 +220,7 @@ namespace {
 // std::vector<int>.
 template <class InputIt, class Output, class Transformer>
 void insert_back_transform(InputIt input_begin, InputIt input_end,
-                           Output &output, Transformer &&transformer) {
+                           Output& output, Transformer&& transformer) {
   using difference_type = typename Output::difference_type;
   std::size_t original_size = output.size();
   std::size_t input_size = narrow_cast<std::size_t>(input_end - input_begin);
@@ -232,15 +232,15 @@ void insert_back_transform(InputIt input_begin, InputIt input_end,
 }
 }  // namespace
 
-bool operator==(const lsp_position &lhs, const lsp_position &rhs) noexcept {
+bool operator==(const lsp_position& lhs, const lsp_position& rhs) noexcept {
   return lhs.line == rhs.line && lhs.character == rhs.character;
 }
 
-bool operator!=(const lsp_position &lhs, const lsp_position &rhs) noexcept {
+bool operator!=(const lsp_position& lhs, const lsp_position& rhs) noexcept {
   return !(lhs == rhs);
 }
 
-std::ostream &operator<<(std::ostream &stream, const lsp_position &position) {
+std::ostream& operator<<(std::ostream& stream, const lsp_position& position) {
   stream << "line " << position.line << " character " << position.character;
   return stream;
 }
@@ -258,13 +258,13 @@ sublime_text_locator::range_type sublime_text_locator::range(
 }
 
 sublime_text_locator::position_type sublime_text_locator::position(
-    const char8 *source) const noexcept {
+    const char8* source) const noexcept {
   offset_type offset = this->offset(source);
   offset_type line_number = this->find_line_at_offset(offset);
   return this->position(line_number, offset);
 }
 
-const char8 *sublime_text_locator::from_position(
+const char8* sublime_text_locator::from_position(
     sublime_text_locator::position_type position) const noexcept {
   auto is_last_line =
       [](offset_type line, offset_type number_of_lines) {
@@ -403,8 +403,8 @@ void sublime_text_locator::cache_offsets_of_lines() {
 }
 
 void sublime_text_locator::compute_offsets_of_lines(
-    const char8 *begin, const char8 *end, bool *out_last_line_is_ascii) {
-  auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
+    const char8* begin, const char8* end, bool* out_last_line_is_ascii) {
+  auto add_beginning_of_line = [this](const char8* beginning_of_line) -> void {
     this->offset_of_lines_.push_back(
         narrow_cast<offset_type>(beginning_of_line - this->input_.data()));
   };
@@ -415,7 +415,7 @@ void sublime_text_locator::compute_offsets_of_lines(
     flags = 0;
   };
 
-  for (const char8 *c = begin; c != end;) {
+  for (const char8* c = begin; c != end;) {
     flags |= static_cast<std::uint8_t>(*c);
     if (*c == u8'\n' || *c == u8'\r') {
       if (c[0] == u8'\r' && c[1] == u8'\n') {
@@ -444,7 +444,7 @@ sublime_text_locator::offset_type sublime_text_locator::find_line_at_offset(
 }
 
 sublime_text_locator::offset_type sublime_text_locator::offset(
-    const char8 *source) const noexcept {
+    const char8* source) const noexcept {
   return narrow_cast<offset_type>(source - this->input_.data());
 }
 

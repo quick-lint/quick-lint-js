@@ -23,13 +23,13 @@ struct sublime_text_locator {
   range_type range(source_code_span span) const;
 
 #if QLJS_ST_HAVE_INCREMENTAL_CHANGES
-  position_type position(const char8 *ch) const noexcept;
+  position_type position(const char8* ch) const noexcept;
 #else
-  offset_type position(const char8 *ch) const noexcept;
+  offset_type position(const char8* ch) const noexcept;
 #endif
 
 #if QLJS_ST_HAVE_INCREMENTAL_CHANGES
-  const char8 *from_position(position_type position) const noexcept;
+  const char8* from_position(position_type position) const noexcept;
 
   void replace_text(range_type range, string8_view replacement_text,
                     padded_string_view new_input);
@@ -47,12 +47,12 @@ struct sublime_text_locator {
 
   void cache_offsets_of_lines();
 
-  void compute_offsets_of_lines(const char8 *begin, const char8 *end,
-                                bool *out_last_line_is_ascii);
+  void compute_offsets_of_lines(const char8* begin, const char8* end,
+                                bool* out_last_line_is_ascii);
 
   offset_type find_line_at_offset(offset_type offset) const;
 
-  offset_type offset(const char8 *) const noexcept;
+  offset_type offset(const char8*) const noexcept;
 
   position_type position(int line_number, offset_type offset) const noexcept;
 #endif

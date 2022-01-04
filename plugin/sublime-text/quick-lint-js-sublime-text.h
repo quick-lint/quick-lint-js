@@ -7,7 +7,9 @@
 #include <quick-lint-js-sublime-text-have.h>
 #include <stddef.h>
 
+#if defined(__cplusplus)
 extern "C" {
+#endif
 
 typedef unsigned int qljs_st_offset;
 typedef struct qljs_st_document qljs_st_document;
@@ -16,6 +18,14 @@ typedef struct qljs_st_document qljs_st_document;
 typedef struct qljs_st_position {
   qljs_st_offset line;
   qljs_st_offset character;
+
+#if defined(__cplusplus)
+  friend bool operator==(const lsp_position&, const lsp_position&) noexcept;
+
+  friend bool operator!=(const lsp_position&, const lsp_position&) noexcept;
+
+  friend std::ostream& operator<<(std::ostream&, const lsp_position&);
+#endif
 } qljs_st_position;
 
 typedef struct qljs_st_range {
@@ -60,7 +70,9 @@ void qljs_st_document_replace_text(qljs_st_document* d,
 
 const qljs_st_diagnostic* qljs_st_document_lint(qljs_st_document* d);
 
+#if defined(__cplusplus)
 }
+#endif
 
 #endif  // QUICK_LINT_JS_SUBLIME_TEXT_H
 
