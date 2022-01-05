@@ -65,6 +65,8 @@ public:
 
   explicit sublime_text_locator(padded_string_view input) noexcept;
 
+  range_type range(source_code_span span) const;
+
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   void replace_text(range_type range,
                     string8_view replacement_text,
@@ -76,9 +78,6 @@ public:
 #else
   offset_type position(const char8 *ch) const noexcept;
 #endif
-
-  range_type range(source_code_span span) const;
-
 private:
   padded_string_view input_;
 

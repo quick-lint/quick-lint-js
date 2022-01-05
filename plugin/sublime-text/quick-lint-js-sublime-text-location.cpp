@@ -48,9 +48,10 @@ void sublime_text_locator::replace_text(range_type range,
   this->line_is_ascii_.clear();
 
   // Offsets before replacement: do not adjust.
-  auto end = this->old_offset_of_lines_.begin() + range.start.line + 1;
-  this->offset_of_lines_.insert(
-      this->offset_of_lines_.end(), this->old_offset_of_lines_.begin(), end);
+  this->offset_of_lines_.insert(this->offset_of_lines_.end(),
+                                this->old_offset_of_lines_.begin(),
+                                this->old_offset_of_lines_.begin() + range.start.line +
+                                    1);
   this->line_is_ascii_.insert(this->line_is_ascii_.end(),
                               this->old_line_is_ascii_.begin(),
                               this->old_line_is_ascii_.begin() + range.start.line);
@@ -244,14 +245,14 @@ sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
 
 typename sublime_text_locator::range_type
 sublime_text_locator::range(source_code_span span) const {
-  auto begin = this->position(span.begin());
-  auto end = this->position(span.end());
+  offset_type begin = this->position(span.begin());
+  offset_type end = this->position(span.end());
   return range_type{.begin = begin, .end = end};
 }
 
 typename sublime_text_locator::offset_type
 sublime_text_locator::position(const char8 *ch) const noexcept {
-  auto byte_offset = narrow_cast<std::size_t>(ch - this->input_.data());
+  std::size_t byte_offset = narrow_cast<std::size_t>(ch - this->input_.data());
   std::size_t count = count_utf_8_characters(this->input_, byte_offset);
   return narrow_cast<offset_type>(count);
 }

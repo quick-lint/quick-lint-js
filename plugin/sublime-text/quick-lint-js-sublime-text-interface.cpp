@@ -77,12 +77,13 @@ using qljs_sublime_text_document_base =
 
 struct qljs_sublime_text_document final : public qljs_sublime_text_document_base {
 public:
+  using range_type = typename quick_lint_js::sublime_text_locator::range_type;
+
   void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);
   }
 
-  void replace_text(quick_lint_js::sublime_text_range range,
-                    quick_lint_js::string8_view replacement) {
+  void replace_text(range_type range, quick_lint_js::string8_view replacement) {
     this->document_.replace_text(range, replacement);
   }
 };
@@ -106,9 +107,10 @@ void qljs_sublime_text_document_set_text(qljs_sublime_text_document *document,
 void qljs_sublime_text_document_replace_text(qljs_sublime_text_document *document,
                                              const qljs_sublime_text_range *range,
                                              const qljs_sublime_text_text *text) {
+  auto range_ = reinterpret_cast<qljs_sublime_text_document::range_type *>(range);
   auto content = reinterpret_cast<const quick_lint_js::char8 *>(text->content);
   auto replacement = quick_lint_js::string8_view(content8, text->length);
-  document->replace_text(*range, replacement);
+  document->replace_text(*range_, replacement);
 }
 #endif
 
