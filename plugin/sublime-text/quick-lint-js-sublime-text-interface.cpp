@@ -102,7 +102,7 @@ void qljs_sublime_text_document_set_text(qljs_sublime_text_document *document,
   document->set_text(replacement8);
 }
 
-#if QLJS_ST_HAVE_INCREMENTAL_CHANGES
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 void qljs_sublime_text_document_replace_text(qljs_sublime_text_document *document,
                                              const qljs_sublime_text_range *range,
                                              const qljs_sublime_text_text *text) {

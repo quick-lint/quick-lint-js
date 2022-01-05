@@ -17,7 +17,7 @@
 
 namespace quick_lint_js {
 
-#if QLJS_ST_HAVE_INCREMENTAL_CHANGES
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
     : input_(input) {
   this->cache_offsets_of_lines();
