@@ -66,37 +66,36 @@ public:
   explicit sublime_text_locator(padded_string_view input) noexcept;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-  void replace_text(sublime_text_range range,
+  void replace_text(range_type range,
                     string8_view replacement_text,
                     padded_string_view new_input);
 
-  sublime_text_position position(const char8 *ch) const noexcept;
+  position_type position(const char8 *ch) const noexcept;
 
-  const char8 *from_position(sublime_text_position position) const noexcept;
+  const char8 *from_position(position_type position) const noexcept;
 #else
-  sublime_text_offset position(const char8 *ch) const noexcept;
+  offset_type position(const char8 *ch) const noexcept;
 #endif
 
-  sublime_text_range range(source_code_span span) const;
+  range_type range(source_code_span span) const;
 
 private:
   padded_string_view input_;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-  std::vector<sublime_text_offset> offset_of_lines_;
+  std::vector<offset_type> offset_of_lines_;
   std::vector<unsigned char> line_is_ascii_;
 
   // old_offset_of_lines_ and old_line_is_ascii_ are used for double buffering
   // of offset_of_lines_ and line_is_ascii_. This reduces allocations.
-  std::vector<sublime_text_offset> old_offset_of_lines_;
+  std::vector<offset_type> old_offset_of_lines_;
   std::vector<unsigned char> old_line_is_ascii_;
 
-  sublime_text_position position(int line_number, sublime_text_offset offset) const
-      noexcept;
+  position_type position(int line_number, offset_type offset) const noexcept;
 
-  sublime_text_offset offset(const char8 *) const noexcept;
+  offset_type offset(const char8 *) const noexcept;
 
-  sublime_text_offset find_line_at_offset(sublime_text_offset offset) const;
+  offset_type find_line_at_offset(offset_type offset) const;
 
   void compute_offsets_of_lines(const char8 *begin,
                                 const char8 *end,
