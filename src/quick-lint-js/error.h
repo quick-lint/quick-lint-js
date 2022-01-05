@@ -812,6 +812,12 @@
             switch_keyword))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_dots_for_attribute_spread, "E0186",                        \
+      { source_code_span expected_dots; },                                     \
+      ERROR(QLJS_TRANSLATABLE("missing '...' in JSX attribute spread"),        \
+            expected_dots))                                                    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_equal_after_variable, "E0202",                             \
       { source_code_span expected_equal; },                                    \
       ERROR(QLJS_TRANSLATABLE("missing '=' after variable"), expected_equal))  \

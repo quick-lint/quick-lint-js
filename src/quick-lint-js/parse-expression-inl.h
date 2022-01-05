@@ -2560,6 +2560,12 @@ next_attribute:
   case token_type::left_curly: {
     this->lexer_.skip();
     expression* ast = this->parse_expression(v);
+    if (ast->kind() != expression_kind::spread) {
+      const char8* ast_begin = ast->span().begin();
+      this->error_reporter_->report(error_missing_dots_for_attribute_spread{
+          .expected_dots = source_code_span(ast_begin, ast_begin),
+      });
+    }
     children.emplace_back(ast);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
     this->lexer_.skip_in_jsx();

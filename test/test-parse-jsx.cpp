@@ -244,6 +244,21 @@ TEST(test_parse_jsx, element_attribute_expression) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
+
+TEST(test_parse_jsx, attribute_without_name_must_be_spread) {
+  {
+    padded_string code(u8"c = <div {attr} />;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"attr"}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_dots_for_attribute_spread,  //
+                    expected_dots, strlen(u8"c = <div {"), u8"")));
+  }
+}
 }
 }
 
