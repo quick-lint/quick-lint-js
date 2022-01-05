@@ -1,6 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+//==============================================================================
+// sublime text c interface
+//==============================================================================
+
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_H
 
@@ -80,9 +84,7 @@ void qljs_sublime_text_text_delete(qljs_sublime_text_text *t);
 //==============================================================================
 // document
 
-typedef struct qljs_sublime_text_document {
-  // empty
-} qljs_sublime_text_document;
+typedef struct qljs_sublime_text_document qljs_sublime_text_document;
 
 qljs_sublime_text_document *qljs_sublime_text_document_new(void);
 
