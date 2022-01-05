@@ -14,6 +14,7 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL "3")
   elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
    add_compile_options(-fcolor-diagnostics)
   endif ()
+  # Set(cmake_position_indepent_code)
 
   # quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)
 
@@ -28,8 +29,8 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL "3")
   quick_lint_js_add_library(
     quick-lint-js-sublime-text
     MODULE
-    quick-lint-js-sublime-text.cpp
-    quick-lint-js-sublime-text.h
+    quick-lint-js-sublime-text-interface.cpp
+    quick-lint-js-sublime-text-interface.h
     quick-lint-js-sublime-text-location.cpp
     quick-lint-js-sublime-text-location.h
     quick-lint-js-sublime-text-have.h

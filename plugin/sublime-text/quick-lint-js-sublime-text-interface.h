@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
-//
 
+//==============================================================================
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 //                          sublime text c interface                          //
@@ -118,7 +118,6 @@ qljs_sublime_text_document_lint(qljs_sublime_text_document *d);
 
 #endif // QUICK_LINT_JS_SUBLIME_TEXT_H
 
-//
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //

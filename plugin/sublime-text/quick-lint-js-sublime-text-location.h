@@ -1,6 +1,13 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+//==============================================================================
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                           sublime text location                            //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
@@ -10,10 +17,16 @@
 #include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
+
+//==============================================================================
+//------------------------------------------------------------------------------
+// offset
+
 using sublime_text_offset = unsigned int;
 
-struct sublime_text_range final : public qljs_st_range {
-}
+//==============================================================================
+//------------------------------------------------------------------------------
+// position
 
 struct sublime_text_position final : public qljs_st_position {
   friend inline bool operator==(const qljs_st_position &,
@@ -31,6 +44,17 @@ struct sublime_text_position final : public qljs_st_position {
     return stream;
   }
 }
+
+//==============================================================================
+//------------------------------------------------------------------------------
+// range
+
+struct sublime_text_range final : public qljs_st_range {
+}
+
+//==============================================================================
+//------------------------------------------------------------------------------
+// locator
 
 struct sublime_text_locator {
 public:
@@ -81,6 +105,7 @@ private:
   position_type position(int line_number, offset_type offset) const noexcept;
 #endif
 };
+
 } // namespace quick_lint_js
 #endif // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
