@@ -4,7 +4,7 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
-#include <quick-lint-js-sublime-text.h>
+#include <quick-lint-js-sublime-text-interface.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>

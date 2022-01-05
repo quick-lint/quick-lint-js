@@ -1,9 +1,12 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
+//
 
-//==============================================================================
-// sublime text c interface
-//==============================================================================
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                          sublime text c interface                          //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
 
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_H
@@ -16,11 +19,13 @@ extern "C" {
 #endif
 
 //==============================================================================
+//------------------------------------------------------------------------------
 // offset
 
 typedef unsigned int qljs_sublime_text_offset;
 
 //==============================================================================
+//------------------------------------------------------------------------------
 // severity
 
 typedef enum qljs_sublime_text_severity {
@@ -29,6 +34,7 @@ typedef enum qljs_sublime_text_severity {
 } qljs_sublime_text_severity;
 
 //==============================================================================
+//------------------------------------------------------------------------------
 // diagnostic
 
 typedef struct qljs_sublime_text_diagnostic {
@@ -40,6 +46,7 @@ typedef struct qljs_sublime_text_diagnostic {
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 //==============================================================================
+//------------------------------------------------------------------------------
 // position
 
 typedef struct qljs_sublime_text_position {
@@ -48,6 +55,7 @@ typedef struct qljs_sublime_text_position {
 } qljs_sublime_text_position;
 
 //==============================================================================
+//------------------------------------------------------------------------------
 // range
 
 typedef struct qljs_sublime_text_range {
@@ -70,6 +78,7 @@ qljs_sublime_text_range *qljs_sublime_text_range_new(qljs_sublime_text_offset be
 void qljs_sublime_text_range_delete(qljs_sublime_text_range *r);
 
 //==============================================================================
+//------------------------------------------------------------------------------
 // text
 
 typedef struct qljs_sublime_text_text {
@@ -82,6 +91,7 @@ qljs_sublime_text_text *qljs_sublime_text_text_new(const char *content, size_t l
 void qljs_sublime_text_text_delete(qljs_sublime_text_text *t);
 
 //==============================================================================
+//------------------------------------------------------------------------------
 // document
 
 typedef struct qljs_sublime_text_document qljs_sublime_text_document;
@@ -108,6 +118,7 @@ qljs_sublime_text_document_lint(qljs_sublime_text_document *d);
 
 #endif // QUICK_LINT_JS_SUBLIME_TEXT_H
 
+//
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
 //
