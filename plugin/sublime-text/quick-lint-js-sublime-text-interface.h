@@ -64,13 +64,6 @@ void qljs_sublime_text_position_delete(qljs_sublime_text_position *p);
 //------------------------------------------------------------------------------
 // range
 
-// TODO(cahian): If you look [api reference] you will see that the range
-// doesn't need necessarily have positions, the locator can receive the offset
-// directly instead of convert from position to offset (this causes a little overhead)
-// [api reference]: https://www.sublimetext.com/docs/api_reference.html#sublime.TextChange
-// On second thought, maybe this is not a good idea because `class document` depend
-// on the fact that range has positions
-
 typedef struct qljs_sublime_text_range {
   qljs_sublime_text_position start;
   qljs_sublime_text_position end;
