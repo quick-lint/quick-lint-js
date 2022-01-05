@@ -60,8 +60,9 @@ void sublime_text_locator::replace_text(range_type range,
                               old_line_is_ascii_before_replacement_iterator);
 
   // Offsets within replacement: re-parse newlines.
+  offset_type replacement_end_offset = start_offset + replacement_text_size;
   bool last_line_of_replacement_is_ascii = this->compute_offsets_of_lines(
-      &this->input_[start_offset], &this->input_[start_offset + replacement_text_size]);
+      &this->input_[start_offset], &this->input_[replacement_end_offset]);
   if (this->line_is_ascii_.size() > start_line) {
     this->line_is_ascii_[start_line] =
         this->line_is_ascii_[start_line] && this->old_line_is_ascii_[start_line];
