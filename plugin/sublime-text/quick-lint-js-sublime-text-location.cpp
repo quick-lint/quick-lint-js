@@ -9,8 +9,7 @@
 
 namespace quick_lint_js {
 #if QLJS_ST_HAVE_INCREMENTAL_CHANGES
-const char8 *lsp_locator::from_position(lsp_position position) const noexcept
-{
+const char8 *lsp_locator::from_position(lsp_position position) const noexcept {
   int line = position.line;
   int character = position.character;
   if (line < 0 || character < 0) {
@@ -77,8 +76,7 @@ const char8 *lsp_locator::from_position(lsp_position position) const noexcept
 
 void lsp_locator::replace_text(lsp_range range,
                                string8_view replacement_text,
-                               padded_string_view new_input)
-{
+                               padded_string_view new_input) {
   offset_type start_offset =
       narrow_cast<offset_type>(this->from_position(range.start) - this->input_.data());
   offset_type end_offset =
@@ -137,8 +135,7 @@ void lsp_locator::replace_text(lsp_range range,
   QLJS_ASSERT(this->offset_of_lines_.size() == this->line_is_ascii_.size());
 }
 
-void lsp_locator::cache_offsets_of_lines()
-{
+void lsp_locator::cache_offsets_of_lines() {
   QLJS_ASSERT(this->offset_of_lines_.empty());
   QLJS_ASSERT(this->line_is_ascii_.empty());
 
@@ -153,8 +150,7 @@ void lsp_locator::cache_offsets_of_lines()
 
 void lsp_locator::compute_offsets_of_lines(const char8 *begin,
                                            const char8 *end,
-                                           bool *out_last_line_is_ascii)
-{
+                                           bool *out_last_line_is_ascii) {
   auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
     this->offset_of_lines_.push_back(
         narrow_cast<offset_type>(beginning_of_line - this->input_.data()));
@@ -185,8 +181,7 @@ void lsp_locator::compute_offsets_of_lines(const char8 *begin,
   *out_last_line_is_ascii = is_line_ascii();
 }
 
-int lsp_locator::find_line_at_offset(offset_type offset) const
-{
+int lsp_locator::find_line_at_offset(offset_type offset) const {
   QLJS_ASSERT(!this->offset_of_lines_.empty());
   auto offset_of_following_line_it = std::upper_bound(
       this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
@@ -194,13 +189,11 @@ int lsp_locator::find_line_at_offset(offset_type offset) const
                           this->offset_of_lines_.begin());
 }
 
-lsp_locator::offset_type lsp_locator::offset(const char8 *source) const noexcept
-{
+lsp_locator::offset_type lsp_locator::offset(const char8 *source) const noexcept {
   return narrow_cast<offset_type>(source - this->input_.data());
 }
 
-lsp_position lsp_locator::position(int line_number, offset_type offset) const noexcept
-{
+lsp_position lsp_locator::position(int line_number, offset_type offset) const noexcept {
   offset_type beginning_of_line_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line_number)];
   bool line_is_ascii = this->line_is_ascii_[narrow_cast<std::size_t>(line_number)];
@@ -224,8 +217,7 @@ template <class InputIt, class Output, class Transformer>
 void insert_back_transform(InputIt input_begin,
                            InputIt input_end,
                            Output &output,
-                           Transformer &&transformer)
-{
+                           Transformer &&transformer) {
   using difference_type = typename Output::difference_type;
   std::size_t original_size = output.size();
   std::size_t input_size = narrow_cast<std::size_t>(input_end - input_begin);
@@ -238,22 +230,19 @@ void insert_back_transform(InputIt input_begin,
 } // namespace
 
 sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
-    : input_(input)
-{
+    : input_(input) {
   this->cache_offsets_of_lines();
 }
 
 sublime_text_locator::range_type
-sublime_text_locator::range(source_code_span span) const
-{
+sublime_text_locator::range(source_code_span span) const {
   position_type start = this->position(span.begin());
   position_type end = this->position(span.end());
   return range_type{.start = start, .end = end};
 }
 
 sublime_text_locator::position_type
-sublime_text_locator::position(const char8 *source) const noexcept
-{
+sublime_text_locator::position(const char8 *source) const noexcept {
   offset_type offset = this->offset(source);
   offset_type line_number = this->find_line_at_offset(offset);
   return this->position(line_number, offset);
@@ -261,8 +250,7 @@ sublime_text_locator::position(const char8 *source) const noexcept
 
 const char8 *
 sublime_text_locator::from_position(sublime_text_locator::position_type position) const
-    noexcept
-{
+    noexcept {
   auto is_last_line =
       [](offset_type line, offset_type number_of_lines) {
         return line == number_of_lines - 1;
@@ -325,8 +313,7 @@ sublime_text_locator::from_position(sublime_text_locator::position_type position
 
 void sublime_text_locator::replace_text(sublime_text_locator::range_type range,
                                         string8_view replacement_text,
-                                        padded_string_view new_input)
-{
+                                        padded_string_view new_input) {
   auto start_offset =
       narrow_cast<offset_type>(this->from_position(range.start) - this->input_.data());
   auto end_offset =
@@ -385,8 +372,7 @@ void sublime_text_locator::replace_text(sublime_text_locator::range_type range,
   QLJS_ASSERT(this->offset_of_lines_.size() == this->line_is_ascii_.size());
 }
 
-void sublime_text_locator::cache_offsets_of_lines()
-{
+void sublime_text_locator::cache_offsets_of_lines() {
   QLJS_ASSERT(this->offset_of_lines_.empty());
   QLJS_ASSERT(this->line_is_ascii_.empty());
 
@@ -401,8 +387,7 @@ void sublime_text_locator::cache_offsets_of_lines()
 
 void sublime_text_locator::compute_offsets_of_lines(const char8 *begin,
                                                     const char8 *end,
-                                                    bool *out_last_line_is_ascii)
-{
+                                                    bool *out_last_line_is_ascii) {
   auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
     this->offset_of_lines_.push_back(
         narrow_cast<offset_type>(beginning_of_line - this->input_.data()));
@@ -434,8 +419,7 @@ void sublime_text_locator::compute_offsets_of_lines(const char8 *begin,
 }
 
 sublime_text_locator::offset_type
-sublime_text_locator::find_line_at_offset(offset_type offset) const
-{
+sublime_text_locator::find_line_at_offset(offset_type offset) const {
   QLJS_ASSERT(!this->offset_of_lines_.empty());
   auto offset_of_following_line_it = std::upper_bound(
       this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
@@ -444,14 +428,12 @@ sublime_text_locator::find_line_at_offset(offset_type offset) const
 }
 
 sublime_text_locator::offset_type
-sublime_text_locator::offset(const char8 *source) const noexcept
-{
+sublime_text_locator::offset(const char8 *source) const noexcept {
   return narrow_cast<offset_type>(source - this->input_.data());
 }
 
 sublime_text_locator::position_type
-sublime_text_locator::position(int line_number, offset_type offset) const noexcept
-{
+sublime_text_locator::position(int line_number, offset_type offset) const noexcept {
   offset_type beginning_of_line_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line_number)];
   bool line_is_ascii = this->line_is_ascii_[narrow_cast<std::size_t>(line_number)];
@@ -470,21 +452,17 @@ sublime_text_locator::position(int line_number, offset_type offset) const noexce
 }
 #else
 sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
-    : input_(input)
-{
-}
+    : input_(input) {}
 
 sublime_text_locator::range_type
-sublime_text_locator::range(source_code_span span) const
-{
+sublime_text_locator::range(source_code_span span) const {
   auto begin = this->position(span.begin());
   auto end = this->position(span.end());
   return range_type{.begin = begin, .end = end};
 }
 
 sublime_text_locator::offset_type sublime_text_locator::position(const char8 *ch) const
-    noexcept
-{
+    noexcept {
   auto byte_offset = narrow_cast<std::size_t>(ch - this->input_.data());
   std::size_t count = count_utf_8_characters(this->input_, byte_offset);
   return narrow_cast<offset_type>(count);

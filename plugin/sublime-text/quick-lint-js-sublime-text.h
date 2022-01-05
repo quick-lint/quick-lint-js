@@ -1,12 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-////////////////////////////////////////////////////////////////////////////////
-//                                                                            //
-//                 Sublime Text C interface for quick-lint-js                 //
-//                                                                            //
-////////////////////////////////////////////////////////////////////////////////
-
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_H
 
@@ -18,18 +12,20 @@ extern "C" {
 #endif
 
 //==============================================================================
-// Offset
+// offset
 
 typedef unsigned int qljs_sublime_text_offset;
 
-//== Severity ==================================================================
+//==============================================================================
+// severity
 
 typedef enum qljs_sublime_text_severity {
   qljs_sublime_text_severity_error = 1,
   qljs_sublime_text_severity_warning = 2,
 } qljs_sublime_text_severity;
 
-//== Diagnostic ================================================================
+//==============================================================================
+// diagnostic
 
 typedef struct qljs_sublime_text_diagnostic {
   const qljs_sublime_text_range *range;
@@ -39,17 +35,24 @@ typedef struct qljs_sublime_text_diagnostic {
 } qljs_sublime_text_diagnostic;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-//== Position ==================================================================
+//==============================================================================
+// position
+
 typedef struct qljs_sublime_text_position {
   qljs_sublime_text_offset line;
   qljs_sublime_text_offset character;
 } qljs_sublime_text_position;
 
-//== Range =====================================================================
+//==============================================================================
+// range
+
 typedef struct qljs_sublime_text_range {
   qljs_sublime_text_position start;
   qljs_sublime_text_position end;
 } qljs_sublime_text_range;
+
+qljs_sublime_text_range *qljs_sublime_text_range_new(qljs_sublime_text_position start,
+                                                     qljs_sublime_text_position end);
 #else
 typedef struct qljs_sublime_text_range {
   qljs_sublime_text_offset begin;
@@ -62,7 +65,9 @@ qljs_sublime_text_range *qljs_sublime_text_range_new(qljs_sublime_text_offset be
 
 void qljs_sublime_text_range_delete(qljs_sublime_text_range *r);
 
-//== Text ======================================================================
+//==============================================================================
+// text
+
 typedef struct qljs_sublime_text_text {
   const char *content;
   size_t length;
@@ -72,8 +77,11 @@ qljs_sublime_text_text *qljs_sublime_text_text_new(const char *content, size_t l
 
 void qljs_sublime_text_text_delete(qljs_sublime_text_text *t);
 
-//== Document ==================================================================
+//==============================================================================
+// document
+
 typedef struct qljs_sublime_text_document {
+  // empty
 } qljs_sublime_text_document;
 
 qljs_sublime_text_document *qljs_sublime_text_document_new(void);
