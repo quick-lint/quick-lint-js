@@ -642,10 +642,14 @@ void linter::report_error_if_assignment_is_illegal(
     }
     break;
   case variable_kind::_import:
-    if (!is_global_variable) {
-      this->error_reporter_->report(error_assignment_to_imported_variable{
-          *declaration, assignment, kind});
-    }
+    // Avoid false positive when building GCC 8 Release
+    QLJS_WARNING_PUSH
+    QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
+
+    this->error_reporter_->report(
+        error_assignment_to_imported_variable{*declaration, assignment, kind});
+
+    QLJS_WARNING_POP
     break;
   case variable_kind::_catch:
   case variable_kind::_class:
