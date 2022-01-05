@@ -26,16 +26,34 @@ struct sublime_text_diagnostic final : public qljs_st_diagnostic {};
 } // namespace quick_lint_js
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
+//==============================================================================
+//------------------------------------------------------------------------------
+// position
+
 qljs_sublime_text_position *
 qljs_sublime_text_position_new(qljs_sublime_text_offset line,
                                qljs_sublime_text_offset character) {
-  return qljs_sublime_text_range{.line = line, .character = character};
+  return new qljs_sublime_text_position{.line = line, .character = character};
 }
 
-void qljs_sublime_text_position_delete(qljs_sublime_text_range *r);
+void qljs_sublime_text_position_delete(qljs_sublime_text_position *p) { delete p; };
 
+//==============================================================================
+//------------------------------------------------------------------------------
+// range
+
+qljs_sublime_text_range *qljs_sublime_text_range_new(qljs_sublime_text_position start,
+                                                     qljs_sublime_text_position end) {
+  return new qljs_sublime_text_range{.start = start, .end = end};
+}
 #else
+qljs_sublime_text_range *qljs_sublime_text_range_new(qljs_sublime_text_offset begin,
+                                                     qljs_sublime_text_offset end) {
+  return new qljs_sublime_text_range{.begin = begin, .end = end};
+}
 #endif
+
+void qljs_sublime_text_range_delete(qljs_sublime_text_range *r) { delete r; }
 
 //==============================================================================
 //------------------------------------------------------------------------------

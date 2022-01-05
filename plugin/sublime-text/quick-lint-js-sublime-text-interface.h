@@ -58,7 +58,7 @@ qljs_sublime_text_position *
 qljs_sublime_text_position_new(qljs_sublime_text_offset line,
                                qljs_sublime_text_offset character);
 
-void qljs_sublime_text_position_delete(qljs_sublime_text_range *r);
+void qljs_sublime_text_position_delete(qljs_sublime_text_position *p);
 
 //==============================================================================
 //------------------------------------------------------------------------------
