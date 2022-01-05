@@ -48,13 +48,17 @@ void sublime_text_locator::replace_text(range_type range,
   this->line_is_ascii_.clear();
 
   // Offsets before replacement: do not adjust.
+  auto old_offset_of_lines_before_replacement_iterator =
+      // NOTE(cahian): Why range.start.line + 1 and not just range.start.line?
+      this->old_offset_of_lines_.begin() + (range.start.line + 1);
+  auto old_line_is_ascii_before_replacement_iterator =
+      this->old_offset_of_lines_.begin() + range.start.line;
   this->offset_of_lines_.insert(this->offset_of_lines_.end(),
                                 this->old_offset_of_lines_.begin(),
-                                this->old_offset_of_lines_.begin() + range.start.line +
-                                    1);
+                                old_offset_of_lines_before_replacement_iterator);
   this->line_is_ascii_.insert(this->line_is_ascii_.end(),
                               this->old_line_is_ascii_.begin(),
-                              this->old_line_is_ascii_.begin() + range.start.line);
+                              old_line_is_ascii_before_replacement_iterator);
 
   // Offsets within replacement: re-parse newlines.
   bool last_line_of_replacement_is_ascii;
