@@ -15,27 +15,27 @@
 #include <quick-lint-js/utf-8.h>
 
 namespace quick_lint_js {
+
+#if QLJS_ST_HAVE_INCREMENTAL_CHANGES
 sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
     : input_(input) {
   this->cache_offsets_of_lines();
 }
 
-sublime_text_locator::range_type
-sublime_text_locator::range(source_code_span span) const {
+sublime_text_range sublime_text_locator::range(source_code_span span) const {
   position_type start = this->position(span.begin());
   position_type end = this->position(span.end());
   return range_type{.start = start, .end = end};
 }
 
-sublime_text_locator::position_type
-sublime_text_locator::position(const char8 *source) const noexcept {
+sublime_text_position sublime_text_locator::position(const char8 *source) const
+    noexcept {
   offset_type offset = this->offset(source);
   offset_type line_number = this->find_line_at_offset(offset);
   return this->position(line_number, offset);
 }
 
-const char8 *
-sublime_text_locator::from_position(sublime_text_locator::position_type position) const
+const char8 *sublime_text_locator::from_position(sublime_text_position position) const
     noexcept {
   auto is_last_line =
       [](offset_type line, offset_type number_of_lines) {
@@ -97,7 +97,7 @@ sublime_text_locator::from_position(sublime_text_locator::position_type position
   }
 }
 
-void sublime_text_locator::replace_text(sublime_text_locator::range_type range,
+void sublime_text_locator::replace_text(sublime_text_range range,
                                         string8_view replacement_text,
                                         padded_string_view new_input) {
   auto start_offset =
@@ -204,7 +204,7 @@ void sublime_text_locator::compute_offsets_of_lines(const char8 *begin,
   *out_last_line_is_ascii = is_line_ascii();
 }
 
-sublime_text_locator::offset_type
+sublime_text_offset
 sublime_text_locator::find_line_at_offset(offset_type offset) const {
   QLJS_ASSERT(!this->offset_of_lines_.empty());
   auto offset_of_following_line_it = std::upper_bound(
@@ -213,13 +213,13 @@ sublime_text_locator::find_line_at_offset(offset_type offset) const {
                                   this->offset_of_lines_.begin());
 }
 
-sublime_text_locator::offset_type
-sublime_text_locator::offset(const char8 *source) const noexcept {
+sublime_text_offset sublime_text_locator::offset(const char8 *source) const noexcept {
   return narrow_cast<offset_type>(source - this->input_.data());
 }
 
-sublime_text_locator::position_type
-sublime_text_locator::position(int line_number, offset_type offset) const noexcept {
+sublime_text_position sublime_text_locator::position(int line_number,
+                                                     offset_type offset) const
+    noexcept {
   offset_type beginning_of_line_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line_number)];
   bool line_is_ascii = this->line_is_ascii_[narrow_cast<std::size_t>(line_number)];
@@ -233,27 +233,25 @@ sublime_text_locator::position(int line_number, offset_type offset) const noexce
                                       offset - beginning_of_line_offset);
   }
 
-  return sublime_text_locator::position_type{.line = line_number,
-                                             .character = character};
+  return sublime_text_position{.line = line_number, .character = character};
 }
 #else
 sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
     : input_(input) {}
 
-sublime_text_locator::range_type
-sublime_text_locator::range(source_code_span span) const {
+sublime_text_range sublime_text_locator::range(source_code_span span) const {
   auto begin = this->position(span.begin());
   auto end = this->position(span.end());
   return range_type{.begin = begin, .end = end};
 }
 
-sublime_text_locator::offset_type sublime_text_locator::position(const char8 *ch) const
-    noexcept {
+sublime_text_offset sublime_text_locator::position(const char8 *ch) const noexcept {
   auto byte_offset = narrow_cast<std::size_t>(ch - this->input_.data());
   std::size_t count = count_utf_8_characters(this->input_, byte_offset);
   return narrow_cast<offset_type>(count);
 }
 #endif
+
 } // namespace quick_lint_js
 
 // quick-lint-js finds bugs in JavaScript programs.
