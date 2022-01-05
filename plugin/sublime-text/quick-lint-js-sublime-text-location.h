@@ -83,12 +83,12 @@ private:
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   // offset_of_lines_ the vector index is the line, and the value of index is
-  // the beginning offset of the line
+  // the beginning offset of the line.
   std::vector<offset_type> offset_of_lines_;
-  // line_is_ascii_ e vector index is the line, and the value of index is true
-  // if all characters in line is ascii otherwise false
-  // usigned char to avoid performance traps for vector<bool> template
-  // specialization
+  // line_is_ascii_ vector index is the line, and the value of index is true
+  // if all characters in line is ascii otherwise false.
+  // unsigned char to avoid performance traps for vector<bool> template
+  // specialization.
   std::vector<unsigned char> line_is_ascii_;
 
   // old_offset_of_lines_ and old_line_is_ascii_ are used for double buffering

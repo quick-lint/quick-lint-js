@@ -47,7 +47,10 @@ void sublime_text_locator::replace_text(range_type range,
   this->line_is_ascii_.clear();
 
   // Offsets before replacement: do not adjust.
-  // NOTE(cahian): Why range.start.line + 1 and not just range.start.line?
+
+  // Why range.start.line + 1 and not just range.start.line?
+  // Re: The offset of the edited line can't change because the offset is the
+  // beginning of line offset, so we use the offset already computed.
   auto old_offset_of_lines_before_replacement_iterator =
       this->old_offset_of_lines_.begin() + range.start.line + 1;
   auto old_line_is_ascii_before_replacement_iterator =
