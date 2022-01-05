@@ -96,9 +96,8 @@ private:
 
   offset_type find_line_at_offset(offset_type offset) const;
 
-  void compute_offsets_of_lines(const char8 *begin,
-                                const char8 *end,
-                                bool *out_last_line_is_ascii);
+  bool compute_offsets_of_lines(const char8 *begin,
+                                const char8 *end);
 
   void cache_offsets_of_lines();
 #endif

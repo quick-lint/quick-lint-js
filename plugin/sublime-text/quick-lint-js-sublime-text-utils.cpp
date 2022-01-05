@@ -11,6 +11,8 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_UTILS_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_UTILS_H
 
+#include <algorithm>
+
 namespace quick_lint_js {
 // Like std::transform with an std::back_insert_iterator, but more efficient for
 // std::vector<int>.

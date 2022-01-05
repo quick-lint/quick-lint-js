@@ -11,7 +11,6 @@
 #include <quick-lint-js-sublime-text-location.h>
 #include <quick-lint-js-sublime-text-utils.h>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/utf-8.h>
 
@@ -50,9 +49,9 @@ void sublime_text_locator::replace_text(range_type range,
   // Offsets before replacement: do not adjust.
   // NOTE(cahian): Why range.start.line + 1 and not just range.start.line?
   auto old_offset_of_lines_before_replacement_iterator =
-      this->old_offset_of_lines_.begin() + (range.start.line + 1);
+      this->old_offset_of_lines_.begin() + range.start.line + 1;
   auto old_line_is_ascii_before_replacement_iterator =
-      this->old_offset_of_lines_.begin() + range.start.line;
+      this->old_line_is_ascii_.begin() + range.start.line;
   this->offset_of_lines_.insert(this->offset_of_lines_.end(),
                                 this->old_offset_of_lines_.begin(),
                                 old_offset_of_lines_before_replacement_iterator);
@@ -61,9 +60,8 @@ void sublime_text_locator::replace_text(range_type range,
                               old_line_is_ascii_before_replacement_iterator);
 
   // Offsets within replacement: re-parse newlines.
-  offset_type  = start_offset + replacement_text_size;
   bool last_line_of_replacement_is_ascii = this->compute_offsets_of_lines(
-      &this->input_[start_offset], &this->input_[]);
+      &this->input_[start_offset], &this->input_[start_offset + replacement_text_size]);
   if (this->line_is_ascii_.size() > start_line) {
     this->line_is_ascii_[start_line] =
         this->line_is_ascii_[start_line] && this->old_line_is_ascii_[start_line];
@@ -93,11 +91,8 @@ void sublime_text_locator::cache_offsets_of_lines() {
   QLJS_ASSERT(this->line_is_ascii_.empty());
 
   this->offset_of_lines_.push_back(0);
-  bool last_line_is_ascii;
-  this->compute_offsets_of_lines(
-      /*begin=*/this->input_.data(),
-      /*end=*/this->input_.null_terminator(),
-      /*out_last_line_is_ascii=*/&last_line_is_ascii);
+  bool last_line_is_ascii = this->compute_offsets_of_lines(
+      this->input_.data(), this->input_.null_terminator());
   this->line_is_ascii_.push_back(last_line_is_ascii);
 }
 
@@ -179,12 +174,12 @@ const char8 *sublime_text_locator::from_position(position_type position) const
 
 bool sublime_text_locator::compute_offsets_of_lines(const char8 *begin,
                                                     const char8 *end) {
+  std::uint8_t flags = 0;
+  auto is_line_ascii = [&flags]() -> bool { return (flags & 0x80) == 0; };
   auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
     this->offset_of_lines_.push_back(
         narrow_cast<offset_type>(beginning_of_line - this->input_.data()));
   };
-  std::uint8_t flags = 0;
-  auto is_line_ascii = [&flags]() -> bool { return (flags & 0x80) == 0; };
   auto add_end_of_line = [&]() -> void {
     this->line_is_ascii_.push_back(is_line_ascii());
     flags = 0;
