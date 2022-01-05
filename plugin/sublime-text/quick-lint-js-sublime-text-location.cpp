@@ -30,14 +30,14 @@ sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
 void sublime_text_locator::replace_text(range_type range,
                                         string8_view replacement_text,
                                         padded_string_view new_input) {
-  auto start_offset = this->offset(this->from_position(range.start));
-  auto end_offset = this->offset(this->from_position(range.end));
-  auto replacement_text_size = narrow_cast<offset_type>(replacement_text.size());
+  offset_type start_offset = this->offset(this->from_position(range.start));
+  offset_type end_offset = this->offset(this->from_position(range.end));
+  offset_type replacement_text_size = narrow_cast<offset_type>(replacement_text.size());
 
   QLJS_ASSERT(!this->offset_of_lines_.empty());
   std::size_t start_line = narrow_cast<std::size_t>(range.start.line);
-  std::size_t end_line = std::min(this->offset_of_lines_.size() - 1,
-                                  narrow_cast<std::size_t>(range.end.line));
+  std::size_t end_line = narrow_cast<std::size_t>(range.end.line);
+  end_line = std::min(this->offset_of_lines_.size() - 1, end_line);
 
   this->input_ = new_input;
   std::swap(this->old_offset_of_lines_, this->offset_of_lines_);
@@ -48,10 +48,9 @@ void sublime_text_locator::replace_text(range_type range,
   this->line_is_ascii_.clear();
 
   // Offsets before replacement: do not adjust.
-  this->offset_of_lines_.insert(this->offset_of_lines_.end(),
-                                this->old_offset_of_lines_.begin(),
-                                this->old_offset_of_lines_.begin() + range.start.line +
-                                    1);
+  auto end = this->old_offset_of_lines_.begin() + range.start.line + 1;
+  this->offset_of_lines_.insert(
+      this->offset_of_lines_.end(), this->old_offset_of_lines_.begin(), end);
   this->line_is_ascii_.insert(this->line_is_ascii_.end(),
                               this->old_line_is_ascii_.begin(),
                               this->old_line_is_ascii_.begin() + range.start.line);
