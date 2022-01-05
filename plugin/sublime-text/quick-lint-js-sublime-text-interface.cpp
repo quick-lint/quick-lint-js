@@ -8,26 +8,34 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <quick-lint-js-sublime-text-location.h>
 #include <quick-lint-js-sublime-text-interface.h>
+#include <quick-lint-js-sublime-text-location.h>
 #include <quick-lint-js/c-api-error-reporter.h>
 #include <quick-lint-js/document-base.h>
 #include <quick-lint-js/narrow-cast.h>
 
 namespace quick_lint_js {
-
 namespace {
-
 //==============================================================================
 //------------------------------------------------------------------------------
 // diagnostic
 
-struct sublime_text_diagnostic final : public qljs_st_diagnostic {
-};
+struct sublime_text_diagnostic final : public qljs_st_diagnostic {};
 
 } // namespace
-
 } // namespace quick_lint_js
+
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
+qljs_sublime_text_position *
+qljs_sublime_text_position_new(qljs_sublime_text_offset line,
+                               qljs_sublime_text_offset character) {
+  return qljs_sublime_text_range{.line = line, .character = character};
+}
+
+void qljs_sublime_text_position_delete(qljs_sublime_text_range *r);
+
+#else
+#endif
 
 //==============================================================================
 //------------------------------------------------------------------------------
