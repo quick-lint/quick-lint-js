@@ -2448,6 +2448,8 @@ expression* parser::parse_jsx_expression(Visitor& v) {
 template <QLJS_PARSE_VISITOR Visitor>
 expression* parser::parse_jsx_element_or_fragment(Visitor& v, identifier* tag,
                                                   const char8* less_begin) {
+  depth_guard d_guard(this);
+
   // If temp_tag_storage is nullopt, then there is no namespace. If
   // temp_tag_storage is not nullopt, then it stores the tag name.
   //
