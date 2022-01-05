@@ -552,6 +552,9 @@ class parser {
   // Memory used for temporary memory allocations (e.g. vectors on the stack).
   monotonic_allocator temporary_memory_;
 
+  // Memory used for strings in error messages.
+  monotonic_allocator error_memory_;
+
   linked_bump_allocator<alignof(void *)> buffering_visitor_memory_;
 
   bool in_top_level_ = true;

@@ -37,6 +37,7 @@ class diagnostic_formatter_base {
 
     case diagnostic_arg_type::char8:
     case diagnostic_arg_type::statement_kind:
+    case diagnostic_arg_type::string8_view:
     case diagnostic_arg_type::variable_kind:
       QLJS_UNREACHABLE();
     }
@@ -59,6 +60,9 @@ class diagnostic_formatter_base {
     case diagnostic_arg_type::source_code_span:
       return reinterpret_cast<const source_code_span*>(arg_data)->string_view();
 
+    case diagnostic_arg_type::string8_view:
+      return *reinterpret_cast<const string8_view*>(arg_data);
+
     case diagnostic_arg_type::statement_kind:
     case diagnostic_arg_type::variable_kind:
       QLJS_UNREACHABLE();
@@ -78,6 +82,7 @@ class diagnostic_formatter_base {
     case diagnostic_arg_type::char8:
     case diagnostic_arg_type::identifier:
     case diagnostic_arg_type::source_code_span:
+    case diagnostic_arg_type::string8_view:
     case diagnostic_arg_type::variable_kind:
       QLJS_UNREACHABLE();
     }
@@ -96,6 +101,7 @@ class diagnostic_formatter_base {
     case diagnostic_arg_type::char8:
     case diagnostic_arg_type::identifier:
     case diagnostic_arg_type::source_code_span:
+    case diagnostic_arg_type::string8_view:
     case diagnostic_arg_type::variable_kind:
       QLJS_UNREACHABLE();
     }

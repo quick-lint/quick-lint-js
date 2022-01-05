@@ -681,11 +681,12 @@
       {                                                                        \
         source_code_span opening_tag_name;                                     \
         source_code_span closing_tag_name;                                     \
+        string8_view opening_tag_name_pretty;                                  \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE("mismatched JSX tags; expected '</{1}>'"),       \
-            closing_tag_name, opening_tag_name)                                \
-          NOTE(QLJS_TRANSLATABLE("opening '<{0}>' tag here"),                  \
-               opening_tag_name))                                              \
+            closing_tag_name, opening_tag_name_pretty)                         \
+          NOTE(QLJS_TRANSLATABLE("opening '<{1}>' tag here"),                  \
+               opening_tag_name, opening_tag_name_pretty))                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_array_close, "E0157",                                      \

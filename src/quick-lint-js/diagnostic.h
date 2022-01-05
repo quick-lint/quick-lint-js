@@ -24,6 +24,7 @@ enum class diagnostic_arg_type : std::uint8_t {
   identifier,
   source_code_span,
   statement_kind,
+  string8_view,
   variable_kind,
 };
 
