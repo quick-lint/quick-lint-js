@@ -94,7 +94,8 @@ void qljs_sublime_text_text_delete(qljs_sublime_text_text *t);
 //------------------------------------------------------------------------------
 // document
 
-typedef struct qljs_sublime_text_document qljs_sublime_text_document;
+typedef struct qljs_sublime_text_document {
+} qljs_sublime_text_document;
 
 qljs_sublime_text_document *qljs_sublime_text_document_new(void);
 

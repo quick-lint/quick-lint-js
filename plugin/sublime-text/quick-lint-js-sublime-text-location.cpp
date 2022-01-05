@@ -9,6 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <quick-lint-js-sublime-text-location.h>
+#include <quick-lint-js-sublime-text-utils.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/narrow-cast.h>

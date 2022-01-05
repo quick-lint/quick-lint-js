@@ -1,6 +1,13 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+//==============================================================================
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                          sublime text c interface                          //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
 #include <quick-lint-js-sublime-text-location.h>
 #include <quick-lint-js-sublime-text-interface.h>
 #include <quick-lint-js/c-api-error-reporter.h>
@@ -8,10 +15,23 @@
 #include <quick-lint-js/narrow-cast.h>
 
 namespace quick_lint_js {
+
 namespace {
-using sublime_text_diagnostic = qljs_st_diagnostic;
+
+//==============================================================================
+//------------------------------------------------------------------------------
+// diagnostic
+
+struct sublime_text_diagnostic final : public qljs_st_diagnostic {
+};
+
 } // namespace
+
 } // namespace quick_lint_js
+
+//==============================================================================
+//------------------------------------------------------------------------------
+// document
 
 using qljs_st_document_base =
     quick_lint_js::document_base<quick_lint_js::sublime_text_locator,
