@@ -105,11 +105,12 @@ const char8 *sublime_text_locator::from_position(sublime_text_position position)
 void sublime_text_locator::replace_text(sublime_text_range range,
                                         string8_view replacement_text,
                                         padded_string_view new_input) {
-  auto start_offset =
-      narrow_cast<sublime_text_offset>(this->from_position(range.start) - this->input_.data());
-  auto end_offset =
-      narrow_cast<sublime_text_offset>(this->from_position(range.end) - this->input_.data());
-  auto replacement_text_size = narrow_cast<sublime_text_offset>(replacement_text.size());
+  auto start_offset = narrow_cast<sublime_text_offset>(
+      this->from_position(range.start) - this->input_.data());
+  auto end_offset = narrow_cast<sublime_text_offset>(this->from_position(range.end) -
+                                                     this->input_.data());
+  auto replacement_text_size =
+      narrow_cast<sublime_text_offset>(replacement_text.size());
 
   QLJS_ASSERT(!this->offset_of_lines_.empty());
   std::size_t start_line = narrow_cast<std::size_t>(range.start.line);
@@ -148,11 +149,13 @@ void sublime_text_locator::replace_text(sublime_text_range range,
 
   // Offsets after replacement: adjust with a fixed offset.
   auto net_bytes_added = replacement_text_size - (end_offset - start_offset);
-  insert_back_transform(
-      this->old_offset_of_lines_.begin() + narrow_cast<std::ptrdiff_t>(end_line) + 1,
-      this->old_offset_of_lines_.end(),
-      this->offset_of_lines_,
-      [&](sublime_text_offset offset) -> sublime_text_offset { return offset + net_bytes_added; });
+  insert_back_transform(this->old_offset_of_lines_.begin() +
+                            narrow_cast<std::ptrdiff_t>(end_line) + 1,
+                        this->old_offset_of_lines_.end(),
+                        this->offset_of_lines_,
+                        [&](sublime_text_offset offset) -> sublime_text_offset {
+                          return offset + net_bytes_added;
+                        });
   this->line_is_ascii_.insert(this->line_is_ascii_.end(),
                               this->old_line_is_ascii_.begin() +
                                   narrow_cast<std::ptrdiff_t>(end_line) + 1,
@@ -215,7 +218,7 @@ sublime_text_locator::find_line_at_offset(sublime_text_offset offset) const {
   auto offset_of_following_line_it = std::upper_bound(
       this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
   return narrow_cast<sublime_text_offset>((offset_of_following_line_it - 1) -
-                                  this->offset_of_lines_.begin());
+                                          this->offset_of_lines_.begin());
 }
 
 sublime_text_offset sublime_text_locator::offset(const char8 *source) const noexcept {
