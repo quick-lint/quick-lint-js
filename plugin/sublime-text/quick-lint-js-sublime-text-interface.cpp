@@ -107,10 +107,10 @@ void qljs_sublime_text_document_set_text(qljs_sublime_text_document *document,
 void qljs_sublime_text_document_replace_text(qljs_sublime_text_document *document,
                                              const qljs_sublime_text_range *range,
                                              const qljs_sublime_text_text *text) {
-  auto range_ = reinterpret_cast<qljs_sublime_text_document::range_type *>(range);
+  auto cpp_range = reinterpret_cast<qljs_sublime_text_document::range_type *>(range);
   auto content = reinterpret_cast<const quick_lint_js::char8 *>(text->content);
   auto replacement = quick_lint_js::string8_view(content8, text->length);
-  document->replace_text(*range_, replacement);
+  document->replace_text(*cpp_range, replacement);
 }
 #endif
 
