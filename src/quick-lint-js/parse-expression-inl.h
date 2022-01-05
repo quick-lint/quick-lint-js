@@ -2517,6 +2517,7 @@ expression* parser::parse_jsx_element_or_fragment(Visitor& v, identifier* tag,
       this->lexer_.skip_in_jsx();
     }
   }
+  const char8* tag_end = this->lexer_.end_of_previous_token();
 
 next_attribute:
   switch (this->peek().type) {
@@ -2602,26 +2603,86 @@ next:
     // </namespace:current>
     case token_type::slash: {
       this->lexer_.skip_in_jsx();
-      if (tag) {
-        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      const char8* closing_tag_begin = this->peek().begin;
+
+      std::optional<identifier> closing_tag_namespace;
+      std::optional<identifier> closing_tag;
+      expression_arena::vector<identifier> closing_tag_members(
+          "jsx closing_tag_members", this->expressions_.allocator());
+      if (this->peek().type == token_type::identifier) {
+        closing_tag = this->peek().identifier_name();
         this->lexer_.skip_in_jsx();
       }
       if (this->peek().type == token_type::colon) {
         // </namespace:current>
         this->lexer_.skip_in_jsx();
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+        closing_tag_namespace = std::move(closing_tag);
+        closing_tag = this->peek().identifier_name();
         this->lexer_.skip_in_jsx();
       }
-      if (!tag_members.empty()) {
-        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-        this->lexer_.skip_in_jsx();
-        while (this->peek().type == token_type::dot) {
-          // <module.submodule.Component>
+      if (this->peek().type == token_type::dot) {
+        // <module.submodule.Component>
+        if (!closing_tag.has_value()) {
+          QLJS_PARSER_UNIMPLEMENTED();
+        }
+        closing_tag_members.emplace_back(*closing_tag);
+        closing_tag.reset();
+        do {
           this->lexer_.skip_in_jsx();
           QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+          closing_tag_members.emplace_back(this->peek().identifier_name());
           this->lexer_.skip_in_jsx();
-        }
+        } while (this->peek().type == token_type::dot);
       }
+
+      bool mismatch = false;
+      if ((tag_namespace != nullptr) != closing_tag_namespace.has_value()) {
+        mismatch = true;
+      }
+      if ((tag_namespace && closing_tag_namespace.has_value()) &&
+          (tag_namespace->normalized_name() !=
+           closing_tag_namespace->normalized_name())) {
+        mismatch = true;
+      }
+      if ((tag != nullptr) != closing_tag.has_value()) {
+        mismatch = true;
+      }
+      if ((tag && closing_tag.has_value()) &&
+          (tag->normalized_name() != closing_tag->normalized_name())) {
+        mismatch = true;
+      }
+      if (!std::equal(tag_members.begin(), tag_members.end(),
+                      closing_tag_members.begin(), closing_tag_members.end(),
+                      [](const identifier& tag_member,
+                         const identifier& closing_tag_member) {
+                        return tag_member.normalized_name() ==
+                               closing_tag_member.normalized_name();
+                      })) {
+        mismatch = true;
+      }
+      if (mismatch) {
+        if (tag_namespace) {
+          QLJS_ASSERT(tag);
+        }
+        const char8* closing_tag_end = this->lexer_.end_of_previous_token();
+        this->error_reporter_->report(error_mismatched_jsx_tags{
+            .opening_tag_name =
+                tag_namespace
+                    ? source_code_span(tag_namespace->span().begin(), tag_end)
+                    : !tag_members.empty()
+                          ? source_code_span(tag_members.front().span().begin(),
+                                             tag_end)
+                          : tag ? tag->span()
+                                : source_code_span(tag_end, tag_end),
+            .closing_tag_name =
+                closing_tag_begin <= closing_tag_end
+                    ? source_code_span(closing_tag_begin, closing_tag_end)
+                    :
+                    // This happens for </> (fragment close).
+                    source_code_span(closing_tag_begin, closing_tag_begin)});
+      }
+
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
       const char8* greater_end = this->peek().end;
       return make_jsx_expression(greater_end);

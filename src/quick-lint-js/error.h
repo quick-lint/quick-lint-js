@@ -677,6 +677,17 @@
           function_token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_mismatched_jsx_tags, "E0187",                                      \
+      {                                                                        \
+        source_code_span opening_tag_name;                                     \
+        source_code_span closing_tag_name;                                     \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE("mismatched JSX tags; expected '</{1}>'"),       \
+            closing_tag_name, opening_tag_name)                                \
+          NOTE(QLJS_TRANSLATABLE("opening '<{0}>' tag here"),                  \
+               opening_tag_name))                                              \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_array_close, "E0157",                                      \
       {                                                                        \
         source_code_span left_square;                                          \

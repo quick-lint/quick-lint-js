@@ -259,6 +259,173 @@ TEST(test_parse_jsx, attribute_without_name_must_be_spread) {
                     expected_dots, strlen(u8"c = <div {"), u8"")));
   }
 }
+
+TEST(test_parse_jsx, begin_and_end_tags_must_match) {
+  {
+    padded_string code(u8"c = <div></span>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                    &code, error_mismatched_jsx_tags,              //
+                    opening_tag_name, strlen(u8"c = <"), u8"div",  //
+                    closing_tag_name, strlen(u8"c = <div></"), u8"span")));
+  }
+
+  // opening_tag_name span for normal tag:
+  {
+    padded_string code(u8"c = < div ></span>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_mismatched_jsx_tags,  //
+                              opening_tag_name, strlen(u8"c = < "), u8"div")));
+  }
+
+  // opening_tag_name span for fragment tag:
+  {
+    padded_string code(u8"c = <  ></span>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_mismatched_jsx_tags,  //
+                              opening_tag_name, strlen(u8"c = <"), u8"")));
+  }
+
+  // opening_tag_name span for member tag:
+  {
+    padded_string code(u8"c = < module . Component ></span>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_mismatched_jsx_tags,  //
+                              opening_tag_name, strlen(u8"c = < "),
+                              u8"module . Component")));
+  }
+
+  // opening_tag_name span for namespaced tag:
+  {
+    padded_string code(u8"c = < svg : path ></span>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_mismatched_jsx_tags,  //
+                    opening_tag_name, strlen(u8"c = < "), u8"svg : path")));
+  }
+
+  // closing_tag_name span for normal tag:
+  {
+    padded_string code(u8"c = <div></ span >;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_mismatched_jsx_tags,  //
+                    closing_tag_name, strlen(u8"c = <div></ "), u8"span")));
+  }
+
+  // closing_tag_name span for fragment tag:
+  {
+    padded_string code(u8"c = <div></  >;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_mismatched_jsx_tags,  //
+                    closing_tag_name, strlen(u8"c = <div></  "), u8"")));
+  }
+
+  // closing_tag_name span for member tag:
+  {
+    padded_string code(u8"c = <div></ module . Component >;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_mismatched_jsx_tags,  //
+                              closing_tag_name, strlen(u8"c = <div></ "),
+                              u8"module . Component")));
+  }
+
+  // closing_tag_name span for namespaced tag:
+  {
+    padded_string code(u8"c = <div></ svg : path >;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_mismatched_jsx_tags,  //
+                              closing_tag_name, strlen(u8"c = <div></ "),
+                              u8"svg : path")));
+  }
+
+  for (string8_view jsx : {
+           u8"<div></span>"sv,
+           u8"<></span>"sv,
+           u8"<div></>"sv,
+
+           u8"<svg:g></svg:path>"sv,
+           u8"<svg:g></png:g>"sv,
+           u8"<svg:g></png:path>"sv,
+
+           u8"<svg></svg:path>"sv,
+           u8"<svg:path></svg>"sv,
+           u8"<path></svg:path>"sv,
+           u8"<svg:path></path>"sv,
+
+           u8"<svg:path></>"sv,
+           u8"<></svg:path>"sv,
+
+           u8"<module.Link></module.Route>"sv,
+           u8"<module.Link></mod.Link>"sv,
+           u8"<Link></module.Link>"sv,
+           u8"<module.Link></Link>"sv,
+           u8"<Module></Module.Link>"sv,
+           u8"<Module.Link></Module>"sv,
+
+           u8"<module.Link></>"sv,
+           u8"<></module.Link>"sv,
+
+           u8"<module.submodule.Link></module.submodule.Route>"sv,
+           u8"<module.submodule.Link></submodule.module.Link>"sv,
+
+           u8"<module.submodule.Link></module.Link>"sv,
+           u8"<module.Link></module.submodule.Link>"sv,
+
+           u8"<a:a></a.a>"sv,
+           u8"<a.a></a:a>"sv,
+           u8"<A></A.A>"sv,
+           u8"<A.A></A>"sv,
+           u8"<A></A:A>"sv,
+           u8"<A:A></A>"sv,
+       }) {
+    padded_string code(u8"c = " + string8(jsx) + u8";");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(error_mismatched_jsx_tags)));
+  }
+}
+
+TEST(test_parse_jsx, begin_and_end_tags_match_after_normalization) {
+  {
+    padded_string code(u8R"(c = <div></\u{64}\u{69}\u{76}>;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty())
+        << "shouldn't report error_mismatched_jsx_tags";
+  }
+}
 }
 }
 
