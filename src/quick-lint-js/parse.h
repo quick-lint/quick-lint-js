@@ -21,6 +21,7 @@
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/warning.h>
+#include <stack>
 #include <unordered_map>
 #include <utility>
 
@@ -555,7 +556,9 @@ class parser {
   // Memory used for strings in error messages.
   monotonic_allocator error_memory_;
 
-  linked_bump_allocator<alignof(void *)> buffering_visitor_memory_;
+  // These are stored in a stack here (rather than on the C++ stack via local
+  // variables) so that memory can be released in case we call setjmp.
+  std::stack<buffering_visitor> buffering_visitor_stack_;
 
   bool in_top_level_ = true;
   bool in_async_function_ = false;

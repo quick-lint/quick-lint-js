@@ -1339,6 +1339,28 @@ TEST(test_parse,
           &code, error_cannot_assign_to_variable_named_async_in_for_of_loop,  //
           async_identifier, strlen(u8"for ("), u8"async")));
 }
+
+TEST(test_parse, for_loop_in_for_loop_header_crash) {
+  // There used to be a use-after-free bug caused by a buffering_visitor copying
+  // memory into another buffering_visitor, then the parser's
+  // buffering_visitor_memory_ being rewind-ed. This test makes sure a
+  // regression doesn't happen again (assuming Address Sanitizer catches the
+  // use-after-free).
+  padded_string code(
+      u8R"(
+        for (var f = () => {
+          for (var xs = [x, x, x, x, x, x, x, x, x, x, x, x, x, x];;) {}
+        };;) {}
+      )"_sv);
+  spy_visitor v;
+  parser p(&code, &v);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
+
+  EXPECT_THAT(v.variable_uses, Not(IsEmpty()));
+  EXPECT_THAT(v.variable_uses,
+              ::testing::Each(spy_visitor::visited_variable_use{u8"x"}));
+  EXPECT_THAT(v.errors, IsEmpty());
+}
 }
 }
 

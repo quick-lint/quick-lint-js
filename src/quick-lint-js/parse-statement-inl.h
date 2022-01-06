@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_PARSE_STATEMENT_INL_H
 #define QUICK_LINT_JS_PARSE_STATEMENT_INL_H
 
+#include <boost/container/pmr/memory_resource.hpp>
 #include <cstdlib>
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -686,9 +687,8 @@ void parser::parse_and_visit_export(Visitor &v) {
     // export {a as default, b};
     // export {a, b, c} from "module";
   case token_type::left_curly: {
-    auto exports_visitor_rewind_guard =
-        this->buffering_visitor_memory_.make_rewind_guard();
-    buffering_visitor exports_visitor(&this->buffering_visitor_memory_);
+    buffering_visitor &exports_visitor = this->buffering_visitor_stack_.emplace(
+        boost::container::pmr::new_delete_resource());
     bump_vector<token, monotonic_allocator> exported_bad_tokens(
         "parse_and_visit_export exported_bad_tokens", &this->temporary_memory_);
     this->parse_and_visit_named_exports_for_export(
@@ -723,6 +723,10 @@ void parser::parse_and_visit_export(Visitor &v) {
       }
       exports_visitor.move_into(v);
     }
+
+    QLJS_ASSERT(&this->buffering_visitor_stack_.top() == &exports_visitor);
+    this->buffering_visitor_stack_.pop();
+
     this->consume_semicolon();
     break;
   }
@@ -1940,9 +1944,8 @@ void parser::parse_and_visit_for(Visitor &v) {
 
     lexer_transaction transaction = this->lexer_.begin_transaction();
     this->skip();
-    auto lhs_visitor_rewind_guard =
-        this->buffering_visitor_memory_.make_rewind_guard();
-    buffering_visitor lhs(&this->buffering_visitor_memory_);
+    buffering_visitor &lhs = this->buffering_visitor_stack_.emplace(
+        boost::container::pmr::new_delete_resource());
     if (declaring_token.type == token_type::kw_let &&
         this->is_let_token_a_variable_reference(this->peek(),
                                                 /*allow_declarations=*/true)) {
@@ -2046,6 +2049,10 @@ void parser::parse_and_visit_for(Visitor &v) {
       QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
+
+    QLJS_ASSERT(&this->buffering_visitor_stack_.top() == &lhs);
+    this->buffering_visitor_stack_.pop();
+
     break;
   }
 
