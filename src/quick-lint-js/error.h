@@ -64,6 +64,17 @@
                declaration))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_assignment_to_imported_variable, "E0185",                          \
+      {                                                                        \
+        identifier declaration;                                                \
+        identifier assignment;                                                 \
+        variable_kind var_kind;                                                \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE("assignment to imported variable"), assignment)  \
+          NOTE(QLJS_TRANSLATABLE("imported variable declared here"),           \
+               declaration))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_assignment_to_const_variable_before_its_declaration, "E0004",      \
       {                                                                        \
         identifier declaration;                                                \
