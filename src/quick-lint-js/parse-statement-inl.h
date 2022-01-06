@@ -2022,7 +2022,7 @@ void parser::parse_and_visit_for(Visitor &v) {
       }
       this->visit_expression(rhs, v, variable_context::rhs);
       if (!is_var_in) {
-        // In the following code, 'x' is declared before 'array' is evaluated:
+        // In the following code, 'array' is evaluated before 'x' is declared:
         //
         //   for (let x in array) {}
         lhs.move_into(v);
