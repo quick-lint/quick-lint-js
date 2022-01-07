@@ -11,10 +11,12 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
+#include <cstdint>
 #include <quick-lint-js-sublime-text-interface.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
+#include <vector>
 
 namespace quick_lint_js {
 
@@ -53,6 +55,53 @@ struct sublime_text_range final : public qljs_st_range {};
 
 //==============================================================================
 //------------------------------------------------------------------------------
+// lines
+
+struct lines {
+  using offset_type = qljs_st_offset;
+
+  void compute_information() {
+    std::uint8_t flags = 0;
+    auto is_line_ascii = [&flags]() -> bool { return (flags & 0x80) == 0; };
+    auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
+      this->offset_of_lines_.push_back(
+          narrow_cast<offset_type>(beginning_of_line - this->input_.data()));
+    };
+    auto add_end_of_line = [&]() -> void {
+      this->line_is_ascii_.push_back(is_line_ascii());
+      flags = 0;
+    };
+
+    for (const char8 *c = begin; c != end;) {
+      flags |= static_cast<std::uint8_t>(*c);
+      if (*c == u8'\n' || *c == u8'\r') {
+        if (c[0] == u8'\r' && c[1] == u8'\n') {
+          c += 2;
+          add_offset_beginning(c, input_beginning);
+          add_is_ascii();
+        } else {
+          c += 1;
+          add_offset_beginning(c, input_beginning);
+          add_is_ascii();
+        }
+        flag = 0;
+      } else {
+        c += 1;
+      }
+    }
+    return is_line_ascii();
+  }
+
+  void add_offset_beginning(const char8 *line_beginning, const char8 *input_beginning) {
+    this->offset_beginning_.push_back(line_beginning - input_beginning);
+  }
+
+  std::vector<offset_type> offset_beginning_;
+  std::vector<std::uint8_t> is_ascii_;
+};
+
+//==============================================================================
+//------------------------------------------------------------------------------
 // locator
 
 struct sublime_text_locator {
@@ -84,7 +133,7 @@ private:
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   // offset_of_lines_ the vector index is the line, and the value of index is
   // the beginning offset of the line.
-  std::vector<offset_type> offset_of_lines_;
+  std::vector<offset_type> beginning_offset_of_lines_;
   // line_is_ascii_ vector index is the line, and the value of index is true
   // if all characters in line is ascii otherwise false.
   // unsigned char to avoid performance traps for vector<bool> template
@@ -93,8 +142,15 @@ private:
 
   // old_offset_of_lines_ and old_line_is_ascii_ are used for double buffering
   // of offset_of_lines_ and line_is_ascii_. This reduces allocations.
+  //
   std::vector<offset_type> old_offset_of_lines_;
   std::vector<unsigned char> old_line_is_ascii_;
+
+  lines new_lines;
+
+  // old_lines are used for double buffering of new_lines.
+  // This reduces allocations.
+  lines old_lines;
 
   position_type position(int line_number, offset_type offset) const noexcept;
 
@@ -102,8 +158,7 @@ private:
 
   offset_type find_line_at_offset(offset_type offset) const;
 
-  bool compute_offsets_of_lines(const char8 *begin,
-                                const char8 *end);
+  bool compute_offsets_of_lines(const char8 *begin, const char8 *end);
 
   void cache_offsets_of_lines();
 #endif
