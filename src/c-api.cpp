@@ -27,7 +27,9 @@ class qljs_document_base {
     this->error_reporter_.reset();
     this->error_reporter_.set_input(this->document_.string(),
                                     &this->document_.locator());
-    parser p(this->document_.string(), &this->error_reporter_);
+    parser_options p_options;
+    p_options.jsx = true;
+    parser p(this->document_.string(), &this->error_reporter_, p_options);
     linter l(&this->error_reporter_, &this->config_.globals());
     p.parse_and_visit_module_catching_fatal_parse_errors(l);
 
