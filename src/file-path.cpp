@@ -8,7 +8,8 @@
 #include <quick-lint-js/utf-16.h>
 
 #if QLJS_HAVE_WINDOWS_H
-#include <Windows.h>
+#include <quick-lint-js/windows.h>
+//#include <Windows.h>
 #include <pathcch.h>
 #endif
 

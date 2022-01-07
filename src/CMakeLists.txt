@@ -146,6 +146,7 @@ quick_lint_js_add_library(
   quick-lint-js/lsp-pipe-writer.h
   quick-lint-js/lsp-server.h
   quick-lint-js/math-overflow.h
+  quick-lint-js/windows.h
   quick-lint-js/narrow-cast.h
   quick-lint-js/null-visitor.h
   quick-lint-js/optional.h

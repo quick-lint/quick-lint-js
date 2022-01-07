@@ -13,7 +13,8 @@
 #include <vector>
 
 #if defined(_WIN32)
-#include <Windows.h>
+#include <quick-lint-js/windows.h>
+//#include <Windows.h>
 #endif
 
 namespace quick_lint_js {
