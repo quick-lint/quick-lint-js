@@ -58,32 +58,24 @@ struct sublime_text_range final : public qljs_st_range {};
 // lines
 
 struct lines {
+public:
   using offset_type = qljs_st_offset;
 
   void compute_information() {
     std::uint8_t flags = 0;
     auto is_line_ascii = [&flags]() -> bool { return (flags & 0x80) == 0; };
-    auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
-      this->offset_of_lines_.push_back(
-          narrow_cast<offset_type>(beginning_of_line - this->input_.data()));
-    };
     auto add_end_of_line = [&]() -> void {
       this->line_is_ascii_.push_back(is_line_ascii());
       flags = 0;
     };
 
     for (const char8 *c = begin; c != end;) {
+      if (is_ascii) {}
       flags |= static_cast<std::uint8_t>(*c);
-      if (*c == u8'\n' || *c == u8'\r') {
-        if (c[0] == u8'\r' && c[1] == u8'\n') {
-          c += 2;
-          add_offset_beginning(c, input_beginning);
-          add_is_ascii();
-        } else {
-          c += 1;
-          add_offset_beginning(c, input_beginning);
-          add_is_ascii();
-        }
+      if (is_line_end(*c)) {
+        c = is_microsoft_newline(c) ? 2 : 1;
+        add_is_ascii();
+        add_offset_beginning(c, input_beginning);
         flag = 0;
       } else {
         c += 1;
@@ -92,12 +84,33 @@ struct lines {
     return is_line_ascii();
   }
 
-  void add_offset_beginning(const char8 *line_beginning, const char8 *input_beginning) {
-    this->offset_beginning_.push_back(line_beginning - input_beginning);
-  }
-
   std::vector<offset_type> offset_beginning_;
   std::vector<std::uint8_t> is_ascii_;
+
+private:
+  void add_offset_beginning(const char8 *line_beginning, const char8 *input_beginning) {
+    offset_type offset = narrow_cast<offset_type>(line_beginning - input_beginning);
+    this->offset_beginning_.push_back(offset);
+  }
+
+  void add_is_ascii() {
+  }
+
+  void is_newline(const char8 c) {
+    return c == u8'\n' || c == u8'\r';
+  }
+
+  void is_wide_newline(const char8* c) {
+    return is_newline(c[0]) && is_newline(c[1]);
+  }
+
+  void is_microsoft_newline(const char8* c) {
+    return c[0] == u8'\r' && c[1] == u8'\n';
+  }
+
+  void is_character_ascii(const char8 c) {
+    return static_cast<std::uint8_t>(c) > 127;
+  }
 };
 
 //==============================================================================
