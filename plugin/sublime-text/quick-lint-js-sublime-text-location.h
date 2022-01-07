@@ -57,7 +57,7 @@ struct sublime_text_range final : public qljs_st_range {};
 //------------------------------------------------------------------------------
 // lines
 
-struct lines {
+struct sublime_text_lines {
 public:
   using offset_type = qljs_st_offset;
 
@@ -69,11 +69,12 @@ public:
       flags = 0;
     };
 
-    for (const char8 *c = begin; c != end;) {
-      if (is_ascii) {}
+    const char8 *c = begin;
+    add_offset_beginning(c, input_beginning);
+    while (c != end) {
       flags |= static_cast<std::uint8_t>(*c);
-      if (is_line_end(*c)) {
-        c = is_microsoft_newline(c) ? 2 : 1;
+      if (is_newline(*c)) {
+        c += is_microsoft_newline(c) ? 2 : 1;
         add_is_ascii();
         add_offset_beginning(c, input_beginning);
         flag = 0;
@@ -159,11 +160,11 @@ private:
   std::vector<offset_type> old_offset_of_lines_;
   std::vector<unsigned char> old_line_is_ascii_;
 
-  lines new_lines;
+  sublime_text_lines new_lines;
 
   // old_lines are used for double buffering of new_lines.
   // This reduces allocations.
-  lines old_lines;
+  sublime_text_lines old_lines;
 
   position_type position(int line_number, offset_type offset) const noexcept;
 
