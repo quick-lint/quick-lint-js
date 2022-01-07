@@ -761,6 +761,41 @@ TEST(test_parse, missing_if_after_else) {
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else () {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors,
+                UnorderedElementsAre(
+                    ERROR_TYPE_OFFSETS(
+                        &code, error_missing_expression_between_parentheses,  //
+                        left_paren_to_right_paren,
+                        strlen(u8"if (false) {} else "), u8"()"),
+                    ERROR_TYPE_OFFSETS(&code, error_missing_if_after_else,  //
+                                       expected_if,
+                                       strlen(u8"if (false) {} else"), u8"")))
+        << "should not report error_missing_arrow_operator_in_arrow_function";
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else (x, y) {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",
+                                      "visit_variable_use",    // x
+                                      "visit_variable_use"));  // y
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_if_after_else,  //
+                    expected_if, strlen(u8"if (false) {} else"), u8"")))
+        << "should not report error_missing_arrow_operator_in_arrow_function";
+  }
 }
 
 TEST(test_parse, block_statement) {

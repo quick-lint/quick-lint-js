@@ -334,6 +334,16 @@ class parser {
     // If true, parse unexpected trailing identifiers as part of the
     // expression (and emit an error).
     bool trailing_identifiers = false;
+
+    // If true, try parsing a trailing '{' as the body of an arrow function. For
+    // example:
+    //
+    // (x) { return x; }
+    //    ^ missing '=>'
+    //
+    // If false, stop parsing at a trailing '{' and do not report an error.
+    bool trailing_curly_is_arrow_body = true;
+
     bool conditional_operator = true;
   };
 

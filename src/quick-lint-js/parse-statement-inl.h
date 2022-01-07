@@ -2282,7 +2282,10 @@ void parser::parse_and_visit_if(Visitor &v) {
     const char8 *end_of_else = this->lexer_.end_of_previous_token();
     bool has_left_paren = this->peek().type == token_type::left_paren;
     if (has_left_paren) {
-      this->parse_and_visit_expression(v);
+      this->parse_and_visit_expression(
+          v, precedence{
+                 .trailing_curly_is_arrow_body = false,
+             });
     } else {
       parse_and_visit_body();
     }

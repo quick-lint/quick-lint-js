@@ -428,6 +428,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
       this->skip();
       bool is_arrow_function = this->peek().type == token_type::equal_greater;
       bool is_arrow_function_without_arrow =
+          prec.trailing_curly_is_arrow_body &&
           this->peek().type == token_type::left_curly;
       if (is_arrow_function || is_arrow_function_without_arrow) {
         // Arrow function: () => expression-or-block
@@ -1372,6 +1373,7 @@ next:
 
   case token_type::left_curly: {
     bool looks_like_arrow_function_body =
+        prec.trailing_curly_is_arrow_body &&
         !this->peek().has_leading_newline && children.size() == 1 &&
         // TODO(strager): Check for ',' operator explicitly, not any binary
         // operator.
