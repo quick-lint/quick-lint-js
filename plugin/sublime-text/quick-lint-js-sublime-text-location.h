@@ -32,13 +32,13 @@ using offset = unsigned int;
 // position
 
 struct position final : public qljs_st_position {
-  friend inline bool operator==(const qljs_st_position &,
-                                const qljs_st_position &) noexcept {
+  friend inline bool operator==(const qljs_st_position &lhs,
+                                const qljs_st_position &rhs) noexcept {
     return lhs.line == rhs.line && lhs.character == rhs.character;
   }
 
-  friend inline bool operator!=(const qljs_st_position &,
-                                const qljs_st_position &) noexcept {
+  friend inline bool operator!=(const qljs_st_position &lhs,
+                                const qljs_st_position &rhs) noexcept {
     return !(lhs == rhs);
   }
 
@@ -56,11 +56,30 @@ struct range final : public qljs_st_range {};
 
 //==============================================================================
 //------------------------------------------------------------------------------
+// character
+struct character {
+  static void is_newline(const char8 c) { return c == u8'\n' || c == u8'\r'; }
+
+  static void is_wide_newline(const char8 *c) {
+    return is_newline(c[0]) && is_newline(c[1]);
+  }
+
+  static void is_microsoft_newline(const char8 *c) {
+    return c[0] == u8'\r' && c[1] == u8'\n';
+  }
+
+  static void is_character_ascii(const char8 c) {
+    return static_cast<std::uint8_t>(c) > 127;
+  }
+}
+
+//==============================================================================
+//------------------------------------------------------------------------------
 // lines
 
 struct lines {
 public:
-  using offset_type = qljs_st_offset;
+  using offset_type = qljs_sublime_text_offset;
 
   void compute_information() {
     std::uint8_t flags = 0;
@@ -95,31 +114,14 @@ private:
     this->offset_beginning_.push_back(offset);
   }
 
-  void add_is_ascii() {
-  }
-
-  void is_newline(const char8 c) {
-    return c == u8'\n' || c == u8'\r';
-  }
-
-  void is_wide_newline(const char8* c) {
-    return is_newline(c[0]) && is_newline(c[1]);
-  }
-
-  void is_microsoft_newline(const char8* c) {
-    return c[0] == u8'\r' && c[1] == u8'\n';
-  }
-
-  void is_character_ascii(const char8 c) {
-    return static_cast<std::uint8_t>(c) > 127;
-  }
+  static void add_is_ascii() {}
 };
 
 //==============================================================================
 //------------------------------------------------------------------------------
 // locator
 
-struct sublime_text_locator {
+struct locator {
 public:
   using range_type = qljs_st_range;
   using offset_type = qljs_st_offset;
@@ -127,7 +129,7 @@ public:
   using position_type = qljs_st_position;
 #endif
 
-  explicit sublime_text_locator(padded_string_view input) noexcept;
+  explicit locator(padded_string_view input) noexcept;
 
   range_type range(source_code_span span) const;
 
@@ -161,11 +163,11 @@ private:
   std::vector<offset_type> old_offset_of_lines_;
   std::vector<unsigned char> old_line_is_ascii_;
 
-  sublime_text_lines new_lines;
+  lines new_lines;
 
   // old_lines are used for double buffering of new_lines.
   // This reduces allocations.
-  sublime_text_lines old_lines;
+  lines old_lines;
 
   position_type position(int line_number, offset_type offset) const noexcept;
 
