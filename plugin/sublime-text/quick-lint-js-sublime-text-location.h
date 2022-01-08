@@ -77,37 +77,32 @@ struct character {
 // lines
 
 struct lines {
-  void compute_information(const char8 *input_begin, const char8 *input_end) {
-    auto is_line_ascii = [&flags]() -> bool { return (flags & 0x80) == 0; };
-    auto add_end_of_line = [&]() -> void {
-      this->line_is_ascii_.push_back(is_line_ascii());
-      flags = 0;
+  bool compute_information(const char8 *input_begin, const char8 *input_end) {
+    auto on_line_begin = [this] {
+      this->offset_begin_.push_back(line_beginning - input_beginning);
     };
+    auto on_line_end = [this] {
+      this->offset_beginning_.push_back((flags & 127) == 0);
+    }
 
     std::uint8_t flags = 0;
     const char8 *ch = begin;
 
-    add_offset_beginning(ch, input_beginning);
+    on_line_begin();
     while (ch != end) {
       flags |= static_cast<std::uint8_t>(*ch);
       if (is_newline(*ch)) {
-        { // on line end
-          this->offset_beginning_.push_back((flags & 127) == 0);
-        }
-
+        on_line_end();
         ch += characters::is_microsoft_newline(ch) ? 2 : 1;
-
-        { // on line begin
-          this->offset_beginning_.push_back(line_beginning - input_beginning);
-        }
+        on_line_begin();
       } else {
         ch += 1;
       }
     }
-    return is_line_ascii();
+    return (flags & 127) == 0;
   }
 
-  std::vector<offset_type> offset_begin_;
+  std::vector<offset> offset_begin_;
   std::vector<std::uint8_t> is_ascii_;
 };
 
