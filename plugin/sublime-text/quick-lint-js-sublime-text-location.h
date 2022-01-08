@@ -32,6 +32,7 @@ using offset = unsigned int;
 // position
 
 struct position final : public qljs_st_position {
+public:
   friend inline bool operator==(const position &lhs, const position &rhs) noexcept {
     return lhs.line == rhs.line && lhs.character == rhs.character;
   }
@@ -57,8 +58,7 @@ struct range final : public qljs_st_range {};
 // character
 
 struct character {
-  static bool is_ascii(const char8 ch) { return static_cast<std::uint8_t>(ch) > 127; }
-
+public:
   static bool is_newline(const char8 ch) { return ch == u8'\n' || ch == u8'\r'; }
 
   static bool is_wide_newline(const char8 *ch) {
@@ -68,6 +68,13 @@ struct character {
   static bool is_microsoft_newline(const char8 *ch) {
     return ch[0] == u8'\r' && ch[1] == u8'\n';
   }
+
+  static bool is_ascii(const char8 ch) { return static_cast<std::uint8_t>(ch) > 127; }
+
+  static bool is_ascii_incrementally(const char8 ch, bool ) {
+  }
+
+private:
 };
 
 //==============================================================================
