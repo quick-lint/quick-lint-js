@@ -19,18 +19,19 @@
 #include <vector>
 
 namespace quick_lint_js {
+namespace sublime_text {
 
 //==============================================================================
 //------------------------------------------------------------------------------
 // offset
 
-using sublime_text_offset = unsigned int;
+using offset = unsigned int;
 
 //==============================================================================
 //------------------------------------------------------------------------------
 // position
 
-struct sublime_text_position final : public qljs_st_position {
+struct position final : public qljs_st_position {
   friend inline bool operator==(const qljs_st_position &,
                                 const qljs_st_position &) noexcept {
     return lhs.line == rhs.line && lhs.character == rhs.character;
@@ -51,13 +52,13 @@ struct sublime_text_position final : public qljs_st_position {
 //------------------------------------------------------------------------------
 // range
 
-struct sublime_text_range final : public qljs_st_range {};
+struct range final : public qljs_st_range {};
 
 //==============================================================================
 //------------------------------------------------------------------------------
 // lines
 
-struct sublime_text_lines {
+struct lines {
 public:
   using offset_type = qljs_st_offset;
 
@@ -69,7 +70,7 @@ public:
       flags = 0;
     };
 
-    const char8 *c = begin;
+    const char8 *character = begin;
     add_offset_beginning(c, input_beginning);
     while (c != end) {
       flags |= static_cast<std::uint8_t>(*c);
@@ -178,6 +179,7 @@ private:
 #endif
 };
 
+} // namespace sublime_text
 } // namespace quick_lint_js
 #endif // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
