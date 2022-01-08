@@ -11,6 +11,7 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
+#include <cstddef>
 #include <cstdint>
 #include <quick-lint-js-sublime-text-interface.h>
 #include <quick-lint-js/char8.h>
@@ -78,22 +79,28 @@ public:
 
 struct lines {
 public:
-  bool compute_information(const char8 *input_begin, const char8 *input_end) {
-    auto on_line_begin = [this] () {
-      this->offset_begin_.push_back(this->calculate_offset_begin());
+  bool compute(const char8 *begin, const char8 *end, const char8 *input) {
+    std::uint8_t flags = 0;
+    auto on_line_begin = [this](const char8 *line_begin) {
+      this->offset_begin_.push_back(line_begin - input);
     };
-    auto on_line_end = [this] { this->offset_beginning_.push_back((flags & 127) == 0); }
+    auto on_character = [flags](const char8 *character) {
+      flags |= static_cast<std::uint8_t>(*character);
+    };
+    auto on_line_end = [flags, this](const char8 *line_end) {
+      this->is_ascii_.push_back((flags & 127) == 0);
+    };
 
-    const char8 *ch = begin;
     ascii_calculator ac();
 
+    const char8 *ch = begin;
     on_line_begin();
     while (ch != end) {
-      ac.input(*ch);
-      if (is_newline(*ch)) {
+      on_character(ch);
+      if (characters::is_newline(*ch)) {
         on_line_end();
         ch += characters::is_microsoft_newline(ch) ? 2 : 1;
-        on_line_begin();
+        on_line_begin(ch);
       } else {
         ch += 1;
       }
@@ -101,13 +108,19 @@ public:
     return;
   }
 
+  bool compute(const char8 *begin, const char8 *end, const char8 *input) {}
+
+  void compute_is_ascii(std::size_t line) {}
+
+  void compute_offset_begin(std::size_t line) {}
+
   std::vector<std::uint8_t> is_ascii_;
   std::vector<offset> offset_begin_;
 
 private:
   struct calculator_of_is_ascii {
   public:
-    ascii_calculator() = default;
+    calculator_of_is_ascii() = default;
     reset() { flags = 0; }
     set(const char8 ch) { flags |= static_cast<std::uint8_t>(ch); }
     get() { return (flags & 127) == 0; }
