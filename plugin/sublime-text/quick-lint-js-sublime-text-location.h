@@ -59,6 +59,8 @@ struct range final : public qljs_st_range {};
 
 struct character {
 public:
+  static bool is_ascii(const char8 ch) { return static_cast<std::uint8_t>(ch) > 127; }
+
   static bool is_newline(const char8 ch) { return ch == u8'\n' || ch == u8'\r'; }
 
   static bool is_wide_newline(const char8 *ch) {
@@ -68,9 +70,6 @@ public:
   static bool is_microsoft_newline(const char8 *ch) {
     return ch[0] == u8'\r' && ch[1] == u8'\n';
   }
-
-  static bool is_ascii(const char8 ch) { return static_cast<std::uint8_t>(ch) > 127; }
-
 };
 
 //==============================================================================
@@ -102,16 +101,22 @@ public:
     return;
   }
 
-  std::vector<offset> offset_begin_;
   std::vector<std::uint8_t> is_ascii_;
+  std::vector<offset> offset_begin_;
+
 private:
-  struct is_input_ascii {
+  struct ascii_calculator {
   public:
     input(const char8 ch) { flags |= static_cast<std::uint8_t>(ch); }
     output() { return (flags & 127) == 0; }
+    reset() { flags = 0; }
 
   private:
-    const std::uint8_t flags;
+    std::uint8_t flags;
+  };
+
+  static offset calculate_offset(const char8 *foo, const char8 *input) {
+    return foo - input;
   }
 };
 
