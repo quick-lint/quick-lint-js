@@ -79,17 +79,17 @@ public:
 struct lines {
 public:
   bool compute_information(const char8 *input_begin, const char8 *input_end) {
-    auto on_line_begin = [this] {
-      this->offset_begin_.push_back(line_beginning - input_beginning);
+    auto on_line_begin = [this] () {
+      this->offset_begin_.push_back(this->calculate_offset_begin());
     };
     auto on_line_end = [this] { this->offset_beginning_.push_back((flags & 127) == 0); }
 
     const char8 *ch = begin;
-    is_input_ascii ii;
+    ascii_calculator ac();
 
     on_line_begin();
     while (ch != end) {
-      ii.input(*ch);
+      ac.input(*ch);
       if (is_newline(*ch)) {
         on_line_end();
         ch += characters::is_microsoft_newline(ch) ? 2 : 1;
@@ -105,17 +105,19 @@ public:
   std::vector<offset> offset_begin_;
 
 private:
-  struct ascii_calculator {
+  struct is_ascii_calculator {
   public:
+    ascii_calculator() = default;
+    start() { flags = 0; }
+    restart() { flags = 0; }
     input(const char8 ch) { flags |= static_cast<std::uint8_t>(ch); }
     output() { return (flags & 127) == 0; }
-    reset() { flags = 0; }
 
   private:
-    std::uint8_t flags;
+    std::uint8_t flags = 0;
   };
 
-  static offset calculate_offset(const char8 *foo, const char8 *input) {
+  static offset calculate_offset_begin(const char8 *foo, const char8 *input) {
     return foo - input;
   }
 };
