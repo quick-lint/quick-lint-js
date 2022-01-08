@@ -71,10 +71,6 @@ public:
 
   static bool is_ascii(const char8 ch) { return static_cast<std::uint8_t>(ch) > 127; }
 
-  static bool is_ascii_incrementally(const char8 ch, bool ) {
-  }
-
-private:
 };
 
 //==============================================================================
@@ -89,13 +85,12 @@ public:
     };
     auto on_line_end = [this] { this->offset_beginning_.push_back((flags & 127) == 0); }
 
-    std::uint8_t flags = 0;
-    bool is_ascii = false;
     const char8 *ch = begin;
+    is_input_ascii ii;
 
     on_line_begin();
     while (ch != end) {
-      bool is_ascii = is_ascii ? characters::is_ascii(*ch) : false;
+      ii.input(*ch);
       if (is_newline(*ch)) {
         on_line_end();
         ch += characters::is_microsoft_newline(ch) ? 2 : 1;
@@ -104,11 +99,20 @@ public:
         ch += 1;
       }
     }
-    return (flags & 127) == 0;
+    return;
   }
 
   std::vector<offset> offset_begin_;
   std::vector<std::uint8_t> is_ascii_;
+private:
+  struct is_input_ascii {
+  public:
+    input(const char8 ch) { flags |= static_cast<std::uint8_t>(ch); }
+    output() { return (flags & 127) == 0; }
+
+  private:
+    const std::uint8_t flags;
+  }
 };
 
 //==============================================================================
