@@ -32,18 +32,16 @@ using offset = unsigned int;
 // position
 
 struct position final : public qljs_st_position {
-  friend inline bool operator==(const qljs_st_position &lhs,
-                                const qljs_st_position &rhs) noexcept {
+  friend inline bool operator==(const position &lhs, const position &rhs) noexcept {
     return lhs.line == rhs.line && lhs.character == rhs.character;
   }
 
-  friend inline bool operator!=(const qljs_st_position &lhs,
-                                const qljs_st_position &rhs) noexcept {
+  friend inline bool operator!=(const position &lhs, const position &rhs) noexcept {
     return !(lhs == rhs);
   }
 
-  friend inline std::ostream &operator<<(std::ostream &, const lsp_position &) {
-    stream << "line " << position.line << " character " << position.character;
+  friend inline std::ostream &operator<<(std::ostream &stream, const position &pos) {
+    stream << "line " << pos.line << " character " << pos.character;
     return stream;
   }
 };
@@ -57,18 +55,19 @@ struct range final : public qljs_st_range {};
 //==============================================================================
 //------------------------------------------------------------------------------
 // character
-struct character {
-  static void is_newline(const char8 c) { return c == u8'\n' || c == u8'\r'; }
 
-  static void is_wide_newline(const char8 *c) {
+struct character {
+  static bool is_newline(const char8 c) { return c == u8'\n' || c == u8'\r'; }
+
+  static bool is_wide_newline(const char8 *c) {
     return is_newline(c[0]) && is_newline(c[1]);
   }
 
-  static void is_microsoft_newline(const char8 *c) {
+  static bool is_microsoft_newline(const char8 *c) {
     return c[0] == u8'\r' && c[1] == u8'\n';
   }
 
-  static void is_character_ascii(const char8 c) {
+  static bool is_character_ascii(const char8 c) {
     return static_cast<std::uint8_t>(c) > 127;
   }
 };
@@ -78,43 +77,38 @@ struct character {
 // lines
 
 struct lines {
-public:
-  using offset_type = qljs_sublime_text_offset;
-
-  void compute_information() {
-    std::uint8_t flags = 0;
+  void compute_information(const char8 *input_begin, const char8 *input_end) {
     auto is_line_ascii = [&flags]() -> bool { return (flags & 0x80) == 0; };
     auto add_end_of_line = [&]() -> void {
       this->line_is_ascii_.push_back(is_line_ascii());
       flags = 0;
     };
 
-    const char8 *character = begin;
-    add_offset_beginning(c, input_beginning);
-    while (c != end) {
-      flags |= static_cast<std::uint8_t>(*c);
-      if (is_newline(*c)) {
-        c += is_microsoft_newline(c) ? 2 : 1;
-        add_is_ascii();
-        add_offset_beginning(c, input_beginning);
-        flag = 0;
+    std::uint8_t flags = 0;
+    const char8 *ch = begin;
+
+    add_offset_beginning(ch, input_beginning);
+    while (ch != end) {
+      flags |= static_cast<std::uint8_t>(*ch);
+      if (is_newline(*ch)) {
+        { // on line end
+          this->offset_beginning_.push_back((flags & 127) == 0);
+        }
+
+        ch += characters::is_microsoft_newline(ch) ? 2 : 1;
+
+        { // on line begin
+          this->offset_beginning_.push_back(line_beginning - input_beginning);
+        }
       } else {
-        c += 1;
+        ch += 1;
       }
     }
     return is_line_ascii();
   }
 
-  std::vector<offset_type> offset_beginning_;
+  std::vector<offset_type> offset_begin_;
   std::vector<std::uint8_t> is_ascii_;
-
-private:
-  void add_offset_beginning(const char8 *line_beginning, const char8 *input_beginning) {
-    offset_type offset = narrow_cast<offset_type>(line_beginning - input_beginning);
-    this->offset_beginning_.push_back(offset);
-  }
-
-  static void add_is_ascii() {}
 };
 
 //==============================================================================
@@ -123,11 +117,13 @@ private:
 
 struct locator {
 public:
-  using range_type = qljs_st_range;
-  using offset_type = qljs_st_offset;
-#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-  using position_type = qljs_st_position;
-#endif
+  /*
+    using range_type = qljs_st_range;
+    using offset_type = qljs_st_offset;
+  #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
+    using position_type = qljs_st_position;
+  #endif
+  */
 
   explicit locator(padded_string_view input) noexcept;
 
