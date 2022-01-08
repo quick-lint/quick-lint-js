@@ -539,6 +539,102 @@ TEST(test_parse_jsx, begin_and_end_tags_match_after_normalization) {
         << "shouldn't report error_mismatched_jsx_tags";
   }
 }
+
+TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
+  {
+    padded_string code(u8R"(c = <div></div> <div></div>;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_OFFSETS(
+            &code, error_adjacent_jsx_without_parent,                     //
+            begin, strlen(u8"c = "), u8"",                                //
+            begin_of_second_element, strlen(u8"c = <div></div> "), u8"",  //
+            end, strlen(u8"c = <div></div> <div></div>"), u8"")));
+  }
+
+  {
+    padded_string code(u8R"(c = <div></div> <div></div> <div></div>;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_3_OFFSETS(
+            &code, error_adjacent_jsx_without_parent,                     //
+            begin, strlen(u8"c = "), u8"",                                //
+            begin_of_second_element, strlen(u8"c = <div></div> "), u8"",  //
+            end, strlen(u8"c = <div></div> <div></div> <div></div>"), u8"")));
+  }
+
+  // Second element should be visited like normal.
+  {
+    padded_string code(
+        u8R"(c = <FirstComponent></FirstComponent> <SecondComponent>{child}</SecondComponent>;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.variable_uses,
+        ElementsAre(spy_visitor::visited_variable_use{u8"FirstComponent"},
+                    spy_visitor::visited_variable_use{u8"SecondComponent"},
+                    spy_visitor::visited_variable_use{u8"child"}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE(error_adjacent_jsx_without_parent)));
+  }
+
+  // Because the second element is on its own line, ASI should kick in, and the
+  // following example is syntactically valid. However, Babel, Espree, Flow, and
+  // TypeScript all agree that ASI does not kick in. Therefore, we report a
+  // syntax error, despite what the specification says.
+  {
+    padded_string code(
+        u8"c = <FirstComponent></FirstComponent>\n<SecondComponent></SecondComponent>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.variable_uses,
+        ElementsAre(spy_visitor::visited_variable_use{u8"FirstComponent"},
+                    spy_visitor::visited_variable_use{u8"SecondComponent"}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE(error_adjacent_jsx_without_parent)));
+  }
+
+  // The following code looks like adjacent JSX elements, but it's actually a
+  // JSX element followed by some legal operators. However, Babel, Espree, Flow,
+  // and TypeScript all agree that '<' is not allowed after a JSX element.
+  // Therefore, we report a syntax error, despite what the specification says.
+  // https://github.com/facebook/jsx/issues/120
+  {
+    //                  binary operators  v v           v (according to spec)
+    padded_string code(u8"c = <div></div> <i>/{child}</i>\ndone"_sv);
+    //                               regexp  ^^^^^^^^     (according to spec)
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"child"},
+                            spy_visitor::visited_variable_use{u8"done"}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE(error_adjacent_jsx_without_parent)));
+  }
+
+  {
+    padded_string code(
+        u8"c = <First></First><Second attr='value'></Second>;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"First"},
+                            spy_visitor::visited_variable_use{u8"Second"}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE(error_adjacent_jsx_without_parent)));
+  }
+}
 }
 }
 

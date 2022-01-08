@@ -37,6 +37,17 @@
 // * ERROR's second argument must have type *identifier* or *source_code_span*
 #define QLJS_X_ERROR_TYPES                                                     \
   QLJS_ERROR_TYPE(                                                             \
+      error_adjacent_jsx_without_parent, "E0189",                              \
+      {                                                                        \
+        source_code_span begin;                                                \
+        source_code_span begin_of_second_element;                              \
+        source_code_span end;                                                  \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE(                                                 \
+                "missing '<>' and '</>' to enclose multiple children"),        \
+            begin) NOTE(QLJS_TRANSLATABLE("children end here"), end))          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_assignment_before_variable_declaration, "E0001",                   \
       {                                                                        \
         identifier assignment;                                                 \

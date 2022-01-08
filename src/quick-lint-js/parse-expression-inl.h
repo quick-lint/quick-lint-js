@@ -2419,6 +2419,40 @@ expression* parser::parse_jsx_expression(Visitor& v) {
   }
 
   const char8* jsx_begin = this->peek().begin;
+  expression* ast = this->parse_jsx_element_or_fragment(v);
+
+  // Check for adjacent elements:
+  // <div /><div />  // Invalid.
+  if (this->peek().type == token_type::less) {
+    const char8* begin_of_second_element = this->peek().begin;
+    expression_arena::vector<expression*> elements(
+        "parse_jsx_expression adjacent elements",
+        this->expressions_.allocator());
+    elements.emplace_back(ast);
+    do {
+      elements.emplace_back(this->parse_jsx_element_or_fragment(v));
+    } while (this->peek().type == token_type::less);
+    const char8* end = this->lexer_.end_of_previous_token();
+    this->error_reporter_->report(error_adjacent_jsx_without_parent{
+        .begin = source_code_span(jsx_begin, jsx_begin),
+        .begin_of_second_element =
+            source_code_span(begin_of_second_element, begin_of_second_element),
+        .end = source_code_span(end, end),
+    });
+    ast = this->make_expression<expression::jsx_fragment>(
+        /*span=*/source_code_span(jsx_begin, end),
+        /*children=*/this->expressions_.make_array(std::move(elements)));
+  }
+
+  return ast;
+}
+
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_jsx_element_or_fragment(Visitor& v) {
+  QLJS_ASSERT(this->options_.jsx);
+  QLJS_ASSERT(this->peek().type == token_type::less);
+
+  const char8* jsx_begin = this->peek().begin;
   this->lexer_.skip_in_jsx();
   switch (this->peek().type) {
   // <div>

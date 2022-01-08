@@ -414,6 +414,8 @@ class parser {
   expression *parse_class_expression(Visitor &);
   template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_jsx_expression(Visitor &);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_jsx_element_or_fragment(Visitor &);
   // tag is optional. If it is nullptr, parse a fragment. Otherwise, parse an
   // element.
   //
