@@ -57,18 +57,16 @@ struct range final : public qljs_st_range {};
 // character
 
 struct character {
-  static bool is_newline(const char8 c) { return c == u8'\n' || c == u8'\r'; }
+  static bool is_ascii(const char8 ch) { return static_cast<std::uint8_t>(ch) > 127; }
 
-  static bool is_wide_newline(const char8 *c) {
-    return is_newline(c[0]) && is_newline(c[1]);
+  static bool is_newline(const char8 ch) { return ch == u8'\n' || ch == u8'\r'; }
+
+  static bool is_wide_newline(const char8 *ch) {
+    return is_newline(ch[0]) && is_newline(ch[1]);
   }
 
-  static bool is_microsoft_newline(const char8 *c) {
-    return c[0] == u8'\r' && c[1] == u8'\n';
-  }
-
-  static bool is_character_ascii(const char8 c) {
-    return static_cast<std::uint8_t>(c) > 127;
+  static bool is_microsoft_newline(const char8 *ch) {
+    return ch[0] == u8'\r' && ch[1] == u8'\n';
   }
 };
 
@@ -77,20 +75,20 @@ struct character {
 // lines
 
 struct lines {
+public:
   bool compute_information(const char8 *input_begin, const char8 *input_end) {
     auto on_line_begin = [this] {
       this->offset_begin_.push_back(line_beginning - input_beginning);
     };
-    auto on_line_end = [this] {
-      this->offset_beginning_.push_back((flags & 127) == 0);
-    }
+    auto on_line_end = [this] { this->offset_beginning_.push_back((flags & 127) == 0); }
 
     std::uint8_t flags = 0;
+    bool is_ascii = false;
     const char8 *ch = begin;
 
     on_line_begin();
     while (ch != end) {
-      flags |= static_cast<std::uint8_t>(*ch);
+      bool is_ascii = is_ascii ? characters::is_ascii(*ch) : false;
       if (is_newline(*ch)) {
         on_line_end();
         ch += characters::is_microsoft_newline(ch) ? 2 : 1;
