@@ -105,13 +105,12 @@ public:
   std::vector<offset> offset_begin_;
 
 private:
-  struct is_ascii_calculator {
+  struct calculator_of_is_ascii {
   public:
     ascii_calculator() = default;
-    start() { flags = 0; }
-    restart() { flags = 0; }
-    input(const char8 ch) { flags |= static_cast<std::uint8_t>(ch); }
-    output() { return (flags & 127) == 0; }
+    reset() { flags = 0; }
+    set(const char8 ch) { flags |= static_cast<std::uint8_t>(ch); }
+    get() { return (flags & 127) == 0; }
 
   private:
     std::uint8_t flags = 0;
