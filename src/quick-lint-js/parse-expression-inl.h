@@ -2426,7 +2426,7 @@ expression* parser::parse_jsx_expression(Visitor& v) {
     identifier tag = this->peek().identifier_name();
     this->lexer_.skip_in_jsx();
     expression* ast = this->parse_jsx_element_or_fragment(
-        v, /*tag=*/&tag, /*greater_begin=*/jsx_begin);
+        v, /*tag=*/&tag, /*less_begin=*/jsx_begin);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
     this->skip();
     return ast;
@@ -2435,7 +2435,7 @@ expression* parser::parse_jsx_expression(Visitor& v) {
   // <> </>
   case token_type::greater: {
     expression* ast = this->parse_jsx_element_or_fragment(
-        v, /*tag=*/nullptr, /*greater_begin=*/jsx_begin);
+        v, /*tag=*/nullptr, /*less_begin=*/jsx_begin);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
     this->lexer_.skip();
     return ast;
