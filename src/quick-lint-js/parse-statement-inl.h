@@ -2277,6 +2277,7 @@ void parser::parse_and_visit_if(Visitor &v) {
     break;
   }
 
+parse_maybe_else:
   if (this->peek().type == token_type::kw_else) {
     this->skip();
     const char8 *end_of_else = this->lexer_.end_of_previous_token();
@@ -2295,6 +2296,8 @@ void parser::parse_and_visit_if(Visitor &v) {
       this->error_reporter_->report(error_missing_if_after_else{
           .expected_if = source_code_span(end_of_else, end_of_else),
       });
+      parse_and_visit_body();
+      goto parse_maybe_else;
     }
   }
 }
