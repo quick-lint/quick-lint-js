@@ -87,15 +87,12 @@ public:
     auto on_character = [flags](const char8 *character) {
       flags |= static_cast<std::uint8_t>(*character);
     };
-    auto on_line_end = [flags, this](const char8 *line_end) {
+    auto on_line_end = [flags, this](const char8 *line_end) { // TODO: ignore param
       this->is_ascii_.push_back((flags & 127) == 0);
     };
 
-    ascii_calculator ac();
-
-    const char8 *ch = begin;
-    on_line_begin();
-    while (ch != end) {
+    on_line_begin(ch);
+    for (const char8 *ch = begin + 1; ch != end) {
       on_character(ch);
       if (characters::is_newline(*ch)) {
         on_line_end();
@@ -105,33 +102,11 @@ public:
         ch += 1;
       }
     }
-    return;
+    return;  // TODO: return bool
   }
-
-  bool compute(const char8 *begin, const char8 *end, const char8 *input) {}
-
-  void compute_is_ascii(std::size_t line) {}
-
-  void compute_offset_begin(std::size_t line) {}
 
   std::vector<std::uint8_t> is_ascii_;
   std::vector<offset> offset_begin_;
-
-private:
-  struct calculator_of_is_ascii {
-  public:
-    calculator_of_is_ascii() = default;
-    reset() { flags = 0; }
-    set(const char8 ch) { flags |= static_cast<std::uint8_t>(ch); }
-    get() { return (flags & 127) == 0; }
-
-  private:
-    std::uint8_t flags = 0;
-  };
-
-  static offset calculate_offset_begin(const char8 *foo, const char8 *input) {
-    return foo - input;
-  }
 };
 
 //==============================================================================
