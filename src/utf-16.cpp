@@ -14,7 +14,6 @@
 
 #if defined(_WIN32)
 #include <quick-lint-js/windows.h>
-//#include <Windows.h>
 #endif
 
 namespace quick_lint_js {
