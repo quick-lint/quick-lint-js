@@ -275,8 +275,10 @@ class parser {
   void parse_and_visit_with(Visitor &v);
 
   template <class ExpectedParenthesesError, class ExpectedParenthesisError,
-            QLJS_PARSE_VISITOR Visitor>
+            bool CheckForSketchyConditions, QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_parenthesized_expression(Visitor &v);
+
+  void error_on_sketchy_condition(expression *);
 
   void error_on_class_statement(statement_kind statement_kind);
   void error_on_lexical_declaration(statement_kind statement_kind);

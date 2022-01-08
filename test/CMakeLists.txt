@@ -77,6 +77,7 @@ quick_lint_js_add_executable(
   test-parse-module.cpp
   test-parse-statement.cpp
   test-parse-var.cpp
+  test-parse-warning.cpp
   test-parse.cpp
   test-pipe-writer.cpp
   test-result.cpp

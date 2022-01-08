@@ -47,6 +47,13 @@
           NOTE(QLJS_TRANSLATABLE("variable declared here"), declaration))      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_assignment_makes_condition_constant, "E0188",                      \
+      { source_code_span assignment_operator; },                               \
+      WARNING(QLJS_TRANSLATABLE(                                               \
+                  "'=' changes variables; to compare, use '===' instead"),     \
+              assignment_operator))                                            \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_assignment_to_const_global_variable, "E0002",                      \
       { identifier assignment; },                                              \
       ERROR(QLJS_TRANSLATABLE("assignment to const global variable"),          \

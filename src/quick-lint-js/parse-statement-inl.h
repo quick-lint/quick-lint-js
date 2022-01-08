@@ -1533,7 +1533,8 @@ void parser::parse_and_visit_switch(Visitor &v) {
   } else {
     this->parse_and_visit_parenthesized_expression<
         error_expected_parentheses_around_switch_condition,
-        error_expected_parenthesis_around_switch_condition>(v);
+        error_expected_parenthesis_around_switch_condition,
+        /*CheckForSketchyConditions=*/false>(v);
   }
 
   switch (this->peek().type) {
@@ -1777,7 +1778,8 @@ void parser::parse_and_visit_do_while(Visitor &v) {
 
   this->parse_and_visit_parenthesized_expression<
       error_expected_parentheses_around_do_while_condition,
-      error_expected_parenthesis_around_do_while_condition>(v);
+      error_expected_parenthesis_around_do_while_condition,
+      /*CheckForSketchyConditions=*/true>(v);
 
   if (this->peek().type == token_type::semicolon) {
     this->skip();
@@ -1807,7 +1809,9 @@ void parser::parse_and_visit_for(Visitor &v) {
   auto parse_c_style_head_remainder =
       [&](source_code_span first_semicolon_span) {
         if (this->peek().type != token_type::semicolon) {
-          this->parse_and_visit_expression(v);
+          expression *ast = this->parse_expression(v);
+          this->visit_expression(ast, v, variable_context::rhs);
+          this->error_on_sketchy_condition(ast);
         }
 
         switch (this->peek().type) {
@@ -2185,7 +2189,8 @@ void parser::parse_and_visit_while(Visitor &v) {
   } else {
     this->parse_and_visit_parenthesized_expression<
         error_expected_parentheses_around_while_condition,
-        error_expected_parenthesis_around_while_condition>(v);
+        error_expected_parenthesis_around_while_condition,
+        /*CheckForSketchyConditions=*/true>(v);
   }
 
   this->error_on_class_statement(statement_kind::while_loop);
@@ -2208,7 +2213,8 @@ void parser::parse_and_visit_with(Visitor &v) {
 
   this->parse_and_visit_parenthesized_expression<
       error_expected_parentheses_around_with_expression,
-      error_expected_parenthesis_around_with_expression>(v);
+      error_expected_parenthesis_around_with_expression,
+      /*CheckForSketchyConditions=*/false>(v);
 
   this->error_on_class_statement(statement_kind::with_statement);
   this->error_on_function_statement(statement_kind::with_statement);
@@ -2237,7 +2243,8 @@ void parser::parse_and_visit_if(Visitor &v) {
   } else {
     this->parse_and_visit_parenthesized_expression<
         error_expected_parentheses_around_if_condition,
-        error_expected_parenthesis_around_if_condition>(v);
+        error_expected_parenthesis_around_if_condition,
+        /*CheckForSketchyConditions=*/true>(v);
   }
 
   auto parse_and_visit_body = [this, &v]() -> void {
@@ -2303,7 +2310,7 @@ parse_maybe_else:
 }
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,
-          QLJS_PARSE_VISITOR Visitor>
+          bool CheckForSketchyConditions, QLJS_PARSE_VISITOR Visitor>
 void parser::parse_and_visit_parenthesized_expression(Visitor &v) {
   bool have_expression_left_paren = this->peek().type == token_type::left_paren;
   if (have_expression_left_paren) {
@@ -2311,7 +2318,11 @@ void parser::parse_and_visit_parenthesized_expression(Visitor &v) {
   }
   const char8 *expression_begin = this->peek().begin;
 
-  this->parse_and_visit_expression(v);
+  expression *ast = this->parse_expression(v);
+  this->visit_expression(ast, v, variable_context::rhs);
+  if constexpr (CheckForSketchyConditions) {
+    this->error_on_sketchy_condition(ast);
+  }
 
   const char8 *expression_end = this->lexer_.end_of_previous_token();
   bool have_expression_right_paren =

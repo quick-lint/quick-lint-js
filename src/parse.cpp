@@ -169,6 +169,16 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
   }
 }
 
+void parser::error_on_sketchy_condition(expression* ast) {
+  if (ast->kind() == expression_kind::assignment &&
+      ast->child_1()->kind() == expression_kind::literal) {
+    auto* assignment = static_cast<expression::assignment*>(ast);
+    this->error_reporter_->report(error_assignment_makes_condition_constant{
+        .assignment_operator = assignment->operator_span_,
+    });
+  }
+}
+
 void parser::error_on_class_statement(statement_kind statement_kind) {
   if (this->peek().type == token_type::kw_class) {
     const char8* expected_body = this->lexer_.end_of_previous_token();
