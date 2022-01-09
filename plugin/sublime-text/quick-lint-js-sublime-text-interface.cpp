@@ -15,22 +15,24 @@
 #include <quick-lint-js/narrow-cast.h>
 
 namespace quick_lint_js {
+namespace sublime_text {
 namespace {
 
 //==============================================================================
 //------------------------------------------------------------------------------
 // diagnostic
 
-struct sublime_text_diagnostic final : public qljs_sublime_text_diagnostic {};
+struct diagnostic final : public qljs_sublime_text_diagnostic {};
 
 } // namespace
+} // namespace sublime_text
 } // namespace quick_lint_js
 
-#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 //==============================================================================
 //------------------------------------------------------------------------------
 // position
 
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 qljs_sublime_text_position *
 qljs_sublime_text_position_new(qljs_sublime_text_offset line,
                                qljs_sublime_text_offset character) {
@@ -38,6 +40,7 @@ qljs_sublime_text_position_new(qljs_sublime_text_offset line,
 }
 
 void qljs_sublime_text_position_delete(qljs_sublime_text_position *p) { delete p; };
+#endif
 
 //==============================================================================
 //------------------------------------------------------------------------------
@@ -47,12 +50,6 @@ qljs_sublime_text_range *qljs_sublime_text_range_new(qljs_sublime_text_position 
                                                      qljs_sublime_text_position end) {
   return new qljs_sublime_text_range{.start = start, .end = end};
 }
-#else
-qljs_sublime_text_range *qljs_sublime_text_range_new(qljs_sublime_text_position begin,
-                                                     qljs_sublime_text_position end) {
-  return new qljs_sublime_text_range{.begin = begin, .end = end};
-}
-#endif
 
 void qljs_sublime_text_range_delete(qljs_sublime_text_range *r) { delete r; }
 
@@ -71,9 +68,9 @@ void qljs_sublime_text_text_delete(qljs_sublime_text_text *t) { delete t; }
 // document
 
 using qljs_sublime_text_document_base =
-    quick_lint_js::document_base<quick_lint_js::sublime_text_locator,
+    quick_lint_js::document_base<quick_lint_js::sublime_text::locator,
                                  quick_lint_js::c_api_error_reporter,
-                                 quick_lint_js::sublime_text_diagnostic>;
+                                 quick_lint_js::sublime_text::diagnostic>;
 
 struct qljs_sublime_text_document final : public qljs_sublime_text_document_base {
 public:

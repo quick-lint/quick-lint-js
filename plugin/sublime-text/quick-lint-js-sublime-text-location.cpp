@@ -20,6 +20,7 @@ namespace sublime_text {
 //==============================================================================
 //------------------------------------------------------------------------------
 // lines
+
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 void lines::compute(const char8 *begin, const char8 *end, const char8 *input) {
   std::uint8_t flags = 0;
