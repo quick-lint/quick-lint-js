@@ -100,31 +100,36 @@ void locator::replace_text(range_type range, string8_view replacement,
   }
 
   // After replacement: adjust with a fixed offset.
+  auto adjust_offset = [](offset_type offset) {
+    static int adjust = replacement.size() - (region.end - region.begin);
+    return offset + adjust;
+  };
   this->new_lines.extend(this->old_lines, range.end.line + 1,
-                         this->old_lines.size());
-
-  // After replacement: adjust with a fixed offset.
-  auto net_bytes_added = replacement_text_size - (end_offset - start_offset);
-  insert_back_transform(this->old_offset_of_lines_.begin() +
-                            narrow_cast<std::ptrdiff_t>(end_line) + 1,
-                        this->old_offset_of_lines_.end(),
-                        this->offset_of_lines_,
-                        [&](offset_type offset) -> offset_type {
-                          return offset + net_bytes_added;
-                        });
-  this->line_is_ascii_.insert(this->line_is_ascii_.end(),
-                              this->old_line_is_ascii_.begin() +
-                                  narrow_cast<std::ptrdiff_t>(end_line) + 1,
-                              this->old_line_is_ascii_.end());
+                         this->old_lines.size(), adjust_offset);
 
   QLJS_ASSERT(std::is_sorted(this->new_lines.offset_begin_.begin(),
                              this->new_lines.offset_begin_.end()));
   QLJS_ASSERT(this->new_lines.offset_begin_.size() ==
               this->new_lines.is_ascii_.size());
+
+  // TRASH: this->new_lines.compute(region.begin, region.end,
+  // this->input_.data());
+  //
+  // After replacement: adjust with a fixed offset.
+  // auto net_bytes_added = replacement_text_size - (end_offset - start_offset);
+  // insert_back_transform(this->old_offset_of_lines_.begin() +
+  //                           narrow_cast<std::ptrdiff_t>(end_line) + 1,
+  //                       this->old_offset_of_lines_.end(),
+  //                       this->offset_of_lines_,
+  //                       [&](offset_type offset) -> offset_type {
+  //                         return offset + net_bytes_added;
+  //                       });
+  // this->line_is_ascii_.insert(this->line_is_ascii_.end(),
+  //                             this->old_line_is_ascii_.begin() +
+  //                                 narrow_cast<std::ptrdiff_t>(end_line) + 1,
+  //                             this->old_line_is_ascii_.end());
 }
 
-// TRASH: this->new_lines.compute(region.begin, region.end,
-// this->input_.data());
 // NOTE: should range be a reference? `&`
 void locator::replace_text(range_type range, string8_view replacement,
                            padded_string_view new_input) {

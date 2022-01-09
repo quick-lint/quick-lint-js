@@ -120,6 +120,10 @@ struct locator {
   using range_type = range;
   using position_type = position;
   using offset_type = offset;
+/*
+ * using input_type = padded_string_view;
+ * using replacement_type = string8_view;
+ */
 
   explicit locator(padded_string_view input) noexcept;
 
