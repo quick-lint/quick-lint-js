@@ -79,7 +79,7 @@ public:
 
 struct lines {
 public:
-  bool compute(const char8 *begin, const char8 *end, const char8 *input) {
+  void compute(const char8 *begin, const char8 *end, const char8 *input) {
     std::uint8_t flags = 0;
     auto on_line_begin = [this](const char8 *line_begin) {
       this->offset_begin_.push_back(line_begin - input);
@@ -91,8 +91,9 @@ public:
       this->is_ascii_.push_back(characters::is_ascii(static_cast<char8>(flags)));
     };
 
+    const char8 *ch = begin + 1;
     on_line_begin(ch);
-    for (const char8 *ch = begin + 1; ch != end) {
+    while (ch != end) {
       on_character(ch);
       if (characters::is_newline(*ch)) {
         on_line_end(ch);
@@ -102,8 +103,7 @@ public:
         ch += 1;
       }
     }
-
-    return characters::is_ascii(flags);
+    on_line_end(ch);
   }
 
   std::vector<std::uint8_t> is_ascii_;
@@ -134,39 +134,22 @@ public:
                     padded_string_view new_input);
 
   position_type position(const char8 *ch) const noexcept;
+  position_type position(int line_number, offset_type offset) const noexcept;
 
+  offset_type offset(const char8 *) const noexcept;
   const char8 *from_position(position_type position) const noexcept;
 #else
   offset_type position(const char8 *ch) const noexcept;
 #endif
+
 private:
   padded_string_view input_;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-  // offset_of_lines_ the vector index is the line, and the value of index is
-  // the beginning offset of the line.
-  std::vector<offset_type> beginning_offset_of_lines_;
-  // line_is_ascii_ vector index is the line, and the value of index is true
-  // if all characters in line is ascii otherwise false.
-  // unsigned char to avoid performance traps for vector<bool> template
-  // specialization.
-  std::vector<unsigned char> line_is_ascii_;
-
-  // old_offset_of_lines_ and old_line_is_ascii_ are used for double buffering
-  // of offset_of_lines_ and line_is_ascii_. This reduces allocations.
-  //
-  std::vector<offset_type> old_offset_of_lines_;
-  std::vector<unsigned char> old_line_is_ascii_;
-
   lines new_lines;
-
   // old_lines are used for double buffering of new_lines.
   // This reduces allocations.
   lines old_lines;
-
-  position_type position(int line_number, offset_type offset) const noexcept;
-
-  offset_type offset(const char8 *) const noexcept;
 
   offset_type find_line_at_offset(offset_type offset) const;
 

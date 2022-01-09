@@ -23,7 +23,10 @@ namespace quick_lint_js {
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
     : input_(input) {
-  this->cache_offsets_of_lines();
+  this->new_lines.compute(
+      /*begin=*/this->input_.data(),
+      /*  end=*/this->input_.null_terminator(),
+      /*input=*/this->input_.data());
 }
 
 void sublime_text_locator::replace_text(range_type range,
