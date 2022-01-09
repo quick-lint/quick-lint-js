@@ -93,11 +93,14 @@ struct lines {
  public:
   using input_type = padded_string_view;
 
-  void extend(lines &other, offset_type end);
+  // void extend(offset_type begin, offset_type end, lines &other);
+  void extend(lines &other, offset_type begin, offset_type end);
   // void compute(const char8 *begin, const char8 *end, const char8 *input);
   // void compute(offset_type begin, offset_type end, const char8 *input);
-  void compute(const char8 *begin, const char8 *end, const char8 *input);
-  void compute(offset_type begin, offset_type end, input_type input);
+  // void compute(const char8 *begin, const char8 *end, const char8 *input);
+  // void compute(offset_type begin, offset_type end, input_type input);
+  void compute(const char8 *input, const char8 *begin, const char8 *end);
+  void compute(input_type input, offset_type begin, offset_type end);
 
   void swap(lines &other);
   void reserve(lines &other);

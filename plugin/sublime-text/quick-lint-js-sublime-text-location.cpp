@@ -74,6 +74,8 @@ locator::locator(padded_string_view input) noexcept : input_(input) {
 
 void locator::replace_text(range_type range, string8_view replacement,
                            padded_string_view new_input) {
+  QLJS_ASSERT(!this->new_lines.offset_begin_.empty());
+
   region_type region = this->region(range);
 
   this->input_ = new_input;
@@ -82,10 +84,10 @@ void locator::replace_text(range_type range, string8_view replacement,
   this->new_lines.clear();
 
   // Before replacement: do not adjust.
-  this->new_lines.extend(this->old_lines, region.begin);
+  this->new_lines.extend(this->old_lines, 0, range.start.line);
 
   // Within replacement: re-parse newlines.
-  this->new_lines.compute(region.begin, region.end, this->input_);
+  this->new_lines.compute(this->input_, region.begin, region.end);
   {
     if (this->new_lines.is_ascii_.size() > range.start.line) {
       this->line_is_ascii_[range.start.line] =
@@ -96,9 +98,33 @@ void locator::replace_text(range_type range, string8_view replacement,
         this->new_lines.is_ascii_[range.end.line] &&
         this->old_lines.is_ascii_[range.end.line];
   }
+
+  // After replacement: adjust with a fixed offset.
+  this->new_lines.extend(this->old_lines, range.end.line + 1,
+                         this->old_lines.size());
+
+  // After replacement: adjust with a fixed offset.
+  auto net_bytes_added = replacement_text_size - (end_offset - start_offset);
+  insert_back_transform(this->old_offset_of_lines_.begin() +
+                            narrow_cast<std::ptrdiff_t>(end_line) + 1,
+                        this->old_offset_of_lines_.end(),
+                        this->offset_of_lines_,
+                        [&](offset_type offset) -> offset_type {
+                          return offset + net_bytes_added;
+                        });
+  this->line_is_ascii_.insert(this->line_is_ascii_.end(),
+                              this->old_line_is_ascii_.begin() +
+                                  narrow_cast<std::ptrdiff_t>(end_line) + 1,
+                              this->old_line_is_ascii_.end());
+
+  QLJS_ASSERT(std::is_sorted(this->new_lines.offset_begin_.begin(),
+                             this->new_lines.offset_begin_.end()));
+  QLJS_ASSERT(this->new_lines.offset_begin_.size() ==
+              this->new_lines.is_ascii_.size());
 }
 
-// TRASH: this->new_lines.compute(region.begin, region.end, this->input_.data());
+// TRASH: this->new_lines.compute(region.begin, region.end,
+// this->input_.data());
 // NOTE: should range be a reference? `&`
 void locator::replace_text(range_type range, string8_view replacement,
                            padded_string_view new_input) {
