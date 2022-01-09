@@ -39,15 +39,18 @@ qljs_sublime_text_position_new(qljs_sublime_text_offset line,
   return new qljs_sublime_text_position{.line = line, .character = character};
 }
 
-void qljs_sublime_text_position_delete(qljs_sublime_text_position *p) { delete p; };
+void qljs_sublime_text_position_delete(qljs_sublime_text_position *p) {
+  delete p;
+};
 #endif
 
 //==============================================================================
 //------------------------------------------------------------------------------
 // range
 
-qljs_sublime_text_range *qljs_sublime_text_range_new(qljs_sublime_text_position start,
-                                                     qljs_sublime_text_position end) {
+qljs_sublime_text_range *
+qljs_sublime_text_range_new(qljs_sublime_text_position start,
+                            qljs_sublime_text_position end) {
   return new qljs_sublime_text_range{.start = start, .end = end};
 }
 
@@ -57,7 +60,8 @@ void qljs_sublime_text_range_delete(qljs_sublime_text_range *r) { delete r; }
 //------------------------------------------------------------------------------
 // text
 
-qljs_sublime_text_text *qljs_sublime_text_text_new(const char *content, size_t length) {
+qljs_sublime_text_text *qljs_sublime_text_text_new(const char *content,
+                                                   size_t length) {
   return new qljs_sublime_text_text{.content = content, .length = length};
 }
 
@@ -72,7 +76,8 @@ using qljs_sublime_text_document_base =
                                  quick_lint_js::c_api_error_reporter,
                                  quick_lint_js::sublime_text::diagnostic>;
 
-struct qljs_sublime_text_document final : public qljs_sublime_text_document_base {
+struct qljs_sublime_text_document final
+    : public qljs_sublime_text_document_base {
 public:
   using range_type = typename quick_lint_js::sublime_text_locator::range_type;
 
@@ -101,10 +106,12 @@ void qljs_sublime_text_document_set_text(qljs_sublime_text_document *document,
 }
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-void qljs_sublime_text_document_replace_text(qljs_sublime_text_document *document,
-                                             const qljs_sublime_text_range *range,
-                                             const qljs_sublime_text_text *text) {
-  auto cpp_range = reinterpret_cast<qljs_sublime_text_document::range_type *>(range);
+void qljs_sublime_text_document_replace_text(
+    qljs_sublime_text_document *document,
+    const qljs_sublime_text_range *range,
+    const qljs_sublime_text_text *text) {
+  auto cpp_range =
+      reinterpret_cast<qljs_sublime_text_document::range_type *>(range);
   auto content = reinterpret_cast<const quick_lint_js::char8 *>(text->content);
   auto replacement = quick_lint_js::string8_view(content8, text->length);
   document->replace_text(*cpp_range, replacement);

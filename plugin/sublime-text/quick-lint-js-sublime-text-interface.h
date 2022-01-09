@@ -72,13 +72,9 @@ typedef struct qljs_sublime_text_range {
   qljs_sublime_text_position end;
 } qljs_sublime_text_range;
 
-typedef struct qljs_sublime_text_range {
-  qljs_sublime_text_position begin;
-  qljs_sublime_text_position end;
-} qljs_sublime_text_range;
-
-qljs_sublime_text_range *qljs_sublime_text_range_new(qljs_sublime_text_position begin,
-                                                     qljs_sublime_text_position end);
+qljs_sublime_text_range *
+qljs_sublime_text_range_new(qljs_sublime_text_position begin,
+                            qljs_sublime_text_position end);
 
 void qljs_sublime_text_range_delete(qljs_sublime_text_range *r);
 
@@ -91,7 +87,8 @@ typedef struct qljs_sublime_text_text {
   size_t length;
 } qljs_sublime_text_text;
 
-qljs_sublime_text_text *qljs_sublime_text_text_new(const char *content, size_t length);
+qljs_sublime_text_text *qljs_sublime_text_text_new(const char *content,
+                                                   size_t length);
 
 void qljs_sublime_text_text_delete(qljs_sublime_text_text *t);
 
@@ -110,9 +107,10 @@ void qljs_sublime_text_document_set_text(qljs_sublime_text_document *d,
                                          qljs_sublime_text_text *text);
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-void qljs_sublime_text_document_replace_text(qljs_sublime_text_document *d,
-                                             const qljs_sublime_text_range *range,
-                                             const qljs_sublime_text_text *text);
+void qljs_sublime_text_document_replace_text(
+    qljs_sublime_text_document *d,
+    const qljs_sublime_text_range *range,
+    const qljs_sublime_text_text *text);
 #endif
 
 const qljs_sublime_text_diagnostic *

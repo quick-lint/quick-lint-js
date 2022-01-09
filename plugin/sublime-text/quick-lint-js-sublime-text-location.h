@@ -35,15 +35,18 @@ using offset = unsigned int;
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct position final : public qljs_sublime_text_position {
 public:
-  friend inline bool operator==(const position &lhs, const position &rhs) noexcept {
+  friend inline bool operator==(const position &lhs,
+                                const position &rhs) noexcept {
     return lhs.line == rhs.line && lhs.character == rhs.character;
   }
 
-  friend inline bool operator!=(const position &lhs, const position &rhs) noexcept {
+  friend inline bool operator!=(const position &lhs,
+                                const position &rhs) noexcept {
     return !(lhs == rhs);
   }
 
-  friend inline std::ostream &operator<<(std::ostream &stream, const position &pos) {
+  friend inline std::ostream &operator<<(std::ostream &stream,
+                                         const position &pos) {
     stream << "line " << pos.line << " character " << pos.character;
     return stream;
   }
@@ -64,9 +67,9 @@ struct range final : public qljs_sublime_text_range {};
 
 struct character {
 public:
-  static bool is_ascii(const char8 ch) { return static_cast<std::uint8_t>(ch) <= 127; }
-
-  static bool is_newline(const char8 ch) { return ch == u8'\n' || ch == u8'\r'; }
+  static bool is_newline(const char8 ch) {
+    return ch == u8'\n' || ch == u8'\r';
+  }
 
   static bool is_wide_newline(const char8 *ch) {
     return is_newline(ch[0]) && is_newline(ch[1]);
@@ -74,6 +77,10 @@ public:
 
   static bool is_microsoft_newline(const char8 *ch) {
     return ch[0] == u8'\r' && ch[1] == u8'\n';
+  }
+
+  static bool is_ascii(const char8 ch) {
+    return static_cast<std::uint8_t>(ch) <= 127;
   }
 };
 
@@ -85,9 +92,12 @@ public:
 struct lines {
 public:
   void compute(const char8 *begin, const char8 *end, const char8 *input);
+  void swap(lines &new_lines);
+  // void reserve(std::size_t new_capacity);
+  // void clear();
 
-  std::vector<std::uint8_t> is_ascii_;
   std::vector<offset> offset_begin_;
+  std::vector<std::uint8_t> is_ascii_;
 };
 #endif
 

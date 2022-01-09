@@ -48,6 +48,16 @@ void lines::compute(const char8 *begin, const char8 *end, const char8 *input) {
   }
   on_line_end(ch);
 }
+
+// void lines::reserve(std::size_t new_capacity) {
+//   this->offset_begin_.reserve(new_capacity);
+//   this->is_ascii_.reserve(new_capacity);
+// }
+//
+// void lines::clear() {
+//   this->offset_begin_.clear();
+//   this->is_ascii_.clear();
+// }
 #endif
 
 //==============================================================================
@@ -65,16 +75,22 @@ locator::locator(padded_string_view input) noexcept : input_(input) {
 void locator::replace_text(range_type range,
                            string8_view replacement_text,
                            padded_string_view new_input) {
-  offset_type start_offset = this->offset(this->from_position(range.start));
-  offset_type end_offset = this->offset(this->from_position(range.end));
-  offset_type replacement_text_size = narrow_cast<offset_type>(replacement_text.size());
+  QLJS_ASSERT(!this->lines.offset_begin_.empty());
 
-  QLJS_ASSERT(!this->offset_of_lines_.empty());
-  std::size_t start_line = narrow_cast<std::size_t>(range.start.line);
-  std::size_t end_line = narrow_cast<std::size_t>(range.end.line);
-  end_line = std::min(this->offset_of_lines_.size() - 1, end_line);
+  offset_type offset_start = this->offset(this->from_position(range.start));
+  offset_type offset_end = this->offset(this->from_position(range.end));
+  offset_type replacement_text_size =
+      narrow_cast<offset_type>(replacement_text.size());
+
+  std::size_t line_start = narrow_cast<std::size_t>(range.start.line);
+  std::size_t line_end = narrow_cast<std::size_t>(range.end.line);
+  line_end =
+      std::min(this->lines.offset_begin_.size() - 1 /*without null-termiantor*/,
+               end_line);
 
   this->input_ = new_input;
+  std::swap(this->old_lines, this->new_lines);
+
   std::swap(this->old_offset_of_lines_, this->offset_of_lines_);
   std::swap(this->old_line_is_ascii_, this->line_is_ascii_);
   this->offset_of_lines_.reserve(this->old_offset_of_lines_.size());
@@ -91,9 +107,10 @@ void locator::replace_text(range_type range,
       this->old_offset_of_lines_.begin() + range.start.line + 1;
   auto old_line_is_ascii_before_replacement_iterator =
       this->old_line_is_ascii_.begin() + range.start.line;
-  this->offset_of_lines_.insert(this->offset_of_lines_.end(),
-                                this->old_offset_of_lines_.begin(),
-                                old_offset_of_lines_before_replacement_iterator);
+  this->offset_of_lines_.insert(
+      this->offset_of_lines_.end(),
+      this->old_offset_of_lines_.begin(),
+      old_offset_of_lines_before_replacement_iterator);
   this->line_is_ascii_.insert(this->line_is_ascii_.end(),
                               this->old_line_is_ascii_.begin(),
                               old_line_is_ascii_before_replacement_iterator);
@@ -103,49 +120,29 @@ void locator::replace_text(range_type range,
   bool last_line_of_replacement_is_ascii = this->compute_offsets_of_lines(
       &this->input_[start_offset], &this->input_[replacement_end_offset]);
   if (this->line_is_ascii_.size() > start_line) {
-    this->line_is_ascii_[start_line] =
-        this->line_is_ascii_[start_line] && this->old_line_is_ascii_[start_line];
+    this->line_is_ascii_[start_line] = this->line_is_ascii_[start_line] &&
+                                       this->old_line_is_ascii_[start_line];
   }
   this->line_is_ascii_.push_back(last_line_of_replacement_is_ascii &&
                                  this->old_line_is_ascii_[end_line]);
 
   // Offsets after replacement: adjust with a fixed offset.
   auto net_bytes_added = replacement_text_size - (end_offset - start_offset);
-  insert_back_transform(
-      this->old_offset_of_lines_.begin() + narrow_cast<std::ptrdiff_t>(end_line) + 1,
-      this->old_offset_of_lines_.end(),
-      this->offset_of_lines_,
-      [&](offset_type offset) -> offset_type { return offset + net_bytes_added; });
+  insert_back_transform(this->old_offset_of_lines_.begin() +
+                            narrow_cast<std::ptrdiff_t>(end_line) + 1,
+                        this->old_offset_of_lines_.end(),
+                        this->offset_of_lines_,
+                        [&](offset_type offset) -> offset_type {
+                          return offset + net_bytes_added;
+                        });
   this->line_is_ascii_.insert(this->line_is_ascii_.end(),
                               this->old_line_is_ascii_.begin() +
                                   narrow_cast<std::ptrdiff_t>(end_line) + 1,
                               this->old_line_is_ascii_.end());
 
-  QLJS_ASSERT(
-      std::is_sorted(this->offset_of_lines_.begin(), this->offset_of_lines_.end()));
+  QLJS_ASSERT(std::is_sorted(this->offset_of_lines_.begin(),
+                             this->offset_of_lines_.end()));
   QLJS_ASSERT(this->offset_of_lines_.size() == this->line_is_ascii_.size());
-}
-
-void locator::cache_offsets_of_lines() {
-  QLJS_ASSERT(this->offset_of_lines_.empty());
-  QLJS_ASSERT(this->line_is_ascii_.empty());
-
-  this->offset_of_lines_.push_back(0);
-  bool last_line_is_ascii = this->compute_offsets_of_lines(
-      this->input_.data(), this->input_.null_terminator());
-  this->line_is_ascii_.push_back(last_line_is_ascii);
-}
-
-typename locator::range_type locator::range(source_code_span span) const {
-  position_type start = this->position(span.begin());
-  position_type end = this->position(span.end());
-  return range_type{.start = start, .end = end};
-}
-
-typename locator::position_type locator::position(const char8 *source) const noexcept {
-  offset_type offset = this->offset(source);
-  offset_type line_number = this->find_line_at_offset(offset);
-  return this->position(line_number, offset);
 }
 
 const char8 *locator::from_position(position_type position) const noexcept {
@@ -209,38 +206,26 @@ const char8 *locator::from_position(position_type position) const noexcept {
   }
 }
 
-bool locator::compute_offsets_of_lines(const char8 *begin, const char8 *end) {
-  std::uint8_t flags = 0;
-  auto is_line_ascii = [&flags]() -> bool { return (flags & 0x80) == 0; };
-  auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
-    this->offset_of_lines_.push_back(
-        narrow_cast<offset_type>(beginning_of_line - this->input_.data()));
-  };
-  auto add_end_of_line = [&]() -> void {
-    this->line_is_ascii_.push_back(is_line_ascii());
-    flags = 0;
-  };
-
-  for (const char8 *c = begin; c != end;) {
-    flags |= static_cast<std::uint8_t>(*c);
-    if (*c == u8'\n' || *c == u8'\r') {
-      if (c[0] == u8'\r' && c[1] == u8'\n') {
-        c += 2;
-        add_end_of_line();
-        add_beginning_of_line(c);
-      } else {
-        c += 1;
-        add_end_of_line();
-        add_beginning_of_line(c);
-      }
-    } else {
-      c += 1;
-    }
-  }
-  return is_line_ascii();
+typename locator::range_type locator::range(source_code_span span) const {
+  position_type start = this->position(span.begin());
+  position_type end = this->position(span.end());
+  return range_type{.start = start, .end = end};
 }
 
-typename locator::offset_type locator::find_line_at_offset(offset_type offset) const {
+typename locator::position_type locator::position(const char8 *source) const
+    noexcept {
+  offset_type offset = this->offset(source);
+  offset_type line_number = this->find_line_at_offset(offset);
+  return this->position(line_number, offset);
+}
+
+typename locator::offset_type locator::offset(const char8 *source) const
+    noexcept {
+  return narrow_cast<offset_type>(source - this->input_.data());
+}
+
+typename locator::offset_type
+locator::find_line_at_offset(offset_type offset) const {
   QLJS_ASSERT(!this->offset_of_lines_.empty());
   auto offset_of_following_line_it = std::upper_bound(
       this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
@@ -248,23 +233,21 @@ typename locator::offset_type locator::find_line_at_offset(offset_type offset) c
                                   this->offset_of_lines_.begin());
 }
 
-typename locator::offset_type locator::offset(const char8 *source) const noexcept {
-  return narrow_cast<offset_type>(source - this->input_.data());
-}
-
 typename locator::position_type locator::position(int line_number,
-                                                  offset_type offset) const noexcept {
+                                                  offset_type offset) const
+    noexcept {
   offset_type beginning_of_line_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line_number)];
-  bool line_is_ascii = this->line_is_ascii_[narrow_cast<std::size_t>(line_number)];
+  bool line_is_ascii =
+      this->line_is_ascii_[narrow_cast<std::size_t>(line_number)];
 
   offset_type character;
   if (line_is_ascii) {
     character = offset - beginning_of_line_offset;
   } else {
-    character =
-        count_lsp_characters_in_utf_8(this->input_.substr(beginning_of_line_offset),
-                                      offset - beginning_of_line_offset);
+    character = count_lsp_characters_in_utf_8(
+        this->input_.substr(beginning_of_line_offset),
+        offset - beginning_of_line_offset);
   }
 
   return position_type{.line = line_number, .character = character};
@@ -273,12 +256,13 @@ typename locator::position_type locator::position(int line_number,
 locator::locator(padded_string_view input) noexcept : input_(input) {}
 
 typename locator::range_type locator::range(source_code_span span) const {
-  offset_type begin = this->position(span.begin());
-  offset_type end = this->position(span.end());
-  return range_type{.begin = begin, .end = end};
+  position_type start = this->position(span.begin());
+  position_type end = this->position(span.end());
+  return range_type{.start = start, .end = end};
 }
 
-typename locator::position_type locator::position(const char8 *ch) const noexcept {
+typename locator::position_type locator::position(const char8 *ch) const
+    noexcept {
   std::size_t byte_offset = narrow_cast<std::size_t>(ch - this->input_.data());
   std::size_t count = count_utf_8_characters(this->input_, byte_offset);
   return narrow_cast<position_type>(count);
