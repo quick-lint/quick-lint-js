@@ -15,23 +15,55 @@
 #include <quick-lint-js/utf-8.h>
 
 namespace quick_lint_js {
+namespace sublime_text {
+
+//==============================================================================
+//------------------------------------------------------------------------------
+// lines
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
+void lines::compute(const char8 *begin, const char8 *end, const char8 *input) {
+  std::uint8_t flags = 0;
+  auto on_line_begin = [this](const char8 *line_begin) {
+    this->offset_begin_.push_back(line_begin - input);
+  };
+  auto on_character = [flags](const char8 *character) {
+    flags |= static_cast<std::uint8_t>(*character);
+  };
+  auto on_line_end = [flags, this](const char8 * /*line_end*/) {
+    this->is_ascii_.push_back(characters::is_ascii(static_cast<char8>(flags)));
+  };
+
+  const char8 *ch = begin + 1;
+  on_line_begin(ch);
+  while (ch != end) {
+    on_character(ch);
+    if (characters::is_newline(*ch)) {
+      on_line_end(ch);
+      ch += characters::is_microsoft_newline(ch) ? 2 : 1;
+      on_line_begin(ch);
+    } else {
+      ch += 1;
+    }
+  }
+  on_line_end(ch);
+}
+#endif
 
 //==============================================================================
 //------------------------------------------------------------------------------
 // locator
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
-    : input_(input) {
+locator::locator(padded_string_view input) noexcept : input_(input) {
   this->new_lines.compute(
       /*begin=*/this->input_.data(),
       /*  end=*/this->input_.null_terminator(),
       /*input=*/this->input_.data());
 }
 
-void sublime_text_locator::replace_text(range_type range,
-                                        string8_view replacement_text,
-                                        padded_string_view new_input) {
+void locator::replace_text(range_type range,
+                           string8_view replacement_text,
+                           padded_string_view new_input) {
   offset_type start_offset = this->offset(this->from_position(range.start));
   offset_type end_offset = this->offset(this->from_position(range.end));
   offset_type replacement_text_size = narrow_cast<offset_type>(replacement_text.size());
@@ -93,7 +125,7 @@ void sublime_text_locator::replace_text(range_type range,
   QLJS_ASSERT(this->offset_of_lines_.size() == this->line_is_ascii_.size());
 }
 
-void sublime_text_locator::cache_offsets_of_lines() {
+void locator::cache_offsets_of_lines() {
   QLJS_ASSERT(this->offset_of_lines_.empty());
   QLJS_ASSERT(this->line_is_ascii_.empty());
 
@@ -103,22 +135,19 @@ void sublime_text_locator::cache_offsets_of_lines() {
   this->line_is_ascii_.push_back(last_line_is_ascii);
 }
 
-typename sublime_text_locator::range_type
-sublime_text_locator::range(source_code_span span) const {
+typename locator::range_type locator::range(source_code_span span) const {
   position_type start = this->position(span.begin());
   position_type end = this->position(span.end());
   return range_type{.start = start, .end = end};
 }
 
-typename sublime_text_locator::position_type
-sublime_text_locator::position(const char8 *source) const noexcept {
+typename locator::position_type locator::position(const char8 *source) const noexcept {
   offset_type offset = this->offset(source);
   offset_type line_number = this->find_line_at_offset(offset);
   return this->position(line_number, offset);
 }
 
-const char8 *sublime_text_locator::from_position(position_type position) const
-    noexcept {
+const char8 *locator::from_position(position_type position) const noexcept {
   auto is_last_line =
       [](offset_type line, offset_type number_of_lines) {
         return line == number_of_lines - 1;
@@ -179,8 +208,7 @@ const char8 *sublime_text_locator::from_position(position_type position) const
   }
 }
 
-bool sublime_text_locator::compute_offsets_of_lines(const char8 *begin,
-                                                    const char8 *end) {
+bool locator::compute_offsets_of_lines(const char8 *begin, const char8 *end) {
   std::uint8_t flags = 0;
   auto is_line_ascii = [&flags]() -> bool { return (flags & 0x80) == 0; };
   auto add_beginning_of_line = [this](const char8 *beginning_of_line) -> void {
@@ -211,8 +239,7 @@ bool sublime_text_locator::compute_offsets_of_lines(const char8 *begin,
   return is_line_ascii();
 }
 
-typename sublime_text_locator::offset_type
-sublime_text_locator::find_line_at_offset(offset_type offset) const {
+typename locator::offset_type locator::find_line_at_offset(offset_type offset) const {
   QLJS_ASSERT(!this->offset_of_lines_.empty());
   auto offset_of_following_line_it = std::upper_bound(
       this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
@@ -220,13 +247,12 @@ sublime_text_locator::find_line_at_offset(offset_type offset) const {
                                   this->offset_of_lines_.begin());
 }
 
-typename sublime_text_locator::offset_type
-sublime_text_locator::offset(const char8 *source) const noexcept {
+typename locator::offset_type locator::offset(const char8 *source) const noexcept {
   return narrow_cast<offset_type>(source - this->input_.data());
 }
 
-typename sublime_text_locator::position_type
-sublime_text_locator::position(int line_number, offset_type offset) const noexcept {
+typename locator::position_type locator::position(int line_number,
+                                                  offset_type offset) const noexcept {
   offset_type beginning_of_line_offset =
       this->offset_of_lines_[narrow_cast<std::size_t>(line_number)];
   bool line_is_ascii = this->line_is_ascii_[narrow_cast<std::size_t>(line_number)];
@@ -243,24 +269,22 @@ sublime_text_locator::position(int line_number, offset_type offset) const noexce
   return position_type{.line = line_number, .character = character};
 }
 #else
-sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
-    : input_(input) {}
+locator::locator(padded_string_view input) noexcept : input_(input) {}
 
-typename sublime_text_locator::range_type
-sublime_text_locator::range(source_code_span span) const {
+typename locator::range_type locator::range(source_code_span span) const {
   offset_type begin = this->position(span.begin());
   offset_type end = this->position(span.end());
   return range_type{.begin = begin, .end = end};
 }
 
-typename sublime_text_locator::position_type
-sublime_text_locator::position(const char8 *ch) const noexcept {
+typename locator::position_type locator::position(const char8 *ch) const noexcept {
   std::size_t byte_offset = narrow_cast<std::size_t>(ch - this->input_.data());
   std::size_t count = count_utf_8_characters(this->input_, byte_offset);
   return narrow_cast<position_type>(count);
 }
 #endif
 
+} // namespace sublime_text
 } // namespace quick_lint_js
 
 // quick-lint-js finds bugs in JavaScript programs.
