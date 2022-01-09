@@ -96,6 +96,7 @@ struct lines {
   void extend(lines &other, offset_type end);
   // void compute(const char8 *begin, const char8 *end, const char8 *input);
   // void compute(offset_type begin, offset_type end, const char8 *input);
+  void compute(const char8 *begin, const char8 *end, const char8 *input);
   void compute(offset_type begin, offset_type end, input_type input);
 
   void swap(lines &other);

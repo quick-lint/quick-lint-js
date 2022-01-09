@@ -72,9 +72,10 @@ locator::locator(padded_string_view input) noexcept : input_(input) {
       /*input=*/this->input_.data());
 }
 
-
-void locator::replace_text(region_type region, string8_view replacement,
+void locator::replace_text(range_type range, string8_view replacement,
                            padded_string_view new_input) {
+  region_type region = this->region(range);
+
   this->input_ = new_input;
   this->new_lines.swap(this->old_lines);
   this->new_lines.reserve(this->old_lines);
@@ -84,7 +85,16 @@ void locator::replace_text(region_type region, string8_view replacement,
   this->new_lines.extend(this->old_lines, region.begin);
 
   // Within replacement: re-parse newlines.
-  this->new_lines.compute(region.begin, region.end, this->input_.data());
+  // this->new_lines.compute(region.begin, region.end, this->input_.data());
+  this->new_lines.compute(region.begin, region.end, this->input_);
+  if (this->new_lines.is_ascii_.size() > range.start.line) {
+    this->line_is_ascii_[range.start.line] =
+        this->new_lines.is_ascii_[range.start.line] &&
+        this->old_lines.is_ascii_[range.start.line];
+  }
+  this->new_lines.is_ascii_[range.end.line] =
+      this->new_lines.is_ascii_[range.end.line] &&
+      this->old_lines.is_ascii_[range.end.line];
 }
 
 // NOTE: should range be a reference? `&`
@@ -128,11 +138,9 @@ void locator::replace_text(range_type range, string8_view replacement,
                               this->old_line_is_ascii_.begin(),
                               old_line_is_ascii_before_replacement_iterator);
 
-
   std::size_t line_start = narrow_cast<std::size_t>(range.start.line);
   std::size_t line_end = narrow_cast<std::size_t>(range.end.line);
   line_end = std::min(this->lines.offset_begin_.size() - 1, line_end);
-
 
   // Offsets within replacement: re-parse newlines.
   offset_type replacement_end_offset = start_offset + replacement_text_size;
