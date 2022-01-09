@@ -130,6 +130,8 @@ public:
   void replace_text(range_type range,
                     string8_view replacement_text,
                     padded_string_view new_input);
+
+  const char8 *from_position(position_type position) const noexcept;
 #endif
 
   range_type range(source_code_span span) const;
@@ -140,8 +142,6 @@ public:
   position_type position(int line_number, offset_type offset) const noexcept;
 
   offset_type offset(const char8 *) const noexcept;
-
-  const char8 *from_position(position_type position) const noexcept;
 #endif
 
 private:
