@@ -60,7 +60,7 @@ struct range final : public qljs_st_range {};
 
 struct character {
 public:
-  static bool is_ascii(const char8 ch) { return static_cast<std::uint8_t>(ch) > 127; }
+  static bool is_ascii(const char8 ch) { return static_cast<std::uint8_t>(ch) <= 127; }
 
   static bool is_newline(const char8 ch) { return ch == u8'\n' || ch == u8'\r'; }
 
@@ -87,22 +87,23 @@ public:
     auto on_character = [flags](const char8 *character) {
       flags |= static_cast<std::uint8_t>(*character);
     };
-    auto on_line_end = [flags, this](const char8 *line_end) { // TODO: ignore param
-      this->is_ascii_.push_back((flags & 127) == 0);
+    auto on_line_end = [flags, this](const char8 * /*line_end*/) {
+      this->is_ascii_.push_back(characters::is_ascii(static_cast<char8>(flags)));
     };
 
     on_line_begin(ch);
     for (const char8 *ch = begin + 1; ch != end) {
       on_character(ch);
       if (characters::is_newline(*ch)) {
-        on_line_end();
+        on_line_end(ch);
         ch += characters::is_microsoft_newline(ch) ? 2 : 1;
         on_line_begin(ch);
       } else {
         ch += 1;
       }
     }
-    return;  // TODO: return bool
+
+    return characters::is_ascii(flags);
   }
 
   std::vector<std::uint8_t> is_ascii_;
