@@ -92,7 +92,6 @@ public:
 struct lines {
 public:
   void compute(const char8 *begin, const char8 *end, const char8 *input);
-  void swap(lines &new_lines);
   // void reserve(std::size_t new_capacity);
   // void clear();
 
@@ -129,6 +128,9 @@ public:
   position_type position(int line_number, offset_type offset) const noexcept;
 
   offset_type offset(const char8 *) const noexcept;
+
+  // TODO: Implement this declaration
+  offset_type offset(position_type *) const noexcept;
 #endif
 
 private:

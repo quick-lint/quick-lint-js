@@ -49,15 +49,15 @@ void lines::compute(const char8 *begin, const char8 *end, const char8 *input) {
   on_line_end(ch);
 }
 
-// void lines::reserve(std::size_t new_capacity) {
-//   this->offset_begin_.reserve(new_capacity);
-//   this->is_ascii_.reserve(new_capacity);
-// }
-//
-// void lines::clear() {
-//   this->offset_begin_.clear();
-//   this->is_ascii_.clear();
-// }
+void lines::reserve(std::size_t new_capacity) {
+  this->offset_begin_.reserve(new_capacity);
+  this->is_ascii_.reserve(new_capacity);
+}
+
+void lines::clear() {
+  this->offset_begin_.clear();
+  this->is_ascii_.clear();
+}
 #endif
 
 //==============================================================================
@@ -73,23 +73,21 @@ locator::locator(padded_string_view input) noexcept : input_(input) {
 }
 
 void locator::replace_text(range_type range,
-                           string8_view replacement_text,
+                           string8_view replacement,
                            padded_string_view new_input) {
   QLJS_ASSERT(!this->lines.offset_begin_.empty());
 
   offset_type offset_start = this->offset(this->from_position(range.start));
   offset_type offset_end = this->offset(this->from_position(range.end));
-  offset_type replacement_text_size =
-      narrow_cast<offset_type>(replacement_text.size());
+  offset_type replacement_size = narrow_cast<offset_type>(replacement.size());
 
   std::size_t line_start = narrow_cast<std::size_t>(range.start.line);
   std::size_t line_end = narrow_cast<std::size_t>(range.end.line);
-  line_end =
-      std::min(this->lines.offset_begin_.size() - 1 /*without null-termiantor*/,
-               end_line);
+  line_end = std::min(this->lines.offset_begin_.size() - 1, end_line);
 
   this->input_ = new_input;
   std::swap(this->old_lines, this->new_lines);
+  // this->new_lines.reserve(this->old_lines)
 
   std::swap(this->old_offset_of_lines_, this->offset_of_lines_);
   std::swap(this->old_line_is_ascii_, this->line_is_ascii_);
@@ -104,7 +102,7 @@ void locator::replace_text(range_type range,
   // Re: The offset of the edited line can't change because the offset is the
   // beginning of line offset, so we use the offset already computed.
   auto old_offset_of_lines_before_replacement_iterator =
-      this->old_offset_of_lines_.begin() + range.start.line + 1;
+      this->old_offset_of_lines_.begin() + range.start.line;
   auto old_line_is_ascii_before_replacement_iterator =
       this->old_line_is_ascii_.begin() + range.start.line;
   this->offset_of_lines_.insert(
