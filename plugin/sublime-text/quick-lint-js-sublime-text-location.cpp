@@ -8,6 +8,7 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <algorithm>
 #include <quick-lint-js-sublime-text-location.h>
 #include <quick-lint-js-sublime-text-utils.h>
 #include <quick-lint-js/assert.h>
@@ -22,7 +23,7 @@ namespace sublime_text {
 // lines
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-void lines::compute(const char8 *begin, const char8 *end, const char8 *input) {
+void lines::compute(const char8 *input, const char8 *begin, const char8 *end) {
   std::uint8_t flags = 0;
   auto on_line_begin = [this](const char8 *line_begin) {
     this->offset_begin_.push_back(line_begin - input);
@@ -49,9 +50,18 @@ void lines::compute(const char8 *begin, const char8 *end, const char8 *input) {
   on_line_end(ch);
 }
 
-void lines::reserve(std::size_t new_capacity) {
-  this->offset_begin_.reserve(new_capacity);
-  this->is_ascii_.reserve(new_capacity);
+void lines::compute(input_type input, offset_type begin, offset_type end) {
+  this->compute(&input, &input[begin], &input[end]);
+}
+
+void lines::swap(const lines *other) {
+  std::swap(this->offset_begin_, other->offset_begin_);
+  std::swap(this->is_ascii_, other->is_ascii_);
+}
+
+void lines::reserve(const lines *other) {
+  this->offset_begin_.reserve(other->offset_begin_.size());
+  this->is_ascii_.reserve(other->offset_begin_.size());
 }
 
 void lines::clear() {
