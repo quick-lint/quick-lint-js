@@ -117,10 +117,10 @@ public:
 struct locator {
 public:
   using range_type = range;
-  using offset_type = offset;
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   using position_type = position;
 #endif
+  using offset_type = offset;
 
   explicit locator(padded_string_view input) noexcept;
 
