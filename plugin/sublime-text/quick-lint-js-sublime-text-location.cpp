@@ -83,8 +83,11 @@ void locator::replace_text(region_type region, string8_view replacement,
   // Before replacement: do not adjust.
   this->new_lines.extend(this->old_lines, region.begin);
 
+  // Within replacement: re-parse newlines.
+  this->new_lines.compute(region.begin, region.end, this->input_.data());
 }
 
+// NOTE: should range be a reference? `&`
 void locator::replace_text(range_type range, string8_view replacement,
                            padded_string_view new_input) {
   QLJS_ASSERT(!this->lines.offset_begin_.empty());
