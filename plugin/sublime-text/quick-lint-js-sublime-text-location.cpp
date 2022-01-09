@@ -253,11 +253,11 @@ sublime_text_locator::range(source_code_span span) const {
   return range_type{.begin = begin, .end = end};
 }
 
-typename sublime_text_locator::offset_type
+typename sublime_text_locator::position_type
 sublime_text_locator::position(const char8 *ch) const noexcept {
   std::size_t byte_offset = narrow_cast<std::size_t>(ch - this->input_.data());
   std::size_t count = count_utf_8_characters(this->input_, byte_offset);
-  return narrow_cast<offset_type>(count);
+  return narrow_cast<position_type>(count);
 }
 #endif
 

@@ -32,7 +32,8 @@ using offset = unsigned int;
 //------------------------------------------------------------------------------
 // position
 
-struct position final : public qljs_st_position {
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
+struct position final : public qljs_sublime_text_position {
 public:
   friend inline bool operator==(const position &lhs, const position &rhs) noexcept {
     return lhs.line == rhs.line && lhs.character == rhs.character;
@@ -47,12 +48,15 @@ public:
     return stream;
   }
 };
+#else
+using position = offset;
+#endif
 
 //==============================================================================
 //------------------------------------------------------------------------------
 // range
 
-struct range final : public qljs_st_range {};
+struct range final : public qljs_sublime_text_range {};
 
 //==============================================================================
 //------------------------------------------------------------------------------
@@ -117,9 +121,7 @@ public:
 struct locator {
 public:
   using range_type = range;
-#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   using position_type = position;
-#endif
   using offset_type = offset;
 
   explicit locator(padded_string_view input) noexcept;
@@ -132,14 +134,14 @@ public:
 
   range_type range(source_code_span span) const;
 
-#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   position_type position(const char8 *ch) const noexcept;
+
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   position_type position(int line_number, offset_type offset) const noexcept;
 
   offset_type offset(const char8 *) const noexcept;
+
   const char8 *from_position(position_type position) const noexcept;
-#else
-  offset_type position(const char8 *ch) const noexcept;
 #endif
 
 private:
