@@ -116,23 +116,23 @@ public:
 
 struct locator {
 public:
-  /*
-    using range_type = qljs_st_range;
-    using offset_type = qljs_st_offset;
-  #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-    using position_type = qljs_st_position;
-  #endif
-  */
+  using range_type = range;
+  using offset_type = offset;
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
+  using position_type = position;
+#endif
 
   explicit locator(padded_string_view input) noexcept;
-
-  range_type range(source_code_span span) const;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   void replace_text(range_type range,
                     string8_view replacement_text,
                     padded_string_view new_input);
+#endif
 
+  range_type range(source_code_span span) const;
+
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   position_type position(const char8 *ch) const noexcept;
   position_type position(int line_number, offset_type offset) const noexcept;
 
@@ -150,12 +150,7 @@ private:
   // old_lines are used for double buffering of new_lines.
   // This reduces allocations.
   lines old_lines;
-
   offset_type find_line_at_offset(offset_type offset) const;
-
-  bool compute_offsets_of_lines(const char8 *begin, const char8 *end);
-
-  void cache_offsets_of_lines();
 #endif
 };
 
