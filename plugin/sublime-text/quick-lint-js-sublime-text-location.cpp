@@ -72,29 +72,42 @@ locator::locator(padded_string_view input) noexcept : input_(input) {
       /*input=*/this->input_.data());
 }
 
-void locator::replace_text(range_type range,
-                           string8_view replacement,
+
+void locator::replace_text(region_type region, string8_view replacement,
+                           padded_string_view new_input) {
+  this->input_ = new_input;
+  this->new_lines.swap(this->old_lines);
+  this->new_lines.reserve(this->old_lines);
+  this->new_lines.clear();
+
+  // Before replacement: do not adjust.
+  this->new_lines.extend(this->old_lines, region.begin);
+
+}
+
+void locator::replace_text(range_type range, string8_view replacement,
                            padded_string_view new_input) {
   QLJS_ASSERT(!this->lines.offset_begin_.empty());
 
-  offset_type offset_start = this->offset(this->from_position(range.start));
-  offset_type offset_end = this->offset(this->from_position(range.end));
+  offset_type offset_start = this->offset(range.start);
+  offset_type offset_end = this->offset(range.end);
   offset_type replacement_size = narrow_cast<offset_type>(replacement.size());
 
-  std::size_t line_start = narrow_cast<std::size_t>(range.start.line);
-  std::size_t line_end = narrow_cast<std::size_t>(range.end.line);
-  line_end = std::min(this->lines.offset_begin_.size() - 1, end_line);
-
   this->input_ = new_input;
-  std::swap(this->old_lines, this->new_lines);
+  this->new_lines.swap(this->old_lines);
+  this->new_lines.reserve(this->old_lines);
+  this->new_lines.clear();
+
+  // this->new_lines.swap(this->old_lines);
+  // std::swap(this->old_lines, this->new_lines);
   // this->new_lines.reserve(this->old_lines)
 
-  std::swap(this->old_offset_of_lines_, this->offset_of_lines_);
-  std::swap(this->old_line_is_ascii_, this->line_is_ascii_);
-  this->offset_of_lines_.reserve(this->old_offset_of_lines_.size());
-  this->offset_of_lines_.clear();
-  this->line_is_ascii_.reserve(this->old_line_is_ascii_.size());
-  this->line_is_ascii_.clear();
+  // std::swap(this->old_offset_of_lines_, this->offset_of_lines_);
+  // std::swap(this->old_line_is_ascii_, this->line_is_ascii_);
+  // this->offset_of_lines_.reserve(this->old_offset_of_lines_.size());
+  // this->offset_of_lines_.clear();
+  // this->line_is_ascii_.reserve(this->old_line_is_ascii_.size());
+  // this->line_is_ascii_.clear();
 
   // Offsets before replacement: do not adjust.
 
@@ -106,12 +119,17 @@ void locator::replace_text(range_type range,
   auto old_line_is_ascii_before_replacement_iterator =
       this->old_line_is_ascii_.begin() + range.start.line;
   this->offset_of_lines_.insert(
-      this->offset_of_lines_.end(),
-      this->old_offset_of_lines_.begin(),
+      this->offset_of_lines_.end(), this->old_offset_of_lines_.begin(),
       old_offset_of_lines_before_replacement_iterator);
   this->line_is_ascii_.insert(this->line_is_ascii_.end(),
                               this->old_line_is_ascii_.begin(),
                               old_line_is_ascii_before_replacement_iterator);
+
+
+  std::size_t line_start = narrow_cast<std::size_t>(range.start.line);
+  std::size_t line_end = narrow_cast<std::size_t>(range.end.line);
+  line_end = std::min(this->lines.offset_begin_.size() - 1, line_end);
+
 
   // Offsets within replacement: re-parse newlines.
   offset_type replacement_end_offset = start_offset + replacement_text_size;
@@ -222,8 +240,8 @@ typename locator::offset_type locator::offset(const char8 *source) const
   return narrow_cast<offset_type>(source - this->input_.data());
 }
 
-typename locator::offset_type
-locator::find_line_at_offset(offset_type offset) const {
+typename locator::offset_type locator::find_line_at_offset(
+    offset_type offset) const {
   QLJS_ASSERT(!this->offset_of_lines_.empty());
   auto offset_of_following_line_it = std::upper_bound(
       this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
@@ -267,8 +285,8 @@ typename locator::position_type locator::position(const char8 *ch) const
 }
 #endif
 
-} // namespace sublime_text
-} // namespace quick_lint_js
+}  // namespace sublime_text
+}  // namespace quick_lint_js
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar

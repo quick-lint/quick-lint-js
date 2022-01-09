@@ -34,7 +34,7 @@ using offset = unsigned int;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct position final : public qljs_sublime_text_position {
-public:
+ public:
   friend inline bool operator==(const position &lhs,
                                 const position &rhs) noexcept {
     return lhs.line == rhs.line && lhs.character == rhs.character;
@@ -66,7 +66,7 @@ struct range final : public qljs_sublime_text_range {};
 // character
 
 struct character {
-public:
+ public:
   static bool is_newline(const char8 ch) {
     return ch == u8'\n' || ch == u8'\r';
   }
@@ -90,10 +90,13 @@ public:
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct lines {
-public:
+ public:
+  void extend(lines &other, offset_type end);
   void compute(const char8 *begin, const char8 *end, const char8 *input);
-  // void reserve(std::size_t new_capacity);
-  // void clear();
+
+  void swap(lines &other);
+  void reserve(lines &other);
+  void clear();
 
   std::vector<offset> offset_begin_;
   std::vector<std::uint8_t> is_ascii_;
@@ -105,7 +108,7 @@ public:
 // locator
 
 struct locator {
-public:
+ public:
   using range_type = range;
   using position_type = position;
   using offset_type = offset;
@@ -113,9 +116,11 @@ public:
   explicit locator(padded_string_view input) noexcept;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-  void replace_text(range_type range,
-                    string8_view replacement_text,
+  void replace_text(range_type range, string8_view replacement_text,
                     padded_string_view new_input);
+
+  // void replace_text(region_type region, string8_view replacement_text,
+  //                   padded_string_view new_input);
 
   const char8 *from_position(position_type position) const noexcept;
 #endif
@@ -130,10 +135,11 @@ public:
   offset_type offset(const char8 *) const noexcept;
 
   // TODO: Implement this declaration
+  // HINT: this->from_position inside implementation
   offset_type offset(position_type *) const noexcept;
 #endif
 
-private:
+ private:
   padded_string_view input_;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
@@ -145,9 +151,9 @@ private:
 #endif
 };
 
-} // namespace sublime_text
-} // namespace quick_lint_js
-#endif // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
+}  // namespace sublime_text
+}  // namespace quick_lint_js
+#endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
