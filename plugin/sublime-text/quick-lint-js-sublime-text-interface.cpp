@@ -48,8 +48,8 @@ qljs_sublime_text_range *qljs_sublime_text_range_new(qljs_sublime_text_position 
   return new qljs_sublime_text_range{.start = start, .end = end};
 }
 #else
-qljs_sublime_text_range *qljs_sublime_text_range_new(qljs_sublime_text_offset begin,
-                                                     qljs_sublime_text_offset end) {
+qljs_sublime_text_range *qljs_sublime_text_range_new(qljs_sublime_text_position begin,
+                                                     qljs_sublime_text_position end) {
   return new qljs_sublime_text_range{.begin = begin, .end = end};
 }
 #endif
