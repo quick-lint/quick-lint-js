@@ -85,18 +85,20 @@ void locator::replace_text(range_type range, string8_view replacement,
   this->new_lines.extend(this->old_lines, region.begin);
 
   // Within replacement: re-parse newlines.
-  // this->new_lines.compute(region.begin, region.end, this->input_.data());
   this->new_lines.compute(region.begin, region.end, this->input_);
-  if (this->new_lines.is_ascii_.size() > range.start.line) {
-    this->line_is_ascii_[range.start.line] =
-        this->new_lines.is_ascii_[range.start.line] &&
-        this->old_lines.is_ascii_[range.start.line];
+  {
+    if (this->new_lines.is_ascii_.size() > range.start.line) {
+      this->line_is_ascii_[range.start.line] =
+          this->new_lines.is_ascii_[range.start.line] &&
+          this->old_lines.is_ascii_[range.start.line];
+    }
+    this->new_lines.is_ascii_[range.end.line] =
+        this->new_lines.is_ascii_[range.end.line] &&
+        this->old_lines.is_ascii_[range.end.line];
   }
-  this->new_lines.is_ascii_[range.end.line] =
-      this->new_lines.is_ascii_[range.end.line] &&
-      this->old_lines.is_ascii_[range.end.line];
 }
 
+// TRASH: this->new_lines.compute(region.begin, region.end, this->input_.data());
 // NOTE: should range be a reference? `&`
 void locator::replace_text(range_type range, string8_view replacement,
                            padded_string_view new_input) {
