@@ -32,6 +32,9 @@ void extend(lines *other, offset_type begin, offset_type end) {
                          other->is_ascii_.begin() + end);
 }
 
+void transform(lines *other, offset_type begin, offset_type end,) {
+}
+
 void lines::compute(const char8 *input, const char8 *begin, const char8 *end) {
   std::uint8_t flags = 0;
   auto on_line_begin = [this](const char8 *line_begin) {
@@ -98,12 +101,12 @@ void locator::replace_text(range_type range, string8_view replacement,
   region_type region = this->region(range);
 
   this->input_ = new_input;
-  this->new_lines.swap(this->old_lines);
-  this->new_lines.reserve(this->old_lines);
+  this->new_lines.swap(&this->old_lines);
+  this->new_lines.reserve(&this->old_lines);
   this->new_lines.clear();
 
   // Before replacement: do not adjust.
-  this->new_lines.extend(this->old_lines, 0, range.start.line);
+  this->new_lines.extend(&this->old_lines, 0, range.start.line);
 
   // Within replacement: re-parse newlines.
   this->new_lines.compute(this->input_, region.begin, region.end);
