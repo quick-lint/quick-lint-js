@@ -18,6 +18,9 @@
 #include <quick-lint-js/padded-string.h>
 #include <vector>
 
+// TODO: Add constructors range from locator to constructor from range
+// TODO: Create region structure
+
 namespace quick_lint_js {
 namespace sublime_text {
 
