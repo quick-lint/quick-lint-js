@@ -11,7 +11,7 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
-#include <cstddef>
+// #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js-sublime-text-interface.h>
 #include <quick-lint-js/char8.h>
@@ -93,6 +93,9 @@ struct lines {
  public:
   using input_type = padded_string_view;
 
+  std::vector<offset_type> offset_begin_;
+  std::vector<std::uint8_t> is_ascii_;
+
   // void extend(offset_type begin, offset_type end, lines &other);
   void extend(lines &other, offset_type begin, offset_type end);
   // void compute(const char8 *begin, const char8 *end, const char8 *input);
@@ -105,9 +108,6 @@ struct lines {
   void swap(lines &other);
   void reserve(lines &other);
   void clear();
-
-  std::vector<offset_type> offset_begin_;
-  std::vector<std::uint8_t> is_ascii_;
 };
 #endif
 
@@ -120,10 +120,9 @@ struct locator {
   using range_type = range;
   using position_type = position;
   using offset_type = offset;
-/*
- * using input_type = padded_string_view;
- * using replacement_type = string8_view;
- */
+
+  using input_type = padded_string_view;
+  using replacement_type = string8_view;
 
   explicit locator(padded_string_view input) noexcept;
 

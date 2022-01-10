@@ -9,6 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <algorithm>
+#include <functional>
 #include <quick-lint-js-sublime-text-location.h>
 #include <quick-lint-js-sublime-text-utils.h>
 #include <quick-lint-js/assert.h>
@@ -32,7 +33,17 @@ void extend(lines *other, offset_type begin, offset_type end) {
                          other->is_ascii_.begin() + end);
 }
 
-void transform(lines *other, offset_type begin, offset_type end,) {
+template <class Transformer1, Transformer2>
+void extend(lines *other, offset_type begin, offset_type end) {
+  if constexpr () {
+    this->offset_begin_.insert(this->offset_begin_.end(),
+                               other->offset_begin_.begin() + begin,
+                               other->offset_begin_.begin() + end);
+  } else if constexpr () {
+    this->is_ascii_.insert(this->is_ascii_.end(),
+                           other->is_ascii_.begin() + begin,
+                           other->is_ascii_.begin() + end);
+  }
 }
 
 void lines::compute(const char8 *input, const char8 *begin, const char8 *end) {
