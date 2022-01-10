@@ -11,8 +11,6 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
-// #include <cstddef>
-// #include <type_traits>
 #include <cstdint>
 #include <quick-lint-js-sublime-text-interface.h>
 #include <quick-lint-js/char8.h>
@@ -140,16 +138,17 @@ struct locator {
  public:
   using range_type = range;
   using position_type = position;
+  using region_type = region;
   using offset_type = offset;
 
-  using input_type = padded_string_view;
   using replacement_type = string8_view;
+  using input_type = padded_string_view;
 
   explicit locator(padded_string_view input) noexcept;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-  void replace_text(range_type range, string8_view replacement_text,
-                    padded_string_view new_input);
+  void replace_text(range_type range, replacement_type replacement_text,
+                    input_type new_input);
 
   const char8 *from_position(position_type position) const noexcept;
 #endif
