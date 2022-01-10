@@ -100,14 +100,35 @@ struct lines {
   std::vector<offset_type> offset_begin_;
   std::vector<bool_type> is_ascii_;
 
-  void extend(lines &other, offset_type begin, offset_type end);
+  void extend(lines &other, offset_type begin, offset_type end) {
+    this->offset_begin_.insert(this->offset_begin_.end(),
+                               other->offset_begin_.begin() + begin,
+                               other->offset_begin_.begin() + end);
+    this->is_ascii_.insert(this->is_ascii_.end(),
+                           other->is_ascii_.begin() + begin,
+                           other->is_ascii_.begin() + end);
+  }
 
   void compute(const char8 *input, const char8 *begin, const char8 *end);
-  void compute(input_type input, offset_type begin, offset_type end);
 
-  void swap(lines &other);
-  void reserve(lines &other);
-  void clear();
+  void compute(input_type input, offset_type begin, offset_type end) {
+    this->compute(&input, &input[begin], &input[end]);
+  }
+
+  void swap(lines &other) {
+    std::swap(this->offset_begin_, other->offset_begin_);
+    std::swap(this->is_ascii_, other->is_ascii_);
+  }
+
+  void reserve(lines &other) {
+    this->offset_begin_.reserve(other->offset_begin_.size());
+    this->is_ascii_.reserve(other->offset_begin_.size());
+  }
+
+  void clear() {
+    this->offset_begin_.clear();
+    this->is_ascii_.clear();
+  }
 };
 #endif
 

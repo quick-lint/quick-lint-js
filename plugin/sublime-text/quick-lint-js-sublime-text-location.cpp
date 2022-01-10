@@ -23,15 +23,6 @@ namespace sublime_text {
 // lines
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-void extend(lines *other, offset_type begin, offset_type end) {
-  this->offset_begin_.insert(this->offset_begin_.end(),
-                             other->offset_begin_.begin() + begin,
-                             other->offset_begin_.begin() + end);
-  this->is_ascii_.insert(this->is_ascii_.end(),
-                         other->is_ascii_.begin() + begin,
-                         other->is_ascii_.begin() + end);
-}
-
 void lines::compute(const char8 *input, const char8 *begin, const char8 *end) {
   std::uint8_t flags = 0;
   auto on_line_begin = [this](const char8 *line_begin) {
@@ -58,25 +49,6 @@ void lines::compute(const char8 *input, const char8 *begin, const char8 *end) {
   }
   on_line_end(ch);
 }
-
-void lines::compute(input_type input, offset_type begin, offset_type end) {
-  this->compute(&input, &input[begin], &input[end]);
-}
-
-void lines::swap(const lines *other) {
-  std::swap(this->offset_begin_, other->offset_begin_);
-  std::swap(this->is_ascii_, other->is_ascii_);
-}
-
-void lines::reserve(const lines *other) {
-  this->offset_begin_.reserve(other->offset_begin_.size());
-  this->is_ascii_.reserve(other->offset_begin_.size());
-}
-
-void lines::clear() {
-  this->offset_begin_.clear();
-  this->is_ascii_.clear();
-}
 #endif
 
 //==============================================================================
@@ -85,10 +57,7 @@ void lines::clear() {
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 locator::locator(padded_string_view input) noexcept : input_(input) {
-  this->new_lines.compute(
-      /*begin=*/this->input_.data(),
-      /*  end=*/this->input_.null_terminator(),
-      /*input=*/this->input_.data());
+  this->new_lines.compute(this->input_, 0, this->input_.size());
 }
 
 // NOTE: should range be a reference? `&`
@@ -120,20 +89,20 @@ void locator::replace_text(range_type range, string8_view replacement,
   }
 
   // After replacement: adjust with a fixed offset.
-  auto region_after_end = region.end + 1;
+  auto after_replacement = region.end + 1;
   {
     auto adjust_offset = [](offset_type offset) {
       static int adjust = replacement.size() - (region.end - region.begin);
       return offset + adjust;
     };
     insert_back_transform(
-        this->old_lines.offset_begin_.begin() + region_after_end,
+        this->old_lines.offset_begin_.begin() + after_replacement,
         this->old_lines.offset_begin_.end(), this->new_lines, adjust_offset);
   }
   {
     this->new_lines.is_ascii_.insert(
         this->new_lines.is_ascii_.end(),
-        this->old_lines.is_ascii_.begin() + region_after_end,
+        this->old_lines.is_ascii_.begin() + after_replacement,
         this->old_lines->is_ascii_.end());
   }
 
