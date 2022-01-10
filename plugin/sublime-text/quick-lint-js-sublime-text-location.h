@@ -32,6 +32,12 @@ using offset = unsigned int;
 
 //==============================================================================
 //------------------------------------------------------------------------------
+// region
+
+struct region final : public qljs_sublime_text_region {}
+
+//==============================================================================
+//------------------------------------------------------------------------------
 // position
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
@@ -53,8 +59,6 @@ public:
     return stream;
   }
 };
-#else
-using position = offset;
 #endif
 
 //==============================================================================
@@ -146,6 +150,7 @@ public:
 
   using replacement_type = string8_view;
   using input_type = padded_string_view;
+  using span_type = source_code_span;
 
   explicit locator(padded_string_view input) noexcept;
 

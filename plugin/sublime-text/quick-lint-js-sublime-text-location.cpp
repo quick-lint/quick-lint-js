@@ -61,6 +61,7 @@ locator::locator(padded_string_view input) noexcept : input_(input) {
 }
 
 // NOTE: should range be a reference? `&`
+// Sometimes the range will has only 8 bytes so don't worth add complexity
 void locator::replace_text(range_type range, string8_view replacement,
                            padded_string_view new_input) {
   QLJS_ASSERT(!this->new_lines.offset_begin_.empty());
@@ -100,10 +101,10 @@ void locator::replace_text(range_type range, string8_view replacement,
         this->old_lines.offset_begin_.end(), this->new_lines, adjust_offset);
   }
   {
-    this->new_lines.is_ascii_.insert(this->new_lines.is_ascii_.end(),
-                                     this->old_lines.is_ascii_.begin() +
-                                         after_replacement,
-                                     this->old_lines->is_ascii_.end());
+    this->new_lines.is_ascii_.insert(
+        this->new_lines.is_ascii_.end(),
+        this->old_lines.is_ascii_.begin() + after_replacement,
+        this->old_lines->is_ascii_.end());
   }
 
   QLJS_ASSERT(std::is_sorted(this->new_lines.offset_begin_.begin(),
@@ -113,10 +114,9 @@ void locator::replace_text(range_type range, string8_view replacement,
 }
 
 const char8 *locator::from_position(position_type position) const noexcept {
-  auto is_last_line =
-      [](offset_type line, offset_type number_of_lines) {
-        return line == number_of_lines - 1;
-      }
+  auto is_last_line = [](offset_type line, offset_type number_of_lines) {
+    return line == number_of_lines - 1;
+  };
 
   auto current_line = position.line;
   auto current_character = position.character;
@@ -191,8 +191,8 @@ typename locator::offset_type locator::offset(const char8 *source) const
   return narrow_cast<offset_type>(source - this->input_.data());
 }
 
-typename locator::offset_type
-locator::find_line_at_offset(offset_type offset) const {
+typename locator::offset_type locator::find_line_at_offset(
+    offset_type offset) const {
   QLJS_ASSERT(!this->offset_of_lines_.empty());
   auto offset_of_following_line_it = std::upper_bound(
       this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
@@ -236,8 +236,8 @@ typename locator::position_type locator::position(const char8 *ch) const
 }
 #endif
 
-} // namespace sublime_text
-} // namespace quick_lint_js
+}  // namespace sublime_text
+}  // namespace quick_lint_js
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar
