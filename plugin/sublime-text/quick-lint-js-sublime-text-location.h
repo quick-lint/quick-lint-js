@@ -92,17 +92,22 @@ struct character {
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct lines {
  public:
+  using offset_type = offset;
+
   using input_type = padded_string_view;
 
   std::vector<offset_type> offset_begin_;
   std::vector<std::uint8_t> is_ascii_;
 
   // void extend(offset_type begin, offset_type end, lines &other);
-  void extend(lines &other, offset_type begin, offset_type end);
   // void compute(const char8 *begin, const char8 *end, const char8 *input);
   // void compute(offset_type begin, offset_type end, const char8 *input);
   // void compute(const char8 *begin, const char8 *end, const char8 *input);
   // void compute(offset_type begin, offset_type end, input_type input);
+  //
+
+  void extend(lines &other, offset_type begin, offset_type end);
+
   void compute(const char8 *input, const char8 *begin, const char8 *end);
   void compute(input_type input, offset_type begin, offset_type end);
 
@@ -131,16 +136,12 @@ struct locator {
   void replace_text(range_type range, string8_view replacement_text,
                     padded_string_view new_input);
 
-  // void replace_text(region_type region, string8_view replacement_text,
-  //                   padded_string_view new_input);
-
   const char8 *from_position(position_type position) const noexcept;
 #endif
 
   range_type range(source_code_span span) const;
 
   position_type position(const char8 *ch) const noexcept;
-
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   position_type position(int line_number, offset_type offset) const noexcept;
 
