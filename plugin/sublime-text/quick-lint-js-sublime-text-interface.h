@@ -53,8 +53,9 @@ typedef struct qljs_sublime_text_region {
   qljs_sublime_text_offset end;
 } qljs_sublime_text_region;
 
-qljs_sublime_text_region *qljs_sublime_text_region_new(
-    qljs_sublime_text_offset begin, qljs_sublime_text_offset end);
+qljs_sublime_text_region *
+qljs_sublime_text_region_new(qljs_sublime_text_offset begin,
+                             qljs_sublime_text_offset end);
 
 void qljs_sublime_text_region_delete(qljs_sublime_text_region *r);
 
@@ -68,8 +69,9 @@ typedef struct qljs_sublime_text_position {
   qljs_sublime_text_offset character;
 } qljs_sublime_text_position;
 
-qljs_sublime_text_position *qljs_sublime_text_position_new(
-    qljs_sublime_text_offset line, qljs_sublime_text_offset character);
+qljs_sublime_text_position *
+qljs_sublime_text_position_new(qljs_sublime_text_offset line,
+                               qljs_sublime_text_offset character);
 
 void qljs_sublime_text_position_delete(qljs_sublime_text_position *p);
 #endif
@@ -84,8 +86,9 @@ typedef struct qljs_sublime_text_range {
   qljs_sublime_text_position end;
 } qljs_sublime_text_range;
 
-qljs_sublime_text_range *qljs_sublime_text_range_new(
-    qljs_sublime_text_position start, qljs_sublime_text_position end);
+qljs_sublime_text_range *
+qljs_sublime_text_range_new(qljs_sublime_text_position start,
+                            qljs_sublime_text_position end);
 
 void qljs_sublime_text_range_delete(qljs_sublime_text_range *r);
 #else
@@ -126,14 +129,14 @@ void qljs_sublime_text_document_replace_text(
     const qljs_sublime_text_text *text);
 #endif
 
-const qljs_sublime_text_diagnostic *qljs_sublime_text_document_lint(
-    qljs_sublime_text_document *d);
+const qljs_sublime_text_diagnostic *
+qljs_sublime_text_document_lint(qljs_sublime_text_document *d);
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif  // QUICK_LINT_JS_SUBLIME_TEXT_INTERFACE_H
+#endif // QUICK_LINT_JS_SUBLIME_TEXT_INTERFACE_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar

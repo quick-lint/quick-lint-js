@@ -36,7 +36,7 @@ using offset = unsigned int;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct position final : public qljs_sublime_text_position {
- public:
+public:
   friend inline bool operator==(const position &lhs,
                                 const position &rhs) noexcept {
     return lhs.line == rhs.line && lhs.character == rhs.character;
@@ -68,7 +68,7 @@ struct range final : public qljs_sublime_text_range {};
 // character
 
 struct character {
- public:
+public:
   static bool is_newline(const char8 ch) {
     return ch == u8'\n' || ch == u8'\r';
   }
@@ -92,7 +92,7 @@ struct character {
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct lines {
- public:
+public:
   using offset_type = offset;
   using bool_type = std::uint8_t;
 
@@ -138,7 +138,7 @@ struct lines {
 // locator
 
 struct locator {
- public:
+public:
   using range_type = range;
   using position_type = position;
   using region_type = region;
@@ -169,7 +169,7 @@ struct locator {
   offset_type offset(position_type *) const noexcept;
 #endif
 
- private:
+private:
   padded_string_view input_;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
@@ -181,9 +181,9 @@ struct locator {
 #endif
 };
 
-}  // namespace sublime_text
-}  // namespace quick_lint_js
-#endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
+} // namespace sublime_text
+} // namespace quick_lint_js
+#endif // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar

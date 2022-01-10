@@ -19,7 +19,7 @@
 #error "Unsupported Sublime Text version"
 #endif
 
-#endif  // QUICK_LINT_JS_SUBLIME_TEXT_HAVE_H
+#endif // QUICK_LINT_JS_SUBLIME_TEXT_HAVE_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar

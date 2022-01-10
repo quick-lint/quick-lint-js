@@ -29,8 +29,8 @@ void insert_back_transform(InputIt input_begin, InputIt input_end,
   QLJS_ASSERT(output_it == output.end());
 }
 
-}  // namespace quick_lint_js
-#endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
+} // namespace quick_lint_js
+#endif // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
