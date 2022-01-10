@@ -93,18 +93,12 @@ struct character {
 struct lines {
  public:
   using offset_type = offset;
-  using bool_type  = std::uint8_t;
+  using bool_type = std::uint8_t;
+
   using input_type = padded_string_view;
 
   std::vector<offset_type> offset_begin_;
   std::vector<bool_type> is_ascii_;
-
-  // void extend(offset_type begin, offset_type end, lines &other);
-  // void compute(const char8 *begin, const char8 *end, const char8 *input);
-  // void compute(offset_type begin, offset_type end, const char8 *input);
-  // void compute(const char8 *begin, const char8 *end, const char8 *input);
-  // void compute(offset_type begin, offset_type end, input_type input);
-  //
 
   void extend(lines &other, offset_type begin, offset_type end);
 
