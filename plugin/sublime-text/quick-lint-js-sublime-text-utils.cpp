@@ -14,6 +14,8 @@
 #include <algorithm>
 
 namespace quick_lint_js {
+namespace sublime_text {
+
 // Like std::transform with an std::back_insert_iterator, but more efficient for
 // std::vector<int>.
 template <class InputIt, class Output, class Transformer>
@@ -29,8 +31,9 @@ void insert_back_transform(InputIt input_begin, InputIt input_end,
   QLJS_ASSERT(output_it == output.end());
 }
 
+} // namespace sublime_text
 } // namespace quick_lint_js
-#endif // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
+#endif // QUICK_LINT_JS_SUBLIME_TEXT_UTILS_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
