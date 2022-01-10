@@ -9,7 +9,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <algorithm>
-#include <functional>
 #include <quick-lint-js-sublime-text-location.h>
 #include <quick-lint-js-sublime-text-utils.h>
 #include <quick-lint-js/assert.h>
@@ -31,19 +30,6 @@ void extend(lines *other, offset_type begin, offset_type end) {
   this->is_ascii_.insert(this->is_ascii_.end(),
                          other->is_ascii_.begin() + begin,
                          other->is_ascii_.begin() + end);
-}
-
-template <class Transformer1, Transformer2>
-void extend(lines *other, offset_type begin, offset_type end) {
-  if constexpr () {
-    this->offset_begin_.insert(this->offset_begin_.end(),
-                               other->offset_begin_.begin() + begin,
-                               other->offset_begin_.begin() + end);
-  } else if constexpr () {
-    this->is_ascii_.insert(this->is_ascii_.end(),
-                           other->is_ascii_.begin() + begin,
-                           other->is_ascii_.begin() + end);
-  }
 }
 
 void lines::compute(const char8 *input, const char8 *begin, const char8 *end) {
@@ -133,12 +119,23 @@ void locator::replace_text(range_type range, string8_view replacement,
   }
 
   // After replacement: adjust with a fixed offset.
-  auto adjust_offset = [](offset_type offset) {
-    static int adjust = replacement.size() - (region.end - region.begin);
-    return offset + adjust;
-  };
-  this->new_lines.extend(this->old_lines, range.end.line + 1,
-                         this->old_lines.size(), adjust_offset);
+  {
+    auto adjust_offset = [](offset_type offset) {
+      static int adjust = replacement.size() - (region.end - region.begin);
+      return offset + adjust;
+    };
+    auto after_end = region.end + 1;
+    auto after_replacement = this->old_lines.offset_begin_.begin() + after_end;
+    insert_back_transform(this->new_lines, /*begin=*/after_replacement,
+                          this->old_lines.offset_begin_.end(), adjust_offset);
+  }
+  {
+    auto after_end = region.end + 1;
+    auto after_replacement = this->old_lines.is_ascii_.begin() + after_end;
+    this->new_lines.is_ascii_.insert(this->new_lines.is_ascii_.end(),
+                                     /*begin=*/after_replacement,
+                                     this->old_lines->is_ascii_.end());
+  }
 
   QLJS_ASSERT(std::is_sorted(this->new_lines.offset_begin_.begin(),
                              this->new_lines.offset_begin_.end()));

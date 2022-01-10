@@ -12,6 +12,7 @@
 #define QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
 // #include <cstddef>
+// #include <type_traits>
 #include <cstdint>
 #include <quick-lint-js-sublime-text-interface.h>
 #include <quick-lint-js/char8.h>
