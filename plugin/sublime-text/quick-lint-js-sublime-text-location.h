@@ -11,8 +11,10 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
+#include <cstddef>
 #include <cstdint>
 #include <quick-lint-js-sublime-text-interface.h>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
@@ -34,15 +36,15 @@ using offset = unsigned int;
 //------------------------------------------------------------------------------
 // region
 
-struct region final : public qljs_sublime_text_region {}
-
+struct region final : public qljs_sublime_text_region {
+}
 //==============================================================================
 //------------------------------------------------------------------------------
 // position
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct position final : public qljs_sublime_text_position {
-public:
+ public:
   friend inline bool operator==(const position &lhs,
                                 const position &rhs) noexcept {
     return lhs.line == rhs.line && lhs.character == rhs.character;
@@ -72,7 +74,7 @@ struct range final : public qljs_sublime_text_range {};
 // character
 
 struct character {
-public:
+ public:
   static bool is_newline(const char8 ch) {
     return ch == u8'\n' || ch == u8'\r';
   }
@@ -96,11 +98,10 @@ public:
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct lines {
-public:
+ public:
   using offset_type = offset;
   using bool_type = std::uint8_t;
-
-  using input_type = padded_string_view;
+  using size_type = std::size_t;
 
   std::vector<offset_type> offset_begin_;
   std::vector<bool_type> is_ascii_;
@@ -113,10 +114,8 @@ public:
                            other->is_ascii_.begin() + begin,
                            other->is_ascii_.begin() + end);
   }
-
   void compute(const char8 *input, const char8 *begin, const char8 *end);
-
-  void compute(input_type input, offset_type begin, offset_type end) {
+  void compute(padded_string_view input, offset_type begin, offset_type end) {
     this->compute(&input, &input[begin], &input[end]);
   }
 
@@ -124,15 +123,21 @@ public:
     std::swap(this->offset_begin_, other->offset_begin_);
     std::swap(this->is_ascii_, other->is_ascii_);
   }
-
   void reserve(lines &other) {
     this->offset_begin_.reserve(other->offset_begin_.size());
     this->is_ascii_.reserve(other->offset_begin_.size());
   }
-
   void clear() {
     this->offset_begin_.clear();
     this->is_ascii_.clear();
+  }
+
+  size_type size() {
+    QLJS_ASSERT(this->offset_begin_.size() == this->is_ascii_.size());
+    return this->offset_begin_.size();
+  }
+  bool_type is_last_line(offset_type line) {
+    return line == this->size() - 1;
   }
 };
 #endif
@@ -142,7 +147,7 @@ public:
 // locator
 
 struct locator {
-public:
+ public:
   using range_type = range;
   using position_type = position;
   using region_type = region;
@@ -174,7 +179,7 @@ public:
   offset_type offset(position_type *) const noexcept;
 #endif
 
-private:
+ private:
   padded_string_view input_;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
@@ -186,9 +191,9 @@ private:
 #endif
 };
 
-} // namespace sublime_text
-} // namespace quick_lint_js
-#endif // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
+}  // namespace sublime_text
+}  // namespace quick_lint_js
+#endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew Glazar

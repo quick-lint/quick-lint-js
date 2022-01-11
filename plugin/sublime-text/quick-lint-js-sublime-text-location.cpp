@@ -60,8 +60,6 @@ locator::locator(padded_string_view input) noexcept : input_(input) {
   this->new_lines.compute(this->input_, 0, this->input_.size());
 }
 
-// NOTE: should range be a reference? `&`
-// Sometimes the range will has only 8 bytes so don't worth add complexity
 void locator::replace_text(range_type range, string8_view replacement,
                            padded_string_view new_input) {
   QLJS_ASSERT(!this->new_lines.offset_begin_.empty());
@@ -114,10 +112,33 @@ void locator::replace_text(range_type range, string8_view replacement,
 }
 
 const char8 *locator::from_position(position_type position) const noexcept {
-  auto is_last_line = [](offset_type line, offset_type number_of_lines) {
-    return line == number_of_lines - 1;
-  };
+  auto line = position.line;
+  auto line_is_last = this->new_lines.is_last_line(line);
+  auto line_is_ascii = this->new_lines.is_ascii[line];
+  auto line_offset_begin = this->new_lines.offset_begin_[line];
+  auto line_length = this->input_.size() - line_offset_begin;
+  auto character = position.character;
 
+  if (line >= this->new_lines.size()) {
+    return &this->input_[this->input_.size()];
+  }
+
+  if (line_is_last) {
+    if (line_is_ascii) {
+      if (character > line_length) {
+        return &this->input_[this->input_.size()];
+      } else {
+        return &this->input_[line_offset_begin + character];
+      }
+    } else {}
+  } else {
+    if (line_is_ascii) {
+    } else {}
+  }
+
+  // auto is_last_line = [](offset_type line, offset_type number_of_lines) {
+  //   return line == number_of_lines - 1;
+  // };
   auto current_line = position.line;
   auto current_character = position.character;
   auto number_of_lines = this->offset_of_lines_.size();
