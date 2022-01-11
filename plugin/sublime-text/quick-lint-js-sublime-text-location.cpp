@@ -117,8 +117,11 @@ const char8 *locator::from_position(position_type position) const noexcept {
   offset_type line_offset_end = this->new_lines.offset_begin_[line + 1];
   bool line_is_last = this->new_lines.is_last_line(line);
   bool line_is_ascii = this->new_lines.is_ascii[line];
-
   offset_type character = position.character;
+
+  auto is_microsoft_newline = [this, line_offset_end] {
+    return characters::is_microsoft_newline(&this->input_[line_offset_end - 2]);
+  };
 
   if (line >= this->new_lines.size()) {
     return &this->input_[this->input_.size()];
@@ -141,48 +144,7 @@ const char8 *locator::from_position(position_type position) const noexcept {
     bool character_is_out_of_bounds = character >= line_length_with_newline - 1;
     if (line_is_ascii) {
       if (character_is_out_of_bounds) {
-        if (line_length_with_newline >= 2 &&
-            character::is_microsoft_newline(
-                this->input_[line_end_offset - 2])) {
-        }
-      }
-    } else {
-    }
-  }
-
-  // auto is_last_line = [](offset_type line, offset_type number_of_lines) {
-  //   return line == number_of_lines - 1;
-  // };
-  auto current_line = position.line;
-  auto current_character = position.character;
-  auto number_of_lines = this->offset_of_lines_.size();
-  if (line >= number_of_lines) {
-    return this->input_.null_terminator();
-  }
-
-  auto current_line_begin_offset = this->offset_of_lines_[line];
-  bool current_line_is_ascii = this->line_is_ascii_[line];
-  if (is_last_line(line, number_of_lines)) {
-    auto line_length = this->input_.size() - line_begin_offset;
-    if (line_is_ascii) {
-      if (character > line_length) {
-        return &this->input_[this->input_.size()];
-      } else {
-        return &this->input_[line_begin_offset + character];
-      }
-    } else {
-      string8_view line_string(&this->input_[line_begin_offset], line_length);
-      return advance_lsp_characters_in_utf_8(line_string, character);
-    }
-  } else {
-    auto line_end_offset = this->offset_of_lines_[line + 1];
-    auto line_length_with_terminator = line_end_offset - line_begin_offset;
-    if (line_is_ascii) {
-      // Character is out of bounds.
-      if (character >= line_length_with_terminator - 1) {
-        if (line_length_with_terminator >= 2 &&
-            this->input_[line_end_offset - 2] == u8'\r' &&
-            this->input_[line_end_offset - 1] == u8'\n') {
+        if (line_length_with_newline >= 2 && is_microsoft_newline()) {
           // Return the "\r\n".
           return &this->input_[line_end_offset - 2];
         } else {
@@ -193,19 +155,66 @@ const char8 *locator::from_position(position_type position) const noexcept {
         return &this->input_[line_begin_offset + character];
       }
     } else {
-      offset_type line_terminator_length;
+    }
+  }
+}
+
+// auto is_last_line = [](offset_type line, offset_type number_of_lines) {
+//   return line == number_of_lines - 1;
+// };
+auto current_line = position.line;
+auto current_character = position.character;
+auto number_of_lines = this -> offset_of_lines_.size();
+if (line >= number_of_lines) {
+  return this->input_.null_terminator();
+}
+
+auto current_line_begin_offset = this -> offset_of_lines_[line];
+bool current_line_is_ascii = this->line_is_ascii_[line];
+if (is_last_line(line, number_of_lines)) {
+  auto line_length = this->input_.size() - line_begin_offset;
+  if (line_is_ascii) {
+    if (character > line_length) {
+      return &this->input_[this->input_.size()];
+    } else {
+      return &this->input_[line_begin_offset + character];
+    }
+  } else {
+    string8_view line_string(&this->input_[line_begin_offset], line_length);
+    return advance_lsp_characters_in_utf_8(line_string, character);
+  }
+} else {
+  auto line_end_offset = this->offset_of_lines_[line + 1];
+  auto line_length_with_terminator = line_end_offset - line_begin_offset;
+  if (line_is_ascii) {
+    // Character is out of bounds.
+    if (character >= line_length_with_terminator - 1) {
       if (line_length_with_terminator >= 2 &&
           this->input_[line_end_offset - 2] == u8'\r' &&
           this->input_[line_end_offset - 1] == u8'\n') {
-        line_terminator_length = 2;
+        // Return the "\r\n".
+        return &this->input_[line_end_offset - 2];
       } else {
-        line_terminator_length = 1;
+        // Return the "\n" or the "\r".
+        return &this->input_[line_end_offset - 1];
       }
-      auto line_length = line_length_with_terminator - line_terminator_length;
-      string8_view line_string(&this->input_[line_begin_offset], line_length);
-      return advance_lsp_characters_in_utf_8(line_string, character);
+    } else {
+      return &this->input_[line_begin_offset + character];
     }
+  } else {
+    offset_type line_terminator_length;
+    if (line_length_with_terminator >= 2 &&
+        this->input_[line_end_offset - 2] == u8'\r' &&
+        this->input_[line_end_offset - 1] == u8'\n') {
+      line_terminator_length = 2;
+    } else {
+      line_terminator_length = 1;
+    }
+    auto line_length = line_length_with_terminator - line_terminator_length;
+    string8_view line_string(&this->input_[line_begin_offset], line_length);
+    return advance_lsp_characters_in_utf_8(line_string, character);
   }
+}
 }
 
 typename locator::range_type locator::range(source_code_span span) const {

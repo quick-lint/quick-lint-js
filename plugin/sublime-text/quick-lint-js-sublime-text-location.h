@@ -74,7 +74,7 @@ struct range final : public qljs_sublime_text_range {};
 //------------------------------------------------------------------------------
 // character
 
-struct character {
+struct characters {
  public:
   static bool is_newline(const char8 ch) {
     return ch == u8'\n' || ch == u8'\r';
