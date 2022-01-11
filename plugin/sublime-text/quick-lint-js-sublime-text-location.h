@@ -11,12 +11,14 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js-sublime-text-interface.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <vector>
 
@@ -72,7 +74,7 @@ struct range final : public qljs_sublime_text_range {};
 
 //==============================================================================
 //------------------------------------------------------------------------------
-// character
+// characters
 
 struct characters {
  public:
@@ -114,7 +116,9 @@ struct lines {
                            other->is_ascii_.begin() + begin,
                            other->is_ascii_.begin() + end);
   }
+
   void compute(const char8 *input, const char8 *begin, const char8 *end);
+
   void compute(padded_string_view input, offset_type begin, offset_type end) {
     this->compute(&input, &input[begin], &input[end]);
   }
@@ -123,10 +127,12 @@ struct lines {
     std::swap(this->offset_begin_, other->offset_begin_);
     std::swap(this->is_ascii_, other->is_ascii_);
   }
+
   void reserve(lines &other) {
     this->offset_begin_.reserve(other->offset_begin_.size());
     this->is_ascii_.reserve(other->offset_begin_.size());
   }
+
   void clear() {
     this->offset_begin_.clear();
     this->is_ascii_.clear();
@@ -136,9 +142,16 @@ struct lines {
     QLJS_ASSERT(this->offset_begin_.size() == this->is_ascii_.size());
     return this->offset_begin_.size();
   }
-  bool is_last_line(offset_type line) {
-    return line == this->size() - 1;
+
+  offset_type find_line(offset_type offset) {
+    QLJS_ASSERT(!this->offset_begin_.empty());
+    auto offset_begin_it = this->offset_begin_.begin();
+    auto offset_end_it = this->offset_begin_.end();
+    auto offset_line_it = std::upper_bound(offset_begin_it + 1, offset_end_it, offset) - 1;
+    return narrow_cast<offset_type>(offset_line_it - offset_begin_it);
   }
+
+  bool is_last_line(offset_type line) { return line == this->size() - 1; }
 };
 #endif
 
@@ -153,11 +166,11 @@ struct locator {
   using region_type = region;
   using offset_type = offset;
 
-/*
-  using replacement_type = string8_view;
-  using input_type = padded_string_view;
-  using span_type = source_code_span;
-*/
+  /*
+    using replacement_type = string8_view;
+    using input_type = padded_string_view;
+    using span_type = source_code_span;
+  */
 
   explicit locator(padded_string_view input) noexcept;
 
@@ -171,6 +184,7 @@ struct locator {
   range_type range(source_code_span span) const;
 
   position_type position(const char8 *ch) const noexcept;
+
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   position_type position(int line_number, offset_type offset) const noexcept;
 

@@ -8,7 +8,6 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <algorithm>
 #include <quick-lint-js-sublime-text-location.h>
 #include <quick-lint-js-sublime-text-utils.h>
 #include <quick-lint-js/assert.h>
@@ -185,13 +184,15 @@ typename locator::offset_type locator::offset(const char8 *source) const
   return narrow_cast<offset_type>(source - this->input_.data());
 }
 
-typename locator::offset_type locator::find_line_at_offset(
-    offset_type offset) const {
-  QLJS_ASSERT(!this->offset_of_lines_.empty());
-  auto offset_of_following_line_it = std::upper_bound(
-      this->offset_of_lines_.begin() + 1, this->offset_of_lines_.end(), offset);
-  return narrow_cast<offset_type>((offset_of_following_line_it - 1) -
-                                  this->offset_of_lines_.begin());
+typename locator::offset_type locator::find_line_at_offset(offset_type offset)
+    const {
+  QLJS_ASSERT(!this->new_lines.offset_begin_.empty());
+  auto offset_of_following_line_it =
+      std::upper_bound(this->new_lines.offset_begin_.begin() + 1,
+                       this->new_lines.offset_begin_.end(), offset);
+  auto offset_of_line_it = offset_of_following_line_it - 1;
+  return narrow_cast<offset_type>((offset_of_line_it - 1) -
+                                  this->new_lines.offset_begin_.begin());
 }
 
 typename locator::position_type locator::position(int line_number,
