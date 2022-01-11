@@ -153,9 +153,11 @@ struct locator {
   using region_type = region;
   using offset_type = offset;
 
+/*
   using replacement_type = string8_view;
   using input_type = padded_string_view;
   using span_type = source_code_span;
+*/
 
   explicit locator(padded_string_view input) noexcept;
 
