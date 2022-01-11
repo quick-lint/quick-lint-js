@@ -155,6 +155,14 @@ const char8 *locator::from_position(position_type position) const noexcept {
         return &this->input_[line_begin_offset + character];
       }
     } else {
+      offset_type line_length;
+      if (line_length_with_newline >= 2 && is_microsoft_newline()) {
+        line_length = line_length_with_newline - 2;
+      } else {
+        line_length = line_length_with_newline - 1;
+      }
+      string8_view line_string(&this->input_[line_begin_offset], line_length);
+      return advance_lsp_characters_in_utf_8(line_string, character);
     }
   }
 }
