@@ -516,10 +516,18 @@ class expression::binary_operator final : public expression {
   static constexpr expression_kind kind = expression_kind::binary_operator;
 
   explicit binary_operator(
-      expression_arena::array_ptr<expression *> children) noexcept
-      : expression(kind), children_(children) {}
+      expression_arena::array_ptr<expression *> children,
+      expression_arena::array_ptr<source_code_span> operator_spans) noexcept
+      : expression(kind),
+        children_(children),
+        operator_spans_(operator_spans.data()) {
+    QLJS_ASSERT(children.size() >= 2);
+    QLJS_ASSERT(operator_spans.size() == children.size() - 1);
+  }
 
   expression_arena::array_ptr<expression *> children_;
+  // An array of size this->children_.size()-1.
+  const source_code_span *operator_spans_;
 };
 static_assert(expression_arena::is_allocatable<expression::binary_operator>);
 

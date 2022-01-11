@@ -2653,6 +2653,84 @@ TEST_F(test_parse_expression, parse_comma_expression) {
   }
 }
 
+TEST_F(test_parse_expression, binary_operator_span) {
+  for (string8 op : {
+           u8"!=", u8"!==", u8"%",  u8"&",   u8"&&", u8"*",  u8"**", u8"+",
+           u8",",  u8"-",   u8"/",  u8"<",   u8"<<", u8"<=", u8"==", u8"===",
+           u8">",  u8">=",  u8">>", u8">>>", u8"??", u8"^",  u8"|",  u8"||",
+       }) {
+    padded_string code(u8"x" + op + u8"y");
+    SCOPED_TRACE(code);
+    test_parser p(&code);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(ast->kind(), expression_kind::binary_operator);
+    auto* binary = static_cast<expression::binary_operator*>(ast);
+    EXPECT_EQ(p.range(binary->operator_spans_[0]).begin_offset(),
+              strlen(u8"x"));
+    EXPECT_EQ(p.range(binary->operator_spans_[0]).end_offset(),
+              (u8"x" + op).size());
+  }
+
+  {
+    test_parser p(u8"x + y * z"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), strlen(u8"x "));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), strlen(u8"x +"));
+    EXPECT_EQ(p.range(ast->operator_spans_[1]).begin_offset(),
+              strlen(u8"x + y "));
+    EXPECT_EQ(p.range(ast->operator_spans_[1]).end_offset(),
+              strlen(u8"x + y *"));
+  }
+
+  {
+    test_parser p(u8"x.'foo'"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), 1);
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), 2);
+  }
+
+  {
+    test_parser p(u8"x .. y"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), strlen(u8"x ."));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), strlen(u8"x .."));
+  }
+
+  {
+    test_parser p(u8"x in y"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), strlen(u8"x "));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), strlen(u8"x in"));
+  }
+
+  {
+    test_parser p(u8"f(x y)"_sv);
+    expression* ast = p.parse_expression();
+    auto* binary = static_cast<expression::binary_operator*>(ast->child_1());
+    EXPECT_EQ(p.range(binary->operator_spans_[0]).begin_offset(),
+              strlen(u8"f(x"));
+    EXPECT_EQ(p.range(binary->operator_spans_[0]).end_offset(),
+              strlen(u8"f(x"));
+  }
+
+  {
+    test_parser p(u8"x.y => z"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(),
+              strlen(u8"x.y "));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(),
+              strlen(u8"x.y =>"));
+  }
+
+  {
+    test_parser p(u8"f() => {}"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    // FIXME(strager): These spans look weird.
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), strlen(u8""));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), strlen(u8"f("));
+  }
+}
+
 TEST_F(test_parse_expression, parse_function_expression) {
   {
     test_parser p(u8"function(){} /* */"_sv);

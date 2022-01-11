@@ -1023,7 +1023,8 @@ expression* parser::parse_expression_remainder(Visitor& v, expression* ast,
   auto build_expression = [&]() {
     if (binary_builder.has_multiple_children()) {
       return this->make_expression<expression::binary_operator>(
-          binary_builder.move_expressions(this->expressions_));
+          binary_builder.move_expressions(this->expressions_),
+          binary_builder.move_operator_spans(this->expressions_));
     } else {
       return binary_builder.last_expression();
     }
@@ -1047,7 +1048,7 @@ next:
     } else {
       // Comma expression: a, b, c
       expression* rhs = binary_builder.add_child(
-          this->parse_expression(v, precedence{.commas = false}));
+          comma_span, this->parse_expression(v, precedence{.commas = false}));
       if (rhs->kind() == expression_kind::_invalid) {
         this->error_reporter_->report(
             error_missing_operand_for_operator{comma_span});
@@ -1066,8 +1067,10 @@ next:
     }
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression* rhs = binary_builder.add_child(this->parse_expression(
-        v, precedence{.binary_operators = false, .commas = false}));
+    expression* rhs = binary_builder.add_child(
+        operator_span,
+        this->parse_expression(
+            v, precedence{.binary_operators = false, .commas = false}));
     if (rhs->kind() == expression_kind::_missing) {
       this->error_reporter_->report(
           error_missing_operand_for_operator{operator_span});
@@ -1165,6 +1168,7 @@ next:
           .dot = dot_span,
       });
       binary_builder.add_child(
+          dot_span,
           this->make_expression<expression::literal>(this->peek().span()));
       this->skip();
       goto next;
@@ -1195,13 +1199,16 @@ next:
 
     // x .. y
     case token_type::dot: {
+      source_code_span second_dot = this->peek().span();
       this->error_reporter_->report(error_dot_dot_is_not_an_operator{
-          .dots = source_code_span(dot_span.begin(), this->peek().end),
+          .dots = source_code_span(dot_span.begin(), second_dot.end()),
       });
       // Treat '..' as if it was a binary operator.
       this->skip();
-      binary_builder.add_child(this->parse_expression(
-          v, precedence{.binary_operators = false, .commas = false}));
+      binary_builder.add_child(
+          second_dot,
+          this->parse_expression(
+              v, precedence{.binary_operators = false, .commas = false}));
       goto next;
     }
 
@@ -1280,13 +1287,15 @@ next:
     goto next;
 
   // key in o
-  case token_type::kw_in:
+  case token_type::kw_in: {
     if (!prec.in_operator) {
       break;
     }
+    source_code_span in_operator = this->peek().span();
     this->skip();
-    binary_builder.add_child(this->parse_expression(v, prec));
+    binary_builder.add_child(in_operator, this->parse_expression(v, prec));
     goto next;
+  }
 
   // x ? y : z  // Conditional operator.
   case token_type::question: {
@@ -1359,13 +1368,16 @@ next:
   // y
   case token_type::identifier:
     if (prec.trailing_identifiers) {
+      const char8* expected_operator = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_unexpected_identifier_in_expression{
           .unexpected = this->peek().identifier_name(),
       });
 
       // Behave as if a comma appeared before the identifier.
-      expression* rhs = binary_builder.add_child(this->parse_expression(
-          v, precedence{.binary_operators = false, .commas = false}));
+      expression* rhs = binary_builder.add_child(
+          source_code_span(expected_operator, expected_operator),
+          this->parse_expression(
+              v, precedence{.binary_operators = false, .commas = false}));
       QLJS_ASSERT(rhs->kind() != expression_kind::_invalid);
       goto next;
     }
@@ -1598,8 +1610,10 @@ void parser::parse_arrow_function_expression_remainder(
 
     if (this->peek().type != token_type::left_curly) {
       // Treat the '=>' as if it was a binary operator (like '>=').
-      binary_builder.add_child(this->parse_expression(
-          v, precedence{.binary_operators = false, .commas = false}));
+      binary_builder.add_child(
+          arrow_span,
+          this->parse_expression(
+              v, precedence{.binary_operators = false, .commas = false}));
       return;
     }
     break;

@@ -44,6 +44,9 @@ std::string summarize(std::optional<expression*>);
 
 class test_parser {
  public:
+  explicit test_parser(padded_string_view input)
+      : test_parser(input.string_view()) {}
+
   explicit test_parser(string8_view input)
       : test_parser(input, parser_options()) {}
 

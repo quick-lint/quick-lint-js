@@ -364,7 +364,7 @@ class parser {
     bool has_multiple_children() const noexcept;
 
     // Returns the given expression*.
-    expression *add_child(expression *);
+    expression *add_child(source_code_span prior_operator_span, expression *);
 
     void replace_last(expression *new_last_child);
 
@@ -372,9 +372,12 @@ class parser {
 
     expression_arena::array_ptr<expression *> move_expressions(
         expression_arena &) noexcept;
+    expression_arena::array_ptr<source_code_span> move_operator_spans(
+        expression_arena &) noexcept;
 
    private:
     expression_arena::vector<expression *> children_;
+    expression_arena::vector<source_code_span> operator_spans_;
   };
 
   template <QLJS_PARSE_VISITOR Visitor>

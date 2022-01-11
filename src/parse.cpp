@@ -95,7 +95,8 @@ parser::class_guard parser::enter_class() {
 
 parser::binary_expression_builder::binary_expression_builder(
     monotonic_allocator* allocator, expression* first_child)
-    : children_("binary_expression_builder", allocator) {
+    : children_("binary_expression_builder children", allocator),
+      operator_spans_("binary_expression_builder children", allocator) {
   this->children_.emplace_back(first_child);
 }
 
@@ -108,7 +109,9 @@ bool parser::binary_expression_builder::has_multiple_children() const noexcept {
   return this->children_.size() > 1;
 }
 
-expression* parser::binary_expression_builder::add_child(expression* child) {
+expression* parser::binary_expression_builder::add_child(
+    source_code_span prior_operator_span, expression* child) {
+  this->operator_spans_.emplace_back(prior_operator_span);
   return this->children_.emplace_back(child);
 }
 
@@ -121,12 +124,19 @@ void parser::binary_expression_builder::reset_after_build(
     expression* new_first_child) {
   this->children_.clear();
   this->children_.emplace_back(new_first_child);
+  this->operator_spans_.clear();
 }
 
 expression_arena::array_ptr<expression*>
 parser::binary_expression_builder::move_expressions(
     expression_arena& arena) noexcept {
   return arena.make_array(std::move(this->children_));
+}
+
+expression_arena::array_ptr<source_code_span>
+parser::binary_expression_builder::move_operator_spans(
+    expression_arena& arena) noexcept {
+  return arena.make_array(std::move(this->operator_spans_));
 }
 
 function_attributes parser::parse_generator_star(
@@ -192,14 +202,17 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
       return arrow_function;
     } else {
       // f() => {}         // Invalid.
+      source_code_span missing_operator_span(call->span().begin(),
+                                             call->left_paren_span().end());
       this->error_reporter_->report(
           error_missing_operator_between_expression_and_arrow_function{
-              .where = source_code_span(call->span().begin(),
-                                        call->left_paren_span().end()),
+              .where = missing_operator_span,
           });
       std::array<expression*, 2> children{lhs->child_0(), arrow_function};
+      std::array<source_code_span, 1> operators{missing_operator_span};
       return this->make_expression<expression::binary_operator>(
-          this->expressions_.make_array(std::move(children)));
+          this->expressions_.make_array(std::move(children)),
+          this->expressions_.make_array(std::move(operators)));
     }
   }
   }
