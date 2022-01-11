@@ -88,7 +88,7 @@ void locator::replace_text(range_type range, string8_view replacement,
   }
 
   // After replacement: adjust with a fixed offset.
-  auto after_replacement = region.end + 1;
+  offset_type after_replacement = region.end + 1;
   {
     auto adjust_offset = [](offset_type offset) {
       static int adjust = replacement.size() - (region.end - region.begin);
@@ -112,12 +112,11 @@ void locator::replace_text(range_type range, string8_view replacement,
 }
 
 const char8 *locator::from_position(position_type position) const noexcept {
-  auto line = position.line;
-  auto line_is_last = this->new_lines.is_last_line(line);
-  auto line_is_ascii = this->new_lines.is_ascii[line];
-  auto line_offset_begin = this->new_lines.offset_begin_[line];
-  auto line_length = this->input_.size() - line_offset_begin;
-  auto character = position.character;
+  offset_type line = position.line;
+  bool line_is_last = this->new_lines.is_last_line(line);
+  bool line_is_ascii = this->new_lines.is_ascii[line];
+  offset_type line_offset_begin = this->new_lines.offset_begin_[line];
+  offset_type character = position.character;
 
   if (line >= this->new_lines.size()) {
     return &this->input_[this->input_.size()];
@@ -125,12 +124,16 @@ const char8 *locator::from_position(position_type position) const noexcept {
 
   if (line_is_last) {
     if (line_is_ascii) {
+      auto line_length = this->input_.size() - line_offset_begin;
       if (character > line_length) {
         return &this->input_[this->input_.size()];
       } else {
         return &this->input_[line_offset_begin + character];
       }
-    } else {}
+    } else {
+      string8_view line_string(&this->input_[line_begin_offset], line_length);
+      return advance_lsp_characters_in_utf_8(line_string, character);
+    }
   } else {
     if (line_is_ascii) {
     } else {}
