@@ -22,6 +22,7 @@
 
 // TODO: Add constructors range from locator to constructor from range
 // TODO: Create region structure
+// TODO: Move back_insert_transform to vector.h
 
 namespace quick_lint_js {
 namespace sublime_text {
@@ -100,11 +101,10 @@ struct character {
 struct lines {
  public:
   using offset_type = offset;
-  using bool_type = std::uint8_t;
   using size_type = std::size_t;
 
   std::vector<offset_type> offset_begin_;
-  std::vector<bool_type> is_ascii_;
+  std::vector<std::uint8_t> is_ascii_;
 
   void extend(lines &other, offset_type begin, offset_type end) {
     this->offset_begin_.insert(this->offset_begin_.end(),
@@ -136,7 +136,7 @@ struct lines {
     QLJS_ASSERT(this->offset_begin_.size() == this->is_ascii_.size());
     return this->offset_begin_.size();
   }
-  bool_type is_last_line(offset_type line) {
+  bool is_last_line(offset_type line) {
     return line == this->size() - 1;
   }
 };

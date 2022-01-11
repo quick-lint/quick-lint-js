@@ -91,7 +91,7 @@ void locator::replace_text(range_type range, string8_view replacement,
   offset_type after_replacement = region.end + 1;
   {
     auto adjust_offset = [](offset_type offset) {
-      static int adjust = replacement.size() - (region.end - region.begin);
+      static auto adjust = replacement.size() - (region.end - region.begin);
       return offset + adjust;
     };
     insert_back_transform(
@@ -113,9 +113,11 @@ void locator::replace_text(range_type range, string8_view replacement,
 
 const char8 *locator::from_position(position_type position) const noexcept {
   offset_type line = position.line;
+  offset_type line_offset_begin = this->new_lines.offset_begin_[line];
+  offset_type line_offset_end = this->new_lines.offset_begin_[line + 1];
   bool line_is_last = this->new_lines.is_last_line(line);
   bool line_is_ascii = this->new_lines.is_ascii[line];
-  offset_type line_offset_begin = this->new_lines.offset_begin_[line];
+
   offset_type character = position.character;
 
   if (line >= this->new_lines.size()) {
@@ -123,8 +125,8 @@ const char8 *locator::from_position(position_type position) const noexcept {
   }
 
   if (line_is_last) {
+    offset_type line_length = this->input_.size() - line_offset_begin;
     if (line_is_ascii) {
-      auto line_length = this->input_.size() - line_offset_begin;
       if (character > line_length) {
         return &this->input_[this->input_.size()];
       } else {
@@ -135,8 +137,17 @@ const char8 *locator::from_position(position_type position) const noexcept {
       return advance_lsp_characters_in_utf_8(line_string, character);
     }
   } else {
+    offset_type line_length_with_newline = line_end_offset - line_begin_offset;
+    bool character_is_out_of_bounds = character >= line_length_with_newline - 1;
     if (line_is_ascii) {
-    } else {}
+      if (character_is_out_of_bounds) {
+        if (line_length_with_newline >= 2 &&
+            character::is_microsoft_newline(
+                this->input_[line_end_offset - 2])) {
+        }
+      }
+    } else {
+    }
   }
 
   // auto is_last_line = [](offset_type line, offset_type number_of_lines) {
