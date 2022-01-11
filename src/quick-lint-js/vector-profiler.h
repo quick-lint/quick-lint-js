@@ -171,8 +171,14 @@ class instrumented_vector {
   QLJS_FORCE_INLINE bool empty() const noexcept { return this->data_.empty(); }
 
   QLJS_FORCE_INLINE value_type &front() noexcept { return this->data_.front(); }
-
   QLJS_FORCE_INLINE value_type &back() noexcept { return this->data_.back(); }
+
+  QLJS_FORCE_INLINE const value_type &front() const noexcept {
+    return this->data_.front();
+  }
+  QLJS_FORCE_INLINE const value_type &back() const noexcept {
+    return this->data_.back();
+  }
 
   QLJS_FORCE_INLINE value_type *begin() noexcept { return this->data(); }
   QLJS_FORCE_INLINE value_type *end() noexcept {

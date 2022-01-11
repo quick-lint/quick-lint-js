@@ -349,6 +349,34 @@ class parser {
     bool conditional_operator = true;
   };
 
+  // binary_expression_builder helps in the creation of a
+  // expression::binary_operator.
+  //
+  // Upon construction, binary_expression_builder stores a single expression*.
+  // As a binary expression is parsed, other expression*-s are added to the
+  // binary_expression_builder.
+  class binary_expression_builder {
+   public:
+    explicit binary_expression_builder(monotonic_allocator *,
+                                       expression *first_child);
+
+    expression *last_expression() const noexcept;
+    bool has_multiple_children() const noexcept;
+
+    // Returns the given expression*.
+    expression *add_child(expression *);
+
+    void replace_last(expression *new_last_child);
+
+    void reset_after_build(expression *new_first_child);
+
+    expression_arena::array_ptr<expression *> move_expressions(
+        expression_arena &) noexcept;
+
+   private:
+    expression_arena::vector<expression *> children_;
+  };
+
   template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_expression(Visitor &v, precedence prec) {
     monotonic_allocator &alloc = *this->expressions_.allocator();
@@ -376,14 +404,15 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_expression_remainder(Visitor &, expression *, precedence);
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_arrow_function_expression_remainder(
-      Visitor &, source_code_span arrow_span,
-      expression_arena::vector<expression *> &children, bool allow_in_operator);
+  void parse_arrow_function_expression_remainder(Visitor &,
+                                                 source_code_span arrow_span,
+                                                 binary_expression_builder &,
+                                                 bool allow_in_operator);
   // Precondition: Current token is '=>'.
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_arrow_function_expression_remainder(
-      Visitor &, expression_arena::vector<expression *> &children,
-      bool allow_in_operator);
+  void parse_arrow_function_expression_remainder(Visitor &,
+                                                 binary_expression_builder &,
+                                                 bool allow_in_operator);
   template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_call_expression_remainder(Visitor &, expression *callee);
   template <QLJS_PARSE_VISITOR Visitor>

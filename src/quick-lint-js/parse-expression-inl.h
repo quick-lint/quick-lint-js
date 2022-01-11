@@ -1019,16 +1019,13 @@ expression* parser::parse_expression_remainder(Visitor& v, expression* ast,
     QLJS_ASSERT(prec.binary_operators);
   }
 
-  expression_arena::vector<expression*> children(
-      "parse_expression_remainder children", this->expressions_.allocator());
-  children.emplace_back(ast);
+  binary_expression_builder binary_builder(this->expressions_.allocator(), ast);
   auto build_expression = [&]() {
-    if (children.size() == 1) {
-      return children.front();
-    } else {
-      QLJS_ASSERT(children.size() >= 2);
+    if (binary_builder.has_multiple_children()) {
       return this->make_expression<expression::binary_operator>(
-          this->expressions_.make_array(std::move(children)));
+          binary_builder.move_expressions(this->expressions_));
+    } else {
+      return binary_builder.last_expression();
     }
   };
 
@@ -1046,10 +1043,10 @@ next:
       // Probably an arrow function with a trailing comma in its parameter list:
       // (parameters, go, here, ) => expression-or-block
       return this->make_expression<expression::trailing_comma>(
-          this->expressions_.make_array(std::move(children)), comma_span);
+          binary_builder.move_expressions(this->expressions_), comma_span);
     } else {
       // Comma expression: a, b, c
-      expression* rhs = children.emplace_back(
+      expression* rhs = binary_builder.add_child(
           this->parse_expression(v, precedence{.commas = false}));
       if (rhs->kind() == expression_kind::_invalid) {
         this->error_reporter_->report(
@@ -1069,7 +1066,7 @@ next:
     }
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression* rhs = children.emplace_back(this->parse_expression(
+    expression* rhs = binary_builder.add_child(this->parse_expression(
         v, precedence{.binary_operators = false, .commas = false}));
     if (rhs->kind() == expression_kind::_missing) {
       this->error_reporter_->report(
@@ -1080,7 +1077,8 @@ next:
 
   // f(x, y, z)  // Function call.
   case token_type::left_paren:
-    children.back() = this->parse_call_expression_remainder(v, children.back());
+    binary_builder.replace_last(this->parse_call_expression_remainder(
+        v, binary_builder.last_expression()));
     goto next;
 
   // x += y
@@ -1135,9 +1133,9 @@ next:
           .where = operator_span,
       });
     }
-    children.clear();
-    children.emplace_back(this->make_expression<expression::assignment>(
-        kind, lhs, rhs, operator_span));
+    binary_builder.reset_after_build(
+        this->make_expression<expression::assignment>(kind, lhs, rhs,
+                                                      operator_span));
     goto next;
   }
 
@@ -1157,8 +1155,8 @@ next:
                 .private_identifier = this->peek().identifier_name(),
             });
       }
-      children.back() = this->make_expression<expression::dot>(
-          children.back(), this->peek().identifier_name());
+      binary_builder.replace_last(this->make_expression<expression::dot>(
+          binary_builder.last_expression(), this->peek().identifier_name()));
       this->skip();
       goto next;
 
@@ -1166,7 +1164,7 @@ next:
       this->error_reporter_->report(error_invalid_rhs_for_dot_operator{
           .dot = dot_span,
       });
-      children.emplace_back(
+      binary_builder.add_child(
           this->make_expression<expression::literal>(this->peek().span()));
       this->skip();
       goto next;
@@ -1186,8 +1184,8 @@ next:
     case token_type::semicolon:
     case token_type::right_paren: {
       source_code_span empty_property_name(dot_span.end(), dot_span.end());
-      children.back() = this->make_expression<expression::dot>(
-          children.back(), identifier(empty_property_name));
+      binary_builder.replace_last(this->make_expression<expression::dot>(
+          binary_builder.last_expression(), identifier(empty_property_name)));
       this->error_reporter_->report(
           error_missing_property_name_for_dot_operator{
               .dot = dot_span,
@@ -1202,7 +1200,7 @@ next:
       });
       // Treat '..' as if it was a binary operator.
       this->skip();
-      children.emplace_back(this->parse_expression(
+      binary_builder.add_child(this->parse_expression(
           v, precedence{.binary_operators = false, .commas = false}));
       goto next;
     }
@@ -1226,8 +1224,8 @@ next:
     case token_type::private_identifier:
     case token_type::reserved_keyword_with_escape_sequence:
     QLJS_CASE_KEYWORD:
-      children.back() = this->make_expression<expression::dot>(
-          children.back(), this->peek().identifier_name());
+      binary_builder.replace_last(this->make_expression<expression::dot>(
+          binary_builder.last_expression(), this->peek().identifier_name()));
       this->skip();
       goto next;
 
@@ -1235,19 +1233,20 @@ next:
     // tag?.`template${goes}here`
     case token_type::complete_template:
     case token_type::incomplete_template:
-      children.back() = this->parse_template(v, children.back());
+      binary_builder.replace_last(
+          this->parse_template(v, binary_builder.last_expression()));
       goto next;
 
     // f?.(x, y)
     case token_type::left_paren:
-      children.back() =
-          this->parse_call_expression_remainder(v, children.back());
+      binary_builder.replace_last(this->parse_call_expression_remainder(
+          v, binary_builder.last_expression()));
       goto next;
 
     // array?.[index]
     case token_type::left_square:
-      children.back() =
-          this->parse_index_expression_remainder(v, children.back());
+      binary_builder.replace_last(this->parse_index_expression_remainder(
+          v, binary_builder.last_expression()));
       goto next;
 
     default:
@@ -1259,8 +1258,8 @@ next:
 
   // o[key]  // Indexing expression.
   case token_type::left_square: {
-    children.back() =
-        this->parse_index_expression_remainder(v, children.back());
+    binary_builder.replace_last(this->parse_index_expression_remainder(
+        v, binary_builder.last_expression()));
     goto next;
   }
 
@@ -1274,8 +1273,9 @@ next:
     } else {
       source_code_span operator_span = this->peek().span();
       this->skip();
-      children.back() = this->make_expression<expression::rw_unary_suffix>(
-          children.back(), operator_span);
+      binary_builder.replace_last(
+          this->make_expression<expression::rw_unary_suffix>(
+              binary_builder.last_expression(), operator_span));
     }
     goto next;
 
@@ -1285,7 +1285,7 @@ next:
       break;
     }
     this->skip();
-    children.emplace_back(this->parse_expression(v, prec));
+    binary_builder.add_child(this->parse_expression(v, prec));
     goto next;
 
   // x ? y : z  // Conditional operator.
@@ -1340,7 +1340,7 @@ next:
   // (parameters, go, here) => expression-or-block // Arrow function.
   case token_type::equal_greater: {
     this->parse_arrow_function_expression_remainder(
-        v, children, /*allow_in_operator=*/prec.in_operator);
+        v, binary_builder, /*allow_in_operator=*/prec.in_operator);
     goto next;
   }
 
@@ -1348,8 +1348,8 @@ next:
   // html`<h1>${title}</h1>`   // Template call.
   case token_type::complete_template:
   case token_type::incomplete_template: {
-    expression* tag = children.back();
-    children.back() = this->parse_template(v, tag);
+    expression* tag = binary_builder.last_expression();
+    binary_builder.replace_last(this->parse_template(v, tag));
     goto next;
   }
 
@@ -1364,7 +1364,7 @@ next:
       });
 
       // Behave as if a comma appeared before the identifier.
-      expression* rhs = children.emplace_back(this->parse_expression(
+      expression* rhs = binary_builder.add_child(this->parse_expression(
           v, precedence{.binary_operators = false, .commas = false}));
       QLJS_ASSERT(rhs->kind() != expression_kind::_invalid);
       goto next;
@@ -1374,10 +1374,11 @@ next:
   case token_type::left_curly: {
     bool looks_like_arrow_function_body =
         prec.trailing_curly_is_arrow_body &&
-        !this->peek().has_leading_newline && children.size() == 1 &&
+        !this->peek().has_leading_newline &&
+        !binary_builder.has_multiple_children() &&
         // TODO(strager): Check for ',' operator explicitly, not any binary
         // operator.
-        children.front()->without_paren()->kind() ==
+        binary_builder.last_expression()->without_paren()->kind() ==
             expression_kind::binary_operator;
     if (looks_like_arrow_function_body) {
       source_code_span arrow_span = this->peek().span();
@@ -1387,7 +1388,7 @@ next:
               .where = arrow_span,
           });
       this->parse_arrow_function_expression_remainder(
-          v, /*arrow_span=*/arrow_span, children,
+          v, /*arrow_span=*/arrow_span, binary_builder,
           /*allow_in_operator=*/prec.in_operator);
     }
     break;
@@ -1456,8 +1457,7 @@ next:
 
 template <QLJS_PARSE_VISITOR Visitor>
 void parser::parse_arrow_function_expression_remainder(
-    Visitor& v, expression_arena::vector<expression*>& children,
-    bool allow_in_operator) {
+    Visitor& v, binary_expression_builder& children, bool allow_in_operator) {
   QLJS_ASSERT(this->peek().type == token_type::equal_greater);
   source_code_span arrow_span = this->peek().span();
   this->skip();
@@ -1468,12 +1468,12 @@ void parser::parse_arrow_function_expression_remainder(
 template <QLJS_PARSE_VISITOR Visitor>
 void parser::parse_arrow_function_expression_remainder(
     Visitor& v, source_code_span arrow_span,
-    expression_arena::vector<expression*>& children, bool allow_in_operator) {
-  if (children.size() != 1) {
+    binary_expression_builder& binary_builder, bool allow_in_operator) {
+  if (binary_builder.has_multiple_children()) {
     // TODO(strager): We should report an error for code like this:
     // a + b => c
   }
-  expression* lhs = children.back();
+  expression* lhs = binary_builder.last_expression();
   function_attributes attributes = function_attributes::normal;
 
   if (lhs->kind() == expression_kind::paren) {
@@ -1598,7 +1598,7 @@ void parser::parse_arrow_function_expression_remainder(
 
     if (this->peek().type != token_type::left_curly) {
       // Treat the '=>' as if it was a binary operator (like '>=').
-      children.emplace_back(this->parse_expression(
+      binary_builder.add_child(this->parse_expression(
           v, precedence{.binary_operators = false, .commas = false}));
       return;
     }
@@ -1615,8 +1615,8 @@ void parser::parse_arrow_function_expression_remainder(
       /*parameter_list_begin=*/left_paren_begin,
       /*allow_in_operator=*/allow_in_operator,
       this->expressions_.make_array(std::move(parameters)));
-  children.back() =
-      this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs);
+  binary_builder.replace_last(
+      this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs));
 }
 
 template <QLJS_PARSE_VISITOR Visitor>

@@ -93,6 +93,42 @@ parser::class_guard parser::enter_class() {
   return class_guard(this, std::exchange(this->in_class_, true));
 }
 
+parser::binary_expression_builder::binary_expression_builder(
+    monotonic_allocator* allocator, expression* first_child)
+    : children_("binary_expression_builder", allocator) {
+  this->children_.emplace_back(first_child);
+}
+
+expression* parser::binary_expression_builder::last_expression() const
+    noexcept {
+  return this->children_.back();
+}
+
+bool parser::binary_expression_builder::has_multiple_children() const noexcept {
+  return this->children_.size() > 1;
+}
+
+expression* parser::binary_expression_builder::add_child(expression* child) {
+  return this->children_.emplace_back(child);
+}
+
+void parser::binary_expression_builder::replace_last(
+    expression* new_last_child) {
+  this->children_.back() = new_last_child;
+}
+
+void parser::binary_expression_builder::reset_after_build(
+    expression* new_first_child) {
+  this->children_.clear();
+  this->children_.emplace_back(new_first_child);
+}
+
+expression_arena::array_ptr<expression*>
+parser::binary_expression_builder::move_expressions(
+    expression_arena& arena) noexcept {
+  return arena.make_array(std::move(this->children_));
+}
+
 function_attributes parser::parse_generator_star(
     function_attributes original_attributes) {
   bool is_generator = this->peek().type == token_type::star;

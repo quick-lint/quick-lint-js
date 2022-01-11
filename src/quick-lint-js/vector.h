@@ -123,6 +123,15 @@ class raw_bump_vector {
     return this->data_end_[-1];
   }
 
+  const T &front() const noexcept {
+    QLJS_ASSERT(!this->empty());
+    return this->data_[0];
+  }
+  const T &back() const noexcept {
+    QLJS_ASSERT(!this->empty());
+    return this->data_end_[-1];
+  }
+
   void reserve(std::size_t size) {
     if (this->capacity() < size) {
       this->reserve_grow(size);
