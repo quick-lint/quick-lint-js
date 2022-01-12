@@ -12,7 +12,12 @@ import platform
 from . import utils
 
 
-## struct ####################################################################
+################################################################################
+## c interface
+################################################################################
+
+
+## struct ######################################################################
 
 
 class CStruct(ctypes.Structure):
@@ -123,6 +128,9 @@ class CException(Exception):
     pass
 
 
+## library #####################################################################
+
+
 class CLibrary:
     @staticmethod
     def get_file_extension():
@@ -146,51 +154,50 @@ class CLibrary:
                 raise CException("") from err  # TODO: add message
 
         version = utils.sublime.major_version()
-        self.c_create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
-        self.c_create_parser.argtypes = []
-        self.c_create_parser.restype = CDocument.CPointer
-        self.c_destroy_parser = getattr(cdll, "qljs_st%d_destroy_parser" % (version))
-        self.c_destroy_parser.argtypes = [CDocument.CPointer]
-        self.c_destroy_parser.restype = None
-        if utils.sublime.is_version_three():
-            self.c_set_text = cdll.qljs_st_3_set_text
-            self.c_set_text.argtypes = [
-                CDocument.CPointer, CText.CPointer,  # fmt: skip
-            ]
-            self.c_set_text.restype = CError.CPointer
-        elif utils.sublime.is_version_four():
-            self.c_replace_text = cdll.qljs_st_4_replace_text
-            self.c_replace_text.argtypes = [
-                CDocument.CPointer, CRange.CPointer, CText.CPointer,  # fmt: skip
-            ]
-            self.c_replace_text.restype = CError.CPointer
-        self.c_lint = getattr(cdll, "qljs_st%d_lint" % (version))
+        self.c_document = cdll.qljs_sublime_text_document_new
+        self.c_document.argtypes = []
+        self.c_document.restype = CDocument.CPointer
+        self.c_document = cdll.qljs_sublime_text_document_delete
+        self.c_document.argtypes = [CDocument.CPointer]
+        self.c_document.restype = None
+        self.c_set_text = cdll.qljs_sublime_text_set_text
+        self.c_set_text.argtypes = [CDocument.CPointer, CText.CPointer]
+        self.c_set_text.restype = CError.CPointer
+        self.c_replace_text = cdll.qljs_sublime_text_replace_text
+        self.c_replace_text.argtypes = [CDocument.CPointer, CRange.CPointer, CText.CPointer]
+        self.c_replace_text.restype = CError.CPointer
+        self.c_lint = cdll.qljs_sublime_text_lint
         self.c_lint.argtypes = [CDocument.CPointer]
         self.c_lint.restype = CDiagnostic.CPointer
 
     def create_parser(self):
-        c_parser_p = self.c_create_parser()
-        if utils.ctypes.is_pointer_null(c_parser_p):
+        c_document_p = self.c_create_parser()
+        if utils.ctypes.is_pointer_null(c_document_p):
             raise CException("Parser unavailable.")
-        return c_parser_p
+        return c_document_p
 
-    def destroy_parser(self, c_parser_p):
-        if utils.ctypes.is_pointer_null(c_parser_p):
+    def destroy_parser(self, c_document_p):
+        if utils.ctypes.is_pointer_null(c_document_p):
             raise CException("Cannot free nonexistent pointer.")
-        self.c_destroy_parser(c_parser_p)
+        self.c_destroy_parser(c_document_p)
 
     if utils.sublime.is_version_three():
 
-        def set_text(self, c_parser_p, c_text_p):
-            return self.c_set_text(c_parser_p, c_text_p)
+        def set_text(self, c_document_p, c_text_p):
+            return self.c_set_text(c_document_p, c_text_p)
 
     elif utils.sublime.is_version_four():
 
-        def replace_text(self, c_parser_p, c_range_p, c_text_p):
-            return self.c_replace_text(c_parser_p, c_range_p, c_text_p)
+        def replace_text(self, c_document_p, c_range_p, c_text_p):
+            return self.c_replace_text(c_document_p, c_range_p, c_text_p)
 
-    def lint(self, c_parser_p):
-        return self.c_lint(c_parser_p)
+    def lint(self, c_document_p):
+        return self.c_lint(c_document_p)
+
+
+################################################################################
+## python interface
+################################################################################
 
 
 class Severity:
@@ -239,24 +246,24 @@ class Parser:
         self.view = view
         self.diags = []
         try:
-            self.c_parser_p = Parser.c_lib.object.create_parser()
+            self.c_document_p = Parser.c_lib.object.create_parser()
         except AttributeError:
             raise ParserError("Library unavailable.")
         except CException:
             raise ParserError("Internal parser unavailable.")
         finally:
-            self.c_parser_p = None
+            self.c_document_p = None
 
     def delete():
         try:
-            Parser.c_lib.object.destroy_parser(self.c_parser_p)
+            Parser.c_lib.object.destroy_parser(self.c_document_p)
         except CException:
             raise ParserError("Cannot delete pointer.")
 
     def set_text(self):
         content = utils.sublime.view_content(self.view).encode()
         c_text_p = CText(content, len(content)).lightweight_pointer()
-        Parser.c_lib.object.set_text(self.c_parser_p, c_text)
+        Parser.c_lib.object.set_text(self.c_document_p, c_text)
 
     def replace_text(self, change):
         c_start = CPosition(change.a.row, change.a.col_utf16)
@@ -264,10 +271,10 @@ class Parser:
         c_range_p = CRange(c_start, c_end).lightweight_pointer()
         content = change.str.encode()
         c_text_p = CText(content, len(content)).lightweight_pointer()
-        Parser.c_lib.object.replace_text(self.c_parser_p, c_range_p, c_text_p)
+        Parser.c_lib.object.replace_text(self.c_document_p, c_range_p, c_text_p)
 
     def lint(self):
-        c_diags_p = Parser.c_lib.lint(self.c_parser_p)
+        c_diags_p = Parser.c_lib.lint(self.c_document_p)
         self.diags = Diagnostic.from_pointer(c_diags_p, self.view)
 
 
