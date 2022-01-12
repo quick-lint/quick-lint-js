@@ -6,24 +6,26 @@
 ################################################################################
 
 
-def build():
-    pass
-
-
-def start():
-    pass
-
-
-def clean():
-    pass
-
-
-def install():
-    pass
-
-
-def lint():
-    pass
+# class Scripts:
+#     def build():
+#         pass
+# 
+#     def start():
+#         pass
+# 
+#     def clean():
+#         pass
+# 
+#     def install():
+#         pass
+# 
+#     def lint():
+#         pass
+# 
+#     def format():
+#         pass
+# 
+#     def main():
 
 
 ################################################################################

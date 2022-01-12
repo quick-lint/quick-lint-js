@@ -46,7 +46,7 @@ typedef struct qljs_sublime_text_text {
 qljs_sublime_text_text *qljs_sublime_text_text_new(const char *content,
                                                    size_t length);
 
-void qljs_sublime_text_text_delete(qljs_sublime_text_text *t);
+void qljs_sublime_text_text_delete(qljs_sublime_text_text *text);
 
 //==============================================================================
 //------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ typedef struct qljs_sublime_text_region {
 qljs_sublime_text_region *qljs_sublime_text_region_new(
     qljs_sublime_text_offset begin, qljs_sublime_text_offset end);
 
-void qljs_sublime_text_region_delete(qljs_sublime_text_region *r);
+void qljs_sublime_text_region_delete(qljs_sublime_text_region *region);
 
 //==============================================================================
 //------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ typedef struct qljs_sublime_text_position {
 qljs_sublime_text_position *qljs_sublime_text_position_new(
     qljs_sublime_text_offset line, qljs_sublime_text_offset character);
 
-void qljs_sublime_text_position_delete(qljs_sublime_text_position *p);
+void qljs_sublime_text_position_delete(qljs_sublime_text_position *position);
 #else
 typedef qljs_sublime_text_offset qljs_sublime_text_position;
 #endif
@@ -93,7 +93,7 @@ typedef struct qljs_sublime_text_range {
 qljs_sublime_text_range *qljs_sublime_text_range_new(
     qljs_sublime_text_position start, qljs_sublime_text_position end);
 
-void qljs_sublime_text_range_delete(qljs_sublime_text_range *r);
+void qljs_sublime_text_range_delete(qljs_sublime_text_range *range);
 #else
 typedef qljs_sublime_text_region qljs_sublime_text_range;
 #endif
@@ -118,19 +118,19 @@ typedef struct qljs_sublime_text_document {
 
 qljs_sublime_text_document *qljs_sublime_text_document_new(void);
 
-void qljs_sublime_text_document_delete(qljs_sublime_text_document *d);
+void qljs_sublime_text_document_delete(qljs_sublime_text_document *document);
 
-void qljs_sublime_text_document_set_text(qljs_sublime_text_document *d,
+void qljs_sublime_text_document_set_text(qljs_sublime_text_document *document,
                                          qljs_sublime_text_text *text);
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 void qljs_sublime_text_document_replace_text(
-    qljs_sublime_text_document *d, const qljs_sublime_text_range *range,
+    qljs_sublime_text_document *document, const qljs_sublime_text_range *range,
     const qljs_sublime_text_text *text);
 #endif
 
 const qljs_sublime_text_diagnostic *qljs_sublime_text_document_lint(
-    qljs_sublime_text_document *d);
+    qljs_sublime_text_document *document);
 
 #if defined(__cplusplus)
 }
