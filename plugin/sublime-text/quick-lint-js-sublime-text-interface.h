@@ -33,16 +33,6 @@ typedef enum qljs_sublime_text_severity {
   qljs_sublime_text_severity_warning = 2,
 } qljs_sublime_text_severity;
 
-//==============================================================================
-//------------------------------------------------------------------------------
-// diagnostic
-
-typedef struct qljs_sublime_text_diagnostic {
-  const qljs_sublime_text_range *range;
-  qljs_sublime_text_severity severity;
-  const char *code;
-  const char *message;
-} qljs_sublime_text_diagnostic;
 
 //==============================================================================
 //------------------------------------------------------------------------------
@@ -107,6 +97,17 @@ void qljs_sublime_text_range_delete(qljs_sublime_text_range *r);
 #else
 typedef qljs_sublime_text_region qljs_sublime_text_range;
 #endif
+
+//==============================================================================
+//------------------------------------------------------------------------------
+// diagnostic
+
+typedef struct qljs_sublime_text_diagnostic {
+  const qljs_sublime_text_range *range;
+  qljs_sublime_text_severity severity;
+  const char *code;
+  const char *message;
+} qljs_sublime_text_diagnostic;
 
 //==============================================================================
 //------------------------------------------------------------------------------

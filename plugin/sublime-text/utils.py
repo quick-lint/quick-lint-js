@@ -50,15 +50,15 @@ def changed_directory(path):
 ## sublime #####################################################################
 
 
-def get_major_version():
+def sublime_get_major_version():
     return get_first_character(sublime.version())
 
 
-def is_version_three():
+def sublime_is_version_three():
     return get_major_version() == "3"
 
 
-def is_version_four():
+def sublime_is_version_four():
     return get_major_version() == "4"
 
 

@@ -23,17 +23,8 @@ class CStruct(ctypes.Structure):
     def lightweight_pointer(self):
         return ctypes.byref(self)
 
-
-class CDiagnostic(CStruct):
-    c_fields = {
-        "message": ctypes.c_char_p,
-        "code": ctypes.c_char_p,
-        "severity": ctypes.c_int,
-    }
-    if utils.is_version_three():
-        c_fields["region"] = CRegion.CPointer
-    elif utils.is_version_four():
-        c_fields["range"] = CRange.CPointer
+    def pointer(self):
+        return ctypes.pointer(self)
 
 
 class CText(CStruct):
@@ -62,6 +53,18 @@ class CRange(CStruct):
         "start": CPosition,
         "end": CPosition,
     }
+
+
+class CDiagnostic(CStruct):
+    c_fields = {
+        "severity": ctypes.c_int,
+        "code": ctypes.c_char_p,
+        "message": ctypes.c_char_p,
+    }
+    if utils.sublime_is_version_three():
+        c_fields["region"] = CRegion.CPointer
+    elif utils.sublime_is_version_four():
+        c_fields["range"] = CRange.CPointer
 
 
 class CDocument(Cstruct):
