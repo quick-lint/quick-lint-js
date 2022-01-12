@@ -21,7 +21,8 @@ namespace quick_lint_js {
 // lines
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-void lines::compute(const char8 *input, const char8 *begin, const char8 *end) {
+void sublime_text_lines::compute(const char8 *input, const char8 *begin,
+                                 const char8 *end) {
   std::uint8_t flags = 0;
   auto on_line_begin = [this](const char8 *line_begin) {
     this->offset_begin_.push_back(line_begin - input);
@@ -30,16 +31,17 @@ void lines::compute(const char8 *input, const char8 *begin, const char8 *end) {
     flags |= static_cast<std::uint8_t>(*character);
   };
   auto on_line_end = [flags, this](const char8 * /*line_end*/) {
-    this->is_ascii_.push_back(characters::is_ascii(static_cast<char8>(flags)));
+    this->is_ascii_.push_back(
+        sublime_text_characters::is_ascii(static_cast<char8>(flags)));
   };
 
   const char8 *ch = begin + 1;
   on_line_begin(ch);
   while (ch != end) {
     on_character(ch);
-    if (characters::is_newline(*ch)) {
+    if (sublime_text_characters::is_newline(*ch)) {
       on_line_end(ch);
-      ch += characters::is_microsoft_newline(ch) ? 2 : 1;
+      ch += sublime_text_characters::is_microsoft_newline(ch) ? 2 : 1;
       on_line_begin(ch);
     } else {
       ch += 1;
@@ -51,7 +53,7 @@ void lines::compute(const char8 *input, const char8 *begin, const char8 *end) {
 
 //==============================================================================
 //------------------------------------------------------------------------------
-// sublime_text_locator
+// locator
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 void sublime_text_locator::replace_text(range_type range,
@@ -116,7 +118,8 @@ const char8 *sublime_text_locator::from_position(position_type position) const
   offset_type character = position.character;
 
   auto is_microsoft_newline = [this, line_offset_end] {
-    return characters::is_microsoft_newline(&this->input_[line_offset_end - 2]);
+    return sublime_text_characters::is_microsoft_newline(
+        &this->input_[line_offset_end - 2]);
   };
 
   if (line >= this->new_lines.size()) {

@@ -24,7 +24,6 @@
 
 // TODO: Add constructors range from locator to constructor from range
 // TODO: Create region structure
-// TODO: Move back_insert_transform to vector.h
 
 namespace quick_lint_js {
 
@@ -38,8 +37,7 @@ using sublime_text_offset = unsigned int;
 //------------------------------------------------------------------------------
 // region
 
-struct sublime_text_region final : public qljs_sublime_text_region {
-};
+struct sublime_text_region final : public qljs_sublime_text_region {};
 
 //==============================================================================
 //------------------------------------------------------------------------------
@@ -48,6 +46,9 @@ struct sublime_text_region final : public qljs_sublime_text_region {
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct sublime_text_position final : public qljs_sublime_text_position {
  public:
+  sublime_text_position(const char8 *source) noexcept {
+  }
+
   friend inline bool operator==(const position &lhs,
                                 const position &rhs) noexcept {
     return lhs.line == rhs.line && lhs.character == rhs.character;
@@ -74,6 +75,10 @@ using sublime_text_position = sublime_text_offset;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct sublime_text_range final : public qljs_sublime_text_range {
+public:
+  sublime_text_range(source_code_span span)
+      : start(sublime_text_position(span.begin())),
+        end(sublime_text_position(span.end())) {}
 };
 #else
 using sublime_text_range = sublime_text_region;
@@ -172,8 +177,6 @@ struct sublime_text_lines {
 struct sublime_text_locator {
  public:
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-  using lines_type = sublime_text_lines;
-  using characters_type = sublime_text_characters;
   using range_type = sublime_text_range;
   using position_type = sublime_text_position;
   using region_type = sublime_text_region;
@@ -192,7 +195,7 @@ struct sublime_text_locator {
   const char8 *from_position(position_type position) const noexcept;
 #endif
 
-  range_type range(source_code_span span) const {}
+  range_type range(source_code_span span) const { return range_type(span); }
 
   position_type position(const char8 *ch) const noexcept {}
 
