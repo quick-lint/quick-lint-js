@@ -55,10 +55,6 @@ void lines::compute(const char8 *input, const char8 *begin, const char8 *end) {
 // locator
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-locator::locator(padded_string_view input) noexcept : input_(input) {
-  this->new_lines.compute(this->input_, 0, this->input_.size());
-}
-
 void locator::replace_text(range_type range, string8_view replacement,
                            padded_string_view new_input) {
   QLJS_ASSERT(!this->new_lines.offset_begin_.empty());

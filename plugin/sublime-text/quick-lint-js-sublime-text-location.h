@@ -70,7 +70,9 @@ struct position final : public qljs_sublime_text_position {
 //------------------------------------------------------------------------------
 // range
 
-struct range final : public qljs_sublime_text_range {};
+struct range final : public qljs_sublime_text_range {
+  // range()
+};
 
 //==============================================================================
 //------------------------------------------------------------------------------
@@ -138,12 +140,12 @@ struct lines {
     this->is_ascii_.clear();
   }
 
-  size_type size() {
+  size_type size() const {
     QLJS_ASSERT(this->offset_begin_.size() == this->is_ascii_.size());
     return this->offset_begin_.size();
   }
 
-  offset_type find_line(offset_type offset) {
+  offset_type find_line(offset_type offset) const {
     QLJS_ASSERT(!this->offset_begin_.empty());
     auto begin_it = this->offset_begin_.begin();
     auto end_it = this->offset_begin_.end();
@@ -152,7 +154,7 @@ struct lines {
     return narrow_cast<offset_type>(line);
   }
 
-  bool is_last_line(offset_type line) { return line == this->size() - 1; }
+  bool is_last_line(offset_type line) const { return line == this->size() - 1; }
 };
 #endif
 
@@ -167,29 +169,26 @@ struct locator {
   using region_type = region;
   using offset_type = offset;
 
-  /*
-    using replacement_type = string8_view;
-    using input_type = padded_string_view;
-    using span_type = source_code_span;
-  */
-
-  explicit locator(padded_string_view input) noexcept;
+  explicit locator(padded_string_view input) noexcept : input_(input) {
+    this->new_lines.compute(this->input_, 0, this->input_.size());
+  };
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-  void replace_text(range_type range, replacement_type replacement_text,
-                    input_type new_input);
+  void replace_text(range_type range, string8_view replacement_text,
+                    padded_string_view new_input);
 
   const char8 *from_position(position_type position) const noexcept;
 #endif
 
-  range_type range(source_code_span span) const;
+  range_type range(source_code_span span) const {}
 
-  position_type position(const char8 *ch) const noexcept;
+  position_type position(const char8 *ch) const noexcept {}
 
   /*TODO: region()*/
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-  position_type position(int line_number, offset_type offset) const noexcept;
+  position_type position(int /*size_t*/ line_number, offset_type offset) const
+      noexcept;
 
   offset_type offset(const char8 *) const noexcept;
 
