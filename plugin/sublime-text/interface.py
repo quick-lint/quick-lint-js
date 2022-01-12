@@ -54,20 +54,20 @@ class CSeverity:
 
 
 class CText(CStruct):
-    c_fields = {
-        "content": ctypes.c_char_p,
-        "length": ctypes.c_size_t,
-    }
+    c_fields = [
+        ("content": ctypes.c_char_p),
+        ("length": ctypes.c_size_t),
+    ]
 
 
 ## region ######################################################################
 
 
 class CRegion(CStruct):
-    c_fields = {
-        "begin": c_offset,
-        "end": c_offset,
-    }
+    c_fields = [
+        ("begin": c_offset),
+        ("end": c_offset),
+    ]
 
 
 ## position ####################################################################
@@ -76,10 +76,10 @@ class CRegion(CStruct):
 if utils.sublime_is_version_three():
 
     class CPosition(CStruct):
-        c_fields = {
-            "line": c_offset,
-            "character": c_offset,
-        }
+        c_fields = [
+            ("line": c_offset),
+            ("character": c_offset),
+        ]
 
 elif utils.sublime_is_version_four():
 

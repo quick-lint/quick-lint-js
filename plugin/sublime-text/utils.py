@@ -54,12 +54,8 @@ def sublime_get_major_version():
     return get_first_character(sublime.version())
 
 
-def sublime_is_version_three():
-    return get_major_version() == "3"
-
-
-def sublime_is_version_four():
-    return get_major_version() == "4"
+def sublime_have_incremental_changes():
+    return sublime_get_major_version()
 
 
 def plugin_error_message(msg):
