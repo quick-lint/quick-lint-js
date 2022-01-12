@@ -17,25 +17,6 @@ from . import utils
 ################################################################################
 
 
-## struct ######################################################################
-
-
-class CStruct(ctypes.Structure):
-    def __init_subclass__(cls, /, **kwargs):
-        try:
-            cls.CPointer = ctypes.POINTER(cls)
-            cls._fields_ = list(cls.c_fields.items())
-        except AttributeError:
-            pass
-        super().__init_subclass__(**kwargs)
-
-    def lightweight_pointer(self):
-        return ctypes.byref(self)
-
-    def pointer(self):
-        return ctypes.pointer(self)
-
-
 ## offset ######################################################################
 
 
@@ -53,37 +34,46 @@ class CSeverity:
 ## text ########################################################################
 
 
-class CText(CStruct):
-    c_fields = [
-        ("content": ctypes.c_char_p),
-        ("length": ctypes.c_size_t),
+class CText:
+    _fields_ = [
+        ("content", ctypes.c_char_p),
+        ("length", ctypes.c_size_t),
     ]
+
+
+CTextP = ctypes.POINTER(CText)
 
 
 ## region ######################################################################
 
 
-class CRegion(CStruct):
-    c_fields = [
-        ("begin": c_offset),
-        ("end": c_offset),
+class CRegion:
+    _fields_ = [
+        ("begin", c_offset),
+        ("end", c_offset),
     ]
+
+
+CRegion = ctypes.POINTER(CRegion)
 
 
 ## position ####################################################################
 
 
-if utils.sublime_is_version_three():
+if utils.sublime_have_incremental_changes():
 
-    class CPosition(CStruct):
+    class CPosition:
         c_fields = [
-            ("line": c_offset),
-            ("character": c_offset),
+            ("line", c_offset),
+            ("character", c_offset),
         ]
 
-elif utils.sublime_is_version_four():
+    CPositionP = ctypes.POINTER(CPosition)
+
+else:
 
     CPosition = CRegion
+    CPositionP = CRegionP
 
 
 ## range #######################################################################
@@ -97,7 +87,7 @@ if utils.sublime_is_version_three():
             "end": CPosition,
         }
 
-elif utils.sublime_is_version_four():
+elif utils.sublime_have_incremental_changes():
 
     CRange = CRegion
 
@@ -164,7 +154,11 @@ class CLibrary:
         self.c_set_text.argtypes = [CDocument.CPointer, CText.CPointer]
         self.c_set_text.restype = CError.CPointer
         self.c_replace_text = cdll.qljs_sublime_text_replace_text
-        self.c_replace_text.argtypes = [CDocument.CPointer, CRange.CPointer, CText.CPointer]
+        self.c_replace_text.argtypes = [
+            CDocument.CPointer,
+            CRange.CPointer,
+            CText.CPointer,
+        ]
         self.c_replace_text.restype = CError.CPointer
         self.c_lint = cdll.qljs_sublime_text_lint
         self.c_lint.argtypes = [CDocument.CPointer]
