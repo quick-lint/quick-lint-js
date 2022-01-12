@@ -145,10 +145,11 @@ struct lines {
 
   offset_type find_line(offset_type offset) {
     QLJS_ASSERT(!this->offset_begin_.empty());
-    auto offset_begin_it = this->offset_begin_.begin();
-    auto offset_end_it = this->offset_begin_.end();
-    auto offset_line_it = std::upper_bound(offset_begin_it + 1, offset_end_it, offset) - 1;
-    return narrow_cast<offset_type>(offset_line_it - offset_begin_it);
+    auto begin = this->offset_begin_.begin();
+    auto end = this->offset_begin_.end();
+    auto line_it = std::upper_bound(begin + 1, end, offset) - 1;
+    auto line = line_it - this->offset_begin_.begin();
+    return narrow_cast<offset_type>(line);
   }
 
   bool is_last_line(offset_type line) { return line == this->size() - 1; }
@@ -185,6 +186,8 @@ struct locator {
 
   position_type position(const char8 *ch) const noexcept;
 
+  /*TODO: region()*/
+
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   position_type position(int line_number, offset_type offset) const noexcept;
 
@@ -203,7 +206,6 @@ struct locator {
   // old_lines are used for double buffering of new_lines.
   // This reduces allocations.
   lines old_lines;
-  offset_type find_line_at_offset(offset_type offset) const;
 #endif
 };
 
