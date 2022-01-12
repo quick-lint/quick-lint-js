@@ -149,14 +149,7 @@ struct sublime_text_lines {
     return this->offset_begin_.size();
   }
 
-  offset_type find_line(offset_type offset) const {
-    QLJS_ASSERT(!this->offset_begin_.empty());
-    auto begin_it = this->offset_begin_.begin();
-    auto end_it = this->offset_begin_.end();
-    auto line_it = std::upper_bound(begin + 1, end, offset) - 1;
-    auto line = line_it - this->offset_begin_.begin();
-    return narrow_cast<offset_type>(line);
-  }
+  offset_type find_line(offset_type offset) const;
 
   bool is_last_line(offset_type line) const { return line == this->size() - 1; }
 };
@@ -168,17 +161,12 @@ struct sublime_text_lines {
 
 struct sublime_text_locator {
  public:
-#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   using range_type = sublime_text_range;
-  using position_type = sublime_text_position;
   using region_type = sublime_text_region;
+  using position_type = sublime_text_position;
   using offset_type = sublime_text_offset;
-#endif
 
-  explicit sublime_text_locator(padded_string_view input) noexcept
-      : input_(input) {
-    this->new_lines.compute(this->input_, 0, this->input_.size());
-  };
+  explicit sublime_text_locator(padded_string_view input) noexcept;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   void replace_text(range_type range, string8_view replacement_text,
@@ -202,14 +190,13 @@ struct sublime_text_locator {
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   position_type position(offset_type line, offset_type offset) const noexcept;
 
-  region_type region(range_type) const noexcept;
-  /*TODO: region()*/
+  region_type region(range_type range) const noexcept;
 
-  offset_type offset(const char8 *) const noexcept;
+  offset_type offset(const char8 *source) const noexcept;
 
   // TODO: Implement this declaration
   // HINT: this->from_position inside implementation
-  offset_type offset(position_type *) const noexcept;
+  offset_type offset(position_type position) const noexcept;
 #endif
 
  private:
