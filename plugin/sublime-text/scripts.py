@@ -1,18 +1,17 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-################################################################################
-## scripts
-################################################################################
-
-
 # TODO: use version from toplevel to create package name
+
+from os import path
 
 
 def build(version, type="release"):
     buildpath = "build-sublime-text-" + version
     cache_entries = {"CMAKE_BUILD_TYPE": type, "QLJS_SUBLIME_TEXT_VERSION": version}
-    cmake("../..", buildpath, "ninja", cache_entries)
+    if path.exists(buildpath):
+        cmake("../..", buildpath, "ninja", cache_entries)
+    cmake_build(buildpath, "quick-lint-js-sublime-text")
 
 
 def start():

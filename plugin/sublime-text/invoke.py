@@ -13,6 +13,10 @@ def cmake(sourcepath, buildpath, generator, cache_entries):
     cmd(["cmake", "-S", sourcepath, "-B", buildpath, "-G", generator, *cache_entries])
 
 
+def cmake_build(directory, target):
+    cmd(["cmake", "--build", directory, "--target", target])
+
+
 def main():
     pass
 
