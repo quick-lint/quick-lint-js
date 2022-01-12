@@ -9,9 +9,10 @@ include(QuickLintJSTarget)
 
 if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL "3")
   # Add colored compiler output.
-  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  set(CMAKE_CXX_COMPILER_ID_LOWER "${CMAKE_CXX_COMPILER_ID}")
+  if ("${CMAKE_CXX_COMPILER_ID_LOWER}" STREQUAL "gnu")
     add_compile_options(-fdiagnostics-color=always)
-  elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  elseif ("${CMAKE_CXX_COMPILER_ID_LOWER}" STREQUAL "clang")
     add_compile_options(-fcolor-diagnostics)
   endif ()
   # Set(cmake_position_indepent_code)
