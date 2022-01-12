@@ -1572,8 +1572,8 @@ void parser::parse_arrow_function_expression_remainder(
     [[fallthrough]];
   }
 
-  // f() => z
-  // 42 => {}
+  // f.x => z  // Invalid.
+  // 42 => {}  // Invalid.
   case expression_kind::dot:
   case expression_kind::literal: {
     source_code_span lhs_span = lhs->span();
