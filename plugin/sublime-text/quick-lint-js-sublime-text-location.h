@@ -39,7 +39,8 @@ using sublime_text_offset = unsigned int;
 // region
 
 struct sublime_text_region final : public qljs_sublime_text_region {
-}
+};
+
 //==============================================================================
 //------------------------------------------------------------------------------
 // position
@@ -63,15 +64,20 @@ struct sublime_text_position final : public qljs_sublime_text_position {
     return stream;
   }
 };
+#else
+using sublime_text_position = sublime_text_offset;
 #endif
 
 //==============================================================================
 //------------------------------------------------------------------------------
 // range
 
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct sublime_text_range final : public qljs_sublime_text_range {
-  // range()
 };
+#else
+using sublime_text_range = sublime_text_region;
+#endif
 
 //==============================================================================
 //------------------------------------------------------------------------------
@@ -165,12 +171,14 @@ struct sublime_text_lines {
 
 struct sublime_text_locator {
  public:
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   using lines_type = sublime_text_lines;
   using characters_type = sublime_text_characters;
-  using range_type = range;
-  using position_type = position;
-  using region_type = region;
-  using offset_type = offset;
+  using range_type = sublime_text_range;
+  using position_type = sublime_text_position;
+  using region_type = sublime_text_region;
+  using offset_type = sublime_text_offset;
+#endif
 
   explicit sublime_text_locator(padded_string_view input) noexcept
       : input_(input) {
