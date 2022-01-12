@@ -27,26 +27,25 @@
 // TODO: Move back_insert_transform to vector.h
 
 namespace quick_lint_js {
-namespace sublime_text {
 
 //==============================================================================
 //------------------------------------------------------------------------------
 // offset
 
-using offset = unsigned int;
+using sublime_text_offset = unsigned int;
 
 //==============================================================================
 //------------------------------------------------------------------------------
 // region
 
-struct region final : public qljs_sublime_text_region {
+struct sublime_text_region final : public qljs_sublime_text_region {
 }
 //==============================================================================
 //------------------------------------------------------------------------------
 // position
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-struct position final : public qljs_sublime_text_position {
+struct sublime_text_position final : public qljs_sublime_text_position {
  public:
   friend inline bool operator==(const position &lhs,
                                 const position &rhs) noexcept {
@@ -70,7 +69,7 @@ struct position final : public qljs_sublime_text_position {
 //------------------------------------------------------------------------------
 // range
 
-struct range final : public qljs_sublime_text_range {
+struct sublime_text_range final : public qljs_sublime_text_range {
   // range()
 };
 
@@ -78,7 +77,8 @@ struct range final : public qljs_sublime_text_range {
 //------------------------------------------------------------------------------
 // characters
 
-struct characters {
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
+struct sublime_text_characters {
  public:
   static bool is_newline(const char8 ch) {
     return ch == u8'\n' || ch == u8'\r';
@@ -96,21 +96,22 @@ struct characters {
     return static_cast<std::uint8_t>(ch) <= 127;
   }
 };
+#endif
 
 //==============================================================================
 //------------------------------------------------------------------------------
 // lines
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-struct lines {
+struct sublime_text_lines {
  public:
-  using offset_type = offset;
+  using offset_type = sublime_text_offset;
   using size_type = std::size_t;
 
   std::vector<offset_type> offset_begin_;
   std::vector<std::uint8_t> is_ascii_;
 
-  void extend(lines &other, offset_type begin, offset_type end) {
+  void extend(sublime_text_lines &other, offset_type begin, offset_type end) {
     this->offset_begin_.insert(this->offset_begin_.end(),
                                other->offset_begin_.begin() + begin,
                                other->offset_begin_.begin() + end);
@@ -125,12 +126,12 @@ struct lines {
     this->compute(&input, &input[begin], &input[end]);
   }
 
-  void swap(lines &other) {
+  void swap(sublime_text_lines &other) {
     std::swap(this->offset_begin_, other->offset_begin_);
     std::swap(this->is_ascii_, other->is_ascii_);
   }
 
-  void reserve(lines &other) {
+  void reserve(sublime_text_lines &other) {
     this->offset_begin_.reserve(other->offset_begin_.size());
     this->is_ascii_.reserve(other->offset_begin_.size());
   }
@@ -162,14 +163,17 @@ struct lines {
 //------------------------------------------------------------------------------
 // locator
 
-struct locator {
+struct sublime_text_locator {
  public:
+  using lines_type = sublime_text_lines;
+  using characters_type = sublime_text_characters;
   using range_type = range;
   using position_type = position;
   using region_type = region;
   using offset_type = offset;
 
-  explicit locator(padded_string_view input) noexcept : input_(input) {
+  explicit sublime_text_locator(padded_string_view input) noexcept
+      : input_(input) {
     this->new_lines.compute(this->input_, 0, this->input_.size());
   };
 
@@ -180,7 +184,9 @@ struct locator {
   const char8 *from_position(position_type position) const noexcept;
 #endif
 
-  range_type range(source_code_span span) const {}
+  range_type range(source_code_span span) const {
+
+  }
 
   position_type position(const char8 *ch) const noexcept {}
 
@@ -201,14 +207,13 @@ struct locator {
   padded_string_view input_;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-  lines new_lines;
+  lines_type new_lines;
   // old_lines are used for double buffering of new_lines.
   // This reduces allocations.
-  lines old_lines;
+  lines_type old_lines;
 #endif
 };
 
-}  // namespace sublime_text
 }  // namespace quick_lint_js
 #endif  // QUICK_LINT_JS_SUBLIME_TEXT_LOCATION_H
 
