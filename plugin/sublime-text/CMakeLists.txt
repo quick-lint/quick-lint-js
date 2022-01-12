@@ -8,7 +8,7 @@ include(QuickLintJSCopyright)
 include(QuickLintJSTarget)
 
 if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL "3")
-  # Add colored compiler output
+  # Add colored compiler output.
   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     add_compile_options(-fdiagnostics-color=always)
   elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -29,11 +29,11 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL "3")
   quick_lint_js_add_library(
     quick-lint-js-sublime-text
     MODULE
-    quick-lint-js-sublime-text-interface.cpp
-    quick-lint-js-sublime-text-interface.h
-    quick-lint-js-sublime-text-location.cpp
-    quick-lint-js-sublime-text-location.h
-    quick-lint-js-sublime-text-have.h
+    sublime-text-interface.cpp
+    sublime-text-location.cpp
+    quick-lint-js/sublime-text-have.h
+    quick-lint-js/sublime-text-interface.h
+    quick-lint-js/sublime-text-location.h
   )
   target_include_directories(
     quick-lint-js-sublime-text
