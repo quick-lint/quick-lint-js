@@ -4,7 +4,10 @@
 BasedOnStyle: Google
 
 IncludeBlocks: Merge
-IncludeCategories: [{Regex: '.*', Priority: 0}]
+IncludeCategories: [
+	{Regex: '<pathcch\.h>', Priority: 1},
+	{Regex: '.*', Priority: 0}
+]
 SortIncludes: true
 
 FixNamespaceComments: false

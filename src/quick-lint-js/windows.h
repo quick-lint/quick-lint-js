@@ -1,38 +1,54 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_MOCK_WIN32_H
-#define QUICK_LINT_JS_MOCK_WIN32_H
+#ifndef QUICK_LINT_JS_WINDOWS_H
+#define QUICK_LINT_JS_WINDOWS_H
 
-#include <quick-lint-js/change-detecting-filesystem.h>
-#include <quick-lint-js/have.h>
-
-#if QLJS_HAVE_WINDOWS_H
-#include <quick-lint-js/windows.h>
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
 #endif
 
-namespace quick_lint_js {
-#if defined(_WIN32)
-class mock_win32_watch_error_guard {
- public:
-  explicit mock_win32_watch_error_guard(::DWORD* to_mock,
-                                        ::DWORD error) noexcept
-      : to_mock_(to_mock), old_error_(*this->to_mock_) {
-    *this->to_mock_ = error;
-  }
+#define NOATOM
+#define NOCLIPBOARD
+#define NOCOLOR
+#define NOCOMM
+#define NOCRYPT
+#define NOCTLMGR
+#define NODEFERWINDOWPOS
+#define NODRAWTEXT
+#define NOGDI
+#define NOGDICAPMASKS
+#define NOHELP
+#define NOICONS
+#define NOKANJI
+#define NOKERNEL
+#define NOKEYSTATES
+#define NOMB
+#define NOMCX
+#define NOMEMMGR
+#define NOMENUS
+#define NOMETAFILE
+#define NOMINMAX
+#define NOMSG
+#define NOOPENFILE
+#define NOPROFILER
+#define NORASTEROPS
+#define NOSCROLL
+#define NOSERVICE
+#define NOSHOWWINDOW
+#define NOSOUND
+#define NOSYSCOMMANDS
+#define NOSYSMETRICS
+#define NOTEXTMETRIC
+#define NOUSER
+#define NOVIRTUALKEYCODES
+#define NOWH
+#define NOWINMESSAGES
+#define NOWINOFFSETS
+#define NOWINSTYLES
+#define OEMRESOURCE
 
-  mock_win32_watch_error_guard(const mock_win32_watch_error_guard&) = delete;
-  mock_win32_watch_error_guard& operator=(const mock_win32_watch_error_guard&) =
-      delete;
-
-  ~mock_win32_watch_error_guard() { *this->to_mock_ = this->old_error_; }
-
- private:
-  ::DWORD* to_mock_;
-  ::DWORD old_error_;
-};
-#endif
-}
+#include <Windows.h>
 
 #endif
 
