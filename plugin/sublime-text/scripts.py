@@ -1,6 +1,42 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+################################################################################
+## scripts
+################################################################################
+
+
+def build():
+    pass
+
+
+def start():
+    pass
+
+
+def clean():
+    pass
+
+
+def install():
+    pass
+
+
+def lint():
+    pass
+
+
+################################################################################
+## internals
+################################################################################
+
+
+def main():
+    pass
+
+
+if __name__ == "__main__":
+    main()
 
 
 # quick-lint-js finds bugs in JavaScript programs.
