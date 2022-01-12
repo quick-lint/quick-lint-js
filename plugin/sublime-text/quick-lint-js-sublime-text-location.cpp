@@ -175,24 +175,13 @@ typename locator::range_type locator::range(source_code_span span) const {
 typename locator::position_type locator::position(const char8 *source) const
     noexcept {
   offset_type offset = this->offset(source);
-  offset_type line_number = this->find_line_at_offset(offset);
+  offset_type line_number = // this->find_line_at_offset(offset);
   return this->position(line_number, offset);
 }
 
 typename locator::offset_type locator::offset(const char8 *source) const
     noexcept {
   return narrow_cast<offset_type>(source - this->input_.data());
-}
-
-typename locator::offset_type locator::find_line_at_offset(offset_type offset)
-    const {
-  QLJS_ASSERT(!this->new_lines.offset_begin_.empty());
-  auto offset_of_following_line_it =
-      std::upper_bound(this->new_lines.offset_begin_.begin() + 1,
-                       this->new_lines.offset_begin_.end(), offset);
-  auto offset_of_line_it = offset_of_following_line_it - 1;
-  return narrow_cast<offset_type>((offset_of_line_it - 1) -
-                                  this->new_lines.offset_begin_.begin());
 }
 
 typename locator::position_type locator::position(int line_number,

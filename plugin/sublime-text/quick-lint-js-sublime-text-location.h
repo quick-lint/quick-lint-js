@@ -145,8 +145,8 @@ struct lines {
 
   offset_type find_line(offset_type offset) {
     QLJS_ASSERT(!this->offset_begin_.empty());
-    auto begin = this->offset_begin_.begin();
-    auto end = this->offset_begin_.end();
+    auto begin_it = this->offset_begin_.begin();
+    auto end_it = this->offset_begin_.end();
     auto line_it = std::upper_bound(begin + 1, end, offset) - 1;
     auto line = line_it - this->offset_begin_.begin();
     return narrow_cast<offset_type>(line);
