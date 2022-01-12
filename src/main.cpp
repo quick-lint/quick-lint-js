@@ -190,7 +190,7 @@ void handle_options(quick_lint_js::options o) {
   for (const file_to_lint &file : o.files_to_lint) {
     auto config_result = config_loader.load_for_file(file);
     if (!config_result.ok()) {
-      std::fprintf(stderr,"error: %s\n",
+      std::fprintf(stderr, "error: %s\n",
                    config_result.error_to_string().c_str());
       std::exit(1);
     }

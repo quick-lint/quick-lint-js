@@ -62,8 +62,8 @@ std::vector<std::string> get_user_locale_preferences() {
 
 void initialize_locale() {
   if (!std::setlocale(LC_ALL, "")) {
-    std::fprintf(stderr,"warning: failed to set locale: %s\n",
-                                std::strerror(errno));
+    std::fprintf(stderr, "warning: failed to set locale: %s\n",
+                 std::strerror(errno));
   }
 }
 }

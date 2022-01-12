@@ -184,9 +184,7 @@ struct sublime_text_locator {
   const char8 *from_position(position_type position) const noexcept;
 #endif
 
-  range_type range(source_code_span span) const {
-
-  }
+  range_type range(source_code_span span) const {}
 
   position_type position(const char8 *ch) const noexcept {}
 

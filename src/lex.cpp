@@ -1016,10 +1016,10 @@ padded_string_view lexer::original_input() const noexcept {
 void lexer::debug_dump_location(const char8* c) const {
   cli_locator locator(this->original_input_);
   cli_source_position token_position = locator.position(this->peek().begin);
-  std::fprintf(stderr,
-      "%p: file offset %zd, line %d, column %d\n",
-      reinterpret_cast<const void*>(c), c - this->original_input_.data(),
-      token_position.line_number, token_position.column_number);
+  std::fprintf(stderr, "%p: file offset %zd, line %d, column %d\n",
+               reinterpret_cast<const void*>(c),
+               c - this->original_input_.data(), token_position.line_number,
+               token_position.column_number);
 }
 
 template <class Error>

@@ -171,8 +171,8 @@ typename locator::range_type locator::range(source_code_span span) const {
 typename locator::position_type locator::position(const char8 *source) const
     noexcept {
   offset_type offset = this->offset(source);
-  offset_type line_number = // this->find_line_at_offset(offset);
-  return this->position(line_number, offset);
+  offset_type line_number =  // this->find_line_at_offset(offset);
+      return this->position(line_number, offset);
 }
 
 typename locator::offset_type locator::offset(const char8 *source) const

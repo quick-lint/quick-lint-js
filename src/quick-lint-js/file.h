@@ -49,7 +49,7 @@ template <class Result>
 auto exit_on_read_file_error_handlers() {
   return make_read_file_error_handlers(
       [](const std::string &message) -> Result {
-        std::fprintf(stderr,"error: %s\n", message.c_str());
+        std::fprintf(stderr, "error: %s\n", message.c_str());
         std::exit(1);
       });
 }

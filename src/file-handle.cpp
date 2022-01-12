@@ -186,7 +186,7 @@ windows_handle_file::~windows_handle_file() {
 void windows_handle_file::close() {
   QLJS_ASSERT(this->valid());
   if (!::CloseHandle(this->handle_)) {
-    std::fprintf(stderr,"error: failed to close file\n");
+    std::fprintf(stderr, "error: failed to close file\n");
   }
   this->handle_ = this->invalid_handle_1;
 }
@@ -321,8 +321,8 @@ void posix_fd_file::close() {
   QLJS_ASSERT(this->valid());
   int rc = ::close(this->fd_);
   if (rc != 0) {
-    std::fprintf(stderr,"error: failed to close file: %s\n",
-                              std::strerror(errno));
+    std::fprintf(stderr, "error: failed to close file: %s\n",
+                 std::strerror(errno));
   }
   this->fd_ = invalid_fd;
 }
