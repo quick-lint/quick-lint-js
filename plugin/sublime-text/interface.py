@@ -101,7 +101,7 @@ else:
 
 class CDiagnostic:
     _fields_ = [
-        ("range", CRange.CPointer),
+        ("range", CRangeP),
         ("severity", ctypes.c_int),
         ("code", ctypes.c_char_p),
         ("message", ctypes.c_char_p),
@@ -150,23 +150,19 @@ class CLibrary:
         version = utils.sublime.major_version()
         self.c_document = cdll.qljs_sublime_text_document_new
         self.c_document.argtypes = []
-        self.c_document.restype = CDocument.CPointer
+        self.c_document.restype = CDocumentP
         self.c_document = cdll.qljs_sublime_text_document_delete
-        self.c_document.argtypes = [CDocument.CPointer]
+        self.c_document.argtypes = [CDocumentP]
         self.c_document.restype = None
         self.c_set_text = cdll.qljs_sublime_text_set_text
-        self.c_set_text.argtypes = [CDocument.CPointer, CText.CPointer]
-        self.c_set_text.restype = CError.CPointer
+        self.c_set_text.argtypes = [CDocumentP, CTextP]
+        self.c_set_text.restype = CErrorP
         self.c_replace_text = cdll.qljs_sublime_text_replace_text
-        self.c_replace_text.argtypes = [
-            CDocument.CPointer,
-            CRange.CPointer,
-            CText.CPointer,
-        ]
-        self.c_replace_text.restype = CError.CPointer
+        self.c_replace_text.argtypes = [CDocumentP, CRangeP, CTextP]
+        self.c_replace_text.restype = CErrorP
         self.c_lint = cdll.qljs_sublime_text_lint
-        self.c_lint.argtypes = [CDocument.CPointer]
-        self.c_lint.restype = CDiagnostic.CPointer
+        self.c_lint.argtypes = [CDocumentP]
+        self.c_lint.restype = CDiagnosticP
 
     def create_parser(self):
         c_document_p = self.c_create_parser()
