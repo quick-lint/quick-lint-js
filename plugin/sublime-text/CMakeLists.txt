@@ -33,7 +33,6 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL "3")
     quick-lint-js-sublime-text-interface.h
     quick-lint-js-sublime-text-location.cpp
     quick-lint-js-sublime-text-location.h
-    quick-lint-js-sublime-text-utils.h
     quick-lint-js-sublime-text-have.h
   )
   target_include_directories(

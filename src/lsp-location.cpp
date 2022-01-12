@@ -11,25 +11,9 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/vector.h>
 
 namespace quick_lint_js {
-namespace {
-// Like std::transform with an std::back_insert_iterator, but more efficient for
-// std::vector<int>.
-template <class InputIt, class Output, class Transformer>
-void insert_back_transform(InputIt input_begin, InputIt input_end,
-                           Output &output, Transformer &&transformer) {
-  using difference_type = typename Output::difference_type;
-  std::size_t original_size = output.size();
-  std::size_t final_size =
-      original_size + narrow_cast<std::size_t>(input_end - input_begin);
-  output.resize(final_size);
-  auto output_it = output.begin() + narrow_cast<difference_type>(original_size);
-  output_it = std::transform(input_begin, input_end, output_it, transformer);
-  QLJS_ASSERT(output_it == output.end());
-}
-}
-
 bool operator==(const lsp_position &lhs, const lsp_position &rhs) noexcept {
   return lhs.line == rhs.line && lhs.character == rhs.character;
 }

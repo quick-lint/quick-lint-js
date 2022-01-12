@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_VECTOR_H
 #define QUICK_LINT_JS_VECTOR_H
 
+#include <algorithm>
 #include <boost/container/pmr/monotonic_buffer_resource.hpp>
 #include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <boost/container/pmr/unsynchronized_pool_resource.hpp>
@@ -12,6 +13,7 @@
 #include <cstdint>
 #include <iosfwd>
 #include <map>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/force-inline.h>
 #include <quick-lint-js/warning.h>
@@ -20,6 +22,21 @@
 #include <vector>
 
 namespace quick_lint_js {
+// Like std::transform with an std::back_insert_iterator, but more efficient for
+// std::vector<int>.
+template <class InputIt, class Output, class Transformer>
+void insert_back_transform(InputIt input_begin, InputIt input_end,
+                           Output &output, Transformer &&transformer) {
+  using difference_type = typename Output::difference_type;
+  std::size_t original_size = output.size();
+  std::size_t input_size = narrow_cast<std::size_t>(input_end - input_begin);
+  std::size_t final_size = original_size + input_size;
+  output.resize(final_size);
+  auto output_it = output.begin() + narrow_cast<difference_type>(original_size);
+  output_it = std::transform(input_begin, input_end, output_it, transformer);
+  QLJS_ASSERT(output_it == output.end());
+}
+
 class vector_instrumentation {
  public:
   enum class event {
