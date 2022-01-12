@@ -6,6 +6,9 @@
 ################################################################################
 
 
+# TODO: use version from toplevel to create package name
+
+
 # class Scripts:
 #     def build():
 #         pass

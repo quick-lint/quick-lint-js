@@ -41,7 +41,6 @@ var Steps []Step = []Step{
 			fmt.Printf("* plugin/vscode-lsp/package.json\n")
 			fmt.Printf("* plugin/vscode/BUILDING.md\n")
 			fmt.Printf("* plugin/vscode/package.json\n")
-			fmt.Printf("* CMakeLists.txt\n")
 			fmt.Printf("* version\n")
 			WaitForDone()
 		},

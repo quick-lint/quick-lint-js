@@ -9,7 +9,7 @@ endif ()
 file(READ version QUICK_LINT_JS_VERSION)
 string(REGEX MATCH "^[^\n]+" QUICK_LINT_JS_VERSION "${QUICK_LINT_JS_VERSION}")
 
-project(quick-lint-js VERSION 1.0.0)
+project(quick-lint-js)
 
 include(GNUInstallDirs)
 
