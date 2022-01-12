@@ -350,6 +350,17 @@
             else_token))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_equals_does_not_distribute_over_or, "E0190",                       \
+      {                                                                        \
+        source_code_span or_operator;                                          \
+        source_code_span equals_operator;                                      \
+      },                                                                       \
+      WARNING(QLJS_TRANSLATABLE("missing comparison; '{1}' does not extend "   \
+                                "to the right side of '{0}'"),                 \
+              or_operator, equals_operator)                                    \
+          NOTE(QLJS_TRANSLATABLE("'{0}' found here"), equals_operator))        \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_escaped_character_disallowed_in_identifiers, "E0012",              \
       { source_code_span escape_sequence; },                                   \
       ERROR(QLJS_TRANSLATABLE(                                                 \

@@ -226,6 +226,22 @@ void parser::error_on_sketchy_condition(expression* ast) {
         .assignment_operator = assignment->operator_span_,
     });
   }
+
+  if (ast->kind() == expression_kind::binary_operator &&
+      ast->children().size() == 3 &&
+      ast->child(2)->kind() == expression_kind::literal) {
+    auto* binary = static_cast<expression::binary_operator*>(ast);
+    source_code_span left_operator = binary->operator_spans_[0];
+    source_code_span right_operator = binary->operator_spans_[1];
+    if (right_operator.string_view() == u8"||"sv &&
+        (left_operator.string_view() == u8"=="sv ||
+         left_operator.string_view() == u8"==="sv)) {
+      this->error_reporter_->report(error_equals_does_not_distribute_over_or{
+          .or_operator = right_operator,
+          .equals_operator = left_operator,
+      });
+    }
+  }
 }
 
 void parser::error_on_class_statement(statement_kind statement_kind) {
