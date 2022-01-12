@@ -24,17 +24,22 @@ class CStruct(ctypes.Structure):
         return ctypes.byref(self)
 
 
+class CDiagnostic(CStruct):
+    c_fields = {
+        "message": ctypes.c_char_p,
+        "code": ctypes.c_char_p,
+        "severity": ctypes.c_int,
+    }
+    if utils.is_version_three():
+        c_fields["region"] = CRegion.CPointer
+    elif utils.is_version_four():
+        c_fields["range"] = CRange.CPointer
+
+
 class CText(CStruct):
     c_fields = {
         "content": ctypes.c_char_p,
         "length": ctypes.c_size_t,
-    }
-
-
-class CPosition(CStruct):
-    c_fields = {
-        "line": ctypes.c_uint,
-        "character": ctypes.c_uint,
     }
 
 
@@ -45,6 +50,13 @@ class CRegion(CStruct):
     }
 
 
+class CPosition(CStruct):
+    c_fields = {
+        "line": ctypes.c_uint,
+        "character": ctypes.c_uint,
+    }
+
+
 class CRange(CStruct):
     c_fields = {
         "start": CPosition,
@@ -52,19 +64,7 @@ class CRange(CStruct):
     }
 
 
-class CDiagnostic(CStruct):
-    c_fields = {
-        "message": ctypes.c_char_p,
-        "code": ctypes.c_char_p,
-        "severity": ctypes.c_int,
-    }
-    if utils.sublime.is_version_three():
-        c_fields["region"] = CRegion.CPointer
-    elif utils.sublime.is_version_four():
-        c_fields["range"] = CRange.CPointer
-
-
-class CParser(Cstruct):
+class CDocument(Cstruct):
     c_fields = {}
 
 
@@ -97,24 +97,24 @@ class CLibrary:
         version = utils.sublime.major_version()
         self.c_create_parser = getattr(cdll, "qljs_st%d_create_parser" % (version))
         self.c_create_parser.argtypes = []
-        self.c_create_parser.restype = CParser.CPointer
+        self.c_create_parser.restype = CDocument.CPointer
         self.c_destroy_parser = getattr(cdll, "qljs_st%d_destroy_parser" % (version))
-        self.c_destroy_parser.argtypes = [CParser.CPointer]
+        self.c_destroy_parser.argtypes = [CDocument.CPointer]
         self.c_destroy_parser.restype = None
         if utils.sublime.is_version_three():
             self.c_set_text = cdll.qljs_st_3_set_text
             self.c_set_text.argtypes = [
-                CParser.CPointer, CText.CPointer,  # fmt: skip
+                CDocument.CPointer, CText.CPointer,  # fmt: skip
             ]
             self.c_set_text.restype = CError.CPointer
         elif utils.sublime.is_version_four():
             self.c_replace_text = cdll.qljs_st_4_replace_text
             self.c_replace_text.argtypes = [
-                CParser.CPointer, CRange.CPointer, CText.CPointer,  # fmt: skip
+                CDocument.CPointer, CRange.CPointer, CText.CPointer,  # fmt: skip
             ]
             self.c_replace_text.restype = CError.CPointer
         self.c_lint = getattr(cdll, "qljs_st%d_lint" % (version))
-        self.c_lint.argtypes = [CParser.CPointer]
+        self.c_lint.argtypes = [CDocument.CPointer]
         self.c_lint.restype = CDiagnostic.CPointer
 
     def create_parser(self):
