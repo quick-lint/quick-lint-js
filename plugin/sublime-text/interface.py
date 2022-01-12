@@ -132,7 +132,7 @@ class CLibrary:
             return ".dll"
         elif platform.system() == "Darwin":
             return ".dylib"
-        else:
+        else: # TODO: should not be a elif? and else raise exception?
             return ".so"
 
     def __init__(self):
@@ -175,15 +175,14 @@ class CLibrary:
             raise CException("Cannot free nonexistent pointer.")
         self.c_destroy_parser(c_document_p)
 
-    if utils.sublime.is_version_three():
+    def set_text(self, c_document_p, c_text_p):
+        return self.c_set_text(c_document_p, c_text_p)
 
-        def set_text(self, c_document_p, c_text_p):
-            return self.c_set_text(c_document_p, c_text_p)
-
-    elif utils.sublime.is_version_four():
+    if utils.sublime_have_incremental_changes():
 
         def replace_text(self, c_document_p, c_range_p, c_text_p):
             return self.c_replace_text(c_document_p, c_range_p, c_text_p)
+
 
     def lint(self, c_document_p):
         return self.c_lint(c_document_p)
