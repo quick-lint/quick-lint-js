@@ -10,8 +10,14 @@
 
 
 class Scripts:
-    def build():
-        c("cmake -S ../.. -B build-sublime-text")
+    def build(version):
+        sversion = str(version)
+        buildpath = "build-sublime-text-" + sversion
+        cache_entries = {
+            "CMAKE_BUILD_TYPE": "Release",
+            "QUICK_LINT_JS_SUBLIME_TEXT_VERSION": sversion,
+        }
+        cmake("../..", buildpath, "ninja", cache_entries)
 
     def start(self):
         pass
