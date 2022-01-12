@@ -9,8 +9,16 @@ def cmd(args):
 
 
 def cmake(sourcepath, buildpath, generator, cache_entries):
+    cache_entries = [f"-D {key}={val}" for key, val in cache_entries]
     cmd(["cmake", "-S", sourcepath, "-B", buildpath, "-G", generator, *cache_entries])
 
+
+def main():
+    pass
+
+
+if __name__ == "__main__":
+    main()
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

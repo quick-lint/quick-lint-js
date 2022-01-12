@@ -7,7 +7,7 @@ include(QuickLintJSCopyright)
 # include(QuickLintJsSublimeTextPackage)
 include(QuickLintJSTarget)
 
-if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL "3")
+if (QLJS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   # Add colored compiler output.
   string(TOLOWER "${CMAKE_CXX_COMPILER_ID}" CMAKE_CXX_COMPILER_ID_LOWER)
   if ("${CMAKE_CXX_COMPILER_ID_LOWER}" STREQUAL "gnu")

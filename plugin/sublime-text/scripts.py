@@ -9,53 +9,30 @@
 # TODO: use version from toplevel to create package name
 
 
-class Scripts:
-    def build(version):
-        sversion = str(version)
-        buildpath = "build-sublime-text-" + sversion
-        cache_entries = {
-            "CMAKE_BUILD_TYPE": "Release",
-            "QUICK_LINT_JS_SUBLIME_TEXT_VERSION": sversion,
-        }
-        cmake("../..", buildpath, "ninja", cache_entries)
-
-    def start(self):
-        pass
-
-    def clean(self):
-        pass
-
-    def install(self):
-        pass
-
-    def lint(self):
-        pass
-
-    def format(self):
-        pass
-
-    def _dependencies():
-        pass
-
-    def __call__(self):
-        pass
-
-    @staticmethod
-    def main():
-        pass
+def build(version, type="release"):
+    buildpath = "build-sublime-text-" + version
+    cache_entries = {"CMAKE_BUILD_TYPE": type, "QLJS_SUBLIME_TEXT_VERSION": version}
+    cmake("../..", buildpath, "ninja", cache_entries)
 
 
-################################################################################
-## internals
-################################################################################
-
-
-def main():
+def start():
     pass
 
 
-if __name__ == "__main__":
-    main()
+def clean():
+    pass
+
+
+def install():
+    pass
+
+
+def lint():
+    pass
+
+
+def format():
+    pass
 
 
 # quick-lint-js finds bugs in JavaScript programs.
