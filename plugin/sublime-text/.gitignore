@@ -1,6 +1,9 @@
 /.cmake/
 /__pycache__/
-/build*/
+/build/
+/build-sublime-text/
+/build-sublime-text-3/
+/build-sublime-text-4/
 /venv/
 /cmake_install.cmake
 /CMakeCache.txt
