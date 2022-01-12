@@ -21,15 +21,6 @@ namespace quick_lint_js {
 // lines
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-void extend(sublime_text_lines &other, offset_type begin, offset_type end) {
-  this->offset_begin_.insert(this->offset_begin_.end(),
-                             other->offset_begin_.begin() + begin,
-                             other->offset_begin_.begin() + end);
-  this->is_ascii_.insert(this->is_ascii_.end(),
-                         other->is_ascii_.begin() + begin,
-                         other->is_ascii_.begin() + end);
-}
-
 void sublime_text_lines::compute(const char8 *input, const char8 *begin,
                                  const char8 *end) {
   std::uint8_t flags = 0;
