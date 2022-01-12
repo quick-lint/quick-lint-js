@@ -46,6 +46,20 @@ typedef struct qljs_sublime_text_diagnostic {
 
 //==============================================================================
 //------------------------------------------------------------------------------
+// text
+
+typedef struct qljs_sublime_text_text {
+  const char *content;
+  size_t length;
+} qljs_sublime_text_text;
+
+qljs_sublime_text_text *qljs_sublime_text_text_new(const char *content,
+                                                   size_t length);
+
+void qljs_sublime_text_text_delete(qljs_sublime_text_text *t);
+
+//==============================================================================
+//------------------------------------------------------------------------------
 // region
 
 typedef struct qljs_sublime_text_region {
@@ -93,20 +107,6 @@ void qljs_sublime_text_range_delete(qljs_sublime_text_range *r);
 #else
 typedef qljs_sublime_text_region qljs_sublime_text_range;
 #endif
-
-//==============================================================================
-//------------------------------------------------------------------------------
-// text
-
-typedef struct qljs_sublime_text_text {
-  const char *content;
-  size_t length;
-} qljs_sublime_text_text;
-
-qljs_sublime_text_text *qljs_sublime_text_text_new(const char *content,
-                                                   size_t length);
-
-void qljs_sublime_text_text_delete(qljs_sublime_text_text *t);
 
 //==============================================================================
 //------------------------------------------------------------------------------
