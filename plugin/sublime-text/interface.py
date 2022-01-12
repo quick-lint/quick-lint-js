@@ -20,7 +20,7 @@ from . import utils
 ## offset ######################################################################
 
 
-c_offset = ctypes.c_uint
+COffset = ctypes.c_uint
 
 
 ## severity ####################################################################
@@ -49,12 +49,12 @@ CTextP = ctypes.POINTER(CText)
 
 class CRegion:
     _fields_ = [
-        ("begin", c_offset),
-        ("end", c_offset),
+        ("begin", COffset),
+        ("end", COffset),
     ]
 
 
-CRegion = ctypes.POINTER(CRegion)
+CRegionP = ctypes.POINTER(CRegion)
 
 
 ## position ####################################################################
@@ -64,22 +64,22 @@ if utils.sublime_have_incremental_changes():
 
     class CPosition:
         c_fields = [
-            ("line", c_offset),
-            ("character", c_offset),
+            ("line", COffset),
+            ("character", COffset),
         ]
 
     CPositionP = ctypes.POINTER(CPosition)
 
 else:
 
-    CPosition = CRegion
-    CPositionP = CRegionP
+    CPosition = COffset
+    CPositionP = ctypes.POINTER(COffset)
 
 
 ## range #######################################################################
 
 
-if utils.sublime_is_version_three():
+if utils.sublime_have_incremental_changes():
 
     class CRange(CStruct):
         c_fields = {
@@ -87,7 +87,7 @@ if utils.sublime_is_version_three():
             "end": CPosition,
         }
 
-elif utils.sublime_have_incremental_changes():
+else:
 
     CRange = CRegion
 
