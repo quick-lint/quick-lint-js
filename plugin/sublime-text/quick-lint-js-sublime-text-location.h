@@ -46,9 +46,6 @@ struct sublime_text_region final : public qljs_sublime_text_region {};
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct sublime_text_position final : public qljs_sublime_text_position {
  public:
-  sublime_text_position(const char8 *source) noexcept {
-  }
-
   friend inline bool operator==(const position &lhs,
                                 const position &rhs) noexcept {
     return lhs.line == rhs.line && lhs.character == rhs.character;
@@ -74,12 +71,7 @@ using sublime_text_position = sublime_text_offset;
 // range
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-struct sublime_text_range final : public qljs_sublime_text_range {
-public:
-  sublime_text_range(source_code_span span)
-      : start(sublime_text_position(span.begin())),
-        end(sublime_text_position(span.end())) {}
-};
+struct sublime_text_range final : public qljs_sublime_text_range {};
 #else
 using sublime_text_range = sublime_text_region;
 #endif
@@ -195,15 +187,23 @@ struct sublime_text_locator {
   const char8 *from_position(position_type position) const noexcept;
 #endif
 
-  range_type range(source_code_span span) const { return range_type(span); }
+  range_type range(source_code_span span) const {
+    position_type start = this->position(span.begin());
+    position_type end = this->position(span.end());
+    return range_type{.start = start, .end = end};
+  }
 
-  position_type position(const char8 *ch) const noexcept {}
-
-  /*TODO: region()*/
+  position_type position(const char8 *source) const noexcept {
+    offset_type offset = this->offset(source);
+    offset_type line_number = this.new_lines.find_line(offset);
+    return this->position(line_number, offset);
+  }
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-  position_type position(int /*size_t*/ line_number, offset_type offset) const
-      noexcept;
+  position_type position(offset_type line, offset_type offset) const noexcept;
+
+  region_type region(range_type) const noexcept;
+  /*TODO: region()*/
 
   offset_type offset(const char8 *) const noexcept;
 

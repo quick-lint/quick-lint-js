@@ -176,8 +176,8 @@ typename sublime_text_locator::range_type sublime_text_locator::range(
 typename sublime_text_locator::position_type sublime_text_locator::position(
     const char8 *source) const noexcept {
   offset_type offset = this->offset(source);
-  offset_type line_number =  // this->find_line_at_offset(offset);
-      return this->position(line_number, offset);
+  offset_type line_number =  this.new_lines.find_line(offset);
+  return this->position(line_number, offset);
 }
 
 typename sublime_text_locator::offset_type sublime_text_locator::offset(
