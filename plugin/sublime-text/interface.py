@@ -1,6 +1,10 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+################################################################################
+## interface
+################################################################################
+
 import ctypes
 import os
 import platform
@@ -8,7 +12,7 @@ import platform
 from . import utils
 
 
-c_offset = ctypes.c_uint
+## struct ####################################################################
 
 
 class CStruct(ctypes.Structure):
@@ -27,6 +31,23 @@ class CStruct(ctypes.Structure):
         return ctypes.pointer(self)
 
 
+## offset ######################################################################
+
+
+c_offset = ctypes.c_uint
+
+
+## severity ####################################################################
+
+
+class CSeverity:
+    ERROR = 1
+    WARNING = 2
+
+
+## text ########################################################################
+
+
 class CText(CStruct):
     c_fields = {
         "content": ctypes.c_char_p,
@@ -34,41 +55,68 @@ class CText(CStruct):
     }
 
 
+## region ######################################################################
+
+
 class CRegion(CStruct):
     c_fields = {
-        "start": ctypes.c_uint,
-        "end": ctypes.c_uint,
+        "begin": c_offset,
+        "end": c_offset,
     }
 
 
-class CPosition(CStruct):
-    c_fields = {
-        "line": ctypes.c_uint,
-        "character": ctypes.c_uint,
-    }
+## position ####################################################################
 
 
-class CRange(CStruct):
-    c_fields = {
-        "start": CPosition,
-        "end": CPosition,
-    }
+if utils.sublime_is_version_three():
+
+    class CPosition(CStruct):
+        c_fields = {
+            "line": c_offset,
+            "character": c_offset,
+        }
+
+elif utils.sublime_is_version_four():
+
+    CPosition = CRegion
+
+
+## range #######################################################################
+
+
+if utils.sublime_is_version_three():
+
+    class CRange(CStruct):
+        c_fields = {
+            "start": CPosition,
+            "end": CPosition,
+        }
+
+elif utils.sublime_is_version_four():
+
+    CRange = CRegion
+
+
+## diagnostic ##################################################################
 
 
 class CDiagnostic(CStruct):
     c_fields = {
+        "range": CRange.CPointer,
         "severity": ctypes.c_int,
         "code": ctypes.c_char_p,
         "message": ctypes.c_char_p,
     }
-    if utils.sublime_is_version_three():
-        c_fields["region"] = CRegion.CPointer
-    elif utils.sublime_is_version_four():
-        c_fields["range"] = CRange.CPointer
+
+
+## document ####################################################################
 
 
 class CDocument(Cstruct):
     c_fields = {}
+
+
+## exception ###################################################################
 
 
 class CException(Exception):

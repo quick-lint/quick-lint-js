@@ -33,7 +33,6 @@ typedef enum qljs_sublime_text_severity {
   qljs_sublime_text_severity_warning = 2,
 } qljs_sublime_text_severity;
 
-
 //==============================================================================
 //------------------------------------------------------------------------------
 // text
@@ -113,8 +112,7 @@ typedef struct qljs_sublime_text_diagnostic {
 //------------------------------------------------------------------------------
 // document
 
-typedef struct qljs_sublime_text_document {
-} qljs_sublime_text_document;
+typedef struct qljs_sublime_text_document qljs_sublime_text_document;
 
 qljs_sublime_text_document *qljs_sublime_text_document_new(void);
 
