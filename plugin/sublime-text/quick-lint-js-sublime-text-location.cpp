@@ -210,11 +210,23 @@ typename sublime_text_locator::position_type sublime_text_locator::position(
   return position_type{.line = line, .character = character};
 }
 
+typename sublime_text_locator::region_type sublime_text_locator::region(
+    range_type range) const noexcept {
+  offset_type begin = this->offset(range.start);
+  offset_type end = this->offset(range.end);
+  return region_type{.begin = begin, .end = end};
+}
+
 typename sublime_text_locator::offset_type sublime_text_locator::offset(
     const char8 *source) const noexcept {
   return narrow_cast<offset_type>(source - this->input_.data());
 }
 
+typename sublime_text_locator::offset_type sublime_text_locator::offset(
+    position_type position) const noexcept {
+  const char8 *source = this->from_position(position);
+  return this->offset(source);
+}
 #else
 sublime_text_locator::sublime_text_locator(padded_string_view input) noexcept
     : input_(input) {}

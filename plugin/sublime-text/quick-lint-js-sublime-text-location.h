@@ -22,8 +22,6 @@
 #include <quick-lint-js/padded-string.h>
 #include <vector>
 
-// TODO: Create region structure
-
 namespace quick_lint_js {
 
 //==============================================================================
@@ -185,8 +183,6 @@ struct sublime_text_locator {
 
   offset_type offset(const char8 *source) const noexcept;
 
-  // TODO: Implement this declaration
-  // HINT: this->from_position inside implementation
   offset_type offset(position_type position) const noexcept;
 #endif
 
