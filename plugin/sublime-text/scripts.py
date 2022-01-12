@@ -9,26 +9,34 @@
 # TODO: use version from toplevel to create package name
 
 
-# class Scripts:
-#     def build():
-#         pass
-# 
-#     def start():
-#         pass
-# 
-#     def clean():
-#         pass
-# 
-#     def install():
-#         pass
-# 
-#     def lint():
-#         pass
-# 
-#     def format():
-#         pass
-# 
-#     def main():
+class Scripts:
+    def build():
+        c("cmake -S ../.. -B build-sublime-text")
+
+    def start(self):
+        pass
+
+    def clean(self):
+        pass
+
+    def install(self):
+        pass
+
+    def lint(self):
+        pass
+
+    def format(self):
+        pass
+
+    def _dependencies():
+        pass
+
+    def __call__(self):
+        pass
+
+    @staticmethod
+    def main():
+        pass
 
 
 ################################################################################
