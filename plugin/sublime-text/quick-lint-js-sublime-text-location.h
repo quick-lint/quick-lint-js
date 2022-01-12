@@ -22,7 +22,6 @@
 #include <quick-lint-js/padded-string.h>
 #include <vector>
 
-// TODO: Add constructors range from locator to constructor from range
 // TODO: Create region structure
 
 namespace quick_lint_js {
@@ -175,17 +174,9 @@ struct sublime_text_locator {
   const char8 *from_position(position_type position) const noexcept;
 #endif
 
-  range_type range(source_code_span span) const {
-    position_type start = this->position(span.begin());
-    position_type end = this->position(span.end());
-    return range_type{.start = start, .end = end};
-  }
+  range_type range(source_code_span span) const;
 
-  position_type position(const char8 *source) const noexcept {
-    offset_type offset = this->offset(source);
-    offset_type line_number = this.new_lines.find_line(offset);
-    return this->position(line_number, offset);
-  }
+  position_type position(const char8 *source) const noexcept;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   position_type position(offset_type line, offset_type offset) const noexcept;

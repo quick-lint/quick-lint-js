@@ -181,8 +181,21 @@ const char8 *sublime_text_locator::from_position(position_type position) const
   }
 }
 
+typename sublime_text_locator::range_type range(source_code_span span) const {
+  position_type start = this->position(span.begin());
+  position_type end = this->position(span.end());
+  return range_type{.start = start, .end = end};
+}
+
 typename sublime_text_locator::position_type sublime_text_locator::position(
-    int line_number, offset_type offset) const noexcept {
+    const char8 *source) const noexcept {
+  offset_type offset = this->offset(source);
+  offset_type line_number = this.new_lines.find_line(offset);
+  return this->position(line_number, offset);
+}
+
+typename sublime_text_locator::position_type sublime_text_locator::position(
+    offset_type line, offset_type offset) const noexcept {
   offset_type line_offset_begin = this->new_lines.offset_begin[line];
   bool line_is_ascii = this->new_lines.is_ascii[line];
   offset_type character;
