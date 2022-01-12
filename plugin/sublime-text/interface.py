@@ -21,6 +21,7 @@ from . import utils
 
 
 COffset = ctypes.c_uint
+COffsetP = ctypes.POINTER(COffset)
 
 
 ## severity ####################################################################
@@ -73,7 +74,7 @@ if utils.sublime_have_incremental_changes():
 else:
 
     CPosition = COffset
-    CPositionP = ctypes.POINTER(COffset)
+    CPositionP = COffsetP
 
 
 ## range #######################################################################
@@ -81,34 +82,37 @@ else:
 
 if utils.sublime_have_incremental_changes():
 
-    class CRange(CStruct):
-        c_fields = {
-            "start": CPosition,
-            "end": CPosition,
-        }
+    class CRange:
+        _fields_ = [
+            ("start", CPosition),
+            ("end", CPosition),
+        ]
+
+    CRangeP = ctypes.POINTER(CRange)
 
 else:
 
     CRange = CRegion
+    CRangeP = CRegionP
 
 
 ## diagnostic ##################################################################
 
 
-class CDiagnostic(CStruct):
-    c_fields = {
-        "range": CRange.CPointer,
-        "severity": ctypes.c_int,
-        "code": ctypes.c_char_p,
-        "message": ctypes.c_char_p,
-    }
+class CDiagnostic:
+    _fields_ = [
+        ("range", CRange.CPointer),
+        ("severity", ctypes.c_int),
+        ("code", ctypes.c_char_p),
+        ("message", ctypes.c_char_p),
+    ]
 
 
 ## document ####################################################################
 
 
-class CDocument(Cstruct):
-    c_fields = {}
+class CDocument:
+    _fields_ = []
 
 
 ## exception ###################################################################
