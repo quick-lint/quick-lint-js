@@ -16,12 +16,6 @@ if (QLJS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
 
   # quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)
 
-  # Config
-  # cmake -S ../.. -B build-sublime-text -G Ninja -DCMAKE_BUILD_TYPE=Release \
-  #     -DQUICK_LINT_JS_SUBLIME_TEXT_VERSION=4
-  # Build
-  # cmake --build build-sublime-text/ --target quick-lint-js-sublime-text
-
   # TODO: Normalize procesor package
   # TODO: Write varible to file
   quick_lint_js_add_library(
