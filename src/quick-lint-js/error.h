@@ -653,6 +653,25 @@
       ERROR(QLJS_TRANSLATABLE("invalid UTF-8 sequence"), sequence))            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_jsx_attribute_has_wrong_capitalization, "E0192",                   \
+      {                                                                        \
+        identifier attribute_name;                                             \
+        string8_view expected_attribute_name;                                  \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE(                                                 \
+                "attribute has wrong capitalization; write '{1}' instead"),    \
+            attribute_name, expected_attribute_name))                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_jsx_event_attribute_should_be_camel_case, "E0191",                 \
+      {                                                                        \
+        identifier attribute_name;                                             \
+        string8_view expected_attribute_name;                                  \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE("event attributes must be camelCase: '{1}'"),    \
+            attribute_name, expected_attribute_name))                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_jsx_not_yet_implemented, "E0177", { source_code_span jsx_start; }, \
       ERROR(QLJS_TRANSLATABLE("React/JSX is not yet implemented"), jsx_start)) \
                                                                                \

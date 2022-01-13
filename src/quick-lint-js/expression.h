@@ -639,7 +639,9 @@ class expression::jsx_element final : public jsx_base {
       expression_arena::array_ptr<expression *> children) noexcept
       : jsx_base(kind, span, children), tag(tag) {}
 
-  bool is_intrinsic() const noexcept {
+  bool is_intrinsic() const noexcept { return is_intrinsic(this->tag); }
+
+  static bool is_intrinsic(const identifier &tag) noexcept {
     // TODO(strager): Have the lexer do this work for us.
     string8_view name = tag.normalized_name();
     QLJS_ASSERT(!name.empty());

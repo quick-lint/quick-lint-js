@@ -2569,16 +2569,26 @@ expression* parser::parse_jsx_element_or_fragment(Visitor& v, identifier* tag,
   }
   const char8* tag_end = this->lexer_.end_of_previous_token();
 
+  bool is_intrinsic =
+      tag && (tag_namespace || expression::jsx_element::is_intrinsic(*tag));
+
 next_attribute:
   switch (this->peek().type) {
   // <current attribute='value'>
-  case token_type::identifier:
+  case token_type::identifier: {
+    identifier attribute = this->peek().identifier_name();
+    bool has_namespace = false;
+
     this->lexer_.skip_in_jsx();
     if (this->peek().type == token_type::colon) {
       // <current namespace:attribute>
+      has_namespace = true;
       this->lexer_.skip_in_jsx();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
       this->lexer_.skip_in_jsx();
+    }
+    if (is_intrinsic && !has_namespace && !tag_namespace) {
+      this->check_jsx_attribute(attribute);
     }
     if (this->peek().type == token_type::equal) {
       this->lexer_.skip_in_jsx();
@@ -2606,6 +2616,7 @@ next_attribute:
       // <current attribute>
     }
     goto next_attribute;
+  }
 
   // <current {...attributes}>
   case token_type::left_curly: {

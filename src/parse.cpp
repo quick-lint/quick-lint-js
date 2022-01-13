@@ -12,6 +12,7 @@
 #include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/jsx.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/token.h>
@@ -137,6 +138,66 @@ expression_arena::array_ptr<source_code_span>
 parser::binary_expression_builder::move_operator_spans(
     expression_arena& arena) noexcept {
   return arena.make_array(std::move(this->operator_spans_));
+}
+
+void parser::check_jsx_attribute(const identifier& attribute_name) {
+  const std::unordered_map<string8_view, jsx_attribute>& aliases =
+      jsx_attribute_aliases();
+  string8_view name = attribute_name.normalized_name();
+
+  bool is_event_attribute =
+      name.size() >= 3 && name[0] == 'o' && name[1] == 'n';
+
+  if (auto alias_it = aliases.find(name); alias_it != aliases.end()) {
+    if (is_event_attribute) {
+      this->error_reporter_->report(
+          error_jsx_event_attribute_should_be_camel_case{
+              .attribute_name = attribute_name,
+              .expected_attribute_name = alias_it->second.expected,
+          });
+      return;
+    } else {
+      this->error_reporter_->report(
+          error_jsx_attribute_has_wrong_capitalization{
+              .attribute_name = attribute_name,
+              .expected_attribute_name = alias_it->second.expected,
+          });
+      return;
+    }
+  }
+
+  bool name_has_upper = std::any_of(name.begin(), name.end(), isupper);
+
+  if (!name_has_upper && is_event_attribute) {
+    using pmr_string8 =
+        std::basic_string<char8, std::char_traits<char8>,
+                          boost::container::pmr::polymorphic_allocator<char8>>;
+    pmr_string8* fixed_name = this->error_memory_.new_object<pmr_string8>(
+        name, this->error_memory_.standard_allocator<char8>());
+    (*fixed_name)[2] = toupper((*fixed_name)[2]);
+    this->error_reporter_->report(
+        error_jsx_event_attribute_should_be_camel_case{
+            .attribute_name = attribute_name,
+            .expected_attribute_name = *fixed_name,
+        });
+  }
+
+  if (name_has_upper) {
+    string8 lowered_name(name);
+    for (char8& c : lowered_name) {
+      c = tolower(c);
+    }
+
+    if (auto alias_it = aliases.find(lowered_name); alias_it != aliases.end()) {
+      if (alias_it->second.expected != name) {
+        this->error_reporter_->report(
+            error_jsx_attribute_has_wrong_capitalization{
+                .attribute_name = attribute_name,
+                .expected_attribute_name = alias_it->second.expected,
+            });
+      }
+    }
+  }
 }
 
 function_attributes parser::parse_generator_star(

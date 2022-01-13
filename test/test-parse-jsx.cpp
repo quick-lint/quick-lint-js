@@ -635,6 +635,175 @@ TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
                 ElementsAre(ERROR_TYPE(error_adjacent_jsx_without_parent)));
   }
 }
+
+TEST(test_parse_jsx, correctly_capitalized_attribute) {
+  {
+    padded_string code(u8R"(c = <td colSpan="2" />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8R"(c = <div onClick={handler} />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_parse_jsx, event_attributes_should_be_camel_case) {
+  {
+    padded_string code(u8R"(c = <div onclick={handler} />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_jsx_event_attribute_should_be_camel_case,  //
+            attribute_name,
+            offsets_matcher(&code, strlen(u8"c = <div "), u8"onclick"),  //
+            expected_attribute_name, u8"onClick"sv)));
+  }
+
+  // TODO(strager): Should we also report that the handler's value is missing?
+  {
+    padded_string code(u8R"(c = <div onclick />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_jsx_event_attribute_should_be_camel_case,  //
+                    attribute_name,
+                    offsets_matcher(&code, strlen(u8"c = <div "),
+                                    u8"onclick"),  //
+                    expected_attribute_name, u8"onClick"sv)));
+  }
+
+  {
+    padded_string code(u8R"(c = <div onmouseenter={handler} />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_jsx_event_attribute_should_be_camel_case,  //
+            attribute_name,
+            offsets_matcher(&code, strlen(u8"c = <div "), u8"onmouseenter"),  //
+            expected_attribute_name, u8"onMouseEnter"sv)));
+  }
+
+  {
+    padded_string code(u8R"(c = <div oncustomevent={handler} />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_2_FIELDS(
+                    error_jsx_event_attribute_should_be_camel_case,  //
+                    attribute_name,
+                    offsets_matcher(&code, strlen(u8"c = <div "),
+                                    u8"oncustomevent"),  //
+                    expected_attribute_name, u8"onCustomevent"sv)));
+  }
+}
+
+TEST(test_parse_jsx, miscapitalized_attribute) {
+  {
+    padded_string code(u8R"(c = <td colspan="2" />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_jsx_attribute_has_wrong_capitalization,  //
+            attribute_name,
+            offsets_matcher(&code, strlen(u8"c = <td "), u8"colspan"),  //
+            expected_attribute_name, u8"colSpan"sv)));
+  }
+
+  {
+    padded_string code(u8R"(c = <div onMouseenter={handler} />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_jsx_attribute_has_wrong_capitalization,  //
+            attribute_name,
+            offsets_matcher(&code, strlen(u8"c = <div "), u8"onmouseenter"),  //
+            expected_attribute_name, u8"onMouseEnter"sv)));
+  }
+
+  {
+    padded_string code(u8R"(c = <div onmouseENTER={handler} />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_jsx_attribute_has_wrong_capitalization,  //
+            attribute_name,
+            offsets_matcher(&code, strlen(u8"c = <div "), u8"onmouseENTER"),  //
+            expected_attribute_name, u8"onMouseEnter"sv)));
+  }
+}
+
+TEST(test_parse_jsx, attribute_checking_ignores_namespaced_attributes) {
+  {
+    padded_string code(u8R"(c = <div ns:onmouseenter={handler} />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(
+        u8R"(c = <div onmouseenter:onmouseenter={handler} />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_parse_jsx, attribute_checking_ignores_namespaced_elements) {
+  {
+    padded_string code(u8R"(c = <svg:g onmouseenter={handler} />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_parse_jsx, attribute_checking_ignores_user_components) {
+  {
+    padded_string code(u8R"(c = <MyComponent onmouseenter={handler} />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(
+        u8R"(c = <mymodule.mycomponent onmouseenter={handler} />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
 }
 }
 

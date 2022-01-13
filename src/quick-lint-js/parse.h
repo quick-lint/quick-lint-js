@@ -457,6 +457,7 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_jsx_element_or_fragment(Visitor &, identifier *tag,
                                             const char8 *less_begin);
+  void check_jsx_attribute(const identifier &attribute_name);
   template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_template(Visitor &, std::optional<expression *> tag);
 
