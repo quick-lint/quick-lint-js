@@ -22,14 +22,14 @@ from . import utils
 ## offset ######################################################################
 
 
-c_offset = ctypes.c_uint
-c_offset_p = ctypes.POINTER(c_offset)
+OffsetType = ctypes.c_uint
+OffsetTypePointer = ctypes.POINTER(c_offset)
 
 
 ## severity ####################################################################
 
 
-class c_severity:
+class SeverityEnumeration:
     ERROR = 1
     WARNING = 2
 
@@ -37,20 +37,20 @@ class c_severity:
 ## text ########################################################################
 
 
-class c_text:
+class Text:
     _fields_ = [
         ("content", ctypes.c_char_p),
         ("length", ctypes.c_size_t),
     ]
 
 
-c_text_p = ctypes.POINTER(c_text)
+text_p = ctypes.POINTER(c_text)
 
 
 ## region ######################################################################
 
 
-class c_region:
+class Region:
     _fields_ = [
         ("begin", c_offset),
         ("end", c_offset),
