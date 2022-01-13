@@ -11,8 +11,8 @@ include(QuickLintJsSublimeTextPackage)
 
 
 if (QLJS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
-  qljs_sublime_text_add_colored_compiler_output()
-  qljs_sublime_text_set_compiler_options()
+  quick_lint_js_sublime_text_add_colored_compiler_output()
+  quick_lint_js_sublime_text_set_compiler_options()
 
   # quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)
 
