@@ -2,8 +2,6 @@
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
-include(CheckCXXSymbolExists)
-include(CheckIncludeFileCXX)
 include(GNUInstallDirs)
 include(QuickLintJSCompiler)
 include(QuickLintJSCopyright)
@@ -233,40 +231,6 @@ if (NOT QUICK_LINT_JS_HAVE_CHARCONV)
     quick-lint-js-lib
     PUBLIC
     QLJS_HAVE_CHARCONV_HEADER=0
-  )
-endif ()
-
-CHECK_INCLUDE_FILE_CXX("csetjmp" QUICK_LINT_JS_CSETJMP_FOUND)
-if (NOT EMSCRIPTEN AND QUICK_LINT_JS_CSETJMP_FOUND)
-  set(QUICK_LINT_JS_HAVE_SETJMP ON)
-  target_compile_definitions(
-    quick-lint-js-lib
-    PUBLIC
-    QLJS_HAVE_SETJMP=1
-  )
-else ()
-  set(QUICK_LINT_JS_HAVE_SETJMP OFF)
-  target_compile_definitions(
-    quick-lint-js-lib
-    PUBLIC
-    QLJS_HAVE_SETJMP=0
-  )
-endif ()
-
-check_cxx_symbol_exists("sigsetjmp" "csetjmp" QUICK_LINT_JS_SIGSETJMP_FOUND)
-if (QUICK_LINT_JS_SIGSETJMP_FOUND)
-  set(QUICK_LINT_JS_HAVE_SIGSETJMP ON)
-  target_compile_definitions(
-    quick-lint-js-lib
-    PUBLIC
-    QLJS_HAVE_SIGSETJMP=1
-  )
-else ()
-  set(QUICK_LINT_JS_HAVE_SIGSETJMP OFF)
-  target_compile_definitions(
-    quick-lint-js-lib
-    PUBLIC
-    QLJS_HAVE_SIGSETJMP=0
   )
 endif ()
 
