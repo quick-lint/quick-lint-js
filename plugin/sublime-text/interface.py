@@ -138,7 +138,7 @@ class CLibrary:
             return ".so"
 
     def __init__(self):
-        directory = os.path.dirname(utils.os.get_module_path())
+        directory = os.path.dirname(utils.get_module_path(__name__))
         filename = "quick-lint-js-lib" + self.get_file_extension()
         # It's need multiple DLLs for load the library object on Windows,
         # these DLLs are all in the same folder, for ctypes find these DLLs
