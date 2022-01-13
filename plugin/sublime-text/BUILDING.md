@@ -59,7 +59,7 @@ cd plugin/sublime-text/  &REM Navigate to this directory.
 cmake -S ../.. -B build -G Ninja ^
       -D CMAKE_BUILD_TYPE=Release -D QLJS_SUBLIME_TEXT_4=ON
 
-ninja -C build quick-lint-js-sublime-text
+cmake --build build-sublime-text-4/ --target quick-lint-js-sublime-text
 ```
 
 ## Installing
@@ -68,7 +68,7 @@ To install this extension on your machine after building it, run the following
 command:
 
 ```shell
-cmake --install build --component sublime-text
+cmake --install build-sublime-text-4/ --component sublime-text
 ```
 
 [Sublime Text editor]: https://www.sublimetext.com/
