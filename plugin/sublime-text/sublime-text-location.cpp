@@ -91,7 +91,7 @@ void sublime_text_locator::replace_text(range_type range,
   this->new_lines.compute(this->input_, region.begin, region.end);
   {
     if (this->new_lines.is_ascii_.size() > range.start.line) {
-      this->line_is_ascii_[range.start.line] =
+      this->new_lines.is_ascii_[range.start.line] =
           this->new_lines.is_ascii_[range.start.line] &&
           this->old_lines.is_ascii_[range.start.line];
     }
