@@ -8,11 +8,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <quick-lint-js-sublime-text-location.h>
-#include <quick-lint-js-sublime-text-utils.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/sublime-text-location.h>
 #include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/vector.h>
 
 namespace quick_lint_js {
 
@@ -33,6 +33,7 @@ void sublime_text_lines::compute(const char8 *input, const char8 *begin,
   auto on_line_end = [flags, this](const char8 * /*line_end*/) {
     this->is_ascii_.push_back(
         sublime_text_characters::is_ascii(static_cast<char8>(flags)));
+    flags = 0;
   };
 
   const char8 *ch = begin + 1;
@@ -51,11 +52,11 @@ void sublime_text_lines::compute(const char8 *input, const char8 *begin,
 }
 
 typename sublime_text_lines::offset_type sublime_text_lines::find_line(
-    offset_type) const {
+    offset_type offset) const {
   QLJS_ASSERT(!this->offset_begin_.empty());
   auto begin_it = this->offset_begin_.begin();
   auto end_it = this->offset_begin_.end();
-  auto line_it = std::upper_bound(begin + 1, end, offset) - 1;
+  auto line_it = std::upper_bound(begin_it + 1, end_it, offset) - 1;
   auto line = line_it - this->offset_begin_.begin();
   return narrow_cast<offset_type>(line);
 }

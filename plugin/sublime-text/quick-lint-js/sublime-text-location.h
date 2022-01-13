@@ -123,7 +123,7 @@ struct sublime_text_lines {
   void compute(const char8 *input, const char8 *begin, const char8 *end);
 
   void compute(padded_string_view input, offset_type begin, offset_type end) {
-    this->compute(&input, &input[begin], &input[end]);
+    this->compute(input.data(), &input[begin], &input[end]);
   }
 
   void swap(sublime_text_lines &other) {
