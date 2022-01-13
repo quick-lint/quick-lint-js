@@ -22,14 +22,14 @@ from . import utils
 ## offset ######################################################################
 
 
-COffset = ctypes.c_uint
-COffsetP = ctypes.POINTER(COffset)
+c_offset = ctypes.c_uint
+c_offset_p = ctypes.POINTER(c_offset)
 
 
 ## severity ####################################################################
 
 
-class CSeverity:
+class c_severity:
     ERROR = 1
     WARNING = 2
 
@@ -37,27 +37,27 @@ class CSeverity:
 ## text ########################################################################
 
 
-class CText:
+class c_text:
     _fields_ = [
         ("content", ctypes.c_char_p),
         ("length", ctypes.c_size_t),
     ]
 
 
-CTextP = ctypes.POINTER(CText)
+c_text_p = ctypes.POINTER(c_text)
 
 
 ## region ######################################################################
 
 
-class CRegion:
+class c_region:
     _fields_ = [
-        ("begin", COffset),
-        ("end", COffset),
+        ("begin", c_offset),
+        ("end", c_offset),
     ]
 
 
-CRegionP = ctypes.POINTER(CRegion)
+c_region_p = ctypes.POINTER(c_region)
 
 
 ## position ####################################################################
@@ -65,18 +65,18 @@ CRegionP = ctypes.POINTER(CRegion)
 
 if utils.sublime_have_incremental_changes():
 
-    class CPosition:
+    class c_position:
         c_fields = [
-            ("line", COffset),
-            ("character", COffset),
+            ("line", c_offset),
+            ("character", c_offset),
         ]
 
-    CPositionP = ctypes.POINTER(CPosition)
+    c_position_p = ctypes.POINTER(c_position)
 
 else:
 
-    CPosition = COffset
-    CPositionP = COffsetP
+    c_position = c_offset
+    c_position_p = c_offset_p
 
 
 ## range #######################################################################
@@ -84,26 +84,26 @@ else:
 
 if utils.sublime_have_incremental_changes():
 
-    class CRange:
+    class c_range:
         _fields_ = [
-            ("start", CPosition),
-            ("end", CPosition),
+            ("start", c_position),
+            ("end", c_position),
         ]
 
-    CRangeP = ctypes.POINTER(CRange)
+    c_range_p = ctypes.POINTER(c_range)
 
 else:
 
-    CRange = CRegion
-    CRangeP = CRegionP
+    c_range = c_region
+    c_range_p = c_region_p
 
 
 ## diagnostic ##################################################################
 
 
-class CDiagnostic:
+class c_diagnostic:
     _fields_ = [
-        ("range", CRangeP),
+        ("range", c_range_p),
         ("severity", ctypes.c_int),
         ("code", ctypes.c_char_p),
         ("message", ctypes.c_char_p),
@@ -113,21 +113,21 @@ class CDiagnostic:
 ## document ####################################################################
 
 
-class CDocument:
+class c_document:
     _fields_ = []
 
 
 ## exception ###################################################################
 
 
-class CException(Exception):
+class c_exception(Exception):
     pass
 
 
 ## library #####################################################################
 
 
-class CLibrary:
+class c_library:
     @staticmethod
     def get_file_extension():
         if platform.system() == "Windows":
@@ -145,36 +145,36 @@ class CLibrary:
         # we need to change the current working directory to that folder.
         with changed_directory(directory):
             try:
-                cdll = ctypes.CDLL(filename)
+                cdll = ctypes.c_dLL(filename)
             except OSError as err:
-                raise CException("") from err  # TODO: add message
+                raise c_exception("") from err  # TODO: add message
 
         version = utils.sublime.major_version()
         self.c_document = cdll.qljs_sublime_text_document_new
         self.c_document.argtypes = []
-        self.c_document.restype = CDocumentP
+        self.c_document.restype = c_document_p
         self.c_document = cdll.qljs_sublime_text_document_delete
-        self.c_document.argtypes = [CDocumentP]
+        self.c_document.argtypes = [c_document_p]
         self.c_document.restype = None
         self.c_set_text = cdll.qljs_sublime_text_set_text
-        self.c_set_text.argtypes = [CDocumentP, CTextP]
-        self.c_set_text.restype = CErrorP
+        self.c_set_text.argtypes = [c_document_p, c_text_p]
+        self.c_set_text.restype = c_error_p
         self.c_replace_text = cdll.qljs_sublime_text_replace_text
-        self.c_replace_text.argtypes = [CDocumentP, CRangeP, CTextP]
-        self.c_replace_text.restype = CErrorP
+        self.c_replace_text.argtypes = [c_document_p, c_range_p, c_text_p]
+        self.c_replace_text.restype = c_error_p
         self.c_lint = cdll.qljs_sublime_text_lint
-        self.c_lint.argtypes = [CDocumentP]
-        self.c_lint.restype = CDiagnosticP
+        self.c_lint.argtypes = [c_document_p]
+        self.c_lint.restype = c_diagnostic_p
 
     def create_parser(self):
         c_document_p = self.c_create_parser()
         if utils.ctypes.is_pointer_null(c_document_p):
-            raise CException("Parser unavailable.")
+            raise c_exception("Parser unavailable.")
         return c_document_p
 
     def destroy_parser(self, c_document_p):
         if utils.ctypes.is_pointer_null(c_document_p):
-            raise CException("Cannot free nonexistent pointer.")
+            raise c_exception("Cannot free nonexistent pointer.")
         self.c_destroy_parser(c_document_p)
 
     def set_text(self, c_document_p, c_text_p):

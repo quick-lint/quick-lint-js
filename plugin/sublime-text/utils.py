@@ -74,8 +74,8 @@ def sublime_have_incremental_changes():
     return int(sublime_get_major_version()) > "3"
 
 
-def plugin_error_message(msg):
-    sublime.error_message("quick-lint-js: " + msg)
+def plugin_error_message(message):
+    sublime.error_message("quick-lint-js: " + message)
 
 
 def view_entire_content(view):
