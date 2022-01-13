@@ -32,11 +32,7 @@ function (quick_lint_js_sublime_text_get_package_platform PACKAGE_PLATFORM)
   else ()
     string(TOLOWER NAME "${CMAKE_SYSTEM_NAME}")
   endif ()
-  if ("${CMAKE_SYSTEM_PROCESSOR}")
-  elseif ("${CMAKE_SYSTEM_PROCESSOR}")
-  else ()
-    string(TOLOWER PROCESSOR "${CMAKE_SYSTEM_PROCESSOR}")
-  endif ()
+  string(TOLOWER PROCESSOR "${CMAKE_SYSTEM_PROCESSOR}")
   set(PACKAGE_PLATFORM "${NAME}_${PROCESSOR}" PARENT_SCOPE)
 endfunction ()
 
@@ -44,13 +40,18 @@ function (quick_lint_js_sublime_text_get_package_filename PACKAGE_FILENAME)
   quick_lint_js_sublime_text_get_package_version(VERSION)
   quick_lint_js_sublime_text_get_package_platform(PLATFORM)
   set(DISTRIBUTION "${PROJECT_NAME}")
-  set(SUBLIME_TEXT_TAG "st${QUICK_LINT_JS_SUBLIME_TEXT_VERSION}")
-  set(PACKAGE_FILENAME "${DISTRIBUTION}-${VERSION}-${SUBLIME_TEXT_TAG}-${PLATFORM}")
+  set(TAG "st${QUICK_LINT_JS_SUBLIME_TEXT_VERSION}")
+  set(PACKAGE_FILENAME "${DISTRIBUTION}-${VERSION}-${TAG}-${PLATFORM}")
 endfunction ()
 
 function (quick_lint_js_sublime_text_get_package_pathname PACKAGE_PATHNAME)
   quick_lint_js_sublime_text_get_package_filename(FILENAME)
+  # NOTE(cahian): Should be "${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}" or
+  # "${CMAKE_CURRENT_BINARY_DIR}/../${FILENAME}"?
   set(PACKAGE_PATHNAME "${CMAKE_CURRENT_BINARY_DIR}/${FILENAME}")
+endfunction ()
+
+function ()
 endfunction ()
 
 # quick-lint-js finds bugs in JavaScript programs.

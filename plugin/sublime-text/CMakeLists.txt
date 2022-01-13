@@ -13,8 +13,8 @@ include(QuickLintJsSublimeTextPackage)
 if (QLJS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   quick_lint_js_sublime_text_add_colored_compiler_output()
   quick_lint_js_sublime_text_set_compiler_options()
+  quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)
 
-  # quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)
 
   # TODO: Normalize procesor package
   # TODO: Write varible to file
@@ -43,11 +43,6 @@ if (QLJS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
     OUTPUT_FILE quick-lint-js-sublime-text-licenses.txt
   )
 endif ()
-
-# # NOTE(cahian): Maybe I don't need this code
-# if (WIN32)
-#   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-# endif ()
 
 #### SUBLIME_TEXT_PACKAGE_FILES ####
 # set(
