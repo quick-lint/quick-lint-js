@@ -2,20 +2,17 @@
 # See end of file for extended copyright information.
 
 cmake_minimum_required(VERSION 3.10)
-# list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 include(QuickLintJSCopyright)
-# include(QuickLintJsSublimeTextPackage)
 include(QuickLintJSTarget)
 
+include(QuickLintJsSublimeTextPackage)
+
+
 if (QLJS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
-  # Add colored compiler output.
-  string(TOLOWER "${CMAKE_CXX_COMPILER_ID}" CMAKE_CXX_COMPILER_ID_LOWER)
-  if ("${CMAKE_CXX_COMPILER_ID_LOWER}" STREQUAL "gnu")
-    add_compile_options(-fdiagnostics-color=always)
-  elseif ("${CMAKE_CXX_COMPILER_ID_LOWER}" STREQUAL "clang")
-    add_compile_options(-fcolor-diagnostics)
-  endif ()
-  # Set(cmake_position_indepent_code)
+  qljs_sublime_text_add_colored_compiler_output()
+  qljs_sublime_text_set_compiler_options()
 
   # quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)
 

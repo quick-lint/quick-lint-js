@@ -5,7 +5,7 @@ This directory contains a plugin for the [Sublime Text editor].
 ## Building
 
 To build the plugin version made for Sublime Text 3, change all
-`-DQUICK_LINT_JS_SUBLIME_TEXT_4=ON` to `-DQUICK_LINT_JS_SUBLIME_TEXT_3=ON`.
+`-DQLJS_SUBLIME_TEXT_4=ON` to `-DQLJS_SUBLIME_TEXT_3=ON`.
 
 ### Linux
 
@@ -13,11 +13,10 @@ To build this extension, install [GCC], [CMake], and [Ninja], then run the
 following commands:
 
 ```shell
-cd plugin/sublime-text/  # Navigate to this directory.
-cmake -S ../.. -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-    -DQUICK_LINT_JS_SUBLIME_TEXT_4=ON -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-ninja -C build quick-lint-js-sublime-text
+cd plugin/sublime-text/  # Navigate to this directory
+cmake -S ../.. -B build-sublime-text-4 -G Ninja \
+  -D CMAKE_BUILD_TYPE=Release -D QLJS_SUBLIME_TEXT_4=ON
+cmake --build build-sublime-text-4/ --target quick-lint-js-sublime-text
 ```
 
 ### macOS
@@ -31,15 +30,15 @@ brew install llvm cmake ninja
 then run the following commands:
 
 ```shell
-PATH="$(brew --prefix)/opt/llvm/bin:$PATH" \
-    CC=clang \
-    CXX=clang++ \
-    CPPFLAGS="-I$(brew --prefix)/opt/llvm/include" \
-    CXXFLAGS=-D_LIBCPP_DISABLE_AVAILABILITY \
-    LDFLAGS="-L$(brew --prefix)/opt/llvm/lib" \
-    cmake -S ../.. -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
-        -DQUICK_LINT_JS_SUBLIME_TEXT_4=ON -DBUILD_SHARED_LIBS=ON \
-        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+PATH="$(brew --prefix)/opt/llvm/bin:$PATH"     \
+CC=clang                                       \
+CXX=clang++                                    \
+CPPFLAGS="-I$(brew --prefix)/opt/llvm/include" \
+CXXFLAGS=-D_LIBCPP_DISABLE_AVAILABILITY        \
+LDFLAGS="-L$(brew --prefix)/opt/llvm/lib"      \
+cmake -S ../.. -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+    -DQLJS_SUBLIME_TEXT_4=ON -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 ninja -C build quick-lint-js-sublime-text
 ```
 
@@ -52,7 +51,7 @@ following commands:
 ```batch
 cd plugin/sublime-text/  &REM Navigate to this directory.
 cmake -S ../.. -B build -G Ninja -DCMAKE_BUILD_TYPE=Release ^
-    -DQUICK_LINT_JS_SUBLIME_TEXT_4=ON -DBUILD_SHARED_LIBS=ON ^
+    -DQLJS_SUBLIME_TEXT_4=ON -DBUILD_SHARED_LIBS=ON ^
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON
 ninja -C build quick-lint-js-sublime-text
 ```
