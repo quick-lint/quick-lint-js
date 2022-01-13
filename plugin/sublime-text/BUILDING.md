@@ -17,7 +17,7 @@ following commands:
 cd plugin/sublime-text/  # Navigate to this directory
 
 cmake -S ../.. -B build-sublime-text-4 -G Ninja \
-      -D CMAKE_BUILD_TYPE=Release -D QLJS_SUBLIME_TEXT_4=ON
+      -D CMAKE_BUILD_TYPE=Release -D QLJS_SUBLIME_TEXT_VERSION=4
 
 cmake --build build-sublime-text-4/ --target quick-lint-js-sublime-text
 ```
@@ -42,7 +42,7 @@ CPPFLAGS="-I$(brew --prefix)/opt/llvm/include"   \
 CXXFLAGS=-D_LIBCPP_DISABLE_AVAILABILITY          \
 LDFLAGS="-L$(brew --prefix)/opt/llvm/lib"        \
 cmake -S ../.. -B build-sublime-text-4/ -G Ninja \
-      -D CMAKE_BUILD_TYPE=Release -D QLJS_SUBLIME_TEXT=4
+      -D CMAKE_BUILD_TYPE=Release -D QLJS_SUBLIME_TEXT_VERSION=4
 
 cmake --build build-sublime-text-4/ --target quick-lint-js-sublime-text
 ```
@@ -57,7 +57,7 @@ following commands:
 cd plugin/sublime-text/  &REM Navigate to this directory.
 
 cmake -S ../.. -B build -G Ninja ^
-      -D CMAKE_BUILD_TYPE=Release -D QLJS_SUBLIME_TEXT_4=ON
+      -D CMAKE_BUILD_TYPE=Release -D QLJS_SUBLIME_TEXT_VERSION=4
 
 cmake --build build-sublime-text-4/ --target quick-lint-js-sublime-text
 ```

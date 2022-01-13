@@ -7,17 +7,11 @@
 #include <cstdlib>
 #include <quick-lint-js/have.h>
 
-#if QLJS_SUBLIME_TEXT_PLUGIN
-#include <quick-lint-js/crash-handling.h>
-#endif
-
 #if QLJS_HAVE_DEBUGBREAK
 #include <intrin.h>
 #endif
 
-#if QLJS_SUBLIME_TEXT_PLUGIN
-#define QLJS_CRASH_ALLOWING_CORE_DUMP() QLJS_SUBLIME_TEXT_THROW()
-#elif QLJS_HAVE_DEBUGBREAK
+#if QLJS_HAVE_DEBUGBREAK
 #define QLJS_CRASH_ALLOWING_CORE_DUMP() ::__debugbreak()
 #elif QLJS_HAVE_BUILTIN_TRAP
 #define QLJS_CRASH_ALLOWING_CORE_DUMP() __builtin_trap()

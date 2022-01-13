@@ -270,31 +270,6 @@ else ()
   )
 endif ()
 
-if (QUICK_LINT_JS_SUBLIME_TEXT_3 OR QUICK_LINT_JS_SUBLIME_TEXT_4)
-  set(QUICK_LINT_JS_SUBLIME_TEXT TRUE)
-endif ()
-
-if (QUICK_LINT_JS_SUBLIME_TEXT)
-  if (QUICK_LINT_JS_HAVE_SETJMP)
-    target_compile_definitions(
-      quick-lint-js-lib
-      PUBLIC
-      QLJS_SUBLIME_TEXT_PLUGIN=1
-    )
-  else ()
-    message(
-      FATAL_ERROR
-      "You need to have setjmp available to build the Sublime Text plugin."
-    )
-  endif ()
-else ()
-  target_compile_definitions(
-    quick-lint-js-lib
-    PUBLIC
-    QLJS_SUBLIME_TEXT_PLUGIN=0
-  )
-endif ()
-
 # HACK(strager): Work around GCC compiler bug. GCC 9.3.0 miscompiles a call to
 # strncmp, causing the length given to strncmp to be incorrect. (Perhaps we are
 # invoking undefined behaviour though with our string table offset pointer
