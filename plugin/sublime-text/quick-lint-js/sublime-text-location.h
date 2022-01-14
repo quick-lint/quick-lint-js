@@ -159,8 +159,8 @@ struct sublime_text_lines {
 struct sublime_text_locator {
  public:
   using range_type = sublime_text_range;
-  using region_type = sublime_text_region;
   using position_type = sublime_text_position;
+  using region_type = sublime_text_region;
   using offset_type = sublime_text_offset;
 
   explicit sublime_text_locator(padded_string_view input) noexcept;
