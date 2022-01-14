@@ -90,13 +90,14 @@ void sublime_text_locator::replace_text(range_type range,
   // Within replacement: re-parse newlines.
   this->new_lines.compute(this->input_, region.begin, region.end);
   {
-    // FIXME(cahian): After the last push_back (on_line_end) the condition of 
-    // this if statement will always be true
-    if (this->new_lines.is_ascii_.size() > range.start.line) {
+    offset_type size_without_end = this->new_lines.is_ascii_.size() - 1;
+    if (size_without_end > range.start.line) {
       this->new_lines.is_ascii_[range.start.line] =
           this->new_lines.is_ascii_[range.start.line] &&
           this->old_lines.is_ascii_[range.start.line];
     }
+  }
+  {
     this->new_lines.is_ascii_[range.end.line] =
         this->new_lines.is_ascii_[range.end.line] &&
         this->old_lines.is_ascii_[range.end.line];
