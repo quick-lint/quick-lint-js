@@ -1,140 +1,91 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-################################################################################
-##                                                                            ##
-##                                 interface                                  ##
-##                                                                            ##
-################################################################################
-
-import ctypes
 import os
 import platform
+from ctypes import POINTER, Structure, c_char_p, c_size_t, c_uint
 
 from . import utils
 
+OFFSET = c_uint
+OFFSET_POINTER = POINTER(OFFSET)
 
-################################################################################
-## c interface
-################################################################################
-
-
-## offset ######################################################################
+SEVERITY_ERROR = 1
+SEVERITY_WARNING = 2
 
 
-OffsetType = ctypes.c_uint
-OffsetTypePointer = ctypes.POINTER(c_offset)
-
-
-## severity ####################################################################
-
-
-class SeverityEnumeration:
-    ERROR = 1
-    WARNING = 2
-
-
-## text ########################################################################
-
-
-class Text:
+class Text(Structure):
     _fields_ = [
-        ("content", ctypes.c_char_p),
-        ("length", ctypes.c_size_t),
+        ("content", c_char_p),
+        ("length", c_size_t),
     ]
 
 
-text_p = ctypes.POINTER(c_text)
+TEXT_POINTER = POINTER(Text)
 
 
-## region ######################################################################
-
-
-class Region:
+class Region(Structure):
     _fields_ = [
-        ("begin", c_offset),
-        ("end", c_offset),
+        ("begin", OFFSET),
+        ("end", OFFSET),
     ]
 
 
-c_region_p = ctypes.POINTER(c_region)
-
-
-## position ####################################################################
+REGION_POINTER = POINTER(Region)
 
 
 if utils.sublime_have_incremental_changes():
 
-    class c_position:
-        c_fields = [
-            ("line", c_offset),
-            ("character", c_offset),
-        ]
-
-    c_position_p = ctypes.POINTER(c_position)
-
-else:
-
-    c_position = c_offset
-    c_position_p = c_offset_p
-
-
-## range #######################################################################
-
-
-if utils.sublime_have_incremental_changes():
-
-    class c_range:
+    class Position:
         _fields_ = [
-            ("start", c_position),
-            ("end", c_position),
+            ("line", OFFSET),
+            ("character", OFFSET),
         ]
 
-    c_range_p = ctypes.POINTER(c_range)
+    POSITION_POINTER = POINTER(Position)
+
+    class Range:
+        _fields_ = [
+            ("start", Position),
+            ("end", Position),
+        ]
+
+    RANGE_POINTER = POINTER(Range)
 
 else:
 
-    c_range = c_region
-    c_range_p = c_region_p
+    POSITION = OFFSET
+    POSITION_POINTER = OFFSET_POINTER
+
+    RANGE = Region
+    RANGE_POINTER = REGION_POINTER
 
 
-## diagnostic ##################################################################
-
-
-class c_diagnostic:
+class Diagnostic:
     _fields_ = [
-        ("range", c_range_p),
-        ("severity", ctypes.c_int),
-        ("code", ctypes.c_char_p),
-        ("message", ctypes.c_char_p),
+        ("range", Range_p),
+        ("severity", ctypes.Int),
+        ("code", ctypes.Char_p),
+        ("message", ctypes.Char_p),
     ]
 
 
-## document ####################################################################
-
-
-class c_document:
+class Document:
     _fields_ = []
 
 
-## exception ###################################################################
-
-
-class c_exception(Exception):
+class Exception(Exception):
     pass
 
 
-## library #####################################################################
-
-
-class c_library:
+class Library:
     @staticmethod
     def get_file_extension():
         if platform.system() == "Windows":
             return ".dll"
         elif platform.system() == "Darwin":
             return ".dylib"
-        else: # TODO: should not be a elif? and else raise exception?
+        else:  # TODO: should not be a elif? and else raise exception?
             return ".so"
 
     def __init__(self):
@@ -145,49 +96,48 @@ class c_library:
         # we need to change the current working directory to that folder.
         with changed_directory(directory):
             try:
-                cdll = ctypes.c_dLL(filename)
+                cdll = ctypes.DLL(filename)
             except OSError as err:
-                raise c_exception("") from err  # TODO: add message
+                raise Exception("") from err  # TODO: add message
 
         version = utils.sublime.major_version()
-        self.c_document = cdll.qljs_sublime_text_document_new
-        self.c_document.argtypes = []
-        self.c_document.restype = c_document_p
-        self.c_document = cdll.qljs_sublime_text_document_delete
-        self.c_document.argtypes = [c_document_p]
-        self.c_document.restype = None
-        self.c_set_text = cdll.qljs_sublime_text_set_text
-        self.c_set_text.argtypes = [c_document_p, c_text_p]
-        self.c_set_text.restype = c_error_p
-        self.c_replace_text = cdll.qljs_sublime_text_replace_text
-        self.c_replace_text.argtypes = [c_document_p, c_range_p, c_text_p]
-        self.c_replace_text.restype = c_error_p
-        self.c_lint = cdll.qljs_sublime_text_lint
-        self.c_lint.argtypes = [c_document_p]
-        self.c_lint.restype = c_diagnostic_p
+        self.Document = cdll.qljs_sublime_text_document_new
+        self.Document.argtypes = []
+        self.Document.restype = Document_p
+        self.Document = cdll.qljs_sublime_text_document_delete
+        self.Document.argtypes = [Document_p]
+        self.Document.restype = None
+        self.Set_text = cdll.qljs_sublime_text_set_text
+        self.Set_text.argtypes = [Document_p, Text_p]
+        self.Set_text.restype = Error_p
+        self.Replace_text = cdll.qljs_sublime_text_replace_text
+        self.Replace_text.argtypes = [Document_p, Range_p, Text_p]
+        self.Replace_text.restype = Error_p
+        self.Lint = cdll.qljs_sublime_text_lint
+        self.Lint.argtypes = [Document_p]
+        self.Lint.restype = DiagnostiP
 
     def create_parser(self):
-        c_document_p = self.c_create_parser()
-        if utils.ctypes.is_pointer_null(c_document_p):
-            raise c_exception("Parser unavailable.")
-        return c_document_p
+        Document_p = self.Create_parser()
+        if utils.ctypes.is_pointer_null(Document_p):
+            raise Exception("Parser unavailable.")
+        return Document_p
 
-    def destroy_parser(self, c_document_p):
-        if utils.ctypes.is_pointer_null(c_document_p):
-            raise c_exception("Cannot free nonexistent pointer.")
-        self.c_destroy_parser(c_document_p)
+    def destroy_parser(self, Document_p):
+        if utils.ctypes.is_pointer_null(Document_p):
+            raise Exception("Cannot free nonexistent pointer.")
+        self.Destroy_parser(Document_p)
 
-    def set_text(self, c_document_p, c_text_p):
-        return self.c_set_text(c_document_p, c_text_p)
+    def set_text(self, Document_p, Text_p):
+        return self.Set_text(Document_p, Text_p)
 
     if utils.sublime_have_incremental_changes():
 
-        def replace_text(self, c_document_p, c_range_p, c_text_p):
-            return self.c_replace_text(c_document_p, c_range_p, c_text_p)
+        def replace_text(self, Document_p, Range_p, Text_p):
+            return self.Replace_text(Document_p, Range_p, Text_p)
 
-
-    def lint(self, c_document_p):
-        return self.c_lint(c_document_p)
+    def lint(self, Document_p):
+        return self.Lint(Document_p)
 
 
 ################################################################################
@@ -208,69 +158,69 @@ class Severity:
 
 class Diagnostic:
     @classmethod
-    def from_pointer(cls, c_diags_p):
+    def from_pointer(cls, Diags_p):
         diags = []
-        for c_diag in c_diags_p:
-            if utils.ctypes.is_pointer_null(c_diag.message):
+        for Diag in Diags_p:
+            if utils.ctypes.is_pointer_null(Diag.message):
                 break
-            diags.append(Diagnostic(c_diag))
+            diags.append(Diagnostic(Diag))
         return diags
 
-    def __init__(self, c_diag, view):
-        self.message = c_diag.message.decode()
-        self.code = c_diag.code.decode()
-        self.severity = Severity(c_diag.severity)
+    def __init__(self, Diag, view):
+        self.message = Diag.message.decode()
+        self.code = Diag.code.decode()
+        self.severity = Severity(Diag.severity)
         if utils.sublime.is_version_three():
-            start = c_diag.region.start
-            end = c_diag.region.end
+            start = Diag.region.start
+            end = Diag.region.end
         elif utils.sublime.is_version_four():
-            start = view.text_point_utf16(c_diag.start_line, c_diag.start_character)
-            end = view.text_point_utf16(c_diag.end_line, c_diag.end_character)
+            start = view.text_point_utf16(Diag.start_line, Diag.start_character)
+            end = view.text_point_utf16(Diag.end_line, Diag.end_character)
         self.region = sublime.Region(start, end)
 
 
 class Parser:
     try:
-        c_lib = CLibrary()
+        Lib = CLibrary()
     except CException as ex:
         sublime.error_message("quick-lint-js: " + str(ex))
     finally:
-        c_lib = None
+        Lib = None
 
     def __init__(self, view):
         self.view = view
         self.diags = []
         try:
-            self.c_document_p = Parser.c_lib.object.create_parser()
+            self.Document_p = Parser.Lib.object.create_parser()
         except AttributeError:
             raise ParserError("Library unavailable.")
         except CException:
             raise ParserError("Internal parser unavailable.")
         finally:
-            self.c_document_p = None
+            self.Document_p = None
 
     def delete():
         try:
-            Parser.c_lib.object.destroy_parser(self.c_document_p)
+            Parser.Lib.object.destroy_parser(self.Document_p)
         except CException:
             raise ParserError("Cannot delete pointer.")
 
     def set_text(self):
         content = utils.sublime.view_content(self.view).encode()
-        c_text_p = CText(content, len(content)).lightweight_pointer()
-        Parser.c_lib.object.set_text(self.c_document_p, c_text)
+        Text_p = CText(content, len(content)).lightweight_pointer()
+        Parser.Lib.object.set_text(self.Document_p, Text)
 
     def replace_text(self, change):
-        c_start = CPosition(change.a.row, change.a.col_utf16)
-        c_end = CPosition(change.b.row, change.b.col_utf16)
-        c_range_p = CRange(c_start, c_end).lightweight_pointer()
+        Start = CPosition(change.a.row, change.a.col_utf16)
+        End = CPosition(change.b.row, change.b.col_utf16)
+        Range_p = CRange(Start, End).lightweight_pointer()
         content = change.str.encode()
-        c_text_p = CText(content, len(content)).lightweight_pointer()
-        Parser.c_lib.object.replace_text(self.c_document_p, c_range_p, c_text_p)
+        Text_p = CText(content, len(content)).lightweight_pointer()
+        Parser.Lib.object.replace_text(self.Document_p, Range_p, Text_p)
 
     def lint(self):
-        c_diags_p = Parser.c_lib.lint(self.c_document_p)
-        self.diags = Diagnostic.from_pointer(c_diags_p, self.view)
+        Diags_p = Parser.Lib.lint(self.Document_p)
+        self.diags = Diagnostic.from_pointer(Diags_p, self.view)
 
 
 # quick-lint-js finds bugs in JavaScript programs.

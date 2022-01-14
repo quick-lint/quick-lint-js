@@ -357,6 +357,15 @@
 #define QLJS_HAVE_FTS_H 0
 #endif
 
+#if !defined(QLJS_HAVE_SETJMP) && defined(__has_include)
+#if !defined(__EMSCRIPTEN__) && __has_include(<csetjmp>)
+#define QLJS_HAVE_SETJMP 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_SETJMP)
+#define QLJS_HAVE_SETJMP 0
+#endif
+
 #if !defined(QLJS_HAVE_INOTIFY)
 #if defined(__linux__)
 #define QLJS_HAVE_INOTIFY 1
