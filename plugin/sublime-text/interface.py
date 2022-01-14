@@ -7,31 +7,34 @@ from ctypes import POINTER, Structure, c_char_p, c_size_t, c_uint
 
 from . import utils
 
-OFFSET = c_uint
-OFFSET_POINTER = POINTER(OFFSET)
 
-SEVERITY_ERROR = 1
-SEVERITY_WARNING = 2
+Offset = c_uint
+OffsetPointer = POINTER(c_offset)
 
 
-class Text(Structure):
+class SeverityEnum:
+    ERROR = 1
+    WARNING = 2
+
+
+class TextStruct(Structure):
     _fields_ = [
         ("content", c_char_p),
         ("length", c_size_t),
     ]
 
 
-TEXT_POINTER = POINTER(Text)
+TEXT_POINTER = POINTER(TEXT)
 
 
-class Region(Structure):
+class REGION(Structure):
     _fields_ = [
         ("begin", OFFSET),
         ("end", OFFSET),
     ]
 
 
-REGION_POINTER = POINTER(Region)
+REGION_POINTER = POINTER(REGION)
 
 
 if utils.sublime_have_incremental_changes():

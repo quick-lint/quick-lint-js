@@ -174,9 +174,9 @@ struct sublime_text_locator {
 
   range_type range(source_code_span span) const;
 
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   position_type position(const char8 *source) const noexcept;
 
-#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   position_type position(offset_type line, offset_type offset) const noexcept;
 
   region_type region(range_type range) const noexcept;
@@ -184,6 +184,8 @@ struct sublime_text_locator {
   offset_type offset(const char8 *source) const noexcept;
 
   offset_type offset(position_type position) const noexcept;
+#else
+  offset_type position(const char8 *source) const noexcept;
 #endif
 
  private:
