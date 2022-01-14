@@ -159,8 +159,6 @@ const char8 *sublime_text_locator::from_position(position_type position) const
     }
   } else {
     offset_type line_length_with_newline = line_end_offset - line_begin_offset;
-    // FIXME(cahian): `character_is_out_of_bounds` will no always be out of
-    // bounds
     bool character_is_out_of_bounds = character >= line_length_with_newline - 1;
     if (line_is_ascii) {
       if (character_is_out_of_bounds) {

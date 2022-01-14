@@ -70,12 +70,12 @@ void qljs_sublime_text_range_delete(qljs_sublime_text_range *range) {
 }
 #endif
 
-namespace quick_lint_js {
-namespace {
-
 //==============================================================================
 //------------------------------------------------------------------------------
 // diagnostic
+
+namespace quick_lint_js {
+namespace {
 
 struct sublime_text_diagnostic final : public qljs_sublime_text_diagnostic {};
 
