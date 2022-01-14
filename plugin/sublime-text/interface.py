@@ -3,38 +3,34 @@
 
 import os
 import platform
-from ctypes import POINTER, Structure, c_char_p, c_size_t, c_uint
+from ctypes import POINTER as pointer_type
+from ctypes import Structure, c_char_p, c_size_t, c_uint
 
 from . import utils
 
 
-Offset = c_uint
-OffsetPointer = POINTER(c_offset)
+_Offset = c_uint
+_OffsetPointer = pointer_type(Offset)
 
 
-class SeverityEnum:
-    ERROR = 1
-    WARNING = 2
-
-
-class TextStruct(Structure):
+class _Text(Structure):
     _fields_ = [
         ("content", c_char_p),
         ("length", c_size_t),
     ]
 
 
-TEXT_POINTER = POINTER(TEXT)
+_TextPointer = pointer_type(_Text)
 
 
-class REGION(Structure):
+class _Region(Structure):
     _fields_ = [
         ("begin", OFFSET),
         ("end", OFFSET),
     ]
 
 
-REGION_POINTER = POINTER(REGION)
+_RegionPointer = pointer_type(_Region)
 
 
 if utils.sublime_have_incremental_changes():
@@ -45,7 +41,7 @@ if utils.sublime_have_incremental_changes():
             ("character", OFFSET),
         ]
 
-    POSITION_POINTER = POINTER(Position)
+    POSITION_pointer_type = pointer_type(Position)
 
     class Range:
         _fields_ = [
@@ -53,15 +49,15 @@ if utils.sublime_have_incremental_changes():
             ("end", Position),
         ]
 
-    RANGE_POINTER = POINTER(Range)
+    RANGE_pointer_type = pointer_type(Range)
 
 else:
 
     POSITION = OFFSET
-    POSITION_POINTER = OFFSET_POINTER
+    POSITION_pointer_type = OFFSET_pointer_type
 
     RANGE = Region
-    RANGE_POINTER = REGION_POINTER
+    RANGE_pointer_type = REGION_pointer_type
 
 
 class Diagnostic:
@@ -224,6 +220,11 @@ class Parser:
     def lint(self):
         Diags_p = Parser.Lib.lint(self.Document_p)
         self.diags = Diagnostic.from_pointer(Diags_p, self.view)
+
+
+# class Severity:
+#     ERROR = 1
+#     WARNING = 2
 
 
 # quick-lint-js finds bugs in JavaScript programs.

@@ -91,6 +91,7 @@ qljs_sublime_text_range *qljs_sublime_text_range_new(
     qljs_sublime_text_position start, qljs_sublime_text_position end);
 
 void qljs_sublime_text_range_delete(qljs_sublime_text_range *range);
+#else
 #endif
 
 //==============================================================================
@@ -121,6 +122,10 @@ void qljs_sublime_text_document_set_text(qljs_sublime_text_document *document,
 void qljs_sublime_text_document_replace_text(
     qljs_sublime_text_document *document, const qljs_sublime_text_range *range,
     const qljs_sublime_text_text *text);
+#else
+void qljs_sublime_text_document_replace_text(
+    qljs_sublime_text_document *document,
+    const qljs_sublime_text_region *region, const qljs_sublime_text_text *text);
 #endif
 
 const qljs_sublime_text_diagnostic *qljs_sublime_text_document_lint(
