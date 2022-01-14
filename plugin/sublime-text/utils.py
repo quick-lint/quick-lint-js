@@ -40,7 +40,7 @@ def sublime_get_major_version():
 
 
 def sublime_have_incremental_changes():
-    return int(sublime_get_major_version()) > "3"
+    return int(sublime_get_major_version()) > 3
 
 
 def plugin_error_message(message):
