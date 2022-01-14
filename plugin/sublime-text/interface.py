@@ -4,7 +4,7 @@
 import os
 import platform
 from ctypes import POINTER as pointer_type
-from ctypes import Structure, c_char_p, c_size_t, c_uint
+from ctypes import Structure, c_char_p, c_size_t, c_uint, c_int
 
 from . import utils
 
@@ -25,8 +25,8 @@ _TextPointer = pointer_type(_Text)
 
 class _Region(Structure):
     _fields_ = [
-        ("begin", OFFSET),
-        ("end", OFFSET),
+        ("begin", _Offset),
+        ("end", _Offset),
     ]
 
 
@@ -35,37 +35,29 @@ _RegionPointer = pointer_type(_Region)
 
 if utils.sublime_have_incremental_changes():
 
-    class Position:
+    class _Position(Structure):
         _fields_ = [
             ("line", OFFSET),
             ("character", OFFSET),
         ]
 
-    POSITION_pointer_type = pointer_type(Position)
+    _PositionPointer = pointer_type(_Position)
 
-    class Range:
+    class _Range(Structure):
         _fields_ = [
             ("start", Position),
             ("end", Position),
         ]
 
-    RANGE_pointer_type = pointer_type(Range)
-
-else:
-
-    POSITION = OFFSET
-    POSITION_pointer_type = OFFSET_pointer_type
-
-    RANGE = Region
-    RANGE_pointer_type = REGION_pointer_type
+    _RangePointer = pointer_type(_Range)
 
 
-class Diagnostic:
+class _Diagnostic(Structure):
     _fields_ = [
-        ("range", Range_p),
-        ("severity", ctypes.Int),
-        ("code", ctypes.Char_p),
-        ("message", ctypes.Char_p),
+        ("range", _RangePointer),
+        ("severity", c_int),
+        ("code", c_char_p),
+        ("message", c_char_p),
     ]
 
 
