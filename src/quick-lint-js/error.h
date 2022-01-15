@@ -663,6 +663,16 @@
             attribute_name, expected_attribute_name))                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_jsx_attribute_renamed_by_react, "E0193",                           \
+      {                                                                        \
+        identifier attribute_name;                                             \
+        string8_view react_attribute_name;                                     \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE(                                                 \
+                "misspelled React attribute; write '{1}' instead"),            \
+            attribute_name, react_attribute_name))                             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_jsx_event_attribute_should_be_camel_case, "E0191",                 \
       {                                                                        \
         identifier attribute_name;                                             \

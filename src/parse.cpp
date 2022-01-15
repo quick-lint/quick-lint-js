@@ -149,18 +149,25 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
       name.size() >= 3 && name[0] == 'o' && name[1] == 'n';
 
   if (auto alias_it = aliases.find(name); alias_it != aliases.end()) {
-    if (is_event_attribute) {
+    const jsx_attribute& alias = alias_it->second;
+    if (name.size() != alias.expected.size()) {
+      this->error_reporter_->report(error_jsx_attribute_renamed_by_react{
+          .attribute_name = attribute_name,
+          .react_attribute_name = alias.expected,
+      });
+      return;
+    } else if (is_event_attribute) {
       this->error_reporter_->report(
           error_jsx_event_attribute_should_be_camel_case{
               .attribute_name = attribute_name,
-              .expected_attribute_name = alias_it->second.expected,
+              .expected_attribute_name = alias.expected,
           });
       return;
     } else {
       this->error_reporter_->report(
           error_jsx_attribute_has_wrong_capitalization{
               .attribute_name = attribute_name,
-              .expected_attribute_name = alias_it->second.expected,
+              .expected_attribute_name = alias.expected,
           });
       return;
     }

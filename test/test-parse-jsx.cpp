@@ -757,6 +757,22 @@ TEST(test_parse_jsx, miscapitalized_attribute) {
   }
 }
 
+TEST(test_parse_jsx, commonly_misspelled_attribute) {
+  {
+    padded_string code(u8R"(c = <span class="item"></span>;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_FIELDS(
+            error_jsx_attribute_renamed_by_react,  //
+            attribute_name,
+            offsets_matcher(&code, strlen(u8"c = <span "), u8"class"),  //
+            react_attribute_name, u8"className"sv)));
+  }
+}
+
 TEST(test_parse_jsx, attribute_checking_ignores_namespaced_attributes) {
   {
     padded_string code(u8R"(c = <div ns:onmouseenter={handler} />;)"_sv);
@@ -774,11 +790,27 @@ TEST(test_parse_jsx, attribute_checking_ignores_namespaced_attributes) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors, IsEmpty());
   }
+
+  {
+    padded_string code(u8R"(c = <div class:class="my-css-class" />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 
 TEST(test_parse_jsx, attribute_checking_ignores_namespaced_elements) {
   {
     padded_string code(u8R"(c = <svg:g onmouseenter={handler} />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8R"(c = <svg:g class="red" />;)"_sv);
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
@@ -796,8 +828,24 @@ TEST(test_parse_jsx, attribute_checking_ignores_user_components) {
   }
 
   {
+    padded_string code(u8R"(c = <MyComponent class="red" />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
     padded_string code(
         u8R"(c = <mymodule.mycomponent onmouseenter={handler} />;)"_sv);
+    spy_visitor v;
+    parser p(&code, &v, jsx_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8R"(c = <mymodule.mycomponent class="red" />;)"_sv);
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);

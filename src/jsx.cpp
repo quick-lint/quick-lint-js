@@ -17,7 +17,9 @@ const std::unordered_map<string8_view, jsx_attribute>& jsx_attribute_aliases() {
   static linked_bump_allocator<1> string_allocator;
   static const std::unordered_map<string8_view, jsx_attribute> cache = [] {
     // FIXME(strager): This is very inefficient.
-    std::unordered_map<string8_view, jsx_attribute> aliases;
+    std::unordered_map<string8_view, jsx_attribute> aliases{
+        {u8"class"sv, {u8"className"sv}},
+    };
 
     // Compatibility with React.js as of January 12, 2022:
     // https://github.com/facebook/react/blob/c09596cc6021e1f9f8a88179add93f80fc07823b/packages/react-dom/src/shared/possibleStandardNames.js
