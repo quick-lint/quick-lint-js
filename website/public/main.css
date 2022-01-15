@@ -215,11 +215,15 @@ nav.breadcrumbs ol > li:not(:first-child)::before {
   a:visited {
     color: #979ef8;
   }
+  :root {
+    color-scheme: dark;
+  }
   html,
   body {
     /* HACK(strager): !important on html is needed to work around quirks in the
        Dark Reader browser extension (https://darkreader.org/). */
     background-color: #002b36 !important;
+    color-scheme: dark;
   }
   body {
     color: white;
