@@ -4,10 +4,12 @@
 import os
 import platform
 from ctypes import POINTER as pointer_type
-from ctypes import Structure, c_char_p, c_size_t, c_uint, c_int
+from ctypes import Structure, c_char_p, c_int, c_size_t, c_uint
 
 from . import utils
 
+_LIBRARY_DIRECTORY = os.path.dirname(utils.get_module_path(__name__))
+_LIBRARY = "quick-lint-js-lib" + self.get_file_extension()
 
 _Offset = c_uint
 _OffsetPointer = pointer_type(Offset)
@@ -18,6 +20,12 @@ class _Text(Structure):
         ("content", c_char_p),
         ("length", c_size_t),
     ]
+
+    def new():
+        pass
+
+    def del():
+        pass
 
 
 _TextPointer = pointer_type(_Text)
@@ -61,7 +69,7 @@ class _Diagnostic(Structure):
     ]
 
 
-class Document:
+class _Document:
     _fields_ = []
 
 
@@ -80,8 +88,8 @@ class Library:
             return ".so"
 
     def __init__(self):
-        directory = os.path.dirname(utils.get_module_path(__name__))
-        filename = "quick-lint-js-lib" + self.get_file_extension()
+        directory = 
+        filename = 
         # It's need multiple DLLs for load the library object on Windows,
         # these DLLs are all in the same folder, for ctypes find these DLLs
         # we need to change the current working directory to that folder.
