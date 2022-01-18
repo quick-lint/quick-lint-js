@@ -124,6 +124,8 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     return std::move(error_reporter).diagnostics();
   }
 
+  ::Napi::Value uri() { return this->vscode_document_.Value().uri(); }
+
   document<lsp_locator> document_;
   document_type type_;
   ::Napi::Reference<vscode_document> vscode_document_;
@@ -682,7 +684,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         .As<::Napi::Function>()
         .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
               {
-                  doc->vscode_document_.Value().uri(),
+                  doc->uri(),
                   diagnostics,
               });
   }
@@ -692,7 +694,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         .As<::Napi::Function>()
         .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
               {
-                  doc->vscode_document_.Value().uri(),
+                  doc->uri(),
               });
   }
 
