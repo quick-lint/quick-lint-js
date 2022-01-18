@@ -33,6 +33,9 @@ Semantic Versioning.
 * quick-lint-js no longer incorrectly reports [E0176][] (missing arrow operator
   for arrow function) if the `extends` clause for a class is parenthesized
   and contains commas (e.g. `class A extends (B, C) {}`).
+* quick-lint-js no longer incorrectly reports [E0016][], [E0038][], [E0060][],
+  or [E0207][] in tagged template literals. (These errors are still reported for
+  untagged template literals and for string literals.)
 
 ### Changed
 

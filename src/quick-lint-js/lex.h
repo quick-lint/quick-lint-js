@@ -170,6 +170,8 @@ class lexer {
   struct parsed_template_body {
     token_type type;
     const char8* end;
+    // Might be null.
+    buffering_error_reporter* escape_sequence_errors;
   };
 
   // The result of parsing an identifier.
@@ -244,7 +246,8 @@ class lexer {
     std::optional<char32_t> code_point;
   };
 
-  parsed_unicode_escape parse_unicode_escape(const char8* input) noexcept;
+  parsed_unicode_escape parse_unicode_escape(const char8* input,
+                                             error_reporter*) noexcept;
 
   parsed_identifier parse_identifier(const char8*, identifier_kind);
   const char8* parse_identifier_fast_only(const char8*);

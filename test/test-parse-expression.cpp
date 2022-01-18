@@ -1723,6 +1723,69 @@ TEST_F(test_parse_expression, optional_tagged_template_literal) {
   }
 }
 
+TEST_F(test_parse_expression, untagged_template_with_invalid_escape) {
+  {
+    test_parser p(u8R"(`invalid\uescape`)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "literal");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE(error_expected_hex_digits_in_unicode_escape)));
+  }
+
+  {
+    test_parser p(u8R"(`invalid\u${expr}escape`)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "template(var expr)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE(error_expected_hex_digits_in_unicode_escape)));
+  }
+
+  {
+    test_parser p(u8R"(`invalid${expr}\uescape`)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "template(var expr)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE(error_expected_hex_digits_in_unicode_escape)));
+  }
+
+  {
+    test_parser p(u8R"(`invalid${expr1}\u${expr2}escape`)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "template(var expr1, var expr2)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE(error_expected_hex_digits_in_unicode_escape)));
+  }
+}
+
+TEST_F(test_parse_expression,
+       tagged_template_with_invalid_escape_reports_no_error) {
+  {
+    expression* ast = this->parse_expression(u8R"(tag`invalid\uescape`)"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var tag)");
+  }
+
+  {
+    expression* ast =
+        this->parse_expression(u8R"(tag`invalid\uescape${expr}`)"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var tag, var expr)");
+  }
+
+  {
+    expression* ast = this->parse_expression(u8R"(tag?.`invalid\uescape`)"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var tag)");
+  }
+
+  {
+    expression* ast =
+        this->parse_expression(u8R"(tag?.`invalid\uescape${expr}`)"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var tag, var expr)");
+  }
+}
+
 TEST_F(test_parse_expression, array_literal) {
   {
     test_parser p(u8"[]"_sv);

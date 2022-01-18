@@ -85,6 +85,7 @@
   QLJS_CASE_RESERVED_KEYWORD
 
 namespace quick_lint_js {
+class buffering_error_reporter;
 class error_reporter;
 class identifier;
 class source_code_span;
@@ -236,6 +237,15 @@ struct token {
   // Precondition: This function was not previously called for the same token.
   void report_errors_for_escape_sequences_in_keyword(error_reporter*) const;
 
+  // Report errors for each invalid escape sequence in the most recently parsed
+  // template.
+  //
+  // Precondition:
+  //   this->type == token_type::complete_template ||
+  //   this->type == token_type::incomplete_template
+  // Precondition: This function was not previously called for the same token.
+  void report_errors_for_escape_sequences_in_template(error_reporter*) const;
+
   token_type type;
 
   const char8* begin;
@@ -248,8 +258,12 @@ struct token {
   // equivalent to string8_view(.begin, .end).
   string8_view normalized_identifier;
 
-  // Used only if this is a reserved_keyword_with_escape_sequence token.
-  escape_sequence_list* identifier_escape_sequences;
+  union {
+    // Used only if this is a reserved_keyword_with_escape_sequence token.
+    escape_sequence_list* identifier_escape_sequences;
+    // Used only if this is a complete_template or incomplete_template token.
+    buffering_error_reporter* template_escape_sequence_errors;
+  };
 };
 }
 

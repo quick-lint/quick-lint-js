@@ -172,6 +172,15 @@ void token::report_errors_for_escape_sequences_in_keyword(
   }
 }
 
+void token::report_errors_for_escape_sequences_in_template(
+    error_reporter* reporter) const {
+  QLJS_ASSERT(this->type == token_type::complete_template ||
+              this->type == token_type::incomplete_template);
+  if (this->template_escape_sequence_errors) {
+    this->template_escape_sequence_errors->move_into(reporter);
+  }
+}
+
 lexer::lexer(padded_string_view input, error_reporter* error_reporter) noexcept
     : input_(input.data()),
       error_reporter_(error_reporter),
@@ -599,6 +608,8 @@ bool lexer::try_parse_current_token() {
     this->input_ += 1;
     parsed_template_body body = this->parse_template_body(
         this->input_, this->last_token_.begin, this->error_reporter_);
+    this->last_token_.template_escape_sequence_errors =
+        body.escape_sequence_errors;
     this->last_token_.type = body.type;
     this->input_ = body.end;
     this->last_token_.end = this->input_;
@@ -784,7 +795,9 @@ const char8* lexer::parse_string_literal() noexcept {
         }
         break;
       case 'u':
-        c = this->parse_unicode_escape(escape_sequence_start).end;
+        c = this->parse_unicode_escape(escape_sequence_start,
+                                       this->error_reporter_)
+                .end;
         break;
       default:
         ++c;
@@ -832,6 +845,8 @@ void lexer::skip_in_template(const char8* template_begin) {
   parsed_template_body body = this->parse_template_body(
       this->input_, template_begin, this->error_reporter_);
   this->last_token_.type = body.type;
+  this->last_token_.template_escape_sequence_errors =
+      body.escape_sequence_errors;
   this->input_ = body.end;
   this->last_token_.end = body.end;
 }
@@ -839,6 +854,7 @@ void lexer::skip_in_template(const char8* template_begin) {
 lexer::parsed_template_body lexer::parse_template_body(
     const char8* input, const char8* template_begin,
     error_reporter* error_reporter) {
+  buffering_error_reporter* escape_sequence_errors = nullptr;
   const char8* c = input;
   for (;;) {
     switch (*c) {
@@ -846,7 +862,8 @@ lexer::parsed_template_body lexer::parse_template_body(
       if (this->is_eof(c)) {
         error_reporter->report(
             error_unclosed_template{source_code_span(template_begin, c)});
-        return parsed_template_body{token_type::complete_template, c};
+        return parsed_template_body{token_type::complete_template, c,
+                                    escape_sequence_errors};
       } else {
         ++c;
         break;
@@ -854,7 +871,8 @@ lexer::parsed_template_body lexer::parse_template_body(
 
     case '`':
       ++c;
-      return parsed_template_body{token_type::complete_template, c};
+      return parsed_template_body{token_type::complete_template, c,
+                                  escape_sequence_errors};
 
     case '\\': {
       const char8* escape_sequence_start = c;
@@ -864,14 +882,23 @@ lexer::parsed_template_body lexer::parse_template_body(
         if (this->is_eof(c)) {
           error_reporter->report(
               error_unclosed_template{source_code_span(template_begin, c)});
-          return parsed_template_body{token_type::complete_template, c};
+          return parsed_template_body{token_type::complete_template, c,
+                                      escape_sequence_errors};
         } else {
           ++c;
           break;
         }
-      case 'u':
-        c = this->parse_unicode_escape(escape_sequence_start).end;
+      case 'u': {
+        if (!escape_sequence_errors) {
+          escape_sequence_errors =
+              this->allocator_.new_object<buffering_error_reporter>(
+                  &this->allocator_);
+        }
+        c = this->parse_unicode_escape(escape_sequence_start,
+                                       escape_sequence_errors)
+                .end;
         break;
+      }
       default:
         ++c;
         break;
@@ -882,7 +909,8 @@ lexer::parsed_template_body lexer::parse_template_body(
     case '$':
       if (c[1] == '{') {
         c += 2;
-        return parsed_template_body{token_type::incomplete_template, c};
+        return parsed_template_body{token_type::incomplete_template, c,
+                                    escape_sequence_errors};
       }
       ++c;
       break;
@@ -1374,7 +1402,7 @@ const char8* lexer::parse_hex_digits_and_underscores(
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 lexer::parsed_unicode_escape lexer::parse_unicode_escape(
-    const char8* input) noexcept {
+    const char8* input, error_reporter* reporter) noexcept {
   const char8* escape_sequence_begin = input;
   auto get_escape_span = [escape_sequence_begin, &input]() {
     return source_code_span(escape_sequence_begin, input);
@@ -1391,11 +1419,11 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
         // TODO: Add an enum to error_unclosed_identifier_escape_sequence to
         // indicate whether the token is a template literal, a string literal
         // or an identifier.
-        this->error_reporter_->report(error_unclosed_identifier_escape_sequence{
+        reporter->report(error_unclosed_identifier_escape_sequence{
             .escape_sequence = get_escape_span()});
         return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
       }
-      if (!this->is_hex_digit(*input)) {
+      if (!is_hex_digit(*input)) {
         found_non_hex_digit = true;
       }
       ++input;
@@ -1403,7 +1431,7 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
     code_point_hex_end = input;
     ++input;  // Skip "}".
     if (found_non_hex_digit || code_point_hex_begin == code_point_hex_end) {
-      this->error_reporter_->report(error_expected_hex_digits_in_unicode_escape{
+      reporter->report(error_expected_hex_digits_in_unicode_escape{
           .escape_sequence = get_escape_span()});
       return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
     }
@@ -1415,16 +1443,14 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
         // TODO: Add an enum to error_expected_hex_digits_in_unicode_escape to
         // indicate whether the token is a template literal, a string literal
         // or an identifier.
-        this->error_reporter_->report(
-            error_expected_hex_digits_in_unicode_escape{.escape_sequence =
-                                                            get_escape_span()});
+        reporter->report(error_expected_hex_digits_in_unicode_escape{
+            .escape_sequence = get_escape_span()});
         return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
       }
-      if (!this->is_hex_digit(*input)) {
-        this->error_reporter_->report(
-            error_expected_hex_digits_in_unicode_escape{
-                .escape_sequence =
-                    source_code_span(escape_sequence_begin, input + 1)});
+      if (!is_hex_digit(*input)) {
+        reporter->report(error_expected_hex_digits_in_unicode_escape{
+            .escape_sequence =
+                source_code_span(escape_sequence_begin, input + 1)});
         return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
       }
       ++input;
@@ -1441,9 +1467,8 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
     code_point = 0x110000;
   }
   if (code_point >= 0x110000) {
-    this->error_reporter_->report(
-        error_escaped_code_point_in_unicode_out_of_range{
-            .escape_sequence = get_escape_span()});
+    reporter->report(error_escaped_code_point_in_unicode_out_of_range{
+        .escape_sequence = get_escape_span()});
   }
   return parsed_unicode_escape{.end = input, .code_point = code_point};
 }
@@ -1562,7 +1587,8 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
 
   auto parse_unicode_escape = [&]() {
     const char8* escape_begin = input;
-    parsed_unicode_escape escape = this->parse_unicode_escape(escape_begin);
+    parsed_unicode_escape escape =
+        this->parse_unicode_escape(escape_begin, this->error_reporter_);
 
     if (escape.code_point.has_value()) {
       bool is_initial_identifier_character = escape_begin == identifier_begin;

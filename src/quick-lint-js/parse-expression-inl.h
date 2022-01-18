@@ -266,15 +266,24 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
     goto identifier;
 
   // false
-  // `hello`
+  // "hello"
   // 42
   case token_type::kw_false:
   case token_type::kw_null:
   case token_type::kw_this:
   case token_type::kw_true:
-  case token_type::complete_template:
   case token_type::number:
   case token_type::string: {
+    expression* ast =
+        this->make_expression<expression::literal>(this->peek().span());
+    this->skip();
+    return ast;
+  }
+
+  // `hello`
+  case token_type::complete_template: {
+    this->peek().report_errors_for_escape_sequences_in_template(
+        this->error_reporter_);
     expression* ast =
         this->make_expression<expression::literal>(this->peek().span());
     this->skip();
@@ -2864,6 +2873,8 @@ expression* parser::parse_untagged_template(Visitor& v) {
       "parse_untagged_template children", this->expressions_.allocator());
   for (;;) {
     QLJS_ASSERT(this->peek().type == token_type::incomplete_template);
+    this->peek().report_errors_for_escape_sequences_in_template(
+        this->error_reporter_);
     this->skip();
     children.emplace_back(this->parse_expression(v));
     switch (this->peek().type) {
@@ -2871,6 +2882,8 @@ expression* parser::parse_untagged_template(Visitor& v) {
       this->lexer_.skip_in_template(template_begin);
       switch (this->peek().type) {
       case token_type::complete_template: {
+        this->peek().report_errors_for_escape_sequences_in_template(
+            this->error_reporter_);
         const char8* template_end = this->peek().end;
         this->skip();
 
