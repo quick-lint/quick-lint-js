@@ -33,28 +33,26 @@ class vscode_error_formatter
 
   void write_after_message(std::string_view code, diagnostic_severity sev,
                            const source_code_span& origin) {
-    ::Napi::Value severity;
     switch (sev) {
     case diagnostic_severity::error:
-      severity = this->vscode_->diagnostic_severity_error;
+      this->append_diagnostic(code, this->vscode_->diagnostic_severity_error,
+                              origin);
       break;
     case diagnostic_severity::warning:
-      severity = this->vscode_->diagnostic_severity_warning;
+      this->append_diagnostic(code, this->vscode_->diagnostic_severity_warning,
+                              origin);
       break;
     case diagnostic_severity::note:
       // Don't write notes. Only write the main message.
-      return;
+      break;
     }
+  }
 
-    lsp_range r = this->locator_->range(origin);
-    ::Napi::Value start = this->vscode_->position_class.New(
-        {::Napi::Number::New(this->env_, r.start.line),
-         ::Napi::Number::New(this->env_, r.start.character)});
-    ::Napi::Value end = this->vscode_->position_class.New(
-        {::Napi::Number::New(this->env_, r.end.line),
-         ::Napi::Number::New(this->env_, r.end.character)});
+ private:
+  void append_diagnostic(std::string_view code, ::Napi::Value severity,
+                         const source_code_span& origin) {
     ::Napi::Object diag = this->vscode_->diagnostic_class.New({
-        /*range=*/this->vscode_->range_class.New({start, end}),
+        /*range=*/this->new_range(origin),
         /*message=*/
         ::Napi::String::New(
             this->env_, reinterpret_cast<const char*>(this->message_.data())),
@@ -78,7 +76,18 @@ class vscode_error_formatter
     this->diagnostics_.Set(this->diagnostics_.Length(), diag);
   }
 
- private:
+  // Returns a vscode.Range object.
+  ::Napi::Value new_range(const source_code_span& span) {
+    lsp_range r = this->locator_->range(span);
+    ::Napi::Value start = this->vscode_->position_class.New(
+        {::Napi::Number::New(this->env_, r.start.line),
+         ::Napi::Number::New(this->env_, r.start.character)});
+    ::Napi::Value end = this->vscode_->position_class.New(
+        {::Napi::Number::New(this->env_, r.end.line),
+         ::Napi::Number::New(this->env_, r.end.character)});
+    return this->vscode_->range_class.New({start, end});
+  }
+
   vscode_module* vscode_;
   ::Napi::Env env_;
   ::Napi::Array diagnostics_;
