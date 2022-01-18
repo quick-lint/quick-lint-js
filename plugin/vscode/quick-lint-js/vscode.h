@@ -19,6 +19,10 @@ struct vscode_module {
   explicit vscode_module(::Napi::Object module)
       : diagnostic_class(::Napi::Persistent(
             module.Get("Diagnostic").As<::Napi::Function>())),
+        diagnostic_related_information_class(::Napi::Persistent(
+            module.Get("DiagnosticRelatedInformation").As<::Napi::Function>())),
+        location_class(
+            ::Napi::Persistent(module.Get("Location").As<::Napi::Function>())),
         position_class(
             ::Napi::Persistent(module.Get("Position").As<::Napi::Function>())),
         range_class(
@@ -178,6 +182,10 @@ struct vscode_module {
 
   // vscode.Diagnostic
   ::Napi::FunctionReference diagnostic_class;
+  // vscode.DiagnosticRelatedInformation
+  ::Napi::FunctionReference diagnostic_related_information_class;
+  // vscode.Location
+  ::Napi::FunctionReference location_class;
   // vscode.Position
   ::Napi::FunctionReference position_class;
   // vscode.Range

@@ -17,11 +17,13 @@ class vscode_error_formatter
  public:
   explicit vscode_error_formatter(vscode_module* vscode, ::Napi::Env env,
                                   ::Napi::Array diagnostics,
-                                  const lsp_locator* locator)
+                                  const lsp_locator* locator,
+                                  ::Napi::Value document_uri)
       : vscode_(vscode),
         env_(env),
         diagnostics_(diagnostics),
-        locator_(locator) {}
+        locator_(locator),
+        document_uri_(document_uri) {}
 
   void write_before_message([[maybe_unused]] std::string_view code,
                             diagnostic_severity, const source_code_span&) {}
@@ -42,10 +44,35 @@ class vscode_error_formatter
       this->append_diagnostic(code, this->vscode_->diagnostic_severity_warning,
                               origin);
       break;
-    case diagnostic_severity::note:
-      // Don't write notes. Only write the main message.
+    case diagnostic_severity::note: {
+      ::Napi::Object location = this->vscode_->location_class.New({
+          /*uri=*/this->document_uri_,
+          /*rangeOrPosition=*/this->new_range(origin),
+      });
+      ::Napi::Object related_info =
+          this->vscode_->diagnostic_related_information_class.New({
+              /*location=*/location,
+              /*message=*/
+              ::Napi::String::New(this->env_, reinterpret_cast<const char*>(
+                                                  this->message_.data())),
+          });
+
+      ::Napi::Object last_diagnostic =
+          this->diagnostics_.Get(this->diagnostics_.Length() - 1)
+              .As<::Napi::Object>();
+      // NOTE(multiple notes): If the following assertion fails, then it's
+      // probably because quick-lint-js started reporting more than one note for
+      // a diagnostic.
+      QLJS_ASSERT(last_diagnostic.Get("relatedInformation").IsUndefined());
+
+      ::Napi::Array related_infos = ::Napi::Array::New(this->env_);
+      related_infos.Set(related_infos.Length(), related_info);
+      last_diagnostic.Set("relatedInformation", related_infos);
       break;
     }
+    }
+
+    this->message_.clear();
   }
 
  private:
@@ -92,17 +119,20 @@ class vscode_error_formatter
   ::Napi::Env env_;
   ::Napi::Array diagnostics_;
   const lsp_locator* locator_;
+  ::Napi::Value document_uri_;
   string8 message_;
 };
 
 class vscode_error_reporter final : public error_reporter {
  public:
   explicit vscode_error_reporter(vscode_module* vscode, ::Napi::Env env,
-                                 const lsp_locator* locator) noexcept
+                                 const lsp_locator* locator,
+                                 ::Napi::Value document_uri) noexcept
       : vscode_(vscode),
         env_(env),
         diagnostics_(::Napi::Array::New(env)),
-        locator_(locator) {}
+        locator_(locator),
+        document_uri_(document_uri) {}
 
   ::Napi::Array diagnostics() const { return this->diagnostics_; }
 
@@ -111,7 +141,8 @@ class vscode_error_reporter final : public error_reporter {
         /*vscode=*/this->vscode_,
         /*env=*/this->env_,
         /*diagnostics=*/this->diagnostics_,
-        /*locator=*/this->locator_);
+        /*locator=*/this->locator_,
+        /*document_uri=*/this->document_uri_);
     formatter.format(get_diagnostic_info(type), error);
   }
 
@@ -120,6 +151,7 @@ class vscode_error_reporter final : public error_reporter {
   ::Napi::Env env_;
   ::Napi::Array diagnostics_;
   const lsp_locator* locator_;
+  ::Napi::Value document_uri_;
 };
 }
 
