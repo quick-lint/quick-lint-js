@@ -1157,7 +1157,11 @@ void parser::parse_and_visit_class_heading(
   case token_type::kw_extends:
     this->skip();
     // TODO(strager): Error when extending things like '0' or 'true'.
-    this->parse_and_visit_expression(v, precedence{.commas = false});
+    this->parse_and_visit_expression(v,
+                                     precedence{
+                                         .commas = false,
+                                         .trailing_curly_is_arrow_body = false,
+                                     });
     break;
 
   case token_type::left_curly:

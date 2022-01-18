@@ -30,6 +30,9 @@ Semantic Versioning.
 * quick-lint-js no longer ignores elements of assigned arrays. For example,
   `[fisrt, second] = s.split(' ');` will now report [E0057][] for `fisrt` (if
   `fisrt` is not declared).
+* quick-lint-js no longer incorrectly reports [E0176][] (missing arrow operator
+  for arrow function) if the `extends` clause for a class is parenthesized
+  and contains commas (e.g. `class A extends (B, C) {}`).
 
 ### Changed
 
