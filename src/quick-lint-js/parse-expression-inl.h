@@ -299,7 +299,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
 
   // `hello${world}`
   case token_type::incomplete_template: {
-    expression* ast = this->parse_template(v, /*tag=*/std::nullopt);
+    expression* ast = this->parse_untagged_template(v);
     return ast;
   }
 
@@ -1241,7 +1241,7 @@ next:
     case token_type::complete_template:
     case token_type::incomplete_template:
       binary_builder.replace_last(
-          this->parse_template(v, binary_builder.last_expression()));
+          this->parse_tagged_template(v, binary_builder.last_expression()));
       goto next;
 
     // f?.(x, y)
@@ -1358,7 +1358,7 @@ next:
   case token_type::complete_template:
   case token_type::incomplete_template: {
     expression* tag = binary_builder.last_expression();
-    binary_builder.replace_last(this->parse_template(v, tag));
+    binary_builder.replace_last(this->parse_tagged_template(v, tag));
     goto next;
   }
 
@@ -2806,23 +2806,18 @@ next:
 }
 
 template <QLJS_PARSE_VISITOR Visitor>
-expression* parser::parse_template(Visitor& v, std::optional<expression*> tag) {
+expression* parser::parse_tagged_template(Visitor& v, expression* tag) {
   if (this->peek().type == token_type::complete_template) {
-    if (!tag.has_value()) {
-      QLJS_UNIMPLEMENTED();
-    }
     source_code_span template_span = this->peek().span();
     this->skip();
     return this->make_expression<expression::tagged_template_literal>(
-        this->expressions_.make_array(&*tag, &*tag + 1), template_span);
+        this->expressions_.make_array(&tag, &tag + 1), template_span);
   }
 
   const char8* template_begin = this->peek().begin;
   expression_arena::vector<expression*> children(
-      "parse_template children", this->expressions_.allocator());
-  if (tag.has_value()) {
-    children.emplace_back(*tag);
-  }
+      "parse_tagged_template children", this->expressions_.allocator());
+  children.emplace_back(tag);
   for (;;) {
     QLJS_ASSERT(this->peek().type == token_type::incomplete_template);
     this->skip();
@@ -2838,13 +2833,52 @@ expression* parser::parse_template(Visitor& v, std::optional<expression*> tag) {
         expression_arena::array_ptr<expression*> children_array =
             this->expressions_.make_array(std::move(children));
         source_code_span template_span(template_begin, template_end);
-        if (tag.has_value()) {
-          return this->make_expression<expression::tagged_template_literal>(
-              children_array, template_span);
-        } else {
-          return this->make_expression<expression::_template>(children_array,
-                                                              template_span);
-        }
+        return this->make_expression<expression::tagged_template_literal>(
+            children_array, template_span);
+      }
+
+      case token_type::incomplete_template:
+        continue;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
+      break;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+  }
+}
+
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_untagged_template(Visitor& v) {
+  if (this->peek().type == token_type::complete_template) {
+    QLJS_UNIMPLEMENTED();
+  }
+
+  const char8* template_begin = this->peek().begin;
+  expression_arena::vector<expression*> children(
+      "parse_untagged_template children", this->expressions_.allocator());
+  for (;;) {
+    QLJS_ASSERT(this->peek().type == token_type::incomplete_template);
+    this->skip();
+    children.emplace_back(this->parse_expression(v));
+    switch (this->peek().type) {
+    case token_type::right_curly:
+      this->lexer_.skip_in_template(template_begin);
+      switch (this->peek().type) {
+      case token_type::complete_template: {
+        const char8* template_end = this->peek().end;
+        this->skip();
+
+        expression_arena::array_ptr<expression*> children_array =
+            this->expressions_.make_array(std::move(children));
+        source_code_span template_span(template_begin, template_end);
+        return this->make_expression<expression::_template>(children_array,
+                                                            template_span);
       }
 
       case token_type::incomplete_template:

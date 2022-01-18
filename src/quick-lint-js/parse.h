@@ -459,7 +459,9 @@ class parser {
                                             const char8 *less_begin);
   void check_jsx_attribute(const identifier &attribute_name);
   template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_template(Visitor &, std::optional<expression *> tag);
+  expression *parse_tagged_template(Visitor &, expression *tag);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_untagged_template(Visitor &);
 
   function_attributes parse_generator_star(function_attributes);
 
