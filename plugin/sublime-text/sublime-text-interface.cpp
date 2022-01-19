@@ -8,11 +8,11 @@
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <quick-lint-js-sublime-text-interface.h>
-#include <quick-lint-js-sublime-text-location.h>
 #include <quick-lint-js/c-api-error-reporter.h>
 #include <quick-lint-js/document-base.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/sublime-text-interface.h>
+#include <quick-lint-js/sublime-text-location.h>
 
 //==============================================================================
 //------------------------------------------------------------------------------
@@ -94,13 +94,12 @@ struct qljs_sublime_text_document final
     : public qljs_sublime_text_document_base {
  public:
   using range_type = typename quick_lint_js::sublime_text_locator::range_type;
-  using string_view = quick_lint_js::string8_view;
 
-  void set_text(string_view replacement) {
+  void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);
   }
 
-  void replace_text(range_type range, string_view replacement) {
+  void replace_text(range_type range, quick_lint_js::string8_view replacement) {
     this->document_.replace_text(range, replacement);
   }
 };

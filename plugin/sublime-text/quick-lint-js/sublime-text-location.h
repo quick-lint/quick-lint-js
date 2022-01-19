@@ -14,12 +14,12 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <quick-lint-js/sublime-text-interface.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/sublime-text-interface.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -59,6 +59,8 @@ struct sublime_text_position final : public qljs_sublime_text_position {
     return stream;
   }
 };
+#else
+using sublime_text_position = sublime_text_offset;
 #endif
 
 //==============================================================================
@@ -67,6 +69,8 @@ struct sublime_text_position final : public qljs_sublime_text_position {
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct sublime_text_range final : public qljs_sublime_text_range {};
+#else
+using sublime_text_range = sublime_text_region;
 #endif
 
 //==============================================================================
@@ -107,7 +111,7 @@ struct sublime_text_lines {
   std::vector<offset_type> offset_begin_;
   std::vector<std::uint8_t> is_ascii_;
 
-  void extend(sublime_text_lines &other, offset_type begin, offset_type end) {
+  void extend(sublime_text_lines *other, offset_type begin, offset_type end) {
     this->offset_begin_.insert(this->offset_begin_.end(),
                                other->offset_begin_.begin() + begin,
                                other->offset_begin_.begin() + end);
@@ -122,12 +126,12 @@ struct sublime_text_lines {
     this->compute(input.data(), &input[begin], &input[end]);
   }
 
-  void swap(sublime_text_lines &other) {
+  void swap(sublime_text_lines *other) {
     std::swap(this->offset_begin_, other->offset_begin_);
     std::swap(this->is_ascii_, other->is_ascii_);
   }
 
-  void reserve(sublime_text_lines &other) {
+  void reserve(sublime_text_lines *other) {
     this->offset_begin_.reserve(other->offset_begin_.size());
     this->is_ascii_.reserve(other->offset_begin_.size());
   }

@@ -11,7 +11,7 @@
 #ifndef QUICK_LINT_JS_SUBLIME_TEXT_INTERFACE_H
 #define QUICK_LINT_JS_SUBLIME_TEXT_INTERFACE_H
 
-#include <quick-lint-js-sublime-text-have.h>
+#include <quick-lint-js/sublime-text-have.h>
 #include <stddef.h>
 
 #if defined(__cplusplus)
@@ -38,11 +38,12 @@ typedef enum qljs_sublime_text_severity {
 // text
 
 typedef struct qljs_sublime_text_text {
-  char *data;
-  size_t len;
+  char *content;
+  size_t length;
 } qljs_sublime_text_text;
 
-qljs_sublime_text_text *qljs_sublime_text_text_new(char *data, size_t len);
+qljs_sublime_text_text *qljs_sublime_text_text_new(char *content,
+                                                   size_t length);
 
 void qljs_sublime_text_text_delete(qljs_sublime_text_text *text);
 
