@@ -94,15 +94,26 @@ using qljs_sublime_text_document_base =
 struct qljs_sublime_text_document final
     : public qljs_sublime_text_document_base {
  public:
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   using range_type = typename quick_lint_js::sublime_text_locator::range_type;
+#else
+  using region_type = typename quick_lint_js::sublime_text_locator::region_type;
+#endif
+  using string_view = quick_lint_js::string8_view;
 
-  void set_text(quick_lint_js::string8_view replacement) {
+  void set_text(string_view replacement) {
     this->document_.set_text(replacement);
   }
 
-  void replace_text(range_type range, quick_lint_js::string8_view replacement) {
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
+  void replace_text(range_type range, string_view replacement) {
     this->document_.replace_text(range, replacement);
   }
+#else
+  void replace_text(region_type region, string_view replacement) {
+    this->document_.replace_text(region, replacement);
+  }
+#endif
 };
 
 qljs_sublime_text_document *qljs_sublime_text_document_new(void) {

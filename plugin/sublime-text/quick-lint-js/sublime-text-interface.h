@@ -38,12 +38,11 @@ typedef enum qljs_sublime_text_severity {
 // text
 
 typedef struct qljs_sublime_text_text {
-  const char *content;
-  size_t length;
+  char *data;
+  size_t len;
 } qljs_sublime_text_text;
 
-qljs_sublime_text_text *qljs_sublime_text_text_new(const char *content,
-                                                   size_t length);
+qljs_sublime_text_text *qljs_sublime_text_text_new(char *data, size_t len);
 
 void qljs_sublime_text_text_delete(qljs_sublime_text_text *text);
 
@@ -75,6 +74,8 @@ qljs_sublime_text_position *qljs_sublime_text_position_new(
     qljs_sublime_text_offset line, qljs_sublime_text_offset character);
 
 void qljs_sublime_text_position_delete(qljs_sublime_text_position *position);
+#else
+typedef qljs_sublime_text_offset qljs_sublime_text_position;
 #endif
 
 //==============================================================================
@@ -91,6 +92,8 @@ qljs_sublime_text_range *qljs_sublime_text_range_new(
     qljs_sublime_text_position start, qljs_sublime_text_position end);
 
 void qljs_sublime_text_range_delete(qljs_sublime_text_range *range);
+#else
+typedef qljs_sublime_text_region qljs_sublime_text_range;
 #endif
 
 //==============================================================================
