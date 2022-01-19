@@ -3,32 +3,23 @@
 
 import os
 import platform
-from ctypes import POINTER as pointer_type
-from ctypes import Structure, c_char_p, c_int, c_size_t, c_uint
+import ctypes
 
 from . import utils
 
-_LIBRARY_DIRECTORY = os.path.dirname(utils.get_module_path(__name__))
-_LIBRARY = "quick-lint-js-lib" + self.get_file_extension()
 
 _Offset = c_uint
-_OffsetPointer = pointer_type(Offset)
+_OffsetPointer = ctypes.POINTER(_Offset)
 
 
-class _Text(Structure):
+class _Text(ctypes.Structure):
     _fields_ = [
         ("content", c_char_p),
         ("length", c_size_t),
     ]
 
-    def new():
-        pass
 
-    def del():
-        pass
-
-
-_TextPointer = pointer_type(_Text)
+_TextPointer = ctypes.POINTER(_Text)
 
 
 class _Region(Structure):
@@ -38,7 +29,7 @@ class _Region(Structure):
     ]
 
 
-_RegionPointer = pointer_type(_Region)
+_RegionPointer = ctypes.POINTER(_Region)
 
 
 if utils.sublime_have_incremental_changes():
@@ -49,7 +40,7 @@ if utils.sublime_have_incremental_changes():
             ("character", OFFSET),
         ]
 
-    _PositionPointer = pointer_type(_Position)
+    _PositionPointer = POINTER(_Position)
 
     class _Range(Structure):
         _fields_ = [
@@ -57,7 +48,7 @@ if utils.sublime_have_incremental_changes():
             ("end", Position),
         ]
 
-    _RangePointer = pointer_type(_Range)
+    _RangePointer = POINTER(_Range)
 
 
 class _Diagnostic(Structure):

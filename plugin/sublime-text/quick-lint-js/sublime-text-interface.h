@@ -91,7 +91,6 @@ qljs_sublime_text_range *qljs_sublime_text_range_new(
     qljs_sublime_text_position start, qljs_sublime_text_position end);
 
 void qljs_sublime_text_range_delete(qljs_sublime_text_range *range);
-#else
 #endif
 
 //==============================================================================

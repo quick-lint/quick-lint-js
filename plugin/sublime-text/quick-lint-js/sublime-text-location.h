@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <quick-lint-js-sublime-text-interface.h>
+#include <quick-lint-js/sublime-text-interface.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
@@ -59,8 +59,6 @@ struct sublime_text_position final : public qljs_sublime_text_position {
     return stream;
   }
 };
-#else
-using sublime_text_position = sublime_text_offset;
 #endif
 
 //==============================================================================
@@ -69,8 +67,6 @@ using sublime_text_position = sublime_text_offset;
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 struct sublime_text_range final : public qljs_sublime_text_range {};
-#else
-using sublime_text_range = sublime_text_region;
 #endif
 
 //==============================================================================
@@ -158,8 +154,10 @@ struct sublime_text_lines {
 
 struct sublime_text_locator {
  public:
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
   using range_type = sublime_text_range;
   using position_type = sublime_text_position;
+#endif
   using region_type = sublime_text_region;
   using offset_type = sublime_text_offset;
 
