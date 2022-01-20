@@ -4,7 +4,8 @@
 from contextlib import contextmanager
 from ctypes import CDLL as CLoadLibrary
 from ctypes import POINTER as CPointer
-from ctypes import CStructure, c_char_p, c_int, c_size_t, c_uint
+from ctypes import Structure as CStructure
+from ctypes import c_char_p, c_int, c_size_t, c_uint
 from os import chdir, getcwd, path
 from platform import system
 
@@ -69,7 +70,7 @@ class CDiagnostic(CStructure):
     ]
 
 
-CDiagnosticP = Pointer(CDiagnostic)
+CDiagnosticP = CPointer(CDiagnostic)
 
 
 class CDocument(CStructure):
@@ -92,7 +93,7 @@ def changed_directory(path):
         chdir(previous_path)
 
 
-def library_pathname(name):
+def library_pathname():
     return path.dirname(module_path())
 
 
@@ -141,16 +142,24 @@ def error_message(message):
     sublime.error_message("quick-lint-js: " + message)
 
 
-def _view_entire_content(view):
+def is_pointer_null(pointer):
+    return not bool(ptr)
+
+
+def view_entire_content(view):
     region = sublime.Region(0, view.size())
     return view.substr(region)
 
 
+class DocumentError(Exception):
+    pass
+
+
 class Document:
     try:
-        library = _library_new()
+        library = library_new()
     except OSError as err:
-        _error_message(str(err))
+        error_message(str(err))
     finally:
         library = None
 
@@ -158,13 +167,15 @@ class Document:
         self.view = view
         self.diagnostics = []
         try:
-            self._document = library.qljs_sublime_text_document_new()
+            self.c_document_p = library.document_new()
+            if is_pointer_null(self.c_document_p):
+                raise OSError("Document unavailable")
         except AttributeError:
-            raise ParserError("Library unavailable")
+            raise DocumentError("Library unavailable")
         except OSError:
-            raise ParserError("Internal parser unavailable")
+            raise DocumentError("Internal document unavailable")
         finally:
-            self.Document_p = None
+            self.c_document_p = None
 
     def delete():
         try:
