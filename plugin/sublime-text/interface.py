@@ -80,12 +80,12 @@ class CDocument(CStructure):
 CDocument = CPointer(CDocument)
 
 
+def is_null(pointer):
+    return not bool(pointer)
+
+
 def module_path():
     return path.realpath(__file__)
-
-
-def is_pointer_null(pointer):
-    return not bool(ptr)
 
 
 @contextmanager
@@ -116,7 +116,7 @@ def library_new():
     def document_new_decorator(document_new):
         def wrapper():
             document = document_new()
-            if is_pointer_null(document):
+            if is_null(document):
                 raise OSError("Document unavailable")
             return document
 
@@ -124,7 +124,7 @@ def library_new():
 
     def document_delete_decorator(document_delete):
         def wrapper(document):
-            if is_pointer_null(document):
+            if is_null(document):
                 raise OSError("Cannot delete nonexistent document")
             document_delete(document)
 
@@ -165,7 +165,7 @@ def error_message(message):
     sublime.error_message("quick-lint-js: " + message)
 
 
-def view_entire_content(view):
+def view_content(view):
     region = sublime.Region(0, view.size())
     return view.substr(region)
 
@@ -184,9 +184,8 @@ class Document:
 
     def __init__(self, view):
         self.view = view
-        self.diagnostics = []
         try:
-            self.c_document_p = library.document_new()
+            self.c_document_p = self.library.document_new()
         except AttributeError:
             raise DocumentError("Library unavailable")
         except OSError:
@@ -196,26 +195,26 @@ class Document:
 
     def delete():
         try:
-            parser.Lib.object.destroy_parser(self.Document_p)
-        except CException:
-            raise ParserError("Cannot delete pointer.")
+            self.library.document_delete(self.c_document_p)
+        except OSError:
+            raise DocumentError("Cannot delete pointer")
 
     def set_text(self):
-        content = _view_content(self.view).encode()
-        Text_p = CText(content, len(content)).lightweight_pointer()
-        Parser.Lib.object.set_text(self.Document_p, Text)
+        content = view_content(self.view).encode()
+        c_text = CText(content, len(content))
+        self.library.set_text(self.c_document_p, c_text)
 
     def replace_text(self, change):
-        Start = CPosition(change.a.row, change.a.col_utf16)
-        End = CPosition(change.b.row, change.b.col_utf16)
-        Range_p = CRange(Start, End).lightweight_pointer()
+        c_start = CPosition(change.a.row, change.a.col_utf16)
+        c_end = CPosition(change.b.row, change.b.col_utf16)
+        c_range_p = CRange(Start, End)
         content = change.str.encode()
-        Text_p = CText(content, len(content)).lightweight_pointer()
-        Parser.Lib.object.replace_text(self.Document_p, Range_p, Text_p)
+        c_text_p = CText(content, len(content))
+        self.library.replace_text(self.c_document_p, c_range, c_text)
 
     def lint(self):
-        Diags_p = Parser.Lib.lint(self.Document_p)
-        self.diagnostics = Diagnostic.from_pointer(Diags_p, self.view)
+        c_diagnostic_p = self.library.lint(self.c_document_p)
+        return Diagnostic.from_pointer(c_diagnostic_p, self.view)
 
 
 class Library:
