@@ -113,17 +113,22 @@ def library_filename():
 
 
 def library_new():
-    def document_new_wrapper():
-        document = library.document_new()
-        if is_pointer_null(document):
-            raise OSError("Document unavailable")
-        return document
+    def document_new_decorator(document_new):
+        def wrapper():
+            document = document_new()
+            if is_pointer_null(document):
+                raise OSError("Document unavailable")
+            return document
 
-    def document_delete_wrapper(document):
-        if is_pointer_null(document):
-            raise OSError("Cannot free nonexistent pointer")
-        library.document_delete(document)
+        return wrapper
 
+    def document_delete_decorator(document_delete):
+        def wrapper(document):
+            if is_pointer_null(document):
+                raise OSError("Cannot delete nonexistent document")
+            document_delete(document)
+
+        return wrapper
 
     pathname = library_pathname()
     filename = library_filename()
@@ -138,11 +143,11 @@ def library_new():
     library.document_new = library.qljs_sublime_text_document_new
     library.document_new.argtypes = []
     library.document_new.restype = CDocumentP
-    library.document_new = document_new_wrapper
+    library.document_new = document_new_decorator(library.document_new)
     library.document_delete = library.qljs_sublime_text_document_delete
     library.document_delete.argtypes = [CDocumentP]
     library.document_delete.restype = None
-    library.document_delete = document_delete_wrapper
+    library.document_delete = document_delete_decorator(library.document_delete)
     library.document_set_text = library.qljs_sublime_text_document_set_text
     library.document_set_text.argtypes = [CDocumentP, CText]
     library.document_set_text.restype = None
@@ -158,7 +163,6 @@ def library_new():
 
 def error_message(message):
     sublime.error_message("quick-lint-js: " + message)
-
 
 
 def view_entire_content(view):
@@ -183,8 +187,6 @@ class Document:
         self.diagnostics = []
         try:
             self.c_document_p = library.document_new()
-            if is_pointer_null(self.c_document_p):
-                raise OSError("Document unavailable")
         except AttributeError:
             raise DocumentError("Library unavailable")
         except OSError:
