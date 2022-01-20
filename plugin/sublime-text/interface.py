@@ -3,14 +3,16 @@
 
 import os
 import platform
-import sublime
+from contextlib import contextmanager
 from ctypes import CDLL, POINTER, Structure, c_char_p, c_int, c_size_t, c_uint
+
+from sublime import version
 
 from . import utils
 
 
 def _have_incremental_changes():
-    major_version = sublime.version()[0]
+    major_version = version()[0]
     return int(major_version) > 3
 
 
@@ -87,31 +89,42 @@ class Exception(Exception):
     pass
 
 
+def _get_module_path():
+    return os.path.realpath(__file__)
+
+
+@contextmanager
+def changed_directory(path):
+    previous_path = os.getcwd()
+    try:
+        yield os.chdir(path)
+    finally:
+        os.chdir(previous_path)
 
 
 def _create_library():
-    pass
+    directory = os.path.dirname(_get_module_path())
+    if platform.system() == "Windows":
+        filename = "libquick-lint-js-lib.dll"
+    elif platform.system() == "Darwin":
+        filename = "libquick-lint-js-lib.dylib"
+    else platform.system() == "Linux":
+        filename = "libquick-lint-js-lib.so"
+    # It's need multiple DLLs for load the library object on Windows,
+    # these DLLs are all in the same folder, for find these DLLs
+    # we need to change the current working directory to that folder.
+    with _changed_directory(directory):
+        library = CDLL(filename)
+
+    library
 
 
 class Library:
     @staticmethod
     def get_file_extension():
-        if platform.system() == "Windows":
-            return ".dll"
-        elif platform.system() == "Darwin":
-            return ".dylib"
-        else:  # TODO: should not be a elif? and else raise exception?
-            return ".so"
-
     def __init__(self):
         directory = os.path.dirname(utils.get_module_path(__name__))
         filename = "quick-lint-js-lib" + self.get_file_extension()
-        # It's need multiple DLLs for load the library object on Windows,
-        # these DLLs are all in the same folder, for find these DLLs
-        # we need to change the current working directory to that folder.
-        with changed_directory(directory):
-            try:
-                cdll = DLL(filename)
             except OSError as err:
                 raise Exception("") from err  # TODO: add message
 
