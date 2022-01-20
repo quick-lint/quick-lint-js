@@ -1,4 +1,4 @@
-# Copyright (C) 2020  Matthew "strager" Glazar
+# Copyright(C) 2020 Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 from contextlib import contextmanager
@@ -81,12 +81,18 @@ class _Diagnostic(Structure):
     ]
 
 
+_DiagnosticPointer = POINTER(_Diagnostic)
+
+
 class _Document:
     _fields_ = []
 
 
+_Document = POINTER(_Document)
+
+
 # class Exception(Exception):
-#     pass
+# pass
 
 
 def _get_module_path():
@@ -108,7 +114,7 @@ def _create_library():
         filename = "quick-lint-js-lib.dll"
     elif system() == "Darwin":
         filename = "libquick-lint-js-lib.dylib"
-    else system() == "Linux":
+    elif system() == "Linux":
         filename = "libquick-lint-js-lib.so"
 
     # It's need multiple DLLs for load the library object on Windows,
@@ -117,6 +123,16 @@ def _create_library():
     with _changed_directory(directory):
         library = CDLL(filename)
 
+    library.qljs_sublime_text_document_new.argtypes = []
+    library.qljs_sublime_text_document_new.restype = _DocumentPointer
+    library.qljs_sublime_text_document_delete.argtypes = [_DocumentPointer]
+    library.qljs_sublime_text_document_delete.restype = None
+    library.qljs_sublime_text_document_set_text.argtypes = [_DocumentPointer, _Text]
+    library.qljs_sublime_text_document_set_text.restype = None
+    library.qljs_sublime_text_document_replace_text.argtypes = [_DocumentPointer, _Range, _Text]
+    library.qljs_sublime_text_document_replace_text.restype = None
+    library.qljs_sublime_text_document_lint.argtypes = [_DocumentPointer]
+    library.qljs_sublime_text_document_lint.restype = _DiagnosticPointer
 
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -169,7 +185,9 @@ def plugin_error_message(message):
 def view_entire_content(view):
     region = sublime.Region(0, view.size())
     return view.substr(region)
-# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+# < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < <
 
 
 class Library:
@@ -180,8 +198,8 @@ class Library:
     def __init__(self):
         directory = os.path.dirname(utils.get_module_path(__name__))
         filename = "quick-lint-js-lib" + self.get_file_extension()
-            except OSError as err:
-                raise Exception("") from err  # TODO: add message
+        #    except OSError as err:
+        #        raise Exception("") from err  # TODO: add message
 
         version = utils.sublime.major_version()
         self.Document = cdll.qljs_sublime_text_document_new
@@ -307,24 +325,23 @@ class Parser:
 
 
 # class Severity:
-#     ERROR = 1
-#     WARNING = 2
+# ERROR = 1
+# WARNING = 2
 
-
-# quick-lint-js finds bugs in JavaScript programs.
-# Copyright (C) 2020  Matthew Glazar
+# quick - lint - js finds bugs in JavaScript programs.
+# Copyright(C) 2020 Matthew Glazar
 #
-# This file is part of quick-lint-js.
+# This file is part of quick - lint - js.
 #
-# quick-lint-js is free software: you can redistribute it and/or modify
+# quick - lint - js is free software : you can redistribute it and / or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# quick-lint-js is distributed in the hope that it will be useful,
+# quick - lint - js is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+# along with quick - lint - js.If not, see < https:  // www.gnu.org/licenses/>.
