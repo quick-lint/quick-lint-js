@@ -88,7 +88,7 @@ void sublime_text_locator::replace_text(range_type range,
   this->new_lines.extend(&this->old_lines, 0, range.start.line);
 
   // Within replacement: re-parse newlines.
-  this->new_lines.compute(this->input_, region.begin, region.end);
+  this->new_lines.compute(this->input_, region.start, region.end);
   {
     offset_type size_without_end = this->new_lines.is_ascii_.size() - 1;
     if (size_without_end > range.start.line) {
@@ -107,7 +107,7 @@ void sublime_text_locator::replace_text(range_type range,
   offset_type after_replacement = region.end + 1;
   {
     auto adjust_offset = [](offset_type offset) {
-      static auto adjust = replacement.size() - (region.end - region.begin);
+      static auto adjust = replacement.size() - (region.end - region.start);
       return offset + adjust;
     };
     insert_back_transform(

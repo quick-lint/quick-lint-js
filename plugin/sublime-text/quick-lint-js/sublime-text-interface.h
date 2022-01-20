@@ -52,12 +52,12 @@ void qljs_sublime_text_text_delete(qljs_sublime_text_text *text);
 // region
 
 typedef struct qljs_sublime_text_region {
-  qljs_sublime_text_offset begin;
+  qljs_sublime_text_offset start;
   qljs_sublime_text_offset end;
 } qljs_sublime_text_region;
 
 qljs_sublime_text_region *qljs_sublime_text_region_new(
-    qljs_sublime_text_offset begin, qljs_sublime_text_offset end);
+    qljs_sublime_text_offset start, qljs_sublime_text_offset end);
 
 void qljs_sublime_text_region_delete(qljs_sublime_text_region *region);
 

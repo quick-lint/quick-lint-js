@@ -31,8 +31,8 @@ void qljs_sublime_text_text_delete(qljs_sublime_text_text *text) {
 // region
 
 qljs_sublime_text_region *qljs_sublime_text_region_new(
-    qljs_sublime_text_offset begin, qljs_sublime_text_offset end) {
-  return new qljs_sublime_text_region{.begin = begin, .end = end};
+    qljs_sublime_text_offset start, qljs_sublime_text_offset end) {
+  return new qljs_sublime_text_region{.start = start, .end = end};
 }
 
 void qljs_sublime_text_region_delete(qljs_sublime_text_region *region) {
