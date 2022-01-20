@@ -2,80 +2,81 @@
 # See end of file for extended copyright information.
 
 from contextlib import contextmanager
-from ctypes import CDLL, POINTER, Structure, c_char_p, c_int, c_size_t, c_uint
+from ctypes import CDLL as CLoadLibrary
+from ctypes import POINTER as CPointer
+from ctypes import CStructure, c_char_p, c_int, c_size_t, c_uint
 from os import chdir, getcwd, path
 from platform import system
 
 from sublime import version
 
-from . import utils
 
-
-def _have_incremental_changes():
+def have_incremental_changes():
     major_version = version()[0]
     return int(major_version) > 3
 
 
-_Offset = c_uint
+COffset = c_uint
 
 
-class _Text(Structure):
+class CText(CStructure):
     _fields_ = [
         ("content", c_char_p),
         ("length", c_size_t),
     ]
 
 
-class _Region(Structure):
+class CRegion(CStructure):
     _fields_ = [
-        ("start", _Offset),
-        ("end", _Offset),
+        ("start", COffset),
+        ("end", COffset),
     ]
 
 
-if _have_incremental_changes():
+if have_incremental_changes():
 
-    class _Position(Structure):
+    class CPosition(CStructure):
         _fields_ = [
-            ("line", _Offset),
-            ("character", _Offset),
+            ("line", COffset),
+            ("character", COffset),
         ]
 
 else:
 
-    _Position = _Offset
+    CPosition = COffset
 
 
-if _have_incremental_changes():
+if have_incremental_changes():
 
-    class _Range(Structure):
+    class CRange(CStructure):
         _fields_ = [
-            ("start", _Position),
-            ("end", _Position),
+            ("start", CPosition),
+            ("end", CPosition),
         ]
 
 else:
 
-    _Range = _Region
+    CRange = CRegion
+    CRangeP = CPointer(CRegion)
 
 
-class _Diagnostic(Structure):
+class CDiagnostic(CStructure):
     _fields_ = [
-        ("range", _RangePointer),
+        ("range", CRangeP),
         ("severity", c_int),
         ("code", c_char_p),
         ("message", c_char_p),
     ]
 
 
-_DiagnosticPointer = POINTER(_Diagnostic)
+CDiagnosticP = Pointer(CDiagnostic)
 
 
-class _Document:
+class CDocument(CStructure):
     _fields_ = []
 
 
-_Document = POINTER(_Document)
+CDocument = CPointer(CDocument)
 
 
 def _module_path():
@@ -182,7 +183,6 @@ class Document:
         self.diagnostics = Diagnostic.from_pointer(Diags_p, self.view)
 
 
-
 class Library:
     @staticmethod
     def get_file_extension():
@@ -242,10 +242,10 @@ class Library:
 # class Severity:
 #     def __init__(self, value):
 #         self.value = value
-# 
+#
 #     def is_error():
 #         return self.value == 1
-# 
+#
 #     def is_warning():
 #         return self.value == 2
 
@@ -329,9 +329,6 @@ def view_entire_content(view):
 
 
 # < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < <
-
-
-
 
 
 # quick - lint - js finds bugs in JavaScript programs.
