@@ -78,31 +78,29 @@ class _Document:
 _Document = POINTER(_Document)
 
 
-# class Exception(Exception):
-# pass
-
-
-def _get_module_path():
-    return os.path.realpath(__file__)
+def _module_path():
+    return path.realpath(__file__)
 
 
 @contextmanager
 def _changed_directory(path):
-    previous_path = os.getcwd()
+    previous_path = getcwd()
     try:
-        yield os.chdir(path)
+        yield chdir(path)
     finally:
-        os.chdir(previous_path)
+        chdir(previous_path)
 
 
-def _create_library():
-    directory = os.path.dirname(_get_module_path())
+def _library_new():
+    directory = path.dirname(_module_path())
     if system() == "Windows":
         filename = "quick-lint-js-lib.dll"
     elif system() == "Darwin":
         filename = "libquick-lint-js-lib.dylib"
     elif system() == "Linux":
         filename = "libquick-lint-js-lib.so"
+    else:
+        raise OSError("Operating System not supported")
 
     # It's need multiple DLLs for load the library object on Windows,
     # these DLLs are all in the same folder, for find these DLLs
@@ -127,6 +125,63 @@ def _create_library():
     library.qljs_sublime_text_document_replace_text.restype = None
     library.qljs_sublime_text_document_lint.argtypes = [_DocumentPointer]
     library.qljs_sublime_text_document_lint.restype = _DiagnosticPointer
+
+    return library
+
+
+def _error_message(message):
+    sublime.error_message("quick-lint-js: " + message)
+
+
+def _view_entire_content(view):
+    region = sublime.Region(0, view.size())
+    return view.substr(region)
+
+
+class Document:
+    try:
+        library = _library_new()
+    except OSError as err:
+        _error_message(str(err))
+    finally:
+        library = None
+
+    def __init__(self, view):
+        self.view = view
+        self.diagnostics = []
+        try:
+            self._document = library.qljs_sublime_text_document_new()
+        except AttributeError:
+            raise ParserError("Library unavailable")
+        except OSError:
+            raise ParserError("Internal parser unavailable")
+        finally:
+            self.Document_p = None
+
+    def delete():
+        try:
+            parser.Lib.object.destroy_parser(self.Document_p)
+        except CException:
+            raise ParserError("Cannot delete pointer.")
+
+    def set_text(self):
+        content = _view_content(self.view).encode()
+        Text_p = CText(content, len(content)).lightweight_pointer()
+        Parser.Lib.object.set_text(self.Document_p, Text)
+
+    def replace_text(self, change):
+        Start = CPosition(change.a.row, change.a.col_utf16)
+        End = CPosition(change.b.row, change.b.col_utf16)
+        Range_p = CRange(Start, End).lightweight_pointer()
+        content = change.str.encode()
+        Text_p = CText(content, len(content)).lightweight_pointer()
+        Parser.Lib.object.replace_text(self.Document_p, Range_p, Text_p)
+
+    def lint(self):
+        Diags_p = Parser.Lib.lint(self.Document_p)
+        self.diagnostics = Diagnostic.from_pointer(Diags_p, self.view)
+
+
 
 class Library:
     @staticmethod
@@ -184,15 +239,15 @@ class Library:
 ################################################################################
 
 
-class Severity:
-    def __init__(self, value):
-        self.value = value
-
-    def is_error():
-        return self.value == 1
-
-    def is_warning():
-        return self.value == 2
+# class Severity:
+#     def __init__(self, value):
+#         self.value = value
+# 
+#     def is_error():
+#         return self.value == 1
+# 
+#     def is_warning():
+#         return self.value == 2
 
 
 class Diagnostic:
@@ -216,50 +271,6 @@ class Diagnostic:
             start = view.text_point_utf16(Diag.start_line, Diag.start_character)
             end = view.text_point_utf16(Diag.end_line, Diag.end_character)
         self.region = sublime.Region(start, end)
-
-
-class Parser:
-    try:
-        Lib = CLibrary()
-    except CException as ex:
-        sublime.error_message("quick-lint-js: " + str(ex))
-    finally:
-        Lib = None
-
-    def __init__(self, view):
-        self.view = view
-        self.diags = []
-        try:
-            self.Document_p = Parser.Lib.object.create_parser()
-        except AttributeError:
-            raise ParserError("Library unavailable.")
-        except CException:
-            raise ParserError("Internal parser unavailable.")
-        finally:
-            self.Document_p = None
-
-    def delete():
-        try:
-            Parser.Lib.object.destroy_parser(self.Document_p)
-        except CException:
-            raise ParserError("Cannot delete pointer.")
-
-    def set_text(self):
-        content = utils.sublime.view_content(self.view).encode()
-        Text_p = CText(content, len(content)).lightweight_pointer()
-        Parser.Lib.object.set_text(self.Document_p, Text)
-
-    def replace_text(self, change):
-        Start = CPosition(change.a.row, change.a.col_utf16)
-        End = CPosition(change.b.row, change.b.col_utf16)
-        Range_p = CRange(Start, End).lightweight_pointer()
-        content = change.str.encode()
-        Text_p = CText(content, len(content)).lightweight_pointer()
-        Parser.Lib.object.replace_text(self.Document_p, Range_p, Text_p)
-
-    def lint(self):
-        Diags_p = Parser.Lib.lint(self.Document_p)
-        self.diags = Diagnostic.from_pointer(Diags_p, self.view)
 
 
 # class Severity:
