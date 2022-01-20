@@ -3,23 +3,23 @@
 
 import os
 import platform
-import ctypes
+from ctypes import CDLL, POINTER, Structure, c_char_p, c_int, c_size_t, c_uint
 
 from . import utils
 
 
 _Offset = c_uint
-_OffsetPointer = ctypes.POINTER(_Offset)
+_OffsetPointer = POINTER(_Offset)
 
 
-class _Text(ctypes.Structure):
+class _Text(Structure):
     _fields_ = [
         ("content", c_char_p),
         ("length", c_size_t),
     ]
 
 
-_TextPointer = ctypes.POINTER(_Text)
+_TextPointer = POINTER(_Text)
 
 
 class _Region(Structure):
@@ -29,26 +29,39 @@ class _Region(Structure):
     ]
 
 
-_RegionPointer = ctypes.POINTER(_Region)
+_RegionPointer = POINTER(_Region)
 
 
 if utils.sublime_have_incremental_changes():
 
     class _Position(Structure):
         _fields_ = [
-            ("line", OFFSET),
-            ("character", OFFSET),
+            ("line", _Offset),
+            ("character", _Offset),
         ]
 
     _PositionPointer = POINTER(_Position)
 
+else:
+
+    _Position = _Offset
+    _PositionPointer = _OffsetPointer
+
+
+if utils.sublime_have_incremental_changes():
+
     class _Range(Structure):
         _fields_ = [
-            ("start", Position),
-            ("end", Position),
+            ("start", _Position),
+            ("end", _Position),
         ]
 
     _RangePointer = POINTER(_Range)
+
+else:
+
+    _Range = _Region
+    _RangePointer = _RegionPointer
 
 
 class _Diagnostic(Structure):
@@ -82,11 +95,11 @@ class Library:
         directory = 
         filename = 
         # It's need multiple DLLs for load the library object on Windows,
-        # these DLLs are all in the same folder, for ctypes find these DLLs
+        # these DLLs are all in the same folder, for find these DLLs
         # we need to change the current working directory to that folder.
         with changed_directory(directory):
             try:
-                cdll = ctypes.DLL(filename)
+                cdll = DLL(filename)
             except OSError as err:
                 raise Exception("") from err  # TODO: add message
 
@@ -109,12 +122,12 @@ class Library:
 
     def create_parser(self):
         Document_p = self.Create_parser()
-        if utils.ctypes.is_pointer_null(Document_p):
+        if utils.is_pointer_null(Document_p):
             raise Exception("Parser unavailable.")
         return Document_p
 
     def destroy_parser(self, Document_p):
-        if utils.ctypes.is_pointer_null(Document_p):
+        if utils.is_pointer_null(Document_p):
             raise Exception("Cannot free nonexistent pointer.")
         self.Destroy_parser(Document_p)
 
@@ -151,7 +164,7 @@ class Diagnostic:
     def from_pointer(cls, Diags_p):
         diags = []
         for Diag in Diags_p:
-            if utils.ctypes.is_pointer_null(Diag.message):
+            if utils.is_pointer_null(Diag.message):
                 break
             diags.append(Diagnostic(Diag))
         return diags

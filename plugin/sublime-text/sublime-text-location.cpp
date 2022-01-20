@@ -242,7 +242,7 @@ typename sublime_text_locator::range_type sublime_text_locator::range(
   return range_type{.start = start, .end = end};
 }
 
-typename sublime_text_locator::offset_type sublime_text_locator::position(
+typename sublime_text_locator::position_type sublime_text_locator::position(
     const char8 *source) const noexcept {
   const char8 *input_data = this->input_.data();
   std::size_t byte_offset = narrow_cast<std::size_t>(source - input_data);
