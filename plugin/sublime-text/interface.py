@@ -79,12 +79,12 @@ class CDocument(CStructure):
 CDocument = CPointer(CDocument)
 
 
-def _module_path():
+def module_path():
     return path.realpath(__file__)
 
 
 @contextmanager
-def _changed_directory(path):
+def changed_directory(path):
     previous_path = getcwd()
     try:
         yield chdir(path)
@@ -92,16 +92,19 @@ def _changed_directory(path):
         chdir(previous_path)
 
 
-def _library_new():
-    directory = path.dirname(_module_path())
-    if system() == "Windows":
-        filename = "quick-lint-js-lib.dll"
-    elif system() == "Darwin":
-        filename = "libquick-lint-js-lib.dylib"
-    elif system() == "Linux":
-        filename = "libquick-lint-js-lib.so"
-    else:
-        raise OSError("Operating System not supported")
+def library_new():
+    def _library_affixes():
+        if system() == "Windows":
+            filename = "quick-lint-js-lib.dll"
+        elif system() == "Darwin":
+            filename = "libquick-lint-js-lib.dylib"
+        elif system() == "Linux":
+            filename = "libquick-lint-js-lib.so"
+        else:
+            raise OSError("Operating System not supported")
+
+    pathname = path.dirname(_module_path())
+    filename = 
 
     # It's need multiple DLLs for load the library object on Windows,
     # these DLLs are all in the same folder, for find these DLLs
@@ -109,8 +112,9 @@ def _library_new():
     with _changed_directory(directory):
         library = CDLL(filename)
 
-    library.qljs_sublime_text_document_new.argtypes = []
-    library.qljs_sublime_text_document_new.restype = _DocumentPointer
+    library.document_new = library.qljs_sublime_text_document_new
+    library.document_new.argtypes = []
+    library.document_new.restype = _DocumentPointer
     library.qljs_sublime_text_document_delete.argtypes = [_DocumentPointer]
     library.qljs_sublime_text_document_delete.restype = None
     library.qljs_sublime_text_document_set_text.argtypes = [
