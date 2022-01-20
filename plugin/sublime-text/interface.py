@@ -105,7 +105,7 @@ def changed_directory(path):
 def _create_library():
     directory = os.path.dirname(_get_module_path())
     if platform.system() == "Windows":
-        filename = "libquick-lint-js-lib.dll"
+        filename = "quick-lint-js-lib.dll"
     elif platform.system() == "Darwin":
         filename = "libquick-lint-js-lib.dylib"
     else platform.system() == "Linux":
@@ -116,7 +116,17 @@ def _create_library():
     with _changed_directory(directory):
         library = CDLL(filename)
 
-    library
+    def libget(name):
+        return getattr(library, "qljs_sublime_text" + name)
+
+    def libset(name, argtypes, restype):
+        libget(name).argtypes = argtypes
+        libget(name).restype = restype
+
+    def getargtypes(structure):
+        return structure._fields_
+
+    libset('text_new', )
 
 
 class Library:
