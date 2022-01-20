@@ -92,19 +92,24 @@ def changed_directory(path):
         chdir(previous_path)
 
 
-def library_new():
-    def _library_affixes():
-        if system() == "Windows":
-            filename = "quick-lint-js-lib.dll"
-        elif system() == "Darwin":
-            filename = "libquick-lint-js-lib.dylib"
-        elif system() == "Linux":
-            filename = "libquick-lint-js-lib.so"
-        else:
-            raise OSError("Operating System not supported")
+def library_pathname(name):
+    return path.dirname(module_path())
 
-    pathname = path.dirname(_module_path())
-    filename = 
+
+def library_filename():
+    if system() == "Windows":
+        return "quick-lint-js-lib.dll"
+    elif system() == "Darwin":
+        return "libquick-lint-js-lib.dylib"
+    elif system() == "Linux":
+        return "libquick-lint-js-lib.so"
+    else:
+        raise OSError("Operating System not supported")
+
+
+def library_new():
+    pathname = library_pathname()
+    filename = library_filename()
 
     # It's need multiple DLLs for load the library object on Windows,
     # these DLLs are all in the same folder, for find these DLLs
