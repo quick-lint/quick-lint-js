@@ -17,7 +17,6 @@ def _have_incremental_changes():
 
 
 _Offset = c_uint
-_OffsetPointer = POINTER(_Offset)
 
 
 class _Text(Structure):
@@ -27,17 +26,11 @@ class _Text(Structure):
     ]
 
 
-_TextPointer = POINTER(_Text)
-
-
 class _Region(Structure):
     _fields_ = [
         ("start", _Offset),
         ("end", _Offset),
     ]
-
-
-_RegionPointer = POINTER(_Region)
 
 
 if _have_incremental_changes():
@@ -48,12 +41,9 @@ if _have_incremental_changes():
             ("character", _Offset),
         ]
 
-    _PositionPointer = POINTER(_Position)
-
 else:
 
     _Position = _Offset
-    _PositionPointer = _OffsetPointer
 
 
 if _have_incremental_changes():
@@ -64,12 +54,9 @@ if _have_incremental_changes():
             ("end", _Position),
         ]
 
-    _RangePointer = POINTER(_Range)
-
 else:
 
     _Range = _Region
-    _RangePointer = _RegionPointer
 
 
 class _Diagnostic(Structure):
@@ -127,68 +114,19 @@ def _create_library():
     library.qljs_sublime_text_document_new.restype = _DocumentPointer
     library.qljs_sublime_text_document_delete.argtypes = [_DocumentPointer]
     library.qljs_sublime_text_document_delete.restype = None
-    library.qljs_sublime_text_document_set_text.argtypes = [_DocumentPointer, _Text]
+    library.qljs_sublime_text_document_set_text.argtypes = [
+        _DocumentPointer,
+        _Text,
+    ]
     library.qljs_sublime_text_document_set_text.restype = None
-    library.qljs_sublime_text_document_replace_text.argtypes = [_DocumentPointer, _Range, _Text]
+    library.qljs_sublime_text_document_replace_text.argtypes = [
+        _DocumentPointer,
+        _Range,
+        _Text,
+    ]
     library.qljs_sublime_text_document_replace_text.restype = None
     library.qljs_sublime_text_document_lint.argtypes = [_DocumentPointer]
     library.qljs_sublime_text_document_lint.restype = _DiagnosticPointer
-
-
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-import contextlib
-import os
-import sys
-
-import sublime
-
-
-def is_pointer_null(ptr):
-    return not bool(ptr)
-
-
-def get_first_character(str):
-    return str[0]
-
-
-def remove_prefix(str, prefix):
-    if str.startswith(prefix):
-        return str[len(prefix) :]
-    return str
-
-
-def get_module_path(module_name):
-    return os.path.realpath(sys.modules[module_name].__file__)
-
-
-@contextlib.contextmanager
-def changed_directory(path):
-    previous_path = os.getcwd()
-    try:
-        yield os.chdir(path)
-    finally:
-        os.chdir(previous_path)
-
-
-def sublime_get_major_version():
-    return get_first_character(sublime.version())
-
-
-def sublime_have_incremental_changes():
-    return int(sublime_get_major_version()) > 3
-
-
-def plugin_error_message(message):
-    sublime.error_message("quick-lint-js: " + message)
-
-
-def view_entire_content(view):
-    region = sublime.Region(0, view.size())
-    return view.substr(region)
-
-
-# < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < <
-
 
 class Library:
     @staticmethod
@@ -327,6 +265,63 @@ class Parser:
 # class Severity:
 # ERROR = 1
 # WARNING = 2
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+import contextlib
+import os
+import sys
+
+import sublime
+
+
+def is_pointer_null(ptr):
+    return not bool(ptr)
+
+
+def get_first_character(str):
+    return str[0]
+
+
+def remove_prefix(str, prefix):
+    if str.startswith(prefix):
+        return str[len(prefix) :]
+    return str
+
+
+def get_module_path(module_name):
+    return os.path.realpath(sys.modules[module_name].__file__)
+
+
+@contextlib.contextmanager
+def changed_directory(path):
+    previous_path = os.getcwd()
+    try:
+        yield os.chdir(path)
+    finally:
+        os.chdir(previous_path)
+
+
+def sublime_get_major_version():
+    return get_first_character(sublime.version())
+
+
+def sublime_have_incremental_changes():
+    return int(sublime_get_major_version()) > 3
+
+
+def plugin_error_message(message):
+    sublime.error_message("quick-lint-js: " + message)
+
+
+def view_entire_content(view):
+    region = sublime.Region(0, view.size())
+    return view.substr(region)
+
+
+# < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < < <
+
+
+
+
 
 # quick - lint - js finds bugs in JavaScript programs.
 # Copyright(C) 2020 Matthew Glazar
