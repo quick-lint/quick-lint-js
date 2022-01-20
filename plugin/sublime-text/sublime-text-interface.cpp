@@ -16,59 +16,6 @@
 
 //==============================================================================
 //------------------------------------------------------------------------------
-// text
-
-qljs_sublime_text_text *qljs_sublime_text_text_new(char *content, size_t len) {
-  return new qljs_sublime_text_text{.content = content, .length = length};
-}
-
-void qljs_sublime_text_text_delete(qljs_sublime_text_text *text) {
-  delete text;
-}
-
-//==============================================================================
-//------------------------------------------------------------------------------
-// region
-
-qljs_sublime_text_region *qljs_sublime_text_region_new(
-    qljs_sublime_text_offset start, qljs_sublime_text_offset end) {
-  return new qljs_sublime_text_region{.start = start, .end = end};
-}
-
-void qljs_sublime_text_region_delete(qljs_sublime_text_region *region) {
-  delete region;
-}
-
-//==============================================================================
-//------------------------------------------------------------------------------
-// position
-
-#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
-qljs_sublime_text_position *qljs_sublime_text_position_new(
-    qljs_sublime_text_offset line, qljs_sublime_text_offset character) {
-  return new qljs_sublime_text_position{.line = line, .character = character};
-}
-
-void qljs_sublime_text_position_delete(qljs_sublime_text_position *position) {
-  delete position;
-}
-#endif
-
-//==============================================================================
-//------------------------------------------------------------------------------
-// range
-
-qljs_sublime_text_range *qljs_sublime_text_range_new(
-    qljs_sublime_text_position start, qljs_sublime_text_position end) {
-  return new qljs_sublime_text_range{.start = start, .end = end};
-}
-
-void qljs_sublime_text_range_delete(qljs_sublime_text_range *range) {
-  delete range;
-}
-
-//==============================================================================
-//------------------------------------------------------------------------------
 // diagnostic
 
 namespace quick_lint_js {
@@ -111,7 +58,7 @@ void qljs_sublime_text_document_delete(qljs_sublime_text_document *document) {
 }
 
 void qljs_sublime_text_document_set_text(qljs_sublime_text_document *document,
-                                         const qljs_sublime_text_text *text) {
+                                         qljs_sublime_text_text text) {
   using char_type = quick_lint_js::char8;
 
   auto cpp_content = reinterpret_cast<const char_type *>(text->content);
@@ -121,14 +68,14 @@ void qljs_sublime_text_document_set_text(qljs_sublime_text_document *document,
 
 #if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 void qljs_sublime_text_document_replace_text(
-    qljs_sublime_text_document *document, const qljs_sublime_text_range *range,
-    const qljs_sublime_text_text *text) {
+    qljs_sublime_text_document *document, qljs_sublime_text_range range,
+    qljs_sublime_text_text text) {
   using range_type = qljs_sublime_text_document::range_type;
   using char_type = quick_lint_js::char8;
 
   auto cpp_range = reinterpret_cast<range_type *>(range);
-  auto cpp_content = reinterpret_cast<const char_type *>(text->content);
-  auto cpp_replacement = quick_lint_js::string8_view(cpp_content, text->length);
+  auto cpp_content = reinterpret_cast<const char_type *>(content);
+  auto cpp_replacement = quick_lint_js::string8_view(cpp_content, length);
   document->replace_text(*cpp_range, cpp_replacement);
 }
 #endif

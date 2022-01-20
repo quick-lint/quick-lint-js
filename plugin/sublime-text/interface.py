@@ -103,38 +103,80 @@ def _changed_directory(path):
 
 
 def _create_library():
-    def libaffixes():
-        if platform.system() == "Windows":
-            return ("", ".dll")
-        elif platform.system() == "Darwin":
-            return ("lib", ".dylib")
-        else platform.system() == "Linux":
-            return ("lib", ".so")
-
     directory = os.path.dirname(_get_module_path())
-    filename = "%squick-lint-js-lib%s" % libaffixes()
+    if system() == "Windows":
+        filename = "quick-lint-js-lib.dll"
+    elif system() == "Darwin":
+        filename = "libquick-lint-js-lib.dylib"
+    else system() == "Linux":
+        filename = "libquick-lint-js-lib.so"
+
     # It's need multiple DLLs for load the library object on Windows,
     # these DLLs are all in the same folder, for find these DLLs
     # we need to change the current working directory to that folder.
     with _changed_directory(directory):
         library = CDLL(filename)
 
-    def libget(name):
-        return getattr(library, "qljs_sublime_text" + name)
 
-    def libset(name, argtypes, restype):
-        libget(name).argtypes = argtypes
-        libget(name).restype = restype
 
-    def getargtypes(structure):
-        return structure._fields_
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+import contextlib
+import os
+import sys
 
-    libset('text_new', getargtypes(_Text), _Text)
+import sublime
+
+
+def is_pointer_null(ptr):
+    return not bool(ptr)
+
+
+def get_first_character(str):
+    return str[0]
+
+
+def remove_prefix(str, prefix):
+    if str.startswith(prefix):
+        return str[len(prefix) :]
+    return str
+
+
+def get_module_path(module_name):
+    return os.path.realpath(sys.modules[module_name].__file__)
+
+
+@contextlib.contextmanager
+def changed_directory(path):
+    previous_path = os.getcwd()
+    try:
+        yield os.chdir(path)
+    finally:
+        os.chdir(previous_path)
+
+
+def sublime_get_major_version():
+    return get_first_character(sublime.version())
+
+
+def sublime_have_incremental_changes():
+    return int(sublime_get_major_version()) > 3
+
+
+def plugin_error_message(message):
+    sublime.error_message("quick-lint-js: " + message)
+
+
+def view_entire_content(view):
+    region = sublime.Region(0, view.size())
+    return view.substr(region)
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 class Library:
     @staticmethod
     def get_file_extension():
+        pass
+
     def __init__(self):
         directory = os.path.dirname(utils.get_module_path(__name__))
         filename = "quick-lint-js-lib" + self.get_file_extension()
