@@ -726,8 +726,14 @@ expression* parser::parse_async_expression_only(Visitor& v, token async_token,
 
   auto parse_arrow_function_arrow_and_body =
       [this, allow_in_operator, async_begin, &v](auto&& parameters) {
-        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
-        this->skip();
+        if (this->peek().type == token_type::equal_greater) {
+          this->skip();
+        } else {
+          this->error_reporter_->report(
+              error_missing_arrow_operator_in_arrow_function{
+                  .where = this->peek().span(),
+              });
+        }
 
         expression* ast = this->parse_arrow_function_body(
             v, function_attributes::async, async_begin,
@@ -772,7 +778,11 @@ expression* parser::parse_async_expression_only(Visitor& v, token async_token,
     source_code_span right_paren_span = this->peek().span();
     this->skip();
 
-    if (this->peek().type == token_type::equal_greater) {
+    bool is_arrow_function = this->peek().type == token_type::equal_greater;
+    bool is_arrow_function_without_arrow =
+        !this->peek().has_leading_newline &&
+        this->peek().type == token_type::left_curly;
+    if (is_arrow_function || is_arrow_function_without_arrow) {
       if (newline_after_async) {
         this->error_reporter_->report(
             error_newline_not_allowed_between_async_and_parameter_list{
