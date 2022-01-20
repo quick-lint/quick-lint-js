@@ -19,6 +19,9 @@ Semantic Versioning.
   `===` instead').
 * `if (a == "X" || "Y")` now reports [E0190][] ('missing comparison; `===` does
   not extend to the right side of `||`').
+* `async (param1, param2) {}` now reports [E0176][] ('missing arrow operator for
+  arrow function'). ([E0176][] was previously reported only for non-`async`
+  arrow functions.)
 
 ### Fixed
 
@@ -36,6 +39,11 @@ Semantic Versioning.
 * quick-lint-js no longer incorrectly reports [E0016][], [E0038][], [E0060][],
   or [E0207][] in tagged template literals. (These errors are still reported for
   untagged template literals and for string literals.)
+* `-1 ** 2` now reports [E0194][] (missing parentheses around left-hand side of
+  `**`), per the JavaScript specification. (Previously, no error was reported.)
+* `typeof 10 ** 7` now reports [E0195][] (missing parentheses around operand of
+  `typeof`), per the JavaScript specification. (Previously, no error was
+  reported.)
 
 ### Changed
 
@@ -417,3 +425,5 @@ Beta release.
 [E0191]: https://quick-lint-js.com/errors/#E0191
 [E0192]: https://quick-lint-js.com/errors/#E0192
 [E0193]: https://quick-lint-js.com/errors/#E0193
+[E0194]: https://quick-lint-js.com/errors/#E0194
+[E0195]: https://quick-lint-js.com/errors/#E0195
