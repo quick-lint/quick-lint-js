@@ -3548,6 +3548,38 @@ TEST_F(test_parse_expression, generator_misplaced_star) {
   EXPECT_EQ(p.range(ast->child_0()).end_offset(), 16);
 }
 
+TEST_F(test_parse_expression, unary_cannot_mix_with_star_star) {
+  for (char8 op : u8"~!-+"sv) {
+    test_parser p(op + u8"a ** b"s);
+    SCOPED_TRACE(p.code());
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(unary(var a), var b)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                    p.code(),
+                    error_missing_parentheses_around_unary_lhs_of_exponent,  //
+                    unary_expression, 0, op + u8"a"s,                        //
+                    exponent_operator, (op + u8"a "s).size(), u8"**")));
+  }
+
+  for (string8 op : {u8"delete"s, u8"typeof"s, u8"void"s}) {
+    test_parser p(op + u8" a ** b"s);
+    SCOPED_TRACE(p.code());
+    expression* ast = p.parse_expression();
+    if ((false)) {
+      // TODO(strager): Rewrite the AST into something like the following:
+      EXPECT_EQ(summarize(ast), "typeof(binary(var a, var b))");
+    }
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_2_OFFSETS(
+            p.code(),
+            error_missing_parentheses_around_exponent_with_unary_lhs,  //
+            exponent_expression, (op + u8" "s).size(), u8"a ** b",
+            unary_operator, 0, op)));
+  }
+}
+
 TEST_F(test_parse_expression, jsx_is_not_supported) {
   // If parsing was not started with
   // parse_and_visit_module_catching_fatal_parse_errors, then we can't halt

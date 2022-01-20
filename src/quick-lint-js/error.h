@@ -1025,6 +1025,31 @@
             where))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_parentheses_around_exponent_with_unary_lhs, "E0195",       \
+      {                                                                        \
+        source_code_span exponent_expression;                                  \
+        source_code_span unary_operator;                                       \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE("missing parentheses around operand of '{0}'"),  \
+            exponent_expression)                                               \
+          NOTE(QLJS_TRANSLATABLE("'{0}' operator cannot be used before '**' "  \
+                                 "without parentheses"),                       \
+               unary_operator))                                                \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_missing_parentheses_around_unary_lhs_of_exponent, "E0194",         \
+      {                                                                        \
+        source_code_span unary_expression;                                     \
+        source_code_span exponent_operator;                                    \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE(                                                 \
+                "missing parentheses around left-hand side of '**'"),          \
+            unary_expression)                                                  \
+          NOTE(QLJS_TRANSLATABLE("'**' operator cannot be used after unary "   \
+                                 "'{1}' without parentheses"),                 \
+               exponent_operator, unary_expression))                           \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_property_name_for_dot_operator, "E0142",                   \
       { source_code_span dot; },                                               \
       ERROR(QLJS_TRANSLATABLE("missing property name after '.' operator"),     \

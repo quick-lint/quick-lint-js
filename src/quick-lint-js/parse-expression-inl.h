@@ -1084,12 +1084,74 @@ next:
     if (!prec.math_or_logical_or_assignment) {
       break;
     }
+    bool allow_unary_lhs = this->peek().type != token_type::star_star;
+    expression* maybe_unary_lhs = binary_builder.last_expression();
+    expression_kind lhs_kind = maybe_unary_lhs->kind();
     source_code_span operator_span = this->peek().span();
     this->skip();
+
     expression* rhs = binary_builder.add_child(
         operator_span,
         this->parse_expression(
             v, precedence{.binary_operators = false, .commas = false}));
+
+    if (!allow_unary_lhs) {
+      switch (lhs_kind) {
+      // -a ** b  // Invalid.
+      // void a ** b  // Invalid.
+      case expression_kind::unary_operator: {
+        auto* lhs = static_cast<expression::unary_operator*>(maybe_unary_lhs);
+        // HACK(strager): Should we create expression::_void?
+        if (lhs->unary_operator_begin_[0] == u8'v') {
+          // void a ** b  // Invalid.
+          this->error_reporter_->report(
+              error_missing_parentheses_around_exponent_with_unary_lhs{
+                  .exponent_expression = source_code_span(
+                      lhs->child_->span().begin(), rhs->span().end()),
+                  .unary_operator = source_code_span(
+                      lhs->unary_operator_begin_,
+                      lhs->unary_operator_begin_ + strlen(u8"void")),
+              });
+        } else {
+          // -a ** b  // Invalid.
+          // ~a ** b  // Invalid.
+          this->error_reporter_->report(
+              error_missing_parentheses_around_unary_lhs_of_exponent{
+                  .unary_expression = maybe_unary_lhs->span(),
+                  .exponent_operator = operator_span,
+              });
+        }
+        break;
+      }
+
+      // delete a ** b  // Invalid.
+      case expression_kind::_delete: {
+        auto* lhs = static_cast<expression::_delete*>(maybe_unary_lhs);
+        this->error_reporter_->report(
+            error_missing_parentheses_around_exponent_with_unary_lhs{
+                .exponent_expression = source_code_span(
+                    lhs->child_->span().begin(), rhs->span().end()),
+                .unary_operator = lhs->unary_operator_span(),
+            });
+        break;
+      }
+
+      // typeof a ** b  // Invalid.
+      case expression_kind::_typeof: {
+        auto* lhs = static_cast<expression::_typeof*>(maybe_unary_lhs);
+        this->error_reporter_->report(
+            error_missing_parentheses_around_exponent_with_unary_lhs{
+                .exponent_expression = source_code_span(
+                    lhs->child_->span().begin(), rhs->span().end()),
+                .unary_operator = lhs->unary_operator_span(),
+            });
+        break;
+      }
+
+      default:
+        break;
+      }
+    }
     if (rhs->kind() == expression_kind::_missing) {
       this->error_reporter_->report(
           error_missing_operand_for_operator{operator_span});

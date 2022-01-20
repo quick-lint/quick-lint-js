@@ -392,6 +392,11 @@ class expression::_typeof final
   explicit _typeof(expression *child, source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
+
+  source_code_span unary_operator_span() {
+    return source_code_span(this->unary_operator_begin_,
+                            this->unary_operator_begin_ + strlen(u8"typeof"));
+  }
 };
 static_assert(expression_arena::is_allocatable<expression::_typeof>);
 
