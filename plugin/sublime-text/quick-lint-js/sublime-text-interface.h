@@ -101,9 +101,11 @@ void qljs_sublime_text_document_delete(qljs_sublime_text_document *document);
 void qljs_sublime_text_document_set_text(qljs_sublime_text_document *document,
                                          qljs_sublime_text_text text);
 
+#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 void qljs_sublime_text_document_replace_text(
     qljs_sublime_text_document *document, const qljs_sublime_text_range range,
     const qljs_sublime_text_text text);
+#endif
 
 const qljs_sublime_text_diagnostic *qljs_sublime_text_document_lint(
     qljs_sublime_text_document *document);

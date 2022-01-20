@@ -9,11 +9,11 @@ from ctypes import c_char_p, c_int, c_size_t, c_uint
 from os import chdir, getcwd, path
 from platform import system
 
-from sublime import version
+import sublime
 
 
 def have_incremental_changes():
-    major_version = version()[0]
+    major_version = sublime.version()[0]
     return int(major_version) > 3
 
 
@@ -151,9 +151,10 @@ def library_new():
     library.document_set_text = library.qljs_sublime_text_document_set_text
     library.document_set_text.argtypes = [CDocumentP, CText]
     library.document_set_text.restype = None
-    library.document_replace_text = library.qljs_sublime_text_document_replace_text
-    library.document_replace_text.argtypes = [CDocumentP, CRange, CText]
-    library.document_replace_text.restype = None
+    if have_incremental_changes():
+        library.document_replace_text = library.qljs_sublime_text_document_replace_text
+        library.document_replace_text.argtypes = [CDocumentP, CRange, CText]
+        library.document_replace_text.restype = None
     library.document_lint = library.qljs_sublime_text_document_lint
     library.document_lint.argtypes = [CDocumentP]
     library.document_lint.restype = CDiagnosticP
@@ -204,13 +205,15 @@ class Document:
         c_text = CText(content, len(content))
         self.library.set_text(self.c_document_p, c_text)
 
-    def replace_text(self, change):
-        c_start = CPosition(change.a.row, change.a.col_utf16)
-        c_end = CPosition(change.b.row, change.b.col_utf16)
-        c_range_p = CRange(Start, End)
-        content = change.str.encode()
-        c_text_p = CText(content, len(content))
-        self.library.replace_text(self.c_document_p, c_range, c_text)
+    if have_incremental_changes():
+
+        def replace_text(self, change):
+            c_start = CPosition(change.a.row, change.a.col_utf16)
+            c_end = CPosition(change.b.row, change.b.col_utf16)
+            c_range_p = CRange(Start, End)
+            content = change.str.encode()
+            c_text = CText(content, len(content))
+            self.library.replace_text(self.c_document_p, c_range, c_text)
 
     def lint(self):
         c_diagnostic_p = self.library.lint(self.c_document_p)
