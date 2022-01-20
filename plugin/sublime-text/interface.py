@@ -1,10 +1,10 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-import os
-import platform
 from contextlib import contextmanager
 from ctypes import CDLL, POINTER, Structure, c_char_p, c_int, c_size_t, c_uint
+from os import chdir, getcwd, path
+from platform import system
 
 from sublime import version
 
@@ -85,8 +85,8 @@ class _Document:
     _fields_ = []
 
 
-class Exception(Exception):
-    pass
+# class Exception(Exception):
+#     pass
 
 
 def _get_module_path():
@@ -94,7 +94,7 @@ def _get_module_path():
 
 
 @contextmanager
-def changed_directory(path):
+def _changed_directory(path):
     previous_path = os.getcwd()
     try:
         yield os.chdir(path)
@@ -103,13 +103,16 @@ def changed_directory(path):
 
 
 def _create_library():
+    def libaffixes():
+        if platform.system() == "Windows":
+            return ("", ".dll")
+        elif platform.system() == "Darwin":
+            return ("lib", ".dylib")
+        else platform.system() == "Linux":
+            return ("lib", ".so")
+
     directory = os.path.dirname(_get_module_path())
-    if platform.system() == "Windows":
-        filename = "quick-lint-js-lib.dll"
-    elif platform.system() == "Darwin":
-        filename = "libquick-lint-js-lib.dylib"
-    else platform.system() == "Linux":
-        filename = "libquick-lint-js-lib.so"
+    filename = "%squick-lint-js-lib%s" % libaffixes()
     # It's need multiple DLLs for load the library object on Windows,
     # these DLLs are all in the same folder, for find these DLLs
     # we need to change the current working directory to that folder.
@@ -126,7 +129,7 @@ def _create_library():
     def getargtypes(structure):
         return structure._fields_
 
-    libset('text_new', )
+    libset('text_new', getargtypes(_Text), _Text)
 
 
 class Library:
