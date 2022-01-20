@@ -111,35 +111,33 @@ def library_new():
     pathname = library_pathname()
     filename = library_filename()
 
-    # It's need multiple DLLs for load the library object on Windows,
-    # these DLLs are all in the same folder, for find these DLLs
-    # we need to change the current working directory to that folder.
+    # Multiple .dll files are needed to load the quick-lint-js library
+    # on Windows. These .dll files are all in the same folder.
+    # For ctypes to find these .dll files, we need to change the current
+    # working directory to the folder where these .dll files are.
     with changed_directory(pathname):
         library = CLoadLibrary(filename)
 
     library.document_new = library.qljs_sublime_text_document_new
     library.document_new.argtypes = []
     library.document_new.restype = CDocumentP
-    library.qljs_sublime_text_document_delete.argtypes = [_DocumentPointer]
-    library.qljs_sublime_text_document_delete.restype = None
-    library.qljs_sublime_text_document_set_text.argtypes = [
-        _DocumentPointer,
-        _Text,
-    ]
-    library.qljs_sublime_text_document_set_text.restype = None
-    library.qljs_sublime_text_document_replace_text.argtypes = [
-        _DocumentPointer,
-        _Range,
-        _Text,
-    ]
-    library.qljs_sublime_text_document_replace_text.restype = None
-    library.qljs_sublime_text_document_lint.argtypes = [_DocumentPointer]
-    library.qljs_sublime_text_document_lint.restype = _DiagnosticPointer
+    library.document_delete = library.qljs_sublime_text_document_delete
+    library.document_delete.argtypes = [CDocumentP]
+    library.document_delete.restype = None
+    library.document_set_text = library.qljs_sublime_text_document_set_text
+    library.document_set_text.argtypes = [CDocumentP, CText]
+    library.document_set_text.restype = None
+    library.document_replace_text = library.qljs_sublime_text_document_replace_text
+    library.document_replace_text.argtypes = [CDocumentP, CRange, CText]
+    library.document_replace_text.restype = None
+    library.document_lint = library.qljs_sublime_text_document_lint
+    library.document_lint.argtypes = [CDocumentP]
+    library.document_lint.restype = CDiagnosticP
 
     return library
 
 
-def _error_message(message):
+def error_message(message):
     sublime.error_message("quick-lint-js: " + message)
 
 
