@@ -114,12 +114,12 @@ def library_new():
     # It's need multiple DLLs for load the library object on Windows,
     # these DLLs are all in the same folder, for find these DLLs
     # we need to change the current working directory to that folder.
-    with _changed_directory(directory):
-        library = CDLL(filename)
+    with changed_directory(pathname):
+        library = CLoadLibrary(filename)
 
     library.document_new = library.qljs_sublime_text_document_new
     library.document_new.argtypes = []
-    library.document_new.restype = _DocumentPointer
+    library.document_new.restype = CDocumentP
     library.qljs_sublime_text_document_delete.argtypes = [_DocumentPointer]
     library.qljs_sublime_text_document_delete.restype = None
     library.qljs_sublime_text_document_set_text.argtypes = [
