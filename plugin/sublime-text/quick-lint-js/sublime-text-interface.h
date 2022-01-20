@@ -77,6 +77,10 @@ qljs_sublime_text_position *qljs_sublime_text_position_new(
 void qljs_sublime_text_position_delete(qljs_sublime_text_position *position);
 #else
 typedef qljs_sublime_text_offset qljs_sublime_text_position;
+
+qljs_sublime_text_position *qljs_sublime_text_position_new();
+
+void qljs_sublime_text_position_delete(qljs_sublime_text_position *position);
 #endif
 
 //==============================================================================
@@ -88,14 +92,14 @@ typedef struct qljs_sublime_text_range {
   qljs_sublime_text_position start;
   qljs_sublime_text_position end;
 } qljs_sublime_text_range;
+#else
+typedef qljs_sublime_text_region qljs_sublime_text_range;
+#endif
 
 qljs_sublime_text_range *qljs_sublime_text_range_new(
     qljs_sublime_text_position start, qljs_sublime_text_position end);
 
 void qljs_sublime_text_range_delete(qljs_sublime_text_range *range);
-#else
-typedef qljs_sublime_text_region qljs_sublime_text_range;
-#endif
 
 //==============================================================================
 //------------------------------------------------------------------------------

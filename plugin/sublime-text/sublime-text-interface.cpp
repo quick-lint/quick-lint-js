@@ -58,7 +58,6 @@ void qljs_sublime_text_position_delete(qljs_sublime_text_position *position) {
 //------------------------------------------------------------------------------
 // range
 
-#if QLJS_SUBLIME_TEXT_HAVE_INCREMENTAL_CHANGES
 qljs_sublime_text_range *qljs_sublime_text_range_new(
     qljs_sublime_text_position start, qljs_sublime_text_position end) {
   return new qljs_sublime_text_range{.start = start, .end = end};
@@ -67,7 +66,6 @@ qljs_sublime_text_range *qljs_sublime_text_range_new(
 void qljs_sublime_text_range_delete(qljs_sublime_text_range *range) {
   delete range;
 }
-#endif
 
 //==============================================================================
 //------------------------------------------------------------------------------

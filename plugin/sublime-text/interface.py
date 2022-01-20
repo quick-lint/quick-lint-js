@@ -3,9 +3,15 @@
 
 import os
 import platform
+import sublime
 from ctypes import CDLL, POINTER, Structure, c_char_p, c_int, c_size_t, c_uint
 
 from . import utils
+
+
+def _have_incremental_changes():
+    major_version = sublime.version()[0]
+    return int(major_version) > 3
 
 
 _Offset = c_uint
@@ -24,7 +30,7 @@ _TextPointer = POINTER(_Text)
 
 class _Region(Structure):
     _fields_ = [
-        ("begin", _Offset),
+        ("start", _Offset),
         ("end", _Offset),
     ]
 
@@ -32,7 +38,7 @@ class _Region(Structure):
 _RegionPointer = POINTER(_Region)
 
 
-if utils.sublime_have_incremental_changes():
+if _have_incremental_changes():
 
     class _Position(Structure):
         _fields_ = [
@@ -48,7 +54,7 @@ else:
     _PositionPointer = _OffsetPointer
 
 
-if utils.sublime_have_incremental_changes():
+if _have_incremental_changes():
 
     class _Range(Structure):
         _fields_ = [
@@ -81,6 +87,12 @@ class Exception(Exception):
     pass
 
 
+
+
+def _create_library():
+    pass
+
+
 class Library:
     @staticmethod
     def get_file_extension():
@@ -92,8 +104,8 @@ class Library:
             return ".so"
 
     def __init__(self):
-        directory = 
-        filename = 
+        directory = os.path.dirname(utils.get_module_path(__name__))
+        filename = "quick-lint-js-lib" + self.get_file_extension()
         # It's need multiple DLLs for load the library object on Windows,
         # these DLLs are all in the same folder, for find these DLLs
         # we need to change the current working directory to that folder.
@@ -134,7 +146,7 @@ class Library:
     def set_text(self, Document_p, Text_p):
         return self.Set_text(Document_p, Text_p)
 
-    if utils.sublime_have_incremental_changes():
+    if _have_incremental_changes():
 
         def replace_text(self, Document_p, Range_p, Text_p):
             return self.Replace_text(Document_p, Range_p, Text_p)
