@@ -2804,28 +2804,26 @@ next:
         mismatch = true;
       }
       if (mismatch) {
-        using pmr_string8 = std::basic_string<
-            char8, std::char_traits<char8>,
-            boost::container::pmr::polymorphic_allocator<char8>>;
-        pmr_string8* opening_tag_name_pretty =
-            this->error_memory_.new_object<pmr_string8>(
-                this->error_memory_.standard_allocator<char8>());
+        bump_vector<char8, monotonic_allocator> opening_tag_name_pretty(
+            "opening_tag_name_pretty", &this->error_memory_);
         if (tag_namespace) {
-          *opening_tag_name_pretty += tag_namespace->span().string_view();
-          *opening_tag_name_pretty += u8':';
+          opening_tag_name_pretty += tag_namespace->span().string_view();
+          opening_tag_name_pretty += u8':';
           QLJS_ASSERT(tag);
         }
         if (tag) {
-          *opening_tag_name_pretty += tag->span().string_view();
+          opening_tag_name_pretty += tag->span().string_view();
         }
         for (const identifier& member : tag_members) {
-          if (!opening_tag_name_pretty->empty()) {
-            *opening_tag_name_pretty += u8'.';
+          if (!opening_tag_name_pretty.empty()) {
+            opening_tag_name_pretty += u8'.';
           }
-          *opening_tag_name_pretty += member.span().string_view();
+          opening_tag_name_pretty += member.span().string_view();
         }
 
         const char8* closing_tag_end = this->lexer_.end_of_previous_token();
+        string8_view opening_tag_name_pretty_view(opening_tag_name_pretty);
+        opening_tag_name_pretty.release();
         this->error_reporter_->report(error_mismatched_jsx_tags{
             .opening_tag_name =
                 tag_namespace
@@ -2841,7 +2839,7 @@ next:
                     :
                     // This happens for </> (fragment close).
                     source_code_span(closing_tag_begin, closing_tag_begin),
-            .opening_tag_name_pretty = opening_tag_name_pretty->data(),
+            .opening_tag_name_pretty = opening_tag_name_pretty_view,
         });
       }
 

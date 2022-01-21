@@ -2,7 +2,6 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <cstdint>
 #include <cstring>
 #include <iterator>
@@ -21,6 +20,7 @@
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 #include <type_traits>
 #include <utility>
@@ -1575,12 +1575,9 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
   const char8* private_identifier_begin =
       is_private_identifier ? &identifier_begin[-1] : identifier_begin;
 
-  using lexer_string8 =
-      std::basic_string<char8, std::char_traits<char8>,
-                        boost::container::pmr::polymorphic_allocator<char8>>;
-  lexer_string8* normalized = this->allocator_.new_object<lexer_string8>(
-      private_identifier_begin, input,
-      this->allocator_.standard_allocator<char8>());
+  bump_vector<char8, monotonic_allocator> normalized(
+      "parse_identifier_slow normalized", &this->allocator_);
+  normalized.append(private_identifier_begin, input);
 
   escape_sequence_list escape_sequences(
       this->allocator_.standard_allocator<source_code_span>());
@@ -1596,13 +1593,13 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
       if (code_point >= 0x110000) {
         // parse_unicode_escape reported
         // error_escaped_code_point_in_identifier_out_of_range already.
-        normalized->append(escape_begin, escape.end);
+        normalized.append(escape_begin, escape.end);
       } else if (!is_initial_identifier_character &&
                  kind == identifier_kind::jsx && code_point == u'-') {
         this->error_reporter_->report(
             error_escaped_hyphen_not_allowed_in_jsx_tag{
                 .escape_sequence = source_code_span(escape_begin, escape.end)});
-        normalized->append(escape_begin, escape.end);
+        normalized.append(escape_begin, escape.end);
       } else if (!(is_initial_identifier_character
                        ? this->is_initial_identifier_character(code_point)
                        : this->is_identifier_character(
@@ -1610,16 +1607,16 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
         this->error_reporter_->report(
             error_escaped_character_disallowed_in_identifiers{
                 .escape_sequence = source_code_span(escape_begin, escape.end)});
-        normalized->append(escape_begin, escape.end);
+        normalized.append(escape_begin, escape.end);
       } else {
-        normalized->append(4, u8'\0');
-        const char8* end = encode_utf_8(
-            code_point, &normalized->data()[normalized->size() - 4]);
-        normalized->resize(narrow_cast<std::size_t>(end - normalized->data()));
+        normalized.append(4, u8'\0');
+        const char8* end =
+            encode_utf_8(code_point, &normalized.data()[normalized.size() - 4]);
+        normalized.resize(narrow_cast<std::size_t>(end - normalized.data()));
         escape_sequences.emplace_back(escape_begin, escape.end);
       }
     } else {
-      normalized->append(escape_begin, escape.end);
+      normalized.append(escape_begin, escape.end);
     }
 
     QLJS_ASSERT(input != escape.end);
@@ -1646,7 +1643,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
       }
       this->error_reporter_->report(error_invalid_utf_8_sequence{
           .sequence = source_code_span(errors_begin, input)});
-      normalized->append(errors_begin, input);
+      normalized.append(errors_begin, input);
       continue;
     }
 
@@ -1659,7 +1656,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
         const char8* backslash_end = input;
         this->error_reporter_->report(error_unexpected_backslash_in_identifier{
             .backslash = source_code_span(backslash_begin, backslash_end)});
-        normalized->append(backslash_begin, backslash_end);
+        normalized.append(backslash_begin, backslash_end);
       }
     } else {
       QLJS_ASSERT(decode_result.size >= 1);
@@ -1688,14 +1685,17 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
         }
       }
 
-      normalized->append(character_begin, character_end);
+      normalized.append(character_begin, character_end);
       input = character_end;
     }
   }
 
+  string8_view normalized_view(normalized);
+  normalized.release();
+
   return parsed_identifier{
       .after = input,
-      .normalized = string8_view(*normalized),
+      .normalized = normalized_view,
       .escape_sequences = this->allocator_.new_object<escape_sequence_list>(
           std::move(escape_sequences)),
   };

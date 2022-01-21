@@ -140,6 +140,8 @@ parser::binary_expression_builder::move_operator_spans(
   return arena.make_array(std::move(this->operator_spans_));
 }
 
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
 void parser::check_jsx_attribute(const identifier& attribute_name) {
   const std::unordered_map<string8_view, jsx_attribute>& aliases =
       jsx_attribute_aliases();
@@ -176,17 +178,16 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
   bool name_has_upper = std::any_of(name.begin(), name.end(), isupper);
 
   if (!name_has_upper && is_event_attribute) {
-    using pmr_string8 =
-        std::basic_string<char8, std::char_traits<char8>,
-                          boost::container::pmr::polymorphic_allocator<char8>>;
-    pmr_string8* fixed_name = this->error_memory_.new_object<pmr_string8>(
-        name, this->error_memory_.standard_allocator<char8>());
-    (*fixed_name)[2] = toupper((*fixed_name)[2]);
+    bump_vector<char8, monotonic_allocator> fixed_name(
+        "check_jsx_attribute fixed_name", &this->error_memory_);
+    fixed_name += name;
+    fixed_name[2] = toupper(fixed_name[2]);
     this->error_reporter_->report(
         error_jsx_event_attribute_should_be_camel_case{
             .attribute_name = attribute_name,
-            .expected_attribute_name = *fixed_name,
+            .expected_attribute_name = string8_view(fixed_name),
         });
+    fixed_name.release();
   }
 
   if (name_has_upper) {
@@ -206,6 +207,7 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
     }
   }
 }
+QLJS_WARNING_POP
 
 function_attributes parser::parse_generator_star(
     function_attributes original_attributes) {

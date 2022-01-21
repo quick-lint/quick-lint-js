@@ -97,6 +97,83 @@ TEST(test_bump_vector, growing_allocation_by_copy) {
   EXPECT_EQ(*middle_number, 42)
       << "growing vector shouldn't change unrelated allocation";
 }
+
+TEST(test_bump_vector, resize_allows_same_size) {
+  linked_bump_allocator<alignof(int)> alloc;
+  bump_vector<int, decltype(alloc)> v("test", &alloc);
+  v.emplace_back(100);
+  v.emplace_back(200);
+  std::uintptr_t old_v_data_pointer =
+      reinterpret_cast<std::uintptr_t>(v.data());
+  std::size_t old_capacity = v.capacity();
+
+  v.resize(2);
+
+  EXPECT_EQ(v.size(), 2) << "resizing vector should not change size";
+  EXPECT_EQ(v.capacity(), old_capacity)
+      << "resizing vector should not change capacity";
+  EXPECT_THAT(v, ElementsAre(100, 200));
+  EXPECT_EQ(old_v_data_pointer, reinterpret_cast<std::uintptr_t>(v.data()))
+      << "resizing vector should not change data pointer";
+}
+
+TEST(test_bump_vector, resize_allows_shrinking) {
+  linked_bump_allocator<alignof(int)> alloc;
+  bump_vector<int, decltype(alloc)> v("test", &alloc);
+  v.emplace_back(100);
+  v.emplace_back(200);
+  v.emplace_back(300);
+  std::uintptr_t old_v_data_pointer =
+      reinterpret_cast<std::uintptr_t>(v.data());
+  std::size_t old_capacity = v.capacity();
+
+  v.resize(2);
+
+  EXPECT_EQ(v.size(), 2) << "shrinking vector should change size";
+  EXPECT_EQ(v.capacity(), old_capacity)
+      << "shrinking vector should not change capacity";
+  EXPECT_THAT(v, ElementsAre(100, 200))
+      << "shrinking vector should preserve some elements";
+  EXPECT_EQ(old_v_data_pointer, reinterpret_cast<std::uintptr_t>(v.data()))
+      << "shrinking vector should not change data pointer";
+}
+
+TEST(test_bump_vector, resize_allows_growing_within_capacity) {
+  linked_bump_allocator<alignof(int)> alloc;
+  bump_vector<int, decltype(alloc)> v("test", &alloc);
+  v.emplace_back(100);
+  v.emplace_back(200);
+  std::uintptr_t old_v_data_pointer =
+      reinterpret_cast<std::uintptr_t>(v.data());
+  std::size_t old_capacity = v.capacity();
+
+  ASSERT_GE(old_capacity, 3);
+  v.resize(3);
+
+  EXPECT_EQ(v.size(), 3) << "growing vector should change size";
+  EXPECT_EQ(v.capacity(), old_capacity)
+      << "growing vector should not change capacity";
+  EXPECT_THAT(v, ElementsAre(100, 200, 0))
+      << "growing vector should default-construct new elements";
+  EXPECT_EQ(old_v_data_pointer, reinterpret_cast<std::uintptr_t>(v.data()))
+      << "growing vector within capacity should not change data pointer";
+}
+
+TEST(test_bump_vector, resize_allows_growing_outside_capacity) {
+  linked_bump_allocator<alignof(int)> alloc;
+  bump_vector<int, decltype(alloc)> v("test", &alloc);
+  v.emplace_back(100);
+  v.emplace_back(200);
+
+  ASSERT_LT(v.capacity(), 10);
+  v.resize(10);
+
+  EXPECT_EQ(v.size(), 10) << "growing vector should change size";
+  EXPECT_EQ(v.capacity(), 10) << "growing vector should change capacity";
+  EXPECT_THAT(v, ElementsAre(100, 200, 0, 0, 0,  //
+                             0, 0, 0, 0, 0))
+      << "growing vector should default-construct new elements";
+}
 }
 }
 
