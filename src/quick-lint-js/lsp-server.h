@@ -25,8 +25,6 @@
 
 namespace quick_lint_js {
 class byte_buffer;
-class configuration;
-class configuration_filesystem;
 struct watch_io_error;
 
 class lsp_linter {
