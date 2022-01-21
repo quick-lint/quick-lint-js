@@ -39,9 +39,9 @@ void benchmark_lsp_full_text_change_on_tiny_document(
   // TODO(strager): This performs undesired filesystem accesses! Make a
   // null_configuration_filesystem.
   basic_configuration_filesystem fs;
-  lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
-               null_lsp_writer>
-      lsp_server(std::forward_as_tuple(&fs), std::forward_as_tuple());
+  lsp_javascript_linter linter;
+  lsp_endpoint<linting_lsp_server_handler, null_lsp_writer> lsp_server(
+      std::forward_as_tuple(&fs, &linter), std::forward_as_tuple());
   lsp_server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -115,9 +115,9 @@ void benchmark_lsp_full_text_change_on_large_document(
   // TODO(strager): This performs undesired filesystem accesses! Make a
   // null_configuration_filesystem.
   basic_configuration_filesystem fs;
-  lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
-               null_lsp_writer>
-      lsp_server(std::forward_as_tuple(&fs), std::forward_as_tuple());
+  lsp_javascript_linter linter;
+  lsp_endpoint<linting_lsp_server_handler, null_lsp_writer> lsp_server(
+      std::forward_as_tuple(&fs, &linter), std::forward_as_tuple());
 
   lsp_server.append(
       make_message(u8R"({
@@ -250,9 +250,9 @@ void benchmark_lsp_tiny_change_on_large_document(::benchmark::State& state) {
   // TODO(strager): This performs undesired filesystem accesses! Make a
   // null_configuration_filesystem.
   basic_configuration_filesystem fs;
-  lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
-               null_lsp_writer>
-      lsp_server(std::forward_as_tuple(&fs), std::forward_as_tuple());
+  lsp_javascript_linter linter;
+  lsp_endpoint<linting_lsp_server_handler, null_lsp_writer> lsp_server(
+      std::forward_as_tuple(&fs, &linter), std::forward_as_tuple());
   lsp_server.append(make_message(did_open_message_json.get_flushed_string8()));
 
   for (auto _ : state) {

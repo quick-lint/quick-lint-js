@@ -563,7 +563,7 @@ void run_lsp_server() {
 #error "Unsupported platform"
 #endif
           input_pipe_(input_pipe),
-          endpoint_(std::forward_as_tuple(&this->fs_),
+          endpoint_(std::forward_as_tuple(&this->fs_, &this->linter_),
                     std::forward_as_tuple(output_pipe)) {
       this->report_pending_watch_io_errors();
     }
@@ -647,9 +647,8 @@ void run_lsp_server() {
 #endif
 
     platform_file_ref input_pipe_;
-    lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
-                 lsp_pipe_writer>
-        endpoint_;
+    lsp_javascript_linter linter_;
+    lsp_endpoint<linting_lsp_server_handler, lsp_pipe_writer> endpoint_;
   };
 
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING

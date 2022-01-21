@@ -94,8 +94,7 @@ void lsp_overlay_configuration_filesystem::close_document(
   QLJS_ASSERT(erased);
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::handle_request(
+void linting_lsp_server_handler::handle_request(
     ::simdjson::ondemand::object& request, std::string_view method,
     string8_view id_json, byte_buffer& response_json) {
   if (method == "initialize") {
@@ -107,8 +106,7 @@ void linting_lsp_server_handler<Linter>::handle_request(
   }
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::handle_notification(
+void linting_lsp_server_handler::handle_notification(
     ::simdjson::ondemand::object& request, std::string_view method) {
   if (method == "textDocument/didChange") {
     this->handle_text_document_did_change_notification(request);
@@ -133,15 +131,13 @@ void linting_lsp_server_handler<Linter>::handle_notification(
   }
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::filesystem_changed() {
+void linting_lsp_server_handler::filesystem_changed() {
   std::vector<configuration_change> config_changes =
       this->config_loader_.refresh();
   this->handle_config_file_changes(config_changes);
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::add_watch_io_errors(
+void linting_lsp_server_handler::add_watch_io_errors(
     const std::vector<watch_io_error>& errors) {
   if (!errors.empty() && !this->did_report_watch_io_error_) {
     byte_buffer& out_json = this->pending_notification_jsons_.emplace_back();
@@ -159,8 +155,7 @@ void linting_lsp_server_handler<Linter>::add_watch_io_errors(
   }
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::handle_initialize_request(
+void linting_lsp_server_handler::handle_initialize_request(
     ::simdjson::ondemand::object&, string8_view id_json,
     byte_buffer& response_json) {
   response_json.append_copy(u8R"--({"id":)--"sv);
@@ -181,8 +176,7 @@ void linting_lsp_server_handler<Linter>::handle_initialize_request(
   // clang-format on
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::handle_shutdown_request(
+void linting_lsp_server_handler::handle_shutdown_request(
     ::simdjson::ondemand::object&, string8_view id_json,
     byte_buffer& response_json) {
   this->shutdown_requested_ = true;
@@ -191,10 +185,8 @@ void linting_lsp_server_handler<Linter>::handle_shutdown_request(
   response_json.append_copy(u8R"--(,"result":null})--"sv);
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::
-    handle_text_document_did_change_notification(
-        ::simdjson::ondemand::object& request) {
+void linting_lsp_server_handler::handle_text_document_did_change_notification(
+    ::simdjson::ondemand::object& request) {
   ::simdjson::ondemand::object text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
@@ -259,10 +251,8 @@ void linting_lsp_server_handler<Linter>::
   }
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::
-    handle_text_document_did_close_notification(
-        ::simdjson::ondemand::object& request) {
+void linting_lsp_server_handler::handle_text_document_did_close_notification(
+    ::simdjson::ondemand::object& request) {
   std::optional<string8_view> uri =
       maybe_make_string_view(request["params"]["textDocument"]["uri"]);
   if (!uri.has_value()) {
@@ -285,10 +275,8 @@ void linting_lsp_server_handler<Linter>::
   this->filesystem_changed();
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::
-    handle_text_document_did_open_notification(
-        ::simdjson::ondemand::object& request) {
+void linting_lsp_server_handler::handle_text_document_did_open_notification(
+    ::simdjson::ondemand::object& request) {
   ::simdjson::ondemand::object text_document;
   if (request["params"]["textDocument"].get(text_document) !=
       ::simdjson::error_code::SUCCESS) {
@@ -380,8 +368,7 @@ void linting_lsp_server_handler<Linter>::
   }
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::handle_config_file_changes(
+void linting_lsp_server_handler::handle_config_file_changes(
     const std::vector<configuration_change>& config_changes) {
   for (auto& entry : this->documents_) {
     const string8& document_uri = entry.first;
@@ -443,12 +430,9 @@ void linting_lsp_server_handler<Linter>::handle_config_file_changes(
   }
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::
-    get_config_file_diagnostics_notification(loaded_config_file* config_file,
-                                             string8_view uri_json,
-                                             string8_view version_json,
-                                             byte_buffer& notification_json) {
+void linting_lsp_server_handler::get_config_file_diagnostics_notification(
+    loaded_config_file* config_file, string8_view uri_json,
+    string8_view version_json, byte_buffer& notification_json) {
   // clang-format off
   notification_json.append_copy(
     u8R"--({)--"
@@ -470,11 +454,9 @@ void linting_lsp_server_handler<Linter>::
   notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--"sv);
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::
-    write_configuration_loader_error_notification(
-        std::string_view document_path, std::string_view error_details,
-        byte_buffer& out_json) {
+void linting_lsp_server_handler::write_configuration_loader_error_notification(
+    std::string_view document_path, std::string_view error_details,
+    byte_buffer& out_json) {
   // clang-format off
   out_json.append_copy(u8R"--({)--"
     u8R"--("jsonrpc":"2.0",)--"
@@ -489,11 +471,9 @@ void linting_lsp_server_handler<Linter>::
   out_json.append_copy(u8"\"}}"sv);
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::
-    write_configuration_errors_notification(std::string_view document_path,
-                                            loaded_config_file* config_file,
-                                            byte_buffer& out_json) {
+void linting_lsp_server_handler::write_configuration_errors_notification(
+    std::string_view document_path, loaded_config_file* config_file,
+    byte_buffer& out_json) {
   // clang-format off
   out_json.append_copy(u8R"--({)--"
     u8R"--("jsonrpc":"2.0",)--"
@@ -510,8 +490,7 @@ void linting_lsp_server_handler<Linter>::
   out_json.append_copy(u8").\"}}"sv);
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::apply_document_changes(
+void linting_lsp_server_handler::apply_document_changes(
     quick_lint_js::document<lsp_locator>& doc,
     ::simdjson::ondemand::array& changes) {
   for (::simdjson::simdjson_result<::simdjson::ondemand::value> change :
@@ -556,8 +535,7 @@ void linting_lsp_server_handler<Linter>::apply_document_changes(
   }
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::write_method_not_found_error_response(
+void linting_lsp_server_handler::write_method_not_found_error_response(
     string8_view request_id_json, byte_buffer& response_json) {
   // clang-format off
   response_json.append_copy(u8R"({)"
@@ -573,8 +551,7 @@ void linting_lsp_server_handler<Linter>::write_method_not_found_error_response(
   // clang-format on
 }
 
-template <QLJS_LSP_LINTER Linter>
-void linting_lsp_server_handler<Linter>::write_invalid_request_error_response(
+void linting_lsp_server_handler::write_invalid_request_error_response(
     byte_buffer& response_json) {
   // clang-format off
   response_json.append_copy(u8R"({)"
@@ -587,6 +564,8 @@ void linting_lsp_server_handler<Linter>::write_invalid_request_error_response(
   u8R"(})"sv);
   // clang-format on
 }
+
+lsp_linter::~lsp_linter() = default;
 
 void lsp_javascript_linter::lint_and_get_diagnostics_notification(
     configuration& config, padded_string_view code, string8_view uri_json,
@@ -631,18 +610,19 @@ void lsp_javascript_linter::lint_and_get_diagnostics(
   error_reporter.finish();
 }
 
+mock_lsp_linter::mock_lsp_linter() = default;
+
 mock_lsp_linter::mock_lsp_linter(
     std::function<lint_and_get_diagnostics_notification_type> callback)
     : callback_(std::move(callback)) {}
+
+mock_lsp_linter::~mock_lsp_linter() = default;
 
 void mock_lsp_linter::lint_and_get_diagnostics_notification(
     configuration& config, padded_string_view code, string8_view uri_json,
     string8_view version_json, byte_buffer& notification_json) {
   this->callback_(config, code, uri_json, version_json, notification_json);
 }
-
-template class linting_lsp_server_handler<lsp_javascript_linter>;
-template class linting_lsp_server_handler<mock_lsp_linter>;
 
 namespace {
 QLJS_WARNING_PUSH
