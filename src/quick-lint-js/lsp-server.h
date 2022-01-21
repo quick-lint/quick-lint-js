@@ -9,7 +9,6 @@
 #else
 
 #include <cstddef>
-#include <functional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
@@ -166,30 +165,6 @@ class lsp_javascript_linter final : public lsp_linter {
  private:
   void lint_and_get_diagnostics(configuration&, padded_string_view code,
                                 byte_buffer& diagnostics_json);
-};
-
-// TODO(strager): Move into test directory.
-class mock_lsp_linter final : public lsp_linter {
- public:
-  using lint_and_get_diagnostics_notification_type =
-      void(configuration&, padded_string_view code, string8_view uri_json,
-           string8_view version_json, byte_buffer& notification_json);
-
-  explicit mock_lsp_linter();
-  explicit mock_lsp_linter(
-      std::function<lint_and_get_diagnostics_notification_type> callback);
-
-  mock_lsp_linter(const mock_lsp_linter&) = default;
-  mock_lsp_linter& operator=(const mock_lsp_linter&) = default;
-
-  ~mock_lsp_linter() override;
-
-  void lint_and_get_diagnostics_notification(
-      configuration&, padded_string_view code, string8_view uri_json,
-      string8_view version_json, byte_buffer& notification_json) override;
-
- private:
-  std::function<lint_and_get_diagnostics_notification_type> callback_;
 };
 }
 

@@ -610,20 +610,6 @@ void lsp_javascript_linter::lint_and_get_diagnostics(
   error_reporter.finish();
 }
 
-mock_lsp_linter::mock_lsp_linter() = default;
-
-mock_lsp_linter::mock_lsp_linter(
-    std::function<lint_and_get_diagnostics_notification_type> callback)
-    : callback_(std::move(callback)) {}
-
-mock_lsp_linter::~mock_lsp_linter() = default;
-
-void mock_lsp_linter::lint_and_get_diagnostics_notification(
-    configuration& config, padded_string_view code, string8_view uri_json,
-    string8_view version_json, byte_buffer& notification_json) {
-  this->callback_(config, code, uri_json, version_json, notification_json);
-}
-
 namespace {
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")

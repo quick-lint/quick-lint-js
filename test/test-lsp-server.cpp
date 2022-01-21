@@ -6,6 +6,7 @@
 #else
 
 #include <boost/json/value.hpp>
+#include <functional>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <memory>
@@ -53,6 +54,33 @@ string8 make_message(string8_view content) {
 
 using endpoint =
     lsp_endpoint<linting_lsp_server_handler, spy_lsp_endpoint_remote>;
+
+class mock_lsp_linter final : public lsp_linter {
+ public:
+  using lint_and_get_diagnostics_notification_type =
+      void(configuration&, padded_string_view code, string8_view uri_json,
+           string8_view version_json, byte_buffer& notification_json);
+
+  explicit mock_lsp_linter() = default;
+
+  explicit mock_lsp_linter(
+      std::function<lint_and_get_diagnostics_notification_type> callback)
+      : callback_(std::move(callback)) {}
+
+  mock_lsp_linter(const mock_lsp_linter&) = default;
+  mock_lsp_linter& operator=(const mock_lsp_linter&) = default;
+
+  ~mock_lsp_linter() override = default;
+
+  void lint_and_get_diagnostics_notification(
+      configuration& config, padded_string_view code, string8_view uri_json,
+      string8_view version_json, byte_buffer& notification_json) override {
+    this->callback_(config, code, uri_json, version_json, notification_json);
+  }
+
+ private:
+  std::function<lint_and_get_diagnostics_notification_type> callback_;
+};
 
 class test_linting_lsp_server : public ::testing::Test {
  public:
