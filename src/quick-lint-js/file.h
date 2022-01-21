@@ -8,7 +8,6 @@
 // No file I/O on the web.
 #else
 
-#include <cstdio>
 #include <cstring>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
@@ -44,15 +43,6 @@ padded_string read_file_or_exit(const char *path);
 
 void write_file(const std::string &path, string8_view content);
 void write_file(const char *path, string8_view content);
-
-template <class Result>
-auto exit_on_read_file_error_handlers() {
-  return make_read_file_error_handlers(
-      [](const std::string &message) -> Result {
-        std::fprintf(stderr, "error: %s\n", message.c_str());
-        std::exit(1);
-      });
-}
 }
 
 #endif
