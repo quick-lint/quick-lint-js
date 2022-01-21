@@ -4,9 +4,10 @@
 #ifndef QUICK_LINT_JS_TOKEN_H
 #define QUICK_LINT_JS_TOKEN_H
 
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <iosfwd>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/monotonic-allocator.h>
+#include <quick-lint-js/vector.h>
 #include <vector>
 
 #define QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_FUNCTION_AND_YIELD \
@@ -221,9 +222,7 @@ enum class token_type {
 const char* to_string(token_type);
 std::ostream& operator<<(std::ostream&, token_type);
 
-using escape_sequence_list =
-    std::vector<source_code_span,
-                boost::container::pmr::polymorphic_allocator<source_code_span>>;
+using escape_sequence_list = bump_vector<source_code_span, monotonic_allocator>;
 
 struct token {
   identifier identifier_name() const noexcept;

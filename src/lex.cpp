@@ -1579,8 +1579,9 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
       "parse_identifier_slow normalized", &this->allocator_);
   normalized.append(private_identifier_begin, input);
 
-  escape_sequence_list escape_sequences(
-      this->allocator_.standard_allocator<source_code_span>());
+  escape_sequence_list* escape_sequences =
+      this->allocator_.new_object<escape_sequence_list>(
+          "parse_identifier_slow escape_sequences", &this->allocator_);
 
   auto parse_unicode_escape = [&]() {
     const char8* escape_begin = input;
@@ -1613,7 +1614,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
         const char8* end =
             encode_utf_8(code_point, &normalized.data()[normalized.size() - 4]);
         normalized.resize(narrow_cast<std::size_t>(end - normalized.data()));
-        escape_sequences.emplace_back(escape_begin, escape.end);
+        escape_sequences->emplace_back(escape_begin, escape.end);
       }
     } else {
       normalized.append(escape_begin, escape.end);
@@ -1696,8 +1697,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
   return parsed_identifier{
       .after = input,
       .normalized = normalized_view,
-      .escape_sequences = this->allocator_.new_object<escape_sequence_list>(
-          std::move(escape_sequences)),
+      .escape_sequences = escape_sequences,
   };
 }
 QLJS_WARNING_POP
