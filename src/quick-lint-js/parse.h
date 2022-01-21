@@ -29,57 +29,6 @@
 #include <csetjmp>
 #endif
 
-#define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR \
-  case token_type::ampersand:                                      \
-  case token_type::ampersand_ampersand:                            \
-  case token_type::bang_equal:                                     \
-  case token_type::bang_equal_equal:                               \
-  case token_type::circumflex:                                     \
-  case token_type::equal_equal:                                    \
-  case token_type::equal_equal_equal:                              \
-  case token_type::greater:                                        \
-  case token_type::greater_equal:                                  \
-  case token_type::greater_greater:                                \
-  case token_type::greater_greater_greater:                        \
-  case token_type::less_equal:                                     \
-  case token_type::less_less:                                      \
-  case token_type::percent:                                        \
-  case token_type::pipe:                                           \
-  case token_type::pipe_pipe:                                      \
-  case token_type::question_question:                              \
-  case token_type::star_star
-
-#define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL                 \
-  QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR: \
-  case token_type::less:                                      \
-  case token_type::star
-
-#define QLJS_CASE_BINARY_ONLY_OPERATOR   \
-  QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL: \
-  case token_type::kw_instanceof
-
-#define QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL \
-  case token_type::ampersand_equal:                               \
-  case token_type::circumflex_equal:                              \
-  case token_type::greater_greater_equal:                         \
-  case token_type::greater_greater_greater_equal:                 \
-  case token_type::less_less_equal:                               \
-  case token_type::minus_equal:                                   \
-  case token_type::percent_equal:                                 \
-  case token_type::pipe_equal:                                    \
-  case token_type::plus_equal:                                    \
-  case token_type::star_equal:                                    \
-  case token_type::star_star_equal
-
-#define QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR \
-  case token_type::slash_equal:                \
-    QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL
-
-#define QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR \
-  case token_type::ampersand_ampersand_equal:     \
-  case token_type::pipe_pipe_equal:               \
-  case token_type::question_question_equal
-
 #define QLJS_PARSER_UNIMPLEMENTED()                                   \
   do {                                                                \
     this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__); \
