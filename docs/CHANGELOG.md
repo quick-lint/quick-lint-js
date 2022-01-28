@@ -22,6 +22,9 @@ Semantic Versioning.
 * `async (param1, param2) {}` now reports [E0176][] ('missing arrow operator for
   arrow function'). ([E0176][] was previously reported only for non-`async`
   arrow functions.)
+* `let x = 'nah'; if (y) { let x = 'yah'; }` now reports [E0196][] ('new
+   variable shadows existing variable'). This warning is reported only when an
+   assignment (instead of a new variable declaration) was intended.
 
 ### Fixed
 
@@ -427,3 +430,4 @@ Beta release.
 [E0193]: https://quick-lint-js.com/errors/#E0193
 [E0194]: https://quick-lint-js.com/errors/#E0194
 [E0195]: https://quick-lint-js.com/errors/#E0195
+[E0196]: https://quick-lint-js.com/errors/#E0196

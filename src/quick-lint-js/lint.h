@@ -101,6 +101,15 @@ class linter {
     identifier declaration;
     variable_kind kind;
     declared_variable_scope declaration_scope;
+    // If false, this variable was declared and possibly initialized, but not
+    // used or assigned to after declaration. If true, this variable was used or
+    // assigned (or both) after its declaration.
+    bool is_used;
+    // If true, the programmer might have intended the variable declaration to
+    // be an assignment to an existing variable instead. This happens iff the
+    // variable has an initializer with '='. See
+    // variable_init_kind::initialized_with_equals.
+    bool declaration_possibly_looks_like_assignment;
   };
 
   enum class used_variable_kind {
@@ -131,11 +140,12 @@ class linter {
 
   class declared_variable_set {
    public:
-    const declared_variable *add_variable_declaration(identifier name,
-                                                      variable_kind,
-                                                      declared_variable_scope);
+    declared_variable *add_variable_declaration(
+        identifier name, variable_kind, declared_variable_scope,
+        bool declaration_possibly_looks_like_assignment);
 
     const declared_variable *find(identifier name) const noexcept;
+    declared_variable *find(identifier name) noexcept;
 
     void clear() noexcept;
 
@@ -163,7 +173,11 @@ class linter {
 
     // If true, the magic 'eval' function was used in this scope or in a
     // descendant non-function scope.
-    bool used_eval = false;
+    bool used_eval_in_this_scope = false;
+
+    // If true, the magic 'eval' function was used in a descendant function
+    // scope.
+    bool used_eval_in_descendant_scope = false;
 
     void clear();
   };
@@ -209,7 +223,8 @@ class linter {
   };
 
   void declare_variable(scope &, identifier name, variable_kind kind,
-                        declared_variable_scope declared_scope);
+                        declared_variable_scope declared_scope,
+                        bool declaration_possibly_looks_like_assignment);
   void visit_variable_use(identifier name, used_variable_kind);
 
   void propagate_variable_uses_to_parent_scope(
