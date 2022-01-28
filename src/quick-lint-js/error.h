@@ -1207,11 +1207,6 @@
       ERROR(QLJS_TRANSLATABLE("unclosed block comment"), comment_open))        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unopened_block_comment, "E0210",                                   \
-      { source_code_span comment_close; },                                     \
-      ERROR(QLJS_TRANSLATABLE("unopened block comment"), comment_close))       \
-                                                                               \
-  QLJS_ERROR_TYPE(                                                             \
       error_unclosed_code_block, "E0134", { source_code_span block_open; },    \
       ERROR(QLJS_TRANSLATABLE(                                                 \
                 "unclosed code block; expected '}' by end of file"),           \
@@ -1368,6 +1363,11 @@
       ERROR(                                                                   \
           QLJS_TRANSLATABLE("for-of loop expression cannot have semicolons"),  \
           semicolon))                                                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unopened_block_comment, "E0210",                                   \
+      { source_code_span comment_close; },                                     \
+      ERROR(QLJS_TRANSLATABLE("unopened block comment"), comment_close))       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_no_digits_in_binary_number, "E0049",                               \
