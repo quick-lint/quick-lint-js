@@ -212,12 +212,11 @@ class linter {
   void visit_variable_use(identifier name, used_variable_kind);
 
   void propagate_variable_uses_to_parent_scope(
-      bool allow_variable_use_before_declaration, bool consume_arguments,
-      bool propagate_eval_use);
+      bool allow_variable_use_before_declaration, bool consume_arguments);
   template <class Scope>
   void propagate_variable_uses_to_parent_scope(
       Scope &parent_scope, bool allow_variable_use_before_declaration,
-      bool consume_arguments, bool propagate_eval_use);
+      bool consume_arguments);
 
   void propagate_variable_declarations_to_parent_scope();
 

@@ -179,8 +179,7 @@ void linter::visit_enter_function_scope() { this->scopes_.push(); }
 void linter::visit_enter_function_scope_body() {
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/true,
-      /*consume_arguments=*/true,
-      /*propagate_eval_use=*/true);
+      /*consume_arguments=*/true);
 }
 
 void linter::visit_enter_named_function_scope(identifier function_name) {
@@ -196,8 +195,7 @@ void linter::visit_exit_block_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/false,
-      /*propagate_eval_use=*/true);
+      /*consume_arguments=*/false);
   this->propagate_variable_declarations_to_parent_scope();
   this->scopes_.pop();
 }
@@ -213,8 +211,7 @@ void linter::visit_exit_class_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/false,
-      /*propagate_eval_use=*/false);
+      /*consume_arguments=*/false);
 
   // No variable declarations should be propagatable to the parent scope.
   for (const declared_variable &var :
@@ -229,8 +226,7 @@ void linter::visit_exit_for_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/false,
-      /*propagate_eval_use=*/true);
+      /*consume_arguments=*/false);
   this->propagate_variable_declarations_to_parent_scope();
   this->scopes_.pop();
 }
@@ -239,8 +235,7 @@ void linter::visit_exit_function_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
       /*allow_variable_use_before_declaration=*/true,
-      /*consume_arguments=*/true,
-      /*propagate_eval_use=*/false);
+      /*consume_arguments=*/true);
   this->scopes_.pop();
 }
 
@@ -424,8 +419,7 @@ void linter::visit_end_of_module() {
   this->propagate_variable_uses_to_parent_scope(
       /*parent_scope=*/global_scope,
       /*allow_variable_use_before_declaration=*/false,
-      /*consume_arguments=*/false,
-      /*propagate_eval_use=*/false);
+      /*consume_arguments=*/false);
 
   std::vector<identifier> typeof_variables;
   for (const used_variable &used_var : global_scope.variables_used) {
@@ -497,21 +491,18 @@ void linter::visit_end_of_module() {
 }
 
 void linter::propagate_variable_uses_to_parent_scope(
-    bool allow_variable_use_before_declaration, bool consume_arguments,
-    bool propagate_eval_use) {
+    bool allow_variable_use_before_declaration, bool consume_arguments) {
   this->propagate_variable_uses_to_parent_scope(
       /*parent_scope=*/this->parent_scope(),
       /*allow_variable_use_before_declaration=*/
       allow_variable_use_before_declaration,
-      /*consume_arguments=*/
-      consume_arguments,
-      /*propagate_eval_use=*/propagate_eval_use);
+      /*consume_arguments=*/consume_arguments);
 }
 
 template <class Scope>
 void linter::propagate_variable_uses_to_parent_scope(
     Scope &parent_scope, bool allow_variable_use_before_declaration,
-    bool consume_arguments, [[maybe_unused]] bool propagate_eval_use) {
+    bool consume_arguments) {
   constexpr bool parent_scope_is_global_scope =
       std::is_same_v<Scope, global_scope>;
 
