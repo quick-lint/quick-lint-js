@@ -164,10 +164,6 @@ class linter {
     // descendant non-function scope.
     bool used_eval = false;
 
-    // If true, the magic 'eval' function was used in a descendant function
-    // scope.
-    bool used_eval_in_descendant_scope_only = false;
-
     void clear();
   };
 

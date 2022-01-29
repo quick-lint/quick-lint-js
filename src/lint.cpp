@@ -511,7 +511,7 @@ void linter::propagate_variable_uses_to_parent_scope(
 template <class Scope>
 void linter::propagate_variable_uses_to_parent_scope(
     Scope &parent_scope, bool allow_variable_use_before_declaration,
-    bool consume_arguments, bool propagate_eval_use) {
+    bool consume_arguments, [[maybe_unused]] bool propagate_eval_use) {
   constexpr bool parent_scope_is_global_scope =
       std::is_same_v<Scope, global_scope>;
 
@@ -527,11 +527,6 @@ void linter::propagate_variable_uses_to_parent_scope(
     if (!allow_variable_use_before_declaration) {
       parent_scope.used_eval =
           parent_scope.used_eval || current_scope.used_eval;
-    }
-    if (propagate_eval_use) {
-      parent_scope.used_eval_in_descendant_scope_only =
-          parent_scope.used_eval_in_descendant_scope_only ||
-          current_scope.used_eval;
     }
   }
 
@@ -560,8 +555,7 @@ void linter::propagate_variable_uses_to_parent_scope(
   }
   current_scope.variables_used.clear();
 
-  if (!(current_scope.used_eval ||
-        current_scope.used_eval_in_descendant_scope_only)) {
+  if (!current_scope.used_eval) {
     for (const used_variable &used_var :
          current_scope.variables_used_in_descendant_scope) {
       const auto var = parent_scope.declared_variables.find(used_var.name);
@@ -814,7 +808,6 @@ void linter::scope::clear() {
   this->variables_used_in_descendant_scope.clear();
   this->function_expression_declaration.reset();
   this->used_eval = false;
-  this->used_eval_in_descendant_scope_only = false;
 }
 
 linter::scopes::scopes() {
