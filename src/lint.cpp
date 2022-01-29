@@ -543,10 +543,7 @@ void linter::propagate_variable_uses_to_parent_scope(
             .emplace_back(used_var);
       }
     }
-  }
-  current_scope.variables_used.clear();
 
-  if (!current_scope.used_eval) {
     for (const used_variable &used_var :
          current_scope.variables_used_in_descendant_scope) {
       const auto var = parent_scope.declared_variables.find(used_var.name);
@@ -563,6 +560,7 @@ void linter::propagate_variable_uses_to_parent_scope(
       }
     }
   }
+  current_scope.variables_used.clear();
   current_scope.variables_used_in_descendant_scope.clear();
 }
 
