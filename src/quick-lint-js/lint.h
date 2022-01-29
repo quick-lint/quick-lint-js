@@ -160,6 +160,14 @@ class linter {
     std::vector<used_variable> variables_used_in_descendant_scope;
     std::optional<declared_variable> function_expression_declaration;
 
+    // If true, the magic 'eval' function was used in this scope or in a
+    // descendant non-function scope.
+    bool used_eval = false;
+
+    // If true, the magic 'eval' function was used in a descendant function
+    // scope.
+    bool used_eval_in_descendant_scope_only = false;
+
     void clear();
   };
 
