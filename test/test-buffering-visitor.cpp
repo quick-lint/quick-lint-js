@@ -50,7 +50,8 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_property_declaration(identifier_of(property_name));
   v.visit_variable_assignment(identifier_of(variable_name));
   v.visit_variable_declaration(identifier_of(variable_name),
-                               variable_kind::_var);
+                               variable_kind::_var,
+                               variable_init_kind::initialized_with_equals);
   v.visit_variable_delete_use(identifier_of(variable_name),
                               span_of(delete_keyword));
   v.visit_variable_export_use(identifier_of(variable_name));

@@ -245,7 +245,8 @@ void linter::visit_keyword_variable_use(identifier) {
 
 void linter::visit_property_declaration(std::optional<identifier>) {}
 
-void linter::visit_variable_declaration(identifier name, variable_kind kind) {
+void linter::visit_variable_declaration(identifier name, variable_kind kind,
+                                        variable_init_kind) {
   this->declare_variable(
       /*scope=*/this->current_scope(),
       /*name=*/name,

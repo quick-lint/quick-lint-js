@@ -23,6 +23,13 @@ void PrintTo(const spy_visitor::visited_variable_assignment &x,
 void PrintTo(const spy_visitor::visited_variable_declaration &x,
              std::ostream *out) {
   *out << x.kind << ' ' << out_string8(x.name);
+  switch (x.init_kind) {
+  case variable_init_kind::normal:
+    break;
+  case variable_init_kind::initialized_with_equals:
+    *out << " (initialized with '=')";
+    break;
+  }
 }
 
 void PrintTo(const spy_visitor::visited_variable_use &x, std::ostream *out) {

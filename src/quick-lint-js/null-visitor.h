@@ -27,7 +27,8 @@ class null_visitor {
   void visit_keyword_variable_use(identifier) {}
   void visit_property_declaration(std::optional<identifier>) {}
   void visit_variable_assignment(identifier) {}
-  void visit_variable_declaration(identifier, variable_kind) {}
+  void visit_variable_declaration(identifier, variable_kind,
+                                  variable_init_kind) {}
   void visit_variable_delete_use(identifier, source_code_span) {}
   void visit_variable_export_use(identifier) {}
   void visit_variable_typeof_use(identifier) {}

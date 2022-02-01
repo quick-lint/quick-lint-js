@@ -268,13 +268,10 @@ class parser {
   bool is_let_token_a_variable_reference(token following_token,
                                          bool allow_declarations) noexcept;
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_binding_element(
-      Visitor &v, variable_kind declaration_kind,
-      std::optional<source_code_span> declaring_token, bool allow_in_operator);
-  template <QLJS_PARSE_VISITOR Visitor>
   void visit_binding_element(expression *ast, Visitor &v,
                              variable_kind declaration_kind,
-                             std::optional<source_code_span> declaring_token);
+                             std::optional<source_code_span> declaring_token,
+                             variable_init_kind init_kind);
 
   struct precedence {
     bool binary_operators = true;

@@ -96,7 +96,8 @@ class buffering_visitor {
         target.visit_variable_use(v.name);
         break;
       case visit_kind::variable_declaration:
-        target.visit_variable_declaration(v.name, v.var_kind);
+        target.visit_variable_declaration(v.name, v.var_decl.var_kind,
+                                          v.var_decl.var_init_kind);
         break;
       }
     }
@@ -171,8 +172,10 @@ class buffering_visitor {
     this->visits_.emplace_back(visit_kind::variable_assignment, name);
   }
 
-  void visit_variable_declaration(identifier name, variable_kind kind) {
-    this->visits_.emplace_back(visit_kind::variable_declaration, name, kind);
+  void visit_variable_declaration(identifier name, variable_kind kind,
+                                  variable_init_kind init_kind) {
+    this->visits_.emplace_back(visit_kind::variable_declaration, name, kind,
+                               init_kind);
   }
 
   void visit_variable_delete_use(identifier name,
@@ -225,9 +228,9 @@ class buffering_visitor {
     explicit visit(visit_kind kind, identifier name) noexcept
         : kind(kind), name(name) {}
 
-    explicit visit(visit_kind kind, identifier name,
-                   variable_kind var_kind) noexcept
-        : kind(kind), name(name), var_kind(var_kind) {}
+    explicit visit(visit_kind kind, identifier name, variable_kind var_kind,
+                   variable_init_kind init_kind) noexcept
+        : kind(kind), name(name), var_decl{var_kind, init_kind} {}
 
     explicit visit(visit_kind kind, identifier name,
                    source_code_span extra_span) noexcept
@@ -242,10 +245,14 @@ class buffering_visitor {
       static_assert(std::is_trivially_destructible_v<identifier>);
     };
 
+    struct var_decl_data {
+      variable_kind var_kind;
+      variable_init_kind var_init_kind;
+    };
     union {
       // variable_declaration
-      variable_kind var_kind;
-      static_assert(std::is_trivially_destructible_v<variable_kind>);
+      var_decl_data var_decl;
+      static_assert(std::is_trivially_destructible_v<var_decl_data>);
 
       // variable_delete_use
       source_code_span extra_span;

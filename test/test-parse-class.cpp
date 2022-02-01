@@ -75,12 +75,13 @@ TEST(test_parse, parse_class_statement) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(
-                    spy_visitor::visited_variable_declaration{
-                        u8"A", variable_kind::_class},
-                    spy_visitor::visited_variable_declaration{
-                        u8"B", variable_kind::_class}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            spy_visitor::visited_variable_declaration{
+                u8"A", variable_kind::_class, variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"B", variable_kind::_class, variable_init_kind::normal}));
   }
 }
 

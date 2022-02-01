@@ -31,8 +31,8 @@ namespace quick_lint_js {
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Visitor>
 concept parse_visitor = requires(Visitor v, identifier name,
-                                 source_code_span span,
-                                 variable_kind var_kind) {
+                                 source_code_span span, variable_kind var_kind,
+                                 variable_init_kind var_init_kind) {
   {v.visit_end_of_module()};
   {v.visit_enter_block_scope()};
   {v.visit_enter_with_scope()};
@@ -50,7 +50,7 @@ concept parse_visitor = requires(Visitor v, identifier name,
   {v.visit_property_declaration(std::nullopt)};
   {v.visit_property_declaration(std::optional<identifier>(name))};
   {v.visit_variable_assignment(name)};
-  {v.visit_variable_declaration(name, var_kind)};
+  {v.visit_variable_declaration(name, var_kind, var_init_kind)};
   {v.visit_variable_delete_use(name, span)};
   {v.visit_variable_export_use(name)};
   {v.visit_variable_typeof_use(name)};

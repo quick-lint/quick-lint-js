@@ -138,18 +138,21 @@ struct spy_visitor : public error_collector {
   };
   std::vector<visited_variable_assignment> variable_assignments;
 
-  void visit_variable_declaration(identifier name, variable_kind kind) {
-    this->variable_declarations.emplace_back(
-        visited_variable_declaration{string8(name.normalized_name()), kind});
+  void visit_variable_declaration(identifier name, variable_kind kind,
+                                  variable_init_kind init_kind) {
+    this->variable_declarations.emplace_back(visited_variable_declaration{
+        string8(name.normalized_name()), kind, init_kind});
     this->visits.emplace_back("visit_variable_declaration");
   }
 
   struct visited_variable_declaration {
     string8 name;
     variable_kind kind;
+    variable_init_kind init_kind;
 
     bool operator==(const visited_variable_declaration &other) const {
-      return this->name == other.name && this->kind == other.kind;
+      return this->name == other.name && this->kind == other.kind &&
+             this->init_kind == other.init_kind;
     }
 
     bool operator!=(const visited_variable_declaration &other) const {

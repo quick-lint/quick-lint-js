@@ -350,7 +350,8 @@ class debug_visitor {
     this->output_->flush();
   }
 
-  void visit_variable_declaration(identifier name, variable_kind) {
+  void visit_variable_declaration(identifier name, variable_kind,
+                                  variable_init_kind) {
     this->output_->append_copy(u8"variable declaration: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
@@ -476,9 +477,10 @@ class multi_visitor {
     this->visitor_2_->visit_variable_assignment(name);
   }
 
-  void visit_variable_declaration(identifier name, variable_kind kind) {
-    this->visitor_1_->visit_variable_declaration(name, kind);
-    this->visitor_2_->visit_variable_declaration(name, kind);
+  void visit_variable_declaration(identifier name, variable_kind kind,
+                                  variable_init_kind init_kind) {
+    this->visitor_1_->visit_variable_declaration(name, kind, init_kind);
+    this->visitor_2_->visit_variable_declaration(name, kind, init_kind);
   }
 
   void visit_variable_delete_use(identifier name,

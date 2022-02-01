@@ -41,7 +41,8 @@ void parser::visit_expression(expression* ast, Visitor& v,
   auto visit_parameters = [&]() {
     for (expression* parameter : ast->children()) {
       this->visit_binding_element(parameter, v, variable_kind::_parameter,
-                                  /*declaring_token=*/std::nullopt);
+                                  /*declaring_token=*/std::nullopt,
+                                  /*init_kind=*/variable_init_kind::normal);
     }
   };
   switch (ast->kind()) {
@@ -1826,7 +1827,8 @@ expression* parser::parse_arrow_function_body_impl(
             /*span_end=*/this->peek().begin);
     for (expression* parameter : ast->children()) {
       this->visit_binding_element(parameter, v, variable_kind::_parameter,
-                                  /*declaring_token=*/std::nullopt);
+                                  /*declaring_token=*/std::nullopt,
+                                  /*init_kind=*/variable_init_kind::normal);
     }
 
     v.visit_enter_function_scope_body();
