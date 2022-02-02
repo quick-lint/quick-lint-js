@@ -1723,6 +1723,69 @@ TEST_F(test_parse_expression, optional_tagged_template_literal) {
   }
 }
 
+TEST_F(test_parse_expression, untagged_template_with_invalid_escape) {
+  {
+    test_parser p(u8R"(`invalid\uescape`)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "literal");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE(error_expected_hex_digits_in_unicode_escape)));
+  }
+
+  {
+    test_parser p(u8R"(`invalid\u${expr}escape`)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "template(var expr)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE(error_expected_hex_digits_in_unicode_escape)));
+  }
+
+  {
+    test_parser p(u8R"(`invalid${expr}\uescape`)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "template(var expr)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE(error_expected_hex_digits_in_unicode_escape)));
+  }
+
+  {
+    test_parser p(u8R"(`invalid${expr1}\u${expr2}escape`)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "template(var expr1, var expr2)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE(error_expected_hex_digits_in_unicode_escape)));
+  }
+}
+
+TEST_F(test_parse_expression,
+       tagged_template_with_invalid_escape_reports_no_error) {
+  {
+    expression* ast = this->parse_expression(u8R"(tag`invalid\uescape`)"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var tag)");
+  }
+
+  {
+    expression* ast =
+        this->parse_expression(u8R"(tag`invalid\uescape${expr}`)"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var tag, var expr)");
+  }
+
+  {
+    expression* ast = this->parse_expression(u8R"(tag?.`invalid\uescape`)"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var tag)");
+  }
+
+  {
+    expression* ast =
+        this->parse_expression(u8R"(tag?.`invalid\uescape${expr}`)"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var tag, var expr)");
+  }
+}
+
 TEST_F(test_parse_expression, array_literal) {
   {
     test_parser p(u8"[]"_sv);
@@ -2653,6 +2716,84 @@ TEST_F(test_parse_expression, parse_comma_expression) {
   }
 }
 
+TEST_F(test_parse_expression, binary_operator_span) {
+  for (string8 op : {
+           u8"!=", u8"!==", u8"%",  u8"&",   u8"&&", u8"*",  u8"**", u8"+",
+           u8",",  u8"-",   u8"/",  u8"<",   u8"<<", u8"<=", u8"==", u8"===",
+           u8">",  u8">=",  u8">>", u8">>>", u8"??", u8"^",  u8"|",  u8"||",
+       }) {
+    padded_string code(u8"x" + op + u8"y");
+    SCOPED_TRACE(code);
+    test_parser p(&code);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(ast->kind(), expression_kind::binary_operator);
+    auto* binary = static_cast<expression::binary_operator*>(ast);
+    EXPECT_EQ(p.range(binary->operator_spans_[0]).begin_offset(),
+              strlen(u8"x"));
+    EXPECT_EQ(p.range(binary->operator_spans_[0]).end_offset(),
+              (u8"x" + op).size());
+  }
+
+  {
+    test_parser p(u8"x + y * z"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), strlen(u8"x "));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), strlen(u8"x +"));
+    EXPECT_EQ(p.range(ast->operator_spans_[1]).begin_offset(),
+              strlen(u8"x + y "));
+    EXPECT_EQ(p.range(ast->operator_spans_[1]).end_offset(),
+              strlen(u8"x + y *"));
+  }
+
+  {
+    test_parser p(u8"x.'foo'"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), 1);
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), 2);
+  }
+
+  {
+    test_parser p(u8"x .. y"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), strlen(u8"x ."));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), strlen(u8"x .."));
+  }
+
+  {
+    test_parser p(u8"x in y"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), strlen(u8"x "));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), strlen(u8"x in"));
+  }
+
+  {
+    test_parser p(u8"f(x y)"_sv);
+    expression* ast = p.parse_expression();
+    auto* binary = static_cast<expression::binary_operator*>(ast->child_1());
+    EXPECT_EQ(p.range(binary->operator_spans_[0]).begin_offset(),
+              strlen(u8"f(x"));
+    EXPECT_EQ(p.range(binary->operator_spans_[0]).end_offset(),
+              strlen(u8"f(x"));
+  }
+
+  {
+    test_parser p(u8"x.y => z"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(),
+              strlen(u8"x.y "));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(),
+              strlen(u8"x.y =>"));
+  }
+
+  {
+    test_parser p(u8"f() => {}"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    // FIXME(strager): These spans look weird.
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), strlen(u8""));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), strlen(u8"f("));
+  }
+}
+
 TEST_F(test_parse_expression, parse_function_expression) {
   {
     test_parser p(u8"function(){} /* */"_sv);
@@ -3405,6 +3546,38 @@ TEST_F(test_parse_expression, generator_misplaced_star) {
   expression* ast = p.parse_expression();
   EXPECT_EQ(p.range(ast->child_0()).begin_offset(), 1);
   EXPECT_EQ(p.range(ast->child_0()).end_offset(), 16);
+}
+
+TEST_F(test_parse_expression, unary_cannot_mix_with_star_star) {
+  for (char8 op : u8"~!-+"sv) {
+    test_parser p(op + u8"a ** b"s);
+    SCOPED_TRACE(p.code());
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(unary(var a), var b)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                    p.code(),
+                    error_missing_parentheses_around_unary_lhs_of_exponent,  //
+                    unary_expression, 0, op + u8"a"s,                        //
+                    exponent_operator, (op + u8"a "s).size(), u8"**")));
+  }
+
+  for (string8 op : {u8"delete"s, u8"typeof"s, u8"void"s}) {
+    test_parser p(op + u8" a ** b"s);
+    SCOPED_TRACE(p.code());
+    expression* ast = p.parse_expression();
+    if ((false)) {
+      // TODO(strager): Rewrite the AST into something like the following:
+      EXPECT_EQ(summarize(ast), "typeof(binary(var a, var b))");
+    }
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_2_OFFSETS(
+            p.code(),
+            error_missing_parentheses_around_exponent_with_unary_lhs,  //
+            exponent_expression, (op + u8" "s).size(), u8"a ** b",
+            unary_operator, 0, op)));
+  }
 }
 
 TEST_F(test_parse_expression, jsx_is_not_supported) {

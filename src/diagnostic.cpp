@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/cpp.h>
 #include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/error.h>
@@ -71,6 +72,11 @@ template <>
 constexpr diagnostic_arg_type
 get_diagnostic_message_arg_type<statement_kind>() noexcept {
   return diagnostic_arg_type::statement_kind;
+}
+template <>
+constexpr diagnostic_arg_type
+get_diagnostic_message_arg_type<string8_view>() noexcept {
+  return diagnostic_arg_type::string8_view;
 }
 
 template <class ArgType>

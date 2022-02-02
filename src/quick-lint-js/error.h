@@ -37,6 +37,17 @@
 // * ERROR's second argument must have type *identifier* or *source_code_span*
 #define QLJS_X_ERROR_TYPES                                                     \
   QLJS_ERROR_TYPE(                                                             \
+      error_adjacent_jsx_without_parent, "E0189",                              \
+      {                                                                        \
+        source_code_span begin;                                                \
+        source_code_span begin_of_second_element;                              \
+        source_code_span end;                                                  \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE(                                                 \
+                "missing '<>' and '</>' to enclose multiple children"),        \
+            begin) NOTE(QLJS_TRANSLATABLE("children end here"), end))          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_assignment_before_variable_declaration, "E0001",                   \
       {                                                                        \
         identifier assignment;                                                 \
@@ -45,6 +56,13 @@
       ERROR(QLJS_TRANSLATABLE("variable assigned before its declaration"),     \
             assignment)                                                        \
           NOTE(QLJS_TRANSLATABLE("variable declared here"), declaration))      \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_assignment_makes_condition_constant, "E0188",                      \
+      { source_code_span assignment_operator; },                               \
+      WARNING(QLJS_TRANSLATABLE(                                               \
+                  "'=' changes variables; to compare, use '===' instead"),     \
+              assignment_operator))                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_assignment_to_const_global_variable, "E0002",                      \
@@ -61,6 +79,17 @@
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE("assignment to const variable"), assignment)     \
           NOTE(QLJS_TRANSLATABLE("const variable declared here"),              \
+               declaration))                                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_assignment_to_imported_variable, "E0185",                          \
+      {                                                                        \
+        identifier declaration;                                                \
+        identifier assignment;                                                 \
+        variable_kind var_kind;                                                \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE("assignment to imported variable"), assignment)  \
+          NOTE(QLJS_TRANSLATABLE("imported variable declared here"),           \
                declaration))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -319,6 +348,17 @@
       error_else_has_no_if, "E0065", { source_code_span else_token; },         \
       ERROR(QLJS_TRANSLATABLE("'else' has no corresponding 'if'"),             \
             else_token))                                                       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_equals_does_not_distribute_over_or, "E0190",                       \
+      {                                                                        \
+        source_code_span or_operator;                                          \
+        source_code_span equals_operator;                                      \
+      },                                                                       \
+      WARNING(QLJS_TRANSLATABLE("missing comparison; '{1}' does not extend "   \
+                                "to the right side of '{0}'"),                 \
+              or_operator, equals_operator)                                    \
+          NOTE(QLJS_TRANSLATABLE("'{0}' found here"), equals_operator))        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_escaped_character_disallowed_in_identifiers, "E0012",              \
@@ -613,6 +653,35 @@
       ERROR(QLJS_TRANSLATABLE("invalid UTF-8 sequence"), sequence))            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_jsx_attribute_has_wrong_capitalization, "E0192",                   \
+      {                                                                        \
+        identifier attribute_name;                                             \
+        string8_view expected_attribute_name;                                  \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE(                                                 \
+                "attribute has wrong capitalization; write '{1}' instead"),    \
+            attribute_name, expected_attribute_name))                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_jsx_attribute_renamed_by_react, "E0193",                           \
+      {                                                                        \
+        identifier attribute_name;                                             \
+        string8_view react_attribute_name;                                     \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE(                                                 \
+                "misspelled React attribute; write '{1}' instead"),            \
+            attribute_name, react_attribute_name))                             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_jsx_event_attribute_should_be_camel_case, "E0191",                 \
+      {                                                                        \
+        identifier attribute_name;                                             \
+        string8_view expected_attribute_name;                                  \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE("event attributes must be camelCase: '{1}'"),    \
+            attribute_name, expected_attribute_name))                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_jsx_not_yet_implemented, "E0177", { source_code_span jsx_start; }, \
       ERROR(QLJS_TRANSLATABLE("React/JSX is not yet implemented"), jsx_start)) \
                                                                                \
@@ -675,6 +744,18 @@
       ERROR(                                                                   \
           QLJS_TRANSLATABLE("methods should not use the 'function' keyword"),  \
           function_token))                                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_mismatched_jsx_tags, "E0187",                                      \
+      {                                                                        \
+        source_code_span opening_tag_name;                                     \
+        source_code_span closing_tag_name;                                     \
+        string8_view opening_tag_name_pretty;                                  \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE("mismatched JSX tags; expected '</{1}>'"),       \
+            closing_tag_name, opening_tag_name_pretty)                         \
+          NOTE(QLJS_TRANSLATABLE("opening '<{1}>' tag here"),                  \
+               opening_tag_name, opening_tag_name_pretty))                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_array_close, "E0157",                                      \
@@ -812,6 +893,12 @@
             switch_keyword))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_dots_for_attribute_spread, "E0186",                        \
+      { source_code_span expected_dots; },                                     \
+      ERROR(QLJS_TRANSLATABLE("missing '...' in JSX attribute spread"),        \
+            expected_dots))                                                    \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_equal_after_variable, "E0202",                             \
       { source_code_span expected_equal; },                                    \
       ERROR(QLJS_TRANSLATABLE("missing '=' after variable"), expected_equal))  \
@@ -936,6 +1023,31 @@
       ERROR(QLJS_TRANSLATABLE(                                                 \
                 "missing operator between expression and arrow function"),     \
             where))                                                            \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_missing_parentheses_around_exponent_with_unary_lhs, "E0195",       \
+      {                                                                        \
+        source_code_span exponent_expression;                                  \
+        source_code_span unary_operator;                                       \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE("missing parentheses around operand of '{0}'"),  \
+            exponent_expression)                                               \
+          NOTE(QLJS_TRANSLATABLE("'{0}' operator cannot be used before '**' "  \
+                                 "without parentheses"),                       \
+               unary_operator))                                                \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_missing_parentheses_around_unary_lhs_of_exponent, "E0194",         \
+      {                                                                        \
+        source_code_span unary_expression;                                     \
+        source_code_span exponent_operator;                                    \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE(                                                 \
+                "missing parentheses around left-hand side of '**'"),          \
+            unary_expression)                                                  \
+          NOTE(QLJS_TRANSLATABLE("'**' operator cannot be used after unary "   \
+                                 "'{1}' without parentheses"),                 \
+               exponent_operator, unary_expression))                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_property_name_for_dot_operator, "E0142",                   \
@@ -1095,11 +1207,6 @@
       ERROR(QLJS_TRANSLATABLE("unclosed block comment"), comment_open))        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unopened_block_comment, "E0210",                                   \
-      { source_code_span comment_close; },                                     \
-      ERROR(QLJS_TRANSLATABLE("unopened block comment"), comment_close))       \
-                                                                               \
-  QLJS_ERROR_TYPE(                                                             \
       error_unclosed_code_block, "E0134", { source_code_span block_open; },    \
       ERROR(QLJS_TRANSLATABLE(                                                 \
                 "unclosed code block; expected '}' by end of file"),           \
@@ -1256,6 +1363,11 @@
       ERROR(                                                                   \
           QLJS_TRANSLATABLE("for-of loop expression cannot have semicolons"),  \
           semicolon))                                                          \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
+      error_unopened_block_comment, "E0210",                                   \
+      { source_code_span comment_close; },                                     \
+      ERROR(QLJS_TRANSLATABLE("unopened block comment"), comment_close))       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_no_digits_in_binary_number, "E0049",                               \

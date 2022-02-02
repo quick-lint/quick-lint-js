@@ -4,9 +4,10 @@
 #ifndef QUICK_LINT_JS_TOKEN_H
 #define QUICK_LINT_JS_TOKEN_H
 
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <iosfwd>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/monotonic-allocator.h>
+#include <quick-lint-js/vector.h>
 #include <vector>
 
 #define QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_FUNCTION_AND_YIELD \
@@ -84,7 +85,59 @@
   QLJS_CASE_CONTEXTUAL_KEYWORD: \
   QLJS_CASE_RESERVED_KEYWORD
 
+#define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR \
+  case ::quick_lint_js::token_type::ampersand:                     \
+  case ::quick_lint_js::token_type::ampersand_ampersand:           \
+  case ::quick_lint_js::token_type::bang_equal:                    \
+  case ::quick_lint_js::token_type::bang_equal_equal:              \
+  case ::quick_lint_js::token_type::circumflex:                    \
+  case ::quick_lint_js::token_type::equal_equal:                   \
+  case ::quick_lint_js::token_type::equal_equal_equal:             \
+  case ::quick_lint_js::token_type::greater:                       \
+  case ::quick_lint_js::token_type::greater_equal:                 \
+  case ::quick_lint_js::token_type::greater_greater:               \
+  case ::quick_lint_js::token_type::greater_greater_greater:       \
+  case ::quick_lint_js::token_type::less_equal:                    \
+  case ::quick_lint_js::token_type::less_less:                     \
+  case ::quick_lint_js::token_type::percent:                       \
+  case ::quick_lint_js::token_type::pipe:                          \
+  case ::quick_lint_js::token_type::pipe_pipe:                     \
+  case ::quick_lint_js::token_type::question_question:             \
+  case ::quick_lint_js::token_type::star_star
+
+#define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL                 \
+  QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR: \
+  case ::quick_lint_js::token_type::less:                     \
+  case ::quick_lint_js::token_type::star
+
+#define QLJS_CASE_BINARY_ONLY_OPERATOR   \
+  QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL: \
+  case ::quick_lint_js::token_type::kw_instanceof
+
+#define QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL  \
+  case ::quick_lint_js::token_type::ampersand_equal:               \
+  case ::quick_lint_js::token_type::circumflex_equal:              \
+  case ::quick_lint_js::token_type::greater_greater_equal:         \
+  case ::quick_lint_js::token_type::greater_greater_greater_equal: \
+  case ::quick_lint_js::token_type::less_less_equal:               \
+  case ::quick_lint_js::token_type::minus_equal:                   \
+  case ::quick_lint_js::token_type::percent_equal:                 \
+  case ::quick_lint_js::token_type::pipe_equal:                    \
+  case ::quick_lint_js::token_type::plus_equal:                    \
+  case ::quick_lint_js::token_type::star_equal:                    \
+  case ::quick_lint_js::token_type::star_star_equal
+
+#define QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR   \
+  case ::quick_lint_js::token_type::slash_equal: \
+    QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL
+
+#define QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR              \
+  case ::quick_lint_js::token_type::ampersand_ampersand_equal: \
+  case ::quick_lint_js::token_type::pipe_pipe_equal:           \
+  case ::quick_lint_js::token_type::question_question_equal
+
 namespace quick_lint_js {
+class buffering_error_reporter;
 class error_reporter;
 class identifier;
 class source_code_span;
@@ -220,9 +273,7 @@ enum class token_type {
 const char* to_string(token_type);
 std::ostream& operator<<(std::ostream&, token_type);
 
-using escape_sequence_list =
-    std::vector<source_code_span,
-                boost::container::pmr::polymorphic_allocator<source_code_span>>;
+using escape_sequence_list = bump_vector<source_code_span, monotonic_allocator>;
 
 struct token {
   identifier identifier_name() const noexcept;
@@ -236,6 +287,15 @@ struct token {
   // Precondition: This function was not previously called for the same token.
   void report_errors_for_escape_sequences_in_keyword(error_reporter*) const;
 
+  // Report errors for each invalid escape sequence in the most recently parsed
+  // template.
+  //
+  // Precondition:
+  //   this->type == token_type::complete_template ||
+  //   this->type == token_type::incomplete_template
+  // Precondition: This function was not previously called for the same token.
+  void report_errors_for_escape_sequences_in_template(error_reporter*) const;
+
   token_type type;
 
   const char8* begin;
@@ -248,8 +308,12 @@ struct token {
   // equivalent to string8_view(.begin, .end).
   string8_view normalized_identifier;
 
-  // Used only if this is a reserved_keyword_with_escape_sequence token.
-  escape_sequence_list* identifier_escape_sequences;
+  union {
+    // Used only if this is a reserved_keyword_with_escape_sequence token.
+    escape_sequence_list* identifier_escape_sequences;
+    // Used only if this is a complete_template or incomplete_template token.
+    buffering_error_reporter* template_escape_sequence_errors;
+  };
 };
 }
 

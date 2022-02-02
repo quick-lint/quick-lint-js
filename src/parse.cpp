@@ -12,6 +12,7 @@
 #include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/jsx.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/token.h>
@@ -93,6 +94,121 @@ parser::class_guard parser::enter_class() {
   return class_guard(this, std::exchange(this->in_class_, true));
 }
 
+parser::binary_expression_builder::binary_expression_builder(
+    monotonic_allocator* allocator, expression* first_child)
+    : children_("binary_expression_builder children", allocator),
+      operator_spans_("binary_expression_builder children", allocator) {
+  this->children_.emplace_back(first_child);
+}
+
+expression* parser::binary_expression_builder::last_expression() const
+    noexcept {
+  return this->children_.back();
+}
+
+bool parser::binary_expression_builder::has_multiple_children() const noexcept {
+  return this->children_.size() > 1;
+}
+
+expression* parser::binary_expression_builder::add_child(
+    source_code_span prior_operator_span, expression* child) {
+  this->operator_spans_.emplace_back(prior_operator_span);
+  return this->children_.emplace_back(child);
+}
+
+void parser::binary_expression_builder::replace_last(
+    expression* new_last_child) {
+  this->children_.back() = new_last_child;
+}
+
+void parser::binary_expression_builder::reset_after_build(
+    expression* new_first_child) {
+  this->children_.clear();
+  this->children_.emplace_back(new_first_child);
+  this->operator_spans_.clear();
+}
+
+expression_arena::array_ptr<expression*>
+parser::binary_expression_builder::move_expressions(
+    expression_arena& arena) noexcept {
+  return arena.make_array(std::move(this->children_));
+}
+
+expression_arena::array_ptr<source_code_span>
+parser::binary_expression_builder::move_operator_spans(
+    expression_arena& arena) noexcept {
+  return arena.make_array(std::move(this->operator_spans_));
+}
+
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
+void parser::check_jsx_attribute(const identifier& attribute_name) {
+  const std::unordered_map<string8_view, jsx_attribute>& aliases =
+      jsx_attribute_aliases();
+  string8_view name = attribute_name.normalized_name();
+
+  bool is_event_attribute =
+      name.size() >= 3 && name[0] == 'o' && name[1] == 'n';
+
+  if (auto alias_it = aliases.find(name); alias_it != aliases.end()) {
+    const jsx_attribute& alias = alias_it->second;
+    if (name.size() != alias.expected.size()) {
+      this->error_reporter_->report(error_jsx_attribute_renamed_by_react{
+          .attribute_name = attribute_name,
+          .react_attribute_name = alias.expected,
+      });
+      return;
+    } else if (is_event_attribute) {
+      this->error_reporter_->report(
+          error_jsx_event_attribute_should_be_camel_case{
+              .attribute_name = attribute_name,
+              .expected_attribute_name = alias.expected,
+          });
+      return;
+    } else {
+      this->error_reporter_->report(
+          error_jsx_attribute_has_wrong_capitalization{
+              .attribute_name = attribute_name,
+              .expected_attribute_name = alias.expected,
+          });
+      return;
+    }
+  }
+
+  bool name_has_upper = std::any_of(name.begin(), name.end(), isupper);
+
+  if (!name_has_upper && is_event_attribute) {
+    bump_vector<char8, monotonic_allocator> fixed_name(
+        "check_jsx_attribute fixed_name", &this->error_memory_);
+    fixed_name += name;
+    fixed_name[2] = toupper(fixed_name[2]);
+    this->error_reporter_->report(
+        error_jsx_event_attribute_should_be_camel_case{
+            .attribute_name = attribute_name,
+            .expected_attribute_name = string8_view(fixed_name),
+        });
+    fixed_name.release();
+  }
+
+  if (name_has_upper) {
+    string8 lowered_name(name);
+    for (char8& c : lowered_name) {
+      c = tolower(c);
+    }
+
+    if (auto alias_it = aliases.find(lowered_name); alias_it != aliases.end()) {
+      if (alias_it->second.expected != name) {
+        this->error_reporter_->report(
+            error_jsx_attribute_has_wrong_capitalization{
+                .attribute_name = attribute_name,
+                .expected_attribute_name = alias_it->second.expected,
+            });
+      }
+    }
+  }
+}
+QLJS_WARNING_POP
+
 function_attributes parser::parse_generator_star(
     function_attributes original_attributes) {
   bool is_generator = this->peek().type == token_type::star;
@@ -156,16 +272,45 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
       return arrow_function;
     } else {
       // f() => {}         // Invalid.
+      source_code_span missing_operator_span(call->span().begin(),
+                                             call->left_paren_span().end());
       this->error_reporter_->report(
           error_missing_operator_between_expression_and_arrow_function{
-              .where = source_code_span(call->span().begin(),
-                                        call->left_paren_span().end()),
+              .where = missing_operator_span,
           });
       std::array<expression*, 2> children{lhs->child_0(), arrow_function};
+      std::array<source_code_span, 1> operators{missing_operator_span};
       return this->make_expression<expression::binary_operator>(
-          this->expressions_.make_array(std::move(children)));
+          this->expressions_.make_array(std::move(children)),
+          this->expressions_.make_array(std::move(operators)));
     }
   }
+  }
+}
+
+void parser::error_on_sketchy_condition(expression* ast) {
+  if (ast->kind() == expression_kind::assignment &&
+      ast->child_1()->kind() == expression_kind::literal) {
+    auto* assignment = static_cast<expression::assignment*>(ast);
+    this->error_reporter_->report(error_assignment_makes_condition_constant{
+        .assignment_operator = assignment->operator_span_,
+    });
+  }
+
+  if (ast->kind() == expression_kind::binary_operator &&
+      ast->children().size() == 3 &&
+      ast->child(2)->kind() == expression_kind::literal) {
+    auto* binary = static_cast<expression::binary_operator*>(ast);
+    source_code_span left_operator = binary->operator_spans_[0];
+    source_code_span right_operator = binary->operator_spans_[1];
+    if (right_operator.string_view() == u8"||"sv &&
+        (left_operator.string_view() == u8"=="sv ||
+         left_operator.string_view() == u8"==="sv)) {
+      this->error_reporter_->report(error_equals_does_not_distribute_over_or{
+          .or_operator = right_operator,
+          .equals_operator = left_operator,
+      });
+    }
   }
 }
 

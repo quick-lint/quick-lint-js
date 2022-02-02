@@ -266,15 +266,24 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
     goto identifier;
 
   // false
-  // `hello`
+  // "hello"
   // 42
   case token_type::kw_false:
   case token_type::kw_null:
   case token_type::kw_this:
   case token_type::kw_true:
-  case token_type::complete_template:
   case token_type::number:
   case token_type::string: {
+    expression* ast =
+        this->make_expression<expression::literal>(this->peek().span());
+    this->skip();
+    return ast;
+  }
+
+  // `hello`
+  case token_type::complete_template: {
+    this->peek().report_errors_for_escape_sequences_in_template(
+        this->error_reporter_);
     expression* ast =
         this->make_expression<expression::literal>(this->peek().span());
     this->skip();
@@ -299,7 +308,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
 
   // `hello${world}`
   case token_type::incomplete_template: {
-    expression* ast = this->parse_template(v, /*tag=*/std::nullopt);
+    expression* ast = this->parse_untagged_template(v);
     return ast;
   }
 
@@ -428,6 +437,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
       this->skip();
       bool is_arrow_function = this->peek().type == token_type::equal_greater;
       bool is_arrow_function_without_arrow =
+          prec.trailing_curly_is_arrow_body &&
           this->peek().type == token_type::left_curly;
       if (is_arrow_function || is_arrow_function_without_arrow) {
         // Arrow function: () => expression-or-block
@@ -716,8 +726,14 @@ expression* parser::parse_async_expression_only(Visitor& v, token async_token,
 
   auto parse_arrow_function_arrow_and_body =
       [this, allow_in_operator, async_begin, &v](auto&& parameters) {
-        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
-        this->skip();
+        if (this->peek().type == token_type::equal_greater) {
+          this->skip();
+        } else {
+          this->error_reporter_->report(
+              error_missing_arrow_operator_in_arrow_function{
+                  .where = this->peek().span(),
+              });
+        }
 
         expression* ast = this->parse_arrow_function_body(
             v, function_attributes::async, async_begin,
@@ -762,7 +778,11 @@ expression* parser::parse_async_expression_only(Visitor& v, token async_token,
     source_code_span right_paren_span = this->peek().span();
     this->skip();
 
-    if (this->peek().type == token_type::equal_greater) {
+    bool is_arrow_function = this->peek().type == token_type::equal_greater;
+    bool is_arrow_function_without_arrow =
+        !this->peek().has_leading_newline &&
+        this->peek().type == token_type::left_curly;
+    if (is_arrow_function || is_arrow_function_without_arrow) {
       if (newline_after_async) {
         this->error_reporter_->report(
             error_newline_not_allowed_between_async_and_parameter_list{
@@ -1018,16 +1038,14 @@ expression* parser::parse_expression_remainder(Visitor& v, expression* ast,
     QLJS_ASSERT(prec.binary_operators);
   }
 
-  expression_arena::vector<expression*> children(
-      "parse_expression_remainder children", this->expressions_.allocator());
-  children.emplace_back(ast);
+  binary_expression_builder binary_builder(this->expressions_.allocator(), ast);
   auto build_expression = [&]() {
-    if (children.size() == 1) {
-      return children.front();
-    } else {
-      QLJS_ASSERT(children.size() >= 2);
+    if (binary_builder.has_multiple_children()) {
       return this->make_expression<expression::binary_operator>(
-          this->expressions_.make_array(std::move(children)));
+          binary_builder.move_expressions(this->expressions_),
+          binary_builder.move_operator_spans(this->expressions_));
+    } else {
+      return binary_builder.last_expression();
     }
   };
 
@@ -1045,11 +1063,11 @@ next:
       // Probably an arrow function with a trailing comma in its parameter list:
       // (parameters, go, here, ) => expression-or-block
       return this->make_expression<expression::trailing_comma>(
-          this->expressions_.make_array(std::move(children)), comma_span);
+          binary_builder.move_expressions(this->expressions_), comma_span);
     } else {
       // Comma expression: a, b, c
-      expression* rhs = children.emplace_back(
-          this->parse_expression(v, precedence{.commas = false}));
+      expression* rhs = binary_builder.add_child(
+          comma_span, this->parse_expression(v, precedence{.commas = false}));
       if (rhs->kind() == expression_kind::_invalid) {
         this->error_reporter_->report(
             error_missing_operand_for_operator{comma_span});
@@ -1066,10 +1084,74 @@ next:
     if (!prec.math_or_logical_or_assignment) {
       break;
     }
+    bool allow_unary_lhs = this->peek().type != token_type::star_star;
+    expression* maybe_unary_lhs = binary_builder.last_expression();
+    expression_kind lhs_kind = maybe_unary_lhs->kind();
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression* rhs = children.emplace_back(this->parse_expression(
-        v, precedence{.binary_operators = false, .commas = false}));
+
+    expression* rhs = binary_builder.add_child(
+        operator_span,
+        this->parse_expression(
+            v, precedence{.binary_operators = false, .commas = false}));
+
+    if (!allow_unary_lhs) {
+      switch (lhs_kind) {
+      // -a ** b  // Invalid.
+      // void a ** b  // Invalid.
+      case expression_kind::unary_operator: {
+        auto* lhs = static_cast<expression::unary_operator*>(maybe_unary_lhs);
+        // HACK(strager): Should we create expression::_void?
+        if (lhs->unary_operator_begin_[0] == u8'v') {
+          // void a ** b  // Invalid.
+          this->error_reporter_->report(
+              error_missing_parentheses_around_exponent_with_unary_lhs{
+                  .exponent_expression = source_code_span(
+                      lhs->child_->span().begin(), rhs->span().end()),
+                  .unary_operator = source_code_span(
+                      lhs->unary_operator_begin_,
+                      lhs->unary_operator_begin_ + strlen(u8"void")),
+              });
+        } else {
+          // -a ** b  // Invalid.
+          // ~a ** b  // Invalid.
+          this->error_reporter_->report(
+              error_missing_parentheses_around_unary_lhs_of_exponent{
+                  .unary_expression = maybe_unary_lhs->span(),
+                  .exponent_operator = operator_span,
+              });
+        }
+        break;
+      }
+
+      // delete a ** b  // Invalid.
+      case expression_kind::_delete: {
+        auto* lhs = static_cast<expression::_delete*>(maybe_unary_lhs);
+        this->error_reporter_->report(
+            error_missing_parentheses_around_exponent_with_unary_lhs{
+                .exponent_expression = source_code_span(
+                    lhs->child_->span().begin(), rhs->span().end()),
+                .unary_operator = lhs->unary_operator_span(),
+            });
+        break;
+      }
+
+      // typeof a ** b  // Invalid.
+      case expression_kind::_typeof: {
+        auto* lhs = static_cast<expression::_typeof*>(maybe_unary_lhs);
+        this->error_reporter_->report(
+            error_missing_parentheses_around_exponent_with_unary_lhs{
+                .exponent_expression = source_code_span(
+                    lhs->child_->span().begin(), rhs->span().end()),
+                .unary_operator = lhs->unary_operator_span(),
+            });
+        break;
+      }
+
+      default:
+        break;
+      }
+    }
     if (rhs->kind() == expression_kind::_missing) {
       this->error_reporter_->report(
           error_missing_operand_for_operator{operator_span});
@@ -1079,7 +1161,8 @@ next:
 
   // f(x, y, z)  // Function call.
   case token_type::left_paren:
-    children.back() = this->parse_call_expression_remainder(v, children.back());
+    binary_builder.replace_last(this->parse_call_expression_remainder(
+        v, binary_builder.last_expression()));
     goto next;
 
   // x += y
@@ -1134,9 +1217,9 @@ next:
           .where = operator_span,
       });
     }
-    children.clear();
-    children.emplace_back(this->make_expression<expression::assignment>(
-        kind, lhs, rhs, operator_span));
+    binary_builder.reset_after_build(
+        this->make_expression<expression::assignment>(kind, lhs, rhs,
+                                                      operator_span));
     goto next;
   }
 
@@ -1156,8 +1239,8 @@ next:
                 .private_identifier = this->peek().identifier_name(),
             });
       }
-      children.back() = this->make_expression<expression::dot>(
-          children.back(), this->peek().identifier_name());
+      binary_builder.replace_last(this->make_expression<expression::dot>(
+          binary_builder.last_expression(), this->peek().identifier_name()));
       this->skip();
       goto next;
 
@@ -1165,7 +1248,8 @@ next:
       this->error_reporter_->report(error_invalid_rhs_for_dot_operator{
           .dot = dot_span,
       });
-      children.emplace_back(
+      binary_builder.add_child(
+          dot_span,
           this->make_expression<expression::literal>(this->peek().span()));
       this->skip();
       goto next;
@@ -1185,8 +1269,8 @@ next:
     case token_type::semicolon:
     case token_type::right_paren: {
       source_code_span empty_property_name(dot_span.end(), dot_span.end());
-      children.back() = this->make_expression<expression::dot>(
-          children.back(), identifier(empty_property_name));
+      binary_builder.replace_last(this->make_expression<expression::dot>(
+          binary_builder.last_expression(), identifier(empty_property_name)));
       this->error_reporter_->report(
           error_missing_property_name_for_dot_operator{
               .dot = dot_span,
@@ -1196,13 +1280,16 @@ next:
 
     // x .. y
     case token_type::dot: {
+      source_code_span second_dot = this->peek().span();
       this->error_reporter_->report(error_dot_dot_is_not_an_operator{
-          .dots = source_code_span(dot_span.begin(), this->peek().end),
+          .dots = source_code_span(dot_span.begin(), second_dot.end()),
       });
       // Treat '..' as if it was a binary operator.
       this->skip();
-      children.emplace_back(this->parse_expression(
-          v, precedence{.binary_operators = false, .commas = false}));
+      binary_builder.add_child(
+          second_dot,
+          this->parse_expression(
+              v, precedence{.binary_operators = false, .commas = false}));
       goto next;
     }
 
@@ -1225,8 +1312,8 @@ next:
     case token_type::private_identifier:
     case token_type::reserved_keyword_with_escape_sequence:
     QLJS_CASE_KEYWORD:
-      children.back() = this->make_expression<expression::dot>(
-          children.back(), this->peek().identifier_name());
+      binary_builder.replace_last(this->make_expression<expression::dot>(
+          binary_builder.last_expression(), this->peek().identifier_name()));
       this->skip();
       goto next;
 
@@ -1234,19 +1321,20 @@ next:
     // tag?.`template${goes}here`
     case token_type::complete_template:
     case token_type::incomplete_template:
-      children.back() = this->parse_template(v, children.back());
+      binary_builder.replace_last(
+          this->parse_tagged_template(v, binary_builder.last_expression()));
       goto next;
 
     // f?.(x, y)
     case token_type::left_paren:
-      children.back() =
-          this->parse_call_expression_remainder(v, children.back());
+      binary_builder.replace_last(this->parse_call_expression_remainder(
+          v, binary_builder.last_expression()));
       goto next;
 
     // array?.[index]
     case token_type::left_square:
-      children.back() =
-          this->parse_index_expression_remainder(v, children.back());
+      binary_builder.replace_last(this->parse_index_expression_remainder(
+          v, binary_builder.last_expression()));
       goto next;
 
     default:
@@ -1258,8 +1346,8 @@ next:
 
   // o[key]  // Indexing expression.
   case token_type::left_square: {
-    children.back() =
-        this->parse_index_expression_remainder(v, children.back());
+    binary_builder.replace_last(this->parse_index_expression_remainder(
+        v, binary_builder.last_expression()));
     goto next;
   }
 
@@ -1273,19 +1361,22 @@ next:
     } else {
       source_code_span operator_span = this->peek().span();
       this->skip();
-      children.back() = this->make_expression<expression::rw_unary_suffix>(
-          children.back(), operator_span);
+      binary_builder.replace_last(
+          this->make_expression<expression::rw_unary_suffix>(
+              binary_builder.last_expression(), operator_span));
     }
     goto next;
 
   // key in o
-  case token_type::kw_in:
+  case token_type::kw_in: {
     if (!prec.in_operator) {
       break;
     }
+    source_code_span in_operator = this->peek().span();
     this->skip();
-    children.emplace_back(this->parse_expression(v, prec));
+    binary_builder.add_child(in_operator, this->parse_expression(v, prec));
     goto next;
+  }
 
   // x ? y : z  // Conditional operator.
   case token_type::question: {
@@ -1339,7 +1430,7 @@ next:
   // (parameters, go, here) => expression-or-block // Arrow function.
   case token_type::equal_greater: {
     this->parse_arrow_function_expression_remainder(
-        v, children, /*allow_in_operator=*/prec.in_operator);
+        v, binary_builder, /*allow_in_operator=*/prec.in_operator);
     goto next;
   }
 
@@ -1347,8 +1438,8 @@ next:
   // html`<h1>${title}</h1>`   // Template call.
   case token_type::complete_template:
   case token_type::incomplete_template: {
-    expression* tag = children.back();
-    children.back() = this->parse_template(v, tag);
+    expression* tag = binary_builder.last_expression();
+    binary_builder.replace_last(this->parse_tagged_template(v, tag));
     goto next;
   }
 
@@ -1358,13 +1449,16 @@ next:
   // y
   case token_type::identifier:
     if (prec.trailing_identifiers) {
+      const char8* expected_operator = this->lexer_.end_of_previous_token();
       this->error_reporter_->report(error_unexpected_identifier_in_expression{
           .unexpected = this->peek().identifier_name(),
       });
 
       // Behave as if a comma appeared before the identifier.
-      expression* rhs = children.emplace_back(this->parse_expression(
-          v, precedence{.binary_operators = false, .commas = false}));
+      expression* rhs = binary_builder.add_child(
+          source_code_span(expected_operator, expected_operator),
+          this->parse_expression(
+              v, precedence{.binary_operators = false, .commas = false}));
       QLJS_ASSERT(rhs->kind() != expression_kind::_invalid);
       goto next;
     }
@@ -1372,10 +1466,12 @@ next:
 
   case token_type::left_curly: {
     bool looks_like_arrow_function_body =
-        !this->peek().has_leading_newline && children.size() == 1 &&
+        prec.trailing_curly_is_arrow_body &&
+        !this->peek().has_leading_newline &&
+        !binary_builder.has_multiple_children() &&
         // TODO(strager): Check for ',' operator explicitly, not any binary
         // operator.
-        children.front()->without_paren()->kind() ==
+        binary_builder.last_expression()->without_paren()->kind() ==
             expression_kind::binary_operator;
     if (looks_like_arrow_function_body) {
       source_code_span arrow_span = this->peek().span();
@@ -1385,7 +1481,7 @@ next:
               .where = arrow_span,
           });
       this->parse_arrow_function_expression_remainder(
-          v, /*arrow_span=*/arrow_span, children,
+          v, /*arrow_span=*/arrow_span, binary_builder,
           /*allow_in_operator=*/prec.in_operator);
     }
     break;
@@ -1454,8 +1550,7 @@ next:
 
 template <QLJS_PARSE_VISITOR Visitor>
 void parser::parse_arrow_function_expression_remainder(
-    Visitor& v, expression_arena::vector<expression*>& children,
-    bool allow_in_operator) {
+    Visitor& v, binary_expression_builder& children, bool allow_in_operator) {
   QLJS_ASSERT(this->peek().type == token_type::equal_greater);
   source_code_span arrow_span = this->peek().span();
   this->skip();
@@ -1466,12 +1561,12 @@ void parser::parse_arrow_function_expression_remainder(
 template <QLJS_PARSE_VISITOR Visitor>
 void parser::parse_arrow_function_expression_remainder(
     Visitor& v, source_code_span arrow_span,
-    expression_arena::vector<expression*>& children, bool allow_in_operator) {
-  if (children.size() != 1) {
+    binary_expression_builder& binary_builder, bool allow_in_operator) {
+  if (binary_builder.has_multiple_children()) {
     // TODO(strager): We should report an error for code like this:
     // a + b => c
   }
-  expression* lhs = children.back();
+  expression* lhs = binary_builder.last_expression();
   function_attributes attributes = function_attributes::normal;
 
   if (lhs->kind() == expression_kind::paren) {
@@ -1570,8 +1665,8 @@ void parser::parse_arrow_function_expression_remainder(
     [[fallthrough]];
   }
 
-  // f() => z
-  // 42 => {}
+  // f.x => z  // Invalid.
+  // 42 => {}  // Invalid.
   case expression_kind::dot:
   case expression_kind::literal: {
     source_code_span lhs_span = lhs->span();
@@ -1596,8 +1691,10 @@ void parser::parse_arrow_function_expression_remainder(
 
     if (this->peek().type != token_type::left_curly) {
       // Treat the '=>' as if it was a binary operator (like '>=').
-      children.emplace_back(this->parse_expression(
-          v, precedence{.binary_operators = false, .commas = false}));
+      binary_builder.add_child(
+          arrow_span,
+          this->parse_expression(
+              v, precedence{.binary_operators = false, .commas = false}));
       return;
     }
     break;
@@ -1613,8 +1710,8 @@ void parser::parse_arrow_function_expression_remainder(
       /*parameter_list_begin=*/left_paren_begin,
       /*allow_in_operator=*/allow_in_operator,
       this->expressions_.make_array(std::move(parameters)));
-  children.back() =
-      this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs);
+  binary_builder.replace_last(
+      this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs));
 }
 
 template <QLJS_PARSE_VISITOR Visitor>
@@ -2417,6 +2514,40 @@ expression* parser::parse_jsx_expression(Visitor& v) {
   }
 
   const char8* jsx_begin = this->peek().begin;
+  expression* ast = this->parse_jsx_element_or_fragment(v);
+
+  // Check for adjacent elements:
+  // <div /><div />  // Invalid.
+  if (this->peek().type == token_type::less) {
+    const char8* begin_of_second_element = this->peek().begin;
+    expression_arena::vector<expression*> elements(
+        "parse_jsx_expression adjacent elements",
+        this->expressions_.allocator());
+    elements.emplace_back(ast);
+    do {
+      elements.emplace_back(this->parse_jsx_element_or_fragment(v));
+    } while (this->peek().type == token_type::less);
+    const char8* end = this->lexer_.end_of_previous_token();
+    this->error_reporter_->report(error_adjacent_jsx_without_parent{
+        .begin = source_code_span(jsx_begin, jsx_begin),
+        .begin_of_second_element =
+            source_code_span(begin_of_second_element, begin_of_second_element),
+        .end = source_code_span(end, end),
+    });
+    ast = this->make_expression<expression::jsx_fragment>(
+        /*span=*/source_code_span(jsx_begin, end),
+        /*children=*/this->expressions_.make_array(std::move(elements)));
+  }
+
+  return ast;
+}
+
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_jsx_element_or_fragment(Visitor& v) {
+  QLJS_ASSERT(this->options_.jsx);
+  QLJS_ASSERT(this->peek().type == token_type::less);
+
+  const char8* jsx_begin = this->peek().begin;
   this->lexer_.skip_in_jsx();
   switch (this->peek().type) {
   // <div>
@@ -2424,7 +2555,7 @@ expression* parser::parse_jsx_expression(Visitor& v) {
     identifier tag = this->peek().identifier_name();
     this->lexer_.skip_in_jsx();
     expression* ast = this->parse_jsx_element_or_fragment(
-        v, /*tag=*/&tag, /*greater_begin=*/jsx_begin);
+        v, /*tag=*/&tag, /*less_begin=*/jsx_begin);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
     this->skip();
     return ast;
@@ -2433,7 +2564,7 @@ expression* parser::parse_jsx_expression(Visitor& v) {
   // <> </>
   case token_type::greater: {
     expression* ast = this->parse_jsx_element_or_fragment(
-        v, /*tag=*/nullptr, /*greater_begin=*/jsx_begin);
+        v, /*tag=*/nullptr, /*less_begin=*/jsx_begin);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
     this->lexer_.skip();
     return ast;
@@ -2448,6 +2579,8 @@ expression* parser::parse_jsx_expression(Visitor& v) {
 template <QLJS_PARSE_VISITOR Visitor>
 expression* parser::parse_jsx_element_or_fragment(Visitor& v, identifier* tag,
                                                   const char8* less_begin) {
+  depth_guard d_guard(this);
+
   // If temp_tag_storage is nullopt, then there is no namespace. If
   // temp_tag_storage is not nullopt, then it stores the tag name.
   //
@@ -2515,17 +2648,28 @@ expression* parser::parse_jsx_element_or_fragment(Visitor& v, identifier* tag,
       this->lexer_.skip_in_jsx();
     }
   }
+  const char8* tag_end = this->lexer_.end_of_previous_token();
+
+  bool is_intrinsic =
+      tag && (tag_namespace || expression::jsx_element::is_intrinsic(*tag));
 
 next_attribute:
   switch (this->peek().type) {
   // <current attribute='value'>
-  case token_type::identifier:
+  case token_type::identifier: {
+    identifier attribute = this->peek().identifier_name();
+    bool has_namespace = false;
+
     this->lexer_.skip_in_jsx();
     if (this->peek().type == token_type::colon) {
       // <current namespace:attribute>
+      has_namespace = true;
       this->lexer_.skip_in_jsx();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
       this->lexer_.skip_in_jsx();
+    }
+    if (is_intrinsic && !has_namespace && !tag_namespace) {
+      this->check_jsx_attribute(attribute);
     }
     if (this->peek().type == token_type::equal) {
       this->lexer_.skip_in_jsx();
@@ -2553,11 +2697,18 @@ next_attribute:
       // <current attribute>
     }
     goto next_attribute;
+  }
 
   // <current {...attributes}>
   case token_type::left_curly: {
     this->lexer_.skip();
     expression* ast = this->parse_expression(v);
+    if (ast->kind() != expression_kind::spread) {
+      const char8* ast_begin = ast->span().begin();
+      this->error_reporter_->report(error_missing_dots_for_attribute_spread{
+          .expected_dots = source_code_span(ast_begin, ast_begin),
+      });
+    }
     children.emplace_back(ast);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
     this->lexer_.skip_in_jsx();
@@ -2594,26 +2745,104 @@ next:
     // </namespace:current>
     case token_type::slash: {
       this->lexer_.skip_in_jsx();
-      if (tag) {
-        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      const char8* closing_tag_begin = this->peek().begin;
+
+      std::optional<identifier> closing_tag_namespace;
+      std::optional<identifier> closing_tag;
+      expression_arena::vector<identifier> closing_tag_members(
+          "jsx closing_tag_members", this->expressions_.allocator());
+      if (this->peek().type == token_type::identifier) {
+        closing_tag = this->peek().identifier_name();
         this->lexer_.skip_in_jsx();
       }
       if (this->peek().type == token_type::colon) {
         // </namespace:current>
         this->lexer_.skip_in_jsx();
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+        closing_tag_namespace = std::move(closing_tag);
+        closing_tag = this->peek().identifier_name();
         this->lexer_.skip_in_jsx();
       }
-      if (!tag_members.empty()) {
-        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-        this->lexer_.skip_in_jsx();
-        while (this->peek().type == token_type::dot) {
-          // <module.submodule.Component>
+      if (this->peek().type == token_type::dot) {
+        // <module.submodule.Component>
+        if (!closing_tag.has_value()) {
+          QLJS_PARSER_UNIMPLEMENTED();
+        }
+        closing_tag_members.emplace_back(*closing_tag);
+        closing_tag.reset();
+        do {
           this->lexer_.skip_in_jsx();
           QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+          closing_tag_members.emplace_back(this->peek().identifier_name());
           this->lexer_.skip_in_jsx();
-        }
+        } while (this->peek().type == token_type::dot);
       }
+
+      bool mismatch = false;
+      if ((tag_namespace != nullptr) != closing_tag_namespace.has_value()) {
+        mismatch = true;
+      }
+      if ((tag_namespace && closing_tag_namespace.has_value()) &&
+          (tag_namespace->normalized_name() !=
+           closing_tag_namespace->normalized_name())) {
+        mismatch = true;
+      }
+      if ((tag != nullptr) != closing_tag.has_value()) {
+        mismatch = true;
+      }
+      if ((tag && closing_tag.has_value()) &&
+          (tag->normalized_name() != closing_tag->normalized_name())) {
+        mismatch = true;
+      }
+      if (!std::equal(tag_members.begin(), tag_members.end(),
+                      closing_tag_members.begin(), closing_tag_members.end(),
+                      [](const identifier& tag_member,
+                         const identifier& closing_tag_member) {
+                        return tag_member.normalized_name() ==
+                               closing_tag_member.normalized_name();
+                      })) {
+        mismatch = true;
+      }
+      if (mismatch) {
+        bump_vector<char8, monotonic_allocator> opening_tag_name_pretty(
+            "opening_tag_name_pretty", &this->error_memory_);
+        if (tag_namespace) {
+          opening_tag_name_pretty += tag_namespace->span().string_view();
+          opening_tag_name_pretty += u8':';
+          QLJS_ASSERT(tag);
+        }
+        if (tag) {
+          opening_tag_name_pretty += tag->span().string_view();
+        }
+        for (const identifier& member : tag_members) {
+          if (!opening_tag_name_pretty.empty()) {
+            opening_tag_name_pretty += u8'.';
+          }
+          opening_tag_name_pretty += member.span().string_view();
+        }
+
+        const char8* closing_tag_end = this->lexer_.end_of_previous_token();
+        string8_view opening_tag_name_pretty_view(opening_tag_name_pretty);
+        opening_tag_name_pretty.release();
+        this->error_reporter_->report(error_mismatched_jsx_tags{
+            .opening_tag_name =
+                tag_namespace
+                    ? source_code_span(tag_namespace->span().begin(), tag_end)
+                    : !tag_members.empty()
+                          ? source_code_span(tag_members.front().span().begin(),
+                                             tag_end)
+                          : tag ? tag->span()
+                                : source_code_span(tag_end, tag_end),
+            .closing_tag_name =
+                closing_tag_begin <= closing_tag_end
+                    ? source_code_span(closing_tag_begin, closing_tag_end)
+                    :
+                    // This happens for </> (fragment close).
+                    source_code_span(closing_tag_begin, closing_tag_begin),
+            .opening_tag_name_pretty = opening_tag_name_pretty_view,
+        });
+      }
+
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
       const char8* greater_end = this->peek().end;
       return make_jsx_expression(greater_end);
@@ -2656,23 +2885,18 @@ next:
 }
 
 template <QLJS_PARSE_VISITOR Visitor>
-expression* parser::parse_template(Visitor& v, std::optional<expression*> tag) {
+expression* parser::parse_tagged_template(Visitor& v, expression* tag) {
   if (this->peek().type == token_type::complete_template) {
-    if (!tag.has_value()) {
-      QLJS_UNIMPLEMENTED();
-    }
     source_code_span template_span = this->peek().span();
     this->skip();
     return this->make_expression<expression::tagged_template_literal>(
-        this->expressions_.make_array(&*tag, &*tag + 1), template_span);
+        this->expressions_.make_array(&tag, &tag + 1), template_span);
   }
 
   const char8* template_begin = this->peek().begin;
   expression_arena::vector<expression*> children(
-      "parse_template children", this->expressions_.allocator());
-  if (tag.has_value()) {
-    children.emplace_back(*tag);
-  }
+      "parse_tagged_template children", this->expressions_.allocator());
+  children.emplace_back(tag);
   for (;;) {
     QLJS_ASSERT(this->peek().type == token_type::incomplete_template);
     this->skip();
@@ -2688,13 +2912,56 @@ expression* parser::parse_template(Visitor& v, std::optional<expression*> tag) {
         expression_arena::array_ptr<expression*> children_array =
             this->expressions_.make_array(std::move(children));
         source_code_span template_span(template_begin, template_end);
-        if (tag.has_value()) {
-          return this->make_expression<expression::tagged_template_literal>(
-              children_array, template_span);
-        } else {
-          return this->make_expression<expression::_template>(children_array,
-                                                              template_span);
-        }
+        return this->make_expression<expression::tagged_template_literal>(
+            children_array, template_span);
+      }
+
+      case token_type::incomplete_template:
+        continue;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
+      break;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+  }
+}
+
+template <QLJS_PARSE_VISITOR Visitor>
+expression* parser::parse_untagged_template(Visitor& v) {
+  if (this->peek().type == token_type::complete_template) {
+    QLJS_UNIMPLEMENTED();
+  }
+
+  const char8* template_begin = this->peek().begin;
+  expression_arena::vector<expression*> children(
+      "parse_untagged_template children", this->expressions_.allocator());
+  for (;;) {
+    QLJS_ASSERT(this->peek().type == token_type::incomplete_template);
+    this->peek().report_errors_for_escape_sequences_in_template(
+        this->error_reporter_);
+    this->skip();
+    children.emplace_back(this->parse_expression(v));
+    switch (this->peek().type) {
+    case token_type::right_curly:
+      this->lexer_.skip_in_template(template_begin);
+      switch (this->peek().type) {
+      case token_type::complete_template: {
+        this->peek().report_errors_for_escape_sequences_in_template(
+            this->error_reporter_);
+        const char8* template_end = this->peek().end;
+        this->skip();
+
+        expression_arena::array_ptr<expression*> children_array =
+            this->expressions_.make_array(std::move(children));
+        source_code_span template_span(template_begin, template_end);
+        return this->make_expression<expression::_template>(children_array,
+                                                            template_span);
       }
 
       case token_type::incomplete_template:

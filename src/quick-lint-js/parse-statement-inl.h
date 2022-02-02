@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_PARSE_STATEMENT_INL_H
 #define QUICK_LINT_JS_PARSE_STATEMENT_INL_H
 
+#include <boost/container/pmr/memory_resource.hpp>
 #include <cstdlib>
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -686,9 +687,8 @@ void parser::parse_and_visit_export(Visitor &v) {
     // export {a as default, b};
     // export {a, b, c} from "module";
   case token_type::left_curly: {
-    auto exports_visitor_rewind_guard =
-        this->buffering_visitor_memory_.make_rewind_guard();
-    buffering_visitor exports_visitor(&this->buffering_visitor_memory_);
+    buffering_visitor &exports_visitor = this->buffering_visitor_stack_.emplace(
+        boost::container::pmr::new_delete_resource());
     bump_vector<token, monotonic_allocator> exported_bad_tokens(
         "parse_and_visit_export exported_bad_tokens", &this->temporary_memory_);
     this->parse_and_visit_named_exports_for_export(
@@ -723,6 +723,10 @@ void parser::parse_and_visit_export(Visitor &v) {
       }
       exports_visitor.move_into(v);
     }
+
+    QLJS_ASSERT(&this->buffering_visitor_stack_.top() == &exports_visitor);
+    this->buffering_visitor_stack_.pop();
+
     this->consume_semicolon();
     break;
   }
@@ -1153,7 +1157,11 @@ void parser::parse_and_visit_class_heading(
   case token_type::kw_extends:
     this->skip();
     // TODO(strager): Error when extending things like '0' or 'true'.
-    this->parse_and_visit_expression(v, precedence{.commas = false});
+    this->parse_and_visit_expression(v,
+                                     precedence{
+                                         .commas = false,
+                                         .trailing_curly_is_arrow_body = false,
+                                     });
     break;
 
   case token_type::left_curly:
@@ -1529,7 +1537,8 @@ void parser::parse_and_visit_switch(Visitor &v) {
   } else {
     this->parse_and_visit_parenthesized_expression<
         error_expected_parentheses_around_switch_condition,
-        error_expected_parenthesis_around_switch_condition>(v);
+        error_expected_parenthesis_around_switch_condition,
+        /*CheckForSketchyConditions=*/false>(v);
   }
 
   switch (this->peek().type) {
@@ -1773,7 +1782,8 @@ void parser::parse_and_visit_do_while(Visitor &v) {
 
   this->parse_and_visit_parenthesized_expression<
       error_expected_parentheses_around_do_while_condition,
-      error_expected_parenthesis_around_do_while_condition>(v);
+      error_expected_parenthesis_around_do_while_condition,
+      /*CheckForSketchyConditions=*/true>(v);
 
   if (this->peek().type == token_type::semicolon) {
     this->skip();
@@ -1803,7 +1813,9 @@ void parser::parse_and_visit_for(Visitor &v) {
   auto parse_c_style_head_remainder =
       [&](source_code_span first_semicolon_span) {
         if (this->peek().type != token_type::semicolon) {
-          this->parse_and_visit_expression(v);
+          expression *ast = this->parse_expression(v);
+          this->visit_expression(ast, v, variable_context::rhs);
+          this->error_on_sketchy_condition(ast);
         }
 
         switch (this->peek().type) {
@@ -1940,9 +1952,8 @@ void parser::parse_and_visit_for(Visitor &v) {
 
     lexer_transaction transaction = this->lexer_.begin_transaction();
     this->skip();
-    auto lhs_visitor_rewind_guard =
-        this->buffering_visitor_memory_.make_rewind_guard();
-    buffering_visitor lhs(&this->buffering_visitor_memory_);
+    buffering_visitor &lhs = this->buffering_visitor_stack_.emplace(
+        boost::container::pmr::new_delete_resource());
     if (declaring_token.type == token_type::kw_let &&
         this->is_let_token_a_variable_reference(this->peek(),
                                                 /*allow_declarations=*/true)) {
@@ -2022,7 +2033,7 @@ void parser::parse_and_visit_for(Visitor &v) {
       }
       this->visit_expression(rhs, v, variable_context::rhs);
       if (!is_var_in) {
-        // In the following code, 'x' is declared before 'array' is evaluated:
+        // In the following code, 'array' is evaluated before 'x' is declared:
         //
         //   for (let x in array) {}
         lhs.move_into(v);
@@ -2046,6 +2057,10 @@ void parser::parse_and_visit_for(Visitor &v) {
       QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
+
+    QLJS_ASSERT(&this->buffering_visitor_stack_.top() == &lhs);
+    this->buffering_visitor_stack_.pop();
+
     break;
   }
 
@@ -2178,7 +2193,8 @@ void parser::parse_and_visit_while(Visitor &v) {
   } else {
     this->parse_and_visit_parenthesized_expression<
         error_expected_parentheses_around_while_condition,
-        error_expected_parenthesis_around_while_condition>(v);
+        error_expected_parenthesis_around_while_condition,
+        /*CheckForSketchyConditions=*/true>(v);
   }
 
   this->error_on_class_statement(statement_kind::while_loop);
@@ -2201,7 +2217,8 @@ void parser::parse_and_visit_with(Visitor &v) {
 
   this->parse_and_visit_parenthesized_expression<
       error_expected_parentheses_around_with_expression,
-      error_expected_parenthesis_around_with_expression>(v);
+      error_expected_parenthesis_around_with_expression,
+      /*CheckForSketchyConditions=*/false>(v);
 
   this->error_on_class_statement(statement_kind::with_statement);
   this->error_on_function_statement(statement_kind::with_statement);
@@ -2230,7 +2247,8 @@ void parser::parse_and_visit_if(Visitor &v) {
   } else {
     this->parse_and_visit_parenthesized_expression<
         error_expected_parentheses_around_if_condition,
-        error_expected_parenthesis_around_if_condition>(v);
+        error_expected_parenthesis_around_if_condition,
+        /*CheckForSketchyConditions=*/true>(v);
   }
 
   auto parse_and_visit_body = [this, &v]() -> void {
@@ -2270,12 +2288,16 @@ void parser::parse_and_visit_if(Visitor &v) {
     break;
   }
 
+parse_maybe_else:
   if (this->peek().type == token_type::kw_else) {
     this->skip();
     const char8 *end_of_else = this->lexer_.end_of_previous_token();
     bool has_left_paren = this->peek().type == token_type::left_paren;
     if (has_left_paren) {
-      this->parse_and_visit_expression(v);
+      this->parse_and_visit_expression(
+          v, precedence{
+                 .trailing_curly_is_arrow_body = false,
+             });
     } else {
       parse_and_visit_body();
     }
@@ -2285,12 +2307,14 @@ void parser::parse_and_visit_if(Visitor &v) {
       this->error_reporter_->report(error_missing_if_after_else{
           .expected_if = source_code_span(end_of_else, end_of_else),
       });
+      parse_and_visit_body();
+      goto parse_maybe_else;
     }
   }
 }
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,
-          QLJS_PARSE_VISITOR Visitor>
+          bool CheckForSketchyConditions, QLJS_PARSE_VISITOR Visitor>
 void parser::parse_and_visit_parenthesized_expression(Visitor &v) {
   bool have_expression_left_paren = this->peek().type == token_type::left_paren;
   if (have_expression_left_paren) {
@@ -2298,7 +2322,11 @@ void parser::parse_and_visit_parenthesized_expression(Visitor &v) {
   }
   const char8 *expression_begin = this->peek().begin;
 
-  this->parse_and_visit_expression(v);
+  expression *ast = this->parse_expression(v);
+  this->visit_expression(ast, v, variable_context::rhs);
+  if constexpr (CheckForSketchyConditions) {
+    this->error_on_sketchy_condition(ast);
+  }
 
   const char8 *expression_end = this->lexer_.end_of_previous_token();
   bool have_expression_right_paren =

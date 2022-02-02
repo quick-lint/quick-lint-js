@@ -1044,11 +1044,11 @@ TEST(test_lint, assign_to_mutable_variable_shadowing_immutable_variable) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_lint, assign_to_immutable_variable) {
+TEST(test_lint, assign_to_immutable_const_variable) {
   const char8 declaration[] = u8"x";
   const char8 assignment[] = u8"x";
 
-  for (variable_kind kind : {variable_kind::_const, variable_kind::_import}) {
+  {
     // (() => {
     //   const x;  // x is immutable
     //   x = 42;   // ERROR
@@ -1057,7 +1057,8 @@ TEST(test_lint, assign_to_immutable_variable) {
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
-    l.visit_variable_declaration(identifier_of(declaration), kind);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_const);
     l.visit_variable_assignment(identifier_of(assignment));
     l.visit_exit_function_scope();
     l.visit_end_of_module();
@@ -1066,17 +1067,18 @@ TEST(test_lint, assign_to_immutable_variable) {
                               error_assignment_to_const_variable,      //
                               assignment, span_matcher(assignment),    //
                               declaration, span_matcher(declaration),  //
-                              var_kind, kind)));
+                              var_kind, variable_kind::_const)));
   }
 
-  for (variable_kind kind : {variable_kind::_const, variable_kind::_import}) {
+  {
     // const x;   // x is immutable
     // {
     //   x = 42;  // ERROR
     // }
     error_collector v;
     linter l(&v, &default_globals);
-    l.visit_variable_declaration(identifier_of(declaration), kind);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_const);
     l.visit_enter_block_scope();
     l.visit_variable_assignment(identifier_of(assignment));
     l.visit_exit_block_scope();
@@ -1086,7 +1088,33 @@ TEST(test_lint, assign_to_immutable_variable) {
                               error_assignment_to_const_variable,      //
                               assignment, span_matcher(assignment),    //
                               declaration, span_matcher(declaration),  //
-                              var_kind, kind)));
+                              var_kind, variable_kind::_const)));
+  }
+}
+
+TEST(test_lint, assign_to_immutable_imported_variable) {
+  const char8 declaration[] = u8"x";
+  const char8 assignment[] = u8"x";
+
+  {
+    // import {x} from "module";   // x is immutable
+    // {
+    //   x = 42;  // ERROR
+    // }
+    error_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_import);
+    l.visit_enter_block_scope();
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_block_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_3_FIELDS(
+                              error_assignment_to_imported_variable,   //
+                              assignment, span_matcher(assignment),    //
+                              declaration, span_matcher(declaration),  //
+                              var_kind, variable_kind::_import)));
   }
 }
 

@@ -99,8 +99,8 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     QLJS_ASSERT(this->type_ == document_type::lintable);
     vscode->load_non_persistent(env);
 
-    vscode_error_reporter error_reporter(vscode, env,
-                                         &this->document_.locator());
+    vscode_error_reporter error_reporter(
+        vscode, env, &this->document_.locator(), this->uri());
     parser_options p_options;
     p_options.jsx = true;
     parser p(this->document_.string(), &error_reporter, p_options);
@@ -119,10 +119,12 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     vscode->load_non_persistent(env);
 
     lsp_locator locator(&loaded_config->file_content);
-    vscode_error_reporter error_reporter(vscode, env, &locator);
+    vscode_error_reporter error_reporter(vscode, env, &locator, this->uri());
     loaded_config->errors.copy_into(&error_reporter);
     return std::move(error_reporter).diagnostics();
   }
+
+  ::Napi::Value uri() { return this->vscode_document_.Value().uri(); }
 
   document<lsp_locator> document_;
   document_type type_;
@@ -682,7 +684,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         .As<::Napi::Function>()
         .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
               {
-                  doc->vscode_document_.Value().uri(),
+                  doc->uri(),
                   diagnostics,
               });
   }
@@ -692,7 +694,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         .As<::Napi::Function>()
         .Call(/*this=*/this->vscode_diagnostic_collection_ref_.Value(),
               {
-                  doc->vscode_document_.Value().uri(),
+                  doc->uri(),
               });
   }
 

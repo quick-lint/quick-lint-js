@@ -12,7 +12,6 @@
       ).innerText = `Loading data.json failed: ${error}`;
       throw error;
     }
-    await loadGoogleChartsAsync();
 
     let exeSeries = allSeries.filter((s) => s.type === "exe");
     makeChart(exeSeries, {
@@ -46,13 +45,6 @@
     }
   }
 
-  async function loadGoogleChartsAsync() {
-    google.charts.load("current", { packages: ["corechart"] });
-    await new Promise((resolve, reject) => {
-      google.charts.setOnLoadCallback(resolve);
-    });
-  }
-
   async function loadBuildSizeDataAsync() {
     let response = await fetch("data.json");
     if (!response.ok) {
@@ -68,24 +60,26 @@
     series,
     { title = null, subtitle = null, stripLastNameFromTitle = false } = {}
   ) {
-    let seriesMinMax = series.map((s) => {
-      let sizes = s.sizes.map((size) => size.size);
-      return [Math.min(...sizes), Math.max(...sizes)];
-    });
-    let chartHeight = Math.max(...seriesMinMax.map(([min, max]) => max - min));
+    let canvas = document.createElement("canvas");
 
-    let data = new google.visualization.DataTable();
-    data.addColumn("string", "Commit");
-    for (let s of series) {
-      data.addColumn("number", s.name[s.name.length - 1]);
+    function datasetColor(datasetIndex) {
+      return `hsl(${datasetIndex * 360 / (series.length + 1)}, 60%, 50%)`;
     }
-    for (let i = 0; i < series[0].sizes.length; ++i) {
-      let row = [formatCommit(series[0].sizes[i].commit)];
-      for (let s of series) {
-        row.push(s.sizes[i].size);
-      }
-      data.addRows([row]);
+
+    function datasetLightenedColor(datasetIndex) {
+      return `hsla(${datasetIndex * 360 / (series.length + 1)}, 60%, 50%, 0.1)`;
     }
+
+    let datasets = series.map((s, i) => {
+      let color = datasetColor(i);
+      return {
+        label: s.name[s.name.length - 1],
+        data: s.sizes.map(cell => cell.size),
+        backgroundColor: color,
+        borderColor: color,
+      };
+    });
+    let labels = series[0].sizes.map(cell => formatCommit(cell.commit));
 
     if (title === null) {
       title = formatSeriesName(
@@ -97,25 +91,104 @@
     if (subtitle) {
       title += ` (${subtitle})`;
     }
-    let options = {
-      title: title,
-      legend: { position: "bottom" },
-      series: series.map((_s, index) => ({ targetAxisIndex: index })),
-      vAxes: seriesMinMax.map(([min, max]) => ({
-        minValue: min,
-        maxValue: min + chartHeight,
-      })),
-      vAxis: { textPosition: "none" },
+
+    function updateLegendSelection(selectedDatasetIndex) {
+      let changed = false;
+      for (let [datasetIndex, dataset] of chart.data.datasets.entries()) {
+        let color = selectedDatasetIndex === null || datasetIndex === selectedDatasetIndex ? datasetColor(datasetIndex) : datasetLightenedColor(datasetIndex);
+        if (dataset.borderColor !== color || dataset.backgroundColor !== color) {
+          dataset.borderColor = color;
+          dataset.backgroundColor = color;
+          changed = true;
+        }
+      };
+      if (changed) {
+        chart.update();
+      }
+    }
+    let legendElement = document.createElement("ul");
+    legendElement.addEventListener("mousemove", (event) => {
+      let hoveredDatasetIndex = event.target.dataset.datasetIndex;
+      updateLegendSelection(hoveredDatasetIndex === undefined ? null : parseInt(hoveredDatasetIndex, 10));
+    });
+    legendElement.addEventListener("mouseleave", (event) => {
+      updateLegendSelection(null);
+    });
+    legendElement.classList.add("legend");
+    let legendPlugin = {
+      id: 'quick-lint-js-legend',
+      afterUpdate(chart, args, options) {
+        legendElement.innerHTML = '';
+        let labels = chart.options.plugins.legend.labels.generateLabels(chart);
+        for (let [datasetIndex, label] of labels.entries()) {
+          let labelElement = document.createElement('li');
+          labelElement.dataset.datasetIndex = datasetIndex;
+          labelElement.classList.toggle("hidden", label.hidden);
+          labelElement.textContent = label.text;
+          labelElement.style.color = label.fillStyle;
+          labelElement.addEventListener("click", (_event) => {
+            chart.setDatasetVisibility(label.datasetIndex, !chart.isDatasetVisible(label.datasetIndex));
+            chart.update();
+          });
+          legendElement.appendChild(labelElement);
+        }
+      },
     };
 
-    let chartID = `chart-${++lastChartID}`;
+    let chart = new Chart(canvas.getContext("2d"), {
+      type: 'line',
+      data: {
+        datasets: datasets,
+        labels: labels,
+      },
+      options: {
+        maintainAspectRatio: false,
+        animation: false,
+        interaction: {
+          axis: 'x',
+          intersect: false,
+          mode: 'nearest',
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false,
+            },
+            ticks: {
+              minRotation: 45,
+              maxRotation: 45,
+            },
+          },
+        },
+        radius: 0,
+        showLines: false,
+        plugins: {
+          title: {
+            display: true,
+            text: title,
+            font: {
+              size: 24,
+            },
+          },
+          legend: {
+            // We instead render the legend ourselves with legendPlugin.
+            display: false,
+          },
+        },
+      },
+      plugins: [legendPlugin],
+    });
 
-    let chartElement = document.createElement("div");
-    chartElement.classList.add("binary-size-chart");
-    chartElement.id = chartID;
-    document.body.appendChild(chartElement);
-    let chart = new google.visualization.LineChart(chartElement);
-    chart.draw(data, options);
+    let canvasWrapperElement = document.createElement("div");
+    canvasWrapperElement.appendChild(canvas);
+
+    let chartID = `chart-${++lastChartID}`;
+    let containerElement = document.createElement("div");
+    containerElement.classList.add("binary-size-chart");
+    containerElement.appendChild(canvasWrapperElement);
+    containerElement.appendChild(legendElement);
+    containerElement.id = chartID;
+    document.body.appendChild(containerElement);
 
     let chartIndexLinkElement = document.createElement("a");
     chartIndexLinkElement.href = `#${chartID}`;

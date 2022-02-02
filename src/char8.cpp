@@ -5,6 +5,7 @@
 #include <cstring>
 #include <ostream>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/narrow-cast.h>
 #include <string_view>
 
 namespace quick_lint_js {
@@ -90,6 +91,26 @@ std::size_t strspn(const char8 *haystack, const char8 *needles) {
   return std::strspn(haystack, needles);
 }
 #endif
+
+char8 toupper(char8 c) noexcept {
+  if (islower(c)) {
+    return narrow_cast<char8>(c - (u8'a' - u8'A'));
+  } else {
+    return c;
+  }
+}
+
+char8 tolower(char8 c) noexcept {
+  if (isupper(c)) {
+    return narrow_cast<char8>(c + (u8'a' - u8'A'));
+  } else {
+    return c;
+  }
+}
+
+bool islower(char8 c) noexcept { return u8'a' <= c && c <= u8'z'; }
+
+bool isupper(char8 c) noexcept { return u8'A' <= c && c <= u8'Z'; }
 }
 
 namespace testing::internal {

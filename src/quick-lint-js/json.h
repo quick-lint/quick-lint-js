@@ -5,8 +5,6 @@
 #define QUICK_LINT_JS_JSON_H
 
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/have.h>
-#include <string>
 
 namespace quick_lint_js {
 class byte_buffer;

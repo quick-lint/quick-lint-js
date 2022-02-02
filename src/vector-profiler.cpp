@@ -44,6 +44,9 @@ std::ostream &operator<<(std::ostream &out,
   case vector_instrumentation::event::destroy:
     out << "destroy";
     break;
+  case vector_instrumentation::event::resize:
+    out << "resize";
+    break;
   }
   out << ", .size = " << e.size << ", .capacity = " << e.capacity << "}";
   return out;

@@ -392,6 +392,11 @@ class expression::_typeof final
   explicit _typeof(expression *child, source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
+
+  source_code_span unary_operator_span() {
+    return source_code_span(this->unary_operator_begin_,
+                            this->unary_operator_begin_ + strlen(u8"typeof"));
+  }
 };
 static_assert(expression_arena::is_allocatable<expression::_typeof>);
 
@@ -516,10 +521,18 @@ class expression::binary_operator final : public expression {
   static constexpr expression_kind kind = expression_kind::binary_operator;
 
   explicit binary_operator(
-      expression_arena::array_ptr<expression *> children) noexcept
-      : expression(kind), children_(children) {}
+      expression_arena::array_ptr<expression *> children,
+      expression_arena::array_ptr<source_code_span> operator_spans) noexcept
+      : expression(kind),
+        children_(children),
+        operator_spans_(operator_spans.data()) {
+    QLJS_ASSERT(children.size() >= 2);
+    QLJS_ASSERT(operator_spans.size() == children.size() - 1);
+  }
 
   expression_arena::array_ptr<expression *> children_;
+  // An array of size this->children_.size()-1.
+  const source_code_span *operator_spans_;
 };
 static_assert(expression_arena::is_allocatable<expression::binary_operator>);
 
@@ -631,13 +644,14 @@ class expression::jsx_element final : public jsx_base {
       expression_arena::array_ptr<expression *> children) noexcept
       : jsx_base(kind, span, children), tag(tag) {}
 
-  bool is_intrinsic() const noexcept {
+  bool is_intrinsic() const noexcept { return is_intrinsic(this->tag); }
+
+  static bool is_intrinsic(const identifier &tag) noexcept {
     // TODO(strager): Have the lexer do this work for us.
     string8_view name = tag.normalized_name();
     QLJS_ASSERT(!name.empty());
     char8 first_char = name[0];
-    return (u8'a' <= first_char && first_char <= u8'z') ||
-           contains(name, u8'-');
+    return islower(first_char) || contains(name, u8'-');
   }
 
   identifier tag;

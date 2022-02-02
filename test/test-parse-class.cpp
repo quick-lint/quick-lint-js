@@ -143,6 +143,15 @@ TEST(test_parse, class_statement_with_odd_heritage) {
                                       "visit_enter_class_scope",     //
                                       "visit_exit_class_scope"));
   }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"class C extends (A, B) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // A
+                                      "visit_variable_use",          // B
+                                      "visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     //
+                                      "visit_exit_class_scope"));
+  }
 }
 
 TEST(test_parse, class_statement_extending_class_expression) {

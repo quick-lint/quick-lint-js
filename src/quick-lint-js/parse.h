@@ -21,63 +21,13 @@
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/warning.h>
+#include <stack>
 #include <unordered_map>
 #include <utility>
 
 #if QLJS_HAVE_SETJMP
 #include <csetjmp>
 #endif
-
-#define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR \
-  case token_type::ampersand:                                      \
-  case token_type::ampersand_ampersand:                            \
-  case token_type::bang_equal:                                     \
-  case token_type::bang_equal_equal:                               \
-  case token_type::circumflex:                                     \
-  case token_type::equal_equal:                                    \
-  case token_type::equal_equal_equal:                              \
-  case token_type::greater:                                        \
-  case token_type::greater_equal:                                  \
-  case token_type::greater_greater:                                \
-  case token_type::greater_greater_greater:                        \
-  case token_type::less_equal:                                     \
-  case token_type::less_less:                                      \
-  case token_type::percent:                                        \
-  case token_type::pipe:                                           \
-  case token_type::pipe_pipe:                                      \
-  case token_type::question_question:                              \
-  case token_type::star_star
-
-#define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL                 \
-  QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR: \
-  case token_type::less:                                      \
-  case token_type::star
-
-#define QLJS_CASE_BINARY_ONLY_OPERATOR   \
-  QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL: \
-  case token_type::kw_instanceof
-
-#define QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL \
-  case token_type::ampersand_equal:                               \
-  case token_type::circumflex_equal:                              \
-  case token_type::greater_greater_equal:                         \
-  case token_type::greater_greater_greater_equal:                 \
-  case token_type::less_less_equal:                               \
-  case token_type::minus_equal:                                   \
-  case token_type::percent_equal:                                 \
-  case token_type::pipe_equal:                                    \
-  case token_type::plus_equal:                                    \
-  case token_type::star_equal:                                    \
-  case token_type::star_star_equal
-
-#define QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR \
-  case token_type::slash_equal:                \
-    QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR_EXCEPT_SLASH_EQUAL
-
-#define QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR \
-  case token_type::ampersand_ampersand_equal:     \
-  case token_type::pipe_pipe_equal:               \
-  case token_type::question_question_equal
 
 #define QLJS_PARSER_UNIMPLEMENTED()                                   \
   do {                                                                \
@@ -274,8 +224,10 @@ class parser {
   void parse_and_visit_with(Visitor &v);
 
   template <class ExpectedParenthesesError, class ExpectedParenthesisError,
-            QLJS_PARSE_VISITOR Visitor>
+            bool CheckForSketchyConditions, QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_parenthesized_expression(Visitor &v);
+
+  void error_on_sketchy_condition(expression *);
 
   void error_on_class_statement(statement_kind statement_kind);
   void error_on_lexical_declaration(statement_kind statement_kind);
@@ -333,7 +285,48 @@ class parser {
     // If true, parse unexpected trailing identifiers as part of the
     // expression (and emit an error).
     bool trailing_identifiers = false;
+
+    // If true, try parsing a trailing '{' as the body of an arrow function. For
+    // example:
+    //
+    // (x) { return x; }
+    //    ^ missing '=>'
+    //
+    // If false, stop parsing at a trailing '{' and do not report an error.
+    bool trailing_curly_is_arrow_body = true;
+
     bool conditional_operator = true;
+  };
+
+  // binary_expression_builder helps in the creation of a
+  // expression::binary_operator.
+  //
+  // Upon construction, binary_expression_builder stores a single expression*.
+  // As a binary expression is parsed, other expression*-s are added to the
+  // binary_expression_builder.
+  class binary_expression_builder {
+   public:
+    explicit binary_expression_builder(monotonic_allocator *,
+                                       expression *first_child);
+
+    expression *last_expression() const noexcept;
+    bool has_multiple_children() const noexcept;
+
+    // Returns the given expression*.
+    expression *add_child(source_code_span prior_operator_span, expression *);
+
+    void replace_last(expression *new_last_child);
+
+    void reset_after_build(expression *new_first_child);
+
+    expression_arena::array_ptr<expression *> move_expressions(
+        expression_arena &) noexcept;
+    expression_arena::array_ptr<source_code_span> move_operator_spans(
+        expression_arena &) noexcept;
+
+   private:
+    expression_arena::vector<expression *> children_;
+    expression_arena::vector<source_code_span> operator_spans_;
   };
 
   template <QLJS_PARSE_VISITOR Visitor>
@@ -363,14 +356,15 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_expression_remainder(Visitor &, expression *, precedence);
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_arrow_function_expression_remainder(
-      Visitor &, source_code_span arrow_span,
-      expression_arena::vector<expression *> &children, bool allow_in_operator);
+  void parse_arrow_function_expression_remainder(Visitor &,
+                                                 source_code_span arrow_span,
+                                                 binary_expression_builder &,
+                                                 bool allow_in_operator);
   // Precondition: Current token is '=>'.
   template <QLJS_PARSE_VISITOR Visitor>
-  void parse_arrow_function_expression_remainder(
-      Visitor &, expression_arena::vector<expression *> &children,
-      bool allow_in_operator);
+  void parse_arrow_function_expression_remainder(Visitor &,
+                                                 binary_expression_builder &,
+                                                 bool allow_in_operator);
   template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_call_expression_remainder(Visitor &, expression *callee);
   template <QLJS_PARSE_VISITOR Visitor>
@@ -401,6 +395,8 @@ class parser {
   expression *parse_class_expression(Visitor &);
   template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_jsx_expression(Visitor &);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_jsx_element_or_fragment(Visitor &);
   // tag is optional. If it is nullptr, parse a fragment. Otherwise, parse an
   // element.
   //
@@ -410,8 +406,11 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_jsx_element_or_fragment(Visitor &, identifier *tag,
                                             const char8 *less_begin);
+  void check_jsx_attribute(const identifier &attribute_name);
   template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_template(Visitor &, std::optional<expression *> tag);
+  expression *parse_tagged_template(Visitor &, expression *tag);
+  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_untagged_template(Visitor &);
 
   function_attributes parse_generator_star(function_attributes);
 
@@ -552,7 +551,12 @@ class parser {
   // Memory used for temporary memory allocations (e.g. vectors on the stack).
   monotonic_allocator temporary_memory_;
 
-  linked_bump_allocator<alignof(void *)> buffering_visitor_memory_;
+  // Memory used for strings in error messages.
+  monotonic_allocator error_memory_;
+
+  // These are stored in a stack here (rather than on the C++ stack via local
+  // variables) so that memory can be released in case we call setjmp.
+  std::stack<buffering_visitor> buffering_visitor_stack_;
 
   bool in_top_level_ = true;
   bool in_async_function_ = false;

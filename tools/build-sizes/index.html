@@ -5,12 +5,8 @@
   <head>
     <title>quick-lint-js build sizes</title>
     <meta charset="utf-8" />
-    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
     <style>
-      .binary-size-chart {
-        height: 500px;
-      }
-
       p.error {
         color: #c00;
       }
@@ -20,6 +16,24 @@
       }
       body.error #instructions {
         display: block;
+      }
+
+      .binary-size-chart {
+        display: grid;
+        grid-template-areas: "chart legend";
+        grid-template-columns: auto 20em;
+        height: 75vh;
+        max-height: 100vh;
+      }
+      .binary-size-chart > .canvas-wrapper {
+        grid-area: chart;
+      }
+      .binary-size-chart > .legend {
+        grid-area: legend;
+        overflow-y: scroll;
+      }
+      .legend .hidden {
+        text-decoration: line-through;
       }
     </style>
   </head>

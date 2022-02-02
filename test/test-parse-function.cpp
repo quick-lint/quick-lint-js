@@ -970,6 +970,21 @@ TEST(test_parse, arrow_function_expression_without_arrow_operator) {
   }
 
   {
+    padded_string code(u8"(async () {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_arrow_operator_in_arrow_function,  //
+                    where, strlen(u8"(async () "), u8"{")));
+  }
+
+  {
     padded_string code(u8"(()\n{});"_sv);
     spy_visitor v;
     parser p(&code, &v);
@@ -1000,6 +1015,42 @@ TEST(test_parse, arrow_function_expression_without_arrow_operator) {
                     &code, error_missing_arrow_operator_in_arrow_function,  //
                     where, strlen(u8"((a, b) "), u8"{")));
   }
+
+  {
+    padded_string code(u8"(async (a, b) {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // a
+                                      "visit_variable_declaration",       // b
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_arrow_operator_in_arrow_function,  //
+                    where, strlen(u8"(async (a, b) "), u8"{")));
+  }
+
+  {
+    padded_string code(u8"(async param {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_arrow_operator_in_arrow_function,  //
+                    where, strlen(u8"(async param "), u8"{")));
+  }
+
+  // TODO(strager): u8"(async (a, b)\n{});"_sv should report
+  // error_missing_arrow_operator_in_arrow_function.
 }
 
 TEST(test_parse, not_arrow_function_expression_without_arrow_operator) {
@@ -1046,6 +1097,20 @@ TEST(test_parse, not_arrow_function_expression_without_arrow_operator) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE(error_missing_semicolon_after_statement)));
+  }
+
+  {
+    padded_string code(u8"async(a, b)\n{}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // async
+                                      "visit_variable_use",       // a
+                                      "visit_variable_use",       // b
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 

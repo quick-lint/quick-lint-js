@@ -2,7 +2,6 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <cstdint>
 #include <cstring>
 #include <iterator>
@@ -21,6 +20,7 @@
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 #include <type_traits>
 #include <utility>
@@ -29,72 +29,24 @@
 #include <nmmintrin.h>
 #endif
 
-#define QLJS_CASE_IDENTIFIER_START \
-  case '\\':                       \
-  case '$':                        \
-  case '_':                        \
-  case 'A':                        \
-  case 'B':                        \
-  case 'C':                        \
-  case 'D':                        \
-  case 'E':                        \
-  case 'F':                        \
-  case 'G':                        \
-  case 'H':                        \
-  case 'I':                        \
-  case 'J':                        \
-  case 'K':                        \
-  case 'L':                        \
-  case 'M':                        \
-  case 'N':                        \
-  case 'O':                        \
-  case 'P':                        \
-  case 'Q':                        \
-  case 'R':                        \
-  case 'S':                        \
-  case 'T':                        \
-  case 'U':                        \
-  case 'V':                        \
-  case 'W':                        \
-  case 'X':                        \
-  case 'Y':                        \
-  case 'Z':                        \
-  case 'a':                        \
-  case 'b':                        \
-  case 'c':                        \
-  case 'd':                        \
-  case 'e':                        \
-  case 'f':                        \
-  case 'g':                        \
-  case 'h':                        \
-  case 'i':                        \
-  case 'j':                        \
-  case 'k':                        \
-  case 'l':                        \
-  case 'm':                        \
-  case 'n':                        \
-  case 'o':                        \
-  case 'p':                        \
-  case 'q':                        \
-  case 'r':                        \
-  case 's':                        \
-  case 't':                        \
-  case 'u':                        \
-  case 'v':                        \
-  case 'w':                        \
-  case 'x':                        \
-  case 'y':                        \
-  case 'z'
+// clang-format off
+#define QLJS_CASE_IDENTIFIER_START                                       \
+  case '\\': case '$': case '_':                                         \
+  case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G':  \
+  case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N':  \
+  case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U':  \
+  case 'V': case 'W': case 'X': case 'Y': case 'Z':                      \
+  case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g':  \
+  case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n':  \
+  case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u':  \
+  case 'v': case 'w': case 'x': case 'y': case 'z'
+// clang-format on
 
+// clang-format off
 #define QLJS_CASE_OCTAL_DIGIT \
-  case '0':                   \
-  case '1':                   \
-  case '2':                   \
-  case '3':                   \
-  case '4':                   \
-  case '5':                   \
-  case '6':                   \
-  case '7'
+  case '0': case '1': case '2': case '3': \
+  case '4': case '5': case '6': case '7'
+// clang-format on
 
 #define QLJS_CASE_DECIMAL_DIGIT \
   QLJS_CASE_OCTAL_DIGIT:        \
@@ -169,6 +121,15 @@ void token::report_errors_for_escape_sequences_in_keyword(
        *this->identifier_escape_sequences) {
     reporter->report(error_keywords_cannot_contain_escape_sequences{
         .escape_sequence = escape_sequence});
+  }
+}
+
+void token::report_errors_for_escape_sequences_in_template(
+    error_reporter* reporter) const {
+  QLJS_ASSERT(this->type == token_type::complete_template ||
+              this->type == token_type::incomplete_template);
+  if (this->template_escape_sequence_errors) {
+    this->template_escape_sequence_errors->move_into(reporter);
   }
 }
 
@@ -599,6 +560,8 @@ bool lexer::try_parse_current_token() {
     this->input_ += 1;
     parsed_template_body body = this->parse_template_body(
         this->input_, this->last_token_.begin, this->error_reporter_);
+    this->last_token_.template_escape_sequence_errors =
+        body.escape_sequence_errors;
     this->last_token_.type = body.type;
     this->input_ = body.end;
     this->last_token_.end = this->input_;
@@ -784,7 +747,9 @@ const char8* lexer::parse_string_literal() noexcept {
         }
         break;
       case 'u':
-        c = this->parse_unicode_escape(escape_sequence_start).end;
+        c = this->parse_unicode_escape(escape_sequence_start,
+                                       this->error_reporter_)
+                .end;
         break;
       default:
         ++c;
@@ -832,6 +797,8 @@ void lexer::skip_in_template(const char8* template_begin) {
   parsed_template_body body = this->parse_template_body(
       this->input_, template_begin, this->error_reporter_);
   this->last_token_.type = body.type;
+  this->last_token_.template_escape_sequence_errors =
+      body.escape_sequence_errors;
   this->input_ = body.end;
   this->last_token_.end = body.end;
 }
@@ -839,6 +806,7 @@ void lexer::skip_in_template(const char8* template_begin) {
 lexer::parsed_template_body lexer::parse_template_body(
     const char8* input, const char8* template_begin,
     error_reporter* error_reporter) {
+  buffering_error_reporter* escape_sequence_errors = nullptr;
   const char8* c = input;
   for (;;) {
     switch (*c) {
@@ -846,7 +814,8 @@ lexer::parsed_template_body lexer::parse_template_body(
       if (this->is_eof(c)) {
         error_reporter->report(
             error_unclosed_template{source_code_span(template_begin, c)});
-        return parsed_template_body{token_type::complete_template, c};
+        return parsed_template_body{token_type::complete_template, c,
+                                    escape_sequence_errors};
       } else {
         ++c;
         break;
@@ -854,7 +823,8 @@ lexer::parsed_template_body lexer::parse_template_body(
 
     case '`':
       ++c;
-      return parsed_template_body{token_type::complete_template, c};
+      return parsed_template_body{token_type::complete_template, c,
+                                  escape_sequence_errors};
 
     case '\\': {
       const char8* escape_sequence_start = c;
@@ -864,14 +834,23 @@ lexer::parsed_template_body lexer::parse_template_body(
         if (this->is_eof(c)) {
           error_reporter->report(
               error_unclosed_template{source_code_span(template_begin, c)});
-          return parsed_template_body{token_type::complete_template, c};
+          return parsed_template_body{token_type::complete_template, c,
+                                      escape_sequence_errors};
         } else {
           ++c;
           break;
         }
-      case 'u':
-        c = this->parse_unicode_escape(escape_sequence_start).end;
+      case 'u': {
+        if (!escape_sequence_errors) {
+          escape_sequence_errors =
+              this->allocator_.new_object<buffering_error_reporter>(
+                  &this->allocator_);
+        }
+        c = this->parse_unicode_escape(escape_sequence_start,
+                                       escape_sequence_errors)
+                .end;
         break;
+      }
       default:
         ++c;
         break;
@@ -882,7 +861,8 @@ lexer::parsed_template_body lexer::parse_template_body(
     case '$':
       if (c[1] == '{') {
         c += 2;
-        return parsed_template_body{token_type::incomplete_template, c};
+        return parsed_template_body{token_type::incomplete_template, c,
+                                    escape_sequence_errors};
       }
       ++c;
       break;
@@ -1374,7 +1354,7 @@ const char8* lexer::parse_hex_digits_and_underscores(
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 lexer::parsed_unicode_escape lexer::parse_unicode_escape(
-    const char8* input) noexcept {
+    const char8* input, error_reporter* reporter) noexcept {
   const char8* escape_sequence_begin = input;
   auto get_escape_span = [escape_sequence_begin, &input]() {
     return source_code_span(escape_sequence_begin, input);
@@ -1391,11 +1371,11 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
         // TODO: Add an enum to error_unclosed_identifier_escape_sequence to
         // indicate whether the token is a template literal, a string literal
         // or an identifier.
-        this->error_reporter_->report(error_unclosed_identifier_escape_sequence{
+        reporter->report(error_unclosed_identifier_escape_sequence{
             .escape_sequence = get_escape_span()});
         return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
       }
-      if (!this->is_hex_digit(*input)) {
+      if (!is_hex_digit(*input)) {
         found_non_hex_digit = true;
       }
       ++input;
@@ -1403,7 +1383,7 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
     code_point_hex_end = input;
     ++input;  // Skip "}".
     if (found_non_hex_digit || code_point_hex_begin == code_point_hex_end) {
-      this->error_reporter_->report(error_expected_hex_digits_in_unicode_escape{
+      reporter->report(error_expected_hex_digits_in_unicode_escape{
           .escape_sequence = get_escape_span()});
       return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
     }
@@ -1415,16 +1395,14 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
         // TODO: Add an enum to error_expected_hex_digits_in_unicode_escape to
         // indicate whether the token is a template literal, a string literal
         // or an identifier.
-        this->error_reporter_->report(
-            error_expected_hex_digits_in_unicode_escape{.escape_sequence =
-                                                            get_escape_span()});
+        reporter->report(error_expected_hex_digits_in_unicode_escape{
+            .escape_sequence = get_escape_span()});
         return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
       }
-      if (!this->is_hex_digit(*input)) {
-        this->error_reporter_->report(
-            error_expected_hex_digits_in_unicode_escape{
-                .escape_sequence =
-                    source_code_span(escape_sequence_begin, input + 1)});
+      if (!is_hex_digit(*input)) {
+        reporter->report(error_expected_hex_digits_in_unicode_escape{
+            .escape_sequence =
+                source_code_span(escape_sequence_begin, input + 1)});
         return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
       }
       ++input;
@@ -1441,9 +1419,8 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
     code_point = 0x110000;
   }
   if (code_point >= 0x110000) {
-    this->error_reporter_->report(
-        error_escaped_code_point_in_unicode_out_of_range{
-            .escape_sequence = get_escape_span()});
+    reporter->report(error_escaped_code_point_in_unicode_out_of_range{
+        .escape_sequence = get_escape_span()});
   }
   return parsed_unicode_escape{.end = input, .code_point = code_point};
 }
@@ -1550,19 +1527,18 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
   const char8* private_identifier_begin =
       is_private_identifier ? &identifier_begin[-1] : identifier_begin;
 
-  using lexer_string8 =
-      std::basic_string<char8, std::char_traits<char8>,
-                        boost::container::pmr::polymorphic_allocator<char8>>;
-  lexer_string8* normalized = this->allocator_.new_object<lexer_string8>(
-      private_identifier_begin, input,
-      this->allocator_.standard_allocator<char8>());
+  bump_vector<char8, monotonic_allocator> normalized(
+      "parse_identifier_slow normalized", &this->allocator_);
+  normalized.append(private_identifier_begin, input);
 
-  escape_sequence_list escape_sequences(
-      this->allocator_.standard_allocator<source_code_span>());
+  escape_sequence_list* escape_sequences =
+      this->allocator_.new_object<escape_sequence_list>(
+          "parse_identifier_slow escape_sequences", &this->allocator_);
 
   auto parse_unicode_escape = [&]() {
     const char8* escape_begin = input;
-    parsed_unicode_escape escape = this->parse_unicode_escape(escape_begin);
+    parsed_unicode_escape escape =
+        this->parse_unicode_escape(escape_begin, this->error_reporter_);
 
     if (escape.code_point.has_value()) {
       bool is_initial_identifier_character = escape_begin == identifier_begin;
@@ -1570,13 +1546,13 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
       if (code_point >= 0x110000) {
         // parse_unicode_escape reported
         // error_escaped_code_point_in_identifier_out_of_range already.
-        normalized->append(escape_begin, escape.end);
+        normalized.append(escape_begin, escape.end);
       } else if (!is_initial_identifier_character &&
                  kind == identifier_kind::jsx && code_point == u'-') {
         this->error_reporter_->report(
             error_escaped_hyphen_not_allowed_in_jsx_tag{
                 .escape_sequence = source_code_span(escape_begin, escape.end)});
-        normalized->append(escape_begin, escape.end);
+        normalized.append(escape_begin, escape.end);
       } else if (!(is_initial_identifier_character
                        ? this->is_initial_identifier_character(code_point)
                        : this->is_identifier_character(
@@ -1584,16 +1560,16 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
         this->error_reporter_->report(
             error_escaped_character_disallowed_in_identifiers{
                 .escape_sequence = source_code_span(escape_begin, escape.end)});
-        normalized->append(escape_begin, escape.end);
+        normalized.append(escape_begin, escape.end);
       } else {
-        normalized->append(4, u8'\0');
-        const char8* end = encode_utf_8(
-            code_point, &normalized->data()[normalized->size() - 4]);
-        normalized->resize(narrow_cast<std::size_t>(end - normalized->data()));
-        escape_sequences.emplace_back(escape_begin, escape.end);
+        normalized.append(4, u8'\0');
+        const char8* end =
+            encode_utf_8(code_point, &normalized.data()[normalized.size() - 4]);
+        normalized.resize(narrow_cast<std::size_t>(end - normalized.data()));
+        escape_sequences->emplace_back(escape_begin, escape.end);
       }
     } else {
-      normalized->append(escape_begin, escape.end);
+      normalized.append(escape_begin, escape.end);
     }
 
     QLJS_ASSERT(input != escape.end);
@@ -1620,7 +1596,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
       }
       this->error_reporter_->report(error_invalid_utf_8_sequence{
           .sequence = source_code_span(errors_begin, input)});
-      normalized->append(errors_begin, input);
+      normalized.append(errors_begin, input);
       continue;
     }
 
@@ -1633,7 +1609,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
         const char8* backslash_end = input;
         this->error_reporter_->report(error_unexpected_backslash_in_identifier{
             .backslash = source_code_span(backslash_begin, backslash_end)});
-        normalized->append(backslash_begin, backslash_end);
+        normalized.append(backslash_begin, backslash_end);
       }
     } else {
       QLJS_ASSERT(decode_result.size >= 1);
@@ -1662,16 +1638,18 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
         }
       }
 
-      normalized->append(character_begin, character_end);
+      normalized.append(character_begin, character_end);
       input = character_end;
     }
   }
 
+  string8_view normalized_view(normalized);
+  normalized.release();
+
   return parsed_identifier{
       .after = input,
-      .normalized = string8_view(*normalized),
-      .escape_sequences = this->allocator_.new_object<escape_sequence_list>(
-          std::move(escape_sequences)),
+      .normalized = normalized_view,
+      .escape_sequences = escape_sequences,
   };
 }
 QLJS_WARNING_POP

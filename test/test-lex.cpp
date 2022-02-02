@@ -1086,25 +1086,90 @@ world`)",
                                 input, error_unclosed_template,  //
                                 incomplete_template, 0, u8"`unterminated\\")));
       });
+}
 
-  this->check_tokens_with_errors(
-      u8"`hello\\u`"_sv, {token_type::complete_template},
-      [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_OFFSETS(
-                        input, error_expected_hex_digits_in_unicode_escape,  //
-                        escape_sequence, strlen(u8"`hello"), u8"\\u`")));
-      });
+TEST_F(test_lex, templates_buffer_unicode_escape_errors) {
+  {
+    padded_string input(u8"`hello\\u`"_sv);
+    error_collector errors;
+    lexer& l = this->make_lexer(&input, &errors);
 
-  this->check_tokens_with_errors(
-      u8"`hello\\u{110000}`", {token_type::complete_template},
-      [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_OFFSETS(
-                input, error_escaped_code_point_in_unicode_out_of_range,  //
-                escape_sequence, strlen(u8"`hello"), u8"\\u{110000}")));
-      });
+    EXPECT_EQ(l.peek().type, token_type::complete_template);
+    EXPECT_THAT(errors.errors, IsEmpty());
+    l.peek().report_errors_for_escape_sequences_in_template(&errors);
+    EXPECT_THAT(errors.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &input, error_expected_hex_digits_in_unicode_escape,  //
+                    escape_sequence, strlen(u8"`hello"), u8"\\u`")));
+
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+  }
+
+  {
+    padded_string input(u8"`hello\\u{110000}`"_sv);
+    error_collector errors;
+    lexer& l = this->make_lexer(&input, &errors);
+
+    EXPECT_EQ(l.peek().type, token_type::complete_template);
+    EXPECT_THAT(errors.errors, IsEmpty());
+    l.peek().report_errors_for_escape_sequences_in_template(&errors);
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(ERROR_TYPE_OFFSETS(
+            &input, error_escaped_code_point_in_unicode_out_of_range,  //
+            escape_sequence, strlen(u8"`hello"), u8"\\u{110000}")));
+
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+  }
+
+  {
+    padded_string input(u8"`hello\\u${expr}`"_sv);
+    error_collector errors;
+    lexer& l = this->make_lexer(&input, &errors);
+
+    EXPECT_EQ(l.peek().type, token_type::incomplete_template);
+    EXPECT_THAT(errors.errors, IsEmpty());
+    l.peek().report_errors_for_escape_sequences_in_template(&errors);
+    EXPECT_THAT(errors.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &input, error_expected_hex_digits_in_unicode_escape,  //
+                    escape_sequence, strlen(u8"`hello"), u8"\\u`")));
+
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+  }
+}
+
+TEST_F(test_lex, templates_do_not_buffer_valid_unicode_escapes) {
+  {
+    padded_string input(u8"`hell\\u{6f}`"_sv);
+    error_collector errors;
+    lexer& l = this->make_lexer(&input, &errors);
+
+    EXPECT_EQ(l.peek().type, token_type::complete_template);
+    EXPECT_THAT(errors.errors, IsEmpty());
+    l.peek().report_errors_for_escape_sequences_in_template(&errors);
+    EXPECT_THAT(errors.errors, IsEmpty());
+
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+  }
+
+  {
+    padded_string input(u8"`hell\\u{6f}${expr}`"_sv);
+    error_collector errors;
+    lexer& l = this->make_lexer(&input, &errors);
+
+    EXPECT_EQ(l.peek().type, token_type::incomplete_template);
+    EXPECT_THAT(errors.errors, IsEmpty());
+    l.peek().report_errors_for_escape_sequences_in_template(&errors);
+    EXPECT_THAT(errors.errors, IsEmpty());
+
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+  }
 }
 
 TEST_F(test_lex, lex_template_literal_with_ascii_control_characters) {

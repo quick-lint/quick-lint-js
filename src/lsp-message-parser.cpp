@@ -133,13 +133,6 @@ lsp_message_parser_base::parsed_header lsp_message_parser_base::parse_header(
 
 bool lsp_message_parser_base::header_is(string8_view header_name,
                                         string8_view expected_header_name) {
-  static auto tolower = [](char8 c) -> char8 {
-    if (u8'A' <= c && c <= u8'Z') {
-      return narrow_cast<char8>(c - u8'A' + u8'a');
-    } else {
-      return c;
-    }
-  };
   return std::equal(header_name.begin(), header_name.end(),
                     expected_header_name.begin(), expected_header_name.end(),
                     [](char8 x, char8 y) {

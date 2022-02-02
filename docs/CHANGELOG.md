@@ -11,6 +11,17 @@ Semantic Versioning.
 ### Added
 
 * quick-lint-js now supports JSX syntax in both .js and .jsx files.
+* New diagnostics for JSX: [E0019][], [E0181][], [E0182][], [E0183][],
+  [E0186][], [E0187][], [E0189][], [E0191][], [E0192][], [E0193][]
+* `if (...) {...} else (...) {...}` now reports [E0184][] ('missing `if` after
+  `else`') (implemented by [Himanshu][]).
+* `if (x = "")` now reports [E0188][] ('`=` changes variables; to compare, use
+  `===` instead').
+* `if (a == "X" || "Y")` now reports [E0190][] ('missing comparison; `===` does
+  not extend to the right side of `||`').
+* `async (param1, param2) {}` now reports [E0176][] ('missing arrow operator for
+  arrow function'). ([E0176][] was previously reported only for non-`async`
+  arrow functions.)
 
 ### Fixed
 
@@ -22,6 +33,23 @@ Semantic Versioning.
 * quick-lint-js no longer ignores elements of assigned arrays. For example,
   `[fisrt, second] = s.split(' ');` will now report [E0057][] for `fisrt` (if
   `fisrt` is not declared).
+* quick-lint-js no longer incorrectly reports [E0176][] (missing arrow operator
+  for arrow function) if the `extends` clause for a class is parenthesized
+  and contains commas (e.g. `class A extends (B, C) {}`).
+* quick-lint-js no longer incorrectly reports [E0016][], [E0038][], [E0060][],
+  or [E0207][] in tagged template literals. (These errors are still reported for
+  untagged template literals and for string literals.)
+* `-1 ** 2` now reports [E0194][] (missing parentheses around left-hand side of
+  `**`), per the JavaScript specification. (Previously, no error was reported.)
+* `typeof 10 ** 7` now reports [E0195][] (missing parentheses around operand of
+  `typeof`), per the JavaScript specification. (Previously, no error was
+  reported.)
+
+### Changed
+
+* Assigning to an imported variable now reports [E0185][] ('assignment to
+  imported variable') instead of [E0003][] ('assignment to const variable')
+  (implemented by [Matheus de Sousa][]).
 
 ## 1.0.0 (2021-12-13)
 
@@ -354,6 +382,7 @@ Beta release.
 [wagner riffel]: https://github.com/wgrr
 
 [E0001]: https://quick-lint-js.com/errors/#E0001
+[E0003]: https://quick-lint-js.com/errors/#E0003
 [E0013]: https://quick-lint-js.com/errors/#E0013
 [E0016]: https://quick-lint-js.com/errors/#E0016
 [E0019]: https://quick-lint-js.com/errors/#E0019
@@ -382,3 +411,19 @@ Beta release.
 [E0203]: https://quick-lint-js.com/errors/#E0203
 [E0205]: https://quick-lint-js.com/errors/#E0205
 [E0207]: https://quick-lint-js.com/errors/#E0207
+[E0180]: https://quick-lint-js.com/errors/#E0180
+[E0181]: https://quick-lint-js.com/errors/#E0181
+[E0182]: https://quick-lint-js.com/errors/#E0182
+[E0183]: https://quick-lint-js.com/errors/#E0183
+[E0184]: https://quick-lint-js.com/errors/#E0184
+[E0185]: https://quick-lint-js.com/errors/#E0185
+[E0186]: https://quick-lint-js.com/errors/#E0186
+[E0187]: https://quick-lint-js.com/errors/#E0187
+[E0188]: https://quick-lint-js.com/errors/#E0188
+[E0189]: https://quick-lint-js.com/errors/#E0189
+[E0190]: https://quick-lint-js.com/errors/#E0190
+[E0191]: https://quick-lint-js.com/errors/#E0191
+[E0192]: https://quick-lint-js.com/errors/#E0192
+[E0193]: https://quick-lint-js.com/errors/#E0193
+[E0194]: https://quick-lint-js.com/errors/#E0194
+[E0195]: https://quick-lint-js.com/errors/#E0195

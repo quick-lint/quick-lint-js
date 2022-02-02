@@ -24,6 +24,7 @@ enum class diagnostic_arg_type : std::uint8_t {
   identifier,
   source_code_span,
   statement_kind,
+  string8_view,
   variable_kind,
 };
 
@@ -40,6 +41,8 @@ struct diagnostic_message_info {
 
 struct diagnostic_info {
   char code[6];
+  // If we support more than two infos (i.e. more than one note), the VS Code
+  // plugin needs to be updated. See NOTE(multiple notes).
   diagnostic_message_info messages[2];
 };
 
