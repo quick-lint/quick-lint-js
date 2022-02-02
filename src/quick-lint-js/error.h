@@ -44,7 +44,7 @@
         source_code_span end;                                                  \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "missing '<>' and '</>' to enclose multiple children"),        \
+                "missing '<>' and '</>' to enclose multiple children, dumbass..."), \
             begin) NOTE(QLJS_TRANSLATABLE("children end here"), end))          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -53,7 +53,7 @@
         identifier assignment;                                                 \
         identifier declaration;                                                \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("variable assigned before its declaration"),     \
+      ERROR(QLJS_TRANSLATABLE("variable assigned before its declaration, dumbass..."), \
             assignment)                                                        \
           NOTE(QLJS_TRANSLATABLE("variable declared here"), declaration))      \
                                                                                \
@@ -61,13 +61,13 @@
       error_assignment_makes_condition_constant, "E0188",                      \
       { source_code_span assignment_operator; },                               \
       WARNING(QLJS_TRANSLATABLE(                                               \
-                  "'=' changes variables; to compare, use '===' instead"),     \
+                  "'=' changes variables; to compare, use '===' instead, dumbass..."), \
               assignment_operator))                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_assignment_to_const_global_variable, "E0002",                      \
       { identifier assignment; },                                              \
-      ERROR(QLJS_TRANSLATABLE("assignment to const global variable"),          \
+      ERROR(QLJS_TRANSLATABLE("assignment to const global variable, dumbass..."), \
             assignment))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -78,7 +78,7 @@
         variable_kind var_kind;                                                \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE("assignment to const variable"), assignment)     \
-          NOTE(QLJS_TRANSLATABLE("const variable declared here"),              \
+          NOTE(QLJS_TRANSLATABLE("const variable declared here, dumbass..."), \
                declaration))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -89,7 +89,7 @@
         variable_kind var_kind;                                                \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE("assignment to imported variable"), assignment)  \
-          NOTE(QLJS_TRANSLATABLE("imported variable declared here"),           \
+          NOTE(QLJS_TRANSLATABLE("imported variable declared here, dumbass..."), \
                declaration))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -100,41 +100,41 @@
         variable_kind var_kind;                                                \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "assignment to const variable before its declaration"),        \
+                "assignment to const variable before its declaration, dumbass..."), \
             assignment)                                                        \
-          NOTE(QLJS_TRANSLATABLE("const variable declared here"),              \
+          NOTE(QLJS_TRANSLATABLE("const variable declared here, dumbass..."), \
                declaration))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_assignment_to_undeclared_variable, "E0059",                        \
       { identifier assignment; },                                              \
-      WARNING(QLJS_TRANSLATABLE("assignment to undeclared variable"),          \
+      WARNING(QLJS_TRANSLATABLE("assignment to undeclared variable, dumbass..."), \
               assignment))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_await_operator_outside_async, "E0162",                             \
       { source_code_span await_operator; },                                    \
-      ERROR(QLJS_TRANSLATABLE("'await' is only allowed in async functions"),   \
+      ERROR(QLJS_TRANSLATABLE("'await' is only allowed in async functions, dumbass..."), \
             await_operator))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_await_followed_by_arrow_function, "E0178",                         \
       { source_code_span await_operator; },                                    \
       ERROR(QLJS_TRANSLATABLE("'await' cannot be followed by an arrow "        \
-                              "function; use 'async' instead"),                \
+                              "function; use 'async' instead, dumbass..."), \
             await_operator))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_async_static_method, "E0269", { source_code_span async_static; },  \
       ERROR(                                                                   \
           QLJS_TRANSLATABLE(                                                   \
-              "'async static' is not allowed; write 'static async' instead"),  \
+              "'async static' is not allowed; write 'static async' instead, dumbass..."), \
           async_static))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_big_int_literal_contains_decimal_point, "E0005",                   \
       { source_code_span where; },                                             \
-      ERROR(QLJS_TRANSLATABLE("BigInt literal contains decimal point"),        \
+      ERROR(QLJS_TRANSLATABLE("BigInt literal contains decimal point, dumbass..."), \
             where))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -149,34 +149,34 @@
         source_code_span existing_semicolon;                                   \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "C-style for loop is missing its third component"),            \
+                "C-style for loop is missing its third component, dumbass..."), \
             expected_last_component))                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_cannot_assign_to_loop_variable_in_for_of_or_in_loop, "E0173",      \
       { source_code_span equal_token; },                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "cannot assign to loop variable in for of/in loop"),           \
+                "cannot assign to loop variable in for of/in loop, dumbass..."), \
             equal_token))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_cannot_access_private_identifier_outside_class, "E0208",           \
       { identifier private_identifier; },                                      \
       ERROR(                                                                   \
-          QLJS_TRANSLATABLE("cannot access private identifier outside class"), \
+          QLJS_TRANSLATABLE("cannot access private identifier outside class, dumbass..."), \
           private_identifier))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_cannot_assign_to_variable_named_async_in_for_of_loop, "E0082",     \
       { identifier async_identifier; },                                        \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "assigning to 'async' in a for-of loop requires parentheses"), \
+                "assigning to 'async' in a for-of loop requires parentheses, dumbass..."), \
             async_identifier))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_cannot_declare_await_in_async_function, "E0069",                   \
       { identifier name; },                                                    \
-      ERROR(QLJS_TRANSLATABLE("cannot declare 'await' inside async function"), \
+      ERROR(QLJS_TRANSLATABLE("cannot declare 'await' inside async function, dumbass..."), \
             name))                                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -188,38 +188,38 @@
       error_cannot_declare_variable_named_let_with_let, "E0008",               \
       { source_code_span name; },                                              \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "let statement cannot declare variables named 'let'"),         \
+                "let statement cannot declare variables named 'let', dumbass..."), \
             name))                                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_cannot_declare_variable_with_keyword_name, "E0124",                \
       { source_code_span keyword; },                                           \
-      ERROR(QLJS_TRANSLATABLE("cannot declare variable named keyword '{0}'"),  \
+      ERROR(QLJS_TRANSLATABLE("cannot declare variable named keyword '{0}', dumbass..."), \
             keyword))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_cannot_declare_yield_in_generator_function, "E0071",               \
       { identifier name; },                                                    \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "cannot declare 'yield' inside generator function"),           \
+                "cannot declare 'yield' inside generator function, dumbass..."), \
             name))                                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_cannot_export_default_variable, "E0076",                           \
       { source_code_span declaring_token; },                                   \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "cannot declare and export variable with 'export default'"),   \
+                "cannot declare and export variable with 'export default', dumbass..."), \
             declaring_token))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_cannot_export_let, "E0009", { source_code_span export_name; },     \
-      ERROR(QLJS_TRANSLATABLE("cannot export variable named 'let'"),           \
+      ERROR(QLJS_TRANSLATABLE("cannot export variable named 'let', dumbass..."), \
             export_name))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_cannot_export_variable_named_keyword, "E0144",                     \
       { identifier export_name; },                                             \
-      ERROR(QLJS_TRANSLATABLE("cannot export variable named keyword '{0}'"),   \
+      ERROR(QLJS_TRANSLATABLE("cannot export variable named keyword '{0}', dumbass..."), \
             export_name))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -229,14 +229,14 @@
   QLJS_ERROR_TYPE(                                                             \
       error_cannot_import_variable_named_keyword, "E0145",                     \
       { identifier import_name; },                                             \
-      ERROR(QLJS_TRANSLATABLE("cannot import variable named keyword '{0}'"),   \
+      ERROR(QLJS_TRANSLATABLE("cannot import variable named keyword '{0}', dumbass..."), \
             import_name))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_cannot_refer_to_private_variable_without_object, "E0155",          \
       { identifier private_identifier; },                                      \
       ERROR(QLJS_TRANSLATABLE("cannot reference private variables without "    \
-                              "object; use 'this.'"),                          \
+                              "object; use 'this.', dumbass..."), \
             private_identifier))                                               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -246,15 +246,15 @@
         source_code_span updating_operator;                                    \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "cannot update variable with '{0}' while declaring it"),       \
+                "cannot update variable with '{0}' while declaring it, dumbass..."), \
             updating_operator)                                                 \
           NOTE(QLJS_TRANSLATABLE(                                              \
-                   "remove '{0}' to update an existing variable"),             \
+                   "remove '{0}' to update an existing variable, dumbass..."), \
                declaring_token))                                               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_catch_without_try, "E0117", { source_code_span catch_token; },     \
-      ERROR(QLJS_TRANSLATABLE("unexpected 'catch' without 'try'"),             \
+      ERROR(QLJS_TRANSLATABLE("unexpected 'catch' without 'try', dumbass..."), \
             catch_token))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -264,16 +264,16 @@
         source_code_span expected_body;                                        \
         source_code_span class_keyword;                                        \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("missing body for {1:headlinese}"),              \
+      ERROR(QLJS_TRANSLATABLE("missing body for {1:headlinese}, dumbass..."), \
             expected_body, kind_of_statement)                                  \
           NOTE(QLJS_TRANSLATABLE("a class statement is not allowed as the "    \
-                                 "body of {1:singular}"),                      \
+                                 "body of {1:singular}, dumbass..."), \
                class_keyword, kind_of_statement))                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_character_disallowed_in_identifiers, "E0011",                      \
       { source_code_span character; },                                         \
-      ERROR(QLJS_TRANSLATABLE("character is not allowed in identifiers"),      \
+      ERROR(QLJS_TRANSLATABLE("character is not allowed in identifiers, dumbass..."), \
             character))                                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -283,13 +283,13 @@
         source_code_span spread;                                               \
       },                                                                       \
       ERROR(                                                                   \
-          QLJS_TRANSLATABLE("commas are not allowed after spread parameter"),  \
+          QLJS_TRANSLATABLE("commas are not allowed after spread parameter, dumbass..."), \
           comma))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_comma_not_allowed_between_class_methods, "E0209",                  \
       { source_code_span unexpected_comma; },                                  \
-      ERROR(QLJS_TRANSLATABLE("commas are not allowed between class methods"), \
+      ERROR(QLJS_TRANSLATABLE("commas are not allowed between class methods, dumbass..."), \
             unexpected_comma))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -299,35 +299,35 @@
   QLJS_ERROR_TYPE(                                                             \
       error_config_global_groups_group_type_mismatch, "E0170",                 \
       { source_code_span group; },                                             \
-      ERROR(QLJS_TRANSLATABLE("\"global-groups\" entries must be strings"),    \
+      ERROR(QLJS_TRANSLATABLE("\"global-groups\" entries must be strings, dumbass..."), \
             group))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_config_global_groups_type_mismatch, "E0169",                       \
       { source_code_span value; },                                             \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "\"global-groups\" must be a boolean or an array"),            \
+                "\"global-groups\" must be a boolean or an array, dumbass..."), \
             value))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_config_globals_descriptor_type_mismatch, "E0171",                  \
       { source_code_span descriptor; },                                        \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "\"globals\" descriptor must be a boolean or an object"),      \
+                "\"globals\" descriptor must be a boolean or an object, dumbass..."), \
             descriptor))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_config_globals_descriptor_shadowable_type_mismatch, "E0166",       \
       { source_code_span value; },                                             \
       ERROR(QLJS_TRANSLATABLE("\"globals\" descriptor \"shadowable\" "         \
-                              "property must be a boolean"),                   \
+                              "property must be a boolean, dumbass..."), \
             value))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_config_globals_descriptor_writable_type_mismatch, "E0167",         \
       { source_code_span value; },                                             \
       ERROR(QLJS_TRANSLATABLE("\"globals\" descriptor \"writable\" property "  \
-                              "must be a boolean"),                            \
+                              "must be a boolean, dumbass..."), \
             value))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -341,12 +341,12 @@
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_dot_dot_is_not_an_operator, "E0053", { source_code_span dots; },   \
-      ERROR(QLJS_TRANSLATABLE("missing property name between '.' and '.'"),    \
+      ERROR(QLJS_TRANSLATABLE("missing property name between '.' and '.', dumbass..."), \
             dots))                                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_else_has_no_if, "E0065", { source_code_span else_token; },         \
-      ERROR(QLJS_TRANSLATABLE("'else' has no corresponding 'if'"),             \
+      ERROR(QLJS_TRANSLATABLE("'else' has no corresponding 'if', dumbass..."), \
             else_token))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -356,7 +356,7 @@
         source_code_span equals_operator;                                      \
       },                                                                       \
       WARNING(QLJS_TRANSLATABLE("missing comparison; '{1}' does not extend "   \
-                                "to the right side of '{0}'"),                 \
+                                "to the right side of '{0}', dumbass..."), \
               or_operator, equals_operator)                                    \
           NOTE(QLJS_TRANSLATABLE("'{0}' found here"), equals_operator))        \
                                                                                \
@@ -364,7 +364,7 @@
       error_escaped_character_disallowed_in_identifiers, "E0012",              \
       { source_code_span escape_sequence; },                                   \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "escaped character is not allowed in identifiers"),            \
+                "escaped character is not allowed in identifiers, dumbass..."), \
             escape_sequence))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -376,7 +376,7 @@
       error_escaped_code_point_in_unicode_out_of_range, "E0207",               \
       { source_code_span escape_sequence; },                                   \
       ERROR(QLJS_TRANSLATABLE("code point in Unicode escape sequence must "    \
-                              "not be greater than U+10FFFF"),                 \
+                              "not be greater than U+10FFFF, dumbass..."), \
             escape_sequence))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -384,14 +384,14 @@
       { source_code_span escape_sequence; },                                   \
       ERROR(                                                                   \
           QLJS_TRANSLATABLE(                                                   \
-              "escaping '-' is not allowed in tag names; write '-' instead"),  \
+              "escaping '-' is not allowed in tag names; write '-' instead, dumbass..."), \
           escape_sequence))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_extra_comma_not_allowed_between_arguments, "E0068",                \
       { source_code_span comma; },                                             \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "extra ',' is not allowed between function call arguments"),   \
+                "extra ',' is not allowed between function call arguments, dumbass..."), \
             comma))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -401,13 +401,13 @@
         source_code_span alias;                                                \
         source_code_span star_token;                                           \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("expected 'as' between '{1}' and '{2}'"),        \
+      ERROR(QLJS_TRANSLATABLE("expected 'as' between '{1}' and '{2}', dumbass..."), \
             star_through_alias_token, star_token, alias))                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_comma_to_separate_object_literal_entries, "E0131",        \
       { source_code_span unexpected_token; },                                  \
-      ERROR(QLJS_TRANSLATABLE("expected ',' between object literal entries"),  \
+      ERROR(QLJS_TRANSLATABLE("expected ',' between object literal entries, dumbass..."), \
             unexpected_token))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -418,7 +418,7 @@
   QLJS_ERROR_TYPE(                                                             \
       error_expected_expression_for_switch_case, "E0140",                      \
       { source_code_span case_token; },                                        \
-      ERROR(QLJS_TRANSLATABLE("expected expression after 'case'"),             \
+      ERROR(QLJS_TRANSLATABLE("expected expression after 'case', dumbass..."), \
             case_token))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -429,20 +429,20 @@
   QLJS_ERROR_TYPE(                                                             \
       error_expected_from_and_module_specifier, "E0129",                       \
       { source_code_span where; },                                             \
-      ERROR(QLJS_TRANSLATABLE("expected 'from \"name_of_module.mjs\"'"),       \
+      ERROR(QLJS_TRANSLATABLE("expected 'from \"name_of_module.mjs\"', dumbass..."), \
             where))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_from_before_module_specifier, "E0128",                    \
       { source_code_span module_specifier; },                                  \
-      ERROR(QLJS_TRANSLATABLE("expected 'from' before module specifier"),      \
+      ERROR(QLJS_TRANSLATABLE("expected 'from' before module specifier, dumbass..."), \
             module_specifier))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_hex_digits_in_unicode_escape, "E0016",                    \
       { source_code_span escape_sequence; },                                   \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "expected hexadecimal digits in Unicode escape sequence"),     \
+                "expected hexadecimal digits in Unicode escape sequence, dumbass..."), \
             escape_sequence))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -456,7 +456,7 @@
         source_code_span expected_right_paren;                                 \
         source_code_span left_paren;                                           \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("expected ')' to close function call"),          \
+      ERROR(QLJS_TRANSLATABLE("expected ')' to close function call, dumbass..."), \
             expected_right_paren)                                              \
           NOTE(QLJS_TRANSLATABLE("function call started here"), left_paren))   \
                                                                                \
@@ -464,7 +464,7 @@
       error_expected_parentheses_around_do_while_condition, "E0084",           \
       { source_code_span condition; },                                         \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "do-while loop needs parentheses around condition"),           \
+                "do-while loop needs parentheses around condition, dumbass..."), \
             condition))                                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -474,14 +474,14 @@
         char8 token;                                                           \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "do-while loop is missing '{1}' around condition"),            \
+                "do-while loop is missing '{1}' around condition, dumbass..."), \
             where, token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_parentheses_around_if_condition, "E0017",                 \
       { source_code_span condition; },                                         \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "if statement needs parentheses around condition"),            \
+                "if statement needs parentheses around condition, dumbass..."), \
             condition))                                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -491,14 +491,14 @@
         char8 token;                                                           \
       },                                                                       \
       ERROR(                                                                   \
-          QLJS_TRANSLATABLE("if statement is missing '{1}' around condition"), \
+          QLJS_TRANSLATABLE("if statement is missing '{1}' around condition, dumbass..."), \
           where, token))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_parentheses_around_switch_condition, "E0091",             \
       { source_code_span condition; },                                         \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "switch statement needs parentheses around condition"),        \
+                "switch statement needs parentheses around condition, dumbass..."), \
             condition))                                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -508,14 +508,14 @@
         char8 token;                                                           \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "switch statement is missing '{1}' around condition"),         \
+                "switch statement is missing '{1}' around condition, dumbass..."), \
             where, token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_parentheses_around_while_condition, "E0087",              \
       { source_code_span condition; },                                         \
       ERROR(                                                                   \
-          QLJS_TRANSLATABLE("while loop needs parentheses around condition"),  \
+          QLJS_TRANSLATABLE("while loop needs parentheses around condition, dumbass..."), \
           condition))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -524,14 +524,14 @@
         source_code_span where;                                                \
         char8 token;                                                           \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("while loop is missing '{1}' around condition"), \
+      ERROR(QLJS_TRANSLATABLE("while loop is missing '{1}' around condition, dumbass..."), \
             where, token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_parentheses_around_with_expression, "E0089",              \
       { source_code_span expression; },                                        \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "with statement needs parentheses around expression"),         \
+                "with statement needs parentheses around expression, dumbass..."), \
             expression))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -541,19 +541,19 @@
         char8 token;                                                           \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "with statement is missing '{1}' around expression"),          \
+                "with statement is missing '{1}' around expression, dumbass..."), \
             where, token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_variable_name_for_catch, "E0135",                         \
       { source_code_span unexpected_token; },                                  \
-      ERROR(QLJS_TRANSLATABLE("expected variable name for 'catch'"),           \
+      ERROR(QLJS_TRANSLATABLE("expected variable name for 'catch', dumbass..."), \
             unexpected_token))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_expected_variable_name_for_import_as, "E0175",                     \
       { source_code_span unexpected_token; },                                  \
-      ERROR(QLJS_TRANSLATABLE("expected variable name for 'import'-'as'"),     \
+      ERROR(QLJS_TRANSLATABLE("expected variable name for 'import'-'as', dumbass..."), \
             unexpected_token))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -569,12 +569,12 @@
       error_exporting_string_name_only_allowed_for_export_from, "E0153",       \
       { source_code_span export_name; },                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "forwarding exports are only allowed in export-from"),         \
+                "forwarding exports are only allowed in export-from, dumbass..."), \
             export_name))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_finally_without_try, "E0118", { source_code_span finally_token; }, \
-      ERROR(QLJS_TRANSLATABLE("unexpected 'finally' without 'try'"),           \
+      ERROR(QLJS_TRANSLATABLE("unexpected 'finally' without 'try', dumbass..."), \
             finally_token))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -584,17 +584,17 @@
         source_code_span expected_body;                                        \
         source_code_span function_keywords;                                    \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("missing body for {1:headlinese}"),              \
+      ERROR(QLJS_TRANSLATABLE("missing body for {1:headlinese}, dumbass..."), \
             expected_body, kind_of_statement)                                  \
           NOTE(QLJS_TRANSLATABLE("a function statement is not allowed as the " \
-                                 "body of {1:singular}"),                      \
+                                 "body of {1:singular}, dumbass..."), \
                function_keywords, kind_of_statement))                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_generator_function_star_belongs_after_keyword_function, "E0204",   \
       { source_code_span star; },                                              \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "generator function '*' belongs after keyword function"),      \
+                "generator function '*' belongs after keyword function, dumbass..."), \
             star))                                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -604,14 +604,14 @@
         source_code_span star;                                                 \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "generator function '*' belongs before function name"),        \
+                "generator function '*' belongs before function name, dumbass..."), \
             star))                                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_in_disallowed_in_c_style_for_loop, "E0108",                        \
       { source_code_span in_token; },                                          \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "'in' disallowed in C-style for loop initializer"),            \
+                "'in' disallowed in C-style for loop initializer, dumbass..."), \
             in_token))                                                         \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -622,19 +622,19 @@
   QLJS_ERROR_TYPE(                                                             \
       error_invalid_expression_left_of_assignment, "E0020",                    \
       { source_code_span where; },                                             \
-      ERROR(QLJS_TRANSLATABLE("invalid expression left of assignment"),        \
+      ERROR(QLJS_TRANSLATABLE("invalid expression left of assignment, dumbass..."), \
             where))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_invalid_hex_escape_sequence, "E0060",                              \
       { source_code_span escape_sequence; },                                   \
-      ERROR(QLJS_TRANSLATABLE("invalid hex escape sequence: {0}"),             \
+      ERROR(QLJS_TRANSLATABLE("invalid hex escape sequence: {0}, dumbass..."), \
             escape_sequence))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_invalid_lone_literal_in_object_literal, "E0021",                   \
       { source_code_span where; },                                             \
-      ERROR(QLJS_TRANSLATABLE("invalid lone literal in object literal"),       \
+      ERROR(QLJS_TRANSLATABLE("invalid lone literal in object literal, dumbass..."), \
             where))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -645,7 +645,7 @@
       error_invalid_rhs_for_dot_operator, "E0074", { source_code_span dot; },  \
       ERROR(QLJS_TRANSLATABLE(                                                 \
                 "'.' operator needs a key name; use + to concatenate "         \
-                "strings; use [] to access with a dynamic key"),               \
+                "strings; use [] to access with a dynamic key, dumbass..."), \
             dot))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -659,7 +659,7 @@
         string8_view expected_attribute_name;                                  \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "attribute has wrong capitalization; write '{1}' instead"),    \
+                "attribute has wrong capitalization; write '{1}' instead, dumbass..."), \
             attribute_name, expected_attribute_name))                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -669,7 +669,7 @@
         string8_view react_attribute_name;                                     \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "misspelled React attribute; write '{1}' instead"),            \
+                "misspelled React attribute; write '{1}' instead, dumbass..."), \
             attribute_name, react_attribute_name))                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -678,7 +678,7 @@
         identifier attribute_name;                                             \
         string8_view expected_attribute_name;                                  \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("event attributes must be camelCase: '{1}'"),    \
+      ERROR(QLJS_TRANSLATABLE("event attributes must be camelCase: '{1}', dumbass..."), \
             attribute_name, expected_attribute_name))                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -688,7 +688,7 @@
   QLJS_ERROR_TYPE(                                                             \
       error_keywords_cannot_contain_escape_sequences, "E0023",                 \
       { source_code_span escape_sequence; },                                   \
-      ERROR(QLJS_TRANSLATABLE("keywords cannot contain escape sequences"),     \
+      ERROR(QLJS_TRANSLATABLE("keywords cannot contain escape sequences, dumbass..."), \
             escape_sequence))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -698,20 +698,20 @@
         source_code_span colon;                                                \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "label named 'await' not allowed in async function"),          \
+                "label named 'await' not allowed in async function, dumbass..."), \
             await))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_legacy_octal_literal_may_not_be_big_int, "E0032",                  \
       { source_code_span characters; },                                        \
-      ERROR(QLJS_TRANSLATABLE("legacy octal literal may not be BigInt"),       \
+      ERROR(QLJS_TRANSLATABLE("legacy octal literal may not be BigInt, dumbass..."), \
             characters))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_legacy_octal_literal_may_not_contain_underscores, "E0152",         \
       { source_code_span underscores; },                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "legacy octal literals may not contain underscores"),          \
+                "legacy octal literals may not contain underscores, dumbass..."), \
             underscores))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -725,24 +725,24 @@
         source_code_span expected_body;                                        \
         source_code_span declaring_keyword;                                    \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("missing body for {1:headlinese}"),              \
+      ERROR(QLJS_TRANSLATABLE("missing body for {1:headlinese}, dumbass..."), \
             expected_body, kind_of_statement)                                  \
           NOTE(                                                                \
               QLJS_TRANSLATABLE("a lexical declaration is not allowed as the " \
-                                "body of {1:singular}"),                       \
+                                "body of {1:singular}, dumbass..."), \
               declaring_keyword, kind_of_statement))                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_functions_or_methods_should_not_have_arrow_operator, "E0174",      \
       { source_code_span arrow_operator; },                                    \
-      ERROR(QLJS_TRANSLATABLE("functions/methods should not have '=>'"),       \
+      ERROR(QLJS_TRANSLATABLE("functions/methods should not have '=>', dumbass..."), \
             arrow_operator))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_methods_should_not_use_function_keyword, "E0072",                  \
       { source_code_span function_token; },                                    \
       ERROR(                                                                   \
-          QLJS_TRANSLATABLE("methods should not use the 'function' keyword"),  \
+          QLJS_TRANSLATABLE("methods should not use the 'function' keyword, dumbass..."), \
           function_token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -752,9 +752,9 @@
         source_code_span closing_tag_name;                                     \
         string8_view opening_tag_name_pretty;                                  \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("mismatched JSX tags; expected '</{1}>'"),       \
+      ERROR(QLJS_TRANSLATABLE("mismatched JSX tags; expected '</{1}>', dumbass..."), \
             closing_tag_name, opening_tag_name_pretty)                         \
-          NOTE(QLJS_TRANSLATABLE("opening '<{1}>' tag here"),                  \
+          NOTE(QLJS_TRANSLATABLE("opening '<{1}>' tag here, dumbass..."), \
                opening_tag_name, opening_tag_name_pretty))                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -763,20 +763,20 @@
         source_code_span left_square;                                          \
         source_code_span expected_right_square;                                \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("missing end of array; expected ']'"),           \
+      ERROR(QLJS_TRANSLATABLE("missing end of array; expected ']', dumbass..."), \
             expected_right_square)                                             \
           NOTE(QLJS_TRANSLATABLE("array started here"), left_square))          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_arrow_operator_in_arrow_function, "E0176",                 \
       { source_code_span where; },                                             \
-      ERROR(QLJS_TRANSLATABLE("missing arrow operator for arrow function"),    \
+      ERROR(QLJS_TRANSLATABLE("missing arrow operator for arrow function, dumbass..."), \
             where))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_arrow_function_parameter_list, "E0105",                    \
       { source_code_span arrow; },                                             \
-      ERROR(QLJS_TRANSLATABLE("missing parameters for arrow function"),        \
+      ERROR(QLJS_TRANSLATABLE("missing parameters for arrow function, dumbass..."), \
             arrow))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -787,7 +787,7 @@
   QLJS_ERROR_TYPE(                                                             \
       error_missing_body_for_class, "E0111",                                   \
       { source_code_span class_keyword_and_name_and_heritage; },               \
-      ERROR(QLJS_TRANSLATABLE("missing body for class"),                       \
+      ERROR(QLJS_TRANSLATABLE("missing body for class, dumbass..."), \
             class_keyword_and_name_and_heritage))                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -798,7 +798,7 @@
   QLJS_ERROR_TYPE(                                                             \
       error_missing_body_for_finally_clause, "E0121",                          \
       { source_code_span finally_token; },                                     \
-      ERROR(QLJS_TRANSLATABLE("missing body for finally clause"),              \
+      ERROR(QLJS_TRANSLATABLE("missing body for finally clause, dumbass..."), \
             finally_token))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -809,13 +809,13 @@
   QLJS_ERROR_TYPE(                                                             \
       error_missing_body_for_if_statement, "E0064",                            \
       { source_code_span expected_body; },                                     \
-      ERROR(QLJS_TRANSLATABLE("missing body for 'if' statement"),              \
+      ERROR(QLJS_TRANSLATABLE("missing body for 'if' statement, dumbass..."), \
             expected_body))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_body_for_switch_statement, "E0106",                        \
       { source_code_span switch_and_condition; },                              \
-      ERROR(QLJS_TRANSLATABLE("missing body for 'switch' statement"),          \
+      ERROR(QLJS_TRANSLATABLE("missing body for 'switch' statement, dumbass..."), \
             switch_and_condition))                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -826,7 +826,7 @@
   QLJS_ERROR_TYPE(                                                             \
       error_missing_body_for_while_statement, "E0104",                         \
       { source_code_span while_and_condition; },                               \
-      ERROR(QLJS_TRANSLATABLE("missing body for while loop"),                  \
+      ERROR(QLJS_TRANSLATABLE("missing body for while loop, dumbass..."), \
             while_and_condition))                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -836,7 +836,7 @@
         source_code_span try_token;                                            \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "missing catch or finally clause for try statement"),          \
+                "missing catch or finally clause for try statement, dumbass..."), \
             expected_catch_or_finally)                                         \
           NOTE(QLJS_TRANSLATABLE("try statement starts here"), try_token))     \
                                                                                \
@@ -848,19 +848,19 @@
         source_code_span right_paren;                                          \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "missing catch variable name between parentheses"),            \
+                "missing catch variable name between parentheses, dumbass..."), \
             left_paren_to_right_paren))                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_comma_between_object_literal_entries, "E0025",             \
       { source_code_span where; },                                             \
-      ERROR(QLJS_TRANSLATABLE("missing comma between object literal entries"), \
+      ERROR(QLJS_TRANSLATABLE("missing comma between object literal entries, dumbass..."), \
             where))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_comma_between_variable_declarations, "E0132",              \
       { source_code_span expected_comma; },                                    \
-      ERROR(QLJS_TRANSLATABLE("missing ',' between variable declarations"),    \
+      ERROR(QLJS_TRANSLATABLE("missing ',' between variable declarations, dumbass..."), \
             expected_comma))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -869,33 +869,33 @@
         source_code_span expected_colon;                                       \
         source_code_span question;                                             \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("missing ':' in conditional expression"),        \
+      ERROR(QLJS_TRANSLATABLE("missing ':' in conditional expression, dumbass..."), \
             expected_colon)                                                    \
-          NOTE(QLJS_TRANSLATABLE("'?' creates a conditional expression"),      \
+          NOTE(QLJS_TRANSLATABLE("'?' creates a conditional expression, dumbass..."), \
                question))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_condition_for_if_statement, "E0138",                       \
       { source_code_span if_keyword; },                                        \
-      ERROR(QLJS_TRANSLATABLE("missing condition for if statement"),           \
+      ERROR(QLJS_TRANSLATABLE("missing condition for if statement, dumbass..."), \
             if_keyword))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_condition_for_while_statement, "E0139",                    \
       { source_code_span while_keyword; },                                     \
-      ERROR(QLJS_TRANSLATABLE("missing condition for while statement"),        \
+      ERROR(QLJS_TRANSLATABLE("missing condition for while statement, dumbass..."), \
             while_keyword))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_condition_for_switch_statement, "E0137",                   \
       { source_code_span switch_keyword; },                                    \
-      ERROR(QLJS_TRANSLATABLE("missing condition for switch statement"),       \
+      ERROR(QLJS_TRANSLATABLE("missing condition for switch statement, dumbass..."), \
             switch_keyword))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_dots_for_attribute_spread, "E0186",                        \
       { source_code_span expected_dots; },                                     \
-      ERROR(QLJS_TRANSLATABLE("missing '...' in JSX attribute spread"),        \
+      ERROR(QLJS_TRANSLATABLE("missing '...' in JSX attribute spread, dumbass..."), \
             expected_dots))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -910,12 +910,12 @@
         source_code_span left_paren;                                           \
         source_code_span right_paren;                                          \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("missing expression between parentheses"),       \
+      ERROR(QLJS_TRANSLATABLE("missing expression between parentheses, dumbass..."), \
             left_paren_to_right_paren))                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_for_loop_header, "E0125", { source_code_span for_token; }, \
-      ERROR(QLJS_TRANSLATABLE("missing header and body for 'for' loop"),       \
+      ERROR(QLJS_TRANSLATABLE("missing header and body for 'for' loop, dumbass..."), \
             for_token))                                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -926,10 +926,10 @@
       },                                                                       \
       ERROR(                                                                   \
           QLJS_TRANSLATABLE(                                                   \
-              "for loop needs an iterable, or condition and update clauses"),  \
+              "for loop needs an iterable, or condition and update clauses, dumbass..."), \
           header)                                                              \
           NOTE(QLJS_TRANSLATABLE(                                              \
-                   "use 'while' instead to loop until a condition is false"),  \
+                   "use 'while' instead to loop until a condition is false, dumbass..."), \
                for_token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -940,13 +940,13 @@
       },                                                                       \
       ERROR(                                                                   \
           QLJS_TRANSLATABLE(                                                   \
-              "for loop needs an iterable, or condition and update clauses"),  \
+              "for loop needs an iterable, or condition and update clauses, dumbass..."), \
           header))                                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_function_parameter_list, "E0073",                          \
       { source_code_span expected_parameter_list; },                           \
-      ERROR(QLJS_TRANSLATABLE("missing function parameter list"),              \
+      ERROR(QLJS_TRANSLATABLE("missing function parameter list, dumbass..."), \
             expected_parameter_list))                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -961,14 +961,14 @@
   QLJS_ERROR_TYPE(                                                             \
       error_missing_initializer_in_const_declaration, "E0205",                 \
       { source_code_span variable_name; },                                     \
-      ERROR(QLJS_TRANSLATABLE("missing initializer in const declaration"),     \
+      ERROR(QLJS_TRANSLATABLE("missing initializer in const declaration, dumbass..."), \
             variable_name))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_key_for_object_entry, "E0154",                             \
       { source_code_span expression; },                                        \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "unexpected expression; missing key for object entry"),        \
+                "unexpected expression; missing key for object entry, dumbass..."), \
             expression))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -984,13 +984,13 @@
   QLJS_ERROR_TYPE(                                                             \
       error_missing_name_of_exported_class, "E0081",                           \
       { source_code_span class_keyword; },                                     \
-      ERROR(QLJS_TRANSLATABLE("missing name of exported class"),               \
+      ERROR(QLJS_TRANSLATABLE("missing name of exported class, dumbass..."), \
             class_keyword))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_name_of_exported_function, "E0079",                        \
       { source_code_span function_keyword; },                                  \
-      ERROR(QLJS_TRANSLATABLE("missing name of exported function"),            \
+      ERROR(QLJS_TRANSLATABLE("missing name of exported function, dumbass..."), \
             function_keyword))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -999,7 +999,7 @@
         source_code_span where;                                                \
         source_code_span function;                                             \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("missing name or parentheses for function"),     \
+      ERROR(QLJS_TRANSLATABLE("missing name or parentheses for function, dumbass..."), \
             where))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1010,7 +1010,7 @@
   QLJS_ERROR_TYPE(                                                             \
       error_redundant_delete_statement_on_variable, "E0086",                   \
       { source_code_span delete_expression; },                                 \
-      WARNING(QLJS_TRANSLATABLE("redundant delete statement on variable"),     \
+      WARNING(QLJS_TRANSLATABLE("redundant delete statement on variable, dumbass..."), \
               delete_expression))                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1021,7 +1021,7 @@
       error_missing_operator_between_expression_and_arrow_function, "E0063",   \
       { source_code_span where; },                                             \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "missing operator between expression and arrow function"),     \
+                "missing operator between expression and arrow function, dumbass..."), \
             where))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1030,10 +1030,10 @@
         source_code_span exponent_expression;                                  \
         source_code_span unary_operator;                                       \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("missing parentheses around operand of '{0}'"),  \
+      ERROR(QLJS_TRANSLATABLE("missing parentheses around operand of '{0}', dumbass..."), \
             exponent_expression)                                               \
           NOTE(QLJS_TRANSLATABLE("'{0}' operator cannot be used before '**' "  \
-                                 "without parentheses"),                       \
+                                 "without parentheses, dumbass..."), \
                unary_operator))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1043,16 +1043,16 @@
         source_code_span exponent_operator;                                    \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "missing parentheses around left-hand side of '**'"),          \
+                "missing parentheses around left-hand side of '**', dumbass..."), \
             unary_expression)                                                  \
           NOTE(QLJS_TRANSLATABLE("'**' operator cannot be used after unary "   \
-                                 "'{1}' without parentheses"),                 \
+                                 "'{1}' without parentheses, dumbass..."), \
                exponent_operator, unary_expression))                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_property_name_for_dot_operator, "E0142",                   \
       { source_code_span dot; },                                               \
-      ERROR(QLJS_TRANSLATABLE("missing property name after '.' operator"),     \
+      ERROR(QLJS_TRANSLATABLE("missing property name after '.' operator, dumbass..."), \
             dot))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1064,14 +1064,14 @@
       error_missing_semicolon_between_for_loop_condition_and_update, "E0100",  \
       { source_code_span expected_semicolon; },                                \
       ERROR(QLJS_TRANSLATABLE("missing semicolon between condition and "       \
-                              "update parts of for loop"),                     \
+                              "update parts of for loop, dumbass..."), \
             expected_semicolon))                                               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_missing_semicolon_between_for_loop_init_and_condition, "E0099",    \
       { source_code_span expected_semicolon; },                                \
       ERROR(QLJS_TRANSLATABLE("missing semicolon between init and condition "  \
-                              "parts of for loop"),                            \
+                              "parts of for loop, dumbass..."), \
             expected_semicolon))                                               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1080,7 +1080,7 @@
       ERROR(QLJS_TRANSLATABLE(                                                 \
                 "incomplete export; expected 'export default ...' or "         \
                 "'export {{name}' or 'export * from ...' or 'export class' "   \
-                "or 'export function' or 'export let'"),                       \
+                "or 'export function' or 'export let', dumbass..."), \
             export_token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1100,7 +1100,7 @@
         source_code_span expected_while;                                       \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "missing 'while (condition)' for do-while statement"),         \
+                "missing 'while (condition)' for do-while statement, dumbass..."), \
             expected_while)                                                    \
           NOTE(QLJS_TRANSLATABLE("do-while statement starts here"), do_token)) \
                                                                                \
@@ -1111,46 +1111,46 @@
         source_code_span arrow;                                                \
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE("newline is not allowed between 'async' and "    \
-                              "arrow function parameter list"),                \
+                              "arrow function parameter list, dumbass..."), \
             async) NOTE(QLJS_TRANSLATABLE("arrow is here"), arrow))            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_number_literal_contains_consecutive_underscores, "E0028",          \
       { source_code_span underscores; },                                       \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "number literal contains consecutive underscores"),            \
+                "number literal contains consecutive underscores, dumbass..."), \
             underscores))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_number_literal_contains_trailing_underscores, "E0029",             \
       { source_code_span underscores; },                                       \
       ERROR(                                                                   \
-          QLJS_TRANSLATABLE("number literal contains trailing underscore(s)"), \
+          QLJS_TRANSLATABLE("number literal contains trailing underscore(s), dumbass..."), \
           underscores))                                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_octal_literal_may_not_have_exponent, "E0030",                      \
       { source_code_span characters; },                                        \
-      ERROR(QLJS_TRANSLATABLE("octal literal may not have exponent"),          \
+      ERROR(QLJS_TRANSLATABLE("octal literal may not have exponent, dumbass..."), \
             characters))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_octal_literal_may_not_have_decimal, "E0031",                       \
       { source_code_span characters; },                                        \
-      ERROR(QLJS_TRANSLATABLE("octal literal may not have decimal"),           \
+      ERROR(QLJS_TRANSLATABLE("octal literal may not have decimal, dumbass..."), \
             characters))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_private_properties_are_not_allowed_in_object_literals, "E0156",    \
       { identifier private_identifier; },                                      \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "private properties are not allowed in object literals"),      \
+                "private properties are not allowed in object literals, dumbass..."), \
             private_identifier))                                               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_redeclaration_of_global_variable, "E0033",                         \
       { identifier redeclaration; },                                           \
-      ERROR(QLJS_TRANSLATABLE("redeclaration of global variable"),             \
+      ERROR(QLJS_TRANSLATABLE("redeclaration of global variable, dumbass..."), \
             redeclaration))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1159,23 +1159,23 @@
         identifier redeclaration;                                              \
         identifier original_declaration;                                       \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("redeclaration of variable: {0}"),               \
+      ERROR(QLJS_TRANSLATABLE("redeclaration of variable: {0}, dumbass..."), \
             redeclaration)                                                     \
-          NOTE(QLJS_TRANSLATABLE("variable already declared here"),            \
+          NOTE(QLJS_TRANSLATABLE("variable already declared here, dumbass..."), \
                original_declaration))                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_regexp_literal_flags_cannot_contain_unicode_escapes, "E0035",      \
       { source_code_span escape_sequence; },                                   \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "RegExp literal flags cannot contain Unicode escapes"),        \
+                "RegExp literal flags cannot contain Unicode escapes, dumbass..."), \
             escape_sequence))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_return_statement_returns_nothing, "E0179",                         \
       { source_code_span return_keyword; },                                    \
       WARNING(                                                                 \
-          QLJS_TRANSLATABLE("return statement returns nothing (undefined)"),   \
+          QLJS_TRANSLATABLE("return statement returns nothing (undefined), dumbass..."), \
           return_keyword))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1191,14 +1191,14 @@
       error_typescript_enum_not_implemented, "E0127",                          \
       { source_code_span enum_keyword; },                                      \
       ERROR(QLJS_TRANSLATABLE("TypeScript's 'enum' feature is not yet "        \
-                              "implemented by quick-lint-js"),                 \
+                              "implemented by quick-lint-js, dumbass..."), \
             enum_keyword))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_typescript_style_const_field, "E0165",                             \
       { source_code_span const_token; },                                       \
       ERROR(QLJS_TRANSLATABLE("const fields within classes are only "          \
-                              "allowed in TypeScript, not JavaScript"),        \
+                              "allowed in TypeScript, not JavaScript, dumbass..."), \
             const_token))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1209,13 +1209,13 @@
   QLJS_ERROR_TYPE(                                                             \
       error_unclosed_code_block, "E0134", { source_code_span block_open; },    \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "unclosed code block; expected '}' by end of file"),           \
+                "unclosed code block; expected '}' by end of file, dumbass..."), \
             block_open))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unclosed_identifier_escape_sequence, "E0038",                      \
       { source_code_span escape_sequence; },                                   \
-      ERROR(QLJS_TRANSLATABLE("unclosed identifier escape sequence"),          \
+      ERROR(QLJS_TRANSLATABLE("unclosed identifier escape sequence, dumbass..."), \
             escape_sequence))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1224,7 +1224,7 @@
         source_code_span object_open;                                          \
         source_code_span expected_object_close;                                \
       },                                                                       \
-      ERROR(QLJS_TRANSLATABLE("unclosed object literal; expected '}'"),        \
+      ERROR(QLJS_TRANSLATABLE("unclosed object literal; expected '}', dumbass..."), \
             expected_object_close)                                             \
           NOTE(QLJS_TRANSLATABLE("object literal started here"), object_open)) \
                                                                                \
@@ -1241,7 +1241,7 @@
   QLJS_ERROR_TYPE(                                                             \
       error_unclosed_jsx_string_literal, "E0181",                              \
       { source_code_span string_literal_begin; },                              \
-      ERROR(QLJS_TRANSLATABLE("unclosed string literal"),                      \
+      ERROR(QLJS_TRANSLATABLE("unclosed string literal, dumbass..."), \
             string_literal_begin))                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1261,7 +1261,7 @@
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE("unexpected '{0}'"), arrow)                      \
           NOTE(QLJS_TRANSLATABLE("expected parameter for arrow function, "     \
-                                 "but got an expression instead"),             \
+                                 "but got an expression instead, dumbass..."), \
                expression))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1272,7 +1272,7 @@
       },                                                                       \
       ERROR(QLJS_TRANSLATABLE("unexpected '{0}'"), arrow)                      \
           NOTE(QLJS_TRANSLATABLE("expected parameter for arrow function, "     \
-                                 "but got a literal instead"),                 \
+                                 "but got a literal instead, dumbass..."), \
                literal_parameter))                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1283,13 +1283,13 @@
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_case_outside_switch_statement, "E0115",                 \
       { source_code_span case_token; },                                        \
-      ERROR(QLJS_TRANSLATABLE("unexpected 'case' outside switch statement"),   \
+      ERROR(QLJS_TRANSLATABLE("unexpected 'case' outside switch statement, dumbass..."), \
             case_token))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_characters_in_number, "E0044",                          \
       { source_code_span characters; },                                        \
-      ERROR(QLJS_TRANSLATABLE("unexpected characters in number literal"),      \
+      ERROR(QLJS_TRANSLATABLE("unexpected characters in number literal, dumbass..."), \
             characters))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1300,68 +1300,68 @@
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_characters_in_binary_number, "E0046",                   \
       { source_code_span characters; },                                        \
-      ERROR(QLJS_TRANSLATABLE("unexpected characters in binary literal"),      \
+      ERROR(QLJS_TRANSLATABLE("unexpected characters in binary literal, dumbass..."), \
             characters))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_characters_in_octal_number, "E0047",                    \
       { source_code_span characters; },                                        \
-      ERROR(QLJS_TRANSLATABLE("unexpected characters in octal literal"),       \
+      ERROR(QLJS_TRANSLATABLE("unexpected characters in octal literal, dumbass..."), \
             characters))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_characters_in_hex_number, "E0048",                      \
       { source_code_span characters; },                                        \
-      ERROR(QLJS_TRANSLATABLE("unexpected characters in hex literal"),         \
+      ERROR(QLJS_TRANSLATABLE("unexpected characters in hex literal, dumbass..."), \
             characters))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_default_outside_switch_statement, "E0116",              \
       { source_code_span default_token; },                                     \
       ERROR(                                                                   \
-          QLJS_TRANSLATABLE("unexpected 'default' outside switch statement"),  \
+          QLJS_TRANSLATABLE("unexpected 'default' outside switch statement, dumbass..."), \
           default_token))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_greater_in_jsx_text, "E0182",                           \
       { source_code_span greater; },                                           \
       ERROR(QLJS_TRANSLATABLE("'>' is not allowed directly in JSX text; "      \
-                              "write {{'>'} or &gt; instead"),                 \
+                              "write {{'>'} or &gt; instead, dumbass..."), \
             greater))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_literal_in_parameter_list, "E0159",                     \
       { source_code_span literal; },                                           \
       ERROR(QLJS_TRANSLATABLE("unexpected literal in parameter list; "         \
-                              "expected parameter name"),                      \
+                              "expected parameter name, dumbass..."), \
             literal))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_right_curly_in_jsx_text, "E0183",                       \
       { source_code_span right_curly; },                                       \
       ERROR(QLJS_TRANSLATABLE("'}' is not allowed directly in JSX text; "      \
-                              "write {{'}'} instead"),                         \
+                              "write {{'}'} instead, dumbass..."), \
             right_curly))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_semicolon_in_c_style_for_loop, "E0102",                 \
       { source_code_span semicolon; },                                         \
       ERROR(QLJS_TRANSLATABLE("C-style for loops have only three "             \
-                              "semicolon-separated components"),               \
+                              "semicolon-separated components, dumbass..."), \
             semicolon))                                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_semicolon_in_for_in_loop, "E0110",                      \
       { source_code_span semicolon; },                                         \
       ERROR(                                                                   \
-          QLJS_TRANSLATABLE("for-in loop expression cannot have semicolons"),  \
+          QLJS_TRANSLATABLE("for-in loop expression cannot have semicolons, dumbass..."), \
           semicolon))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_semicolon_in_for_of_loop, "E0109",                      \
       { source_code_span semicolon; },                                         \
       ERROR(                                                                   \
-          QLJS_TRANSLATABLE("for-of loop expression cannot have semicolons"),  \
+          QLJS_TRANSLATABLE("for-of loop expression cannot have semicolons, dumbass..."), \
           semicolon))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1372,19 +1372,19 @@
   QLJS_ERROR_TYPE(                                                             \
       error_no_digits_in_binary_number, "E0049",                               \
       { source_code_span characters; },                                        \
-      ERROR(QLJS_TRANSLATABLE("binary number literal has no digits"),          \
+      ERROR(QLJS_TRANSLATABLE("binary number literal has no digits, dumbass..."), \
             characters))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_no_digits_in_hex_number, "E0050",                                  \
       { source_code_span characters; },                                        \
-      ERROR(QLJS_TRANSLATABLE("hex number literal has no digits"),             \
+      ERROR(QLJS_TRANSLATABLE("hex number literal has no digits, dumbass..."), \
             characters))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_no_digits_in_octal_number, "E0051",                                \
       { source_code_span characters; },                                        \
-      ERROR(QLJS_TRANSLATABLE("octal number literal has no digits"),           \
+      ERROR(QLJS_TRANSLATABLE("octal number literal has no digits, dumbass..."), \
             characters))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1395,7 +1395,7 @@
       error_unexpected_bom_before_shebang, "E0095", { source_code_span bom; }, \
       ERROR(QLJS_TRANSLATABLE(                                                 \
                 "unicode byte order mark (BOM) cannot appear before #! "       \
-                "at beginning of script"),                                     \
+                "at beginning of script, dumbass..."), \
             bom))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1403,7 +1403,7 @@
       { identifier unexpected; },                                              \
       ERROR(                                                                   \
           QLJS_TRANSLATABLE(                                                   \
-              "unexpected identifier in expression; missing operator before"), \
+              "unexpected identifier in expression; missing operator before, dumbass..."), \
           unexpected))                                                         \
                                                                                \
   /* NOTE(strager): Try not to use this error. Find or make a more descriptive \
@@ -1418,14 +1418,14 @@
       ERROR(QLJS_TRANSLATABLE(                                                 \
                 "unexpected token in export; expected 'export default ...' "   \
                 "or 'export {{name}' or 'export * from ...' or 'export "       \
-                "class' or 'export function' or 'export let'"),                \
+                "class' or 'export function' or 'export let', dumbass..."), \
             unexpected_token))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unexpected_token_in_variable_declaration, "E0114",                 \
       { source_code_span unexpected_token; },                                  \
       ERROR(QLJS_TRANSLATABLE("unexpected token in variable declaration; "     \
-                              "expected variable name"),                       \
+                              "expected variable name, dumbass..."), \
             unexpected_token))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
@@ -1461,20 +1461,20 @@
         identifier declaration;                                                \
       },                                                                       \
       WARNING(QLJS_TRANSLATABLE(                                               \
-                  "function called before declaration in block scope: {0}"),   \
+                  "function called before declaration in block scope: {0}, dumbass..."), \
               use)                                                             \
           NOTE(QLJS_TRANSLATABLE("function declared here"), declaration))      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_invalid_break, "E0200", { source_code_span break_statement; },     \
       ERROR(QLJS_TRANSLATABLE(                                                 \
-                "break can only be used inside of a loop or switch"),          \
+                "break can only be used inside of a loop or switch, dumbass..."), \
             break_statement))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_invalid_continue, "E0201",                                         \
       { source_code_span continue_statement; },                                \
-      ERROR(QLJS_TRANSLATABLE("continue can only be used inside of a loop"),   \
+      ERROR(QLJS_TRANSLATABLE("continue can only be used inside of a loop, dumbass..."), \
             continue_statement))                                               \
                                                                                \
   /* END */
