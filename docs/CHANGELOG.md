@@ -25,6 +25,8 @@ Semantic Versioning.
 * `let x = 'nah'; if (y) { let x = 'yah'; }` now reports [E0196][] ('new
    variable shadows existing variable'). This warning is reported only when an
    assignment (instead of a new variable declaration) was intended.
+* `console.log(“hello world”);` now reports [E0197][] (''“' is not allowed for
+  strings; use " instead').
 
 ### Fixed
 
@@ -431,3 +433,4 @@ Beta release.
 [E0194]: https://quick-lint-js.com/errors/#E0194
 [E0195]: https://quick-lint-js.com/errors/#E0195
 [E0196]: https://quick-lint-js.com/errors/#E0196
+[E0197]: https://quick-lint-js.com/errors/#E0197

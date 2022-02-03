@@ -642,6 +642,16 @@
       ERROR(QLJS_TRANSLATABLE("invalid function parameter"), parameter))       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_invalid_quotes_around_string_literal, "E0197",                     \
+      {                                                                        \
+        source_code_span opening_quote;                                        \
+        char8 suggested_quote;                                                 \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE(                                                 \
+                "'{0}' is not allowed for strings; use {1} instead"),          \
+            opening_quote, suggested_quote))                                   \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_invalid_rhs_for_dot_operator, "E0074", { source_code_span dot; },  \
       ERROR(QLJS_TRANSLATABLE(                                                 \
                 "'.' operator needs a key name; use + to concatenate "         \

@@ -70,6 +70,11 @@
 
 namespace quick_lint_js {
 namespace {
+static constexpr char32_t left_single_quote = U'\u2018';
+static constexpr char32_t left_double_quote = U'\u201c';
+static constexpr char32_t right_single_quote = U'\u2019';
+static constexpr char32_t right_double_quote = U'\u201d';
+
 bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
                               char32_t code_point) {
   constexpr int bits_per_byte = 8;
@@ -244,12 +249,23 @@ bool lexer::try_parse_current_token() {
 
   // Non-ASCII or control character.
   default: {
-    parsed_identifier ident = this->parse_identifier_slow(
-        this->input_, this->input_, identifier_kind::javascript);
-    this->input_ = ident.after;
-    this->last_token_.normalized_identifier = ident.normalized;
-    this->last_token_.end = ident.after;
-    this->last_token_.type = token_type::identifier;
+    decode_utf_8_result character = decode_utf_8(padded_string_view(
+        this->input_, this->original_input_.null_terminator()));
+    if (character.code_point == left_single_quote ||
+        character.code_point == right_single_quote ||
+        character.code_point == left_double_quote ||
+        character.code_point == right_double_quote) {
+      this->input_ = this->parse_smart_quote_string_literal(character);
+      this->last_token_.type = token_type::string;
+      this->last_token_.end = this->input_;
+    } else {
+      parsed_identifier ident = this->parse_identifier_slow(
+          this->input_, this->input_, identifier_kind::javascript);
+      this->input_ = ident.after;
+      this->last_token_.normalized_identifier = ident.normalized;
+      this->last_token_.end = ident.after;
+      this->last_token_.type = token_type::identifier;
+    }
     break;
   }
 
@@ -789,6 +805,62 @@ const char8* lexer::parse_jsx_string_literal() noexcept {
   }
   ++c;
   return c;
+}
+
+const char8* lexer::parse_smart_quote_string_literal(
+    const decode_utf_8_result& opening_quote) noexcept {
+  QLJS_ASSERT(opening_quote.ok);
+  QLJS_ASSERT(opening_quote.code_point == left_single_quote ||
+              opening_quote.code_point == right_single_quote ||
+              opening_quote.code_point == left_double_quote ||
+              opening_quote.code_point == right_double_quote);
+  const char8* opening_quote_begin = this->input_;
+  const char8* opening_quote_end = opening_quote_begin + opening_quote.size;
+
+  bool is_double_quote = opening_quote.code_point == left_double_quote ||
+                         opening_quote.code_point == right_double_quote;
+  this->error_reporter_->report(error_invalid_quotes_around_string_literal{
+      .opening_quote = source_code_span(opening_quote_begin, opening_quote_end),
+      .suggested_quote = is_double_quote ? u8'"' : u8'\'',
+  });
+
+  static constexpr char32_t double_ending_quotes[] = {U'"', left_double_quote,
+                                                      right_double_quote};
+  static constexpr char32_t single_ending_quotes[] = {U'\'', left_single_quote,
+                                                      right_single_quote};
+  const char32_t* ending_quotes =
+      is_double_quote ? double_ending_quotes : single_ending_quotes;
+  auto is_ending_quote = [&](char32_t code_point) -> bool {
+    static_assert(std::size(double_ending_quotes) ==
+                  std::size(single_ending_quotes));
+    const char32_t* end = ending_quotes + std::size(double_ending_quotes);
+    return std::find(ending_quotes, end, code_point) != end;
+  };
+
+  const char8* c = opening_quote_end;
+  for (;;) {
+    decode_utf_8_result decoded = decode_utf_8(
+        padded_string_view(c, this->original_input_.null_terminator()));
+    if (decoded.ok) {
+      if (is_ending_quote(decoded.code_point)) {
+        return c + decoded.size;
+      }
+      if (this->is_newline_character(decoded.code_point)) {
+        this->error_reporter_->report(error_unclosed_string_literal{
+            .string_literal = source_code_span(opening_quote_begin, c),
+        });
+        return c;
+      }
+    }
+    if (*c == '\0' && this->is_eof(c)) {
+      this->error_reporter_->report(error_unclosed_string_literal{
+          .string_literal = source_code_span(opening_quote_begin, c),
+      });
+      return c;
+    }
+    c += decoded.size;
+    // Loop.
+  }
 }
 
 void lexer::skip_in_template(const char8* template_begin) {
@@ -2054,6 +2126,12 @@ int lexer::newline_character_size(const char8* input) {
     }
   }
   return 0;
+}
+
+bool lexer::is_newline_character(char32_t code_point) noexcept {
+  return code_point == U'\n' || code_point == U'\r' ||
+         code_point == U'\u2028' ||  // Line Separator
+         code_point == U'\u2029';    // Paragraph Separator
 }
 
 const char* to_string(token_type type) {

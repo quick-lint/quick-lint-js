@@ -16,6 +16,7 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
+#include <quick-lint-js/utf-8.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -220,6 +221,8 @@ class lexer {
 
   const char8* parse_string_literal() noexcept;
   const char8* parse_jsx_string_literal() noexcept;
+  const char8* parse_smart_quote_string_literal(
+      const decode_utf_8_result& opening_quote) noexcept;
 
   parsed_template_body parse_template_body(const char8* input,
                                            const char8* template_begin,
@@ -288,6 +291,7 @@ class lexer {
   static bool is_ascii_character(char32_t code_point);
 
   static int newline_character_size(const char8*);
+  static bool is_newline_character(char32_t code_point) noexcept;
 
   static token_type identifier_token_type(string8_view) noexcept;
 
