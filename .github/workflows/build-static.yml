@@ -92,8 +92,6 @@ jobs:
           - {runs_on: windows-latest, name: "Windows", archive_name: "windows", exe_file: "bin/quick-lint-js.exe"}
           - {runs_on: macos-10.15, name: "macOS 10.15", archive_name: "macos", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "archlinux:base", name: "Arch Linux", archive_name: "linux", exe_file: "bin/quick-lint-js"}
-          - {runs_on: ubuntu-latest, docker_container: "centos:centos7", name: "CentOS 7", archive_name: "linux", exe_file: "bin/quick-lint-js"}
-          - {runs_on: ubuntu-latest, docker_container: "centos:centos8", name: "CentOS 8", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "debian:jessie", name: "Debian 8 Jessie", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "debian:stretch", name: "Debian 9 Stretch", archive_name: "linux", exe_file: "bin/quick-lint-js"}
