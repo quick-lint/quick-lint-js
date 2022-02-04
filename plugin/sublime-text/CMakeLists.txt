@@ -7,7 +7,7 @@ include(QuickLintJSCopyright)
 include(QuickLintJsSublimeTextPackage)
 include(QuickLintJSTarget)
 
-if (QLJS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
+if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   quick_lint_js_sublime_text_add_colored_compiler_output()
   quick_lint_js_sublime_text_set_compiler_options()
   quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)

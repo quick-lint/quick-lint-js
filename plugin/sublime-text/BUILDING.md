@@ -5,8 +5,8 @@ This directory contains a plugin for the [Sublime Text editor].
 ## Building
 
 To build the plugin version made for Sublime Text 3, change all
-`-DQLJS_SUBLIME_TEXT=4` to `-DQLJS_SUBLIME_TEXT=3`
-and `build-sublime-text-4` to `build-sublime-text-3`.
+`-D QUICK_LINT_JS_SUBLIME_TEXT=4` to `-D QUICK_LINT_JS_SUBLIME_TEXT=3` and
+`build-sublime-text-4` to `build-sublime-text-3`.
 
 ### Linux
 
