@@ -27,6 +27,10 @@ Semantic Versioning.
    assignment (instead of a new variable declaration) was intended.
 * `console.log(“hello world”);` now reports [E0197][] (''“' is not allowed for
   strings; use " instead').
+* `-1 ** 2` now reports [E0194][] (missing parentheses around left-hand side of
+  `**`).
+* `typeof 10 ** 7` now reports [E0195][] (missing parentheses around operand of
+  `typeof`).
 
 ### Fixed
 
@@ -44,11 +48,6 @@ Semantic Versioning.
 * quick-lint-js no longer incorrectly reports [E0016][], [E0038][], [E0060][],
   or [E0207][] in tagged template literals. (These errors are still reported for
   untagged template literals and for string literals.)
-* `-1 ** 2` now reports [E0194][] (missing parentheses around left-hand side of
-  `**`), per the JavaScript specification. (Previously, no error was reported.)
-* `typeof 10 ** 7` now reports [E0195][] (missing parentheses around operand of
-  `typeof`), per the JavaScript specification. (Previously, no error was
-  reported.)
 
 ### Changed
 
