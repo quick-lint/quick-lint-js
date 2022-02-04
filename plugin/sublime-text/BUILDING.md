@@ -4,23 +4,18 @@ This directory contains a plugin for the [Sublime Text editor].
 
 ## Building
 
-To build the plugin version made for Sublime Text 3, change all
-`-D QUICK_LINT_JS_SUBLIME_TEXT=4` to `-D QUICK_LINT_JS_SUBLIME_TEXT=3` and
-`build-sublime-text-4` to `build-sublime-text-3`.
+To build the plugin version made for Sublime Text 3, change all:
+  - from `-DQUICK_LINT_JS_SUBLIME_TEXT=4` to `-DQUICK_LINT_JS_SUBLIME_TEXT=3`.
+  - from `build-sublime-text-4` to `build-sublime-text-3`.
 
 ### Linux
 
 To build this extension, install [GCC], [CMake], and [Ninja], then run the
 following commands:
 
-```shell
-cd plugin/sublime-text/  # Navigate to this directory
-
-cmake -S ../.. -B build-sublime-text-4 -G Ninja \
-      -D CMAKE_BUILD_TYPE=Release -D QLJS_SUBLIME_TEXT_VERSION=4
-
-cmake --build build-sublime-text-4/ --target quick-lint-js-sublime-text
-```
+    $ cd plugin/sublime-text/  # Navigate to this directory
+    $ cmake -DCMAKE_BUILD_TYPE=Release -DQLJS_SUBLIME_TEXT_VERSION=4 -S ../.. -B build-sublime-text-4 -G Ninja 
+    $ cmake --build build-sublime-text-4/ --target quick-lint-js-sublime-text
 
 ### macOS
 
@@ -35,14 +30,14 @@ then run the following commands:
 ```shell
 cd plugin/sublime-text/  # Navigate to this directory
 
-PATH="$(brew --prefix)/opt/llvm/bin:$PATH"       \
-CC=clang                                         \
-CXX=clang++                                      \
-CPPFLAGS="-I$(brew --prefix)/opt/llvm/include"   \
-CXXFLAGS=-D_LIBCPP_DISABLE_AVAILABILITY          \
-LDFLAGS="-L$(brew --prefix)/opt/llvm/lib"        \
+PATH="$(brew --prefix)/opt/llvm/bin:$PATH" \
+CC=clang  \
+CXX=clang++ \
+CPPFLAGS="-I$(brew --prefix)/opt/llvm/include" \
+CXXFLAGS=-D_LIBCPP_DISABLE_AVAILABILITY \
+LDFLAGS="-L$(brew --prefix)/opt/llvm/lib" \
 cmake -S ../.. -B build-sublime-text-4/ -G Ninja \
-      -D CMAKE_BUILD_TYPE=Release -D QLJS_SUBLIME_TEXT_VERSION=4
+  -D CMAKE_BUILD_TYPE=Release -D QLJS_SUBLIME_TEXT_VERSION=4
 
 cmake --build build-sublime-text-4/ --target quick-lint-js-sublime-text
 ```
