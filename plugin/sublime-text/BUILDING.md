@@ -5,8 +5,19 @@ This directory contains a plugin for the [Sublime Text editor].
 ## Building
 
 To build the plugin version made for Sublime Text 3, change all:
-  - from `-DQUICK_LINT_JS_SUBLIME_TEXT=4` to `-DQUICK_LINT_JS_SUBLIME_TEXT=3`.
-  - from `build-sublime-text-4` to `build-sublime-text-3`.
+    - from `-DQUICK_LINT_JS_SUBLIME_TEXT=4` to `-DQUICK_LINT_JS_SUBLIME_TEXT=3`.
+    - from `build-sublime-text-4` to `build-sublime-text-3`.
+
+
+To build this plugin, [configure quick-lint-js with CMake] with
+`-DQUICK_LINT_JS_SUBLIME_TEXT_VERSION=<put the major version here>`,
+then run the following commands:
+
+    $ # Build
+    $ cmake --build build-sublime-text-4/ --target quick-lint-js-sublime-text
+
+    $ # Install
+    $ cmake --install
 
 ### Linux
 
@@ -14,16 +25,13 @@ To build this extension, install [GCC], [CMake], and [Ninja], then run the
 following commands:
 
     $ cd plugin/sublime-text/  # Navigate to this directory
-    $ cmake -DCMAKE_BUILD_TYPE=Release -DQLJS_SUBLIME_TEXT_VERSION=4 -S ../.. -B build-sublime-text-4 -G Ninja 
-    $ cmake --build build-sublime-text-4/ --target quick-lint-js-sublime-text
+    $ cmake -G Ninja -B build-sublime-text-4 -S ../.. -DCMAKE_BUILD_TYPE=Release -DQUICK_LINT_JS_SUBLIME_TEXT_VERSION=4  
 
 ### macOS
 
 To build this extension, install [LLVM], [CMake], and [Ninja] using [Homebrew]:
 
-```shell
-brew install llvm cmake ninja
-```
+    $ brew install llvm cmake ninja
 
 then run the following commands:
 
@@ -67,6 +75,7 @@ cmake --install build-sublime-text-4/ --component sublime-text
 ```
 
 [Sublime Text editor]: https://www.sublimetext.com/
+[configure quick-lint-js with CMake]: ../../docs/BUILDING.md
 [GCC]: https://gcc.gnu.org/
 [LLVM]: https://llvm.org/
 [Visual Studio C/C++]: https://visualstudio.microsoft.com/vs/features/cplusplus/
