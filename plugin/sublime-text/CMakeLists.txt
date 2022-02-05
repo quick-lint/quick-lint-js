@@ -13,9 +13,11 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)
   quick_lint_js_sublime_text_get_package_files(SUBLIME_TEXT_PACKAGE_FILES)
 
+  # You cannot link to a MODULE (only load dynamicaly),
+  # but you can link to a SHARED.
   quick_lint_js_add_library(
     quick-lint-js-sublime-text
-    MODULE  # You cannot link to a MODULE, but you can link to a SHARED
+    MODULE  
     sublime-text-interface.cpp
     sublime-text-location.cpp
     quick-lint-js/sublime-text-have.h
