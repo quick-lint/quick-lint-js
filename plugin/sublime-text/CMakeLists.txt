@@ -17,7 +17,7 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   # TODO: Write varible to file
   quick_lint_js_add_library(
     quick-lint-js-sublime-text
-    MODULE
+    MODULE  # You cannot link to a MODULE, but for a SHARED you can
     sublime-text-interface.cpp
     sublime-text-location.cpp
     quick-lint-js/sublime-text-have.h
