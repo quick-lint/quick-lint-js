@@ -13,27 +13,19 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)
   quick_lint_js_sublime_text_get_package_files(SUBLIME_TEXT_PACKAGE_FILES)
 
-  # TODO: Normalize procesor package
-  # TODO: Write varible to file
   quick_lint_js_add_library(
     quick-lint-js-sublime-text
-    MODULE  # You cannot link to a MODULE, but for a SHARED you can
+    MODULE  # You cannot link to a MODULE, but you can link to a SHARED
     sublime-text-interface.cpp
     sublime-text-location.cpp
     quick-lint-js/sublime-text-have.h
     quick-lint-js/sublime-text-interface.h
     quick-lint-js/sublime-text-location.h
   )
-  target_include_directories(
-    quick-lint-js-sublime-text
-    PRIVATE
-    .
-  )
-  target_link_libraries(
-    quick-lint-js-sublime-text
-    PRIVATE
-    quick-lint-js-lib
-  )
+  target_include_directories(quick-lint-js-sublime-text PRIVATE .)
+  target_link_libraries(quick-lint-js-sublime-tex PRIVATE quick-lint-js-lib)
+
+  install()
   quick_lint_js_collect_copyright(
     quick-lint-js-sublime-text-licenses
     TARGET quick-lint-js-sublime-text
