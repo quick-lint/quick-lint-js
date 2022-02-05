@@ -1,10 +1,10 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.21)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(QuickLintJSCopyright)
-include(QuickLintJsSublimeTextPackage)
+include(QuickLintJSSublimeTextPackage)
 include(QuickLintJSTarget)
 
 if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
@@ -23,14 +23,16 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
     quick-lint-js/sublime-text-location.h
   )
   target_include_directories(quick-lint-js-sublime-text PRIVATE .)
-  target_link_libraries(quick-lint-js-sublime-tex PRIVATE quick-lint-js-lib)
+  target_link_libraries(quick-lint-js-sublime-text PRIVATE quick-lint-js-lib)
 
-  install()
-  quick_lint_js_collect_copyright(
-    quick-lint-js-sublime-text-licenses
-    TARGET quick-lint-js-sublime-text
-    OUTPUT_FILE quick-lint-js-sublime-text-licenses.txt
-  )
+  # install()
+  # quick_lint_js_collect_copyright(
+  #   quick-lint-js-sublime-text-licenses
+  #   TARGET quick-lint-js-sublime-text
+  #   OUTPUT_FILE quick-lint-js-sublime-text-licenses.txt
+  # )
+else ()
+  # TODO(cahian): Add a message error here
 endif ()
 
 #### SUBLIME_TEXT_PACKAGE_FILES ####

@@ -56,19 +56,12 @@ function (quick_lint_js_sublime_text_get_package_files PACKAGE_FILES)
   set(
     SUBLIME_TEXT_PACKAGE_FILES
     $<TARGET_FILE:quick-lint-js-lib>
+    $<TARGET_RUNTIME_DLLS:quick-lint-js-lib>
     "${CMAKE_CURRENT_SOURCE_DIR}/.no-sublime-package"
     "${CMAKE_CURRENT_SOURCE_DIR}/interface.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/extension.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/interface.py"
   )
-  # TODO(cahian): Dynamicaly get all necessary dependencies from quick-lint-js-lib
-  # ```
-  #   get_target_property(OUT quick-lint-js-lib LINK_LIBRARIES)
-  #   message(STATUS ${OUT})
-  # ```
-  if (WIN32)
-    list(APPEND SUBLIME_TEXT_PACKAGE_FILES $<TARGET_FILE:boost>)
-  endif ()
 endfunction ()
 
 # if(NOT CMAKE_PROPERTY_LIST)

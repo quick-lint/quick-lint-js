@@ -1,6 +1,7 @@
-# CMake build directory. Created by instructions in docs/BUILDING.md and
-# plugin/vscode/BUILDING.md.
+# CMake build directory. Created by instructions in docs/BUILDING.md,
+# plugin/sublime-text/BUILDING.md and plugin/vscode/BUILDING.md.
 /build/
+/build-*/
 
 # Nix symlink. Created by instructions in docs/BUILDING.md.
 /result
