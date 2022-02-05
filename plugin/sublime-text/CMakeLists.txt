@@ -13,11 +13,6 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)
   quick_lint_js_sublime_text_get_package_files(SUBLIME_TEXT_PACKAGE_FILES)
 
-  # message(SEND_ERROR "$<TARGET_PROPERTY:quick-lint-js-lib,LINK_LIBRARIES>")
-  # get_target_property(OUT quick-lint-js-lib LINK_LIBRARIES)
-  # message(STATUS ${OUT})
-  print_target_properties(quick-lint-js-lib)
-
   # TODO: Normalize procesor package
   # TODO: Write varible to file
   quick_lint_js_add_library(
