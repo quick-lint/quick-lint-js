@@ -1,6 +1,6 @@
 {
   "dependencies": {
     "typescript": "*",
-    "typescript-language-server": "0.8.1"
+    "typescript-language-server": "*"
   }
 }
