@@ -59,6 +59,9 @@ benchmark_config benchmark_config::load_from_file(const char* config_path) {
     if (bool* v = if_bool(server_object, "needFilesOnDisk")) {
       server.need_files_on_disk = *v;
     }
+    if (bool* v = if_bool(server_object, "supportsJSX")) {
+      server.supports_jsx = *v;
+    }
     if (bool* v = if_bool(server_object, "waitForEmptyDiagnosticsOnOpen")) {
       server.wait_for_empty_diagnostics_on_open = *v;
     }

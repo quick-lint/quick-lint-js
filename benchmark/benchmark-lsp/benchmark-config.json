@@ -22,7 +22,8 @@
         "run": "onType",
         "validate": "on"
       },
-      "needFilesOnDisk": true
+      "needFilesOnDisk": true,
+      "supportsJSX": true
     },
     {
       "name": "vscode-eslint-typescript",
@@ -34,7 +35,8 @@
         "run": "onType",
         "validate": "on"
       },
-      "needFilesOnDisk": true
+      "needFilesOnDisk": true,
+      "supportsJSX": true
     },
     {
       "name": "vscode-eslint-vanilla",
@@ -64,6 +66,7 @@
       "name": "Deno",
       "command": ["deno", "lsp"],
       "diagnosticsMessagesToIgnore": 2,
+      "supportsJSX": true,
       "initializationOptions": {
         "enable": true,
         "lint": true,
@@ -79,6 +82,7 @@
       "name": "Deno-nolint",
       "command": ["deno", "lsp"],
       "diagnosticsMessagesToIgnore": 1,
+      "supportsJSX": true,
       "initializationOptions": {
         "enable": true,
         "lint": false,
@@ -95,11 +99,13 @@
       "command": ["./run.sh"],
       "cwd": "flow/",
       "diagnosticsMessagesToIgnoreAfterIncrementalChange": 1,
+      "supportsJSX": true,
       "waitForEmptyDiagnosticsOnOpen": false
     },
     {
       "name": "quick-lint-js",
-      "command": ["quick-lint-js", "--lsp-server"]
+      "command": ["quick-lint-js", "--lsp-server"],
+      "supportsJSX": true
     },
     {
       "name": "RSLint",
@@ -110,7 +116,15 @@
       "name": "TypeScript",
       "command": ["node", "./node_modules/.bin/typescript-language-server", "--stdio"],
       "cwd": "typescript/",
-      "needFilesOnDisk": true
+      "needFilesOnDisk": true,
+      "supportsJSX": false
+    },
+    {
+      "name": "TypeScript-JSX",
+      "command": ["node", "./node_modules/.bin/typescript-language-server", "--stdio"],
+      "cwd": "typescript-jsx/",
+      "needFilesOnDisk": true,
+      "supportsJSX": true
     }
   ]
 }

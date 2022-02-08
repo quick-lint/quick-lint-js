@@ -19,6 +19,7 @@ struct benchmark_config_server {
   std::int64_t diagnostics_messages_to_ignore_after_incremental_change = 0;
   std::string initialization_options_json = "{}";
   bool need_files_on_disk = false;
+  bool supports_jsx = false;
   bool wait_for_empty_diagnostics_on_open = true;
   std::string workspace_configuration_json = "{}";
 };
