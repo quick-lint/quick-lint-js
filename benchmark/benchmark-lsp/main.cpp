@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <map>
 #include <memory>
 #include <quick-lint-js/arg-parser.h>
 #include <quick-lint-js/benchmark-config.h>
@@ -19,7 +20,6 @@
 #include <quick-lint-js/result.h>
 #include <quick-lint-js/string-view.h>
 #include <unistd.h>
-#include <unordered_map>
 
 using namespace quick_lint_js;
 using namespace std::literals::string_view_literals;
@@ -68,6 +68,16 @@ class benchmark_results_writer {
   // verbose_output is optional.
   explicit benchmark_results_writer(FILE* json_output, FILE* verbose_output)
       : json_output_(json_output), verbose_output_(verbose_output) {}
+
+  void add_metadata(const benchmark_config_program& program_config) {
+    if (this->json_output_) {
+      ::boost::json::object out_metadata;
+      for (auto& [key, value] : program_config.get_metadata()) {
+        out_metadata[key] = value;
+      }
+      this->metadatas_[program_config.name] = out_metadata;
+    }
+  }
 
   void begin_benchmark(const char* name,
                        const benchmark_run_config& run_config) {
@@ -119,6 +129,7 @@ class benchmark_results_writer {
     if (this->json_output_) {
       ::boost::json::object root;
       root.emplace("data", std::move(this->datas_));
+      root.emplace("metadata", std::move(this->metadatas_));
       std::string json = ::boost::json::serialize(std::move(root));
       std::size_t written =
           std::fwrite(json.data(), 1, json.size(), this->json_output_);
@@ -138,6 +149,7 @@ class benchmark_results_writer {
   FILE* verbose_output_;
   ::boost::json::array datas_;
   ::boost::json::object current_benchmark_;
+  ::boost::json::object metadatas_;
   std::vector<sample> current_benchmark_samples_;
 };
 
@@ -185,6 +197,17 @@ int main(int argc, char** argv) {
         results.begin_benchmark(benchmark_name.c_str(), args.run_config);
         run_benchmark(factory, server_config, args.run_config, results);
         results.end_benchmark();
+
+        auto program_it = std::find_if(
+            config.programs.begin(), config.programs.end(),
+            [&](const benchmark_config_program& program_config) {
+              return program_config.name == server_config.program_name;
+            });
+        if (program_it != config.programs.end() &&
+            !program_it->dumped_metadata) {
+          results.add_metadata(*program_it);
+          program_it->dumped_metadata = true;
+        }
       }
     }
   }

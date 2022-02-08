@@ -24,10 +24,12 @@ if (QUICK_LINT_JS_HAVE_EXPERIMENTAL_COROUTINE AND QUICK_LINT_JS_HAVE_FILESYSTEM_
     lsp-benchmarks.cpp
     lsp-server-process.cpp
     main.cpp
+    process.cpp
     quick-lint-js/benchmark-config.h
     quick-lint-js/lsp-benchmarks.h
     quick-lint-js/lsp-logging.h
     quick-lint-js/lsp-server-process.h
+    quick-lint-js/process.h
   )
   target_link_libraries(
     quick-lint-js-benchmark-lsp-servers

@@ -18,6 +18,7 @@
 #include <quick-lint-js/lsp-server-process.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/pipe.h>
+#include <quick-lint-js/process.h>
 #include <signal.h>
 #include <spawn.h>
 #include <string>
@@ -139,19 +140,7 @@ void lsp_server_process::stop_future_writes() {
   this->writer_.close();
 }
 
-void lsp_server_process::wait_for_exit() {
-retry:
-  int status;
-  ::pid_t rc = ::waitpid(this->pid_, &status, /*options=*/0);
-  if (rc == -1) {
-    if (errno == EINTR) {
-      goto retry;
-    }
-    std::fprintf(stderr, "error: failed to wait for process %lld: %s\n",
-                 narrow_cast<long long>(this->pid_), std::strerror(errno));
-    std::exit(1);
-  }
-}
+void lsp_server_process::wait_for_exit() { wait_for_process_exit(this->pid_); }
 
 bool lsp_server_process::wait_for_exit_for(std::chrono::milliseconds timeout) {
   using namespace std::chrono;
