@@ -6,7 +6,7 @@
 
 root = true
 
-[*.{c,cpp,go,gperf,js,json,h,lua,md,mjs,nix,py,sh,txt,vim,yaml,yml}]
+[*.{c,cpp,css,go,gperf,js,json,h,lua,md,mjs,nix,py,sh,txt,vim,yaml,yml}]
 charset = utf-8
 end_of_line = lf
 insert_final_newline = true
@@ -37,7 +37,7 @@ indent_style = tab
 max_line_length = off
 
 # Keep in sync with Prettier.
-[*.{html,js,json,mjs}]
+[*.{css,html,js,json,mjs}]
 indent_size = 2
 indent_style = space
 max_line_length = 80
