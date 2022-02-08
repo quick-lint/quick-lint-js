@@ -167,7 +167,8 @@ Beta release.
 
 ### Added
 
-* Various new diagnostics (implemented by [Himanshu][] and [Matheus Sousa][]).
+* Various new diagnostics (implemented by [Himanshu][] and [Matheus de
+  Sousa][]).
 * VS Code: The new `quick-lint-js.logging` setting allows you to show
   quick-lint-js' internal log messages in an Output window.
 * VS Code: Apple Silicon (e.g. M1) (ARM64) is now supported.
@@ -377,7 +378,7 @@ Beta release.
 [Jimmy Qiu]: https://github.com/lifeinData
 [Kim "Linden"]: https://github.com/Lindenbyte
 [Lee Wannacott]: https://github.com/LeeWannacott
-[Matheus Sousa]: https://github.com/keyehzy
+[Matheus de Sousa]: https://github.com/keyehzy
 [Nico Sonack]: https://github.com/herrhotzenplotz
 [Shivam Mehta]: https://github.com/maniac-en
 [coc.nvim]: https://github.com/neoclide/coc.nvim
@@ -397,6 +398,7 @@ Beta release.
 [E0053]: https://quick-lint-js.com/errors/#E0053
 [E0054]: https://quick-lint-js.com/errors/#E0054
 [E0057]: https://quick-lint-js.com/errors/#E0057
+[E0060]: https://quick-lint-js.com/errors/#E0060
 [E0073]: https://quick-lint-js.com/errors/#E0073
 [E0094]: https://quick-lint-js.com/errors/#E0094
 [E0104]: https://quick-lint-js.com/errors/#E0104
