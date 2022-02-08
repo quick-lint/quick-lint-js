@@ -6,6 +6,7 @@
     <%- await include("../common-head.ejs.html") %>
     <script>
       //<%
+      let fs = await import("fs");
       let url = await import("url");
       let moduleCacheBust = "#" + Date.now();
 
@@ -25,6 +26,8 @@
         "Deno-nolint": {hue: 260.0, name: "Deno (no linting)"},
         TypeScript: {hue: 300.0},
       };
+
+      let versions = JSON.parse(fs.readFileSync("full-change-wait-express-router-js.json", "utf-8")).metadata;
       //%>
     </script>
     <title>quick-lint-js: benchmarks</title>
@@ -159,7 +162,7 @@
         <ul>
           <li>
             <strong class="linter-name" style="--hue: 0">quick-lint-js</strong>
-            version 1.0.0 (Debian package)
+            version <%= versions["quick-lint-js"]["version"] %> (Debian package)
           </li>
           <li>
             <strong class="linter-name" style="--hue: 120">RSLint</strong>
@@ -167,31 +170,46 @@
           </li>
           <li>
             <strong class="linter-name" style="--hue: 180">Flow</strong>
-            version 0.166.1
+            version <%= versions["Flow"]["flow-bin"] %>
           </li>
           <li>
             <strong class="linter-name" style="--hue: 60">ESLint</strong>
-            version v8.4.1
+            version v<%= versions["ESLint"]["eslint"] %>
             <ul>
-              <li>@typescript-eslint/eslint-plugin version 5.6.0</li>
-              <li>@typescript-eslint/parser version 5.6.0</li>
-              <li>eslint-plugin-vue version 8.2.0</li>
               <li>
-                vscode-eslint commit
-                bb35d03497bb39043033&shy;defbad7fd80b2a89698
+                @typescript-eslint/eslint-plugin version <%=
+                versions["ESLint"]["@typescript-eslint/eslint-plugin"] %>
               </li>
-              <li>Node version v17.2.0</li>
+              <li>
+                @typescript-eslint/parser version <%=
+                versions["ESLint"]["@typescript-eslint/parser"] %>
+              </li>
+              <li>
+                eslint-plugin-vue version <%=
+                versions["ESLint"]["eslint-plugin-vue"] %>
+              </li>
+              <li>
+                <% let vscodeESLintURL = versions["ESLint"]["vscode-eslint"];
+                let vscodeESLintCommit =
+                vscodeESLintURL.match(/[0-9a-f]{40}/)[0]; %> vscode-eslint
+                commit <%= vscodeESLintCommit.substr(0, 20) %>&shy;<%=
+                vscodeESLintCommit.substr(20) %>
+              </li>
+              <li>Node version <%= versions["ESLint"]["node"] %></li>
             </ul>
           </li>
           <li>
             <strong class="linter-name" style="--hue: 240">Deno</strong>
-            version 1.16.1 (with V8 version 9.7.106.15 and TypeScript version
-            4.4.2)
+            version <%= versions["Deno"]["deno"] %> (with V8 version <%=
+            versions["Deno"]["v8"] %> and TypeScript version <%=
+            versions["Deno"]["typescript"] %>)
           </li>
           <li>
             <strong class="linter-name" style="--hue: 300">TypeScript</strong>
-            version 4.5.2 (with language server version 0.8.1 and Node version
-            v17.2.0)
+            version <%= versions["TypeScript"]["typescript"] %> (with language
+            server version <%=
+            versions["TypeScript"]["typescript-language-server"] %> and Node
+            version <%= versions["TypeScript"]["node"] %>)
           </li>
         </ul>
 
