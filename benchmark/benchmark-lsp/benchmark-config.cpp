@@ -1,76 +1,170 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <boost/json/parse.hpp>
-#include <boost/json/serialize.hpp>
-#include <cstdio>
-#include <cstdlib>
 #include <quick-lint-js/benchmark-config.h>
-#include <quick-lint-js/boost-json.h>
-#include <quick-lint-js/file.h>
-#include <system_error>
+#include <vector>
 
 namespace quick_lint_js {
-benchmark_config benchmark_config::load_from_file(const char* config_path) {
-  auto config_file = read_file(config_path);
-  if (!config_file.ok()) {
-    std::fprintf(stderr, "error: %s\n", config_file.error_to_string().c_str());
-    std::exit(1);
-  }
+benchmark_config benchmark_config::load() {
+  std::vector<benchmark_config_server> servers = {
+      benchmark_config_server{
+          .name = "vscode-eslint-airbnb",
+          .command = {"node",
+                      "../node_modules/vscode-eslint/server/out/"
+                      "eslintServer.js",
+                      "--stdio"},
+          .cwd = "eslint/airbnb/",
+          .need_files_on_disk = true,
+          .workspace_configuration_json = R"({
+            "nodePath": null,
+            "rulesCustomizations": [],
+            "run": "onType",
+            "validate": "on"
+          })",
+      },
 
-  std::error_code error;
-  ::boost::json::value root =
-      ::boost::json::parse(to_string_view(config_file->string_view()), error);
-  if (error != std::error_code()) {
-    std::fprintf(stderr, "error: %s: parsing JSON failed\n", config_path);
-    std::exit(1);
-  }
+      benchmark_config_server{
+          .name = "vscode-eslint-react",
+          .command = {"node",
+                      "../node_modules/vscode-eslint/server/out/"
+                      "eslintServer.js",
+                      "--stdio"},
+          .cwd = "eslint/react/",
+          .need_files_on_disk = true,
+          .supports_jsx = true,
+          .workspace_configuration_json = R"({
+            "nodePath": null,
+            "rulesCustomizations": [],
+            "run": "onType",
+            "validate": "on"
+          })",
+      },
 
-  benchmark_config config;
-  for (::boost::json::value& server_value :
-       root.as_object()["servers"].as_array()) {
-    ::boost::json::object& server_object = server_value.as_object();
-    benchmark_config_server& server = config.servers.emplace_back();
+      benchmark_config_server{
+          .name = "vscode-eslint-typescript",
+          .command = {"node",
+                      "../node_modules/vscode-eslint/server/out/"
+                      "eslintServer.js",
+                      "--stdio"},
+          .cwd = "eslint/typescript/",
+          .need_files_on_disk = true,
+          .supports_jsx = true,
+          .workspace_configuration_json = R"({
+            "nodePath": null,
+            "rulesCustomizations": [],
+            "run": "onType",
+            "validate": "on"
+          })",
+      },
 
-    server.name = server_object["name"].as_string();
-    for (::boost::json::value& command_value :
-         server_object["command"].as_array()) {
-      server.command.push_back(std::string(command_value.as_string()));
-    }
-    if (::boost::json::string* v = if_string(server_object, "cwd")) {
-      server.cwd = *v;
-    }
-    if (bool* v = if_bool(server_object, "allowIncrementalChanges")) {
-      server.allow_incremental_changes = *v;
-    }
-    if (std::int64_t* v =
-            if_int64(server_object, "diagnosticsMessagesToIgnore")) {
-      server.diagnostics_messages_to_ignore = *v;
-    }
-    if (std::int64_t* v =
-            if_int64(server_object,
-                     "diagnosticsMessagesToIgnoreAfterIncrementalChange")) {
-      server.diagnostics_messages_to_ignore_after_incremental_change = *v;
-    }
-    if (::boost::json::value* v =
-            server_object.if_contains("initializationOptions")) {
-      server.initialization_options_json = ::boost::json::serialize(*v);
-    }
-    if (bool* v = if_bool(server_object, "needFilesOnDisk")) {
-      server.need_files_on_disk = *v;
-    }
-    if (bool* v = if_bool(server_object, "supportsJSX")) {
-      server.supports_jsx = *v;
-    }
-    if (bool* v = if_bool(server_object, "waitForEmptyDiagnosticsOnOpen")) {
-      server.wait_for_empty_diagnostics_on_open = *v;
-    }
-    if (::boost::json::value* v =
-            server_object.if_contains("workspaceConfiguration")) {
-      server.workspace_configuration_json = ::boost::json::serialize(*v);
-    }
-  }
-  return config;
+      benchmark_config_server{
+          .name = "vscode-eslint-vanilla",
+          .command = {"node",
+                      "../node_modules/vscode-eslint/server/out/"
+                      "eslintServer.js",
+                      "--stdio"},
+          .cwd = "eslint/vanilla/",
+          .need_files_on_disk = true,
+          .workspace_configuration_json = R"({
+            "nodePath": null,
+            "rulesCustomizations": [],
+            "run": "onType",
+            "validate": "on"
+          })",
+      },
+
+      benchmark_config_server{
+          .name = "vscode-eslint-vue",
+          .command = {"node",
+                      "../node_modules/vscode-eslint/server/out/"
+                      "eslintServer.js",
+                      "--stdio"},
+          .cwd = "eslint/vue/",
+          .need_files_on_disk = true,
+          .workspace_configuration_json = R"({
+            "nodePath": null,
+            "rulesCustomizations": [],
+            "run": "onType",
+            "validate": "on"
+          })",
+      },
+
+      benchmark_config_server{
+          .name = "Deno",
+          .command = {"deno", "lsp"},
+          .diagnostics_messages_to_ignore = 2,
+          .initialization_options_json = R"({
+            "enable": true,
+            "lint": true,
+            "unstable": true
+          })",
+          .supports_jsx = true,
+          .workspace_configuration_json = R"({
+            "enable": true,
+            "lint": true,
+            "unstable": true
+          })",
+      },
+
+      benchmark_config_server{
+          .name = "Deno-nolint",
+          .command = {"deno", "lsp"},
+          .diagnostics_messages_to_ignore = 1,
+          .initialization_options_json = R"({
+            "enable": true,
+            "lint": false,
+            "unstable": true
+          })",
+          .supports_jsx = true,
+          .workspace_configuration_json = R"({
+            "enable": true,
+            "lint": false,
+            "unstable": true
+          })",
+      },
+
+      benchmark_config_server{
+          .name = "Flow",
+          .command = {"./run.sh"},
+          .cwd = "flow/",
+          .diagnostics_messages_to_ignore_after_incremental_change = 1,
+          .supports_jsx = true,
+          .wait_for_empty_diagnostics_on_open = false,
+      },
+
+      benchmark_config_server{
+          .name = "quick-lint-js",
+          .command = {"quick-lint-js", "--lsp-server"},
+          .supports_jsx = true,
+      },
+
+      benchmark_config_server{
+          .name = "RSLint",
+          .command = {"rslint-lsp"},
+          .allow_incremental_changes = false,
+      },
+
+      benchmark_config_server{
+          .name = "TypeScript",
+          .command = {"node", "./node_modules/.bin/typescript-language-server",
+                      "--stdio"},
+          .cwd = "typescript/",
+          .need_files_on_disk = true,
+          .supports_jsx = false,
+      },
+
+      benchmark_config_server{
+          .name = "TypeScript-JSX",
+          .command = {"node", "./node_modules/.bin/typescript-language-server",
+                      "--stdio"},
+          .cwd = "typescript-jsx/",
+          .need_files_on_disk = true,
+          .supports_jsx = true,
+      },
+  };
+  return benchmark_config{
+      .servers = std::move(servers),
+  };
 }
 }
 

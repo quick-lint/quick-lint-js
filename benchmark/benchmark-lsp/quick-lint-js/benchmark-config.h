@@ -27,7 +27,7 @@ struct benchmark_config_server {
 struct benchmark_config {
   std::vector<benchmark_config_server> servers;
 
-  static benchmark_config load_from_file(const char* config_path);
+  static benchmark_config load();
 };
 }
 

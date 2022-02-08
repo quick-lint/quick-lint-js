@@ -38,7 +38,6 @@ struct benchmark_run_config {
 };
 
 struct parsed_args {
-  const char* config_path = nullptr;
   std::string_view benchmark_filter = std::string_view();
   const char* output_json_path = nullptr;
   bool list_benchmarks = false;
@@ -165,10 +164,7 @@ int main(int argc, char** argv) {
   benchmark_results_writer results(/*json_output=*/output_json_file,
                                    /*verbose_output=*/stdout);
 
-  benchmark_config config = benchmark_config::load_from_file(args.config_path);
-  std::filesystem::current_path(
-      std::filesystem::path(args.config_path).parent_path());
-
+  benchmark_config config = benchmark_config::load();
   std::vector<benchmark_factory> benchmark_factories =
       get_benchmark_factories();
 
@@ -215,9 +211,7 @@ parsed_args parse_arguments(int argc, char** argv) {
   arg_parser parser(argc, argv);
   while (!parser.done()) {
     if (const char* argument = parser.match_argument()) {
-      if (!args.config_path) {
-        args.config_path = argument;
-      } else if (args.benchmark_filter.empty()) {
+      if (args.benchmark_filter.empty()) {
         args.benchmark_filter = argument;
       } else {
         std::fprintf(stderr, "error: unexpected argument: %s\n", argument);
