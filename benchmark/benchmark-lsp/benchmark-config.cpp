@@ -223,6 +223,7 @@ benchmark_config benchmark_config::load() {
           .program_name = "Deno",
           .command = {"deno", "lsp"},
           .diagnostics_messages_to_ignore = 2,
+          .diagnostics_messages_to_ignore_after_incremental_change = 2,
           .initialization_options_json = R"({
             "enable": true,
             "lint": true,
@@ -241,6 +242,7 @@ benchmark_config benchmark_config::load() {
           .program_name = "Deno",
           .command = {"deno", "lsp"},
           .diagnostics_messages_to_ignore = 1,
+          .diagnostics_messages_to_ignore_after_incremental_change = 1,
           .initialization_options_json = R"({
             "enable": true,
             "lint": false,
