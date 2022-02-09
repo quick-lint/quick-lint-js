@@ -1,0 +1,17 @@
+add_custom_target(
+  quick-lint-js-sublime-text
+  COMMAND "${CMAKE_COMMAND}" -E make_directory
+  "${SUBLIME_TEXT_PACKAGE_PATH}"
+  COMMAND "${CMAKE_COMMAND}" -E copy
+  ${SUBLIME_TEXT_PACKAGE_FILES}
+  "${SUBLIME_TEXT_PACKAGE_PATH}"
+  VERBATIM
+)
+
+execute_process(
+  COMMAND "${CMAKE_COMMAND}" -E
+  make_directory "${SUBLIME_TEXT_PACKAGE_PATHNAME}"
+  COMMAND "${CMAKE_COMMAND}" -E
+  copy ${SUBLIME_TEXT_PACKAGE_FILES} "${SUBLIME_TEXT_PACKAGE_PATHNAME}"
+  VERBATIM
+)

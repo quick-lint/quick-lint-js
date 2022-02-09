@@ -32,6 +32,8 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   quick_lint_js_sublime_text_get_package_files(SUBLIME_TEXT_PACKAGE_FILES)
   quick_lint_js_sublime_text_get_package_destination(SUBLIME_TEXT_PACKAGE_DESTINATION)
 
+  install()
+
 
   # install()
   # quick_lint_js_collect_copyright(
@@ -42,32 +44,6 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
 else ()
   # TODO(cahian): Add a message error here
 endif ()
-
-# #### SUBLIME_TEXT_PACKAGE_DESTINATION ####
-# if (WIN32)
-#   string(REPLACE "\\" "/" APPDATA "$ENV{APPDATA}")
-#   set(SUBLIME_TEXT_3_PACKAGE_LOCATION "${APPDATA}/Sublime Text 3/Packages")
-#   set(SUBLIME_TEXT_4_PACKAGE_LOCATION "${APPDATA}/Sublime Text/Packages")
-# elseif (APPLE)
-#   set(HOME "$ENV{HOME}")
-#   set(SUBLIME_TEXT_3_PACKAGE_LOCATION "${HOME}/Library/Application Support/Sublime Text 3/Packages")
-#   set(SUBLIME_TEXT_4_PACKAGE_LOCATION "${HOME}/Library/Application Support/Sublime Text/Packages")
-# else ()
-#   set(HOME "$ENV{HOME}")
-#   set(SUBLIME_TEXT_3_PACKAGE_LOCATION "${HOME}/.config/sublime-text-3/Packages")
-#   set(SUBLIME_TEXT_4_PACKAGE_LOCATION "${HOME}/.config/sublime-text/Packages")
-# endif ()
-# if (QUICK_LINT_JS_SUBLIME_TEXT_3)
-#   set(SUBLIME_TEXT_PACKAGE_DESTINATION "${SUBLIME_TEXT_3_PACKAGE_LOCATION}")
-# elseif (QUICK_LINT_JS_SUBLIME_TEXT_4)
-#   if (IS_DIRECTORY SUBLIME_TEXT_4_PACKAGE_LOCATION)
-#     set(SUBLIME_TEXT_PACKAGE_DESTINATION "${SUBLIME_TEXT_4_PACKAGE_LOCATION}")
-#   elseif (IS_DIRECTORY SUBLIME_TEXT_3_PACKAGE_LOCATION)
-#     set(SUBLIME_TEXT_PACKAGE_DESTINATION "${SUBLIME_TEXT_3_PACKAGE_LOCATION}")
-#   else ()
-#     set(SUBLIME_TEXT_PACKAGE_DESTINATION "${SUBLIME_TEXT_4_PACKAGE_LOCATION}")
-#   endif ()
-# endif ()
 
 # #### BUILD ####
 # add_custom_target(
