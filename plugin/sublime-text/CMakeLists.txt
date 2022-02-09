@@ -1,7 +1,8 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-# TARGET_RUNTIME_DLLS is only availible in at least 3.21 version.
+# The TARGET_RUNTIME_DLLS generator expression
+# is only availible in at least 3.21 version.
 cmake_minimum_required(VERSION 3.21)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
