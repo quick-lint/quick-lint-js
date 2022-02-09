@@ -38,17 +38,11 @@ void parser::visit_expression(expression* ast, Visitor& v,
       this->visit_expression(child, v, context);
     }
   };
-  auto visit_parameters = [&]() {
-    for (expression* parameter : ast->children()) {
-      this->visit_binding_element(parameter, v, variable_kind::_parameter,
-                                  /*declaring_token=*/std::nullopt,
-                                  /*init_kind=*/variable_init_kind::normal);
-    }
-  };
   switch (ast->kind()) {
   case expression_kind::_class:
   case expression_kind::_invalid:
   case expression_kind::_missing:
+  case expression_kind::arrow_function_with_expression:
   case expression_kind::arrow_function_with_statements:
   case expression_kind::function:
   case expression_kind::import:
@@ -75,15 +69,6 @@ void parser::visit_expression(expression* ast, Visitor& v,
         .where = trailing_comma_ast.comma_span(),
     });
     visit_children();
-    break;
-  }
-  case expression_kind::arrow_function_with_expression: {
-    auto* arrow = static_cast<expression::arrow_function_with_expression*>(ast);
-    v.visit_enter_function_scope();
-    visit_parameters();
-    v.visit_enter_function_scope_body();
-    this->visit_expression(arrow->body_, v, variable_context::rhs);
-    v.visit_exit_function_scope();
     break;
   }
   case expression_kind::assignment: {
@@ -1839,11 +1824,31 @@ expression* parser::parse_arrow_function_body_impl(
     return this->make_expression<expression::arrow_function_with_statements>(
         attributes, ast->children(), parameter_list_begin, span_end);
   } else {
+    v.visit_enter_function_scope();
+
+    // TODO(strager): Avoid creating a temporary expression just to iterate over
+    // the parameters.
+    expression* ast =
+        this->make_expression<expression::arrow_function_with_expression>(
+            attributes, std::forward<Args>(args)...,
+            this->make_expression<expression::_invalid>(this->peek().span()),
+            parameter_list_begin);
+    for (expression* parameter : ast->children()) {
+      this->visit_binding_element(parameter, v, variable_kind::_parameter,
+                                  /*declaring_token=*/std::nullopt,
+                                  /*init_kind=*/variable_init_kind::normal);
+    }
+
+    v.visit_enter_function_scope_body();
+    // TODO(strager): Use parse_and_visit_expression instead.
     expression* body =
         this->parse_expression(v, precedence{
                                       .commas = false,
                                       .in_operator = allow_in_operator,
                                   });
+    this->visit_expression(body, v, variable_context::rhs);
+    v.visit_exit_function_scope();
+
     return this->make_expression<expression::arrow_function_with_expression>(
         attributes, std::forward<Args>(args)..., body, parameter_list_begin);
   }

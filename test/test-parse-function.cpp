@@ -513,6 +513,51 @@ TEST(test_parse, arrow_function_expression_with_statements) {
   }
 }
 
+TEST(test_parse, nested_arrow_function) {
+  for (string8_view code : {
+           u8"(x => y => (x, y));"_sv,
+           u8"(x => { (y => (x, y)); });"_sv,
+           u8"(x => y => { x; y; });"_sv,
+           u8"(x => { (y => { x; y; }); });"_sv,
+       }) {
+    spy_visitor v = parse_and_visit_statement(code);
+    SCOPED_TRACE(out_string8(code));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // y
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // x
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",        //
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            spy_visitor::visited_variable_declaration{
+                u8"x", variable_kind::_parameter, variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"y", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"},
+                            spy_visitor::visited_variable_use{u8"y"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"(a => ((b = a) => {}));"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // a
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_enter_function_scope",       //
+                                      "visit_variable_use",               // a
+                                      "visit_variable_declaration",       // b
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_exit_function_scope"));
+  }
+}
+
 TEST(test_parse, function_statements_allow_trailing_commas_in_parameter_list) {
   {
     spy_visitor v = parse_and_visit_statement(u8"function f(x,) { y; });"_sv);

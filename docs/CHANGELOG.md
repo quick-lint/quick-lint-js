@@ -6,6 +6,13 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Fixed
+
+* Curried arrow functions like `a => b => { a; b; }` no longer falsely reports
+  [E0057][]. (Thanks to [Christian Mund][] for reporting.)
+
 ## 2.0.0 (2022-02-08)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.0.0/)
@@ -372,6 +379,7 @@ Beta release.
 
 [AidenThing]: https://github.com/AidenThing
 [Amir]: https://github.com/ahmafi
+[Christian Mund]: https://github.com/kkkrist
 [Daniel La Rocque]: https://github.com/dlarocque
 [David Vasileff]: https://github.com/dav000
 [Erlliam Mejia]: https://github.com/erlliam
