@@ -11,9 +11,6 @@ include(QuickLintJSSublimeTextPackage)
 include(QuickLintJSTarget)
 
 if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
-  quick_lint_js_sublime_text_add_colored_compiler_output()
-  quick_lint_js_sublime_text_set_compiler_options()
-
   # You cannot link to a MODULE (only load dynamicaly),
   # but you can link to a SHARED.
   quick_lint_js_add_library(
@@ -28,11 +25,19 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   target_include_directories(quick-lint-js-sublime-text PRIVATE .)
   target_link_libraries(quick-lint-js-sublime-text PRIVATE quick-lint-js-lib)
 
+  quick_lint_js_sublime_text_add_colored_compiler_output()
+  quick_lint_js_sublime_text_set_compiler_options()
+
   quick_lint_js_sublime_text_get_package_pathname(SUBLIME_TEXT_PACKAGE_PATHNAME)
   quick_lint_js_sublime_text_get_package_files(SUBLIME_TEXT_PACKAGE_FILES)
   quick_lint_js_sublime_text_get_package_destination(SUBLIME_TEXT_PACKAGE_DESTINATION)
 
-  install()
+  install(
+    SCRIPT "cmake/QuickLintJSSublimeTextInstall.cmake"
+    COMPONENT sublime-text
+    EXCLUDE_FROM_ALL
+    DESTINATION "${SUBLIME_TEXT_PACKAGE_DESTINATION}"
+  )
 
 
   # install()
