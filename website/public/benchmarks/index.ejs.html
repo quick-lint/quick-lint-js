@@ -66,6 +66,11 @@
           >
         </li>
         <li>
+          <a href="#incremental-change-wait-react-quickly-ch10-jsx"
+            >LSP: incremental-change-wait react-quickly-ch10.jsx</a
+          >
+        </li>
+        <li>
           <a href="#full-change-wait-express-router-js"
             >LSP: full-change-wait express-router.js</a
           >
@@ -108,6 +113,51 @@
           <li>
             Change a few characters in the document, sending small deltas in an
             LSP message.
+          </li>
+          <li>Wait for diagnostics.</li>
+        </ol>
+      </article>
+
+      <article
+        class="benchmark"
+        id="incremental-change-wait-react-quickly-ch10-jsx"
+      >
+        <h2>LSP: incremental-change-wait react-quickly-ch10.jsx</h2>
+        <p>
+          This benchmark measures how long an LSP server takes to give
+          diagnostics to an editor.
+        </p>
+        <p>
+          This benchmark is similar to the
+          <a href="#incremental-change-wait-express-router-js"
+            >incremental-change-wait benchmark</a
+          >, except it uses a JSX (React) source file instead of a vanilla
+          JavaScript source file.
+        </p>
+        <h3>Results</h3>
+        <%-
+        makeBenchmarkHTML(parseBenchmarkLSPJSON("incremental-change-wait-react-quickly-ch10-jsx.json",
+        seriesOptions)); %>
+        <h3>Setup (untimed)</h3>
+        <ol>
+          <li>Start the LSP server.</li>
+          <li>Wait for initialization to finish.</li>
+          <li>
+            Open one document with contents from
+            <a
+              href="https://github.com/azat-co/react/blob/03f39f4fe5dffcc72fc9cfc4d7a984d9f4b2aa75/ch10/nile/app.jsx"
+              >react-quickly-ch10.jsx</a
+            >.
+          </li>
+          <li>Wait for diagnostics.</li>
+        </ol>
+
+        <h3>Work (timed)</h3>
+        <p>Repeat the following steps <var>N</var> times:</p>
+        <ol>
+          <li>
+            Add or remove a few characters in the document, sending small deltas
+            in an LSP message.
           </li>
           <li>Wait for diagnostics.</li>
         </ol>

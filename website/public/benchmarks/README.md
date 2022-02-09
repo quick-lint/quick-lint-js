@@ -20,3 +20,9 @@ benchmarks:
       --samples 10 \
       --output-json ../../website/public/benchmarks/incremental-change-wait-express-router-js.json \
       incremental-change-wait/express-router.js
+
+    $ ../../build/benchmark/benchmark-lsp/quick-lint-js-benchmark-lsp-servers \
+      --iterations 10 \
+      --samples 10 \
+      --output-json ../../website/public/benchmarks/incremental-change-wait-react-quickly-ch10-jsx.json \
+      incremental-change-wait/react-quickly-ch10.jsx
