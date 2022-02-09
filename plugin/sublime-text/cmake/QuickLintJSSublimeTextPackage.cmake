@@ -18,10 +18,18 @@ function (quick_lint_js_sublime_text_set_compiler_options)
   endif ()
 endfunction ()
 
+function (quick_lint_js_sublime_text_get_package_distribution PACKAGE_DISTRIBUTION)
+  set(PACKAGE_DISTRIBUTION "${PROJECT_NAME}")
+endfunction ()
+
 function (quick_lint_js_sublime_text_get_package_version PACKAGE_VERSION)
   string(REPLACE "." "_" VERSION "${PROJECT_VERSION}")
   string(PREPEND VERSION "v")
   set(PACKAGE_VERSION "${VERSION}" PARENT_SCOPE)
+endfunction ()
+
+function (quick_lint_js_sublime_text_get_package_tag PACKAGE_TAG)
+  set(PACKAGE_TAG "st${QUICK_LINT_JS_SUBLIME_TEXT_VERSION}")
 endfunction ()
 
 function (quick_lint_js_sublime_text_get_package_platform PACKAGE_PLATFORM)
@@ -37,12 +45,12 @@ function (quick_lint_js_sublime_text_get_package_platform PACKAGE_PLATFORM)
 endfunction ()
 
 function (quick_lint_js_sublime_text_get_package_filename PACKAGE_FILENAME)
-  set(PACKAGE_DISTRIBUTION "${PROJECT_NAME}")
+  quick_lint_js_sublime_text_get_package_distribution(PACKAGE_DISTRIBUTION)
   quick_lint_js_sublime_text_get_package_version(PACKAGE_VERSION)
-  set(PACKAGE_TAG "st${QUICK_LINT_JS_SUBLIME_TEXT_VERSION}")
+  quick_lint_js_sublime_text_get_package_tag(PACKAGE_TAG)
   quick_lint_js_sublime_text_get_package_platform(PACKAGE_PLATFORM)
   set(
-    PACKAGE_FILENAME
+    PACKAGE_FILENAME 
     "${PACKAGE_DISTRIBUTION}-${PACKAGE_VERSION}-${PACKAGE_TAG}-${PACKAGE_PLATFORM}"
   )
 endfunction ()
@@ -55,12 +63,39 @@ endfunction ()
 function (quick_lint_js_sublime_text_get_package_files PACKAGE_FILES)
   set(
     PACKAGE_FILES
-    $<TARGET_FILE:quick-lint-js-lib>
-    $<TARGET_RUNTIME_DLLS:quick-lint-js-lib>
+    $<TARGET_FILE:quick-lint-js-sublime-text>
+    $<TARGET_RUNTIME_DLLS:quick-lint-js-sublime-text>
     "${CMAKE_CURRENT_SOURCE_DIR}/.no-sublime-package"
     "${CMAKE_CURRENT_SOURCE_DIR}/extension.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/interface.py"
   )
+endfunction ()
+
+function (quick_lint_js_sublime_text_get_package_destination PACKAGE_DESTINATION)
+  if (WIN32)
+    string(REPLACE "\\" "/" APPDATA "$ENV{APPDATA}")
+    set(SUBLIME_TEXT_3 "${APPDATA}/Sublime Text 3/Packages")
+    set(SUBLIME_TEXT_PACKAGE_LOCATION "${APPDATA}/Sublime Text/Packages")
+  elseif (APPLE)
+    set(HOME "$ENV{HOME}")
+    set(PACKAGE_LOCATION "${HOME}/Library/Application Support/Sublime Text 3/Packages")
+    set(PACKAGE_LOCATION "${HOME}/Library/Application Support/Sublime Text/Packages")
+  else ()
+    set(PACKAGE_LOCATION "${HOME}/.config/sublime-text-3/Packages")
+    set(PACKAGE_LOCATION "${HOME}/.config/sublime-text/Packages")
+  endif ()
+
+  if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION EQUAL 3)
+    set(SUBLIME_TEXT_PACKAGE_DESTINATION "${SUBLIME_TEXT_3_PACKAGE_LOCATION}")
+  elseif (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER 3)
+    if (IS_DIRECTORY SUBLIME_TEXT_4_PACKAGE_LOCATION)
+      set(SUBLIME_TEXT_PACKAGE_DESTINATION "${SUBLIME_TEXT_4_PACKAGE_LOCATION}")
+    elseif (IS_DIRECTORY SUBLIME_TEXT_3_PACKAGE_LOCATION)
+      set(SUBLIME_TEXT_PACKAGE_DESTINATION "${SUBLIME_TEXT_3_PACKAGE_LOCATION}")
+    else ()
+      set(SUBLIME_TEXT_PACKAGE_DESTINATION "${SUBLIME_TEXT_4_PACKAGE_LOCATION}")
+    endif ()
+  endif ()
 endfunction ()
 
 # quick-lint-js finds bugs in JavaScript programs.
