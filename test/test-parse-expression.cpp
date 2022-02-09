@@ -1026,7 +1026,7 @@ TEST_F(test_parse_expression,
 
          // 'await' must be an identifier:
          {u8"[await]"_sv,             "array(var await)",              nullptr},
-         {u8"await => x"_sv,          "arrowexpr(var await, var x)",   nullptr},
+         {u8"await => x"_sv,          "arrowexpr(var await)",          nullptr},
          {u8"await = x"_sv,           "assign(var await, var x)",      nullptr},
          {u8"await != x"_sv,          "binary(var await, var x)",      nullptr},
          {u8"await !== x"_sv,         "binary(var await, var x)",      nullptr},
@@ -2913,10 +2913,6 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 0);
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var a");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 7);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -2929,10 +2925,6 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var b");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 6);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -2945,10 +2937,6 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var b");
     // TODO(strager): Implement begin_offset.
     EXPECT_EQ(p.range(ast).end_offset(), 8);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -2962,31 +2950,27 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     EXPECT_EQ(ast->child_count(), 2);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_EQ(summarize(ast->child(1)), "var b");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var c");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     expression* ast = this->parse_expression(u8"() => a, b"_sv);
-    EXPECT_EQ(summarize(ast), "binary(arrowexpr(var a), var b)");
+    EXPECT_EQ(summarize(ast), "binary(arrowexpr(), var b)");
   }
 
   {
     expression* ast = this->parse_expression(u8"a => b, c"_sv);
-    EXPECT_EQ(summarize(ast), "binary(arrowexpr(var a, var b), var c)");
+    EXPECT_EQ(summarize(ast), "binary(arrowexpr(var a), var c)");
   }
 
   {
     expression* ast = this->parse_expression(u8"(a,) => b"_sv);
-    EXPECT_EQ(summarize(ast), "arrowexpr(var a, var b)");
+    EXPECT_EQ(summarize(ast), "arrowexpr(var a)");
   }
 
   {
     expression* ast = this->parse_expression(u8"async => value"_sv);
-    EXPECT_EQ(summarize(ast), "arrowexpr(var async, var value)");
+    EXPECT_EQ(summarize(ast), "arrowexpr(var async)");
   }
 }
 
@@ -3038,10 +3022,6 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)),
               "object(literal, var a, literal, var b)");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var c");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -3052,10 +3032,6 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "array(var a, var b)");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var c");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -3066,10 +3042,6 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "spread(var args)");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "literal");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
@@ -3107,10 +3079,6 @@ TEST_F(test_parse_expression, async_arrow_function) {
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
     EXPECT_EQ(ast->attributes(), function_attributes::async);
     EXPECT_EQ(ast->child_count(), 0);
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var a");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 13);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -3123,21 +3091,17 @@ TEST_F(test_parse_expression, async_arrow_function) {
     EXPECT_EQ(ast->attributes(), function_attributes::async);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var x");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var y");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     expression* ast = this->parse_expression(u8"async (x, y, z) => w"_sv);
-    EXPECT_EQ(summarize(ast), "asyncarrowexpr(var x, var y, var z, var w)");
+    EXPECT_EQ(summarize(ast), "asyncarrowexpr(var x, var y, var z)");
   }
 
   {
     expression* ast = this->parse_expression(u8"async (a,) => b"_sv);
-    EXPECT_EQ(summarize(ast), "asyncarrowexpr(var a, var b)");
+    EXPECT_EQ(summarize(ast), "asyncarrowexpr(var a)");
   }
 }
 
@@ -3195,7 +3159,7 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
   {
     test_parser p(u8"=> a"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "arrowexpr(var a)");
+    EXPECT_EQ(summarize(ast), "arrowexpr()");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_OFFSETS(
                     p.code(), error_missing_arrow_function_parameter_list,  //

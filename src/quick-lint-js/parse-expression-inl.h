@@ -1830,9 +1830,8 @@ expression* parser::parse_arrow_function_body_impl(
     // the parameters.
     expression* ast =
         this->make_expression<expression::arrow_function_with_expression>(
-            attributes, std::forward<Args>(args)...,
-            this->make_expression<expression::_invalid>(this->peek().span()),
-            parameter_list_begin);
+            attributes, std::forward<Args>(args)..., parameter_list_begin,
+            /*span_end=*/this->peek().begin);
     for (expression* parameter : ast->children()) {
       this->visit_binding_element(parameter, v, variable_kind::_parameter,
                                   /*declaring_token=*/std::nullopt,
@@ -1849,8 +1848,10 @@ expression* parser::parse_arrow_function_body_impl(
     this->visit_expression(body, v, variable_context::rhs);
     v.visit_exit_function_scope();
 
+    const char8* span_end = this->lexer_.end_of_previous_token();
     return this->make_expression<expression::arrow_function_with_expression>(
-        attributes, std::forward<Args>(args)..., body, parameter_list_begin);
+        attributes, std::forward<Args>(args)..., parameter_list_begin,
+        span_end);
   }
 }
 

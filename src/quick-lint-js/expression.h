@@ -418,23 +418,23 @@ class expression::arrow_function_with_expression final : public expression {
   static constexpr expression_kind kind =
       expression_kind::arrow_function_with_expression;
 
-  explicit arrow_function_with_expression(
-      function_attributes attributes, expression *body,
-      const char8 *parameter_list_begin) noexcept
+  explicit arrow_function_with_expression(function_attributes attributes,
+                                          const char8 *parameter_list_begin,
+                                          const char8 *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
-        body_(body) {}
+        span_end_(span_end) {}
 
   explicit arrow_function_with_expression(
       function_attributes attributes,
-      expression_arena::array_ptr<expression *> parameters, expression *body,
-      const char8 *parameter_list_begin) noexcept
+      expression_arena::array_ptr<expression *> parameters,
+      const char8 *parameter_list_begin, const char8 *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
-        parameters_(parameters),
-        body_(body) {
+        span_end_(span_end),
+        parameters_(parameters) {
     if (!this->parameter_list_begin_) {
       QLJS_ASSERT(!this->parameters_.empty());
     }
@@ -442,8 +442,8 @@ class expression::arrow_function_with_expression final : public expression {
 
   function_attributes function_attributes_;
   const char8 *parameter_list_begin_;
+  const char8 *span_end_;
   expression_arena::array_ptr<expression *> parameters_;
-  expression *body_;
 };
 static_assert(expression_arena::is_allocatable<
               expression::arrow_function_with_expression>);
@@ -1130,11 +1130,10 @@ inline source_code_span expression::span() const noexcept {
     auto *arrow =
         static_cast<const expression::arrow_function_with_expression *>(this);
     if (arrow->parameter_list_begin_) {
-      return source_code_span(arrow->parameter_list_begin_,
-                              arrow->body_->span().end());
+      return source_code_span(arrow->parameter_list_begin_, arrow->span_end_);
     } else {
       return source_code_span(arrow->parameters_.front()->span().begin(),
-                              arrow->body_->span().end());
+                              arrow->span_end_);
     }
   }
   case expression_kind::arrow_function_with_statements: {

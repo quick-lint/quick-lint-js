@@ -72,17 +72,8 @@ std::string summarize(const expression& expression) {
     return "typeof(" + summarize(expression.child_0()) + ")";
   case expression_kind::array:
     return "array(" + children() + ")";
-  case expression_kind::arrow_function_with_expression: {
-    auto& arrow =
-        static_cast<const expression::arrow_function_with_expression&>(
-            expression);
-    std::string result = function_attributes() + "arrowexpr(" + children();
-    if (arrow.child_count() != 0) {
-      result += ", ";
-    }
-    result += summarize(arrow.body_) + ")";
-    return result;
-  }
+  case expression_kind::arrow_function_with_expression:
+    return function_attributes() + "arrowexpr(" + children() + ")";
   case expression_kind::arrow_function_with_statements:
     return function_attributes() + "arrowblock(" + children() + ")";
   case expression_kind::assignment:
