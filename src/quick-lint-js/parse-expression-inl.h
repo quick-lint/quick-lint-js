@@ -1839,13 +1839,10 @@ expression* parser::parse_arrow_function_body_impl(
     }
 
     v.visit_enter_function_scope_body();
-    // TODO(strager): Use parse_and_visit_expression instead.
-    expression* body =
-        this->parse_expression(v, precedence{
-                                      .commas = false,
-                                      .in_operator = allow_in_operator,
-                                  });
-    this->visit_expression(body, v, variable_context::rhs);
+    this->parse_and_visit_expression(v, precedence{
+                                            .commas = false,
+                                            .in_operator = allow_in_operator,
+                                        });
     v.visit_exit_function_scope();
 
     const char8* span_end = this->lexer_.end_of_previous_token();
