@@ -1634,7 +1634,7 @@ TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
   EXPECT_EQ(look_up(diagnostics, 0, "message"), "JSON syntax error");
   EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0164");
   EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
-            "https://quick-lint-js.com/errors/#E0164");
+            "https://quick-lint-js.com/errors/E0164/");
 }
 
 TEST_F(test_linting_lsp_server,
@@ -1692,7 +1692,7 @@ TEST_F(test_linting_lsp_server,
   EXPECT_EQ(look_up(diagnostics, 0, "message"), "JSON syntax error");
   EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0164");
   EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
-            "https://quick-lint-js.com/errors/#E0164");
+            "https://quick-lint-js.com/errors/E0164/");
 }
 
 TEST_F(test_linting_lsp_server,
@@ -2109,7 +2109,7 @@ TEST(test_lsp_javascript_linter, linting_gives_diagnostics) {
   EXPECT_EQ(look_up(diagnostics, 0, "source"), "quick-lint-js");
   EXPECT_EQ(look_up(diagnostics, 0, "code"), "E0058");
   EXPECT_EQ(look_up(diagnostics, 0, "codeDescription", "href"),
-            "https://quick-lint-js.com/errors/#E0058");
+            "https://quick-lint-js.com/errors/E0058/");
 }
 
 TEST(test_lsp_javascript_linter, linting_does_not_desync) {

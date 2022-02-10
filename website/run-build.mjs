@@ -44,7 +44,14 @@ async function mainAsync() {
         let outPath = path.join(targetDirectory, instruction.destinationPath);
         console.log(`build EJS: ${ejsPath} -> ${outPath}`);
         await fs.promises.mkdir(path.dirname(outPath), { recursive: true });
-        let out = await router.renderEJSFile(ejsPath, instruction.ejsVariables);
+        let out = await router.renderEJSFile(
+          ejsPath,
+          instruction.ejsVariables,
+          {
+            // Reduce peak memory usage.
+            allowCacheBusting: false,
+          }
+        );
         fs.promises.writeFile(outPath, out);
         break;
 

@@ -36,14 +36,14 @@ markdownParser.renderer.rules = {
   heading_open(tokens, tokenIndex, options, env, self) {
     let token = tokens[tokenIndex];
     if (token.tag === "h1") {
-      return `<h2><a class='self-reference' href='#${env.doc.titleErrorCode}'>`;
+      return `<h2>`;
     }
   },
 
   heading_close(tokens, tokenIndex, options, env, self) {
     let token = tokens[tokenIndex];
     if (token.tag === "h1") {
-      return "</a></h2>";
+      return "</h2>";
     }
   },
 
@@ -237,12 +237,11 @@ export class ErrorDocumentation {
 
   toHTML() {
     this._markdownEnv.doc = this;
-    let innerHTML = markdownParser.renderer.render(
+    return markdownParser.renderer.render(
       this._markdownTokens,
       markdownParser.options,
       this._markdownEnv
     );
-    return `<article id='${this.titleErrorCode}'>${innerHTML}</article>`;
   }
 
   async findProblemsAsync() {
@@ -321,9 +320,13 @@ export async function reportProblemsInDocumentsAsync(documents) {
   }
 }
 
-export async function loadErrorDocumentationFilesAsync(rootPath) {
+export async function findErrorDocumentationFilesAsync(rootPath) {
   let files = await fs.promises.readdir(rootPath);
-  files = files.filter((fileName) => fileName.endsWith(".md"));
+  return files.filter((fileName) => fileName.endsWith(".md"));
+}
+
+export async function loadErrorDocumentationFilesAsync(rootPath) {
+  let files = await findErrorDocumentationFilesAsync(rootPath);
 
   let documents = await Promise.all(
     files.map(

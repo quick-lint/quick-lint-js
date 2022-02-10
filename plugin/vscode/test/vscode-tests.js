@@ -56,7 +56,7 @@ for (let extension of [".js", ".mjs", ".cjs", ".jsx"]) {
         assert.deepStrictEqual(helloDiags, [
           {
             code: {
-              target: "https://quick-lint-js.com/errors/#E0023",
+              target: "https://quick-lint-js.com/errors/E0023/",
               value: "E0023",
             },
             message: "keywords cannot contain escape sequences",
@@ -194,7 +194,7 @@ tests = {
       assert.deepStrictEqual(helloDiags, [
         {
           code: {
-            target: "https://quick-lint-js.com/errors/#E0023",
+            target: "https://quick-lint-js.com/errors/E0023/",
             value: "E0023",
           },
           message: "keywords cannot contain escape sequences",
@@ -225,7 +225,7 @@ tests = {
       assert.deepStrictEqual(helloDiags, [
         {
           code: {
-            target: "https://quick-lint-js.com/errors/#E0003",
+            target: "https://quick-lint-js.com/errors/E0003/",
             value: "E0003",
           },
           message: "assignment to const variable",
@@ -453,7 +453,7 @@ tests = {
       // redeclaration of variable 'x'
       {
         code: {
-          target: "https://quick-lint-js.com/errors/#E0034",
+          target: "https://quick-lint-js.com/errors/E0034/",
           value: "E0034",
         },
         severity: vscode.DiagnosticSeverity.Error,
@@ -461,7 +461,7 @@ tests = {
       // use of undeclared variable 'undeclaredVariable'
       {
         code: {
-          target: "https://quick-lint-js.com/errors/#E0057",
+          target: "https://quick-lint-js.com/errors/E0057/",
           value: "E0057",
         },
         severity: vscode.DiagnosticSeverity.Warning,
@@ -519,7 +519,7 @@ tests = {
       [
         {
           code: {
-            target: "https://quick-lint-js.com/errors/#E0057",
+            target: "https://quick-lint-js.com/errors/E0057/",
             value: "E0057",
           },
           startLine: 1, // document
@@ -668,7 +668,7 @@ tests = {
       [
         {
           code: {
-            target: "https://quick-lint-js.com/errors/#E0057",
+            target: "https://quick-lint-js.com/errors/E0057/",
             value: "E0057",
           },
           startLine: 1, // testGlobalVariableFromDisk
@@ -720,7 +720,7 @@ tests = {
       configDiags.map(({ code }) => code),
       [
         {
-          target: "https://quick-lint-js.com/errors/#E0171",
+          target: "https://quick-lint-js.com/errors/E0171/",
           value: "E0171",
         },
       ]
@@ -761,7 +761,7 @@ tests = {
       configDiags.map(({ code }) => code),
       [
         {
-          target: "https://quick-lint-js.com/errors/#E0171",
+          target: "https://quick-lint-js.com/errors/E0171/",
           value: "E0171",
         },
       ]
@@ -821,7 +821,7 @@ tests = {
         [
           {
             code: {
-              target: "https://quick-lint-js.com/errors/#E0057",
+              target: "https://quick-lint-js.com/errors/E0057/",
               value: "E0057",
             },
             startLine: 0, // testGlobalVariableFromEditor

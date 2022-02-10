@@ -9,10 +9,8 @@
       let url = await import("url");
 
       let {
-        ProblemsError,
         documentationDirectoryPath,
         loadErrorDocumentationFilesAsync,
-        reportProblemsInDocumentsAsync,
       } = await importFileAsync("../../src/error-documentation.mjs");
 
       let documents = await loadErrorDocumentationFilesAsync(
@@ -27,69 +25,8 @@
     />
     <link href="../main.css" rel="stylesheet" />
     <style>
-      figure {
-        margin-left: 2em;
-        margin-right: 2em;
-      }
-
-      /* Reduce horizontal scrolling for code samples on mobile. */
-      @media only screen and (max-width: 30em) {
-        figure {
-          margin-left: 0em;
-        }
-      }
-
-      /* Visually separate adjacent code blocks. */
-      figure + figure {
-        border-top: 1px solid rgba(0, 0, 0, 0.2);
-      }
-      @media (prefers-color-scheme: dark) {
-        figure + figure {
-          border-top-color: rgba(255, 255, 255, 0.2);
-        }
-      }
-
       .table-of-contents a:link:not(:hover, :focus) {
         text-decoration: none;
-      }
-
-      a.self-reference:link,
-      a.self-reference:visited {
-        color: unset;
-      }
-      a.self-reference:link:not(:hover, :focus) {
-        text-decoration: none;
-      }
-
-      .unicode-bom:before,
-      .unicode-bel:before,
-      .unicode-bs:before,
-      .unicode-del:before {
-        background-color: #edbf66;
-        border: 1px solid red;
-        border-radius: 5px;
-        padding: 1px 3px;
-      }
-      .unicode-bom:before {
-        content: "BOM";
-      }
-      .unicode-bel:before {
-        content: "BEL";
-      }
-      .unicode-bs:before {
-        content: "BS";
-      }
-      .unicode-del:before {
-        content: "DEL";
-      }
-
-      @media (prefers-color-scheme: dark) {
-        .unicode-bom:before,
-        .unicode-bel:before,
-        .unicode-bs:before,
-        .unicode-del:before {
-          background-color: #884444;
-        }
       }
     </style>
   </head>
@@ -97,37 +34,34 @@
   <body class="side-bar-nav">
     <header><%- await include("../common-nav.ejs.html") %></header>
 
+    <script>
+      // Redirect users who visited the old page which used fragments:
+      // https://quick-lint-js.com/errors/#E0003 -> https://quick-lint-js.com/errors/E0003/
+      (function () {
+        let match = window.location.hash.match(/^#(E[0-9]{4})$/);
+        if (match !== null) {
+          let errorCode = match[1];
+          window.location = errorCode + "/";
+        }
+      })();
+    </script>
+
     <main>
+      <h2>Error codes</h2>
+
       <p>
         quick-lint-js can find the following warnings and errors in your code:
       </p>
 
-      <% try { await reportProblemsInDocumentsAsync(documents); } catch (e) { if
-      (e instanceof ProblemsError) { %>
-      <div
-        style="background-color: #fdd; border: 1px solid #f00; padding: 0.5em"
-      >
-        <p>
-          quick-lint-js found inconsistencies in the error documentation. If
-          you're hacking on the website, rebuild quick-lint-js for the website
-          by following <code>wasm/README.md</code> and
-          <code>website/README.md</code>.
-        </p>
-        <p style="white-space: pre-line"><%= e %></p>
-      </div>
-      <% } else { throw e; } } %>
-
       <ul class="table-of-contents">
         <% for (let doc of documents) { %>
         <li>
-          <a href="#<%= doc.titleErrorCode %>"
+          <a href="<%= doc.titleErrorCode %>/"
             ><%= doc.titleErrorCode %>: <%= doc.titleErrorDescription %></a
           >
         </li>
         <% } %>
       </ul>
-
-      <% for (let doc of documents) { %> <%- doc.toHTML() %> <% } %>
     </main>
 
     <footer><%- await include("../common-footer-nav.ejs.html") %></footer>

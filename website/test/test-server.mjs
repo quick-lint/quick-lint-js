@@ -196,6 +196,91 @@ describe("server", () => {
     });
   }
 
+  describe("/generated/<subdir>/", () => {
+    it("serves index.ejs.html for /generated/, ignoring index.mjs", async () => {
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        "export let routes = { '/generated/subdir/': 'page.ejs.html' };"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.ejs.html"),
+        "hello <%= 2+2 %>"
+      );
+
+      let response = await request.get("/generated/");
+      expect(response.data).toBe("hello 4");
+      expect(response.headers["content-type"]).toBe("text/html");
+    });
+
+    it("doesn't serves index.mjs", async () => {
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        "export let routes = { '/generated/subdir/': 'page.ejs.html' };"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.ejs.html"),
+        "hello <%= 2+2 %>"
+      );
+
+      let response = await request.get("/generated/index.mjs");
+      expect(response.status).toBe(404);
+    });
+
+    it("loads .ejs.html route mentioned in /generated/index.mjs", async () => {
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        "export let routes = { '/generated/subdir/': 'page.ejs.html' };"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "page.ejs.html"),
+        "current URI is <%- currentURI %>"
+      );
+
+      let response = await request.get("/generated/subdir/");
+      expect(response.status).toBe(200);
+      expect(response.data).toBe("current URI is /generated/subdir/");
+      expect(response.headers["content-type"]).toBe("text/html");
+    });
+
+    it("fails if both /generated/subdir/index.ejs/html exists, and /generated/subdir/ is routed by /generated/index.js", async () => {
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.mkdirSync(path.join(wwwRootPath, "generated", "subdir"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "subdir", "index.ejs.html"),
+        "filesystem page should not load"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        "export let routes = { '/generated/subdir/': 'page.ejs.html' };"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "page.ejs.html"),
+        "routed page should not load"
+      );
+
+      let response = await request.get("/generated/subdir/");
+      expect(response.status).toBe(409);
+    });
+
+    it("fails if /generated/index.mjs does not mention route", async () => {
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        "export let routes = { '/generated/other/': 'page.ejs.html' };"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "page.ejs.html"),
+        "this page should not load"
+      );
+
+      let response = await request.get("/generated/subdir/");
+      expect(response.status).toBe(404);
+    });
+  });
+
   describe("regular files", () => {
     it("/test.png", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.png"), "hello PNG");
@@ -509,6 +594,35 @@ describe("server", () => {
       // Don't create index.html or index.ejs.html
 
       let response = await request.head("/");
+      expect(response.status).toBe(404);
+    });
+
+    it("does not run page.ejs.html routed by index.mjs", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "index.mjs"),
+        "export let routes = { '/generated-page/': 'page.ejs.html' };"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "page.ejs.html"),
+        "<%= syntax error goes here %>"
+      );
+
+      let response = await request.head("/generated-page/");
+      expect(response.status).toBe(200);
+      expect(response.headers["content-type"]).toBe("text/html");
+    });
+
+    it("returns 404 for URI not routed by index.mjs", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "index.mjs"),
+        "export let routes = { '/generated-page/': 'page.ejs.html' };"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "page.ejs.html"),
+        "this page should not be loaded"
+      );
+
+      let response = await request.head("/other-page/");
       expect(response.status).toBe(404);
     });
 

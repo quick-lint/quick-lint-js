@@ -5,6 +5,7 @@
 
 <script>
   //<%
+  let assert = await import("assert");
   let ejs = await import("ejs");
   let url = await import("url");
   let { html } = await import(url.pathToFileURL("../src/html-tag.mjs"));
@@ -139,6 +140,9 @@
       title: "Docs",
       subpages: [
         { uri: "/errors/", title: "Errors" },
+        { pattern: /^\/errors\/(E[0-9]+)\/$/, hidden: true, makeTitle(uri, match) {
+          return match[1];
+        } },
         { uri: "/cli/", title: "CLI" },
         { uri: "/config/", title: "Config" },
         {
@@ -177,14 +181,36 @@
   ];
 
   function pageLinkHTML(page) {
-    let titleHTML = ejs.escapeXML(page.title);
-    if (page.uri === currentURI) {
-      return html`<li><span class="current-page">${titleHTML}</span></li>`;
-    } else {
-      return html`<li>
-        <a href="${ejs.escapeXML(makeRelativeURI(page.uri))}">${titleHTML}</a>
-      </li>`;
+    if (typeof page.uri === "string") {
+      let titleHTML = ejs.escapeXML(page.title);
+      if (page.uri === currentURI) {
+        return html`<li><span class="current-page">${titleHTML}</span></li>`;
+      } else {
+        return html`<li>
+          <a href="${ejs.escapeXML(makeRelativeURI(page.uri))}">${titleHTML}</a>
+        </li>`;
+      }
     }
+    if (page.pattern instanceof RegExp) {
+      assert.match(currentURI, page.pattern, "Linkifying pattern subpages only supported for current URI");
+      let titleHTML = ejs.escapeXML(page.makeTitle(currentURI, currentURI.match(page.pattern)));
+      return html`<li><span class="current-page">${titleHTML}</span></li>`;
+    }
+    throw new Error("Malformed page or subpage: " + JSON.stringify(subpage));
+  }
+
+  function isOnPageOrSubpage(page) {
+    return page.uri === currentURI || page.subpages.some(subpage => isOnSubpage(subpage));
+  }
+
+  function isOnSubpage(subpage) {
+    if (typeof subpage.uri === "string") {
+        return subpage.uri === currentURI;
+    }
+    if (subpage.pattern instanceof RegExp) {
+      return currentURI.match(subpage.pattern);
+    }
+    throw new Error("Malformed subpage: " + JSON.stringify(subpage));
   }
   //%>
 </script>
@@ -215,13 +241,11 @@
       <a href="<%= makeRelativeURI('/') %>">Home</a>
     </li>
     <% } %> <% for (let page of navigationPages) { %> <% if (page.subpages) { %>
-    <%- pageLinkHTML(page).replace("<" + "/li>", "") %> <% if (page.uri ===
-    currentURI || page.subpages.some(subpage => subpage.uri === currentURI)) {
-    %>
+    <%- pageLinkHTML(page).replace("<" + "/li>", "") %> <% if
+    (isOnPageOrSubpage(page)) { %>
     <ul>
       <% for (let subpage of page.subpages) { %> <% if (!subpage.hidden ||
-      subpage.uri === currentURI) { %> <%- pageLinkHTML(subpage) %> <% } %> <% }
-      %>
+      isOnSubpage(subpage)) { %> <%- pageLinkHTML(subpage) %> <% } %> <% } %>
     </ul>
     <% } %> <%- "<" + "/li>" %> <% } else { %> <%- pageLinkHTML(page) %> <% } %>
     <% } %>

@@ -40,7 +40,7 @@ class test_text_error_reporter : public ::testing::Test {
   }
 
   string8 create_escape_error_code(const char8* code) {
-    return u8"\x1B]8;;https://quick-lint-js.com/errors/#"s + code + u8"\x1B\\" +
+    return u8"\x1B]8;;https://quick-lint-js.com/errors/"s + code + u8"/\x1B\\" +
            code + u8"\x1B]8;;\x1B\\";
   }
 

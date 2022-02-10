@@ -60,6 +60,45 @@ export function makeServer({
         return;
       }
 
+      case "routed": {
+        let routerScriptPath = path.join(
+          router.wwwRootPath,
+          classifiedDirectory.routerScript
+        );
+        let { routes } = await import(routerScriptPath);
+        if (!Object.prototype.hasOwnProperty.call(routes, request.path)) {
+          response.writeHeader(404);
+          response.end(`${request.path} is not routed by ${routerScriptPath}`);
+          break;
+        }
+        let headers = { "content-type": "text/html" };
+        if (request.method === "HEAD") {
+          // For HEAD requests, don't run the EJS because it might be slow.
+          response.writeHeader(200, headers);
+          response.end();
+          return;
+        }
+        let routeDestination = routes[request.path];
+        let out = null;
+        try {
+          out = await router.renderEJSFile(
+            path.join(
+              router.wwwRootPath,
+              classifiedDirectory.routerDirectory,
+              routeDestination
+            ),
+            { currentURI: request.path }
+          );
+        } catch (error) {
+          response.writeHeader(500, { "content-type": "text/plain" });
+          response.end(error.stack);
+          return;
+        }
+        response.writeHeader(200, headers);
+        response.end(out);
+        return;
+      }
+
       case "copy":
         let html = await fs.promises.readFile(
           path.join(router.wwwRootPath, classifiedDirectory.path)
@@ -83,6 +122,7 @@ export function makeServer({
   async function serveFileAsync(request, response) {
     let classification = await router.classifyFileRouteAsync(request.path);
     switch (classification.type) {
+      case "index-script": // Don't expose index.mjs to users.
       case "missing":
         response.writeHeader(404);
         response.end();
