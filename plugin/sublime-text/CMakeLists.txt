@@ -41,6 +41,7 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   )
 else ()
   # TODO(cahian): Add a message error here
+  message("Su")
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
