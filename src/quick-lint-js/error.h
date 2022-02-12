@@ -1189,6 +1189,13 @@
           return_keyword))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_statement_before_first_switch_case, "E0198",                       \
+      { source_code_span unexpected_statement; },                              \
+      ERROR(QLJS_TRANSLATABLE("unexpected statement before first switch "      \
+                              "case, expected 'case' or 'default'"),           \
+            unexpected_statement))                                             \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_stray_comma_in_let_statement, "E0036",                             \
       { source_code_span where; },                                             \
       ERROR(QLJS_TRANSLATABLE("stray comma in let statement"), where))         \

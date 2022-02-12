@@ -1112,6 +1112,26 @@ TEST(test_parse, with_statement) {
   }
 }
 
+TEST(test_parse, statement_before_first_switch_case) {
+  {
+    spy_visitor v;
+    padded_string code(
+        u8"switch (cond) { console.log('hi'); case ONE: break; }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",       // cond
+                            "visit_enter_block_scope",  //
+                            "visit_variable_use",       // console
+                            "visit_variable_use",       // ONE
+                            "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_statement_before_first_switch_case,
+                              unexpected_statement,
+                              strlen(u8"switch (cond) { "), u8"console")));
+  }
+}
+
 TEST(test_parse, with_statement_without_parens) {
   {
     spy_visitor v;
