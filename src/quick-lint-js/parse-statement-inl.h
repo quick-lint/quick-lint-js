@@ -1569,6 +1569,7 @@ void parser::parse_and_visit_switch(Visitor &v) {
   v.visit_enter_block_scope();
 
   bool keep_going = true;
+  bool is_before_first_switch_case = true;
   while (keep_going) {
     switch (this->peek().type) {
     case token_type::right_curly:
@@ -1577,6 +1578,7 @@ void parser::parse_and_visit_switch(Visitor &v) {
       break;
 
     case token_type::kw_case: {
+      is_before_first_switch_case = false;
       source_code_span case_token_span = this->peek().span();
       this->skip();
       if (this->peek().type == token_type::colon) {
@@ -1593,12 +1595,18 @@ void parser::parse_and_visit_switch(Visitor &v) {
     }
 
     case token_type::kw_default:
+      is_before_first_switch_case = false;
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
       this->skip();
       break;
 
     default: {
+      if (is_before_first_switch_case) {
+        this->error_reporter_->report(error_statement_before_first_switch_case{
+            .unexpected_statement = this->peek().span(),
+        });
+      }
       bool parsed_statement = this->parse_and_visit_statement(
           v, parse_statement_type::any_statement_in_block);
       if (!parsed_statement) {
