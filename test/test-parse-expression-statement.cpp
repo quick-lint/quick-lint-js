@@ -768,7 +768,7 @@ TEST(test_parse, expression_statement) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"async => rhs;"_sv);
+    spy_visitor v = parse_and_visit_statement(u8"(async => rhs)"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
                                       "visit_variable_declaration",  // async
                                       "visit_enter_function_scope_body",
@@ -1057,7 +1057,8 @@ TEST(test_parse, statement_beginning_with_async_or_let) {
     }
 
     {
-      spy_visitor v = parse_and_visit_statement(name + u8" => {body;};");
+      spy_visitor v =
+          parse_and_visit_statement(u8"(" + name + u8" => {body;})");
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_enter_function_scope",       //
                               "visit_variable_declaration",       // (name)

@@ -164,6 +164,12 @@ parse_statement:
     case token_type::slash: {
       expression *ast =
           this->parse_async_expression(v, async_token, precedence{});
+      // if (ast->kind() == expression_kind::arrow_function_with_expression ||
+      if (ast->kind() == expression_kind::arrow_function_with_expression ||
+          ast->kind() == expression_kind::arrow_function_with_statements) {
+        this->error_reporter_->report(
+            error_unused_arrow_expression{.where = async_token.span()});
+      }
       this->visit_expression(ast, v, variable_context::rhs);
       break;
     }
@@ -236,7 +242,14 @@ parse_statement:
         break;
       }
     }
-    this->parse_and_visit_expression(v);
+    source_code_span expression_start_span = this->peek().span();
+    expression *ast = this->parse_expression(v);
+    if (ast->kind() == expression_kind::arrow_function_with_expression ||
+        ast->kind() == expression_kind::arrow_function_with_statements) {
+      this->error_reporter_->report(
+          error_unused_arrow_expression{.where = expression_start_span});
+    }
+    this->visit_expression(ast, v, variable_context::rhs);
     parse_expression_end();
     break;
   }

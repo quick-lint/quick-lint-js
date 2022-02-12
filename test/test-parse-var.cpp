@@ -1242,7 +1242,7 @@ TEST(test_parse, use_await_in_non_async_function) {
   {
     spy_visitor v = parse_and_visit_statement(
         u8"(() => {\n"
-        u8"  async () => {};\n"
+        u8"  (async () => {});\n"
         u8"  await();\n"
         u8"})");
     EXPECT_THAT(v.variable_uses,

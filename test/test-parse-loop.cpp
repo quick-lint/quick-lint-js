@@ -1234,7 +1234,7 @@ TEST(test_parse, break_statement) {
 
   {
     spy_visitor v;
-    padded_string code(u8"for (;;) { () => { break; } }"_sv);
+    padded_string code(u8"for (;;) { (() => { break; }) }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1333,13 +1333,13 @@ TEST(test_parse, continue_statement) {
 
   {
     spy_visitor v;
-    padded_string code(u8"for (;;) { () => { continue; } }"_sv);
+    padded_string code(u8"for (;;) { (() => { continue; }) }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_invalid_continue,  //
                               continue_statement,
-                              strlen(u8"for (;;) { () => { "), u8"continue")));
+                              strlen(u8"for (;;) { (() => { "), u8"continue")));
   }
 
   {
