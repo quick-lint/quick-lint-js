@@ -66,7 +66,7 @@ async function renderEJSFileAsync({ currentURI, ejsFilePath }) {
       }
     }
   `;
-  prelude = prelude.replace("\n", " "); // Preserve line numbers in user code.
+  prelude = prelude.replace(/\n/g, " "); // Preserve line numbers in user code.
 
   let oldCWD = process.cwd();
   process.chdir(path.dirname(ejsFilePath));
