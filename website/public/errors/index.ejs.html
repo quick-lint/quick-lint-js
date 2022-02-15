@@ -7,16 +7,13 @@
     <script>
       //<%
       let url = await import("url");
-      let moduleCacheBust = "#" + Date.now();
 
       let {
         ProblemsError,
         documentationDirectoryPath,
         loadErrorDocumentationFilesAsync,
         reportProblemsInDocumentsAsync,
-      } = await import(
-        url.pathToFileURL("../../src/error-documentation.mjs") + moduleCacheBust
-      );
+      } = await importFileAsync("../../src/error-documentation.mjs");
 
       let documents = await loadErrorDocumentationFilesAsync(
         documentationDirectoryPath

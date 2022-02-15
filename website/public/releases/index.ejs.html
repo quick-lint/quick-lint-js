@@ -9,11 +9,8 @@
       let fs = await import("fs");
       let url = await import("url");
 
-      let moduleCacheBust = "#" + Date.now();
-
-      let { releasesMarkdownToHTML } = await import(
-        url.pathToFileURL("../../src/release-documentation.mjs") +
-          moduleCacheBust
+      let { releasesMarkdownToHTML } = await importFileAsync(
+        "../../src/release-documentation.mjs"
       );
       //%>
     </script>

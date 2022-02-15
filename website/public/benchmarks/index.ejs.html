@@ -8,11 +8,9 @@
       //<%
       let fs = await import("fs");
       let url = await import("url");
-      let moduleCacheBust = "#" + Date.now();
 
-      let { parseBenchmarkLSPJSON, makeBenchmarkHTML } = await import(
-        url.pathToFileURL("benchmark-lsp-json-to-html.mjs") + moduleCacheBust
-      );
+      let { parseBenchmarkLSPJSON, makeBenchmarkHTML } = await importFileAsync(
+        "benchmark-lsp-json-to-html.mjs");
       let seriesOptions = {
         "quick-lint-js": {hue: 0.0},
         "vscode-eslint-vue": {hue: 40.0, name: "ESLint + Vue plugin"},

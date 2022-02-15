@@ -6,6 +6,7 @@ import esbuild from "esbuild-wasm";
 import fs from "fs";
 import mime from "mime";
 import path from "path";
+import url from "url";
 import { getQuickLintJSVersionInfo } from "./qljs-version.mjs";
 
 export class Router {
@@ -163,6 +164,10 @@ export class Router {
         `<% ${prelude} %>${ejsHTML}`,
         {
           currentURI: currentURI,
+          importFileAsync: async (path) => {
+            let moduleCacheBust = "#" + Date.now();
+            return await import(url.pathToFileURL(path) + moduleCacheBust);
+          },
           makeRelativeURI: (uri) => {
             if (/^\w+:/.test(uri)) {
               return uri;
