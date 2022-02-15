@@ -82,6 +82,8 @@ async function mainAsync() {
         );
     }
   }
+
+  process.exit(0);
 }
 
 function parseArguments(args) {

@@ -1,13 +1,16 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import ejs from "ejs";
+import assert from "assert";
+import child_process from "child_process";
 import esbuild from "esbuild-wasm";
 import fs from "fs";
 import mime from "mime";
 import path from "path";
 import url from "url";
-import { getQuickLintJSVersionInfo } from "./qljs-version.mjs";
+
+let __filename = url.fileURLToPath(import.meta.url);
+let __dirname = path.dirname(__filename);
 
 export class Router {
   constructor({ esbuildBundles, htmlRedirects, wwwRootPath }) {
@@ -135,57 +138,11 @@ export class Router {
   }
 
   async renderEJSFile(ejsFilePath, { currentURI }) {
-    ejsFilePath = path.resolve(ejsFilePath);
-    let ejsHTML = await fs.promises.readFile(ejsFilePath, "utf-8");
-
-    function includer(_path, resolvedPath) {
-      // include() (defined by our prelude) will restore the current working directory for us.
-      process.chdir(path.dirname(resolvedPath));
-    }
-
-    let prelude = `
-      let __realInclude = include;
-      include = async function (...args) {
-        let oldCWD = process.cwd();
-        try {
-          // __realInclude will call includer which will call process.chdir.
-          return await __realInclude(...args);
-        } finally {
-          process.chdir(oldCWD);
-        }
-      }
-    `;
-    prelude = prelude.replace("\n", " "); // Preserve line numbers in user code.
-
-    let oldCWD = process.cwd();
-    process.chdir(path.dirname(ejsFilePath));
+    let childProcess = await renderEJSChildProcessPool.takeAsync();
     try {
-      return await ejs.render(
-        `<% ${prelude} %>${ejsHTML}`,
-        {
-          currentURI: currentURI,
-          importFileAsync: async (path) => {
-            let moduleCacheBust = "#" + Date.now();
-            return await import(url.pathToFileURL(path) + moduleCacheBust);
-          },
-          makeRelativeURI: (uri) => {
-            if (/^\w+:/.test(uri)) {
-              return uri;
-            }
-            let suffix = uri.endsWith("/") ? "/" : "";
-            return path.posix.relative(currentURI, uri) + suffix;
-          },
-          qljsVersionInfo: await getQuickLintJSVersionInfo(),
-        },
-        {
-          async: true,
-          compileDebug: true,
-          filename: ejsFilePath,
-          includer: includer,
-        }
-      );
+      return await childProcess.renderAsync({ currentURI, ejsFilePath });
     } finally {
-      process.chdir(oldCWD);
+      renderEJSChildProcessPool.recycle(childProcess);
     }
   }
 
@@ -200,6 +157,100 @@ export class Router {
     });
   }
 }
+
+class RenderEJSChildProcess {
+  constructor({ child }) {
+    this._child = child;
+
+    this._errorPromise = new Promise((resolve, reject) => {
+      child.on("message", (message, _sendHandle) => {
+        if (message.cmd === "error") {
+          reject(message.error);
+        }
+      });
+      child.on("close", (_code, _signal) => {
+        reject(new Error("worker exited without returning a response"));
+      });
+      child.on("exit", (_code, _signal) => {
+        reject(new Error("worker exited without returning a response"));
+      });
+      child.on("error", (error) => {
+        reject(error);
+      });
+      child.on("disconnect", () => {
+        reject(new Error("worker disconnected without returning a response"));
+      });
+    });
+
+    this._readyPromise = new Promise((resolve, reject) => {
+      child.on("message", (message, _sendHandle) => {
+        if (message.cmd === "ready") {
+          resolve();
+        }
+      });
+    });
+
+    this._resultPromise = new Promise((resolve, reject) => {
+      child.on("message", (message, _sendHandle) => {
+        if (message.cmd === "result") {
+          resolve(message.result);
+        }
+      });
+    });
+  }
+
+  async waitForReadyAsync() {
+    return await Promise.race([this._readyPromise, this._errorPromise]);
+  }
+
+  async renderAsync({ currentURI, ejsFilePath }) {
+    let sent = this._child.send({ currentURI, ejsFilePath });
+    assert.ok(sent);
+    return await Promise.race([this._resultPromise, this._errorPromise]);
+  }
+
+  static fork() {
+    let child = child_process.fork(
+      path.join(__dirname, "render-ejs-file-child-process.mjs"),
+      [],
+      {
+        serialization: "advanced",
+      }
+    );
+    return new RenderEJSChildProcess({ child: child });
+  }
+}
+
+class RenderEJSChildProcessPool {
+  constructor() {
+    let processCount = 6;
+
+    this._processes = [];
+    for (let i = 0; i < processCount; ++i) {
+      this._forkProcess();
+    }
+  }
+
+  async takeAsync() {
+    if (this._processes.length === 0) {
+      this._forkProcess();
+    }
+    let process = this._processes.shift();
+    await process.waitForReadyAsync();
+    return process;
+  }
+
+  recycle(_process) {
+    // We can't use the old process because its module cache has been poisoned.
+    this._forkProcess();
+  }
+
+  _forkProcess() {
+    this._processes.push(RenderEJSChildProcess.fork());
+  }
+}
+
+let renderEJSChildProcessPool = new RenderEJSChildProcessPool();
 
 export function makeHTMLRedirect(redirectFrom, redirectTo) {
   return `<!DOCTYPE html>
