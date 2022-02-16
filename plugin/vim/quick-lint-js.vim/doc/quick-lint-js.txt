@@ -51,6 +51,8 @@ this plugin to work:
 
 * ALE - Asynchronous Lint Engine: |quick-lint-js-configure-ale|
   https://github.com/dense-analysis/ale
+* coc.nvim: |quick-lint-js-configure-coc-nvim|
+  https://github.com/neoclide/coc.nvim
 * nvim-lspconfig: |quick-lint-js-configure-nvim-lspconfig|
   https://github.com/neovim/nvim-lspconfig
 
