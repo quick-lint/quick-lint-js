@@ -35,7 +35,15 @@ export function makeServer({
         response.end();
         return;
 
-      case "build-ejs":
+      case "build-ejs": {
+        let headers = { "content-type": "text/html" };
+        if (request.method === "HEAD") {
+          // For HEAD requests, don't run the EJS because it might be slow.
+          response.writeHeader(200, headers);
+          response.end();
+          return;
+        }
+
         let out = null;
         try {
           out = await router.renderEJSFile(
@@ -47,9 +55,10 @@ export function makeServer({
           response.end(error.stack);
           return;
         }
-        response.writeHeader(200, { "content-type": "text/html" });
+        response.writeHeader(200, headers);
         response.end(out);
         return;
+      }
 
       case "copy":
         let html = await fs.promises.readFile(
@@ -85,11 +94,17 @@ export function makeServer({
         return;
 
       case "static": {
+        let headers = { "content-type": classification.contentType };
+        if (request.method === "HEAD") {
+          // For HEAD requests, don't waste time reading the file.
+          response.writeHeader(200, headers);
+          response.end();
+          return;
+        }
+
         let filePath = path.join(router.wwwRootPath, request.path);
         let content = await fs.promises.readFile(filePath);
-        response.writeHeader(200, {
-          "content-type": classification.contentType,
-        });
+        response.writeHeader(200, headers);
         response.end(content);
         return;
       }

@@ -492,6 +492,44 @@ describe("server", () => {
       expect(response.data).toBe("hi-a hi-b");
     });
   });
+
+  describe("HEAD request", () => {
+    it("does not run index.ejs.html", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "index.ejs.html"),
+        "<%= syntax error goes here %>"
+      );
+
+      let response = await request.head("/");
+      expect(response.status).toBe(200);
+      expect(response.headers["content-type"]).toBe("text/html");
+    });
+
+    it("fails for missing index.html and index.ejs.html", async () => {
+      // Don't create index.html or index.ejs.html
+
+      let response = await request.head("/");
+      expect(response.status).toBe(404);
+    });
+
+    it("serves PNG file", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "file.png"),
+        "(PNG data goes here)"
+      );
+
+      let response = await request.head("/file.png");
+      expect(response.status).toBe(200);
+      expect(response.headers["content-type"]).toBe("image/png");
+    });
+
+    it("fails for missing PNG file", async () => {
+      // Don't create file.png.
+
+      let response = await request.head("/file.png");
+      expect(response.status).toBe(404);
+    });
+  });
 });
 
 // quick-lint-js finds bugs in JavaScript programs.
