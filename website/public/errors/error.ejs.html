@@ -18,7 +18,7 @@
       let errorDocument = await ErrorDocumentation.parseFileAsync(path.join(documentationDirectoryPath, `${errorCode}.md`));
       //%>
     </script>
-    <title>quick-lint-js: <%= errorCode %> documentation</title>
+    <title><%= errorCode %> documentation (quick-lint-js)</title>
     <meta
       name="description"
       content="Docs for quick-lint-js error code <%= errorCode %>"
