@@ -9,7 +9,7 @@ install(
   FILES lsp-quicklintjs.el
   FILES eglot-quicklintjs.el
   FILES flymake-quicklintjs.el
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/emacs/site-lisp"
+  DESTINATION "${QUICK_LINT_JS_INSTALL_EMACS_DIR}"
 )
 
 # quick-lint-js finds bugs in JavaScript programs.

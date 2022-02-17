@@ -17,7 +17,9 @@ class QuickLintJs < Formula
 
   def install
     mkdir "build" do
-      system "cmake", "..", *std_cmake_args, "-DQUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS=ON"
+      system "cmake", "..", *std_cmake_args,
+                      "-DQUICK_LINT_JS_INSTALL_EMACS_DIR=share/emacs/site-lisp/quick-lint-js",
+                      "-DQUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS=ON"
       system "cmake", "--build", "."
       system "cmake", "--install", "."
     end

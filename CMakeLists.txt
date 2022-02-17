@@ -23,6 +23,13 @@ else ()
 endif ()
 
 set(
+  QUICK_LINT_JS_INSTALL_EMACS_DIR
+  "${CMAKE_INSTALL_DATAROOTDIR}/emacs/site-elisp"
+  CACHE
+  STRING
+  "Install Emacs Lisp files into this directory relative to CMAKE_INSTALL_PREFIX"
+)
+set(
   QUICK_LINT_JS_INSTALL_LICENSES_DIR
   "${CMAKE_INSTALL_DOCDIR}"
   CACHE
