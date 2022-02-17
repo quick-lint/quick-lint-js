@@ -186,6 +186,19 @@ var Steps []Step = []Step{
 			WaitForDone()
 		},
 	},
+
+	Step{
+		Title: "Update Nixpkgs package manager",
+		Run: func() {
+			fmt.Printf("1. Clone https://github.com/NixOS/nixpkgs with Git.\n")
+			fmt.Printf("2. Update the version number and SHA1 hash in the pkgs/development/tools/quick-lint-js/default.nix file.\n")
+			fmt.Printf("3. Test installation by running `nix-env -i -f . -A quick-lint-js`.\n")
+			fmt.Printf("4. Commit all files with message \"quick-lint-js: OLDVERSION -> NEWVERSION\".\n")
+			fmt.Printf("5. Push to a fork on GitHub.\n")
+			fmt.Printf("6. Create a pull request on GitHub.\n")
+			WaitForDone()
+		},
+	},
 }
 
 var ConsoleInput *bufio.Reader
