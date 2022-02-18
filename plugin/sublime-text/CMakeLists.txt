@@ -1,10 +1,7 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-# The TARGET_RUNTIME_DLLS generator expression is only availible in at least 3.21.
-cmake_minimum_required(VERSION 3.21)
-# cmake_minimum_required(VERSION 3.10)
-
+cmake_minimum_required(VERSION 3.10)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(QuickLintJSCopyright)
 include(QuickLintJSSublimeTextPackage)

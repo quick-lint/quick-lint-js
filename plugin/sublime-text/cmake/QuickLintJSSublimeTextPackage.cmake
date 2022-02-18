@@ -61,11 +61,22 @@ function (quick_lint_js_sublime_text_get_package_files PACKAGE_FILES)
   set(
     PACKAGE_FILES
     $<TARGET_FILE:quick-lint-js-sublime-text>
-    $<TARGET_RUNTIME_DLLS:quick-lint-js-sublime-text>
     "${CMAKE_CURRENT_SOURCE_DIR}/.no-sublime-package"
     "${CMAKE_CURRENT_SOURCE_DIR}/extension.py"
     "${CMAKE_CURRENT_SOURCE_DIR}/interface.py"
   )
+  if (WIN32)
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.21")
+      list(
+        APPEND
+        SUBLIME_TEXT_PACKAGE_FILES
+        $<TARGET_RUNTIME_DLLS:quick-lint-js-sublime-text>
+      )
+    else ()
+      list(APPEND SUBLIME_TEXT_PACKAGE_FILES $<TARGET_FILE:boost>)
+      message(WARNING)
+    endif ()
+  endif ()
 endfunction ()
 
 function (quick_lint_js_sublime_text_get_package_destination PACKAGE_DESTINATION)
