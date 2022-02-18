@@ -12,6 +12,9 @@ Semantic Versioning.
 
 * `x && <Element/>` no longer falsely reports [E0026][] (missing operand for
   operator). (Thanks to [Piotr Dąbrowski][] for reporting.)
+* In top-level code, `await <x/>` is now parsed as the `await` operator followed
+  by a JSX element (rather than `await` less-than-compared to `x`, followed by
+  jibberish).
 
 ### Changed
 

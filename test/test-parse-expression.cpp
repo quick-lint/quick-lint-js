@@ -970,13 +970,23 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
 
 TEST_F(test_parse_expression,
        await_in_normal_function_vs_async_function_vs_top_level) {
+  static parser_options default_parser_options;
+
+  parser_options no_jsx;
+  no_jsx.jsx = false;
+
+  parser_options jsx;
+  jsx.jsx = true;
+
   struct test_case {
     string8_view code;
     const char* expected_normal_function;
     const char* expected_async_function;
+
+    parser_options& options = default_parser_options;
   };
 
-  for (test_case test : {
+  for (const test_case& test : {
          // clang-format off
          test_case
 
@@ -984,6 +994,7 @@ TEST_F(test_parse_expression,
          {u8"await/re/g"_sv,       "binary(var await, var re, var g)",           "await(literal)"},
          {u8"await+x"_sv,          "binary(var await, var x)",                   "await(unary(var x))"},
          {u8"await-x"_sv,          "binary(var await, var x)",                   "await(unary(var x))"},
+         {u8"await<x>y</x>/g"_sv,  "binary(var await, var x, var y, literal)",   "await(binary(jsxelement(x), var g))", jsx},
          {u8"await(x)"_sv,         "call(var await, var x)",                     "await(paren(var x))"},
          {u8"await[x]"_sv,         "index(var await, var x)",                    "await(array(var x))"},
          {u8"await++\nx"_sv,       "rwunarysuffix(var await)",                   "await(rwunary(var x))"},
@@ -1025,55 +1036,56 @@ TEST_F(test_parse_expression,
          {u8"await yield"_sv,          nullptr, "await(var yield)"},
 
          // 'await' must be an identifier:
-         {u8"[await]"_sv,             "array(var await)",              nullptr},
-         {u8"await => x"_sv,          "arrowexpr(var await)",          nullptr},
-         {u8"await = x"_sv,           "assign(var await, var x)",      nullptr},
-         {u8"await != x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await !== x"_sv,         "binary(var await, var x)",      nullptr},
-         {u8"await % x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await & x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await && x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await ** x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await / x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await < x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await << x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await <= x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await == x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await === x"_sv,         "binary(var await, var x)",      nullptr},
-         {u8"await > x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await >= x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await >> x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await >>> x"_sv,         "binary(var await, var x)",      nullptr},
-         {u8"await ?? x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await ^ x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await in xs"_sv,         "binary(var await, var xs)",     nullptr},
-         {u8"await instanceof X"_sv,  "binary(var await, var X)",      nullptr},
-         {u8"await | x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await || x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await, x"_sv,            "binary(var await, var x)",      nullptr},
-         {u8"await ? x : y"_sv,       "cond(var await, var x, var y)", nullptr},
-         {u8"x ? await : y"_sv,       "cond(var x, var await, var y)", nullptr},
-         {u8"await &&= x"_sv,         "condassign(var await, var x)",  nullptr},
-         {u8"await ?\x3f= x"_sv,      "condassign(var await, var x)",  nullptr},
-         {u8"await ||= x"_sv,         "condassign(var await, var x)",  nullptr},
-         {u8"await.prop"_sv,          "dot(var await, prop)",          nullptr},
-         {u8"await?.prop"_sv,         "dot(var await, prop)",          nullptr},
-         {u8"{key: await}"_sv,        "object(literal, var await)",    nullptr},
-         {u8"await %= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await &= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await **= x"_sv,         "upassign(var await, var x)",    nullptr},
-         {u8"await *= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await += x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await -= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await /= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await <<= x"_sv,         "upassign(var await, var x)",    nullptr},
-         {u8"await >>= x"_sv,         "upassign(var await, var x)",    nullptr},
-         {u8"await >>>= x"_sv,        "upassign(var await, var x)",    nullptr},
-         {u8"await ^= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await |= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await"_sv,               "var await",                     nullptr},
-         {u8"(await)"_sv,             "paren(var await)",              nullptr},
-         {u8"await;"_sv,              "var await",                     nullptr},
+         {u8"[await]"_sv,             "array(var await)",                         nullptr},
+         {u8"await => x"_sv,          "arrowexpr(var await)",                     nullptr},
+         {u8"await = x"_sv,           "assign(var await, var x)",                 nullptr},
+         {u8"await != x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await !== x"_sv,         "binary(var await, var x)",                 nullptr},
+         {u8"await % x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await & x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await && x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await ** x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await / x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await < x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await << x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await <= x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await == x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await === x"_sv,         "binary(var await, var x)",                 nullptr},
+         {u8"await > x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await >= x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await >> x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await >>> x"_sv,         "binary(var await, var x)",                 nullptr},
+         {u8"await ?? x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await ^ x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await in xs"_sv,         "binary(var await, var xs)",                nullptr},
+         {u8"await instanceof X"_sv,  "binary(var await, var X)",                 nullptr},
+         {u8"await | x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await || x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await, x"_sv,            "binary(var await, var x)",                 nullptr},
+         {u8"await<x>y</x>/g"_sv,     "binary(var await, var x, var y, literal)", nullptr, no_jsx},
+         {u8"await ? x : y"_sv,       "cond(var await, var x, var y)",            nullptr},
+         {u8"x ? await : y"_sv,       "cond(var x, var await, var y)",            nullptr},
+         {u8"await &&= x"_sv,         "condassign(var await, var x)",             nullptr},
+         {u8"await ?\x3f= x"_sv,      "condassign(var await, var x)",             nullptr},
+         {u8"await ||= x"_sv,         "condassign(var await, var x)",             nullptr},
+         {u8"await.prop"_sv,          "dot(var await, prop)",                     nullptr},
+         {u8"await?.prop"_sv,         "dot(var await, prop)",                     nullptr},
+         {u8"{key: await}"_sv,        "object(literal, var await)",               nullptr},
+         {u8"await %= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await &= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await **= x"_sv,         "upassign(var await, var x)",               nullptr},
+         {u8"await *= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await += x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await -= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await /= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await <<= x"_sv,         "upassign(var await, var x)",               nullptr},
+         {u8"await >>= x"_sv,         "upassign(var await, var x)",               nullptr},
+         {u8"await >>>= x"_sv,        "upassign(var await, var x)",               nullptr},
+         {u8"await ^= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await |= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await"_sv,               "var await",                                nullptr},
+         {u8"(await)"_sv,             "paren(var await)",                         nullptr},
+         {u8"await;"_sv,              "var await",                                nullptr},
 
          // TODO(strager): Fix these test cases:
 #if 0
@@ -1086,7 +1098,7 @@ TEST_F(test_parse_expression,
 
     {
       // Normal function:
-      test_parser p(test.code);
+      test_parser p(test.code, test.options);
       auto guard = p.parser().enter_function(function_attributes::normal);
       expression* ast = p.parse_expression();
 
@@ -1122,7 +1134,7 @@ TEST_F(test_parse_expression,
 
     if (test.expected_async_function) {
       // Async function:
-      test_parser p(test.code);
+      test_parser p(test.code, test.options);
       auto guard = p.parser().enter_function(function_attributes::async);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), test.expected_async_function);
@@ -1131,7 +1143,7 @@ TEST_F(test_parse_expression,
 
     {
       // Top level:
-      test_parser p(test.code);
+      test_parser p(test.code, test.options);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), test.expected_async_function
                                     ? test.expected_async_function

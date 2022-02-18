@@ -571,13 +571,13 @@ class parser {
   // first `await` is an operator.)
   //
   // The value of each entry indicates the conclusion:
-  // * true means 'await' looks like an identifier, thus '/' is the division
-  //   operator.
+  // * true means 'await' looks like an identifier, thus the following '/' or
+  //   '/=' or '<' is the division operator.
   // * false means 'await' looks like an operator, thus '/' begins a regular
-  //   expression literal.
+  //   expression literal or '<' begins a JSX element.
   std::unordered_map<parse_expression_cache_key, bool,
                      parse_expression_cache_key::hash>
-      await_slash_is_identifier_divide_cache_;
+      await_is_identifier_cache_;
 
 #if QLJS_HAVE_SETJMP
   bool have_fatal_parse_error_jmp_buf_ = false;

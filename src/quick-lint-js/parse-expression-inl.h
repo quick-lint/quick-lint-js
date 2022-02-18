@@ -885,14 +885,11 @@ expression* parser::parse_await_expression(Visitor& v, token await_token,
       case token_type::semicolon:
         return true;
 
-      // await <x>y</x>/g  // operator
-      // await < other    // identifier
+      // await <x>y</x>/g;  // operator
+      // await < other;     // identifier
+      // await /regexp/;    // operator
+      // await / rhs;       // identifier
       case token_type::less:
-        // TODO(strager): Resolve the ambiguity.
-        return true;
-
-      // await /regexp/;
-      // await / rhs;
       case token_type::slash:
       case token_type::slash_equal: {
         parse_expression_cache_key cache_key = {
@@ -904,19 +901,19 @@ expression* parser::parse_await_expression(Visitor& v, token await_token,
             .in_switch_statement = this->in_switch_statement_,
             .in_class = this->in_class_,
         };
-        auto cache_it =
-            this->await_slash_is_identifier_divide_cache_.find(cache_key);
-        if (cache_it != this->await_slash_is_identifier_divide_cache_.end()) {
+        auto cache_it = this->await_is_identifier_cache_.find(cache_key);
+        if (cache_it != this->await_is_identifier_cache_.end()) {
           return cache_it->second;
         }
 
         parser_transaction transaction = this->begin_transaction();
 
         if (this->in_top_level_) {
-          // Try to parse the / as a regular expression literal.
+          // Try to parse the / as a regular expression literal or the < as a
+          // JSX element.
           [[maybe_unused]] expression* ast = this->parse_expression(v, prec);
         } else {
-          // Try to parse the / as a binary division operator.
+          // Try to parse the / or < as a binary operator.
           [[maybe_unused]] expression* ast = this->parse_expression_remainder(
               v,
               this->make_expression<expression::variable>(
@@ -931,15 +928,13 @@ expression* parser::parse_await_expression(Visitor& v, token await_token,
 
         bool is_identifier_result;
         if (this->in_top_level_) {
-          bool parsed_slash_as_regexp = parsed_ok;
-          is_identifier_result = !parsed_slash_as_regexp;
+          is_identifier_result = !parsed_ok;
         } else {
-          bool parsed_slash_as_divide = parsed_ok;
-          is_identifier_result = parsed_slash_as_divide;
+          is_identifier_result = parsed_ok;
         }
         auto [_cache_it, inserted] =
-            this->await_slash_is_identifier_divide_cache_.try_emplace(
-                cache_key, is_identifier_result);
+            this->await_is_identifier_cache_.try_emplace(cache_key,
+                                                         is_identifier_result);
         QLJS_ASSERT(inserted);
         return is_identifier_result;
       }
