@@ -611,16 +611,15 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
         return function;
       }
     }
+    if (this->peek().type == token_type::less) {
+      // <MyComponent /> (JSX)
+      return this->parse_jsx_expression(v);
+    }
     expression* ast =
         this->make_expression<expression::_missing>(this->peek().span());
     if (prec.binary_operators) {
-      if (this->peek().type == token_type::less) {
-        // <MyComponent /> (JSX)
-        return this->parse_jsx_expression(v);
-      } else {
-        this->error_reporter_->report(
-            error_missing_operand_for_operator{this->peek().span()});
-      }
+      this->error_reporter_->report(
+          error_missing_operand_for_operator{this->peek().span()});
     }
     return ast;
   }

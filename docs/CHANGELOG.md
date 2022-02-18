@@ -6,6 +6,13 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Fixed
+
+* `x && <Element/>` no longer falsely reports [E0026][] (missing operand for
+  operator). (Thanks to [Piotr Dąbrowski][] for reporting.)
+
 ## 2.1.0 (2022-02-09)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.1.0/)
@@ -392,6 +399,7 @@ Beta release.
 [Lee Wannacott]: https://github.com/LeeWannacott
 [Matheus de Sousa]: https://github.com/keyehzy
 [Nico Sonack]: https://github.com/herrhotzenplotz
+[Piotr Dąbrowski]: https://github.com/yhnavein
 [Shivam Mehta]: https://github.com/maniac-en
 [coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
@@ -404,6 +412,7 @@ Beta release.
 [E0016]: https://quick-lint-js.com/errors/E0016/
 [E0019]: https://quick-lint-js.com/errors/E0019/
 [E0020]: https://quick-lint-js.com/errors/E0020/
+[E0026]: https://quick-lint-js.com/errors/E0026/
 [E0036]: https://quick-lint-js.com/errors/E0036/
 [E0038]: https://quick-lint-js.com/errors/E0038/
 [E0040]: https://quick-lint-js.com/errors/E0040/
