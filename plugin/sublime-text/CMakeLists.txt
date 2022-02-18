@@ -1,9 +1,10 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-# The TARGET_RUNTIME_DLLS generator expression
-# is only availible in at least 3.21 version.
+# The TARGET_RUNTIME_DLLS generator expression is only availible in at least
+# 3.21 version.
 cmake_minimum_required(VERSION 3.21)
+# cmake_minimum_required(VERSION 3.10)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(QuickLintJSCopyright)
@@ -14,8 +15,8 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   quick_lint_js_sublime_text_add_colored_compiler_output()
   quick_lint_js_sublime_text_set_compiler_options()
 
-  # You cannot link to a MODULE (only load dynamicaly),
-  # but you can link to a SHARED.
+  # You cannot link to a MODULE (only load dynamicaly), but you can link to a
+  # SHARED.
   quick_lint_js_add_library(
     quick-lint-js-sublime-text
     MODULE  
@@ -28,16 +29,16 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   target_include_directories(quick-lint-js-sublime-text PRIVATE .)
   target_link_libraries(quick-lint-js-sublime-text PRIVATE quick-lint-js-lib)
 
-  install(
-    SCRIPT "cmake/QuickLintJSSublimeTextInstall.cmake"
-    COMPONENT sublime-text
-    EXCLUDE_FROM_ALL
-  )
-
   quick_lint_js_collect_copyright(
     quick-lint-js-sublime-text-licenses
     TARGET quick-lint-js-sublime-text
     OUTPUT_FILE quick-lint-js-sublime-text-licenses.txt
+  )
+
+  install(
+    SCRIPT "cmake/QuickLintJSSublimeTextInstall.cmake"
+    COMPONENT sublime-text
+    EXCLUDE_FROM_ALL
   )
 else ()
   # TODO(cahian): Add a message error here
