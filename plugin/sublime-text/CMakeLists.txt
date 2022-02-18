@@ -24,14 +24,14 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
     quick-lint-js/sublime-text-interface.h
     quick-lint-js/sublime-text-location.h
   )
-  target_include_directories(quick-lint-js-sublime-text PRIVATE .)
-  target_link_libraries(quick-lint-js-sublime-text PRIVATE quick-lint-js-lib)
-
   quick_lint_js_collect_copyright(
     quick-lint-js-sublime-text-licenses
     TARGET quick-lint-js-sublime-text
     OUTPUT_FILE quick-lint-js-sublime-text-licenses.txt
   )
+
+  target_include_directories(quick-lint-js-sublime-text PRIVATE .)
+  target_link_libraries(quick-lint-js-sublime-text PRIVATE quick-lint-js-lib)
 
   install(
     SCRIPT "cmake/QuickLintJSSublimeTextInstall.cmake"
