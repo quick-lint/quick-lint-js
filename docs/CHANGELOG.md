@@ -13,6 +13,12 @@ Semantic Versioning.
 * `x && <Element/>` no longer falsely reports [E0026][] (missing operand for
   operator). (Thanks to [Piotr Dąbrowski][] for reporting.)
 
+### Changed
+
+* Homebrew: Emacs Lisp files are now installed in
+  `<brew>/share/emacs/site-lisp/quick-lint-js` (per `brew audit`'s
+  recommendation) instead of in `share/emacs/site-lisp`.
+
 ## 2.1.0 (2022-02-09)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.1.0/)
