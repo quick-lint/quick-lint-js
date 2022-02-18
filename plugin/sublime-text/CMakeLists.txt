@@ -9,6 +9,7 @@ include(QuickLintJSTarget)
 
 if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   quick_lint_js_sublime_text_add_colored_compiler_output()
+  quick_lint_js_sublime_text_set_compiler_definitions()
   quick_lint_js_sublime_text_set_compiler_options()
 
   # You cannot link to a MODULE (only load dynamicaly), but you can link to a SHARED.
@@ -17,7 +18,6 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
     MODULE  
     sublime-text-interface.cpp
     sublime-text-location.cpp
-    quick-lint-js/sublime-text-have.h
     quick-lint-js/sublime-text-interface.h
     quick-lint-js/sublime-text-location.h
   )
