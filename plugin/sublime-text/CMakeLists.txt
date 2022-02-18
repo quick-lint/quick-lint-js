@@ -1,8 +1,7 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-# The TARGET_RUNTIME_DLLS generator expression is only availible in at least
-# 3.21 version.
+# The TARGET_RUNTIME_DLLS generator expression is only availible in at least 3.21.
 cmake_minimum_required(VERSION 3.21)
 # cmake_minimum_required(VERSION 3.10)
 
@@ -15,8 +14,7 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
   quick_lint_js_sublime_text_add_colored_compiler_output()
   quick_lint_js_sublime_text_set_compiler_options()
 
-  # You cannot link to a MODULE (only load dynamicaly), but you can link to a
-  # SHARED.
+  # You cannot link to a MODULE (only load dynamicaly), but you can link to a SHARED.
   quick_lint_js_add_library(
     quick-lint-js-sublime-text
     MODULE  
@@ -41,8 +39,9 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
     EXCLUDE_FROM_ALL
   )
 elseif (DEFINED QUICK_LINT_JS_SUBLIME_TEXT_VERSION)
-  # TODO(cahian): Add a message error here
-  message("Sublime Text varsion not supported.")
+  # # TODO(cahian): Add a message error here
+  # TODO(cahian): Maybe enhance this error message
+  message("Sublime Text version not supported.")
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
