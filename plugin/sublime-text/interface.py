@@ -109,7 +109,7 @@ def library_filename():
     elif system() == "Linux":
         return "libquick-lint-js-lib.so"
     else:
-        raise OSError("Operating System not supported")
+        raise OSError("Operating System not supported.")
 
 
 def library_new():
@@ -117,7 +117,7 @@ def library_new():
         def wrapper():
             document = document_new()
             if is_null(document):
-                raise OSError("Document unavailable")
+                raise OSError("Document not available.")
             return document
 
         return wrapper
@@ -125,7 +125,7 @@ def library_new():
     def document_delete_decorator(document_delete):
         def wrapper(document):
             if is_null(document):
-                raise OSError("Cannot delete nonexistent document")
+                raise OSError("Cannot delete not existent document.")
             document_delete(document)
 
         return wrapper

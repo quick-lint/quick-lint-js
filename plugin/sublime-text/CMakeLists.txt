@@ -40,9 +40,9 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
     COMPONENT sublime-text
     EXCLUDE_FROM_ALL
   )
-else ()
+elseif (DEFINED QUICK_LINT_JS_SUBLIME_TEXT_VERSION)
   # TODO(cahian): Add a message error here
-  message("Su")
+  message("Sublime Text varsion not supported.")
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
