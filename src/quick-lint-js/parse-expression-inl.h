@@ -600,7 +600,6 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
   case token_type::dot:
   case token_type::equal:
   case token_type::kw_in:
-  case token_type::less:
   case token_type::question: {
     if (this->peek().type == token_type::star) {
       token star_token = this->peek();
@@ -612,10 +611,6 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
         return function;
       }
     }
-    if (this->peek().type == token_type::less) {
-      // <MyComponent /> (JSX)
-      return this->parse_jsx_expression(v);
-    }
     expression* ast =
         this->make_expression<expression::_missing>(this->peek().span());
     if (prec.binary_operators) {
@@ -624,6 +619,10 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
     }
     return ast;
   }
+
+  // <MyComponent /> (JSX)
+  case token_type::less:
+    return this->parse_jsx_expression(v);
 
   // => expr  // Invalid. Treat as arrow function.
   // => {}    // Invalid. Treat as arrow function.
