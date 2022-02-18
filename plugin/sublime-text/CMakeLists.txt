@@ -36,9 +36,7 @@ if (QUICK_LINT_JS_SUBLIME_TEXT_VERSION GREATER_EQUAL 3)
     EXCLUDE_FROM_ALL
   )
 elseif (DEFINED QUICK_LINT_JS_SUBLIME_TEXT_VERSION)
-  # # TODO(cahian): Add a message error here
-  # TODO(cahian): Maybe enhance this error message
-  message("Sublime Text version not supported.")
+  message(FATAL_ERROR "Sublime Text version not supported.")
 endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
