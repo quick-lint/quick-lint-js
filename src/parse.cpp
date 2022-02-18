@@ -455,6 +455,7 @@ bool parser::is_let_token_a_variable_reference(
   case token_type::equal_greater:
   case token_type::incomplete_template:
   case token_type::left_paren:
+  case token_type::less:
   case token_type::minus:
   case token_type::minus_minus:
   case token_type::plus:

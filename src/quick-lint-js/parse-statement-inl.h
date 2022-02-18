@@ -159,6 +159,7 @@ parse_statement:
     case token_type::kw_in:
     case token_type::kw_yield:
     case token_type::left_paren:
+    case token_type::less:
     case token_type::minus:
     case token_type::minus_minus:
     case token_type::plus:
@@ -213,6 +214,7 @@ parse_statement:
   case token_type::kw_void:
   case token_type::left_paren:
   case token_type::left_square:
+  case token_type::less:
   case token_type::minus:
   case token_type::minus_minus:
   case token_type::number:

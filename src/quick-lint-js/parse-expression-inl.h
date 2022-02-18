@@ -600,6 +600,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
   case token_type::dot:
   case token_type::equal:
   case token_type::kw_in:
+  case token_type::less:
   case token_type::question: {
     if (this->peek().type == token_type::star) {
       token star_token = this->peek();
@@ -885,6 +886,12 @@ expression* parser::parse_await_expression(Visitor& v, token await_token,
       case token_type::semicolon:
         return true;
 
+      // await <x>y</x>/g  // operator
+      // await < other    // identifier
+      case token_type::less:
+        // TODO(strager): Resolve the ambiguity.
+        return true;
+
       // await /regexp/;
       // await / rhs;
       case token_type::slash:
@@ -1063,6 +1070,7 @@ next:
 
   // x + y
   QLJS_CASE_BINARY_ONLY_OPERATOR:
+  case token_type::less:
   case token_type::minus:
   case token_type::plus:
   case token_type::slash: {
@@ -1248,11 +1256,12 @@ next:
     case token_type::end_of_file:
     case token_type::equal:
     case token_type::left_paren:
+    case token_type::less:
     case token_type::minus:
     case token_type::plus:
     case token_type::question:
-    case token_type::semicolon:
-    case token_type::right_paren: {
+    case token_type::right_paren:
+    case token_type::semicolon: {
       source_code_span empty_property_name(dot_span.end(), dot_span.end());
       binary_builder.replace_last(this->make_expression<expression::dot>(
           binary_builder.last_expression(), identifier(empty_property_name)));
@@ -2143,7 +2152,7 @@ expression* parser::parse_object_literal(Visitor& v) {
 
       // {x += y}  // Invalid.
       expression_without_key:
-      QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR:
+      QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_STAR:
       QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
       QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
       case token_type::dot:

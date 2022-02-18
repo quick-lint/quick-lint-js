@@ -85,29 +85,28 @@
   QLJS_CASE_CONTEXTUAL_KEYWORD: \
   QLJS_CASE_RESERVED_KEYWORD
 
-#define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR \
-  case ::quick_lint_js::token_type::ampersand:                     \
-  case ::quick_lint_js::token_type::ampersand_ampersand:           \
-  case ::quick_lint_js::token_type::bang_equal:                    \
-  case ::quick_lint_js::token_type::bang_equal_equal:              \
-  case ::quick_lint_js::token_type::circumflex:                    \
-  case ::quick_lint_js::token_type::equal_equal:                   \
-  case ::quick_lint_js::token_type::equal_equal_equal:             \
-  case ::quick_lint_js::token_type::greater:                       \
-  case ::quick_lint_js::token_type::greater_equal:                 \
-  case ::quick_lint_js::token_type::greater_greater:               \
-  case ::quick_lint_js::token_type::greater_greater_greater:       \
-  case ::quick_lint_js::token_type::less_equal:                    \
-  case ::quick_lint_js::token_type::less_less:                     \
-  case ::quick_lint_js::token_type::percent:                       \
-  case ::quick_lint_js::token_type::pipe:                          \
-  case ::quick_lint_js::token_type::pipe_pipe:                     \
-  case ::quick_lint_js::token_type::question_question:             \
+#define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_STAR    \
+  case ::quick_lint_js::token_type::ampersand:               \
+  case ::quick_lint_js::token_type::ampersand_ampersand:     \
+  case ::quick_lint_js::token_type::bang_equal:              \
+  case ::quick_lint_js::token_type::bang_equal_equal:        \
+  case ::quick_lint_js::token_type::circumflex:              \
+  case ::quick_lint_js::token_type::equal_equal:             \
+  case ::quick_lint_js::token_type::equal_equal_equal:       \
+  case ::quick_lint_js::token_type::greater:                 \
+  case ::quick_lint_js::token_type::greater_equal:           \
+  case ::quick_lint_js::token_type::greater_greater:         \
+  case ::quick_lint_js::token_type::greater_greater_greater: \
+  case ::quick_lint_js::token_type::less_equal:              \
+  case ::quick_lint_js::token_type::less_less:               \
+  case ::quick_lint_js::token_type::percent:                 \
+  case ::quick_lint_js::token_type::pipe:                    \
+  case ::quick_lint_js::token_type::pipe_pipe:               \
+  case ::quick_lint_js::token_type::question_question:       \
   case ::quick_lint_js::token_type::star_star
 
-#define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL                 \
-  QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_AND_STAR: \
-  case ::quick_lint_js::token_type::less:                     \
+#define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL        \
+  QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_STAR: \
   case ::quick_lint_js::token_type::star
 
 #define QLJS_CASE_BINARY_ONLY_OPERATOR   \
