@@ -1,0 +1,112 @@
+# Copyright (C) 2020  Matthew Glazar
+# See end of file for extended copyright information.
+
+name: build unvendored
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  arch-linux:
+    name: Arch Linux
+    runs-on: ubuntu-latest
+    container: archlinux:base
+    steps:
+      - name: install dependencies
+        run: |
+          pacman -Syyuu --noconfirm \
+            base-devel \
+            benchmark \
+            boost \
+            cmake \
+            git \
+            gtest \
+            sudo
+
+          # HACK(strager): Create a user so we can run makepkg. makepkg refuses
+          # to run as root.
+          useradd arch-builder
+          printf 'arch-builder ALL=(ALL) NOPASSWD: ALL\n' >/etc/sudoers.d/arch-builder
+
+          sudo -u arch-builder sh -e -c '
+            git clone https://aur.archlinux.org/simdjson.git /tmp/aur-simdjson
+            cd /tmp/aur-simdjson
+            makepkg --syncdeps --install --noconfirm
+          '
+
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: configure
+        run: |
+          # HACK(strager): QUICK_LINT_JS_HAVE_WORKING_CHAR8_T is needed because
+          # Arch's gmock doesn't link with -fchar8_t.
+          cmake \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTING=YES \
+            -DQUICK_LINT_JS_ENABLE_BENCHMARKS=YES \
+            -DQUICK_LINT_JS_HAVE_WORKING_FCHAR8_T=NO \
+            -DQUICK_LINT_JS_USE_BUNDLED_BOOST=NO \
+            -DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK=NO \
+            -DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST=NO \
+            -DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=NO \
+            -S . -B .
+        shell: bash
+      - name: build
+        run: cmake --build . --config Debug
+      - name: test
+        run: ctest --build-config Debug --verbose
+
+  ubuntu:
+    name: Ubuntu 20.04
+    runs-on: ubuntu-20.04
+    steps:
+      - name: install dependencies
+        run: |
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y \
+            libgmock-dev \
+            libgtest-dev
+
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: configure
+        run: |
+          # TODO(strager): Use host Google Benchmark after this bug is fixed:
+          # https://bugs.launchpad.net/ubuntu/+source/benchmark/+bug/1887872
+          # TODO(strager): Use host Boost after Ubuntu upgrades to version 1.75
+          # or newer:
+          # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=978748#15
+          # TODO(strager): Use host simdjson after Ubuntu imports a stable
+          # version from Debian.
+          cmake \
+            -DCMAKE_EXE_LINKER_FLAGS=-ffat-lto-objects \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTING=YES \
+            -DQUICK_LINT_JS_ENABLE_BENCHMARKS=YES \
+            -DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST=NO \
+            -S . -B .
+        shell: bash
+      - name: build
+        run: cmake --build . --config Debug
+      - name: test
+        run: ctest --build-config Debug --verbose
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

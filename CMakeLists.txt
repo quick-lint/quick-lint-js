@@ -56,6 +56,27 @@ option(
   OFF
 )
 
+option(
+  QUICK_LINT_JS_USE_BUNDLED_BOOST
+  "Use the third-party Boost library bundled with quick-lint-js instead of using the host-installed Boost"
+  ON
+)
+option(
+  QUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK
+  "Use the third-party Google Benchmark library bundled with quick-lint-js instead of using the host-installed Google Benchmark"
+  ON
+)
+option(
+  QUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST
+  "Use the third-party Google Test library bundled with quick-lint-js instead of using the host-installed Google Test"
+  ON
+)
+option(
+  QUICK_LINT_JS_USE_BUNDLED_SIMDJSON
+  "Use the third-party simdjson library bundled with quick-lint-js instead of using the host-installed simdjson"
+  ON
+)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(QuickLintJSCompiler)
