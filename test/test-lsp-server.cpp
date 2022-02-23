@@ -1907,8 +1907,8 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first) {
   EXPECT_EQ(look_up(show_message_message, "method"), "window/showMessage");
   EXPECT_EQ(look_up(show_message_message, "params", "type"),
             lsp_warning_message_type);
-  ::boost::json::string message =
-      look_up(show_message_message, "params", "message").as_string();
+  std::string message(
+      look_up(show_message_message, "params", "message").as_string());
   EXPECT_THAT(message, ::testing::HasSubstr("/banana"));
   EXPECT_THAT(message, ::testing::Not(::testing::HasSubstr("orange")));
 }
@@ -1932,8 +1932,8 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first_ever) {
 
   ASSERT_EQ(this->client->messages.size(), 1);
   ::boost::json::value show_message_message = this->client->messages[0];
-  ::boost::json::string message =
-      look_up(show_message_message, "params", "message").as_string();
+  std::string message(
+      look_up(show_message_message, "params", "message").as_string());
   EXPECT_THAT(message, ::testing::HasSubstr("/banana"));
   EXPECT_THAT(message, ::testing::Not(::testing::HasSubstr("orange")));
 }
