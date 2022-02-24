@@ -10,6 +10,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <memory>
+#include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/change-detecting-filesystem.h>
 #include <quick-lint-js/char8.h>
@@ -964,7 +965,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
     EXPECT_EQ(look_up(notification, "method"),
               "textDocument/publishDiagnostics");
     std::string uri(
-        std::string_view(look_up(notification, "params", "uri").get_string()));
+        to_string_view(look_up(notification, "params", "uri").get_string()));
     if (uri ==
         to_string(this->fs.file_uri_prefix_8() + u8"quick-lint-js.config")) {
       // Ignore.
@@ -1084,7 +1085,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
     EXPECT_EQ(look_up(notification, "method"),
               "textDocument/publishDiagnostics");
     std::string uri(
-        std::string_view(look_up(notification, "params", "uri").get_string()));
+        to_string_view(look_up(notification, "params", "uri").get_string()));
     if (uri == to_string(this->fs.file_uri_prefix_8() +
                          u8"dir-a/quick-lint-js.config") ||
         uri == to_string(this->fs.file_uri_prefix_8() +
@@ -1464,7 +1465,7 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
   EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
             lsp_warning_message_type);
   EXPECT_EQ(look_up(showMessageMessage, "params", "message"),
-            std::string_view(this->config_file_load_error_message(
+            to_boost_string_view(this->config_file_load_error_message(
                 "test.js", "quick-lint-js.config")));
 }
 
@@ -1522,11 +1523,11 @@ TEST_F(test_linting_lsp_server,
   EXPECT_EQ(look_up(showMessageMessage, "method"), "window/showMessage");
   EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
             lsp_warning_message_type);
-  EXPECT_EQ(
-      look_up(showMessageMessage, "params", "message"),
-      std::string_view("Problems found in the config file for "s +
-                       this->fs.rooted("test.js").c_str() + " (" +
-                       this->fs.rooted("quick-lint-js.config").c_str() + ")."));
+  EXPECT_EQ(look_up(showMessageMessage, "params", "message"),
+            to_boost_string_view(
+                "Problems found in the config file for "s +
+                this->fs.rooted("test.js").c_str() + " (" +
+                this->fs.rooted("quick-lint-js.config").c_str() + ")."));
 }
 
 TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
@@ -1595,7 +1596,7 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
   EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
             lsp_warning_message_type);
   EXPECT_EQ(look_up(showMessageMessage, "params", "message"),
-            std::string_view(this->config_file_load_error_message(
+            to_boost_string_view(this->config_file_load_error_message(
                 "test.js", "quick-lint-js.config")));
 }
 
@@ -1620,9 +1621,9 @@ TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
   EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
   EXPECT_FALSE(response.contains("error"));
   // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(
-      look_up(response, "params", "uri"),
-      to_string_view(this->fs.file_uri_prefix_8() + u8"quick-lint-js.config"));
+  EXPECT_EQ(look_up(response, "params", "uri"),
+            to_boost_string_view(this->fs.file_uri_prefix_8() +
+                                 u8"quick-lint-js.config"));
   EXPECT_EQ(look_up(response, "params", "version"), 1);
   ::boost::json::array diagnostics =
       look_up(response, "params", "diagnostics").as_array();
@@ -1678,9 +1679,9 @@ TEST_F(test_linting_lsp_server,
   EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
   EXPECT_FALSE(response.contains("error"));
   // LSP PublishDiagnosticsParams:
-  EXPECT_EQ(
-      look_up(response, "params", "uri"),
-      to_string_view(this->fs.file_uri_prefix_8() + u8"quick-lint-js.config"));
+  EXPECT_EQ(look_up(response, "params", "uri"),
+            to_boost_string_view(this->fs.file_uri_prefix_8() +
+                                 u8"quick-lint-js.config"));
   EXPECT_EQ(look_up(response, "params", "version"), 2);
   ::boost::json::array diagnostics =
       look_up(response, "params", "diagnostics").as_array();
@@ -1907,8 +1908,8 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first) {
   EXPECT_EQ(look_up(show_message_message, "method"), "window/showMessage");
   EXPECT_EQ(look_up(show_message_message, "params", "type"),
             lsp_warning_message_type);
-  std::string message(
-      look_up(show_message_message, "params", "message").as_string());
+  std::string message(to_string_view(
+      look_up(show_message_message, "params", "message").as_string()));
   EXPECT_THAT(message, ::testing::HasSubstr("/banana"));
   EXPECT_THAT(message, ::testing::Not(::testing::HasSubstr("orange")));
 }
@@ -1932,8 +1933,8 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first_ever) {
 
   ASSERT_EQ(this->client->messages.size(), 1);
   ::boost::json::value show_message_message = this->client->messages[0];
-  std::string message(
-      look_up(show_message_message, "params", "message").as_string());
+  std::string message(to_string_view(
+      look_up(show_message_message, "params", "message").as_string()));
   EXPECT_THAT(message, ::testing::HasSubstr("/banana"));
   EXPECT_THAT(message, ::testing::Not(::testing::HasSubstr("orange")));
 }
@@ -1943,7 +1944,8 @@ void expect_error(::boost::json::value& response, int error_code,
   EXPECT_FALSE(response.as_object().contains("method"));
   EXPECT_EQ(look_up(response, "jsonrpc"), "2.0");
   EXPECT_EQ(look_up(response, "error", "code"), error_code);
-  EXPECT_EQ(look_up(response, "error", "message"), error_message);
+  EXPECT_EQ(look_up(response, "error", "message"),
+            to_boost_string_view(error_message));
 }
 
 TEST_F(test_linting_lsp_server, invalid_json_in_request) {

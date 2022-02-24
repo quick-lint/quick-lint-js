@@ -6,10 +6,21 @@
 
 #include <boost/json/value.hpp>
 #include <cstddef>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <type_traits>
 
 namespace quick_lint_js {
+::boost::json::string_view to_boost_string_view(string8_view sv);
+#if QLJS_HAVE_CHAR8_T
+::boost::json::string_view to_boost_string_view(std::string_view sv);
+#endif
+
+#if !defined(BOOST_JSON_STANDALONE)
+std::string_view to_string_view(::boost::json::string_view sv);
+#endif
+std::string_view to_string_view(const ::boost::json::string &s);
+
 template <class... Keys>
 struct look_up_impl;
 

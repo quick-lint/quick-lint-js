@@ -4,6 +4,7 @@
 #include <boost/json/parse.hpp>
 #include <boost/json/value.hpp>
 #include <gtest/gtest.h>
+#include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -72,11 +73,11 @@ TEST(test_json, ascii_characters_are_parsable_by_boost_json) {
     json.flush();
     SCOPED_TRACE(out_string8(json.get_flushed_string8()));
 
-    std::error_code error;
-    ::boost::json::value parsed =
-        ::boost::json::parse(to_string_view(json.get_flushed_string8()), error);
+    ::boost::json::error_code error;
+    ::boost::json::value parsed = ::boost::json::parse(
+        to_boost_string_view(json.get_flushed_string8()), error);
     EXPECT_FALSE(error);
-    EXPECT_EQ(parsed, to_string_view(string));
+    EXPECT_EQ(parsed, to_boost_string_view(string));
   }
 }
 }

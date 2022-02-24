@@ -282,6 +282,11 @@ target_link_libraries(
   boost_json
   quick-lint-js-lib
 )
+target_compile_definitions(
+  quick-lint-js-boost-json
+  PRIVATE
+  QLJS_BUILDING_QLJS_BOOST_JSON
+)
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
