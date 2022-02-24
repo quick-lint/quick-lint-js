@@ -5,16 +5,16 @@ include(CheckCXXCompilerFlag)
 
 add_library(
   boost
-  boost/libs/container/src/alloc_lib.c
-  boost/libs/container/src/dlmalloc.cpp
-  boost/libs/container/src/global_resource.cpp
-  boost/libs/container/src/monotonic_buffer_resource.cpp
-  boost/libs/container/src/pool_resource.cpp
-  boost/libs/container/src/synchronized_pool_resource.cpp
-  boost/libs/container/src/unsynchronized_pool_resource.cpp
+  "${CMAKE_CURRENT_LIST_DIR}/boost/libs/container/src/alloc_lib.c"
+  "${CMAKE_CURRENT_LIST_DIR}/boost/libs/container/src/dlmalloc.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/boost/libs/container/src/global_resource.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/boost/libs/container/src/monotonic_buffer_resource.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/boost/libs/container/src/pool_resource.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/boost/libs/container/src/synchronized_pool_resource.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/boost/libs/container/src/unsynchronized_pool_resource.cpp"
 )
 # NOTE(strager): SYSTEM disable undesirable warnings in Boost header files.
-target_include_directories(boost SYSTEM PUBLIC boost)
+target_include_directories(boost SYSTEM PUBLIC "${CMAKE_CURRENT_LIST_DIR}/boost")
 target_compile_definitions(
   boost
   PUBLIC
@@ -59,7 +59,7 @@ endif ()
 
 # Keep boost_json as a separate library so we can use it only in tests (and not
 # compile and link it into production executables).
-add_library(boost_json STATIC boost-json.cpp)
+add_library(boost_json STATIC "${CMAKE_CURRENT_LIST_DIR}/boost-json.cpp")
 target_link_libraries(boost_json PUBLIC boost)
 
 # quick-lint-js finds bugs in JavaScript programs.

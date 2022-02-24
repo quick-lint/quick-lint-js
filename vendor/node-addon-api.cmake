@@ -3,7 +3,12 @@
 
 add_library(node-addon-api INTERFACE)
 target_compile_definitions(node-addon-api INTERFACE NAPI_DISABLE_CPP_EXCEPTIONS)
-target_include_directories(node-addon-api SYSTEM INTERFACE node-addon-api)
+target_include_directories(
+  node-addon-api
+  SYSTEM
+  INTERFACE
+  "${CMAKE_CURRENT_LIST_DIR}/node-addon-api"
+)
 target_link_libraries(node-addon-api INTERFACE node-napi)
 
 # quick-lint-js finds bugs in JavaScript programs.

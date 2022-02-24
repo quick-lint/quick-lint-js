@@ -8,7 +8,7 @@ set(gtest_build_samples FALSE CACHE INTERNAL "")
 set(gtest_build_tests FALSE CACHE INTERNAL "")
 set(gtest_force_shared_crt TRUE CACHE INTERNAL "")
 
-add_subdirectory(googletest)
+add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/googletest")
 
 # HACK(strager): googletest forces C++11. This causes problems with their
 # std::string_view feature detection. Force C++17.

@@ -73,7 +73,14 @@ find_package(PythonInterp 3.7)
 
 find_package(PythonInterp 3)  # Force Python 3 (instead of Python 2).
 
-add_subdirectory(vendor)
+if (QUICK_LINT_JS_ENABLE_BENCHMARKS)
+  include(vendor/benchmark.cmake)
+endif ()
+include(vendor/boost.cmake)
+include(vendor/googletest.cmake)
+include(vendor/node-addon-api.cmake)
+include(vendor/node.cmake)
+include(vendor/simdjson.cmake)
 
 if (QUICK_LINT_JS_ENABLE_BENCHMARKS)
   add_subdirectory(benchmark)

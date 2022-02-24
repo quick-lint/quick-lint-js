@@ -4,7 +4,7 @@
 set(SIMDJSON_DEVELOPER_MODE OFF CACHE INTERNAL "")
 set(BUILD_SHARED_LIBS OFF)
 
-add_subdirectory(simdjson EXCLUDE_FROM_ALL)
+add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/simdjson" EXCLUDE_FROM_ALL)
 
 target_compile_definitions(simdjson PUBLIC SIMDJSON_EXCEPTIONS=0)
 

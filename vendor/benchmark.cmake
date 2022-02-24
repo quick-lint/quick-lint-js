@@ -18,7 +18,7 @@ else ()
   set(BENCHMARK_ENABLE_EXCEPTIONS FALSE CACHE INTERNAL "")
 endif ()
 
-add_subdirectory(benchmark)
+add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/benchmark")
 
 # HACK(strager): Avoid 'function can be marked override' warnings
 # (-Wsuggest-override) when including <benchmark/benchmark.h>.
