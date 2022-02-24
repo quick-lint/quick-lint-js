@@ -129,6 +129,39 @@ TEST(test_parse, class_statement_requires_a_body) {
   }
 }
 
+TEST(test_parse, unclosed_class_statement) {
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { "_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     //
+                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_unclosed_class_block,  //
+                              block_open, strlen(u8"class C "), u8"{")));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { method() {} "_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // C
+                            "visit_enter_class_scope",          // C
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_enter_function_scope_body",  // method
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope"));         // C
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_unclosed_class_block,  //
+                              block_open, strlen(u8"class C "), u8"{")));
+  }
+}
+
 TEST(test_parse, class_statement_with_odd_heritage) {
   {
     // TODO(strager): Should this report errors?

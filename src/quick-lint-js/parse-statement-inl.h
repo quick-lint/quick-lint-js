@@ -1198,10 +1198,17 @@ template <QLJS_PARSE_VISITOR Visitor>
 void parser::parse_and_visit_class_body(Visitor &v) {
   class_guard g(this, std::exchange(this->in_class_, true));
 
+  source_code_span left_curly_span = this->peek().span();
   this->skip();
 
   while (this->peek().type != token_type::right_curly) {
     this->parse_and_visit_class_member(v);
+    if (this->peek().type == token_type::end_of_file) {
+      this->error_reporter_->report(error_unclosed_class_block{
+          .block_open = left_curly_span,
+      });
+      return;
+    }
   }
 
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
@@ -1519,6 +1526,11 @@ next:
         .unexpected_comma = this->peek().span(),
     });
     this->skip();
+    break;
+
+  // class C {  // Invalid.
+  case token_type::end_of_file:
+    // An error is reported by parse_and_visit_class_body.
     break;
 
   default:

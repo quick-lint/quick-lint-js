@@ -1224,6 +1224,11 @@
       ERROR(QLJS_TRANSLATABLE("unclosed block comment"), comment_open))        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_unclosed_class_block, "E0199", { source_code_span block_open; },   \
+      ERROR(QLJS_TRANSLATABLE("unclosed class; expected '}' by end of file"),  \
+            block_open))                                                       \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_unclosed_code_block, "E0134", { source_code_span block_open; },    \
       ERROR(QLJS_TRANSLATABLE(                                                 \
                 "unclosed code block; expected '}' by end of file"),           \

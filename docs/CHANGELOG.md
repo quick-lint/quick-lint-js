@@ -6,6 +6,13 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Added
+
+* An incomplete `class` now reports [E0199][] instead of failing with the
+  catch-all [E0054][]. (Thanks to [Dave Churchill][] for reporting.)
+
 ## 2.2.0 (2022-02-17)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.2.0/)
@@ -401,6 +408,7 @@ Beta release.
 [Amir]: https://github.com/ahmafi
 [Christian Mund]: https://github.com/kkkrist
 [Daniel La Rocque]: https://github.com/dlarocque
+[Dave Churchill]: https://www.cs.mun.ca/~dchurchill/
 [David Vasileff]: https://github.com/dav000
 [Erlliam Mejia]: https://github.com/erlliam
 [Himanshu]: https://github.com/singalhimanshu
@@ -463,6 +471,7 @@ Beta release.
 [E0195]: https://quick-lint-js.com/errors/E0195/
 [E0196]: https://quick-lint-js.com/errors/E0196/
 [E0197]: https://quick-lint-js.com/errors/E0197/
+[E0199]: https://quick-lint-js.com/errors/E0199/
 [E0203]: https://quick-lint-js.com/errors/E0203/
 [E0205]: https://quick-lint-js.com/errors/E0205/
 [E0207]: https://quick-lint-js.com/errors/E0207/
