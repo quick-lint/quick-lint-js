@@ -1090,7 +1090,16 @@ def parse_text_link_map(raw_link_map: str) -> LinkMap:
             state = "MACHO_OBJECT_FILES"
         else:
             if state == "ELF_ARCHIVE_MEMBERS":
-                match = re.match(r"^(?P<file>\S[^()]*)\((?P<symbol>[^()]*)\)$", line)
+                match = re.compile(
+                    r"""
+                        ^
+                        (?P<file>\S[^()]*?)     # File
+                        (?:\([^()]*\))?         # Optional symbol after file
+                        (?:\s+\S+\s\([^()]*\))? # Optional reason (file-symbol pair)
+                        $
+                    """,
+                    re.VERBOSE,
+                ).match(line)
                 if match is not None:
                     linked_archives.add(match.group("file"))
             elif state == "MACHO_OBJECT_FILES":
@@ -1223,6 +1232,10 @@ Archive member included because of file (symbol)
 
 /usr/lib/x86_64-linux-gnu/libc_nonshared.a(elf-init.oS)
                               /usr/lib/gcc/x86_64-linux-gnu/9/../../../x86_64-linux-gnu/Scrt1.o (__libc_csu_init)
+libquick-lint-js-lib.a        libquick-lint-js-lib.a (_ZN13quick_lint_js16web_demo_locatorC1ENS_18padded_string_viewE)
+../libboost.a                 CMakeFiles/quick-lint-js.dir/main.cpp.o (_ZN5boost9container3pmr19new_delete_resourceEv)
+../libboost.a                 ../libboost.a (_ZN5boost9container25dlmalloc_global_sync_lockEv)
+../libboost.a                 ../libboost.a (boost_cont_multialloc_arrays)
 
 Discarded input sections
 
@@ -1232,7 +1245,12 @@ Discarded input sections
 """
         link_map = parse_text_link_map(raw_link_map)
         self.assertEqual(
-            link_map.linked_archives, {"/usr/lib/x86_64-linux-gnu/libc_nonshared.a"}
+            link_map.linked_archives,
+            {
+                "/usr/lib/x86_64-linux-gnu/libc_nonshared.a",
+                "libquick-lint-js-lib.a",
+                "../libboost.a",
+            },
         )
 
 
