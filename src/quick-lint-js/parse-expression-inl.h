@@ -2482,22 +2482,15 @@ expression* parser::parse_class_expression(Visitor& v) {
   this->parse_and_visit_class_heading(
       v, /*require_name=*/name_requirement::optional);
 
-  const char8* span_end;
   if (this->peek().type == token_type::left_curly) {
-    this->skip();
-
     this->parse_and_visit_class_body(v);
-
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
-    span_end = this->peek().end;
-    this->skip();
   } else {
-    span_end = this->lexer_.end_of_previous_token();
     this->error_reporter_->report(error_missing_body_for_class{
         .class_keyword_and_name_and_heritage =
-            source_code_span(span_begin, span_end),
+            source_code_span(span_begin, this->lexer_.end_of_previous_token()),
     });
   }
+  const char8* span_end = this->lexer_.end_of_previous_token();
 
   v.visit_exit_class_scope();
   return this->make_expression<expression::_class>(

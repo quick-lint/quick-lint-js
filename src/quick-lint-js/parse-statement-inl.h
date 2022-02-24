@@ -1101,14 +1101,9 @@ void parser::parse_and_visit_class(Visitor &v,
 
   switch (this->peek().type) {
   case token_type::left_curly:
-    this->skip();
-
     v.visit_enter_class_scope();
     this->parse_and_visit_class_body(v);
     v.visit_exit_class_scope();
-
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
-    this->skip();
     break;
 
   default: {
@@ -1202,9 +1197,15 @@ void parser::parse_and_visit_class_heading(
 template <QLJS_PARSE_VISITOR Visitor>
 void parser::parse_and_visit_class_body(Visitor &v) {
   class_guard g(this, std::exchange(this->in_class_, true));
+
+  this->skip();
+
   while (this->peek().type != token_type::right_curly) {
     this->parse_and_visit_class_member(v);
   }
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+  this->skip();
 }
 
 template <QLJS_PARSE_VISITOR Visitor>
