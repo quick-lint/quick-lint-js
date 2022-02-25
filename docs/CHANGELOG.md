@@ -12,6 +12,8 @@ Semantic Versioning.
 
 * An incomplete `class` now reports [E0199][] instead of failing with the
   catch-all [E0054][]. (Thanks to [Dave Churchill][] for reporting.)
+* Statements before the first `case` in a `switch` now report [E0198][]
+  (implemented by [Himanshu][]).
 
 ## 2.2.0 (2022-02-17)
 
@@ -471,6 +473,7 @@ Beta release.
 [E0195]: https://quick-lint-js.com/errors/E0195/
 [E0196]: https://quick-lint-js.com/errors/E0196/
 [E0197]: https://quick-lint-js.com/errors/E0197/
+[E0198]: https://quick-lint-js.com/errors/E0198/
 [E0199]: https://quick-lint-js.com/errors/E0199/
 [E0203]: https://quick-lint-js.com/errors/E0203/
 [E0205]: https://quick-lint-js.com/errors/E0205/
