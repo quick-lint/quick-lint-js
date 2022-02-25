@@ -14,6 +14,13 @@ Semantic Versioning.
   catch-all [E0054][]. (Thanks to [Dave Churchill][] for reporting.)
 * Statements before the first `case` in a `switch` now report [E0198][]
   (implemented by [Himanshu][]).
+* When building from source, you can tell quick-lint-js to use your copy of
+  third-party dependencies instead of quick-lint-js' bundled
+  dependencies:
+  * `-DQUICK_LINT_JS_USE_BUNDLED_BOOST=OFF`: Use your own copy of Boost.
+  * `-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK=OFF`: Use your own copy of Google Benchmark (benchmarks only).
+  * `-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST=OFF`: Use your own copy of Google Test (tests only).
+  * `-DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=OFF`: Use your own copy of simdjson.
 
 ## 2.2.0 (2022-02-17)
 
