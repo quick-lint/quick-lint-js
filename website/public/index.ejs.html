@@ -125,7 +125,11 @@
 
       <h2>Install quick-lint-js</h2>
       <p>
-        Latest version: <%= qljsVersionInfo.version %> (released
+        Latest version:
+        <a href="releases/" title="Release history"
+          ><%= qljsVersionInfo.version %></a
+        >
+        (released
         <time datetime="<%= qljsVersionInfo.releaseDate %>"
           ><%= new Intl.DateTimeFormat("en-US", {dateStyle: "long", timeZone:
           "UTC"}).format(new Date(qljsVersionInfo.releaseDate)) %></time
@@ -200,7 +204,10 @@
           >
         </li>
       </ul>
-      <p><a href="install/">see all installation options</a></p>
+      <p>
+        <a href="install/">see all installation options</a> &centerdot;
+        <a href="releases/">release history</a>
+      </p>
 
       <h2 id="linter-feature-comparison">Features</h2>
       <figure class="comparison feature-comparison">
