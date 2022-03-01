@@ -45,7 +45,18 @@ class QuickLintJs < Formula
   end
 
   test do
-    system "quick-lint-js", "--version"
+    (testpath/"errors.js").write <<~EOF
+      const x = 3;
+      const x = 4;
+    EOF
+    ohai "#{bin}/quick-lint-js errors.js"
+    output = `#{bin}/quick-lint-js errors.js 2>&1`
+    puts output
+    refute_equal $CHILD_STATUS.exitstatus, 0
+    assert_match "E0034", output
+
+    (testpath/"no-errors.js").write 'console.log("hello, world!");'
+    assert_empty shell_output("#{bin}/quick-lint-js no-errors.js")
   end
 end
 
