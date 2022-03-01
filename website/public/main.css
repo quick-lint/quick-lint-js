@@ -18,6 +18,21 @@ figure {
   margin: 0;
   margin-bottom: 1rem;
 }
+img + figcaption,
+picture + figcaption,
+.side-by-side-comparison + figcaption,
+pre + figcaption {
+  font-style: italic;
+}
+figure > img {
+  width: 100%;
+  height: auto;
+}
+img + figcaption,
+picture + figcaption,
+.side-by-side-comparison + figcaption {
+  text-align: center;
+}
 
 header {
   margin-top: 1rem;
