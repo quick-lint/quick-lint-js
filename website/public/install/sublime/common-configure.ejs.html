@@ -1,0 +1,69 @@
+<%#
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+%>
+
+<h3>Configure Sublime Text</h3>
+<p>
+  After installing quick-lint-js, you need to register quick-lint-js in Sublime
+  Text's LSP package:
+</p>
+
+<ol>
+  <li>Open Sublime Text.</li>
+  <li>
+    Open the Command Palette (press <kbd>Control-Shift-P</kbd>) and type
+    "Preferences: LSP Settings".
+  </li>
+  <li>
+    In the <code>LSP.sublime-settings</code> file which opens, add the following
+    code. If <code class="json">"clients"</code> already exists, add
+    <code class="json">"quick-lint-js"</code> inside the existing
+    <code class="json">{ }</code>:
+    <blockquote>
+      <pre style="white-space: pre-wrap"><code class="json">{
+    "clients": {
+        "quick-lint-js": {
+            "command": ["quick-lint-js", "--lsp-server"],
+            "enabled": true,
+            "languageId": "javascript",
+            "syntaxes": ["Packages/JavaScript/JavaScript.sublime-syntax"]
+        }
+    }
+}
+</code></pre>
+    </blockquote>
+  </li>
+</ol>
+
+<figure>
+  <img
+    src="../lsp-config.png"
+    alt="Sublime Text with LSP.sublime-settings open, showing closure-lsp and quick-lint-js settings"
+    width="1421"
+    height="571"
+  />
+  <figcaption>Example LSP settings for Sublime Text</figcaption>
+</figure>
+
+<%#
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
+%>
