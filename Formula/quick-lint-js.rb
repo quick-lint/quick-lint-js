@@ -15,13 +15,14 @@ class QuickLintJs < Formula
   depends_on "simdjson"
 
   def install
-    system "cmake", "-S", ".", "-B", "build", *std_cmake_args,
+    system "cmake", "-S", ".", "-B", "build",
                     "-DQUICK_LINT_JS_INSTALL_EMACS_DIR=share/emacs/site-lisp/quick-lint-js",
                     "-DQUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS=ON",
                     "-DQUICK_LINT_JS_USE_BUNDLED_BOOST=OFF",
                     "-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK=OFF",
                     "-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST=OFF",
-                    "-DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=OFF"
+                    "-DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=OFF",
+                    *std_cmake_args
     system "cmake", "--build", "build"
     system "cmake", "--install", "build"
   end
