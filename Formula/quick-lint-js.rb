@@ -16,7 +16,7 @@ class QuickLintJs < Formula
 
   def install
     system "cmake", "-S", ".", "-B", "build",
-                    "-DQUICK_LINT_JS_INSTALL_EMACS_DIR=share/emacs/site-lisp/quick-lint-js",
+                    "-DQUICK_LINT_JS_INSTALL_EMACS_DIR=#{elisp}",
                     "-DQUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS=ON",
                     "-DQUICK_LINT_JS_USE_BUNDLED_BOOST=OFF",
                     "-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK=OFF",
