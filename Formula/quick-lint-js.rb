@@ -16,6 +16,7 @@ class QuickLintJs < Formula
 
   def install
     system "cmake", "-S", ".", "-B", "build",
+                    "-DBUILD_TESTING=ON",
                     "-DQUICK_LINT_JS_INSTALL_EMACS_DIR=#{elisp}",
                     "-DQUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS=ON",
                     "-DQUICK_LINT_JS_USE_BUNDLED_BOOST=OFF",
@@ -24,6 +25,9 @@ class QuickLintJs < Formula
                     "-DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=OFF",
                     *std_cmake_args
     system "cmake", "--build", "build"
+    chdir "build" do
+      system "ctest", "-V"
+    end
     system "cmake", "--install", "build"
   end
 
