@@ -17,6 +17,7 @@ class QuickLintJs < Formula
   def install
     system "cmake", "-S", ".", "-B", "build",
                     "-DBUILD_TESTING=ON",
+                    "-DQUICK_LINT_JS_ENABLE_BENCHMARKS=OFF",
                     "-DQUICK_LINT_JS_INSTALL_EMACS_DIR=#{elisp}",
                     "-DQUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS=ON",
                     "-DQUICK_LINT_JS_USE_BUNDLED_BOOST=OFF",
