@@ -9,17 +9,20 @@ class QuickLintJs < Formula
   head "https://github.com/quick-lint/quick-lint-js.git", branch: "master"
 
   depends_on "cmake" => :build
-
-  fails_with :clang do
-    build 1100  # Xcode 11.3.1
-    cause "Boost.JSON doesn't like Clang's std::string_view"
-  end
+  depends_on "googletest" => :build
+  depends_on "pkg-config" => :build
+  depends_on "boost"
+  depends_on "simdjson"
 
   def install
     mkdir "build" do
       system "cmake", "..", *std_cmake_args,
                       "-DQUICK_LINT_JS_INSTALL_EMACS_DIR=share/emacs/site-lisp/quick-lint-js",
-                      "-DQUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS=ON"
+                      "-DQUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS=ON",
+                      "-DQUICK_LINT_JS_USE_BUNDLED_BOOST=OFF",
+                      "-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK=OFF",
+                      "-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST=OFF",
+                      "-DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=OFF"
       system "cmake", "--build", "."
       system "cmake", "--install", "."
     end
