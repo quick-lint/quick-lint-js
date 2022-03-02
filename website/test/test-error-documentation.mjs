@@ -4,7 +4,6 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import jsdom from "jsdom";
 import { ErrorDocumentation, codeHasBOM } from "../src/error-documentation.mjs";
 
 describe("error documentation", () => {
