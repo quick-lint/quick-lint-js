@@ -4,11 +4,10 @@
 import MarkdownIt from "markdown-it";
 import assert from "assert";
 import fs from "fs";
-import jsdom from "jsdom";
 import path from "path";
 import url from "url";
 import { createProcessFactoryAsync } from "../wasm/quick-lint-js.js";
-import { markEditorText } from "../public/demo/editor.mjs";
+import { sanitizeMarks } from "../public/demo/editor.mjs";
 
 let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
@@ -54,15 +53,11 @@ markdownParser.renderer.rules = {
       return "";
     }
 
-    if (typeof env.dom === "undefined") {
-      env.dom = new jsdom.JSDOM("");
-    }
     if (typeof env.codeBlockIndex === "undefined") {
       env.codeBlockIndex = 0;
     }
     let codeHTML = errorDocumentationExampleToHTML({
       code: token.content,
-      dom: env.dom,
       diagnostics:
         env.doc.diagnostics === null
           ? null
@@ -77,23 +72,21 @@ markdownParser.renderer.rules = {
   },
 };
 
-export function errorDocumentationExampleToHTML({
-  code,
-  dom = new jsdom.JSDOM(""),
-  diagnostics,
-}) {
-  let hasBOM = code.startsWith("\ufeff");
-
-  let codeElement = dom.window.document.createElement("code");
-  codeElement.appendChild(dom.window.document.createTextNode(code));
-
-  if (diagnostics !== null) {
-    markEditorText(codeElement, dom.window, diagnostics);
+export function errorDocumentationExampleToHTML({ code, diagnostics }) {
+  diagnostics = diagnostics === null ? [] : sanitizeMarks(diagnostics);
+  let codeHTML = "";
+  let lastDiagnosticEnd = 0;
+  for (let diagnostic of diagnostics) {
+    codeHTML += textToHTML(code.slice(lastDiagnosticEnd, diagnostic.begin));
+    codeHTML += "<mark>";
+    codeHTML += textToHTML(code.slice(diagnostic.begin, diagnostic.end));
+    codeHTML += "</mark>";
+    lastDiagnosticEnd = diagnostic.end;
   }
-
-  let codeHTML = codeElement.innerHTML;
+  codeHTML += textToHTML(code.slice(lastDiagnosticEnd));
 
   // Wrap BOM in a <span>.
+  let hasBOM = code.startsWith("\ufeff");
   if (hasBOM) {
     codeHTML = codeHTML.replace(
       /\ufeff/,
@@ -104,6 +97,19 @@ export function errorDocumentationExampleToHTML({
   codeHTML = wrapASCIIControlCharacters(codeHTML);
 
   return codeHTML;
+}
+
+function textToHTML(text) {
+  return text.replace(
+    /[<>&\u00a0]/g,
+    (match) =>
+      ({
+        "<": "&lt;",
+        ">": "&gt;",
+        "&": "&amp;",
+        "\u00a0": "&nbsp;",
+      }[match])
+  );
 }
 
 export class ErrorDocumentation {

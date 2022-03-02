@@ -14,10 +14,6 @@ import path from "path";
 import url from "url";
 import { getQuickLintJSVersionInfo } from "./qljs-version.mjs";
 
-// The following imports aren't necessary, but they reduce latency for some
-// EJS files by importing before we receive our first request.
-import jsdom from "jsdom";
-
 process.on("message", (message, _sendHandle) => {
   let { currentURI, ejsFilePath } = message;
   let result = renderEJSFileAsync({ currentURI, ejsFilePath })

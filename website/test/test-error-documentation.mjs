@@ -332,6 +332,17 @@ describe("errorDocumentationExampleToHTML", () => {
     expect(html).toBe("<mark>hello</mark> <mark>world</mark>");
   });
 
+  it("multiple marks backwards", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "hello world",
+      diagnostics: [
+        { begin: 6, end: 11 },
+        { begin: 0, end: 5 },
+      ],
+    });
+    expect(html).toBe("<mark>hello</mark> <mark>world</mark>");
+  });
+
   it("empty mark at beginning", () => {
     let html = errorDocumentationExampleToHTML({
       code: "helloworld",
