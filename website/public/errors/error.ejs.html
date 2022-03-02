@@ -3,7 +3,6 @@
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../common-head.ejs.html") %>
     <script>
       //<%
       let path = await import("path");
@@ -18,11 +17,9 @@
       let errorDocument = await ErrorDocumentation.parseFileAsync(path.join(documentationDirectoryPath, `${errorCode}.md`));
       //%>
     </script>
-    <title><%= errorCode %> documentation (quick-lint-js)</title>
-    <meta
-      name="description"
-      content="Docs for quick-lint-js error code <%= errorCode %>"
-    />
+    <%- await include("../common-head.ejs.html", { title: `${errorCode}
+    documentation (quick-lint-js)`, description: `Docs for quick-lint-js error
+    code ${errorCode}` }) %>
     <link href="../../main.css" rel="stylesheet" />
     <style>
       figure {

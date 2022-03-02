@@ -3,7 +3,8 @@
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../common-head.ejs.html") %>
+    <%- await include("../common-head.ejs.html", { title: `quick-lint-js CLI
+    documentation` }) %>
     <script>
       //<%
       let fs = await import("fs");
@@ -13,7 +14,6 @@
       let cliDocumentation = asciidoctor.convert(adoc);
       //%>
     </script>
-    <title>quick-lint-js CLI documentation</title>
     <link href="../main.css" rel="stylesheet" />
   </head>
 

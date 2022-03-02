@@ -3,12 +3,10 @@
 <!-- See end of file for extended copyright information. -->
 <html>
   <head>
-    <%- await include("./common-head.ejs.html") %>
-    <title>quick-lint-js: find JavaScript bugs</title>
-    <meta
-      name="description"
-      content="quick-lint-js gives you instant feedback as you code. Find bugs in your JavaScript before your finger leaves the keyboard."
-    />
+    <%- await include("./common-head.ejs.html", { title: `quick-lint-js: find
+    JavaScript bugs`, description: `quick-lint-js gives you instant feedback as
+    you code. Find bugs in your JavaScript before your finger leaves the
+    keyboard.` }) %>
     <link href="main.css" rel="stylesheet" />
     <style>
       .feature-comparison table {

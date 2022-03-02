@@ -86,6 +86,9 @@ async function renderEJSFileAsync({ currentURI, ejsFilePath }) {
           return path.posix.relative(currentURI, uri) + suffix;
         },
         qljsVersionInfo: await getQuickLintJSVersionInfo(),
+        collapseInteriorWhitespace: (s) => {
+          return s.replace(/\s+/g, " ");
+        },
       },
       {
         async: true,

@@ -19,7 +19,13 @@
 />
 <link rel="canonical" href="https://quick-lint-js.com<%= currentURI %>" />
 
-<%#
+<title><%= collapseInteriorWhitespace(title) %></title>
+<% if (typeof locals.description !== 'undefined') { %>
+<meta
+  name="description"
+  content="<%= collapseInteriorWhitespace(description) %>"
+/>
+<% } %> <%#
 <!--
 quick-lint-js finds bugs in JavaScript programs.
 Copyright (C) 2020  Matthew "strager" Glazar

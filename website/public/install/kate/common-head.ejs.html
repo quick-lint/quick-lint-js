@@ -4,12 +4,9 @@
 %>
 
 <head>
-  <%- await include("../../common-head.ejs.html") %>
-  <title>Install quick-lint-js for Kate <%= where %></title>
-  <meta
-    name="description"
-    content="Install quick-lint-js's Kate plugin <%= where %>"
-  />
+  <%- await include("../../common-head.ejs.html", { title: `Install
+  quick-lint-js for Kate ${where}`, description: `Install quick-lint-js's Kate
+  plugin ${where}` }) %>
   <link href="../../../main.css" rel="stylesheet" />
 </head>
 

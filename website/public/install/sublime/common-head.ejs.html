@@ -4,12 +4,9 @@
 %>
 
 <head>
-  <%- await include("../../common-head.ejs.html") %>
-  <title>Install quick-lint-js for Sublime Text <%= where %></title>
-  <meta
-    name="description"
-    content="Install quick-lint-js's Sublime Text integration <%= where %>"
-  />
+  <%- await include("../../common-head.ejs.html", { title: `Install
+  quick-lint-js for Sublime Text ${where}`, description: `Install
+  quick-lint-js's Sublime Text integration ${where}` }) %>
   <link href="../../../main.css" rel="stylesheet" />
 </head>
 

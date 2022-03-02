@@ -3,7 +3,8 @@
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../common-head.ejs.html") %>
+    <%- await include("../common-head.ejs.html", { title: `Release history for
+    quick-lint-js`, description: `Older versions of quick-lint-js` }) %>
     <script>
       //<%
       let fs = await import("fs");
@@ -14,8 +15,6 @@
       );
       //%>
     </script>
-    <title>Release history for quick-lint-js</title>
-    <meta name="description" content="Older versions of quick-lint-js" />
     <link href="../main.css" rel="stylesheet" />
     <style>
       /* Clearly separate releases. */

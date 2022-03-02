@@ -3,7 +3,9 @@
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../common-head.ejs.html") %>
+    <%- await include("../common-head.ejs.html", { title: `Errors and warnings
+    for quick-lint-js`, description: `quick-lint-js provides helpful error
+    messages.` }) %>
     <script>
       //<%
       let url = await import("url");
@@ -18,11 +20,6 @@
       );
       //%>
     </script>
-    <title>Errors and warnings for quick-lint-js</title>
-    <meta
-      name="description"
-      content="quick-lint-js provides helpful error messages."
-    />
     <link href="../main.css" rel="stylesheet" />
     <style>
       .table-of-contents a:link:not(:hover, :focus) {
