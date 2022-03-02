@@ -18,14 +18,25 @@
   href="<%= makeRelativeURI('/favicon-32x32.png') %>"
 />
 <link rel="canonical" href="https://quick-lint-js.com<%= currentURI %>" />
+<meta property="og:url" content="https://quick-lint-js.com<%= currentURI %>" />
 
 <title><%= collapseInteriorWhitespace(title) %></title>
+<meta property="og:title" content="<%= collapseInteriorWhitespace(title) %>" />
 <% if (typeof locals.description !== 'undefined') { %>
 <meta
   name="description"
   content="<%= collapseInteriorWhitespace(description) %>"
 />
-<% } %> <%#
+<meta
+  property="og:description"
+  content="<%= collapseInteriorWhitespace(description) %>"
+/>
+<% } %> <%# NOTE(strager): Only absolute URIs seem to work with Discord. %>
+<meta property="og:image" content="/vscode-demo-small.gif" />
+<meta name="theme-color" content="#a76851" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<%#
 <!--
 quick-lint-js finds bugs in JavaScript programs.
 Copyright (C) 2020  Matthew "strager" Glazar
