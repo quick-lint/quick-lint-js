@@ -53,8 +53,6 @@ markdownParser.renderer.rules = {
       // Don't show config snippets which configure other code blocks.
       return "";
     }
-    let content = token.content;
-    let hasBOM = content.startsWith("\ufeff");
 
     if (typeof env.dom === "undefined") {
       env.dom = new jsdom.JSDOM("");
@@ -62,30 +60,14 @@ markdownParser.renderer.rules = {
     if (typeof env.codeBlockIndex === "undefined") {
       env.codeBlockIndex = 0;
     }
-
-    let codeElement = env.dom.window.document.createElement("code");
-    codeElement.appendChild(env.dom.window.document.createTextNode(content));
-
-    if (env.doc.diagnostics !== null) {
-      markEditorText(
-        codeElement,
-        env.dom.window,
-        env.doc.diagnostics[env.codeBlockIndex]
-      );
-    }
-
-    let codeHTML = codeElement.innerHTML;
-
-    // Wrap BOM in a <span>.
-    if (hasBOM) {
-      codeHTML = codeHTML.replace(
-        /\ufeff/,
-        "<span class='unicode-bom'>\u{feff}</span>"
-      );
-    }
-
-    codeHTML = wrapASCIIControlCharacters(codeHTML);
-
+    let codeHTML = errorDocumentationExampleToHTML({
+      code: token.content,
+      dom: env.dom,
+      diagnostics:
+        env.doc.diagnostics === null
+          ? null
+          : env.doc.diagnostics[env.codeBlockIndex],
+    });
     env.codeBlockIndex += 1;
     return `<figure><pre><code>${codeHTML}</code></pre></figure>`;
   },
@@ -94,6 +76,35 @@ markdownParser.renderer.rules = {
     return this.code_block(tokens, tokenIndex, options, env, self);
   },
 };
+
+export function errorDocumentationExampleToHTML({
+  code,
+  dom = new jsdom.JSDOM(""),
+  diagnostics,
+}) {
+  let hasBOM = code.startsWith("\ufeff");
+
+  let codeElement = dom.window.document.createElement("code");
+  codeElement.appendChild(dom.window.document.createTextNode(code));
+
+  if (diagnostics !== null) {
+    markEditorText(codeElement, dom.window, diagnostics);
+  }
+
+  let codeHTML = codeElement.innerHTML;
+
+  // Wrap BOM in a <span>.
+  if (hasBOM) {
+    codeHTML = codeHTML.replace(
+      /\ufeff/,
+      "<span class='unicode-bom'>\u{feff}</span>"
+    );
+  }
+
+  codeHTML = wrapASCIIControlCharacters(codeHTML);
+
+  return codeHTML;
+}
 
 export class ErrorDocumentation {
   constructor({

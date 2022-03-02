@@ -4,7 +4,10 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { ErrorDocumentation } from "../src/error-documentation.mjs";
+import {
+  ErrorDocumentation,
+  errorDocumentationExampleToHTML,
+} from "../src/error-documentation.mjs";
 
 describe("error documentation", () => {
   it("error code from file path", () => {
@@ -290,6 +293,60 @@ wasn't that neat?
       "# E9999: test\n\n<!-- QLJS_NO_CHECK_CODE -->\n\ndocs go here"
     );
     expect(doc.shouldCheckCodeBlocks).toBeFalse();
+  });
+});
+
+describe("errorDocumentationExampleToHTML", () => {
+  it("escapes special HTML characters", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "a < b > c & d \u00a0 e",
+      diagnostics: [],
+    });
+    expect(html).toBe("a &lt; b &gt; c &amp; d &nbsp; e");
+  });
+
+  it("wraps byte order mark", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "\ufeff--BOM",
+      diagnostics: [],
+    });
+    expect(html).toBe("<span class='unicode-bom'>\u{feff}</span>--BOM");
+  });
+
+  it("does not wrap fake byte order mark", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "&#xfeff;--BOM",
+      diagnostics: [],
+    });
+    expect(html).toBe("&amp;#xfeff;--BOM");
+  });
+
+  it("wraps <mark>-d byte order mark", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "\ufeff--BOM",
+      diagnostics: [{ begin: 0, end: 1 }],
+    });
+    expect(html).toBe(
+      "<mark><span class='unicode-bom'>\u{feff}</span></mark>--BOM"
+    );
+  });
+
+  it("does not wrap zero-width no break space", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "hello\ufeffworld",
+      diagnostics: [],
+    });
+    expect(html).toBe("hello\ufeffworld");
+  });
+
+  it("wraps weird control characters", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "BEL:\u0007\n" + "BS:\u0008\n" + "DEL:\u007f\n",
+      diagnostics: [],
+    });
+    expect(html).toContain("BEL:<span class='unicode-bel'>\u0007</span>");
+    expect(html).toContain("BS:<span class='unicode-bs'>\u0008</span>");
+    expect(html).toContain("DEL:<span class='unicode-del'>\u007f</span>");
   });
 });
 
