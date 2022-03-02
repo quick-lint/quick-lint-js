@@ -305,6 +305,90 @@ describe("errorDocumentationExampleToHTML", () => {
     expect(html).toBe("a &lt; b &gt; c &amp; d &nbsp; e");
   });
 
+  it("mark first word on line", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "hello world",
+      diagnostics: [{ begin: 0, end: 5 }],
+    });
+    expect(html).toBe("<mark>hello</mark> world");
+  });
+
+  it("mark last word on line", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "hello world",
+      diagnostics: [{ begin: 6, end: 11 }],
+    });
+    expect(html).toBe("hello <mark>world</mark>");
+  });
+
+  it("multiple marks", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "hello world",
+      diagnostics: [
+        { begin: 0, end: 5 },
+        { begin: 6, end: 11 },
+      ],
+    });
+    expect(html).toBe("<mark>hello</mark> <mark>world</mark>");
+  });
+
+  it("empty mark at beginning", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "helloworld",
+      diagnostics: [{ begin: 0, end: 0 }],
+    });
+    expect(html).toBe("<mark></mark>helloworld");
+  });
+
+  it("empty mark in middle", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "helloworld",
+      diagnostics: [{ begin: 5, end: 5 }],
+    });
+    expect(html).toBe("hello<mark></mark>world");
+  });
+
+  it("empty mark at end", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "helloworld",
+      diagnostics: [{ begin: 10, end: 10 }],
+    });
+    expect(html).toBe("helloworld<mark></mark>");
+  });
+
+  it("empty mark immediately after non-empty mark", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "helloworld",
+      diagnostics: [
+        { begin: 0, end: 5 },
+        { begin: 5, end: 5 },
+      ],
+    });
+    expect(html).toBe("<mark>hello</mark><mark></mark>world");
+  });
+
+  it("identical marks are merged", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "helloworld",
+      diagnostics: [
+        { begin: 0, end: 5 },
+        { begin: 0, end: 5 },
+      ],
+    });
+    expect(html).toBe("<mark>hello</mark>world");
+  });
+
+  it("overlapping marks with same begin are merged", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "two errors please thanks",
+      diagnostics: [
+        { begin: 4, end: 10 }, // "errors"
+        { begin: 4, end: 17 }, // "errors please"
+      ],
+    });
+    expect(html).toBe("two <mark>errors please</mark> thanks");
+  });
+
   it("wraps byte order mark", () => {
     let html = errorDocumentationExampleToHTML({
       code: "\ufeff--BOM",
