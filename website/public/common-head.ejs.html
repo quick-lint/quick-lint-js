@@ -32,7 +32,10 @@
   content="<%= collapseInteriorWhitespace(description) %>"
 />
 <% } %> <%# NOTE(strager): Only absolute URIs seem to work with Discord. %>
-<meta property="og:image" content="/vscode-demo-small.gif" />
+<meta
+  property="og:image"
+  content="<%= locals.image ?? '/vscode-demo-small.gif' %>"
+/>
 <meta name="theme-color" content="#a76851" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
