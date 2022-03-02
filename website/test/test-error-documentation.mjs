@@ -4,7 +4,7 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import { ErrorDocumentation, codeHasBOM } from "../src/error-documentation.mjs";
+import { ErrorDocumentation } from "../src/error-documentation.mjs";
 
 describe("error documentation", () => {
   it("error code from file path", () => {
@@ -171,6 +171,14 @@ wasn't that neat?
     );
   });
 
+  it("html does not wrap fake byte order mark", () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "code:\n\n    &#xfeff;--BOM\n"
+    );
+    expect(doc.toHTML()).toContain("<code>&amp;#xfeff;--BOM");
+  });
+
   it("html wraps <mark>-d byte order mark", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
@@ -182,6 +190,14 @@ wasn't that neat?
     );
   });
 
+  it("html does not wrap zero-width no break space", () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "code:\n\n    hello\ufeffworld\n"
+    );
+    expect(doc.toHTML()).toContain("hello\ufeffworld");
+  });
+
   it("html wraps weird control characters", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
@@ -191,33 +207,6 @@ wasn't that neat?
     expect(html).toContain("BEL:<span class='unicode-bel'>\u0007</span>");
     expect(html).toContain("BS:<span class='unicode-bs'>\u0008</span>");
     expect(html).toContain("DEL:<span class='unicode-del'>\u007f</span>");
-  });
-
-  it("many possibilities of html code has bom", () => {
-    const possibilities = [
-      "<mark>\u{feff}hello</mark>",
-      '<mark data-code="E0123">\u{feff}hello</mark>',
-      "\u{feff}<mark>world</mark>",
-      "&#xfeff;hello",
-      "&#65279;hello",
-    ];
-    possibilities.forEach((possibility) => {
-      expect(codeHasBOM(possibility)).toBe(true);
-    });
-  });
-
-  it("many possibilities of html code has NOT bom", () => {
-    const possibilities = [
-      "<mark>hello\u{feff}</mark>",
-      '<mark data-code="E0123">hello\u{feff}</mark>',
-      '<mark data-code="E0123">h\u{feff}ello</mark>',
-      "h\u{feff}ello<mark>world</mark>",
-      "hello<mark>\u{feff}world</mark>",
-    ];
-
-    possibilities.forEach((possibility) => {
-      expect(codeHasBOM(possibility)).toBe(false);
-    });
   });
 
   it("lint JavaScript", async () => {
