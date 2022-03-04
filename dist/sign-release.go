@@ -150,6 +150,8 @@ const (
 )
 
 var filesToTransform map[DeepPath]FileTransformType = map[DeepPath]FileTransformType{
+	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x64.zip", "bin/quick-lint-js.exe"):              MicrosoftOsslsigncode,
+	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x86.zip", "bin/quick-lint-js.exe"):              MicrosoftOsslsigncode,
 	NewDeepPath2("manual/linux-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                GPGSign,
 	NewDeepPath2("manual/linux-armhf.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                  GPGSign,
 	NewDeepPath2("manual/linux.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        GPGSign,
@@ -970,7 +972,7 @@ func PathLooksLikeTarGz(path string) bool {
 }
 
 func PathLooksLikeZip(path string) bool {
-	return strings.HasSuffix(path, ".vsix") || strings.HasSuffix(path, ".zip")
+	return strings.HasSuffix(path, ".nupkg") || strings.HasSuffix(path, ".vsix") || strings.HasSuffix(path, ".zip")
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

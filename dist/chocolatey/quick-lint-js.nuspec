@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>quick-lint-js</id>
+    <version>2.3.0</version>
+    <title>quick-lint-js (Install)</title>
+    <authors>Matthew "strager" Glazar et al</authors>
+    <owners>Matthew "strager" Glazar</owners>
+    <licenseUrl>https://quick-lint-js.com/license/</licenseUrl>
+    <projectUrl>https://quick-lint-js.com/</projectUrl>
+    <iconUrl>https://quick-lint-js.com/favicon-32x32.png</iconUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>Over 130× faster than ESLint, quick-lint-js gives you instant feedback as you code. Find bugs in your JavaScript before your finger leaves the keyboard. Lint any JavaScript file with no configuration.</description>
+    <summary>Find bugs in JavaScript programs</summary>
+    <releaseNotes>https://quick-lint-js.com/releases/</releaseNotes>
+    <copyright>Copyright (C) 2020  Matthew Glazar</copyright>
+    <tags>bugs code-quality errors fast feedback javascript js js-lint-quick js-quick-lint lint lint-js-quick lint-quick-js linter linting quick quick-js-lint quick-lint-js static-analysis strager syntax</tags>
+    <projectSourceUrl>https://github.com/quick-lint/quick-lint-js</projectSourceUrl>
+    <packageSourceUrl>https://github.com/quick-lint/quick-lint-js/tree/master/dist/chocolatey</packageSourceUrl>
+    <docsUrl>https://quick-lint-js.com/docs/</docsUrl>
+    <bugTrackerUrl>https://github.com/quick-lint/quick-lint-js/issues</bugTrackerUrl>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
