@@ -385,6 +385,38 @@ jobs:
           remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/windows/
           user: ${{ secrets.artifacts_user }}
 
+  package-winget:
+    name: winget manifests
+    needs: package-msix
+    runs-on: ubuntu-latest
+    container: ghcr.io/quick-lint/quick-lint-js-github-go-builder:v1
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-msix-${{ github.sha }}
+          path: ./
+
+      - name: create manifests
+        run: go run ./dist/winget/make-manifests.go -BaseURI 'https://c.quick-lint-js.com/builds/${{ github.sha }}/' -MSIX ./quick-lint-js.msix -OutDir winget-manifests
+
+      - name: upload manifests to workflow
+        uses: actions/upload-artifact@v3
+        with:
+          if-no-files-found: error
+          name: quick-lint-js-winget-${{ github.sha }}
+          path: winget-manifests/
+      - name: upload manifests to long-term storage
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
+        uses: quick-lint/sftp-upload@master
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: winget-manifests/*
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/winget/
+          user: ${{ secrets.artifacts_user }}
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #

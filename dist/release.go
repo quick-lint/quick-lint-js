@@ -36,6 +36,9 @@ var Steps []Step = []Step{
 			fmt.Printf("* dist/npm/BUILDING.md\n")
 			fmt.Printf("* dist/npm/package.json\n")
 			fmt.Printf("* dist/sign-release.go\n")
+			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.installer.template.yaml\n")
+			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.locale.en-US.template.yaml\n")
+			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.template.yaml\n")
 			fmt.Printf("* plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt\n")
 			fmt.Printf("* plugin/vscode-lsp/README.md\n")
 			fmt.Printf("* plugin/vscode-lsp/package.json\n")
@@ -102,6 +105,15 @@ var Steps []Step = []Step{
 		Run: func() {
 			fmt.Printf("Create a Scoop manifest:\n")
 			fmt.Printf("$ go run ./dist/scoop/make-manifest.go -BaseURI \"https://c.quick-lint-js.com/release/$YOUR_VERSION_NUMBER/\" -x86-ZIP signed-builds/manual/windows-x86.zip -x64-ZIP signed-builds/manual/windows.zip -Out signed-builds/scoop/quick-lint-js.json\n")
+			WaitForDone()
+		},
+	},
+
+	Step{
+		Title: "Create a winget manifest",
+		Run: func() {
+			fmt.Printf("Create a winget manifest:\n")
+			fmt.Printf("$ go run ./dist/winget/make-manifests.go -BaseURI \"https://c.quick-lint-js.com/release/$YOUR_VERSION_NUMBER/\" -MSIX signed-builds/windows/quick-lint-js.msix -OutDir signed-builds/winget/\n")
 			WaitForDone()
 		},
 	},
