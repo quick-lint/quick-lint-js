@@ -192,6 +192,8 @@ var filesToTransform map[DeepPath]FileTransformType = map[DeepPath]FileTransform
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm64.node"):  RelicWindows,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-ia32.node"):   RelicWindows,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-x64.node"):    RelicWindows,
+	NewDeepPath("windows/quick-lint-js.msix"):                                                                     RelicWindows,
+	NewDeepPath2("windows/quick-lint-js.msix", "quick-lint-js.exe"):                                               RelicWindows,
 }
 
 func CheckUnsignedFiles() error {
@@ -366,6 +368,28 @@ func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, erro
 			}
 			if transform.siblingFile != nil {
 				panic("unexpected siblingFile for .tar.gz")
+			}
+		}
+	}
+
+	if PathLooksLikeAPPX(deepPath.Last()) {
+		// TODO(strager): Optimization: Don't
+		// process this file if no entry of
+		// filesToTransform mentions it.
+		needsTransform := true
+		if needsTransform {
+
+			fileContent, err := io.ReadAll(file)
+			if err != nil {
+				return FileTransformResult{}, err
+			}
+
+			transform, err = TransformAPPX(deepPath, fileContent)
+			if err != nil {
+				return FileTransformResult{}, err
+			}
+			if transform.siblingFile != nil {
+				panic("unexpected siblingFile for .zip")
 			}
 		}
 	}
@@ -587,6 +611,93 @@ func TransformZipToFile(
 
 		if transformResult.siblingFile != nil {
 			siblingZIPEntryFile, err := destinationZipFile.Create(zipEntry.Name + transformResult.siblingFileNameSuffix)
+			if err != nil {
+				return err
+			}
+			if _, err := siblingZIPEntryFile.Write(*transformResult.siblingFile); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func TransformAPPX(
+	appxDeepPath DeepPath,
+	sourceFile []byte,
+) (FileTransformResult, error) {
+	var destinationFile bytes.Buffer
+	if err := TransformAPPXToFile(appxDeepPath, sourceFile, &destinationFile); err != nil {
+		return FileTransformResult{}, err
+	}
+	destinationFileContent := destinationFile.Bytes()
+	return FileTransformResult{
+		newFile: &destinationFileContent,
+	}, nil
+}
+
+func TransformAPPXToFile(
+	appxDeepPath DeepPath,
+	sourceFile []byte,
+	destinationFile io.Writer,
+) error {
+	sourceAPPXFile, err := zip.NewReader(bytes.NewReader(sourceFile), int64(len(sourceFile)))
+	if err != nil {
+		return err
+	}
+
+	destinationAPPXFile := NewAPPXWriter(destinationFile)
+	defer destinationAPPXFile.Close()
+
+	for _, zipEntry := range sourceAPPXFile.File {
+		zipEntryFile, err := zipEntry.Open()
+		if err != nil {
+			return err
+		}
+		defer zipEntryFile.Close()
+
+		if zipEntry.FileHeader.Name == APPXBlockMapFileName {
+			if err := destinationAPPXFile.ReadAPPXBlockMapForRawFiles(zipEntryFile); err != nil {
+				log.Fatal(err)
+			}
+			if err := destinationAPPXFile.WriteAPPXBlockMap(); err != nil {
+				log.Fatal(err)
+			}
+			continue
+		}
+
+		transformResult, err := TransformFile(appxDeepPath.Append(zipEntry.Name), zipEntryFile)
+		if err != nil {
+			return err
+		}
+
+		transformResult.UpdateZipHeader(&zipEntry.FileHeader)
+		if transformResult.newFile == nil {
+			rawZIPEntryFile, err := zipEntry.OpenRaw()
+			if err != nil {
+				return err
+			}
+
+			destinationAPPXEntryFile, err := destinationAPPXFile.CreateRaw(&zipEntry.FileHeader)
+			if err != nil {
+				return err
+			}
+			_, err = io.Copy(destinationAPPXEntryFile, rawZIPEntryFile)
+			if err != nil {
+				return err
+			}
+		} else {
+			destinationAPPXEntryFile, err := destinationAPPXFile.CreateHeader(&zipEntry.FileHeader)
+			if err != nil {
+				return err
+			}
+			if _, err := destinationAPPXEntryFile.Write(*transformResult.newFile); err != nil {
+				return err
+			}
+		}
+
+		if transformResult.siblingFile != nil {
+			siblingZIPEntryFile, err := destinationAPPXFile.Create(zipEntry.Name + transformResult.siblingFileNameSuffix)
 			if err != nil {
 				return err
 			}
@@ -903,6 +1014,10 @@ func (path *DeepPath) Last() string {
 		return path.parts[1]
 	}
 	return path.parts[0]
+}
+
+func PathLooksLikeAPPX(path string) bool {
+	return strings.HasSuffix(path, ".msix")
 }
 
 func PathLooksLikeTarGz(path string) bool {

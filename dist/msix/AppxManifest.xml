@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap rescap">
+
+  <Identity
+    Name="fa6b940b-8f96-4b46-8e21-703a63133e06"
+    Publisher="CN=quick-lint-js"
+    Version="2.3.0.0" />
+
+  <Properties>
+    <DisplayName>quick-lint-js</DisplayName>
+    <PublisherDisplayName>quick-lint</PublisherDisplayName>
+    <Logo>images\StoreLogo.png</Logo>
+  </Properties>
+
+  <Applications>
+    <Application
+      Id="App"
+      Executable="quick-lint-js.exe"
+      EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="quick-lint-js"
+        Description="Find bugs in JavaScript programs"
+        BackgroundColor="transparent"
+        Square150x150Logo="images\Square150x150Logo.png"
+        Square44x44Logo="images\Square44x44Logo.png">
+      </uap:VisualElements>
+      <Extensions>
+        <uap3:Extension Category="windows.appExecutionAlias">
+          <uap3:AppExecutionAlias>
+            <desktop:ExecutionAlias Alias="quick-lint-js.exe"/>
+          </uap3:AppExecutionAlias>
+        </uap3:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Dependencies>
+    <TargetDeviceFamily
+      Name="Windows.Universal"
+      MinVersion="10.0.0.0"
+      MaxVersionTested="10.0.0.0" />
+    <TargetDeviceFamily
+      Name="Windows.Desktop"
+      MinVersion="10.0.14393.0"
+      MaxVersionTested="10.0.14393.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="EN-US" />
+  </Resources>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

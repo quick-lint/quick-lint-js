@@ -1,0 +1,8 @@
+[Files]
+"AppxManifest.xml" "AppxManifest.xml"
+"images/Square150x150Logo.png" "images/Square150x150Logo.png"
+"images/Square44x44Logo.png" "images/Square44x44Logo.png"
+"images/StoreLogo.png" "images/StoreLogo.png"
+
+"{{ .EXE }}" "quick-lint-js.exe"
+"{{ .License }}" "LICENSE.txt"

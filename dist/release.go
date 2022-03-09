@@ -92,7 +92,7 @@ var Steps []Step = []Step{
 		Title: "Sign the build artifacts",
 		Run: func() {
 			fmt.Printf("Sign the build artifacts:\n")
-			fmt.Printf("$ go run dist/sign-release.go dist/deep-hasher.go -RelicConfig=dist/certificates/relic-config.yaml builds/ signed-builds/\n")
+			fmt.Printf("$ go run dist/sign-release.go dist/deep-hasher.go dist/appx.go -RelicConfig=dist/certificates/relic-config.yaml builds/ signed-builds/\n")
 			WaitForDone()
 		},
 	},
