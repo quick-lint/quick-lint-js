@@ -311,6 +311,42 @@ jobs:
       - name: test
         run: quick-lint-js --version
 
+  package-scoop:
+    name: Scoop package
+    needs: build
+    runs-on: ubuntu-latest
+    container: ghcr.io/quick-lint/quick-lint-js-github-go-builder:v1
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-windows-${{ github.sha }}
+          path: ./
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-windows-x86-${{ github.sha }}
+          path: ./
+
+      - name: create manifest
+        run: go run ./dist/scoop/make-manifest.go -BaseURI 'https://c.quick-lint-js.com/builds/${{ github.sha }}/' -x86-ZIP ./windows-x86.zip -x64-ZIP ./windows.zip -Out ./quick-lint-js.json
+
+      - name: upload manifest to workflow
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: quick-lint-js-scoop-${{ github.sha }}
+          path: quick-lint-js.json
+      - name: upload manifest to long-term storage
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
+        uses: quick-lint/sftp-upload@master
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: quick-lint-js.json
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/scoop/
+          user: ${{ secrets.artifacts_user }}
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #
