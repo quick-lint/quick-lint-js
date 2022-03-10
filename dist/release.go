@@ -92,7 +92,7 @@ var Steps []Step = []Step{
 		Title: "Sign the build artifacts",
 		Run: func() {
 			fmt.Printf("Sign the build artifacts:\n")
-			fmt.Printf("$ go run dist/sign-release.go -AppleCodesignIdentity=quick-lint-js -GPGIdentity=0327DE8F9CEF499851D19F6ED20BA9DCCF0E9D20 -PrivateKeyPKCS12=dist/certificates/quick-lint-js-PRIVATE.p12 builds/ signed-builds/\n")
+			fmt.Printf("$ go run dist/sign-release.go dist/deep-hasher.go -AppleCodesignIdentity=quick-lint-js -GPGIdentity=0327DE8F9CEF499851D19F6ED20BA9DCCF0E9D20 -PrivateKeyPKCS12=dist/certificates/quick-lint-js-PRIVATE.p12 builds/ signed-builds/\n")
 			fmt.Printf("**Warning**: This signing command only works on macOS hosts.\n")
 			WaitForDone()
 		},

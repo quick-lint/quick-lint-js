@@ -39,6 +39,10 @@ type SigningStuff struct {
 	PrivateKeyPKCS12Path  string
 }
 
+// Key: SHA256 hash of original file
+// Value: contents of transformed (signed) file
+var TransformCache map[SHA256Hash]FileTransformResult = make(map[SHA256Hash]FileTransformResult)
+
 var signingStuff SigningStuff
 
 var ProgramStartTime time.Time = time.Now()
@@ -97,6 +101,9 @@ func main() {
 	}
 
 	if err := CheckUnsignedFiles(); err != nil {
+		log.Fatal(err)
+	}
+	if err := CheckDoubleSigning(sourceDir, destinationDir); err != nil {
 		log.Fatal(err)
 	}
 
@@ -181,6 +188,65 @@ func CheckUnsignedFiles() error {
 	return nil
 }
 
+// Verify that modified files are modified in an idempotent
+// way.
+//
+// If sourceDir contains a.exe and b.exe, then
+// destinationDir should contain a [possibly signed] a.exe
+// and a [possibly signed] b.exe. If a.exe and b.exe in
+// sourceDir have the same content as each other, then
+// CheckDoubleSigning checks that a.exe and b.exe in
+// destinationDir have the same content as each other.
+func CheckDoubleSigning(sourceDir string, destinationDir string) error {
+	sourceDirHashes := NewDeepHasher()
+	if err := sourceDirHashes.DeepHashDirectory(sourceDir); err != nil {
+		return err
+	}
+	destinationDirHashes := NewDeepHasher()
+	if err := destinationDirHashes.DeepHashDirectory(destinationDir); err != nil {
+		return err
+	}
+
+	sourceToDestinationHashes := make(map[SHA256Hash]map[SHA256Hash]bool)
+	sourceHashToPaths := make(map[SHA256Hash][]DeepPath)
+	destinationHashToPaths := make(map[SHA256Hash][]DeepPath)
+	for path, sourceHash := range sourceDirHashes.Hashes {
+		destinationHash := destinationDirHashes.Hashes[path]
+		if _, exists := sourceToDestinationHashes[sourceHash]; !exists {
+			sourceToDestinationHashes[sourceHash] = make(map[SHA256Hash]bool)
+		}
+		sourceToDestinationHashes[sourceHash][destinationHash] = true
+		sourceHashToPaths[sourceHash] = append(sourceHashToPaths[sourceHash], path)
+		destinationHashToPaths[destinationHash] = append(destinationHashToPaths[destinationHash], path)
+	}
+
+	prettyPrintBadConversion := func(destinationHashes map[SHA256Hash]bool, destinationHashToPaths map[SHA256Hash][]DeepPath) {
+		var previousPath *DeepPath = nil
+		for destinationHash, _ := range destinationHashes {
+			path := destinationHashToPaths[destinationHash][0]
+			if previousPath != nil {
+				log.Printf(
+					"bug detected in sign-release.go: destination %v and %v have different hashes despite coming from bit-identical sources",
+					path,
+					*previousPath,
+				)
+			}
+			previousPath = &path
+		}
+	}
+	detectedBug := false
+	for _, destinationHashes := range sourceToDestinationHashes {
+		if len(destinationHashes) > 1 {
+			detectedBug = true
+			prettyPrintBadConversion(destinationHashes, destinationHashToPaths)
+		}
+	}
+	if detectedBug {
+		return fmt.Errorf("bug detected in sign-release.go")
+	}
+	return nil
+}
+
 // If the file is an archive and has a file which needs to be signed, sign the
 // embedded file and recreate the archive. Otherwise, copy the file verbatim.
 func CopyFileOrTransformArchive(deepPath DeepPath, sourcePath string, destinationPath string, sourceInfo fs.FileInfo) error {
@@ -207,7 +273,7 @@ func CopyFileOrTransformArchive(deepPath DeepPath, sourcePath string, destinatio
 		}
 	})()
 
-	if strings.HasSuffix(deepPath.Last(), ".tar.gz") || strings.HasSuffix(deepPath.Last(), ".tgz") {
+	if PathLooksLikeTarGz(deepPath.Last()) {
 		// TODO(strager): Optimization: Don't
 		// process this file if no entry of
 		// filesToTransform mentions it.
@@ -221,7 +287,7 @@ func CopyFileOrTransformArchive(deepPath DeepPath, sourcePath string, destinatio
 		}
 	}
 
-	if strings.HasSuffix(deepPath.Last(), ".vsix") || strings.HasSuffix(deepPath.Last(), ".zip") {
+	if PathLooksLikeZip(deepPath.Last()) {
 		// TODO(strager): Optimization: Don't
 		// process this file if no entry of
 		// filesToTransform mentions it.
@@ -281,36 +347,63 @@ func (self *FileTransformResult) UpdateZipHeader(header *zip.FileHeader) {
 }
 
 func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, error) {
+	var err error
+
 	transformType := filesToTransform[deepPath]
-	delete(filesToTransform, deepPath)
+
+	var fileHash SHA256Hash
+	if transformType != NoTransform {
+		fileContent, err := io.ReadAll(file)
+		if err != nil {
+			return FileTransformResult{}, err
+		}
+
+		hasher := sha256.New()
+		if _, err := io.Copy(hasher, bytes.NewReader(fileContent)); err != nil {
+			return FileTransformResult{}, err
+		}
+		hashSlice := hasher.Sum(nil)
+		copy(fileHash[:], hashSlice)
+
+		cachedTransform := TransformCache[fileHash]
+		if cachedTransform.newFile != nil || cachedTransform.siblingFile != nil {
+			delete(filesToTransform, deepPath)
+			return cachedTransform, nil
+		}
+
+		file = bytes.NewReader(fileContent)
+	}
+
+	var transform FileTransformResult
 	switch transformType {
 	case AppleCodesign:
 		log.Printf("signing with Apple codesign: %v\n", deepPath)
-		transform, err := AppleCodesignTransform(deepPath.Last(), file)
+		transform, err = AppleCodesignTransform(deepPath.Last(), file)
 		if err != nil {
 			return FileTransformResult{}, err
 		}
-		return transform, nil
 
 	case GPGSign:
 		log.Printf("signing with GPG: %v\n", deepPath)
-		transform, err := GPGSignTransform(deepPath.Last(), file)
+		transform, err = GPGSignTransform(deepPath.Last(), file)
 		if err != nil {
 			return FileTransformResult{}, err
 		}
-		return transform, nil
 
 	case MicrosoftOsslsigncode:
 		log.Printf("signing with osslsigncode: %v\n", deepPath)
-		transform, err := MicrosoftOsslsigncodeTransform(file)
+		transform, err = MicrosoftOsslsigncodeTransform(file)
 		if err != nil {
 			return FileTransformResult{}, err
 		}
-		return transform, nil
 
-		default: // NoTransform
+	default: // NoTransform
 		return NoOpTransform(), nil
 	}
+
+	delete(filesToTransform, deepPath)
+	TransformCache[fileHash] = transform
+	return transform, nil
 }
 
 func TransformTarGz(
@@ -484,7 +577,9 @@ func AppleCodesignTransform(originalPath string, exe io.Reader) (FileTransformRe
 	// AppleCodesignFile replaced the file, so we can't just rewind
 	// tempFile. Open the file again.
 	signedFileContent, err := os.ReadFile(tempFile.Name())
-	if err != nil { return FileTransformResult{}, err }
+	if err != nil {
+		return FileTransformResult{}, err
+	}
 	return FileTransformResult{
 		newFile: &signedFileContent,
 	}, nil
@@ -650,7 +745,9 @@ func MicrosoftOsslsigncodeTransform(exe io.Reader) (FileTransformResult, error) 
 	}
 
 	signedFileContent, err := os.ReadFile(signedFilePath)
-	if err != nil { return FileTransformResult{}, err }
+	if err != nil {
+		return FileTransformResult{}, err
+	}
 	return FileTransformResult{
 		newFile: &signedFileContent,
 	}, nil
@@ -813,6 +910,14 @@ func (path *DeepPath) Last() string {
 		return path.parts[1]
 	}
 	return path.parts[0]
+}
+
+func PathLooksLikeTarGz(path string) bool {
+	return strings.HasSuffix(path, ".tar.gz") || strings.HasSuffix(path, ".tgz")
+}
+
+func PathLooksLikeZip(path string) bool {
+	return strings.HasSuffix(path, ".vsix") || strings.HasSuffix(path, ".zip")
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
