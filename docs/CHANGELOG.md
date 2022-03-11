@@ -340,7 +340,7 @@ Beta release.
   using the `:file` command if you want a configuration file to take effect.
 * VS Code: The plugin has been rewritten. Performance should be better, but
   stability and compatibility might suffer. For example, VS Code on Apple
-  silicon (AArch64 CPUs) has not been tested and will likely no longer work.
+  Silicon (AArch64 CPUs) has not been tested and will likely no longer work.
   Please report compatibility issues.
 
 ### Added
