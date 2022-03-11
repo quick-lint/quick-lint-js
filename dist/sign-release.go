@@ -306,51 +306,43 @@ func (self *FileTransformResult) Close() {
 	}
 }
 
+func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, error) {
+	transformType := filesToTransform[deepPath]
+	delete(filesToTransform, deepPath)
+	switch transformType {
+	case AppleCodesign:
+		log.Printf("signing with Apple codesign: %v\n", deepPath)
+		transform, err := AppleCodesignTransform(deepPath.Last(), file)
+		if err != nil {
+			return FileTransformResult{}, err
+		}
+		return transform, nil
+
+	case GPGSign:
+		log.Printf("signing with GPG: %v\n", deepPath)
+		transform, err := GPGSignTransform(deepPath.Last(), file)
+		if err != nil {
+			return FileTransformResult{}, err
+		}
+		return transform, nil
+
+	case MicrosoftOsslsigncode:
+		log.Printf("signing with osslsigncode: %v\n", deepPath)
+		transform, err := MicrosoftOsslsigncodeTransform(file)
+		if err != nil {
+			return FileTransformResult{}, err
+		}
+		return transform, nil
+
+		default: // NoTransform
+		return NoOpTransform(), nil
+	}
+}
+
 func TransformTarGz(
 	tarGzDeepPath DeepPath,
 	sourceFile io.Reader,
 	destinationFile io.Writer,
-) error {
-	return TransformTarGzGeneric(sourceFile, destinationFile,
-		func(memberPath string, file io.Reader) (FileTransformResult, error) {
-			deepPath := tarGzDeepPath.Append(memberPath)
-			transformType := filesToTransform[deepPath]
-			delete(filesToTransform, deepPath)
-			switch transformType {
-			case AppleCodesign:
-				log.Printf("signing with Apple codesign: %v\n", deepPath)
-				transform, err := AppleCodesignTransform(memberPath, file)
-				if err != nil {
-					return FileTransformResult{}, err
-				}
-				return transform, nil
-
-			case GPGSign:
-				log.Printf("signing with GPG: %v\n", deepPath)
-				transform, err := GPGSignTransform(memberPath, file)
-				if err != nil {
-					return FileTransformResult{}, err
-				}
-				return transform, nil
-
-			case MicrosoftOsslsigncode:
-				log.Printf("signing with osslsigncode: %v\n", deepPath)
-				transform, err := MicrosoftOsslsigncodeTransform(file)
-				if err != nil {
-					return FileTransformResult{}, err
-				}
-				return transform, nil
-
-			default: // NoTransform
-				return NoOpTransform(), nil
-			}
-		})
-}
-
-func TransformTarGzGeneric(
-	sourceFile io.Reader,
-	destinationFile io.Writer,
-	transform func(path string, file io.Reader) (FileTransformResult, error),
 ) error {
 	sourceUngzippedFile, err := gzip.NewReader(sourceFile)
 	if err != nil {
@@ -379,7 +371,7 @@ func TransformTarGzGeneric(
 			return fmt.Errorf("failed to read entire file")
 		}
 
-		transformResult, err := transform(header.Name, bytes.NewReader(fileContent.Bytes()))
+		transformResult, err := TransformFile(tarGzDeepPath.Append(header.Name), bytes.NewReader(fileContent.Bytes()))
 		if err != nil {
 			return err
 		}
@@ -426,47 +418,6 @@ func TransformZip(
 	sourceFile *os.File,
 	destinationFile io.Writer,
 ) error {
-	return TransformZipGeneric(sourceFile, destinationFile,
-		func(memberPath string, file io.Reader) (FileTransformResult, error) {
-			deepPath := zipDeepPath.Append(memberPath)
-			transformType := filesToTransform[deepPath]
-			delete(filesToTransform, deepPath)
-			switch transformType {
-			case AppleCodesign:
-				log.Printf("signing with Apple codesign: %v\n", deepPath)
-				transform, err := AppleCodesignTransform(memberPath, file)
-				if err != nil {
-					return FileTransformResult{}, err
-				}
-				return transform, nil
-
-			case GPGSign:
-				log.Printf("signing with GPG: %v\n", deepPath)
-				transform, err := GPGSignTransform(memberPath, file)
-				if err != nil {
-					return FileTransformResult{}, err
-				}
-				return transform, nil
-
-			case MicrosoftOsslsigncode:
-				log.Printf("signing with osslsigncode: %v\n", deepPath)
-				transform, err := MicrosoftOsslsigncodeTransform(file)
-				if err != nil {
-					return FileTransformResult{}, err
-				}
-				return transform, nil
-
-			default: // NoTransform
-				return NoOpTransform(), nil
-			}
-		})
-}
-
-func TransformZipGeneric(
-	sourceFile *os.File,
-	destinationFile io.Writer,
-	transform func(path string, file io.Reader) (FileTransformResult, error),
-) error {
 	sourceFileStat, err := sourceFile.Stat()
 	if err != nil {
 		return err
@@ -486,7 +437,7 @@ func TransformZipGeneric(
 		}
 		defer zipEntryFile.Close()
 
-		transformResult, err := transform(zipEntry.Name, zipEntryFile)
+		transformResult, err := TransformFile(zipDeepPath.Append(zipEntry.Name), zipEntryFile)
 		if err != nil {
 			return err
 		}
