@@ -429,22 +429,21 @@ func TransformTarGz(
 			return err
 		}
 
-		var fileContent bytes.Buffer
-		bytesWritten, err := fileContent.ReadFrom(tarReader)
+		fileContent, err := io.ReadAll(tarReader)
 		if err != nil {
 			return err
 		}
-		if bytesWritten != header.Size {
+		if int64(len(fileContent)) != header.Size {
 			return fmt.Errorf("failed to read entire file")
 		}
 
-		transformResult, err := TransformFile(tarGzDeepPath.Append(header.Name), bytes.NewReader(fileContent.Bytes()))
+		transformResult, err := TransformFile(tarGzDeepPath.Append(header.Name), bytes.NewReader(fileContent))
 		if err != nil {
 			return err
 		}
 
 		transformResult.UpdateTarHeader(header)
-		var newFileContent []byte = fileContent.Bytes()
+		var newFileContent []byte = fileContent
 		if transformResult.newFile != nil {
 			newFileContent = *transformResult.newFile
 		}
