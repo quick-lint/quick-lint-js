@@ -38,12 +38,13 @@ type SigningStuff struct {
 	PrivateKeyPKCS12Path  string
 }
 
+var signingStuff SigningStuff
+
 var TempDirs []string
 
 func main() {
 	defer RemoveTempDirs()
 
-	var signingStuff SigningStuff
 	signingStuff.Certificate = AppleCodesignCertificate
 	signingStuff.GPGKey = QLJSGPGKey
 
@@ -78,7 +79,7 @@ func main() {
 				return err
 			}
 		} else {
-			err = CopyFileOrTransformArchive(relativePath, sourcePath, destinationPath, sourceInfo, signingStuff)
+			err = CopyFileOrTransformArchive(relativePath, sourcePath, destinationPath, sourceInfo)
 			if err != nil {
 				return err
 			}
@@ -103,10 +104,10 @@ func main() {
 	}
 
 	log.Printf("signing with GPG: %s\n", hashesPath)
-	if _, err := GPGSignFile(hashesPath, signingStuff); err != nil {
+	if _, err := GPGSignFile(hashesPath); err != nil {
 		log.Fatal(err)
 	}
-	if err := GPGVerifySignature(hashesPath, hashesPath+".asc", signingStuff); err != nil {
+	if err := GPGVerifySignature(hashesPath, hashesPath+".asc"); err != nil {
 		log.Fatal(err)
 	}
 
@@ -116,10 +117,10 @@ func main() {
 
 	sourceTarballPath := filepath.Join(destinationDir, "source/quick-lint-js-2.3.0.tar.gz")
 	log.Printf("signing with GPG: %s\n", sourceTarballPath)
-	if _, err := GPGSignFile(sourceTarballPath, signingStuff); err != nil {
+	if _, err := GPGSignFile(sourceTarballPath); err != nil {
 		log.Fatal(err)
 	}
-	if err := GPGVerifySignature(sourceTarballPath, sourceTarballPath+".asc", signingStuff); err != nil {
+	if err := GPGVerifySignature(sourceTarballPath, sourceTarballPath+".asc"); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -205,7 +206,7 @@ func CheckUnsignedFiles() error {
 
 // If the file is an archive and has a file which needs to be signed, sign the
 // embedded file and recreate the archive. Otherwise, copy the file verbatim.
-func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinationPath string, sourceInfo fs.FileInfo, signingStuff SigningStuff) error {
+func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinationPath string, sourceInfo fs.FileInfo) error {
 	if !sourceInfo.Mode().IsRegular() {
 		return fmt.Errorf("expected regular file: %q", sourcePath)
 	}
@@ -232,7 +233,7 @@ func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinat
 	if strings.HasSuffix(relativePath, ".tar.gz") || strings.HasSuffix(relativePath, ".tgz") {
 		archiveMembersToTransform := filesToTransform[relativePath]
 		if archiveMembersToTransform != nil {
-			if err := TransformTarGz(sourceFile, sourcePath, destinationFile, archiveMembersToTransform, signingStuff); err != nil {
+			if err := TransformTarGz(sourceFile, sourcePath, destinationFile, archiveMembersToTransform); err != nil {
 				return err
 			}
 			fileComplete = true
@@ -243,7 +244,7 @@ func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinat
 	if strings.HasSuffix(relativePath, ".vsix") || strings.HasSuffix(relativePath, ".zip") {
 		archiveMembersToTransform := filesToTransform[relativePath]
 		if archiveMembersToTransform != nil {
-			if err := TransformZip(sourceFile, destinationFile, archiveMembersToTransform, signingStuff); err != nil {
+			if err := TransformZip(sourceFile, destinationFile, archiveMembersToTransform); err != nil {
 				return err
 			}
 			fileComplete = true
@@ -329,7 +330,6 @@ func TransformTarGz(
 	sourceFilePath string,
 	destinationFile io.Writer,
 	membersToTransform map[string]FileTransformType,
-	signingStuff SigningStuff,
 ) error {
 	return TransformTarGzGeneric(sourceFile, destinationFile,
 		func(path string, file io.Reader) (FileTransformResult, error) {
@@ -338,7 +338,7 @@ func TransformTarGz(
 			switch transformType {
 			case AppleCodesign:
 				log.Printf("signing with Apple codesign: %s:%s\n", sourceFilePath, path)
-				transform, err := AppleCodesignTransform(path, file, signingStuff)
+				transform, err := AppleCodesignTransform(path, file)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
@@ -346,7 +346,7 @@ func TransformTarGz(
 
 			case GPGSign:
 				log.Printf("signing with GPG: %s:%s\n", sourceFilePath, path)
-				transform, err := GPGSignTransform(path, file, signingStuff)
+				transform, err := GPGSignTransform(path, file)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
@@ -354,7 +354,7 @@ func TransformTarGz(
 
 			case MicrosoftOsslsigncode:
 				log.Printf("signing with osslsigncode: %s:%s\n", sourceFilePath, path)
-				transform, err := MicrosoftOsslsigncodeTransform(file, signingStuff)
+				transform, err := MicrosoftOsslsigncodeTransform(file)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
@@ -444,7 +444,6 @@ func TransformZip(
 	sourceFile *os.File,
 	destinationFile io.Writer,
 	membersToTransform map[string]FileTransformType,
-	signingStuff SigningStuff,
 ) error {
 	return TransformZipGeneric(sourceFile, destinationFile,
 		func(path string, file io.Reader) (FileTransformResult, error) {
@@ -453,7 +452,7 @@ func TransformZip(
 			switch transformType {
 			case AppleCodesign:
 				log.Printf("signing with Apple codesign: %s:%s\n", sourceFile.Name(), path)
-				transform, err := AppleCodesignTransform(path, file, signingStuff)
+				transform, err := AppleCodesignTransform(path, file)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
@@ -461,7 +460,7 @@ func TransformZip(
 
 			case GPGSign:
 				log.Printf("signing with GPG: %s:%s\n", sourceFile.Name(), path)
-				transform, err := GPGSignTransform(path, file, signingStuff)
+				transform, err := GPGSignTransform(path, file)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
@@ -469,7 +468,7 @@ func TransformZip(
 
 			case MicrosoftOsslsigncode:
 				log.Printf("signing with osslsigncode: %s:%s\n", sourceFile.Name(), path)
-				transform, err := MicrosoftOsslsigncodeTransform(file, signingStuff)
+				transform, err := MicrosoftOsslsigncodeTransform(file)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
@@ -560,7 +559,7 @@ func NoOpTransform() FileTransformResult {
 }
 
 // originalPath need not be a path to a real file.
-func AppleCodesignTransform(originalPath string, exe io.Reader, signingStuff SigningStuff) (FileTransformResult, error) {
+func AppleCodesignTransform(originalPath string, exe io.Reader) (FileTransformResult, error) {
 	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
 	if err != nil {
 		return FileTransformResult{}, err
@@ -580,10 +579,10 @@ func AppleCodesignTransform(originalPath string, exe io.Reader, signingStuff Sig
 		return FileTransformResult{}, err
 	}
 
-	if err := AppleCodesignFile(tempFile.Name(), signingStuff); err != nil {
+	if err := AppleCodesignFile(tempFile.Name()); err != nil {
 		return FileTransformResult{}, err
 	}
-	if err := AppleCodesignVerifyFile(tempFile.Name(), signingStuff); err != nil {
+	if err := AppleCodesignVerifyFile(tempFile.Name()); err != nil {
 		return FileTransformResult{}, err
 	}
 
@@ -600,7 +599,7 @@ func AppleCodesignTransform(originalPath string, exe io.Reader, signingStuff Sig
 	}, nil
 }
 
-func AppleCodesignFile(filePath string, signingStuff SigningStuff) error {
+func AppleCodesignFile(filePath string) error {
 	signCommand := []string{"codesign", "--sign", signingStuff.AppleCodesignIdentity, "--force", "--", filePath}
 	process := exec.Command(signCommand[0], signCommand[1:]...)
 	process.Stdout = os.Stdout
@@ -614,7 +613,7 @@ func AppleCodesignFile(filePath string, signingStuff SigningStuff) error {
 	return nil
 }
 
-func AppleCodesignVerifyFile(filePath string, signingStuff SigningStuff) error {
+func AppleCodesignVerifyFile(filePath string) error {
 	requirements := fmt.Sprintf("certificate leaf = H\"%s\"", hex.EncodeToString(signingStuff.CertificateSHA1Hash[:]))
 
 	signCommand := []string{"codesign", "-vvv", fmt.Sprintf("-R=%s", requirements), "--", filePath}
@@ -632,7 +631,7 @@ func AppleCodesignVerifyFile(filePath string, signingStuff SigningStuff) error {
 }
 
 // originalPath need not be a path to a real file.
-func GPGSignTransform(originalPath string, exe io.Reader, signingStuff SigningStuff) (FileTransformResult, error) {
+func GPGSignTransform(originalPath string, exe io.Reader) (FileTransformResult, error) {
 	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
 	if err != nil {
 		return FileTransformResult{}, err
@@ -650,11 +649,11 @@ func GPGSignTransform(originalPath string, exe io.Reader, signingStuff SigningSt
 		return FileTransformResult{}, err
 	}
 
-	signatureFilePath, err := GPGSignFile(tempFile.Name(), signingStuff)
+	signatureFilePath, err := GPGSignFile(tempFile.Name())
 	if err != nil {
 		return FileTransformResult{}, err
 	}
-	if err := GPGVerifySignature(tempFile.Name(), signatureFilePath, signingStuff); err != nil {
+	if err := GPGVerifySignature(tempFile.Name(), signatureFilePath); err != nil {
 		return FileTransformResult{}, err
 	}
 
@@ -669,7 +668,7 @@ func GPGSignTransform(originalPath string, exe io.Reader, signingStuff SigningSt
 	}, nil
 }
 
-func GPGSignFile(filePath string, signingStuff SigningStuff) (string, error) {
+func GPGSignFile(filePath string) (string, error) {
 	process := exec.Command(
 		"gpg",
 		"--local-user", signingStuff.GPGIdentity,
@@ -689,7 +688,7 @@ func GPGSignFile(filePath string, signingStuff SigningStuff) (string, error) {
 	return filePath + ".asc", nil
 }
 
-func GPGVerifySignature(filePath string, signatureFilePath string, signingStuff SigningStuff) error {
+func GPGVerifySignature(filePath string, signatureFilePath string) error {
 	// HACK(strager): Use /tmp instead of the default temp dir. macOS'
 	// default temp dir is so long that it breaks gpg-agent.
 	tempGPGHome, err := ioutil.TempDir("/tmp", "quick-lint-js-sign-release")
@@ -734,7 +733,7 @@ func GPGVerifySignature(filePath string, signatureFilePath string, signingStuff 
 	return nil
 }
 
-func MicrosoftOsslsigncodeTransform(exe io.Reader, signingStuff SigningStuff) (FileTransformResult, error) {
+func MicrosoftOsslsigncodeTransform(exe io.Reader) (FileTransformResult, error) {
 	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
 	if err != nil {
 		return FileTransformResult{}, err
@@ -753,10 +752,10 @@ func MicrosoftOsslsigncodeTransform(exe io.Reader, signingStuff SigningStuff) (F
 	}
 
 	signedFilePath := filepath.Join(tempDir, "signed.exe")
-	if err := MicrosoftOsslsigncodeFile(unsignedFile.Name(), signedFilePath, signingStuff); err != nil {
+	if err := MicrosoftOsslsigncodeFile(unsignedFile.Name(), signedFilePath); err != nil {
 		return FileTransformResult{}, err
 	}
-	if err := MicrosoftOsslsigncodeVerifyFile(signedFilePath, signingStuff); err != nil {
+	if err := MicrosoftOsslsigncodeVerifyFile(signedFilePath); err != nil {
 		return FileTransformResult{}, err
 	}
 
@@ -771,7 +770,7 @@ func MicrosoftOsslsigncodeTransform(exe io.Reader, signingStuff SigningStuff) (F
 	}, nil
 }
 
-func MicrosoftOsslsigncodeFile(inFilePath string, outFilePath string, signingStuff SigningStuff) error {
+func MicrosoftOsslsigncodeFile(inFilePath string, outFilePath string) error {
 	signCommand := []string{
 		"osslsigncode", "sign",
 		"-pkcs12", signingStuff.PrivateKeyPKCS12Path,
@@ -791,7 +790,7 @@ func MicrosoftOsslsigncodeFile(inFilePath string, outFilePath string, signingStu
 	return nil
 }
 
-func MicrosoftOsslsigncodeVerifyFile(filePath string, signingStuff SigningStuff) error {
+func MicrosoftOsslsigncodeVerifyFile(filePath string) error {
 	certificatePEMFile, err := ioutil.TempFile("", "quick-lint-js-sign-release")
 	if err != nil {
 		return err
