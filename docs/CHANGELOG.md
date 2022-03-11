@@ -6,6 +6,12 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Added
+
+* Windows: The 32-bit x86 builds are now code-signed.
+
 ## 2.3.0 (2022-02-24)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.3.0/)
