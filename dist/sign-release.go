@@ -279,7 +279,17 @@ func CopyFileOrTransformArchive(deepPath DeepPath, sourcePath string, destinatio
 		// filesToTransform mentions it.
 		needsTransform := true
 		if needsTransform {
-			if err := TransformTarGz(deepPath, sourceFile, destinationFile); err != nil {
+			transformResult, err := TransformTarGz(deepPath, sourceFile)
+			if err != nil {
+				return err
+			}
+			if transformResult.newFile == nil {
+				panic("expected newFile")
+			}
+			if transformResult.siblingFile != nil {
+				panic("expected no siblingFile")
+			}
+			if _, err := destinationFile.Write(*transformResult.newFile); err != nil {
 				return err
 			}
 			fileComplete = true
@@ -293,7 +303,17 @@ func CopyFileOrTransformArchive(deepPath DeepPath, sourcePath string, destinatio
 		// filesToTransform mentions it.
 		needsTransform := true
 		if needsTransform {
-			if err := TransformZip(deepPath, sourceFile, destinationFile); err != nil {
+			transformResult, err := TransformZip(deepPath, sourceFile)
+			if err != nil {
+				return err
+			}
+			if transformResult.newFile == nil {
+				panic("expected newFile")
+			}
+			if transformResult.siblingFile != nil {
+				panic("expected no siblingFile")
+			}
+			if _, err := destinationFile.Write(*transformResult.newFile); err != nil {
 				return err
 			}
 			fileComplete = true
@@ -409,6 +429,20 @@ func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, erro
 func TransformTarGz(
 	tarGzDeepPath DeepPath,
 	sourceFile io.Reader,
+) (FileTransformResult, error) {
+	var destinationFile bytes.Buffer
+	if err := TransformTarGzToFile(tarGzDeepPath, sourceFile, &destinationFile); err != nil {
+		return FileTransformResult{}, err
+	}
+	destinationFileContent := destinationFile.Bytes()
+	return FileTransformResult{
+		newFile: &destinationFileContent,
+	}, nil
+}
+
+func TransformTarGzToFile(
+	tarGzDeepPath DeepPath,
+	sourceFile io.Reader,
 	destinationFile io.Writer,
 ) error {
 	sourceUngzippedFile, err := gzip.NewReader(sourceFile)
@@ -473,6 +507,20 @@ func TransformTarGz(
 }
 
 func TransformZip(
+	zipDeepPath DeepPath,
+	sourceFile *os.File,
+) (FileTransformResult, error) {
+	var destinationFile bytes.Buffer
+	if err := TransformZipToFile(zipDeepPath, sourceFile, &destinationFile); err != nil {
+		return FileTransformResult{}, err
+	}
+	destinationFileContent := destinationFile.Bytes()
+	return FileTransformResult{
+		newFile: &destinationFileContent,
+	}, nil
+}
+
+func TransformZipToFile(
 	zipDeepPath DeepPath,
 	sourceFile *os.File,
 	destinationFile io.Writer,
