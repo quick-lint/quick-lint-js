@@ -79,7 +79,7 @@ func main() {
 				return err
 			}
 		} else {
-			err = CopyFileOrTransformArchive(relativePath, sourcePath, destinationPath, sourceInfo)
+			err = CopyFileOrTransformArchive(NewDeepPath(relativePath), sourcePath, destinationPath, sourceInfo)
 			if err != nil {
 				return err
 			}
@@ -140,63 +140,38 @@ const (
 	MicrosoftOsslsigncode
 )
 
-var filesToTransform map[string]map[string]FileTransformType = map[string]map[string]FileTransformType{
-	"manual/linux-aarch64.tar.gz": map[string]FileTransformType{
-		"quick-lint-js/bin/quick-lint-js": GPGSign,
-	},
-	"manual/linux-armhf.tar.gz": map[string]FileTransformType{
-		"quick-lint-js/bin/quick-lint-js": GPGSign,
-	},
-	"manual/linux.tar.gz": map[string]FileTransformType{
-		"quick-lint-js/bin/quick-lint-js": GPGSign,
-	},
-	"manual/macos-aarch64.tar.gz": map[string]FileTransformType{
-		"quick-lint-js/bin/quick-lint-js": AppleCodesign,
-	},
-	"manual/macos.tar.gz": map[string]FileTransformType{
-		"quick-lint-js/bin/quick-lint-js": AppleCodesign,
-	},
-	"manual/windows-arm.zip": map[string]FileTransformType{
-		"bin/quick-lint-js.exe": MicrosoftOsslsigncode,
-	},
-	"manual/windows-arm64.zip": map[string]FileTransformType{
-		"bin/quick-lint-js.exe": MicrosoftOsslsigncode,
-	},
-	"manual/windows.zip": map[string]FileTransformType{
-		"bin/quick-lint-js.exe": MicrosoftOsslsigncode,
-	},
-	"npm/quick-lint-js-2.3.0.tgz": map[string]FileTransformType{
-		"package/darwin-arm64/bin/quick-lint-js":    AppleCodesign,
-		"package/darwin-x64/bin/quick-lint-js":      AppleCodesign,
-		"package/linux-arm/bin/quick-lint-js":       GPGSign,
-		"package/linux-arm64/bin/quick-lint-js":     GPGSign,
-		"package/linux-x64/bin/quick-lint-js":       GPGSign,
-		"package/win32-arm64/bin/quick-lint-js.exe": MicrosoftOsslsigncode,
-		"package/win32-x64/bin/quick-lint-js.exe":   MicrosoftOsslsigncode,
-	},
-	"vscode/quick-lint-js-2.3.0.vsix": map[string]FileTransformType{
-		"extension/dist/quick-lint-js-vscode-node_darwin-arm64.node": AppleCodesign,
-		"extension/dist/quick-lint-js-vscode-node_darwin-x64.node":   AppleCodesign,
-		"extension/dist/quick-lint-js-vscode-node_linux-arm.node":    GPGSign,
-		"extension/dist/quick-lint-js-vscode-node_linux-arm64.node":  GPGSign,
-		"extension/dist/quick-lint-js-vscode-node_linux-x64.node":    GPGSign,
-		"extension/dist/quick-lint-js-vscode-node_win32-arm.node":    MicrosoftOsslsigncode,
-		"extension/dist/quick-lint-js-vscode-node_win32-arm64.node":  MicrosoftOsslsigncode,
-		"extension/dist/quick-lint-js-vscode-node_win32-ia32.node":   MicrosoftOsslsigncode,
-		"extension/dist/quick-lint-js-vscode-node_win32-x64.node":    MicrosoftOsslsigncode,
-	},
+var filesToTransform map[DeepPath]FileTransformType = map[DeepPath]FileTransformType{
+	NewDeepPath2("manual/linux-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                GPGSign,
+	NewDeepPath2("manual/linux-armhf.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                  GPGSign,
+	NewDeepPath2("manual/linux.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        GPGSign,
+	NewDeepPath2("manual/macos-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                AppleCodesign,
+	NewDeepPath2("manual/macos.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        AppleCodesign,
+	NewDeepPath2("manual/windows-arm64.zip", "bin/quick-lint-js.exe"):                                             MicrosoftOsslsigncode,
+	NewDeepPath2("manual/windows-arm.zip", "bin/quick-lint-js.exe"):                                               MicrosoftOsslsigncode,
+	NewDeepPath2("manual/windows.zip", "bin/quick-lint-js.exe"):                                                   MicrosoftOsslsigncode,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/darwin-arm64/bin/quick-lint-js"):                         AppleCodesign,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/darwin-x64/bin/quick-lint-js"):                           AppleCodesign,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-arm/bin/quick-lint-js"):                            GPGSign,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-arm64/bin/quick-lint-js"):                          GPGSign,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-x64/bin/quick-lint-js"):                            GPGSign,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-arm64/bin/quick-lint-js.exe"):                      MicrosoftOsslsigncode,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-x64/bin/quick-lint-js.exe"):                        MicrosoftOsslsigncode,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-arm64.node"): AppleCodesign,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-x64.node"):   AppleCodesign,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm.node"):    GPGSign,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm64.node"):  GPGSign,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-x64.node"):    GPGSign,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm.node"):    MicrosoftOsslsigncode,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm64.node"):  MicrosoftOsslsigncode,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-ia32.node"):   MicrosoftOsslsigncode,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-x64.node"):    MicrosoftOsslsigncode,
 }
 
 func CheckUnsignedFiles() error {
 	foundError := false
-	for archiveName, membersToTransform := range filesToTransform {
-		for memberName, _ := range membersToTransform {
-			log.Printf(
-				"file should have been signed but wasn't: %s inside %s",
-				memberName,
-				archiveName)
-			foundError = true
-		}
+	for deepPath, _ := range filesToTransform {
+		log.Printf("file should have been signed but wasn't: %v", deepPath)
+		foundError = true
 	}
 	if foundError {
 		return fmt.Errorf("one or more files were not signed")
@@ -206,7 +181,7 @@ func CheckUnsignedFiles() error {
 
 // If the file is an archive and has a file which needs to be signed, sign the
 // embedded file and recreate the archive. Otherwise, copy the file verbatim.
-func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinationPath string, sourceInfo fs.FileInfo) error {
+func CopyFileOrTransformArchive(deepPath DeepPath, sourcePath string, destinationPath string, sourceInfo fs.FileInfo) error {
 	if !sourceInfo.Mode().IsRegular() {
 		return fmt.Errorf("expected regular file: %q", sourcePath)
 	}
@@ -230,10 +205,13 @@ func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinat
 		}
 	})()
 
-	if strings.HasSuffix(relativePath, ".tar.gz") || strings.HasSuffix(relativePath, ".tgz") {
-		archiveMembersToTransform := filesToTransform[relativePath]
-		if archiveMembersToTransform != nil {
-			if err := TransformTarGz(sourceFile, sourcePath, destinationFile, archiveMembersToTransform); err != nil {
+	if strings.HasSuffix(deepPath.Last(), ".tar.gz") || strings.HasSuffix(deepPath.Last(), ".tgz") {
+		// TODO(strager): Optimization: Don't
+		// process this file if no entry of
+		// filesToTransform mentions it.
+		needsTransform := true
+		if needsTransform {
+			if err := TransformTarGz(deepPath, sourceFile, destinationFile); err != nil {
 				return err
 			}
 			fileComplete = true
@@ -241,10 +219,13 @@ func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinat
 		}
 	}
 
-	if strings.HasSuffix(relativePath, ".vsix") || strings.HasSuffix(relativePath, ".zip") {
-		archiveMembersToTransform := filesToTransform[relativePath]
-		if archiveMembersToTransform != nil {
-			if err := TransformZip(sourceFile, destinationFile, archiveMembersToTransform); err != nil {
+	if strings.HasSuffix(deepPath.Last(), ".vsix") || strings.HasSuffix(deepPath.Last(), ".zip") {
+		// TODO(strager): Optimization: Don't
+		// process this file if no entry of
+		// filesToTransform mentions it.
+		needsTransform := true
+		if needsTransform {
+			if err := TransformZip(deepPath, sourceFile, destinationFile); err != nil {
 				return err
 			}
 			fileComplete = true
@@ -326,34 +307,34 @@ func (self *FileTransformResult) Close() {
 }
 
 func TransformTarGz(
+	tarGzDeepPath DeepPath,
 	sourceFile io.Reader,
-	sourceFilePath string,
 	destinationFile io.Writer,
-	membersToTransform map[string]FileTransformType,
 ) error {
 	return TransformTarGzGeneric(sourceFile, destinationFile,
-		func(path string, file io.Reader) (FileTransformResult, error) {
-			transformType := membersToTransform[path]
-			delete(membersToTransform, path)
+		func(memberPath string, file io.Reader) (FileTransformResult, error) {
+			deepPath := tarGzDeepPath.Append(memberPath)
+			transformType := filesToTransform[deepPath]
+			delete(filesToTransform, deepPath)
 			switch transformType {
 			case AppleCodesign:
-				log.Printf("signing with Apple codesign: %s:%s\n", sourceFilePath, path)
-				transform, err := AppleCodesignTransform(path, file)
+				log.Printf("signing with Apple codesign: %v\n", deepPath)
+				transform, err := AppleCodesignTransform(memberPath, file)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
 				return transform, nil
 
 			case GPGSign:
-				log.Printf("signing with GPG: %s:%s\n", sourceFilePath, path)
-				transform, err := GPGSignTransform(path, file)
+				log.Printf("signing with GPG: %v\n", deepPath)
+				transform, err := GPGSignTransform(memberPath, file)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
 				return transform, nil
 
 			case MicrosoftOsslsigncode:
-				log.Printf("signing with osslsigncode: %s:%s\n", sourceFilePath, path)
+				log.Printf("signing with osslsigncode: %v\n", deepPath)
 				transform, err := MicrosoftOsslsigncodeTransform(file)
 				if err != nil {
 					return FileTransformResult{}, err
@@ -441,33 +422,34 @@ func TransformTarGzGeneric(
 }
 
 func TransformZip(
+	zipDeepPath DeepPath,
 	sourceFile *os.File,
 	destinationFile io.Writer,
-	membersToTransform map[string]FileTransformType,
 ) error {
 	return TransformZipGeneric(sourceFile, destinationFile,
-		func(path string, file io.Reader) (FileTransformResult, error) {
-			transformType := membersToTransform[path]
-			delete(membersToTransform, path)
+		func(memberPath string, file io.Reader) (FileTransformResult, error) {
+			deepPath := zipDeepPath.Append(memberPath)
+			transformType := filesToTransform[deepPath]
+			delete(filesToTransform, deepPath)
 			switch transformType {
 			case AppleCodesign:
-				log.Printf("signing with Apple codesign: %s:%s\n", sourceFile.Name(), path)
-				transform, err := AppleCodesignTransform(path, file)
+				log.Printf("signing with Apple codesign: %v\n", deepPath)
+				transform, err := AppleCodesignTransform(memberPath, file)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
 				return transform, nil
 
 			case GPGSign:
-				log.Printf("signing with GPG: %s:%s\n", sourceFile.Name(), path)
-				transform, err := GPGSignTransform(path, file)
+				log.Printf("signing with GPG: %v\n", deepPath)
+				transform, err := GPGSignTransform(memberPath, file)
 				if err != nil {
 					return FileTransformResult{}, err
 				}
 				return transform, nil
 
 			case MicrosoftOsslsigncode:
-				log.Printf("signing with osslsigncode: %s:%s\n", sourceFile.Name(), path)
+				log.Printf("signing with osslsigncode: %v\n", deepPath)
 				transform, err := MicrosoftOsslsigncodeTransform(file)
 				if err != nil {
 					return FileTransformResult{}, err
@@ -896,6 +878,37 @@ func VerifySHA256SUMSFile(hashesPath string) error {
 		return err
 	}
 	return nil
+}
+
+type DeepPath struct {
+	parts [2]string
+}
+
+func NewDeepPath(path string) DeepPath {
+	return DeepPath{[2]string{path, ""}}
+}
+
+func NewDeepPath2(path0 string, path1 string) DeepPath {
+	return DeepPath{[2]string{path0, path1}}
+}
+
+func (path *DeepPath) Append(child string) DeepPath {
+	newPath := *path
+	if newPath.parts[0] == "" {
+		newPath.parts[0] = child
+	} else if path.parts[1] == "" {
+		newPath.parts[1] = child
+	} else {
+		log.Fatal("cannot append %#v to %#v; DeepPath has no space left", child, newPath)
+	}
+	return newPath
+}
+
+func (path *DeepPath) Last() string {
+	if path.parts[1] != "" {
+		return path.parts[1]
+	}
+	return path.parts[0]
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
