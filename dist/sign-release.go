@@ -273,64 +273,30 @@ func CopyFileOrTransformArchive(deepPath DeepPath, sourcePath string, destinatio
 		}
 	})()
 
-	if PathLooksLikeTarGz(deepPath.Last()) {
-		// TODO(strager): Optimization: Don't
-		// process this file if no entry of
-		// filesToTransform mentions it.
-		needsTransform := true
-		if needsTransform {
-			transformResult, err := TransformTarGz(deepPath, sourceFile)
-			if err != nil {
-				return err
-			}
-			if transformResult.newFile == nil {
-				panic("expected newFile")
-			}
-			if transformResult.siblingFile != nil {
-				panic("expected no siblingFile")
-			}
-			if _, err := destinationFile.Write(*transformResult.newFile); err != nil {
-				return err
-			}
-			fileComplete = true
-			return nil
-		}
-	}
-
-	if PathLooksLikeZip(deepPath.Last()) {
-		// TODO(strager): Optimization: Don't
-		// process this file if no entry of
-		// filesToTransform mentions it.
-		needsTransform := true
-		if needsTransform {
-			transformResult, err := TransformZip(deepPath, sourceFile)
-			if err != nil {
-				return err
-			}
-			if transformResult.newFile == nil {
-				panic("expected newFile")
-			}
-			if transformResult.siblingFile != nil {
-				panic("expected no siblingFile")
-			}
-			if _, err := destinationFile.Write(*transformResult.newFile); err != nil {
-				return err
-			}
-			fileComplete = true
-			return nil
-		}
-	}
-
-	// Default behavior: copy the file verbatim.
-	_, err = io.Copy(destinationFile, sourceFile)
+	transformResult, err := TransformFile(deepPath, sourceFile)
 	if err != nil {
 		return err
 	}
-	err = os.Chtimes(destinationPath, sourceInfo.ModTime(), sourceInfo.ModTime())
-	if err != nil {
-		return err
+	if transformResult.newFile == nil {
+		_, err = io.Copy(destinationFile, sourceFile)
+		if err != nil {
+			return err
+		}
+		err = os.Chtimes(destinationPath, sourceInfo.ModTime(), sourceInfo.ModTime())
+		if err != nil {
+			return err
+		}
+		fileComplete = true
+	} else {
+		if _, err := destinationFile.Write(*transformResult.newFile); err != nil {
+			return err
+		}
+		fileComplete = true
 	}
-	fileComplete = true
+	if transformResult.siblingFile != nil {
+		panic("siblingFile not yet implemented for filesystem destinations")
+	}
+
 	return nil
 }
 
@@ -368,6 +334,39 @@ func (self *FileTransformResult) UpdateZipHeader(header *zip.FileHeader) {
 
 func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, error) {
 	var err error
+
+	if PathLooksLikeTarGz(deepPath.Last()) {
+		// TODO(strager): Optimization: Don't
+		// process this file if no entry of
+		// filesToTransform mentions it.
+		needsTransform := true
+		if needsTransform {
+			transformResult, err := TransformTarGz(deepPath, file)
+			if err != nil {
+				return FileTransformResult{}, err
+			}
+			return transformResult, nil
+		}
+	}
+
+	if PathLooksLikeZip(deepPath.Last()) {
+		// TODO(strager): Optimization: Don't
+		// process this file if no entry of
+		// filesToTransform mentions it.
+		needsTransform := true
+		if needsTransform {
+			fileContent, err := io.ReadAll(file)
+			if err != nil {
+				return FileTransformResult{}, err
+			}
+
+			transformResult, err := TransformZip(deepPath, fileContent)
+			if err != nil {
+				return FileTransformResult{}, err
+			}
+			return transformResult, nil
+		}
+	}
 
 	transformType := filesToTransform[deepPath]
 
@@ -508,7 +507,7 @@ func TransformTarGzToFile(
 
 func TransformZip(
 	zipDeepPath DeepPath,
-	sourceFile *os.File,
+	sourceFile []byte,
 ) (FileTransformResult, error) {
 	var destinationFile bytes.Buffer
 	if err := TransformZipToFile(zipDeepPath, sourceFile, &destinationFile); err != nil {
@@ -522,14 +521,10 @@ func TransformZip(
 
 func TransformZipToFile(
 	zipDeepPath DeepPath,
-	sourceFile *os.File,
+	sourceFile []byte,
 	destinationFile io.Writer,
 ) error {
-	sourceFileStat, err := sourceFile.Stat()
-	if err != nil {
-		return err
-	}
-	sourceZipFile, err := zip.NewReader(sourceFile, sourceFileStat.Size())
+	sourceZipFile, err := zip.NewReader(bytes.NewReader(sourceFile), int64(len(sourceFile)))
 	if err != nil {
 		return err
 	}
@@ -929,15 +924,19 @@ func VerifySHA256SUMSFile(hashesPath string) error {
 }
 
 type DeepPath struct {
-	parts [2]string
+	parts [3]string
 }
 
 func NewDeepPath(path string) DeepPath {
-	return DeepPath{[2]string{path, ""}}
+	return DeepPath{[3]string{path, "", ""}}
 }
 
 func NewDeepPath2(path0 string, path1 string) DeepPath {
-	return DeepPath{[2]string{path0, path1}}
+	return DeepPath{[3]string{path0, path1, ""}}
+}
+
+func NewDeepPath3(path0 string, path1 string, path2 string) DeepPath {
+	return DeepPath{[3]string{path0, path1, path2}}
 }
 
 func (path *DeepPath) Append(child string) DeepPath {
@@ -946,6 +945,8 @@ func (path *DeepPath) Append(child string) DeepPath {
 		newPath.parts[0] = child
 	} else if path.parts[1] == "" {
 		newPath.parts[1] = child
+	} else if path.parts[2] == "" {
+		newPath.parts[2] = child
 	} else {
 		log.Fatal("cannot append %#v to %#v; DeepPath has no space left", child, newPath)
 	}
@@ -953,6 +954,9 @@ func (path *DeepPath) Append(child string) DeepPath {
 }
 
 func (path *DeepPath) Last() string {
+	if path.parts[2] != "" {
+		return path.parts[2]
+	}
 	if path.parts[1] != "" {
 		return path.parts[1]
 	}
