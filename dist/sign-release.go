@@ -21,6 +21,7 @@ import "os"
 import "os/exec"
 import "path/filepath"
 import "strings"
+import "time"
 import _ "embed"
 
 //go:embed certificates/quick-lint-js.cer
@@ -40,6 +41,7 @@ type SigningStuff struct {
 
 var signingStuff SigningStuff
 
+var ProgramStartTime time.Time = time.Now()
 var TempDirs []string
 
 func main() {
@@ -249,60 +251,32 @@ func CopyFileOrTransformArchive(deepPath DeepPath, sourcePath string, destinatio
 type FileTransformResult struct {
 	// If newFile is nil, then the file remains untouched.
 	// If newFile is not nil, its contents are used.
-	//
-	// If newFile is not nil, Close will delete the file as if by
-	// os.Remove(newFile.Name())
-	newFile *os.File
+	newFile *[]byte
 
 	// If siblingFile is not nil, then a new file is created named
 	// siblingFileName.
-	//
-	// If siblingFile is not nil, Close will delete the file as if by
-	// os.Remove(siblingFile.Name()).
-	siblingFile     *os.File
+	siblingFile     *[]byte
 	siblingFileName string
 }
 
-func (self *FileTransformResult) UpdateTarHeader(header *tar.Header) error {
+func (self *FileTransformResult) UpdateTarHeader(header *tar.Header) {
 	if self.newFile != nil {
-		newFileStat, err := self.newFile.Stat()
-		if err != nil {
-			return err
-		}
 		if header.Format == tar.FormatGNU || header.Format == tar.FormatPAX {
-			header.AccessTime = newFileStat.ModTime()
-			header.ChangeTime = newFileStat.ModTime()
+			header.AccessTime = ProgramStartTime
+			header.ChangeTime = ProgramStartTime
 		}
-		header.ModTime = newFileStat.ModTime()
-		header.Size = newFileStat.Size()
+		header.ModTime = ProgramStartTime
+		size := len(*self.newFile)
+		header.Size = int64(size)
 	}
-	return nil
 }
 
-func (self *FileTransformResult) UpdateZipHeader(header *zip.FileHeader) error {
+func (self *FileTransformResult) UpdateZipHeader(header *zip.FileHeader) {
 	if self.newFile != nil {
-		newFileStat, err := self.newFile.Stat()
-		if err != nil {
-			return err
-		}
-		header.Modified = newFileStat.ModTime()
-		header.UncompressedSize = uint32(newFileStat.Size())
-		header.UncompressedSize64 = uint64(newFileStat.Size())
-	}
-	return nil
-}
-
-func (self *FileTransformResult) Close() {
-	if self.newFile != nil {
-		self.newFile.Close()
-		os.Remove(self.newFile.Name())
-		self.newFile = nil
-	}
-
-	if self.siblingFile != nil {
-		self.siblingFile.Close()
-		os.Remove(self.siblingFile.Name())
-		self.siblingFile = nil
+		header.Modified = ProgramStartTime
+		size := len(*self.newFile)
+		header.UncompressedSize = uint32(size)
+		header.UncompressedSize64 = uint64(size)
 	}
 }
 
@@ -375,37 +349,30 @@ func TransformTarGz(
 		if err != nil {
 			return err
 		}
-		defer transformResult.Close()
 
-		if err := transformResult.UpdateTarHeader(header); err != nil {
-			return err
-		}
-		var file io.Reader = bytes.NewReader(fileContent.Bytes())
+		transformResult.UpdateTarHeader(header)
+		var newFileContent []byte = fileContent.Bytes()
 		if transformResult.newFile != nil {
-			file = transformResult.newFile
+			newFileContent = *transformResult.newFile
 		}
-		if err := WriteTarEntry(header, file, tarWriter); err != nil {
+		if err := WriteTarEntry(header, newFileContent, tarWriter); err != nil {
 			return err
 		}
 
 		if transformResult.siblingFile != nil {
-			siblingFileStat, err := transformResult.siblingFile.Stat()
-			if err != nil {
-				return err
-			}
 			siblingHeader := tar.Header{
 				Typeflag: tar.TypeReg,
 				Name:     filepath.Join(filepath.Dir(header.Name), transformResult.siblingFileName),
-				Size:     siblingFileStat.Size(),
+				Size:     int64(len(*transformResult.siblingFile)),
 				Mode:     header.Mode &^ 0111,
 				Uid:      header.Uid,
 				Gid:      header.Gid,
 				Uname:    header.Uname,
 				Gname:    header.Gname,
-				ModTime:  siblingFileStat.ModTime(),
+				ModTime:  ProgramStartTime,
 				Format:   tar.FormatUSTAR,
 			}
-			if err := WriteTarEntry(&siblingHeader, transformResult.siblingFile, tarWriter); err != nil {
+			if err := WriteTarEntry(&siblingHeader, *transformResult.siblingFile, tarWriter); err != nil {
 				return err
 			}
 		}
@@ -441,11 +408,8 @@ func TransformZip(
 		if err != nil {
 			return err
 		}
-		defer transformResult.Close()
 
-		if err := transformResult.UpdateZipHeader(&zipEntry.FileHeader); err != nil {
-			return err
-		}
+		transformResult.UpdateZipHeader(&zipEntry.FileHeader)
 		if transformResult.newFile == nil {
 			rawZIPEntryFile, err := zipEntry.OpenRaw()
 			if err != nil {
@@ -465,8 +429,7 @@ func TransformZip(
 			if err != nil {
 				return err
 			}
-			_, err = io.Copy(destinationZipEntryFile, transformResult.newFile)
-			if err != nil {
+			if _, err := destinationZipEntryFile.Write(*transformResult.newFile); err != nil {
 				return err
 			}
 		}
@@ -476,8 +439,7 @@ func TransformZip(
 			if err != nil {
 				return err
 			}
-			_, err = io.Copy(siblingZIPEntryFile, transformResult.siblingFile)
-			if err != nil {
+			if _, err := siblingZIPEntryFile.Write(*transformResult.siblingFile); err != nil {
 				return err
 			}
 		}
@@ -521,14 +483,10 @@ func AppleCodesignTransform(originalPath string, exe io.Reader) (FileTransformRe
 
 	// AppleCodesignFile replaced the file, so we can't just rewind
 	// tempFile. Open the file again.
-	signedFile, err := os.Open(tempFile.Name())
-	if err != nil {
-		os.Remove(tempFile.Name())
-		return FileTransformResult{}, err
-	}
-
+	signedFileContent, err := os.ReadFile(tempFile.Name())
+	if err != nil { return FileTransformResult{}, err }
 	return FileTransformResult{
-		newFile: signedFile,
+		newFile: &signedFileContent,
 	}, nil
 }
 
@@ -590,13 +548,12 @@ func GPGSignTransform(originalPath string, exe io.Reader) (FileTransformResult, 
 		return FileTransformResult{}, err
 	}
 
-	signatureFile, err := os.Open(signatureFilePath)
+	signatureFileContent, err := os.ReadFile(signatureFilePath)
 	if err != nil {
 		return FileTransformResult{}, err
 	}
-
 	return FileTransformResult{
-		siblingFile:     signatureFile,
+		siblingFile:     &signatureFileContent,
 		siblingFileName: filepath.Base(originalPath) + ".asc",
 	}, nil
 }
@@ -692,14 +649,10 @@ func MicrosoftOsslsigncodeTransform(exe io.Reader) (FileTransformResult, error) 
 		return FileTransformResult{}, err
 	}
 
-	signedFile, err := os.Open(signedFilePath)
-	if err != nil {
-		os.Remove(signedFilePath)
-		return FileTransformResult{}, err
-	}
-
+	signedFileContent, err := os.ReadFile(signedFilePath)
+	if err != nil { return FileTransformResult{}, err }
 	return FileTransformResult{
-		newFile: signedFile,
+		newFile: &signedFileContent,
 	}, nil
 }
 
@@ -765,15 +718,15 @@ func MicrosoftOsslsigncodeVerifyFile(filePath string) error {
 	return nil
 }
 
-func WriteTarEntry(header *tar.Header, file io.Reader, output *tar.Writer) error {
+func WriteTarEntry(header *tar.Header, fileContent []byte, output *tar.Writer) error {
 	if err := output.WriteHeader(header); err != nil {
 		return err
 	}
-	bytesWritten, err := io.Copy(output, file)
+	bytesWritten, err := output.Write(fileContent)
 	if err != nil {
 		return err
 	}
-	if bytesWritten != header.Size {
+	if int64(bytesWritten) != header.Size {
 		return fmt.Errorf("failed to write entire file")
 	}
 	return nil
