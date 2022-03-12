@@ -162,7 +162,7 @@ Beta release.
 
 ### Fixed
 
-* npm: The npm package now installs on macOS Apple Silicon when using the
+* npm: The npm package now installs on macOS Apple silicon when using the
   AArch64 (native) version of Node.js. (The package previously worked only on
   macOS Intel, or when using x86_64 Node.js with Rosetta.)
 
@@ -203,7 +203,7 @@ Beta release.
 ### Optimized
 
 * Identifier parsing is now SIMD-optimized for ARM systems, including Apple
-  Silicon. [See the patch
+  silicon. [See the patch
   here.](https://github.com/quick-lint/quick-lint-js/commit/79cf6e71f42722a8eca28ab20f288abdc41ec162)
 * Diagnostic message translations consume less space in executables and also
   take less time to process. [See the patch
@@ -224,7 +224,7 @@ Beta release.
   Sousa][]).
 * VS Code: The new `quick-lint-js.logging` setting allows you to show
   quick-lint-js' internal log messages in an Output window.
-* VS Code: Apple Silicon (e.g. M1) (ARM64) is now supported.
+* VS Code: Apple silicon (e.g. M1) (ARM64) is now supported.
 * VS Code: Linux ARM (32-bit) is now supported.
 * Vim: Improved performance for ALE versions v2.5.0 and newer (and v3.0.0 and
   newer). You should configure `g:ale_lint_on_text_changed` to `'always'` for
