@@ -9,7 +9,6 @@ import "bytes"
 import "compress/gzip"
 import "crypto/sha1"
 import "crypto/sha256"
-import "encoding/hex"
 import "errors"
 import "flag"
 import "fmt"
@@ -30,17 +29,19 @@ var AppleCodesignCertificate []byte
 //go:embed certificates/DigiCertAssuredIDRootCA_comb.crt.pem
 var DigiCertCertificate []byte
 
+//go:embed apple/quick-lint-js.csreq
+var AppleCodeSigningRequirements []byte
+
 //go:embed certificates/quick-lint-js.gpg.key
 var QLJSGPGKey []byte
 
 type SigningStuff struct {
-	AppleCodesignIdentity string // Common Name from the macOS Keychain.
-	Certificate           []byte
-	CertificateSHA1Hash   [20]byte
-	TimestampCertificate  []byte
-	GPGIdentity           string // Fingerprint or email or name.
-	GPGKey                []byte
-	RelicConfigPath       string
+	Certificate          []byte
+	CertificateSHA1Hash  [20]byte
+	TimestampCertificate []byte
+	GPGIdentity          string // Fingerprint or email or name.
+	GPGKey               []byte
+	RelicConfigPath      string
 }
 
 // Key: SHA256 hash of original file
@@ -61,7 +62,6 @@ func main() {
 	signingStuff.TimestampCertificate = DigiCertCertificate
 	signingStuff.GPGKey = QLJSGPGKey
 
-	flag.StringVar(&signingStuff.AppleCodesignIdentity, "AppleCodesignIdentity", "", "")
 	flag.StringVar(&signingStuff.GPGIdentity, "GPGIdentity", "", "")
 	flag.StringVar(&signingStuff.RelicConfigPath, "RelicConfig", "", "")
 	flag.Parse()
@@ -156,40 +156,47 @@ type FileTransformType int
 
 const (
 	NoTransform FileTransformType = iota
-	AppleCodesign
 	GPGSign
-	Relic
+	RelicApple
+	RelicWindows
+)
+
+type RelicSigningType int
+
+const (
+	RelicSignApple   RelicSigningType = RelicSigningType(RelicApple) // macOS
+	RelicSignWindows                  = RelicSigningType(RelicWindows)
 )
 
 var filesToTransform map[DeepPath]FileTransformType = map[DeepPath]FileTransformType{
-	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x64.zip", "bin/quick-lint-js.exe"):              Relic,
-	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x86.zip", "bin/quick-lint-js.exe"):              Relic,
+	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x64.zip", "bin/quick-lint-js.exe"):              RelicWindows,
+	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x86.zip", "bin/quick-lint-js.exe"):              RelicWindows,
 	NewDeepPath2("manual/linux-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                GPGSign,
 	NewDeepPath2("manual/linux-armhf.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                  GPGSign,
 	NewDeepPath2("manual/linux.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        GPGSign,
-	NewDeepPath2("manual/macos-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                AppleCodesign,
-	NewDeepPath2("manual/macos.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        AppleCodesign,
-	NewDeepPath2("manual/windows-arm64.zip", "bin/quick-lint-js.exe"):                                             Relic,
-	NewDeepPath2("manual/windows-arm.zip", "bin/quick-lint-js.exe"):                                               Relic,
-	NewDeepPath2("manual/windows-x86.zip", "bin/quick-lint-js.exe"):                                               Relic,
-	NewDeepPath2("manual/windows.zip", "bin/quick-lint-js.exe"):                                                   Relic,
-	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/darwin-arm64/bin/quick-lint-js"):                         AppleCodesign,
-	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/darwin-x64/bin/quick-lint-js"):                           AppleCodesign,
+	NewDeepPath2("manual/macos-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                RelicApple,
+	NewDeepPath2("manual/macos.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        RelicApple,
+	NewDeepPath2("manual/windows-arm64.zip", "bin/quick-lint-js.exe"):                                             RelicWindows,
+	NewDeepPath2("manual/windows-arm.zip", "bin/quick-lint-js.exe"):                                               RelicWindows,
+	NewDeepPath2("manual/windows-x86.zip", "bin/quick-lint-js.exe"):                                               RelicWindows,
+	NewDeepPath2("manual/windows.zip", "bin/quick-lint-js.exe"):                                                   RelicWindows,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/darwin-arm64/bin/quick-lint-js"):                         RelicApple,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/darwin-x64/bin/quick-lint-js"):                           RelicApple,
 	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-arm/bin/quick-lint-js"):                            GPGSign,
 	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-arm64/bin/quick-lint-js"):                          GPGSign,
 	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-x64/bin/quick-lint-js"):                            GPGSign,
-	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-arm64/bin/quick-lint-js.exe"):                      Relic,
-	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-ia32/bin/quick-lint-js.exe"):                       Relic,
-	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-x64/bin/quick-lint-js.exe"):                        Relic,
-	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-arm64.node"): AppleCodesign,
-	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-x64.node"):   AppleCodesign,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-arm64/bin/quick-lint-js.exe"):                      RelicWindows,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-ia32/bin/quick-lint-js.exe"):                       RelicWindows,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-x64/bin/quick-lint-js.exe"):                        RelicWindows,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-arm64.node"): RelicApple,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-x64.node"):   RelicApple,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm.node"):    GPGSign,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm64.node"):  GPGSign,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-x64.node"):    GPGSign,
-	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm.node"):    Relic,
-	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm64.node"):  Relic,
-	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-ia32.node"):   Relic,
-	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-x64.node"):    Relic,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm.node"):    RelicWindows,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm64.node"):  RelicWindows,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-ia32.node"):   RelicWindows,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-x64.node"):    RelicWindows,
 }
 
 func CheckUnsignedFiles() error {
@@ -411,13 +418,6 @@ func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, erro
 
 	var transform FileTransformResult
 	switch transformType {
-	case AppleCodesign:
-		log.Printf("signing with Apple codesign: %v\n", deepPath)
-		transform, err = AppleCodesignTransform(deepPath.Last(), file)
-		if err != nil {
-			return FileTransformResult{}, err
-		}
-
 	case GPGSign:
 		log.Printf("signing with GPG: %v\n", deepPath)
 		transform, err = GPGSignTransform(deepPath.Last(), file)
@@ -425,9 +425,9 @@ func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, erro
 			return FileTransformResult{}, err
 		}
 
-	case Relic:
+	case RelicApple, RelicWindows:
 		log.Printf("signing with Relic: %v\n", deepPath)
-		transform, err = RelicTransform(file)
+		transform, err = RelicTransform(file, RelicSigningType(transformType))
 		if err != nil {
 			return FileTransformResult{}, err
 		}
@@ -605,76 +605,6 @@ func NoOpTransform() FileTransformResult {
 }
 
 // originalPath need not be a path to a real file.
-func AppleCodesignTransform(originalPath string, exe io.Reader) (FileTransformResult, error) {
-	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-	TempDirs = append(TempDirs, tempDir)
-
-	// Name the file the same as the original. The codesign utility
-	// sometimes uses the file name as the Identifier, and we don't want the
-	// Identifier being some random string.
-	tempFile, err := os.Create(filepath.Join(tempDir, filepath.Base(originalPath)))
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-	_, err = io.Copy(tempFile, exe)
-	tempFile.Close()
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-
-	if err := AppleCodesignFile(tempFile.Name()); err != nil {
-		return FileTransformResult{}, err
-	}
-	if err := AppleCodesignVerifyFile(tempFile.Name()); err != nil {
-		return FileTransformResult{}, err
-	}
-
-	// AppleCodesignFile replaced the file, so we can't just rewind
-	// tempFile. Open the file again.
-	signedFileContent, err := os.ReadFile(tempFile.Name())
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-	return FileTransformResult{
-		newFile: &signedFileContent,
-	}, nil
-}
-
-func AppleCodesignFile(filePath string) error {
-	signCommand := []string{"codesign", "--sign", signingStuff.AppleCodesignIdentity, "--force", "--", filePath}
-	process := exec.Command(signCommand[0], signCommand[1:]...)
-	process.Stdout = os.Stdout
-	process.Stderr = os.Stderr
-	if err := process.Start(); err != nil {
-		return err
-	}
-	if err := process.Wait(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func AppleCodesignVerifyFile(filePath string) error {
-	requirements := fmt.Sprintf("certificate leaf = H\"%s\"", hex.EncodeToString(signingStuff.CertificateSHA1Hash[:]))
-
-	signCommand := []string{"codesign", "-vvv", fmt.Sprintf("-R=%s", requirements), "--", filePath}
-	process := exec.Command(signCommand[0], signCommand[1:]...)
-	process.Stdout = os.Stdout
-	process.Stderr = os.Stderr
-	if err := process.Start(); err != nil {
-		return err
-	}
-	if err := process.Wait(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// originalPath need not be a path to a real file.
 func GPGSignTransform(originalPath string, exe io.Reader) (FileTransformResult, error) {
 	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
 	if err != nil {
@@ -776,7 +706,7 @@ func GPGVerifySignature(filePath string, signatureFilePath string) error {
 	return nil
 }
 
-func RelicTransform(exe io.Reader) (FileTransformResult, error) {
+func RelicTransform(exe io.Reader, signingType RelicSigningType) (FileTransformResult, error) {
 	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
 	if err != nil {
 		return FileTransformResult{}, err
@@ -795,7 +725,7 @@ func RelicTransform(exe io.Reader) (FileTransformResult, error) {
 	}
 
 	signedFilePath := filepath.Join(tempDir, "signed.exe")
-	if err := RelicFile(unsignedFile.Name(), signedFilePath); err != nil {
+	if err := RelicFile(unsignedFile.Name(), signedFilePath, signingType); err != nil {
 		return FileTransformResult{}, err
 	}
 	if err := RelicVerifyFile(signedFilePath); err != nil {
@@ -811,7 +741,7 @@ func RelicTransform(exe io.Reader) (FileTransformResult, error) {
 	}, nil
 }
 
-func RelicFile(inFilePath string, outFilePath string) error {
+func RelicFile(inFilePath string, outFilePath string, signingType RelicSigningType) error {
 	inFileAbsolutePath, err := filepath.Abs(inFilePath)
 	if err != nil {
 		return err
@@ -828,6 +758,19 @@ func RelicFile(inFilePath string, outFilePath string) error {
 		"--file", inFileAbsolutePath,
 		"--output", outFileAbsolutePath,
 	}
+	switch signingType {
+	case RelicSignApple:
+		requirementsPath, err := MakeTempFileWithContent(AppleCodeSigningRequirements)
+		if err != nil {
+			return err
+		}
+		signCommand = append(signCommand, "--requirements", requirementsPath)
+		signCommand = append(signCommand, "--bundle-id", "quick-lint-js")
+	case RelicSignWindows:
+		break
+	default:
+		panic("unexpected RelicSigningType")
+	}
 	process := exec.Command(signCommand[0], signCommand[1:]...)
 	process.Stdout = os.Stdout
 	process.Stderr = os.Stderr
@@ -838,6 +781,14 @@ func RelicFile(inFilePath string, outFilePath string) error {
 	if err := process.Wait(); err != nil {
 		return err
 	}
+
+	// TODO(strager): For RelicSignApple, if the codesign tool is installed,
+	// run the following command to verify the signature:
+	//
+	// $ codesign -vvv -R="$(csreq -r='certificate leaf = "./dist/certificates/quick-lint-js.cer"' -t)" $file
+	//
+	// (I don't trust Relic to verify requirements.)
+
 	return nil
 }
 

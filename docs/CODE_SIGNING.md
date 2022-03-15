@@ -22,7 +22,7 @@ You will also need a GnuPG key. Create the key, then export the public key to
 `dist/certificates/quick-lint-js.gpg.key`.
 
 When you run the `dist/sign-release.go` program, specify
-`-AppleCodesignIdentity COMMON_NAME_OF_YOUR_KEY -GPGIdentity GPG_KEY_FINGERPRINT -RelicConfig dist/certificates/relic-config.yaml`.
+`-GPGIdentity GPG_KEY_FINGERPRINT -RelicConfig dist/certificates/relic-config.yaml`.
 
 [macos-create-ca]: https://www.simplified.guide/macos/keychain-ca-code-signing-create
 [macos-create-cert]: https://www.simplified.guide/macos/keychain-cert-code-signing-create
