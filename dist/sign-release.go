@@ -325,9 +325,9 @@ type FileTransformResult struct {
 	newFile *[]byte
 
 	// If siblingFile is not nil, then a new file is created named
-	// siblingFileName.
-	siblingFile     *[]byte
-	siblingFileName string
+	// siblingFileNameSuffix.
+	siblingFile           *[]byte
+	siblingFileNameSuffix string
 }
 
 func (self *FileTransformResult) UpdateTarHeader(header *tar.Header) {
@@ -499,7 +499,7 @@ func TransformTarGzToFile(
 		if transformResult.siblingFile != nil {
 			siblingHeader := tar.Header{
 				Typeflag: tar.TypeReg,
-				Name:     filepath.Join(filepath.Dir(header.Name), transformResult.siblingFileName),
+				Name:     header.Name + transformResult.siblingFileNameSuffix,
 				Size:     int64(len(*transformResult.siblingFile)),
 				Mode:     header.Mode &^ 0111,
 				Uid:      header.Uid,
@@ -582,7 +582,7 @@ func TransformZipToFile(
 		}
 
 		if transformResult.siblingFile != nil {
-			siblingZIPEntryFile, err := destinationZipFile.Create(filepath.Join(filepath.Dir(zipEntry.Name), transformResult.siblingFileName))
+			siblingZIPEntryFile, err := destinationZipFile.Create(zipEntry.Name + transformResult.siblingFileNameSuffix)
 			if err != nil {
 				return err
 			}
@@ -632,8 +632,8 @@ func GPGSignTransform(originalPath string, exe io.Reader) (FileTransformResult, 
 		return FileTransformResult{}, err
 	}
 	return FileTransformResult{
-		siblingFile:     &signatureFileContent,
-		siblingFileName: filepath.Base(originalPath) + ".asc",
+		siblingFile:           &signatureFileContent,
+		siblingFileNameSuffix: ".asc",
 	}, nil
 }
 
