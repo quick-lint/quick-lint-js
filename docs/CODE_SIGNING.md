@@ -18,11 +18,14 @@ following command (**do not commit the `.key` file**):
 
     $ openssl pkcs12 -in dist/certificates/quick-lint-js-PRIVATE.p12 -nocerts -out /dev/stdout -passout pass:temporarypass | openssl rsa -in /dev/stdin -out dist/certificates/quick-lint-js-PRIVATE.key -passin pass:temporarypass
 
-You will also need a GnuPG key. Create the key, then export the public key to
-`dist/certificates/quick-lint-js.gpg.key`.
+You will also need a GnuPG key. Create the key, then run the following commands
+(**do not commit the `quick-lint-js-PRIVATE.gpg.key` file**):
+
+    $ gpg --output dist/certificates/quick-lint-js.gpg.key --armor --export $YOUR_KEY_FINGERPRINT
+    $ gpg --output dist/certificates/quick-lint-js-PRIVATE.gpg.key --export-secret-key $YOUR_KEY_FINGERPRINT
 
 When you run the `dist/sign-release.go` program, specify
-`-GPGIdentity GPG_KEY_FINGERPRINT -RelicConfig dist/certificates/relic-config.yaml`.
+`-RelicConfig dist/certificates/relic-config.yaml`.
 
 [macos-create-ca]: https://www.simplified.guide/macos/keychain-ca-code-signing-create
 [macos-create-cert]: https://www.simplified.guide/macos/keychain-cert-code-signing-create

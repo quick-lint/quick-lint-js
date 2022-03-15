@@ -9,6 +9,11 @@ tokens:
     type: file
 
 keys:
+  gpg_key:
+    token: file_token
+    keyfile: quick-lint-js-PRIVATE.gpg.key
+    pgpcertificate: quick-lint-js.gpg.key
+
   windows_key:
     token: file_token
     keyfile: quick-lint-js-PRIVATE.key

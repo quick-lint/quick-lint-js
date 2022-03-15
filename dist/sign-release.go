@@ -37,7 +37,6 @@ var QLJSGPGKey []byte
 type SigningStuff struct {
 	Certificate          []byte
 	TimestampCertificate []byte
-	GPGIdentity          string // Fingerprint or email or name.
 	GPGKey               []byte
 	RelicConfigPath      string
 }
@@ -60,7 +59,6 @@ func main() {
 	signingStuff.TimestampCertificate = DigiCertCertificate
 	signingStuff.GPGKey = QLJSGPGKey
 
-	flag.StringVar(&signingStuff.GPGIdentity, "GPGIdentity", "", "")
 	flag.StringVar(&signingStuff.RelicConfigPath, "RelicConfig", "", "")
 	flag.Parse()
 	if flag.NArg() != 2 {
@@ -120,11 +118,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Printf("signing with GPG: %s\n", hashesPath)
-	if _, err := GPGSignFile(hashesPath); err != nil {
+	log.Printf("signing: %s\n", hashesPath)
+	if err := RelicFile(hashesPath, hashesPath+".asc", RelicSignPGP); err != nil {
 		log.Fatal(err)
 	}
-	if err := GPGVerifySignature(hashesPath, hashesPath+".asc"); err != nil {
+	if err := RelicVerifyDetachedFile(hashesPath, hashesPath+".asc"); err != nil {
 		log.Fatal(err)
 	}
 
@@ -133,11 +131,11 @@ func main() {
 	}
 
 	sourceTarballPath := filepath.Join(destinationDir, "source/quick-lint-js-2.3.0.tar.gz")
-	log.Printf("signing with GPG: %s\n", sourceTarballPath)
-	if _, err := GPGSignFile(sourceTarballPath); err != nil {
+	log.Printf("signing: %s\n", sourceTarballPath)
+	if err := RelicFile(sourceTarballPath, sourceTarballPath+".asc", RelicSignPGP); err != nil {
 		log.Fatal(err)
 	}
-	if err := GPGVerifySignature(sourceTarballPath, sourceTarballPath+".asc"); err != nil {
+	if err := RelicVerifyDetachedFile(sourceTarballPath, sourceTarballPath+".asc"); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -152,8 +150,8 @@ type FileTransformType int
 
 const (
 	NoTransform FileTransformType = iota
-	GPGSign
 	RelicApple
+	RelicPGP
 	RelicWindows
 )
 
@@ -161,15 +159,16 @@ type RelicSigningType int
 
 const (
 	RelicSignApple   RelicSigningType = RelicSigningType(RelicApple) // macOS
+	RelicSignPGP                      = RelicSigningType(RelicPGP)
 	RelicSignWindows                  = RelicSigningType(RelicWindows)
 )
 
 var filesToTransform map[DeepPath]FileTransformType = map[DeepPath]FileTransformType{
 	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x64.zip", "bin/quick-lint-js.exe"):              RelicWindows,
 	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x86.zip", "bin/quick-lint-js.exe"):              RelicWindows,
-	NewDeepPath2("manual/linux-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                GPGSign,
-	NewDeepPath2("manual/linux-armhf.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                  GPGSign,
-	NewDeepPath2("manual/linux.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        GPGSign,
+	NewDeepPath2("manual/linux-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                RelicPGP,
+	NewDeepPath2("manual/linux-armhf.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                  RelicPGP,
+	NewDeepPath2("manual/linux.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        RelicPGP,
 	NewDeepPath2("manual/macos-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                RelicApple,
 	NewDeepPath2("manual/macos.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        RelicApple,
 	NewDeepPath2("manual/windows-arm64.zip", "bin/quick-lint-js.exe"):                                             RelicWindows,
@@ -178,17 +177,17 @@ var filesToTransform map[DeepPath]FileTransformType = map[DeepPath]FileTransform
 	NewDeepPath2("manual/windows.zip", "bin/quick-lint-js.exe"):                                                   RelicWindows,
 	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/darwin-arm64/bin/quick-lint-js"):                         RelicApple,
 	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/darwin-x64/bin/quick-lint-js"):                           RelicApple,
-	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-arm/bin/quick-lint-js"):                            GPGSign,
-	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-arm64/bin/quick-lint-js"):                          GPGSign,
-	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-x64/bin/quick-lint-js"):                            GPGSign,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-arm/bin/quick-lint-js"):                            RelicPGP,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-arm64/bin/quick-lint-js"):                          RelicPGP,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-x64/bin/quick-lint-js"):                            RelicPGP,
 	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-arm64/bin/quick-lint-js.exe"):                      RelicWindows,
 	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-ia32/bin/quick-lint-js.exe"):                       RelicWindows,
 	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-x64/bin/quick-lint-js.exe"):                        RelicWindows,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-arm64.node"): RelicApple,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-x64.node"):   RelicApple,
-	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm.node"):    GPGSign,
-	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm64.node"):  GPGSign,
-	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-x64.node"):    GPGSign,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm.node"):    RelicPGP,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm64.node"):  RelicPGP,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-x64.node"):    RelicPGP,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm.node"):    RelicWindows,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm64.node"):  RelicWindows,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-ia32.node"):   RelicWindows,
@@ -414,14 +413,7 @@ func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, erro
 
 	var transform FileTransformResult
 	switch transformType {
-	case GPGSign:
-		log.Printf("signing with GPG: %v\n", deepPath)
-		transform, err = GPGSignTransform(deepPath.Last(), file)
-		if err != nil {
-			return FileTransformResult{}, err
-		}
-
-	case RelicApple, RelicWindows:
+	case RelicApple, RelicPGP, RelicWindows:
 		log.Printf("signing with Relic: %v\n", deepPath)
 		transform, err = RelicTransform(file, RelicSigningType(transformType))
 		if err != nil {
@@ -600,108 +592,6 @@ func NoOpTransform() FileTransformResult {
 	}
 }
 
-// originalPath need not be a path to a real file.
-func GPGSignTransform(originalPath string, exe io.Reader) (FileTransformResult, error) {
-	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-	TempDirs = append(TempDirs, tempDir)
-
-	tempFile, err := os.Create(filepath.Join(tempDir, "data"))
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-	defer os.Remove(tempFile.Name())
-	_, err = io.Copy(tempFile, exe)
-	tempFile.Close()
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-
-	signatureFilePath, err := GPGSignFile(tempFile.Name())
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-	if err := GPGVerifySignature(tempFile.Name(), signatureFilePath); err != nil {
-		return FileTransformResult{}, err
-	}
-
-	signatureFileContent, err := os.ReadFile(signatureFilePath)
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-	return FileTransformResult{
-		siblingFile:           &signatureFileContent,
-		siblingFileNameSuffix: ".asc",
-	}, nil
-}
-
-func GPGSignFile(filePath string) (string, error) {
-	process := exec.Command(
-		"gpg",
-		"--local-user", signingStuff.GPGIdentity,
-		"--armor",
-		"--detach-sign",
-		"--",
-		filePath,
-	)
-	process.Stdout = os.Stdout
-	process.Stderr = os.Stderr
-	if err := process.Start(); err != nil {
-		return "", err
-	}
-	if err := process.Wait(); err != nil {
-		return "", err
-	}
-	return filePath + ".asc", nil
-}
-
-func GPGVerifySignature(filePath string, signatureFilePath string) error {
-	// HACK(strager): Use /tmp instead of the default temp dir. macOS'
-	// default temp dir is so long that it breaks gpg-agent.
-	tempGPGHome, err := ioutil.TempDir("/tmp", "quick-lint-js-sign-release")
-	if err != nil {
-		return err
-	}
-	TempDirs = append(TempDirs, tempGPGHome)
-
-	var env []string
-	env = append([]string{}, os.Environ()...)
-	env = append(env, "GNUPGHOME="+tempGPGHome)
-
-	process := exec.Command("gpg", "--import")
-	keyReader := bytes.NewReader(signingStuff.GPGKey)
-	process.Stdin = keyReader
-	process.Stdout = os.Stdout
-	process.Stderr = os.Stderr
-	process.Env = env
-	if err := process.Start(); err != nil {
-		return err
-	}
-	if err := process.Wait(); err != nil {
-		return err
-	}
-
-	process = exec.Command(
-		"gpg", "--verify",
-		"--",
-		signatureFilePath,
-		filePath,
-	)
-	process.Stdout = os.Stdout
-	process.Stderr = os.Stderr
-	process.Env = env
-	if err := process.Start(); err != nil {
-		return err
-	}
-	if err := process.Wait(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func RelicTransform(exe io.Reader, signingType RelicSigningType) (FileTransformResult, error) {
 	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
 	if err != nil {
@@ -724,17 +614,41 @@ func RelicTransform(exe io.Reader, signingType RelicSigningType) (FileTransformR
 	if err := RelicFile(unsignedFile.Name(), signedFilePath, signingType); err != nil {
 		return FileTransformResult{}, err
 	}
-	if err := RelicVerifyFile(signedFilePath); err != nil {
-		return FileTransformResult{}, err
+
+	switch signingType {
+	case RelicSignApple, RelicSignWindows:
+		if err := RelicVerifyFile(signedFilePath); err != nil {
+			return FileTransformResult{}, err
+		}
+
+	case RelicSignPGP:
+		if err := RelicVerifyDetachedFile(unsignedFile.Name(), signedFilePath); err != nil {
+			return FileTransformResult{}, err
+		}
+
+	default:
+		panic("unexpected RelicSigningType")
 	}
 
 	signedFileContent, err := os.ReadFile(signedFilePath)
 	if err != nil {
 		return FileTransformResult{}, err
 	}
-	return FileTransformResult{
-		newFile: &signedFileContent,
-	}, nil
+	switch signingType {
+	case RelicSignApple, RelicSignWindows:
+		return FileTransformResult{
+			newFile: &signedFileContent,
+		}, nil
+
+	case RelicSignPGP:
+		return FileTransformResult{
+			siblingFile:           &signedFileContent,
+			siblingFileNameSuffix: ".asc",
+		}, nil
+
+	default:
+		panic("unexpected RelicSigningType")
+	}
 }
 
 func RelicFile(inFilePath string, outFilePath string, signingType RelicSigningType) error {
@@ -750,7 +664,6 @@ func RelicFile(inFilePath string, outFilePath string, signingType RelicSigningTy
 	signCommand := []string{
 		"relic", "sign",
 		"--config", signingStuff.RelicConfigPath,
-		"--key", "windows_key",
 		"--file", inFileAbsolutePath,
 		"--output", outFileAbsolutePath,
 	}
@@ -762,8 +675,12 @@ func RelicFile(inFilePath string, outFilePath string, signingType RelicSigningTy
 		}
 		signCommand = append(signCommand, "--requirements", requirementsPath)
 		signCommand = append(signCommand, "--bundle-id", "quick-lint-js")
+		signCommand = append(signCommand, "--key", "windows_key")
+	case RelicSignPGP:
+		signCommand = append(signCommand, "--key", "gpg_key")
+		signCommand = append(signCommand, "--sig-type", "pgp")
 	case RelicSignWindows:
-		break
+		signCommand = append(signCommand, "--key", "windows_key")
 	default:
 		panic("unexpected RelicSigningType")
 	}
@@ -789,20 +706,16 @@ func RelicFile(inFilePath string, outFilePath string, signingType RelicSigningTy
 }
 
 func RelicVerifyFile(filePath string) error {
-	certificateFile, err := MakeTempFileWithContent(signingStuff.Certificate)
-	if err != nil {
-		return err
-	}
-	timestampCertificateFile, err := MakeTempFileWithContent(signingStuff.TimestampCertificate)
+	certOptions, err := GetRelicVerifyCertOptions()
 	if err != nil {
 		return err
 	}
 
+	options := append(append([]string{"verify"}, certOptions...),
+		"--", filePath)
 	process := exec.Command(
-		"relic", "verify",
-		"--cert", certificateFile,
-		"--cert", timestampCertificateFile,
-		"--", filePath,
+		"relic",
+		options...,
 	)
 	process.Stdout = os.Stdout
 	process.Stderr = os.Stderr
@@ -814,6 +727,51 @@ func RelicVerifyFile(filePath string) error {
 	}
 
 	return nil
+}
+
+func RelicVerifyDetachedFile(filePath string, detachedSignaturePath string) error {
+	certOptions, err := GetRelicVerifyCertOptions()
+	if err != nil {
+		return err
+	}
+
+	options := append(append([]string{"verify"}, certOptions...),
+		"--content", filePath,
+		"--", detachedSignaturePath)
+	process := exec.Command(
+		"relic",
+		options...,
+	)
+	process.Stdout = os.Stdout
+	process.Stderr = os.Stderr
+	if err := process.Start(); err != nil {
+		return err
+	}
+	if err := process.Wait(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetRelicVerifyCertOptions() ([]string, error) {
+	certificateFile, err := MakeTempFileWithContent(signingStuff.Certificate)
+	if err != nil {
+		return nil, err
+	}
+	timestampCertificateFile, err := MakeTempFileWithContent(signingStuff.TimestampCertificate)
+	if err != nil {
+		return nil, err
+	}
+	gpgCertificateFile, err := MakeTempFileWithContent(signingStuff.GPGKey)
+	if err != nil {
+		return nil, err
+	}
+	return []string{
+		"--cert", certificateFile,
+		"--cert", timestampCertificateFile,
+		"--cert", gpgCertificateFile,
+	}, nil
 }
 
 func WriteTarEntry(header *tar.Header, fileContent []byte, output *tar.Writer) error {
