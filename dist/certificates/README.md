@@ -13,3 +13,6 @@ documentation](../../docs/CODE_SIGNING.md).
   * SHA1: dc4f675b74b3a86c1f59fbdac17538b7d996db99
 * `quick-lint-js.gpg.key`: GPG key (public key). Use this file to verify GPG
   signatures of quick-lint-js.
+* `DigiCertAssuredIDRootCA_comb.crt.pem`: DigiCert's certificate. Use this file
+  to verify timestamp signatures. Downloaded from
+  <https://knowledge.digicert.com/generalinformation/INFO4231.html>.

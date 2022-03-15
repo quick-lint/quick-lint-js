@@ -27,6 +27,9 @@ import _ "embed"
 //go:embed certificates/quick-lint-js.cer
 var AppleCodesignCertificate []byte
 
+//go:embed certificates/DigiCertAssuredIDRootCA_comb.crt.pem
+var DigiCertCertificate []byte
+
 //go:embed certificates/quick-lint-js.gpg.key
 var QLJSGPGKey []byte
 
@@ -34,9 +37,10 @@ type SigningStuff struct {
 	AppleCodesignIdentity string // Common Name from the macOS Keychain.
 	Certificate           []byte
 	CertificateSHA1Hash   [20]byte
+	TimestampCertificate  []byte
 	GPGIdentity           string // Fingerprint or email or name.
 	GPGKey                []byte
-	PrivateKeyPKCS12Path  string
+	RelicConfigPath       string
 }
 
 // Key: SHA256 hash of original file
@@ -49,18 +53,26 @@ var ProgramStartTime time.Time = time.Now()
 var TempDirs []string
 
 func main() {
+	var err error
+
 	defer RemoveTempDirs()
 
 	signingStuff.Certificate = AppleCodesignCertificate
+	signingStuff.TimestampCertificate = DigiCertCertificate
 	signingStuff.GPGKey = QLJSGPGKey
 
 	flag.StringVar(&signingStuff.AppleCodesignIdentity, "AppleCodesignIdentity", "", "")
 	flag.StringVar(&signingStuff.GPGIdentity, "GPGIdentity", "", "")
-	flag.StringVar(&signingStuff.PrivateKeyPKCS12Path, "PrivateKeyPKCS12", "", "")
+	flag.StringVar(&signingStuff.RelicConfigPath, "RelicConfig", "", "")
 	flag.Parse()
 	if flag.NArg() != 2 {
 		os.Stderr.WriteString(fmt.Sprintf("error: source and destination directories\n"))
 		os.Exit(2)
+	}
+
+	signingStuff.RelicConfigPath, err = filepath.Abs(signingStuff.RelicConfigPath)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	signingStuff.CertificateSHA1Hash = sha1.Sum(AppleCodesignCertificate)
@@ -69,7 +81,7 @@ func main() {
 	destinationDir := flag.Args()[1]
 
 	hashes := ListOfHashes{}
-	err := filepath.Walk(sourceDir, func(sourcePath string, sourceInfo fs.FileInfo, err error) error {
+	err = filepath.Walk(sourceDir, func(sourcePath string, sourceInfo fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -146,38 +158,38 @@ const (
 	NoTransform FileTransformType = iota
 	AppleCodesign
 	GPGSign
-	MicrosoftOsslsigncode
+	Relic
 )
 
 var filesToTransform map[DeepPath]FileTransformType = map[DeepPath]FileTransformType{
-	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x64.zip", "bin/quick-lint-js.exe"):              MicrosoftOsslsigncode,
-	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x86.zip", "bin/quick-lint-js.exe"):              MicrosoftOsslsigncode,
+	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x64.zip", "bin/quick-lint-js.exe"):              Relic,
+	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x86.zip", "bin/quick-lint-js.exe"):              Relic,
 	NewDeepPath2("manual/linux-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                GPGSign,
 	NewDeepPath2("manual/linux-armhf.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                  GPGSign,
 	NewDeepPath2("manual/linux.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        GPGSign,
 	NewDeepPath2("manual/macos-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                AppleCodesign,
 	NewDeepPath2("manual/macos.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        AppleCodesign,
-	NewDeepPath2("manual/windows-arm64.zip", "bin/quick-lint-js.exe"):                                             MicrosoftOsslsigncode,
-	NewDeepPath2("manual/windows-arm.zip", "bin/quick-lint-js.exe"):                                               MicrosoftOsslsigncode,
-	NewDeepPath2("manual/windows-x86.zip", "bin/quick-lint-js.exe"):                                               MicrosoftOsslsigncode,
-	NewDeepPath2("manual/windows.zip", "bin/quick-lint-js.exe"):                                                   MicrosoftOsslsigncode,
+	NewDeepPath2("manual/windows-arm64.zip", "bin/quick-lint-js.exe"):                                             Relic,
+	NewDeepPath2("manual/windows-arm.zip", "bin/quick-lint-js.exe"):                                               Relic,
+	NewDeepPath2("manual/windows-x86.zip", "bin/quick-lint-js.exe"):                                               Relic,
+	NewDeepPath2("manual/windows.zip", "bin/quick-lint-js.exe"):                                                   Relic,
 	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/darwin-arm64/bin/quick-lint-js"):                         AppleCodesign,
 	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/darwin-x64/bin/quick-lint-js"):                           AppleCodesign,
 	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-arm/bin/quick-lint-js"):                            GPGSign,
 	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-arm64/bin/quick-lint-js"):                          GPGSign,
 	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-x64/bin/quick-lint-js"):                            GPGSign,
-	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-arm64/bin/quick-lint-js.exe"):                      MicrosoftOsslsigncode,
-	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-ia32/bin/quick-lint-js.exe"):                       MicrosoftOsslsigncode,
-	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-x64/bin/quick-lint-js.exe"):                        MicrosoftOsslsigncode,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-arm64/bin/quick-lint-js.exe"):                      Relic,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-ia32/bin/quick-lint-js.exe"):                       Relic,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-x64/bin/quick-lint-js.exe"):                        Relic,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-arm64.node"): AppleCodesign,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-x64.node"):   AppleCodesign,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm.node"):    GPGSign,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm64.node"):  GPGSign,
 	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-x64.node"):    GPGSign,
-	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm.node"):    MicrosoftOsslsigncode,
-	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm64.node"):  MicrosoftOsslsigncode,
-	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-ia32.node"):   MicrosoftOsslsigncode,
-	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-x64.node"):    MicrosoftOsslsigncode,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm.node"):    Relic,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm64.node"):  Relic,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-ia32.node"):   Relic,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-x64.node"):    Relic,
 }
 
 func CheckUnsignedFiles() error {
@@ -413,9 +425,9 @@ func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, erro
 			return FileTransformResult{}, err
 		}
 
-	case MicrosoftOsslsigncode:
-		log.Printf("signing with osslsigncode: %v\n", deepPath)
-		transform, err = MicrosoftOsslsigncodeTransform(file)
+	case Relic:
+		log.Printf("signing with Relic: %v\n", deepPath)
+		transform, err = RelicTransform(file)
 		if err != nil {
 			return FileTransformResult{}, err
 		}
@@ -764,7 +776,7 @@ func GPGVerifySignature(filePath string, signatureFilePath string) error {
 	return nil
 }
 
-func MicrosoftOsslsigncodeTransform(exe io.Reader) (FileTransformResult, error) {
+func RelicTransform(exe io.Reader) (FileTransformResult, error) {
 	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
 	if err != nil {
 		return FileTransformResult{}, err
@@ -783,10 +795,10 @@ func MicrosoftOsslsigncodeTransform(exe io.Reader) (FileTransformResult, error) 
 	}
 
 	signedFilePath := filepath.Join(tempDir, "signed.exe")
-	if err := MicrosoftOsslsigncodeFile(unsignedFile.Name(), signedFilePath); err != nil {
+	if err := RelicFile(unsignedFile.Name(), signedFilePath); err != nil {
 		return FileTransformResult{}, err
 	}
-	if err := MicrosoftOsslsigncodeVerifyFile(signedFilePath); err != nil {
+	if err := RelicVerifyFile(signedFilePath); err != nil {
 		return FileTransformResult{}, err
 	}
 
@@ -799,17 +811,27 @@ func MicrosoftOsslsigncodeTransform(exe io.Reader) (FileTransformResult, error) 
 	}, nil
 }
 
-func MicrosoftOsslsigncodeFile(inFilePath string, outFilePath string) error {
+func RelicFile(inFilePath string, outFilePath string) error {
+	inFileAbsolutePath, err := filepath.Abs(inFilePath)
+	if err != nil {
+		return err
+	}
+	outFileAbsolutePath, err := filepath.Abs(outFilePath)
+	if err != nil {
+		return err
+	}
+
 	signCommand := []string{
-		"osslsigncode", "sign",
-		"-pkcs12", signingStuff.PrivateKeyPKCS12Path,
-		"-t", "http://timestamp.digicert.com",
-		"-in", inFilePath,
-		"-out", outFilePath,
+		"relic", "sign",
+		"--config", signingStuff.RelicConfigPath,
+		"--key", "windows_key",
+		"--file", inFileAbsolutePath,
+		"--output", outFileAbsolutePath,
 	}
 	process := exec.Command(signCommand[0], signCommand[1:]...)
 	process.Stdout = os.Stdout
 	process.Stderr = os.Stderr
+	process.Dir = filepath.Dir(signingStuff.RelicConfigPath)
 	if err := process.Start(); err != nil {
 		return err
 	}
@@ -819,35 +841,21 @@ func MicrosoftOsslsigncodeFile(inFilePath string, outFilePath string) error {
 	return nil
 }
 
-func MicrosoftOsslsigncodeVerifyFile(filePath string) error {
-	certificatePEMFile, err := ioutil.TempFile("", "quick-lint-js-sign-release")
+func RelicVerifyFile(filePath string) error {
+	certificateFile, err := MakeTempFileWithContent(signingStuff.Certificate)
 	if err != nil {
 		return err
 	}
-	certificatePEMFile.Close()
-	defer os.Remove(certificatePEMFile.Name())
+	timestampCertificateFile, err := MakeTempFileWithContent(signingStuff.TimestampCertificate)
+	if err != nil {
+		return err
+	}
 
 	process := exec.Command(
-		"openssl", "x509",
-		"-inform", "der",
-		"-outform", "pem",
-		"-out", certificatePEMFile.Name(),
-	)
-	certificateReader := bytes.NewReader(signingStuff.Certificate)
-	process.Stdin = certificateReader
-	process.Stdout = os.Stdout
-	process.Stderr = os.Stderr
-	if err := process.Start(); err != nil {
-		return err
-	}
-	if err := process.Wait(); err != nil {
-		return err
-	}
-
-	process = exec.Command(
-		"osslsigncode", "verify",
-		"-in", filePath,
-		"-CAfile", certificatePEMFile.Name(),
+		"relic", "verify",
+		"--cert", certificateFile,
+		"--cert", timestampCertificateFile,
+		"--", filePath,
 	)
 	process.Stdout = os.Stdout
 	process.Stderr = os.Stderr
@@ -925,6 +933,19 @@ func VerifySHA256SUMSFile(hashesPath string) error {
 		return err
 	}
 	return nil
+}
+
+func MakeTempFileWithContent(content []byte) (string, error) {
+	tempFile, err := ioutil.TempFile("", "quick-lint-js-sign-release")
+	if err != nil {
+		return "", err
+	}
+	TempDirs = append(TempDirs, tempFile.Name())
+	defer tempFile.Close()
+	if _, err := tempFile.Write(content); err != nil {
+		return "", err
+	}
+	return tempFile.Name(), nil
 }
 
 type DeepPath struct {
