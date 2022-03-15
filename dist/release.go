@@ -93,7 +93,6 @@ var Steps []Step = []Step{
 		Run: func() {
 			fmt.Printf("Sign the build artifacts:\n")
 			fmt.Printf("$ go run dist/sign-release.go dist/deep-hasher.go -RelicConfig=dist/certificates/relic-config.yaml builds/ signed-builds/\n")
-			fmt.Printf("**Warning**: This signing command only works on macOS hosts.\n")
 			WaitForDone()
 		},
 	},
