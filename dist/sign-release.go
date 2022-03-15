@@ -7,7 +7,6 @@ import "archive/tar"
 import "archive/zip"
 import "bytes"
 import "compress/gzip"
-import "crypto/sha1"
 import "crypto/sha256"
 import "errors"
 import "flag"
@@ -37,7 +36,6 @@ var QLJSGPGKey []byte
 
 type SigningStuff struct {
 	Certificate          []byte
-	CertificateSHA1Hash  [20]byte
 	TimestampCertificate []byte
 	GPGIdentity          string // Fingerprint or email or name.
 	GPGKey               []byte
@@ -74,8 +72,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	signingStuff.CertificateSHA1Hash = sha1.Sum(AppleCodesignCertificate)
 
 	sourceDir := flag.Args()[0]
 	destinationDir := flag.Args()[1]
