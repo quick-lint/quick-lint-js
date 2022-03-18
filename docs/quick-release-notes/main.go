@@ -20,6 +20,30 @@ type Tag struct {
 	Name       string `json:"name"`
 }
 
+func main() {
+	fmt.Println("Quick release notes running...")
+	file, err := os.Open("../CHANGELOG.md")
+	if (err) != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	versionLineNumbers, changeLogText, changeLogLength, versionTitles := getChangeLogInfo(scanner)
+	releaseNotesForEachVersion := makeReleaseSlice(versionLineNumbers, changeLogText, changeLogLength)
+	// GET /repos/{owner}/{repo}/tags
+	owner, repo := "quick-lint", "quick-lint-js"
+	tagsForEachRelease := getTagsFromAPI(owner, repo)
+	// POST /repos/{owner}/{repo}/releases
+	if len(releaseNotesForEachVersion) == len(tagsForEachRelease) && len(releaseNotesForEachVersion) == len(versionTitles) {
+		for i := range releaseNotesForEachVersion[:] {
+			sendToGitHubAPI(tagsForEachRelease[i], releaseNotesForEachVersion[i], versionTitles[i], owner, repo)
+		}
+		fmt.Println("Quick release notes finished...")
+	} else {
+		fmt.Println("Error: Release Note versions in changelog.md and Tags from api are different lengths")
+	}
+}
+
 func getTagsFromAPI(owner string, repo string) []Tag {
 	// https://docs.github.com/en/rest/reference/repos#list-repository-tags
 	pathToTags := fmt.Sprintf("https://api.github.com/repos/%v/%v/tags", url.QueryEscape(owner), url.QueryEscape(repo))
@@ -117,30 +141,6 @@ func sendToGitHubAPI(tagForRelease Tag, releaseNote string, versionTitle string,
 	body, _ := ioutil.ReadAll(resp.Body)
 	fmt.Println(req)
 	fmt.Println("response Body:", string(body))
-}
-
-func main() {
-	fmt.Println("Quick release notes running...")
-	file, err := os.Open("../CHANGELOG.md")
-	if (err) != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-	versionLineNumbers, changeLogText, changeLogLength, versionTitles := getChangeLogInfo(scanner)
-	releaseNotesForEachVersion := makeReleaseSlice(versionLineNumbers, changeLogText, changeLogLength)
-	// GET /repos/{owner}/{repo}/tags
-	owner, repo := "quick-lint", "quick-lint-js"
-	tagsForEachRelease := getTagsFromAPI(owner, repo)
-	// POST /repos/{owner}/{repo}/releases
-	if len(releaseNotesForEachVersion) == len(tagsForEachRelease) && len(releaseNotesForEachVersion) == len(versionTitles) {
-		for i := range releaseNotesForEachVersion[:] {
-			sendToGitHubAPI(tagsForEachRelease[i], releaseNotesForEachVersion[i], versionTitles[i], owner, repo)
-		}
-		fmt.Println("Quick release notes finished...")
-	} else {
-		fmt.Println("Error: Release Note versions in changelog.md and Tags from api are different lengths")
-	}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
