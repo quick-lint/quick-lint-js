@@ -17,13 +17,6 @@ import (
 
 type Tag struct {
 	Name       string `json:"name"`
-	ZipballURL string `json:"zipball_url"`
-	TarballURL string `json:"tarball_url"`
-	Commit     struct {
-		SHA string `json:"sha"`
-		URL string `json:"url"`
-	} `json:"commit"`
-	NodeID string `json:"node_id"`
 }
 
 func getTagsFromAPI(owner string, repo string) []Tag {
@@ -105,7 +98,6 @@ func sendToGitHubAPI(tagForRelease Tag, releaseNote string, versionTitle string,
 		"tag_name":         tagForRelease.Name,
 		"name":             versionTitle,
 		"body":             releaseNote,
-		"target_commitish": tagForRelease.Commit.SHA,
 	})
 	responseBody := bytes.NewBuffer(postBody)
 	url := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", owner, repo)
