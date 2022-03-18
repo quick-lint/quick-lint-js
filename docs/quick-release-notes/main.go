@@ -36,9 +36,9 @@ func main() {
 	tagsForEachRelease := getTagsFromAPI(owner, repo)
 	// POST /repos/{owner}/{repo}/releases
 	if len(releaseNotesForEachVersion) == len(tagsForEachRelease) && len(releaseNotesForEachVersion) == len(versionTitles) {
-  for i := range releaseNotesForEachVersion[:] {
-   sendToGitHubAPI(tagsForEachRelease[i], releaseNotesForEachVersion[i], versionTitles[i], owner, repo)
-  }
+  // for i := range releaseNotesForEachVersion[:] {
+   // sendToGitHubAPI(tagsForEachRelease[i], releaseNotesForEachVersion[i], versionTitles[i], owner, repo)
+  // }
 		fmt.Println("Quick release notes finished...")
 	} else {
 		fmt.Println("Error: Release Note versions in changelog.md and Tags from api are different lengths")
@@ -60,17 +60,20 @@ func getTagsFromAPI(owner string, repo string) []Tag {
 	var tagsForEachRelease []Tag
   err = json.Unmarshal(responseFromAPI, &tagsForEachRelease)
   if err != nil {
-		log.Fatal(err)
+    log.Fatal(err)
   }
 	return tagsForEachRelease
 }
 
 func getChangeLogInfo(scanner *bufio.Scanner) ([]int, []string, int, []string) {
 	// regexp for: ## 1.0.0 (2021-12-13)
-	r, err := regexp.Compile(`## \d+\.\d+\.\d+`)
-	if err != nil {
-		log.Fatal(err)
-	}
+  // regexp.Compile(`## \d+\.\d+\.\d+`)
+	re,err := regexp.Compile(`## (?P<versionAndDate>\d+\.\d+\.\d+.*)`)
+
+
+  if err != nil {
+    log.Fatal(err)
+  }
 	lineCount := 0
 	counterForChangeLogLength := 0
 	var versionLineNumbers []int
@@ -79,10 +82,11 @@ func getChangeLogInfo(scanner *bufio.Scanner) ([]int, []string, int, []string) {
 	for scanner.Scan() {
 		counterForChangeLogLength++
 		changeLogText = append(changeLogText, scanner.Text())
-		if r.MatchString(scanner.Text()) {
-			// ## 2.3.0 (2022-02-24) => 2.3.0 (2022-02-24)
-			versionNumberAndDateWithoutHashes := scanner.Text()[3:]
-			versionTitlesForEachRelease = append(versionTitlesForEachRelease, versionNumberAndDateWithoutHashes)
+		if re.MatchString(scanner.Text()) {
+      hashVersionAndDate := re.FindStringSubmatch(scanner.Text())
+      index := re.SubexpIndex("versionAndDate")
+			versionNumberAndDate := hashVersionAndDate[index]
+			versionTitlesForEachRelease = append(versionTitlesForEachRelease, versionNumberAndDate)
 			versionLineNumbers = append(versionLineNumbers, lineCount)
 		}
 		lineCount++
@@ -90,6 +94,7 @@ func getChangeLogInfo(scanner *bufio.Scanner) ([]int, []string, int, []string) {
 	if scanner.Err() != nil {
 		fmt.Println(scanner.Err())
 	}
+  fmt.Print(versionTitlesForEachRelease)
 	return versionLineNumbers, changeLogText, counterForChangeLogLength, versionTitlesForEachRelease
 }
 
