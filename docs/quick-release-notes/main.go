@@ -16,6 +16,7 @@ import (
   "net/url"
 )
 
+// Tag is for GitHub repo tags.
 type Tag struct {
 	Name       string `json:"name"`
 }
@@ -23,7 +24,7 @@ type Tag struct {
 func main() {
 	fmt.Println("Quick release notes running...")
 	file, err := os.Open("../CHANGELOG.md")
-	if (err) != nil {
+	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
@@ -35,9 +36,9 @@ func main() {
 	tagsForEachRelease := getTagsFromAPI(owner, repo)
 	// POST /repos/{owner}/{repo}/releases
 	if len(releaseNotesForEachVersion) == len(tagsForEachRelease) && len(releaseNotesForEachVersion) == len(versionTitles) {
-		for i := range releaseNotesForEachVersion[:] {
-			sendToGitHubAPI(tagsForEachRelease[i], releaseNotesForEachVersion[i], versionTitles[i], owner, repo)
-		}
+  for i := range releaseNotesForEachVersion[:] {
+   sendToGitHubAPI(tagsForEachRelease[i], releaseNotesForEachVersion[i], versionTitles[i], owner, repo)
+  }
 		fmt.Println("Quick release notes finished...")
 	} else {
 		fmt.Println("Error: Release Note versions in changelog.md and Tags from api are different lengths")
@@ -47,25 +48,27 @@ func main() {
 func getTagsFromAPI(owner string, repo string) []Tag {
 	// https://docs.github.com/en/rest/reference/repos#list-repository-tags
 	pathToTags := fmt.Sprintf("https://api.github.com/repos/%v/%v/tags", url.QueryEscape(owner), url.QueryEscape(repo))
-  fmt.Printf(pathToTags)
 	resp, err := http.Get(pathToTags)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
-	sb := string(body)
+	responseFromAPI:= []byte(body)
 	var tagsForEachRelease []Tag
-	json.Unmarshal([]byte(sb), &tagsForEachRelease)
+  err = json.Unmarshal(responseFromAPI, &tagsForEachRelease)
+  if err != nil {
+		log.Fatal(err)
+  }
 	return tagsForEachRelease
 }
 
 func getChangeLogInfo(scanner *bufio.Scanner) ([]int, []string, int, []string) {
 	// regexp for: ## 1.0.0 (2021-12-13)
 	r, err := regexp.Compile(`## \d+\.\d+\.\d+`)
-	if (err) != nil {
+	if err != nil {
 		log.Fatal(err)
 	}
 	lineCount := 0
@@ -127,14 +130,13 @@ func sendToGitHubAPI(tagForRelease Tag, releaseNote string, versionTitle string,
 	})
 	responseBody := bytes.NewBuffer(postBody)
 	url := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", url.QueryEscape(owner), url.QueryEscape(repo))
-  fmt.Printf(url)
 	req, err := http.NewRequest("POST", url, responseBody)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "token insert_github_access_token_here")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	defer resp.Body.Close()
 	fmt.Println("response Headers:", resp.Header)
