@@ -6,7 +6,6 @@
 
 #include <cstddef>
 #include <iosfwd>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <string>
 #include <string_view>
