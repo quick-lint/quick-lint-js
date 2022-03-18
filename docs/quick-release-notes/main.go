@@ -11,40 +11,39 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
-  "net/url"
-  "path/filepath"
-  "runtime"
+	"runtime"
 )
 
 // Tag is for GitHub repo tags.
 type Tag struct {
-	Name       string `json:"name"`
+	Name string `json:"name"`
 }
 
 func main() {
 	fmt.Println("Quick release notes running...")
-_, scriptPath, _, ok := runtime.Caller(0)
+	_, scriptPath, _, ok := runtime.Caller(0)
 	if !ok {
 		panic("could not determine path of .go file")
 	}
-  pathToChangeLog := filepath.Join(filepath.Dir(scriptPath), "../CHANGELOG.md")
-  file, err := os.Open(pathToChangeLog) 
+	pathToChangeLog := filepath.Join(filepath.Dir(scriptPath), "../CHANGELOG.md")
+	file, err := os.Open(pathToChangeLog)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
-	scanner := bufio.NewScanner(file)
-	versionLineNumbers, changeLogText, changeLogLength, versionTitles := getChangeLogInfo(scanner)
+	versionLineNumbers, changeLogText, changeLogLength, versionTitles := getChangeLogInfo(bufio.NewScanner(file))
 	releaseNotesForEachVersion := makeReleaseSlice(versionLineNumbers, changeLogText, changeLogLength)
 	owner, repo := "quick-lint", "quick-lint-js"
 	tagsForEachRelease := getTagsFromAPI(owner, repo)
 	owner, repo = "LeeWannacott", "quick-lint-js"
 	if len(releaseNotesForEachVersion) == len(tagsForEachRelease) && len(releaseNotesForEachVersion) == len(versionTitles) {
-  for i := range releaseNotesForEachVersion[:] {
-   makeGitHubRelease(tagsForEachRelease[i], releaseNotesForEachVersion[i], versionTitles[i], owner, repo)
-  }
+		for i := range releaseNotesForEachVersion[:] {
+			makeGitHubRelease(tagsForEachRelease[i], releaseNotesForEachVersion[i], versionTitles[i], owner, repo)
+		}
 		fmt.Println("Quick release notes finished...")
 	} else {
 		fmt.Println("Error: Release Note versions in changelog.md and Tags from api are different lengths")
@@ -62,23 +61,22 @@ func getTagsFromAPI(owner string, repo string) []Tag {
 	if err != nil {
 		log.Fatal(err)
 	}
-	responseFromAPI:= []byte(body)
+	responseFromAPI := []byte(body)
 	var tagsForEachRelease []Tag
-  err = json.Unmarshal(responseFromAPI, &tagsForEachRelease)
-  if err != nil {
-    log.Fatal(err)
-  }
+	err = json.Unmarshal(responseFromAPI, &tagsForEachRelease)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return tagsForEachRelease
 }
 
 func getChangeLogInfo(scanner *bufio.Scanner) ([]int, []string, int, []string) {
 	// regexp for: ## 1.0.0 (2021-12-13)
-	re,err := regexp.Compile(`## (?P<versionNumberAndDate>\d+\.\d+\.\d+.*)`)
+	re, err := regexp.Compile(`## (?P<versionNumberAndDate>\d+\.\d+\.\d+.*)`)
 
-
-  if err != nil {
-    log.Fatal(err)
-  }
+	if err != nil {
+		log.Fatal(err)
+	}
 	lineCount := 0
 	counterForChangeLogLength := 0
 	var versionLineNumbers []int
@@ -88,8 +86,8 @@ func getChangeLogInfo(scanner *bufio.Scanner) ([]int, []string, int, []string) {
 		counterForChangeLogLength++
 		changeLogText = append(changeLogText, scanner.Text())
 		if re.MatchString(scanner.Text()) {
-      hashVersionAndDate := re.FindStringSubmatch(scanner.Text())
-      index := re.SubexpIndex("versionNumberAndDate")
+			hashVersionAndDate := re.FindStringSubmatch(scanner.Text())
+			index := re.SubexpIndex("versionNumberAndDate")
 			versionNumberAndDate := hashVersionAndDate[index]
 			versionTitlesForEachRelease = append(versionTitlesForEachRelease, versionNumberAndDate)
 			versionLineNumbers = append(versionLineNumbers, lineCount)
@@ -99,7 +97,7 @@ func getChangeLogInfo(scanner *bufio.Scanner) ([]int, []string, int, []string) {
 	if scanner.Err() != nil {
 		fmt.Println(scanner.Err())
 	}
-  fmt.Print(versionTitlesForEachRelease)
+	fmt.Print(versionTitlesForEachRelease)
 	return versionLineNumbers, changeLogText, counterForChangeLogLength, versionTitlesForEachRelease
 }
 
@@ -112,20 +110,22 @@ func makeReleaseSlice(versionLineNumbers []int, changeLogText []string, changeLo
 	}
 	var releaseNotesForEachVersion []string
 	// exclude Last version (## 0.2.0) with - 1
-	versionLineNumbersLengthMinusOne := len(versionLineNumbers) - 1
+	lastVersion := len(versionLineNumbers) - 1
 	for i, versionLineNumber := range versionLineNumbers[:] {
 		releaseBodyLines := ""
-		if i < (versionLineNumbersLengthMinusOne) {
+		if !(i == (lastVersion)) {
 			for j := versionLineNumbers[i] + 1; j < versionLineNumbers[i+1]; j++ {
 				releaseBodyLines += changeLogText[j] + "\n"
 			}
-		}
-		// Handle last version (## 0.2.0)
-		if versionLineNumber == versionLineNumbers[versionLineNumbersLengthMinusOne] {
-			for j := 1; j < numberOfLinesForLastRelease; j++ {
-				releaseBodyLines += changeLogText[versionLineNumber+j] + "\n"
+		} else {
+			// Handle last version (## 0.2.0)
+			if versionLineNumber == versionLineNumbers[lastVersion] {
+				for j := 1; j < numberOfLinesForLastRelease; j++ {
+					releaseBodyLines += changeLogText[versionLineNumber+j] + "\n"
+				}
 			}
 		}
+
 		releaseNotesForEachVersion = append(releaseNotesForEachVersion, releaseBodyLines+contributorsAndErrors)
 	}
 	return releaseNotesForEachVersion
@@ -134,25 +134,25 @@ func makeReleaseSlice(versionLineNumbers []int, changeLogText []string, changeLo
 func makeGitHubRelease(tagForRelease Tag, releaseNote string, versionTitle string, owner string, repo string) {
 	// https://docs.github.com/en/rest/reference/releases
 	postBody, err := json.Marshal(map[string]string{
-		"tag_name":         tagForRelease.Name,
-		"name":             versionTitle,
-		"body":             releaseNote,
+		"tag_name": tagForRelease.Name,
+		"name":     versionTitle,
+		"body":     releaseNote,
 	})
-  if err != nil {
-    log.Fatal(err)
-  }
+	if err != nil {
+		log.Fatal(err)
+	}
 	responseBody := bytes.NewBuffer(postBody)
 	url := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", url.QueryEscape(owner), url.QueryEscape(repo))
 	req, err := http.NewRequest("POST", url, responseBody)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "token insert_token")
+	req.Header.Set("Authorization", "token insert_token_here")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer resp.Body.Close()
-  fmt.Println("response Headers:", resp.Header)
+	fmt.Println("response Headers:", resp.Header)
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
