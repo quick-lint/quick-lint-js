@@ -14,6 +14,8 @@ import (
 	"os"
 	"regexp"
   "net/url"
+  "path/filepath"
+  "runtime"
 )
 
 // Tag is for GitHub repo tags.
@@ -23,7 +25,12 @@ type Tag struct {
 
 func main() {
 	fmt.Println("Quick release notes running...")
-	file, err := os.Open("../CHANGELOG.md")
+_, scriptPath, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("could not determine path of .go file")
+	}
+  pathToChangeLog := filepath.Join(filepath.Dir(scriptPath), "../CHANGELOG.md")
+  file, err := os.Open(pathToChangeLog) 
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,14 +38,13 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	versionLineNumbers, changeLogText, changeLogLength, versionTitles := getChangeLogInfo(scanner)
 	releaseNotesForEachVersion := makeReleaseSlice(versionLineNumbers, changeLogText, changeLogLength)
-	// GET /repos/{owner}/{repo}/tags
 	owner, repo := "quick-lint", "quick-lint-js"
 	tagsForEachRelease := getTagsFromAPI(owner, repo)
-	// POST /repos/{owner}/{repo}/releases
+	owner, repo = "LeeWannacott", "quick-lint-js"
 	if len(releaseNotesForEachVersion) == len(tagsForEachRelease) && len(releaseNotesForEachVersion) == len(versionTitles) {
-  // for i := range releaseNotesForEachVersion[:] {
-   // sendToGitHubAPI(tagsForEachRelease[i], releaseNotesForEachVersion[i], versionTitles[i], owner, repo)
-  // }
+  for i := range releaseNotesForEachVersion[:] {
+   makeGitHubRelease(tagsForEachRelease[i], releaseNotesForEachVersion[i], versionTitles[i], owner, repo)
+  }
 		fmt.Println("Quick release notes finished...")
 	} else {
 		fmt.Println("Error: Release Note versions in changelog.md and Tags from api are different lengths")
@@ -67,8 +73,7 @@ func getTagsFromAPI(owner string, repo string) []Tag {
 
 func getChangeLogInfo(scanner *bufio.Scanner) ([]int, []string, int, []string) {
 	// regexp for: ## 1.0.0 (2021-12-13)
-  // regexp.Compile(`## \d+\.\d+\.\d+`)
-	re,err := regexp.Compile(`## (?P<versionAndDate>\d+\.\d+\.\d+.*)`)
+	re,err := regexp.Compile(`## (?P<versionNumberAndDate>\d+\.\d+\.\d+.*)`)
 
 
   if err != nil {
@@ -84,7 +89,7 @@ func getChangeLogInfo(scanner *bufio.Scanner) ([]int, []string, int, []string) {
 		changeLogText = append(changeLogText, scanner.Text())
 		if re.MatchString(scanner.Text()) {
       hashVersionAndDate := re.FindStringSubmatch(scanner.Text())
-      index := re.SubexpIndex("versionAndDate")
+      index := re.SubexpIndex("versionNumberAndDate")
 			versionNumberAndDate := hashVersionAndDate[index]
 			versionTitlesForEachRelease = append(versionTitlesForEachRelease, versionNumberAndDate)
 			versionLineNumbers = append(versionLineNumbers, lineCount)
@@ -126,28 +131,28 @@ func makeReleaseSlice(versionLineNumbers []int, changeLogText []string, changeLo
 	return releaseNotesForEachVersion
 }
 
-func sendToGitHubAPI(tagForRelease Tag, releaseNote string, versionTitle string, owner string, repo string) {
+func makeGitHubRelease(tagForRelease Tag, releaseNote string, versionTitle string, owner string, repo string) {
 	// https://docs.github.com/en/rest/reference/releases
-	postBody, _ := json.Marshal(map[string]string{
+	postBody, err := json.Marshal(map[string]string{
 		"tag_name":         tagForRelease.Name,
 		"name":             versionTitle,
 		"body":             releaseNote,
 	})
+  if err != nil {
+    log.Fatal(err)
+  }
 	responseBody := bytes.NewBuffer(postBody)
 	url := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", url.QueryEscape(owner), url.QueryEscape(repo))
 	req, err := http.NewRequest("POST", url, responseBody)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "token insert_github_access_token_here")
+	req.Header.Set("Authorization", "token insert_token")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer resp.Body.Close()
-	fmt.Println("response Headers:", resp.Header)
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(req)
-	fmt.Println("response Body:", string(body))
+  fmt.Println("response Headers:", resp.Header)
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
