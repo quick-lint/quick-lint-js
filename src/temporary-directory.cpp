@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <limits.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
