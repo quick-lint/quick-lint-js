@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+  "net/url"
 )
 
 type Tag struct {
@@ -21,7 +22,8 @@ type Tag struct {
 
 func getTagsFromAPI(owner string, repo string) []Tag {
 	// https://docs.github.com/en/rest/reference/repos#list-repository-tags
-	pathToTags := fmt.Sprintf("https://api.github.com/repos/%v/%v/tags", owner, repo)
+	pathToTags := fmt.Sprintf("https://api.github.com/repos/%v/%v/tags", url.QueryEscape(owner), url.QueryEscape(repo))
+  fmt.Printf(pathToTags)
 	resp, err := http.Get(pathToTags)
 	if err != nil {
 		log.Fatalln(err)
@@ -100,7 +102,8 @@ func sendToGitHubAPI(tagForRelease Tag, releaseNote string, versionTitle string,
 		"body":             releaseNote,
 	})
 	responseBody := bytes.NewBuffer(postBody)
-	url := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", owner, repo)
+	url := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", url.QueryEscape(owner), url.QueryEscape(repo))
+  fmt.Printf(url)
 	req, err := http.NewRequest("POST", url, responseBody)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	req.Header.Set("Content-Type", "application/json")
