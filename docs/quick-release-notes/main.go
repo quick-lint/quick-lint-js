@@ -27,7 +27,7 @@ type Tag struct {
 type ChangeLogInfo struct {
 	versionLineNumbers          []int
 	changeLogText               []string
-	counterForChangeLogLength   int
+	changeLogLength             int
 	versionTitlesForEachRelease []string
 }
 
@@ -85,12 +85,12 @@ func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
 		log.Fatal(err)
 	}
 	lineCount := 0
-	counterForChangeLogLength := 0
+	changeLogLength := 0
 	var versionLineNumbers []int
 	var changeLogText []string
 	var versionTitlesForEachRelease []string
 	for scanner.Scan() {
-		counterForChangeLogLength++
+		changeLogLength++
 		changeLogText = append(changeLogText, scanner.Text())
 		if re.MatchString(scanner.Text()) {
 			hashVersionAndDate := re.FindStringSubmatch(scanner.Text())
@@ -104,19 +104,23 @@ func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
 	if scanner.Err() != nil {
 		fmt.Println(scanner.Err())
 	}
-	return ChangeLogInfo{versionLineNumbers, changeLogText, counterForChangeLogLength, versionTitlesForEachRelease}
+	return ChangeLogInfo{versionLineNumbers, changeLogText, changeLogLength, versionTitlesForEachRelease}
 }
 
 func createReleaseNotes(ChangeLogInfo ChangeLogInfo) []string {
-	// Store contributors and errors from end of changelog.
+	re, err := regexp.Compile(`^\[.+\]: .+`)
+	if err != nil {
+		log.Fatal(err)
+	}
+	lastVersion := len(ChangeLogInfo.versionLineNumbers) - 1
 	contributorsAndErrors := ""
-	numberOfLinesForLastRelease := 5
-	for i := numberOfLinesForLastRelease + ChangeLogInfo.versionLineNumbers[len(ChangeLogInfo.versionLineNumbers)-1]; i < ChangeLogInfo.counterForChangeLogLength; i++ {
-		contributorsAndErrors += ChangeLogInfo.changeLogText[i] + "\n"
+	for i := ChangeLogInfo.versionLineNumbers[lastVersion]; i < ChangeLogInfo.changeLogLength; i++ {
+		if re.MatchString(ChangeLogInfo.changeLogText[i]) {
+			contributorsAndErrors += ChangeLogInfo.changeLogText[i] + "\n"
+		}
 	}
 	var releaseNotesForEachVersion []string
 	// exclude Last version (## 0.2.0) with - 1
-	lastVersion := len(ChangeLogInfo.versionLineNumbers) - 1
 	for i, versionLineNumber := range ChangeLogInfo.versionLineNumbers[:] {
 		releaseBodyLines := ""
 		if !(i == (lastVersion)) {
@@ -126,12 +130,14 @@ func createReleaseNotes(ChangeLogInfo ChangeLogInfo) []string {
 		} else {
 			// Handle last version (## 0.2.0)
 			if versionLineNumber == ChangeLogInfo.versionLineNumbers[lastVersion] {
-				for j := 1; j < numberOfLinesForLastRelease; j++ {
-					releaseBodyLines += ChangeLogInfo.changeLogText[versionLineNumber+j] + "\n"
+				for j := 1; j < ChangeLogInfo.changeLogLength-ChangeLogInfo.versionLineNumbers[lastVersion]; j++ {
+					currentLineOfText := ChangeLogInfo.changeLogText[versionLineNumber+j]
+					if !re.MatchString(currentLineOfText) {
+						releaseBodyLines += currentLineOfText + "\n"
+					}
 				}
 			}
 		}
-		//
 		releaseNotesForEachVersion = append(releaseNotesForEachVersion, releaseBodyLines+contributorsAndErrors)
 	}
 	return releaseNotesForEachVersion
