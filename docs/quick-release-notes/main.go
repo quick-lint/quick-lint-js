@@ -81,7 +81,6 @@ func getTagsFromAPI(owner string, repo string) []Tag {
 func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
 	// regexp for: ## 1.0.0 (2021-12-13)
 	re, err := regexp.Compile(`## (?P<versionNumberAndDate>\d+\.\d+\.\d+.*)`)
-
 	if err != nil {
 		log.Fatal(err)
 	}
