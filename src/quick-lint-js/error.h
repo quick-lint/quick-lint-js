@@ -1392,8 +1392,8 @@
       ERROR(QLJS_TRANSLATABLE("unopened block comment"), comment_close))       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unused_arrow_expression, "E0211", { source_code_span where; },     \
-      WARNING(QLJS_TRANSLATABLE("unused arrow expression"), where))            \
+      error_unused_arrow_function, "E0211", { source_code_span where; },     \
+      WARNING(QLJS_TRANSLATABLE("unused arrow function"), where))            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
       error_unused_variable_shadows, "E0196",                                  \

@@ -244,9 +244,10 @@ TEST(test_parse, unused_arrow_expression) {
                                       "visit_exit_function_scope",        //
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_unused_arrow_expression,  //
-                              where, strlen(u8""), u8"async")));
+                              &code, error_unused_arrow_function,  //
+                              where, 0, u8"async")));
   }
+
   {
     padded_string code(u8"() => {}"_sv);
     spy_visitor v;
@@ -257,8 +258,22 @@ TEST(test_parse, unused_arrow_expression) {
                                       "visit_exit_function_scope",        //
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_unused_arrow_expression,  //
-                              where, strlen(u8""), u8"(")));
+                              &code, error_unused_arrow_function,  //
+                              where, 0, u8"(")));
+  }
+
+  {
+    padded_string code(u8"(() => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_unused_arrow_function,  //
+                              where, 0, u8"(")));
   }
 }
 
