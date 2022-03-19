@@ -23,6 +23,14 @@ type Tag struct {
 	Name string `json:"name"`
 }
 
+// ChangeLogInfo is for each releases info generated from CHANGELOG.md
+type ChangeLogInfo struct {
+	versionLineNumbers          []int
+	changeLogText               []string
+	counterForChangeLogLength   int
+	versionTitlesForEachRelease []string
+}
+
 func main() {
 	fmt.Println("Quick release notes running...")
 	_, scriptPath, _, ok := runtime.Caller(0)
@@ -35,14 +43,14 @@ func main() {
 		log.Fatal(err)
 	}
 	defer file.Close()
-	versionLineNumbers, changeLogText, changeLogLength, versionTitles := getChangeLogInfo(bufio.NewScanner(file))
-	releaseNotesForEachVersion := makeReleaseSlice(versionLineNumbers, changeLogText, changeLogLength)
+	ChangeLogInfo := getChangeLogInfo(bufio.NewScanner(file))
+	releaseNotesForEachVersion := createReleaseNotes(ChangeLogInfo)
 	owner, repo := "quick-lint", "quick-lint-js"
 	tagsForEachRelease := getTagsFromAPI(owner, repo)
 	owner, repo = "LeeWannacott", "quick-lint-js"
-	if len(releaseNotesForEachVersion) == len(tagsForEachRelease) && len(releaseNotesForEachVersion) == len(versionTitles) {
+	if len(releaseNotesForEachVersion) == len(tagsForEachRelease) && len(releaseNotesForEachVersion) == len(ChangeLogInfo.versionTitlesForEachRelease) {
 		for i := range releaseNotesForEachVersion[:] {
-			makeGitHubRelease(tagsForEachRelease[i], releaseNotesForEachVersion[i], versionTitles[i], owner, repo)
+			makeGitHubRelease(tagsForEachRelease[i], releaseNotesForEachVersion[i], ChangeLogInfo.versionTitlesForEachRelease[i], owner, repo)
 		}
 		fmt.Println("Quick release notes finished...")
 	} else {
@@ -70,7 +78,7 @@ func getTagsFromAPI(owner string, repo string) []Tag {
 	return tagsForEachRelease
 }
 
-func getChangeLogInfo(scanner *bufio.Scanner) ([]int, []string, int, []string) {
+func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
 	// regexp for: ## 1.0.0 (2021-12-13)
 	re, err := regexp.Compile(`## (?P<versionNumberAndDate>\d+\.\d+\.\d+.*)`)
 
@@ -97,35 +105,34 @@ func getChangeLogInfo(scanner *bufio.Scanner) ([]int, []string, int, []string) {
 	if scanner.Err() != nil {
 		fmt.Println(scanner.Err())
 	}
-	fmt.Print(versionTitlesForEachRelease)
-	return versionLineNumbers, changeLogText, counterForChangeLogLength, versionTitlesForEachRelease
+	return ChangeLogInfo{versionLineNumbers, changeLogText, counterForChangeLogLength, versionTitlesForEachRelease}
 }
 
-func makeReleaseSlice(versionLineNumbers []int, changeLogText []string, changeLogLength int) []string {
+func createReleaseNotes(ChangeLogInfo ChangeLogInfo) []string {
 	// Store contributors and errors from end of changelog.
 	contributorsAndErrors := ""
 	numberOfLinesForLastRelease := 5
-	for i := numberOfLinesForLastRelease + versionLineNumbers[len(versionLineNumbers)-1]; i < changeLogLength; i++ {
-		contributorsAndErrors += changeLogText[i] + "\n"
+	for i := numberOfLinesForLastRelease + ChangeLogInfo.versionLineNumbers[len(ChangeLogInfo.versionLineNumbers)-1]; i < ChangeLogInfo.counterForChangeLogLength; i++ {
+		contributorsAndErrors += ChangeLogInfo.changeLogText[i] + "\n"
 	}
 	var releaseNotesForEachVersion []string
 	// exclude Last version (## 0.2.0) with - 1
-	lastVersion := len(versionLineNumbers) - 1
-	for i, versionLineNumber := range versionLineNumbers[:] {
+	lastVersion := len(ChangeLogInfo.versionLineNumbers) - 1
+	for i, versionLineNumber := range ChangeLogInfo.versionLineNumbers[:] {
 		releaseBodyLines := ""
 		if !(i == (lastVersion)) {
-			for j := versionLineNumbers[i] + 1; j < versionLineNumbers[i+1]; j++ {
-				releaseBodyLines += changeLogText[j] + "\n"
+			for j := ChangeLogInfo.versionLineNumbers[i] + 1; j < ChangeLogInfo.versionLineNumbers[i+1]; j++ {
+				releaseBodyLines += ChangeLogInfo.changeLogText[j] + "\n"
 			}
 		} else {
 			// Handle last version (## 0.2.0)
-			if versionLineNumber == versionLineNumbers[lastVersion] {
+			if versionLineNumber == ChangeLogInfo.versionLineNumbers[lastVersion] {
 				for j := 1; j < numberOfLinesForLastRelease; j++ {
-					releaseBodyLines += changeLogText[versionLineNumber+j] + "\n"
+					releaseBodyLines += ChangeLogInfo.changeLogText[versionLineNumber+j] + "\n"
 				}
 			}
 		}
-
+		//
 		releaseNotesForEachVersion = append(releaseNotesForEachVersion, releaseBodyLines+contributorsAndErrors)
 	}
 	return releaseNotesForEachVersion
