@@ -1,5 +1,5 @@
 Register-ArgumentCompleter -CommandName quick-lint-js -Native -ScriptBlock {
-	param ($wordToComplete)
+    param ($wordToComplete)
 
     $opts = @('--help',
               '--version',
