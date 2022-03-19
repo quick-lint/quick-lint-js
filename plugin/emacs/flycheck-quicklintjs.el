@@ -78,9 +78,9 @@ https://quick-lint-js.com"
   :error-parser flycheck-quicklintjs-parse-errors
   :error-explainer (lambda (err)
                      (let ((error-code (flycheck-error-id err))
-                           (url "https://quick-lint-js.com/errors/#%s"))
+                           (url "https://quick-lint-js.com/errors/%s/"))
                        (and error-code `(url . ,(format url error-code)))))
-  :modes js-mode)
+  :modes (js-mode js-jsx-mode rjsx-mode))
 
 (add-to-list 'flycheck-checkers 'javascript-quicklintjs t)
 

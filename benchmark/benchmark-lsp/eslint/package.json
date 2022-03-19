@@ -1,13 +1,13 @@
 {
   "dependencies": {
-    "@typescript-eslint/eslint-plugin": "5.6.0",
-    "@typescript-eslint/parser": "5.6.0",
-    "eslint": "8.4.1",
+    "@typescript-eslint/eslint-plugin": "*",
+    "@typescript-eslint/parser": "*",
+    "eslint": "*",
     "eslint-config-airbnb-base": "*",
     "eslint-plugin-import": "*",
     "eslint-plugin-react": "*",
-    "eslint-plugin-vue": "8.2.0",
+    "eslint-plugin-vue": "*",
     "typescript": "*",
-    "vscode-eslint": "https://github.com/microsoft/vscode-eslint/archive/cbb35d03497bb39043033defbad7fd80b2a89698.tar.gz"
+    "vscode-eslint": "https://github.com/microsoft/vscode-eslint/archive/d3c7703cd11dc6752c96edf0f140d50156d72dd7.tar.gz"
   }
 }

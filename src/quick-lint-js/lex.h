@@ -4,19 +4,19 @@
 #ifndef QUICK_LINT_JS_LEX_H
 #define QUICK_LINT_JS_LEX_H
 
-#include <boost/container/pmr/memory_resource.hpp>
-#include <boost/container/pmr/unsynchronized_pool_resource.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/identifier.h>
+#include <quick-lint-js/linked-bump-allocator.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
+#include <quick-lint-js/utf-8.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -171,6 +171,8 @@ class lexer {
   struct parsed_template_body {
     token_type type;
     const char8* end;
+    // Might be null.
+    buffering_error_reporter* escape_sequence_errors;
   };
 
   // The result of parsing an identifier.
@@ -219,6 +221,8 @@ class lexer {
 
   const char8* parse_string_literal() noexcept;
   const char8* parse_jsx_string_literal() noexcept;
+  const char8* parse_smart_quote_string_literal(
+      const decode_utf_8_result& opening_quote) noexcept;
 
   parsed_template_body parse_template_body(const char8* input,
                                            const char8* template_begin,
@@ -245,7 +249,8 @@ class lexer {
     std::optional<char32_t> code_point;
   };
 
-  parsed_unicode_escape parse_unicode_escape(const char8* input) noexcept;
+  parsed_unicode_escape parse_unicode_escape(const char8* input,
+                                             error_reporter*) noexcept;
 
   parsed_identifier parse_identifier(const char8*, identifier_kind);
   const char8* parse_identifier_fast_only(const char8*);
@@ -286,6 +291,7 @@ class lexer {
   static bool is_ascii_character(char32_t code_point);
 
   static int newline_character_size(const char8*);
+  static bool is_newline_character(char32_t code_point) noexcept;
 
   static token_type identifier_token_type(string8_view) noexcept;
 
@@ -296,21 +302,24 @@ class lexer {
   padded_string_view original_input_;
 
   monotonic_allocator allocator_;
-  boost::container::pmr::unsynchronized_pool_resource temporary_allocator_;
+  linked_bump_allocator<alignof(void*)> transaction_allocator_;
 };
 
 struct lexer_transaction {
   // Private to lexer. Do not construct, read, or modify.
 
+  using allocator_type = linked_bump_allocator<alignof(void*)>;
+
   explicit lexer_transaction(token old_last_token,
                              const char8* old_last_last_token_end,
                              const char8* old_input,
                              error_reporter** error_reporter_pointer,
-                             boost::container::pmr::memory_resource* memory)
-      : old_last_token(old_last_token),
+                             allocator_type* allocator)
+      : allocator_rewind(allocator),
+        old_last_token(old_last_token),
         old_last_last_token_end(old_last_last_token_end),
         old_input(old_input),
-        reporter(memory),
+        reporter(allocator),
         old_error_reporter(
             std::exchange(*error_reporter_pointer, &this->reporter)) {}
 
@@ -318,6 +327,10 @@ struct lexer_transaction {
   // lexer_transaction::error_reporter.
   lexer_transaction(const lexer_transaction&) = delete;
   lexer_transaction& operator=(const lexer_transaction&) = delete;
+
+  // Rewinds memory allocated by 'reporter'. Must be constructed before
+  // 'reporter' (thus destructed after 'reporter').
+  allocator_type::rewind_guard allocator_rewind;
 
   token old_last_token;
   const char8* old_last_last_token_end;

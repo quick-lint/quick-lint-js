@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <boost/container/pmr/global_resource.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <gmock/gmock.h>
@@ -255,7 +254,7 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
 }
 
 TEST(test_vector_instrumentation_max_size_histogram_by_owner,
-     resizing_vector_keeps_maximum_size) {
+     appending_to_vector_keeps_maximum_size) {
   std::uint64_t object_id = 42;
   const char *owner = "test vector";
   vector_instrumentation data;
@@ -294,7 +293,40 @@ TEST(test_vector_instrumentation_max_size_histogram_by_owner,
 }
 
 TEST(test_vector_instrumentation_max_size_histogram_by_owner,
-     resizing_different_vectors_with_same_owner_keeps_maximum_size_of_each) {
+     growing_vector_and_shrinking_keeps_maximum_size) {
+  std::uint64_t object_id = 42;
+  const char *owner = "test vector";
+  vector_instrumentation data;
+
+  data.add_entry(
+      /*object_id=*/object_id,
+      /*owner=*/owner,
+      /*event=*/vector_instrumentation::event::create,
+      /*data_pointer=*/100,
+      /*size=*/3,
+      /*capacity=*/3);
+  data.add_entry(
+      /*object_id=*/object_id,
+      /*owner=*/owner,
+      /*event=*/vector_instrumentation::event::resize,
+      /*data_pointer=*/200,
+      /*size=*/10,
+      /*capacity=*/10);
+  data.add_entry(
+      /*object_id=*/object_id,
+      /*owner=*/owner,
+      /*event=*/vector_instrumentation::event::resize,
+      /*data_pointer=*/200,
+      /*size=*/3,
+      /*capacity=*/10);
+
+  auto histogram = data.max_size_histogram_by_owner();
+  EXPECT_THAT(histogram[owner], UnorderedElementsAre(std::pair(10, 1)));
+}
+
+TEST(
+    test_vector_instrumentation_max_size_histogram_by_owner,
+    appending_to_different_vectors_with_same_owner_keeps_maximum_size_of_each) {
   std::uint64_t object_id_1 = 42;
   std::uint64_t object_id_2 = 69;
   const char *owner = "test vector";

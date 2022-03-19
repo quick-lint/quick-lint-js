@@ -53,7 +53,7 @@
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-#include <Windows.h>
+#include <quick-lint-js/windows.h>
 #endif
 
 QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")

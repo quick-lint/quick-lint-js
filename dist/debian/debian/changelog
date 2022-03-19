@@ -1,3 +1,27 @@
+quick-lint-js (2.3.0-1) unstable; urgency=medium
+
+  * New release.
+
+ -- Matthew "strager" Glazar <strager.nds@gmail.com>  Thu, 24 Feb 2022 19:38:31 -0800
+
+quick-lint-js (2.2.0-1) unstable; urgency=medium
+
+  * New release.
+
+ -- Matthew "strager" Glazar <strager.nds@gmail.com>  Thu, 17 Feb 2022 20:56:04 -0800
+
+quick-lint-js (2.1.0-1) unstable; urgency=medium
+
+  * New release.
+
+ -- Matthew "strager" Glazar <strager.nds@gmail.com>  Wed, 09 Feb 2022 14:57:29 -0800
+
+quick-lint-js (2.0.0-1) unstable; urgency=medium
+
+  * New release.
+
+ -- Matthew "strager" Glazar <strager.nds@gmail.com>  Tue, 08 Feb 2022 16:53:45 -0800
+
 quick-lint-js (1.0.0-1) unstable; urgency=medium
 
   * New release.

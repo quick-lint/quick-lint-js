@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../common-head.ejs.html", { title: `Show JavaScript
+    errors in Neovim on macOS`, description: `How to install Homebrew, Neovim,
+    and quick-lint-js on macOS to show JavaScript syntax errors while editing`,
+    image: `/blog/show-js-errors-neovim-macos/neovim-demo.png` }) %>
+    <link href="../../main.css" rel="stylesheet" />
+    <style>
+      figure {
+        margin-left: 2em;
+        margin-right: 2em;
+      }
+
+      figure > pre {
+        border: 1px dashed rgba(0, 0, 0, 0.3);
+        background-color: rgba(0, 0, 0, 0.03);
+        padding: 0.5rem;
+      }
+      @media (prefers-color-scheme: dark) {
+        figure > pre {
+          border-color: rgba(255, 255, 255, 0.3);
+          background-color: rgba(0, 0, 0, 0.1);
+        }
+      }
+
+      dd {
+        margin-left: 3em;
+        text-indent: -1.5em;
+      }
+      dd + dt {
+        margin-top: 0.75em;
+      }
+
+      /* Visually connect <h4> with the following paragraph. */
+      h4 {
+        margin-bottom: 0.5em;
+      }
+      h4 + p {
+        margin-top: 0.5em;
+      }
+
+      /* Visually separate each section. */
+      section + section {
+        border-top: 1px solid #ccc;
+      }
+
+      .side-by-side-comparison {
+        display: grid;
+        grid-template-areas: "before after";
+      }
+      .side-by-side-comparison .before {
+        grid-area: "before";
+      }
+      .side-by-side-comparison .after {
+        grid-area: "after";
+      }
+      .side-by-side-comparison figure {
+        margin: 0.5em;
+      }
+      .side-by-side-comparison figcaption {
+        font-style: italic;
+        text-align: center;
+        margin-bottom: 0.5em;
+      }
+    </style>
+  </head>
+  <body>
+    <header><%- await include("../../common-nav.ejs.html") %></header>
+
+    <main>
+      <h2>Show JavaScript errors in Neovim on macOS</h2>
+
+      <p>
+        Written by <a href="https://strager.net/">strager</a> on
+        <time>2022-02-16</time>
+      </p>
+
+      <figure>
+        <img
+          src="neovim-demo.png"
+          alt="Neovim with quick-lint-js running on macOS in iTerm 2"
+          width="1788"
+          height="654"
+        />
+        <figcaption>Neovim with quick-lint-js running on macOS</figcaption>
+      </figure>
+
+      <p>
+        Neovim is one of the most popular code editors, and JavaScript is one of
+        the most popular programming languages. Let's look at some plugins to
+        catch JavaScript bugs immediately in Neovim.
+      </p>
+
+      <section id="table-of-contents">
+        <ol>
+          <li><a href="#install-homebrew">Install Homebrew</a></li>
+          <li><a href="#install-neovim">Install Neovim</a></li>
+          <li><a href="#install-nvim-lspconfig">Install nvim-lspconfig</a></li>
+          <li><a href="#install-quick-lint-js">Install quick-lint-js</a></li>
+          <li><a href="#configure">Customize &amp; configure</a></li>
+          <li><a href="#troubleshooting">Troubleshooting</a></li>
+        </ol>
+      </section>
+
+      <section id="install-homebrew">
+        <h3>
+          1. Install Homebrew
+          <img
+            class="install-logo"
+            src="../../homebrew.svg"
+            alt=""
+            width="19"
+            height="19"
+          />
+        </h3>
+        <p>
+          We are going to use the
+          <a href="https://brew.sh/">Homebrew package manager</a> to install
+          most of our tools. Installing Homebrew is simple: open Terminal.app
+          (or iTerm 2 or any other terminal program) and paste the following
+          command:
+        </p>
+        <figure>
+          <pre><code class="shell-session"><span class="long-shell-command-line"><kbd>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</kbd></span></code></pre>
+          <figcaption>Install Homebrew</figcaption>
+        </figure>
+      </section>
+
+      <section id="install-neovim">
+        <h3>
+          2. Install Neovim
+          <img
+            class="install-logo"
+            src="../../neovim.svg"
+            alt=""
+            width="19"
+            height="19"
+          />
+        </h3>
+        <p>
+          Use Homebrew to install Neovim by running the following command in a
+          terminal:
+        </p>
+        <figure>
+          <pre><code class="shell-session"><kbd>brew install neovim</kbd></code></pre>
+          <figcaption>Install Neovim using Homebrew</figcaption>
+        </figure>
+
+        <p>
+          After installing Neovim, tell Neovim to use plugins installed through
+          Homebrew by adding the following line to your
+          <code>~/.config/nvim/init.lua</code> file:
+        </p>
+        <figure>
+          <pre><code class="lua">-- Replace <i>/opt/homebrew</i> with the path
+-- printed by the <i>brew --prefix</i> command.
+<kbd>vim.cmd [[set runtimepath+=/opt/homebrew/share/nvim/site]]</kbd></code></pre>
+          <figcaption>
+            Configure Neovim to use Homebrew-installed plugins
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="install-nvim-lspconfig">
+        <h3>3. Install nvim-lspconfig</h3>
+        <p>
+          Next, we need to install the
+          <a href="https://github.com/neovim/nvim-lspconfig"
+            >nvim-lspconfig Neovim plugin</a
+          >. This plugin lets you configure LSP servers, such as the JavaScript
+          tool we're going to install later, in Neovim.
+        </p>
+        <p>
+          <dfn>LSP servers</dfn> provide diagnostics, completion,
+          go-to-definition, and other features.
+        </p>
+        <p>
+          If you already use a Neovim plugin manager, install nvim-lspconfig
+          <a href="https://github.com/neovim/nvim-lspconfig#install"
+            >using that plugin manager</a
+          >. Otherwise, run the following two commands in a terminal to install
+          the plugin:
+        </p>
+        <figure>
+          <pre><code class="shell-session"><kbd>mkdir -p ~/.local/share/nvim/site/start</kbd>
+<span class="long-shell-command-line"><kbd>curl --location 'https://github.com/neovim/nvim-lspconfig/archive/refs/heads/master.tar.gz' | tar xz -C ~/.local/share/nvim/site/start</kbd></span></code></pre>
+          <figcaption>Install nvim-lspconfig</figcaption>
+        </figure>
+      </section>
+
+      <section id="install-quick-lint-js">
+        <h3>
+          4. Install quick-lint-js
+          <img
+            class="install-logo"
+            src="../../dusty.svg"
+            alt=""
+            width="19"
+            height="19"
+          />
+        </h3>
+        <p>
+          We're almost done! We now need to install
+          <a href="https://quick-lint-js.com/">quick-lint-js</a>, which is the
+          software which finds the errors in your JavaScript code. Install it
+          using Homebrew by running the following commands in a terminal:
+        </p>
+        <figure>
+          <pre><code class="shell-session"><span class="long-shell-command-line"><kbd>brew tap quick-lint/quick-lint-js https://github.com/quick-lint/quick-lint-js.git</kbd></span>
+<kbd>brew install quick-lint-js</kbd></code></pre>
+          <figcaption>Install quick-lint-js</figcaption>
+        </figure>
+
+        <p>
+          Then, add the following to your
+          <code>~/.config/nvim/init.lua</code> file:
+        </p>
+        <p>
+          <figure>
+            <pre><code class="lua">require('lspconfig/quick_lint_js').setup {}</code></pre>
+            <figcaption>Enable quick-lint-js in Neovim</figcaption>
+          </figure>
+        </p>
+
+        <p>
+          Restart Neovim and open a <code>.js</code> file. Type something, and
+          you should see a warning:
+        </p>
+        <figure>
+          <img
+            src="neovim-demo-asdf.png"
+            alt="Neovim with quick-lint-js running on macOS in iTerm 2"
+            width="1482"
+            height="654"
+          />
+          <figcaption>Neovim with quick-lint-js running on macOS</figcaption>
+        </figure>
+
+        <p>
+          If something doesn't work, see the
+          <a href="#troubleshooting">troubleshooting</a> steps below.
+        </p>
+      </section>
+
+      <section id="configure">
+        <h3>5. Customize &amp; configure 🔧</h3>
+        <ul>
+          <li>
+            <a href="#configure-errors-while-typing"
+              >Detect errors while you type</a
+            >
+          </li>
+          <li>
+            <a href="#configure-hide-gutter"
+              >Hide <code>W</code>/<code>E</code> sign in left gutter</a
+            >
+          </li>
+          <li>
+            <a href="#configure-hide-message"
+              >Hide &ldquo;■ error message&rdquo; virtual text</a
+            >
+          </li>
+        </ul>
+
+        <h4 id="configure-errors-while-typing">Detect errors while you type</h4>
+        <p>
+          By default, nvim-lspconfig only shows you errors while in normal mode.
+          To show errors while you type in insert mode, add the following to
+          your <code>~/.config/nvim/init.lua</code> file:
+        </p>
+
+        <figure>
+          <pre><code class="lua">vim.lsp.handlers['textDocument/publishDiagnostics'] = vim.lsp.with(
+  vim.lsp.diagnostic.on_publish_diagnostics, {
+    update_in_insert = true,
+  }
+)</code></pre>
+
+          <img
+            src="neovim-demo-update-in-insert.webp"
+            style="border-radius: 7px"
+            width="1049"
+            height="333"
+            alt="Fixing several mistakes in a JavaScript program in Neovim, demonstrating quick-lint-js"
+          />
+          <figcaption>Show errors while you type</figcaption>
+        </figure>
+
+        <h4 id="configure-hide-gutter">
+          Hide <code>W</code>/<code>E</code> sign in left gutter
+        </h4>
+        <p>
+          By default, Neovim shows a symbol in the gutter to indicate an error.
+          If there is no error, the gutter is hidden. If you want the gutter to
+          always be hidden, add the following line to your
+          <code>~/.config/nvim/init.lua</code> file:
+        </p>
+        <figure>
+          <pre><code class="lua">vim.diagnostic.config({signs = false})</code></pre>
+
+          <div class="side-by-side-comparison">
+            <figure class="before">
+              <figcaption>Before (signs enabled)</figcaption>
+              <img
+                src="neovim-demo-signs-on.png"
+                width="1006"
+                height="654"
+                alt="Neovim showing some diagnostics, with signs in the gutter"
+              />
+            </figure>
+            <figure class="after">
+              <figcaption>After (signs disabled)</figcaption>
+              <img
+                src="neovim-demo-signs-off.png"
+                width="1006"
+                height="654"
+                alt="Neovim showing some diagnostics, with no signs and no gutter"
+              />
+            </figure>
+          </div>
+          <figcaption>Hide diagnostic signs in gutter</figcaption>
+        </figure>
+
+        <h4 id="configure-hide-message">
+          Hide &ldquo;■ error message&rdquo; virtual text
+        </h4>
+        <p>
+          By default, Neovim shows virtual text to the right of lines containing
+          errors. If there is no error, the virtual text is hidden. If you want
+          the error message virtual text to always be hidden, add the following
+          line to your <code>~/.config/nvim/init.lua</code> file:
+        </p>
+        <figure>
+          <pre><code class="lua">vim.diagnostic.config({virtual_text = false})</code></pre>
+
+          <div class="side-by-side-comparison">
+            <figure class="before">
+              <figcaption>Before (virtual text enabled)</figcaption>
+              <img
+                src="neovim-demo-virtual-text-on.png"
+                width="1482"
+                height="654"
+                alt="Neovim showing some diagnostics, with virtual text explaining the errors"
+              />
+            </figure>
+            <figure class="after">
+              <figcaption>After (virtual text disabled)</figcaption>
+              <img
+                src="neovim-demo-virtual-text-off.png"
+                width="1482"
+                height="654"
+                alt="Neovim showing some diagnostics, with no virtual text explaining the errors"
+              />
+            </figure>
+          </div>
+          <figcaption>Hide error message virtual text</figcaption>
+        </figure>
+      </section>
+
+      <section id="troubleshooting">
+        <h3>6. Troubleshooting 🐞</h3>
+
+        <h4>
+          &ldquo;Spawning language server with cmd: `quick-lint-js` failed. The
+          language server is either not installed, missing from PATH, or not
+          executable.&rdquo;
+        </h4>
+        <p>
+          nvim-lspconfig gives this error if quick-lint-js was installed but
+          isn't in <code>$PATH</code>.
+        </p>
+        <dl>
+          <dt>
+            <i>Possible cause</i>: Homebrew's directory was not added to
+            <code>$PATH</code> during installation.
+          </dt>
+          <dd>
+            <i>Possible solution</i>: Open a new terminal to reset
+            <code>$PATH</code>.
+          </dd>
+          <dd>
+            <i>Possible solution</i>: Run the following command to add
+            Homebrew's directory to <code>$PATH</code>:
+            <blockquote>
+              <pre><code class="shell-session"><kbd>eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"</kbd></code></pre>
+            </blockquote>
+          </dd>
+
+          <dt><i>Possible cause</i>: quick-lint-js is not installed.</dt>
+          <dd>
+            <i>Possible solution</i>:
+            <a href="#install-quick-lint-js">Install quick-lint-js.</a>
+          </dd>
+        </dl>
+
+        <h4>
+          &ldquo;E5113: Error while calling lua chunk:
+          &hellip;/.config/nvim/init.lua: module 'lspconfig/quick_lint_js' not
+          found&rdquo;
+        </h4>
+        <p>
+          Neovim gives this error if it can't find quick-lint-js' nvim-lspconfig
+          configuration.
+        </p>
+        <dl>
+          <dt><i>Possible cause</i>: quick-lint-js is not installed.</dt>
+          <dd>
+            <i>Possible solution</i>:
+            <a href="#install-quick-lint-js">Install quick-lint-js.</a>
+          </dd>
+          <dt>
+            <i>Possible cause</i>: Neovim's <code>runtimepath</code> does not
+            list Homebrew's <code>share</code> directory.
+          </dt>
+          <dd>
+            <i>Possible solution</i>:
+            <a href="#install-neovim"
+              >In <code>init.lua</code>, add Homebrew's
+              <code>share</code> directory to <code>runtimepath</code>.</a
+            >
+          </dd>
+          <dd>
+            <i>Possible solution</i>: In <code>init.lua</code>, place the
+            <code class="vim">set runtimepath</code> command above the
+            <code class="lua">require('lspconfig/quick_lint_js')</code> command.
+          </dd>
+        </dl>
+      </section>
+
+      <section>
+        <p>
+          If you have any corrections or need any help, please email me at
+          <a href="mailto:strager.nds@gmail.com">strager.nds@gmail.com</a>.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

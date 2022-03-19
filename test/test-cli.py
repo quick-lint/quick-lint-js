@@ -62,7 +62,7 @@ class TestQuickLintJSCLI(unittest.TestCase):
                 encoding="utf-8",
             )
             self.assertEqual(result.returncode, 1)
-            self.assertIn("[]8;;https://quick-lint-js.com/errors/#E0017\E0017]8;;\]", result.stderr)
+            self.assertIn("[]8;;https://quick-lint-js.com/errors/E0017/\E0017]8;;\]", result.stderr)
 
     def test_file_with_syntax_errors_with_non_matching_exit_fail_on_does_not_fail(
         self,

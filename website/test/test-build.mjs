@@ -116,6 +116,63 @@ describe("build", () => {
     ]);
   });
 
+  describe("/generated/<subdir>/", () => {
+    it("/generated/ builds index.ejs.html if index.mjs is present", async () => {
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        "export let routes = {};"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.ejs.html"),
+        "hello <%= 2+2 %>"
+      );
+
+      let buildInstructions = await makeBuildInstructionsAsync({ wwwRootPath });
+      expect(buildInstructions).toContain({
+        type: "build-ejs",
+        sourcePath: "generated/index.ejs.html",
+        destinationPath: "generated/index.html",
+        ejsVariables: {
+          currentURI: "/generated/",
+        },
+      });
+    });
+
+    it("builds .ejs.html page mentioned in /generated/index.mjs", async () => {
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        "export let routes = { '/generated/subdir/': 'page.ejs.html' };"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "page.ejs.html"),
+        "current URI is <%- currentURI %>"
+      );
+
+      let buildInstructions = await makeBuildInstructionsAsync({ wwwRootPath });
+      expect(buildInstructions).toContain({
+        type: "build-ejs",
+        sourcePath: "generated/page.ejs.html",
+        destinationPath: "generated/subdir/index.html",
+        ejsVariables: {
+          currentURI: "/generated/subdir/",
+        },
+      });
+    });
+
+    it("does not copy index.mjs", async () => {
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        "export let routes = {};"
+      );
+
+      let buildInstructions = await makeBuildInstructionsAsync({ wwwRootPath });
+      expect(buildInstructions).toEqual([]);
+    });
+  });
+
   describe("static asset causes copy", () => {
     it("/test.js", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.js"), "hello();");

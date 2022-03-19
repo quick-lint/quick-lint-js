@@ -46,6 +46,14 @@ struct source_file {
 };
 }
 
+bool benchmark::is_supported(
+    const benchmark_config_server& server_config) const {
+  if (this->name().ends_with(".jsx") && !server_config.supports_jsx) {
+    return false;
+  }
+  return true;
+}
+
 class open_wait_close_benchmark : public benchmark {
  public:
   explicit open_wait_close_benchmark(const source_file* sf)
@@ -55,8 +63,9 @@ class open_wait_close_benchmark : public benchmark {
     return std::string("open-wait-close/") + this->source_file_->name;
   }
 
-  bool is_supported(const benchmark_config_server&) const override {
-    return true;
+  bool is_supported(
+      const benchmark_config_server& server_config) const override {
+    return benchmark::is_supported(server_config);
   }
 
   lsp_task<void> set_up_async(lsp_server_process& server,
@@ -122,8 +131,9 @@ class change_wait_benchmark : public benchmark {
     return std::string("change-wait/") + this->source_file_->name;
   }
 
-  bool is_supported(const benchmark_config_server&) const override {
-    return true;
+  bool is_supported(
+      const benchmark_config_server& server_config) const override {
+    return benchmark::is_supported(server_config);
   }
 
   lsp_task<void> set_up_async(lsp_server_process& server,
@@ -214,7 +224,8 @@ class incremental_change_wait_benchmark : public benchmark {
 
   bool is_supported(
       const benchmark_config_server& server_config) const override {
-    return server_config.allow_incremental_changes;
+    return benchmark::is_supported(server_config) &&
+           server_config.allow_incremental_changes;
   }
 
   lsp_task<void> set_up_async(lsp_server_process& server,
@@ -239,13 +250,13 @@ class incremental_change_wait_benchmark : public benchmark {
     for (int i = 0; i < iteration_count; ++i) {
       byte_buffer change_text_notification;
       change_text_notification.append_copy(
-          u8R"({"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"version":)");
+          u8R"({"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"version":)"sv);
       change_text_notification.append_decimal_integer(version);
-      change_text_notification.append_copy(u8R"(,"uri":")");
+      change_text_notification.append_copy(u8R"(,"uri":")"sv);
       write_json_escaped_string(change_text_notification, uri);
-      change_text_notification.append_copy(u8R"("},"contentChanges":)");
+      change_text_notification.append_copy(u8R"("},"contentChanges":)"sv);
       this->changes_factory_(i, change_text_notification);
-      change_text_notification.append_copy(u8R"(}})");
+      change_text_notification.append_copy(u8R"(}})"sv);
       this->iterations_.emplace_back(version,
                                      std::move(change_text_notification));
       version += 1;
@@ -296,8 +307,9 @@ class full_change_wait_benchmark : public benchmark {
     return std::string("full-change-wait/") + this->name_;
   }
 
-  bool is_supported(const benchmark_config_server&) const override {
-    return true;
+  bool is_supported(
+      const benchmark_config_server& server_config) const override {
+    return benchmark::is_supported(server_config);
   }
 
   lsp_task<void> set_up_async(lsp_server_process& server,
@@ -323,16 +335,16 @@ class full_change_wait_benchmark : public benchmark {
     for (int i = 0; i < iteration_count; ++i) {
       byte_buffer change_text_notification;
       change_text_notification.append_copy(
-          u8R"({"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"version":)");
+          u8R"({"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"version":)"sv);
       change_text_notification.append_decimal_integer(version);
-      change_text_notification.append_copy(u8R"(,"uri":")");
+      change_text_notification.append_copy(u8R"(,"uri":")"sv);
       write_json_escaped_string(change_text_notification, uri);
       change_text_notification.append_copy(
-          u8R"("},"contentChanges":[{"text":")");
+          u8R"("},"contentChanges":[{"text":")"sv);
       padded_string new_source = this->source_factory_(i + 1);
       write_json_escaped_string(change_text_notification,
                                 new_source.string_view());
-      change_text_notification.append_copy(u8R"("}]}})");
+      change_text_notification.append_copy(u8R"("}]}})"sv);
       this->iterations_.emplace_back(version,
                                      std::move(change_text_notification));
       version += 1;
@@ -384,6 +396,8 @@ std::vector<benchmark_factory> get_benchmark_factories() {
   static source_file edex_ui_filesystem_js =
       source_file::load("edex-ui-filesystem.class.js");
   static source_file express_router_js = source_file::load("express-router.js");
+  static source_file react_quickly_ch10_jsx =
+      source_file::load("react-quickly-ch10.jsx");
 
   return std::vector<benchmark_factory>{
       []() -> std::unique_ptr<benchmark> {
@@ -397,6 +411,10 @@ std::vector<benchmark_factory> get_benchmark_factories() {
         return std::make_unique<open_wait_close_benchmark>(&express_router_js);
       },
       []() -> std::unique_ptr<benchmark> {
+        return std::make_unique<open_wait_close_benchmark>(
+            &react_quickly_ch10_jsx);
+      },
+      []() -> std::unique_ptr<benchmark> {
         return std::make_unique<change_wait_benchmark>(&tiny_js);
       },
       []() -> std::unique_ptr<benchmark> {
@@ -404,6 +422,9 @@ std::vector<benchmark_factory> get_benchmark_factories() {
       },
       []() -> std::unique_ptr<benchmark> {
         return std::make_unique<change_wait_benchmark>(&express_router_js);
+      },
+      []() -> std::unique_ptr<benchmark> {
+        return std::make_unique<change_wait_benchmark>(&react_quickly_ch10_jsx);
       },
       []() -> std::unique_ptr<benchmark> {
         return std::make_unique<
@@ -418,19 +439,49 @@ std::vector<benchmark_factory> get_benchmark_factories() {
           QLJS_ASSERT(i <= 99999);
           std::snprintf(replacement_text, sizeof(replacement_text), "m%05d", i);
           QLJS_ASSERT(std::strlen(replacement_text) == 6);
-          out_changes.append_copy(u8R"([{"text":")");
+          out_changes.append_copy(u8R"([{"text":")"sv);
           out_changes.append_copy(to_string8_view(replacement_text));
           out_changes.append_copy(
-              u8R"(","range":{"start":{"line":506,"character":39},"end":{"line":506,"character":45}}},)");
-          out_changes.append_copy(u8R"({"text":")");
+              u8R"(","range":{"start":{"line":506,"character":39},"end":{"line":506,"character":45}}},)"sv);
+          out_changes.append_copy(u8R"({"text":")"sv);
           out_changes.append_copy(to_string8_view(replacement_text));
           out_changes.append_copy(
-              u8R"(","range":{"start":{"line":507,"character":8},"end":{"line":507,"character":14}}},)");
-          out_changes.append_copy(u8R"({"text":")");
+              u8R"(","range":{"start":{"line":507,"character":8},"end":{"line":507,"character":14}}},)"sv);
+          out_changes.append_copy(u8R"({"text":")"sv);
           out_changes.append_copy(to_string8_view(replacement_text));
           out_changes.append_copy(
-              u8R"(","range":{"start":{"line":509,"character":10},"end":{"line":509,"character":16}}}])");
+              u8R"(","range":{"start":{"line":509,"character":10},"end":{"line":509,"character":16}}}])"sv);
         });
+      },
+      []() -> std::unique_ptr<benchmark> {
+        return std::make_unique<incremental_change_wait_benchmark>(
+            &react_quickly_ch10_jsx, [](int i, byte_buffer& out_changes) {
+              // In Cart's render function in react-quickly-ch10.jsx, clear the
+              // "Your cart is empty" text then re-type it character by
+              // character.
+              static constexpr char text[] = "Your cart is empty";
+              static constexpr int text_length = sizeof(text) - 1;
+              int characters_already_typed = (i % text_length == 0)
+                                                 ? text_length
+                                                 : ((i % text_length) - 1);
+              if (characters_already_typed == text_length) {
+                // The text has been fully typed. Erase it.
+                out_changes.append_copy(
+                    u8R"([{"text":"","range":{"start":{"line":53,"character":49},"end":{"line":53,"character":67}}}])"sv);
+              } else {
+                // Type the next character.
+                int column = 49 + characters_already_typed;
+                out_changes.append_copy(u8R"([{"text":")"sv);
+                out_changes.append_copy(text[characters_already_typed]);
+                out_changes.append_copy(
+                    u8R"(","range":{"start":{"line":53,"character":)"sv);
+                out_changes.append_decimal_integer(column);
+                out_changes.append_copy(
+                    u8R"(},"end":{"line":53,"character":)"sv);
+                out_changes.append_decimal_integer(column);
+                out_changes.append_copy(u8R"(}}}])"sv);
+              }
+            });
       },
       []() -> std::unique_ptr<benchmark> {
         return std::make_unique<full_change_wait_benchmark>(

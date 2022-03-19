@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <map>
 #include <memory>
 #include <quick-lint-js/arg-parser.h>
 #include <quick-lint-js/benchmark-config.h>
@@ -19,7 +20,6 @@
 #include <quick-lint-js/result.h>
 #include <quick-lint-js/string-view.h>
 #include <unistd.h>
-#include <unordered_map>
 
 using namespace quick_lint_js;
 using namespace std::literals::string_view_literals;
@@ -38,7 +38,6 @@ struct benchmark_run_config {
 };
 
 struct parsed_args {
-  const char* config_path = nullptr;
   std::string_view benchmark_filter = std::string_view();
   const char* output_json_path = nullptr;
   bool list_benchmarks = false;
@@ -69,6 +68,16 @@ class benchmark_results_writer {
   // verbose_output is optional.
   explicit benchmark_results_writer(FILE* json_output, FILE* verbose_output)
       : json_output_(json_output), verbose_output_(verbose_output) {}
+
+  void add_metadata(const benchmark_config_program& program_config) {
+    if (this->json_output_) {
+      ::boost::json::object out_metadata;
+      for (auto& [key, value] : program_config.get_metadata()) {
+        out_metadata[key] = value;
+      }
+      this->metadatas_[program_config.name] = out_metadata;
+    }
+  }
 
   void begin_benchmark(const char* name,
                        const benchmark_run_config& run_config) {
@@ -120,6 +129,7 @@ class benchmark_results_writer {
     if (this->json_output_) {
       ::boost::json::object root;
       root.emplace("data", std::move(this->datas_));
+      root.emplace("metadata", std::move(this->metadatas_));
       std::string json = ::boost::json::serialize(std::move(root));
       std::size_t written =
           std::fwrite(json.data(), 1, json.size(), this->json_output_);
@@ -139,6 +149,7 @@ class benchmark_results_writer {
   FILE* verbose_output_;
   ::boost::json::array datas_;
   ::boost::json::object current_benchmark_;
+  ::boost::json::object metadatas_;
   std::vector<sample> current_benchmark_samples_;
 };
 
@@ -165,10 +176,7 @@ int main(int argc, char** argv) {
   benchmark_results_writer results(/*json_output=*/output_json_file,
                                    /*verbose_output=*/stdout);
 
-  benchmark_config config = benchmark_config::load_from_file(args.config_path);
-  std::filesystem::current_path(
-      std::filesystem::path(args.config_path).parent_path());
-
+  benchmark_config config = benchmark_config::load();
   std::vector<benchmark_factory> benchmark_factories =
       get_benchmark_factories();
 
@@ -189,6 +197,17 @@ int main(int argc, char** argv) {
         results.begin_benchmark(benchmark_name.c_str(), args.run_config);
         run_benchmark(factory, server_config, args.run_config, results);
         results.end_benchmark();
+
+        auto program_it = std::find_if(
+            config.programs.begin(), config.programs.end(),
+            [&](const benchmark_config_program& program_config) {
+              return program_config.name == server_config.program_name;
+            });
+        if (program_it != config.programs.end() &&
+            !program_it->dumped_metadata) {
+          results.add_metadata(*program_it);
+          program_it->dumped_metadata = true;
+        }
       }
     }
   }
@@ -215,9 +234,7 @@ parsed_args parse_arguments(int argc, char** argv) {
   arg_parser parser(argc, argv);
   while (!parser.done()) {
     if (const char* argument = parser.match_argument()) {
-      if (!args.config_path) {
-        args.config_path = argument;
-      } else if (args.benchmark_filter.empty()) {
+      if (args.benchmark_filter.empty()) {
         args.benchmark_filter = argument;
       } else {
         std::fprintf(stderr, "error: unexpected argument: %s\n", argument);

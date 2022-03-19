@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_BENCHMARK_CONFIG_H
 
 #include <cstdint>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -12,6 +13,7 @@
 namespace quick_lint_js {
 struct benchmark_config_server {
   std::string name;
+  std::string program_name;
   std::vector<std::string> command;
   std::optional<std::string> cwd;
   bool allow_incremental_changes = true;
@@ -19,14 +21,23 @@ struct benchmark_config_server {
   std::int64_t diagnostics_messages_to_ignore_after_incremental_change = 0;
   std::string initialization_options_json = "{}";
   bool need_files_on_disk = false;
+  bool supports_jsx = false;
   bool wait_for_empty_diagnostics_on_open = true;
   std::string workspace_configuration_json = "{}";
 };
 
+struct benchmark_config_program {
+  std::string name;
+  std::map<std::string, std::string> (*get_metadata)();
+
+  bool dumped_metadata = false;
+};
+
 struct benchmark_config {
   std::vector<benchmark_config_server> servers;
+  std::vector<benchmark_config_program> programs;
 
-  static benchmark_config load_from_file(const char* config_path);
+  static benchmark_config load();
 };
 }
 

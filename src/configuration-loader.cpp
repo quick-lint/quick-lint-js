@@ -3,7 +3,6 @@
 
 #if !defined(__EMSCRIPTEN__)
 
-#include <boost/container/pmr/global_resource.hpp>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../common-head.ejs.html", { title: `Reacts rocks with
+    quick-lint-js` }) %>
+    <link href="../../main.css" rel="stylesheet" />
+  </head>
+  <body>
+    <% function callsToAction() { %>
+    <ul class="install-options">
+      <li>
+        <a href="../../install/"
+          ><img
+            class="install-logo"
+            src="../../favicon-32x32.png"
+            alt=""
+            width="19"
+            height="19"
+          />
+          install quick-lint-js</a
+        >
+      </li>
+      <li><a href="../../demo/">🌐 try in your browser</a></li>
+      <li>
+        <a href="https://github.com/quick-lint/quick-lint-js"
+          ><img
+            class="install-logo"
+            src="../../github.svg"
+            alt=""
+            width="19"
+            height="19"
+          />
+          code on GitHub</a
+        >
+      </li>
+    </ul>
+    <% } %>
+
+    <header><%- await include("../../common-nav.ejs.html") %></header>
+
+    <main>
+      <h2>React rocks with quick-lint-js 2.0</h2>
+      <p><time>2022-02-04</time></p>
+
+      <p>We are proud to announce version 2.0 of quick-lint-js!</p>
+
+      <p>
+        React is the
+        <a
+          href="https://www.statista.com/statistics/1124699/worldwide-developer-survey-most-used-frameworks-web/"
+          >most used web framework in 2021</a
+        >. With quick-lint-js version 2.0, coding with React is easier than
+        ever. Just install the
+        <a
+          href="https://marketplace.visualstudio.com/items?itemName=quick-lint.quick-lint-js"
+          >quick-lint-js VS Code extension</a
+        >
+        and catch your mistakes before you press
+        <kbd title="command-S or control-S (save file)">⌘-S</kbd>.
+      </p>
+
+      <%- callsToAction() %>
+
+      <p>Notable quick-lint-js 2.0 features:</p>
+      <ul>
+        <li>JSX (React) support</li>
+        <li>
+          Over <a href="../../benchmarks/">340 times faster</a> than ESLint for
+          React code
+        </li>
+        <li><a href="../../errors/">18 new errors</a></li>
+      </ul>
+      <p>See the <a href="../../releases/">full change log here</a>.</p>
+
+      <p>How does quick-lint-js compare to ESLint? See for yourself:</p>
+      <div class="eslint-comparison">
+        <figure style="grid-area: eslint">
+          <figcaption>ESLint</figcaption>
+          <div class="example">
+            <pre><code class="javascript">let headingLinks = [];
+for (let el of $("a")) {
+  if (<mark data-message="Expected a conditional expression and instead saw an assignment; Unexpected constant condition" data-severity="warning">el</mark>.parentNode.tag = "H1") {
+    headingLinks.push(el);
+  }
+}</code></pre>
+            <p>
+              Expected a conditional expression and instead saw an
+              assignment;<br />Unexpected constant condition
+            </p>
+          </div>
+        </figure>
+        <figure style="grid-area: qljs">
+          <figcaption>quick-lint-js</figcaption>
+          <div class="example">
+            <pre><code class="javascript">let headingLinks = [];
+for (let el of $("a")) {
+  if (el.parentNode.tag <mark data-code="E0188" data-message="'=' changes variables; to compare, use '===' instead" data-severity="warning">=</mark> "H1") {
+    headingLinks.push(el);
+  }
+}</code></pre>
+            <p>
+              '=' changes variables; to compare, use '===' instead&nbsp;[<a
+                href="../../errors/E0188/"
+                >E0188</a
+              >]
+            </p>
+          </div>
+        </figure>
+      </div>
+
+      <div class="eslint-comparison">
+        <figure style="grid-area: eslint">
+          <figcaption>ESLint</figcaption>
+          <div class="example">
+            <pre><code class="javascript">function TodoEntry({title, children}) {
+  return (
+    &lt;h3&gt;{title}&lt;/h3&gt;
+    <mark data-message="Adjacent JSX elements must be wrapped in an enclosing tag" data-severity="error">&lt;</mark>div className="body"&gt;{children}&lt;/div&gt;
+  );
+}</code></pre>
+            <p>Adjacent JSX elements must be wrapped in an enclosing tag</p>
+          </div>
+        </figure>
+        <figure style="grid-area: qljs">
+          <figcaption>quick-lint-js</figcaption>
+          <div class="example">
+            <pre><code class="javascript">function TodoEntry({title, children}) {
+  return (
+    <mark data-code="E0189" data-message="missing '&lt;&gt;' and '&lt;/&gt;' to enclose multiple children" data-severity="error">&lt;</mark>h3&gt;{title}&lt;/h3&gt;
+    &lt;div className="body"&gt;{children}&lt;/div&gt;<mark data-code="E0189" data-message="children end here" data-severity="error"></mark>
+  );
+}</code></pre>
+            <p>
+              missing '&lt;&gt;' and '&lt;/&gt;' to enclose multiple
+              children;<br />children end here&nbsp;[<a
+                href="../../errors/E0189/"
+                >E0189</a
+              >]
+            </p>
+          </div>
+        </figure>
+      </div>
+
+      <div class="eslint-comparison">
+        <figure style="grid-area: eslint">
+          <figcaption>ESLint</figcaption>
+          <div class="example">
+            <pre><code class="javascript">function Link({text, ...props}) {
+  return &lt;a {<mark data-message="Parsing error: Unexpected token props" data-severity="error">props</mark>}&gt;{text}&lt;/a&gt;;
+} </code></pre>
+            <p>Parsing error: Unexpected token props</p>
+          </div>
+        </figure>
+        <figure style="grid-area: qljs">
+          <figcaption>quick-lint-js</figcaption>
+          <div class="example">
+            <pre><code class="javascript">function Link({text, ...props}) {
+  return &lt;a {<mark data-code="E0186" data-message="missing '...' in JSX attribute spread" severity="error"></mark>props}&gt;{text}&lt;/a&gt;;
+} </code></pre>
+            <p>
+              missing '...' in JSX attribute spread&nbsp;[<a
+                href="../../errors/E0186/"
+                >E0186</a
+              >]
+            </p>
+          </div>
+        </figure>
+      </div>
+
+      <figure>
+        <img
+          src="vscode-jsx-demo.png"
+          style="width: 100%; height: auto"
+          alt="quick-lint-js running in Visual Studio Code"
+          width="1430"
+          height="576"
+        />
+      </figure>
+
+      <p>
+        What should we work on next?
+        <a href="https://github.com/quick-lint/quick-lint-js/issues/327"
+          >Suggest features for quick-lint-js.</a
+        >
+      </p>
+
+      <p>
+        quick-lint-js version 2.0 has over 230 patches since version 1.0.
+        <a
+          href="https://github.com/quick-lint/quick-lint-js/blob/2.0.0/docs/AUTHORS.md"
+          >37 people</a
+        >
+        made quick-lint-js possible.
+      </p>
+
+      <%- callsToAction() %>
+
+      <p>
+        Written by <a href="https://strager.net/contact.html">strager</a>, lead
+        developer of quick-lint-js.
+      </p>
+
+      <script src="../../error-box.bundled.js"></script>
+    </main>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

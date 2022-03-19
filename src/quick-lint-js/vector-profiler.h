@@ -5,9 +5,7 @@
 #define QUICK_LINT_JS_VECTOR_PROFILER_H
 
 #include <algorithm>
-#include <boost/container/pmr/monotonic_buffer_resource.hpp>
 #include <boost/container/pmr/polymorphic_allocator.hpp>
-#include <boost/container/pmr/unsynchronized_pool_resource.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <iosfwd>
@@ -19,6 +17,7 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/warning.h>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -32,6 +31,7 @@ class vector_instrumentation {
     clear,
     create,
     destroy,
+    resize,
   };
 
   struct entry {
@@ -153,6 +153,10 @@ class instrumented_vector {
     this->add_instrumentation_entry(vector_instrumentation::event::destroy);
   }
 
+  QLJS_FORCE_INLINE allocator_type get_allocator() const noexcept {
+    return this->data_.get_allocator();
+  }
+
   QLJS_FORCE_INLINE value_type *data() noexcept { return this->data_.data(); }
   QLJS_FORCE_INLINE const value_type *data() const noexcept {
     return this->data_.data();
@@ -169,8 +173,18 @@ class instrumented_vector {
   QLJS_FORCE_INLINE bool empty() const noexcept { return this->data_.empty(); }
 
   QLJS_FORCE_INLINE value_type &front() noexcept { return this->data_.front(); }
-
   QLJS_FORCE_INLINE value_type &back() noexcept { return this->data_.back(); }
+
+  QLJS_FORCE_INLINE const value_type &front() const noexcept {
+    return this->data_.front();
+  }
+  QLJS_FORCE_INLINE const value_type &back() const noexcept {
+    return this->data_.back();
+  }
+
+  QLJS_FORCE_INLINE value_type &operator[](size_type index) noexcept {
+    return this->data_[index];
+  }
 
   QLJS_FORCE_INLINE value_type *begin() noexcept { return this->data(); }
   QLJS_FORCE_INLINE value_type *end() noexcept {
@@ -197,6 +211,45 @@ class instrumented_vector {
   }
 
   void reserve(std::size_t new_capacity) { this->data_.reserve(new_capacity); }
+
+  void resize(std::size_t new_size) {
+    this->data_.resize(new_size);
+    this->add_instrumentation_entry(vector_instrumentation::event::resize);
+  }
+
+  // NOTE(strager): This is a non-standard function.
+  void release() { this->data_.release(); }
+
+  // NOTE(strager): This is a non-standard function.
+  void append(const value_type *begin, const value_type *end) {
+    this->data_.append(begin, end);
+    this->add_instrumentation_entry(vector_instrumentation::event::append);
+  }
+
+  // NOTE(strager): This is a non-standard function.
+  void append(size_type count, value_type value) {
+    this->data_.append(count, value);
+    this->add_instrumentation_entry(vector_instrumentation::event::append);
+  }
+
+  // NOTE(strager): This is a non-standard function.
+  instrumented_vector &operator+=(value_type value) {
+    this->data_ += value;
+    this->add_instrumentation_entry(vector_instrumentation::event::append);
+    return *this;
+  }
+
+  // NOTE(strager): This is a non-standard function.
+  instrumented_vector &operator+=(std::basic_string_view<value_type> values) {
+    this->data_ += values;
+    this->add_instrumentation_entry(vector_instrumentation::event::append);
+    return *this;
+  }
+
+  // NOTE(strager): This is a non-standard function.
+  explicit operator std::basic_string_view<value_type>() const noexcept {
+    return std::basic_string_view<value_type>(this->data_);
+  }
 
  private:
   QLJS_FORCE_INLINE void add_instrumentation_entry(

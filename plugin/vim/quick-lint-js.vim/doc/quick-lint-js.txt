@@ -7,7 +7,7 @@
 This file contains instructions for installing and using the quick-lint-js
 plugin.
 
-This plugin version is designed for quick-lint-js version 1.0.0. Older or
+This plugin version is designed for quick-lint-js version 2.3.0. Older or
 newer versions might or might not work.
 
 1. Installing quick-lint-js	|quick-lint-js-app-install|
@@ -51,6 +51,8 @@ this plugin to work:
 
 * ALE - Asynchronous Lint Engine: |quick-lint-js-configure-ale|
   https://github.com/dense-analysis/ale
+* coc.nvim: |quick-lint-js-configure-coc-nvim|
+  https://github.com/neoclide/coc.nvim
 * nvim-lspconfig: |quick-lint-js-configure-nvim-lspconfig|
   https://github.com/neovim/nvim-lspconfig
 
@@ -142,7 +144,7 @@ snippet into your |coc-configuration| then tweaking it according to
       "quick-lint-js": {
         "args": ["--lsp-server"],
         "command": "quick-lint-js",
-        "filetypes": ["javascript", "json"]
+        "filetypes": ["javascript", "javascriptreact", "json"]
       }
     }
 

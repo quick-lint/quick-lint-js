@@ -3,8 +3,8 @@
 <!-- See end of file for extended copyright information. -->
 <html>
   <head>
-    <%- await include("../common-head.ejs.html") %>
-    <title>quick-lint-js blog</title>
+    <%- await include("../common-head.ejs.html", { title: `quick-lint-js blog`
+    }) %>
     <link href="../main.css" rel="stylesheet" />
   </head>
   <body class="side-bar-nav">
@@ -14,6 +14,14 @@
       <h2>quick-lint-js blog</h2>
 
       <ul>
+        <li>
+          <a href="show-js-errors-neovim-macos/"
+            >Show JavaScript errors in Neovim on macOS</a
+          >
+        </li>
+        <li>
+          <a href="version-2.0/">Release: version 2.0</a>
+        </li>
         <li>
           <a href="version-1.0/">Release: version 1.0</a>
         </li>

@@ -124,14 +124,17 @@ TEST(test_parse, parse_function_statement) {
   {
     spy_visitor v =
         parse_and_visit_statement(u8"function g(first, ...args) {}"_sv);
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(
-                    spy_visitor::visited_variable_declaration{
-                        u8"g", variable_kind::_function},
-                    spy_visitor::visited_variable_declaration{
-                        u8"first", variable_kind::_parameter},
-                    spy_visitor::visited_variable_declaration{
-                        u8"args", variable_kind::_parameter}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            spy_visitor::visited_variable_declaration{
+                u8"g", variable_kind::_function, variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"first", variable_kind::_parameter,
+                variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"args", variable_kind::_parameter,
+                variable_init_kind::normal}));
   }
 }
 
@@ -223,9 +226,10 @@ TEST(test_parse, async_function_statement) {
 TEST(test_parse, generator_function_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"function* f() {}"_sv);
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"f", variable_kind::_function}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(spy_visitor::visited_variable_declaration{
+            u8"f", variable_kind::_function, variable_init_kind::normal}));
   }
 }
 
@@ -379,19 +383,20 @@ TEST(test_parse, parse_function_expression) {
   {
     spy_visitor v = parse_and_visit_statement(u8"(a, function(b) {c;}(d));"_sv);
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_use",               // a
-                            "visit_enter_function_scope",       //
+                ElementsAre("visit_enter_function_scope",       //
                             "visit_variable_declaration",       // b
                             "visit_enter_function_scope_body",  //
                             "visit_variable_use",               // c
                             "visit_exit_function_scope",        //
+                            "visit_variable_use",               // a
                             "visit_variable_use"));             // d
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"b", variable_kind::_parameter}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(spy_visitor::visited_variable_declaration{
+            u8"b", variable_kind::_parameter, variable_init_kind::normal}));
     EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"a"},
-                            spy_visitor::visited_variable_use{u8"c"},
+                ElementsAre(spy_visitor::visited_variable_use{u8"c"},
+                            spy_visitor::visited_variable_use{u8"a"},
                             spy_visitor::visited_variable_use{u8"d"}));
   }
 
@@ -427,9 +432,10 @@ TEST(test_parse, arrow_function_expression) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // y
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"x", variable_kind::_parameter}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(spy_visitor::visited_variable_declaration{
+            u8"x", variable_kind::_parameter, variable_init_kind::normal}));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"y"}));
   }
@@ -442,9 +448,10 @@ TEST(test_parse, arrow_function_expression) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // z
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"x", variable_kind::_parameter}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(spy_visitor::visited_variable_declaration{
+            u8"x", variable_kind::_parameter, variable_init_kind::normal}));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"y"},
                             spy_visitor::visited_variable_use{u8"z"}));
@@ -497,11 +504,57 @@ TEST(test_parse, arrow_function_expression_with_statements) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // y
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"x", variable_kind::_parameter}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(spy_visitor::visited_variable_declaration{
+            u8"x", variable_kind::_parameter, variable_init_kind::normal}));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"y"}));
+  }
+}
+
+TEST(test_parse, nested_arrow_function) {
+  for (string8_view code : {
+           u8"(x => y => (x, y));"_sv,
+           u8"(x => { (y => (x, y)); });"_sv,
+           u8"(x => y => { x; y; });"_sv,
+           u8"(x => { (y => { x; y; }); });"_sv,
+       }) {
+    spy_visitor v = parse_and_visit_statement(code);
+    SCOPED_TRACE(out_string8(code));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // y
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // x
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",        //
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            spy_visitor::visited_variable_declaration{
+                u8"x", variable_kind::_parameter, variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"y", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"},
+                            spy_visitor::visited_variable_use{u8"y"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"(a => ((b = a) => {}));"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // a
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_enter_function_scope",       //
+                                      "visit_variable_use",               // a
+                                      "visit_variable_declaration",       // b
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_exit_function_scope"));
   }
 }
 
@@ -970,6 +1023,21 @@ TEST(test_parse, arrow_function_expression_without_arrow_operator) {
   }
 
   {
+    padded_string code(u8"(async () {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_arrow_operator_in_arrow_function,  //
+                    where, strlen(u8"(async () "), u8"{")));
+  }
+
+  {
     padded_string code(u8"(()\n{});"_sv);
     spy_visitor v;
     parser p(&code, &v);
@@ -1000,6 +1068,42 @@ TEST(test_parse, arrow_function_expression_without_arrow_operator) {
                     &code, error_missing_arrow_operator_in_arrow_function,  //
                     where, strlen(u8"((a, b) "), u8"{")));
   }
+
+  {
+    padded_string code(u8"(async (a, b) {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // a
+                                      "visit_variable_declaration",       // b
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_arrow_operator_in_arrow_function,  //
+                    where, strlen(u8"(async (a, b) "), u8"{")));
+  }
+
+  {
+    padded_string code(u8"(async param {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_arrow_operator_in_arrow_function,  //
+                    where, strlen(u8"(async param "), u8"{")));
+  }
+
+  // TODO(strager): u8"(async (a, b)\n{});"_sv should report
+  // error_missing_arrow_operator_in_arrow_function.
 }
 
 TEST(test_parse, not_arrow_function_expression_without_arrow_operator) {
@@ -1046,6 +1150,20 @@ TEST(test_parse, not_arrow_function_expression_without_arrow_operator) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE(error_missing_semicolon_after_statement)));
+  }
+
+  {
+    padded_string code(u8"async(a, b)\n{}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // async
+                                      "visit_variable_use",       // a
+                                      "visit_variable_use",       // b
+                                      "visit_enter_block_scope",  //
+                                      "visit_exit_block_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
@@ -1289,10 +1407,10 @@ TEST(test_parse, star_before_async_or_function_is_not_generator_star) {
     parser p(&code, &v);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_use",                // async
-                            "visit_enter_named_function_scope",  // f
+                ElementsAre("visit_enter_named_function_scope",  // f
                             "visit_enter_function_scope_body",   //
                             "visit_exit_function_scope",         //
+                            "visit_variable_use",                // async
                             "visit_end_of_module"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
@@ -1304,10 +1422,10 @@ TEST(test_parse, star_before_async_or_function_is_not_generator_star) {
     parser p(&code, &v);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_use",                // console
-                            "visit_enter_named_function_scope",  // f
+                ElementsAre("visit_enter_named_function_scope",  // f
                             "visit_enter_function_scope_body",   //
                             "visit_exit_function_scope",         //
+                            "visit_variable_use",                // console
                             "visit_variable_use",                // console
                             "visit_end_of_module"));
     EXPECT_THAT(v.errors, IsEmpty());
@@ -1566,12 +1684,13 @@ TEST(test_parse, invalid_function_parameter) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(
-                    spy_visitor::visited_variable_declaration{
-                        u8"f", variable_kind::_function},
-                    spy_visitor::visited_variable_declaration{
-                        u8"p", variable_kind::_parameter}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            spy_visitor::visited_variable_declaration{
+                u8"f", variable_kind::_function, variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"p", variable_kind::_parameter, variable_init_kind::normal}));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
                               &code, error_invalid_parameter,  //
                               parameter, strlen(u8"function f("), u8"g()")));
@@ -1587,9 +1706,10 @@ TEST(test_parse, invalid_function_parameter) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"p", variable_kind::_parameter}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(spy_visitor::visited_variable_declaration{
+            u8"p", variable_kind::_parameter, variable_init_kind::normal}));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
                               &code, error_invalid_parameter,  //
                               parameter, strlen(u8"("), u8"g()")));
@@ -1602,19 +1722,55 @@ TEST(test_parse, invalid_function_parameter) {
     spy_visitor v;
     parser p(&code, &v);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",               // g
-                                      "visit_enter_function_scope",       //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
+                                      "visit_variable_use",               // g
                                       "visit_end_of_module"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(
+        UnorderedElementsAre(
             ERROR_TYPE(
                 error_missing_operator_between_expression_and_arrow_function),
             ERROR_TYPE_OFFSETS(&code,
                                error_unexpected_literal_in_parameter_list,  //
                                literal, strlen(u8"g("), u8"42")));
+  }
+}
+
+TEST(test_parse, function_body_is_visited_first_in_expression) {
+  for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
+    padded_string code(u8"[a, " + string8(function) + u8", c];");
+    SCOPED_TRACE(code);
+    spy_visitor v = parse_and_visit_statement(&code);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // b
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_use",               // a
+                                      "visit_variable_use"));             // c
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"b"},
+                            spy_visitor::visited_variable_use{u8"a"},
+                            spy_visitor::visited_variable_use{u8"c"}));
+  }
+
+  for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
+    padded_string code(u8"[a, (" + string8(function) +
+                       u8")().prop, c] = [1, 2, 3];");
+    SCOPED_TRACE(code);
+    spy_visitor v = parse_and_visit_statement(&code);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // b
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_assignment",        // a
+                                      "visit_variable_assignment"));      // c
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"b"}));
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(spy_visitor::visited_variable_assignment{u8"a"},
+                            spy_visitor::visited_variable_assignment{u8"c"}));
   }
 }
 }

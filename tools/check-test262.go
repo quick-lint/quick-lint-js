@@ -286,7 +286,7 @@ func testSourceRequiresFeatures(source []byte, features [][]byte) bool {
 func RunQuickLintJS(quickLintJSExecutable string, jsFile string, ignoreWarnings bool) LintResult {
 	command := []string{quickLintJSExecutable}
 	if ignoreWarnings {
-		command = append(command, "--exit-fail-on=-E0002,-E0003,-E0057,-E0058,-E0059,-E0077")
+		command = append(command, "--exit-fail-on=-E0002,-E0003,-E0057,-E0058,-E0059,-E0077,-E0086,-E0179,-E0185")
 	}
 	command = append(command, "--", jsFile)
 

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html lang="en">
+  <head>
+    <script>
+      //<%
+      let path = await import("path");
+      let url = await import("url");
+
+      let {
+        ErrorDocumentation,
+        documentationDirectoryPath,
+      } = await importFileAsync("../../src/error-documentation.mjs");
+
+      let errorCode = path.basename(currentURI);
+      let errorDocument = await ErrorDocumentation.parseFileAsync(path.join(documentationDirectoryPath, `${errorCode}.md`));
+      //%>
+    </script>
+    <%- await include("../common-head.ejs.html", { title: `${errorCode}
+    documentation (quick-lint-js)`, description: `Docs for quick-lint-js error
+    code ${errorCode}` }) %>
+    <link href="../../main.css" rel="stylesheet" />
+    <style>
+      figure {
+        margin-left: 2em;
+        margin-right: 2em;
+      }
+
+      /* Reduce horizontal scrolling for code samples on mobile. */
+      @media only screen and (max-width: 30em) {
+        figure {
+          margin-left: 0em;
+        }
+      }
+
+      /* Visually separate adjacent code blocks. */
+      figure + figure {
+        border-top: 1px solid rgba(0, 0, 0, 0.2);
+      }
+      @media (prefers-color-scheme: dark) {
+        figure + figure {
+          border-top-color: rgba(255, 255, 255, 0.2);
+        }
+      }
+
+      .unicode-bom:before,
+      .unicode-bel:before,
+      .unicode-bs:before,
+      .unicode-del:before {
+        background-color: #edbf66;
+        border: 1px solid red;
+        border-radius: 5px;
+        padding: 1px 3px;
+      }
+      .unicode-bom:before {
+        content: "BOM";
+      }
+      .unicode-bel:before {
+        content: "BEL";
+      }
+      .unicode-bs:before {
+        content: "BS";
+      }
+      .unicode-del:before {
+        content: "DEL";
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .unicode-bom:before,
+        .unicode-bel:before,
+        .unicode-bs:before,
+        .unicode-del:before {
+          background-color: #884444;
+        }
+      }
+    </style>
+  </head>
+
+  <body class="side-bar-nav">
+    <header><%- await include("../common-nav.ejs.html") %></header>
+
+    <main>
+      <% let problems = await errorDocument.findProblemsAsync(); %> <% if
+      (problems.length > 0) { %>
+      <div
+        style="background-color: #fdd; border: 1px solid #f00; padding: 0.5em"
+      >
+        <p>
+          quick-lint-js found inconsistencies in the error documentation. If
+          you're hacking on the website, rebuild quick-lint-js for the website
+          by following <code>wasm/README.md</code> and
+          <code>website/README.md</code>.
+        </p>
+        <p style="white-space: pre-line"><%= problems.join("\n") %></p>
+      </div>
+      <% } %> <%- errorDocument.toHTML() %>
+
+      <p><a href="../">Documentation for other errors</a></p>
+    </main>
+
+    <footer><%- await include("../common-footer-nav.ejs.html") %></footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->

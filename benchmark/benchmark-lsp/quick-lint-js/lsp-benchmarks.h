@@ -14,7 +14,8 @@ class benchmark {
   virtual ~benchmark() {}
 
   virtual std::string name() const = 0;
-  virtual bool is_supported(const benchmark_config_server&) const = 0;
+  // Must be called by derived classes.
+  virtual bool is_supported(const benchmark_config_server&) const;
 
   virtual lsp_task<void> set_up_async(lsp_server_process&,
                                       const benchmark_config_server&,

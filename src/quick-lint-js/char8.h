@@ -6,7 +6,6 @@
 
 #include <cstddef>
 #include <iosfwd>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <string>
 #include <string_view>
@@ -50,6 +49,13 @@ std::size_t strlen(const char8 *);
 const char8 *strchr(const char8 *haystack, char8 needle);
 const char8 *strstr(const char8 *haystack, const char8 *needle);
 std::size_t strspn(const char8 *haystack, const char8 *needles);
+
+// The following functions treat ASCII A-Z as upper, a-z as lower, and all other
+// code units as neither upper nor lower.
+char8 toupper(char8) noexcept;
+char8 tolower(char8) noexcept;
+bool islower(char8) noexcept;
+bool isupper(char8) noexcept;
 
 inline constexpr string8_view operator""_sv(const char8 *string,
                                             std::size_t length) noexcept {

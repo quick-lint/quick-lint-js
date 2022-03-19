@@ -71,6 +71,7 @@ quick_lint_js_add_library(
   global-variables.cpp
   integer.cpp
   json.cpp
+  jsx.cpp
   language.cpp
   lex-keyword.cpp
   lex-unicode.cpp
@@ -131,6 +132,7 @@ quick_lint_js_add_library(
   quick-lint-js/have.h
   quick-lint-js/integer.h
   quick-lint-js/json.h
+  quick-lint-js/jsx.h
   quick-lint-js/language.h
   quick-lint-js/lex.h
   quick-lint-js/linked-bump-allocator.h
@@ -152,6 +154,8 @@ quick_lint_js_add_library(
   quick-lint-js/options.h
   quick-lint-js/output-stream.h
   quick-lint-js/padded-string.h
+  quick-lint-js/parse-expression-inl.h
+  quick-lint-js/parse-statement-inl.h
   quick-lint-js/parse-visitor.h
   quick-lint-js/parse.h
   quick-lint-js/pipe-writer.h
@@ -172,6 +176,7 @@ quick_lint_js_add_library(
   quick-lint-js/version.h
   quick-lint-js/vim-location.h
   quick-lint-js/vim-qflist-json-error-reporter.h
+  quick-lint-js/windows.h
   quick-lint-js/warning.h
   quick-lint-js/web-demo-location.h
   simdjson.cpp
@@ -276,6 +281,11 @@ target_link_libraries(
   PUBLIC
   boost_json
   quick-lint-js-lib
+)
+target_compile_definitions(
+  quick-lint-js-boost-json
+  PRIVATE
+  QLJS_BUILDING_QLJS_BOOST_JSON
 )
 
 # quick-lint-js finds bugs in JavaScript programs.

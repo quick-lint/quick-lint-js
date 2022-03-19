@@ -142,12 +142,13 @@ TEST(test_parse, asi_for_statement_at_right_curly) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, IsEmpty());
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(
-                    spy_visitor::visited_variable_declaration{
-                        u8"f", variable_kind::_function},
-                    spy_visitor::visited_variable_declaration{
-                        u8"g", variable_kind::_function}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            spy_visitor::visited_variable_declaration{
+                u8"f", variable_kind::_function, variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"g", variable_kind::_function, variable_init_kind::normal}));
   }
 }
 
@@ -181,7 +182,8 @@ TEST(test_parse, asi_for_statement_at_newline) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"x", variable_kind::_let}));
+                    u8"x", variable_kind::_let,
+                    variable_init_kind::initialized_with_equals}));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"cond"}));
     EXPECT_THAT(v.errors, IsEmpty());
@@ -483,7 +485,8 @@ TEST(
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"if", variable_kind::_const}));
+                    u8"if", variable_kind::_const,
+                    variable_init_kind::initialized_with_equals}));
   }
 
   {
@@ -496,7 +499,7 @@ TEST(
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"if", variable_kind::_let}));
+                    u8"if", variable_kind::_let, variable_init_kind::normal}));
   }
 
   {
@@ -509,7 +512,7 @@ TEST(
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"if", variable_kind::_var}));
+                    u8"if", variable_kind::_var, variable_init_kind::normal}));
   }
 
   {
@@ -524,12 +527,14 @@ TEST(
                                       "visit_variable_declaration",       // if
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(
-                    spy_visitor::visited_variable_declaration{
-                        u8"g", variable_kind::_function},
-                    spy_visitor::visited_variable_declaration{
-                        u8"if", variable_kind::_parameter}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            spy_visitor::visited_variable_declaration{
+                u8"g", variable_kind::_function, variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"if", variable_kind::_parameter,
+                variable_init_kind::normal}));
   }
 
   {
@@ -543,9 +548,10 @@ TEST(
                                       "visit_variable_declaration",       // if
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"if", variable_kind::_parameter}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(spy_visitor::visited_variable_declaration{
+            u8"if", variable_kind::_parameter, variable_init_kind::normal}));
   }
 }
 
@@ -614,7 +620,8 @@ TEST(test_parse,
                                         "visit_end_of_module"));
       EXPECT_THAT(v.variable_declarations,
                   ElementsAre(spy_visitor::visited_variable_declaration{
-                      keyword, variable_kind::_var}));
+                      keyword, variable_kind::_var,
+                      variable_init_kind::initialized_with_equals}));
       EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
     }
 
@@ -630,7 +637,8 @@ TEST(test_parse,
                                         "visit_end_of_module"));
       EXPECT_THAT(v.variable_declarations,
                   ElementsAre(spy_visitor::visited_variable_declaration{
-                      keyword, variable_kind::_var}));
+                      keyword, variable_kind::_var,
+                      variable_init_kind::initialized_with_equals}));
       EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
     }
 
@@ -795,10 +803,21 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
                         parser::stack_limit + 1),
            repeated_str(u8"class C { m() { ", u8"", u8"} }",
                         parser::stack_limit + 1),
+           u8"return " + repeated_str(u8"<div>", u8"", u8"</div>",
+                                      parser::stack_limit + 1),
+           u8"return <>" + repeated_str(u8"<div>", u8"", u8"</div></>",
+                                        parser::stack_limit + 1),
+           u8"return " + repeated_str(u8"<div>{", u8"", u8"}</div>",
+                                      parser::stack_limit + 1),
+           u8"return " + repeated_str(u8"<div attr={", u8"'value'", u8"} />",
+                                      parser::stack_limit + 1),
        }) {
     padded_string code(exps);
+    SCOPED_TRACE(code);
     spy_visitor v;
-    parser p(&code, &v);
+    parser_options p_options;
+    p_options.jsx = true;
+    parser p(&code, &v, p_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
     ElementsAre(ERROR_TYPE(error_depth_limit_exceeded));

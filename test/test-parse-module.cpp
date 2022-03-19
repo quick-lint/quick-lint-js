@@ -30,7 +30,16 @@ TEST(test_parse, export_variable) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"x", variable_kind::_let}));
+                    u8"x", variable_kind::_let, variable_init_kind::normal}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"export let x = 42;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_let,
+                    variable_init_kind::initialized_with_equals}));
   }
 
   {
@@ -38,7 +47,16 @@ TEST(test_parse, export_variable) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"x", variable_kind::_var}));
+                    u8"x", variable_kind::_var, variable_init_kind::normal}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(u8"export var x = 42;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"x", variable_kind::_var,
+                    variable_init_kind::initialized_with_equals}));
   }
 
   {
@@ -46,7 +64,8 @@ TEST(test_parse, export_variable) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"x", variable_kind::_const}));
+                    u8"x", variable_kind::_const,
+                    variable_init_kind::initialized_with_equals}));
   }
 }
 
@@ -553,18 +572,21 @@ TEST(test_parse, parse_and_visit_import) {
         u8"import {'read file sync' as readFileSync} from 'fs';"_sv);
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"readFileSync", variable_kind::_import}));
+                    u8"readFileSync", variable_kind::_import,
+                    variable_init_kind::normal}));
   }
 
   {
     spy_visitor v =
         parse_and_visit_statement(u8"import fs, {readFileSync} from 'fs';"_sv);
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(
-                    spy_visitor::visited_variable_declaration{
-                        u8"fs", variable_kind::_import},
-                    spy_visitor::visited_variable_declaration{
-                        u8"readFileSync", variable_kind::_import}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            spy_visitor::visited_variable_declaration{
+                u8"fs", variable_kind::_import, variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"readFileSync", variable_kind::_import,
+                variable_init_kind::normal}));
   }
 
   {
@@ -573,9 +595,11 @@ TEST(test_parse, parse_and_visit_import) {
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(
                     spy_visitor::visited_variable_declaration{
-                        u8"fsDefault", variable_kind::_import},
+                        u8"fsDefault", variable_kind::_import,
+                        variable_init_kind::normal},
                     spy_visitor::visited_variable_declaration{
-                        u8"fsExports", variable_kind::_import}));
+                        u8"fsExports", variable_kind::_import,
+                        variable_init_kind::normal}));
   }
 }
 
@@ -815,9 +839,10 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
       spy_visitor v;
       parser p(&code, &v);
       EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_declarations,
-                  ElementsAre(spy_visitor::visited_variable_declaration{
-                      name, variable_kind::_import}));
+      EXPECT_THAT(
+          v.variable_declarations,
+          ElementsAre(spy_visitor::visited_variable_declaration{
+              name, variable_kind::_import, variable_init_kind::normal}));
       EXPECT_THAT(
           v.errors,
           ElementsAre(ERROR_TYPE_OFFSETS(
@@ -865,9 +890,10 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
       spy_visitor v;
       parser p(&code, &v);
       EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_declarations,
-                  ElementsAre(spy_visitor::visited_variable_declaration{
-                      keyword, variable_kind::_import}));
+      EXPECT_THAT(
+          v.variable_declarations,
+          ElementsAre(spy_visitor::visited_variable_declaration{
+              keyword, variable_kind::_import, variable_init_kind::normal}));
       EXPECT_THAT(v.errors,
                   ElementsAre(ERROR_TYPE_OFFSETS(
                       &code, error_keywords_cannot_contain_escape_sequences,  //
@@ -881,9 +907,10 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
       spy_visitor v;
       parser p(&code, &v);
       EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_declarations,
-                  ElementsAre(spy_visitor::visited_variable_declaration{
-                      keyword, variable_kind::_import}));
+      EXPECT_THAT(
+          v.variable_declarations,
+          ElementsAre(spy_visitor::visited_variable_declaration{
+              keyword, variable_kind::_import, variable_init_kind::normal}));
       EXPECT_THAT(v.errors,
                   ElementsAre(ERROR_TYPE_OFFSETS(
                       &code, error_keywords_cannot_contain_escape_sequences,  //
@@ -898,9 +925,10 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
       spy_visitor v;
       parser p(&code, &v);
       EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_declarations,
-                  ElementsAre(spy_visitor::visited_variable_declaration{
-                      keyword, variable_kind::_import}));
+      EXPECT_THAT(
+          v.variable_declarations,
+          ElementsAre(spy_visitor::visited_variable_declaration{
+              keyword, variable_kind::_import, variable_init_kind::normal}));
       EXPECT_THAT(v.errors,
                   ElementsAre(ERROR_TYPE_OFFSETS(
                       &code, error_keywords_cannot_contain_escape_sequences,  //
@@ -914,9 +942,10 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
       spy_visitor v;
       parser p(&code, &v);
       EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_declarations,
-                  ElementsAre(spy_visitor::visited_variable_declaration{
-                      keyword, variable_kind::_import}));
+      EXPECT_THAT(
+          v.variable_declarations,
+          ElementsAre(spy_visitor::visited_variable_declaration{
+              keyword, variable_kind::_import, variable_init_kind::normal}));
       EXPECT_THAT(v.errors,
                   ElementsAre(ERROR_TYPE_OFFSETS(
                       &code, error_keywords_cannot_contain_escape_sequences,  //
@@ -930,9 +959,10 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
       spy_visitor v;
       parser p(&code, &v);
       EXPECT_TRUE(p.parse_and_visit_statement(v));
-      EXPECT_THAT(v.variable_declarations,
-                  ElementsAre(spy_visitor::visited_variable_declaration{
-                      keyword, variable_kind::_import}));
+      EXPECT_THAT(
+          v.variable_declarations,
+          ElementsAre(spy_visitor::visited_variable_declaration{
+              keyword, variable_kind::_import, variable_init_kind::normal}));
       EXPECT_THAT(v.errors,
                   ElementsAre(ERROR_TYPE_OFFSETS(
                       &code, error_keywords_cannot_contain_escape_sequences,  //
@@ -973,7 +1003,8 @@ TEST(test_parse, imported_names_can_be_named_keywords) {
                 ElementsAre("visit_variable_declaration"));  // someFunction
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"someFunction", variable_kind::_import}));
+                    u8"someFunction", variable_kind::_import,
+                    variable_init_kind::normal}));
   }
 }
 

@@ -473,6 +473,15 @@ TEST(test_parse, parse_assignment) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"z"}));
   }
+
+  {
+    spy_visitor v = parse_and_visit_expression(u8"[x, y] = z"_sv);
+    EXPECT_THAT(v.variable_assignments,
+                ElementsAre(spy_visitor::visited_variable_assignment{u8"x"},  //
+                            spy_visitor::visited_variable_assignment{u8"y"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"z"}));
+  }
 }
 
 TEST(test_parse, parse_compound_assignment) {
@@ -1503,9 +1512,10 @@ TEST(test_parse, disallow_await_parameter_in_async_arrow_function) {
                     &code, error_cannot_declare_await_in_async_function,  //
                     name, strlen(u8"(async ("), u8"await")));
     // TODO(strager): We're ignoring 'p'. Should we treat it as a parameter?
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
-                    u8"await", variable_kind::_parameter}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(spy_visitor::visited_variable_declaration{
+            u8"await", variable_kind::_parameter, variable_init_kind::normal}));
   }
 }
 }

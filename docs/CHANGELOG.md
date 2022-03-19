@@ -8,11 +8,105 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+* Windows: The 32-bit x86 builds are now code-signed.
+
+## 2.3.0 (2022-02-24)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.3.0/)
+
+### Added
+
+* An incomplete `class` now reports [E0199][] instead of failing with the
+  catch-all [E0054][]. (Thanks to [Dave Churchill][] for reporting.)
+* Statements before the first `case` in a `switch` now report [E0198][]
+  (implemented by [Himanshu][]).
+* When building from source, you can tell quick-lint-js to use your copy of
+  third-party dependencies instead of quick-lint-js' bundled
+  dependencies:
+  * `-DQUICK_LINT_JS_USE_BUNDLED_BOOST=OFF`: Use your own copy of Boost.
+  * `-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK=OFF`: Use your own copy of Google Benchmark (benchmarks only).
+  * `-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST=OFF`: Use your own copy of Google Test (tests only).
+  * `-DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=OFF`: Use your own copy of simdjson.
+
+## 2.2.0 (2022-02-17)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.2.0/)
+
+### Fixed
+
+* `x && <Element/>` no longer falsely reports [E0026][] (missing operand for
+  operator). (Thanks to [Piotr Dąbrowski][] for reporting.)
+* In top-level code, `await <x/>` is now parsed as the `await` operator followed
+  by a JSX element (rather than `await` less-than-compared to `x`, followed by
+  jibberish).
+
+### Changed
+
+* Homebrew: Emacs Lisp files are now installed in
+  `<brew>/share/emacs/site-lisp/quick-lint-js` (per `brew audit`'s
+  recommendation) instead of in `share/emacs/site-lisp`.
+
+## 2.1.0 (2022-02-09)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.1.0/)
+
+### Fixed
+
+* Curried arrow functions like `a => b => { a; b; }` no longer falsely reports
+  [E0057][]. (Thanks to [Christian Mund][] for reporting.)
+
+## 2.0.0 (2022-02-08)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.0.0/)
+
+### Added
+
+* quick-lint-js now supports JSX syntax in both .js and .jsx files.
+* New diagnostics for JSX: [E0019][], [E0181][], [E0182][], [E0183][],
+  [E0186][], [E0187][], [E0189][], [E0191][], [E0192][], [E0193][]
+* `if (...) {...} else (...) {...}` now reports [E0184][] ('missing `if` after
+  `else`') (implemented by [Himanshu][]).
+* `if (x = "")` now reports [E0188][] ('`=` changes variables; to compare, use
+  `===` instead').
+* `if (a == "X" || "Y")` now reports [E0190][] ('missing comparison; `===` does
+  not extend to the right side of `||`').
+* `async (param1, param2) {}` now reports [E0176][] ('missing arrow operator for
+  arrow function'). ([E0176][] was previously reported only for non-`async`
+  arrow functions.)
+* `let x = 'nah'; if (y) { let x = 'yah'; }` now reports [E0196][] ('new
+   variable shadows existing variable'). This warning is reported only when an
+   assignment (instead of a new variable declaration) was intended.
+* `console.log(“hello world”);` now reports [E0197][] (''“' is not allowed for
+  strings; use " instead').
+* `-1 ** 2` now reports [E0194][] (missing parentheses around left-hand side of
+  `**`).
+* `typeof 10 ** 7` now reports [E0195][] (missing parentheses around operand of
+  `typeof`).
+
 ### Fixed
 
 * LSP: When responding to unsupported methods with error code -32601,
   quick-lint-js now includes the request ID. (Previously, the `"id"` field was
   always `null`.)
+* CLI: If a crash occurs due to [E0054][] or [E0203][], the CLI no longer
+  crashes (e.g. with an illegal instruction error).
+* quick-lint-js no longer ignores elements of assigned arrays. For example,
+  `[fisrt, second] = s.split(' ');` will now report [E0057][] for `fisrt` (if
+  `fisrt` is not declared).
+* quick-lint-js no longer incorrectly reports [E0176][] (missing arrow operator
+  for arrow function) if the `extends` clause for a class is parenthesized
+  and contains commas (e.g. `class A extends (B, C) {}`).
+* quick-lint-js no longer incorrectly reports [E0016][], [E0038][], [E0060][],
+  or [E0207][] in tagged template literals. (These errors are still reported for
+  untagged template literals and for string literals.)
+
+### Changed
+
+* Assigning to an imported variable now reports [E0185][] ('assignment to
+  imported variable') instead of [E0003][] ('assignment to const variable')
+  (implemented by [Matheus de Sousa][]).
 
 ## 1.0.0 (2021-12-13)
 
@@ -68,7 +162,7 @@ Beta release.
 
 ### Fixed
 
-* npm: The npm package now installs on macOS Apple Silicon when using the
+* npm: The npm package now installs on macOS Apple silicon when using the
   AArch64 (native) version of Node.js. (The package previously worked only on
   macOS Intel, or when using x86_64 Node.js with Rosetta.)
 
@@ -109,7 +203,7 @@ Beta release.
 ### Optimized
 
 * Identifier parsing is now SIMD-optimized for ARM systems, including Apple
-  Silicon. [See the patch
+  silicon. [See the patch
   here.](https://github.com/quick-lint/quick-lint-js/commit/79cf6e71f42722a8eca28ab20f288abdc41ec162)
 * Diagnostic message translations consume less space in executables and also
   take less time to process. [See the patch
@@ -126,10 +220,11 @@ Beta release.
 
 ### Added
 
-* Various new diagnostics (implemented by [Himanshu][] and [Matheus Sousa][]).
+* Various new diagnostics (implemented by [Himanshu][] and [Matheus de
+  Sousa][]).
 * VS Code: The new `quick-lint-js.logging` setting allows you to show
   quick-lint-js' internal log messages in an Output window.
-* VS Code: Apple Silicon (e.g. M1) (ARM64) is now supported.
+* VS Code: Apple silicon (e.g. M1) (ARM64) is now supported.
 * VS Code: Linux ARM (32-bit) is now supported.
 * Vim: Improved performance for ALE versions v2.5.0 and newer (and v3.0.0 and
   newer). You should configure `g:ale_lint_on_text_changed` to `'always'` for
@@ -328,7 +423,9 @@ Beta release.
 
 [AidenThing]: https://github.com/AidenThing
 [Amir]: https://github.com/ahmafi
+[Christian Mund]: https://github.com/kkkrist
 [Daniel La Rocque]: https://github.com/dlarocque
+[Dave Churchill]: https://www.cs.mun.ca/~dchurchill/
 [David Vasileff]: https://github.com/dav000
 [Erlliam Mejia]: https://github.com/erlliam
 [Himanshu]: https://github.com/singalhimanshu
@@ -336,38 +433,63 @@ Beta release.
 [Jimmy Qiu]: https://github.com/lifeinData
 [Kim "Linden"]: https://github.com/Lindenbyte
 [Lee Wannacott]: https://github.com/LeeWannacott
-[Matheus Sousa]: https://github.com/keyehzy
+[Matheus de Sousa]: https://github.com/keyehzy
 [Nico Sonack]: https://github.com/herrhotzenplotz
+[Piotr Dąbrowski]: https://github.com/yhnavein
 [Shivam Mehta]: https://github.com/maniac-en
 [coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
 [tiagovla]: https://github.com/tiagovla
 [wagner riffel]: https://github.com/wgrr
 
-[E0001]: https://quick-lint-js.com/errors/#E0001
-[E0013]: https://quick-lint-js.com/errors/#E0013
-[E0016]: https://quick-lint-js.com/errors/#E0016
-[E0019]: https://quick-lint-js.com/errors/#E0019
-[E0020]: https://quick-lint-js.com/errors/#E0020
-[E0036]: https://quick-lint-js.com/errors/#E0036
-[E0038]: https://quick-lint-js.com/errors/#E0038
-[E0040]: https://quick-lint-js.com/errors/#E0040
-[E0053]: https://quick-lint-js.com/errors/#E0053
-[E0057]: https://quick-lint-js.com/errors/#E0057
-[E0073]: https://quick-lint-js.com/errors/#E0073
-[E0094]: https://quick-lint-js.com/errors/#E0094
-[E0104]: https://quick-lint-js.com/errors/#E0104
-[E0106]: https://quick-lint-js.com/errors/#E0106
-[E0108]: https://quick-lint-js.com/errors/#E0108
-[E0110]: https://quick-lint-js.com/errors/#E0110
-[E0111]: https://quick-lint-js.com/errors/#E0111
-[E0119]: https://quick-lint-js.com/errors/#E0119
-[E0144]: https://quick-lint-js.com/errors/#E0144
-[E0151]: https://quick-lint-js.com/errors/#E0151
-[E0173]: https://quick-lint-js.com/errors/#E0173
-[E0176]: https://quick-lint-js.com/errors/#E0176
-[E0178]: https://quick-lint-js.com/errors/#E0178
-[E0179]: https://quick-lint-js.com/errors/#E0179
-[E0180]: https://quick-lint-js.com/errors/#E0180
-[E0205]: https://quick-lint-js.com/errors/#E0205
-[E0207]: https://quick-lint-js.com/errors/#E0207
+[E0001]: https://quick-lint-js.com/errors/E0001/
+[E0003]: https://quick-lint-js.com/errors/E0003/
+[E0013]: https://quick-lint-js.com/errors/E0013/
+[E0016]: https://quick-lint-js.com/errors/E0016/
+[E0019]: https://quick-lint-js.com/errors/E0019/
+[E0020]: https://quick-lint-js.com/errors/E0020/
+[E0026]: https://quick-lint-js.com/errors/E0026/
+[E0036]: https://quick-lint-js.com/errors/E0036/
+[E0038]: https://quick-lint-js.com/errors/E0038/
+[E0040]: https://quick-lint-js.com/errors/E0040/
+[E0053]: https://quick-lint-js.com/errors/E0053/
+[E0054]: https://quick-lint-js.com/errors/E0054/
+[E0057]: https://quick-lint-js.com/errors/E0057/
+[E0060]: https://quick-lint-js.com/errors/E0060/
+[E0073]: https://quick-lint-js.com/errors/E0073/
+[E0094]: https://quick-lint-js.com/errors/E0094/
+[E0104]: https://quick-lint-js.com/errors/E0104/
+[E0106]: https://quick-lint-js.com/errors/E0106/
+[E0108]: https://quick-lint-js.com/errors/E0108/
+[E0110]: https://quick-lint-js.com/errors/E0110/
+[E0111]: https://quick-lint-js.com/errors/E0111/
+[E0119]: https://quick-lint-js.com/errors/E0119/
+[E0144]: https://quick-lint-js.com/errors/E0144/
+[E0151]: https://quick-lint-js.com/errors/E0151/
+[E0173]: https://quick-lint-js.com/errors/E0173/
+[E0176]: https://quick-lint-js.com/errors/E0176/
+[E0178]: https://quick-lint-js.com/errors/E0178/
+[E0179]: https://quick-lint-js.com/errors/E0179/
+[E0180]: https://quick-lint-js.com/errors/E0180/
+[E0181]: https://quick-lint-js.com/errors/E0181/
+[E0182]: https://quick-lint-js.com/errors/E0182/
+[E0183]: https://quick-lint-js.com/errors/E0183/
+[E0184]: https://quick-lint-js.com/errors/E0184/
+[E0185]: https://quick-lint-js.com/errors/E0185/
+[E0186]: https://quick-lint-js.com/errors/E0186/
+[E0187]: https://quick-lint-js.com/errors/E0187/
+[E0188]: https://quick-lint-js.com/errors/E0188/
+[E0189]: https://quick-lint-js.com/errors/E0189/
+[E0190]: https://quick-lint-js.com/errors/E0190/
+[E0191]: https://quick-lint-js.com/errors/E0191/
+[E0192]: https://quick-lint-js.com/errors/E0192/
+[E0193]: https://quick-lint-js.com/errors/E0193/
+[E0194]: https://quick-lint-js.com/errors/E0194/
+[E0195]: https://quick-lint-js.com/errors/E0195/
+[E0196]: https://quick-lint-js.com/errors/E0196/
+[E0197]: https://quick-lint-js.com/errors/E0197/
+[E0198]: https://quick-lint-js.com/errors/E0198/
+[E0199]: https://quick-lint-js.com/errors/E0199/
+[E0203]: https://quick-lint-js.com/errors/E0203/
+[E0205]: https://quick-lint-js.com/errors/E0205/
+[E0207]: https://quick-lint-js.com/errors/E0207/

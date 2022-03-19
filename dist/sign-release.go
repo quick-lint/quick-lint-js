@@ -7,9 +7,7 @@ import "archive/tar"
 import "archive/zip"
 import "bytes"
 import "compress/gzip"
-import "crypto/sha1"
 import "crypto/sha256"
-import "encoding/hex"
 import "errors"
 import "flag"
 import "fmt"
@@ -21,48 +19,63 @@ import "os"
 import "os/exec"
 import "path/filepath"
 import "strings"
+import "time"
 import _ "embed"
 
 //go:embed certificates/quick-lint-js.cer
 var AppleCodesignCertificate []byte
 
+//go:embed certificates/DigiCertAssuredIDRootCA_comb.crt.pem
+var DigiCertCertificate []byte
+
+//go:embed apple/quick-lint-js.csreq
+var AppleCodeSigningRequirements []byte
+
 //go:embed certificates/quick-lint-js.gpg.key
 var QLJSGPGKey []byte
 
 type SigningStuff struct {
-	AppleCodesignIdentity string // Common Name from the macOS Keychain.
-	Certificate           []byte
-	CertificateSHA1Hash   [20]byte
-	GPGIdentity           string // Fingerprint or email or name.
-	GPGKey                []byte
-	PrivateKeyPKCS12Path  string
+	Certificate          []byte
+	TimestampCertificate []byte
+	GPGKey               []byte
+	RelicConfigPath      string
 }
 
+// Key: SHA256 hash of original file
+// Value: contents of transformed (signed) file
+var TransformCache map[SHA256Hash]FileTransformResult = make(map[SHA256Hash]FileTransformResult)
+
+var signingStuff SigningStuff
+
+var ProgramStartTime time.Time = time.Now()
 var TempDirs []string
 
 func main() {
+	var err error
+
 	defer RemoveTempDirs()
 
-	var signingStuff SigningStuff
 	signingStuff.Certificate = AppleCodesignCertificate
+	signingStuff.TimestampCertificate = DigiCertCertificate
 	signingStuff.GPGKey = QLJSGPGKey
 
-	flag.StringVar(&signingStuff.AppleCodesignIdentity, "AppleCodesignIdentity", "", "")
-	flag.StringVar(&signingStuff.GPGIdentity, "GPGIdentity", "", "")
-	flag.StringVar(&signingStuff.PrivateKeyPKCS12Path, "PrivateKeyPKCS12", "", "")
+	flag.StringVar(&signingStuff.RelicConfigPath, "RelicConfig", "", "")
 	flag.Parse()
 	if flag.NArg() != 2 {
 		os.Stderr.WriteString(fmt.Sprintf("error: source and destination directories\n"))
 		os.Exit(2)
 	}
 
-	signingStuff.CertificateSHA1Hash = sha1.Sum(AppleCodesignCertificate)
+	signingStuff.RelicConfigPath, err = filepath.Abs(signingStuff.RelicConfigPath)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	sourceDir := flag.Args()[0]
 	destinationDir := flag.Args()[1]
 
 	hashes := ListOfHashes{}
-	err := filepath.Walk(sourceDir, func(sourcePath string, sourceInfo fs.FileInfo, err error) error {
+	err = filepath.Walk(sourceDir, func(sourcePath string, sourceInfo fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -78,7 +91,7 @@ func main() {
 				return err
 			}
 		} else {
-			err = CopyFileOrTransformArchive(relativePath, sourcePath, destinationPath, sourceInfo, signingStuff)
+			err = CopyFileOrTransformArchive(NewDeepPath(relativePath), sourcePath, destinationPath, sourceInfo)
 			if err != nil {
 				return err
 			}
@@ -96,17 +109,20 @@ func main() {
 	if err := CheckUnsignedFiles(); err != nil {
 		log.Fatal(err)
 	}
+	if err := CheckDoubleSigning(sourceDir, destinationDir); err != nil {
+		log.Fatal(err)
+	}
 
 	hashesPath := filepath.Join(destinationDir, "SHA256SUMS")
 	if err := hashes.DumpSHA256HashesToFile(hashesPath); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("signing with GPG: %s\n", hashesPath)
-	if _, err := GPGSignFile(hashesPath, signingStuff); err != nil {
+	log.Printf("signing: %s\n", hashesPath)
+	if err := RelicFile(hashesPath, hashesPath+".asc", RelicSignPGP); err != nil {
 		log.Fatal(err)
 	}
-	if err := GPGVerifySignature(hashesPath, hashesPath+".asc", signingStuff); err != nil {
+	if err := RelicVerifyDetachedFile(hashesPath, hashesPath+".asc"); err != nil {
 		log.Fatal(err)
 	}
 
@@ -114,12 +130,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sourceTarballPath := filepath.Join(destinationDir, "source/quick-lint-js-1.0.0.tar.gz")
-	log.Printf("signing with GPG: %s\n", sourceTarballPath)
-	if _, err := GPGSignFile(sourceTarballPath, signingStuff); err != nil {
+	sourceTarballPath := filepath.Join(destinationDir, "source/quick-lint-js-2.3.0.tar.gz")
+	log.Printf("signing: %s\n", sourceTarballPath)
+	if err := RelicFile(sourceTarballPath, sourceTarballPath+".asc", RelicSignPGP); err != nil {
 		log.Fatal(err)
 	}
-	if err := GPGVerifySignature(sourceTarballPath, sourceTarballPath+".asc", signingStuff); err != nil {
+	if err := RelicVerifyDetachedFile(sourceTarballPath, sourceTarballPath+".asc"); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -134,68 +150,55 @@ type FileTransformType int
 
 const (
 	NoTransform FileTransformType = iota
-	AppleCodesign
-	GPGSign
-	MicrosoftOsslsigncode
+	RelicApple
+	RelicPGP
+	RelicWindows
 )
 
-var filesToTransform map[string]map[string]FileTransformType = map[string]map[string]FileTransformType{
-	"manual/linux-aarch64.tar.gz": map[string]FileTransformType{
-		"quick-lint-js/bin/quick-lint-js": GPGSign,
-	},
-	"manual/linux-armhf.tar.gz": map[string]FileTransformType{
-		"quick-lint-js/bin/quick-lint-js": GPGSign,
-	},
-	"manual/linux.tar.gz": map[string]FileTransformType{
-		"quick-lint-js/bin/quick-lint-js": GPGSign,
-	},
-	"manual/macos-aarch64.tar.gz": map[string]FileTransformType{
-		"quick-lint-js/bin/quick-lint-js": AppleCodesign,
-	},
-	"manual/macos.tar.gz": map[string]FileTransformType{
-		"quick-lint-js/bin/quick-lint-js": AppleCodesign,
-	},
-	"manual/windows-arm.zip": map[string]FileTransformType{
-		"bin/quick-lint-js.exe": MicrosoftOsslsigncode,
-	},
-	"manual/windows-arm64.zip": map[string]FileTransformType{
-		"bin/quick-lint-js.exe": MicrosoftOsslsigncode,
-	},
-	"manual/windows.zip": map[string]FileTransformType{
-		"bin/quick-lint-js.exe": MicrosoftOsslsigncode,
-	},
-	"npm/quick-lint-js-1.0.0.tgz": map[string]FileTransformType{
-		"package/darwin-arm64/bin/quick-lint-js":    AppleCodesign,
-		"package/darwin-x64/bin/quick-lint-js":      AppleCodesign,
-		"package/linux-arm/bin/quick-lint-js":       GPGSign,
-		"package/linux-arm64/bin/quick-lint-js":     GPGSign,
-		"package/linux-x64/bin/quick-lint-js":       GPGSign,
-		"package/win32-arm64/bin/quick-lint-js.exe": MicrosoftOsslsigncode,
-		"package/win32-x64/bin/quick-lint-js.exe":   MicrosoftOsslsigncode,
-	},
-	"vscode/quick-lint-js-1.0.0.vsix": map[string]FileTransformType{
-		"extension/dist/quick-lint-js-vscode-node_darwin-arm64.node": AppleCodesign,
-		"extension/dist/quick-lint-js-vscode-node_darwin-x64.node":   AppleCodesign,
-		"extension/dist/quick-lint-js-vscode-node_linux-arm.node":    GPGSign,
-		"extension/dist/quick-lint-js-vscode-node_linux-arm64.node":  GPGSign,
-		"extension/dist/quick-lint-js-vscode-node_linux-x64.node":    GPGSign,
-		"extension/dist/quick-lint-js-vscode-node_win32-arm.node":    MicrosoftOsslsigncode,
-		"extension/dist/quick-lint-js-vscode-node_win32-arm64.node":  MicrosoftOsslsigncode,
-		"extension/dist/quick-lint-js-vscode-node_win32-ia32.node":   MicrosoftOsslsigncode,
-		"extension/dist/quick-lint-js-vscode-node_win32-x64.node":    MicrosoftOsslsigncode,
-	},
+type RelicSigningType int
+
+const (
+	RelicSignApple   RelicSigningType = RelicSigningType(RelicApple) // macOS
+	RelicSignPGP                      = RelicSigningType(RelicPGP)
+	RelicSignWindows                  = RelicSigningType(RelicWindows)
+)
+
+var filesToTransform map[DeepPath]FileTransformType = map[DeepPath]FileTransformType{
+	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x64.zip", "bin/quick-lint-js.exe"):              RelicWindows,
+	NewDeepPath3("chocolatey/quick-lint-js.nupkg", "tools/windows-x86.zip", "bin/quick-lint-js.exe"):              RelicWindows,
+	NewDeepPath2("manual/linux-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                RelicPGP,
+	NewDeepPath2("manual/linux-armhf.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                  RelicPGP,
+	NewDeepPath2("manual/linux.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        RelicPGP,
+	NewDeepPath2("manual/macos-aarch64.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                RelicApple,
+	NewDeepPath2("manual/macos.tar.gz", "quick-lint-js/bin/quick-lint-js"):                                        RelicApple,
+	NewDeepPath2("manual/windows-arm64.zip", "bin/quick-lint-js.exe"):                                             RelicWindows,
+	NewDeepPath2("manual/windows-arm.zip", "bin/quick-lint-js.exe"):                                               RelicWindows,
+	NewDeepPath2("manual/windows-x86.zip", "bin/quick-lint-js.exe"):                                               RelicWindows,
+	NewDeepPath2("manual/windows.zip", "bin/quick-lint-js.exe"):                                                   RelicWindows,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/darwin-arm64/bin/quick-lint-js"):                         RelicApple,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/darwin-x64/bin/quick-lint-js"):                           RelicApple,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-arm/bin/quick-lint-js"):                            RelicPGP,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-arm64/bin/quick-lint-js"):                          RelicPGP,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/linux-x64/bin/quick-lint-js"):                            RelicPGP,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-arm64/bin/quick-lint-js.exe"):                      RelicWindows,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-ia32/bin/quick-lint-js.exe"):                       RelicWindows,
+	NewDeepPath2("npm/quick-lint-js-2.3.0.tgz", "package/win32-x64/bin/quick-lint-js.exe"):                        RelicWindows,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-arm64.node"): RelicApple,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-x64.node"):   RelicApple,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm.node"):    RelicPGP,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm64.node"):  RelicPGP,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_linux-x64.node"):    RelicPGP,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm.node"):    RelicWindows,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm64.node"):  RelicWindows,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-ia32.node"):   RelicWindows,
+	NewDeepPath2("vscode/quick-lint-js-2.3.0.vsix", "extension/dist/quick-lint-js-vscode-node_win32-x64.node"):    RelicWindows,
 }
 
 func CheckUnsignedFiles() error {
 	foundError := false
-	for archiveName, membersToTransform := range filesToTransform {
-		for memberName, _ := range membersToTransform {
-			log.Printf(
-				"file should have been signed but wasn't: %s inside %s",
-				memberName,
-				archiveName)
-			foundError = true
-		}
+	for deepPath, _ := range filesToTransform {
+		log.Printf("file should have been signed but wasn't: %v", deepPath)
+		foundError = true
 	}
 	if foundError {
 		return fmt.Errorf("one or more files were not signed")
@@ -203,9 +206,68 @@ func CheckUnsignedFiles() error {
 	return nil
 }
 
+// Verify that modified files are modified in an idempotent
+// way.
+//
+// If sourceDir contains a.exe and b.exe, then
+// destinationDir should contain a [possibly signed] a.exe
+// and a [possibly signed] b.exe. If a.exe and b.exe in
+// sourceDir have the same content as each other, then
+// CheckDoubleSigning checks that a.exe and b.exe in
+// destinationDir have the same content as each other.
+func CheckDoubleSigning(sourceDir string, destinationDir string) error {
+	sourceDirHashes := NewDeepHasher()
+	if err := sourceDirHashes.DeepHashDirectory(sourceDir); err != nil {
+		return err
+	}
+	destinationDirHashes := NewDeepHasher()
+	if err := destinationDirHashes.DeepHashDirectory(destinationDir); err != nil {
+		return err
+	}
+
+	sourceToDestinationHashes := make(map[SHA256Hash]map[SHA256Hash]bool)
+	sourceHashToPaths := make(map[SHA256Hash][]DeepPath)
+	destinationHashToPaths := make(map[SHA256Hash][]DeepPath)
+	for path, sourceHash := range sourceDirHashes.Hashes {
+		destinationHash := destinationDirHashes.Hashes[path]
+		if _, exists := sourceToDestinationHashes[sourceHash]; !exists {
+			sourceToDestinationHashes[sourceHash] = make(map[SHA256Hash]bool)
+		}
+		sourceToDestinationHashes[sourceHash][destinationHash] = true
+		sourceHashToPaths[sourceHash] = append(sourceHashToPaths[sourceHash], path)
+		destinationHashToPaths[destinationHash] = append(destinationHashToPaths[destinationHash], path)
+	}
+
+	prettyPrintBadConversion := func(destinationHashes map[SHA256Hash]bool, destinationHashToPaths map[SHA256Hash][]DeepPath) {
+		var previousPath *DeepPath = nil
+		for destinationHash, _ := range destinationHashes {
+			path := destinationHashToPaths[destinationHash][0]
+			if previousPath != nil {
+				log.Printf(
+					"bug detected in sign-release.go: destination %v and %v have different hashes despite coming from bit-identical sources",
+					path,
+					*previousPath,
+				)
+			}
+			previousPath = &path
+		}
+	}
+	detectedBug := false
+	for _, destinationHashes := range sourceToDestinationHashes {
+		if len(destinationHashes) > 1 {
+			detectedBug = true
+			prettyPrintBadConversion(destinationHashes, destinationHashToPaths)
+		}
+	}
+	if detectedBug {
+		return fmt.Errorf("bug detected in sign-release.go")
+	}
+	return nil
+}
+
 // If the file is an archive and has a file which needs to be signed, sign the
 // embedded file and recreate the archive. Otherwise, copy the file verbatim.
-func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinationPath string, sourceInfo fs.FileInfo, signingStuff SigningStuff) error {
+func CopyFileOrTransformArchive(deepPath DeepPath, sourcePath string, destinationPath string, sourceInfo fs.FileInfo) error {
 	if !sourceInfo.Mode().IsRegular() {
 		return fmt.Errorf("expected regular file: %q", sourcePath)
 	}
@@ -229,147 +291,162 @@ func CopyFileOrTransformArchive(relativePath string, sourcePath string, destinat
 		}
 	})()
 
-	if strings.HasSuffix(relativePath, ".tar.gz") || strings.HasSuffix(relativePath, ".tgz") {
-		archiveMembersToTransform := filesToTransform[relativePath]
-		if archiveMembersToTransform != nil {
-			if err := TransformTarGz(sourceFile, sourcePath, destinationFile, archiveMembersToTransform, signingStuff); err != nil {
-				return err
-			}
-			fileComplete = true
-			return nil
-		}
-	}
-
-	if strings.HasSuffix(relativePath, ".vsix") || strings.HasSuffix(relativePath, ".zip") {
-		archiveMembersToTransform := filesToTransform[relativePath]
-		if archiveMembersToTransform != nil {
-			if err := TransformZip(sourceFile, destinationFile, archiveMembersToTransform, signingStuff); err != nil {
-				return err
-			}
-			fileComplete = true
-			return nil
-		}
-	}
-
-	// Default behavior: copy the file verbatim.
-	_, err = io.Copy(destinationFile, sourceFile)
+	transformResult, err := TransformFile(deepPath, sourceFile)
 	if err != nil {
 		return err
 	}
-	err = os.Chtimes(destinationPath, sourceInfo.ModTime(), sourceInfo.ModTime())
-	if err != nil {
-		return err
+	if transformResult.newFile == nil {
+		_, err = io.Copy(destinationFile, sourceFile)
+		if err != nil {
+			return err
+		}
+		err = os.Chtimes(destinationPath, sourceInfo.ModTime(), sourceInfo.ModTime())
+		if err != nil {
+			return err
+		}
+		fileComplete = true
+	} else {
+		if _, err := destinationFile.Write(*transformResult.newFile); err != nil {
+			return err
+		}
+		fileComplete = true
 	}
-	fileComplete = true
+	if transformResult.siblingFile != nil {
+		panic("siblingFile not yet implemented for filesystem destinations")
+	}
+
 	return nil
 }
 
 type FileTransformResult struct {
 	// If newFile is nil, then the file remains untouched.
 	// If newFile is not nil, its contents are used.
-	//
-	// If newFile is not nil, Close will delete the file as if by
-	// os.Remove(newFile.Name())
-	newFile *os.File
+	newFile *[]byte
 
 	// If siblingFile is not nil, then a new file is created named
-	// siblingFileName.
-	//
-	// If siblingFile is not nil, Close will delete the file as if by
-	// os.Remove(siblingFile.Name()).
-	siblingFile     *os.File
-	siblingFileName string
+	// siblingFileNameSuffix.
+	siblingFile           *[]byte
+	siblingFileNameSuffix string
 }
 
-func (self *FileTransformResult) UpdateTarHeader(header *tar.Header) error {
+func (self *FileTransformResult) UpdateTarHeader(header *tar.Header) {
 	if self.newFile != nil {
-		newFileStat, err := self.newFile.Stat()
-		if err != nil {
-			return err
-		}
 		if header.Format == tar.FormatGNU || header.Format == tar.FormatPAX {
-			header.AccessTime = newFileStat.ModTime()
-			header.ChangeTime = newFileStat.ModTime()
+			header.AccessTime = ProgramStartTime
+			header.ChangeTime = ProgramStartTime
 		}
-		header.ModTime = newFileStat.ModTime()
-		header.Size = newFileStat.Size()
+		header.ModTime = ProgramStartTime
+		size := len(*self.newFile)
+		header.Size = int64(size)
 	}
-	return nil
 }
 
-func (self *FileTransformResult) UpdateZipHeader(header *zip.FileHeader) error {
+func (self *FileTransformResult) UpdateZipHeader(header *zip.FileHeader) {
 	if self.newFile != nil {
-		newFileStat, err := self.newFile.Stat()
+		header.Modified = ProgramStartTime
+		size := len(*self.newFile)
+		header.UncompressedSize = uint32(size)
+		header.UncompressedSize64 = uint64(size)
+	}
+}
+
+func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, error) {
+	var err error
+
+	if PathLooksLikeTarGz(deepPath.Last()) {
+		// TODO(strager): Optimization: Don't
+		// process this file if no entry of
+		// filesToTransform mentions it.
+		needsTransform := true
+		if needsTransform {
+			transformResult, err := TransformTarGz(deepPath, file)
+			if err != nil {
+				return FileTransformResult{}, err
+			}
+			return transformResult, nil
+		}
+	}
+
+	if PathLooksLikeZip(deepPath.Last()) {
+		// TODO(strager): Optimization: Don't
+		// process this file if no entry of
+		// filesToTransform mentions it.
+		needsTransform := true
+		if needsTransform {
+			fileContent, err := io.ReadAll(file)
+			if err != nil {
+				return FileTransformResult{}, err
+			}
+
+			transformResult, err := TransformZip(deepPath, fileContent)
+			if err != nil {
+				return FileTransformResult{}, err
+			}
+			return transformResult, nil
+		}
+	}
+
+	transformType := filesToTransform[deepPath]
+
+	var fileHash SHA256Hash
+	if transformType != NoTransform {
+		fileContent, err := io.ReadAll(file)
 		if err != nil {
-			return err
+			return FileTransformResult{}, err
 		}
-		header.Modified = newFileStat.ModTime()
-		header.UncompressedSize = uint32(newFileStat.Size())
-		header.UncompressedSize64 = uint64(newFileStat.Size())
-	}
-	return nil
-}
 
-func (self *FileTransformResult) Close() {
-	if self.newFile != nil {
-		self.newFile.Close()
-		os.Remove(self.newFile.Name())
-		self.newFile = nil
+		hasher := sha256.New()
+		if _, err := io.Copy(hasher, bytes.NewReader(fileContent)); err != nil {
+			return FileTransformResult{}, err
+		}
+		hashSlice := hasher.Sum(nil)
+		copy(fileHash[:], hashSlice)
+
+		cachedTransform := TransformCache[fileHash]
+		if cachedTransform.newFile != nil || cachedTransform.siblingFile != nil {
+			delete(filesToTransform, deepPath)
+			return cachedTransform, nil
+		}
+
+		file = bytes.NewReader(fileContent)
 	}
 
-	if self.siblingFile != nil {
-		self.siblingFile.Close()
-		os.Remove(self.siblingFile.Name())
-		self.siblingFile = nil
+	var transform FileTransformResult
+	switch transformType {
+	case RelicApple, RelicPGP, RelicWindows:
+		log.Printf("signing with Relic: %v\n", deepPath)
+		transform, err = RelicTransform(file, RelicSigningType(transformType))
+		if err != nil {
+			return FileTransformResult{}, err
+		}
+
+	default: // NoTransform
+		return NoOpTransform(), nil
 	}
+
+	delete(filesToTransform, deepPath)
+	TransformCache[fileHash] = transform
+	return transform, nil
 }
 
 func TransformTarGz(
+	tarGzDeepPath DeepPath,
 	sourceFile io.Reader,
-	sourceFilePath string,
-	destinationFile io.Writer,
-	membersToTransform map[string]FileTransformType,
-	signingStuff SigningStuff,
-) error {
-	return TransformTarGzGeneric(sourceFile, destinationFile,
-		func(path string, file io.Reader) (FileTransformResult, error) {
-			transformType := membersToTransform[path]
-			delete(membersToTransform, path)
-			switch transformType {
-			case AppleCodesign:
-				log.Printf("signing with Apple codesign: %s:%s\n", sourceFilePath, path)
-				transform, err := AppleCodesignTransform(path, file, signingStuff)
-				if err != nil {
-					return FileTransformResult{}, err
-				}
-				return transform, nil
-
-			case GPGSign:
-				log.Printf("signing with GPG: %s:%s\n", sourceFilePath, path)
-				transform, err := GPGSignTransform(path, file, signingStuff)
-				if err != nil {
-					return FileTransformResult{}, err
-				}
-				return transform, nil
-
-			case MicrosoftOsslsigncode:
-				log.Printf("signing with osslsigncode: %s:%s\n", sourceFilePath, path)
-				transform, err := MicrosoftOsslsigncodeTransform(file, signingStuff)
-				if err != nil {
-					return FileTransformResult{}, err
-				}
-				return transform, nil
-
-			default: // NoTransform
-				return NoOpTransform(), nil
-			}
-		})
+) (FileTransformResult, error) {
+	var destinationFile bytes.Buffer
+	if err := TransformTarGzToFile(tarGzDeepPath, sourceFile, &destinationFile); err != nil {
+		return FileTransformResult{}, err
+	}
+	destinationFileContent := destinationFile.Bytes()
+	return FileTransformResult{
+		newFile: &destinationFileContent,
+	}, nil
 }
 
-func TransformTarGzGeneric(
+func TransformTarGzToFile(
+	tarGzDeepPath DeepPath,
 	sourceFile io.Reader,
 	destinationFile io.Writer,
-	transform func(path string, file io.Reader) (FileTransformResult, error),
 ) error {
 	sourceUngzippedFile, err := gzip.NewReader(sourceFile)
 	if err != nil {
@@ -389,50 +466,42 @@ func TransformTarGzGeneric(
 			return err
 		}
 
-		var fileContent bytes.Buffer
-		bytesWritten, err := fileContent.ReadFrom(tarReader)
+		fileContent, err := io.ReadAll(tarReader)
 		if err != nil {
 			return err
 		}
-		if bytesWritten != header.Size {
+		if int64(len(fileContent)) != header.Size {
 			return fmt.Errorf("failed to read entire file")
 		}
 
-		transformResult, err := transform(header.Name, bytes.NewReader(fileContent.Bytes()))
+		transformResult, err := TransformFile(tarGzDeepPath.Append(header.Name), bytes.NewReader(fileContent))
 		if err != nil {
 			return err
 		}
-		defer transformResult.Close()
 
-		if err := transformResult.UpdateTarHeader(header); err != nil {
-			return err
-		}
-		var file io.Reader = bytes.NewReader(fileContent.Bytes())
+		transformResult.UpdateTarHeader(header)
+		var newFileContent []byte = fileContent
 		if transformResult.newFile != nil {
-			file = transformResult.newFile
+			newFileContent = *transformResult.newFile
 		}
-		if err := WriteTarEntry(header, file, tarWriter); err != nil {
+		if err := WriteTarEntry(header, newFileContent, tarWriter); err != nil {
 			return err
 		}
 
 		if transformResult.siblingFile != nil {
-			siblingFileStat, err := transformResult.siblingFile.Stat()
-			if err != nil {
-				return err
-			}
 			siblingHeader := tar.Header{
 				Typeflag: tar.TypeReg,
-				Name:     filepath.Join(filepath.Dir(header.Name), transformResult.siblingFileName),
-				Size:     siblingFileStat.Size(),
+				Name:     header.Name + transformResult.siblingFileNameSuffix,
+				Size:     int64(len(*transformResult.siblingFile)),
 				Mode:     header.Mode &^ 0111,
 				Uid:      header.Uid,
 				Gid:      header.Gid,
 				Uname:    header.Uname,
 				Gname:    header.Gname,
-				ModTime:  siblingFileStat.ModTime(),
+				ModTime:  ProgramStartTime,
 				Format:   tar.FormatUSTAR,
 			}
-			if err := WriteTarEntry(&siblingHeader, transformResult.siblingFile, tarWriter); err != nil {
+			if err := WriteTarEntry(&siblingHeader, *transformResult.siblingFile, tarWriter); err != nil {
 				return err
 			}
 		}
@@ -441,56 +510,25 @@ func TransformTarGzGeneric(
 }
 
 func TransformZip(
-	sourceFile *os.File,
-	destinationFile io.Writer,
-	membersToTransform map[string]FileTransformType,
-	signingStuff SigningStuff,
-) error {
-	return TransformZipGeneric(sourceFile, destinationFile,
-		func(path string, file io.Reader) (FileTransformResult, error) {
-			transformType := membersToTransform[path]
-			delete(membersToTransform, path)
-			switch transformType {
-			case AppleCodesign:
-				log.Printf("signing with Apple codesign: %s:%s\n", sourceFile.Name(), path)
-				transform, err := AppleCodesignTransform(path, file, signingStuff)
-				if err != nil {
-					return FileTransformResult{}, err
-				}
-				return transform, nil
-
-			case GPGSign:
-				log.Printf("signing with GPG: %s:%s\n", sourceFile.Name(), path)
-				transform, err := GPGSignTransform(path, file, signingStuff)
-				if err != nil {
-					return FileTransformResult{}, err
-				}
-				return transform, nil
-
-			case MicrosoftOsslsigncode:
-				log.Printf("signing with osslsigncode: %s:%s\n", sourceFile.Name(), path)
-				transform, err := MicrosoftOsslsigncodeTransform(file, signingStuff)
-				if err != nil {
-					return FileTransformResult{}, err
-				}
-				return transform, nil
-
-			default: // NoTransform
-				return NoOpTransform(), nil
-			}
-		})
+	zipDeepPath DeepPath,
+	sourceFile []byte,
+) (FileTransformResult, error) {
+	var destinationFile bytes.Buffer
+	if err := TransformZipToFile(zipDeepPath, sourceFile, &destinationFile); err != nil {
+		return FileTransformResult{}, err
+	}
+	destinationFileContent := destinationFile.Bytes()
+	return FileTransformResult{
+		newFile: &destinationFileContent,
+	}, nil
 }
 
-func TransformZipGeneric(
-	sourceFile *os.File,
+func TransformZipToFile(
+	zipDeepPath DeepPath,
+	sourceFile []byte,
 	destinationFile io.Writer,
-	transform func(path string, file io.Reader) (FileTransformResult, error),
 ) error {
-	sourceFileStat, err := sourceFile.Stat()
-	if err != nil {
-		return err
-	}
-	sourceZipFile, err := zip.NewReader(sourceFile, sourceFileStat.Size())
+	sourceZipFile, err := zip.NewReader(bytes.NewReader(sourceFile), int64(len(sourceFile)))
 	if err != nil {
 		return err
 	}
@@ -505,15 +543,12 @@ func TransformZipGeneric(
 		}
 		defer zipEntryFile.Close()
 
-		transformResult, err := transform(zipEntry.Name, zipEntryFile)
+		transformResult, err := TransformFile(zipDeepPath.Append(zipEntry.Name), zipEntryFile)
 		if err != nil {
 			return err
 		}
-		defer transformResult.Close()
 
-		if err := transformResult.UpdateZipHeader(&zipEntry.FileHeader); err != nil {
-			return err
-		}
+		transformResult.UpdateZipHeader(&zipEntry.FileHeader)
 		if transformResult.newFile == nil {
 			rawZIPEntryFile, err := zipEntry.OpenRaw()
 			if err != nil {
@@ -533,19 +568,17 @@ func TransformZipGeneric(
 			if err != nil {
 				return err
 			}
-			_, err = io.Copy(destinationZipEntryFile, transformResult.newFile)
-			if err != nil {
+			if _, err := destinationZipEntryFile.Write(*transformResult.newFile); err != nil {
 				return err
 			}
 		}
 
 		if transformResult.siblingFile != nil {
-			siblingZIPEntryFile, err := destinationZipFile.Create(filepath.Join(filepath.Dir(zipEntry.Name), transformResult.siblingFileName))
+			siblingZIPEntryFile, err := destinationZipFile.Create(zipEntry.Name + transformResult.siblingFileNameSuffix)
 			if err != nil {
 				return err
 			}
-			_, err = io.Copy(siblingZIPEntryFile, transformResult.siblingFile)
-			if err != nil {
+			if _, err := siblingZIPEntryFile.Write(*transformResult.siblingFile); err != nil {
 				return err
 			}
 		}
@@ -559,182 +592,7 @@ func NoOpTransform() FileTransformResult {
 	}
 }
 
-// originalPath need not be a path to a real file.
-func AppleCodesignTransform(originalPath string, exe io.Reader, signingStuff SigningStuff) (FileTransformResult, error) {
-	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-	TempDirs = append(TempDirs, tempDir)
-
-	// Name the file the same as the original. The codesign utility
-	// sometimes uses the file name as the Identifier, and we don't want the
-	// Identifier being some random string.
-	tempFile, err := os.Create(filepath.Join(tempDir, filepath.Base(originalPath)))
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-	_, err = io.Copy(tempFile, exe)
-	tempFile.Close()
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-
-	if err := AppleCodesignFile(tempFile.Name(), signingStuff); err != nil {
-		return FileTransformResult{}, err
-	}
-	if err := AppleCodesignVerifyFile(tempFile.Name(), signingStuff); err != nil {
-		return FileTransformResult{}, err
-	}
-
-	// AppleCodesignFile replaced the file, so we can't just rewind
-	// tempFile. Open the file again.
-	signedFile, err := os.Open(tempFile.Name())
-	if err != nil {
-		os.Remove(tempFile.Name())
-		return FileTransformResult{}, err
-	}
-
-	return FileTransformResult{
-		newFile: signedFile,
-	}, nil
-}
-
-func AppleCodesignFile(filePath string, signingStuff SigningStuff) error {
-	signCommand := []string{"codesign", "--sign", signingStuff.AppleCodesignIdentity, "--force", "--", filePath}
-	process := exec.Command(signCommand[0], signCommand[1:]...)
-	process.Stdout = os.Stdout
-	process.Stderr = os.Stderr
-	if err := process.Start(); err != nil {
-		return err
-	}
-	if err := process.Wait(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func AppleCodesignVerifyFile(filePath string, signingStuff SigningStuff) error {
-	requirements := fmt.Sprintf("certificate leaf = H\"%s\"", hex.EncodeToString(signingStuff.CertificateSHA1Hash[:]))
-
-	signCommand := []string{"codesign", "-vvv", fmt.Sprintf("-R=%s", requirements), "--", filePath}
-	process := exec.Command(signCommand[0], signCommand[1:]...)
-	process.Stdout = os.Stdout
-	process.Stderr = os.Stderr
-	if err := process.Start(); err != nil {
-		return err
-	}
-	if err := process.Wait(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// originalPath need not be a path to a real file.
-func GPGSignTransform(originalPath string, exe io.Reader, signingStuff SigningStuff) (FileTransformResult, error) {
-	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-	TempDirs = append(TempDirs, tempDir)
-
-	tempFile, err := os.Create(filepath.Join(tempDir, "data"))
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-	defer os.Remove(tempFile.Name())
-	_, err = io.Copy(tempFile, exe)
-	tempFile.Close()
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-
-	signatureFilePath, err := GPGSignFile(tempFile.Name(), signingStuff)
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-	if err := GPGVerifySignature(tempFile.Name(), signatureFilePath, signingStuff); err != nil {
-		return FileTransformResult{}, err
-	}
-
-	signatureFile, err := os.Open(signatureFilePath)
-	if err != nil {
-		return FileTransformResult{}, err
-	}
-
-	return FileTransformResult{
-		siblingFile:     signatureFile,
-		siblingFileName: filepath.Base(originalPath) + ".asc",
-	}, nil
-}
-
-func GPGSignFile(filePath string, signingStuff SigningStuff) (string, error) {
-	process := exec.Command(
-		"gpg",
-		"--local-user", signingStuff.GPGIdentity,
-		"--armor",
-		"--detach-sign",
-		"--",
-		filePath,
-	)
-	process.Stdout = os.Stdout
-	process.Stderr = os.Stderr
-	if err := process.Start(); err != nil {
-		return "", err
-	}
-	if err := process.Wait(); err != nil {
-		return "", err
-	}
-	return filePath + ".asc", nil
-}
-
-func GPGVerifySignature(filePath string, signatureFilePath string, signingStuff SigningStuff) error {
-	// HACK(strager): Use /tmp instead of the default temp dir. macOS'
-	// default temp dir is so long that it breaks gpg-agent.
-	tempGPGHome, err := ioutil.TempDir("/tmp", "quick-lint-js-sign-release")
-	if err != nil {
-		return err
-	}
-	TempDirs = append(TempDirs, tempGPGHome)
-
-	var env []string
-	env = append([]string{}, os.Environ()...)
-	env = append(env, "GNUPGHOME="+tempGPGHome)
-
-	process := exec.Command("gpg", "--import")
-	keyReader := bytes.NewReader(signingStuff.GPGKey)
-	process.Stdin = keyReader
-	process.Stdout = os.Stdout
-	process.Stderr = os.Stderr
-	process.Env = env
-	if err := process.Start(); err != nil {
-		return err
-	}
-	if err := process.Wait(); err != nil {
-		return err
-	}
-
-	process = exec.Command(
-		"gpg", "--verify",
-		"--",
-		signatureFilePath,
-		filePath,
-	)
-	process.Stdout = os.Stdout
-	process.Stderr = os.Stderr
-	process.Env = env
-	if err := process.Start(); err != nil {
-		return err
-	}
-	if err := process.Wait(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func MicrosoftOsslsigncodeTransform(exe io.Reader, signingStuff SigningStuff) (FileTransformResult, error) {
+func RelicTransform(exe io.Reader, signingType RelicSigningType) (FileTransformResult, error) {
 	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
 	if err != nil {
 		return FileTransformResult{}, err
@@ -753,73 +611,111 @@ func MicrosoftOsslsigncodeTransform(exe io.Reader, signingStuff SigningStuff) (F
 	}
 
 	signedFilePath := filepath.Join(tempDir, "signed.exe")
-	if err := MicrosoftOsslsigncodeFile(unsignedFile.Name(), signedFilePath, signingStuff); err != nil {
-		return FileTransformResult{}, err
-	}
-	if err := MicrosoftOsslsigncodeVerifyFile(signedFilePath, signingStuff); err != nil {
+	if err := RelicFile(unsignedFile.Name(), signedFilePath, signingType); err != nil {
 		return FileTransformResult{}, err
 	}
 
-	signedFile, err := os.Open(signedFilePath)
+	switch signingType {
+	case RelicSignApple, RelicSignWindows:
+		if err := RelicVerifyFile(signedFilePath); err != nil {
+			return FileTransformResult{}, err
+		}
+
+	case RelicSignPGP:
+		if err := RelicVerifyDetachedFile(unsignedFile.Name(), signedFilePath); err != nil {
+			return FileTransformResult{}, err
+		}
+
+	default:
+		panic("unexpected RelicSigningType")
+	}
+
+	signedFileContent, err := os.ReadFile(signedFilePath)
 	if err != nil {
-		os.Remove(signedFilePath)
 		return FileTransformResult{}, err
 	}
+	switch signingType {
+	case RelicSignApple, RelicSignWindows:
+		return FileTransformResult{
+			newFile: &signedFileContent,
+		}, nil
 
-	return FileTransformResult{
-		newFile: signedFile,
-	}, nil
+	case RelicSignPGP:
+		return FileTransformResult{
+			siblingFile:           &signedFileContent,
+			siblingFileNameSuffix: ".asc",
+		}, nil
+
+	default:
+		panic("unexpected RelicSigningType")
+	}
 }
 
-func MicrosoftOsslsigncodeFile(inFilePath string, outFilePath string, signingStuff SigningStuff) error {
+func RelicFile(inFilePath string, outFilePath string, signingType RelicSigningType) error {
+	inFileAbsolutePath, err := filepath.Abs(inFilePath)
+	if err != nil {
+		return err
+	}
+	outFileAbsolutePath, err := filepath.Abs(outFilePath)
+	if err != nil {
+		return err
+	}
+
 	signCommand := []string{
-		"osslsigncode", "sign",
-		"-pkcs12", signingStuff.PrivateKeyPKCS12Path,
-		"-t", "http://timestamp.digicert.com",
-		"-in", inFilePath,
-		"-out", outFilePath,
+		"relic", "sign",
+		"--config", signingStuff.RelicConfigPath,
+		"--file", inFileAbsolutePath,
+		"--output", outFileAbsolutePath,
+	}
+	switch signingType {
+	case RelicSignApple:
+		requirementsPath, err := MakeTempFileWithContent(AppleCodeSigningRequirements)
+		if err != nil {
+			return err
+		}
+		signCommand = append(signCommand, "--requirements", requirementsPath)
+		signCommand = append(signCommand, "--bundle-id", "quick-lint-js")
+		signCommand = append(signCommand, "--key", "windows_key")
+	case RelicSignPGP:
+		signCommand = append(signCommand, "--key", "gpg_key")
+		signCommand = append(signCommand, "--sig-type", "pgp")
+	case RelicSignWindows:
+		signCommand = append(signCommand, "--key", "windows_key")
+	default:
+		panic("unexpected RelicSigningType")
 	}
 	process := exec.Command(signCommand[0], signCommand[1:]...)
 	process.Stdout = os.Stdout
 	process.Stderr = os.Stderr
+	process.Dir = filepath.Dir(signingStuff.RelicConfigPath)
 	if err := process.Start(); err != nil {
 		return err
 	}
 	if err := process.Wait(); err != nil {
 		return err
 	}
+
+	// TODO(strager): For RelicSignApple, if the codesign tool is installed,
+	// run the following command to verify the signature:
+	//
+	// $ codesign -vvv -R="$(csreq -r='certificate leaf = "./dist/certificates/quick-lint-js.cer"' -t)" $file
+	//
+	// (I don't trust Relic to verify requirements.)
+
 	return nil
 }
 
-func MicrosoftOsslsigncodeVerifyFile(filePath string, signingStuff SigningStuff) error {
-	certificatePEMFile, err := ioutil.TempFile("", "quick-lint-js-sign-release")
+func RelicVerifyFile(filePath string) error {
+	certOptions, err := GetRelicVerifyCertOptions()
 	if err != nil {
 		return err
 	}
-	certificatePEMFile.Close()
-	defer os.Remove(certificatePEMFile.Name())
 
+	options := append(append([]string{"verify"}, certOptions...),
+		"--", filePath)
 	process := exec.Command(
-		"openssl", "x509",
-		"-inform", "der",
-		"-outform", "pem",
-		"-out", certificatePEMFile.Name(),
-	)
-	certificateReader := bytes.NewReader(signingStuff.Certificate)
-	process.Stdin = certificateReader
-	process.Stdout = os.Stdout
-	process.Stderr = os.Stderr
-	if err := process.Start(); err != nil {
-		return err
-	}
-	if err := process.Wait(); err != nil {
-		return err
-	}
-
-	process = exec.Command(
-		"osslsigncode", "verify",
-		"-in", filePath,
-		"-CAfile", certificatePEMFile.Name(),
+		"relic",
+		options...,
 	)
 	process.Stdout = os.Stdout
 	process.Stderr = os.Stderr
@@ -833,15 +729,60 @@ func MicrosoftOsslsigncodeVerifyFile(filePath string, signingStuff SigningStuff)
 	return nil
 }
 
-func WriteTarEntry(header *tar.Header, file io.Reader, output *tar.Writer) error {
+func RelicVerifyDetachedFile(filePath string, detachedSignaturePath string) error {
+	certOptions, err := GetRelicVerifyCertOptions()
+	if err != nil {
+		return err
+	}
+
+	options := append(append([]string{"verify"}, certOptions...),
+		"--content", filePath,
+		"--", detachedSignaturePath)
+	process := exec.Command(
+		"relic",
+		options...,
+	)
+	process.Stdout = os.Stdout
+	process.Stderr = os.Stderr
+	if err := process.Start(); err != nil {
+		return err
+	}
+	if err := process.Wait(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetRelicVerifyCertOptions() ([]string, error) {
+	certificateFile, err := MakeTempFileWithContent(signingStuff.Certificate)
+	if err != nil {
+		return nil, err
+	}
+	timestampCertificateFile, err := MakeTempFileWithContent(signingStuff.TimestampCertificate)
+	if err != nil {
+		return nil, err
+	}
+	gpgCertificateFile, err := MakeTempFileWithContent(signingStuff.GPGKey)
+	if err != nil {
+		return nil, err
+	}
+	return []string{
+		"--cert", certificateFile,
+		"--cert", timestampCertificateFile,
+		"--cert", gpgCertificateFile,
+	}, nil
+}
+
+func WriteTarEntry(header *tar.Header, fileContent []byte, output *tar.Writer) error {
 	if err := output.WriteHeader(header); err != nil {
 		return err
 	}
-	bytesWritten, err := io.Copy(output, file)
+	bytesWritten, err := output.Write(fileContent)
 	if err != nil {
 		return err
 	}
-	if bytesWritten != header.Size {
+	if int64(bytesWritten) != header.Size {
 		return fmt.Errorf("failed to write entire file")
 	}
 	return nil
@@ -897,6 +838,67 @@ func VerifySHA256SUMSFile(hashesPath string) error {
 		return err
 	}
 	return nil
+}
+
+func MakeTempFileWithContent(content []byte) (string, error) {
+	tempFile, err := ioutil.TempFile("", "quick-lint-js-sign-release")
+	if err != nil {
+		return "", err
+	}
+	TempDirs = append(TempDirs, tempFile.Name())
+	defer tempFile.Close()
+	if _, err := tempFile.Write(content); err != nil {
+		return "", err
+	}
+	return tempFile.Name(), nil
+}
+
+type DeepPath struct {
+	parts [3]string
+}
+
+func NewDeepPath(path string) DeepPath {
+	return DeepPath{[3]string{path, "", ""}}
+}
+
+func NewDeepPath2(path0 string, path1 string) DeepPath {
+	return DeepPath{[3]string{path0, path1, ""}}
+}
+
+func NewDeepPath3(path0 string, path1 string, path2 string) DeepPath {
+	return DeepPath{[3]string{path0, path1, path2}}
+}
+
+func (path *DeepPath) Append(child string) DeepPath {
+	newPath := *path
+	if newPath.parts[0] == "" {
+		newPath.parts[0] = child
+	} else if path.parts[1] == "" {
+		newPath.parts[1] = child
+	} else if path.parts[2] == "" {
+		newPath.parts[2] = child
+	} else {
+		log.Fatal("cannot append %#v to %#v; DeepPath has no space left", child, newPath)
+	}
+	return newPath
+}
+
+func (path *DeepPath) Last() string {
+	if path.parts[2] != "" {
+		return path.parts[2]
+	}
+	if path.parts[1] != "" {
+		return path.parts[1]
+	}
+	return path.parts[0]
+}
+
+func PathLooksLikeTarGz(path string) bool {
+	return strings.HasSuffix(path, ".tar.gz") || strings.HasSuffix(path, ".tgz")
+}
+
+func PathLooksLikeZip(path string) bool {
+	return strings.HasSuffix(path, ".nupkg") || strings.HasSuffix(path, ".vsix") || strings.HasSuffix(path, ".zip")
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

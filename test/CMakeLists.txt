@@ -77,6 +77,7 @@ quick_lint_js_add_executable(
   test-parse-module.cpp
   test-parse-statement.cpp
   test-parse-var.cpp
+  test-parse-warning.cpp
   test-parse.cpp
   test-pipe-writer.cpp
   test-result.cpp
@@ -111,7 +112,6 @@ if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
   target_precompile_headers(
     quick-lint-js-test
     PRIVATE
-    <boost/container/pmr/monotonic_buffer_resource.hpp>
     <boost/container/pmr/polymorphic_allocator.hpp>
     <gmock/gmock.h>
     <gtest/gtest.h>

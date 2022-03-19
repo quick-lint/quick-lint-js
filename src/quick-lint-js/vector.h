@@ -12,6 +12,7 @@
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/force-inline.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -67,8 +68,17 @@ class uninstrumented_vector : private Vector {
   using Vector::empty;
   using Vector::end;
   using Vector::front;
+  using Vector::get_allocator;
+  using Vector::operator[];
   using Vector::reserve;
+  using Vector::resize;
   using Vector::size;
+
+  // NOTE(strager): These are non-standard functions.
+  using Vector::append;
+  using Vector::operator std::basic_string_view<value_type>;
+  using Vector::operator+=;
+  using Vector::release;
 };
 
 template <class T, class BumpAllocator>
@@ -95,6 +105,8 @@ class raw_bump_vector {
 
   ~raw_bump_vector() { this->clear(); }
 
+  BumpAllocator *get_allocator() const noexcept { return this->allocator_; }
+
   bool empty() const noexcept { return this->data_ == this->data_end_; }
   std::size_t size() const noexcept {
     return narrow_cast<std::size_t>(this->data_end_ - this->data_);
@@ -115,6 +127,20 @@ class raw_bump_vector {
   T &back() noexcept {
     QLJS_ASSERT(!this->empty());
     return this->data_end_[-1];
+  }
+
+  const T &front() const noexcept {
+    QLJS_ASSERT(!this->empty());
+    return this->data_[0];
+  }
+  const T &back() const noexcept {
+    QLJS_ASSERT(!this->empty());
+    return this->data_end_[-1];
+  }
+
+  T &operator[](size_type index) noexcept {
+    QLJS_ASSERT(index < this->size());
+    return this->data_[index];
   }
 
   void reserve(std::size_t size) {
@@ -161,6 +187,42 @@ class raw_bump_vector {
     return result;
   }
 
+  // Similar to std::basic_string::append.
+  void append(const T *begin, const T *end) {
+    // TODO(strager): Make this more efficient.
+    for (const T *p = begin; p != end; ++p) {
+      this->emplace_back(*p);
+    }
+  }
+
+  // Similar to std::basic_string::append.
+  void append(size_type count, T value) {
+    // TODO(strager): Make this more efficient.
+    for (size_type i = 0; i < count; ++i) {
+      this->emplace_back(value);
+    }
+  }
+
+  // Similar to std::basic_string::operator+=.
+  raw_bump_vector &operator+=(std::basic_string_view<T> values) {
+    this->append(values.data(), values.data() + values.size());
+    return *this;
+  }
+
+  // Similar to std::basic_string::operator+=.
+  raw_bump_vector &operator+=(T value) {
+    this->emplace_back(value);
+    return *this;
+  }
+
+  // Like clear(), but doesn't touch the allocated memory. Objects remain alive
+  // and valid.
+  void release() {
+    this->data_ = nullptr;
+    this->data_end_ = nullptr;
+    this->capacity_end_ = nullptr;
+  }
+
   void clear() {
     if (this->data_) {
       std::destroy(this->data_, this->data_end_);
@@ -168,10 +230,33 @@ class raw_bump_vector {
           this->data_,
           narrow_cast<std::size_t>(this->data_end_ - this->data_) * sizeof(T),
           alignof(T));
-      this->data_ = nullptr;
-      this->data_end_ = nullptr;
-      this->capacity_end_ = nullptr;
+      this->release();
     }
+  }
+
+  void resize(size_type new_size) {
+    size_type old_size = this->size();
+    if (new_size == old_size) {
+      // Do nothing.
+    } else if (new_size < old_size) {
+      T *new_end = this->data_ + new_size;
+      std::destroy(new_end, this->data_end_);
+      this->data_end_ = new_end;
+    } else {
+      size_type old_capacity = this->capacity();
+      if (new_size > old_capacity) {
+        this->reserve_grow_by_at_least(new_size - old_capacity);
+      }
+      T *new_end = this->data_ + new_size;
+      for (T *p = this->data_end_; p != new_end; ++p) {
+        new (p) T();
+      }
+      this->data_end_ = new_end;
+    }
+  }
+
+  explicit operator std::basic_string_view<value_type>() const noexcept {
+    return std::basic_string_view<value_type>(this->data_, this->size());
   }
 
  private:

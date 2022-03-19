@@ -6,216 +6,220 @@
 #include <quick-lint-js/translation-table.h>
 
 namespace quick_lint_js {
-translation_table translation_data = {
-    .mapping_table =
-        {
-            {0, 0, 0},
-            {1, 9596, 0},
-            {51, 9636, 0},
-            {113, 9682, 0},
-            {189, 9743, 0},
-            {263, 9802, 0},
-            {334, 9854, 0},
-            {365, 9882, 17839},
-            {508, 9979, 17969},
-            {558, 10016, 0},
-            {628, 10076, 0},
-            {721, 10145, 17995},
-            {792, 10188, 18046},
-            {822, 10221, 18077},
-            {895, 10269, 18126},
-            {927, 10307, 18171},
-            {957, 10340, 18215},
-            {1005, 10388, 18260},
-            {1084, 10453, 0},
-            {1105, 10471, 0},
-            {1144, 10504, 0},
-            {1200, 10556, 18326},
-            {1280, 10624, 18391},
-            {1347, 10685, 18452},
-            {1413, 10749, 18517},
-            {1490, 0, 18593},
-            {1509, 10814, 18612},
-            {1524, 10828, 18627},
-            {1604, 10887, 18683},
-            {1644, 10923, 18723},
-            {1676, 10952, 18756},
-            {1724, 10990, 18807},
-            {1764, 11024, 18856},
-            {1800, 11060, 18898},
-            {1873, 11110, 0},
-            {1927, 11157, 0},
-            {1993, 11206, 18947},
-            {2055, 11251, 18995},
-            {2120, 11300, 19049},
-            {2181, 11357, 19112},
-            {2226, 11401, 19160},
-            {2271, 11436, 19203},
-            {2347, 11479, 19251},
-            {2382, 11499, 19276},
-            {2427, 11542, 19334},
-            {2501, 11605, 19403},
-            {2573, 11658, 19459},
-            {2607, 11698, 19503},
-            {2654, 11728, 0},
-            {2738, 11800, 19534},
-            {2784, 11824, 19552},
-            {2824, 11870, 0},
-            {2882, 11915, 0},
-            {2972, 11990, 19605},
-            {3013, 12013, 19639},
-            {3062, 12056, 19678},
-            {3108, 12077, 19709},
-            {3155, 12125, 19748},
-            {3206, 12174, 19794},
-            {3237, 12205, 19828},
-            {3301, 12253, 19876},
-            {3332, 12289, 19929},
-            {3381, 12333, 19982},
-            {3420, 12371, 20023},
-            {3457, 12408, 20064},
-            {3496, 0, 20108},
-            {3510, 12448, 20126},
-            {3540, 12481, 20164},
-            {3576, 12516, 20201},
-            {3608, 12553, 20242},
-            {3663, 12608, 20299},
-            {3727, 12673, 20372},
-            {3790, 12742, 20443},
-            {3823, 12777, 0},
-            {3862, 12818, 20483},
-            {3894, 12847, 20513},
-            {3929, 12879, 20546},
-            {4006, 12936, 20609},
-            {4091, 12996, 20679},
-            {0, 13042, 20720},
-            {4152, 13088, 20761},
-            {4205, 13139, 20820},
-            {4234, 0, 0},
-            {4302, 0, 20850},
-            {4332, 13166, 0},
-            {4376, 13205, 0},
-            {4460, 13259, 20875},
-            {4530, 13311, 20929},
-            {4571, 13344, 20965},
-            {4613, 13391, 20998},
-            {4659, 13439, 21038},
-            {4834, 13586, 21213},
-            {4871, 13618, 21244},
-            {4896, 13641, 21266},
-            {4933, 13674, 21301},
-            {4980, 13712, 21336},
-            {5011, 13739, 21364},
-            {5045, 13772, 21401},
-            {5084, 13811, 21439},
-            {5141, 13852, 0},
-            {5204, 13902, 21485},
-            {5258, 13941, 21537},
-            {5319, 13991, 21601},
-            {5369, 14042, 21654},
-            {5437, 0, 21704},
-            {5481, 14088, 21743},
-            {5515, 14126, 21771},
-            {5544, 14153, 21797},
-            {5592, 14204, 0},
-            {5632, 14246, 21847},
-            {5663, 14274, 21877},
-            {5694, 14306, 21913},
-            {5730, 14342, 21953},
-            {5763, 14372, 21984},
-            {5784, 14395, 22009},
-            {5820, 14426, 22042},
-            {5855, 14458, 0},
-            {5882, 14484, 22074},
-            {5915, 14515, 22111},
-            {5948, 14543, 22141},
-            {5982, 14575, 22175},
-            {6035, 14625, 22221},
-            {6079, 14673, 22265},
-            {6128, 14718, 22313},
-            {6161, 14753, 22344},
-            {6199, 14792, 22382},
-            {6234, 14830, 22419},
-            {6270, 14865, 22459},
-            {6303, 14904, 22492},
-            {6327, 14928, 22515},
-            {6361, 14960, 22548},
-            {6402, 14999, 0},
-            {6446, 15040, 22589},
-            {6486, 15075, 22628},
-            {6504, 15097, 22651},
-            {6539, 15128, 22685},
-            {6576, 15162, 22722},
-            {6620, 15203, 22765},
-            {6648, 15232, 22795},
-            {6700, 15287, 22843},
-            {6737, 15325, 22879},
-            {6782, 15366, 22921},
-            {6813, 15400, 22956},
-            {6886, 15465, 23022},
-            {6958, 15528, 23083},
-            {6991, 15562, 23117},
-            {7011, 15584, 23138},
-            {7074, 15657, 23211},
-            {7143, 15705, 23262},
-            {7183, 15752, 23318},
-            {7210, 15780, 23348},
-            {7255, 15815, 23392},
-            {7298, 15851, 23435},
-            {7333, 15886, 23473},
-            {7399, 15940, 23531},
-            {7439, 15973, 23564},
-            {7477, 16004, 23595},
-            {7519, 16043, 23638},
-            {7572, 16087, 23695},
-            {7608, 16116, 23726},
-            {7654, 16167, 23765},
-            {7704, 16219, 23809},
-            {7731, 16245, 23831},
-            {7756, 16268, 23861},
-            {7826, 16317, 23922},
-            {7862, 16353, 23959},
-            {7903, 16391, 24003},
-            {7930, 16415, 24028},
-            {7953, 16439, 24054},
-            {7972, 16457, 24069},
-            {7988, 16472, 24086},
-            {8005, 16487, 24103},
-            {8036, 16516, 24136},
-            {8089, 16559, 24177},
-            {8134, 16592, 24216},
-            {8190, 16638, 24260},
-            {8224, 0, 24294},
-            {8243, 16673, 24313},
-            {8289, 16713, 24350},
-            {8340, 16750, 24384},
-            {8377, 16790, 24421},
-            {8422, 16829, 24457},
-            {8449, 16858, 24485},
-            {8485, 16910, 24547},
-            {8544, 16971, 24608},
-            {8607, 0, 24677},
-            {8626, 17033, 24696},
-            {8806, 17189, 24867},
-            {8898, 17254, 24937},
-            {8996, 17331, 25020},
-            {9034, 17345, 25033},
-            {9072, 17372, 25066},
-            {9098, 17394, 0},
-            {9125, 17417, 25084},
-            {9189, 17472, 25152},
-            {9246, 17504, 25193},
-            {9283, 17527, 25228},
-            {9321, 17565, 25265},
-            {9351, 17588, 25292},
-            {9397, 17626, 25320},
-            {9441, 17671, 25358},
-            {9489, 17717, 25403},
-            {9532, 17767, 25446},
-            {9579, 17818, 25494},
-        },
+const translation_table translation_data =
+    {
+        .mapping_table =
+            {
+                {0, 0, 0, 0},
+                {1, 9596, 17839, 0},
+                {51, 9636, 17918, 0},
+                {113, 9682, 17971, 0},
+                {189, 9743, 18051, 0},
+                {263, 9802, 18130, 0},
+                {334, 9854, 18190, 0},
+                {365, 9882, 18220, 28676},
+                {508, 9979, 18371, 28806},
+                {558, 10016, 18412, 0},
+                {628, 10076, 18481, 0},
+                {721, 10145, 18561, 28832},
+                {792, 10188, 18614, 28883},
+                {822, 10221, 18651, 28914},
+                {895, 10269, 18717, 28963},
+                {927, 10307, 18774, 29008},
+                {957, 10340, 18814, 29052},
+                {1005, 10388, 18869, 29097},
+                {1084, 10453, 18967, 0},
+                {1105, 10471, 18990, 0},
+                {1144, 10504, 19030, 0},
+                {1200, 10556, 19093, 29163},
+                {1280, 10624, 19183, 29228},
+                {1347, 10685, 19261, 29289},
+                {1413, 10749, 19335, 29354},
+                {1490, 0, 19405, 29430},
+                {1509, 10814, 19426, 29449},
+                {1524, 10828, 19445, 29464},
+                {1604, 10887, 19535, 29520},
+                {1644, 10923, 19581, 29560},
+                {1676, 10952, 19619, 29593},
+                {1724, 10990, 19679, 29644},
+                {1764, 11024, 19722, 29693},
+                {1800, 11060, 19774, 29735},
+                {1873, 11110, 19864, 0},
+                {1927, 11157, 19934, 0},
+                {1993, 11206, 20004, 29784},
+                {2055, 11251, 20073, 29832},
+                {2120, 11300, 20150, 29886},
+                {2181, 11357, 20223, 29949},
+                {2226, 11401, 20292, 29997},
+                {2271, 11436, 20341, 30040},
+                {2347, 11479, 20408, 30088},
+                {2382, 11499, 20436, 30113},
+                {2427, 11542, 20503, 30171},
+                {2501, 11605, 20583, 30240},
+                {2573, 11658, 20654, 30296},
+                {2607, 11698, 20701, 30340},
+                {2654, 11728, 20740, 0},
+                {2738, 11800, 20836, 30371},
+                {2784, 11824, 20862, 30389},
+                {2824, 11870, 20932, 0},
+                {2882, 11915, 20999, 0},
+                {2972, 11990, 21090, 30442},
+                {3013, 12013, 21124, 30476},
+                {3062, 12056, 21188, 30515},
+                {3108, 12077, 21220, 30546},
+                {3155, 12125, 21279, 30585},
+                {3206, 12174, 21350, 30631},
+                {3237, 12205, 21385, 30665},
+                {3301, 12253, 21439, 30713},
+                {3332, 12289, 21483, 30766},
+                {3381, 12333, 21537, 30819},
+                {3420, 12371, 21572, 30860},
+                {3457, 12408, 21608, 30901},
+                {3496, 0, 21657, 30945},
+                {3510, 12448, 21670, 30963},
+                {3540, 12481, 21705, 31001},
+                {3576, 12516, 21749, 31038},
+                {3608, 12553, 21793, 31079},
+                {3663, 12608, 21865, 31136},
+                {3727, 12673, 21934, 31209},
+                {3790, 12742, 22005, 31280},
+                {3823, 12777, 22041, 0},
+                {3862, 12818, 22083, 31320},
+                {3894, 12847, 22118, 31350},
+                {3929, 12879, 22156, 31383},
+                {4006, 12936, 22233, 31446},
+                {4091, 12996, 22319, 31516},
+                {0, 13042, 22388, 31557},
+                {4152, 13088, 22457, 31598},
+                {4205, 13139, 22521, 31657},
+                {4234, 0, 22552, 0},
+                {4302, 0, 22622, 31687},
+                {4332, 13166, 22646, 0},
+                {4376, 13205, 22695, 0},
+                {4460, 13259, 22761, 31712},
+                {4530, 13311, 22827, 31766},
+                {4571, 13344, 22875, 31802},
+                {4613, 13391, 22934, 31835},
+                {4659, 13439, 23004, 31875},
+                {4834, 13586, 23148, 32050},
+                {4871, 13618, 23187, 32081},
+                {4896, 13641, 23212, 32103},
+                {4933, 13674, 23254, 32138},
+                {4980, 13712, 23301, 32173},
+                {5011, 13739, 23333, 32201},
+                {5045, 13772, 23376, 32238},
+                {5084, 13811, 23426, 32276},
+                {5141, 13852, 23493, 0},
+                {5204, 13902, 23560, 32322},
+                {5258, 13941, 23622, 32374},
+                {5319, 13991, 23697, 32438},
+                {5369, 14042, 23763, 32491},
+                {5437, 0, 23824, 32541},
+                {5481, 14088, 23873, 32580},
+                {5515, 14126, 23919, 32608},
+                {5544, 14153, 23952, 32634},
+                {5592, 14204, 24015, 0},
+                {5632, 14246, 24073, 32684},
+                {5663, 14274, 24109, 32714},
+                {5694, 14306, 24148, 32750},
+                {5730, 14342, 24191, 32790},
+                {5763, 14372, 24227, 32821},
+                {5784, 14395, 24257, 32846},
+                {5820, 14426, 24296, 32879},
+                {5855, 14458, 24334, 0},
+                {5882, 14484, 24366, 32911},
+                {5915, 14515, 24404, 32948},
+                {5948, 14543, 24440, 32978},
+                {5982, 14575, 24475, 33012},
+                {6035, 14625, 24532, 33058},
+                {6079, 14673, 24592, 33102},
+                {6128, 14718, 24648, 33150},
+                {6161, 14753, 24690, 33181},
+                {6199, 14792, 24736, 33219},
+                {6234, 14830, 24781, 33256},
+                {6270, 14865, 24820, 33296},
+                {6303, 14904, 24860, 33329},
+                {6327, 14928, 24893, 33352},
+                {6361, 14960, 24936, 33385},
+                {6402, 14999, 24985, 0},
+                {6446, 15040, 25036, 33426},
+                {6486, 15075, 25080, 33465},
+                {6504, 15097, 25103, 33488},
+                {6539, 15128, 25136, 33522},
+                {6576, 15162, 25171, 33559},
+                {6620, 15203, 25218, 33602},
+                {6648, 15232, 25256, 33632},
+                {6700, 15287, 25320, 33680},
+                {6737, 15325, 25369, 33716},
+                {0, 0, 25421, 0},
+                {6782, 15366, 25467, 33758},
+                {6813, 15400, 25511, 33793},
+                {6886, 15465, 25589, 33859},
+                {6958, 15528, 25668, 33920},
+                {6991, 15562, 25713, 33954},
+                {7011, 15584, 25738, 33975},
+                {7074, 15657, 25841, 34048},
+                {7143, 15705, 25920, 34099},
+                {7183, 15752, 25981, 34155},
+                {7210, 15780, 26010, 34185},
+                {7255, 15815, 26063, 34229},
+                {7298, 15851, 26107, 34272},
+                {7333, 15886, 26157, 34310},
+                {7399, 15940, 26233, 34368},
+                {7439, 15973, 26268, 34401},
+                {7477, 16004, 26300, 34432},
+                {7519, 16043, 26347, 34475},
+                {0, 0, 26402, 0},
+                {0, 0, 26455, 0},
+                {7572, 16087, 26502, 34532},
+                {7608, 16116, 26543, 34563},
+                {7654, 16167, 26606, 34602},
+                {7704, 16219, 26680, 34646},
+                {7731, 16245, 26710, 34668},
+                {7756, 16268, 26741, 34698},
+                {7826, 16317, 26803, 34759},
+                {7862, 16353, 26854, 34796},
+                {7903, 16391, 26895, 34840},
+                {7930, 16415, 26923, 34865},
+                {7953, 16439, 26951, 34891},
+                {7972, 16457, 26971, 34906},
+                {7988, 16472, 26985, 34923},
+                {8005, 16487, 26999, 34940},
+                {8036, 16516, 27033, 34973},
+                {8089, 16559, 27085, 35014},
+                {8134, 16592, 27138, 35053},
+                {8190, 16638, 27193, 35097},
+                {8224, 0, 27227, 35131},
+                {8243, 16673, 27243, 35150},
+                {8289, 16713, 27292, 35187},
+                {8340, 16750, 27337, 35221},
+                {8377, 16790, 27389, 35258},
+                {8422, 16829, 27436, 35294},
+                {8449, 16858, 27470, 35322},
+                {8485, 16910, 27532, 35384},
+                {8544, 16971, 27604, 35445},
+                {8607, 0, 27682, 35514},
+                {8626, 17033, 27699, 35533},
+                {8806, 17189, 27858, 35704},
+                {8898, 17254, 27936, 35774},
+                {8996, 17331, 28022, 35857},
+                {9034, 17345, 28039, 35870},
+                {9072, 17372, 28073, 35903},
+                {9098, 17394, 28099, 0},
+                {9125, 17417, 28130, 35921},
+                {9189, 17472, 28209, 35989},
+                {9246, 17504, 28257, 36030},
+                {9283, 17527, 28288, 36065},
+                {9321, 17565, 28329, 36102},
+                {9351, 17588, 28353, 36129},
+                {9397, 17626, 28400, 36157},
+                {9441, 17671, 28457, 36195},
+                {9489, 17717, 28525, 36240},
+                {9532, 17767, 28586, 36283},
+                {9579, 17818, 28658, 36331},
+            },
 
-    // clang-format off
+        // clang-format off
     .string_table =
         u8"\0"
         u8"Eintr\u00e4ge in \"global-groups\" m\u00fcssen Strings sein\0"
@@ -616,6 +620,212 @@ translation_table translation_data = {
         u8"WITH STATEMENT IS MISSING '{1}' AROUND EXPRESSION\0"
         u8"WITH STATEMENT NEEDS PARENTHESES AROUND EXPRESSION\0"
         u8"{0} WITH NO BINDINGS\0"
+        u8"les entr\u00e9es de type \"global-groups\" doivent \u00eatre des cha\u00eenes de caract\u00e8res\0"
+        u8"\"global-groups\" doit \u00eatre un bool\u00e9en ou un tableau\0"
+        u8"pour le descripteur \"globals\" la propri\u00e9t\u00e9 \"shadowable\" doit \u00eare un bool\u00e9en\0"
+        u8"pour le descripteur \"globals\" la propri\u00e9t\u00e9 \"writable\" doit \u00eatre un bool\u00e9en\0"
+        u8"le descripteur \"globals\" doit \u00eatre un bool\u00e9en ou un objet\0"
+        u8"\"globals\" doit \u00eatre un objet\0"
+        u8"l'op\u00e9rateur '.' n\u00e9cessite un nom cl\u00e9 ; utiliser + pour concat\u00e9ner des cha\u00eenes de caract\u00e8res ; utiliser [] pour un acc\u00e8s avec une cl\u00e9 dynamique\0"
+        u8"'?' cr\u00e9\u00e9 une expression conditionnelle\0"
+        u8"'async static' n'est pas autoris\u00e9 ; utiliser plut\u00f4t 'static async'\0"
+        u8"'await' ne peut \u00eatre suivi d'une fonction fl\u00e9ch\u00e9e ; utiliser plut\u00f4t 'async'\0"
+        u8"'await' n'est autoris\u00e9 que dans des fonctions async\0"
+        u8"'else' n'a pas de 'if' correspondant\0"
+        u8"'in' d\u00e9sactiv\u00e9 dans l'initialisation des boucles for de style C\0"
+        u8"le lit\u00e9ral BigInt contient un s\u00e9parateur de d\u00e9cimales\0"
+        u8"le lit\u00e9ral BigInt contient un exposant\0"
+        u8"troisi\u00e8me argument manquant pour la boucle de style C\0"
+        u8"les boucles for de style C ne poss\u00e8dent que trois composantes s\u00e9par\u00e9es par des points-virgules\0"
+        u8"erreur de syntaxe JSON\0"
+        u8"React/JSX n'est pas encore impl\u00e9ment\u00e9\0"
+        u8"un litt\u00e9ral RegExp ne peut contenir des \u00e9chappements Unicode\0"
+        u8"la fonctionnalit\u00e9 'enum' de TypeScript n'est pas encore impl\u00e9ment\u00e9e dans quick-lint-js\0"
+        u8"une d\u00e9claration de classe n'est pas autoris\u00e9e dans le corps de {1:singular}\0"
+        u8"une instruction de fonction ne peut faire partie du corps de {1:singular}\0"
+        u8"une d\u00e9claration lexicale ne peut constituer le corps de {1:singular}\0"
+        u8"tableau d\u00e9but\u00e9 ici\0"
+        u8"la fl\u00e8che est ici\0"
+        u8"une affectation de type 'async' dans une boucle for-of n\u00e9cessite l'usage de parenth\u00e8ses\0"
+        u8"affectation \u00e0 une variable globale constante\0"
+        u8"affectation \u00e0 une variable constante\0"
+        u8"affectation \u00e0 une variable constante avant sa d\u00e9claration\0"
+        u8"affectation \u00e0 une variable non d\u00e9clar\u00e9e\0"
+        u8"le litt\u00e9ral num\u00e9rique binaire n'a pas de chiffres\0"
+        u8"break ne peut pas \u00eatre utilis\u00e9 \u00e0 l'int\u00e9rieur d'une boucle ou d'une instruction switch\0"
+        u8"impossible d'acc\u00e9der \u00e0 un identifiant priv\u00e9 en dehors d'une classe\0"
+        u8"impossible d'affecter la variable de boucle dans une boucle for of/in\0"
+        u8"impossible de d\u00e9clarer 'await' \u00e0 l'int\u00e9rieur d'une fonction async\0"
+        u8"impossible de d\u00e9clarer 'yield' \u00e0 l'int\u00e9rieur d'une fonction g\u00e9n\u00e9ratrice\0"
+        u8"impossible de d\u00e9clarer et d'exporter une variable avec 'export default'\0"
+        u8"impossible de d\u00e9clarer une variable nomm\u00e9e comme le mot-cl\u00e9 '{0}'\0"
+        u8"impossible d'exporter une variable nomm\u00e9e 'let'\0"
+        u8"impossible d'exporter une variable nomm\u00e9e comme le mot-cl\u00e9 '{0}'\0"
+        u8"impossible d'importer 'let'\0"
+        u8"impossible d'importer une variable nomm\u00e9e comme un mot-cl\u00e9 '{0}'\0"
+        u8"impossible de r\u00e9f\u00e9rencer des variables priv\u00e9es sans objet ; utiliser 'this.'\0"
+        u8"impossible d'actualiser la variable avec '{0}' pendant sa d\u00e9claration\0"
+        u8"caract\u00e8re non autoris\u00e9 dans les identifiants\0"
+        u8"une classe ne peut \u00eatre nomm\u00e9e 'let'\0"
+        u8"un point de code dans une s\u00e9quence d'\u00e9chappement Unicode ne peut d\u00e9passer la valeur U+10FFFF\0"
+        u8"point de code hors limite\0"
+        u8"les virgules ne sont pas autoris\u00e9es apr\u00e8s un param\u00e8tre d'expansion\0"
+        u8"les virgules ne sont pas autoris\u00e9es entre les m\u00e9thodes de classe\0"
+        u8"les champs const dans des classes ne sont autoris\u00e9s qu'avec TypeScript, et pas JavaScript\0"
+        u8"variable constante d\u00e9clar\u00e9e ici\0"
+        u8"continue ne peut \u00eatre utilis\u00e9 qu'\u00e0 l'int\u00e9rieur d'une boucle\0"
+        u8"limite de profondeur d\u00e9pass\u00e9e\0"
+        u8"une boucle do-while n\u00e9cesite '{1}' autour de la condition\0"
+        u8"une boucle do-while n\u00e9cessite des parenth\u00e8ses autour de la condition\0"
+        u8"instruction do-while d\u00e9but\u00e9e ici\0"
+        u8"caract\u00e8re \u00e9chapp\u00e9 non permis dans les identifiants\0"
+        u8"')' attendu pour clore un appel de fonction\0"
+        u8"',' attendu entre les entr\u00e9es litt\u00e9rales d'un objet\0"
+        u8"'as' attendu entre '{1}' and '{2}'\0"
+        u8"'from \"name_of_module.mjs\"' attendu\0"
+        u8"'from' attendu avant un sp\u00e9cificateur de module\0"
+        u8"'{{' attendu\0"
+        u8"instruction attendue apr\u00e8s 'case'\0"
+        u8"instruction attendue avant le saut de ligne\0"
+        u8"instruction attendue avant un point-virgule\0"
+        u8"nombres hexadecimaux attendus dans une s\u00e9quence d'\u00e9chappement Unicode\0"
+        u8"param\u00e8tre attendu au lieu d'un litt\u00e9ral pour la fonction fl\u00e9ch\u00e9e\0"
+        u8"param\u00e8tre attendu au lieu d'une expression pour la fonction fl\u00e9ch\u00e9e\0"
+        u8"nom de variable requis pour 'catch'\0"
+        u8"nom de variable requis pour 'import'-'as'\0"
+        u8"l'exportation n\u00e9cessite 'default'\0"
+        u8"l'exportation n\u00e9cessite '{{' and '}'\0"
+        u8"',' suppl\u00e9mentaire non autoris\u00e9 entre les arguments d'appel d'une fonction\0"
+        u8"une boucle for n\u00e9cessite un it\u00e9rable ou des clauses de condition et de mise \u00e0 jour\0"
+        u8"une instruction de boucle for-in ne peut contenir de points-virgules\0"
+        u8"une instruction de boucle for-of ne peut contenir de points-virgules\0"
+        u8"les exports transf\u00e9r\u00e9s ne sont autoris\u00e9s qu'avec export-from\0"
+        u8"appel de fonction d\u00e9but\u00e9 ici\0"
+        u8"fonction appel\u00e9e avant sa d\u00e9claration dans la port\u00e9e de bloc : {0}\0"
+        u8"fonction d\u00e9clar\u00e9e ici\0"
+        u8"les fonctions/m\u00e9thodes ne peuvent contenir '=>'\0"
+        u8"une fonction g\u00e9n\u00e9ratrice '*' figure apr\u00e8s la fonction mot-cl\u00e9\0"
+        u8"une fonction g\u00e9n\u00e9ratrice '*' figure avant le nom de la fonction\0"
+        u8"le litt\u00e9ral num\u00e9rique hex n'a pas de chiffres\0"
+        u8"une instruction if n\u00e9cessite '{1}' autour de la condition\0"
+        u8"une instruction if n\u00e9cessite des parenth\u00e8ses autour de la condition\0"
+        u8"export incompl ; 'export default ...' ou 'export {{name}' ou 'export * from ...' ou 'export class' ou 'export function' ou 'export let' attendu\0"
+        u8"l'indexation n\u00e9cessite une expression\0"
+        u8"s\u00e9quence UTF-8 invalide\0"
+        u8"liaison invalide dans une instruction let\0"
+        u8"expression invalide \u00e0 gauche de l'assignation\0"
+        u8"param\u00e8tre de fonction invalide\0"
+        u8"s\u00e9quence d'\u00e9chappement hex invalide: {0}\0"
+        u8"litt\u00e9ral isol\u00e9 invalide dans un litt\u00e9ral objet\0"
+        u8"les mots-cl\u00e9s ne peuvent pas contenir de s\u00e9quence d'\u00e9chappement\0"
+        u8"\u00e9tiquette nomm\u00e9e 'await' non autoris\u00e9e dans les fonctions async\0"
+        u8"un litt\u00e9ral octal classique ne peut pas \u00eatre de type BigInt\0"
+        u8"un litt\u00e9ral octal classique ne peut pas contenir de tiret de soulignement\0"
+        u8"une instruction let ne peut d\u00e9clarer de variables nomm\u00e9es 'let'\0"
+        u8"les m\u00e9thodes ne doivent pas utiliser le mot-cl\u00e9 'function'\0"
+        u8"',' manquant entre les d\u00e9clarations de variable\0"
+        u8"':' manquant dans l'expression conditionnelle\0"
+        u8"'=' manquant apr\u00e8s une variable\0"
+        u8"'while (condition)' manquant pour une instruction for do-while\0"
+        u8"op\u00e9rateur de fl\u00e8che manquant pour la fonction fl\u00e9ch\u00e9e\0"
+        u8"corps manquant pour la boucle 'for'\0"
+        u8"corps manquant pour l'instruction 'if'\0"
+        u8"corps manquant pour l'instruction 'switch'\0"
+        u8"corps manquant pour la clause catch\0"
+        u8"corps manquant pour la classe\0"
+        u8"corps manquant pour la boucle do-while\0"
+        u8"corps manquant pour la clause finally\0"
+        u8"corps manquant pour la fonction\0"
+        u8"corps manquant pour l'instruction try\0"
+        u8"corps manquant pour la boucle while\0"
+        u8"corps manquant pour {1:headlinese}\0"
+        u8"clause catch ou finally manquante pour l'instruction try\0"
+        u8"nom de variable de capture manquante entre les parenth\u00e8ses\0"
+        u8"virgule manquante entre les entr\u00e9es du litt\u00e9ral objet\0"
+        u8"condition manquante pour l'instruction if\0"
+        u8"condition manquante pour l'instruction switch\0"
+        u8"condition manquante pour l'instruction while\0"
+        u8"fin de tableau manquante ; ']' attendu\0"
+        u8"expression manquante entre parenth\u00e8ses\0"
+        u8"en-t\u00eate de boucle for manquante\0"
+        u8"liste de param\u00e8tres de fonction manquante\0"
+        u8"en-t\u00eate et corps manquants pour la boucle 'for'\0"
+        u8"initialisateur manquant dans la d\u00e9claration const\0"
+        u8"nom manquant pour l'instruction de fonction\0"
+        u8"nom de classe manquant\0"
+        u8"nom de classe export\u00e9e manquant\0"
+        u8"nom de fonction export\u00e9e manquant\0"
+        u8"nom ou parenth\u00e8ses manquants pour la fonction\0"
+        u8"op\u00e9rande manquante pour l'op\u00e9rateur\0"
+        u8"op\u00e9rateur manquant entre l'expression et la fonction fl\u00e9ch\u00e9e\0"
+        u8"param\u00e8tres manquants pour la fonction fl\u00e9ch\u00e9e\0"
+        u8"nom de propri\u00e9t\u00e9 manquant apr\u00e8s l'op\u00e9rateur '.'\0"
+        u8"nom de propri\u00e9t\u00e9 manquante entre '.' et '.'\0"
+        u8"point-virgule manquant apr\u00e8s l'instruction\0"
+        u8"point-virgule manquant entre la condition et l'actualisation de la boucle for\0"
+        u8"point-virgule manquant entre l'initialisation et la condition de la boucle for\0"
+        u8"valeur manquante pour la propri\u00e9t\u00e9 d'objet\0"
+        u8"nom de variable manquant\0"
+        u8"un saut de ligne n'est pas autoris\u00e9 entre 'async' et la liste de param\u00e8tres d'une fonction fl\u00e9ch\u00e9e\0"
+        u8"le litt\u00e9ral num\u00e9rique contient plusieurs tirets de soulignement cons\u00e9cutifs\0"
+        u8"le litt\u00e9ral num\u00e9rique est suivi d'un tiret de soulignement\0"
+        u8"litt\u00e9ral objet d\u00e9but\u00e9 ici\0"
+        u8"un litt\u00e9ral octal ne peut avoir de partie d\u00e9cimale\0"
+        u8"un litt\u00e9ral octal ne peut avoir d'exposant\0"
+        u8"le litt\u00e9ral num\u00e9rique octal n'a pas de chiffres\0"
+        u8"les propri\u00e9t\u00e9s priv\u00e9es ne sont pas autoris\u00e9es dans les litt\u00e9raux objet\0"
+        u8"red\u00e9claration de variable globale\0"
+        u8"red\u00e9claration de variable: {0}\0"
+        u8"instruction delete redondante pour la variable\0"
+        u8"supprimer '{0}' pour actualiser une variable existante\0"
+        u8"l'instruction de retour ne retourne rien (undefined)\0"
+        u8"virgule isol\u00e9e dans un param\u00e8tre de fonction\0"
+        u8"virgule isol\u00e9e dans une instruction let\0"
+        u8"une instruction switch n\u00e9cessite '{1}' autour de la condition\0"
+        u8"une instruction switch n\u00e9cessite des parenth\u00e8ses autour de la condition\0"
+        u8"l'instruction try d\u00e9bute ici\0"
+        u8"commentaire de bloc non ferm\u00e9\0"
+        u8"bloc de code non ferm\u00e9 ; '}' attendu avant la fin du fichier\0"
+        u8"s\u00e9quence d'\u00e9chappement d'identifiant non ferm\u00e9e\0"
+        u8"litt\u00e9ral objet non ferm\u00e9 ; '}' attendu\0"
+        u8"litt\u00e9ral regexp non ferm\u00e9\0"
+        u8"litt\u00e9ral string non ferm\u00e9\0"
+        u8"template non ferm\u00e9\0"
+        u8"'#' inattendu\0"
+        u8"'@' inattendu\0"
+        u8"'\\' inattendu dans un identifiant\0"
+        u8"'case' inattendu en dehors d'une instruction switch\0"
+        u8"instruction 'catch' inattendue en l'absence de 'try'\0"
+        u8"'default' inattendu en dehors d'une instruction switch\0"
+        u8"'finally' inappropri\u00e9 sans 'try'\0"
+        u8"'{0}' inattendu\0"
+        u8"caract\u00e8res inattendus dans un litt\u00e9ral binaire\0"
+        u8"caract\u00e8res inattendus dans un litt\u00e9ral hex\0"
+        u8"caract\u00e8res inattendus dans un litt\u00e9ral num\u00e9rique\0"
+        u8"caract\u00e8res inattendus dans un litt\u00e9ral octal\0"
+        u8"caract\u00e8re de contr\u00f4le inattendu\0"
+        u8"expression inattendue ; cl\u00e9 manquante pour l'entr\u00e9e d'objet\0"
+        u8"identifiant inattendu dans une expression ; op\u00e9rateur initial manquant\0"
+        u8"litt\u00e9ral inattendu dans une liste de param\u00e8tres ; nom de param\u00e8tre attendu\0"
+        u8"symbole manquant\0"
+        u8"symbole inattendu dans export ; 'export default ...' ou 'export {{name}' ou 'export * from ...' ou 'export class' ou 'export function' ou 'export let' attendu\0"
+        u8"symbole inattendu dans une d\u00e9claration de variable ; nom de variable attendu\0"
+        u8"un indicateur d'ordre des octets (BOM) ne peut figurer avant #! au d\u00e9but d'un script\0"
+        u8"'}' non appari\u00e9\0"
+        u8"crochet d'indexation non appari\u00e9\0"
+        u8"parenth\u00e8se non appari\u00e9e\0"
+        u8"commentaire de bloc non ouvert\0"
+        u8"utiliser plut\u00f4t 'while' pour boucler jusqu'\u00e0 ce qu'une condition soit fausse\0"
+        u8"utilisation d'une variable non d\u00e9clar\u00e9e : {0}\0"
+        u8"variable d\u00e9j\u00e0 d\u00e9clar\u00e9e ici\0"
+        u8"variable affect\u00e9e avant sa d\u00e9claration\0"
+        u8"variable d\u00e9clar\u00e9e ici\0"
+        u8"variable utilis\u00e9e avant sa d\u00e9claration : {0}\0"
+        u8"une boucle while n\u00e9cessite '{1}' autour de la condition\0"
+        u8"une boucle while n\u00e9cessite des parenth\u00e8ses autour de la condition\0"
+        u8"une instruction with n\u00e9cessite '{1}' autour de l'expression\0"
+        u8"une instruction with n\u00e9cessite des parenth\u00e8ses autour de l'expression\0"
+        u8"{0} sans liaisons\0"
         u8"'.' operation beh\u00f6ver nyckelords namn; anv\u00e4nd + f\u00f6r att konkatenera str\u00e4ng; anv\u00e4nd [] f\u00f6r att komma \u00e5t med dynamisk nyckel\0"
         u8"'?' skapar vilkorsuttryck\0"
         u8"'await' \u00e4r enbart till\u00e5tet i en 'async' funktion\0"
@@ -794,12 +1004,13 @@ translation_table translation_data = {
         u8"with p\u00e5st\u00e5ende saknar '{1}' runt uttryck\0"
         u8"with p\u00e5st\u00e5ende saknar paranteser runt uttryck\0"
         u8"{0} utan bindningar",
-    // clang-format on
+        // clang-format on
 
-    .locale_table =
-        "de\0"
-        "en@loud\0"
-        "sv_SE",
+        .locale_table =
+            "de\0"
+            "en@loud\0"
+            "fr_FR\0"
+            "sv_SE",
 };
 }
 

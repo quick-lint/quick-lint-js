@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <gmock/gmock-more-matchers.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
@@ -715,6 +716,113 @@ TEST(test_parse, else_without_if) {
   }
 }
 
+TEST(test_parse, missing_if_after_else) {
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else (true) {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   // if
+                                      "visit_exit_block_scope",    // if
+                                      "visit_enter_block_scope",   // else
+                                      "visit_exit_block_scope"));  // else
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_if_after_else,  //
+                    expected_if, strlen(u8"if (false) {} else"), u8"")));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (x) {} else (y) {} else {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",        // x
+                            "visit_enter_block_scope",   // if
+                            "visit_exit_block_scope",    // if
+                            "visit_variable_use",        // y
+                            "visit_enter_block_scope",   // first else
+                            "visit_exit_block_scope",    // first else
+                            "visit_enter_block_scope",   // second else
+                            "visit_exit_block_scope"));  // second else
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_missing_if_after_else,  //
+                              expected_if, strlen(u8"if (x) {} else"), u8"")));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else true {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+    ElementsAre(
+        ERROR_TYPE_OFFSETS(&code, error_missing_semicolon_after_statement,  //
+                           where, strlen(u8"if (false) {} else true"), u8""));
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else (true)\n{}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else (true); {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else () {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   // if
+                                      "visit_exit_block_scope",    // if
+                                      "visit_enter_block_scope",   // else
+                                      "visit_exit_block_scope"));  // else
+    EXPECT_THAT(v.errors,
+                UnorderedElementsAre(
+                    ERROR_TYPE_OFFSETS(
+                        &code, error_missing_expression_between_parentheses,  //
+                        left_paren_to_right_paren,
+                        strlen(u8"if (false) {} else "), u8"()"),
+                    ERROR_TYPE_OFFSETS(&code, error_missing_if_after_else,  //
+                                       expected_if,
+                                       strlen(u8"if (false) {} else"), u8"")))
+        << "should not report error_missing_arrow_operator_in_arrow_function";
+  }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"if (false) {} else (x, y) {}"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   // if
+                                      "visit_exit_block_scope",    // if
+                                      "visit_variable_use",        // x
+                                      "visit_variable_use",        // y
+                                      "visit_enter_block_scope",   // else
+                                      "visit_exit_block_scope"));  // else
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &code, error_missing_if_after_else,  //
+                    expected_if, strlen(u8"if (false) {} else"), u8"")))
+        << "should not report error_missing_arrow_operator_in_arrow_function";
+  }
+}
+
 TEST(test_parse, block_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"{ }"_sv);
@@ -1001,6 +1109,26 @@ TEST(test_parse, with_statement) {
                             "visit_variable_use",       // body
                             "visit_exit_block_scope",   //
                             "visit_exit_with_scope"));
+  }
+}
+
+TEST(test_parse, statement_before_first_switch_case) {
+  {
+    spy_visitor v;
+    padded_string code(
+        u8"switch (cond) { console.log('hi'); case ONE: break; }"_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",       // cond
+                            "visit_enter_block_scope",  //
+                            "visit_variable_use",       // console
+                            "visit_variable_use",       // ONE
+                            "visit_exit_block_scope"));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, error_statement_before_first_switch_case,
+                              unexpected_statement,
+                              strlen(u8"switch (cond) { "), u8"console")));
   }
 }
 

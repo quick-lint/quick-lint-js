@@ -3,7 +3,7 @@
 
 FROM archlinux:base
 
-RUN pacman --sync --refresh --noconfirm binutils gnupg pacman-contrib sudo
+RUN pacman --sync --refresh --sysupgrade --noconfirm binutils gnupg pacman-contrib sudo
 
 RUN useradd --create-home --shell /bin/sh qljs-builder && \
     printf 'qljs-builder ALL=(ALL) NOPASSWD: ALL\n' >/etc/sudoers.d/qljs-builder

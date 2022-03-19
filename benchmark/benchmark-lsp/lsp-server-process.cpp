@@ -18,6 +18,7 @@
 #include <quick-lint-js/lsp-server-process.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/pipe.h>
+#include <quick-lint-js/process.h>
 #include <signal.h>
 #include <spawn.h>
 #include <string>
@@ -36,13 +37,13 @@ byte_buffer make_text_document_did_open_notification(string8_view uri,
                                                      string8_view text) {
   byte_buffer notification;
   notification.append_copy(
-      u8R"({"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":")");
+      u8R"({"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":")"sv);
   write_json_escaped_string(notification, uri);
-  notification.append_copy(u8R"(","languageId":"javascript","version":)");
+  notification.append_copy(u8R"(","languageId":"javascript","version":)"sv);
   notification.append_decimal_integer(version);
-  notification.append_copy(u8R"(,"text":")");
+  notification.append_copy(u8R"(,"text":")"sv);
   write_json_escaped_string(notification, text);
-  notification.append_copy(u8R"("}}})");
+  notification.append_copy(u8R"("}}})"sv);
   return notification;
 }
 
@@ -50,22 +51,22 @@ byte_buffer make_text_document_did_fully_change_notification(
     string8_view uri, std::int64_t version, string8_view text) {
   byte_buffer notification;
   notification.append_copy(
-      u8R"({"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"version":)");
+      u8R"({"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"version":)"sv);
   notification.append_decimal_integer(version);
-  notification.append_copy(u8R"(,"uri":")");
+  notification.append_copy(u8R"(,"uri":")"sv);
   write_json_escaped_string(notification, uri);
-  notification.append_copy(u8R"("},"contentChanges":[{"text":")");
+  notification.append_copy(u8R"("},"contentChanges":[{"text":")"sv);
   write_json_escaped_string(notification, text);
-  notification.append_copy(u8R"("}]}})");
+  notification.append_copy(u8R"("}]}})"sv);
   return notification;
 }
 
 byte_buffer make_text_document_did_close_notification(string8_view uri) {
   byte_buffer notification;
   notification.append_copy(
-      u8R"({"jsonrpc":"2.0","method":"textDocument/didClose","params":{"textDocument":{"uri":")");
+      u8R"({"jsonrpc":"2.0","method":"textDocument/didClose","params":{"textDocument":{"uri":")"sv);
   write_json_escaped_string(notification, uri);
-  notification.append_copy(u8R"("}}})");
+  notification.append_copy(u8R"("}}})"sv);
   return notification;
 }
 
@@ -139,19 +140,7 @@ void lsp_server_process::stop_future_writes() {
   this->writer_.close();
 }
 
-void lsp_server_process::wait_for_exit() {
-retry:
-  int status;
-  ::pid_t rc = ::waitpid(this->pid_, &status, /*options=*/0);
-  if (rc == -1) {
-    if (errno == EINTR) {
-      goto retry;
-    }
-    std::fprintf(stderr, "error: failed to wait for process %lld: %s\n",
-                 narrow_cast<long long>(this->pid_), std::strerror(errno));
-    std::exit(1);
-  }
-}
+void lsp_server_process::wait_for_exit() { wait_for_process_exit(this->pid_); }
 
 bool lsp_server_process::wait_for_exit_for(std::chrono::milliseconds timeout) {
   using namespace std::chrono;
@@ -179,25 +168,25 @@ bool lsp_server_process::wait_for_exit_for(std::chrono::milliseconds timeout) {
 lsp_task<void> lsp_server_process::initialize_lsp_async() {
   std::int64_t initialize_request_id = this->new_message_id();
   byte_buffer initialize_request;
-  initialize_request.append_copy(u8R"({"jsonrpc":"2.0","id":)");
+  initialize_request.append_copy(u8R"({"jsonrpc":"2.0","id":)"sv);
   initialize_request.append_decimal_integer(initialize_request_id);
   initialize_request.append_copy(
-      u8R"(,"method":"initialize","params":{"rootPath":")");
+      u8R"(,"method":"initialize","params":{"rootPath":")"sv);
   string8 server_root_8 = this->server_root_.u8string();
   string8 server_root_uri = this->file_to_uri(server_root_8);
   write_json_escaped_string(initialize_request, server_root_8);
-  initialize_request.append_copy(u8R"(","rootUri":")");
+  initialize_request.append_copy(u8R"(","rootUri":")"sv);
   write_json_escaped_string(initialize_request, server_root_uri);
-  initialize_request.append_copy(u8R"(","initializationOptions":)");
+  initialize_request.append_copy(u8R"(","initializationOptions":)"sv);
   initialize_request.append_copy(
       to_string8_view(this->initialization_options_json_));
-  initialize_request.append_copy(u8R"(,"workspaceFolders":[{"uri":")");
+  initialize_request.append_copy(u8R"(,"workspaceFolders":[{"uri":")"sv);
   write_json_escaped_string(initialize_request, server_root_uri);
   // publishDiagnostics is required by the TypeScript LSP server since version
   // 0.6.0:
   // https://github.com/typescript-language-server/typescript-language-server/pull/229
   initialize_request.append_copy(
-      u8R"(","name":"benchmarks"}],"capabilities":{"textDocument":{"publishDiagnostics":{"versionSupport":true}}}}})");
+      u8R"(","name":"benchmarks"}],"capabilities":{"textDocument":{"publishDiagnostics":{"versionSupport":true}}}}})"sv);
   this->send_message(std::move(initialize_request));
 
   for (;;) {
@@ -221,7 +210,7 @@ lsp_task<void> lsp_server_process::initialize_lsp_async() {
 
   byte_buffer initialized_notification;
   initialized_notification.append_copy(
-      u8R"({"jsonrpc":"2.0","method":"initialized","params":{}})");
+      u8R"({"jsonrpc":"2.0","method":"initialized","params":{}})"sv);
   this->send_message(std::move(initialized_notification));
 
   co_return;
@@ -230,9 +219,9 @@ lsp_task<void> lsp_server_process::initialize_lsp_async() {
 lsp_task<void> lsp_server_process::shut_down_lsp() {
   std::int64_t shutdown_request_id = this->new_message_id();
   byte_buffer shutdown_request;
-  shutdown_request.append_copy(u8R"({"jsonrpc":"2.0","id":)");
+  shutdown_request.append_copy(u8R"({"jsonrpc":"2.0","id":)"sv);
   shutdown_request.append_decimal_integer(shutdown_request_id);
-  shutdown_request.append_copy(u8R"(,"method":"shutdown","params":null})");
+  shutdown_request.append_copy(u8R"(,"method":"shutdown","params":null})"sv);
   this->send_message(std::move(shutdown_request));
 
   for (;;) {
@@ -247,7 +236,7 @@ lsp_task<void> lsp_server_process::shut_down_lsp() {
 
   byte_buffer exit_notification;
   exit_notification.append_copy(
-      u8R"({"jsonrpc":"2.0","method":"exit","params":{}})");
+      u8R"({"jsonrpc":"2.0","method":"exit","params":{}})"sv);
   this->send_message(std::move(exit_notification));
 }
 
@@ -255,19 +244,19 @@ void lsp_server_process::handle_misc_message(::boost::json::object& message) {
   if (::boost::json::string* method = if_string(message, "method")) {
     if (*method == "client/registerCapability") {
       byte_buffer response;
-      response.append_copy(u8R"({"jsonrpc":"2.0","id":)");
+      response.append_copy(u8R"({"jsonrpc":"2.0","id":)"sv);
       response.append_decimal_integer(look_up(message, "id").get_int64());
-      response.append_copy(u8R"(,"result":null})");
+      response.append_copy(u8R"(,"result":null})"sv);
       this->send_message(std::move(response));
       return;
     } else if (*method == "workspace/configuration") {
       byte_buffer response;
-      response.append_copy(u8R"({"jsonrpc":"2.0","id":)");
+      response.append_copy(u8R"({"jsonrpc":"2.0","id":)"sv);
       response.append_decimal_integer(look_up(message, "id").get_int64());
-      response.append_copy(u8R"(,"result":[)");
+      response.append_copy(u8R"(,"result":[)"sv);
       response.append_copy(
           to_string8_view(this->workspace_configuration_json_));
-      response.append_copy(u8R"(]})");
+      response.append_copy(u8R"(]})"sv);
       this->send_message(std::move(response));
       return;
     }

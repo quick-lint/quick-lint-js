@@ -3,7 +3,12 @@
 
 add_library(node-napi INTERFACE)
 target_compile_definitions(node-napi INTERFACE BUILDING_NODE_EXTENSION)
-target_include_directories(node-napi SYSTEM INTERFACE node/src)
+target_include_directories(
+  node-napi
+  SYSTEM
+  INTERFACE
+  "${CMAKE_CURRENT_LIST_DIR}/node/src"
+)
 # Users should also set the NAPI_VERSION compile definition.
 
 if (APPLE)
@@ -26,17 +31,17 @@ if (WIN32)
     OUTPUT node-napi.lib node-napi.exp
     COMMAND
       lib
-      "/DEF:${CMAKE_CURRENT_SOURCE_DIR}/node.def"
+      "/DEF:${CMAKE_CURRENT_LIST_DIR}/node.def"
       /OUT:node-napi.lib
       /WX
       ${LIB_MACHINE}
-    DEPENDS node.def
+      DEPENDS "${CMAKE_CURRENT_LIST_DIR}/node.def"
     COMMENT "Generating node-napi implib"
   )
   add_custom_target(
     node-napi-implib
     DEPENDS node-napi.lib
-    SOURCES node.def
+    SOURCES "${CMAKE_CURRENT_LIST_DIR}/node.def"
   )
   add_dependencies(node-napi node-napi-implib)
   target_link_libraries(
@@ -47,7 +52,7 @@ if (WIN32)
 
   # Ensure symbols are found in the extension host (node.exe or code.exe or
   # electron.exe or whatever), not in a separately-loaded DLL called "NODE.EXE".
-  add_library(node-hook STATIC node-hook.cpp)
+  add_library(node-hook STATIC "${CMAKE_CURRENT_LIST_DIR}/node-hook.cpp")
   target_link_libraries(
     node-napi
     INTERFACE

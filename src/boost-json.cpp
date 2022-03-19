@@ -1,12 +1,33 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#if defined(BOOST_JSON_STANDALONE)
+#if defined(QLJS_BUILDING_QLJS_BOOST_JSON)
 
 #include <boost/json/value.hpp>
 #include <quick-lint-js/boost-json.h>
 
 namespace quick_lint_js {
+::boost::json::string_view to_boost_string_view(string8_view sv) {
+  std::string_view std_sv = to_string_view(sv);
+  return ::boost::json::string_view(std_sv.data(), std_sv.size());
+}
+
+#if QLJS_HAVE_CHAR8_T
+::boost::json::string_view to_boost_string_view(std::string_view sv) {
+  return ::boost::json::string_view(sv.data(), sv.size());
+}
+#endif
+
+#if !defined(BOOST_JSON_STANDALONE)
+std::string_view to_string_view(::boost::json::string_view sv) {
+  return std::string_view(sv.data(), sv.size());
+}
+#endif
+
+std::string_view to_string_view(const ::boost::json::string& s) {
+  return std::string_view(s.data(), s.size());
+}
+
 ::boost::json::array* if_array(::boost::json::object& object,
                                ::boost::json::string_view key) {
   if (::boost::json::value* value = object.if_contains(key)) {

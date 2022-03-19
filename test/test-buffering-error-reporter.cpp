@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <boost/container/pmr/monotonic_buffer_resource.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/buffering-error-reporter.h>
@@ -9,6 +8,7 @@
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
+#include <quick-lint-js/linked-bump-allocator.h>
 #include <quick-lint-js/padded-string.h>
 #include <type_traits>
 
@@ -24,7 +24,7 @@ TEST(test_buffering_error_reporter, buffers_all_visits) {
   padded_string let_code(u8"let"_sv);
   padded_string expression_code(u8"2+2==5"_sv);
 
-  boost::container::pmr::monotonic_buffer_resource memory;
+  linked_bump_allocator<alignof(void*)> memory;
   buffering_error_reporter error_reporter(&memory);
   error_reporter.report(error_let_with_no_bindings{.where = span_of(let_code)});
   error_reporter.report(error_expected_parenthesis_around_if_condition{
@@ -48,7 +48,7 @@ TEST(test_buffering_error_reporter, not_destructing_does_not_leak) {
   // This test relies on a leak checker such as Valgrind's memtest or
   // Clang's LeakSanitizer.
 
-  boost::container::pmr::monotonic_buffer_resource memory;
+  linked_bump_allocator<alignof(void*)> memory;
   std::aligned_union_t<0, buffering_error_reporter> error_reporter_storage;
   buffering_error_reporter* error_reporter =
       new (&error_reporter_storage) buffering_error_reporter(&memory);

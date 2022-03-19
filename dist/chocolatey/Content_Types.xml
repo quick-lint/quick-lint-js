@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+    <!-- NOTE(strager): This file is renamed to [Content_Types].xml by build.go. -->
+    <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml" />
+    <Default Extension="nuspec" ContentType="application/octet" />
+    <Default Extension="ps1" ContentType="application/octet" />
+    <Default Extension="txt" ContentType="application/octet" />
+    <Default Extension="zip" ContentType="application/octet" />
+    <Default Extension="psmdcp" ContentType="application/vnd.openxmlformats-package.core-properties+xml" />
+</Types>

@@ -4,12 +4,9 @@
 %>
 
 <head>
-  <%- await include("../../common-head.ejs.html") %>
-  <title>quick-lint-js: install for Emacs <%= where %></title>
-  <meta
-    name="description"
-    content="Install quick-lint-js's Emacs plugin <%= where %>"
-  />
+  <%- await include("../../common-head.ejs.html", { title: `Install
+  quick-lint-js for Emacs ${where}`, description: `Install quick-lint-js's Emacs
+  plugin ${where}` }) %>
   <link href="../../../main.css" rel="stylesheet" />
 </head>
 

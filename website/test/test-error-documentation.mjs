@@ -4,8 +4,10 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
-import jsdom from "jsdom";
-import { ErrorDocumentation, codeHasBOM } from "../src/error-documentation.mjs";
+import {
+  ErrorDocumentation,
+  errorDocumentationExampleToHTML,
+} from "../src/error-documentation.mjs";
 
 describe("error documentation", () => {
   it("error code from file path", () => {
@@ -172,6 +174,14 @@ wasn't that neat?
     );
   });
 
+  it("html does not wrap fake byte order mark", () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "code:\n\n    &#xfeff;--BOM\n"
+    );
+    expect(doc.toHTML()).toContain("<code>&amp;#xfeff;--BOM");
+  });
+
   it("html wraps <mark>-d byte order mark", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
@@ -183,6 +193,14 @@ wasn't that neat?
     );
   });
 
+  it("html does not wrap zero-width no break space", () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "code:\n\n    hello\ufeffworld\n"
+    );
+    expect(doc.toHTML()).toContain("hello\ufeffworld");
+  });
+
   it("html wraps weird control characters", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
@@ -192,33 +210,6 @@ wasn't that neat?
     expect(html).toContain("BEL:<span class='unicode-bel'>\u0007</span>");
     expect(html).toContain("BS:<span class='unicode-bs'>\u0008</span>");
     expect(html).toContain("DEL:<span class='unicode-del'>\u007f</span>");
-  });
-
-  it("many possibilities of html code has bom", () => {
-    const possibilities = [
-      "<mark>\u{feff}hello</mark>",
-      '<mark data-code="E0123">\u{feff}hello</mark>',
-      "\u{feff}<mark>world</mark>",
-      "&#xfeff;hello",
-      "&#65279;hello",
-    ];
-    possibilities.forEach((possibility) => {
-      expect(codeHasBOM(possibility)).toBe(true);
-    });
-  });
-
-  it("many possibilities of html code has NOT bom", () => {
-    const possibilities = [
-      "<mark>hello\u{feff}</mark>",
-      '<mark data-code="E0123">hello\u{feff}</mark>',
-      '<mark data-code="E0123">h\u{feff}ello</mark>',
-      "h\u{feff}ello<mark>world</mark>",
-      "hello<mark>\u{feff}world</mark>",
-    ];
-
-    possibilities.forEach((possibility) => {
-      expect(codeHasBOM(possibility)).toBe(false);
-    });
   });
 
   it("lint JavaScript", async () => {
@@ -302,6 +293,155 @@ wasn't that neat?
       "# E9999: test\n\n<!-- QLJS_NO_CHECK_CODE -->\n\ndocs go here"
     );
     expect(doc.shouldCheckCodeBlocks).toBeFalse();
+  });
+});
+
+describe("errorDocumentationExampleToHTML", () => {
+  it("escapes special HTML characters", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "a < b > c & d \u00a0 e",
+      diagnostics: [],
+    });
+    expect(html).toBe("a &lt; b &gt; c &amp; d &nbsp; e");
+  });
+
+  it("mark first word on line", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "hello world",
+      diagnostics: [{ begin: 0, end: 5 }],
+    });
+    expect(html).toBe("<mark>hello</mark> world");
+  });
+
+  it("mark last word on line", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "hello world",
+      diagnostics: [{ begin: 6, end: 11 }],
+    });
+    expect(html).toBe("hello <mark>world</mark>");
+  });
+
+  it("multiple marks", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "hello world",
+      diagnostics: [
+        { begin: 0, end: 5 },
+        { begin: 6, end: 11 },
+      ],
+    });
+    expect(html).toBe("<mark>hello</mark> <mark>world</mark>");
+  });
+
+  it("multiple marks backwards", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "hello world",
+      diagnostics: [
+        { begin: 6, end: 11 },
+        { begin: 0, end: 5 },
+      ],
+    });
+    expect(html).toBe("<mark>hello</mark> <mark>world</mark>");
+  });
+
+  it("empty mark at beginning", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "helloworld",
+      diagnostics: [{ begin: 0, end: 0 }],
+    });
+    expect(html).toBe("<mark></mark>helloworld");
+  });
+
+  it("empty mark in middle", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "helloworld",
+      diagnostics: [{ begin: 5, end: 5 }],
+    });
+    expect(html).toBe("hello<mark></mark>world");
+  });
+
+  it("empty mark at end", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "helloworld",
+      diagnostics: [{ begin: 10, end: 10 }],
+    });
+    expect(html).toBe("helloworld<mark></mark>");
+  });
+
+  it("empty mark immediately after non-empty mark", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "helloworld",
+      diagnostics: [
+        { begin: 0, end: 5 },
+        { begin: 5, end: 5 },
+      ],
+    });
+    expect(html).toBe("<mark>hello</mark><mark></mark>world");
+  });
+
+  it("identical marks are merged", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "helloworld",
+      diagnostics: [
+        { begin: 0, end: 5 },
+        { begin: 0, end: 5 },
+      ],
+    });
+    expect(html).toBe("<mark>hello</mark>world");
+  });
+
+  it("overlapping marks with same begin are merged", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "two errors please thanks",
+      diagnostics: [
+        { begin: 4, end: 10 }, // "errors"
+        { begin: 4, end: 17 }, // "errors please"
+      ],
+    });
+    expect(html).toBe("two <mark>errors please</mark> thanks");
+  });
+
+  it("wraps byte order mark", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "\ufeff--BOM",
+      diagnostics: [],
+    });
+    expect(html).toBe("<span class='unicode-bom'>\u{feff}</span>--BOM");
+  });
+
+  it("does not wrap fake byte order mark", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "&#xfeff;--BOM",
+      diagnostics: [],
+    });
+    expect(html).toBe("&amp;#xfeff;--BOM");
+  });
+
+  it("wraps <mark>-d byte order mark", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "\ufeff--BOM",
+      diagnostics: [{ begin: 0, end: 1 }],
+    });
+    expect(html).toBe(
+      "<mark><span class='unicode-bom'>\u{feff}</span></mark>--BOM"
+    );
+  });
+
+  it("does not wrap zero-width no break space", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "hello\ufeffworld",
+      diagnostics: [],
+    });
+    expect(html).toBe("hello\ufeffworld");
+  });
+
+  it("wraps weird control characters", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "BEL:\u0007\n" + "BS:\u0008\n" + "DEL:\u007f\n",
+      diagnostics: [],
+    });
+    expect(html).toContain("BEL:<span class='unicode-bel'>\u0007</span>");
+    expect(html).toContain("BS:<span class='unicode-bs'>\u0008</span>");
+    expect(html).toContain("DEL:<span class='unicode-del'>\u007f</span>");
   });
 });
 

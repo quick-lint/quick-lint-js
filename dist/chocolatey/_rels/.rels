@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+    <Relationship
+        Id="R1a278d8d47184b8e"
+        Target="/quick-lint-js.nuspec"
+        Type="http://schemas.microsoft.com/packaging/2010/07/manifest" />
+    <Relationship
+        Id="R1736aa7bfed54581"
+        Target="/package/services/metadata/core-properties/0f2e3a46417c41e09f34ed948b00df06.psmdcp"
+        Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" />
+</Relationships>

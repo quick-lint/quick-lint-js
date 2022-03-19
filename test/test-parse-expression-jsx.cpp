@@ -320,6 +320,13 @@ TEST_F(test_parse_expression, tag_with_member_expression) {
     ASSERT_EQ(summarize(ast), "jsxmemberelement((a-b, c-d))");
   }
 }
+
+TEST_F(test_parse_expression, jsx_with_binary_operator) {
+  {
+    expression* ast = this->parse_expression(u8"x && <div />"_sv, jsx_options);
+    ASSERT_EQ(summarize(ast), "binary(var x, jsxelement(div))");
+  }
+}
 }
 }
 

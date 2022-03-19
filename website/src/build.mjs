@@ -125,6 +125,26 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
           message: `/${relativePath} is a broken symlink; ignoring`,
         });
       }
+    } else if (classification.type === "index-script") {
+      let { routes } = await import(
+        path.join(router.wwwRootPath, relativePath)
+      );
+      for (let routeURI in routes) {
+        if (!Object.prototype.hasOwnProperty.call(routes, routeURI)) {
+          continue;
+        }
+        instructions.push({
+          type: "build-ejs",
+          sourcePath: path.join(basePath, routes[routeURI]),
+          destinationPath: path.join(
+            relativeURIToRelativePath(routeURI),
+            "index.html"
+          ),
+          ejsVariables: {
+            currentURI: routeURI,
+          },
+        });
+      }
     } else if (file.isFile()) {
       instructions.push({ type: "copy", path: relativePath });
     } else if (file.isSymbolicLink()) {

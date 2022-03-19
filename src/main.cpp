@@ -350,7 +350,8 @@ class debug_visitor {
     this->output_->flush();
   }
 
-  void visit_variable_declaration(identifier name, variable_kind) {
+  void visit_variable_declaration(identifier name, variable_kind,
+                                  variable_init_kind) {
     this->output_->append_copy(u8"variable declaration: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
@@ -476,9 +477,10 @@ class multi_visitor {
     this->visitor_2_->visit_variable_assignment(name);
   }
 
-  void visit_variable_declaration(identifier name, variable_kind kind) {
-    this->visitor_1_->visit_variable_declaration(name, kind);
-    this->visitor_2_->visit_variable_declaration(name, kind);
+  void visit_variable_declaration(identifier name, variable_kind kind,
+                                  variable_init_kind init_kind) {
+    this->visitor_1_->visit_variable_declaration(name, kind, init_kind);
+    this->visitor_2_->visit_variable_declaration(name, kind, init_kind);
   }
 
   void visit_variable_delete_use(identifier name,
@@ -511,20 +513,29 @@ QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(
 
 void process_file(padded_string_view input, configuration &config,
                   error_reporter *error_reporter, bool print_parser_visits) {
-  parser p(input, error_reporter);
+  parser_options p_options;
+  p_options.jsx = true;
+  parser p(input, error_reporter, p_options);
   linter l(error_reporter, &config.globals());
-  // TODO(strager): Use parse_and_visit_module_catching_fatal_parse_errors
-  // instead of parse_and_visit_module to avoid crashing on
-  // QLJS_PARSER_UNIMPLEMENTED.
+
+  auto run_parser = [&p](auto &visitor) -> void {
+#if QLJS_HAVE_SETJMP
+    p.parse_and_visit_module_catching_fatal_parse_errors(visitor);
+#else
+    p.parse_and_visit_module(visitor);
+#endif
+  };
+
   if (print_parser_visits) {
-    buffering_visitor v(p.buffering_visitor_memory());
-    p.parse_and_visit_module(v);
+    linked_bump_allocator<alignof(void *)> v_allocator;
+    buffering_visitor v(&v_allocator);
+    run_parser(v);
 
     debug_visitor logger;
     multi_visitor visitor(&logger, &l);
     v.move_into(visitor);
   } else {
-    p.parse_and_visit_module(l);
+    run_parser(l);
   }
 }
 
@@ -554,7 +565,7 @@ void run_lsp_server() {
 #error "Unsupported platform"
 #endif
           input_pipe_(input_pipe),
-          endpoint_(std::forward_as_tuple(&this->fs_),
+          endpoint_(std::forward_as_tuple(&this->fs_, &this->linter_),
                     std::forward_as_tuple(output_pipe)) {
       this->report_pending_watch_io_errors();
     }
@@ -638,9 +649,8 @@ void run_lsp_server() {
 #endif
 
     platform_file_ref input_pipe_;
-    lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
-                 lsp_pipe_writer>
-        endpoint_;
+    lsp_javascript_linter linter_;
+    lsp_endpoint<linting_lsp_server_handler, lsp_pipe_writer> endpoint_;
   };
 
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING

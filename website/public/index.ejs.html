@@ -3,12 +3,10 @@
 <!-- See end of file for extended copyright information. -->
 <html>
   <head>
-    <%- await include("./common-head.ejs.html") %>
-    <title>quick-lint-js: find JavaScript bugs</title>
-    <meta
-      name="description"
-      content="quick-lint-js gives you instant feedback as you code. Find bugs in your JavaScript before your finger leaves the keyboard."
-    />
+    <%- await include("./common-head.ejs.html", { title: `quick-lint-js: find
+    JavaScript bugs`, description: `quick-lint-js gives you instant feedback as
+    you code. Find bugs in your JavaScript before your finger leaves the
+    keyboard.` }) %>
     <link href="main.css" rel="stylesheet" />
     <style>
       .feature-comparison table {
@@ -101,7 +99,7 @@
 
     <main>
       <p>
-        <a href="benchmarks/">Over <strong>110× faster</strong> than ESLint</a>,
+        <a href="benchmarks/">Over <strong>130× faster</strong> than ESLint</a>,
         quick-lint-js gives you <strong>instant feedback</strong> as you code.
         <strong>Find bugs</strong> in your JavaScript before your finger leaves
         the keyboard. Lint any JavaScript file with
@@ -125,7 +123,11 @@
 
       <h2>Install quick-lint-js</h2>
       <p>
-        Latest version: <%= qljsVersionInfo.version %> (released
+        Latest version:
+        <a href="releases/" title="Release history"
+          ><%= qljsVersionInfo.version %></a
+        >
+        (released
         <time datetime="<%= qljsVersionInfo.releaseDate %>"
           ><%= new Intl.DateTimeFormat("en-US", {dateStyle: "long", timeZone:
           "UTC"}).format(new Date(qljsVersionInfo.releaseDate)) %></time
@@ -200,7 +202,10 @@
           >
         </li>
       </ul>
-      <p><a href="install/">see all installation options</a></p>
+      <p>
+        <a href="install/">see all installation options</a> &centerdot;
+        <a href="releases/">release history</a>
+      </p>
 
       <h2 id="linter-feature-comparison">Features</h2>
       <figure class="comparison feature-comparison">
@@ -289,14 +294,8 @@
             </tr>
             <tr>
               <th colspan="2">JSX</th>
-              <td class="bad quick-lint-js">
-                <span aria-label="no">❌</span
-                ><span
-                  aria-label="planned"
-                  title="planned"
-                  class="footnote-marker"
-                  >&nbsp;*</span
-                >
+              <td class="good quick-lint-js">
+                <span aria-label="yes">✅</span>
               </td>
               <td class="meh">
                 <span aria-label="yes">✅</span
@@ -428,9 +427,9 @@
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th class="has-link"><a href="install/vim/">Neovim</a></th>
+              <th class="has-link"><a href="install/neovim/">Neovim</a></th>
               <th class="has-link">
-                <a href="install/vim/"
+                <a href="install/neovim/"
                   ><img
                     class="plugin-logo"
                     src="neovim.svg"
@@ -465,24 +464,21 @@
               <td class="good"><span aria-label="yes">✅</span></td>
             </tr>
             <tr>
-              <th>Sublime Text</th>
-              <th>
-                <img
-                  class="plugin-logo"
-                  src="sublime-text.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />
+              <th class="has-link">
+                <a href="install/sublime/">Sublime Text</a>
               </th>
-              <td class="bad quick-lint-js">
-                <span aria-label="no">❌</span
-                ><span
-                  aria-label="planned"
-                  title="planned"
-                  class="footnote-marker"
-                  >&nbsp;*</span
-                >
+              <th class="has-link">
+                <a href="install/sublime/"
+                  ><img
+                    class="plugin-logo"
+                    src="sublime-text.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                /></a>
+              </th>
+              <td class="good quick-lint-js has-link">
+                <a href="install/sublime/" aria-label="yes">✅</a>
               </td>
               <td class="good"><span aria-label="yes">✅</span></td>
               <td class="good"><span aria-label="yes">✅</span></td>
@@ -562,15 +558,16 @@
               <td class="bad"><span aria-label="no">❌</span></td>
             </tr>
             <tr>
-              <th><a href="install/kate/">Kate</a></th>
-              <th>
-                <img
-                  class="plugin-logo"
-                  src="kate.svg"
-                  alt=""
-                  width="19"
-                  height="19"
-                />
+              <th class="has-link"><a href="install/kate/">Kate</a></th>
+              <th class="has-link">
+                <a href="install/kate/"
+                  ><img
+                    class="plugin-logo"
+                    src="kate.svg"
+                    alt=""
+                    width="19"
+                    height="19"
+                /></a>
               </th>
               <td class="good quick-lint-js has-link">
                 <a href="install/kate/" aria-label="yes">✅</a>

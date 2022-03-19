@@ -9,13 +9,11 @@
 #else
 
 #include <cstddef>
-#include <functional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/file-canonical.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/lsp-message-parser.h>
@@ -25,28 +23,25 @@
 #include <unordered_map>
 #include <vector>
 
-#if QLJS_HAVE_CXX_CONCEPTS
-#define QLJS_LSP_LINTER ::quick_lint_js::lsp_linter
-#else
-#define QLJS_LSP_LINTER class
-#endif
-
 namespace quick_lint_js {
 class byte_buffer;
-class configuration;
-class configuration_filesystem;
 struct watch_io_error;
 
-#if QLJS_HAVE_CXX_CONCEPTS
-template <class Linter>
-concept lsp_linter = requires(Linter l, configuration config,
-                              padded_string_view code, string8_view uri_json,
-                              string8_view version_json,
-                              byte_buffer notification_json) {
-  {l.lint_and_get_diagnostics_notification(config, code, uri_json, version_json,
-                                           notification_json)};
+class lsp_linter {
+ public:
+  lsp_linter() = default;
+
+  lsp_linter(const lsp_linter&) = default;
+  lsp_linter(lsp_linter&&) = default;
+  lsp_linter& operator=(const lsp_linter&) = default;
+  lsp_linter& operator=(lsp_linter&&) = default;
+
+  virtual ~lsp_linter();
+
+  virtual void lint_and_get_diagnostics_notification(
+      configuration& config, padded_string_view code, string8_view uri_json,
+      string8_view version_json, byte_buffer& notification_json) = 0;
 };
-#endif
 
 // A configuration_filesystem which allows unsaved LSP documents (from the
 // client) to appear as real files.
@@ -70,15 +65,12 @@ class lsp_overlay_configuration_filesystem : public configuration_filesystem {
 
 // A linting_lsp_server_handler listens for JavaScript code changes and notifies
 // the client of diagnostics.
-template <QLJS_LSP_LINTER Linter>
 class linting_lsp_server_handler {
  public:
   template <class... LinterArgs>
   explicit linting_lsp_server_handler(configuration_filesystem* fs,
-                                      LinterArgs&&... linter_args)
-      : config_fs_(fs),
-        config_loader_(&this->config_fs_),
-        linter_(std::forward<LinterArgs>(linter_args)...) {}
+                                      lsp_linter* linter)
+      : config_fs_(fs), config_loader_(&this->config_fs_), linter_(*linter) {}
 
   void handle_request(::simdjson::ondemand::object& request,
                       std::string_view method, string8_view id_json,
@@ -153,47 +145,25 @@ class linting_lsp_server_handler {
   lsp_overlay_configuration_filesystem config_fs_;
   configuration_loader config_loader_;
   configuration default_config_;
-  Linter linter_;
+  lsp_linter& linter_;
   std::unordered_map<string8, document> documents_;
   std::vector<byte_buffer> pending_notification_jsons_;
   bool did_report_watch_io_error_ = false;
   bool shutdown_requested_ = false;
 };
 
-class lsp_javascript_linter {
+class lsp_javascript_linter final : public lsp_linter {
  public:
-  void lint_and_get_diagnostics_notification(configuration&,
-                                             padded_string_view code,
-                                             string8_view uri_json,
-                                             string8_view version_json,
-                                             byte_buffer& notification_json);
+  ~lsp_javascript_linter() override = default;
+
+  void lint_and_get_diagnostics_notification(
+      configuration&, padded_string_view code, string8_view uri_json,
+      string8_view version_json, byte_buffer& notification_json) override;
 
  private:
   void lint_and_get_diagnostics(configuration&, padded_string_view code,
                                 byte_buffer& diagnostics_json);
 };
-
-class mock_lsp_linter {
- public:
-  using lint_and_get_diagnostics_notification_type =
-      void(configuration&, padded_string_view code, string8_view uri_json,
-           string8_view version_json, byte_buffer& notification_json);
-
-  /*implicit*/ mock_lsp_linter(
-      std::function<lint_and_get_diagnostics_notification_type> callback);
-
-  void lint_and_get_diagnostics_notification(configuration&,
-                                             padded_string_view code,
-                                             string8_view uri_json,
-                                             string8_view version_json,
-                                             byte_buffer& notification_json);
-
- private:
-  std::function<lint_and_get_diagnostics_notification_type> callback_;
-};
-
-extern template class linting_lsp_server_handler<lsp_javascript_linter>;
-extern template class linting_lsp_server_handler<mock_lsp_linter>;
 }
 
 #endif

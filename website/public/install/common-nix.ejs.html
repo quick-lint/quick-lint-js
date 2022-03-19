@@ -10,6 +10,17 @@
 <p>Open a terminal, and run the following command:</p>
 <blockquote>
   <pre><code class="shell-session"><span
+                 class="long-shell-command-line"><kbd>nix-env -iA nixpkgs.quick-lint-js</kbd></span></code></pre>
+</blockquote>
+<p>
+  If the above command fails with &ldquo;error: attribute 'quick-lint-js' in
+  selection path 'nixpkgs.quick-lint-js' not found&rdquo;, your Nixpkgs is out
+  of date. Either
+  <a href="https://nixos.wiki/wiki/Nix_channels">update Nixpkgs</a>, or install
+  from quick-lint-js' repository instead:
+</p>
+<blockquote>
+  <pre><code class="shell-session"><span
                  class="long-shell-command-line"><kbd>nix-env -f https://c.quick-lint-js.com/releases/<%= qljsVersionInfo.version %>/source/quick-lint-js-<%= qljsVersionInfo.version %>.tar.gz -iA quick-lint-js</kbd></span></code></pre>
 </blockquote>
 <% } %> <%#

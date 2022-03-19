@@ -92,8 +92,16 @@ var Steps []Step = []Step{
 		Title: "Sign the build artifacts",
 		Run: func() {
 			fmt.Printf("Sign the build artifacts:\n")
-			fmt.Printf("$ go run dist/sign-release.go -AppleCodesignIdentity=quick-lint-js -GPGIdentity=0327DE8F9CEF499851D19F6ED20BA9DCCF0E9D20 -PrivateKeyPKCS12=dist/certificates/quick-lint-js-PRIVATE.p12 builds/ signed-builds/\n")
-			fmt.Printf("**Warning**: This signing command only works on macOS hosts.\n")
+			fmt.Printf("$ go run dist/sign-release.go dist/deep-hasher.go -RelicConfig=dist/certificates/relic-config.yaml builds/ signed-builds/\n")
+			WaitForDone()
+		},
+	},
+
+	Step{
+		Title: "Create a Scoop manifest",
+		Run: func() {
+			fmt.Printf("Create a Scoop manifest:\n")
+			fmt.Printf("$ go run ./dist/scoop/make-manifest.go -BaseURI \"https://c.quick-lint-js.com/release/$YOUR_VERSION_NUMBER/\" -x86-ZIP builds/manual/windows-x86.zip -x64-ZIP builds/manual/windows.zip -Out builds/scoop/quick-lint-js.json\n")
 			WaitForDone()
 		},
 	},
@@ -183,6 +191,19 @@ var Steps []Step = []Step{
 			fmt.Printf("3. Run `dist/arch/update-aur.sh --docker --test /path/to/quick-lint-js-aur-clone`.\n")
 			fmt.Printf("4. Commit all files with message \"Update quick-lint-js to version VERSION_NUMBER\".\n")
 			fmt.Printf("5. Push to the `master` branch on AUR.\n")
+			WaitForDone()
+		},
+	},
+
+	Step{
+		Title: "Update Nixpkgs package manager",
+		Run: func() {
+			fmt.Printf("1. Clone https://github.com/NixOS/nixpkgs with Git.\n")
+			fmt.Printf("2. Update the version number and SHA1 hash in the pkgs/development/tools/quick-lint-js/default.nix file.\n")
+			fmt.Printf("3. Test installation by running `nix-env -i -f . -A quick-lint-js`.\n")
+			fmt.Printf("4. Commit all files with message \"quick-lint-js: OLDVERSION -> NEWVERSION\".\n")
+			fmt.Printf("5. Push to a fork on GitHub.\n")
+			fmt.Printf("6. Create a pull request on GitHub.\n")
 			WaitForDone()
 		},
 	},

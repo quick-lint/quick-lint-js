@@ -11,7 +11,7 @@ local lspconfig_util = require("lspconfig/util")
 local quick_lint_js_config = {
   default_config = {
     cmd = {"quick-lint-js", "--lsp-server"},
-    filetypes = {"javascript"},
+    filetypes = {"javascript", "javascriptreact"},
     root_dir = function(fname)
       local root = lspconfig_util.path.dirname(fname)
       lspconfig_util.path.traverse_parents(fname, function(dir, _path)

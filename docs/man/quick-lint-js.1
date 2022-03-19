@@ -8,12 +8,12 @@
 '\" t
 .\"     Title: quick-lint-js
 .\"    Author: [see the "AUTHOR(S)" section]
-.\" Generator: Asciidoctor 2.0.15
+.\" Generator: Asciidoctor 2.0.17
 .\"    Manual: \ \&
-.\"    Source: quick-lint-js version ﻿ 1.0.0
+.\"    Source: quick-lint-js version ﻿ 2.3.0
 .\"  Language: English
 .\"
-.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version ﻿ 1.0.0" "\ \&"
+.TH "QUICK\-LINT\-JS" "1" "" "quick\-lint\-js version ﻿ 2.3.0" "\ \&"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -116,7 +116,7 @@ This option is only used if \fB\-\-output\-format=gnu\-like\fP.
 .  IP \(bu 2.3
 .\}
 \fBauto\fP (default): shows error codes as hyperlinks only if the error output is a terminal.
-On Windows it behaves like \(aqnever\(aq.
+On Windows it behaves like \*(Aqnever\*(Aq.
 .RE
 .sp
 .RS 4
@@ -173,7 +173,7 @@ Read configuration options from \fIfile\fP and apply them to input files which a
 See \fBquick\-lint\-js.config\fP(5) for the format of configuration files.
 .sp
 If \fB\-\-config\-file\fP is given twice, then the \fIfile\fP for the first \fB\-\-config\-file\fP option applies only to the input files between the two \fB\-\-config\-file\fP options, and the \fIfile\fP for the second \fB\-\-config\-file\fP option apples only to the input files after the second \fB\-\-config\-file\fP option.
-See the Example section for an example.
+See the EXAMPLE section for an example.
 .sp
 If \fB\-\-config\-file\fP is not given, \fBquick\-lint\-js\fP searches for a configuration file according to the rules specified in \fBquick\-lint\-js.config\fP(5).
 .sp
@@ -184,7 +184,7 @@ Incompatible with \fB\-\-lsp\-server\fP.
 .RS 4
 Cause \fBquick\-lint\-js\fP to exit with a non\-zero exit code if any of the discovered errors is listed in \fIerrors\fP.
 .sp
-See the [error\-lists] section for a description of the format for \fIerrors\fP.
+See the ERROR LISTS section for a description of the format for \fIerrors\fP.
 .sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .RE
@@ -197,7 +197,7 @@ If neither \fB\-\-config\-file\fP nor \fB\-\-path\-for\-config\-search\fP is spe
 If \fB\-\-config\-file\fP is specified, \fIfile\fP is used for linting standard input.
 If \fB\-\-path\-for\-config\-search\fP is specified and \fB\-\-config\-file\fP is not specified,
 \fBquick\-lint\-js\fP searches for a configuration file according to the rules specified in \fBquick\-lint\-js.config\fP(5)
-starting from \fB\-\-path\-for\-config\-search\fP\(aqs \fIpath\fP.
+starting from \fB\-\-path\-for\-config\-search\fP\*(Aqs \fIpath\fP.
 .sp
 Incompatible with \fB\-\-lsp\-server\fP.
 .RE
@@ -230,8 +230,8 @@ Some options, such as \fB\-\-exit\-fail\-on\fP, accept an error list.
 An error list is a comma\-separated list of error code predicates and error category predicates.
 .sp
 An error lists can contain any number of include, exclude, and default predicates.
-An include predicate is a \(aq+\(aq followed by the name of an error code or error category.
-An exclude predicate is a \(aq\-\(aq followed by the name of an error code or error category.
+An include predicate is a \*(Aq+\*(Aq followed by the name of an error code or error category.
+An exclude predicate is a \*(Aq\-\*(Aq followed by the name of an error code or error category.
 An default predicate is the name of an error code or error category with no sigil.
 .sp
 An error list containing only include and exclude predicates modifies a default set of error codes.

@@ -5,7 +5,6 @@
 #define QUICK_LINT_JS_EXPRESSION_H
 
 #include <array>
-#include <boost/container/pmr/unsynchronized_pool_resource.hpp>
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
@@ -67,6 +66,7 @@ enum class expression_kind {
   named_function,
   new_target,
   object,
+  paren,
   private_variable,
   rw_unary_prefix,
   rw_unary_suffix,
@@ -119,27 +119,6 @@ class expression_arena {
   template <class T, std::size_t Size>
   array_ptr<T> make_array(std::array<T, Size> &&);
 
-  buffering_visitor_ptr make_buffering_visitor() {
-    // See matching deallocation in delete_buffering_visitor.
-    boost::container::pmr::polymorphic_allocator<buffering_visitor> allocator(
-        &this->buffering_visitor_memory_);
-    buffering_visitor *result = allocator.allocate(1);
-    result = new (result) buffering_visitor(&this->buffering_visitor_memory_);
-    return result;
-  }
-
-  void delete_buffering_visitor(buffering_visitor_ptr visitor) {
-    // See matching allocation in make_buffering_visitor.
-    boost::container::pmr::polymorphic_allocator<buffering_visitor> allocator(
-        &this->buffering_visitor_memory_);
-    visitor->~buffering_visitor();
-    allocator.deallocate(visitor, 1);
-  }
-
-  boost::container::pmr::memory_resource *buffering_visitor_memory() noexcept {
-    return &this->buffering_visitor_memory_;
-  }
-
   monotonic_allocator *allocator() noexcept { return &this->allocator_; }
 
  private:
@@ -159,10 +138,6 @@ class expression_arena {
   }
 
   monotonic_allocator allocator_;
-
-  // TODO(strager): unsynchronized_pool_resource is overkill. Pick a better
-  // allocator.
-  boost::container::pmr::unsynchronized_pool_resource buffering_visitor_memory_;
 };
 
 class expression {
@@ -197,6 +172,7 @@ class expression {
   class named_function;
   class new_target;
   class object;
+  class paren;
   class private_variable;
   class rw_unary_prefix;
   class rw_unary_suffix;
@@ -225,19 +201,8 @@ class expression {
 
   expression_arena::array_ptr<expression *> children() const noexcept;
 
-  // Can be called at most once.
-  template <QLJS_PARSE_VISITOR Visitor>
-  void visit_children(Visitor &v, expression_arena &arena) {
-    buffering_visitor *child_visits = this->take_child_visits();
-    QLJS_ASSERT(
-        child_visits &&
-        "visit_children can be called at most once, but it was called twice");
-    child_visits->move_into(v);
-    arena.delete_buffering_visitor(child_visits);
-  }
-
-  // Returns expression_arena::buffering_visitor_ptr.
-  buffering_visitor *take_child_visits() noexcept;
+  // Remove wrapping paren expressions, if any.e
+  expression *without_paren() const noexcept;
 
   int object_entry_count() const noexcept;
 
@@ -287,6 +252,9 @@ class expression_arena::array_ptr {
 
   int size() const noexcept { return this->size_; }
 
+  const T *begin() const noexcept { return this->data_; }
+  const T *end() const noexcept { return this->data_ + this->size_; }
+
   bool empty() const noexcept { return this->size() == 0; }
 
  private:
@@ -304,11 +272,10 @@ expression *expression_arena::make_expression(Args &&... args) {
 template <class T>
 inline expression_arena::array_ptr<T> expression_arena::make_array(
     bump_vector<T, monotonic_allocator> &&elements) {
-  // TODO(strager): Adopt the pointer if the elements.allocator_ is our
-  // allocator.
-  array_ptr<T> result =
-      this->make_array(elements.data(), elements.data() + elements.size());
-  elements.clear();
+  QLJS_ASSERT(elements.get_allocator() == &this->allocator_);
+  // NOTE(strager): Adopt the pointer instead of copying.
+  array_ptr<T> result(elements.data(), narrow_cast<int>(elements.size()));
+  elements.release();
   return result;
 }
 
@@ -362,11 +329,9 @@ class expression::_class : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::_class;
 
-  explicit _class(expression_arena::buffering_visitor_ptr child_visits,
-                  source_code_span span) noexcept
-      : expression(kind), child_visits_(child_visits), span_(span) {}
+  explicit _class(source_code_span span) noexcept
+      : expression(kind), span_(span) {}
 
-  expression_arena::buffering_visitor_ptr child_visits_;
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::_class>);
@@ -427,6 +392,11 @@ class expression::_typeof final
   explicit _typeof(expression *child, source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
+
+  source_code_span unary_operator_span() {
+    return source_code_span(this->unary_operator_begin_,
+                            this->unary_operator_begin_ + strlen(u8"typeof"));
+  }
 };
 static_assert(expression_arena::is_allocatable<expression::_typeof>);
 
@@ -448,23 +418,23 @@ class expression::arrow_function_with_expression final : public expression {
   static constexpr expression_kind kind =
       expression_kind::arrow_function_with_expression;
 
-  explicit arrow_function_with_expression(
-      function_attributes attributes, expression *body,
-      const char8 *parameter_list_begin) noexcept
+  explicit arrow_function_with_expression(function_attributes attributes,
+                                          const char8 *parameter_list_begin,
+                                          const char8 *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
-        body_(body) {}
+        span_end_(span_end) {}
 
   explicit arrow_function_with_expression(
       function_attributes attributes,
-      expression_arena::array_ptr<expression *> parameters, expression *body,
-      const char8 *parameter_list_begin) noexcept
+      expression_arena::array_ptr<expression *> parameters,
+      const char8 *parameter_list_begin, const char8 *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
-        parameters_(parameters),
-        body_(body) {
+        span_end_(span_end),
+        parameters_(parameters) {
     if (!this->parameter_list_begin_) {
       QLJS_ASSERT(!this->parameters_.empty());
     }
@@ -472,8 +442,8 @@ class expression::arrow_function_with_expression final : public expression {
 
   function_attributes function_attributes_;
   const char8 *parameter_list_begin_;
+  const char8 *span_end_;
   expression_arena::array_ptr<expression *> parameters_;
-  expression *body_;
 };
 static_assert(expression_arena::is_allocatable<
               expression::arrow_function_with_expression>);
@@ -483,28 +453,24 @@ class expression::arrow_function_with_statements final : public expression {
   static constexpr expression_kind kind =
       expression_kind::arrow_function_with_statements;
 
-  explicit arrow_function_with_statements(
-      function_attributes attributes,
-      expression_arena::buffering_visitor_ptr child_visits,
-      const char8 *parameter_list_begin, const char8 *span_end) noexcept
+  explicit arrow_function_with_statements(function_attributes attributes,
+                                          const char8 *parameter_list_begin,
+                                          const char8 *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
-        span_end_(span_end),
-        child_visits_(child_visits) {
+        span_end_(span_end) {
     QLJS_ASSERT(this->parameter_list_begin_);
   }
 
   explicit arrow_function_with_statements(
       function_attributes attributes,
       expression_arena::array_ptr<expression *> parameters,
-      expression_arena::buffering_visitor_ptr child_visits,
       const char8 *parameter_list_begin, const char8 *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
         span_end_(span_end),
-        child_visits_(child_visits),
         children_(parameters) {
     if (!this->parameter_list_begin_) {
       QLJS_ASSERT(!this->children_.empty());
@@ -514,7 +480,6 @@ class expression::arrow_function_with_statements final : public expression {
   function_attributes function_attributes_;
   const char8 *parameter_list_begin_;
   const char8 *span_end_;
-  expression_arena::buffering_visitor_ptr child_visits_;
   expression_arena::array_ptr<expression *> children_;
 };
 static_assert(expression_arena::is_allocatable<
@@ -556,10 +521,18 @@ class expression::binary_operator final : public expression {
   static constexpr expression_kind kind = expression_kind::binary_operator;
 
   explicit binary_operator(
-      expression_arena::array_ptr<expression *> children) noexcept
-      : expression(kind), children_(children) {}
+      expression_arena::array_ptr<expression *> children,
+      expression_arena::array_ptr<source_code_span> operator_spans) noexcept
+      : expression(kind),
+        children_(children),
+        operator_spans_(operator_spans.data()) {
+    QLJS_ASSERT(children.size() >= 2);
+    QLJS_ASSERT(operator_spans.size() == children.size() - 1);
+  }
 
   expression_arena::array_ptr<expression *> children_;
+  // An array of size this->children_.size()-1.
+  const source_code_span *operator_spans_;
 };
 static_assert(expression_arena::is_allocatable<expression::binary_operator>);
 
@@ -617,15 +590,10 @@ class expression::function final : public expression {
   static constexpr expression_kind kind = expression_kind::function;
 
   explicit function(function_attributes attributes,
-                    expression_arena::buffering_visitor_ptr child_visits,
                     source_code_span span) noexcept
-      : expression(kind),
-        function_attributes_(attributes),
-        child_visits_(child_visits),
-        span_(span) {}
+      : expression(kind), function_attributes_(attributes), span_(span) {}
 
   function_attributes function_attributes_;
-  expression_arena::buffering_visitor_ptr child_visits_;
   source_code_span span_;
 };
 static_assert(expression_arena::is_allocatable<expression::function>);
@@ -676,13 +644,14 @@ class expression::jsx_element final : public jsx_base {
       expression_arena::array_ptr<expression *> children) noexcept
       : jsx_base(kind, span, children), tag(tag) {}
 
-  bool is_intrinsic() const noexcept {
+  bool is_intrinsic() const noexcept { return is_intrinsic(this->tag); }
+
+  static bool is_intrinsic(const identifier &tag) noexcept {
     // TODO(strager): Have the lexer do this work for us.
     string8_view name = tag.normalized_name();
     QLJS_ASSERT(!name.empty());
     char8 first_char = name[0];
-    return (u8'a' <= first_char && first_char <= u8'z') ||
-           contains(name, u8'-');
+    return islower(first_char) || contains(name, u8'-');
   }
 
   identifier tag;
@@ -751,16 +720,13 @@ class expression::named_function final : public expression {
   static constexpr expression_kind kind = expression_kind::named_function;
 
   explicit named_function(function_attributes attributes, identifier name,
-                          expression_arena::buffering_visitor_ptr child_visits,
                           source_code_span span) noexcept
       : expression(kind),
         function_attributes_(attributes),
-        child_visits_(child_visits),
         variable_identifier_(name),
         span_(span) {}
 
   function_attributes function_attributes_;
-  expression_arena::buffering_visitor_ptr child_visits_;
   identifier variable_identifier_;
   source_code_span span_;
 };
@@ -790,6 +756,18 @@ class expression::object final : public expression {
   expression_arena::array_ptr<object_property_value_pair> entries_;
 };
 static_assert(expression_arena::is_allocatable<expression::object>);
+
+class expression::paren final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::paren;
+
+  explicit paren(source_code_span span, expression *child) noexcept
+      : expression(kind), span_(span), child_(child) {}
+
+  source_code_span span_;
+  expression *child_;
+};
+static_assert(expression_arena::is_allocatable<expression::paren>);
 
 class expression::private_variable final : public expression {
  public:
@@ -1054,6 +1032,10 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     return expression_arena::array_ptr<expression *>(
         index->children_.data(), narrow_cast<int>(index->children_.size()));
   }
+  case expression_kind::paren: {
+    auto *paren = static_cast<const expression::paren *>(this);
+    return expression_arena::array_ptr<expression *>(&paren->child_, 1);
+  }
   case expression_kind::rw_unary_suffix: {
     auto *rw_unary_suffix =
         static_cast<const expression::rw_unary_suffix *>(this);
@@ -1071,27 +1053,13 @@ inline expression_arena::array_ptr<expression *> expression::children() const
   }
 }
 
-inline buffering_visitor *expression::take_child_visits() noexcept {
-  switch (this->kind_) {
-  case expression_kind::_class:
-    return std::exchange(static_cast<expression::_class *>(this)->child_visits_,
-                         nullptr);
-  case expression_kind::arrow_function_with_statements:
-    return std::exchange(
-        static_cast<expression::arrow_function_with_statements *>(this)
-            ->child_visits_,
-        nullptr);
-  case expression_kind::function:
-    return std::exchange(
-        static_cast<expression::function *>(this)->child_visits_, nullptr);
-  case expression_kind::named_function:
-    return std::exchange(
-        static_cast<expression::named_function *>(this)->child_visits_,
-        nullptr);
-
-  default:
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
+inline expression *expression::without_paren() const noexcept {
+  const expression *ast = this;
+  while (ast->kind_ == expression_kind::paren) {
+    ast = static_cast<const paren *>(ast)->child_;
   }
+  // TODO(strager): Remove const_cast.
+  return const_cast<expression *>(ast);
 }
 
 inline int expression::object_entry_count() const noexcept {
@@ -1162,11 +1130,10 @@ inline source_code_span expression::span() const noexcept {
     auto *arrow =
         static_cast<const expression::arrow_function_with_expression *>(this);
     if (arrow->parameter_list_begin_) {
-      return source_code_span(arrow->parameter_list_begin_,
-                              arrow->body_->span().end());
+      return source_code_span(arrow->parameter_list_begin_, arrow->span_end_);
     } else {
       return source_code_span(arrow->parameters_.front()->span().begin(),
-                              arrow->body_->span().end());
+                              arrow->span_end_);
     }
   }
   case expression_kind::arrow_function_with_statements: {
@@ -1216,6 +1183,8 @@ inline source_code_span expression::span() const noexcept {
     return static_cast<const new_target *>(this)->span_;
   case expression_kind::object:
     return static_cast<const object *>(this)->span_;
+  case expression_kind::paren:
+    return static_cast<const paren *>(this)->span_;
   case expression_kind::private_variable:
     return static_cast<const private_variable *>(this)
         ->variable_identifier_.span();

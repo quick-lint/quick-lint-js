@@ -3,12 +3,9 @@
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <%- await include("../common-head.ejs.html") %>
-    <title>quick-lint-js: installing</title>
-    <meta
-      name="description"
-      content="Install quick-lint-js on Linux, macOS, Windows, VS Code and many more!"
-    />
+    <%- await include("../common-head.ejs.html", { title: `How to install
+    quick-lint-js`, description: `Install quick-lint-js on Linux, macOS,
+    Windows, VS Code and many more!` }) %>
     <link href="../main.css" rel="stylesheet" />
   </head>
   <body class="side-bar-nav">
@@ -72,6 +69,18 @@
               height="19"
             />
             Neovim</a
+          >
+        </li>
+        <li>
+          <a href="sublime/"
+            ><img
+              class="install-logo"
+              src="../sublime-text.svg"
+              alt=""
+              width="19"
+              height="19"
+            />
+            Sublime Text</a
           >
         </li>
         <li>

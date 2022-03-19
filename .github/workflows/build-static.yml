@@ -92,8 +92,6 @@ jobs:
           - {runs_on: windows-latest, name: "Windows", archive_name: "windows", exe_file: "bin/quick-lint-js.exe"}
           - {runs_on: macos-10.15, name: "macOS 10.15", archive_name: "macos", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "archlinux:base", name: "Arch Linux", archive_name: "linux", exe_file: "bin/quick-lint-js"}
-          - {runs_on: ubuntu-latest, docker_container: "centos:centos7", name: "CentOS 7", archive_name: "linux", exe_file: "bin/quick-lint-js"}
-          - {runs_on: ubuntu-latest, docker_container: "centos:centos8", name: "CentOS 8", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "debian:jessie", name: "Debian 8 Jessie", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "debian:stretch", name: "Debian 9 Stretch", archive_name: "linux", exe_file: "bin/quick-lint-js"}
@@ -263,6 +261,91 @@ jobs:
       - name: test locally (.cmd)
         if: ${{ !matrix.manager.global && matrix.os.test_cmd }}
         run: node_modules/.bin/quick-lint-js.cmd --version
+
+  package-chocolatey:
+    name: Chocolatey package
+    needs: build
+    runs-on: ubuntu-latest
+    container: ghcr.io/quick-lint/quick-lint-js-github-go-builder:v1
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-windows-${{ github.sha }}
+          path: ./
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-windows-x86-${{ github.sha }}
+          path: ./
+
+      - name: package
+        run: go run ./dist/chocolatey/build.go -x86-ZIP ./windows-x86.zip -x64-ZIP ./windows.zip -Out ./quick-lint-js.nupkg
+
+      - name: upload package to workflow
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: quick-lint-js-chocolatey-${{ github.sha }}
+          path: quick-lint-js.nupkg
+      - name: upload package to long-term storage
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
+        uses: quick-lint/sftp-upload@master
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: quick-lint-js.nupkg
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/chocolatey/
+          user: ${{ secrets.artifacts_user }}
+
+  test-chocolatey-package:
+    name: test Chocolatey package
+    needs: package-chocolatey
+    runs-on: windows-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-chocolatey-${{ github.sha }}
+      - name: install
+        run: choco install quick-lint-js -s .
+      - name: test
+        run: quick-lint-js --version
+
+  package-scoop:
+    name: Scoop package
+    needs: build
+    runs-on: ubuntu-latest
+    container: ghcr.io/quick-lint/quick-lint-js-github-go-builder:v1
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-windows-${{ github.sha }}
+          path: ./
+      - uses: actions/download-artifact@v2
+        with:
+          name: quick-lint-js-windows-x86-${{ github.sha }}
+          path: ./
+
+      - name: create manifest
+        run: go run ./dist/scoop/make-manifest.go -BaseURI 'https://c.quick-lint-js.com/builds/${{ github.sha }}/' -x86-ZIP ./windows-x86.zip -x64-ZIP ./windows.zip -Out ./quick-lint-js.json
+
+      - name: upload manifest to workflow
+        uses: actions/upload-artifact@v2
+        with:
+          if-no-files-found: error
+          name: quick-lint-js-scoop-${{ github.sha }}
+          path: quick-lint-js.json
+      - name: upload manifest to long-term storage
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
+        uses: quick-lint/sftp-upload@master
+        with:
+          host: ${{ secrets.artifacts_host }}
+          local-file-globs: quick-lint-js.json
+          private-key: ${{ secrets.artifacts_key }}
+          remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/scoop/
+          user: ${{ secrets.artifacts_user }}
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

@@ -83,9 +83,9 @@ void text_error_formatter::write_after_message(std::string_view code,
                                                const source_code_span &) {
   if (this->format_escape_errors_) {
     this->output_.append_copy(
-        u8" [\x1B]8;;https://quick-lint-js.com/errors/#"sv);
+        u8" [\x1B]8;;https://quick-lint-js.com/errors/"sv);
     this->output_.append_copy(to_string8_view(code));
-    this->output_.append_literal(u8"\x1B\\"sv);
+    this->output_.append_literal(u8"/\x1B\\"sv);
     this->output_.append_copy(to_string8_view(code));
     this->output_.append_literal(u8"\x1B]8;;\x1B\\]\n"sv);
   } else {

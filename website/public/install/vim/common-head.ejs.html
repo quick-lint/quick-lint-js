@@ -4,12 +4,9 @@
 %>
 
 <head>
-  <%- await include("../../common-head.ejs.html") %>
-  <title>quick-lint-js: install for Vim <%= where %></title>
-  <meta
-    name="description"
-    content="Install quick-lint-js's Vim plugin <%= where %>"
-  />
+  <%- await include("../../common-head.ejs.html", { title: `Install
+  quick-lint-js for Vim ${where}`, description: `Install quick-lint-js's Vim
+  plugin ${where}` }) %>
   <link href="../../../main.css" rel="stylesheet" />
 </head>
 

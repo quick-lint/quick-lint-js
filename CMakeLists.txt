@@ -23,6 +23,13 @@ else ()
 endif ()
 
 set(
+  QUICK_LINT_JS_INSTALL_EMACS_DIR
+  "${CMAKE_INSTALL_DATAROOTDIR}/emacs/site-elisp"
+  CACHE
+  STRING
+  "Install Emacs Lisp files into this directory relative to CMAKE_INSTALL_PREFIX"
+)
+set(
   QUICK_LINT_JS_INSTALL_LICENSES_DIR
   "${CMAKE_INSTALL_DOCDIR}"
   CACHE
@@ -49,6 +56,27 @@ option(
   OFF
 )
 
+option(
+  QUICK_LINT_JS_USE_BUNDLED_BOOST
+  "Use the third-party Boost library bundled with quick-lint-js instead of using the host-installed Boost"
+  ON
+)
+option(
+  QUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK
+  "Use the third-party Google Benchmark library bundled with quick-lint-js instead of using the host-installed Google Benchmark"
+  ON
+)
+option(
+  QUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST
+  "Use the third-party Google Test library bundled with quick-lint-js instead of using the host-installed Google Test"
+  ON
+)
+option(
+  QUICK_LINT_JS_USE_BUNDLED_SIMDJSON
+  "Use the third-party simdjson library bundled with quick-lint-js instead of using the host-installed simdjson"
+  ON
+)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(QuickLintJSCompiler)
@@ -66,7 +94,14 @@ find_package(PythonInterp 3.7)
 
 find_package(PythonInterp 3)  # Force Python 3 (instead of Python 2).
 
-add_subdirectory(vendor)
+if (QUICK_LINT_JS_ENABLE_BENCHMARKS)
+  include(vendor/benchmark.cmake)
+endif ()
+include(vendor/boost.cmake)
+include(vendor/googletest.cmake)
+include(vendor/node-addon-api.cmake)
+include(vendor/node.cmake)
+include(vendor/simdjson.cmake)
 
 if (QUICK_LINT_JS_ENABLE_BENCHMARKS)
   add_subdirectory(benchmark)

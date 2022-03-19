@@ -2,7 +2,7 @@
   "name": "quick-lint-js",
   "description": "Find JavaScript bugs with quick-lint-js",
   "publisher": "quick-lint",
-  "version": "1.0.0",
+  "version": "2.3.0",
   "license": "SEE LICENSE IN LICENSE",
   "categories": [
     "Linters"
@@ -14,6 +14,7 @@
   },
   "activationEvents": [
     "onLanguage:javascript",
+    "onLanguage:javascriptreact",
     "onLanguage:json"
   ],
   "main": "./extension.js",

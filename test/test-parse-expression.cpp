@@ -282,7 +282,7 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"(2*)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, missing)");
+    EXPECT_EQ(summarize(ast), "paren(binary(literal, missing))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_OFFSETS(
                     p.code(), error_missing_operand_for_operator,  //
@@ -292,7 +292,8 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"2 * (3 + 4"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, binary(literal, literal))");
+    EXPECT_EQ(summarize(ast),
+              "binary(literal, paren(binary(literal, literal)))");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_OFFSETS(
                                 p.code(), error_unmatched_parenthesis,  //
                                 where, strlen(u8"2 * "), u8"(")));
@@ -301,7 +302,8 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
   {
     test_parser p(u8"2 * (3 + (4"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "binary(literal, binary(literal, literal))");
+    EXPECT_EQ(summarize(ast),
+              "binary(literal, paren(binary(literal, paren(literal))))");
 
     EXPECT_THAT(
         p.errors(),
@@ -319,7 +321,7 @@ TEST_F(test_parse_expression, comma_expression_with_trailing_comma) {
     // lists, but comma expressions do not allow trailing commas.
     test_parser p(u8"(a, b, c,)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "trailingcomma(var a, var b, var c)");
+    EXPECT_EQ(summarize(ast), "paren(trailingcomma(var a, var b, var c))");
     EXPECT_THAT(p.errors(), IsEmpty())
         << "trailing comma expression emits no errors; errors are emitted "
            "depending on the context";
@@ -482,14 +484,14 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"(a ? b :)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
+    EXPECT_EQ(summarize(ast), "paren(cond(var a, var b, missing))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_OFFSETS(
                     p.code(), error_missing_operand_for_operator,  //
                     where, strlen(u8"(a ? b "), u8":")));
-    EXPECT_EQ(p.range(ast).begin_offset(), strlen(u8"("));
+    EXPECT_EQ(p.range(ast->child_0()).begin_offset(), strlen(u8"("));
     // TODO(strager): Fix end_offset to exclude the ')'.
-    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"(a ? b :)"));
+    EXPECT_EQ(p.range(ast->child_0()).end_offset(), strlen(u8"(a ? b :)"));
   }
 }
 
@@ -524,14 +526,14 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"(a ? b)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
+    EXPECT_EQ(summarize(ast), "paren(cond(var a, var b, missing))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_2_OFFSETS(
                     p.code(), error_missing_colon_in_conditional_expression,  //
                     expected_colon, strlen(u8"(a ? b"), u8"",                 //
                     question, strlen(u8"(a "), u8"?")));
-    EXPECT_EQ(p.range(ast).begin_offset(), strlen(u8"("));
-    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"(a ? b"));
+    EXPECT_EQ(p.range(ast->child_0()).begin_offset(), strlen(u8"("));
+    EXPECT_EQ(p.range(ast->child_0()).end_offset(), strlen(u8"(a ? b"));
   }
 }
 
@@ -641,7 +643,7 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
     padded_string code(u8"x.#private"_sv);
     parser p(&code, &v);
     auto class_guard = p.enter_class();  // Allow to call private identifiers.
-    expression* ast = p.parse_expression();
+    expression* ast = p.parse_expression(v);
     EXPECT_EQ(summarize(ast), "dot(var x, #private)");
   }
 }
@@ -672,7 +674,7 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
   {
     test_parser p(u8"(x.)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "dot(var x, )");
+    EXPECT_EQ(summarize(ast), "paren(dot(var x, ))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_OFFSETS(
                     p.code(), error_missing_property_name_for_dot_operator,  //
@@ -821,7 +823,7 @@ TEST_F(test_parse_expression, parse_unclosed_indexing_expression) {
   {
     test_parser p(u8"(xs[i)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "index(var xs, var i)");
+    EXPECT_EQ(summarize(ast), "paren(index(var xs, var i))");
     EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_OFFSETS(
                                 p.code(), error_unmatched_indexing_bracket,  //
                                 left_square, strlen(u8"(xs"), u8"[")));
@@ -846,30 +848,33 @@ TEST_F(test_parse_expression, parse_parenthesized_expression) {
   {
     test_parser p(u8"(x)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "var x");
+    EXPECT_EQ(summarize(ast), "paren(var x)");
     EXPECT_THAT(p.errors(), IsEmpty());
-    EXPECT_EQ(p.range(ast).begin_offset(), 1);
-    EXPECT_EQ(p.range(ast).end_offset(), 2);
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"(x)"));
+    EXPECT_EQ(p.range(ast->child_0()).begin_offset(), 1);
+    EXPECT_EQ(p.range(ast->child_0()).end_offset(), 2);
   }
 
   {
     expression* ast = this->parse_expression(u8"x+(y)"_sv);
-    EXPECT_EQ(summarize(ast), "binary(var x, var y)");
+    EXPECT_EQ(summarize(ast), "binary(var x, paren(var y))");
   }
 
   {
     expression* ast = this->parse_expression(u8"x+(y+z)"_sv);
-    EXPECT_EQ(summarize(ast), "binary(var x, binary(var y, var z))");
+    EXPECT_EQ(summarize(ast), "binary(var x, paren(binary(var y, var z)))");
   }
 
   {
     expression* ast = this->parse_expression(u8"(x+y)+z"_sv);
-    EXPECT_EQ(summarize(ast), "binary(binary(var x, var y), var z)");
+    EXPECT_EQ(summarize(ast), "binary(paren(binary(var x, var y)), var z)");
   }
 
   {
     expression* ast = this->parse_expression(u8"x+(y+z)+w"_sv);
-    EXPECT_EQ(summarize(ast), "binary(var x, binary(var y, var z), var w)");
+    EXPECT_EQ(summarize(ast),
+              "binary(var x, paren(binary(var y, var z)), var w)");
   }
 }
 
@@ -890,7 +895,7 @@ TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
     test_parser p(u8"await(x)"_sv);
     auto guard = p.parser().enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "await(var x)");
+    EXPECT_EQ(summarize(ast), "await(paren(var x))");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
@@ -965,13 +970,23 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
 
 TEST_F(test_parse_expression,
        await_in_normal_function_vs_async_function_vs_top_level) {
+  static parser_options default_parser_options;
+
+  parser_options no_jsx;
+  no_jsx.jsx = false;
+
+  parser_options jsx;
+  jsx.jsx = true;
+
   struct test_case {
     string8_view code;
     const char* expected_normal_function;
     const char* expected_async_function;
+
+    parser_options& options = default_parser_options;
   };
 
-  for (test_case test : {
+  for (const test_case& test : {
          // clang-format off
          test_case
 
@@ -979,7 +994,8 @@ TEST_F(test_parse_expression,
          {u8"await/re/g"_sv,       "binary(var await, var re, var g)",           "await(literal)"},
          {u8"await+x"_sv,          "binary(var await, var x)",                   "await(unary(var x))"},
          {u8"await-x"_sv,          "binary(var await, var x)",                   "await(unary(var x))"},
-         {u8"await(x)"_sv,         "call(var await, var x)",                     "await(var x)"},
+         {u8"await<x>y</x>/g"_sv,  "binary(var await, var x, var y, literal)",   "await(binary(jsxelement(x), var g))", jsx},
+         {u8"await(x)"_sv,         "call(var await, var x)",                     "await(paren(var x))"},
          {u8"await[x]"_sv,         "index(var await, var x)",                    "await(array(var x))"},
          {u8"await++\nx"_sv,       "rwunarysuffix(var await)",                   "await(rwunary(var x))"},
          {u8"await--\nx"_sv,       "rwunarysuffix(var await)",                   "await(rwunary(var x))"},
@@ -1020,55 +1036,56 @@ TEST_F(test_parse_expression,
          {u8"await yield"_sv,          nullptr, "await(var yield)"},
 
          // 'await' must be an identifier:
-         {u8"[await]"_sv,             "array(var await)",              nullptr},
-         {u8"await => x"_sv,          "arrowexpr(var await, var x)",   nullptr},
-         {u8"await = x"_sv,           "assign(var await, var x)",      nullptr},
-         {u8"await != x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await !== x"_sv,         "binary(var await, var x)",      nullptr},
-         {u8"await % x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await & x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await && x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await ** x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await / x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await < x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await << x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await <= x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await == x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await === x"_sv,         "binary(var await, var x)",      nullptr},
-         {u8"await > x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await >= x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await >> x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await >>> x"_sv,         "binary(var await, var x)",      nullptr},
-         {u8"await ?? x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await ^ x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await in xs"_sv,         "binary(var await, var xs)",     nullptr},
-         {u8"await instanceof X"_sv,  "binary(var await, var X)",      nullptr},
-         {u8"await | x"_sv,           "binary(var await, var x)",      nullptr},
-         {u8"await || x"_sv,          "binary(var await, var x)",      nullptr},
-         {u8"await, x"_sv,            "binary(var await, var x)",      nullptr},
-         {u8"await ? x : y"_sv,       "cond(var await, var x, var y)", nullptr},
-         {u8"x ? await : y"_sv,       "cond(var x, var await, var y)", nullptr},
-         {u8"await &&= x"_sv,         "condassign(var await, var x)",  nullptr},
-         {u8"await ?\x3f= x"_sv,      "condassign(var await, var x)",  nullptr},
-         {u8"await ||= x"_sv,         "condassign(var await, var x)",  nullptr},
-         {u8"await.prop"_sv,          "dot(var await, prop)",          nullptr},
-         {u8"await?.prop"_sv,         "dot(var await, prop)",          nullptr},
-         {u8"{key: await}"_sv,        "object(literal, var await)",    nullptr},
-         {u8"await %= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await &= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await **= x"_sv,         "upassign(var await, var x)",    nullptr},
-         {u8"await *= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await += x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await -= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await /= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await <<= x"_sv,         "upassign(var await, var x)",    nullptr},
-         {u8"await >>= x"_sv,         "upassign(var await, var x)",    nullptr},
-         {u8"await >>>= x"_sv,        "upassign(var await, var x)",    nullptr},
-         {u8"await ^= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await |= x"_sv,          "upassign(var await, var x)",    nullptr},
-         {u8"await"_sv,               "var await",                     nullptr},
-         {u8"(await)"_sv,             "var await",                     nullptr},
-         {u8"await;"_sv,              "var await",                     nullptr},
+         {u8"[await]"_sv,             "array(var await)",                         nullptr},
+         {u8"await => x"_sv,          "arrowexpr(var await)",                     nullptr},
+         {u8"await = x"_sv,           "assign(var await, var x)",                 nullptr},
+         {u8"await != x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await !== x"_sv,         "binary(var await, var x)",                 nullptr},
+         {u8"await % x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await & x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await && x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await ** x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await / x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await < x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await << x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await <= x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await == x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await === x"_sv,         "binary(var await, var x)",                 nullptr},
+         {u8"await > x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await >= x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await >> x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await >>> x"_sv,         "binary(var await, var x)",                 nullptr},
+         {u8"await ?? x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await ^ x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await in xs"_sv,         "binary(var await, var xs)",                nullptr},
+         {u8"await instanceof X"_sv,  "binary(var await, var X)",                 nullptr},
+         {u8"await | x"_sv,           "binary(var await, var x)",                 nullptr},
+         {u8"await || x"_sv,          "binary(var await, var x)",                 nullptr},
+         {u8"await, x"_sv,            "binary(var await, var x)",                 nullptr},
+         {u8"await<x>y</x>/g"_sv,     "binary(var await, var x, var y, literal)", nullptr, no_jsx},
+         {u8"await ? x : y"_sv,       "cond(var await, var x, var y)",            nullptr},
+         {u8"x ? await : y"_sv,       "cond(var x, var await, var y)",            nullptr},
+         {u8"await &&= x"_sv,         "condassign(var await, var x)",             nullptr},
+         {u8"await ?\x3f= x"_sv,      "condassign(var await, var x)",             nullptr},
+         {u8"await ||= x"_sv,         "condassign(var await, var x)",             nullptr},
+         {u8"await.prop"_sv,          "dot(var await, prop)",                     nullptr},
+         {u8"await?.prop"_sv,         "dot(var await, prop)",                     nullptr},
+         {u8"{key: await}"_sv,        "object(literal, var await)",               nullptr},
+         {u8"await %= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await &= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await **= x"_sv,         "upassign(var await, var x)",               nullptr},
+         {u8"await *= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await += x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await -= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await /= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await <<= x"_sv,         "upassign(var await, var x)",               nullptr},
+         {u8"await >>= x"_sv,         "upassign(var await, var x)",               nullptr},
+         {u8"await >>>= x"_sv,        "upassign(var await, var x)",               nullptr},
+         {u8"await ^= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await |= x"_sv,          "upassign(var await, var x)",               nullptr},
+         {u8"await"_sv,               "var await",                                nullptr},
+         {u8"(await)"_sv,             "paren(var await)",                         nullptr},
+         {u8"await;"_sv,              "var await",                                nullptr},
 
          // TODO(strager): Fix these test cases:
 #if 0
@@ -1081,7 +1098,7 @@ TEST_F(test_parse_expression,
 
     {
       // Normal function:
-      test_parser p(test.code);
+      test_parser p(test.code, test.options);
       auto guard = p.parser().enter_function(function_attributes::normal);
       expression* ast = p.parse_expression();
 
@@ -1117,7 +1134,7 @@ TEST_F(test_parse_expression,
 
     if (test.expected_async_function) {
       // Async function:
-      test_parser p(test.code);
+      test_parser p(test.code, test.options);
       auto guard = p.parser().enter_function(function_attributes::async);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), test.expected_async_function);
@@ -1126,7 +1143,7 @@ TEST_F(test_parse_expression,
 
     {
       // Top level:
-      test_parser p(test.code);
+      test_parser p(test.code, test.options);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), test.expected_async_function
                                     ? test.expected_async_function
@@ -1183,7 +1200,7 @@ TEST_F(test_parse_expression,
 
   {
     expression* ast = parse_expression_in_generator(u8"(yield)");
-    EXPECT_EQ(summarize(ast), "yieldnone");
+    EXPECT_EQ(summarize(ast), "paren(yieldnone)");
   }
 
   {
@@ -1250,7 +1267,7 @@ TEST_F(test_parse_expression, yield_unary_operator_inside_generator_functions) {
     test_parser p(u8"yield(x)"_sv);
     auto guard = p.parser().enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "yield(var x)");
+    EXPECT_EQ(summarize(ast), "yield(paren(var x))");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -1419,6 +1436,12 @@ TEST_F(test_parse_expression, parse_assignment) {
     expression* ast = this->parse_expression(u8"x,y=z,w"_sv);
     EXPECT_EQ(summarize(ast), "binary(var x, assign(var y, var z), var w)");
   }
+
+  {
+    expression* ast = this->parse_expression(u8"[x,y]=[z,w]"_sv);
+    EXPECT_EQ(summarize(ast),
+              "assign(array(var x, var y), array(var z, var w))");
+  }
 }
 
 TEST_F(test_parse_expression, parse_compound_assignment) {
@@ -1560,7 +1583,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
   {
     test_parser p(u8"(-)"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "unary(missing)");
+    EXPECT_EQ(summarize(ast), "paren(unary(missing))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_OFFSETS(
                     p.code(), error_missing_operand_for_operator,  //
@@ -1709,6 +1732,69 @@ TEST_F(test_parse_expression, optional_tagged_template_literal) {
     expression* ast =
         this->parse_expression(u8"hello?.`template ${literal} thingy`"_sv);
     EXPECT_EQ(summarize(ast), "taggedtemplate(var hello, var literal)");
+  }
+}
+
+TEST_F(test_parse_expression, untagged_template_with_invalid_escape) {
+  {
+    test_parser p(u8R"(`invalid\uescape`)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "literal");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE(error_expected_hex_digits_in_unicode_escape)));
+  }
+
+  {
+    test_parser p(u8R"(`invalid\u${expr}escape`)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "template(var expr)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE(error_expected_hex_digits_in_unicode_escape)));
+  }
+
+  {
+    test_parser p(u8R"(`invalid${expr}\uescape`)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "template(var expr)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE(error_expected_hex_digits_in_unicode_escape)));
+  }
+
+  {
+    test_parser p(u8R"(`invalid${expr1}\u${expr2}escape`)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "template(var expr1, var expr2)");
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE(error_expected_hex_digits_in_unicode_escape)));
+  }
+}
+
+TEST_F(test_parse_expression,
+       tagged_template_with_invalid_escape_reports_no_error) {
+  {
+    expression* ast = this->parse_expression(u8R"(tag`invalid\uescape`)"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var tag)");
+  }
+
+  {
+    expression* ast =
+        this->parse_expression(u8R"(tag`invalid\uescape${expr}`)"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var tag, var expr)");
+  }
+
+  {
+    expression* ast = this->parse_expression(u8R"(tag?.`invalid\uescape`)"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var tag)");
+  }
+
+  {
+    expression* ast =
+        this->parse_expression(u8R"(tag?.`invalid\uescape${expr}`)"_sv);
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var tag, var expr)");
   }
 }
 
@@ -2204,7 +2290,7 @@ TEST_F(test_parse_expression, incomplete_object_literal) {
   {
     test_parser p(u8"({ p1, )"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, var p1)");
+    EXPECT_EQ(summarize(ast), "paren(object(literal, var p1))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_2_OFFSETS(
                     p.code(), error_unclosed_object_literal,  //
@@ -2626,7 +2712,8 @@ TEST_F(test_parse_expression, parse_comma_expression) {
 
   {
     expression* ast = this->parse_expression(u8"(x+(y,z)+w)"_sv);
-    EXPECT_EQ(summarize(ast), "binary(var x, binary(var y, var z), var w)");
+    EXPECT_EQ(summarize(ast),
+              "paren(binary(var x, paren(binary(var y, var z)), var w))");
   }
 
   {
@@ -2638,6 +2725,84 @@ TEST_F(test_parse_expression, parse_comma_expression) {
     expression* ast = this->parse_expression(u8"i = 0, j = 0"_sv);
     EXPECT_EQ(summarize(ast),
               "binary(assign(var i, literal), assign(var j, literal))");
+  }
+}
+
+TEST_F(test_parse_expression, binary_operator_span) {
+  for (string8 op : {
+           u8"!=", u8"!==", u8"%",  u8"&",   u8"&&", u8"*",  u8"**", u8"+",
+           u8",",  u8"-",   u8"/",  u8"<",   u8"<<", u8"<=", u8"==", u8"===",
+           u8">",  u8">=",  u8">>", u8">>>", u8"??", u8"^",  u8"|",  u8"||",
+       }) {
+    padded_string code(u8"x" + op + u8"y");
+    SCOPED_TRACE(code);
+    test_parser p(&code);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(ast->kind(), expression_kind::binary_operator);
+    auto* binary = static_cast<expression::binary_operator*>(ast);
+    EXPECT_EQ(p.range(binary->operator_spans_[0]).begin_offset(),
+              strlen(u8"x"));
+    EXPECT_EQ(p.range(binary->operator_spans_[0]).end_offset(),
+              (u8"x" + op).size());
+  }
+
+  {
+    test_parser p(u8"x + y * z"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), strlen(u8"x "));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), strlen(u8"x +"));
+    EXPECT_EQ(p.range(ast->operator_spans_[1]).begin_offset(),
+              strlen(u8"x + y "));
+    EXPECT_EQ(p.range(ast->operator_spans_[1]).end_offset(),
+              strlen(u8"x + y *"));
+  }
+
+  {
+    test_parser p(u8"x.'foo'"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), 1);
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), 2);
+  }
+
+  {
+    test_parser p(u8"x .. y"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), strlen(u8"x ."));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), strlen(u8"x .."));
+  }
+
+  {
+    test_parser p(u8"x in y"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), strlen(u8"x "));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), strlen(u8"x in"));
+  }
+
+  {
+    test_parser p(u8"f(x y)"_sv);
+    expression* ast = p.parse_expression();
+    auto* binary = static_cast<expression::binary_operator*>(ast->child_1());
+    EXPECT_EQ(p.range(binary->operator_spans_[0]).begin_offset(),
+              strlen(u8"f(x"));
+    EXPECT_EQ(p.range(binary->operator_spans_[0]).end_offset(),
+              strlen(u8"f(x"));
+  }
+
+  {
+    test_parser p(u8"x.y => z"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(),
+              strlen(u8"x.y "));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(),
+              strlen(u8"x.y =>"));
+  }
+
+  {
+    test_parser p(u8"f() => {}"_sv);
+    auto* ast = static_cast<expression::binary_operator*>(p.parse_expression());
+    // FIXME(strager): These spans look weird.
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).begin_offset(), strlen(u8""));
+    EXPECT_EQ(p.range(ast->operator_spans_[0]).end_offset(), strlen(u8"f("));
   }
 }
 
@@ -2760,10 +2925,6 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 0);
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var a");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 7);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -2776,10 +2937,6 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var b");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 6);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -2792,10 +2949,6 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var b");
     // TODO(strager): Implement begin_offset.
     EXPECT_EQ(p.range(ast).end_offset(), 8);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -2809,31 +2962,27 @@ TEST_F(test_parse_expression, arrow_function_with_expression) {
     EXPECT_EQ(ast->child_count(), 2);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_EQ(summarize(ast->child(1)), "var b");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var c");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     expression* ast = this->parse_expression(u8"() => a, b"_sv);
-    EXPECT_EQ(summarize(ast), "binary(arrowexpr(var a), var b)");
+    EXPECT_EQ(summarize(ast), "binary(arrowexpr(), var b)");
   }
 
   {
     expression* ast = this->parse_expression(u8"a => b, c"_sv);
-    EXPECT_EQ(summarize(ast), "binary(arrowexpr(var a, var b), var c)");
+    EXPECT_EQ(summarize(ast), "binary(arrowexpr(var a), var c)");
   }
 
   {
     expression* ast = this->parse_expression(u8"(a,) => b"_sv);
-    EXPECT_EQ(summarize(ast), "arrowexpr(var a, var b)");
+    EXPECT_EQ(summarize(ast), "arrowexpr(var a)");
   }
 
   {
     expression* ast = this->parse_expression(u8"async => value"_sv);
-    EXPECT_EQ(summarize(ast), "arrowexpr(var async, var value)");
+    EXPECT_EQ(summarize(ast), "arrowexpr(var async)");
   }
 }
 
@@ -2885,10 +3034,6 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)),
               "object(literal, var a, literal, var b)");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var c");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -2899,10 +3044,6 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "array(var a, var b)");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var c");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -2913,10 +3054,6 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "spread(var args)");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "literal");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
@@ -2954,10 +3091,6 @@ TEST_F(test_parse_expression, async_arrow_function) {
     EXPECT_EQ(ast->kind(), expression_kind::arrow_function_with_expression);
     EXPECT_EQ(ast->attributes(), function_attributes::async);
     EXPECT_EQ(ast->child_count(), 0);
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var a");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 13);
     EXPECT_THAT(p.errors(), IsEmpty());
@@ -2970,21 +3103,17 @@ TEST_F(test_parse_expression, async_arrow_function) {
     EXPECT_EQ(ast->attributes(), function_attributes::async);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var x");
-    EXPECT_EQ(
-        summarize(static_cast<expression::arrow_function_with_expression*>(ast)
-                      ->body_),
-        "var y");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
     expression* ast = this->parse_expression(u8"async (x, y, z) => w"_sv);
-    EXPECT_EQ(summarize(ast), "asyncarrowexpr(var x, var y, var z, var w)");
+    EXPECT_EQ(summarize(ast), "asyncarrowexpr(var x, var y, var z)");
   }
 
   {
     expression* ast = this->parse_expression(u8"async (a,) => b"_sv);
-    EXPECT_EQ(summarize(ast), "asyncarrowexpr(var a, var b)");
+    EXPECT_EQ(summarize(ast), "asyncarrowexpr(var a)");
   }
 }
 
@@ -3042,7 +3171,7 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
   {
     test_parser p(u8"=> a"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "arrowexpr(var a)");
+    EXPECT_EQ(summarize(ast), "arrowexpr()");
     EXPECT_THAT(p.errors(),
                 ElementsAre(ERROR_TYPE_OFFSETS(
                     p.code(), error_missing_arrow_function_parameter_list,  //
@@ -3117,9 +3246,10 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
     test_parser p(u8"(x, 42, y) => {body();}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "arrowblock(var x, literal, var y)");
-    EXPECT_THAT(p.errors(), IsEmpty())
-        << "reporting error_unexpected_literal_in_parameter_list is done "
-           "during visitation";
+    EXPECT_THAT(p.errors(), ElementsAre(ERROR_TYPE_OFFSETS(
+                                p.code(),
+                                error_unexpected_literal_in_parameter_list,  //
+                                literal, strlen(u8"(x, "), u8"42")));
   }
 }
 
@@ -3244,7 +3374,7 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
 
   {
     expression* ast = this->parse_expression(u8"(x+y).z"_sv);
-    EXPECT_EQ(summarize(ast), "dot(binary(var x, var y), z)");
+    EXPECT_EQ(summarize(ast), "dot(paren(binary(var x, var y)), z)");
   }
 
   {
@@ -3390,8 +3520,40 @@ TEST_F(test_parse_expression,
 TEST_F(test_parse_expression, generator_misplaced_star) {
   test_parser p(u8"(*function f(){})"_sv);
   expression* ast = p.parse_expression();
-  EXPECT_EQ(p.range(ast).begin_offset(), 1);
-  EXPECT_EQ(p.range(ast).end_offset(), 16);
+  EXPECT_EQ(p.range(ast->child_0()).begin_offset(), 1);
+  EXPECT_EQ(p.range(ast->child_0()).end_offset(), 16);
+}
+
+TEST_F(test_parse_expression, unary_cannot_mix_with_star_star) {
+  for (char8 op : u8"~!-+"sv) {
+    test_parser p(op + u8"a ** b"s);
+    SCOPED_TRACE(p.code());
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(unary(var a), var b)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                    p.code(),
+                    error_missing_parentheses_around_unary_lhs_of_exponent,  //
+                    unary_expression, 0, op + u8"a"s,                        //
+                    exponent_operator, (op + u8"a "s).size(), u8"**")));
+  }
+
+  for (string8 op : {u8"delete"s, u8"typeof"s, u8"void"s}) {
+    test_parser p(op + u8" a ** b"s);
+    SCOPED_TRACE(p.code());
+    expression* ast = p.parse_expression();
+    if ((false)) {
+      // TODO(strager): Rewrite the AST into something like the following:
+      EXPECT_EQ(summarize(ast), "typeof(binary(var a, var b))");
+    }
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(ERROR_TYPE_2_OFFSETS(
+            p.code(),
+            error_missing_parentheses_around_exponent_with_unary_lhs,  //
+            exponent_expression, (op + u8" "s).size(), u8"a ** b",
+            unary_operator, 0, op)));
+  }
 }
 
 TEST_F(test_parse_expression, jsx_is_not_supported) {

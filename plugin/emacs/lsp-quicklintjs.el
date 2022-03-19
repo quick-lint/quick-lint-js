@@ -37,7 +37,7 @@
  (make-lsp-client
   :new-connection (lsp-stdio-connection `(,lsp-quicklintjs-program "--lsp-server"
                                                                      ,@lsp-quicklintjs-args))
-  :major-modes '(js-mode)
+  :major-modes '(js-mode js-jsx-mode rjsx-mode)
   :server-id 'quick-lint-js))
 
 (provide 'lsp-quicklintjs)

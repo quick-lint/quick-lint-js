@@ -4,6 +4,7 @@
 #include <array>
 #include <cstring>
 #include <deque>
+#include <functional>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <initializer_list>
@@ -70,14 +71,16 @@ class test_lex : public ::testing::Test {
   void check_tokens_with_errors(
       string8_view input,
       std::initializer_list<token_type> expected_token_types,
-      void (*check_errors)(padded_string_view input,
-                           const std::vector<error_collector::error>&),
+      std::function<void(padded_string_view input,
+                         const std::vector<error_collector::error>&)>
+          check_errors,
       source_location = source_location::current());
   void check_tokens_with_errors(
       padded_string_view input,
       std::initializer_list<token_type> expected_token_types,
-      void (*check_errors)(padded_string_view input,
-                           const std::vector<error_collector::error>&),
+      std::function<void(padded_string_view input,
+                         const std::vector<error_collector::error>&)>
+          check_errors,
       source_location = source_location::current());
   std::vector<token> lex_to_eof(padded_string_view, error_collector&);
   std::vector<token> lex_to_eof(padded_string_view,
@@ -980,6 +983,116 @@ TEST_F(test_lex, lex_string_with_ascii_control_characters) {
   }
 }
 
+TEST_F(test_lex, string_with_curly_quotes) {
+  // Curly single quotes:
+  this->check_tokens_with_errors(
+      u8"\u2018string here\u2019", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_2_FIELDS(
+                                error_invalid_quotes_around_string_literal,  //
+                                opening_quote,
+                                offsets_matcher(input, 0, u8"\u2018"),  //
+                                suggested_quote, u8'\'')));
+      });
+  this->check_tokens_with_errors(
+      u8"\u2019string here\u2018", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_2_FIELDS(
+                                error_invalid_quotes_around_string_literal,  //
+                                opening_quote,
+                                offsets_matcher(input, 0, u8"\u2019"),  //
+                                suggested_quote, u8'\'')));
+      });
+  this->check_tokens_with_errors(
+      u8"\u2018string \u201c \" \u201d here\u2019", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_2_FIELDS(
+                                error_invalid_quotes_around_string_literal,  //
+                                opening_quote,
+                                offsets_matcher(input, 0, u8"\u2018"),  //
+                                suggested_quote, u8'\'')));
+      });
+
+  // Curly double quotes:
+  this->check_tokens_with_errors(
+      u8"\u201cstring here\u201d", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_2_FIELDS(
+                                error_invalid_quotes_around_string_literal,  //
+                                opening_quote,
+                                offsets_matcher(input, 0, u8"\u201d"),  //
+                                suggested_quote, u8'"')));
+      });
+  this->check_tokens_with_errors(
+      u8"\u201dstring here\u201c", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_2_FIELDS(
+                                error_invalid_quotes_around_string_literal,  //
+                                opening_quote,
+                                offsets_matcher(input, 0, u8"\u201c"),  //
+                                suggested_quote, u8'"')));
+      });
+  this->check_tokens_with_errors(
+      u8"\u201cstring \u2018 ' \u2019 here\u201d", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_2_FIELDS(
+                                error_invalid_quotes_around_string_literal,  //
+                                opening_quote,
+                                offsets_matcher(input, 0, u8"\u201d"),  //
+                                suggested_quote, u8'"')));
+      });
+
+  // Start with curly quote, but end with matching straight quote:
+  this->check_tokens_with_errors(
+      u8"\u2018string here'", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_2_FIELDS(
+                                error_invalid_quotes_around_string_literal,  //
+                                opening_quote,
+                                offsets_matcher(input, 0, u8"\u2018"),  //
+                                suggested_quote, u8'\'')));
+      });
+  this->check_tokens_with_errors(
+      u8"\u201cstring here\"", {token_type::string},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors, ElementsAre(ERROR_TYPE_2_FIELDS(
+                                error_invalid_quotes_around_string_literal,  //
+                                opening_quote,
+                                offsets_matcher(input, 0, u8"\u201d"),  //
+                                suggested_quote, u8'"')));
+      });
+
+  // Unclosed string:
+  for (string8 opening_quote : {u8"\u2018", u8"\u201c"}) {
+    this->check_tokens_with_errors(
+        opening_quote + u8"string here", {token_type::string},
+        [&](padded_string_view input, const auto& errors) {
+          EXPECT_THAT(
+              errors,
+              UnorderedElementsAre(
+                  ERROR_TYPE(error_invalid_quotes_around_string_literal),
+                  ERROR_TYPE_OFFSETS(input, error_unclosed_string_literal,  //
+                                     string_literal, 0,
+                                     opening_quote + u8"string here")));
+        });
+    for (string8_view line_terminator : line_terminators) {
+      this->check_tokens_with_errors(
+          opening_quote + u8"string here" + string8(line_terminator) +
+              u8"next_line",
+          {token_type::string, token_type::identifier},
+          [&](padded_string_view input, const auto& errors) {
+            EXPECT_THAT(
+                errors,
+                UnorderedElementsAre(
+                    ERROR_TYPE(error_invalid_quotes_around_string_literal),
+                    ERROR_TYPE_OFFSETS(input, error_unclosed_string_literal,  //
+                                       string_literal, 0,
+                                       opening_quote + u8"string here")));
+          });
+    }
+  }
+}
+
 TEST_F(test_lex, lex_templates) {
   this->check_tokens(u8"``"_sv, {token_type::complete_template});
   this->check_tokens(u8"`hello`"_sv, {token_type::complete_template});
@@ -1086,25 +1199,90 @@ world`)",
                                 input, error_unclosed_template,  //
                                 incomplete_template, 0, u8"`unterminated\\")));
       });
+}
 
-  this->check_tokens_with_errors(
-      u8"`hello\\u`"_sv, {token_type::complete_template},
-      [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_OFFSETS(
-                        input, error_expected_hex_digits_in_unicode_escape,  //
-                        escape_sequence, strlen(u8"`hello"), u8"\\u`")));
-      });
+TEST_F(test_lex, templates_buffer_unicode_escape_errors) {
+  {
+    padded_string input(u8"`hello\\u`"_sv);
+    error_collector errors;
+    lexer& l = this->make_lexer(&input, &errors);
 
-  this->check_tokens_with_errors(
-      u8"`hello\\u{110000}`", {token_type::complete_template},
-      [](padded_string_view input, const auto& errors) {
-        EXPECT_THAT(
-            errors,
-            ElementsAre(ERROR_TYPE_OFFSETS(
-                input, error_escaped_code_point_in_unicode_out_of_range,  //
-                escape_sequence, strlen(u8"`hello"), u8"\\u{110000}")));
-      });
+    EXPECT_EQ(l.peek().type, token_type::complete_template);
+    EXPECT_THAT(errors.errors, IsEmpty());
+    l.peek().report_errors_for_escape_sequences_in_template(&errors);
+    EXPECT_THAT(errors.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &input, error_expected_hex_digits_in_unicode_escape,  //
+                    escape_sequence, strlen(u8"`hello"), u8"\\u`")));
+
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+  }
+
+  {
+    padded_string input(u8"`hello\\u{110000}`"_sv);
+    error_collector errors;
+    lexer& l = this->make_lexer(&input, &errors);
+
+    EXPECT_EQ(l.peek().type, token_type::complete_template);
+    EXPECT_THAT(errors.errors, IsEmpty());
+    l.peek().report_errors_for_escape_sequences_in_template(&errors);
+    EXPECT_THAT(
+        errors.errors,
+        ElementsAre(ERROR_TYPE_OFFSETS(
+            &input, error_escaped_code_point_in_unicode_out_of_range,  //
+            escape_sequence, strlen(u8"`hello"), u8"\\u{110000}")));
+
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+  }
+
+  {
+    padded_string input(u8"`hello\\u${expr}`"_sv);
+    error_collector errors;
+    lexer& l = this->make_lexer(&input, &errors);
+
+    EXPECT_EQ(l.peek().type, token_type::incomplete_template);
+    EXPECT_THAT(errors.errors, IsEmpty());
+    l.peek().report_errors_for_escape_sequences_in_template(&errors);
+    EXPECT_THAT(errors.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(
+                    &input, error_expected_hex_digits_in_unicode_escape,  //
+                    escape_sequence, strlen(u8"`hello"), u8"\\u`")));
+
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+  }
+}
+
+TEST_F(test_lex, templates_do_not_buffer_valid_unicode_escapes) {
+  {
+    padded_string input(u8"`hell\\u{6f}`"_sv);
+    error_collector errors;
+    lexer& l = this->make_lexer(&input, &errors);
+
+    EXPECT_EQ(l.peek().type, token_type::complete_template);
+    EXPECT_THAT(errors.errors, IsEmpty());
+    l.peek().report_errors_for_escape_sequences_in_template(&errors);
+    EXPECT_THAT(errors.errors, IsEmpty());
+
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::end_of_file);
+  }
+
+  {
+    padded_string input(u8"`hell\\u{6f}${expr}`"_sv);
+    error_collector errors;
+    lexer& l = this->make_lexer(&input, &errors);
+
+    EXPECT_EQ(l.peek().type, token_type::incomplete_template);
+    EXPECT_THAT(errors.errors, IsEmpty());
+    l.peek().report_errors_for_escape_sequences_in_template(&errors);
+    EXPECT_THAT(errors.errors, IsEmpty());
+
+    l.skip();
+    EXPECT_EQ(l.peek().type, token_type::identifier);
+  }
 }
 
 TEST_F(test_lex, lex_template_literal_with_ascii_control_characters) {
@@ -2973,8 +3151,9 @@ void test_lex::check_tokens(
 
 void test_lex::check_tokens_with_errors(
     string8_view input, std::initializer_list<token_type> expected_token_types,
-    void (*check_errors)(padded_string_view input,
-                         const std::vector<error_collector::error>&),
+    std::function<void(padded_string_view input,
+                       const std::vector<error_collector::error>&)>
+        check_errors,
     source_location caller) {
   padded_string code(input);
   return this->check_tokens_with_errors(&code, expected_token_types,
@@ -2984,8 +3163,9 @@ void test_lex::check_tokens_with_errors(
 void test_lex::check_tokens_with_errors(
     padded_string_view input,
     std::initializer_list<token_type> expected_token_types,
-    void (*check_errors)(padded_string_view input,
-                         const std::vector<error_collector::error>&),
+    std::function<void(padded_string_view input,
+                       const std::vector<error_collector::error>&)>
+        check_errors,
     source_location caller) {
   error_collector errors;
   std::vector<token> lexed_tokens = this->lex_to_eof(input, errors);

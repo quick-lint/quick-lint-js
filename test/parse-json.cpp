@@ -13,12 +13,12 @@
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>
 #include <sstream>
-#include <system_error>
 
 namespace quick_lint_js {
 ::boost::json::value parse_boost_json(std::string_view json) {
-  std::error_code error;
-  ::boost::json::value root = ::boost::json::parse(json, error);
+  ::boost::json::error_code error;
+  ::boost::json::value root =
+      ::boost::json::parse(to_boost_string_view(json), error);
   EXPECT_FALSE(error) << json;
   return root;
 }
@@ -32,8 +32,9 @@ namespace quick_lint_js {
 ::boost::json::value simdjson_to_boost_json(
     ::simdjson::ondemand::value &value) {
   std::string_view json = value.raw_json_token();
-  std::error_code error;
-  ::boost::json::value result = ::boost::json::parse(json, error);
+  ::boost::json::error_code error;
+  ::boost::json::value result =
+      ::boost::json::parse(to_boost_string_view(json), error);
   EXPECT_FALSE(error);
   return result;
 }

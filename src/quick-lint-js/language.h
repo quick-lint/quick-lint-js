@@ -26,6 +26,23 @@ enum class variable_kind {
   _var,
 };
 
+enum class variable_init_kind {
+  // Examples:
+  //   class C {}
+  //   (param, defaultParam = null) => {}
+  //   let x, y, z;
+  //   for (let x of xs) {}
+  normal,
+
+  // Only valid for _const, _let, and _var.
+  //
+  // Examples:
+  //   let x = 42;
+  //   const [x] = xs;
+  //   for (var x = null in xs) {}
+  initialized_with_equals,
+};
+
 std::ostream& operator<<(std::ostream&, variable_kind);
 
 enum class function_attributes {

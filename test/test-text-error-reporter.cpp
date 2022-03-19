@@ -40,7 +40,7 @@ class test_text_error_reporter : public ::testing::Test {
   }
 
   string8 create_escape_error_code(const char8* code) {
-    return u8"\x1B]8;;https://quick-lint-js.com/errors/#"s + code + u8"\x1B\\" +
+    return u8"\x1B]8;;https://quick-lint-js.com/errors/"s + code + u8"/\x1B\\" +
            code + u8"\x1B]8;;\x1B\\";
   }
 
@@ -155,6 +155,24 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable_escaped_error) {
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:1: warning: use of undeclared variable: myvar [" +
                 this->create_escape_error_code(u8"E0057") + u8"]\n");
+}
+
+TEST_F(test_text_error_reporter, string8_view_parameter) {
+  padded_string input(u8"<a . b></c>;"_sv);
+  source_code_span open_span(&input[2 - 1], &input[6 + 1 - 1]);
+  ASSERT_EQ(open_span.string_view(), u8"a . b");
+  source_code_span close_span(&input[10 - 1], &input[10 + 1 - 1]);
+  ASSERT_EQ(close_span.string_view(), u8"c");
+
+  this->make_reporter(&input).report(error_mismatched_jsx_tags{
+      .opening_tag_name = open_span,
+      .closing_tag_name = close_span,
+      .opening_tag_name_pretty = u8"a.b"sv,
+  });
+  EXPECT_EQ(
+      this->get_output(),
+      u8"FILE:1:10: error: mismatched JSX tags; expected '</a.b>' [E0187]\n"
+      u8"FILE:1:2: note: opening '<a.b>' tag here [E0187]\n");
 }
 }
 }

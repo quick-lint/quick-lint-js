@@ -32,11 +32,13 @@ Install a compiler which supports C++20 coroutines (such as Clang version 12).
 
 ## Running
 
-Customize `benchmark-config.json` with the LSP servers you want to benchmark.
+Note: when running the `quick-lint-js-benchmark-lsp-servers` tool, the current
+working directory must be `benchmark/benchmark-lsp/`.
 
 Print a list of benchmarks:
 
-    $ ./build/benchmark/benchmark-lsp/quick-lint-js-benchmark-lsp-servers benchmark/benchmark-lsp/benchmark-config.json --list
+    $ cd benchmark/benchmark-lsp/
+    $ ../../build/benchmark/benchmark-lsp/quick-lint-js-benchmark-lsp-servers --list
     eslint-server/open-wait-close/tiny.js
     eslint-server/open-wait-close/edex-ui-filesystem.class.js
     eslint-server/open-wait-close/express-router.js
@@ -47,11 +49,13 @@ Print a list of benchmarks:
 
 Run the benchmarks and generate a JSON file for later processing:
 
-    $ ./build/benchmark/benchmark-lsp/quick-lint-js-benchmark-lsp-servers --output-json results.json benchmark/benchmark-lsp/benchmark-config.json
+    $ cd benchmark/benchmark-lsp/
+    $ ../../build/benchmark/benchmark-lsp/quick-lint-js-benchmark-lsp-servers --output-json results.json
 
 Debug a single benchmark with an *N* of 5:
 
-    $ QLJS_BENCHMARK_LSP_DEBUG=1 ./build/benchmark/benchmark-lsp/quick-lint-js-benchmark-lsp-servers --iterations 5 benchmark/benchmark-lsp/benchmark-config.json RSLint/change-wait/tiny.js
+    $ cd benchmark/benchmark-lsp/
+    $ QLJS_BENCHMARK_LSP_DEBUG=1 ../../build/benchmark/benchmark-lsp/quick-lint-js-benchmark-lsp-servers --iterations 5 RSLint/change-wait/tiny.js
 
 ## Benchmarks
 

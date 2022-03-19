@@ -4,11 +4,10 @@
 import MarkdownIt from "markdown-it";
 import assert from "assert";
 import fs from "fs";
-import jsdom from "jsdom";
 import path from "path";
 import url from "url";
 import { createProcessFactoryAsync } from "../wasm/quick-lint-js.js";
-import { markEditorText } from "../public/demo/editor.mjs";
+import { sanitizeMarks } from "../public/demo/editor.mjs";
 
 let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
@@ -36,14 +35,14 @@ markdownParser.renderer.rules = {
   heading_open(tokens, tokenIndex, options, env, self) {
     let token = tokens[tokenIndex];
     if (token.tag === "h1") {
-      return `<h2><a class='self-reference' href='#${env.doc.titleErrorCode}'>`;
+      return `<h2>`;
     }
   },
 
   heading_close(tokens, tokenIndex, options, env, self) {
     let token = tokens[tokenIndex];
     if (token.tag === "h1") {
-      return "</a></h2>";
+      return "</h2>";
     }
   },
 
@@ -53,38 +52,17 @@ markdownParser.renderer.rules = {
       // Don't show config snippets which configure other code blocks.
       return "";
     }
-    let content = token.content;
 
-    if (typeof env.dom === "undefined") {
-      env.dom = new jsdom.JSDOM("");
-    }
     if (typeof env.codeBlockIndex === "undefined") {
       env.codeBlockIndex = 0;
     }
-
-    let codeElement = env.dom.window.document.createElement("code");
-    codeElement.appendChild(env.dom.window.document.createTextNode(content));
-
-    if (env.doc.diagnostics !== null) {
-      markEditorText(
-        codeElement,
-        env.dom.window,
-        env.doc.diagnostics[env.codeBlockIndex]
-      );
-    }
-
-    let codeHTML = codeElement.innerHTML;
-
-    // Wrap BOM in a <span>.
-    if (codeHasBOM(codeHTML)) {
-      codeHTML = codeHTML.replace(
-        /\ufeff/,
-        "<span class='unicode-bom'>\u{feff}</span>"
-      );
-    }
-
-    codeHTML = wrapASCIIControlCharacters(codeHTML);
-
+    let codeHTML = errorDocumentationExampleToHTML({
+      code: token.content,
+      diagnostics:
+        env.doc.diagnostics === null
+          ? null
+          : env.doc.diagnostics[env.codeBlockIndex],
+    });
     env.codeBlockIndex += 1;
     return `<figure><pre><code>${codeHTML}</code></pre></figure>`;
   },
@@ -94,12 +72,44 @@ markdownParser.renderer.rules = {
   },
 };
 
-export function codeHasBOM(codeHTML) {
-  if (!/\ufeff|&#xfeff|&#65279/iu.test(codeHTML)) {
-    return false;
+export function errorDocumentationExampleToHTML({ code, diagnostics }) {
+  diagnostics = diagnostics === null ? [] : sanitizeMarks(diagnostics);
+  let codeHTML = "";
+  let lastDiagnosticEnd = 0;
+  for (let diagnostic of diagnostics) {
+    codeHTML += textToHTML(code.slice(lastDiagnosticEnd, diagnostic.begin));
+    codeHTML += "<mark>";
+    codeHTML += textToHTML(code.slice(diagnostic.begin, diagnostic.end));
+    codeHTML += "</mark>";
+    lastDiagnosticEnd = diagnostic.end;
   }
-  const dom = new jsdom.JSDOM(codeHTML);
-  return dom.window.document.firstChild.textContent.startsWith("\u{feff}");
+  codeHTML += textToHTML(code.slice(lastDiagnosticEnd));
+
+  // Wrap BOM in a <span>.
+  let hasBOM = code.startsWith("\ufeff");
+  if (hasBOM) {
+    codeHTML = codeHTML.replace(
+      /\ufeff/,
+      "<span class='unicode-bom'>\u{feff}</span>"
+    );
+  }
+
+  codeHTML = wrapASCIIControlCharacters(codeHTML);
+
+  return codeHTML;
+}
+
+function textToHTML(text) {
+  return text.replace(
+    /[<>&\u00a0]/g,
+    (match) =>
+      ({
+        "<": "&lt;",
+        ">": "&gt;",
+        "&": "&amp;",
+        "\u00a0": "&nbsp;",
+      }[match])
+  );
 }
 
 export class ErrorDocumentation {
@@ -237,12 +247,11 @@ export class ErrorDocumentation {
 
   toHTML() {
     this._markdownEnv.doc = this;
-    let innerHTML = markdownParser.renderer.render(
+    return markdownParser.renderer.render(
       this._markdownTokens,
       markdownParser.options,
       this._markdownEnv
     );
-    return `<article id='${this.titleErrorCode}'>${innerHTML}</article>`;
   }
 
   async findProblemsAsync() {
@@ -321,9 +330,13 @@ export async function reportProblemsInDocumentsAsync(documents) {
   }
 }
 
-export async function loadErrorDocumentationFilesAsync(rootPath) {
+export async function findErrorDocumentationFilesAsync(rootPath) {
   let files = await fs.promises.readdir(rootPath);
-  files = files.filter((fileName) => fileName.endsWith(".md"));
+  return files.filter((fileName) => fileName.endsWith(".md"));
+}
+
+export async function loadErrorDocumentationFilesAsync(rootPath) {
+  let files = await findErrorDocumentationFilesAsync(rootPath);
 
   let documents = await Promise.all(
     files.map(

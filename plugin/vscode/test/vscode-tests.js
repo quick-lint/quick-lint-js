@@ -21,7 +21,7 @@ let qljsExtension = require("../extension.js");
 
 let tests = {};
 
-for (let extension of [".js", ".mjs", ".cjs"]) {
+for (let extension of [".js", ".mjs", ".cjs", ".jsx"]) {
   tests = {
     ...tests,
 
@@ -43,7 +43,7 @@ for (let extension of [".js", ".mjs", ".cjs"]) {
     [`open existing file ${extension}`]: async ({ addCleanup }) => {
       let scratchDirectory = makeScratchDirectory({ addCleanup });
       let helloFilePath = path.join(scratchDirectory, `hello${extension}`);
-      fs.writeFileSync(helloFilePath, "let x = 3;\nlet x = 4;\n");
+      fs.writeFileSync(helloFilePath, "\\u{69}f");
       let helloURI = vscode.Uri.file(helloFilePath);
 
       await loadExtensionAsync({ addCleanup });
@@ -56,16 +56,17 @@ for (let extension of [".js", ".mjs", ".cjs"]) {
         assert.deepStrictEqual(helloDiags, [
           {
             code: {
-              target: "https://quick-lint-js.com/errors/#E0034",
-              value: "E0034",
+              target: "https://quick-lint-js.com/errors/E0023/",
+              value: "E0023",
             },
-            message: "redeclaration of variable: x",
+            message: "keywords cannot contain escape sequences",
             severity: vscode.DiagnosticSeverity.Error,
             source: "quick-lint-js",
-            startLine: 1,
-            startCharacter: 4,
-            endLine: 1,
-            endCharacter: 5,
+            startLine: 0,
+            startCharacter: 0,
+            endLine: 0,
+            endCharacter: 6,
+            relatedInformation: [],
           },
         ]);
       });
@@ -154,6 +155,25 @@ tests = {
     await waitUntilAnyDiagnosticsAsync(jsURI);
   },
 
+  "parser supports JSX": async ({ addCleanup }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let helloFilePath = path.join(scratchDirectory, "hello.jsx");
+    fs.writeFileSync(
+      helloFilePath,
+      "function MyComponent() { return <div></div>; }\n"
+    );
+    let helloURI = vscode.Uri.file(helloFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+    let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+    await pollAsync(async () => {
+      let helloDiags = normalizeDiagnostics(helloURI);
+      assert.deepStrictEqual(helloDiags, []);
+    });
+  },
+
   "file on disk changes": async ({ addCleanup }) => {
     let scratchDirectory = makeScratchDirectory({ addCleanup });
     let helloFilePath = path.join(scratchDirectory, "hello.js");
@@ -167,23 +187,64 @@ tests = {
     // HACK(strager): Wait for VS Code to register its filesystem watchers.
     await sleepAsync(300);
 
-    fs.writeFileSync(helloFilePath, "let x = 3;\nlet x = 4;\n");
+    fs.writeFileSync(helloFilePath, "\\u{69}f");
 
     await pollAsync(async () => {
       let helloDiags = normalizeDiagnostics(helloURI);
       assert.deepStrictEqual(helloDiags, [
         {
           code: {
-            target: "https://quick-lint-js.com/errors/#E0034",
-            value: "E0034",
+            target: "https://quick-lint-js.com/errors/E0023/",
+            value: "E0023",
           },
-          message: "redeclaration of variable: x",
+          message: "keywords cannot contain escape sequences",
+          severity: vscode.DiagnosticSeverity.Error,
+          source: "quick-lint-js",
+          startLine: 0,
+          startCharacter: 0,
+          endLine: 0,
+          endCharacter: 6,
+          relatedInformation: [],
+        },
+      ]);
+    });
+  },
+
+  "multi-part diagnostic": async ({ addCleanup }) => {
+    let scratchDirectory = makeScratchDirectory({ addCleanup });
+    let helloFilePath = path.join(scratchDirectory, "hello.js");
+    fs.writeFileSync(helloFilePath, "const x = 3;\nx = 4;");
+    let helloURI = vscode.Uri.file(helloFilePath);
+
+    await loadExtensionAsync({ addCleanup });
+    let helloDocument = await vscode.workspace.openTextDocument(helloURI);
+    let helloEditor = await vscode.window.showTextDocument(helloDocument);
+
+    await pollAsync(async () => {
+      let helloDiags = normalizeDiagnostics(helloURI);
+      assert.deepStrictEqual(helloDiags, [
+        {
+          code: {
+            target: "https://quick-lint-js.com/errors/E0003/",
+            value: "E0003",
+          },
+          message: "assignment to const variable",
           severity: vscode.DiagnosticSeverity.Error,
           source: "quick-lint-js",
           startLine: 1,
-          startCharacter: 4,
+          startCharacter: 0,
           endLine: 1,
-          endCharacter: 5,
+          endCharacter: 1,
+          relatedInformation: [
+            {
+              message: "const variable declared here",
+              uri: helloURI.toString(),
+              startLine: 0,
+              startCharacter: 6,
+              endLine: 0,
+              endCharacter: 7,
+            },
+          ],
         },
       ]);
     });
@@ -392,7 +453,7 @@ tests = {
       // redeclaration of variable 'x'
       {
         code: {
-          target: "https://quick-lint-js.com/errors/#E0034",
+          target: "https://quick-lint-js.com/errors/E0034/",
           value: "E0034",
         },
         severity: vscode.DiagnosticSeverity.Error,
@@ -400,7 +461,7 @@ tests = {
       // use of undeclared variable 'undeclaredVariable'
       {
         code: {
-          target: "https://quick-lint-js.com/errors/#E0057",
+          target: "https://quick-lint-js.com/errors/E0057/",
           value: "E0057",
         },
         severity: vscode.DiagnosticSeverity.Warning,
@@ -458,7 +519,7 @@ tests = {
       [
         {
           code: {
-            target: "https://quick-lint-js.com/errors/#E0057",
+            target: "https://quick-lint-js.com/errors/E0057/",
             value: "E0057",
           },
           startLine: 1, // document
@@ -607,7 +668,7 @@ tests = {
       [
         {
           code: {
-            target: "https://quick-lint-js.com/errors/#E0057",
+            target: "https://quick-lint-js.com/errors/E0057/",
             value: "E0057",
           },
           startLine: 1, // testGlobalVariableFromDisk
@@ -659,7 +720,7 @@ tests = {
       configDiags.map(({ code }) => code),
       [
         {
-          target: "https://quick-lint-js.com/errors/#E0171",
+          target: "https://quick-lint-js.com/errors/E0171/",
           value: "E0171",
         },
       ]
@@ -700,7 +761,7 @@ tests = {
       configDiags.map(({ code }) => code),
       [
         {
-          target: "https://quick-lint-js.com/errors/#E0171",
+          target: "https://quick-lint-js.com/errors/E0171/",
           value: "E0171",
         },
       ]
@@ -760,7 +821,7 @@ tests = {
         [
           {
             code: {
-              target: "https://quick-lint-js.com/errors/#E0057",
+              target: "https://quick-lint-js.com/errors/E0057/",
               value: "E0057",
             },
             startLine: 0, // testGlobalVariableFromEditor
@@ -1241,6 +1302,17 @@ function normalizeDiagnostics(vscodeDiagnosticsOrURI) {
     startCharacter: diag.range.start.character,
     endLine: diag.range.end.line,
     endCharacter: diag.range.end.character,
+    relatedInformation:
+      typeof diag.relatedInformation === "undefined" ?
+      [] :
+      diag.relatedInformation.map(info => ({
+        message: info.message,
+        uri: info.location.uri.toString(),
+        startLine: info.location.range.start.line,
+        startCharacter: info.location.range.start.character,
+        endLine: info.location.range.end.line,
+        endCharacter: info.location.range.end.character,
+      })),
   }));
 }
 

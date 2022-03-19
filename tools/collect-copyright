@@ -741,7 +741,7 @@ def parse_link_map(raw_link_map: str) -> LinkMap:
             state = "MACHO_OBJECT_FILES"
         else:
             if state == "ELF_ARCHIVE_MEMBERS":
-                match = re.match(r"^(?P<file>\S.*)\((?P<symbol>.*)\)$", line)
+                match = re.match(r"^(?P<file>\S[^()]*)\((?P<symbol>[^()]*)\)$", line)
                 if match is not None:
                     linked_archives.add(match.group("file"))
             elif state == "MACHO_OBJECT_FILES":
@@ -817,6 +817,20 @@ libc.so.6                     /tmp/cchQcqEp.o (puts@@GLIBC_2.2.5)
         link_map = parse_link_map(raw_link_map)
         self.assertEqual(
             link_map.linked_archives, {"/usr/lib/x86_64-linux-gnu/libc_nonshared.a"}
+        )
+
+    def test_small_link_map_with_archive_dependencies_from_bfd_ld(self) -> None:
+        raw_link_map = """\
+Archive member included to satisfy reference by file (symbol)
+
+libboost.a(global_resource.cpp.o)
+                              src/CMakeFiles/quick-lint-js.dir/main.cpp.o (boost::container::pmr::new_delete_resource())
+libboost.a(dlmalloc.cpp.o)    libboost.a(global_resource.cpp.o) (boost::container::dlmalloc_global_sync_lock())
+libboost.a(alloc_lib.c.o)     libboost.a(dlmalloc.cpp.o) (boost_cont_all_deallocated)
+"""
+        link_map = parse_link_map(raw_link_map)
+        self.assertEqual(
+            link_map.linked_archives, {"libboost.a"}
         )
 
     def test_small_link_map_from_gold(self) -> None:
