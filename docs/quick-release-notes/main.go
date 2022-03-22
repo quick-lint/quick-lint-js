@@ -23,12 +23,13 @@ type Tag struct {
 	Name string `json:"name"`
 }
 
-// ChangeLogInfo is for each releases info generated from CHANGELOG.md
+// ChangeLogInfo for each releases info from CHANGELOG.md
 type ChangeLogInfo struct {
-	versionLineNumbers          []int
-	changeLogText               []string
-	changeLogLength             int
-	versionTitlesForEachRelease []string
+	versionLineNumbers           []int
+	changeLogText                []string
+	changeLogLength              int
+	versionTitlesForEachRelease  []string
+	versionNumbersForEachRelease []string
 }
 
 func main() {
@@ -45,16 +46,57 @@ func main() {
 	defer file.Close()
 	ChangeLogInfo := getChangeLogInfo(bufio.NewScanner(file))
 	releaseNotesForEachVersion := createReleaseNotes(ChangeLogInfo)
-	owner, repo := "quick-lint", "quick-lint-js"
+	owner, repo := "LeeWannacott", "quick-lint-js"
 	tagsForEachRelease := getTagsFromAPI(owner, repo)
 	owner, repo = "LeeWannacott", "quick-lint-js"
-	if len(releaseNotesForEachVersion) == len(tagsForEachRelease) && len(releaseNotesForEachVersion) == len(ChangeLogInfo.versionTitlesForEachRelease) {
-		for i := range releaseNotesForEachVersion[:] {
-			makeGitHubRelease(tagsForEachRelease[i], releaseNotesForEachVersion[i], ChangeLogInfo.versionTitlesForEachRelease[i], owner, repo)
+
+	checkEachTagHasReleaseNote(tagsForEachRelease, ChangeLogInfo, releaseNotesForEachVersion, owner, repo)
+
+}
+
+func checkEachTagHasReleaseNote(tagsForEachRelease []Tag, ChangeLogInfo ChangeLogInfo, releaseNoteForEachVersion []string, owner string, repo string) {
+	releaseVersionAndTag := make(map[string]string)
+	changeLogReleaseNotesMap := make(map[string]string)
+	for i, releaseNoteVersion := range ChangeLogInfo.versionNumbersForEachRelease[:] {
+		tagVersionForMap := ""
+		releaseVersionHasTag := false
+		for _, tagVersion := range tagsForEachRelease[:] {
+			if releaseNoteVersion == tagVersion.Name {
+				releaseVersionHasTag = true
+				tagVersionForMap = tagVersion.Name
+			}
 		}
-		fmt.Println("Quick release notes finished...")
-	} else {
-		fmt.Println("Error: Release Note versions in changelog.md and Tags from api are different lengths")
+		if releaseVersionHasTag == false {
+			fmt.Println("Release version: ", releaseNoteVersion, ": has missing Tag")
+		}
+		if releaseVersionHasTag {
+			releaseVersionAndTag[releaseNoteVersion] = tagVersionForMap
+			changeLogReleaseNotesMap[releaseNoteVersion] = releaseNoteForEachVersion[i]
+		}
+	}
+
+	tagAndReleaseVersion := make(map[string]string)
+	for _, tagVersion := range tagsForEachRelease[:] {
+		releaseNoteVersionForMap := ""
+		tagHasVersionNumber := false
+		for _, releaseNoteVersion := range ChangeLogInfo.versionNumbersForEachRelease[:] {
+			if tagVersion.Name == releaseNoteVersion {
+				tagHasVersionNumber = true
+				releaseNoteVersionForMap = releaseNoteVersion
+			}
+		}
+		if tagHasVersionNumber == false {
+			fmt.Println("tag: ", tagVersion.Name, ": has missing Release Note Version")
+		}
+		if tagHasVersionNumber {
+			tagAndReleaseVersion[tagVersion.Name] = releaseNoteVersionForMap
+		}
+	}
+
+	for releaseNoteVersion, tagVersion := range releaseVersionAndTag {
+		if releaseVersionAndTag[releaseNoteVersion] == tagAndReleaseVersion[tagVersion] {
+			makeGitHubRelease(tagAndReleaseVersion[tagVersion], changeLogReleaseNotesMap[releaseNoteVersion], releaseNoteVersion, owner, repo)
+		}
 	}
 }
 
@@ -79,8 +121,7 @@ func getTagsFromAPI(owner string, repo string) []Tag {
 }
 
 func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
-	// regexp for: ## 1.0.0 (2021-12-13)
-	re, err := regexp.Compile(`## (?P<versionNumberAndDate>\d+\.\d+\.\d+.*)`)
+	re, err := regexp.Compile(`## (?P<versionNumberAndDate>(?P<versionNumber>\d+\.\d+\.\d+).*)`)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -89,14 +130,18 @@ func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
 	var versionLineNumbers []int
 	var changeLogText []string
 	var versionTitlesForEachRelease []string
+	var versionNumbersForEachRelease []string
 	for scanner.Scan() {
 		changeLogLength++
 		changeLogText = append(changeLogText, scanner.Text())
 		if re.MatchString(scanner.Text()) {
 			hashVersionAndDate := re.FindStringSubmatch(scanner.Text())
-			index := re.SubexpIndex("versionNumberAndDate")
-			versionNumberAndDate := hashVersionAndDate[index]
+			idx := re.SubexpIndex("versionNumberAndDate")
+			idx2 := re.SubexpIndex("versionNumber")
+			versionNumberAndDate := hashVersionAndDate[idx]
+			versionNumber := hashVersionAndDate[idx2]
 			versionTitlesForEachRelease = append(versionTitlesForEachRelease, versionNumberAndDate)
+			versionNumbersForEachRelease = append(versionNumbersForEachRelease, versionNumber)
 			versionLineNumbers = append(versionLineNumbers, lineCount)
 		}
 		lineCount++
@@ -104,7 +149,7 @@ func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
 	if scanner.Err() != nil {
 		fmt.Println(scanner.Err())
 	}
-	return ChangeLogInfo{versionLineNumbers, changeLogText, changeLogLength, versionTitlesForEachRelease}
+	return ChangeLogInfo{versionLineNumbers, changeLogText, changeLogLength, versionTitlesForEachRelease, versionNumbersForEachRelease}
 }
 
 func createReleaseNotes(ChangeLogInfo ChangeLogInfo) []string {
@@ -143,10 +188,10 @@ func createReleaseNotes(ChangeLogInfo ChangeLogInfo) []string {
 	return releaseNotesForEachVersion
 }
 
-func makeGitHubRelease(tagForRelease Tag, releaseNote string, versionTitle string, owner string, repo string) {
+func makeGitHubRelease(tagForRelease string, releaseNote string, versionTitle string, owner string, repo string) {
 	// https://docs.github.com/en/rest/reference/releases
 	postBody, err := json.Marshal(map[string]string{
-		"tag_name": tagForRelease.Name,
+		"tag_name": tagForRelease,
 		"name":     versionTitle,
 		"body":     releaseNote,
 	})
@@ -164,7 +209,7 @@ func makeGitHubRelease(tagForRelease Tag, releaseNote string, versionTitle strin
 		log.Fatal(err)
 	}
 	defer resp.Body.Close()
-	fmt.Println("response Headers:", resp.Header)
+	// fmt.Println("Response Headers:", resp.Header)
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
