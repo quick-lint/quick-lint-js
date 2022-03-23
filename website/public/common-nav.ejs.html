@@ -2,8 +2,7 @@
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 %>
-
-<script>
+<script id="thisTag"> 
   //<%
   let assert = await import("assert");
   let ejs = await import("ejs");
@@ -250,8 +249,9 @@
     throw new Error("Malformed subpage: " + JSON.stringify(subpage));
   }
   //%>
-</script>
-
+  var thisTag = document.getElementById('thisTag');
+  thisTag.remove();
+</script> 
 <% if (currentURI === "/") { %>
 <h1>quick-lint-js</h1>
 <% } else { %>

@@ -6,7 +6,7 @@
     <%- await include("../common-head.ejs.html", { title: `Errors and warnings
     for quick-lint-js`, description: `quick-lint-js provides helpful error
     messages.` }) %>
-    <script>
+    <script id="thisTag">
       //<%
       let url = await import("url");
 
@@ -19,6 +19,8 @@
         documentationDirectoryPath
       );
       //%>
+      var thisTag = document.getElementById('thisTag');
+      thisTag.remove();
     </script>
     <link href="../main.css" rel="stylesheet" />
     <style>

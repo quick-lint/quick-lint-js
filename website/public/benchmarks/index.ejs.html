@@ -6,7 +6,7 @@
     <%- await include("../common-head.ejs.html", { title: `JS linter
     benchmarks`, description: `quick-lint-js is faster than any other JavaScript
     linter.` }) %>
-    <script>
+    <script id="thisTag">
       //<%
       let fs = await import("fs");
       let url = await import("url");
@@ -30,6 +30,8 @@
 
       let versions = JSON.parse(fs.readFileSync("full-change-wait-express-router-js.json", "utf-8")).metadata;
       //%>
+      var thisTag = document.getElementById('thisTag');
+      thisTag.remove();
     </script>
     <link href="../main.css" rel="stylesheet" />
     <link href="benchmark.css" rel="stylesheet" />

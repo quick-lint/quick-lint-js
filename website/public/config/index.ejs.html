@@ -5,17 +5,18 @@
   <head>
     <%- await include("../common-head.ejs.html", { title: `Configuration files
     for quick-lint-js` }) %>
-    <script>
+    <script id="thisTag">
       //<%
       let fs = await import("fs");
       let asciidoctor = (await import("asciidoctor")).default();
-
       let adoc = await fs.promises.readFile(
         "../../../docs/config.adoc",
         "utf-8"
       );
       let configDocumentation = asciidoctor.convert(adoc);
       //%>
+      var thisTag = document.getElementById('thisTag');
+      thisTag.remove();
     </script>
     <link href="../main.css" rel="stylesheet" />
   </head>

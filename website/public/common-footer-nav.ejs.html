@@ -3,7 +3,7 @@
 <!-- See end of file for extended copyright information. -->
 %>
 
-<script>
+<script id="thisTag">
   //<%
   let ejs = await import("ejs");
   let url = await import("url");
@@ -29,8 +29,9 @@
     </li>`;
   }
   //%>
+  var thisTag = document.getElementById('thisTag');
+  thisTag.remove();
 </script>
-
 <nav>
   <ul>
     <% for (let page of navigationPages) { %> <% if (page.uri !== currentURI) {

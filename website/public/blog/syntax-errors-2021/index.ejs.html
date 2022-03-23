@@ -6,7 +6,7 @@
     <%- await include("../../common-head.ejs.html", { title: `JavaScript syntax
     errors compared (2021)`, description: `Comparison of errors produced by
     different JavaScript parsers` }) %>
-    <script>
+    <script id="thisTag">
       //<%
       let url = await import("url");
       let { html } = await import(url.pathToFileURL("../../../src/html-tag.mjs"));
@@ -100,6 +100,8 @@
         return `${r}/5:`;
       }
       //%>
+      var thisTag = document.getElementById('thisTag');
+      thisTag.remove();
     </script>
     <link href="../../main.css" rel="stylesheet" />
     <style>

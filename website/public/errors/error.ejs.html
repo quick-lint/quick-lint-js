@@ -3,7 +3,7 @@
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
   <head>
-    <script>
+    <script id="thisTag">
       //<%
       let path = await import("path");
       let url = await import("url");
@@ -16,6 +16,8 @@
       let errorCode = path.basename(currentURI);
       let errorDocument = await ErrorDocumentation.parseFileAsync(path.join(documentationDirectoryPath, `${errorCode}.md`));
       //%>
+      var thisTag = document.getElementById('thisTag');
+      thisTag.remove();
     </script>
     <%- await include("../common-head.ejs.html", { title: `${errorCode}
     documentation (quick-lint-js)`, description: `Docs for quick-lint-js error
