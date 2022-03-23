@@ -7,11 +7,11 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -33,7 +33,10 @@ type ChangeLogInfo struct {
 }
 
 func main() {
-	fmt.Println("Quick release notes running...")
+	repoPtr := flag.String("Repo", "quick-lint/quick-lint-js", "a string")
+	tagsRepoPtr := flag.String("TagsRepo", "quick-lint/quick-lint-js", "a string")
+	flag.Parse()
+	fmt.Println(*repoPtr, *tagsRepoPtr)
 	_, scriptPath, _, ok := runtime.Caller(0)
 	if !ok {
 		panic("could not determine path of .go file")
@@ -46,15 +49,14 @@ func main() {
 	defer file.Close()
 	ChangeLogInfo := getChangeLogInfo(bufio.NewScanner(file))
 	releaseNotesForEachVersion := createReleaseNotes(ChangeLogInfo)
-	owner, repo := "LeeWannacott", "quick-lint-js"
-	tagsForEachRelease := getTagsFromAPI(owner, repo)
-	owner, repo = "LeeWannacott", "quick-lint-js"
-
-	checkEachTagHasReleaseNote(tagsForEachRelease, ChangeLogInfo, releaseNotesForEachVersion, owner, repo)
+	tagsRepoPath := *repoPtr
+	tagsForEachRelease := getTagsFromAPI(tagsRepoPath)
+	repoPath := *repoPtr
+	checkEachTagHasReleaseNote(tagsForEachRelease, ChangeLogInfo, releaseNotesForEachVersion, repoPath)
 
 }
 
-func checkEachTagHasReleaseNote(tagsForEachRelease []Tag, ChangeLogInfo ChangeLogInfo, releaseNoteForEachVersion []string, owner string, repo string) {
+func checkEachTagHasReleaseNote(tagsForEachRelease []Tag, ChangeLogInfo ChangeLogInfo, releaseNoteForEachVersion []string, repoPath string) {
 	releaseVersionAndTag := make(map[string]string)
 	changeLogReleaseNotesMap := make(map[string]string)
 	for i, releaseNoteVersion := range ChangeLogInfo.versionNumbersForEachRelease[:] {
@@ -95,14 +97,14 @@ func checkEachTagHasReleaseNote(tagsForEachRelease []Tag, ChangeLogInfo ChangeLo
 
 	for releaseNoteVersion, tagVersion := range releaseVersionAndTag {
 		if releaseVersionAndTag[releaseNoteVersion] == tagAndReleaseVersion[tagVersion] {
-			makeGitHubRelease(tagAndReleaseVersion[tagVersion], changeLogReleaseNotesMap[releaseNoteVersion], releaseNoteVersion, owner, repo)
+			makeGitHubRelease(tagAndReleaseVersion[tagVersion], changeLogReleaseNotesMap[releaseNoteVersion], releaseNoteVersion, repoPath)
 		}
 	}
 }
 
-func getTagsFromAPI(owner string, repo string) []Tag {
+func getTagsFromAPI(tagsRepoPath string) []Tag {
 	// https://docs.github.com/en/rest/reference/repos#list-repository-tags
-	pathToTags := fmt.Sprintf("https://api.github.com/repos/%v/%v/tags", url.QueryEscape(owner), url.QueryEscape(repo))
+	pathToTags := fmt.Sprintf("https://api.github.com/repos/%v/tags", tagsRepoPath)
 	resp, err := http.Get(pathToTags)
 	if err != nil {
 		log.Fatal(err)
@@ -188,7 +190,7 @@ func createReleaseNotes(ChangeLogInfo ChangeLogInfo) []string {
 	return releaseNotesForEachVersion
 }
 
-func makeGitHubRelease(tagForRelease string, releaseNote string, versionTitle string, owner string, repo string) {
+func makeGitHubRelease(tagForRelease string, releaseNote string, versionTitle string, repoPath string) {
 	// https://docs.github.com/en/rest/reference/releases
 	postBody, err := json.Marshal(map[string]string{
 		"tag_name": tagForRelease,
@@ -199,8 +201,8 @@ func makeGitHubRelease(tagForRelease string, releaseNote string, versionTitle st
 		log.Fatal(err)
 	}
 	responseBody := bytes.NewBuffer(postBody)
-	url := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", url.QueryEscape(owner), url.QueryEscape(repo))
-	req, err := http.NewRequest("POST", url, responseBody)
+	releasesURL := fmt.Sprintf("https://api.github.com/repos/%v/releases", repoPath)
+	req, err := http.NewRequest("POST", releasesURL, responseBody)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "token insert_token_here")
@@ -209,7 +211,7 @@ func makeGitHubRelease(tagForRelease string, releaseNote string, versionTitle st
 		log.Fatal(err)
 	}
 	defer resp.Body.Close()
-	// fmt.Println("Response Headers:", resp.Header)
+	fmt.Println("Response Headers:", resp.Header)
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
