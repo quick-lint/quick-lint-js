@@ -1,10 +1,10 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-Register-ArgumentCompleter -CommandName quick-lint-js -Native -ScriptBlock {
-    param( $wordToComplete )
+[scriptblock]$ScriptBlock = {
+    param( $WordToComplete )
 
-    $opts = @(
+    $Options = @(
         @{
             CompletionText = '--help'
             ToolTip = 'Print help message'
@@ -43,10 +43,12 @@ Register-ArgumentCompleter -CommandName quick-lint-js -Native -ScriptBlock {
         }
     )
 
-    $opts.Where({$_.CompletionText -like "$wordToComplete*"}) | ForEach-Object {
+    $Options.Where({$_.CompletionText -like "$wordToComplete*"}) | ForEach-Object {
         [System.Management.Automation.CompletionResult]::new($_.CompletionText, $_.CompletionText, 'ParameterValue', $_.ToolTip)
     }
 }
+
+Register-ArgumentCompleter -CommandName quick-lint-js -Native -ScriptBlock $ScriptBlock
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
