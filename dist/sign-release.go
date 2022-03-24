@@ -352,6 +352,7 @@ func (self *FileTransformResult) UpdateZipHeader(header *zip.FileHeader) {
 
 func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, error) {
 	var err error
+	var transform FileTransformResult
 
 	if PathLooksLikeTarGz(deepPath.Last()) {
 		// TODO(strager): Optimization: Don't
@@ -359,11 +360,13 @@ func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, erro
 		// filesToTransform mentions it.
 		needsTransform := true
 		if needsTransform {
-			transformResult, err := TransformTarGz(deepPath, file)
+			transform, err = TransformTarGz(deepPath, file)
 			if err != nil {
 				return FileTransformResult{}, err
 			}
-			return transformResult, nil
+			if transform.siblingFile != nil {
+				panic("unexpected siblingFile for .tar.gz")
+			}
 		}
 	}
 
@@ -378,12 +381,18 @@ func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, erro
 				return FileTransformResult{}, err
 			}
 
-			transformResult, err := TransformZip(deepPath, fileContent)
+			transform, err = TransformZip(deepPath, fileContent)
 			if err != nil {
 				return FileTransformResult{}, err
 			}
-			return transformResult, nil
+			if transform.siblingFile != nil {
+				panic("unexpected siblingFile for .zip")
+			}
 		}
+	}
+
+	if transform.newFile != nil {
+		file = bytes.NewReader(*transform.newFile)
 	}
 
 	transformType := filesToTransform[deepPath]
@@ -411,7 +420,6 @@ func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, erro
 		file = bytes.NewReader(fileContent)
 	}
 
-	var transform FileTransformResult
 	switch transformType {
 	case RelicApple, RelicPGP, RelicWindows:
 		log.Printf("signing with Relic: %v\n", deepPath)
@@ -421,11 +429,15 @@ func TransformFile(deepPath DeepPath, file io.Reader) (FileTransformResult, erro
 		}
 
 	default: // NoTransform
-		return NoOpTransform(), nil
+		if transform.newFile == nil {
+			return NoOpTransform(), nil
+		}
 	}
 
-	delete(filesToTransform, deepPath)
-	TransformCache[fileHash] = transform
+	if transformType != NoTransform {
+		delete(filesToTransform, deepPath)
+		TransformCache[fileHash] = transform
+	}
 	return transform, nil
 }
 
