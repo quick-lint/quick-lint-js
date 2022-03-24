@@ -13,6 +13,22 @@
 #include <string_view>
 #include <utility>
 
+#if defined(_MSC_FULL_VER) && _MSC_FULL_VER <= 192829337
+// Work around the following false compilation error in MSVC version 19.28.29337
+// (aka 14.28-16.8 aka 14.28.29333) and older:
+//
+// error C2131: expression did not evaluate to a constant
+// message: failure was caused by out of range index 3; allowed range is 0 <=
+//          index < 2
+// message: while evaluating constexpr function
+//          diagnostic_info_builder<error_adjacent_jsx_without_parent>::add
+// message: while evaluating constexpr function
+//          diagnostic_info_for_error<error_adjacent_jsx_without_parent>::get
+#define DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE /* */
+#else
+#define DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE constexpr
+#endif
+
 namespace quick_lint_js {
 namespace {
 constexpr void strcpy(char* out, const char* in) noexcept {
@@ -108,23 +124,24 @@ struct diagnostic_info_for_error;
 #define NOTE(message_format, ...) \
   .add(diagnostic_severity::note, message_format, MAKE_ARGS(__VA_ARGS__))
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call)         \
-  template <>                                                         \
-  struct diagnostic_info_for_error<name> {                            \
-    using error_class = name;                                         \
-                                                                      \
-    static constexpr diagnostic_info get() noexcept {                 \
-      return diagnostic_info_builder<name>(code) format_call.build(); \
-    }                                                                 \
+#define QLJS_ERROR_TYPE(name, code, struct_body, format_call)                \
+  template <>                                                                \
+  struct diagnostic_info_for_error<name> {                                   \
+    using error_class = name;                                                \
+                                                                             \
+    static DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE diagnostic_info get() noexcept { \
+      return diagnostic_info_builder<name>(code) format_call.build();        \
+    }                                                                        \
   };
 QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 }
 
-constexpr const diagnostic_info all_diagnostic_infos[] = {
+DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE const diagnostic_info
+    all_diagnostic_infos[] = {
 #define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
   diagnostic_info_for_error<name>::get(),
-    QLJS_X_ERROR_TYPES
+        QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
 };
 
