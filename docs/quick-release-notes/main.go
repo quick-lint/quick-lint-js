@@ -57,6 +57,9 @@ func main() {
 }
 
 func checkEachTagHasReleaseNote(tagsForEachRelease []Tag, ChangeLogInfo ChangeLogInfo, releaseNoteForEachVersion []string, repoPath string) {
+
+	var redColor = "\033[31m"
+	var resetColor = "\033[0m"
 	releaseVersionAndTag := make(map[string]string)
 	changeLogReleaseNotesMap := make(map[string]string)
 	for i, releaseNoteVersion := range ChangeLogInfo.versionNumbersForEachRelease[:] {
@@ -69,7 +72,7 @@ func checkEachTagHasReleaseNote(tagsForEachRelease []Tag, ChangeLogInfo ChangeLo
 			}
 		}
 		if releaseVersionHasTag == false {
-			fmt.Println("Release version: ", releaseNoteVersion, ": has missing Tag")
+			fmt.Println(redColor+"WARNING: release", releaseNoteVersion, "missing Tag"+resetColor)
 		}
 		if releaseVersionHasTag {
 			releaseVersionAndTag[releaseNoteVersion] = tagVersionForMap
@@ -88,7 +91,7 @@ func checkEachTagHasReleaseNote(tagsForEachRelease []Tag, ChangeLogInfo ChangeLo
 			}
 		}
 		if tagHasVersionNumber == false {
-			fmt.Println("tag: ", tagVersion.Name, ": has missing Release Note Version")
+			fmt.Println(redColor+"WARNING: tag", tagVersion.Name, "missing changelog entry"+resetColor)
 		}
 		if tagHasVersionNumber {
 			tagAndReleaseVersion[tagVersion.Name] = releaseNoteVersionForMap
