@@ -11,6 +11,15 @@ Semantic Versioning.
 ### Added
 
 * Windows: The 32-bit x86 builds are now code-signed.
+* Windows: Tab-completion now works in PowerShell. (Completion needs to be
+  [installed manually][install-powershell-completions].) (Implemented by [Tony
+  Sathre][]).
+
+### Fixed
+
+* The executable files shared between the npm packages and the static builds are
+  now identical. (Previously, the files sometimes differed because they were
+  code-signed independently. Code signing is non-deterministic.)
 
 ## 2.3.0 (2022-02-24)
 
@@ -437,8 +446,10 @@ Beta release.
 [Nico Sonack]: https://github.com/herrhotzenplotz
 [Piotr Dąbrowski]: https://github.com/yhnavein
 [Shivam Mehta]: https://github.com/maniac-en
+[Tony Sathre]: https://github.com/tonysathre
 [coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
+[install-powershell-completions]: https://github.com/quick-lint/quick-lint-js/blob/master/completions/README.md#powershell
 [tiagovla]: https://github.com/tiagovla
 [wagner riffel]: https://github.com/wgrr
 
