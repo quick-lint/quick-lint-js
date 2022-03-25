@@ -14,7 +14,6 @@ check_file_copyright_header() {
   local file="${1}"
   case "${file}" in
     benchmark/benchmark-lsp/corpus/*) ;;
-    benchmark/benchmark-lsp/*) check_file_copyright_header_benchmark_lsp "${file}" ;;
     dist/winget/*.yaml) check_file_copyright_header_winget_manifests "${file}" ;;
     *) check_file_copyright_header_quick_lint_js "${file}" ;;
   esac
@@ -35,13 +34,6 @@ check_file_copyright_header_winget_manifests() {
   local file="${1}"
   fgrep -q 'waived all copyright' "${file}" && \
     fgrep -q 'quick-lint-js winget manifests' "${file}"
-}
-
-# quick-lint-js's benchmark-lsp subproject is BSD3-licensed.
-check_file_copyright_header_benchmark_lsp() {
-  local file="${1}"
-  fgrep -q 'Copyright' "${file}" && \
-    fgrep -q 'This file is part of quick-lint-js.' "${file}"
 }
 
 error=0
