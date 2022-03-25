@@ -5,10 +5,12 @@
   "license": "GPL-3.0-or-later,...",
   "architecture": {
     "64bit": {
-      "url": "https://c.quick-lint-js.com/releases/2.3.1/manual/windows.zip"
+      "url": "{{ .BaseURI }}manual/windows.zip",
+      "hash": "sha256:{{ .X64_ZIP_SHA256 }}"
     },
     "32bit": {
-      "url": "https://c.quick-lint-js.com/releases/2.3.1/manual/windows-x86.zip"
+      "url": "{{ .BaseURI }}manual/windows-x86.zip",
+      "hash": "sha256:{{ .X86_ZIP_SHA256 }}"
     }
   },
   "bin": "bin/quick-lint-js.exe",
