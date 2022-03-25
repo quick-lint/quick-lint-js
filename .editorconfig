@@ -76,6 +76,11 @@ indent_style = space
 indent_size = 2
 indent_style = space
 
+# https://github.com/ScoopInstaller/.github/blob/ad68b61c4c1cbaeea36d1222c44084dfb15d5c43/.github/CONTRIBUTING.md#for-scoop-buckets
+[dist/scoop/*.json]
+indent_size = 4
+indent_style = space
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar
 #

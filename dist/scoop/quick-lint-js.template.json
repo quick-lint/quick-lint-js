@@ -1,34 +1,34 @@
 {
-  "version": "2.3.1",
-  "description": "Find bugs in JavaScript programs.",
-  "homepage": "https://quick-lint-js.com/",
-  "license": "GPL-3.0-or-later,...",
-  "architecture": {
-    "64bit": {
-      "url": "{{ .BaseURI }}manual/windows.zip",
-      "hash": "sha256:{{ .X64_ZIP_SHA256 }}"
-    },
-    "32bit": {
-      "url": "{{ .BaseURI }}manual/windows-x86.zip",
-      "hash": "sha256:{{ .X86_ZIP_SHA256 }}"
-    }
-  },
-  "bin": "bin/quick-lint-js.exe",
-  "checkver": {
-    "url": "https://c.quick-lint-js.com/releases/latest/scoop/quick-lint-js.json",
-    "jsonpath": "$.version"
-  },
-  "autoupdate": {
+    "version": "2.3.1",
+    "description": "Find bugs in JavaScript programs.",
+    "homepage": "https://quick-lint-js.com/",
+    "license": "GPL-3.0-or-later,...",
     "architecture": {
-      "64bit": {
-        "url": "https://c.quick-lint-js.com/releases/$version/manual/windows.zip"
-      },
-      "32bit": {
-        "url": "https://c.quick-lint-js.com/releases/$version/manual/windows-x86.zip"
-      }
+        "64bit": {
+            "url": "{{ .BaseURI }}manual/windows.zip",
+            "hash": "sha256:{{ .X64_ZIP_SHA256 }}"
+        },
+        "32bit": {
+            "url": "{{ .BaseURI }}manual/windows-x86.zip",
+            "hash": "sha256:{{ .X86_ZIP_SHA256 }}"
+        }
     },
-    "hash": {
-      "url": "$baseurl/../SHA256SUMS"
+    "bin": "bin/quick-lint-js.exe",
+    "checkver": {
+        "url": "https://c.quick-lint-js.com/releases/latest/scoop/quick-lint-js.json",
+        "jsonpath": "$.version"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://c.quick-lint-js.com/releases/$version/manual/windows.zip"
+            },
+            "32bit": {
+                "url": "https://c.quick-lint-js.com/releases/$version/manual/windows-x86.zip"
+            }
+        },
+        "hash": {
+            "url": "$baseurl/../SHA256SUMS"
+        }
     }
-  }
 }
