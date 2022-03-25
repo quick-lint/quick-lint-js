@@ -108,7 +108,7 @@ var Steps []Step = []Step{
 		Title: "Create a Scoop manifest",
 		Run: func() {
 			fmt.Printf("Create a Scoop manifest:\n")
-			fmt.Printf("$ go run ./dist/scoop/make-manifest.go -BaseURI \"https://c.quick-lint-js.com/release/$YOUR_VERSION_NUMBER/\" -x86-ZIP signed-builds/manual/windows-x86.zip -x64-ZIP signed-builds/manual/windows.zip -Out signed-builds/scoop/quick-lint-js.json\n")
+			fmt.Printf("$ go run ./dist/scoop/make-manifest.go -BaseURI \"https://c.quick-lint-js.com/releases/$YOUR_VERSION_NUMBER/\" -x86-ZIP signed-builds/manual/windows-x86.zip -x64-ZIP signed-builds/manual/windows.zip -Out signed-builds/scoop/quick-lint-js.json\n")
 			WaitForDone()
 		},
 	},
@@ -117,7 +117,7 @@ var Steps []Step = []Step{
 		Title: "Create a winget manifest",
 		Run: func() {
 			fmt.Printf("Create a winget manifest:\n")
-			fmt.Printf("$ go run ./dist/winget/make-manifests.go -BaseURI \"https://c.quick-lint-js.com/release/$YOUR_VERSION_NUMBER/\" -MSIX signed-builds/windows/quick-lint-js.msix -OutDir signed-builds/winget/\n")
+			fmt.Printf("$ go run ./dist/winget/make-manifests.go -BaseURI \"https://c.quick-lint-js.com/releases/$YOUR_VERSION_NUMBER/\" -MSIX signed-builds/windows/quick-lint-js.msix -OutDir signed-builds/winget/\n")
 			WaitForDone()
 		},
 	},
