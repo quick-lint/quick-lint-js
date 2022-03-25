@@ -1,14 +1,14 @@
 {
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Find bugs in JavaScript programs.",
   "homepage": "https://quick-lint-js.com/",
   "license": "GPL-3.0-or-later,...",
   "architecture": {
     "64bit": {
-      "url": "https://c.quick-lint-js.com/releases/2.3.0/manual/windows.zip"
+      "url": "https://c.quick-lint-js.com/releases/2.3.1/manual/windows.zip"
     },
     "32bit": {
-      "url": "https://c.quick-lint-js.com/releases/2.3.0/manual/windows-x86.zip"
+      "url": "https://c.quick-lint-js.com/releases/2.3.1/manual/windows-x86.zip"
     }
   },
   "bin": "bin/quick-lint-js.exe",

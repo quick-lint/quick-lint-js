@@ -5,7 +5,7 @@
 # http://creativecommons.org/publicdomain/zero/1.0/
 
 PackageIdentifier: quick-lint.quick-lint-js
-PackageVersion: 2.3.0.0
+PackageVersion: 2.3.1.0
 
 DefaultLocale: en-US
 ManifestType: version
