@@ -101,7 +101,7 @@ var Steps []Step = []Step{
 		Title: "Create a Scoop manifest",
 		Run: func() {
 			fmt.Printf("Create a Scoop manifest:\n")
-			fmt.Printf("$ go run ./dist/scoop/make-manifest.go -BaseURI \"https://c.quick-lint-js.com/release/$YOUR_VERSION_NUMBER/\" -x86-ZIP builds/manual/windows-x86.zip -x64-ZIP builds/manual/windows.zip -Out builds/scoop/quick-lint-js.json\n")
+			fmt.Printf("$ go run ./dist/scoop/make-manifest.go -BaseURI \"https://c.quick-lint-js.com/release/$YOUR_VERSION_NUMBER/\" -x86-ZIP signed-builds/manual/windows-x86.zip -x64-ZIP signed-builds/manual/windows.zip -Out signed-builds/scoop/quick-lint-js.json\n")
 			WaitForDone()
 		},
 	},
