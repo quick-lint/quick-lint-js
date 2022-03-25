@@ -107,6 +107,9 @@ func MakeMapping(msixSourcePath string, mappingFilePath string) error {
 
 	mappingTemplatePath := filepath.Join(msixSourcePath, "mapping.template.txt")
 	mappingTemplateSource, err := ioutil.ReadFile(mappingTemplatePath)
+	if err != nil {
+		return err
+	}
 	tmpl, err := template.New(mappingTemplatePath).Parse(string(mappingTemplateSource))
 	if err != nil {
 		return err
