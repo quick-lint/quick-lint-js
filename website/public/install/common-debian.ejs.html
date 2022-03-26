@@ -6,7 +6,7 @@
 <p>Open a terminal, and run the following commands:</p>
 <blockquote>
   <pre><code class="shell-session"><kbd>curl https://c.quick-lint-js.com/quick-lint-js-release.key | sudo apt-key add -</kbd>
-<span class="long-shell-command-line"><kbd>printf '\n# https://quick-lint-js.com/install/#debian\ndeb [arch=amd64] https://c.quick-lint-js.com/debian experimental main\n' | sudo tee -a /etc/apt/sources.list.d/quick-lint-js.list</kbd></span>
+<span class="long-shell-command-line"><kbd>printf '\n# https://quick-lint-js.com<%= currentURI %>\ndeb [arch=amd64] https://c.quick-lint-js.com/debian experimental main\n' | sudo tee -a /etc/apt/sources.list.d/quick-lint-js.list</kbd></span>
 <kbd>sudo apt-get update</kbd>
 <kbd>sudo apt-get install quick-lint-js<%= vim ? " quick-lint-js-vim" : "" %></kbd></code></pre>
 </blockquote>
