@@ -223,6 +223,40 @@ var Steps []Step = []Step{
 			WaitForDone()
 		},
 	},
+
+	Step{
+		Title: "Update Scoop package manager",
+		Run: func() {
+			fmt.Printf("1. Clone https://github.com/ScoopInstaller/Main with Git.\n")
+			fmt.Printf("2. Copy .../signed-builds/scoop/quick-lint-js.json to bucket/quick-lint-js.json\n")
+			fmt.Printf("3. Commit all files with message \"quick-lint-js: Update to version $YOUR_VERSION_NUMBER\".\n")
+			fmt.Printf("4. Push to a fork on GitHub.\n")
+			fmt.Printf("5. Create a pull request on GitHub.\n")
+			fmt.Printf("6. On the pull request, write a comment: \"/verify\"\n")
+			WaitForDone()
+		},
+	},
+
+	Step{
+		Title: "Update winget package manager",
+		Run: func() {
+			fmt.Printf("1. Clone https://github.com/microsoft/winget-pkgs with Git.\n")
+			fmt.Printf("2. Copy .../signed-builds/winget/* manifests/q/quick-lint/quick-lint-js/$YOUR_VERSION_NUMBER/\n")
+			fmt.Printf("3. Commit all files with message \"Add quick-lint-js version $YOUR_VERSION_NUMBER\".\n")
+			fmt.Printf("4. Push to a fork on GitHub.\n")
+			fmt.Printf("5. Create a pull request on GitHub.\n")
+			WaitForDone()
+		},
+	},
+
+	Step{
+		Title: "Update Chocolatey package manager",
+		Run: func() {
+			fmt.Printf("1. Copy signed-builds/chocolatey/quick-lint-js.nupkg to a Windows machine.\n")
+			fmt.Printf("2. On the Windows machine, run: choco push quick-lint-js.nupkg --source https://push.chocolatey.org/\n")
+			WaitForDone()
+		},
+	},
 }
 
 var ConsoleInput *bufio.Reader
