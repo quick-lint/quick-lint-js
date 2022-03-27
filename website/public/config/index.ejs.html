@@ -5,7 +5,7 @@
   <head>
     <%- await include("../common-head.ejs.html", { title: `Configuration files
     for quick-lint-js` }) %>
-    <script>
+    <script id="emptyScript"> 
       //<%
       let fs = await import("fs");
       let asciidoctor = (await import("asciidoctor")).default();

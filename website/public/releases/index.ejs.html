@@ -5,7 +5,7 @@
   <head>
     <%- await include("../common-head.ejs.html", { title: `Release history for
     quick-lint-js`, description: `Older versions of quick-lint-js` }) %>
-    <script>
+    <script id="emptyScript"> 
       //<%
       let fs = await import("fs");
       let url = await import("url");
