@@ -59,12 +59,24 @@ func main() {
 	tagsRepoPath := *tagsRepoPtr
 	tagsForEachRelease := getTagsFromAPI(tagsRepoPath)
 	repoPath := *repoPtr
-	releaseNotesMap := checkEachTagHasReleaseNote(authToken, tagsForEachRelease, ChangeLogInfo, releaseNotesForEachVersion, repoPath)
+	releaseNotesMap, releaseVersionAndTag, tagAndReleaseVersion := checkEachTagHasReleaseNote(authToken, tagsForEachRelease, ChangeLogInfo, releaseNotesForEachVersion, repoPath)
 
-	getReleasesFromAPI(authToken, tagsRepoPath, releaseNotesMap)
+	for releaseNoteVersion, tagVersion := range releaseVersionAndTag {
+		if releaseVersionAndTag[releaseNoteVersion] == tagAndReleaseVersion[tagVersion] {
+			makeOrUpdateGitHubRelease(authToken, tagAndReleaseVersion[tagVersion], releaseNotesMap[releaseNoteVersion], releaseNoteVersion, repoPath, "POST", "")
+		}
+	}
+
+	listOfReleases := getListOfReleases(authToken, tagsRepoPath)
+	for _, release := range listOfReleases[:] {
+		if release.Body != releaseNotesMap[release.Name] {
+			makeOrUpdateGitHubRelease(authToken, release.TagName, releaseNotesMap[release.Name], release.Name, "", "PATCH", release.URL)
+		}
+	}
+
 }
 
-func checkEachTagHasReleaseNote(authToken string, tagsForEachRelease []Tag, ChangeLogInfo ChangeLogInfo, releaseNoteForEachVersion []string, repoPath string) map[string]string {
+func checkEachTagHasReleaseNote(authToken string, tagsForEachRelease []Tag, ChangeLogInfo ChangeLogInfo, releaseNoteForEachVersion []string, repoPath string) (map[string]string, map[string]string, map[string]string) {
 
 	var redColor = "\033[31m"
 	var resetColor = "\033[0m"
@@ -106,16 +118,11 @@ func checkEachTagHasReleaseNote(authToken string, tagsForEachRelease []Tag, Chan
 		}
 	}
 
-	for releaseNoteVersion, tagVersion := range releaseVersionAndTag {
-		if releaseVersionAndTag[releaseNoteVersion] == tagAndReleaseVersion[tagVersion] {
-			makeOrUpdateGitHubRelease(authToken, tagAndReleaseVersion[tagVersion], changeLogReleaseNotesMap[releaseNoteVersion], releaseNoteVersion, repoPath, "POST", "")
-		}
-	}
-	return changeLogReleaseNotesMap
+	return changeLogReleaseNotesMap, releaseVersionAndTag, tagAndReleaseVersion
 
 }
 
-func getReleasesFromAPI(authToken, tagsRepoPath string, releaseNotesForEachVersion map[string]string) {
+func getListOfReleases(authToken string, tagsRepoPath string) []listOfReleasesForUpdate {
 	releasePath := fmt.Sprintf("https://api.github.com/repos/%v/releases", tagsRepoPath)
 	req, err := http.NewRequest("GET", releasePath, nil)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
@@ -135,11 +142,7 @@ func getReleasesFromAPI(authToken, tagsRepoPath string, releaseNotesForEachVersi
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, release := range eachRelease[:] {
-		if release.Body != releaseNotesForEachVersion[release.Name] {
-			makeOrUpdateGitHubRelease(authToken, release.TagName, releaseNotesForEachVersion[release.Name], release.Name, "", "PATCH", release.URL)
-		}
-	}
+	return eachRelease
 }
 
 func getTagsFromAPI(tagsRepoPath string) []Tag {
