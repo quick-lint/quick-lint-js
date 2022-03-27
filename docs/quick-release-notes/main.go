@@ -40,10 +40,10 @@ type ChangeLogInfo struct {
 }
 
 func main() {
+	authToken := os.Args[len(os.Args)-1]
 	repoPtr := flag.String("Repo", "quick-lint/quick-lint-js", "a string")
 	tagsRepoPtr := flag.String("TagsRepo", "quick-lint/quick-lint-js", "a string")
 	flag.Parse()
-	fmt.Println(*repoPtr, *tagsRepoPtr)
 	_, scriptPath, _, ok := runtime.Caller(0)
 	if !ok {
 		panic("could not determine path of .go file")
@@ -59,12 +59,12 @@ func main() {
 	tagsRepoPath := *tagsRepoPtr
 	tagsForEachRelease := getTagsFromAPI(tagsRepoPath)
 	repoPath := *repoPtr
-	releaseNotesMap := checkEachTagHasReleaseNote(tagsForEachRelease, ChangeLogInfo, releaseNotesForEachVersion, repoPath)
+	releaseNotesMap := checkEachTagHasReleaseNote(authToken, tagsForEachRelease, ChangeLogInfo, releaseNotesForEachVersion, repoPath)
 
-	getReleasesFromAPI(tagsRepoPath, releaseNotesMap)
+	getReleasesFromAPI(authToken, tagsRepoPath, releaseNotesMap)
 }
 
-func checkEachTagHasReleaseNote(tagsForEachRelease []Tag, ChangeLogInfo ChangeLogInfo, releaseNoteForEachVersion []string, repoPath string) map[string]string {
+func checkEachTagHasReleaseNote(authToken string, tagsForEachRelease []Tag, ChangeLogInfo ChangeLogInfo, releaseNoteForEachVersion []string, repoPath string) map[string]string {
 
 	var redColor = "\033[31m"
 	var resetColor = "\033[0m"
@@ -108,19 +108,19 @@ func checkEachTagHasReleaseNote(tagsForEachRelease []Tag, ChangeLogInfo ChangeLo
 
 	for releaseNoteVersion, tagVersion := range releaseVersionAndTag {
 		if releaseVersionAndTag[releaseNoteVersion] == tagAndReleaseVersion[tagVersion] {
-			makeOrUpdateGitHubRelease(tagAndReleaseVersion[tagVersion], changeLogReleaseNotesMap[releaseNoteVersion], releaseNoteVersion, repoPath, "POST", "")
+			makeOrUpdateGitHubRelease(authToken, tagAndReleaseVersion[tagVersion], changeLogReleaseNotesMap[releaseNoteVersion], releaseNoteVersion, repoPath, "POST", "")
 		}
 	}
 	return changeLogReleaseNotesMap
 
 }
 
-func getReleasesFromAPI(tagsRepoPath string, releaseNotesForEachVersion map[string]string) {
+func getReleasesFromAPI(authToken, tagsRepoPath string, releaseNotesForEachVersion map[string]string) {
 	releasePath := fmt.Sprintf("https://api.github.com/repos/%v/releases", tagsRepoPath)
 	req, err := http.NewRequest("GET", releasePath, nil)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "token insert_token")
+	req.Header.Set("Authorization", "token "+authToken)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal(err)
@@ -135,11 +135,9 @@ func getReleasesFromAPI(tagsRepoPath string, releaseNotesForEachVersion map[stri
 	if err != nil {
 		log.Fatal(err)
 	}
-	// fmt.Printf("%T", eachRelease)
 	for _, release := range eachRelease[:] {
-		fmt.Println(release.Body)
 		if release.Body != releaseNotesForEachVersion[release.Name] {
-			makeOrUpdateGitHubRelease(release.TagName, releaseNotesForEachVersion[release.Name], release.Name, "", "PATCH", release.URL)
+			makeOrUpdateGitHubRelease(authToken, release.TagName, releaseNotesForEachVersion[release.Name], release.Name, "", "PATCH", release.URL)
 		}
 	}
 }
@@ -232,7 +230,7 @@ func createReleaseNotes(ChangeLogInfo ChangeLogInfo) []string {
 	return releaseNotesForEachVersion
 }
 
-func makeOrUpdateGitHubRelease(tagForRelease string, releaseNote string, versionTitle string, repoPath string, requestType string, releaseURLWithID string) {
+func makeOrUpdateGitHubRelease(authToken string, tagForRelease string, releaseNote string, versionTitle string, repoPath string, requestType string, releaseURLWithID string) {
 	// https://docs.github.com/en/rest/reference/releases
 	postBody, err := json.Marshal(map[string]string{
 		"tag_name": tagForRelease,
@@ -249,11 +247,10 @@ func makeOrUpdateGitHubRelease(tagForRelease string, releaseNote string, version
 	} else if requestType == "PATCH" {
 		releasesURL = releaseURLWithID
 	}
-	fmt.Printf(releaseURLWithID)
 	req, err := http.NewRequest(requestType, releasesURL, responseBody)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "token insert_token")
+	req.Header.Set("Authorization", "token "+authToken)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal(err)
