@@ -32,11 +32,25 @@ type listOfReleasesForUpdate struct {
 
 // ChangeLogInfo for each releases info from CHANGELOG.md
 type ChangeLogInfo struct {
-	versionLineNumbers           []int
-	changeLogText                []string
-	changeLogLength              int
-	versionTitlesForEachRelease  []string
-	versionNumbersForEachRelease []string
+	versionLineNumbers []int
+	changeLogText      []string
+	changeLogLength    int
+	versionTitles      []string
+	versionNumbers     []string
+}
+
+type releaseData struct {
+	releaseVersionAndNote map[string]string
+	releaseVersionAndTag  map[string]string
+	tagAndReleaseVersion  map[string]string
+}
+
+type validationData struct {
+	authToken     string
+	tags          []Tag
+	ChangeLogInfo ChangeLogInfo
+	releaseNotes  []string
+	repoPath      string
 }
 
 func main() {
@@ -55,74 +69,77 @@ func main() {
 	}
 	defer file.Close()
 	ChangeLogInfo := getChangeLogInfo(bufio.NewScanner(file))
-	releaseNotesForEachVersion := createReleaseNotes(ChangeLogInfo)
+	releaseNotes := createReleaseNotes(ChangeLogInfo)
 	tagsRepoPath := *tagsRepoPtr
-	tagsForEachRelease := getTagsFromAPI(tagsRepoPath)
+	tags := getTagsFromAPI(tagsRepoPath)
 	repoPath := *repoPtr
-	releaseNotesMap, releaseVersionAndTag, tagAndReleaseVersion := checkEachTagHasReleaseNote(authToken, tagsForEachRelease, ChangeLogInfo, releaseNotesForEachVersion, repoPath)
 
-	for releaseNoteVersion, tagVersion := range releaseVersionAndTag {
-		if releaseVersionAndTag[releaseNoteVersion] == tagAndReleaseVersion[tagVersion] {
-			makeOrUpdateGitHubRelease(authToken, tagAndReleaseVersion[tagVersion], releaseNotesMap[releaseNoteVersion], releaseNoteVersion, repoPath, "POST", "")
+	validationData := validationData{authToken: authToken, tags: tags, ChangeLogInfo: ChangeLogInfo, releaseNotes: releaseNotes, repoPath: repoPath}
+	releaseData := validateTagsHaveReleases(validationData)
+
+	for releaseVersion, tagVersion := range releaseData.releaseVersionAndTag {
+		if releaseData.releaseVersionAndTag[releaseVersion] == releaseData.tagAndReleaseVersion[tagVersion] {
+			makeOrUpdateGitHubRelease(authToken, releaseData.tagAndReleaseVersion[tagVersion], releaseData.releaseVersionAndNote[releaseVersion], releaseVersion, repoPath, "POST", "")
 		}
 	}
 
-	listOfReleases := getListOfReleases(authToken, tagsRepoPath)
-	for _, release := range listOfReleases[:] {
-		if release.Body != releaseNotesMap[release.Name] {
-			makeOrUpdateGitHubRelease(authToken, release.TagName, releaseNotesMap[release.Name], release.Name, "", "PATCH", release.URL)
+	releases := getReleases(authToken, repoPath)
+	for _, release := range releases[:] {
+		if release.Body != releaseData.releaseVersionAndNote[release.Name] {
+			makeOrUpdateGitHubRelease(authToken, release.TagName, releaseData.releaseVersionAndNote[release.Name], release.Name, "", "PATCH", release.URL)
 		}
 	}
 
 }
 
-func checkEachTagHasReleaseNote(authToken string, tagsForEachRelease []Tag, ChangeLogInfo ChangeLogInfo, releaseNoteForEachVersion []string, repoPath string) (map[string]string, map[string]string, map[string]string) {
+func validateTagsHaveReleases(validationData validationData) releaseData {
 
 	var redColor = "\033[31m"
 	var resetColor = "\033[0m"
 	releaseVersionAndTag := make(map[string]string)
-	changeLogReleaseNotesMap := make(map[string]string)
-	for i, releaseNoteVersion := range ChangeLogInfo.versionNumbersForEachRelease[:] {
+	releaseVersionAndNote := make(map[string]string)
+	for i, releaseVersion := range validationData.ChangeLogInfo.versionNumbers[:] {
 		tagVersionForMap := ""
 		releaseVersionHasTag := false
-		for _, tagVersion := range tagsForEachRelease[:] {
-			if releaseNoteVersion == tagVersion.Name {
+		for _, tagVersion := range validationData.tags[:] {
+			if releaseVersion == tagVersion.Name {
 				releaseVersionHasTag = true
 				tagVersionForMap = tagVersion.Name
 			}
 		}
 		if releaseVersionHasTag == false {
-			fmt.Println(redColor+"WARNING: release", releaseNoteVersion, "missing Tag"+resetColor)
+			fmt.Println(redColor+"WARNING: release", releaseVersion, "missing Tag"+resetColor)
 		}
 		if releaseVersionHasTag {
-			releaseVersionAndTag[releaseNoteVersion] = tagVersionForMap
-			changeLogReleaseNotesMap[releaseNoteVersion] = releaseNoteForEachVersion[i]
+			releaseVersionAndTag[releaseVersion] = tagVersionForMap
+			releaseVersionAndNote[releaseVersion] = validationData.releaseNotes[i]
 		}
 	}
 
 	tagAndReleaseVersion := make(map[string]string)
-	for _, tagVersion := range tagsForEachRelease[:] {
-		releaseNoteVersionForMap := ""
+	for _, tagVersion := range validationData.tags[:] {
+		releaseVersionForMap := ""
 		tagHasVersionNumber := false
-		for _, releaseNoteVersion := range ChangeLogInfo.versionNumbersForEachRelease[:] {
-			if tagVersion.Name == releaseNoteVersion {
+		for _, releaseVersion := range validationData.ChangeLogInfo.versionNumbers[:] {
+			if tagVersion.Name == releaseVersion {
 				tagHasVersionNumber = true
-				releaseNoteVersionForMap = releaseNoteVersion
+				releaseVersionForMap = releaseVersion
 			}
 		}
 		if tagHasVersionNumber == false {
 			fmt.Println(redColor+"WARNING: tag", tagVersion.Name, "missing changelog entry"+resetColor)
 		}
 		if tagHasVersionNumber {
-			tagAndReleaseVersion[tagVersion.Name] = releaseNoteVersionForMap
+			tagAndReleaseVersion[tagVersion.Name] = releaseVersionForMap
 		}
 	}
+	releaseData := releaseData{releaseVersionAndNote: releaseVersionAndNote, releaseVersionAndTag: releaseVersionAndTag, tagAndReleaseVersion: tagAndReleaseVersion}
 
-	return changeLogReleaseNotesMap, releaseVersionAndTag, tagAndReleaseVersion
+	return releaseData
 
 }
 
-func getListOfReleases(authToken string, tagsRepoPath string) []listOfReleasesForUpdate {
+func getReleases(authToken string, tagsRepoPath string) []listOfReleasesForUpdate {
 	releasePath := fmt.Sprintf("https://api.github.com/repos/%v/releases", tagsRepoPath)
 	req, err := http.NewRequest("GET", releasePath, nil)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
@@ -157,12 +174,12 @@ func getTagsFromAPI(tagsRepoPath string) []Tag {
 		log.Fatal(err)
 	}
 	responseFromAPI := []byte(body)
-	var tagsForEachRelease []Tag
-	err = json.Unmarshal(responseFromAPI, &tagsForEachRelease)
+	var tags []Tag
+	err = json.Unmarshal(responseFromAPI, &tags)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return tagsForEachRelease
+	return tags
 }
 
 func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
@@ -174,8 +191,8 @@ func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
 	changeLogLength := 0
 	var versionLineNumbers []int
 	var changeLogText []string
-	var versionTitlesForEachRelease []string
-	var versionNumbersForEachRelease []string
+	var versionTitles []string
+	var versionNumbers []string
 	for scanner.Scan() {
 		changeLogLength++
 		changeLogText = append(changeLogText, scanner.Text())
@@ -185,8 +202,8 @@ func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
 			idx2 := re.SubexpIndex("versionNumber")
 			versionNumberAndDate := hashVersionAndDate[idx]
 			versionNumber := hashVersionAndDate[idx2]
-			versionTitlesForEachRelease = append(versionTitlesForEachRelease, versionNumberAndDate)
-			versionNumbersForEachRelease = append(versionNumbersForEachRelease, versionNumber)
+			versionTitles = append(versionTitles, versionNumberAndDate)
+			versionNumbers = append(versionNumbers, versionNumber)
 			versionLineNumbers = append(versionLineNumbers, lineCount)
 		}
 		lineCount++
@@ -194,7 +211,7 @@ func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
 	if scanner.Err() != nil {
 		fmt.Println(scanner.Err())
 	}
-	return ChangeLogInfo{versionLineNumbers, changeLogText, changeLogLength, versionTitlesForEachRelease, versionNumbersForEachRelease}
+	return ChangeLogInfo{versionLineNumbers, changeLogText, changeLogLength, versionTitles, versionNumbers}
 }
 
 func createReleaseNotes(ChangeLogInfo ChangeLogInfo) []string {
@@ -209,7 +226,7 @@ func createReleaseNotes(ChangeLogInfo ChangeLogInfo) []string {
 			contributorsAndErrors += ChangeLogInfo.changeLogText[i] + "\n"
 		}
 	}
-	var releaseNotesForEachVersion []string
+	var releaseNotes []string
 	// exclude Last version (## 0.2.0) with - 1
 	for i, versionLineNumber := range ChangeLogInfo.versionLineNumbers[:] {
 		releaseBodyLines := ""
@@ -228,9 +245,9 @@ func createReleaseNotes(ChangeLogInfo ChangeLogInfo) []string {
 				}
 			}
 		}
-		releaseNotesForEachVersion = append(releaseNotesForEachVersion, releaseBodyLines+contributorsAndErrors)
+		releaseNotes = append(releaseNotes, releaseBodyLines+contributorsAndErrors)
 	}
-	return releaseNotesForEachVersion
+	return releaseNotes
 }
 
 func makeOrUpdateGitHubRelease(authToken string, tagForRelease string, releaseNote string, versionTitle string, repoPath string, requestType string, releaseURLWithID string) {
