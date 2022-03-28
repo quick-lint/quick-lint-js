@@ -7,6 +7,7 @@ import url from "url";
 import { makeBuildInstructionsAsync } from "./src/build.mjs";
 import { Router, makeHTMLRedirect } from "./src/router.mjs";
 import { websiteConfig } from "./src/config.mjs";
+import * as cheerio from "cheerio";
 
 let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
@@ -52,6 +53,16 @@ async function mainAsync() {
             allowCacheBusting: false,
           }
         );
+        const $ = cheerio.load(out);
+        $("script")
+          .filter(function () {
+            return (
+              this.children[0].data === "\n  //\n" ||
+              this.children[0].data === "\n      //\n    "
+            );
+          })
+          .remove();
+        out = $.html();
         fs.promises.writeFile(outPath, out);
         break;
 

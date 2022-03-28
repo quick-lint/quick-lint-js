@@ -8,6 +8,7 @@ import mime from "mime";
 import os from "os";
 import path from "path";
 import { Router, makeHTMLRedirect } from "./router.mjs";
+import * as cheerio from "cheerio";
 
 export function makeServer({
   esbuildBundles = {},
@@ -50,6 +51,16 @@ export function makeServer({
             path.join(router.wwwRootPath, classifiedDirectory.path),
             { currentURI: request.path }
           );
+          const $ = cheerio.load(out);
+          $("script")
+            .filter(function () {
+              return (
+                this.children[0].data === "\n  //\n" ||
+                this.children[0].data === "\n      //\n    "
+              );
+            })
+            .remove();
+          out = $.html();
         } catch (error) {
           response.writeHeader(500, { "content-type": "text/plain" });
           response.end(error.stack);
