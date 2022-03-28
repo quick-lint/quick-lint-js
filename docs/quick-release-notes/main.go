@@ -53,6 +53,16 @@ type validationData struct {
 	repoPath      string
 }
 
+type dataForAPI struct {
+	authToken     string
+	repoPath      string
+	requestType   string
+	urlWithID     string
+	tagForRelease string
+	versionTitle  string
+	releaseNote   string
+}
+
 func main() {
 	authToken := os.Args[len(os.Args)-1]
 	repoPtr := flag.String("Repo", "quick-lint/quick-lint-js", "a string")
@@ -74,19 +84,18 @@ func main() {
 	tags := getTagsFromAPI(tagsRepoPath)
 	repoPath := *repoPtr
 
-	validationData := validationData{authToken: authToken, tags: tags, ChangeLogInfo: ChangeLogInfo, releaseNotes: releaseNotes, repoPath: repoPath}
-	releaseData := validateTagsHaveReleases(validationData)
+	releaseData := validateTagsHaveReleases(validationData{authToken: authToken, tags: tags, ChangeLogInfo: ChangeLogInfo, releaseNotes: releaseNotes, repoPath: repoPath})
 
 	for releaseVersion, tagVersion := range releaseData.releaseVersionAndTag {
 		if releaseData.releaseVersionAndTag[releaseVersion] == releaseData.tagAndReleaseVersion[tagVersion] {
-			makeOrUpdateGitHubRelease(authToken, releaseData.tagAndReleaseVersion[tagVersion], releaseData.releaseVersionAndNote[releaseVersion], releaseVersion, repoPath, "POST", "")
+			makeOrUpdateGitHubRelease(dataForAPI{authToken: authToken, repoPath: repoPath, requestType: "POST", urlWithID: "", tagForRelease: tagVersion, versionTitle: releaseData.tagAndReleaseVersion[releaseVersion], releaseNote: releaseData.releaseVersionAndNote[releaseVersion]})
 		}
 	}
 
 	releases := getReleases(authToken, repoPath)
 	for _, release := range releases[:] {
 		if release.Body != releaseData.releaseVersionAndNote[release.Name] {
-			makeOrUpdateGitHubRelease(authToken, release.TagName, releaseData.releaseVersionAndNote[release.Name], release.Name, "", "PATCH", release.URL)
+			makeOrUpdateGitHubRelease(dataForAPI{authToken: authToken, repoPath: repoPath, requestType: "PATCH", urlWithID: release.URL, tagForRelease: release.TagName, versionTitle: release.Name, releaseNote: releaseData.releaseVersionAndNote[release.Name]})
 		}
 	}
 
@@ -198,10 +207,10 @@ func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
 		changeLogText = append(changeLogText, scanner.Text())
 		if re.MatchString(scanner.Text()) {
 			hashVersionAndDate := re.FindStringSubmatch(scanner.Text())
-			idx := re.SubexpIndex("versionNumberAndDate")
-			idx2 := re.SubexpIndex("versionNumber")
-			versionNumberAndDate := hashVersionAndDate[idx]
-			versionNumber := hashVersionAndDate[idx2]
+			idxVersionNumberAndDate := re.SubexpIndex("versionNumberAndDate")
+			idxVersionNumber := re.SubexpIndex("versionNumber")
+			versionNumberAndDate := hashVersionAndDate[idxVersionNumberAndDate]
+			versionNumber := hashVersionAndDate[idxVersionNumber]
 			versionTitles = append(versionTitles, versionNumberAndDate)
 			versionNumbers = append(versionNumbers, versionNumber)
 			versionLineNumbers = append(versionLineNumbers, lineCount)
@@ -250,27 +259,28 @@ func createReleaseNotes(ChangeLogInfo ChangeLogInfo) []string {
 	return releaseNotes
 }
 
-func makeOrUpdateGitHubRelease(authToken string, tagForRelease string, releaseNote string, versionTitle string, repoPath string, requestType string, releaseURLWithID string) {
+// authToken string, tagForRelease string, releaseNote string, versionTitle string, repoPath string, requestType string, releaseURLWithID string
+func makeOrUpdateGitHubRelease(dataForAPI dataForAPI) {
 	// https://docs.github.com/en/rest/reference/releases
 	postBody, err := json.Marshal(map[string]string{
-		"tag_name": tagForRelease,
-		"name":     versionTitle,
-		"body":     releaseNote,
+		"tag_name": dataForAPI.tagForRelease,
+		"name":     dataForAPI.versionTitle,
+		"body":     dataForAPI.releaseNote,
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 	responseBody := bytes.NewBuffer(postBody)
 	releasesURL := ""
-	if requestType == "POST" {
-		releasesURL = fmt.Sprintf("https://api.github.com/repos/%v/releases", repoPath)
-	} else if requestType == "PATCH" {
-		releasesURL = releaseURLWithID
+	if dataForAPI.requestType == "POST" {
+		releasesURL = fmt.Sprintf("https://api.github.com/repos/%v/releases", dataForAPI.repoPath)
+	} else if dataForAPI.requestType == "PATCH" {
+		releasesURL = dataForAPI.urlWithID
 	}
-	req, err := http.NewRequest(requestType, releasesURL, responseBody)
+	req, err := http.NewRequest(dataForAPI.requestType, releasesURL, responseBody)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "token "+authToken)
+	req.Header.Set("Authorization", "token "+dataForAPI.authToken)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal(err)
