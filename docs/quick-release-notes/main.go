@@ -12,14 +12,15 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 )
 
-// Tag is for GitHub repo tags.
-type Tag struct {
+type tagInfo struct {
 	Name string `json:"name"`
 }
 
@@ -30,8 +31,7 @@ type listOfReleasesForUpdate struct {
 	TagName string `json:"tag_name"`
 }
 
-// ChangeLogInfo for each releases info from CHANGELOG.md
-type ChangeLogInfo struct {
+type changeLogInfo struct {
 	versionLineNumbers []int
 	changeLogText      []string
 	changeLogLength    int
@@ -47,8 +47,8 @@ type releaseData struct {
 
 type validationData struct {
 	authToken     string
-	tags          []Tag
-	ChangeLogInfo ChangeLogInfo
+	tags          []tagInfo
+	changeLogInfo changeLogInfo
 	releaseNotes  []string
 	repoPath      string
 }
@@ -78,36 +78,39 @@ func main() {
 		log.Fatal(err)
 	}
 	defer file.Close()
-	ChangeLogInfo := getChangeLogInfo(bufio.NewScanner(file))
-	releaseNotes := createReleaseNotes(ChangeLogInfo)
+	changeLogInfo := getChangeLogInfo(bufio.NewScanner(file))
+	releaseNotes := createReleaseNotes(changeLogInfo)
 	tagsRepoPath := *tagsRepoPtr
 	tags := getTagsFromAPI(tagsRepoPath)
 	repoPath := *repoPtr
+	releaseData := validateTagsHaveReleases(validationData{authToken: authToken, tags: tags, changeLogInfo: changeLogInfo, releaseNotes: releaseNotes, repoPath: repoPath})
+	ifReleaseNotExistMakeReleases(releaseData, authToken, repoPath)
+	ifChangeLogChangedUpdateReleases(releaseData, authToken, repoPath)
+}
 
-	releaseData := validateTagsHaveReleases(validationData{authToken: authToken, tags: tags, ChangeLogInfo: ChangeLogInfo, releaseNotes: releaseNotes, repoPath: repoPath})
-
+func ifReleaseNotExistMakeReleases(releaseData releaseData, authToken string, repoPath string) {
 	for releaseVersion, tagVersion := range releaseData.releaseVersionAndTag {
 		if releaseData.releaseVersionAndTag[releaseVersion] == releaseData.tagAndReleaseVersion[tagVersion] {
 			makeOrUpdateGitHubRelease(dataForAPI{authToken: authToken, repoPath: repoPath, requestType: "POST", urlWithID: "", tagForRelease: tagVersion, versionTitle: releaseData.tagAndReleaseVersion[releaseVersion], releaseNote: releaseData.releaseVersionAndNote[releaseVersion]})
 		}
 	}
+}
 
+func ifChangeLogChangedUpdateReleases(releaseData releaseData, authToken string, repoPath string) {
 	releases := getReleases(authToken, repoPath)
 	for _, release := range releases[:] {
 		if release.Body != releaseData.releaseVersionAndNote[release.Name] {
 			makeOrUpdateGitHubRelease(dataForAPI{authToken: authToken, repoPath: repoPath, requestType: "PATCH", urlWithID: release.URL, tagForRelease: release.TagName, versionTitle: release.Name, releaseNote: releaseData.releaseVersionAndNote[release.Name]})
 		}
 	}
-
 }
 
 func validateTagsHaveReleases(validationData validationData) releaseData {
-
 	var redColor = "\033[31m"
 	var resetColor = "\033[0m"
 	releaseVersionAndTag := make(map[string]string)
 	releaseVersionAndNote := make(map[string]string)
-	for i, releaseVersion := range validationData.ChangeLogInfo.versionNumbers[:] {
+	for i, releaseVersion := range validationData.changeLogInfo.versionNumbers[:] {
 		tagVersionForMap := ""
 		releaseVersionHasTag := false
 		for _, tagVersion := range validationData.tags[:] {
@@ -117,19 +120,18 @@ func validateTagsHaveReleases(validationData validationData) releaseData {
 			}
 		}
 		if releaseVersionHasTag == false {
-			fmt.Println(redColor+"WARNING: release", releaseVersion, "missing Tag"+resetColor)
+			fmt.Println(redColor+"WARNING: release", releaseVersion, "missing tagInfo"+resetColor)
 		}
 		if releaseVersionHasTag {
 			releaseVersionAndTag[releaseVersion] = tagVersionForMap
 			releaseVersionAndNote[releaseVersion] = validationData.releaseNotes[i]
 		}
 	}
-
 	tagAndReleaseVersion := make(map[string]string)
 	for _, tagVersion := range validationData.tags[:] {
 		releaseVersionForMap := ""
 		tagHasVersionNumber := false
-		for _, releaseVersion := range validationData.ChangeLogInfo.versionNumbers[:] {
+		for _, releaseVersion := range validationData.changeLogInfo.versionNumbers[:] {
 			if tagVersion.Name == releaseVersion {
 				tagHasVersionNumber = true
 				releaseVersionForMap = releaseVersion
@@ -142,14 +144,13 @@ func validateTagsHaveReleases(validationData validationData) releaseData {
 			tagAndReleaseVersion[tagVersion.Name] = releaseVersionForMap
 		}
 	}
-	releaseData := releaseData{releaseVersionAndNote: releaseVersionAndNote, releaseVersionAndTag: releaseVersionAndTag, tagAndReleaseVersion: tagAndReleaseVersion}
-
-	return releaseData
-
+	return releaseData{releaseVersionAndNote: releaseVersionAndNote, releaseVersionAndTag: releaseVersionAndTag, tagAndReleaseVersion: tagAndReleaseVersion}
 }
 
-func getReleases(authToken string, tagsRepoPath string) []listOfReleasesForUpdate {
-	releasePath := fmt.Sprintf("https://api.github.com/repos/%v/releases", tagsRepoPath)
+func getReleases(authToken string, repoPath string) []listOfReleasesForUpdate {
+	repoPathSplit := strings.Split(repoPath, "/")
+	repoOwner, repoName := url.QueryEscape(repoPathSplit[0]), url.QueryEscape(repoPathSplit[1])
+	releasePath := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
 	req, err := http.NewRequest("GET", releasePath, nil)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	req.Header.Set("Content-Type", "application/json")
@@ -162,7 +163,6 @@ func getReleases(authToken string, tagsRepoPath string) []listOfReleasesForUpdat
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	var eachRelease []listOfReleasesForUpdate
 	err = json.Unmarshal(body, &eachRelease)
 	if err != nil {
@@ -171,9 +171,11 @@ func getReleases(authToken string, tagsRepoPath string) []listOfReleasesForUpdat
 	return eachRelease
 }
 
-func getTagsFromAPI(tagsRepoPath string) []Tag {
+func getTagsFromAPI(tagsRepoPath string) []tagInfo {
 	// https://docs.github.com/en/rest/reference/repos#list-repository-tags
-	pathToTags := fmt.Sprintf("https://api.github.com/repos/%v/tags", tagsRepoPath)
+	tagsRepoSplit := strings.Split(tagsRepoPath, "/")
+	tagsRepoOwner, tagsRepoName := url.QueryEscape(tagsRepoSplit[0]), url.QueryEscape(tagsRepoSplit[1])
+	pathToTags := fmt.Sprintf("https://api.github.com/repos/%v/%v/tags", tagsRepoOwner, tagsRepoName)
 	resp, err := http.Get(pathToTags)
 	if err != nil {
 		log.Fatal(err)
@@ -183,7 +185,7 @@ func getTagsFromAPI(tagsRepoPath string) []Tag {
 		log.Fatal(err)
 	}
 	responseFromAPI := []byte(body)
-	var tags []Tag
+	var tags []tagInfo
 	err = json.Unmarshal(responseFromAPI, &tags)
 	if err != nil {
 		log.Fatal(err)
@@ -191,7 +193,7 @@ func getTagsFromAPI(tagsRepoPath string) []Tag {
 	return tags
 }
 
-func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
+func getChangeLogInfo(scanner *bufio.Scanner) changeLogInfo {
 	re, err := regexp.Compile(`## (?P<versionNumberAndDate>(?P<versionNumber>\d+\.\d+\.\d+).*)`)
 	if err != nil {
 		log.Fatal(err)
@@ -220,34 +222,34 @@ func getChangeLogInfo(scanner *bufio.Scanner) ChangeLogInfo {
 	if scanner.Err() != nil {
 		fmt.Println(scanner.Err())
 	}
-	return ChangeLogInfo{versionLineNumbers, changeLogText, changeLogLength, versionTitles, versionNumbers}
+	return changeLogInfo{versionLineNumbers, changeLogText, changeLogLength, versionTitles, versionNumbers}
 }
 
-func createReleaseNotes(ChangeLogInfo ChangeLogInfo) []string {
+func createReleaseNotes(changeLogInfo changeLogInfo) []string {
 	re, err := regexp.Compile(`^\[.+\]: .+`)
 	if err != nil {
 		log.Fatal(err)
 	}
-	lastVersion := len(ChangeLogInfo.versionLineNumbers) - 1
+	lastVersionIdx := len(changeLogInfo.versionLineNumbers) - 1
 	contributorsAndErrors := ""
-	for i := ChangeLogInfo.versionLineNumbers[lastVersion]; i < ChangeLogInfo.changeLogLength; i++ {
-		if re.MatchString(ChangeLogInfo.changeLogText[i]) {
-			contributorsAndErrors += ChangeLogInfo.changeLogText[i] + "\n"
+	for i := changeLogInfo.versionLineNumbers[lastVersionIdx]; i < changeLogInfo.changeLogLength; i++ {
+		if re.MatchString(changeLogInfo.changeLogText[i]) {
+			contributorsAndErrors += changeLogInfo.changeLogText[i] + "\n"
 		}
 	}
 	var releaseNotes []string
 	// exclude Last version (## 0.2.0) with - 1
-	for i, versionLineNumber := range ChangeLogInfo.versionLineNumbers[:] {
+	for i, versionLineNumber := range changeLogInfo.versionLineNumbers[:] {
 		releaseBodyLines := ""
-		if !(i == (lastVersion)) {
-			for j := ChangeLogInfo.versionLineNumbers[i] + 1; j < ChangeLogInfo.versionLineNumbers[i+1]; j++ {
-				releaseBodyLines += ChangeLogInfo.changeLogText[j] + "\n"
+		if !(i == (lastVersionIdx)) {
+			for j := changeLogInfo.versionLineNumbers[i] + 1; j < changeLogInfo.versionLineNumbers[i+1]; j++ {
+				releaseBodyLines += changeLogInfo.changeLogText[j] + "\n"
 			}
 		} else {
 			// Handle last version (## 0.2.0)
-			if versionLineNumber == ChangeLogInfo.versionLineNumbers[lastVersion] {
-				for j := 1; j < ChangeLogInfo.changeLogLength-ChangeLogInfo.versionLineNumbers[lastVersion]; j++ {
-					currentLineOfText := ChangeLogInfo.changeLogText[versionLineNumber+j]
+			if versionLineNumber == changeLogInfo.versionLineNumbers[lastVersionIdx] {
+				for j := 1; j < changeLogInfo.changeLogLength-changeLogInfo.versionLineNumbers[lastVersionIdx]; j++ {
+					currentLineOfText := changeLogInfo.changeLogText[versionLineNumber+j]
 					if !re.MatchString(currentLineOfText) {
 						releaseBodyLines += currentLineOfText + "\n"
 					}
@@ -259,7 +261,6 @@ func createReleaseNotes(ChangeLogInfo ChangeLogInfo) []string {
 	return releaseNotes
 }
 
-// authToken string, tagForRelease string, releaseNote string, versionTitle string, repoPath string, requestType string, releaseURLWithID string
 func makeOrUpdateGitHubRelease(dataForAPI dataForAPI) {
 	// https://docs.github.com/en/rest/reference/releases
 	postBody, err := json.Marshal(map[string]string{
@@ -273,7 +274,9 @@ func makeOrUpdateGitHubRelease(dataForAPI dataForAPI) {
 	responseBody := bytes.NewBuffer(postBody)
 	releasesURL := ""
 	if dataForAPI.requestType == "POST" {
-		releasesURL = fmt.Sprintf("https://api.github.com/repos/%v/releases", dataForAPI.repoPath)
+		repoPathSplit := strings.Split(dataForAPI.repoPath, "/")
+		repoOwner, repoName := url.QueryEscape(repoPathSplit[0]), url.QueryEscape(repoPathSplit[1])
+		releasesURL = fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
 	} else if dataForAPI.requestType == "PATCH" {
 		releasesURL = dataForAPI.urlWithID
 	}
