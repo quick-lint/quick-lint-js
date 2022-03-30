@@ -147,9 +147,15 @@ func validateTagsHaveReleases(validationData validationData) releaseData {
 	return releaseData{releaseVersionAndNote: releaseVersionAndNote, releaseVersionAndTag: releaseVersionAndTag, tagAndReleaseVersion: tagAndReleaseVersion}
 }
 
+func splitAndEncodeURLPath(urlPath string) (string, string) {
+	urlPathSplit := strings.Split(urlPath, "/")
+	owner, name := url.QueryEscape(urlPathSplit[0]), url.QueryEscape(urlPathSplit[1])
+	return owner, name
+}
+
 func getReleases(authToken string, repoPath string) []listOfReleasesForUpdate {
-	repoPathSplit := strings.Split(repoPath, "/")
-	repoOwner, repoName := url.QueryEscape(repoPathSplit[0]), url.QueryEscape(repoPathSplit[1])
+	repoOwner, repoName := splitAndEncodeURLPath(repoPath)
+	fmt.Println("****************************", repoName, repoOwner)
 	releasePath := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
 	req, err := http.NewRequest("GET", releasePath, nil)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
@@ -173,8 +179,7 @@ func getReleases(authToken string, repoPath string) []listOfReleasesForUpdate {
 
 func getTagsFromAPI(tagsRepoPath string) []tagInfo {
 	// https://docs.github.com/en/rest/reference/repos#list-repository-tags
-	tagsRepoSplit := strings.Split(tagsRepoPath, "/")
-	tagsRepoOwner, tagsRepoName := url.QueryEscape(tagsRepoSplit[0]), url.QueryEscape(tagsRepoSplit[1])
+	tagsRepoOwner, tagsRepoName := splitAndEncodeURLPath(tagsRepoPath)
 	pathToTags := fmt.Sprintf("https://api.github.com/repos/%v/%v/tags", tagsRepoOwner, tagsRepoName)
 	resp, err := http.Get(pathToTags)
 	if err != nil {
@@ -274,8 +279,7 @@ func makeOrUpdateGitHubRelease(dataForAPI dataForAPI) {
 	responseBody := bytes.NewBuffer(postBody)
 	releasesURL := ""
 	if dataForAPI.requestType == "POST" {
-		repoPathSplit := strings.Split(dataForAPI.repoPath, "/")
-		repoOwner, repoName := url.QueryEscape(repoPathSplit[0]), url.QueryEscape(repoPathSplit[1])
+		repoOwner, repoName := splitAndEncodeURLPath(dataForAPI.repoPath)
 		releasesURL = fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
 	} else if dataForAPI.requestType == "PATCH" {
 		releasesURL = dataForAPI.urlWithID
