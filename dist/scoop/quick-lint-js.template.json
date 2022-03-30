@@ -2,7 +2,7 @@
     "version": "2.3.1",
     "description": "Find bugs in JavaScript programs.",
     "homepage": "https://quick-lint-js.com/",
-    "license": "GPL-3.0-or-later,...",
+    "license": "GPL-3.0-or-later,MIT,BSL-1.0,Apache-2.0,https://visualstudio.microsoft.com/license-terms/mlt031819/",
     "architecture": {
         "64bit": {
             "url": "{{ .BaseURI }}manual/windows.zip",
