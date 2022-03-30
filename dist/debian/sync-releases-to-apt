@@ -51,7 +51,7 @@ copy_releases_to_debian_pool() {
     releases_root="${1}"
     debian_root="${2}"
     mkdir -p "${debian_root}/pool/"
-    for release_path in "${releases_root}"/*; do
+    for release_path in "${releases_root}"/[0-9]*; do
       release="$(basename "${release_path}")"
       rsync -a "${release_path}/debian/" "${debian_root}/pool/${release}/"
     done
