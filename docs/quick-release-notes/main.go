@@ -155,7 +155,6 @@ func splitAndEncodeURLPath(urlPath string) (string, string) {
 
 func getReleases(authToken string, repoPath string) []listOfReleasesForUpdate {
 	repoOwner, repoName := splitAndEncodeURLPath(repoPath)
-	fmt.Println("****************************", repoName, repoOwner)
 	releasePath := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
 	req, err := http.NewRequest("GET", releasePath, nil)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
