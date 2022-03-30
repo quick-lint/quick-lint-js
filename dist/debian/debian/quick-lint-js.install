@@ -1,5 +1,7 @@
 usr/bin usr
 usr/share/bash-completion usr/share
 usr/share/fish usr/share
+usr/share/icons usr/share
 usr/share/man usr/share
+usr/share/metainfo usr/share
 usr/share/zsh usr/share

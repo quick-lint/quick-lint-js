@@ -62,17 +62,8 @@ create_unsigned_apt_metadata_files() {
   printf 'Creating unsigned apt metadata files on server ...\n' >&2
 
   scp -q "${ssh_args[@]}" apt-ftparchive.conf "${ssh_host}:${remote_debian_root}/apt-ftparchive.conf"
-  ssh "${ssh_args[@]}" "${ssh_host}" -- sh -s "${remote_debian_root}" "${apt_suite}" <<'EOF'
-    set -e
-    set -u
-    debian_root="${1}"
-    apt_suite="${2}"
-    cd "${debian_root}"
-    mkdir -p "dists/${apt_suite}/main/binary-amd64/"
-    mkdir -p "dists/${apt_suite}/main/source/"
-    apt-ftparchive --quiet generate apt-ftparchive.conf
-    apt-ftparchive --quiet release --config-file apt-ftparchive.conf "dists/${apt_suite}" >"dists/${apt_suite}/Release"
-EOF
+  scp -q "${ssh_args[@]}" asgen-config.json "${ssh_host}:${remote_debian_root}/asgen-config.json"
+  ssh "${ssh_args[@]}" "${ssh_host}" -- sh -s "${remote_debian_root}" <update-repository
 }
 
 sign_apt_metadata_files() {
