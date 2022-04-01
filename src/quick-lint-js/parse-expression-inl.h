@@ -2860,6 +2860,16 @@ next:
       goto next;
     }
 
+      // <>
+    case token_type::greater: {
+      children.emplace_back(this->parse_jsx_element_or_fragment(
+          v, /*tag=*/nullptr, /*greater_begin=*/child_begin));
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
+      this->lexer_.skip_in_jsx_children();
+      goto next;
+    }
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
     }

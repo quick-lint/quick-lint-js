@@ -159,6 +159,21 @@ TEST_F(test_parse_expression, tag_with_element_children) {
   }
 }
 
+TEST_F(test_parse_expression, tag_with_fragment_children) {
+  {
+    test_parser p(u8"<div>hello <>world</>!</div>"_sv, jsx_options);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxelement(div, jsxfragment())");
+    EXPECT_EQ(p.range(ast).begin_offset(), strlen(u8""));
+    EXPECT_EQ(p.range(ast).end_offset(),
+              strlen(u8"<div>hello <>world</>!</div>"));
+    EXPECT_EQ(p.range(ast->child_0()).begin_offset(), strlen(u8"<div>hello "));
+    EXPECT_EQ(p.range(ast->child_0()).end_offset(),
+              strlen(u8"<div>hello <>world</>"));
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+}
+
 TEST_F(test_parse_expression, fragment_with_element_children) {
   {
     test_parser p(u8"<>hello <span>world</span>!</>"_sv, jsx_options);
@@ -186,6 +201,20 @@ TEST_F(test_parse_expression, fragment_with_element_children) {
     ASSERT_EQ(summarize(ast),
               "jsxfragment(jsxelement(ul, jsxelement(li, jsxelement(a, "
               "jsxelement(span)))))");
+  }
+}
+
+TEST_F(test_parse_expression, fragment_with_fragment_children) {
+  {
+    test_parser p(u8"<>hello <>world</>!</>"_sv, jsx_options);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(summarize(ast), "jsxfragment(jsxfragment())");
+    EXPECT_EQ(p.range(ast).begin_offset(), strlen(u8""));
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"<>hello <>world</>!</>"));
+    EXPECT_EQ(p.range(ast->child_0()).begin_offset(), strlen(u8"<>hello "));
+    EXPECT_EQ(p.range(ast->child_0()).end_offset(),
+              strlen(u8"<>hello <>world</>"));
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 
