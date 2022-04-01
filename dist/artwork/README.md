@@ -2,7 +2,7 @@
 
 This directory contains artwork for quick-lint-js.
 
-Artwork is licensed under Creative Commons Attribution-NoDerivatives 4.0
+Artwork is licensed under Creative Commons Attribution-ShareAlike 4.0
 International. See [LICENSE.txt](LICENSE.txt) for details.
 
 ### Files
