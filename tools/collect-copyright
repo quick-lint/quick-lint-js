@@ -217,7 +217,7 @@ Version {vendor_project.properties['Version']} of {vendor_project_name} is stati
 Source code for {vendor_project_name} is available at:
 * {vendor_project.properties['Download URL']}
 
-Copyright information for libc6-dev:amd64:
+Copyright information for {vendor_project_name}:
 {markdown_block_quote(license)})
 """
         )
