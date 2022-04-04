@@ -410,7 +410,7 @@ Beta release.
 * Errors and warnings are now documented on the website
 * Various new errors and error message improvements (implemented by
   [AidenThing][], [Daniel La Rocque][], [Erlliam Mejia][], [Himanshu][], [Lee
-  Wannacott][], [Matheus Sousa][])
+  Wannacott][], [Matheus de Sousa][])
 * Shell completion for the CLI (Bash, Fish, Zsh) (implemented by [Shivam
   Mehta][])
 * `--stdin` CLI option allows reading JavaScript from standard input instead of
