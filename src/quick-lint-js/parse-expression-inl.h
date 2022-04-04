@@ -42,8 +42,7 @@ void parser::visit_expression(expression* ast, Visitor& v,
   case expression_kind::_class:
   case expression_kind::_invalid:
   case expression_kind::_missing:
-  case expression_kind::arrow_function_with_expression:
-  case expression_kind::arrow_function_with_statements:
+  case expression_kind::arrow_function:
   case expression_kind::function:
   case expression_kind::import:
   case expression_kind::literal:
@@ -1582,8 +1581,7 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::_new:
   case expression_kind::_template:
   case expression_kind::_typeof:
-  case expression_kind::arrow_function_with_expression:
-  case expression_kind::arrow_function_with_statements:
+  case expression_kind::arrow_function:
   case expression_kind::await:
   case expression_kind::compound_assignment:
   case expression_kind::conditional:
@@ -1807,22 +1805,17 @@ expression* parser::parse_arrow_function_body_impl(
 
   if (this->peek().type == token_type::left_curly) {
     this->parse_and_visit_statement_block_no_scope(v);
-    v.visit_exit_function_scope();
-
-    const char8* span_end = this->lexer_.end_of_previous_token();
-    return this->make_expression<expression::arrow_function_with_statements>(
-        attributes, parameters, parameter_list_begin, span_end);
   } else {
     this->parse_and_visit_expression(v, precedence{
                                             .commas = false,
                                             .in_operator = allow_in_operator,
                                         });
-    v.visit_exit_function_scope();
-
-    const char8* span_end = this->lexer_.end_of_previous_token();
-    return this->make_expression<expression::arrow_function_with_expression>(
-        attributes, parameters, parameter_list_begin, span_end);
   }
+  v.visit_exit_function_scope();
+
+  const char8* span_end = this->lexer_.end_of_previous_token();
+  return this->make_expression<expression::arrow_function>(
+      attributes, parameters, parameter_list_begin, span_end);
 }
 
 template <QLJS_PARSE_VISITOR Visitor>

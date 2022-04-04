@@ -508,8 +508,7 @@ void parser::consume_semicolon() {
 }
 
 bool parser::is_arrow_kind(expression* ast) noexcept {
-  return ast->kind() == expression_kind::arrow_function_with_statements ||
-         ast->kind() == expression_kind::arrow_function_with_expression;
+  return ast->kind() == expression_kind::arrow_function;
 }
 
 parser_transaction parser::begin_transaction() {

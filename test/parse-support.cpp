@@ -72,10 +72,8 @@ std::string summarize(const expression& expression) {
     return "typeof(" + summarize(expression.child_0()) + ")";
   case expression_kind::array:
     return "array(" + children() + ")";
-  case expression_kind::arrow_function_with_expression:
-    return function_attributes() + "arrowexpr(" + children() + ")";
-  case expression_kind::arrow_function_with_statements:
-    return function_attributes() + "arrowblock(" + children() + ")";
+  case expression_kind::arrow_function:
+    return function_attributes() + "arrowfunc(" + children() + ")";
   case expression_kind::assignment:
     return "assign(" + children() + ")";
   case expression_kind::await:
