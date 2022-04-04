@@ -367,22 +367,17 @@ class parser {
   template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_index_expression_remainder(Visitor &, expression *lhs);
   template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_arrow_function_body(Visitor &, function_attributes,
-                                        const char8 *parameter_list_begin,
-                                        bool allow_in_operator);
-  template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_arrow_function_body(
       Visitor &, function_attributes, const char8 *parameter_list_begin,
       bool allow_in_operator,
+      expression_arena::array_ptr<expression *> &&parameters =
+          expression_arena::array_ptr<expression *>());
+
+  template <class Visitor>
+  expression *parse_arrow_function_body_impl(
+      Visitor &, function_attributes, const char8 *parameter_list_begin,
+      bool allow_in_operator,
       expression_arena::array_ptr<expression *> &&parameters);
-  // Args is either of the following:
-  // * expression_arena::array_ptr<expression*> &&parameters
-  // * (none)
-  template <class Visitor, class... Args>
-  expression *parse_arrow_function_body_impl(Visitor &, function_attributes,
-                                             const char8 *parameter_list_begin,
-                                             bool allow_in_operator,
-                                             Args &&... args);
   template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_function_expression(Visitor &, function_attributes,
                                         const char8 *span_begin);
