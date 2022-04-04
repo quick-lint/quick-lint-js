@@ -45,8 +45,7 @@ enum class expression_kind {
   _template,
   _typeof,
   array,
-  arrow_function_with_expression,
-  arrow_function_with_statements,
+  arrow_function,
   assignment,
   await,
   binary_operator,
@@ -153,8 +152,7 @@ class expression {
   class _template;
   class _typeof;
   class array;
-  class arrow_function_with_expression;
-  class arrow_function_with_statements;
+  class arrow_function;
   class assignment;
   class await;
   class binary_operator;
@@ -413,49 +411,13 @@ class expression::array final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::array>);
 
-class expression::arrow_function_with_expression final : public expression {
+class expression::arrow_function final : public expression {
  public:
-  static constexpr expression_kind kind =
-      expression_kind::arrow_function_with_expression;
+  static constexpr expression_kind kind = expression_kind::arrow_function;
 
-  explicit arrow_function_with_expression(function_attributes attributes,
-                                          const char8 *parameter_list_begin,
-                                          const char8 *span_end) noexcept
-      : expression(kind),
-        function_attributes_(attributes),
-        parameter_list_begin_(parameter_list_begin),
-        span_end_(span_end) {}
-
-  explicit arrow_function_with_expression(
-      function_attributes attributes,
-      expression_arena::array_ptr<expression *> parameters,
-      const char8 *parameter_list_begin, const char8 *span_end) noexcept
-      : expression(kind),
-        function_attributes_(attributes),
-        parameter_list_begin_(parameter_list_begin),
-        span_end_(span_end),
-        parameters_(parameters) {
-    if (!this->parameter_list_begin_) {
-      QLJS_ASSERT(!this->parameters_.empty());
-    }
-  }
-
-  function_attributes function_attributes_;
-  const char8 *parameter_list_begin_;
-  const char8 *span_end_;
-  expression_arena::array_ptr<expression *> parameters_;
-};
-static_assert(expression_arena::is_allocatable<
-              expression::arrow_function_with_expression>);
-
-class expression::arrow_function_with_statements final : public expression {
- public:
-  static constexpr expression_kind kind =
-      expression_kind::arrow_function_with_statements;
-
-  explicit arrow_function_with_statements(function_attributes attributes,
-                                          const char8 *parameter_list_begin,
-                                          const char8 *span_end) noexcept
+  explicit arrow_function(function_attributes attributes,
+                          const char8 *parameter_list_begin,
+                          const char8 *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
@@ -463,10 +425,10 @@ class expression::arrow_function_with_statements final : public expression {
     QLJS_ASSERT(this->parameter_list_begin_);
   }
 
-  explicit arrow_function_with_statements(
-      function_attributes attributes,
-      expression_arena::array_ptr<expression *> parameters,
-      const char8 *parameter_list_begin, const char8 *span_end) noexcept
+  explicit arrow_function(function_attributes attributes,
+                          expression_arena::array_ptr<expression *> parameters,
+                          const char8 *parameter_list_begin,
+                          const char8 *span_end) noexcept
       : expression(kind),
         function_attributes_(attributes),
         parameter_list_begin_(parameter_list_begin),
@@ -482,8 +444,7 @@ class expression::arrow_function_with_statements final : public expression {
   const char8 *span_end_;
   expression_arena::array_ptr<expression *> children_;
 };
-static_assert(expression_arena::is_allocatable<
-              expression::arrow_function_with_statements>);
+static_assert(expression_arena::is_allocatable<expression::arrow_function>);
 
 class expression::assignment final : public expression {
  public:
@@ -1007,12 +968,8 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     return static_cast<const expression::_template *>(this)->children_;
   case expression_kind::array:
     return static_cast<const expression::array *>(this)->children_;
-  case expression_kind::arrow_function_with_expression:
-    return static_cast<const expression::arrow_function_with_expression *>(this)
-        ->parameters_;
-  case expression_kind::arrow_function_with_statements:
-    return static_cast<const expression::arrow_function_with_statements *>(this)
-        ->children_;
+  case expression_kind::arrow_function:
+    return static_cast<const expression::arrow_function *>(this)->children_;
   case expression_kind::binary_operator:
     return static_cast<const expression::binary_operator *>(this)->children_;
   case expression_kind::call:
@@ -1126,19 +1083,8 @@ inline source_code_span expression::span() const noexcept {
     return static_cast<const _template *>(this)->span_;
   case expression_kind::array:
     return static_cast<const array *>(this)->span_;
-  case expression_kind::arrow_function_with_expression: {
-    auto *arrow =
-        static_cast<const expression::arrow_function_with_expression *>(this);
-    if (arrow->parameter_list_begin_) {
-      return source_code_span(arrow->parameter_list_begin_, arrow->span_end_);
-    } else {
-      return source_code_span(arrow->parameters_.front()->span().begin(),
-                              arrow->span_end_);
-    }
-  }
-  case expression_kind::arrow_function_with_statements: {
-    auto *arrow =
-        static_cast<const expression::arrow_function_with_statements *>(this);
+  case expression_kind::arrow_function: {
+    auto *arrow = static_cast<const expression::arrow_function *>(this);
     if (arrow->parameter_list_begin_) {
       return source_code_span(arrow->parameter_list_begin_, arrow->span_end_);
     } else {
@@ -1216,11 +1162,8 @@ inline source_code_span expression::span() const noexcept {
 
 inline function_attributes expression::attributes() const noexcept {
   switch (this->kind_) {
-  case expression_kind::arrow_function_with_expression:
-    return static_cast<const expression::arrow_function_with_expression *>(this)
-        ->function_attributes_;
-  case expression_kind::arrow_function_with_statements:
-    return static_cast<const expression::arrow_function_with_statements *>(this)
+  case expression_kind::arrow_function:
+    return static_cast<const expression::arrow_function *>(this)
         ->function_attributes_;
   case expression_kind::function:
     return static_cast<const expression::function *>(this)

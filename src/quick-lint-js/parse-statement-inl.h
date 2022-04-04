@@ -3209,8 +3209,7 @@ void parser::visit_binding_element(
   case expression_kind::_new:
   case expression_kind::_template:
   case expression_kind::_typeof:
-  case expression_kind::arrow_function_with_expression:
-  case expression_kind::arrow_function_with_statements:
+  case expression_kind::arrow_function:
   case expression_kind::binary_operator:
   case expression_kind::conditional:
   case expression_kind::conditional_assignment:
