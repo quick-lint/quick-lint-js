@@ -1780,15 +1780,6 @@ expression* parser::parse_index_expression_remainder(Visitor& v,
 }
 
 template <QLJS_PARSE_VISITOR Visitor>
-expression* parser::parse_arrow_function_body(Visitor& v,
-                                              function_attributes attributes,
-                                              const char8* parameter_list_begin,
-                                              bool allow_in_operator) {
-  return this->parse_arrow_function_body_impl(
-      v, attributes, parameter_list_begin, allow_in_operator);
-}
-
-template <QLJS_PARSE_VISITOR Visitor>
 expression* parser::parse_arrow_function_body(
     Visitor& v, function_attributes attributes,
     const char8* parameter_list_begin, bool allow_in_operator,
@@ -1798,49 +1789,30 @@ expression* parser::parse_arrow_function_body(
       std::move(parameters));
 }
 
-template <class Visitor, class... Args>
+template <class Visitor>
 expression* parser::parse_arrow_function_body_impl(
     Visitor& v, function_attributes attributes,
-    const char8* parameter_list_begin, bool allow_in_operator, Args&&... args) {
+    const char8* parameter_list_begin, bool allow_in_operator,
+    expression_arena::array_ptr<expression*>&& parameters) {
   function_guard guard = this->enter_function(attributes);
+
+  v.visit_enter_function_scope();
+
+  for (expression* parameter : parameters) {
+    this->visit_binding_element(parameter, v, variable_kind::_parameter,
+                                /*declaring_token=*/std::nullopt,
+                                /*init_kind=*/variable_init_kind::normal);
+  }
+  v.visit_enter_function_scope_body();
+
   if (this->peek().type == token_type::left_curly) {
-    v.visit_enter_function_scope();
-
-    // TODO(strager): Avoid creating a temporary expression just to iterate over
-    // the parameters.
-    expression* ast =
-        this->make_expression<expression::arrow_function_with_statements>(
-            attributes, std::forward<Args>(args)..., parameter_list_begin,
-            /*span_end=*/this->peek().begin);
-    for (expression* parameter : ast->children()) {
-      this->visit_binding_element(parameter, v, variable_kind::_parameter,
-                                  /*declaring_token=*/std::nullopt,
-                                  /*init_kind=*/variable_init_kind::normal);
-    }
-
-    v.visit_enter_function_scope_body();
     this->parse_and_visit_statement_block_no_scope(v);
     v.visit_exit_function_scope();
 
     const char8* span_end = this->lexer_.end_of_previous_token();
     return this->make_expression<expression::arrow_function_with_statements>(
-        attributes, ast->children(), parameter_list_begin, span_end);
+        attributes, parameters, parameter_list_begin, span_end);
   } else {
-    v.visit_enter_function_scope();
-
-    // TODO(strager): Avoid creating a temporary expression just to iterate over
-    // the parameters.
-    expression* ast =
-        this->make_expression<expression::arrow_function_with_expression>(
-            attributes, std::forward<Args>(args)..., parameter_list_begin,
-            /*span_end=*/this->peek().begin);
-    for (expression* parameter : ast->children()) {
-      this->visit_binding_element(parameter, v, variable_kind::_parameter,
-                                  /*declaring_token=*/std::nullopt,
-                                  /*init_kind=*/variable_init_kind::normal);
-    }
-
-    v.visit_enter_function_scope_body();
     this->parse_and_visit_expression(v, precedence{
                                             .commas = false,
                                             .in_operator = allow_in_operator,
@@ -1849,8 +1821,7 @@ expression* parser::parse_arrow_function_body_impl(
 
     const char8* span_end = this->lexer_.end_of_previous_token();
     return this->make_expression<expression::arrow_function_with_expression>(
-        attributes, std::forward<Args>(args)..., parameter_list_begin,
-        span_end);
+        attributes, parameters, parameter_list_begin, span_end);
   }
 }
 
