@@ -53,7 +53,7 @@ Source code for {self.name} is available at:
 * {readme_project.properties['Download URL']}
 
 Copyright information for {self.name}:
-{markdown_block_quote(license)})
+{markdown_block_quote(license)}
 """
         )
 
