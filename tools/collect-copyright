@@ -22,35 +22,120 @@ import unittest
 
 logger = logging.getLogger(__name__)
 
-archive_to_vendor_project = {
-    "Pathcch.lib": None,
-    "boost.lib": "boost",
-    "libboost.a": "boost",
-    "libquick-lint-js-lib.a": None,
-    "libsimdjson.a": "simdjson",
-    "node-hook.lib": None,
-    "node-napi.lib": None,  # Dynamically linked.
-    "quick-lint-js-lib.lib": None,
-    "simdjson.lib": "simdjson",
+# Initialized in main.
+global_vendor_directory: pathlib.Path = pathlib.Path()
+global_vendor_projects: typing.List["VendorProject"] = []
+
+
+if typing.TYPE_CHECKING:
+
+    class Project(typing.Protocol):
+        def print_copyright(self) -> None:
+            ...
+
+
+class VendorProject(typing.NamedTuple):
+    """A project listed in vendor/README.txt."""
+
+    name: str
+
+    def print_copyright(self) -> None:
+        readme_project = self._readme_project
+        license_files = readme_project.properties["License file"].split("; ")
+        license = (global_vendor_directory / license_files[0]).read_text()
+
+        print(
+            f"""\
+## {self.name}
+
+Version {readme_project.properties['Version']} of {self.name} is statically linked into quick-lint-js.
+
+Source code for {self.name} is available at:
+* {readme_project.properties['Download URL']}
+
+Copyright information for {self.name}:
+{markdown_block_quote(license)})
+"""
+        )
+
+    @property
+    def _readme_project(self) -> "VendorReadmeProject":
+        matching_vendor_projects = [
+            p for p in global_vendor_projects if p.project_name == self.name
+        ]
+        if len(matching_vendor_projects) != 1:
+            raise Exception(
+                f"could not find vendor project for project name: {self.name}"
+            ) from None
+        return matching_vendor_projects[0]
+
+
+class QLJSSubproject(typing.NamedTuple):
+    """A sub-project of quick-lint-js. Has no additional copyright information.
+    """
+
+    def print_copyright(self) -> None:
+        pass
+
+
+class IgnoredLibrary(typing.NamedTuple):
+    """HACK(strager)"""
+
+    def print_copyright(self) -> None:
+        pass
+
+
+class WindowsSoftwareImportLibrary(typing.NamedTuple):
+    """A Windows implib containing only imports to DLLs not shipped with
+    Windows.
+    """
+
+    def print_copyright(self) -> None:
+        # TODO(strager): Should we mention dynamic linking?
+        pass
+
+
+class WindowsSystemImportLibrary(typing.NamedTuple):
+    """A Windows implib containing only imports to system DLLs."""
+
+    def print_copyright(self) -> None:
+        # TODO(strager): Should we mention dynamic linking
+        # to the OS?
+        pass
+
+
+archive_to_project = {
+    "boost.lib": VendorProject("boost"),
+    "libboost.a": VendorProject("boost"),
+    "libsimdjson.a": VendorProject("simdjson"),
+    "simdjson.lib": VendorProject("simdjson"),
+    #
+    "libquick-lint-js-lib.a": QLJSSubproject(),
+    "node-hook.lib": QLJSSubproject(),
+    "quick-lint-js-lib.lib": QLJSSubproject(),
+    #
+    "node-napi.lib": WindowsSoftwareImportLibrary(),
+    #
+    "Pathcch.lib": WindowsSystemImportLibrary(),
     # HACK(strager): Ignore these libraries for now.
-    "LIBCMT.lib": None,
-    "LIBCMTD.lib": None,
-    "MSVCRT.lib": None,
-    "MSVCRTD.lib": None,
-    "delayimp.lib": None,
-    "kernel32.lib": None,
-    "libcpmt.lib": None,
-    "libcpmtd.lib": None,
-    "libucrt.lib": None,
-    "libucrtd.lib": None,
-    "libvcruntime.lib": None,
-    "libvcruntimed.lib": None,
-    "msvcprt.lib": None,
-    "msvcprtd.lib": None,
-    "ucrt.lib": None,
-    "ucrtd.lib": None,
-    "vcruntime.lib": None,
-    "vcruntimed.lib": None,
+    "LIBCMT.lib": IgnoredLibrary(),
+    "LIBCMTD.lib": IgnoredLibrary(),
+    "MSVCRT.lib": IgnoredLibrary(),
+    "MSVCRTD.lib": IgnoredLibrary(),
+    "delayimp.lib": IgnoredLibrary(),
+    "kernel32.lib": IgnoredLibrary(),
+    "libcpmt.lib": IgnoredLibrary(),
+    "libcpmtd.lib": IgnoredLibrary(),
+    "libucrt.lib": IgnoredLibrary(),
+    "libucrtd.lib": IgnoredLibrary(),
+    "libvcruntime.lib": IgnoredLibrary(),
+    "libvcruntimed.lib": IgnoredLibrary(),
+    "msvcprt.lib": IgnoredLibrary(),
+    "msvcprtd.lib": IgnoredLibrary(),
+    "ucrt.lib": IgnoredLibrary(),
+    "ucrtd.lib": IgnoredLibrary(),
+    "vcruntime.lib": IgnoredLibrary(),
+    "vcruntimed.lib": IgnoredLibrary(),
 }
 
 
@@ -136,12 +221,13 @@ Copyright information for Arm Optimized Routines:
     )
 
     vendor_readme_file = pathlib.Path(args.vendor_readme)
-    vendor_projects = parse_vendor_readme_txt(vendor_readme_file.read_text())
+    global global_vendor_directory
+    global_vendor_directory = vendor_readme_file.parent
+    global global_vendor_projects
+    global_vendor_projects = parse_vendor_readme_txt(vendor_readme_file.read_text())
 
     dump_from_linkmap(
         link_map_file=pathlib.Path(args.linkmap),
-        vendor_projects=vendor_projects,
-        vendor_directory=vendor_readme_file.parent,
         is_cross_compiling_emscripten=args.cross_compiling_emscripten,
         extra_vendor_projects=args.extra_vendor_projects,
     )
@@ -149,8 +235,6 @@ Copyright information for Arm Optimized Routines:
 
 def dump_from_linkmap(
     link_map_file: pathlib.Path,
-    vendor_projects: typing.List["VendorReadmeProject"],
-    vendor_directory: pathlib.Path,
     is_cross_compiling_emscripten: bool,
     extra_vendor_projects: typing.List[str],
 ) -> None:
@@ -165,11 +249,9 @@ def dump_from_linkmap(
         for file in link_map.linked_archives
         if not pathlib.Path(file).is_absolute()
     ]
-    dump_from_vendor(
+    dump_from_projects(
         linked_vendored_archives,
-        project_names=extra_vendor_projects,
-        vendor_projects=vendor_projects,
-        vendor_directory=vendor_directory,
+        extra_projects=[VendorProject(name) for name in extra_vendor_projects],
     )
     dump_from_system_archives(
         linked_system_archives,
@@ -177,50 +259,20 @@ def dump_from_linkmap(
     )
 
 
-def dump_from_vendor(
-    archives: typing.List[str],
-    project_names: typing.List[str],
-    vendor_projects: typing.List["VendorReadmeProject"],
-    vendor_directory: pathlib.Path,
+def dump_from_projects(
+    archives: typing.List[str], extra_projects: typing.List["Project"],
 ) -> None:
-    all_project_names = project_names
+    all_projects = extra_projects
     for archive in sorted(archives):
         try:
-            vendor_project_name = archive_to_vendor_project[pathlib.Path(archive).name]
+            project = archive_to_project[pathlib.Path(archive).name]
         except KeyError:
             raise Exception(f"could not find source for archive: {archive}") from None
-        if vendor_project_name is None:
-            # Archive is quick-lint-js itself. Its license is handled elsewhere.
-            continue
-        all_project_names.append(vendor_project_name)
+        all_projects.append(project)
 
-    all_project_names = sorted(set(all_project_names))
-    for vendor_project_name in all_project_names:
-        matching_vendor_projects = [
-            p for p in vendor_projects if p.project_name == vendor_project_name
-        ]
-        if len(matching_vendor_projects) != 1:
-            raise Exception(
-                f"could not find vendor project for project name: {vendor_project_name}"
-            ) from None
-        vendor_project = matching_vendor_projects[0]
-
-        license_files = vendor_project.properties["License file"].split("; ")
-        license = (vendor_directory / license_files[0]).read_text()
-
-        print(
-            f"""\
-## {vendor_project_name}
-
-Version {vendor_project.properties['Version']} of {vendor_project_name} is statically linked into quick-lint-js.
-
-Source code for {vendor_project_name} is available at:
-* {vendor_project.properties['Download URL']}
-
-Copyright information for {vendor_project_name}:
-{markdown_block_quote(license)})
-"""
-        )
+    all_projects = sorted(set(all_projects))
+    for project in all_projects:
+        project.print_copyright()
 
 
 def detect_system_package_manager(
