@@ -1807,7 +1807,7 @@ expression* parser::parse_arrow_function_body(
 
   const char8* span_end = this->lexer_.end_of_previous_token();
   return this->make_expression<expression::arrow_function>(
-      attributes, parameters, parameter_list_begin, span_end);
+      attributes, std::move(parameters), parameter_list_begin, span_end);
 }
 
 template <QLJS_PARSE_VISITOR Visitor>
