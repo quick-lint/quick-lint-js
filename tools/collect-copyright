@@ -10,6 +10,7 @@ software used by quick-lint-js (and quick-lint-js' own copyright and license).
 """
 
 import argparse
+import collections
 import json
 import logging
 import os
@@ -19,6 +20,7 @@ import subprocess
 import sys
 import typing
 import unittest
+import urllib.parse
 
 logger = logging.getLogger(__name__)
 
@@ -284,6 +286,16 @@ def detect_system_package_manager(
         warn("Nix not well supported")
         return Nix()
 
+    msys_path = find_msys_install_path()
+    if msys_path and any(
+        is_path_relative(root_path=msys_path, sub_path=f) for f in files
+    ):
+        return Pacman(
+            pacman_exe=msys_path / "usr" / "bin" / "pacman.exe",
+            root=msys_path,
+            source_uri="https://packages.msys2.org/search?t=binpkg&q=__PACKAGE__",
+        )
+
     try:
         brew_prefix = subprocess.check_output(
             ["brew", "--prefix"], encoding="utf-8"
@@ -304,6 +316,32 @@ def detect_system_package_manager(
         return Debian()
     except (subprocess.CalledProcessError, FileNotFoundError, PermissionError):
         pass
+
+    return None
+
+
+def find_msys_install_path() -> typing.Optional[pathlib.Path]:
+    """Figure out where MSYS2 is installed on Windows.
+
+    If MSYS2 is not installed, this function returns None.
+    """
+    try:
+        import winreg
+
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{f77d714f-1d9f-4795-858c-9633aeec04b8}",
+        ) as key:
+            (path, _type) = winreg.QueryValueEx(key, "InstallLocation")
+            return pathlib.Path(path)
+    except (FileNotFoundError, ImportError):
+        pass
+
+    paths_to_guess = ["c:/msys64"]
+    for path_to_guess in paths_to_guess:
+        path = pathlib.Path(path_to_guess)
+        if path.is_absolute() and (path / "msys2.ini").is_file():
+            return path
 
     return None
 
@@ -452,6 +490,152 @@ SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
             sub_path=file_path,
             root_path=pathlib.Path(self.__brew_prefix) / "opt" / "llvm",
         )
+
+
+class Pacman:
+    """The Pacman package manager, used on Arch Linux and in MSYS2.
+    """
+
+    class InstalledPackage(typing.NamedTuple):
+        name: str
+        version: str
+        source_uris: typing.Tuple[str, ...]
+        licenses: str
+        files: typing.Tuple[str, ...]
+
+        @property
+        def source(self) -> str:
+            return self.name
+
+    def __init__(
+        self, pacman_exe: pathlib.Path, root: pathlib.Path, source_uri: str
+    ) -> None:
+        self.__pacman_exe = pacman_exe
+        self.__root = root
+        self.__source_uri = source_uri
+
+    def packages_for_installed_files(
+        self, files: typing.Iterable[str]
+    ) -> typing.List[InstalledPackage]:
+        files = list(files)
+        package_names = self._packages_for_installed_files(files)
+        packages = self._get_installed_packages(list(set(package_names)))
+        return packages
+
+    def _packages_for_installed_files(
+        self, files: typing.List[str],
+    ) -> typing.List[str]:
+        # HACK(strager): On Windows, Pacman doesn't work with \ as the path
+        # separator.
+        pacman_friendly_files = [f.replace("\\", "/") for f in files]
+        process = subprocess.run(
+            [self.__pacman_exe, "--query", "--quiet", "--owns", "--"] + pacman_friendly_files,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            encoding="utf-8",
+        )
+        process.check_returncode()
+
+        packages = []
+        for (i, line) in enumerate(process.stdout.splitlines()):
+            file = files[i]
+            if line.startswith("error:"):
+                warn("could not determine Pacman package for file %s: %s", file, line)
+            else:
+                package_name = line
+                logger.debug("Pacman package %s contains file %s", package_name, file)
+                packages.append(package_name)
+        return packages
+
+    def _get_installed_packages(
+        self, package_names: typing.List[str]
+    ) -> typing.List[InstalledPackage]:
+        package_to_paths = self._get_files_for_packages(package_names)
+
+        process = subprocess.run(
+            [self.__pacman_exe, "--query", "--quiet", "--info", "--"] + package_names,
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        )
+        process.check_returncode()
+
+        packages = []
+        current_package_properties = {}
+
+        def finish_package() -> None:
+            nonlocal current_package_properties
+            name = current_package_properties["Name"]
+            packages.append(
+                self.InstalledPackage(
+                    name=name,
+                    version=current_package_properties["Version"],
+                    source_uris=(
+                        self.__source_uri.replace(
+                            "__PACKAGE__", urllib.parse.quote(name)
+                        ),
+                    ),
+                    licenses=current_package_properties["Licenses"],
+                    files=tuple(sorted(package_to_paths.get(name, []))),
+                )
+            )
+            current_package_properties = {}
+
+        for line in process.stdout.splitlines():
+            match = re.match(r"^(?P<key>[^:]+?)\s*:\s*(?P<value>.*)$", line)
+            if match is not None:
+                key = match.group("key")
+                value = match.group("value")
+                if key == "Name":
+                    if current_package_properties:
+                        finish_package()
+                current_package_properties[key] = value
+        finish_package()
+        return packages
+
+    def _get_files_for_packages(
+        self, package_names: typing.List[str]
+    ) -> typing.Mapping[str, typing.Set[pathlib.Path]]:
+        process = subprocess.run(
+            [self.__pacman_exe, "--query", "--list", "--"] + package_names,
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        )
+        process.check_returncode()
+
+        package_to_paths = collections.defaultdict(set)
+        for line in process.stdout.splitlines():
+            (package_name, path) = line.split(" ", 1)
+            package_to_paths[package_name].add(self._absolute_path(path))
+        return package_to_paths
+
+    def _absolute_path(self, pacman_path: str) -> pathlib.Path:
+        """On MSYS2, Pacman returns paths like "/ucrt64/include/agtctl_i.c".
+        Convert this path to "C:/msys64/ucrt64/include/agtctl_i.c".
+        """
+        assert pacman_path[0] == "/"
+        return self.__root / pacman_path[1:]
+
+    def get_copyright(self, package: InstalledPackage) -> str:
+        license_files = self._read_license_files(package.files)
+        if not license_files:
+            # We don't have the proper copyright information. Report the SPDX
+            # license names from the PKGBUILD files.
+            return package.licenses
+        result_lines = []
+        for (license_path, license) in license_files.items():
+            result_lines.append(f"Contents of {license_path.name}:")
+            result_lines.append(license)
+            result_lines.append("")
+        return "\n".join(result_lines)
+
+    def _read_license_files(
+        self, package_files: typing.Iterable[pathlib.Path]
+    ) -> typing.Mapping[pathlib.Path, str]:
+        license_files = {}
+        for path in package_files:
+            if "COPYING" in path.name:
+                license_files[path] = path.read_text()
+        return license_files
 
 
 def is_path_relative(root_path: str, sub_path: typing.Union[str, pathlib.Path]) -> bool:
