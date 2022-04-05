@@ -370,13 +370,6 @@ class parser {
   expression *parse_arrow_function_body(
       Visitor &, function_attributes, const char8 *parameter_list_begin,
       bool allow_in_operator,
-      expression_arena::array_ptr<expression *> &&parameters =
-          expression_arena::array_ptr<expression *>());
-
-  template <class Visitor>
-  expression *parse_arrow_function_body_impl(
-      Visitor &, function_attributes, const char8 *parameter_list_begin,
-      bool allow_in_operator,
       expression_arena::array_ptr<expression *> &&parameters);
   template <QLJS_PARSE_VISITOR Visitor>
   expression *parse_function_expression(Visitor &, function_attributes,
