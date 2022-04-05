@@ -436,7 +436,8 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
         }
         expression* ast = this->parse_arrow_function_body(
             v, function_attributes::normal, left_paren_span.begin(),
-            /*allow_in_operator=*/prec.in_operator);
+            /*allow_in_operator=*/prec.in_operator,
+            expression_arena::array_ptr<expression*>());
         return ast;
       } else {
         // ()  // Invalid.
@@ -635,7 +636,8 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
     expression* arrow_function = this->parse_arrow_function_body(
         v, function_attributes::normal,
         /*parameter_list_begin=*/arrow_span.begin(),
-        /*allow_in_operator=*/prec.in_operator);
+        /*allow_in_operator=*/prec.in_operator,
+        expression_arena::array_ptr<expression*>());
     return arrow_function;
   }
 
@@ -1779,16 +1781,6 @@ expression* parser::parse_index_expression_remainder(Visitor& v,
 
 template <QLJS_PARSE_VISITOR Visitor>
 expression* parser::parse_arrow_function_body(
-    Visitor& v, function_attributes attributes,
-    const char8* parameter_list_begin, bool allow_in_operator,
-    expression_arena::array_ptr<expression*>&& parameters) {
-  return this->parse_arrow_function_body_impl(
-      v, attributes, parameter_list_begin, allow_in_operator,
-      std::move(parameters));
-}
-
-template <class Visitor>
-expression* parser::parse_arrow_function_body_impl(
     Visitor& v, function_attributes attributes,
     const char8* parameter_list_begin, bool allow_in_operator,
     expression_arena::array_ptr<expression*>&& parameters) {
