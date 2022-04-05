@@ -23,7 +23,6 @@ import unittest
 logger = logging.getLogger(__name__)
 
 # Initialized in main.
-global_vendor_directory: pathlib.Path = pathlib.Path()
 global_vendor_projects: typing.List["VendorProject"] = []
 
 
@@ -42,7 +41,7 @@ class VendorProject(typing.NamedTuple):
     def print_copyright(self) -> None:
         readme_project = self._readme_project
         license_files = readme_project.properties["License file"].split("; ")
-        license = (global_vendor_directory / license_files[0]).read_text()
+        license = (readme_project.vendor_directory / license_files[0]).read_text()
 
         print(
             f"""\
@@ -221,10 +220,10 @@ Copyright information for Arm Optimized Routines:
     )
 
     vendor_readme_file = pathlib.Path(args.vendor_readme)
-    global global_vendor_directory
-    global_vendor_directory = vendor_readme_file.parent
     global global_vendor_projects
-    global_vendor_projects = parse_vendor_readme_txt(vendor_readme_file.read_text())
+    global_vendor_projects = parse_vendor_readme_txt(
+        vendor_readme_file.read_text(), vendor_directory=vendor_readme_file.parent
+    )
 
     dump_from_linkmap(
         link_map_file=pathlib.Path(args.linkmap),
@@ -824,10 +823,13 @@ def parse_link_map(raw_link_map: str) -> LinkMap:
 
 class VendorReadmeProject(typing.NamedTuple):
     project_name: str
+    vendor_directory: pathlib.Path
     properties: typing.Dict[str, str]
 
 
-def parse_vendor_readme_txt(txt: str) -> typing.List[VendorReadmeProject]:
+def parse_vendor_readme_txt(
+    txt: str, vendor_directory: pathlib.Path
+) -> typing.List[VendorReadmeProject]:
     """Parse the README.txt file in quick-lint-js' vendor/ directory."""
     projects = []
     for line in txt.splitlines():
@@ -835,7 +837,9 @@ def parse_vendor_readme_txt(txt: str) -> typing.List[VendorReadmeProject]:
         if match is not None:
             projects.append(
                 VendorReadmeProject(
-                    project_name=match.group("project_name"), properties={}
+                    project_name=match.group("project_name"),
+                    vendor_directory=vendor_directory,
+                    properties={},
                 )
             )
         match = re.match(r"^(?P<key>[^:]+): (?P<value>.*)$", line)
@@ -1080,12 +1084,14 @@ Download URL: https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0
 Download date: August 25, 2020
 Version: 1.74.0
 """
-        projects = parse_vendor_readme_txt(readme_txt)
+        vendor_dir = pathlib.Path(".")
+        projects = parse_vendor_readme_txt(readme_txt, vendor_directory=vendor_dir)
         self.assertEqual(
             projects,
             [
                 VendorReadmeProject(
                     project_name="benchmark",
+                    vendir_directory=vendor_dir,
                     properties={
                         "Copyright": "Copyright 2015 Google Inc. All rights reserved.",
                         "Version": "v1.5.1",
@@ -1093,6 +1099,7 @@ Version: 1.74.0
                 ),
                 VendorReadmeProject(
                     project_name="boost",
+                    vendir_directory=vendor_dir,
                     properties={
                         "Download URL": "https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2",
                         "Download date": "August 25, 2020",
