@@ -112,6 +112,7 @@ archive_to_project = {
     "libsimdjson.a": VendorProject("simdjson"),
     "simdjson.lib": VendorProject("simdjson"),
     #
+    "libnode-hook.a": QLJSSubproject(),
     "libquick-lint-js-lib.a": QLJSSubproject(),
     "node-hook.lib": QLJSSubproject(),
     "quick-lint-js-lib.lib": QLJSSubproject(),

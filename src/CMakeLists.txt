@@ -32,6 +32,7 @@ quick_lint_js_add_executable(
 )
 set_target_properties(quick-lint-js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
 target_link_libraries(quick-lint-js PRIVATE quick-lint-js-lib)
+quick_lint_js_enable_windows_unicode(quick-lint-js)
 
 # TODO(strager): Use the default DESTINATION for CMake versions which have a
 # default. (3.18.0 has a default; 3.12.4 doesn't have a default.)

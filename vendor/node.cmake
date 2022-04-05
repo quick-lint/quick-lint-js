@@ -17,32 +17,51 @@ if (APPLE)
 endif ()
 if (WIN32)
   # Create a .lib file for linking based on the symbol list in node.def.
+  set(DLLTOOL_MACHINE)
   set(LIB_MACHINE)
   # NOTE(strager): The order of these checks is important. If
   # CMAKE_VS_PLATFORM_NAME is defined, it should take priority over
   # CMAKE_SYSTEM_PROCESSOR.
   if (CMAKE_VS_PLATFORM_NAME STREQUAL ARM)
+    set(DLLTOOL_MACHINE --machine arm)
     set(LIB_MACHINE /MACHINE:ARM)
   elseif (CMAKE_VS_PLATFORM_NAME STREQUAL ARM64)
+    set(DLLTOOL_MACHINE)  # TODO(strager)
     set(LIB_MACHINE /MACHINE:ARM64)
   elseif (CMAKE_VS_PLATFORM_NAME STREQUAL Win32)
+    set(DLLTOOL_MACHINE --machine i386)
     set(LIB_MACHINE /MACHINE:X86)
   elseif (CMAKE_VS_PLATFORM_NAME STREQUAL x64)
+    set(DLLTOOL_MACHINE --machine i386:x86-64)
     set(LIB_MACHINE /MACHINE:X64)
   elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL AMD64)
+    set(DLLTOOL_MACHINE --machine i386:x86-64)
     set(LIB_MACHINE /MACHINE:X64)
   endif ()
-  add_custom_command(
-    OUTPUT node-napi.lib node-napi.exp
-    COMMAND
-      lib
-      "/DEF:${CMAKE_CURRENT_LIST_DIR}/node.def"
-      /OUT:node-napi.lib
-      /WX
-      ${LIB_MACHINE}
-      DEPENDS "${CMAKE_CURRENT_LIST_DIR}/node.def"
-    COMMENT "Generating node-napi implib"
-  )
+  if (MINGW)
+    add_custom_command(
+      OUTPUT node-napi.lib
+      COMMAND
+        dlltool
+        --input-def "${CMAKE_CURRENT_LIST_DIR}/node.def"
+        --output-delaylib node-napi.lib
+        ${DLLTOOL_MACHINE}
+        DEPENDS "${CMAKE_CURRENT_LIST_DIR}/node.def"
+      COMMENT "Generating node-napi implib"
+    )
+  else ()
+    add_custom_command(
+      OUTPUT node-napi.lib node-napi.exp
+      COMMAND
+        lib
+        "/DEF:${CMAKE_CURRENT_LIST_DIR}/node.def"
+        /OUT:node-napi.lib
+        /WX
+        ${LIB_MACHINE}
+        DEPENDS "${CMAKE_CURRENT_LIST_DIR}/node.def"
+      COMMENT "Generating node-napi implib"
+    )
+  endif ()
   add_custom_target(
     node-napi-implib
     DEPENDS node-napi.lib
@@ -58,14 +77,22 @@ if (WIN32)
   # Ensure symbols are found in the extension host (node.exe or code.exe or
   # electron.exe or whatever), not in a separately-loaded DLL called "NODE.EXE".
   add_library(node-hook STATIC "${CMAKE_CURRENT_LIST_DIR}/node-hook.cpp")
-  target_link_libraries(
-    node-napi
-    INTERFACE
-    -DELAY:nobind  # Reduce binary size.
-    -DELAYLOAD:NODE.EXE
-    -WHOLEARCHIVE:$<TARGET_FILE:node-hook>
-    delayimp
-  )
+  if (MINGW)
+    target_link_libraries(
+      node-napi
+      INTERFACE
+      -Wl,--whole-archive node-hook -Wl,--no-whole-archive
+    )
+  else ()
+    target_link_libraries(
+      node-napi
+      INTERFACE
+      -DELAY:nobind  # Reduce binary size.
+      -DELAYLOAD:NODE.EXE
+      -WHOLEARCHIVE:$<TARGET_FILE:node-hook>
+      delayimp
+    )
+  endif ()
   add_dependencies(node-napi node-hook)
 endif ()
 

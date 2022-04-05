@@ -239,6 +239,13 @@ function (quick_lint_js_enable_dead_code_stripping)
   quick_lint_js_add_cxx_linker_flag_if_supported(-Wl,--gc-sections QUICK_LINT_JS_HAVE_GC_SECTIONS)
 endfunction ()
 
+function (quick_lint_js_enable_windows_unicode TARGET)
+  if (WIN32 AND MINGW)
+    target_compile_options("${TARGET}" PUBLIC -municode)
+    target_link_libraries("${TARGET}" PUBLIC -municode)
+  endif ()
+endfunction ()
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
 #

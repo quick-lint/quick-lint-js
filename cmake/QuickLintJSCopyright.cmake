@@ -18,8 +18,6 @@ function (quick_lint_js_collect_copyright NAME)
     set(ERROR_MESSAGE_SEVERITY FATAL_ERROR)
   endif ()
 
-  # TODO(strager): Detect the PE/COFF lld linker and set LICENSE_LINKMAP_TYPE to
-  # "coff-lld".
   if (EMSCRIPTEN)
     set(LICENSE_LINKMAP_TYPE emscripten)
   elseif (CMAKE_SYSTEM_NAME STREQUAL Darwin)
@@ -28,6 +26,11 @@ function (quick_lint_js_collect_copyright NAME)
     set(LICENSE_LINKMAP_TYPE elf)
   elseif (CMAKE_SYSTEM_NAME STREQUAL Windows AND MSVC)
     set(LICENSE_LINKMAP_TYPE pe)
+  elseif (CMAKE_SYSTEM_NAME STREQUAL Windows AND MINGW)
+    # HACK(strager): Assume the linker is BFD ld.
+    # TODO(strager): Detect the PE/COFF lld linker and set LICENSE_LINKMAP_TYPE
+    # to "coff-lld". lld is used in LLVM MinGW.
+    set(LICENSE_LINKMAP_TYPE elf)
   else ()
     message("${ERROR_MESSAGE_SEVERITY}" "Unrecognized platform. Not generating copyright file.")
     return ()

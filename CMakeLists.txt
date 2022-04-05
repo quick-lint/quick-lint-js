@@ -88,6 +88,10 @@ quick_lint_js_configure_rtti()
 quick_lint_js_work_around_implicit_link_directories()
 quick_lint_js_enable_dead_code_stripping()
 
+if (WIN32)
+  add_definitions(-D_WIN32_WINNT=0x0602)
+endif ()
+
 # HACK(strager): Work around issues with CI. We should consider using
 # find_package(Python3) instead.
 find_package(PythonInterp 3.7)

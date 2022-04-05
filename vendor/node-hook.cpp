@@ -36,7 +36,16 @@ FARPROC WINAPI delay_load_notify_hook(unsigned dliNotify,
 }
 }
 
-extern "C" const ::PfnDliHook __pfnDliNotifyHook2 = delay_load_notify_hook;
+// HACK(strager): MinGW's headers need const. Window's headers need no const.
+// Make both SDKs happy.
+#if defined(__MINGW32__)
+#define CONST_UNLESS_MINGW
+#else
+#define CONST_UNLESS_MINGW const
+#endif
+
+extern "C" CONST_UNLESS_MINGW ::PfnDliHook __pfnDliNotifyHook2;
+CONST_UNLESS_MINGW ::PfnDliHook __pfnDliNotifyHook2 = delay_load_notify_hook;
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.
