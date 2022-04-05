@@ -18,6 +18,9 @@ endif ()
 if (WIN32)
   # Create a .lib file for linking based on the symbol list in node.def.
   set(LIB_MACHINE)
+  # NOTE(strager): The order of these checks is important. If
+  # CMAKE_VS_PLATFORM_NAME is defined, it should take priority over
+  # CMAKE_SYSTEM_PROCESSOR.
   if (CMAKE_VS_PLATFORM_NAME STREQUAL ARM)
     set(LIB_MACHINE /MACHINE:ARM)
   elseif (CMAKE_VS_PLATFORM_NAME STREQUAL ARM64)
@@ -25,6 +28,8 @@ if (WIN32)
   elseif (CMAKE_VS_PLATFORM_NAME STREQUAL Win32)
     set(LIB_MACHINE /MACHINE:X86)
   elseif (CMAKE_VS_PLATFORM_NAME STREQUAL x64)
+    set(LIB_MACHINE /MACHINE:X64)
+  elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL AMD64)
     set(LIB_MACHINE /MACHINE:X64)
   endif ()
   add_custom_command(
