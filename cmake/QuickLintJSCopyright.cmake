@@ -18,6 +18,8 @@ function (quick_lint_js_collect_copyright NAME)
     set(ERROR_MESSAGE_SEVERITY FATAL_ERROR)
   endif ()
 
+  # TODO(strager): Detect the PE/COFF lld linker and set LICENSE_LINKMAP_TYPE to
+  # "coff-lld".
   if (EMSCRIPTEN)
     set(LICENSE_LINKMAP_TYPE emscripten)
   elseif (CMAKE_SYSTEM_NAME STREQUAL Darwin)
@@ -43,6 +45,13 @@ function (quick_lint_js_collect_copyright NAME)
   endif ()
 
   set(COLLECT_COPYRIGHT_OPTIONS)
+  if (LICENSE_LINKMAP_TYPE STREQUAL coff-lld)
+    target_link_libraries(
+      "${_TARGET}"
+      PRIVATE
+      "-Wl,-Xlink,-reproduce:${LINKMAP_FILE}"
+    )
+  endif ()
   if (LICENSE_LINKMAP_TYPE STREQUAL emscripten)
     target_link_libraries(
       "${_TARGET}"
