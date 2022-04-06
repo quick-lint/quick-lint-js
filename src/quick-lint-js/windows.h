@@ -28,7 +28,9 @@
 #define NOMEMMGR
 #define NOMENUS
 #define NOMETAFILE
+#if !defined(NOMINMAX)
 #define NOMINMAX
+#endif
 #define NOMSG
 #define NOOPENFILE
 #define NOPROFILER
