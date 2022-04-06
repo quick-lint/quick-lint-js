@@ -15,7 +15,7 @@ Semantic Versioning.
 
 ### Changed
 
-* Windows x86, x64, and ARM64 builds are now built with MinGW's C and C++
+* Windows builds (x86, x64, ARM, and ARM64) are now built with MinGW's C and C++
   runtime libraries instead of Microsoft's.
 
 ## 2.3.1 (2022-03-24)
