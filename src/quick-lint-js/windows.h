@@ -50,7 +50,7 @@
 #define NOWINSTYLES
 #define OEMRESOURCE
 
-#include <Windows.h>
+#include <windows.h>
 
 #endif
 

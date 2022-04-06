@@ -3,7 +3,6 @@
 
 #if defined(_WIN32)
 
-#include <Windows.h>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
@@ -19,6 +18,7 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
+#include <quick-lint-js/windows.h>
 #include <string>
 #include <string_view>
 #include <unordered_map>

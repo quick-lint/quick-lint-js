@@ -2,9 +2,9 @@
 // See end of file for extended copyright information.
 
 #if defined(_WIN32)
-#include <Windows.h>
-#include <delayimp.h>
 #include <string_view>
+#include <windows.h>
+#include <delayimp.h>
 
 using namespace std::literals::string_view_literals;
 

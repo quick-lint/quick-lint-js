@@ -1,6 +1,8 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
+include(QuickLintJSCompiler)
+
 add_library(node-napi INTERFACE)
 if (MINGW AND CMAKE_SYSTEM_PROCESSOR STREQUAL AMD64 AND CMAKE_SIZEOF_VOID_P EQUAL 4)
   # HACK(strager): With the pe-i386 (x86) MinGW toolchain, BFD ld discards the
@@ -36,31 +38,42 @@ if (APPLE)
 endif ()
 if (WIN32)
   # Create a .lib file for linking based on the symbol list in node.def.
+  quick_lint_js_classify_linker()
+  if ("${QUICK_LINT_JS_CXX_LINKER_TYPE}" STREQUAL "GNU ld")
+    set(DELAYLOAD_STYLE gnu)
+  elseif ("${QUICK_LINT_JS_CXX_LINKER_TYPE}" STREQUAL "LLVM LLD PE")
+    set(DELAYLOAD_STYLE llvm)
+  else ()
+    set(DELAYLOAD_STYLE microsoft)
+  endif ()
   set(DLLTOOL_MACHINE)
   set(LIB_MACHINE)
   # NOTE(strager): The order of these checks is important. If
   # CMAKE_VS_PLATFORM_NAME is defined, it should take priority over
   # CMAKE_SYSTEM_PROCESSOR.
   if (CMAKE_VS_PLATFORM_NAME STREQUAL ARM)
-    set(DLLTOOL_MACHINE --machine arm)
+    set(DLLTOOL_MACHINE -m arm)
     set(LIB_MACHINE /MACHINE:ARM)
   elseif (CMAKE_VS_PLATFORM_NAME STREQUAL ARM64)
-    set(DLLTOOL_MACHINE)  # TODO(strager)
+    set(DLLTOOL_MACHINE -m arm64)
     set(LIB_MACHINE /MACHINE:ARM64)
   elseif (CMAKE_VS_PLATFORM_NAME STREQUAL Win32)
-    set(DLLTOOL_MACHINE --machine i386)
+    set(DLLTOOL_MACHINE -m i386)
     set(LIB_MACHINE /MACHINE:X86)
   elseif (CMAKE_VS_PLATFORM_NAME STREQUAL x64)
-    set(DLLTOOL_MACHINE --machine i386:x86-64)
+    set(DLLTOOL_MACHINE -m i386:x86-64)
     set(LIB_MACHINE /MACHINE:X64)
   elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL AMD64 AND CMAKE_SIZEOF_VOID_P EQUAL 4)
-    set(DLLTOOL_MACHINE --machine i386)
+    set(DLLTOOL_MACHINE -m i386)
     set(LIB_MACHINE /MACHINE:X86)
   elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL AMD64 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(DLLTOOL_MACHINE --machine i386:x86-64)
+    set(DLLTOOL_MACHINE -m i386:x86-64)
     set(LIB_MACHINE /MACHINE:X64)
+  elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL aarch64)
+    set(DLLTOOL_MACHINE -m arm64)
+    set(LIB_MACHINE /MACHINE:ARM64)
   endif ()
-  if (MINGW)
+  if ("${DELAYLOAD_STYLE}" STREQUAL gnu)
     add_custom_command(
       OUTPUT node-napi.lib
       COMMAND
@@ -71,7 +84,18 @@ if (WIN32)
         DEPENDS "${CMAKE_CURRENT_LIST_DIR}/node.def"
       COMMENT "Generating node-napi implib"
     )
-  else ()
+  elseif ("${DELAYLOAD_STYLE}" STREQUAL llvm)
+    add_custom_command(
+      OUTPUT node-napi.lib
+      COMMAND
+        llvm-dlltool
+        -d "${CMAKE_CURRENT_LIST_DIR}/node.def"
+        -l node-napi.lib
+        ${DLLTOOL_MACHINE}
+        DEPENDS "${CMAKE_CURRENT_LIST_DIR}/node.def"
+      COMMENT "Generating node-napi implib"
+    )
+  elseif ("${DELAYLOAD_STYLE}" STREQUAL microsoft)
     add_custom_command(
       OUTPUT node-napi.lib node-napi.exp
       COMMAND
@@ -109,9 +133,22 @@ if (WIN32)
     target_link_libraries(
       node-napi
       INTERFACE
+      -WHOLEARCHIVE:$<TARGET_FILE:node-hook>
+    )
+  endif ()
+  if ("${DELAYLOAD_STYLE}" STREQUAL llvm)
+    target_link_libraries(
+      node-napi
+      INTERFACE
+      -Wl,-delayload=NODE.EXE
+      delayimp
+    )
+  elseif ("${DELAYLOAD_STYLE}" STREQUAL microsoft)
+    target_link_libraries(
+      node-napi
+      INTERFACE
       -DELAY:nobind  # Reduce binary size.
       -DELAYLOAD:NODE.EXE
-      -WHOLEARCHIVE:$<TARGET_FILE:node-hook>
       delayimp
     )
   endif ()

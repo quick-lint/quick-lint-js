@@ -1,18 +1,18 @@
 # Copyright (C) 2020  Matthew Glazar
 # See end of file for extended copyright information.
 
-BasedOnStyle: Google
+# This is a CMake toolchain file used on CI to cross-compile to Linux AArch64.
 
-IncludeBlocks: Merge
-IncludeCategories: [
-	# These headers must be included after <Windows.h>:
-	{Regex: '<delayimp\.h|pathcch\.h>', Priority: 1},
-	{Regex: '.*', Priority: 0}
-]
-SortIncludes: true
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_SYSTEM_PROCESSOR aarch64)
 
-FixNamespaceComments: false
-IndentCaseLabels: false
+set(CMAKE_C_COMPILER aarch64-w64-mingw32-cc)
+set(CMAKE_CXX_COMPILER aarch64-w64-mingw32-c++)
+set(CMAKE_RC_COMPILER aarch64-w64-mingw32-windres)
+
+set(CMAKE_SYSTEM_INCLUDE_PATH /opt/llvm-mingw/aarch64-w64-mingw32/include)
+set(CMAKE_SYSTEM_LIBRARY_PATH /opt/llvm-mingw/aarch64-w64-mingw32/lib)
+set(CMAKE_SYSTEM_PREFIX_PATH /opt/llvm-mingw/aarch64-w64-mingw32)
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew Glazar

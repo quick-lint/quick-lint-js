@@ -250,6 +250,28 @@ function (quick_lint_js_enable_windows_unicode TARGET)
   endif ()
 endfunction ()
 
+# Sets QUICK_LINT_JS_CXX_LINKER_TYPE to one of the following:
+# * "GNU ld" (binutils BFD ld; any target)
+# * "GNU gold" (binutils gold; ELF-only)
+# * "LLVM LLD PE" (PE/COFF-only)
+# * "unknown" (none of the above)
+function (quick_lint_js_classify_linker)
+  execute_process(
+    COMMAND "${CMAKE_CXX_COMPILER}" -Wl,--version
+    OUTPUT_VARIABLE LINKER_VERSION_STRING
+    ERROR_VARIABLE LINKER_VERSION_STRING
+  )
+  if ("${LINKER_VERSION_STRING}" MATCHES ".*GNU ld \\(GNU Binutils\\).*")
+    set(QUICK_LINT_JS_CXX_LINKER_TYPE "GNU ld" PARENT_SCOPE)
+  elseif ("${LINKER_VERSION_STRING}" MATCHES "^GNU gold ")
+    set(QUICK_LINT_JS_CXX_LINKER_TYPE "GNU gold" PARENT_SCOPE)
+  elseif ("${LINKER_VERSION_STRING}" MATCHES "^LLD ")
+    set(QUICK_LINT_JS_CXX_LINKER_TYPE "LLVM LLD PE" PARENT_SCOPE)
+  else ()
+    set(QUICK_LINT_JS_CXX_LINKER_TYPE "unknown" PARENT_SCOPE)
+  endif ()
+endfunction ()
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
 #
