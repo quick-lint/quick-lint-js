@@ -13,6 +13,7 @@ void report_assertion_failure(const char *qljs_file_name, int qljs_line,
                "quick-lint-js crashed. Please report this bug here:\n"
                "https://quick-lint-js.com/crash-report/\n",
                qljs_file_name, qljs_line, qljs_function_name, message);
+  std::fflush(stderr);
 }
 }
 
