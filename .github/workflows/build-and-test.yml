@@ -23,6 +23,7 @@ jobs:
           - {runs_on: ubuntu-latest, name: "GCC 8 ASAN+UBSAN", CC: gcc-8, CXX: g++-8, CFLAGS: "-fsanitize=address,undefined -fno-sanitize-recover=address,undefined -fuse-ld=gold", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}"}
           - {runs_on: ubuntu-latest, name: "GCC 8 Release", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Release", WARNINGS: "-Werror;{0}"}
           - {runs_on: ubuntu-latest, name: "GCC 8 dev", CC: gcc-8, CXX: g++-8, CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: "-Werror;{0}", CMAKE_FLAGS: "-DQUICK_LINT_JS_FEATURE_VECTOR_PROFILING=ON"}
+          # TODO(strager): Also test MinGW-based builds.
           - {runs_on: windows-latest, name: "MSVC", CFLAGS: "", CMAKE_BUILD_TYPE: "Debug", WARNINGS: ""}
           - {runs_on: windows-latest, name: "MSVC Release", CFLAGS: "", CMAKE_BUILD_TYPE: "Release", WARNINGS: ""}
     runs-on: ${{ matrix.toolchain.runs_on }}

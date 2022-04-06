@@ -13,6 +13,11 @@ Semantic Versioning.
 * `<div> <> </> </div>` (a JSX fragment inside a JSX element) no longer reports
   a syntax error.
 
+### Changed
+
+* Windows x86 and x64 builds are now built with GCC and MinGW instead of MSVC
+  (Microsoft Visual Studio's C++ compiler).
+
 ## 2.3.1 (2022-03-24)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.3.1/)
