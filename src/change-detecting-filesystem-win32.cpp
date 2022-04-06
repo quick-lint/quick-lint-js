@@ -30,7 +30,6 @@ namespace {
 void attach_handle_to_iocp(windows_handle_file_ref handle,
                            windows_handle_file_ref iocp,
                            ULONG_PTR completionKey) noexcept;
-bool file_ids_equal(const FILE_ID_INFO&, const FILE_ID_INFO&) noexcept;
 
 template <class Iterator, class Vector>
 void swap_erase(Vector& v, Iterator it_to_remove) {
@@ -343,11 +342,6 @@ void attach_handle_to_iocp(windows_handle_file_ref handle,
   if (iocp2 != iocp.get()) {
     QLJS_UNIMPLEMENTED();
   }
-}
-
-bool file_ids_equal(const FILE_ID_INFO& a, const FILE_ID_INFO& b) noexcept {
-  return b.VolumeSerialNumber == a.VolumeSerialNumber &&
-         memcmp(&b.FileId, &a.FileId, sizeof(b.FileId)) == 0;
 }
 }
 }

@@ -17,6 +17,10 @@
 #include <quick-lint-js/result.h>
 #include <string>
 
+#if QLJS_HAVE_WINDOWS_H
+#include <quick-lint-js/windows.h>
+#endif
+
 namespace quick_lint_js {
 struct read_file_io_error {
   std::string path;
@@ -43,6 +47,10 @@ padded_string read_file_or_exit(const char *path);
 
 void write_file(const std::string &path, string8_view content);
 void write_file(const char *path, string8_view content);
+
+#if QLJS_HAVE_WINDOWS_H
+bool file_ids_equal(const ::FILE_ID_INFO &, const ::FILE_ID_INFO &) noexcept;
+#endif
 }
 
 #endif

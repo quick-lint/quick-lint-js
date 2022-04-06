@@ -310,6 +310,13 @@ void write_file(const char *path, string8_view content) {
 
   std::fclose(file);
 }
+
+#if QLJS_HAVE_WINDOWS_H
+bool file_ids_equal(const ::FILE_ID_INFO &a, const ::FILE_ID_INFO &b) noexcept {
+  return b.VolumeSerialNumber == a.VolumeSerialNumber &&
+         std::memcmp(&b.FileId, &a.FileId, sizeof(b.FileId)) == 0;
+}
+#endif
 }
 
 #endif
