@@ -10,6 +10,13 @@
 #include <quick-lint-js/translation.h>
 #include <string_view>
 
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105191
+#if defined(__GNUC__) && !defined(__clang__)
+#define QLJS_WORK_AROUND_GCC_BUG_105191 = {}
+#else
+#define QLJS_WORK_AROUND_GCC_BUG_105191
+#endif
+
 namespace quick_lint_js {
 enum class error_type;
 
@@ -29,13 +36,13 @@ enum class diagnostic_arg_type : std::uint8_t {
 };
 
 struct diagnostic_message_arg_info {
-  std::uint8_t offset;
-  diagnostic_arg_type type;
+  std::uint8_t offset QLJS_WORK_AROUND_GCC_BUG_105191;
+  diagnostic_arg_type type QLJS_WORK_AROUND_GCC_BUG_105191;
 };
 
 struct diagnostic_message_info {
   translatable_message format;
-  diagnostic_severity severity;
+  diagnostic_severity severity QLJS_WORK_AROUND_GCC_BUG_105191;
   diagnostic_message_arg_info args[3];
 };
 
@@ -50,6 +57,8 @@ const diagnostic_info &get_diagnostic_info(error_type) noexcept;
 std::optional<error_type> error_type_from_code_slow(
     std::string_view code) noexcept;
 }
+
+#undef QLJS_WORK_AROUND_GCC_BUG_105191
 
 #endif
 
