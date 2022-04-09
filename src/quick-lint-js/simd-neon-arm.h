@@ -18,7 +18,7 @@
 // are in this separate file.
 
 namespace quick_lint_js {
-#if QLJS_HAVE_ARM_NEON
+#if QLJS_HAVE_ARM_NEON_A64
 QLJS_FORCE_INLINE inline int bool_vector_16_neon::find_first_false() const
     noexcept {
   // You might expect a magic pattern to look like the following:
@@ -66,6 +66,23 @@ QLJS_FORCE_INLINE inline int bool_vector_16_neon::find_first_false() const
   // To deal with the extra zeros, we to divide our countr_zero result by 2.
   return countr_zero(mask) / 2;
 }
+#elif QLJS_HAVE_ARM_NEON
+QLJS_FORCE_INLINE inline int bool_vector_16_neon::find_first_false() const
+    noexcept {
+  // Algorithm derived from sse2neon's _mm_movemask_epi8 function:
+  // https://github.com/DLTcollab/sse2neon/blob/814935c9ba06f68e9549272dbf5df0db8dab2a00/sse2neon.h#L4752-L4830
+  // clang-format off
+  ::uint16x8_t high_bits = ::vreinterpretq_u16_u8 (vshrq_n_u8 (this->data_,           8 - 1));
+  ::uint32x4_t paired16  = ::vreinterpretq_u32_u16(vsraq_n_u16(high_bits, high_bits,  8 - 1));
+  ::uint64x2_t paired32  = ::vreinterpretq_u64_u32(vsraq_n_u32(paired16,  paired16,  16 - 2));
+  ::uint8x16_t paired64  = ::vreinterpretq_u8_u64 (vsraq_n_u64(paired32,  paired32,  32 - 4));
+  // clang-format on
+
+  std::uint32_t mask =
+      static_cast<std::uint32_t>(vgetq_lane_u8(paired64, 0)) |
+      (static_cast<std::uint32_t>(vgetq_lane_u8(paired64, 8)) << 8);
+  return countr_one(mask);
+}
 #endif
 }
 
@@ -91,10 +108,36 @@ QLJS_FORCE_INLINE inline int bool_vector_16_neon::find_first_false() const
 //
 // ---
 //
-// Portions are this file are
+// Portions of this file are
 // Copyright (c) 2014-2020, Arm Limited.
 // Source:
 // https://github.com/ARM-software/optimized-routines/blob/7a9fd1603e1179b044406fb9b6cc5770d736cde7/string/aarch64/memchr.S
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+// --
+//
+// Portions of this file are from sse2neon.
+// Source:
+// https://github.com/DLTcollab/sse2neon/blob/814935c9ba06f68e9549272dbf5df0db8dab2a00/sse2neon.h
+//
+// sse2neon is freely redistributable under the MIT License.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
