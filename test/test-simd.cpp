@@ -109,7 +109,7 @@ TEST(test_bool_vector_16_neon, find_first_false_exhaustive) {
     }
 
     bool_vector_16_neon bools(bools_data);
-    EXPECT_EQ(bools.find_first_false(), first_false);
+    ASSERT_EQ(bools.find_first_false(), first_false);
   }
 }
 #endif
