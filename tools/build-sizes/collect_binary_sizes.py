@@ -89,7 +89,7 @@ class Sizes:
             }
         )
 
-    def to_json_like(self) -> str:
+    def to_json_like(self) -> typing.Any:
         return self.__sizes
 
 
