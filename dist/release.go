@@ -8,11 +8,15 @@ import "flag"
 import "fmt"
 import "log"
 import "os"
+import "os/exec"
+import "strings"
 
 type Step struct {
 	Title string
 	Run   func()
 }
+
+var ReleaseCommitHash string
 
 var Steps []Step = []Step{
 	Step{
@@ -67,6 +71,7 @@ var Steps []Step = []Step{
 		Run: func() {
 			fmt.Printf("Create a commit.\n")
 			WaitForDone()
+			ReleaseCommitHash = GetCurrentGitCommitHash()
 		},
 	},
 
@@ -89,8 +94,11 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Download builds",
 		Run: func() {
+			if ReleaseCommitHash == "" {
+				log.Fatalf("missing -ReleaseCommitHash\n")
+			}
 			fmt.Printf("Download the build artifacts from the artifact server:\n")
-			fmt.Printf("$ rsync -av github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/builds/$YOUR_COMMIT_HASH/ builds/\n")
+			fmt.Printf("$ rsync -av github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/builds/%s/ builds/\n", ReleaseCommitHash)
 			WaitForDone()
 		},
 	},
@@ -178,7 +186,10 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Publish the website",
 		Run: func() {
-			fmt.Printf("Publish the website: Run `./website/deploy.sh COMMIT_HASH_HERE`.\n")
+			if ReleaseCommitHash == "" {
+				log.Fatalf("missing -ReleaseCommitHash\n")
+			}
+			fmt.Printf("Publish the website: Run `./website/deploy.sh %s`.\n", ReleaseCommitHash)
 			WaitForDone()
 		},
 	},
@@ -267,6 +278,7 @@ func main() {
 
 	startAtStepNumber := 0
 	flag.IntVar(&startAtStepNumber, "StartAtStep", 1, "")
+	flag.StringVar(&ReleaseCommitHash, "ReleaseCommitHash", "", "")
 	flag.Parse()
 	if flag.NArg() != 0 {
 		fmt.Fprintf(os.Stderr, "error: unexpected arguments\n")
@@ -296,11 +308,25 @@ retry:
 	if text == "stop\n" {
 		fmt.Printf("\nStopped at step #%d\n", CurrentStepIndex+1)
 		fmt.Printf("To resume, run:\n")
-		fmt.Printf("$ go run dist/release.go -StartAtStep=%d\n", CurrentStepIndex+1)
+		fmt.Printf("$ go run dist/release.go -StartAtStep=%d", CurrentStepIndex+1)
+		if ReleaseCommitHash != "" {
+			fmt.Printf(" -ReleaseCommitHash=%s", ReleaseCommitHash)
+		}
+		fmt.Printf("\n")
 		os.Exit(0)
 	}
 	fmt.Printf("What's that? Type 'done' or 'stop': ")
 	goto retry
+}
+
+func GetCurrentGitCommitHash() string {
+	cmd := exec.Command("git", "rev-parse", "@")
+	cmd.Stderr = os.Stderr
+	stdout, err := cmd.Output()
+	if err != nil {
+		log.Fatalf("failed to get Git commit hash: %v", err)
+	}
+	return strings.TrimSpace(string(stdout))
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
