@@ -59,6 +59,13 @@ if (QUICK_LINT_JS_ENABLE_VSCODE AND NOT EMSCRIPTEN)
         -Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js-vscode-node.exports
       )
     endif ()
+    if (MINGW)
+      target_link_libraries(
+        quick-lint-js-vscode-node
+        PRIVATE
+        -Wl,-exclude-all-symbols
+      )
+    endif ()
 
     quick_lint_js_collect_copyright(
       quick-lint-js-vscode-node-licenses
