@@ -64,7 +64,7 @@ jobs:
       - name: C++ build
         run: cmake --build build --config Release --target quick-lint-js-vscode-node quick-lint-js-vscode-node-licenses
       - name: C++ install
-        run: cmake --install build --component vscode-node --prefix plugin/vscode
+        run: cmake --install build --component vscode-node --prefix plugin/vscode --strip
 
       - name: JS configure
         if: ${{ matrix.os.test }}
