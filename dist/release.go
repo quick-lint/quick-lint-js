@@ -17,6 +17,7 @@ type Step struct {
 }
 
 var ReleaseCommitHash string
+var ReleaseVersion string
 
 var Steps []Step = []Step{
 	Step{
@@ -116,7 +117,7 @@ var Steps []Step = []Step{
 		Title: "Create a Scoop manifest",
 		Run: func() {
 			fmt.Printf("Create a Scoop manifest:\n")
-			fmt.Printf("$ go run ./dist/scoop/make-manifest.go -BaseURI \"https://c.quick-lint-js.com/releases/$YOUR_VERSION_NUMBER/\" -x86-ZIP signed-builds/manual/windows-x86.zip -x64-ZIP signed-builds/manual/windows.zip -Out signed-builds/scoop/quick-lint-js.json\n")
+			fmt.Printf("$ go run ./dist/scoop/make-manifest.go -BaseURI \"https://c.quick-lint-js.com/releases/%s/\" -x86-ZIP signed-builds/manual/windows-x86.zip -x64-ZIP signed-builds/manual/windows.zip -Out signed-builds/scoop/quick-lint-js.json\n", ReleaseVersion)
 			WaitForDone()
 		},
 	},
@@ -125,7 +126,7 @@ var Steps []Step = []Step{
 		Title: "Create a winget manifest",
 		Run: func() {
 			fmt.Printf("Create a winget manifest:\n")
-			fmt.Printf("$ go run ./dist/winget/make-manifests.go -BaseURI \"https://c.quick-lint-js.com/releases/$YOUR_VERSION_NUMBER/\" -MSIX signed-builds/windows/quick-lint-js.msix -OutDir signed-builds/winget/\n")
+			fmt.Printf("$ go run ./dist/winget/make-manifests.go -BaseURI \"https://c.quick-lint-js.com/releases/%s/\" -MSIX signed-builds/windows/quick-lint-js.msix -OutDir signed-builds/winget/\n", ReleaseVersion)
 			WaitForDone()
 		},
 	},
@@ -134,7 +135,7 @@ var Steps []Step = []Step{
 		Title: "Upload the signed build artifacts",
 		Run: func() {
 			fmt.Printf("Upload the signed build artifacts to the artifact server:\n")
-			fmt.Printf("$ rsync -av signed-builds/ github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/releases/$YOUR_VERSION_NUMBER/\n")
+			fmt.Printf("$ rsync -av signed-builds/ github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/releases/%s/\n", ReleaseVersion)
 			WaitForDone()
 		},
 	},
@@ -143,7 +144,7 @@ var Steps []Step = []Step{
 		Title: "Update `latest` symlink",
 		Run: func() {
 			fmt.Printf("Update the `latest` symlink on the artifact server:\n")
-			fmt.Printf("$ ssh github-ci@c.quick-lint-js.com \"ln --force --no-dereference --symbolic $YOUR_VERSION_NUMBER /var/www/c.quick-lint-js.com/releases/latest\"\n")
+			fmt.Printf("$ ssh github-ci@c.quick-lint-js.com \"ln --force --no-dereference --symbolic %s /var/www/c.quick-lint-js.com/releases/latest\"\n", ReleaseVersion)
 			WaitForDone()
 		},
 	},
@@ -197,7 +198,7 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Create Git tag",
 		Run: func() {
-			fmt.Printf("Create a Git tag named after the version number (e.g. `0.1.0`). Push it to GitHub.\n")
+			fmt.Printf("Create a Git tag named `%s`. Push it to GitHub.\n", ReleaseVersion)
 			WaitForDone()
 		},
 	},
@@ -216,7 +217,7 @@ var Steps []Step = []Step{
 			fmt.Printf("1. Clone ssh://aur@aur.archlinux.org/quick-lint-js with Git.\n")
 			fmt.Printf("2. Update README to point to the tag's commit.\n")
 			fmt.Printf("3. Run `dist/arch/update-aur.sh --docker --test /path/to/quick-lint-js-aur-clone`.\n")
-			fmt.Printf("4. Commit all files with message \"Update quick-lint-js to version VERSION_NUMBER\".\n")
+			fmt.Printf("4. Commit all files with message \"Update quick-lint-js to version %s\".\n", ReleaseVersion)
 			fmt.Printf("5. Push to the `master` branch on AUR.\n")
 			WaitForDone()
 		},
@@ -228,7 +229,7 @@ var Steps []Step = []Step{
 			fmt.Printf("1. Clone https://github.com/NixOS/nixpkgs with Git.\n")
 			fmt.Printf("2. Update the version number and SHA1 hash in the pkgs/development/tools/quick-lint-js/default.nix file.\n")
 			fmt.Printf("3. Test installation by running `nix-env -i -f . -A quick-lint-js`.\n")
-			fmt.Printf("4. Commit all files with message \"quick-lint-js: OLDVERSION -> NEWVERSION\".\n")
+			fmt.Printf("4. Commit all files with message \"quick-lint-js: OLDVERSION -> %s\".\n", ReleaseVersion)
 			fmt.Printf("5. Push to a fork on GitHub.\n")
 			fmt.Printf("6. Create a pull request on GitHub.\n")
 			WaitForDone()
@@ -240,7 +241,7 @@ var Steps []Step = []Step{
 		Run: func() {
 			fmt.Printf("1. Clone https://github.com/ScoopInstaller/Main with Git.\n")
 			fmt.Printf("2. Copy .../signed-builds/scoop/quick-lint-js.json to bucket/quick-lint-js.json\n")
-			fmt.Printf("3. Commit all files with message \"quick-lint-js: Update to version $YOUR_VERSION_NUMBER\".\n")
+			fmt.Printf("3. Commit all files with message \"quick-lint-js: Update to version %s\".\n", ReleaseVersion)
 			fmt.Printf("4. Push to a fork on GitHub.\n")
 			fmt.Printf("5. Create a pull request on GitHub.\n")
 			fmt.Printf("6. On the pull request, write a comment: \"/verify\"\n")
@@ -252,8 +253,8 @@ var Steps []Step = []Step{
 		Title: "Update winget package manager",
 		Run: func() {
 			fmt.Printf("1. Clone https://github.com/microsoft/winget-pkgs with Git.\n")
-			fmt.Printf("2. Copy .../signed-builds/winget/* manifests/q/quick-lint/quick-lint-js/$YOUR_VERSION_NUMBER/\n")
-			fmt.Printf("3. Commit all files with message \"Add quick-lint-js version $YOUR_VERSION_NUMBER\".\n")
+			fmt.Printf("2. Copy .../signed-builds/winget/* manifests/q/quick-lint/quick-lint-js/%s/\n", ReleaseVersion)
+			fmt.Printf("3. Commit all files with message \"Add quick-lint-js version %s\".\n", ReleaseVersion)
 			fmt.Printf("4. Push to a fork on GitHub.\n")
 			fmt.Printf("5. Create a pull request on GitHub.\n")
 			WaitForDone()
@@ -280,10 +281,11 @@ func main() {
 	flag.IntVar(&startAtStepNumber, "StartAtStep", 1, "")
 	flag.StringVar(&ReleaseCommitHash, "ReleaseCommitHash", "", "")
 	flag.Parse()
-	if flag.NArg() != 0 {
-		fmt.Fprintf(os.Stderr, "error: unexpected arguments\n")
+	if flag.NArg() != 1 {
+		fmt.Fprintf(os.Stderr, "error: expected exactly one argument (a version number)\n")
 		os.Exit(2)
 	}
+	ReleaseVersion = flag.Arg(0)
 	CurrentStepIndex = startAtStepNumber - 1
 
 	for CurrentStepIndex < len(Steps) {
@@ -312,7 +314,7 @@ retry:
 		if ReleaseCommitHash != "" {
 			fmt.Printf(" -ReleaseCommitHash=%s", ReleaseCommitHash)
 		}
-		fmt.Printf("\n")
+		fmt.Printf(" %s\n", ReleaseVersion)
 		os.Exit(0)
 	}
 	fmt.Printf("What's that? Type 'done' or 'stop': ")
