@@ -375,6 +375,7 @@ parse_statement:
         case token_type::slash_equal:  // Regular expression.
         case token_type::string:
         case token_type::tilde:
+        case token_type::less:
           if (statement_type == parse_statement_type::any_statement_in_block) {
             this->error_reporter_->report(
                 error_return_statement_returns_nothing{
