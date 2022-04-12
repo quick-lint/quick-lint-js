@@ -64,7 +64,8 @@ type newReleaseRequest struct {
 }
 
 func main() {
-	authToken := os.Args[len(os.Args)-1]
+	// authToken := os.Args[len(os.Args)-1]
+	authTokenPtr := flag.String("AuthToken", "", "a string")
 	repoPtr := flag.String("Repo", "quick-lint/quick-lint-js", "a string")
 	tagsRepoPtr := flag.String("TagsRepo", "quick-lint/quick-lint-js", "a string")
 	flag.Parse()
@@ -83,9 +84,9 @@ func main() {
 	tagsRepoPath := *tagsRepoPtr
 	tags := getTagsFromGitHub(tagsRepoPath)
 	repoPath := *repoPtr
-	releaseData := validateTagsHaveReleases(validationData{authToken: authToken, tags: tags, changeLog: changeLog, releaseNotes: releaseNotes, repoPath: repoPath})
-	ifReleaseNotExistMakeReleases(releaseData, authToken, repoPath)
-	ifChangeLogChangedUpdateReleases(releaseData, authToken, repoPath)
+	releaseData := validateTagsHaveReleases(validationData{authToken: *authTokenPtr, tags: tags, changeLog: changeLog, releaseNotes: releaseNotes, repoPath: repoPath})
+	ifReleaseNotExistMakeReleases(releaseData, *authTokenPtr, repoPath)
+	ifChangeLogChangedUpdateReleases(releaseData, *authTokenPtr, repoPath)
 }
 
 func ifReleaseNotExistMakeReleases(releaseData releaseData, authToken string, repoPath string) {
