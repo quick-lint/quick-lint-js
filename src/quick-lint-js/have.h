@@ -325,14 +325,6 @@
 #endif
 #endif
 
-#if !defined(QLJS_HAVE_PTHREAD_KILL)
-#if QLJS_HAVE_PTHREAD_H
-#define QLJS_HAVE_PTHREAD_KILL 1
-#else
-#define QLJS_HAVE_PTHREAD_KILL 0
-#endif
-#endif
-
 #include <locale.h>
 
 #if !defined(QLJS_HAVE_LC_MESSAGES)
