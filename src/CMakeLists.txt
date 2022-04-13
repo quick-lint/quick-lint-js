@@ -62,7 +62,6 @@ quick_lint_js_add_library(
   emacs-lisp-error-reporter.cpp
   emacs-location.cpp
   error-list.cpp
-  error.cpp
   file-canonical.cpp
   file-handle.cpp
   file-path.cpp
@@ -72,7 +71,6 @@ quick_lint_js_add_library(
   integer.cpp
   json.cpp
   jsx.cpp
-  language.cpp
   lex-keyword.cpp
   lex-unicode.cpp
   lex.cpp
@@ -186,7 +184,6 @@ quick_lint_js_add_library(
   uri.cpp
   utf-16.cpp
   utf-8.cpp
-  vector-profiler.cpp
   vim-location.cpp
   vim-qflist-json-error-reporter.cpp
   web-demo-location.cpp
@@ -229,6 +226,9 @@ else ()
     QLJS_FEATURE_VECTOR_PROFILING=0
   )
 endif ()
+if (QUICK_LINT_JS_FEATURE_VECTOR_PROFILING)
+  target_link_libraries(quick-lint-js-lib PRIVATE quick-lint-js-lib-debug)
+endif ()
 
 quick_lint_js_have_charconv(QUICK_LINT_JS_HAVE_CHARCONV)
 if (NOT QUICK_LINT_JS_HAVE_CHARCONV)
@@ -238,6 +238,27 @@ if (NOT QUICK_LINT_JS_HAVE_CHARCONV)
     QLJS_HAVE_CHARCONV_HEADER=0
   )
 endif ()
+
+# quick-lint-js-lib-debug should be dead-code stripped from production builds.
+# It is a separate library from quick-lint-js-lib to increase the chance that
+# the linker drops the code entirely.
+#
+# Code in quick-lint-js-lib-debug can be used from tests, but should not be used
+# in production code.
+quick_lint_js_add_library(
+  quick-lint-js-lib-debug
+  char8-debug.cpp
+  cli-location-debug.cpp
+  emacs-location-debug.cpp
+  error-debug.cpp
+  language-debug.cpp
+  lex-debug.cpp
+  lsp-location-debug.cpp
+  padded-string-debug.cpp
+  vector-profiler-debug.cpp
+  vim-location-debug.cpp
+)
+target_link_libraries(quick-lint-js-lib-debug PUBLIC boost quick-lint-js-lib)
 
 # HACK(strager): Work around GCC compiler bug. GCC 9.3.0 miscompiles a call to
 # strncmp, causing the length given to strncmp to be incorrect. (Perhaps we are

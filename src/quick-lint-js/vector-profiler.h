@@ -93,7 +93,9 @@ class vector_instrumentation {
                  std::uintptr_t data_pointer, std::size_t size,
                  std::size_t capacity);
 
+#if QLJS_FEATURE_VECTOR_PROFILING
   static void register_dump_on_exit_if_requested();
+#endif
 
  private:
   std::vector<entry> entries_;

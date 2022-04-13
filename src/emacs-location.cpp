@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <ostream>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/emacs-location.h>
@@ -13,11 +12,6 @@
 #include <quick-lint-js/utf-8.h>
 
 namespace quick_lint_js {
-std::ostream &operator<<(std::ostream &out, const emacs_source_position &p) {
-  out << "emacs_source_position{" << p.offset << '}';
-  return out;
-}
-
 emacs_source_position emacs_source_range::begin() const noexcept {
   return this->begin_;
 }

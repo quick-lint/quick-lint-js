@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <ostream>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
@@ -12,12 +11,6 @@
 #include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
-std::ostream &operator<<(std::ostream &out, const cli_source_position &p) {
-  out << "cli_source_position{" << p.line_number << ',' << p.column_number
-      << ',' << p.offset << '}';
-  return out;
-}
-
 cli_source_position cli_source_range::begin() const noexcept {
   return this->begin_;
 }

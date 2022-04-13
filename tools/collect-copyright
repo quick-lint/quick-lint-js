@@ -113,8 +113,10 @@ archive_to_project = {
     "simdjson.lib": VendorProject("simdjson"),
     #
     "libnode-hook.a": QLJSSubproject(),
+    "libquick-lint-js-lib-debug.a": QLJSSubproject(),
     "libquick-lint-js-lib.a": QLJSSubproject(),
     "node-hook.lib": QLJSSubproject(),
+    "quick-lint-js-lib-debug.lib": QLJSSubproject(),
     "quick-lint-js-lib.lib": QLJSSubproject(),
     #
     "node-napi.lib": WindowsSoftwareImportLibrary(),

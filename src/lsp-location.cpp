@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <ostream>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
@@ -36,11 +35,6 @@ bool operator==(const lsp_position &lhs, const lsp_position &rhs) noexcept {
 
 bool operator!=(const lsp_position &lhs, const lsp_position &rhs) noexcept {
   return !(lhs == rhs);
-}
-
-std::ostream &operator<<(std::ostream &stream, const lsp_position &position) {
-  stream << "line " << position.line << " character " << position.character;
-  return stream;
 }
 
 lsp_locator::lsp_locator(padded_string_view input) noexcept : input_(input) {

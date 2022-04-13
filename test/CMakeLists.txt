@@ -109,6 +109,7 @@ target_link_libraries(
   gtest
   quick-lint-js-boost-json
   quick-lint-js-lib
+  quick-lint-js-lib-debug
 )
 if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
   target_precompile_headers(

@@ -3,7 +3,6 @@
 
 #include <cstddef>
 #include <cstring>
-#include <ostream>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <string_view>
@@ -12,12 +11,6 @@ namespace quick_lint_js {
 #if QLJS_HAVE_CHAR8_T
 streamable_string8_view::streamable_string8_view(string8_view sv) noexcept
     : sv_(sv) {}
-
-std::ostream &operator<<(std::ostream &out, streamable_string8_view sv) {
-  out << std::string_view(reinterpret_cast<const char *>(sv.sv_.data()),
-                          sv.sv_.size());
-  return out;
-}
 
 streamable_string8_view out_string8(string8_view sv) noexcept {
   return streamable_string8_view(sv);
@@ -111,25 +104,6 @@ char8 tolower(char8 c) noexcept {
 bool islower(char8 c) noexcept { return u8'a' <= c && c <= u8'z'; }
 
 bool isupper(char8 c) noexcept { return u8'A' <= c && c <= u8'Z'; }
-}
-
-namespace testing::internal {
-#if QLJS_HAVE_CHAR8_T
-template <>
-void PrintTo(const char8_t &c, std::ostream *out) {
-  *out << static_cast<char>(c);
-}
-
-template <>
-void PrintTo(const char8_t *const &s, std::ostream *out) {
-  *out << reinterpret_cast<const char *>(s);
-}
-
-template <>
-void PrintTo(char8_t *const &s, std::ostream *out) {
-  PrintTo(const_cast<const char8_t *>(s), out);
-}
-#endif
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

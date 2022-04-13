@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <cstring>
 #include <iterator>
-#include <ostream>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/bit.h>
 #include <quick-lint-js/buffering-error-reporter.h>
@@ -2253,11 +2252,6 @@ const char* to_string(token_type type) {
     QLJS_CASE(tilde)
   }
   return "???";
-}
-
-std::ostream& operator<<(std::ostream& out, token_type type) {
-  out << to_string(type);
-  return out;
 }
 }
 

@@ -164,7 +164,9 @@ void print_version_information();
 
 #if defined(_WIN32)
 int wmain(int argc, wchar_t **wargv) {
+#if QLJS_FEATURE_VECTOR_PROFILING
   quick_lint_js::vector_instrumentation::register_dump_on_exit_if_requested();
+#endif
   quick_lint_js::initialize_translations_from_environment();
 
   quick_lint_js::mbargv m(argc, wargv);
@@ -173,7 +175,9 @@ int wmain(int argc, wchar_t **wargv) {
 }
 #else
 int main(int argc, char **argv) {
+#if QLJS_FEATURE_VECTOR_PROFILING
   quick_lint_js::vector_instrumentation::register_dump_on_exit_if_requested();
+#endif
   quick_lint_js::initialize_translations_from_environment();
 
   quick_lint_js::options o = quick_lint_js::parse_options(argc, argv);

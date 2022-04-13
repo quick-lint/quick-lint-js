@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <ostream>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
@@ -12,11 +11,6 @@
 #include <quick-lint-js/vim-location.h>
 
 namespace quick_lint_js {
-std::ostream &operator<<(std::ostream &out, const vim_source_position &p) {
-  out << "vim_source_position{" << p.lnum << ',' << p.col << '}';
-  return out;
-}
-
 vim_locator::vim_locator(padded_string_view input) noexcept : input_(input) {}
 
 vim_source_range vim_locator::range(source_code_span span) const {

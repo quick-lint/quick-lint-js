@@ -5,7 +5,6 @@
 #include <array>
 #include <cstddef>
 #include <cstdlib>
-#include <ostream>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
@@ -127,18 +126,8 @@ bool operator!=(const padded_string& x, string8_view y) noexcept {
   return !(x == y);
 }
 
-std::ostream& operator<<(std::ostream& out, const padded_string& x) {
-  out << out_string8(x.string_view());
-  return out;
-}
-
 string8_view padded_string_view::string_view() const noexcept {
   return string8_view(this->data(), narrow_cast<std::size_t>(this->size()));
-}
-
-std::ostream& operator<<(std::ostream& out, const padded_string_view& x) {
-  out << out_string8(x.string_view());
-  return out;
 }
 
 bool operator==(string8_view x, const padded_string_view& y) noexcept {
