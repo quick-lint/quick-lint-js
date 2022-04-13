@@ -162,6 +162,7 @@ quick_lint_js_add_library(
   quick-lint-js/simdjson.h
   quick-lint-js/temporary-directory.h
   quick-lint-js/text-error-reporter.h
+  quick-lint-js/thread.h
   quick-lint-js/translation-table-generated.h
   quick-lint-js/translation-table.h
   quick-lint-js/translation.h
@@ -173,12 +174,13 @@ quick_lint_js_add_library(
   quick-lint-js/version.h
   quick-lint-js/vim-location.h
   quick-lint-js/vim-qflist-json-error-reporter.h
-  quick-lint-js/windows.h
   quick-lint-js/warning.h
   quick-lint-js/web-demo-location.h
+  quick-lint-js/windows.h
   simdjson.cpp
   temporary-directory.cpp
   text-error-reporter.cpp
+  thread.cpp
   translation-table-generated.cpp
   translation.cpp
   uri.cpp

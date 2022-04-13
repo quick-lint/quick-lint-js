@@ -145,6 +145,7 @@ class windows_handle_file : private windows_handle_file_ref {
   windows_handle_file &operator=(const windows_handle_file &) = delete;
 
   windows_handle_file(windows_handle_file &&) noexcept;
+  windows_handle_file &operator=(windows_handle_file &&) noexcept;
 
   ~windows_handle_file();
 

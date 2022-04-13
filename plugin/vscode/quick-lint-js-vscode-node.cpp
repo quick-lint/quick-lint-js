@@ -3,7 +3,6 @@
 
 #include <cstdio>
 #include <memory>
-#include <mutex>
 #include <napi.h>
 #include <optional>
 #include <quick-lint-js/basic-configuration-filesystem.h>
@@ -25,11 +24,11 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/pipe.h>
+#include <quick-lint-js/thread.h>
 #include <quick-lint-js/vscode-error-reporter.h>
 #include <quick-lint-js/vscode.h>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -191,7 +190,7 @@ class thread_safe_configuration_filesystem : public configuration_filesystem {
   }
 
  private:
-  std::mutex lock_;
+  mutex lock_;
   UnderlyingFilesystem underlying_fs_;
 };
 
@@ -383,7 +382,7 @@ class qljs_logger : public logger, public ::Napi::ObjectWrap<qljs_logger> {
     logger->flush(env);
   }
 
-  std::mutex mutex_;
+  mutex mutex_;
   std::vector<std::string> pending_log_messages_;
 
   ::Napi::Reference<::Napi::Object> output_channel_ref_;
@@ -458,8 +457,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
             ::Napi::Persistent(info[1].As<::Napi::Object>())) {
     QLJS_DEBUG_LOG("Workspace %p: created\n", this);
     this->init_logging(info.Env());
-    this->fs_change_detection_thread_ = std::thread(
-        [this]() -> void { this->run_fs_change_detection_thread(); });
+    this->fs_change_detection_thread_ =
+        thread([this]() -> void { this->run_fs_change_detection_thread(); });
   }
 
   void init_logging(::Napi::Env env) {
@@ -895,7 +894,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   vscode_configuration_filesystem fs_{fs_change_detection_event_loop_.fs()};
   configuration_loader config_loader_{&fs_};
   configuration default_config_;
-  std::thread fs_change_detection_thread_;
+  thread fs_change_detection_thread_;
   bool did_report_watch_io_error_ = false;
 
   // See NOTE[workspace-cleanup].

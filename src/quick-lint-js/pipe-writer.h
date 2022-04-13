@@ -8,13 +8,11 @@
 // No pipe_writer on the web.
 #else
 
-#include <condition_variable>
-#include <mutex>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
-#include <thread>
+#include <quick-lint-js/thread.h>
 
 #if QLJS_HAVE_KQUEUE
 #include <sys/event.h>
@@ -60,10 +58,10 @@ class background_thread_pipe_writer {
 
   platform_file_ref pipe_;
 
-  std::thread flushing_thread_;
-  std::mutex mutex_;
-  std::condition_variable data_is_pending_;
-  std::condition_variable data_is_flushed_;
+  thread flushing_thread_;
+  mutex mutex_;
+  condition_variable data_is_pending_;
+  condition_variable data_is_flushed_;
 
   // Protected by mutex_:
   byte_buffer_iovec pending_;

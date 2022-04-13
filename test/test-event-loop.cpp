@@ -6,14 +6,13 @@
 #else
 
 #include <chrono>
-#include <condition_variable>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <mutex>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/pipe.h>
 #include <quick-lint-js/spy-lsp-message-parser.h>
+#include <quick-lint-js/thread.h>
 #include <thread>
 
 using ::testing::ElementsAre;
@@ -87,8 +86,8 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
  private:
   platform_file_ref pipe_;
 
-  std::mutex mutex_;
-  std::condition_variable new_data_;
+  mutex mutex_;
+  condition_variable new_data_;
 
   // Protected by mutex_:
   string8 read_data_;

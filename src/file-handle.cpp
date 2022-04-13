@@ -185,6 +185,16 @@ windows_handle_file::windows_handle_file(windows_handle_file &&other) noexcept
     : windows_handle_file_ref(
           std::exchange(other.handle_, this->invalid_handle_1)) {}
 
+windows_handle_file &windows_handle_file::operator=(
+    windows_handle_file &&other) noexcept {
+  if (this->valid()) {
+    this->close();
+  }
+  std::swap(this->handle_, other.handle_);
+  QLJS_ASSERT(!other.valid());
+  return *this;
+}
+
 windows_handle_file::~windows_handle_file() {
   if (this->valid()) {
     this->close();

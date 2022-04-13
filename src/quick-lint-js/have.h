@@ -47,7 +47,7 @@
 
 #if defined(QLJS_HAVE_PTHREAD_H) && QLJS_HAVE_PTHREAD_H
 #elif defined(__has_include)
-#if __has_include(<pthread.h>)
+#if __has_include(<pthread.h>) && !defined(__MINGW32__)
 #define QLJS_HAVE_PTHREAD_H 1
 #endif
 #elif defined(__unix__)

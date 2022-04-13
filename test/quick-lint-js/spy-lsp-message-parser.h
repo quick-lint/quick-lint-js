@@ -8,10 +8,9 @@
 // No LSP on the web.
 #else
 
-#include <condition_variable>
-#include <mutex>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lsp-message-parser.h>
+#include <quick-lint-js/thread.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -38,8 +37,8 @@ class spy_lsp_message_parser
   }
 
  private:
-  mutable std::mutex mutex_;
-  mutable std::condition_variable new_message_;
+  mutable mutex mutex_;
+  mutable condition_variable new_message_;
 
   std::vector<string8> messages_;
 };

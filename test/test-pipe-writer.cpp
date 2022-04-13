@@ -6,13 +6,11 @@
 #else
 
 #include <array>
-#include <condition_variable>
 #include <cstddef>
 #include <cstring>
 #include <future>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <mutex>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
@@ -22,6 +20,7 @@
 #include <quick-lint-js/pipe-writer.h>
 #include <quick-lint-js/pipe.h>
 #include <quick-lint-js/result.h>
+#include <quick-lint-js/thread.h>
 #include <thread>
 
 #if QLJS_HAVE_FCNTL_H
@@ -88,7 +87,7 @@ class pipe_reader_thread {
             if (read_result.at_end_of_file()) {
               return;
             } else {
-              std::unique_lock<std::mutex> lock(this->mutex_);
+              std::unique_lock<mutex> lock(this->mutex_);
               this->received_data.append(string8_view(
                   buffer.data(),
                   narrow_cast<std::size_t>(read_result.bytes_read())));
@@ -99,7 +98,7 @@ class pipe_reader_thread {
   }
 
   void wait_until_size(std::size_t expected_data_size) {
-    std::unique_lock<std::mutex> lock(this->mutex_);
+    std::unique_lock<mutex> lock(this->mutex_);
     this->data_received_.wait(
         lock, [&] { return this->received_data.size() >= expected_data_size; });
   }
@@ -110,8 +109,8 @@ class pipe_reader_thread {
   string8 received_data;
 
  private:
-  std::mutex mutex_;
-  std::condition_variable data_received_;
+  mutex mutex_;
+  condition_variable data_received_;
   std::future<void> receiving_thread_;
 };
 

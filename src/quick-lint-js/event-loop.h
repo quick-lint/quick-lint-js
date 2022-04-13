@@ -17,8 +17,8 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/thread.h>
 #include <quick-lint-js/unreachable.h>
-#include <thread>
 
 #if QLJS_HAVE_KQUEUE
 #include <sys/event.h>
@@ -115,7 +115,7 @@ class event_loop_base {
       return true;
     } else {
       QLJS_ASSERT(read_result.bytes_read() != 0);
-      std::lock_guard<std::mutex> lock(this->user_code_mutex_);
+      std::lock_guard<mutex> lock(this->user_code_mutex_);
       this->derived().append(string8_view(
           buffer.data(), narrow_cast<std::size_t>(read_result.bytes_read())));
       return false;
@@ -144,7 +144,7 @@ class event_loop_base {
   // Derived.
   // TODO(strager): Only use a lock on Windows. Avoid the lock on POSIX
   // platforms where we only have one thread.
-  std::mutex user_code_mutex_;
+  mutex user_code_mutex_;
 };
 
 #if QLJS_HAVE_KQUEUE
@@ -355,8 +355,7 @@ class windows_event_loop : public event_loop_base<Derived> {
   void run() {
     static_assert(!QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING);
 
-    this->read_pipe_thread_ =
-        std::thread([this] { this->run_read_pipe_thread(); });
+    this->read_pipe_thread_ = thread([this] { this->run_read_pipe_thread(); });
     for (;;) {
       DWORD number_of_bytes_transferred;
       ULONG_PTR completion_key = completion_key_invalid;
@@ -417,7 +416,7 @@ class windows_event_loop : public event_loop_base<Derived> {
   }
 
   windows_handle_file io_completion_port_;
-  std::thread read_pipe_thread_;
+  thread read_pipe_thread_;
 };
 #endif
 

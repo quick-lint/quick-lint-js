@@ -6,13 +6,11 @@
 #else
 
 #include <cerrno>
-#include <condition_variable>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <mutex>
 #include <quick-lint-js/basic-configuration-filesystem.h>
 #include <quick-lint-js/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration-loader.h>
@@ -28,10 +26,10 @@
 #include <quick-lint-js/mock-kqueue.h>
 #include <quick-lint-js/mock-win32.h>
 #include <quick-lint-js/options.h>
+#include <quick-lint-js/thread.h>
 #include <quick-lint-js/warning.h>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -153,7 +151,7 @@ class change_detecting_configuration_loader {
   template <class... Args>
   auto watch_and_load_for_file(Args&&... args) {
 #if defined(_WIN32)
-    std::lock_guard<std::mutex> lock(this->mutex_);
+    std::lock_guard<mutex> lock(this->mutex_);
 #endif
     return this->loader_.watch_and_load_for_file(std::forward<Args>(args)...);
   }
@@ -161,7 +159,7 @@ class change_detecting_configuration_loader {
   template <class... Args>
   auto watch_and_load_config_file(Args&&... args) {
 #if defined(_WIN32)
-    std::lock_guard<std::mutex> lock(this->mutex_);
+    std::lock_guard<mutex> lock(this->mutex_);
 #endif
     return this->loader_.watch_and_load_config_file(
         std::forward<Args>(args)...);
@@ -170,14 +168,14 @@ class change_detecting_configuration_loader {
   template <class... Args>
   auto unwatch_file(Args&&... args) {
 #if defined(_WIN32)
-    std::lock_guard<std::mutex> lock(this->mutex_);
+    std::lock_guard<mutex> lock(this->mutex_);
 #endif
     return this->loader_.unwatch_file(std::forward<Args>(args)...);
   }
 
   auto fs_take_watch_errors() {
 #if defined(_WIN32)
-    std::lock_guard<std::mutex> lock(this->mutex_);
+    std::lock_guard<mutex> lock(this->mutex_);
 #endif
     return this->fs_.take_watch_errors();
   }
@@ -203,9 +201,9 @@ class change_detecting_configuration_loader {
   change_detecting_filesystem_kqueue fs_;
 #elif defined(_WIN32)
   windows_handle_file io_completion_port_;
-  std::mutex mutex_;
-  std::condition_variable io_thread_timed_out_;
-  std::condition_variable fs_changed_;
+  mutex mutex_;
+  condition_variable io_thread_timed_out_;
+  condition_variable fs_changed_;
 
   // Used by the test thread only:
   unsigned long long old_fs_changed_count_ = 0;
@@ -2342,7 +2340,7 @@ bool change_detecting_configuration_loader::detect_changes() {
   }
   return kqueue_rc != 0;
 #elif defined(_WIN32)
-  std::unique_lock<std::mutex> lock(this->mutex_);
+  std::unique_lock<mutex> lock(this->mutex_);
   auto old_io_thread_timed_out_count = this->io_thread_timed_out_count_;
   this->io_thread_timed_out_.wait(lock, [&]() {
     return this->io_thread_timed_out_count_ != old_io_thread_timed_out_count;
@@ -2363,7 +2361,7 @@ void change_detecting_configuration_loader::run_io_thread() {
     ULONG_PTR completion_key = completion_key_invalid;
     OVERLAPPED* overlapped;
 
-    std::lock_guard<std::mutex> lock(this->mutex_);
+    std::lock_guard<mutex> lock(this->mutex_);
     BOOL ok = ::GetQueuedCompletionStatus(
         /*CompletionPort=*/this->io_completion_port_.get(),
         /*lpNumberOfBytesTransferred=*/&number_of_bytes_transferred,

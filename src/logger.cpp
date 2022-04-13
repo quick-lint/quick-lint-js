@@ -7,12 +7,12 @@
 #include <cstddef>
 #include <cstdio>
 #include <memory>
-#include <mutex>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/log.h>
 #include <quick-lint-js/logger.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/thread.h>
 #include <quick-lint-js/warning.h>
 #include <string.h>
 #include <vector>
@@ -36,11 +36,11 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=format")
 
 namespace quick_lint_js {
 namespace {
-std::mutex global_loggers_mutex;
+mutex global_loggers_mutex;
 std::vector<logger*> global_loggers;
 bool global_loggers_initialized = false;
 
-void initialize_global_loggers_if_needed(std::lock_guard<std::mutex>&) {
+void initialize_global_loggers_if_needed(std::lock_guard<mutex>&) {
   if (global_loggers_initialized) {
     return;
   }

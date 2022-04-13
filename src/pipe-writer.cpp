@@ -16,7 +16,7 @@
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/pipe-writer.h>
-#include <thread>
+#include <quick-lint-js/thread.h>
 
 #if QLJS_HAVE_WRITEV
 #include <sys/uio.h>
@@ -29,7 +29,7 @@ background_thread_pipe_writer::background_thread_pipe_writer(
     platform_file_ref pipe)
     : pipe_(pipe) {
   QLJS_ASSERT(!this->pipe_.is_pipe_non_blocking());
-  this->flushing_thread_ = std::thread([this] { this->run_flushing_thread(); });
+  this->flushing_thread_ = thread([this] { this->run_flushing_thread(); });
 }
 
 background_thread_pipe_writer::~background_thread_pipe_writer() {
@@ -39,14 +39,14 @@ background_thread_pipe_writer::~background_thread_pipe_writer() {
 }
 
 void background_thread_pipe_writer::flush() {
-  std::unique_lock<std::mutex> lock(this->mutex_);
+  std::unique_lock<mutex> lock(this->mutex_);
   QLJS_ASSERT(!this->stop_);
   this->data_is_flushed_.wait(
       lock, [this] { return !this->writing_ && this->pending_.empty(); });
 }
 
 void background_thread_pipe_writer::write(byte_buffer&& data) {
-  std::unique_lock<std::mutex> lock(this->mutex_);
+  std::unique_lock<mutex> lock(this->mutex_);
   QLJS_ASSERT(!this->stop_);
   this->pending_.append(std::move(data));
   this->data_is_pending_.notify_one();
@@ -81,7 +81,7 @@ void background_thread_pipe_writer::write_all_now_blocking(
 }
 
 void background_thread_pipe_writer::run_flushing_thread() {
-  std::unique_lock<std::mutex> lock(this->mutex_);
+  std::unique_lock<mutex> lock(this->mutex_);
   for (;;) {
     this->data_is_pending_.wait(
         lock, [this] { return this->stop_ || !this->pending_.empty(); });
