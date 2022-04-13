@@ -16,6 +16,15 @@ jobs:
       - name: install dependencies
         run: pacman -Syyuu --noconfirm base-devel git namcap
 
+      # HACK(strager): Work around the following error from
+      # 'git remote add origin ...':
+      #
+      #     fatal: unsafe repository ('/__w/quick-lint-js/quick-lint-js' is owned by someone else)
+      #
+      # See also: https://github.com/actions/checkout/issues/760
+      - name: work around permission issue
+        run: git config --global --add safe.directory /__w/quick-lint-js/quick-lint-js
+
       - name: checkout
         uses: actions/checkout@v2
         with:
