@@ -81,8 +81,7 @@ func main() {
 	defer file.Close()
 	changeLog := getChangeLogInfo(bufio.NewScanner(file))
 	releaseNotes := createReleaseNotes(changeLog)
-	tagsRepoPath := *tagsRepoPtr
-	tags := getTagsFromGitHub(tagsRepoPath)
+	tags := getTagsFromGitHub(*tagsRepoPtr)
 	repoPath := *repoPtr
 	releaseData := validateTagsHaveReleases(validationData{authToken: *authTokenPtr, tags: tags, changeLog: changeLog, releaseNotes: releaseNotes, repoPath: repoPath})
 	ifReleaseNotExistMakeReleases(releaseData, *authTokenPtr, repoPath)
