@@ -61,7 +61,6 @@ quick_lint_js_add_library(
   document.cpp
   emacs-lisp-error-reporter.cpp
   emacs-location.cpp
-  error-collector.cpp
   error-list.cpp
   error.cpp
   file-canonical.cpp
@@ -115,7 +114,6 @@ quick_lint_js_add_library(
   quick-lint-js/document.h
   quick-lint-js/emacs-lisp-error-reporter.h
   quick-lint-js/emacs-location.h
-  quick-lint-js/error-collector.h
   quick-lint-js/error-list.h
   quick-lint-js/error-reporter.h
   quick-lint-js/error-tape.h
