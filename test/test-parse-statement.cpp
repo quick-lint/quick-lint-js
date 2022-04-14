@@ -169,9 +169,7 @@ TEST(test_parse, return_statement_disallows_newline) {
       SCOPED_TRACE(code);
       spy_visitor v;
       if (second_line[0] == '<') {
-        parser_options options;
-        options.jsx = true;
-        parser p(&code, &v, options);
+        parser p(&code, &v, jsx_options);
         p.parse_and_visit_module(v);
       } else {
         parser p(&code, &v);
