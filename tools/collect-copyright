@@ -1419,7 +1419,7 @@ Version: 1.74.0
             [
                 VendorReadmeProject(
                     project_name="benchmark",
-                    vendir_directory=vendor_dir,
+                    vendor_directory=vendor_dir,
                     properties={
                         "Copyright": "Copyright 2015 Google Inc. All rights reserved.",
                         "Version": "v1.5.1",
@@ -1427,7 +1427,7 @@ Version: 1.74.0
                 ),
                 VendorReadmeProject(
                     project_name="boost",
-                    vendir_directory=vendor_dir,
+                    vendor_directory=vendor_dir,
                     properties={
                         "Download URL": "https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2",
                         "Download date": "August 25, 2020",
