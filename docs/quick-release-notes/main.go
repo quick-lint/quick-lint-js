@@ -71,6 +71,7 @@ func main() {
 	authTokenPtr := flag.String("AuthToken", "", "a string")
 	repoPtr := flag.String("Repo", "quick-lint/quick-lint-js", "a string")
 	tagsRepoPtr := flag.String("TagsRepo", "quick-lint/quick-lint-js", "a string")
+	isDraftReleasePtr := flag.Bool("isDraft", false, "This is a bool argument")
 	flag.Parse()
 	if *authTokenPtr == "" {
 		fmt.Println(redColor + "WARNING: No GitHub personal access token given for flag -AuthToken. Refer to INSTRUCTIONS.md" + resetColor)
@@ -90,23 +91,23 @@ func main() {
 	tags := getTagsFromGitHub(*tagsRepoPtr)
 	repoPath := *repoPtr
 	releaseData := validateTagsHaveReleases(validationData{authToken: *authTokenPtr, tags: tags, changeLog: changeLog, releaseNotes: releaseNotes, repoPath: repoPath})
-	ifReleaseNotExistMakeReleases(releaseData, *authTokenPtr, repoPath)
-	ifChangeLogChangedUpdateReleases(releaseData, *authTokenPtr, repoPath)
+	ifReleaseNotExistMakeReleases(releaseData, *authTokenPtr, repoPath, *isDraftReleasePtr)
+	ifChangeLogChangedUpdateReleases(releaseData, *authTokenPtr, repoPath, *isDraftReleasePtr)
 }
 
-func ifReleaseNotExistMakeReleases(releaseData releaseData, authToken string, repoPath string) {
+func ifReleaseNotExistMakeReleases(releaseData releaseData, authToken string, repoPath string, isDraftRelease bool) {
 	for releaseVersion, tagVersion := range releaseData.releaseVersionAndTag {
 		if releaseData.releaseVersionAndTag[releaseVersion] == releaseData.tagAndReleaseVersion[tagVersion] {
-			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "POST", urlWithID: "", tagForRelease: tagVersion, versionTitle: releaseData.tagAndReleaseVersion[releaseVersion], releaseNote: releaseData.releaseVersionAndNote[releaseVersion]})
+			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "POST", urlWithID: "", tagForRelease: tagVersion, versionTitle: releaseData.tagAndReleaseVersion[releaseVersion], releaseNote: releaseData.releaseVersionAndNote[releaseVersion]}, isDraftRelease)
 		}
 	}
 }
 
-func ifChangeLogChangedUpdateReleases(releaseData releaseData, authToken string, repoPath string) {
+func ifChangeLogChangedUpdateReleases(releaseData releaseData, authToken string, repoPath string, isDraftRelease bool) {
 	releases := getReleases(authToken, repoPath)
 	for _, release := range releases[:] {
 		if release.Body != releaseData.releaseVersionAndNote[release.Name] {
-			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "PATCH", urlWithID: release.URL, tagForRelease: release.TagName, versionTitle: release.Name, releaseNote: releaseData.releaseVersionAndNote[release.Name]})
+			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "PATCH", urlWithID: release.URL, tagForRelease: release.TagName, versionTitle: release.Name, releaseNote: releaseData.releaseVersionAndNote[release.Name]}, isDraftRelease)
 		}
 	}
 }
@@ -265,12 +266,17 @@ func createReleaseNotes(changeLog changeLog) []string {
 	return releaseNotes
 }
 
-func makeOrUpdateGitHubRelease(newReleaseRequest newReleaseRequest) {
+func makeOrUpdateGitHubRelease(newReleaseRequest newReleaseRequest, isDraftRelease bool) {
 	// https://docs.github.com/en/rest/reference/releases
-	postBody, err := json.Marshal(map[string]string{
+	// isDraftReleaseTest := fmt.Sprintf("%t", isDraftRelease)
+	// fmt.Println(isDraftRelease)
+	// fmt.Printf("%v %t", isDraftRelease, isDraftRelease)
+
+	postBody, err := json.Marshal(map[string]interface{}{
 		"tag_name": newReleaseRequest.tagForRelease,
 		"name":     newReleaseRequest.versionTitle,
 		"body":     newReleaseRequest.releaseNote,
+		"draft":    isDraftRelease,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -283,6 +289,7 @@ func makeOrUpdateGitHubRelease(newReleaseRequest newReleaseRequest) {
 	} else if newReleaseRequest.requestType == "PATCH" {
 		releasesURL = newReleaseRequest.urlWithID
 	}
+
 	req, err := http.NewRequest(newReleaseRequest.requestType, releasesURL, requestBody)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	req.Header.Set("Content-Type", "application/json")
