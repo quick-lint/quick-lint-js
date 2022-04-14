@@ -156,10 +156,7 @@ TEST(test_parse, return_statement_disallows_newline) {
            u8"{}",
            u8"~bits",
            u8"<div>hi</div>",
-           u8"<a href=\"github.com/quick-lint/quick-lint-js\">link</a>",
            u8"<p></p>",
-           u8"<div>this is <b>bold</b> and <i>italic</i> text</div>",
-           u8"<head><title>head and title</title></head>",
            // TODO(strager): Contextual keywords (let, from, yield, etc.).
            // TODO(strager): Function without name. (Must be an expression, not
            // a statement.)
@@ -168,13 +165,8 @@ TEST(test_parse, return_statement_disallows_newline) {
       padded_string code(u8"return\n"s + second_line);
       SCOPED_TRACE(code);
       spy_visitor v;
-      if (second_line[0] == '<') {
-        parser p(&code, &v, jsx_options);
-        p.parse_and_visit_module(v);
-      } else {
-        parser p(&code, &v);
-        p.parse_and_visit_module(v);
-      }
+      parser p(&code, &v, jsx_options);
+      p.parse_and_visit_module(v);
       EXPECT_THAT(v.errors,
                   ElementsAre(ERROR_TYPE_OFFSETS(
                       &code, error_return_statement_returns_nothing,  //
@@ -185,15 +177,8 @@ TEST(test_parse, return_statement_disallows_newline) {
       padded_string code(u8"{ return\n"s + second_line + u8"}");
       SCOPED_TRACE(code);
       spy_visitor v;
-      if (second_line[0] == '<') {
-        parser_options options;
-        options.jsx = true;
-        parser p(&code, &v, options);
-        p.parse_and_visit_module(v);
-      } else {
-        parser p(&code, &v);
-        p.parse_and_visit_module(v);
-      }
+      parser p(&code, &v, jsx_options);
+      p.parse_and_visit_module(v);
       EXPECT_THAT(v.errors,
                   ElementsAre(ERROR_TYPE_OFFSETS(
                       &code, error_return_statement_returns_nothing,  //
@@ -205,15 +190,8 @@ TEST(test_parse, return_statement_disallows_newline) {
                          u8"}");
       SCOPED_TRACE(code);
       spy_visitor v;
-      if (second_line[0] == '<') {
-        parser_options options;
-        options.jsx = true;
-        parser p(&code, &v, options);
-        p.parse_and_visit_module(v);
-      } else {
-        parser p(&code, &v);
-        p.parse_and_visit_module(v);
-      }
+      parser p(&code, &v, jsx_options);
+      p.parse_and_visit_module(v);
       EXPECT_THAT(
           v.errors,
           ElementsAre(ERROR_TYPE_OFFSETS(
@@ -229,15 +207,8 @@ TEST(test_parse, return_statement_disallows_newline) {
           second_line + u8"}");
       SCOPED_TRACE(code);
       spy_visitor v;
-      if (second_line[0] == '<') {
-        parser_options options;
-        options.jsx = true;
-        parser p(&code, &v, options);
-        p.parse_and_visit_module(v);
-      } else {
-        parser p(&code, &v);
-        p.parse_and_visit_module(v);
-      }
+      parser p(&code, &v, jsx_options);
+      p.parse_and_visit_module(v);
       EXPECT_THAT(v.errors,
                   ElementsAre(ERROR_TYPE_OFFSETS(
                       &code, error_return_statement_returns_nothing,  //
