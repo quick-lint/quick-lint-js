@@ -23,6 +23,7 @@ source=(
 sha512sums=(SKIP SKIP)
 # Matthew "strager" Glazar (quick-lint-js signing key) <strager.nds@gmail.com>
 validpgpkeys=(0327DE8F9CEF499851D19F6ED20BA9DCCF0E9D20)
+options=(lto)
 
 build() {
   cd "${pkgname}-${pkgver}"

@@ -124,6 +124,14 @@ if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
 endif ()
 quick_lint_js_enable_bigobj_if_supported(quick-lint-js-test)
 
+# HACK(strager): LTO builds are very slow. Our tests don't
+# *need* LTO optimizations. Disable LTO for our tests.
+set_target_properties(
+  quick-lint-js-test
+  PROPERTIES
+  INTERPROCEDURAL_OPTIMIZATION OFF
+)
+
 add_test(
   NAME quick-lint-js-test
   COMMAND quick-lint-js-test

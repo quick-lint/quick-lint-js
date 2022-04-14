@@ -18,6 +18,7 @@ provides=(quick-lint-js)
 conflicts=(quick-lint-js)
 source=("quick-lint-js::git+file://${PWD}/../../")
 sha256sums=(SKIP)
+options=(lto)
 
 pkgver() {
   cd quick-lint-js
