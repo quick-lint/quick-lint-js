@@ -851,6 +851,74 @@ TEST(test_parse, unnamed_function_expression_without_body) {
   }
 }
 
+TEST(test_parse, arrow_function_invoked_with_parens) {
+  {
+    padded_string code(u8"(() => {})()"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
+                                      "visit_enter_function_scope_body",
+                                      "visit_exit_function_scope",
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_parse, async_arrow_function_invoked_with_parens) {
+  {
+    padded_string code(u8"(async () => {})()"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
+                                      "visit_enter_function_scope_body",
+                                      "visit_exit_function_scope",
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_parse, arrow_function_invoked_no_parens) {
+  {
+    padded_string code(u8"() => {}()"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
+                                      "visit_enter_function_scope_body",
+                                      "visit_exit_function_scope",
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_OFFSETS(
+            &code, error_missing_parentheses_around_self_invoked_function,  //
+            func_start, 0, u8"",                                            //
+            invocation, strlen(u8"() => {}"), u8"(")));
+  }
+}
+
+TEST(test_parse, async_arrow_function_invoked_no_parens) {
+  {
+    padded_string code(u8"async () => {}()"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
+                                      "visit_enter_function_scope_body",
+                                      "visit_exit_function_scope",
+                                      "visit_end_of_module"));
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE_2_OFFSETS(
+            &code, error_missing_parentheses_around_self_invoked_function,  //
+            func_start, 0, u8"",                                            //
+            invocation, strlen(u8"async () => {}"), u8"(")));
+  }
+}
+
 TEST(test_parse, arrow_function_without_parameter_list) {
   {
     padded_string code(u8"=> x + y"_sv);

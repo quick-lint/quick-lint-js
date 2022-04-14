@@ -8,6 +8,10 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+* Missing parentheses around a self-invoked arrow function are now reported as [E0211][]
+
 ### Fixed
 
 * `<div> <> </> </div>` (a JSX fragment inside a JSX element) no longer reports
@@ -518,3 +522,4 @@ Beta release.
 [E0203]: https://quick-lint-js.com/errors/E0203/
 [E0205]: https://quick-lint-js.com/errors/E0205/
 [E0207]: https://quick-lint-js.com/errors/E0207/
+[E0211]: https://quick-lint-js.com/errors/E0211/
