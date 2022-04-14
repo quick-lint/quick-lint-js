@@ -368,6 +368,7 @@ parse_statement:
         case token_type::left_curly:  // Object literal.
         case token_type::left_paren:
         case token_type::left_square:  // Array literal.
+        case token_type::less:
         case token_type::minus:
         case token_type::number:
         case token_type::plus:
