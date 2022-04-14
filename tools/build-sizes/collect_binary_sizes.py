@@ -5,6 +5,7 @@
 
 import argparse
 import json
+import logging
 import pathlib
 import re
 import shutil
@@ -15,6 +16,8 @@ import tempfile
 import typing
 import unittest
 import zipfile
+
+logger = logging.getLogger(__name__)
 
 
 def main() -> None:
@@ -139,7 +142,14 @@ class DebianPackageRecorder(Recorder):
             sizes=sizes
         )
         with tempfile.TemporaryDirectory() as temp_dir:
-            subprocess.check_call(["dpkg-deb", "--extract", self._path, temp_dir])
+            try:
+                subprocess.check_call(["dpkg-deb", "--extract", self._path, temp_dir])
+            except FileNotFoundError:
+                logger.warn(
+                    "skipping recording of %s because dpkg-deb is not installed",
+                    self._name,
+                )
+                return
             FileOrDirectoryRecorder(
                 name=self._name, path=pathlib.Path(temp_dir)
             ).record(sizes=sizes)
@@ -153,11 +163,18 @@ class LLVMSizeRecorder(Recorder):
         RegularFileRecorder(name=self._name, path=self._path, type="exe").record(
             sizes=sizes
         )
-        process = subprocess.run(
-            ["llvm-size", "--format=sysv", "--", self._path],
-            stdout=subprocess.PIPE,
-            encoding="utf-8",
-        )
+        try:
+            process = subprocess.run(
+                ["llvm-size", "--format=sysv", "--", self._path],
+                stdout=subprocess.PIPE,
+                encoding="utf-8",
+            )
+        except FileNotFoundError:
+            logger.warn(
+                "skipping recording of %s because llvm-size is not installed",
+                self._name,
+            )
+            return
         try:
             process.check_returncode()
         except subprocess.CalledProcessError as e:
