@@ -37,6 +37,12 @@ TEST(test_utf_16_windows, mbstring_to_wstring) {
     EXPECT_STREQ(wstring.value().c_str(), L"\xd83c\xdf55");
   }
 }
+
+TEST(test_utf_16_windows, wstring_to_mbstring) {
+  EXPECT_EQ(wstring_to_mbstring(L""sv).value(), "");
+  EXPECT_EQ(wstring_to_mbstring(L"-h"sv).value(), "-h");
+  EXPECT_EQ(wstring_to_mbstring(L"\xd83c\xdf55").value(), "\xf0\x9f\x8d\x95");
+}
 #endif
 
 TEST(test_count_utf_8_code_units_in_utf_16, empty_string) {

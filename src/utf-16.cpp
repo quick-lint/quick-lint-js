@@ -101,6 +101,40 @@ std::optional<std::wstring> mbstring_to_wstring(const char *mbstring) {
   }
   return wstring;
 }
+
+std::optional<std::string> wstring_to_mbstring(std::wstring_view wstring) {
+  if (wstring.empty()) {
+    return std::string();
+  }
+  int wstring_size = narrow_cast<int>(wstring.size());
+  int size_required = WideCharToMultiByte(
+      /*CodePage=*/CP_UTF8,
+      /*dwFlags=*/0,
+      /*lpWideCharStr=*/wstring.data(),
+      /*cchWideChar=*/wstring_size,
+      /*lpMultiByteStr=*/nullptr,
+      /*cbMultiByte=*/0,
+      /*lpDefaultChar=*/NULL,
+      /*lpUsedDefaultChar=*/NULL);
+  if (size_required == 0) {
+    return std::nullopt;
+  }
+  std::string result;
+  result.resize(narrow_cast<std::size_t>(size_required));
+  int bytes_written = WideCharToMultiByte(
+      /*CodePage=*/CP_UTF8,
+      /*dwFlags=*/0,
+      /*lpWideCharStr=*/wstring.data(),
+      /*cchWideChar=*/wstring_size,
+      /*lpMultiByteStr=*/result.data(),
+      /*cbMultiByte=*/size_required,
+      /*lpDefaultChar=*/NULL,
+      /*lpUsedDefaultChar=*/NULL);
+  if (bytes_written == 0 || bytes_written != size_required) {
+    return std::nullopt;
+  }
+  return result;
+}
 #endif
 
 std::size_t count_utf_8_code_units(std::u16string_view utf_16) noexcept {

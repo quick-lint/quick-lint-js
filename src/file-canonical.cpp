@@ -22,10 +22,6 @@
 #include <quick-lint-js/utf-16.h>
 #include <string>
 
-#if QLJS_HAVE_STD_FILESYSTEM
-#include <filesystem>
-#endif
-
 #if QLJS_HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
@@ -585,14 +581,16 @@ class windows_path_canonicalizer
   using base::path_canonicalizer_base;
 
   canonical_path_result result() {
-    // HACK(strager): Convert UTF-16 to UTF-8.
-    std::string canonical_utf_8 =
-        to_string(std::filesystem::path(canonical_).u8string());
+    std::optional<std::string> canonical_utf_8 =
+        wstring_to_mbstring(canonical_);
+    if (!canonical_utf_8.has_value()) {
+      QLJS_UNIMPLEMENTED();
+    }
     std::size_t existing_path_length_utf_8 =
         count_utf_8_code_units(std::u16string_view(
             reinterpret_cast<const char16_t *>(canonical_.data()),
             existing_path_length_));
-    return canonical_path_result(std::move(canonical_utf_8),
+    return canonical_path_result(std::move(*canonical_utf_8),
                                  existing_path_length_utf_8);
   }
 
@@ -795,8 +793,11 @@ const std::string &string_for_error_message(const std::string &s) { return s; }
 
 #if QLJS_PATHS_WIN32
 std::string string_for_error_message(std::wstring_view s) {
-  // HACK(strager): Convert UTF-16 to UTF-8.
-  return std::filesystem::path(s).string();
+  std::optional<std::string> canonical_utf_8 = wstring_to_mbstring(s);
+  if (!canonical_utf_8.has_value()) {
+    return "(error converting error message to UTF-8)";
+  }
+  return std::move(*canonical_utf_8);
 }
 #endif
 }
