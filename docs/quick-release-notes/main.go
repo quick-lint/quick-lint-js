@@ -63,12 +63,18 @@ type newReleaseRequest struct {
 	releaseNote   string
 }
 
+// Syntax highlighting for CLI warning messages.
+var redColor = "\033[31m"
+var resetColor = "\033[0m"
+
 func main() {
-	// authToken := os.Args[len(os.Args)-1]
 	authTokenPtr := flag.String("AuthToken", "", "a string")
 	repoPtr := flag.String("Repo", "quick-lint/quick-lint-js", "a string")
 	tagsRepoPtr := flag.String("TagsRepo", "quick-lint/quick-lint-js", "a string")
 	flag.Parse()
+	if *authTokenPtr == "" {
+		fmt.Println(redColor + "WARNING: No GitHub personal access token given for flag -AuthToken. Refer to INSTRUCTIONS.md" + resetColor)
+	}
 	_, scriptPath, _, ok := runtime.Caller(0)
 	if !ok {
 		panic("could not determine path of .go file")
@@ -106,8 +112,6 @@ func ifChangeLogChangedUpdateReleases(releaseData releaseData, authToken string,
 }
 
 func validateTagsHaveReleases(validationData validationData) releaseData {
-	var redColor = "\033[31m"
-	var resetColor = "\033[0m"
 	releaseVersionAndTag := make(map[string]string)
 	releaseVersionAndNote := make(map[string]string)
 	for i, releaseVersion := range validationData.changeLog.versionNumbers[:] {
@@ -288,7 +292,22 @@ func makeOrUpdateGitHubRelease(newReleaseRequest newReleaseRequest) {
 		log.Fatal(err)
 	}
 	defer resp.Body.Close()
-	fmt.Println("Response Headers:", resp.Header)
+
+	// https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps
+	if len(resp.Header["X-Oauth-Scopes"]) > 0 {
+		for _, permission := range resp.Header["X-Oauth-Scopes"] {
+			// public_repo is the least permission; use repo for a private repo.
+			if permission == "public_repo" || permission == "repo" {
+			} else {
+				fmt.Println(redColor + "WARNING: token doesn't include X-Oauth-Scope: public_repo or repo access. " + resetColor)
+			}
+		}
+	} else {
+		fmt.Println(redColor + "WARNING: GitHub access Token has no permissions for X-Oauth-Scopes (select public_repo or repo scopes)" + resetColor)
+	}
+
+	fmt.Print("Token Rate-limit:", resp.Header["X-Ratelimit-Remaining"])
+	fmt.Println(" Token Expiration:", resp.Header["Github-Authentication-Token-Expiration"])
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

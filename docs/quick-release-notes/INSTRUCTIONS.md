@@ -2,9 +2,9 @@
 ### Instuctions for generating a Personal access token:
 
 1. Navigate to your GitHub account settings.
-2. then Developer Settings (bottom-most option in the panel on the left).
+2. Then Developer Settings (bottom-most option in the panel on the left).
 3. Click the Personal access tokens menu.
-4. then click Generate new token.
+4. Then click Generate new token.
 
 Under `repo` permissions for the token you only need to select/checkbox scope for:
 
