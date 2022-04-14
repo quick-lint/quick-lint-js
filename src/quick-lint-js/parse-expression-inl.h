@@ -1149,6 +1149,17 @@ next:
 
   // f(x, y, z)  // Function call.
   case token_type::left_paren:
+    if (binary_builder.last_expression()->kind() ==
+        expression_kind::arrow_function) {
+      // () => {}() // Invalid.
+      auto func_span = binary_builder.last_expression()->span();
+      auto func_start_span =
+          source_code_span(func_span.begin(), func_span.begin());
+      this->error_reporter_->report(
+          error_missing_parentheses_around_self_invoked_function{
+              .invocation = this->peek().span(),
+              .func_start = func_start_span});
+    }
     binary_builder.replace_last(this->parse_call_expression_remainder(
         v, binary_builder.last_expression()));
     goto next;

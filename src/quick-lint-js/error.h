@@ -1047,6 +1047,17 @@
                unary_operator))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_missing_parentheses_around_self_invoked_function, "E0211",         \
+      {                                                                        \
+        source_code_span invocation;                                           \
+        source_code_span func_start;                                           \
+      },                                                                       \
+      ERROR(QLJS_TRANSLATABLE(                                                 \
+                "missing parentheses around self-invoked function"),           \
+            invocation)                                                        \
+          NOTE(QLJS_TRANSLATABLE("function starts here"), func_start))         \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_missing_parentheses_around_unary_lhs_of_exponent, "E0194",         \
       {                                                                        \
         source_code_span unary_expression;                                     \
