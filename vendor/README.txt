@@ -169,6 +169,7 @@ consumption:
 The following patches have been manually applied:
 
 * simdjson-cmake-version.patch
+* simdjson-warnings.patch
 
 Copyright: Copyright 2018-2019 The simdjson authors; various
 Download URL: https://codeload.github.com/simdjson/simdjson/tar.gz/refs/tags/v1.0.0
