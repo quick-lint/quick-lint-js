@@ -271,8 +271,8 @@ func createReleaseNotes(changeLog changeLog) []string {
 		} else {
 			// Handle last version (Currently: ## 0.2.0).
 			if versionLineNumber == changeLog.versionLineNumbers[lastVersionIdx] {
-				for j := 1; j < changeLog.changeLogLength-changeLog.versionLineNumbers[lastVersionIdx]; j++ {
-					currentLineOfText := changeLog.changeLogText[versionLineNumber+j]
+				for j := versionLineNumber + 1; j < changeLog.changeLogLength; j++ {
+					currentLineOfText := changeLog.changeLogText[j]
 					if !linkReferenceDefinitionRE.MatchString(currentLineOfText) {
 						releaseBodyLines += currentLineOfText + "\n"
 					}
