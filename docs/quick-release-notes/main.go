@@ -226,13 +226,11 @@ func getTagsFromGitHub(tagsRepoPath string) []tag {
 
 func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
 	re := regexp.MustCompile(`## (?P<versionNumberAndDate>(?P<versionNumber>\d+\.\d+\.\d+).*)`)
-	changeLogLength := 0
 	var versionLineNumbers []int
 	var changeLogText []string
 	var versionTitles []string
 	var versionNumbers []string
 	for scanner.Scan() {
-		changeLogLength++
 		changeLogText = append(changeLogText, scanner.Text())
 		hashVersionAndDate := re.FindStringSubmatch(scanner.Text())
 		if hashVersionAndDate != nil {
@@ -248,7 +246,7 @@ func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
 	if scanner.Err() != nil {
 		fmt.Println(scanner.Err())
 	}
-	return changeLog{versionLineNumbers, changeLogText, changeLogLength, versionTitles, versionNumbers}
+	return changeLog{versionLineNumbers, changeLogText, len(changeLogText), versionTitles, versionNumbers}
 }
 
 func createReleaseNotes(changeLog changeLog) []string {
