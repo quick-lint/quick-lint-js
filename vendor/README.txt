@@ -169,6 +169,7 @@ consumption:
 The following patches have been manually applied:
 
 * simdjson-cmake-version.patch
+* simdjson-smaller-number-parsing.patch
 * simdjson-warnings.patch
 
 Copyright: Copyright 2018-2019 The simdjson authors; various
