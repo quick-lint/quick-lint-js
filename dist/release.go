@@ -43,7 +43,7 @@ var Steps []Step = []Step{
 			fmt.Printf("* dist/msix/AppxManifest.xml\n")
 			fmt.Printf("* dist/npm/BUILDING.md\n")
 			fmt.Printf("* dist/npm/package.json\n")
-			fmt.Printf("* dist/scoop/quick-lint-js.json\n")
+			fmt.Printf("* dist/scoop/quick-lint-js.template.json\n")
 			fmt.Printf("* dist/sign-release.go\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.installer.template.yaml\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.locale.en-US.template.yaml\n")
