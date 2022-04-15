@@ -234,8 +234,8 @@ func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
 	for scanner.Scan() {
 		changeLogLength++
 		changeLogText = append(changeLogText, scanner.Text())
-		if re.MatchString(scanner.Text()) {
-			hashVersionAndDate := re.FindStringSubmatch(scanner.Text())
+		hashVersionAndDate := re.FindStringSubmatch(scanner.Text())
+		if hashVersionAndDate != nil {
 			idxVersionNumberAndDate := re.SubexpIndex("versionNumberAndDate")
 			idxVersionNumber := re.SubexpIndex("versionNumber")
 			versionNumberAndDate := hashVersionAndDate[idxVersionNumberAndDate]
