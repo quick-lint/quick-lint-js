@@ -5,5 +5,5 @@ in verifying that this package's contents are trustworthy.
 I, Matthew "strager" Glazar, am the software vendor who packaged this software
 for Chocolatey.
 
-Upstream SHA256 checksums: https://c.quick-lint-js.com/releases/2.3.1/SHA256SUMS
-GPG signature: https://c.quick-lint-js.com/releases/2.3.1/SHA256SUMS.asc
+Upstream SHA256 checksums: https://c.quick-lint-js.com/releases/2.4.0/SHA256SUMS
+GPG signature: https://c.quick-lint-js.com/releases/2.4.0/SHA256SUMS.asc
