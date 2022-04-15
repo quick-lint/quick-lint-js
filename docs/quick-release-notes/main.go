@@ -25,9 +25,11 @@ type tag struct {
 }
 
 type releaseForUpdate struct {
+	ID      int    `json:"id"`
 	Name    string `json:"name"`
 	Body    string `json:"body"`
 	URL     string `json:"url"`
+	Draft   bool   `json:"draft"`
 	TagName string `json:"tag_name"`
 }
 
@@ -91,11 +93,29 @@ func main() {
 	tags := getTagsFromGitHub(*tagsRepoPtr)
 	repoPath := *repoPtr
 	releaseData := validateTagsHaveReleases(validationData{authToken: *authTokenPtr, tags: tags, changeLog: changeLog, releaseNotes: releaseNotes, repoPath: repoPath})
+	fmt.Println(releaseData.releaseVersionAndTag)
 	ifReleaseNotExistMakeReleases(releaseData, *authTokenPtr, repoPath, *isDraftReleasePtr)
 	ifChangeLogChangedUpdateReleases(releaseData, *authTokenPtr, repoPath, *isDraftReleasePtr)
 }
 
 func ifReleaseNotExistMakeReleases(releaseData releaseData, authToken string, repoPath string, isDraftRelease bool) {
+
+	releases := getReleases(authToken, repoPath)
+	for _, release := range releases[:] {
+		if release.Draft == true {
+			repoOwner, repoName := splitAndEncodeURLPath(repoPath)
+			releasePath := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases/%v", repoOwner, repoName, release.ID)
+			req, err := http.NewRequest("DELETE", releasePath, nil)
+			req.Header.Set("Accept", "application/vnd.github.v3+json")
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "token "+authToken)
+			if err != nil {
+				log.Fatal(err)
+			}
+			http.DefaultClient.Do(req)
+		}
+	}
+
 	for releaseVersion, tagVersion := range releaseData.releaseVersionAndTag {
 		if releaseData.releaseVersionAndTag[releaseVersion] == releaseData.tagAndReleaseVersion[tagVersion] {
 			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "POST", urlWithID: "", tagForRelease: tagVersion, versionTitle: releaseData.tagAndReleaseVersion[releaseVersion], releaseNote: releaseData.releaseVersionAndNote[releaseVersion]}, isDraftRelease)
@@ -106,8 +126,9 @@ func ifReleaseNotExistMakeReleases(releaseData releaseData, authToken string, re
 func ifChangeLogChangedUpdateReleases(releaseData releaseData, authToken string, repoPath string, isDraftRelease bool) {
 	releases := getReleases(authToken, repoPath)
 	for _, release := range releases[:] {
-		if release.Body != releaseData.releaseVersionAndNote[release.Name] {
-			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "PATCH", urlWithID: release.URL, tagForRelease: release.TagName, versionTitle: release.Name, releaseNote: releaseData.releaseVersionAndNote[release.Name]}, isDraftRelease)
+		if release.Body != releaseData.releaseVersionAndNote[release.Name] && release.Draft != true {
+			fmt.Println("updating")
+			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "PATCH", urlWithID: release.URL, tagForRelease: release.TagName, versionTitle: release.Name, releaseNote: releaseData.releaseVersionAndNote[release.Name]}, false)
 		}
 	}
 }
@@ -173,6 +194,7 @@ func getReleases(authToken string, repoPath string) []releaseForUpdate {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// fmt.Println(resp.Body)
 	var eachRelease []releaseForUpdate
 	err = json.Unmarshal(body, &eachRelease)
 	if err != nil {
@@ -273,8 +295,8 @@ func makeOrUpdateGitHubRelease(newReleaseRequest newReleaseRequest, isDraftRelea
 	// fmt.Printf("%v %t", isDraftRelease, isDraftRelease)
 
 	postBody, err := json.Marshal(map[string]interface{}{
-		"tag_name": newReleaseRequest.tagForRelease,
 		"name":     newReleaseRequest.versionTitle,
+		"tag_name": newReleaseRequest.tagForRelease,
 		"body":     newReleaseRequest.releaseNote,
 		"draft":    isDraftRelease,
 	})
@@ -282,6 +304,8 @@ func makeOrUpdateGitHubRelease(newReleaseRequest newReleaseRequest, isDraftRelea
 		log.Fatal(err)
 	}
 	requestBody := bytes.NewBuffer(postBody)
+	// fmt.Println(requestBody)
+
 	releasesURL := ""
 	if newReleaseRequest.requestType == "POST" {
 		repoOwner, repoName := splitAndEncodeURLPath(newReleaseRequest.repoPath)
