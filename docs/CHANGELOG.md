@@ -10,7 +10,10 @@ Semantic Versioning.
 
 ### Added
 
-* Missing parentheses around a self-invoked arrow function are now reported as [E0211][]
+* Missing parentheses around a self-invoked arrow function are now reported as
+  [E0211][]. (Implemented by [Sarah Schulte][].)
+* [E0179][] is now reported if a JSX element such as `<div />` follows `return`
+  (implemented by [Rob Miner][]).
 
 ### Fixed
 
@@ -20,7 +23,8 @@ Semantic Versioning.
 ### Changed
 
 * Windows builds (x86, x64, ARM, and ARM64) are now built with MinGW's C and C++
-  runtime libraries instead of Microsoft's.
+  runtime libraries instead of Microsoft's. This fixes a compliance issue with
+  GPLv3.
 
 ## 2.3.1 (2022-03-24)
 
@@ -463,6 +467,8 @@ Beta release.
 [Matheus de Sousa]: https://github.com/keyehzy
 [Nico Sonack]: https://github.com/herrhotzenplotz
 [Piotr Dąbrowski]: https://github.com/yhnavein
+[Rob Miner]: https://github.com/robminer6
+[Sarah Schulte]: https://github.com/cgsdev0
 [Shivam Mehta]: https://github.com/maniac-en
 [Tony Sathre]: https://github.com/tonysathre
 [coc.nvim]: https://github.com/neoclide/coc.nvim
