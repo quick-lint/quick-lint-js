@@ -31,7 +31,7 @@ Semantic Versioning.
 * Windows: The 32-bit x86 builds are now code-signed.
 * Windows: Tab-completion now works in PowerShell. (Completion needs to be
   [installed manually][install-powershell-completions].) (Implemented by [Tony
-  Sathre][]).
+  Sathre][].)
 
 ### Fixed
 
