@@ -28,6 +28,9 @@ var AppleCodesignCertificate []byte
 //go:embed certificates/DigiCertAssuredIDRootCA_comb.crt.pem
 var DigiCertCertificate []byte
 
+//go:embed certificates/DigiCertTrustedRootG4.crt
+var DigiCertCertificate2 []byte
+
 //go:embed apple/quick-lint-js.csreq
 var AppleCodeSigningRequirements []byte
 
@@ -35,10 +38,11 @@ var AppleCodeSigningRequirements []byte
 var QLJSGPGKey []byte
 
 type SigningStuff struct {
-	Certificate          []byte
-	TimestampCertificate []byte
-	GPGKey               []byte
-	RelicConfigPath      string
+	Certificate           []byte
+	TimestampCertificate  []byte
+	TimestampCertificate2 []byte
+	GPGKey                []byte
+	RelicConfigPath       string
 }
 
 // Key: SHA256 hash of original file
@@ -57,6 +61,7 @@ func main() {
 
 	signingStuff.Certificate = AppleCodesignCertificate
 	signingStuff.TimestampCertificate = DigiCertCertificate
+	signingStuff.TimestampCertificate2 = DigiCertCertificate2
 	signingStuff.GPGKey = QLJSGPGKey
 
 	flag.StringVar(&signingStuff.RelicConfigPath, "RelicConfig", "", "")
@@ -886,6 +891,10 @@ func GetRelicVerifyCertOptions() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	timestampCertificate2File, err := MakeTempFileWithContent(signingStuff.TimestampCertificate2)
+	if err != nil {
+		return nil, err
+	}
 	gpgCertificateFile, err := MakeTempFileWithContent(signingStuff.GPGKey)
 	if err != nil {
 		return nil, err
@@ -893,6 +902,7 @@ func GetRelicVerifyCertOptions() ([]string, error) {
 	return []string{
 		"--cert", certificateFile,
 		"--cert", timestampCertificateFile,
+		"--cert", timestampCertificate2File,
 		"--cert", gpgCertificateFile,
 	}, nil
 }

@@ -16,3 +16,6 @@ documentation](../../docs/CODE_SIGNING.md).
 * `DigiCertAssuredIDRootCA_comb.crt.pem`: DigiCert's certificate. Use this file
   to verify timestamp signatures. Downloaded from
   <https://knowledge.digicert.com/generalinformation/INFO4231.html>.
+* `DigiCertTrustedRootG4.crt`: DigiCert's certificate. Use this file
+  to verify timestamp signatures. Downloaded from
+  <https://www.digicert.com/kb/digicert-root-certificates.htm>.
