@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-04-15 19:18-0700\n"
+"POT-Creation-Date: 2022-04-15 21:50-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,6 +29,46 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: src/diagnostic-formatter.cpp
+msgid "'do-while' loop"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+msgid "'for' loop"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+msgid "'if' statement"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+msgid "'while' loop"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+msgid "'with' statement"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+msgid "a 'do-while' loop"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+msgid "a 'for' loop"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+msgid "an 'if' statement"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+msgid "a 'while' loop"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+msgid "a 'with' statement"
+msgstr ""
 
 #: src/quick-lint-js/error.h
 msgid "missing '<>' and '</>' to enclose multiple children"

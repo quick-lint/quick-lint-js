@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-04-15 19:18-0700\n"
+"POT-Creation-Date: 2022-04-15 21:50-0700\n"
 "PO-Revision-Date: 2022-02-06 21:12+0100\n"
 "Last-Translator: even4void <chl@aliquote.org>\n"
 "Language-Team: French\n"
@@ -29,6 +29,50 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: src/diagnostic-formatter.cpp
+msgid "'do-while' loop"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+msgid "'for' loop"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+#, fuzzy
+msgid "'if' statement"
+msgstr "corps manquant pour l'instruction 'if'"
+
+#: src/diagnostic-formatter.cpp
+msgid "'while' loop"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+#, fuzzy
+msgid "'with' statement"
+msgstr "corps manquant pour l'instruction 'switch'"
+
+#: src/diagnostic-formatter.cpp
+msgid "a 'do-while' loop"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+msgid "a 'for' loop"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+#, fuzzy
+msgid "an 'if' statement"
+msgstr "corps manquant pour l'instruction 'if'"
+
+#: src/diagnostic-formatter.cpp
+msgid "a 'while' loop"
+msgstr ""
+
+#: src/diagnostic-formatter.cpp
+#, fuzzy
+msgid "a 'with' statement"
+msgstr "corps manquant pour l'instruction 'switch'"
 
 #: src/quick-lint-js/error.h
 msgid "missing '<>' and '</>' to enclose multiple children"
