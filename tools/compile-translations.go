@@ -113,6 +113,9 @@ func main() {
 	if err := WriteTranslationTableSource(&table, "src/translation-table-generated.cpp"); err != nil {
 		log.Fatal(err)
 	}
+	if err := WriteTranslationTest(locales, "test/quick-lint-js/test-translation-table-generated.h"); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func ListPOFiles() ([]string, error) {
@@ -507,6 +510,90 @@ const translation_table translation_data = {
 };
 }
 
+`)
+	WriteCopyrightFooter(writer)
+
+	if err := writer.Flush(); err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
+
+func WriteTranslationTest(locales map[string][]TranslationEntry, path string) error {
+	outputFile, err := os.Create(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer outputFile.Close()
+	writer := bufio.NewWriter(outputFile)
+
+	localeNames := GetLocaleNames(locales)
+	allUntranslated := GetAllUntranslated(locales)
+
+	// Returns the untranslated string if there is no translation.
+	lookUpTranslation := func(localeName string, untranslated []byte) []byte {
+		for _, entry := range locales[localeName] {
+			if bytes.Equal(entry.Untranslated, untranslated) {
+				return entry.Translated
+			}
+		}
+		return untranslated
+	}
+
+	fmt.Fprintf(writer,
+		`// Copyright (C) 2020  Matthew "strager" Glazar
+// See end of file for extended copyright information.
+
+#ifndef QUICK_LINT_JS_TEST_TRANSLATION_TABLE_GENERATED_H
+#define QUICK_LINT_JS_TEST_TRANSLATION_TABLE_GENERATED_H
+
+// This file is **GENERATED** by tools/compile-translations.go.
+
+#include <quick-lint-js/char8.h>
+#include <quick-lint-js/translation.h>
+
+namespace quick_lint_js {
+// clang-format off
+inline constexpr const char *test_locale_names[] = {
+`)
+
+	for _, localeName := range localeNames {
+		fmt.Fprintf(writer, "    \"")
+		DumpStringLiteralBody(localeName, writer)
+		fmt.Fprintf(writer, "\",\n")
+	}
+
+	fmt.Fprintf(writer,
+		`};
+// clang-format on
+
+struct translated_string {
+  translatable_message translatable;
+  const char8 *expected_per_locale[%d];
+};
+
+// clang-format off
+inline constexpr translated_string test_translation_table[] = {
+`, len(localeNames))
+
+	for _, untranslated := range allUntranslated {
+		fmt.Fprintf(writer, "    {\n        \"")
+		DumpStringLiteralBody(string(untranslated), writer)
+		fmt.Fprintf(writer, "\"_translatable,\n        {\n")
+		for _, localeName := range localeNames {
+			fmt.Fprintf(writer, "            u8\"")
+			DumpStringLiteralBody(string(lookUpTranslation(localeName, untranslated)), writer)
+			fmt.Fprintf(writer, "\",\n")
+		}
+		fmt.Fprintf(writer, "        },\n    },\n")
+	}
+
+	fmt.Fprintf(writer,
+		`};
+// clang-format on
+}
+
+#endif
 `)
 	WriteCopyrightFooter(writer)
 

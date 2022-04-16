@@ -6,6 +6,13 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+## Fixed
+
+* When using the `de`, `fr_FR`, or `sv_SV` locale, some error messages are no
+  longer blank.
+
 ## 2.4.0 (2022-04-15)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.4.0/)

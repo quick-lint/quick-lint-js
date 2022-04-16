@@ -131,6 +131,10 @@ const char* translatable_messages::translate(
     const translation_table::mapping_entry& mapping =
         translation_data.mapping_table[mapping_index];
     std::uint32_t string_offset = mapping.string_offsets[this->locale_index_];
+    if (string_offset == 0) {
+      // The string has no translation.
+      return message.c_str();
+    }
     return reinterpret_cast<const char*>(translation_data.string_table +
                                          string_offset);
   } else {
