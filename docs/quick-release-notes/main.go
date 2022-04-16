@@ -93,9 +93,8 @@ func main() {
 	tags := getTagsFromGitHub(*tagsRepoPtr)
 	repoPath := *repoPtr
 	releaseData := validateTagsHaveReleases(validationData{authToken: *authTokenPtr, tags: tags, changeLog: changeLog, releaseNotes: releaseNotes, repoPath: repoPath})
-	fmt.Println(releaseData.releaseVersionAndTag)
 	ifReleaseNotExistMakeReleases(releaseData, *authTokenPtr, repoPath, *isDraftReleasePtr)
-	ifChangeLogChangedUpdateReleases(releaseData, *authTokenPtr, repoPath, *isDraftReleasePtr)
+	ifChangeLogChangedUpdateReleases(releaseData, *authTokenPtr, repoPath)
 }
 
 func ifReleaseNotExistMakeReleases(releaseData releaseData, authToken string, repoPath string, isDraftRelease bool) {
@@ -115,20 +114,22 @@ func ifReleaseNotExistMakeReleases(releaseData releaseData, authToken string, re
 			http.DefaultClient.Do(req)
 		}
 	}
-
 	for releaseVersion, tagVersion := range releaseData.releaseVersionAndTag {
 		if releaseData.releaseVersionAndTag[releaseVersion] == releaseData.tagAndReleaseVersion[tagVersion] {
-			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "POST", urlWithID: "", tagForRelease: tagVersion, versionTitle: releaseData.tagAndReleaseVersion[releaseVersion], releaseNote: releaseData.releaseVersionAndNote[releaseVersion]}, isDraftRelease)
+			repoOwner, repoName := splitAndEncodeURLPath(repoPath)
+			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
+			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "POST", tagForRelease: tagVersion, versionTitle: releaseData.tagAndReleaseVersion[releaseVersion], releaseNote: releaseData.releaseVersionAndNote[releaseVersion]}, isDraftRelease, requestURL)
 		}
 	}
 }
 
-func ifChangeLogChangedUpdateReleases(releaseData releaseData, authToken string, repoPath string, isDraftRelease bool) {
+func ifChangeLogChangedUpdateReleases(releaseData releaseData, authToken string, repoPath string) {
+	repoOwner, repoName := splitAndEncodeURLPath(repoPath)
 	releases := getReleases(authToken, repoPath)
 	for _, release := range releases[:] {
 		if release.Body != releaseData.releaseVersionAndNote[release.Name] && release.Draft != true {
-			fmt.Println("updating")
-			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "PATCH", urlWithID: release.URL, tagForRelease: release.TagName, versionTitle: release.Name, releaseNote: releaseData.releaseVersionAndNote[release.Name]}, false)
+			requestURL := fmt.Sprintf("https://api.github.com/repos/%v/%v/releases/%v", repoOwner, repoName, release.ID)
+			makeOrUpdateGitHubRelease(newReleaseRequest{authToken: authToken, repoPath: repoPath, requestType: "PATCH", tagForRelease: release.TagName, versionTitle: release.Name, releaseNote: releaseData.releaseVersionAndNote[release.Name]}, release.Draft, requestURL)
 		}
 	}
 }
@@ -194,7 +195,6 @@ func getReleases(authToken string, repoPath string) []releaseForUpdate {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// fmt.Println(resp.Body)
 	var eachRelease []releaseForUpdate
 	err = json.Unmarshal(body, &eachRelease)
 	if err != nil {
@@ -284,12 +284,7 @@ func createReleaseNotes(changeLog changeLog) []string {
 	return releaseNotes
 }
 
-func makeOrUpdateGitHubRelease(newReleaseRequest newReleaseRequest, isDraftRelease bool) {
-	// https://docs.github.com/en/rest/reference/releases
-	// isDraftReleaseTest := fmt.Sprintf("%t", isDraftRelease)
-	// fmt.Println(isDraftRelease)
-	// fmt.Printf("%v %t", isDraftRelease, isDraftRelease)
-
+func makeOrUpdateGitHubRelease(newReleaseRequest newReleaseRequest, isDraftRelease bool, requestURL string) {
 	postBody, err := json.Marshal(map[string]interface{}{
 		"name":     newReleaseRequest.versionTitle,
 		"tag_name": newReleaseRequest.tagForRelease,
@@ -300,17 +295,7 @@ func makeOrUpdateGitHubRelease(newReleaseRequest newReleaseRequest, isDraftRelea
 		log.Fatal(err)
 	}
 	requestBody := bytes.NewBuffer(postBody)
-	// fmt.Println(requestBody)
-
-	releasesURL := ""
-	if newReleaseRequest.requestType == "POST" {
-		repoOwner, repoName := splitAndEncodeURLPath(newReleaseRequest.repoPath)
-		releasesURL = fmt.Sprintf("https://api.github.com/repos/%v/%v/releases", repoOwner, repoName)
-	} else if newReleaseRequest.requestType == "PATCH" {
-		releasesURL = newReleaseRequest.urlWithID
-	}
-
-	req, err := http.NewRequest(newReleaseRequest.requestType, releasesURL, requestBody)
+	req, err := http.NewRequest(newReleaseRequest.requestType, requestURL, requestBody)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "token "+newReleaseRequest.authToken)
@@ -319,7 +304,6 @@ func makeOrUpdateGitHubRelease(newReleaseRequest newReleaseRequest, isDraftRelea
 		log.Fatal(err)
 	}
 	defer resp.Body.Close()
-
 	// https://docs.github.com/en/developers/apps/building-oauth-apps/scopes-for-oauth-apps
 	if len(resp.Header["X-Oauth-Scopes"]) > 0 {
 		for _, permission := range resp.Header["X-Oauth-Scopes"] {
@@ -332,7 +316,6 @@ func makeOrUpdateGitHubRelease(newReleaseRequest newReleaseRequest, isDraftRelea
 	} else {
 		fmt.Println(redColor + "WARNING: GitHub access Token has no permissions for X-Oauth-Scopes (select public_repo or repo scopes)" + resetColor)
 	}
-
 	fmt.Print("Token Rate-limit:", resp.Header["X-Ratelimit-Remaining"])
 	fmt.Println(" Token Expiration:", resp.Header["Github-Authentication-Token-Expiration"])
 }
