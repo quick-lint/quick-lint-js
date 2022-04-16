@@ -1005,7 +1005,8 @@ const translation_table translation_data =
             "de\0"
             "en@loud\0"
             "fr_FR\0"
-            "sv_SE",
+            "sv_SE\0"
+            "",
 };
 }
 

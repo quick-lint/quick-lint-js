@@ -62,7 +62,7 @@
 //       "en_US\0"
 //       "de_DE\0"
 //       /* ... */
-//       "\0";
+//       "";  // C++ adds an extra null byte for us.
 //
 // hash_entry::string_offsets[i] corresponds to the i-th locale listed in
 // locale_table.
@@ -254,6 +254,8 @@ func CreateTranslationTable(locales map[string][]TranslationEntry) TranslationTa
 	for _, localeName := range table.Locales {
 		addStringToTable([]byte(localeName), &table.LocaleTable)
 	}
+	// Add a null byte (i.e. an empty locale) to terminate the list.
+	addStringToTable([]byte{}, &table.LocaleTable)
 
 	// HACK(strager): len(keys) is all we need in theory, but we have too many
 	// collisions if we make the table that small.
