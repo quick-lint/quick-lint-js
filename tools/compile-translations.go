@@ -160,6 +160,10 @@ type TranslationEntry struct {
 	Translated   []byte
 }
 
+func (entry *TranslationEntry) IsMetadata() bool {
+	return len(entry.Untranslated) == 0
+}
+
 func ExtractGMOStrings(gmoData []byte) []TranslationEntry {
 	var magic uint32 = binary.LittleEndian.Uint32(gmoData[0:])
 	var decode binary.ByteOrder
@@ -189,6 +193,45 @@ func ExtractGMOStrings(gmoData []byte) []TranslationEntry {
 	return entries
 }
 
+// Return value is sorted with no duplicates.
+func GetLocaleNames(locales map[string][]TranslationEntry) []string {
+	localeNames := []string{}
+	for localeName, _ := range locales {
+		localeNames = append(localeNames, localeName)
+	}
+	// Sort to make output deterministic.
+	sort.Strings(localeNames)
+	return localeNames
+}
+
+// Extracts .Untranslated from each TranslationEntry.
+//
+// Return value is sorted with no duplicates.
+func GetAllUntranslated(locales map[string][]TranslationEntry) [][]byte {
+	allUntranslated := [][]byte{}
+	addUntranslated := func(untranslated []byte) {
+		for _, existingUntranslated := range allUntranslated {
+			foundDuplicate := bytes.Equal(existingUntranslated, untranslated)
+			if foundDuplicate {
+				return
+			}
+		}
+		allUntranslated = append(allUntranslated, untranslated)
+	}
+	for _, localeTranslations := range locales {
+		for _, translation := range localeTranslations {
+			if !translation.IsMetadata() {
+				addUntranslated(translation.Untranslated)
+			}
+		}
+	}
+	// Sort to make output deterministic.
+	sort.Slice(allUntranslated, func(i int, j int) bool {
+		return bytes.Compare(allUntranslated[i], allUntranslated[j]) < 0
+	})
+	return allUntranslated
+}
+
 type TranslationTable struct {
 	ConstHashTable       []TranslationTableConstHashEntry
 	ConstHashOffsetBasis uint64
@@ -212,10 +255,6 @@ type TranslationTableMappingEntry struct {
 func CreateTranslationTable(locales map[string][]TranslationEntry) TranslationTable {
 	table := TranslationTable{}
 
-	isMetadata := func(entry *TranslationEntry) bool {
-		return len(entry.Untranslated) == 0
-	}
-
 	addStringToTable := func(stringToAdd []byte, outTable *[]byte) uint32 {
 		offset := uint32(len(*outTable))
 		*outTable = append(*outTable, stringToAdd...)
@@ -227,29 +266,8 @@ func CreateTranslationTable(locales map[string][]TranslationEntry) TranslationTa
 		return addStringToTable(stringToAdd, &table.StringTable)
 	}
 
-	var keys [][]byte
-	addKey := func(key []byte) {
-		for _, existingKey := range keys {
-			foundDuplicate := bytes.Equal(existingKey, key)
-			if foundDuplicate {
-				return
-			}
-		}
-		keys = append(keys, key)
-	}
-	for localeName, localeTranslations := range locales {
-		table.Locales = append(table.Locales, localeName)
-		for _, translation := range localeTranslations {
-			if !isMetadata(&translation) {
-				addKey(translation.Untranslated)
-			}
-		}
-	}
-	// Sort to make output deterministic.
-	sort.Strings(table.Locales)
-	sort.Slice(keys, func(i int, j int) bool {
-		return bytes.Compare(keys[i], keys[j]) < 0
-	})
+	keys := GetAllUntranslated(locales)
+	table.Locales = GetLocaleNames(locales)
 
 	for _, localeName := range table.Locales {
 		addStringToTable([]byte(localeName), &table.LocaleTable)
@@ -312,7 +330,7 @@ retry:
 	for localeIndex, localeName := range table.Locales {
 		localeTranslations := locales[localeName]
 		for _, translation := range localeTranslations {
-			if !isMetadata(&translation) {
+			if !translation.IsMetadata() {
 				constHashEntry := table.FindConstHashEntryByUntranslated(translation.Untranslated)
 				table.MappingTable[constHashEntry.MappingTableIndex].StringOffsets[localeIndex] = addString(translation.Translated)
 			}
