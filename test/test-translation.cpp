@@ -97,9 +97,14 @@ TEST_F(test_translation, full_translation_table) {
     const char *locale_name = test_locale_names[locale_index];
     SCOPED_TRACE(locale_name);
     translatable_messages messages;
-    EXPECT_TRUE(messages.use_messages_from_locale(locale_name));
+    if (*locale_name == '\0') {
+      messages.use_messages_from_source_code();
+    } else {
+      EXPECT_TRUE(messages.use_messages_from_locale(locale_name));
+    }
 
     for (const translated_string &test_case : test_translation_table) {
+      ASSERT_TRUE(test_case.translatable.valid());
       EXPECT_EQ(messages.translate(test_case.translatable),
                 to_string_view(test_case.expected_per_locale[locale_index]));
     }

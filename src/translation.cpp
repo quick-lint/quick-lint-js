@@ -91,14 +91,13 @@ void initialize_translations_from_locale(const char* locale_name) {
 }
 
 void translatable_messages::use_messages_from_source_code() {
-  this->locale_index_ = this->invalid_locale_index;
+  this->locale_index_ = translation_table_locale_count;
 }
 
 bool translatable_messages::use_messages_from_locale(const char* locale_name) {
   std::optional<int> locale_index =
       find_locale(translation_data.locale_table, locale_name);
   if (locale_index.has_value()) {
-    QLJS_ASSERT(*locale_index != this->invalid_locale_index);
     this->locale_index_ = *locale_index;
     return true;
   }
@@ -122,24 +121,22 @@ bool translatable_messages::use_messages_from_locales(
 
 const char* translatable_messages::translate(
     const translatable_message& message) {
-  if (this->locale_index_ != this->invalid_locale_index) {
-    std::uint16_t mapping_index = message.translation_table_mapping_index();
-    if (mapping_index == translation_data.unallocated_mapping_index) {
-      // The string is not in the translation table.
-      return message.c_str();
-    }
-    const translation_table::mapping_entry& mapping =
-        translation_data.mapping_table[mapping_index];
-    std::uint32_t string_offset = mapping.string_offsets[this->locale_index_];
-    if (string_offset == 0) {
-      // The string has no translation.
-      return message.c_str();
-    }
-    return reinterpret_cast<const char*>(translation_data.string_table +
-                                         string_offset);
-  } else {
-    return message.c_str();
+  // If the following assertion fails, it's likely that
+  // translation-table-generated.h is out of date. Run
+  // tools/update-translator-sources to rebuild that file.
+  QLJS_ASSERT(message.valid());
+
+  std::uint16_t mapping_index = message.translation_table_mapping_index();
+  const translation_table::mapping_entry& mapping =
+      translation_data.mapping_table[mapping_index];
+  std::uint32_t string_offset = mapping.string_offsets[this->locale_index_];
+  if (string_offset == 0) {
+    // The string has no translation.
+    string_offset = mapping.string_offsets[translation_table_locale_count];
+    QLJS_ASSERT(string_offset != 0);
   }
+  return reinterpret_cast<const char*>(translation_data.string_table +
+                                       string_offset);
 }
 }
 

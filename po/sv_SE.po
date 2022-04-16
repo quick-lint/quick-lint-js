@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-04-15 21:50-0700\n"
+"POT-Creation-Date: 2022-04-16 00:28-0700\n"
 "PO-Revision-Date: 2021-06-16 00:13+0200\n"
 "Last-Translator: U-DESKTOP-7SNN35D\\Kim <kimlindbla@gmail.com>\n"
 "Language-Team: Swedish (Standard)\n"
@@ -29,6 +29,22 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: benchmark/benchmark-translation.cpp src/quick-lint-js/error.h
+msgid "variable assigned before its declaration"
+msgstr "tilldelar variabel före deklaration"
+
+#: benchmark/benchmark-translation.cpp src/quick-lint-js/error.h
+msgid "variable declared here"
+msgstr "variabel deklarerades här"
+
+#: benchmark/benchmark-translation.cpp
+msgid "~~~ invalid string, do not use outside benchmark ~~~"
+msgstr ""
+
+#: benchmark/benchmark-translation.cpp
+msgid "another invalid string, do not use outside benchmark"
+msgstr ""
 
 #: src/diagnostic-formatter.cpp
 msgid "'do-while' loop"
@@ -81,14 +97,6 @@ msgstr ""
 #: src/quick-lint-js/error.h
 msgid "children end here"
 msgstr ""
-
-#: src/quick-lint-js/error.h
-msgid "variable assigned before its declaration"
-msgstr "tilldelar variabel före deklaration"
-
-#: src/quick-lint-js/error.h
-msgid "variable declared here"
-msgstr "variabel deklarerades här"
 
 #: src/quick-lint-js/error.h
 msgid "'=' changes variables; to compare, use '===' instead"
@@ -1047,6 +1055,47 @@ msgstr "break kan enbart vara inuti en loop eller switch"
 #: src/quick-lint-js/error.h
 msgid "continue can only be used inside of a loop"
 msgstr "continue kan enbart vara inuti en loop"
+
+#: test/test-diagnostic-formatter.cpp
+#: test/test-vim-qflist-json-error-reporter.cpp
+msgid "something happened"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "see here"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "this {0} looks fishy"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "this {1} looks fishy"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "free {1} and {0} {1} {2}"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "what is this '{1}' nonsense?"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "a {{0} b }} c"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "expected {1:headlinese}"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "expected {1:singular}"
+msgstr ""
+
+#: test/test-vim-qflist-json-error-reporter.cpp
+msgid "here"
+msgstr ""
 
 #~ msgid "invalid binding in let statement"
 #~ msgstr "ogiltig bindelse i let påstående"

@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-04-15 21:50-0700\n"
+"POT-Creation-Date: 2022-04-16 00:28-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,6 +29,22 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: benchmark/benchmark-translation.cpp src/quick-lint-js/error.h
+msgid "variable assigned before its declaration"
+msgstr ""
+
+#: benchmark/benchmark-translation.cpp src/quick-lint-js/error.h
+msgid "variable declared here"
+msgstr ""
+
+#: benchmark/benchmark-translation.cpp
+msgid "~~~ invalid string, do not use outside benchmark ~~~"
+msgstr ""
+
+#: benchmark/benchmark-translation.cpp
+msgid "another invalid string, do not use outside benchmark"
+msgstr ""
 
 #: src/diagnostic-formatter.cpp
 msgid "'do-while' loop"
@@ -76,14 +92,6 @@ msgstr ""
 
 #: src/quick-lint-js/error.h
 msgid "children end here"
-msgstr ""
-
-#: src/quick-lint-js/error.h
-msgid "variable assigned before its declaration"
-msgstr ""
-
-#: src/quick-lint-js/error.h
-msgid "variable declared here"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -1011,4 +1019,45 @@ msgstr ""
 
 #: src/quick-lint-js/error.h
 msgid "continue can only be used inside of a loop"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+#: test/test-vim-qflist-json-error-reporter.cpp
+msgid "something happened"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "see here"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "this {0} looks fishy"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "this {1} looks fishy"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "free {1} and {0} {1} {2}"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "what is this '{1}' nonsense?"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "a {{0} b }} c"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "expected {1:headlinese}"
+msgstr ""
+
+#: test/test-diagnostic-formatter.cpp
+msgid "expected {1:singular}"
+msgstr ""
+
+#: test/test-vim-qflist-json-error-reporter.cpp
+msgid "here"
 msgstr ""

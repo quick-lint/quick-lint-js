@@ -54,7 +54,7 @@
 // (C++ code):
 //
 //     struct mapping_entry {
-//       std::uint32_t string_offsets[locale_count];
+//       std::uint32_t string_offsets[locale_count + 1];
 //     };
 //     mapping_entry mapping_table[mapping_table_size];
 //
@@ -66,6 +66,9 @@
 //
 // hash_entry::string_offsets[i] corresponds to the i-th locale listed in
 // locale_table.
+//
+// hash_entry::string_offsets[locale_count] refers to the original
+// (untranslated) string.
 //
 // Entry 0 of the mapping table is unused.
 //
@@ -91,6 +94,8 @@ import "strings"
 
 const maxHashCollisions int = 4
 
+const poDirectory string = "po"
+
 func main() {
 	poFiles, err := ListPOFiles()
 	if err != nil {
@@ -106,6 +111,12 @@ func main() {
 		locales[POPathToLocaleName(poFilePath)] = ExtractGMOStrings(gmo)
 	}
 
+	sourceGMO, err := POTFileToGMO(filepath.Join(poDirectory, "messages.pot"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	locales[""] = ExtractGMOStrings(sourceGMO)
+
 	table := CreateTranslationTable(locales)
 	if err := WriteTranslationTableHeader(&table, "src/quick-lint-js/translation-table-generated.h"); err != nil {
 		log.Fatal(err)
@@ -119,7 +130,6 @@ func main() {
 }
 
 func ListPOFiles() ([]string, error) {
-	poDirectory := "po"
 	filesInPODirectory, err := ioutil.ReadDir(poDirectory)
 	if err != nil {
 		return nil, err
@@ -153,6 +163,35 @@ func POFileToGMO(poFilePath string) ([]byte, error) {
 		return nil, err
 	}
 	if err := process.Wait(); err != nil {
+		return nil, err
+	}
+	return gmo.Bytes(), nil
+}
+
+func POTFileToGMO(potFilePath string) ([]byte, error) {
+	potToPOProcess := exec.Command(
+		"msgen",
+		"--output-file=-",
+		"--",
+		potFilePath,
+	)
+	var po bytes.Buffer
+	potToPOProcess.Stdout = &po
+	potToPOProcess.Stderr = os.Stderr
+	if err := potToPOProcess.Run(); err != nil {
+		return nil, err
+	}
+
+	poToGMOProcess := exec.Command(
+		"msgfmt",
+		"--output-file=-",
+		"-",
+	)
+	var gmo bytes.Buffer
+	poToGMOProcess.Stdin = &po
+	poToGMOProcess.Stdout = &gmo
+	poToGMOProcess.Stderr = os.Stderr
+	if err := poToGMOProcess.Run(); err != nil {
 		return nil, err
 	}
 	return gmo.Bytes(), nil
@@ -272,11 +311,19 @@ func CreateTranslationTable(locales map[string][]TranslationEntry) TranslationTa
 	keys := GetAllUntranslated(locales)
 	table.Locales = GetLocaleNames(locales)
 
+	// Put the untranslated ("") locale last. This has two effects:
+	// * When writing LocaleTable, we'll add an empty locale at the end,
+	//   terminating the list. This terminator is how find_locales (C++)
+	//   knows the bounds of the locale table.
+	// * Untranslated strings are placed in
+	//   hash_entry::string_offsets[locale_count].
+	if len(table.Locales) > 0 && table.Locales[0] == "" {
+		table.Locales = append(table.Locales[1:], table.Locales[0])
+	}
+
 	for _, localeName := range table.Locales {
 		addStringToTable([]byte(localeName), &table.LocaleTable)
 	}
-	// Add a null byte (i.e. an empty locale) to terminate the list.
-	addStringToTable([]byte{}, &table.LocaleTable)
 
 	// HACK(strager): len(keys) is all we need in theory, but we have too many
 	// collisions if we make the table that small.
@@ -405,7 +452,7 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 `)
-	fmt.Fprintf(writer, "constexpr std::uint32_t translation_table_locale_count = %d;\n", len(table.Locales))
+	fmt.Fprintf(writer, "constexpr std::uint32_t translation_table_locale_count = %d;\n", len(table.Locales)-1)
 	fmt.Fprintf(writer, "constexpr std::uint16_t translation_table_mapping_table_size = %d;\n", len(table.MappingTable))
 	fmt.Fprintf(writer, "constexpr std::size_t translation_table_string_table_size = %d;\n", len(table.StringTable))
 	fmt.Fprintf(writer, "constexpr std::size_t translation_table_locale_table_size = %d;\n", len(table.LocaleTable))
@@ -413,7 +460,7 @@ using namespace std::literals::string_view_literals;
 
 	writer.WriteString(
 		`QLJS_CONSTEVAL std::uint16_t translation_table_const_hash_table_look_up(
-    std::string_view untranslated, std::uint16_t default_result) {
+    std::string_view untranslated) {
   struct const_hash_entry {
     std::uint16_t mapping_table_index;
     const char* untranslated;
@@ -442,7 +489,12 @@ using namespace std::literals::string_view_literals;
       return hash_entry.mapping_table_index;
     }
   }
-  return default_result;
+#if __cpp_constexpr >= 201907L
+  // If you see an error with the following line, translation-table-generated.h
+  // is out of date. Run tools/update-translator-sources to rebuild this file.
+  asm("");
+#endif
+  return 0;
 }
 }
 

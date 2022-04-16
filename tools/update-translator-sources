@@ -26,8 +26,11 @@ update_template_file() {
     --force-po \
     --add-location=file \
     --msgid-bugs-address=strager.nds@gmail.com \
+    benchmark/benchmark-translation.cpp \
     src/diagnostic-formatter.cpp \
-    src/quick-lint-js/error.h
+    src/quick-lint-js/error.h \
+    test/test-diagnostic-formatter.cpp \
+    test/test-vim-qflist-json-error-reporter.cpp
   sed -i -e 's/charset=CHARSET/charset=UTF-8/g' "${pot_temp_file}"
 
   mkdir -p po

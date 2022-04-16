@@ -140,7 +140,7 @@ template <class Derived>
 inline void diagnostic_formatter<Derived>::format(const diagnostic_info& info,
                                                   const void* diagnostic) {
   this->format_message(info.code, info.messages[0], diagnostic);
-  if (!info.messages[1].format.empty()) {
+  if (info.messages[1].format.valid()) {
     this->format_message(info.code, info.messages[1], diagnostic);
   }
 }

@@ -62,7 +62,7 @@ TEST(test_diagnostic_formatter, origin_span) {
   };
 
   constexpr diagnostic_message_info message_info = {
-      .format = "something happened"_translatable,
+      .format = QLJS_TRANSLATABLE("something happened"),
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -79,7 +79,7 @@ TEST(test_diagnostic_formatter, origin_span) {
 
 TEST(test_diagnostic_formatter, single_span_simple_message) {
   constexpr diagnostic_message_info message_info = {
-      .format = "something happened"_translatable,
+      .format = QLJS_TRANSLATABLE("something happened"),
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -98,7 +98,7 @@ TEST(test_diagnostic_formatter, diagnostic_with_single_message) {
       .messages =
           {
               diagnostic_message_info{
-                  .format = "something happened"_translatable,
+                  .format = QLJS_TRANSLATABLE("something happened"),
                   .severity = diagnostic_severity::error,
                   .args =
                       {
@@ -119,7 +119,7 @@ TEST(test_diagnostic_formatter, diagnostic_with_two_messages) {
       .messages =
           {
               diagnostic_message_info{
-                  .format = "something happened"_translatable,
+                  .format = QLJS_TRANSLATABLE("something happened"),
                   .severity = diagnostic_severity::error,
                   .args =
                       {
@@ -127,7 +127,7 @@ TEST(test_diagnostic_formatter, diagnostic_with_two_messages) {
                       },
               },
               diagnostic_message_info{
-                  .format = "see here"_translatable,
+                  .format = QLJS_TRANSLATABLE("see here"),
                   .severity = diagnostic_severity::note,
                   .args =
                       {
@@ -146,7 +146,7 @@ TEST(test_diagnostic_formatter, diagnostic_with_two_messages) {
 
 TEST(test_diagnostic_formatter, message_with_zero_placeholder) {
   constexpr diagnostic_message_info message_info = {
-      .format = "this {0} looks fishy"_translatable,
+      .format = QLJS_TRANSLATABLE("this {0} looks fishy"),
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -168,7 +168,7 @@ TEST(test_diagnostic_formatter, message_with_extra_identifier_placeholder) {
     identifier world;
   };
   constexpr diagnostic_message_info message_info = {
-      .format = "this {1} looks fishy"_translatable,
+      .format = QLJS_TRANSLATABLE("this {1} looks fishy"),
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -196,7 +196,7 @@ TEST(test_diagnostic_formatter, message_with_multiple_span_placeholders) {
     source_code_span be_span;
   };
   constexpr diagnostic_message_info message_info = {
-      .format = "free {1} and {0} {1} {2}"_translatable,
+      .format = QLJS_TRANSLATABLE("free {1} and {0} {1} {2}"),
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -230,7 +230,7 @@ TEST(test_diagnostic_formatter, message_with_char_placeholder) {
     char8 c;
   };
   constexpr diagnostic_message_info message_info = {
-      .format = "what is this '{1}' nonsense?"_translatable,
+      .format = QLJS_TRANSLATABLE("what is this '{1}' nonsense?"),
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -251,7 +251,7 @@ TEST(test_diagnostic_formatter, message_with_char_placeholder) {
 
 TEST(test_diagnostic_formatter, message_with_escaped_curlies) {
   constexpr diagnostic_message_info message_info = {
-      .format = "a {{0} b }} c"_translatable,
+      .format = QLJS_TRANSLATABLE("a {{0} b }} c"),
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -273,7 +273,7 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
     statement_kind statement;
   };
   constexpr diagnostic_message_info headlinese_message_info = {
-      .format = "expected {1:headlinese}"_translatable,
+      .format = QLJS_TRANSLATABLE("expected {1:headlinese}"),
       .severity = diagnostic_severity::error,
       .args =
           {
@@ -284,7 +284,7 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
           },
   };
   constexpr diagnostic_message_info singular_message_info = {
-      .format = "expected {1:singular}"_translatable,
+      .format = QLJS_TRANSLATABLE("expected {1:singular}"),
       .severity = diagnostic_severity::error,
       .args =
           {
