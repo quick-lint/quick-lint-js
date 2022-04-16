@@ -14,7 +14,7 @@
 // Our custom format addresses these issues:
 //
 // * All locales are merged into a single data structure.
-// * The hash function is perfect (i.e. no collisions), speeding up lookups.
+// * Hash table lookups happen at compile time, never at run time.
 // * The data is always native endian.
 //
 // The custom format has four parts:
@@ -46,6 +46,9 @@
 // FNV-1a hashing algorithm [1] on the UTF-8 untranslated string (excluding any
 // null terminators) with the offset_basis parameter set to hash_offset_basis.
 // Then, mod the hash by const_hash_table_size.
+//
+// In the case of a hash collision, use quadratic probing: generate the next
+// index by adding the square of the attempt number (mod const_hash_table_size).
 //
 // The mapping table and the locale table are run-time-only. They look like this
 // (C++ code):
@@ -88,6 +91,8 @@ import "os/exec"
 import "path/filepath"
 import "sort"
 import "strings"
+
+const maxHashCollisions int = 4
 
 func main() {
 	poFiles, err := ListPOFiles()
@@ -255,7 +260,7 @@ func CreateTranslationTable(locales map[string][]TranslationEntry) TranslationTa
 
 	// HACK(strager): len(keys) is all we need in theory, but we have too many
 	// collisions if we make the table that small.
-	hashTableSize := len(keys)*10 + 1
+	hashTableSize := len(keys)*3/2 + 1
 	if hashTableSize == 0 {
 		hashTableSize = 1
 	}
@@ -272,9 +277,15 @@ retry:
 	}
 
 	for keyIndex, key := range keys {
-		entryIndex := table.ConstIndexByUntranslated(key)
-		if constHashTableEntryUsed[entryIndex] {
-			// Hash collision occurred.
+		var entryIndex uint16
+		for attempt := 0; attempt <= maxHashCollisions; attempt += 1 {
+			entryIndex = table.ConstIndexByUntranslated(key, attempt)
+			if !constHashTableEntryUsed[entryIndex] {
+				goto foundEntry
+			}
+		}
+		{
+			// Too many hash collision occurred.
 			attempt := table.ConstHashOffsetBasis - initialConstHashOffsetBasis
 			if attempt >= 1000000 {
 				log.Fatalf("couldn't find a perfect offset basis after many tries")
@@ -285,6 +296,8 @@ retry:
 			table.ConstHashOffsetBasis += 1
 			goto retry
 		}
+
+	foundEntry:
 		table.ConstHashTable[entryIndex].MappingTableIndex = uint16(keyIndex + 1)
 		table.ConstHashTable[entryIndex].Untranslated = key
 		constHashTableEntryUsed[entryIndex] = true
@@ -301,7 +314,7 @@ retry:
 		localeTranslations := locales[localeName]
 		for _, translation := range localeTranslations {
 			if !isMetadata(&translation) {
-				constHashEntry := &table.ConstHashTable[table.ConstIndexByUntranslated(translation.Untranslated)]
+				constHashEntry := table.FindConstHashEntryByUntranslated(translation.Untranslated)
 				table.MappingTable[constHashEntry.MappingTableIndex].StringOffsets[localeIndex] = addString(translation.Translated)
 			}
 		}
@@ -311,14 +324,30 @@ retry:
 }
 
 // Returns an index into table.ConstHashTable.
-func (table *TranslationTable) ConstIndexByUntranslated(originalString []byte) uint16 {
+func (table *TranslationTable) ConstIndexByUntranslated(originalString []byte, attempt int) uint16 {
 	hash := HashFNV1a64WithOffsetBasis(originalString, table.ConstHashOffsetBasis)
-	return uint16(hash % uint64(len(table.ConstHashTable)))
+	return uint16((hash + uint64(attempt*attempt)) % uint64(len(table.ConstHashTable)))
+}
+
+// Returns an index into table.ConstHashTable. If the entry matching
+// originalString does not exist, returns nil.
+func (table *TranslationTable) FindConstHashEntryByUntranslated(originalString []byte) *TranslationTableConstHashEntry {
+	for attempt := 0; attempt <= maxHashCollisions; attempt += 1 {
+		hashIndex := table.ConstIndexByUntranslated(originalString, attempt)
+		entry := &table.ConstHashTable[hashIndex]
+		if bytes.Equal(entry.Untranslated, originalString) {
+			return entry
+		}
+	}
+	return nil
 }
 
 func (table *TranslationTable) LookUpMappingByUntranslated(originalString []byte) *TranslationTableMappingEntry {
-	hashIndex := table.ConstIndexByUntranslated(originalString)
-	return &table.MappingTable[table.ConstHashTable[hashIndex].MappingTableIndex]
+	entry := table.FindConstHashEntryByUntranslated(originalString)
+	if entry == nil {
+		return nil
+	}
+	return &table.MappingTable[entry.MappingTableIndex]
 }
 
 func (table *TranslationTable) ReadString(stringOffset uint32) []byte {
@@ -383,18 +412,23 @@ using namespace std::literals::string_view_literals;
   // clang-format on
 
   std::uint64_t hash = hash_fnv_1a_64(untranslated, %dULL);
-  const const_hash_entry& hash_entry = const_hash_table[hash %% %d];
-  if (hash_entry.untranslated == untranslated) {
-    return hash_entry.mapping_table_index;
-  } else {
-    return default_result;
+  std::uint64_t table_size = %d;
+  for (std::uint64_t attempt = 0; attempt <= %d; ++attempt) {
+    const const_hash_entry& hash_entry = const_hash_table[(hash + attempt*attempt) %% table_size];
+    if (hash_entry.mapping_table_index == 0) {
+      break;
+    }
+    if (hash_entry.untranslated == untranslated) {
+      return hash_entry.mapping_table_index;
+    }
   }
+  return default_result;
 }
 }
 
 #endif
 
-`, table.ConstHashOffsetBasis, len(table.ConstHashTable))
+`, table.ConstHashOffsetBasis, len(table.ConstHashTable), maxHashCollisions)
 	WriteCopyrightFooter(writer)
 
 	if err := writer.Flush(); err != nil {
