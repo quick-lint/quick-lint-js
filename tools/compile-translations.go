@@ -54,7 +54,7 @@
 // (C++ code):
 //
 //     struct mapping_entry {
-//       std::uint32_t string_offsets[locale_count + 1];
+//       std::uint32_t string_offsets[locale_count];
 //     };
 //     mapping_entry mapping_table[mapping_table_size];
 //
@@ -66,9 +66,6 @@
 //
 // hash_entry::string_offsets[i] corresponds to the i-th locale listed in
 // locale_table.
-//
-// hash_entry::string_offsets[locale_count] refers to the original
-// (untranslated) string.
 //
 // Entry 0 of the mapping table is unused.
 //
