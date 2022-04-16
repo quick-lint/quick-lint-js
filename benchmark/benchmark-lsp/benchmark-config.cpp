@@ -9,12 +9,17 @@
 #include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/have.h>
 #include <quick-lint-js/pipe.h>
 #include <quick-lint-js/process.h>
 #include <spawn.h>
 #include <string>
 #include <unistd.h>
 #include <vector>
+
+#if QLJS_HAVE_CRT_EXTERNS_H
+#include <crt_externs.h>
+#endif
 
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
@@ -59,6 +64,9 @@ std::string run_program(std::vector<std::string> command,
   }
   std::filesystem::current_path(new_cwd);
   ::pid_t pid;
+#if QLJS_HAVE_NS_GET_ENVIRON
+  char**& environ = *::_NSGetEnviron();
+#endif
   int rc = ::posix_spawnp(/*pid=*/&pid, /*file=*/exe_file,
                           /*file_actions=*/&file_actions,
                           /*attrp=*/nullptr,
