@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2021-12-08 23:21-0800\n"
+"POT-Creation-Date: 2022-04-15 19:18-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,11 +31,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: src/quick-lint-js/error.h
+msgid "missing '<>' and '</>' to enclose multiple children"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "children end here"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "variable assigned before its declaration"
 msgstr ""
 
 #: src/quick-lint-js/error.h
 msgid "variable declared here"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "'=' changes variables; to compare, use '===' instead"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -48,6 +60,14 @@ msgstr ""
 
 #: src/quick-lint-js/error.h
 msgid "const variable declared here"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "assignment to imported variable"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "imported variable declared here"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -211,6 +231,14 @@ msgid "'else' has no corresponding 'if'"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "missing comparison; '{1}' does not extend to the right side of '{0}'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "'{0}' found here"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "escaped character is not allowed in identifiers"
 msgstr ""
 
@@ -220,6 +248,10 @@ msgstr ""
 
 #: src/quick-lint-js/error.h
 msgid "code point in Unicode escape sequence must not be greater than U+10FFFF"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "escaping '-' is not allowed in tag names; write '-' instead"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -355,10 +387,6 @@ msgid "indexing requires an expression"
 msgstr ""
 
 #: src/quick-lint-js/error.h
-msgid "invalid binding in let statement"
-msgstr ""
-
-#: src/quick-lint-js/error.h
 msgid "invalid expression left of assignment"
 msgstr ""
 
@@ -375,6 +403,10 @@ msgid "invalid function parameter"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "'{0}' is not allowed for strings; use {1} instead"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid ""
 "'.' operator needs a key name; use + to concatenate strings; use [] to "
 "access with a dynamic key"
@@ -382,6 +414,18 @@ msgstr ""
 
 #: src/quick-lint-js/error.h
 msgid "invalid UTF-8 sequence"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "attribute has wrong capitalization; write '{1}' instead"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "misspelled React attribute; write '{1}' instead"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "event attributes must be camelCase: '{1}'"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -418,6 +462,14 @@ msgstr ""
 
 #: src/quick-lint-js/error.h
 msgid "methods should not use the 'function' keyword"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "mismatched JSX tags; expected '</{1}>'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "opening '<{1}>' tag here"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -513,6 +565,10 @@ msgid "missing condition for switch statement"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "missing '...' in JSX attribute spread"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "missing '=' after variable"
 msgstr ""
 
@@ -581,7 +637,35 @@ msgid "redundant delete statement on variable"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "missing 'if' after 'else'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "missing operator between expression and arrow function"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing parentheses around operand of '{0}'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "'{0}' operator cannot be used before '**' without parentheses"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing parentheses around self-invoked function"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "function starts here"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "missing parentheses around left-hand side of '**'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "'**' operator cannot be used after unary '{1}' without parentheses"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -672,6 +756,11 @@ msgid "return statement returns nothing (undefined)"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid ""
+"unexpected statement before first switch case, expected 'case' or 'default'"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "stray comma in let statement"
 msgstr ""
 
@@ -693,7 +782,7 @@ msgid "unclosed block comment"
 msgstr ""
 
 #: src/quick-lint-js/error.h
-msgid "unopened block comment"
+msgid "unclosed class; expected '}' by end of file"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -773,7 +862,15 @@ msgid "unexpected 'default' outside switch statement"
 msgstr ""
 
 #: src/quick-lint-js/error.h
+msgid "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"
+msgstr ""
+
+#: src/quick-lint-js/error.h
 msgid "unexpected literal in parameter list; expected parameter name"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "'}' is not allowed directly in JSX text; write {{'}'} instead"
 msgstr ""
 
 #: src/quick-lint-js/error.h
@@ -786,6 +883,18 @@ msgstr ""
 
 #: src/quick-lint-js/error.h
 msgid "for-of loop expression cannot have semicolons"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "unopened block comment"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "new variable shadows existing variable"
+msgstr ""
+
+#: src/quick-lint-js/error.h
+msgid "existing variable declared here"
 msgstr ""
 
 #: src/quick-lint-js/error.h
