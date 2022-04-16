@@ -225,17 +225,24 @@ func getTagsFromGitHub(tagsRepoPath string) []tag {
 }
 
 func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
-	re := regexp.MustCompile(`## (?P<versionNumberAndDate>(?P<versionNumber>\d+\.\d+\.\d+).*)`)
+	versionNumberAndDateRE := regexp.MustCompile(`## (?P<versionNumberAndDate>(?P<versionNumber>\d+\.\d+\.\d+).*)`)
+	unreleasedRE := regexp.MustCompile(`## Unreleased`)
 	var versionLineNumbers []int
 	var changeLogText []string
 	var versionTitles []string
 	var versionNumbers []string
+
 	for scanner.Scan() {
 		changeLogText = append(changeLogText, scanner.Text())
-		hashVersionAndDate := re.FindStringSubmatch(scanner.Text())
+		unreleased := unreleasedRE.FindStringSubmatch(scanner.Text())
+
+		hashVersionAndDate := versionNumberAndDateRE.FindStringSubmatch(scanner.Text())
+		if unreleased != nil {
+			fmt.Println(redColor+"WARNING: Line:", len(changeLogText)-1, "## Unreleased section won't be synced to GitHub"+resetColor)
+		}
 		if hashVersionAndDate != nil {
-			idxVersionNumberAndDate := re.SubexpIndex("versionNumberAndDate")
-			idxVersionNumber := re.SubexpIndex("versionNumber")
+			idxVersionNumberAndDate := versionNumberAndDateRE.SubexpIndex("versionNumberAndDate")
+			idxVersionNumber := versionNumberAndDateRE.SubexpIndex("versionNumber")
 			versionNumberAndDate := hashVersionAndDate[idxVersionNumberAndDate]
 			versionNumber := hashVersionAndDate[idxVersionNumber]
 			versionTitles = append(versionTitles, versionNumberAndDate)

@@ -16,7 +16,7 @@ Store the access token in a file and variable of your choosing using cat.
 
 ### Running quick-release-notes.
 
-    $ go run main.go -Repo=quck-lint/quick-lint-js -TagsRepo=quick-lint/quick-lint-js -AuthToken=$myToken
+    $ go run main.go -Repo=quck-lint/quick-lint-js -TagsRepo=quick-lint/quick-lint-js -AuthToken=$myToken isDraft=false 
 
 Three flags:
 
@@ -24,5 +24,5 @@ Three flags:
 - -TagsRepo (optional): where you want to get the GitHub tags that correspond to the releases from.
 - -AuthToken (required): the token that is required to make releases using the GitHub releases
 API.
-- -IsDraft (optional): creates releases as drafts.
+- -isDraft (optional): creates releases as drafts.
 
