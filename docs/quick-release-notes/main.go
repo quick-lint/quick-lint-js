@@ -272,21 +272,33 @@ func createReleaseNotes(changeLog changeLog) []string {
 	var releaseNotes []string
 	for i, version := range changeLog.versions[:] {
 		releaseBodyLines := ""
-		if i != lastVersionIdx {
-			for j := changeLog.versions[i].lineNumber + 1; j < changeLog.versions[i+1].lineNumber; j++ {
+		// if i != lastVersionIdx {
+		// for j := changeLog.versions[i].lineNumber + 1; j < changeLog.versions[i+1].lineNumber; j++ {
+		// releaseBodyLines += changeLog.changeLogText[j] + "\n"
+		// }
+		// } else {
+		// Handle last version (Currently: ## 0.2.0).
+		// if version.lineNumber == changeLog.versions[lastVersionIdx].lineNumber {
+		// for j := version.lineNumber + 1; j < changeLog.changeLogLength; j++ {
+		// currentLineOfText := changeLog.changeLogText[j]
+		// if !linkReferenceDefinitionRE.MatchString(currentLineOfText) {
+		// releaseBodyLines += currentLineOfText + "\n"
+		// }
+		// }
+		// }
+
+		var nextVersionLineNumber int
+		if !(i == (lastVersionIdx)) {
+			nextVersionLineNumber = changeLog.versions[i+1].lineNumber
+		} else {
+			nextVersionLineNumber = changeLog.changeLogLength
+		}
+		for j := version.lineNumber + 1; j < nextVersionLineNumber; j++ {
+			if !linkReferenceDefinitionRE.MatchString(changeLog.changeLogText[j]) {
 				releaseBodyLines += changeLog.changeLogText[j] + "\n"
 			}
-		} else {
-			// Handle last version (Currently: ## 0.2.0).
-			if version.lineNumber == changeLog.versions[lastVersionIdx].lineNumber {
-				for j := version.lineNumber + 1; j < changeLog.changeLogLength; j++ {
-					currentLineOfText := changeLog.changeLogText[j]
-					if !linkReferenceDefinitionRE.MatchString(currentLineOfText) {
-						releaseBodyLines += currentLineOfText + "\n"
-					}
-				}
-			}
 		}
+
 		releaseNotes = append(releaseNotes, releaseBodyLines+contributorsAndErrors)
 	}
 	return releaseNotes
