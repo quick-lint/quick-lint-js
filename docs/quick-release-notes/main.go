@@ -198,6 +198,7 @@ func getReleases(authToken string, repoPath string) []releaseForUpdate {
 	var eachRelease []releaseForUpdate
 	err = json.Unmarshal(body, &eachRelease)
 	if err != nil {
+		fmt.Println(redColor + string(body) + resetColor)
 		log.Fatal(err)
 	}
 	return eachRelease
