@@ -34,11 +34,15 @@ type releaseForUpdate struct {
 }
 
 type changeLog struct {
-	versionLineNumbers []int
-	changeLogText      []string
-	changeLogLength    int
-	versionTitles      []string
-	versionNumbers     []string
+	changeLogText   []string
+	changeLogLength int
+	versions        []changeLogVersion
+}
+
+type changeLogVersion struct {
+	lineNumber int
+	title      string
+	number     string
 }
 
 type releaseData struct {
@@ -89,6 +93,7 @@ func main() {
 	}
 	defer file.Close()
 	changeLog := getChangeLogInfo(bufio.NewScanner(file))
+	fmt.Print(changeLog)
 	releaseNotes := createReleaseNotes(changeLog)
 	tags := getTagsFromGitHub(*tagsRepoPtr)
 	repoPath := *repoPtr
@@ -137,11 +142,11 @@ func ifChangeLogChangedUpdateReleases(releaseData releaseData, authToken string,
 func validateTagsHaveReleases(validationData validationData) releaseData {
 	releaseVersionAndTag := make(map[string]string)
 	releaseVersionAndNote := make(map[string]string)
-	for i, releaseVersion := range validationData.changeLog.versionNumbers[:] {
+	for i, releaseVersion := range validationData.changeLog.versions[:] {
 		tagVersionForMap := ""
 		releaseVersionHasTag := false
 		for _, tagVersion := range validationData.tags[:] {
-			if releaseVersion == tagVersion.Name {
+			if releaseVersion.number == tagVersion.Name {
 				releaseVersionHasTag = true
 				tagVersionForMap = tagVersion.Name
 			}
@@ -150,18 +155,18 @@ func validateTagsHaveReleases(validationData validationData) releaseData {
 			fmt.Println(redColor+"WARNING: release", releaseVersion, "missing tag"+resetColor)
 		}
 		if releaseVersionHasTag {
-			releaseVersionAndTag[releaseVersion] = tagVersionForMap
-			releaseVersionAndNote[releaseVersion] = validationData.releaseNotes[i]
+			releaseVersionAndTag[releaseVersion.number] = tagVersionForMap
+			releaseVersionAndNote[releaseVersion.number] = validationData.releaseNotes[i]
 		}
 	}
 	tagAndReleaseVersion := make(map[string]string)
 	for _, tagVersion := range validationData.tags[:] {
 		releaseVersionForMap := ""
 		tagHasVersionNumber := false
-		for _, releaseVersion := range validationData.changeLog.versionNumbers[:] {
-			if tagVersion.Name == releaseVersion {
+		for _, releaseVersion := range validationData.changeLog.versions[:] {
+			if tagVersion.Name == releaseVersion.number {
 				tagHasVersionNumber = true
-				releaseVersionForMap = releaseVersion
+				releaseVersionForMap = releaseVersion.number
 			}
 		}
 		if tagHasVersionNumber == false {
@@ -228,10 +233,8 @@ func getTagsFromGitHub(tagsRepoPath string) []tag {
 func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
 	versionNumberAndDateRE := regexp.MustCompile(`## (?P<versionNumberAndDate>(?P<versionNumber>\d+\.\d+\.\d+).*)`)
 	unreleasedRE := regexp.MustCompile(`## Unreleased`)
-	var versionLineNumbers []int
 	var changeLogText []string
-	var versionTitles []string
-	var versionNumbers []string
+	var versions []changeLogVersion
 
 	for scanner.Scan() {
 		changeLogText = append(changeLogText, scanner.Text())
@@ -246,15 +249,13 @@ func getChangeLogInfo(scanner *bufio.Scanner) changeLog {
 			idxVersionNumber := versionNumberAndDateRE.SubexpIndex("versionNumber")
 			versionNumberAndDate := hashVersionAndDate[idxVersionNumberAndDate]
 			versionNumber := hashVersionAndDate[idxVersionNumber]
-			versionTitles = append(versionTitles, versionNumberAndDate)
-			versionNumbers = append(versionNumbers, versionNumber)
-			versionLineNumbers = append(versionLineNumbers, len(changeLogText)-1)
+			versions = append(versions, changeLogVersion{title: versionNumberAndDate, number: versionNumber, lineNumber: len(changeLogText) - 1})
 		}
 	}
 	if scanner.Err() != nil {
 		fmt.Println(scanner.Err())
 	}
-	return changeLog{versionLineNumbers, changeLogText, len(changeLogText), versionTitles, versionNumbers}
+	return changeLog{changeLogText: changeLogText, changeLogLength: len(changeLogText), versions: versions}
 }
 
 func createReleaseNotes(changeLog changeLog) []string {
@@ -262,24 +263,24 @@ func createReleaseNotes(changeLog changeLog) []string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	lastVersionIdx := len(changeLog.versionLineNumbers) - 1
+	lastVersionIdx := len(changeLog.versions) - 1
 	contributorsAndErrors := ""
-	for i := changeLog.versionLineNumbers[lastVersionIdx]; i < changeLog.changeLogLength; i++ {
+	for i := changeLog.versions[lastVersionIdx].lineNumber; i < changeLog.changeLogLength; i++ {
 		if linkReferenceDefinitionRE.MatchString(changeLog.changeLogText[i]) {
 			contributorsAndErrors += changeLog.changeLogText[i] + "\n"
 		}
 	}
 	var releaseNotes []string
-	for i, versionLineNumber := range changeLog.versionLineNumbers[:] {
+	for i, version := range changeLog.versions[:] {
 		releaseBodyLines := ""
 		if i != lastVersionIdx {
-			for j := changeLog.versionLineNumbers[i] + 1; j < changeLog.versionLineNumbers[i+1]; j++ {
+			for j := changeLog.versions[i].lineNumber + 1; j < changeLog.versions[i+1].lineNumber; j++ {
 				releaseBodyLines += changeLog.changeLogText[j] + "\n"
 			}
 		} else {
 			// Handle last version (Currently: ## 0.2.0).
-			if versionLineNumber == changeLog.versionLineNumbers[lastVersionIdx] {
-				for j := versionLineNumber + 1; j < changeLog.changeLogLength; j++ {
+			if version.lineNumber == changeLog.versions[lastVersionIdx].lineNumber {
+				for j := version.lineNumber + 1; j < changeLog.changeLogLength; j++ {
 					currentLineOfText := changeLog.changeLogText[j]
 					if !linkReferenceDefinitionRE.MatchString(currentLineOfText) {
 						releaseBodyLines += currentLineOfText + "\n"
