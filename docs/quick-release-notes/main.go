@@ -93,7 +93,6 @@ func main() {
 	}
 	defer file.Close()
 	changeLog := getChangeLogInfo(bufio.NewScanner(file))
-	fmt.Print(changeLog)
 	releaseNotes := createReleaseNotes(changeLog)
 	tags := getTagsFromGitHub(*tagsRepoPtr)
 	repoPath := *repoPtr
@@ -265,8 +264,8 @@ func createReleaseNotes(changeLog changeLog) []string {
 	}
 	lastVersionIdx := len(changeLog.versions) - 1
 	contributorsAndErrors := ""
-	for i := changeLog.versions[lastVersionIdx].lineNumber; i < changeLog.changeLogLength; i++ {
-		if linkReferenceDefinitionRE.MatchString(changeLog.changeLogText[i]) {
+	for i, line := range changeLog.changeLogText {
+		if linkReferenceDefinitionRE.MatchString(line) {
 			contributorsAndErrors += changeLog.changeLogText[i] + "\n"
 		}
 	}
