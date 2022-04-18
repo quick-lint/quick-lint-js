@@ -98,10 +98,8 @@ get_diagnostic_message_arg_type<string8_view>() noexcept {
 template <class ArgType>
 constexpr diagnostic_message_arg_info make_diagnostic_message_arg_info(
     std::uint8_t offset) noexcept {
-  return diagnostic_message_arg_info{
-      .offset = offset,
-      .type = get_diagnostic_message_arg_type<ArgType>(),
-  };
+  return diagnostic_message_arg_info(
+      offset, get_diagnostic_message_arg_type<ArgType>());
 }
 
 template <class Error>
