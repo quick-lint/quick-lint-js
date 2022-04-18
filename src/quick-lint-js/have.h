@@ -192,7 +192,7 @@
 #endif
 
 #if !defined(QLJS_HAVE_NS_GET_ENVIRON)
-#if defined(QLJS_HAVE_CRT_EXTERNS_H)
+#if QLJS_HAVE_CRT_EXTERNS_H
 #define QLJS_HAVE_NS_GET_ENVIRON 1
 #else
 #define QLJS_HAVE_NS_GET_ENVIRON 0
