@@ -74,6 +74,24 @@
 
 #define QLJS_ASSERT_TRAP() QLJS_CRASH_ALLOWING_CORE_DUMP()
 
+// QLJS_CONSTEXPR_ASSERT is like QLJS_ALWAYS_ASSERT, except:
+//
+// * It must only be called in a constexpr function.
+// * It must only be called at compile time (i.e. not a run-time constexpr
+//   function).
+// * It works only with some compilers.
+#if __cpp_constexpr >= 201907L && !defined(_MSC_VER)
+#define QLJS_CONSTEXPR_ASSERT(...) \
+  do {                             \
+    if (__VA_ARGS__) {             \
+    } else {                       \
+      asm("");                     \
+    }                              \
+  } while (false)
+#else
+#define QLJS_CONSTEXPR_ASSERT(...) QLJS_NEVER_ASSERT(__VA_ARGS__)
+#endif
+
 namespace quick_lint_js {
 void report_assertion_failure(const char *qljs_file_name, int qljs_line,
                               const char *qljs_function_name,

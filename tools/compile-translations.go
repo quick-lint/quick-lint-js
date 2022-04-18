@@ -443,6 +443,7 @@ func WriteTranslationTableHeader(table *TranslationTable, path string) error {
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/consteval.h>
 #include <quick-lint-js/hash-fnv.h>
 #include <quick-lint-js/translation-table.h>
@@ -490,12 +491,9 @@ using namespace std::literals::string_view_literals;
     }
   }
 
-  // Helpfully fail compilation if this file is out of date.
-#if __cpp_constexpr >= 201907L && !defined(_MSC_VER)
   // If you see an error with the following line, translation-table-generated.h
   // is out of date. Run tools/update-translator-sources to rebuild this file.
-  asm("");
-#endif
+  QLJS_CONSTEXPR_ASSERT(false);
 
   return 0;
 }
