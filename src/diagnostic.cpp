@@ -40,7 +40,9 @@ constexpr void strcpy(char* out, const char* in) noexcept {
 template <class Error>
 class diagnostic_info_builder {
  public:
-  constexpr explicit diagnostic_info_builder(const char* code) {
+  constexpr explicit diagnostic_info_builder(const char* code,
+                                             diagnostic_severity sev) {
+    this->info_.severity = sev;
     strcpy(this->info_.code, code);
   }
 
@@ -49,6 +51,16 @@ class diagnostic_info_builder {
   constexpr diagnostic_info_builder add(diagnostic_severity sev,
                                         const translatable_message& message,
                                         const Args&... arg_infos) {
+    if (this->current_message_index_ == 0) {
+      if (sev != this->info_.severity) {
+#if __cpp_constexpr >= 201907L && !defined(_MSC_VER)
+        // If you see an error with the following line, error.h contains a
+        // QLJS_ERROR_TYPE call with inconsistent diagnostic severities.
+        asm("");
+#endif
+      }
+    }
+
     diagnostic_message_info& message_info =
         this->info_.messages[this->current_message_index_++];
     message_info.format = message;
@@ -124,13 +136,14 @@ struct diagnostic_info_for_error;
 #define NOTE(message_format, ...) \
   .add(diagnostic_severity::note, message_format, MAKE_ARGS(__VA_ARGS__))
 
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call)                \
+#define QLJS_ERROR_TYPE(name, code, severity, struct_body, format_call)      \
   template <>                                                                \
   struct diagnostic_info_for_error<name> {                                   \
     using error_class = name;                                                \
                                                                              \
     static DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE diagnostic_info get() noexcept { \
-      return diagnostic_info_builder<name>(code) format_call.build();        \
+      return diagnostic_info_builder<name>(code, severity)                   \
+          format_call.build();                                               \
     }                                                                        \
   };
 QLJS_X_ERROR_TYPES
@@ -139,7 +152,7 @@ QLJS_X_ERROR_TYPES
 
 DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE const diagnostic_info
     all_diagnostic_infos[] = {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
+#define QLJS_ERROR_TYPE(name, code, severity, struct_body, format_call) \
   diagnostic_info_for_error<name>::get(),
         QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE
