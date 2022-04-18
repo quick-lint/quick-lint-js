@@ -1,6 +1,7 @@
-#include "benchmark/benchmark.h"
 #include <chrono>
 #include <thread>
+
+#include "benchmark/benchmark.h"
 
 #if defined(NDEBUG)
 #undef NDEBUG
@@ -25,6 +26,7 @@ BENCHMARK(BM_basic)->Arg(42);
 BENCHMARK(BM_basic_slow)->Arg(10)->Unit(benchmark::kNanosecond);
 BENCHMARK(BM_basic_slow)->Arg(100)->Unit(benchmark::kMicrosecond);
 BENCHMARK(BM_basic_slow)->Arg(1000)->Unit(benchmark::kMillisecond);
+BENCHMARK(BM_basic_slow)->Arg(1000)->Unit(benchmark::kSecond);
 BENCHMARK(BM_basic)->Range(1, 8);
 BENCHMARK(BM_basic)->RangeMultiplier(2)->Range(1, 8);
 BENCHMARK(BM_basic)->DenseRange(10, 15);
@@ -64,11 +66,9 @@ void BM_explicit_iteration_count(benchmark::State& state) {
   // Test that the requested iteration count is respected.
   assert(state.max_iterations == 42);
   size_t actual_iterations = 0;
-  for (auto _ : state)
-    ++actual_iterations;
+  for (auto _ : state) ++actual_iterations;
   assert(state.iterations() == state.max_iterations);
   assert(state.iterations() == 42);
-
 }
 BENCHMARK(BM_explicit_iteration_count)->Iterations(42);
 

@@ -19,6 +19,7 @@
 #undef StrCat  // Don't let StrCat in string_util.h be renamed to lstrcatA
 #include <versionhelpers.h>
 #include <windows.h>
+
 #include <codecvt>
 #else
 #include <fcntl.h>
@@ -29,7 +30,8 @@
 #include <sys/types.h>  // this header must be included before 'sys/sysctl.h' to avoid compilation error on FreeBSD
 #include <unistd.h>
 #if defined BENCHMARK_OS_FREEBSD || defined BENCHMARK_OS_MACOSX || \
-    defined BENCHMARK_OS_NETBSD || defined BENCHMARK_OS_OPENBSD
+    defined BENCHMARK_OS_NETBSD || defined BENCHMARK_OS_OPENBSD || \
+    defined BENCHMARK_OS_DRAGONFLY
 #define BENCHMARK_HAS_SYSCTL
 #include <sys/sysctl.h>
 #endif
@@ -54,9 +56,10 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
+#include <locale>
 #include <memory>
 #include <sstream>
-#include <locale>
+#include <utility>
 
 #include "check.h"
 #include "cycleclock.h"
@@ -133,7 +136,7 @@ struct ValueUnion {
   template <class T, int N>
   std::array<T, N> GetAsArray() {
     const int ArrSize = sizeof(T) * N;
-    CHECK_LE(ArrSize, Size);
+    BM_CHECK_LE(ArrSize, Size);
     std::array<T, N> Arr;
     std::memcpy(Arr.data(), data(), ArrSize);
     return Arr;
@@ -145,7 +148,7 @@ ValueUnion GetSysctlImp(std::string const& Name) {
   int mib[2];
 
   mib[0] = CTL_HW;
-  if ((Name == "hw.ncpu") || (Name == "hw.cpuspeed")){
+  if ((Name == "hw.ncpu") || (Name == "hw.cpuspeed")) {
     ValueUnion buff(sizeof(int));
 
     if (Name == "hw.ncpu") {
@@ -209,13 +212,12 @@ bool ReadFromFile(std::string const& fname, ArgT* arg) {
   return f.good();
 }
 
-bool CpuScalingEnabled(int num_cpus) {
+CPUInfo::Scaling CpuScaling(int num_cpus) {
   // We don't have a valid CPU count, so don't even bother.
-  if (num_cpus <= 0) return false;
-#ifdef BENCHMARK_OS_QNX
-  return false;
-#endif
-#ifndef BENCHMARK_OS_WINDOWS
+  if (num_cpus <= 0) return CPUInfo::Scaling::UNKNOWN;
+#if defined(BENCHMARK_OS_QNX)
+  return CPUInfo::Scaling::UNKNOWN;
+#elif !defined(BENCHMARK_OS_WINDOWS)
   // On Linux, the CPUfreq subsystem exposes CPU information as files on the
   // local file system. If reading the exported files fails, then we may not be
   // running on Linux, so we silently ignore all the read errors.
@@ -223,10 +225,13 @@ bool CpuScalingEnabled(int num_cpus) {
   for (int cpu = 0; cpu < num_cpus; ++cpu) {
     std::string governor_file =
         StrCat("/sys/devices/system/cpu/cpu", cpu, "/cpufreq/scaling_governor");
-    if (ReadFromFile(governor_file, &res) && res != "performance") return true;
+    if (ReadFromFile(governor_file, &res) && res != "performance")
+      return CPUInfo::Scaling::ENABLED;
   }
+  return CPUInfo::Scaling::DISABLED;
+#else
+  return CPUInfo::Scaling::UNKNOWN;
 #endif
-  return false;
 }
 
 int CountSetBitsInCPUMap(std::string Val) {
@@ -341,6 +346,7 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
     C.num_sharing = static_cast<int>(B.count());
     C.level = Cache->Level;
     C.size = Cache->Size;
+    C.type = "Unknown";
     switch (Cache->Type) {
       case CacheUnified:
         C.type = "Unified";
@@ -354,9 +360,6 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
       case CacheTrace:
         C.type = "Trace";
         break;
-      default:
-        C.type = "Unknown";
-        break;
     }
     res.push_back(C);
   }
@@ -365,27 +368,29 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
 #elif BENCHMARK_OS_QNX
 std::vector<CPUInfo::CacheInfo> GetCacheSizesQNX() {
   std::vector<CPUInfo::CacheInfo> res;
-  struct cacheattr_entry *cache = SYSPAGE_ENTRY(cacheattr);
+  struct cacheattr_entry* cache = SYSPAGE_ENTRY(cacheattr);
   uint32_t const elsize = SYSPAGE_ELEMENT_SIZE(cacheattr);
-  int num = SYSPAGE_ENTRY_SIZE(cacheattr) / elsize ;
-  for(int i = 0; i < num; ++i ) {
+  int num = SYSPAGE_ENTRY_SIZE(cacheattr) / elsize;
+  for (int i = 0; i < num; ++i) {
     CPUInfo::CacheInfo info;
-    switch (cache->flags){
-      case CACHE_FLAG_INSTR :
+    switch (cache->flags) {
+      case CACHE_FLAG_INSTR:
         info.type = "Instruction";
         info.level = 1;
         break;
-      case CACHE_FLAG_DATA :
+      case CACHE_FLAG_DATA:
         info.type = "Data";
         info.level = 1;
         break;
-      case CACHE_FLAG_UNIFIED :
+      case CACHE_FLAG_UNIFIED:
         info.type = "Unified";
         info.level = 2;
-      case CACHE_FLAG_SHARED :
+        break;
+      case CACHE_FLAG_SHARED:
         info.type = "Shared";
         info.level = 3;
-      default :
+        break;
+      default:
         continue;
         break;
     }
@@ -413,24 +418,23 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizes() {
 std::string GetSystemName() {
 #if defined(BENCHMARK_OS_WINDOWS)
   std::string str;
-  const unsigned COUNT = MAX_COMPUTERNAME_LENGTH+1;
-  TCHAR  hostname[COUNT] = {'\0'};
+  const unsigned COUNT = MAX_COMPUTERNAME_LENGTH + 1;
+  TCHAR hostname[COUNT] = {'\0'};
   DWORD DWCOUNT = COUNT;
-  if (!GetComputerName(hostname, &DWCOUNT))
-    return std::string("");
+  if (!GetComputerName(hostname, &DWCOUNT)) return std::string("");
 #ifndef UNICODE
   str = std::string(hostname, DWCOUNT);
 #else
-  //Using wstring_convert, Is deprecated in C++17
+  // Using wstring_convert, Is deprecated in C++17
   using convert_type = std::codecvt_utf8<wchar_t>;
   std::wstring_convert<convert_type, wchar_t> converter;
   std::wstring wStr(hostname, DWCOUNT);
   str = converter.to_bytes(wStr);
 #endif
   return str;
-#else // defined(BENCHMARK_OS_WINDOWS)
+#else  // defined(BENCHMARK_OS_WINDOWS)
 #ifndef HOST_NAME_MAX
-#ifdef BENCHMARK_HAS_SYSCTL // BSD/Mac Doesnt have HOST_NAME_MAX defined
+#ifdef BENCHMARK_HAS_SYSCTL  // BSD/Mac Doesnt have HOST_NAME_MAX defined
 #define HOST_NAME_MAX 64
 #elif defined(BENCHMARK_OS_NACL)
 #define HOST_NAME_MAX 64
@@ -439,15 +443,15 @@ std::string GetSystemName() {
 #elif defined(BENCHMARK_OS_RTEMS)
 #define HOST_NAME_MAX 256
 #else
-#warning "HOST_NAME_MAX not defined. using 64"
+#pragma message("HOST_NAME_MAX not defined. using 64")
 #define HOST_NAME_MAX 64
 #endif
-#endif // def HOST_NAME_MAX
+#endif  // def HOST_NAME_MAX
   char hostname[HOST_NAME_MAX];
   int retVal = gethostname(hostname, HOST_NAME_MAX);
   if (retVal != 0) return std::string("");
   return std::string(hostname);
-#endif // Catch-all POSIX block.
+#endif  // Catch-all POSIX block.
 }
 
 int GetNumCPUs() {
@@ -469,8 +473,7 @@ int GetNumCPUs() {
   // Returns -1 in case of a failure.
   int NumCPU = sysconf(_SC_NPROCESSORS_ONLN);
   if (NumCPU < 0) {
-    fprintf(stderr,
-            "sysconf(_SC_NPROCESSORS_ONLN) failed with error: %s\n",
+    fprintf(stderr, "sysconf(_SC_NPROCESSORS_ONLN) failed with error: %s\n",
             strerror(errno));
   }
   return NumCPU;
@@ -493,7 +496,8 @@ int GetNumCPUs() {
 #if defined(__s390__)
     // s390 has another format in /proc/cpuinfo
     // it needs to be parsed differently
-    if (SplitIdx != std::string::npos) value = ln.substr(Key.size()+1,SplitIdx-Key.size()-1);
+    if (SplitIdx != std::string::npos)
+      value = ln.substr(Key.size() + 1, SplitIdx - Key.size() - 1);
 #else
     if (SplitIdx != std::string::npos) value = ln.substr(SplitIdx + 1);
 #endif
@@ -525,7 +529,11 @@ int GetNumCPUs() {
   BENCHMARK_UNREACHABLE();
 }
 
-double GetCPUCyclesPerSecond() {
+double GetCPUCyclesPerSecond(CPUInfo::Scaling scaling) {
+  // Currently, scaling is only used on linux path here,
+  // suppress diagnostics about it being unused on other paths.
+  (void)scaling;
+
 #if defined BENCHMARK_OS_LINUX || defined BENCHMARK_OS_CYGWIN
   long freq;
 
@@ -536,8 +544,15 @@ double GetCPUCyclesPerSecond() {
   // cannot always be relied upon. The same reasons apply to /proc/cpuinfo as
   // well.
   if (ReadFromFile("/sys/devices/system/cpu/cpu0/tsc_freq_khz", &freq)
-      // If CPU scaling is in effect, we want to use the *maximum* frequency,
-      // not whatever CPU speed some random processor happens to be using now.
+      // If CPU scaling is disabled, use the *current* frequency.
+      // Note that we specifically don't want to read cpuinfo_cur_freq,
+      // because it is only readable by root.
+      || (scaling == CPUInfo::Scaling::DISABLED &&
+          ReadFromFile("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq",
+                       &freq))
+      // Otherwise, if CPU scaling may be in effect, we want to use
+      // the *maximum* frequency, not whatever CPU speed some random processor
+      // happens to be using now.
       || ReadFromFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq",
                       &freq)) {
     // The value is in kHz (as the file name suggests).  For example, on a
@@ -603,6 +618,8 @@ double GetCPUCyclesPerSecond() {
       "machdep.tsc_freq";
 #elif defined BENCHMARK_OS_OPENBSD
       "hw.cpuspeed";
+#elif defined BENCHMARK_OS_DRAGONFLY
+      "hw.tsc_frequency";
 #else
       "hw.cpufrequency";
 #endif
@@ -626,13 +643,13 @@ double GetCPUCyclesPerSecond() {
                       "~MHz", nullptr, &data, &data_size)))
     return static_cast<double>((int64_t)data *
                                (int64_t)(1000 * 1000));  // was mhz
-#elif defined (BENCHMARK_OS_SOLARIS)
-  kstat_ctl_t *kc = kstat_open();
+#elif defined(BENCHMARK_OS_SOLARIS)
+  kstat_ctl_t* kc = kstat_open();
   if (!kc) {
     std::cerr << "failed to open /dev/kstat\n";
     return -1;
   }
-  kstat_t *ksp = kstat_lookup(kc, (char*)"cpu_info", -1, (char*)"cpu_info0");
+  kstat_t* ksp = kstat_lookup(kc, (char*)"cpu_info", -1, (char*)"cpu_info0");
   if (!ksp) {
     std::cerr << "failed to lookup in /dev/kstat\n";
     return -1;
@@ -641,7 +658,7 @@ double GetCPUCyclesPerSecond() {
     std::cerr << "failed to read from /dev/kstat\n";
     return -1;
   }
-  kstat_named_t *knp =
+  kstat_named_t* knp =
       (kstat_named_t*)kstat_data_lookup(ksp, (char*)"current_clock_Hz");
   if (!knp) {
     std::cerr << "failed to lookup data in /dev/kstat\n";
@@ -655,7 +672,7 @@ double GetCPUCyclesPerSecond() {
   double clock_hz = knp->value.ui64;
   kstat_close(kc);
   return clock_hz;
-#elif defined (BENCHMARK_OS_QNX)
+#elif defined(BENCHMARK_OS_QNX)
   return static_cast<double>((int64_t)(SYSPAGE_ENTRY(cpuinfo)->speed) *
                              (int64_t)(1000 * 1000));
 #endif
@@ -667,9 +684,10 @@ double GetCPUCyclesPerSecond() {
 }
 
 std::vector<double> GetLoadAvg() {
-#if (defined BENCHMARK_OS_FREEBSD || defined(BENCHMARK_OS_LINUX) || \
-    defined BENCHMARK_OS_MACOSX || defined BENCHMARK_OS_NETBSD ||  \
-    defined BENCHMARK_OS_OPENBSD) && !defined(__ANDROID__)
+#if (defined BENCHMARK_OS_FREEBSD || defined(BENCHMARK_OS_LINUX) ||     \
+     defined BENCHMARK_OS_MACOSX || defined BENCHMARK_OS_NETBSD ||      \
+     defined BENCHMARK_OS_OPENBSD || defined BENCHMARK_OS_DRAGONFLY) && \
+    !defined(__ANDROID__)
   constexpr int kMaxSamples = 3;
   std::vector<double> res(kMaxSamples, 0.0);
   const int nelem = getloadavg(res.data(), kMaxSamples);
@@ -693,11 +711,10 @@ const CPUInfo& CPUInfo::Get() {
 
 CPUInfo::CPUInfo()
     : num_cpus(GetNumCPUs()),
-      cycles_per_second(GetCPUCyclesPerSecond()),
+      scaling(CpuScaling(num_cpus)),
+      cycles_per_second(GetCPUCyclesPerSecond(scaling)),
       caches(GetCacheSizes()),
-      scaling_enabled(CpuScalingEnabled(num_cpus)),
       load_avg(GetLoadAvg()) {}
-
 
 const SystemInfo& SystemInfo::Get() {
   static const SystemInfo* info = new SystemInfo();
