@@ -48,19 +48,8 @@ class diagnostic_info_builder {
 
   // Each of Args must be a diagnostic_message_arg_info.
   template <class... Args>
-  constexpr diagnostic_info_builder add(diagnostic_severity sev,
-                                        const translatable_message& message,
+  constexpr diagnostic_info_builder add(const translatable_message& message,
                                         const Args&... arg_infos) {
-    if (this->current_message_index_ == 0) {
-      if (sev != this->info_.severity) {
-#if __cpp_constexpr >= 201907L && !defined(_MSC_VER)
-        // If you see an error with the following line, error.h contains a
-        // QLJS_ERROR_TYPE call with inconsistent diagnostic severities.
-        asm("");
-#endif
-      }
-    }
-
     diagnostic_message_info& message_info =
         this->info_.messages[this->current_message_index_++];
     message_info.format = message;
@@ -128,12 +117,8 @@ struct diagnostic_info_for_error;
 #define MAKE_ARGS_2(arg0, arg1) MAKE_ARGS_1(arg0), MAKE_ARGS_1(arg1)
 #define MAKE_ARGS_3(arg0, arg1, arg2) MAKE_ARGS_2(arg0, arg1), MAKE_ARGS_1(arg2)
 
-#define ERROR(message_format, ...) \
-  .add(diagnostic_severity::error, message_format, MAKE_ARGS(__VA_ARGS__))
-#define WARNING(message_format, ...) \
-  .add(diagnostic_severity::warning, message_format, MAKE_ARGS(__VA_ARGS__))
-#define NOTE(message_format, ...) \
-  .add(diagnostic_severity::note, message_format, MAKE_ARGS(__VA_ARGS__))
+#define MESSAGE(message_format, ...) \
+  .add(message_format, MAKE_ARGS(__VA_ARGS__))
 
 #define QLJS_ERROR_TYPE(name, code, severity, struct_body, format_call)      \
   template <>                                                                \
