@@ -10,13 +10,11 @@ Under `repo` permissions for the token you only need to select/checkbox scope fo
 
     public_repo Access public repositories
 
-Store the access token in a file and variable of your choosing using cat.
-
-    $ myToken=$(cat example.txt)
+Store the access token in a file.
 
 ### Running quick-release-notes.
 
-    $ go run main.go -Repo=quck-lint/quick-lint-js -TagsRepo=quick-lint/quick-lint-js -AuthToken=$myToken isDraft=false 
+    $ go run main.go -Repo=quck-lint/quick-lint-js -TagsRepo=quick-lint/quick-lint-js -AuthToken=$(cat example.txt) isDraft=false 
 
 Three flags:
 
