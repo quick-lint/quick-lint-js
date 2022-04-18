@@ -489,11 +489,14 @@ using namespace std::literals::string_view_literals;
       return hash_entry.mapping_table_index;
     }
   }
-#if __cpp_constexpr >= 201907L
+
+  // Helpfully fail compilation if this file is out of date.
+#if __cpp_constexpr >= 201907L && !defined(_MSC_VER)
   // If you see an error with the following line, translation-table-generated.h
   // is out of date. Run tools/update-translator-sources to rebuild this file.
   asm("");
 #endif
+
   return 0;
 }
 }
