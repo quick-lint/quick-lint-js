@@ -269,7 +269,7 @@ lsp_task<::boost::json::array> lsp_server_process::wait_for_diagnostics_async(
       [&](::boost::json::object& params) {
         ::boost::json::string diagnostics_uri =
             look_up(params, "uri").get_string();
-        if (diagnostics_uri != to_string_view(document_uri)) {
+        if (diagnostics_uri != to_boost_string_view(document_uri)) {
           return false;
         }
         std::int64_t* diagnostics_version = if_int64(params, "version");
@@ -421,9 +421,9 @@ void lsp_server_process::create_file_on_disk_if_needed(string8_view path) {
 
 ::boost::json::value lsp_server_process::get_message_awaitable::await_resume() {
   QLJS_ASSERT(!this->message_content_.empty());
-  std::error_code error;
+  ::boost::json::error_code error;
   ::boost::json::value root =
-      ::boost::json::parse(to_string_view(this->message_content_), error);
+      ::boost::json::parse(to_boost_string_view(this->message_content_), error);
   if (error != std::error_code()) {
     std::fprintf(stderr, "error: parsing JSON from LSP server failed\n");
     std::exit(1);

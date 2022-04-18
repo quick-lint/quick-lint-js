@@ -12,7 +12,7 @@
 
 #include <boost/json/detail/config.hpp>
 
-#if defined(BOOST_JSON_STANDALONE) && !defined(BOOST_JSON_USE_BOOST_PMR)
+#ifdef BOOST_JSON_STANDALONE
 # if __has_include(<memory_resource>)
 #  include <memory_resource>
 #  ifndef __cpp_lib_memory_resource
@@ -93,7 +93,7 @@ class polymorphic_allocator;
 // VFALCO Bug: doc toolchain won't make this a ref
 //using memory_resource = __see_below__;
 
-#elif defined(BOOST_JSON_STANDALONE) && !defined(BOOST_JSON_USE_BOOST_PMR)
+#elif defined(BOOST_JSON_STANDALONE)
 
 # if __has_include(<memory_resource>)
 using memory_resource = std::pmr::memory_resource;

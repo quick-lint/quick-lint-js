@@ -25,6 +25,8 @@ string8 to_string8(const std::string &s) {
 string8 to_string8(const std::string &s) { return s; }
 #endif
 
+string8 to_string8(std::string_view s) { return string8(to_string8_view(s)); }
+
 #if QLJS_HAVE_CHAR8_T
 std::string to_string(const string8_view &s) {
   return std::string(reinterpret_cast<const char *>(s.data()), s.size());

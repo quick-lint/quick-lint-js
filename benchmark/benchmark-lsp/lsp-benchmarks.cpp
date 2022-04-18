@@ -167,8 +167,8 @@ class change_wait_benchmark : public benchmark {
       while (!remaining_uris.empty()) {
         ::boost::json::object notification =
             co_await server.wait_for_first_diagnostics_notification_async();
-        string8 notification_uri = to_string8(
-            std::string(look_up(notification, "params", "uri").get_string()));
+        string8 notification_uri = to_string8(to_string_view(
+            look_up(notification, "params", "uri").get_string()));
 
         auto uri_it = remaining_uris.find(notification_uri);
         QLJS_ALWAYS_ASSERT(uri_it != remaining_uris.end());
