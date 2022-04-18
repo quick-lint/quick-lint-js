@@ -77,17 +77,16 @@ struct diagnostic_message_arg_info {
   diagnostic_arg_type type : (8 - offset_bits) QLJS_WORK_AROUND_GCC_BUG_105191;
 };
 
-struct diagnostic_message_info {
-  translatable_message format;
-  diagnostic_message_arg_info args[3];
-};
+using diagnostic_message_args = std::array<diagnostic_message_arg_info, 3>;
 
 struct diagnostic_info {
   std::array<char, 5> code_string() const noexcept;
 
   std::uint16_t code : 14;
   diagnostic_severity severity : 2 QLJS_WORK_AROUND_GCC_BUG_105191;
-  diagnostic_message_info messages[diagnostic_max_message_count];
+
+  translatable_message message_formats[diagnostic_max_message_count];
+  diagnostic_message_args message_args[diagnostic_max_message_count];
 };
 
 const diagnostic_info &get_diagnostic_info(error_type) noexcept;

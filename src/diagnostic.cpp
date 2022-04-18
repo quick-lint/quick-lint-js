@@ -74,13 +74,14 @@ class diagnostic_info_builder {
   template <class... Args>
   constexpr diagnostic_info_builder add(const translatable_message& message,
                                         const Args&... arg_infos) {
-    diagnostic_message_info& message_info =
-        this->info_.messages[this->current_message_index_++];
-    message_info.format = message;
+    this->info_.message_formats[this->current_message_index_] = message;
 
-    int current_arg_index = 0;
-    ((message_info.args[current_arg_index++] = arg_infos), ...);
+    std::size_t current_arg_index = 0;
+    diagnostic_message_args& args =
+        this->info_.message_args[this->current_message_index_];
+    ((args[current_arg_index++] = arg_infos), ...);
 
+    ++this->current_message_index_;
     return *this;
   }
 

@@ -26,9 +26,9 @@ string8_view translated_singular_statement_kind(statement_kind) noexcept;
 class diagnostic_formatter_base {
  public:
   static source_code_span get_argument_source_code_span(
-      const diagnostic_message_info& message_info, const void* diagnostic,
+      const diagnostic_message_args& args, const void* diagnostic,
       int arg_index) {
-    auto [arg_data, arg_type] = get_arg(message_info, diagnostic, arg_index);
+    auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
     switch (arg_type) {
     case diagnostic_arg_type::identifier:
       return reinterpret_cast<const identifier*>(arg_data)->span();
@@ -46,10 +46,9 @@ class diagnostic_formatter_base {
     QLJS_UNREACHABLE();
   }
 
-  static string8_view expand_argument(
-      const diagnostic_message_info& message_info, const void* diagnostic,
-      int arg_index) {
-    auto [arg_data, arg_type] = get_arg(message_info, diagnostic, arg_index);
+  static string8_view expand_argument(const diagnostic_message_args& args,
+                                      const void* diagnostic, int arg_index) {
+    auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
     switch (arg_type) {
     case diagnostic_arg_type::char8:
       return string8_view(reinterpret_cast<const char8*>(arg_data), 1);
@@ -74,9 +73,9 @@ class diagnostic_formatter_base {
   }
 
   static string8_view expand_argument_headlinese(
-      const diagnostic_message_info& message_info, const void* diagnostic,
+      const diagnostic_message_args& args, const void* diagnostic,
       int arg_index) {
-    auto [arg_data, arg_type] = get_arg(message_info, diagnostic, arg_index);
+    auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
     switch (arg_type) {
     case diagnostic_arg_type::statement_kind:
       return translated_headlinese_statement_kind(
@@ -94,9 +93,9 @@ class diagnostic_formatter_base {
   }
 
   static string8_view expand_argument_singular(
-      const diagnostic_message_info& message_info, const void* diagnostic,
+      const diagnostic_message_args& args, const void* diagnostic,
       int arg_index) {
-    auto [arg_data, arg_type] = get_arg(message_info, diagnostic, arg_index);
+    auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
     switch (arg_type) {
     case diagnostic_arg_type::statement_kind:
       return translated_singular_statement_kind(
@@ -115,9 +114,10 @@ class diagnostic_formatter_base {
 
  private:
   static std::pair<const void*, diagnostic_arg_type> get_arg(
-      const diagnostic_message_info& message_info, const void* diagnostic,
+      const diagnostic_message_args& args, const void* diagnostic,
       int arg_index) noexcept {
-    const diagnostic_message_arg_info& arg_info = message_info.args[arg_index];
+    const diagnostic_message_arg_info& arg_info =
+        args[narrow_cast<std::size_t>(arg_index)];
     const void* arg_data =
         reinterpret_cast<const char*>(diagnostic) + arg_info.offset();
     return std::make_pair(arg_data, arg_info.type);
@@ -137,7 +137,8 @@ class diagnostic_formatter : private diagnostic_formatter_base {
   void format(const diagnostic_info& info, const void* diagnostic);
 
   void format_message(std::string_view code, diagnostic_severity severity,
-                      const diagnostic_message_info& info,
+                      translatable_message format,
+                      const diagnostic_message_args& args,
                       const void* diagnostic);
 };
 
@@ -147,28 +148,30 @@ inline void diagnostic_formatter<Derived>::format(const diagnostic_info& info,
   auto code_string = info.code_string();
   std::string_view code_string_view(code_string.data(), code_string.size());
 
-  this->format_message(code_string_view, info.severity, info.messages[0],
-                       diagnostic);
-  if (info.messages[1].format.valid()) {
+  this->format_message(code_string_view, info.severity, info.message_formats[0],
+                       info.message_args[0], diagnostic);
+  if (info.message_formats[1].valid()) {
     this->format_message(code_string_view, diagnostic_severity::note,
-                         info.messages[1], diagnostic);
+                         info.message_formats[1], info.message_args[1],
+                         diagnostic);
   }
 }
 
 template <class Derived>
 inline void diagnostic_formatter<Derived>::format_message(
     std::string_view code, diagnostic_severity severity,
-    const diagnostic_message_info& info, const void* diagnostic) {
+    translatable_message message_format, const diagnostic_message_args& args,
+    const void* diagnostic) {
   static constexpr auto npos = string8_view::npos;
   using string8_pos = string8_view::size_type;
 
   Derived* self = static_cast<Derived*>(this);
 
   source_code_span origin_span =
-      get_argument_source_code_span(info, diagnostic, 0);
+      get_argument_source_code_span(args, diagnostic, 0);
   self->write_before_message(code, severity, origin_span);
 
-  string8_view remaining_message(translate(info.format));
+  string8_view remaining_message(translate(message_format));
   string8_pos left_curly_index;
   while ((left_curly_index = remaining_message.find(u8'{')) != npos) {
     QLJS_ASSERT(left_curly_index != remaining_message.size() &&
@@ -194,16 +197,16 @@ inline void diagnostic_formatter<Derived>::format_message(
 
     string8_view expanded_parameter;
     if (curly_content == u8"0") {
-      expanded_parameter = this->expand_argument(info, diagnostic, 0);
+      expanded_parameter = this->expand_argument(args, diagnostic, 0);
     } else if (curly_content == u8"1") {
-      expanded_parameter = this->expand_argument(info, diagnostic, 1);
+      expanded_parameter = this->expand_argument(args, diagnostic, 1);
     } else if (curly_content == u8"1:headlinese") {
       expanded_parameter =
-          this->expand_argument_headlinese(info, diagnostic, 1);
+          this->expand_argument_headlinese(args, diagnostic, 1);
     } else if (curly_content == u8"1:singular") {
-      expanded_parameter = this->expand_argument_singular(info, diagnostic, 1);
+      expanded_parameter = this->expand_argument_singular(args, diagnostic, 1);
     } else if (curly_content == u8"2") {
-      expanded_parameter = this->expand_argument(info, diagnostic, 2);
+      expanded_parameter = this->expand_argument(args, diagnostic, 2);
     } else {
       QLJS_ASSERT(false && "invalid message format: unrecognized placeholder");
       QLJS_UNREACHABLE();
