@@ -22,7 +22,7 @@ TEST(test_c_api_web_demo, lint_error_after_text_insertion) {
   const qljs_web_demo_diagnostic* diagnostics = qljs_web_demo_lint(p);
   EXPECT_NE(diagnostics[0].message, nullptr);
   EXPECT_EQ(diagnostics[1].message, nullptr);
-  EXPECT_EQ(diagnostics[1].code, nullptr);
+  EXPECT_STREQ(diagnostics[1].code, "");
 
   EXPECT_STREQ(diagnostics[0].message, "redeclaration of variable: x");
   EXPECT_STREQ(diagnostics[0].code, "E0034");
@@ -45,7 +45,7 @@ TEST(test_c_api_web_demo, lint_new_error_after_second_text_insertion) {
   diagnostics = qljs_web_demo_lint(p);
   EXPECT_NE(diagnostics[0].message, nullptr);
   EXPECT_EQ(diagnostics[1].message, nullptr);
-  EXPECT_EQ(diagnostics[1].code, nullptr);
+  EXPECT_STREQ(diagnostics[1].code, "");
 
   EXPECT_STREQ(diagnostics[0].message, "redeclaration of variable: x");
   EXPECT_STREQ(diagnostics[0].code, "E0034");
@@ -66,7 +66,7 @@ TEST(test_c_api_web_demo, linting_uses_config) {
 
   const qljs_web_demo_diagnostic* diagnostics = qljs_web_demo_lint(p);
   EXPECT_EQ(diagnostics[0].message, nullptr);
-  EXPECT_EQ(diagnostics[0].code, nullptr);
+  EXPECT_STREQ(diagnostics[0].code, "");
 
   qljs_web_demo_destroy_document(p);
 }
