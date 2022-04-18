@@ -23,7 +23,7 @@
 
 #if defined(QLJS_HAVE_CRT_EXTERNS_H) && QLJS_HAVE_CRT_EXTERNS_H
 #elif defined(__has_include)
-#if __has_include(<fcntl.h>)
+#if __has_include(<crt_externs.h>)
 #define QLJS_HAVE_CRT_EXTERNS_H 1
 #endif
 #elif defined(__APPLE__)
