@@ -81,8 +81,8 @@ struct diagnostic_message_info {
 struct diagnostic_info {
   std::array<char, 5> code_string() const noexcept;
 
-  std::uint16_t code;
-  diagnostic_severity severity QLJS_WORK_AROUND_GCC_BUG_105191;
+  std::uint16_t code : 14;
+  diagnostic_severity severity : 2 QLJS_WORK_AROUND_GCC_BUG_105191;
   // If we support more than two infos (i.e. more than one note), the VS Code
   // plugin needs to be updated. See NOTE(multiple notes).
   diagnostic_message_info messages[2];

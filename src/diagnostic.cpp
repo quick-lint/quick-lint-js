@@ -61,11 +61,14 @@ std::array<char, 5> error_code_to_string(std::uint16_t error_code) noexcept {
 template <class Error>
 class diagnostic_info_builder {
  public:
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_GCC("-Wconversion")
   constexpr explicit diagnostic_info_builder(const char* code_string,
                                              diagnostic_severity sev) {
     this->info_.severity = sev;
     this->info_.code = parse_code_string(code_string);
   }
+  QLJS_WARNING_POP
 
   // Each of Args must be a diagnostic_message_arg_info.
   template <class... Args>
