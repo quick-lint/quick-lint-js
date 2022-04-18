@@ -41,6 +41,10 @@ enum class diagnostic_arg_type : std::uint8_t {
   variable_kind,
 };
 
+// If we support more than two infos (i.e. more than one note), the VS Code
+// plugin needs to be updated. See NOTE(multiple notes).
+constexpr int diagnostic_max_message_count = 2;
+
 struct diagnostic_message_arg_info {
   // offset_shift is how many bits are removed in compact_offset.
   //
@@ -83,9 +87,7 @@ struct diagnostic_info {
 
   std::uint16_t code : 14;
   diagnostic_severity severity : 2 QLJS_WORK_AROUND_GCC_BUG_105191;
-  // If we support more than two infos (i.e. more than one note), the VS Code
-  // plugin needs to be updated. See NOTE(multiple notes).
-  diagnostic_message_info messages[2];
+  diagnostic_message_info messages[diagnostic_max_message_count];
 };
 
 const diagnostic_info &get_diagnostic_info(error_type) noexcept;
