@@ -18,31 +18,15 @@ import "log"
 import "os"
 import "os/exec"
 import "path/filepath"
+import "runtime"
 import "strings"
 import "time"
-import _ "embed"
 
-//go:embed certificates/quick-lint-js.cer
-var AppleCodesignCertificate []byte
-
-//go:embed certificates/DigiCertAssuredIDRootCA_comb.crt.pem
-var DigiCertCertificate []byte
-
-//go:embed certificates/DigiCertTrustedRootG4.crt
-var DigiCertCertificate2 []byte
-
-//go:embed apple/quick-lint-js.csreq
-var AppleCodeSigningRequirements []byte
-
-//go:embed certificates/quick-lint-js.gpg.key
-var QLJSGPGKey []byte
+// Path to the 'dist' directory containing this file (sign-release.go).
+var DistPath string
 
 type SigningStuff struct {
-	Certificate           []byte
-	TimestampCertificate  []byte
-	TimestampCertificate2 []byte
-	GPGKey                []byte
-	RelicConfigPath       string
+	RelicConfigPath string
 }
 
 // Key: SHA256 hash of original file
@@ -59,11 +43,6 @@ func main() {
 
 	defer RemoveTempDirs()
 
-	signingStuff.Certificate = AppleCodesignCertificate
-	signingStuff.TimestampCertificate = DigiCertCertificate
-	signingStuff.TimestampCertificate2 = DigiCertCertificate2
-	signingStuff.GPGKey = QLJSGPGKey
-
 	flag.StringVar(&signingStuff.RelicConfigPath, "RelicConfig", "", "")
 	flag.Parse()
 	if flag.NArg() != 2 {
@@ -75,6 +54,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	_, scriptPath, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("could not determine path of .go file")
+	}
+	DistPath = filepath.Dir(scriptPath)
 
 	sourceDir := flag.Args()[0]
 	destinationDir := flag.Args()[1]
@@ -797,11 +782,7 @@ func RelicFile(inFilePath string, outFilePath string, signingType RelicSigningTy
 	}
 	switch signingType {
 	case RelicSignApple:
-		requirementsPath, err := MakeTempFileWithContent(AppleCodeSigningRequirements)
-		if err != nil {
-			return err
-		}
-		signCommand = append(signCommand, "--requirements", requirementsPath)
+		signCommand = append(signCommand, "--requirements", filepath.Join(DistPath, "apple/quick-lint-js.csreq"))
 		signCommand = append(signCommand, "--bundle-id", "quick-lint-js")
 		signCommand = append(signCommand, "--key", "windows_key")
 	case RelicSignPGP:
@@ -883,27 +864,11 @@ func RelicVerifyDetachedFile(filePath string, detachedSignaturePath string) erro
 }
 
 func GetRelicVerifyCertOptions() ([]string, error) {
-	certificateFile, err := MakeTempFileWithContent(signingStuff.Certificate)
-	if err != nil {
-		return nil, err
-	}
-	timestampCertificateFile, err := MakeTempFileWithContent(signingStuff.TimestampCertificate)
-	if err != nil {
-		return nil, err
-	}
-	timestampCertificate2File, err := MakeTempFileWithContent(signingStuff.TimestampCertificate2)
-	if err != nil {
-		return nil, err
-	}
-	gpgCertificateFile, err := MakeTempFileWithContent(signingStuff.GPGKey)
-	if err != nil {
-		return nil, err
-	}
 	return []string{
-		"--cert", certificateFile,
-		"--cert", timestampCertificateFile,
-		"--cert", timestampCertificate2File,
-		"--cert", gpgCertificateFile,
+		"--cert", filepath.Join(DistPath, "certificates/quick-lint-js.cer"),
+		"--cert", filepath.Join(DistPath, "certificates/DigiCertAssuredIDRootCA_comb.crt.pem"),
+		"--cert", filepath.Join(DistPath, "certificates/DigiCertTrustedRootG4.crt"),
+		"--cert", filepath.Join(DistPath, "certificates/quick-lint-js.gpg.key"),
 	}, nil
 }
 
