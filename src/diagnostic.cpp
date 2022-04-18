@@ -64,7 +64,6 @@ class diagnostic_info_builder {
     diagnostic_message_info& message_info =
         this->info_.messages[this->current_message_index_++];
     message_info.format = message;
-    message_info.severity = sev;
 
     int current_arg_index = 0;
     ((message_info.args[current_arg_index++] = arg_infos), ...);

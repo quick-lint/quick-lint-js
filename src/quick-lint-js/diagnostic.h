@@ -42,7 +42,6 @@ struct diagnostic_message_arg_info {
 
 struct diagnostic_message_info {
   translatable_message format;
-  diagnostic_severity severity QLJS_WORK_AROUND_GCC_BUG_105191;
   diagnostic_message_arg_info args[3];
 };
 

@@ -131,7 +131,7 @@ class diagnostic_formatter : private diagnostic_formatter_base {
 
   void format(const diagnostic_info& info, const void* diagnostic);
 
-  void format_message(std::string_view code,
+  void format_message(std::string_view code, diagnostic_severity severity,
                       const diagnostic_message_info& info,
                       const void* diagnostic);
 };
@@ -139,16 +139,17 @@ class diagnostic_formatter : private diagnostic_formatter_base {
 template <class Derived>
 inline void diagnostic_formatter<Derived>::format(const diagnostic_info& info,
                                                   const void* diagnostic) {
-  this->format_message(info.code, info.messages[0], diagnostic);
+  this->format_message(info.code, info.severity, info.messages[0], diagnostic);
   if (info.messages[1].format.valid()) {
-    this->format_message(info.code, info.messages[1], diagnostic);
+    this->format_message(info.code, diagnostic_severity::note, info.messages[1],
+                         diagnostic);
   }
 }
 
 template <class Derived>
 inline void diagnostic_formatter<Derived>::format_message(
-    std::string_view code, const diagnostic_message_info& info,
-    const void* diagnostic) {
+    std::string_view code, diagnostic_severity severity,
+    const diagnostic_message_info& info, const void* diagnostic) {
   static constexpr auto npos = string8_view::npos;
   using string8_pos = string8_view::size_type;
 
@@ -156,7 +157,7 @@ inline void diagnostic_formatter<Derived>::format_message(
 
   source_code_span origin_span =
       get_argument_source_code_span(info, diagnostic, 0);
-  self->write_before_message(code, info.severity, origin_span);
+  self->write_before_message(code, severity, origin_span);
 
   string8_view remaining_message(translate(info.format));
   string8_pos left_curly_index;
@@ -167,13 +168,12 @@ inline void diagnostic_formatter<Derived>::format_message(
     if (remaining_message[left_curly_index + 1] == '{') {
       // "{{"; the '{' is escaped.
       self->write_message_part(
-          code, info.severity,
-          remaining_message.substr(0, left_curly_index + 1));
+          code, severity, remaining_message.substr(0, left_curly_index + 1));
       remaining_message = remaining_message.substr(left_curly_index + 2);
       continue;
     }
 
-    self->write_message_part(code, info.severity,
+    self->write_message_part(code, severity,
                              remaining_message.substr(0, left_curly_index));
 
     string8_pos right_curly_index =
@@ -200,12 +200,12 @@ inline void diagnostic_formatter<Derived>::format_message(
       QLJS_UNREACHABLE();
     }
 
-    self->write_message_part(code, info.severity, expanded_parameter);
+    self->write_message_part(code, severity, expanded_parameter);
     remaining_message = remaining_message.substr(right_curly_index + 1);
   }
-  self->write_message_part(code, info.severity, remaining_message);
+  self->write_message_part(code, severity, remaining_message);
 
-  self->write_after_message(code, info.severity, origin_span);
+  self->write_after_message(code, severity, origin_span);
 }
 }
 

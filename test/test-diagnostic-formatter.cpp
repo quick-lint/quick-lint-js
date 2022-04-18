@@ -63,7 +63,6 @@ TEST(test_diagnostic_formatter, origin_span) {
 
   constexpr diagnostic_message_info message_info = {
       .format = QLJS_TRANSLATABLE("something happened"),
-      .severity = diagnostic_severity::error,
       .args =
           {
               {0, diagnostic_arg_type::source_code_span},
@@ -71,7 +70,8 @@ TEST(test_diagnostic_formatter, origin_span) {
   };
 
   test_diagnostic_formatter formatter;
-  formatter.format_message("E9999"sv, message_info, &span);
+  formatter.format_message("E9999"sv, diagnostic_severity::error, message_info,
+                           &span);
 
   EXPECT_EQ(formatter.write_before_message_call_count, 1);
   EXPECT_EQ(formatter.write_after_message_call_count, 1);
@@ -80,7 +80,6 @@ TEST(test_diagnostic_formatter, origin_span) {
 TEST(test_diagnostic_formatter, single_span_simple_message) {
   constexpr diagnostic_message_info message_info = {
       .format = QLJS_TRANSLATABLE("something happened"),
-      .severity = diagnostic_severity::error,
       .args =
           {
               {0, diagnostic_arg_type::source_code_span},
@@ -88,18 +87,19 @@ TEST(test_diagnostic_formatter, single_span_simple_message) {
   };
 
   string_diagnostic_formatter formatter;
-  formatter.format_message("E9999"sv, message_info, &empty_span);
+  formatter.format_message("E9999"sv, diagnostic_severity::error, message_info,
+                           &empty_span);
   EXPECT_EQ(formatter.message, u8"something happened\n");
 }
 
 TEST(test_diagnostic_formatter, diagnostic_with_single_message) {
   constexpr diagnostic_info info = {
       .code = "E9999",
+      .severity = diagnostic_severity::error,
       .messages =
           {
               diagnostic_message_info{
                   .format = QLJS_TRANSLATABLE("something happened"),
-                  .severity = diagnostic_severity::error,
                   .args =
                       {
                           {0, diagnostic_arg_type::source_code_span},
@@ -116,11 +116,11 @@ TEST(test_diagnostic_formatter, diagnostic_with_single_message) {
 TEST(test_diagnostic_formatter, diagnostic_with_two_messages) {
   constexpr diagnostic_info info = {
       .code = "E9999",
+      .severity = diagnostic_severity::error,
       .messages =
           {
               diagnostic_message_info{
                   .format = QLJS_TRANSLATABLE("something happened"),
-                  .severity = diagnostic_severity::error,
                   .args =
                       {
                           {0, diagnostic_arg_type::source_code_span},
@@ -128,7 +128,6 @@ TEST(test_diagnostic_formatter, diagnostic_with_two_messages) {
               },
               diagnostic_message_info{
                   .format = QLJS_TRANSLATABLE("see here"),
-                  .severity = diagnostic_severity::note,
                   .args =
                       {
                           {0, diagnostic_arg_type::source_code_span},
@@ -147,7 +146,6 @@ TEST(test_diagnostic_formatter, diagnostic_with_two_messages) {
 TEST(test_diagnostic_formatter, message_with_zero_placeholder) {
   constexpr diagnostic_message_info message_info = {
       .format = QLJS_TRANSLATABLE("this {0} looks fishy"),
-      .severity = diagnostic_severity::error,
       .args =
           {
               {0, diagnostic_arg_type::source_code_span},
@@ -158,7 +156,8 @@ TEST(test_diagnostic_formatter, message_with_zero_placeholder) {
   source_code_span hello_span(&code[0], &code[5]);
 
   string_diagnostic_formatter formatter;
-  formatter.format_message("E9999"sv, message_info, &hello_span);
+  formatter.format_message("E9999"sv, diagnostic_severity::error, message_info,
+                           &hello_span);
   EXPECT_EQ(formatter.message, u8"this hello looks fishy\n");
 }
 
@@ -169,7 +168,6 @@ TEST(test_diagnostic_formatter, message_with_extra_identifier_placeholder) {
   };
   constexpr diagnostic_message_info message_info = {
       .format = QLJS_TRANSLATABLE("this {1} looks fishy"),
-      .severity = diagnostic_severity::error,
       .args =
           {
               {offsetof(test_diag, hello),
@@ -185,7 +183,8 @@ TEST(test_diagnostic_formatter, message_with_extra_identifier_placeholder) {
   };
 
   string_diagnostic_formatter formatter;
-  formatter.format_message("E9999"sv, message_info, &diag);
+  formatter.format_message("E9999"sv, diagnostic_severity::error, message_info,
+                           &diag);
   EXPECT_EQ(formatter.message, u8"this world looks fishy\n");
 }
 
@@ -197,7 +196,6 @@ TEST(test_diagnostic_formatter, message_with_multiple_span_placeholders) {
   };
   constexpr diagnostic_message_info message_info = {
       .format = QLJS_TRANSLATABLE("free {1} and {0} {1} {2}"),
-      .severity = diagnostic_severity::error,
       .args =
           {
               {offsetof(test_diag, let_span),
@@ -220,7 +218,8 @@ TEST(test_diagnostic_formatter, message_with_multiple_span_placeholders) {
   ASSERT_EQ(diag.be_span.string_view(), u8"be");
 
   string_diagnostic_formatter formatter;
-  formatter.format_message("E9999"sv, message_info, &diag);
+  formatter.format_message("E9999"sv, diagnostic_severity::error, message_info,
+                           &diag);
   EXPECT_EQ(formatter.message, u8"free me and let me be\n");
 }
 
@@ -231,7 +230,6 @@ TEST(test_diagnostic_formatter, message_with_char_placeholder) {
   };
   constexpr diagnostic_message_info message_info = {
       .format = QLJS_TRANSLATABLE("what is this '{1}' nonsense?"),
-      .severity = diagnostic_severity::error,
       .args =
           {
               {offsetof(test_diag, span),
@@ -245,14 +243,14 @@ TEST(test_diagnostic_formatter, message_with_char_placeholder) {
       .c = u8'Q',
   };
   string_diagnostic_formatter formatter;
-  formatter.format_message("E9999"sv, message_info, &diag);
+  formatter.format_message("E9999"sv, diagnostic_severity::error, message_info,
+                           &diag);
   EXPECT_EQ(formatter.message, u8"what is this 'Q' nonsense?\n");
 }
 
 TEST(test_diagnostic_formatter, message_with_escaped_curlies) {
   constexpr diagnostic_message_info message_info = {
       .format = QLJS_TRANSLATABLE("a {{0} b }} c"),
-      .severity = diagnostic_severity::error,
       .args =
           {
               {0, diagnostic_arg_type::source_code_span},
@@ -263,7 +261,8 @@ TEST(test_diagnostic_formatter, message_with_escaped_curlies) {
   source_code_span code_span(&code[0], &code[3]);
 
   string_diagnostic_formatter formatter;
-  formatter.format_message("E9999"sv, message_info, &code_span);
+  formatter.format_message("E9999"sv, diagnostic_severity::error, message_info,
+                           &code_span);
   EXPECT_EQ(formatter.message, u8"a {0} b }} c\n");
 }
 
@@ -274,7 +273,6 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
   };
   constexpr diagnostic_message_info headlinese_message_info = {
       .format = QLJS_TRANSLATABLE("expected {1:headlinese}"),
-      .severity = diagnostic_severity::error,
       .args =
           {
               {offsetof(test_diag, empty_span),
@@ -285,7 +283,6 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
   };
   constexpr diagnostic_message_info singular_message_info = {
       .format = QLJS_TRANSLATABLE("expected {1:singular}"),
-      .severity = diagnostic_severity::error,
       .args =
           {
               {offsetof(test_diag, empty_span),
@@ -301,7 +298,8 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
         .statement = statement_kind::do_while_loop,
     };
     string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, headlinese_message_info, &diag);
+    formatter.format_message("E9999"sv, diagnostic_severity::error,
+                             headlinese_message_info, &diag);
     EXPECT_EQ(formatter.message, u8"expected 'do-while' loop\n");
   }
 
@@ -311,7 +309,8 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
         .statement = statement_kind::do_while_loop,
     };
     string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, singular_message_info, &diag);
+    formatter.format_message("E9999"sv, diagnostic_severity::error,
+                             singular_message_info, &diag);
     EXPECT_EQ(formatter.message, u8"expected a 'do-while' loop\n");
   }
 
@@ -321,7 +320,8 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
         .statement = statement_kind::for_loop,
     };
     string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, headlinese_message_info, &diag);
+    formatter.format_message("E9999"sv, diagnostic_severity::error,
+                             headlinese_message_info, &diag);
     EXPECT_EQ(formatter.message, u8"expected 'for' loop\n");
   }
 
@@ -331,7 +331,8 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
         .statement = statement_kind::for_loop,
     };
     string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, singular_message_info, &diag);
+    formatter.format_message("E9999"sv, diagnostic_severity::error,
+                             singular_message_info, &diag);
     EXPECT_EQ(formatter.message, u8"expected a 'for' loop\n");
   }
 
@@ -341,7 +342,8 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
         .statement = statement_kind::if_statement,
     };
     string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, headlinese_message_info, &diag);
+    formatter.format_message("E9999"sv, diagnostic_severity::error,
+                             headlinese_message_info, &diag);
     EXPECT_EQ(formatter.message, u8"expected 'if' statement\n");
   }
 
@@ -351,7 +353,8 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
         .statement = statement_kind::if_statement,
     };
     string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, singular_message_info, &diag);
+    formatter.format_message("E9999"sv, diagnostic_severity::error,
+                             singular_message_info, &diag);
     EXPECT_EQ(formatter.message, u8"expected an 'if' statement\n");
   }
 
@@ -361,7 +364,8 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
         .statement = statement_kind::while_loop,
     };
     string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, headlinese_message_info, &diag);
+    formatter.format_message("E9999"sv, diagnostic_severity::error,
+                             headlinese_message_info, &diag);
     EXPECT_EQ(formatter.message, u8"expected 'while' loop\n");
   }
 
@@ -371,7 +375,8 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
         .statement = statement_kind::while_loop,
     };
     string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, singular_message_info, &diag);
+    formatter.format_message("E9999"sv, diagnostic_severity::error,
+                             singular_message_info, &diag);
     EXPECT_EQ(formatter.message, u8"expected a 'while' loop\n");
   }
 
@@ -381,7 +386,8 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
         .statement = statement_kind::with_statement,
     };
     string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, headlinese_message_info, &diag);
+    formatter.format_message("E9999"sv, diagnostic_severity::error,
+                             headlinese_message_info, &diag);
     EXPECT_EQ(formatter.message, u8"expected 'with' statement\n");
   }
 
@@ -391,7 +397,8 @@ TEST(test_diagnostic_formatter, statement_kind_placeholder) {
         .statement = statement_kind::with_statement,
     };
     string_diagnostic_formatter formatter;
-    formatter.format_message("E9999"sv, singular_message_info, &diag);
+    formatter.format_message("E9999"sv, diagnostic_severity::error,
+                             singular_message_info, &diag);
     EXPECT_EQ(formatter.message, u8"expected a 'with' statement\n");
   }
 }

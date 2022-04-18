@@ -283,11 +283,11 @@ TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
 TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
   constexpr diagnostic_info diag_info = {
       .code = "E9999",
+      .severity = diagnostic_severity::error,
       .messages =
           {
               diagnostic_message_info{
                   .format = QLJS_TRANSLATABLE("something happened"),
-                  .severity = diagnostic_severity::error,
                   .args =
                       {
                           {0, diagnostic_arg_type::source_code_span},
@@ -322,11 +322,11 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
   };
   constexpr diagnostic_info diag_info = {
       .code = "E9999",
+      .severity = diagnostic_severity::error,
       .messages =
           {
               diagnostic_message_info{
                   .format = QLJS_TRANSLATABLE("something happened"),
-                  .severity = diagnostic_severity::error,
                   .args =
                       {
                           {offsetof(test_diag, hello_span),
@@ -335,7 +335,6 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
               },
               diagnostic_message_info{
                   .format = QLJS_TRANSLATABLE("here"),
-                  .severity = diagnostic_severity::note,
                   .args =
                       {
                           {offsetof(test_diag, world_span),
