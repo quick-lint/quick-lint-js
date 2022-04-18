@@ -23,7 +23,6 @@ if (QUICK_LINT_JS_USE_BUNDLED_BOOST)
     BOOST_CONTAINER_NO_LIB
     BOOST_JSON_STANDALONE
     BOOST_JSON_USE_BOOST_PMR
-    BOOST_LEAF_NO_EXCEPTIONS
     BOOST_NO_EXCEPTIONS
   )
   # Disable undesirable warnings in headers and source files.
