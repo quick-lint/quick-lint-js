@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_DIAGNOSTIC_H
 #define QUICK_LINT_JS_DIAGNOSTIC_H
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -78,7 +79,9 @@ struct diagnostic_message_info {
 };
 
 struct diagnostic_info {
-  char code[6];
+  std::array<char, 5> code_string() const noexcept;
+
+  std::uint16_t code;
   diagnostic_severity severity QLJS_WORK_AROUND_GCC_BUG_105191;
   // If we support more than two infos (i.e. more than one note), the VS Code
   // plugin needs to be updated. See NOTE(multiple notes).

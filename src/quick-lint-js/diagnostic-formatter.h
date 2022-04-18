@@ -13,6 +13,7 @@
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
 #include <type_traits>
@@ -143,10 +144,14 @@ class diagnostic_formatter : private diagnostic_formatter_base {
 template <class Derived>
 inline void diagnostic_formatter<Derived>::format(const diagnostic_info& info,
                                                   const void* diagnostic) {
-  this->format_message(info.code, info.severity, info.messages[0], diagnostic);
+  auto code_string = info.code_string();
+  std::string_view code_string_view(code_string.data(), code_string.size());
+
+  this->format_message(code_string_view, info.severity, info.messages[0],
+                       diagnostic);
   if (info.messages[1].format.valid()) {
-    this->format_message(info.code, diagnostic_severity::note, info.messages[1],
-                         diagnostic);
+    this->format_message(code_string_view, diagnostic_severity::note,
+                         info.messages[1], diagnostic);
   }
 }
 

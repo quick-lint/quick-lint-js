@@ -23,7 +23,7 @@ TEST(test_diagnostic, diagnostic_info) {
   {
     const diagnostic_info& info = diagnostic_info_for_error<
         error_expected_parentheses_around_if_condition>;
-    EXPECT_EQ(info.code, "E0017"sv);
+    EXPECT_EQ(info.code, 17);
     EXPECT_EQ(info.severity, diagnostic_severity::error);
     EXPECT_STREQ(source_code_messages.translate(info.messages[0].format),
                  "if statement needs parentheses around condition");
@@ -38,7 +38,7 @@ TEST(test_diagnostic, diagnostic_info) {
   {
     const diagnostic_info& info = diagnostic_info_for_error<
         error_expected_parenthesis_around_if_condition>;
-    EXPECT_EQ(info.code, "E0018"sv);
+    EXPECT_EQ(info.code, 18);
     EXPECT_EQ(info.severity, diagnostic_severity::error);
     EXPECT_STREQ(source_code_messages.translate(info.messages[0].format),
                  "if statement is missing '{1}' around condition");
@@ -55,7 +55,7 @@ TEST(test_diagnostic, diagnostic_info) {
   {
     const diagnostic_info& info = diagnostic_info_for_error<
         error_function_call_before_declaration_in_block_scope>;
-    EXPECT_EQ(info.code, "E0077"sv);
+    EXPECT_EQ(info.code, 77);
     EXPECT_EQ(info.severity, diagnostic_severity::warning);
     EXPECT_STREQ(source_code_messages.translate(info.messages[0].format),
                  "function called before declaration in block scope: {0}");
@@ -74,7 +74,7 @@ TEST(test_diagnostic, diagnostic_info) {
   {
     const diagnostic_info& info =
         diagnostic_info_for_error<error_class_statement_not_allowed_in_body>;
-    EXPECT_EQ(info.code, "E0149"sv);
+    EXPECT_EQ(info.code, 149);
     EXPECT_EQ(info.severity, diagnostic_severity::error);
     EXPECT_STREQ(source_code_messages.translate(info.messages[0].format),
                  "missing body for {1:headlinese}");

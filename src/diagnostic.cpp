@@ -1,6 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <array>
+#include <cstdint>
 #include <cstring>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
@@ -31,19 +33,38 @@
 
 namespace quick_lint_js {
 namespace {
-constexpr void strcpy(char* out, const char* in) noexcept {
-  while ((*out++ = *in++) != '\0')
-    ;
+constexpr std::uint16_t parse_code_string(const char* code_string) noexcept {
+  QLJS_CONSTEXPR_ASSERT(code_string[0] == 'E');
+  QLJS_CONSTEXPR_ASSERT('0' <= code_string[1] && code_string[1] <= '9');
+  QLJS_CONSTEXPR_ASSERT('0' <= code_string[2] && code_string[2] <= '9');
+  QLJS_CONSTEXPR_ASSERT('0' <= code_string[3] && code_string[3] <= '9');
+  QLJS_CONSTEXPR_ASSERT('0' <= code_string[4] && code_string[4] <= '9');
+  QLJS_CONSTEXPR_ASSERT(code_string[5] == '\0');
+  return static_cast<std::uint16_t>((code_string[1] - '0') * 1000 +  //
+                                    (code_string[2] - '0') * 100 +   //
+                                    (code_string[3] - '0') * 10 +    //
+                                    (code_string[4] - '0') * 1);
+}
+
+std::array<char, 5> error_code_to_string(std::uint16_t error_code) noexcept {
+  QLJS_ASSERT(error_code <= 9999);
+  return std::array<char, 5>{
+      'E',
+      static_cast<char>('0' + ((error_code / 1000) % 10)),
+      static_cast<char>('0' + ((error_code / 100) % 10)),
+      static_cast<char>('0' + ((error_code / 10) % 10)),
+      static_cast<char>('0' + ((error_code / 1) % 10)),
+  };
 }
 
 // Convert a QLJS_ERROR_TYPE user into a diagnostic_info.
 template <class Error>
 class diagnostic_info_builder {
  public:
-  constexpr explicit diagnostic_info_builder(const char* code,
+  constexpr explicit diagnostic_info_builder(const char* code_string,
                                              diagnostic_severity sev) {
     this->info_.severity = sev;
-    strcpy(this->info_.code, code);
+    this->info_.code = parse_code_string(code_string);
   }
 
   // Each of Args must be a diagnostic_message_arg_info.
@@ -144,6 +165,10 @@ const diagnostic_info& get_diagnostic_info(error_type type) noexcept {
   return all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)];
 }
 
+std::array<char, 5> diagnostic_info::code_string() const noexcept {
+  return error_code_to_string(this->code);
+}
+
 QLJS_WARNING_PUSH
 // GCC thinks that all_diagnostic_infos[i].code is not null-terminated, but it
 // is.
@@ -152,7 +177,12 @@ QLJS_WARNING_IGNORE_GCC("-Wstringop-overflow")
 std::optional<error_type> error_type_from_code_slow(
     std::string_view code) noexcept {
   for (int i = 0; i < error_type_count; ++i) {
-    if (all_diagnostic_infos[i].code == code) {
+    // TODO(strager): Parse the incoming code instead of stringifying each code
+    // in the table.
+    auto diag_code_string = all_diagnostic_infos[i].code_string();
+    std::string_view diag_code_string_view(diag_code_string.data(),
+                                           diag_code_string.size());
+    if (diag_code_string_view == code) {
       return static_cast<error_type>(i);
     }
   }

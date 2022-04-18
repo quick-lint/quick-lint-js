@@ -282,7 +282,7 @@ TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
 
 TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
   constexpr diagnostic_info diag_info = {
-      .code = "E9999",
+      .code = 9999,
       .severity = diagnostic_severity::error,
       .messages =
           {
@@ -321,7 +321,7 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
     source_code_span world_span;
   };
   constexpr diagnostic_info diag_info = {
-      .code = "E9999",
+      .code = 9999,
       .severity = diagnostic_severity::error,
       .messages =
           {

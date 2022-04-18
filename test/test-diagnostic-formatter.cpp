@@ -94,7 +94,7 @@ TEST(test_diagnostic_formatter, single_span_simple_message) {
 
 TEST(test_diagnostic_formatter, diagnostic_with_single_message) {
   constexpr diagnostic_info info = {
-      .code = "E9999",
+      .code = 9999,
       .severity = diagnostic_severity::error,
       .messages =
           {
@@ -115,7 +115,7 @@ TEST(test_diagnostic_formatter, diagnostic_with_single_message) {
 
 TEST(test_diagnostic_formatter, diagnostic_with_two_messages) {
   constexpr diagnostic_info info = {
-      .code = "E9999",
+      .code = 9999,
       .severity = diagnostic_severity::error,
       .messages =
           {
