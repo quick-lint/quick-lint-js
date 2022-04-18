@@ -280,14 +280,7 @@ class thread_safe_js_function {
                           /*maxQueueSize=*/0,
                           /*initialThreadCount=*/1,
                           /*context=*/this->create_weak_reference(env, object),
-                          /*finalizeCallback=*/
-                          [](Napi::Env env, [[maybe_unused]] void* data,
-                             void* context) -> void {
-                            // See NOTE[workspace-cleanup].
-                            ::napi_status status = ::napi_delete_reference(
-                                env, reinterpret_cast<::napi_ref>(context));
-                            QLJS_ASSERT(status == ::napi_ok);
-                          },
+                          /*finalizeCallback=*/finalize_weak_reference,
                           /*data=*/static_cast<void*>(nullptr))) {}
 
   // Like ::Napi::TypedThreadSafeFunction::BlockingCall.
@@ -307,6 +300,15 @@ class thread_safe_js_function {
         /*result=*/&result);
     QLJS_ASSERT(status == ::napi_ok);
     return result;
+  }
+
+  static void finalize_weak_reference(::Napi::Env env,
+                                      [[maybe_unused]] void* data,
+                                      void* context) {
+    // See NOTE[workspace-cleanup].
+    ::napi_status status =
+        ::napi_delete_reference(env, reinterpret_cast<::napi_ref>(context));
+    QLJS_ASSERT(status == ::napi_ok);
   }
 
   static void call_func(::Napi::Env env, ::Napi::Function, void* context,
@@ -627,7 +629,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
                   env, message, {"Open config"},
                   [this, self = ::Napi::Persistent(this->Value()),
                    config_file_path](
-                      ::Napi::Env env,
+                      ::Napi::Env callback_env,
                       ::Napi::Value clicked_button_label) -> void {
                     bool popup_dismissed = clicked_button_label.IsUndefined();
                     if (popup_dismissed) {
@@ -637,7 +639,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
                         clicked_button_label.As<::Napi::String>().Utf8Value();
                     QLJS_ASSERT(clicked_button_label_string == "Open config");
                     this->vscode_.open_and_show_text_document_by_path(
-                        env, config_file_path);
+                        callback_env, config_file_path);
                   });
             }
             doc->config_ = &loaded_config->config;

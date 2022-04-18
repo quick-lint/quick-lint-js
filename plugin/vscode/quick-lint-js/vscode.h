@@ -95,19 +95,17 @@ struct vscode_module {
     ::Napi::Function open_text_document_func = ::Napi::Function::New(
         env,
         [state = std::move(state)](const ::Napi::CallbackInfo& info) -> void {
-          ::Napi::Env env = info.Env();
-
           ::Napi::Value uri = state->uri_file.Value().Call(
               /*this=*/state->uri_class.Value(),
-              {::Napi::String::New(env, state->path)});
+              {::Napi::String::New(info.Env(), state->path)});
           ::Napi::Value promise =
               state->workspace_open_text_document.Value().Call(
                   /*this=*/state->workspace_namespace.Value(), {uri});
 
-          promise_then(promise,
-                       [state](const ::Napi::CallbackInfo& info) -> void {
-                         std::move(state->callback)(info.Env(), info[0]);
-                       });
+          promise_then(
+              promise, [state](const ::Napi::CallbackInfo& then_info) -> void {
+                std::move(state->callback)(then_info.Env(), then_info[0]);
+              });
 
           state->workspace_namespace.Reset();
           state->workspace_open_text_document.Reset();
