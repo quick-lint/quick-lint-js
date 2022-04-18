@@ -86,17 +86,18 @@ class vscode_error_formatter
         /*severity=*/severity,
     });
 
+    std::string code_string(code);
     ::Napi::Value uri = this->vscode_->uri_class.New(
         {/*scheme=*/::Napi::String::New(this->env_, "https"),
          /*authority=*/::Napi::String::New(this->env_, "quick-lint-js.com"),
          /*path=*/
-         ::Napi::String::New(this->env_, "/errors/" + std::string(code) + "/"),
+         ::Napi::String::New(this->env_, "/errors/" + code_string + "/"),
          /*query=*/::Napi::String::New(this->env_, ""),
          /*fragment=*/::Napi::String::New(this->env_, "")});
 
     ::Napi::Object code_obj = ::Napi::Object::New(this->env_);
     code_obj.Set("target", uri);
-    code_obj.Set("value", code.data());
+    code_obj.Set("value", code_string);
 
     diag.Set("code", code_obj);
     diag.Set("source", ::Napi::String::New(this->env_, "quick-lint-js"));
