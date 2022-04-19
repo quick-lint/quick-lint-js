@@ -13,16 +13,16 @@ Then, run the `build.sh` script:
 
     $ ./dist/debian/build.sh
 
-The above command will create `dist/debian/quick-lint-js_2.4.0-1_amd64.deb`,
-`dist/debian/quick-lint-js-vim_2.4.0-1_all.deb`, and related files.
+The above command will create `dist/debian/quick-lint-js_2.4.1-1_amd64.deb`,
+`dist/debian/quick-lint-js-vim_2.4.1-1_all.deb`, and related files.
 
 ## Installing
 
 On a Debian-based system, after building the .deb file (per the above
 instructions), install the .deb file:
 
-    $ sudo apt-get install ./dist/debian/quick-lint-js_2.4.0-1_amd64.deb
-    $ sudo apt-get install ./dist/debian/quick-lint-js-vim_2.4.0-1_all.deb
+    $ sudo apt-get install ./dist/debian/quick-lint-js_2.4.1-1_amd64.deb
+    $ sudo apt-get install ./dist/debian/quick-lint-js-vim_2.4.1-1_all.deb
 
 ## AppStream
 
@@ -44,7 +44,7 @@ To test `asgen-config.json` or metadata changes locally:
    * Change `MediaBaseUrl` to `"http://localhost:8069/appstream/export/media/"`.
    * Change `HtmlBaseUrl` to `"http://localhost:8069/appstream/export/html/"`.
 5. Create a directory `debian/pool/`.
-6. Copy `dist/debian/*2.4.0*` (built by the [Building](#Building) instructions
+6. Copy `dist/debian/*2.4.1*` (built by the [Building](#Building) instructions
    above) into the `debian/pool/` directory.
 7. Run `./dist/debian/update-repository path/to/debian`.
 8. Start an HTTP server in the `debian` directory. For example:
