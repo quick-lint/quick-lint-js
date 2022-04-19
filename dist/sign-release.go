@@ -811,12 +811,7 @@ func RelicFile(inFilePath string, outFilePath string, signingType RelicSigningTy
 }
 
 func RelicVerifyFile(filePath string) error {
-	certOptions, err := GetRelicVerifyCertOptions()
-	if err != nil {
-		return err
-	}
-
-	options := append(append([]string{"verify"}, certOptions...),
+	options := append(append([]string{"verify"}, GetRelicVerifyCertOptions()...),
 		"--", filePath)
 	process := exec.Command(
 		"relic",
@@ -835,12 +830,7 @@ func RelicVerifyFile(filePath string) error {
 }
 
 func RelicVerifyDetachedFile(filePath string, detachedSignaturePath string) error {
-	certOptions, err := GetRelicVerifyCertOptions()
-	if err != nil {
-		return err
-	}
-
-	options := append(append([]string{"verify"}, certOptions...),
+	options := append(append([]string{"verify"}, GetRelicVerifyCertOptions()...),
 		"--content", filePath,
 		"--", detachedSignaturePath)
 	process := exec.Command(
@@ -859,13 +849,13 @@ func RelicVerifyDetachedFile(filePath string, detachedSignaturePath string) erro
 	return nil
 }
 
-func GetRelicVerifyCertOptions() ([]string, error) {
+func GetRelicVerifyCertOptions() []string {
 	return []string{
 		"--cert", filepath.Join(DistPath, "certificates/quick-lint-js.cer"),
 		"--cert", filepath.Join(DistPath, "certificates/DigiCertAssuredIDRootCA_comb.crt.pem"),
 		"--cert", filepath.Join(DistPath, "certificates/DigiCertTrustedRootG4.crt"),
 		"--cert", filepath.Join(DistPath, "certificates/quick-lint-js.gpg.key"),
-	}, nil
+	}
 }
 
 func WriteTarEntry(header *tar.Header, fileContent []byte, output *tar.Writer) error {
