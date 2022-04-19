@@ -298,7 +298,7 @@ class lexer {
   token last_token_;
   const char8* last_last_token_end_;
   const char8* input_;
-  diag_reporter* error_reporter_;
+  diag_reporter* diag_reporter_;
   padded_string_view original_input_;
 
   monotonic_allocator allocator_;
@@ -313,7 +313,7 @@ struct lexer_transaction {
   explicit lexer_transaction(token old_last_token,
                              const char8* old_last_last_token_end,
                              const char8* old_input,
-                             diag_reporter** error_reporter_pointer,
+                             diag_reporter** diag_reporter_pointer,
                              allocator_type* allocator)
       : allocator_rewind(allocator),
         old_last_token(old_last_token),
@@ -321,9 +321,9 @@ struct lexer_transaction {
         old_input(old_input),
         reporter(allocator),
         old_diag_reporter(
-            std::exchange(*error_reporter_pointer, &this->reporter)) {}
+            std::exchange(*diag_reporter_pointer, &this->reporter)) {}
 
-  // Don't allow copying a transaction. lexer::error_reporter_ might point to
+  // Don't allow copying a transaction. lexer::diag_reporter_ might point to
   // lexer_transaction::diag_reporter.
   lexer_transaction(const lexer_transaction&) = delete;
   lexer_transaction& operator=(const lexer_transaction&) = delete;

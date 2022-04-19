@@ -64,7 +64,7 @@ void parser::visit_expression(expression* ast, Visitor& v,
     break;
   case expression_kind::trailing_comma: {
     auto& trailing_comma_ast = static_cast<expression::trailing_comma&>(*ast);
-    this->error_reporter_->report(diag_missing_operand_for_operator{
+    this->diag_reporter_->report(diag_missing_operand_for_operator{
         .where = trailing_comma_ast.comma_span(),
     });
     visit_children();
@@ -247,7 +247,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
   // \u{69}\u{66} // 'if', but escaped.
   case token_type::reserved_keyword_with_escape_sequence:
     this->lexer_.peek().report_errors_for_escape_sequences_in_keyword(
-        this->error_reporter_);
+        this->diag_reporter_);
     goto identifier;
 
   // false
@@ -268,7 +268,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
   // `hello`
   case token_type::complete_template: {
     this->peek().report_errors_for_escape_sequences_in_template(
-        this->error_reporter_);
+        this->diag_reporter_);
     expression* ast =
         this->make_expression<expression::literal>(this->peek().span());
     this->skip();
@@ -373,7 +373,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
                                       .conditional_operator = false,
                                   });
     if (child->kind() == expression_kind::_missing) {
-      this->error_reporter_->report(diag_missing_operand_for_operator{
+      this->diag_reporter_->report(diag_missing_operand_for_operator{
           .where = operator_span,
       });
     }
@@ -402,7 +402,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
                                       .conditional_operator = false,
                                   });
     if (child->kind() == expression_kind::_missing) {
-      this->error_reporter_->report(diag_missing_operand_for_operator{
+      this->diag_reporter_->report(diag_missing_operand_for_operator{
           .where = operator_span,
       });
     }
@@ -430,7 +430,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
         if (is_arrow_function) {
           this->skip();
         } else {
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_missing_arrow_operator_in_arrow_function{
                   .where = this->peek().span()});
         }
@@ -441,7 +441,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
         return ast;
       } else {
         // ()  // Invalid.
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_missing_expression_between_parentheses{
                 .left_paren_to_right_paren = source_code_span(
                     left_paren_span.begin(), right_paren_span.end()),
@@ -460,8 +460,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
       this->skip();
       break;
     default:
-      this->error_reporter_->report(
-          diag_unmatched_parenthesis{left_paren_span});
+      this->diag_reporter_->report(diag_unmatched_parenthesis{left_paren_span});
       break;
     }
     return this->make_expression<expression::paren>(
@@ -507,7 +506,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
         // parsed anything)?
         const char8* expected_right_square =
             this->lexer_.end_of_previous_token();
-        this->error_reporter_->report(diag_missing_array_close{
+        this->diag_reporter_->report(diag_missing_array_close{
             .left_square =
                 source_code_span(left_square_begin, left_square_begin + 1),
             .expected_right_square =
@@ -614,7 +613,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
     expression* ast =
         this->make_expression<expression::_missing>(this->peek().span());
     if (prec.binary_operators) {
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_missing_operand_for_operator{this->peek().span()});
     }
     return ast;
@@ -628,7 +627,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
   // => {}    // Invalid. Treat as arrow function.
   case token_type::equal_greater: {
     source_code_span arrow_span = this->peek().span();
-    this->error_reporter_->report(diag_missing_arrow_function_parameter_list{
+    this->diag_reporter_->report(diag_missing_arrow_function_parameter_list{
         .arrow = arrow_span,
     });
     this->skip();
@@ -642,7 +641,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
   }
 
   case token_type::private_identifier: {
-    this->error_reporter_->report(
+    this->diag_reporter_->report(
         diag_cannot_refer_to_private_variable_without_object{
             .private_identifier = this->peek().identifier_name(),
         });
@@ -655,7 +654,7 @@ expression* parser::parse_primary_expression(Visitor& v, precedence prec) {
   case token_type::colon:
   case token_type::kw_debugger: {
     source_code_span token_span = this->peek().span();
-    this->error_reporter_->report(diag_unexpected_token{token_span});
+    this->diag_reporter_->report(diag_unexpected_token{token_span});
     this->skip();
     return this->make_expression<expression::_invalid>(token_span);
   }
@@ -715,7 +714,7 @@ expression* parser::parse_async_expression_only(Visitor& v, token async_token,
         if (this->peek().type == token_type::equal_greater) {
           this->skip();
         } else {
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_missing_arrow_operator_in_arrow_function{
                   .where = this->peek().span(),
               });
@@ -745,7 +744,7 @@ expression* parser::parse_async_expression_only(Visitor& v, token async_token,
         // TODO(strager): Emit a different error if this is an arrow function.
         // diag_extra_comma_not_allowed_between_arguments only makes sense if
         // this is a function call.
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_extra_comma_not_allowed_between_arguments{
                 .comma = this->peek().span(),
             });
@@ -770,7 +769,7 @@ expression* parser::parse_async_expression_only(Visitor& v, token async_token,
         this->peek().type == token_type::left_curly;
     if (is_arrow_function || is_arrow_function_without_arrow) {
       if (newline_after_async) {
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_newline_not_allowed_between_async_and_parameter_list{
                 .async = async_token.span(),
                 .arrow = this->peek().span(),
@@ -781,7 +780,7 @@ expression* parser::parse_async_expression_only(Visitor& v, token async_token,
             parameter->variable_identifier_token_type() ==
                 token_type::kw_await) {
           // async (await) => {}  // Invalid
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_cannot_declare_await_in_async_function{
                   .name = parameter->variable_identifier(),
               });
@@ -825,7 +824,7 @@ expression* parser::parse_async_expression_only(Visitor& v, token async_token,
 
     if (this->peek().type == token_type::kw_await) {
       // async await => {}  // Invalid
-      this->error_reporter_->report(diag_cannot_declare_await_in_async_function{
+      this->diag_reporter_->report(diag_cannot_declare_await_in_async_function{
           .name = this->peek().identifier_name(),
       });
     }
@@ -992,14 +991,14 @@ expression* parser::parse_await_expression(Visitor& v, token await_token,
     expression* child = this->parse_expression(v, prec);
 
     if (child->kind() == expression_kind::_missing) {
-      this->error_reporter_->report(diag_missing_operand_for_operator{
+      this->diag_reporter_->report(diag_missing_operand_for_operator{
           .where = operator_span,
       });
     } else if (this->is_arrow_kind(child) &&
                child->attributes() != function_attributes::async) {
       // await (param) => { }  // Invalid.
       this->roll_back_transaction(std::move(transaction));
-      this->error_reporter_->report(diag_await_followed_by_arrow_function{
+      this->diag_reporter_->report(diag_await_followed_by_arrow_function{
           .await_operator = operator_span,
       });
       // Re-parse as if the user wrote 'async' instead of 'await'.
@@ -1007,7 +1006,7 @@ expression* parser::parse_await_expression(Visitor& v, token await_token,
     }
 
     if (!(this->in_async_function_ || this->in_top_level_)) {
-      this->error_reporter_->report(diag_await_operator_outside_async{
+      this->diag_reporter_->report(diag_await_operator_outside_async{
           .await_operator = operator_span,
       });
     }
@@ -1055,7 +1054,7 @@ next:
       expression* rhs = binary_builder.add_child(
           comma_span, this->parse_expression(v, precedence{.commas = false}));
       if (rhs->kind() == expression_kind::_invalid) {
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_missing_operand_for_operator{comma_span});
       }
     }
@@ -1091,7 +1090,7 @@ next:
         // HACK(strager): Should we create expression::_void?
         if (lhs->unary_operator_begin_[0] == u8'v') {
           // void a ** b  // Invalid.
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_missing_parentheses_around_exponent_with_unary_lhs{
                   .exponent_expression = source_code_span(
                       lhs->child_->span().begin(), rhs->span().end()),
@@ -1102,7 +1101,7 @@ next:
         } else {
           // -a ** b  // Invalid.
           // ~a ** b  // Invalid.
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_missing_parentheses_around_unary_lhs_of_exponent{
                   .unary_expression = maybe_unary_lhs->span(),
                   .exponent_operator = operator_span,
@@ -1114,7 +1113,7 @@ next:
       // delete a ** b  // Invalid.
       case expression_kind::_delete: {
         auto* lhs = static_cast<expression::_delete*>(maybe_unary_lhs);
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_missing_parentheses_around_exponent_with_unary_lhs{
                 .exponent_expression = source_code_span(
                     lhs->child_->span().begin(), rhs->span().end()),
@@ -1126,7 +1125,7 @@ next:
       // typeof a ** b  // Invalid.
       case expression_kind::_typeof: {
         auto* lhs = static_cast<expression::_typeof*>(maybe_unary_lhs);
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_missing_parentheses_around_exponent_with_unary_lhs{
                 .exponent_expression = source_code_span(
                     lhs->child_->span().begin(), rhs->span().end()),
@@ -1140,7 +1139,7 @@ next:
       }
     }
     if (rhs->kind() == expression_kind::_missing) {
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_missing_operand_for_operator{operator_span});
     }
     goto next;
@@ -1154,7 +1153,7 @@ next:
       auto func_span = binary_builder.last_expression()->span();
       auto func_start_span =
           source_code_span(func_span.begin(), func_span.begin());
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_missing_parentheses_around_self_invoked_function{
               .invocation = this->peek().span(),
               .func_start = func_start_span});
@@ -1191,7 +1190,7 @@ next:
     expression* lhs = build_expression();
     switch (lhs->without_paren()->kind()) {
     default:
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_invalid_expression_left_of_assignment{lhs->span()});
       break;
     case expression_kind::_invalid:
@@ -1211,7 +1210,7 @@ next:
     expression* rhs = this->parse_expression(
         v, precedence{.commas = false, .in_operator = prec.in_operator});
     if (rhs->kind() == expression_kind::_missing) {
-      this->error_reporter_->report(diag_missing_operand_for_operator{
+      this->diag_reporter_->report(diag_missing_operand_for_operator{
           .where = operator_span,
       });
     }
@@ -1232,7 +1231,7 @@ next:
     QLJS_CASE_KEYWORD:
       if (this->peek().type == token_type::private_identifier &&
           !this->in_class_) {
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_cannot_access_private_identifier_outside_class{
                 .private_identifier = this->peek().identifier_name(),
             });
@@ -1243,7 +1242,7 @@ next:
       goto next;
 
     case token_type::string: {
-      this->error_reporter_->report(diag_invalid_rhs_for_dot_operator{
+      this->diag_reporter_->report(diag_invalid_rhs_for_dot_operator{
           .dot = dot_span,
       });
       binary_builder.add_child(
@@ -1270,7 +1269,7 @@ next:
       source_code_span empty_property_name(dot_span.end(), dot_span.end());
       binary_builder.replace_last(this->make_expression<expression::dot>(
           binary_builder.last_expression(), identifier(empty_property_name)));
-      this->error_reporter_->report(diag_missing_property_name_for_dot_operator{
+      this->diag_reporter_->report(diag_missing_property_name_for_dot_operator{
           .dot = dot_span,
       });
       goto next;
@@ -1279,7 +1278,7 @@ next:
     // x .. y
     case token_type::dot: {
       source_code_span second_dot = this->peek().span();
-      this->error_reporter_->report(diag_dot_dot_is_not_an_operator{
+      this->diag_reporter_->report(diag_dot_dot_is_not_an_operator{
           .dots = source_code_span(dot_span.begin(), second_dot.end()),
       });
       // Treat '..' as if it was a binary operator.
@@ -1388,7 +1387,7 @@ next:
 
     expression* true_expression;
     if (this->peek().type == token_type::colon) {
-      this->error_reporter_->report(diag_missing_operand_for_operator{
+      this->diag_reporter_->report(diag_missing_operand_for_operator{
           .where = question_span,
       });
       true_expression =
@@ -1401,11 +1400,10 @@ next:
     if (this->peek().type != token_type::colon) {
       source_code_span expected_colon(this->lexer_.end_of_previous_token(),
                                       this->lexer_.end_of_previous_token());
-      this->error_reporter_->report(
-          diag_missing_colon_in_conditional_expression{
-              .expected_colon = expected_colon,
-              .question = question_span,
-          });
+      this->diag_reporter_->report(diag_missing_colon_in_conditional_expression{
+          .expected_colon = expected_colon,
+          .question = question_span,
+      });
       expression* false_expression =
           this->make_expression<expression::_missing>(expected_colon);
       return this->make_expression<expression::conditional>(
@@ -1416,7 +1414,7 @@ next:
 
     expression* false_expression = this->parse_expression(v, prec);
     if (false_expression->kind() == expression_kind::_missing) {
-      this->error_reporter_->report(diag_missing_operand_for_operator{
+      this->diag_reporter_->report(diag_missing_operand_for_operator{
           .where = colon_span,
       });
     }
@@ -1448,7 +1446,7 @@ next:
   case token_type::identifier:
     if (prec.trailing_identifiers) {
       const char8* expected_operator = this->lexer_.end_of_previous_token();
-      this->error_reporter_->report(diag_unexpected_identifier_in_expression{
+      this->diag_reporter_->report(diag_unexpected_identifier_in_expression{
           .unexpected = this->peek().identifier_name(),
       });
 
@@ -1474,7 +1472,7 @@ next:
     if (looks_like_arrow_function_body) {
       source_code_span arrow_span = this->peek().span();
       // (a, b) { return a + b; }  // Invalid.
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_missing_arrow_operator_in_arrow_function{
               .where = arrow_span,
           });
@@ -1642,7 +1640,7 @@ void parser::parse_arrow_function_expression_remainder(
       if (is_async_arrow_using_with_await_operator) {
         // await (x) => {}   // Invalid.
         // await () => expr  // Invalid.
-        this->error_reporter_->report(diag_await_followed_by_arrow_function{
+        this->diag_reporter_->report(diag_await_followed_by_arrow_function{
             .await_operator = call->child_0()->span(),
         });
         // Parse as if the user wrote 'async' instead of 'await'.
@@ -1671,13 +1669,13 @@ void parser::parse_arrow_function_expression_remainder(
     switch (lhs->kind()) {
     case expression_kind::call:
     case expression_kind::dot:
-      this->error_reporter_->report(diag_unexpected_arrow_after_expression{
+      this->diag_reporter_->report(diag_unexpected_arrow_after_expression{
           .arrow = arrow_span,
           .expression = lhs_span,
       });
       break;
     case expression_kind::literal:
-      this->error_reporter_->report(diag_unexpected_arrow_after_literal{
+      this->diag_reporter_->report(diag_unexpected_arrow_after_literal{
           .arrow = arrow_span,
           .literal_parameter = lhs_span,
       });
@@ -1723,7 +1721,7 @@ expression* parser::parse_call_expression_remainder(Visitor& v,
   this->skip();
   while (this->peek().type != token_type::right_paren) {
     if (this->peek().type == token_type::comma) {
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_extra_comma_not_allowed_between_arguments{
               .comma = this->peek().span(),
           });
@@ -1745,7 +1743,7 @@ expression* parser::parse_call_expression_remainder(Visitor& v,
     // { f(x }  // Invalid.
     // f(x;     // Invalid.
     call_span_end = this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(diag_expected_right_paren_for_function_call{
+    this->diag_reporter_->report(diag_expected_right_paren_for_function_call{
         .expected_right_paren = source_code_span(call_span_end, call_span_end),
         .left_paren = left_paren_span,
     });
@@ -1770,7 +1768,7 @@ expression* parser::parse_index_expression_remainder(Visitor& v,
     if (subscript->kind() == expression_kind::_missing) {
       // expr[]  // Invalid.
       source_code_span right_square_span = this->peek().span();
-      this->error_reporter_->report(diag_indexing_requires_expression{
+      this->diag_reporter_->report(diag_indexing_requires_expression{
           .squares = source_code_span(left_square_span.begin(),
                                       right_square_span.end()),
       });
@@ -1780,7 +1778,7 @@ expression* parser::parse_index_expression_remainder(Visitor& v,
     break;
   case token_type::end_of_file:
   default:
-    this->error_reporter_->report(
+    this->diag_reporter_->report(
         diag_unmatched_indexing_bracket{.left_square = left_square_span});
     end = this->lexer_.end_of_previous_token();
     break;
@@ -1912,7 +1910,7 @@ expression* parser::parse_object_literal(Visitor& v) {
     expression* value = this->make_expression<expression::assignment>(
         expression_kind::assignment, lhs, rhs, operator_span);
     if (missing_key) {
-      this->error_reporter_->report(diag_missing_key_for_object_entry{
+      this->diag_reporter_->report(diag_missing_key_for_object_entry{
           .expression = value->span(),
       });
     }
@@ -1931,7 +1929,7 @@ expression* parser::parse_object_literal(Visitor& v) {
       break;
     }
     case token_type::right_curly:
-      this->error_reporter_->report(diag_missing_function_parameter_list{
+      this->diag_reporter_->report(diag_missing_function_parameter_list{
           .expected_parameter_list =
               source_code_span(this->lexer_.end_of_previous_token(),
                                this->lexer_.end_of_previous_token()),
@@ -1960,7 +1958,7 @@ expression* parser::parse_object_literal(Visitor& v) {
     if (this->peek().type == token_type::less ||
         this->peek().type == token_type::semicolon) {
       // { k1: v1; k2() {}< k3: v3 }  // Invalid.
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_expected_comma_to_separate_object_literal_entries{
               .unexpected_token = this->peek().span(),
           });
@@ -1974,7 +1972,7 @@ expression* parser::parse_object_literal(Visitor& v) {
     case token_type::right_paren:
     case token_type::right_square:
       right_curly_end = this->lexer_.end_of_previous_token();
-      this->error_reporter_->report(diag_unclosed_object_literal{
+      this->diag_reporter_->report(diag_unclosed_object_literal{
           .object_open =
               source_code_span(left_curly_begin, left_curly_begin + 1),
           .expected_object_close =
@@ -1987,7 +1985,7 @@ expression* parser::parse_object_literal(Visitor& v) {
     }
     if (expect_comma_or_end) {
       const char8* comma_location = this->lexer_.end_of_previous_token();
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_missing_comma_between_object_literal_entries{
               source_code_span(comma_location, comma_location)});
     }
@@ -2003,7 +2001,7 @@ expression* parser::parse_object_literal(Visitor& v) {
 
     // {#key: value}
     case token_type::private_identifier:
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_private_properties_are_not_allowed_in_object_literals{
               .private_identifier = this->peek().identifier_name(),
           });
@@ -2027,7 +2025,7 @@ expression* parser::parse_object_literal(Visitor& v) {
       // {function f() {}}  // Invalid.
       case token_type::identifier:
         if (key_token.type == token_type::kw_function) {
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_methods_should_not_use_function_keyword{
                   .function_token = key_token.span(),
               });
@@ -2050,7 +2048,7 @@ expression* parser::parse_object_literal(Visitor& v) {
         case token_type::string: {
           expression* value =
               this->make_expression<expression::_missing>(key_token.span());
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_invalid_lone_literal_in_object_literal{key_token.span()});
           entries.emplace_back(key, value);
           break;
@@ -2059,7 +2057,7 @@ expression* parser::parse_object_literal(Visitor& v) {
         QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD : {
           expression* value =
               this->make_expression<expression::_missing>(key_token.span());
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_missing_value_for_object_literal_entry{
                   .key = key_token.span()});
           entries.emplace_back(key, value);
@@ -2085,7 +2083,7 @@ expression* parser::parse_object_literal(Visitor& v) {
         // { \u{69}f }  // Invalid.
         case token_type::reserved_keyword_with_escape_sequence:
           key_token.report_errors_for_escape_sequences_in_keyword(
-              this->error_reporter_);
+              this->diag_reporter_);
           goto single_token_key_and_value_identifier;
 
         // { #privateName }  // Invalid.
@@ -2134,7 +2132,7 @@ expression* parser::parse_object_literal(Visitor& v) {
         expression* value = this->parse_expression_remainder(
             v, lhs, precedence{.commas = false});
         entries.emplace_back(key, value);
-        this->error_reporter_->report(diag_missing_key_for_object_entry{
+        this->diag_reporter_->report(diag_missing_key_for_object_entry{
             .expression = value->span(),
         });
         break;
@@ -2147,7 +2145,7 @@ expression* parser::parse_object_literal(Visitor& v) {
       case token_type::star:
         if (key_token.type == token_type::kw_function) {
           // { function *f() {} }  // Invalid.
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_methods_should_not_use_function_keyword{
                   .function_token = key_token.span(),
               });
@@ -2248,7 +2246,7 @@ expression* parser::parse_object_literal(Visitor& v) {
         case token_type::identifier:
         default:
           this->lexer_.commit_transaction(std::move(transaction));
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_methods_should_not_use_function_keyword{
                   .function_token = function_keyword_span,
               });
@@ -2266,7 +2264,7 @@ expression* parser::parse_object_literal(Visitor& v) {
       switch (this->peek().type) {
       // get #method() {}
       case token_type::private_identifier:
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_private_properties_are_not_allowed_in_object_literals{
                 .private_identifier = this->peek().identifier_name(),
             });
@@ -2361,7 +2359,7 @@ expression* parser::parse_object_literal(Visitor& v) {
                                   this->lexer_.end_of_previous_token());
         expression* value =
             this->make_expression<expression::_missing>(key_span);
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_missing_value_for_object_literal_entry{.key = key_span});
         entries.emplace_back(key, value);
         break;
@@ -2385,7 +2383,7 @@ expression* parser::parse_object_literal(Visitor& v) {
       switch (this->peek().type) {
       // *#method() {}
       case token_type::private_identifier:
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_private_properties_are_not_allowed_in_object_literals{
                 .private_identifier = this->peek().identifier_name(),
             });
@@ -2450,7 +2448,7 @@ expression* parser::parse_class_expression(Visitor& v) {
   if (this->peek().type == token_type::left_curly) {
     this->parse_and_visit_class_body(v);
   } else {
-    this->error_reporter_->report(diag_missing_body_for_class{
+    this->diag_reporter_->report(diag_missing_body_for_class{
         .class_keyword_and_name_and_heritage =
             source_code_span(span_begin, this->lexer_.end_of_previous_token()),
     });
@@ -2467,7 +2465,7 @@ expression* parser::parse_jsx_expression(Visitor& v) {
   QLJS_ASSERT(this->peek().type == token_type::less);
 
   if (!this->options_.jsx) {
-    this->error_reporter_->report(
+    this->diag_reporter_->report(
         diag_jsx_not_yet_implemented{.jsx_start = this->peek().span()});
 #if QLJS_HAVE_SETJMP
     if (this->have_fatal_parse_error_jmp_buf_) {
@@ -2493,7 +2491,7 @@ expression* parser::parse_jsx_expression(Visitor& v) {
       elements.emplace_back(this->parse_jsx_element_or_fragment(v));
     } while (this->peek().type == token_type::less);
     const char8* end = this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(diag_adjacent_jsx_without_parent{
+    this->diag_reporter_->report(diag_adjacent_jsx_without_parent{
         .begin = source_code_span(jsx_begin, jsx_begin),
         .begin_of_second_element =
             source_code_span(begin_of_second_element, begin_of_second_element),
@@ -2670,7 +2668,7 @@ next_attribute:
     expression* ast = this->parse_expression(v);
     if (ast->kind() != expression_kind::spread) {
       const char8* ast_begin = ast->span().begin();
-      this->error_reporter_->report(diag_missing_dots_for_attribute_spread{
+      this->diag_reporter_->report(diag_missing_dots_for_attribute_spread{
           .expected_dots = source_code_span(ast_begin, ast_begin),
       });
     }
@@ -2789,7 +2787,7 @@ next:
         const char8* closing_tag_end = this->lexer_.end_of_previous_token();
         string8_view opening_tag_name_pretty_view(opening_tag_name_pretty);
         opening_tag_name_pretty.release();
-        this->error_reporter_->report(diag_mismatched_jsx_tags{
+        this->diag_reporter_->report(diag_mismatched_jsx_tags{
             .opening_tag_name =
                 tag_namespace
                     ? source_code_span(tag_namespace->span().begin(), tag_end)
@@ -2919,7 +2917,7 @@ expression* parser::parse_untagged_template(Visitor& v) {
   for (;;) {
     QLJS_ASSERT(this->peek().type == token_type::incomplete_template);
     this->peek().report_errors_for_escape_sequences_in_template(
-        this->error_reporter_);
+        this->diag_reporter_);
     this->skip();
     children.emplace_back(this->parse_expression(v));
     switch (this->peek().type) {
@@ -2928,7 +2926,7 @@ expression* parser::parse_untagged_template(Visitor& v) {
       switch (this->peek().type) {
       case token_type::complete_template: {
         this->peek().report_errors_for_escape_sequences_in_template(
-            this->error_reporter_);
+            this->diag_reporter_);
         const char8* template_end = this->peek().end;
         this->skip();
 

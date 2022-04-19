@@ -60,7 +60,7 @@ struct parser_transaction {
   // Private to parser's transaction functions. Do not construct, read, or
   // modify.
 
-  explicit parser_transaction(lexer *l, diag_reporter **error_reporter_pointer,
+  explicit parser_transaction(lexer *l, diag_reporter **diag_reporter_pointer,
                               monotonic_allocator *allocator);
 
   lexer_transaction lex_transaction;
@@ -529,7 +529,7 @@ class parser {
   };
 
   quick_lint_js::lexer lexer_;
-  diag_reporter *error_reporter_;
+  diag_reporter *diag_reporter_;
   parser_options options_;
   quick_lint_js::expression_arena expressions_;
 

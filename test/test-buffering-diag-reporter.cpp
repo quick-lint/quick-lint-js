@@ -49,14 +49,14 @@ TEST(test_buffering_diag_reporter, not_destructing_does_not_leak) {
   // Clang's LeakSanitizer.
 
   linked_bump_allocator<alignof(void*)> memory;
-  std::aligned_union_t<0, buffering_diag_reporter> error_reporter_storage;
+  std::aligned_union_t<0, buffering_diag_reporter> diag_reporter_storage;
   buffering_diag_reporter* diag_reporter =
-      new (&error_reporter_storage) buffering_diag_reporter(&memory);
+      new (&diag_reporter_storage) buffering_diag_reporter(&memory);
 
   padded_string let_code(u8"let"_sv);
   diag_reporter->report(diag_let_with_no_bindings{.where = span_of(let_code)});
 
-  // Destruct memory, but don't destruct error_reporter_storage.diag_reporter.
+  // Destruct memory, but don't destruct diag_reporter_storage.diag_reporter.
 }
 }
 }

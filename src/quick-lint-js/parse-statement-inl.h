@@ -38,7 +38,7 @@ void parser::parse_and_visit_module(Visitor &v) {
         break;
 
       case token_type::right_curly:
-        this->error_reporter_->report(diag_unmatched_right_curly{
+        this->diag_reporter_->report(diag_unmatched_right_curly{
             .right_curly = this->peek().span(),
         });
         this->skip();
@@ -59,7 +59,7 @@ bool parser::parse_and_visit_statement(
   depth_guard d_guard(this);
   auto parse_expression_end = [this]() -> void {
     while (this->peek().type == token_type::right_paren) {
-      this->error_reporter_->report(diag_unmatched_parenthesis{
+      this->diag_reporter_->report(diag_unmatched_parenthesis{
           .where = this->peek().span(),
       });
       this->skip();
@@ -255,7 +255,7 @@ parse_statement:
     if (this->peek().type == token_type::colon) {
       // Labelled statement.
       if (this->in_async_function_) {
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_label_named_await_not_allowed_in_async_function{
                 .await = await_token.span(), .colon = this->peek().span()});
       }
@@ -317,7 +317,7 @@ parse_statement:
     // \u{69}\u{66} // 'if', but escaped.
   case token_type::reserved_keyword_with_escape_sequence:
     this->lexer_.peek().report_errors_for_escape_sequences_in_keyword(
-        this->error_reporter_);
+        this->diag_reporter_);
     goto parse_loop_label_or_expression_starting_with_identifier;
 
     // class C {}
@@ -377,7 +377,7 @@ parse_statement:
         case token_type::string:
         case token_type::tilde:
           if (statement_type == parse_statement_type::any_statement_in_block) {
-            this->error_reporter_->report(diag_return_statement_returns_nothing{
+            this->diag_reporter_->report(diag_return_statement_returns_nothing{
                 .return_keyword = return_span,
             });
           }
@@ -400,14 +400,14 @@ parse_statement:
   case token_type::kw_throw:
     this->skip();
     if (this->peek().type == token_type::semicolon) {
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_expected_expression_before_semicolon{this->peek().span()});
       this->skip();
       break;
     }
     if (this->peek().has_leading_newline) {
       this->lexer_.insert_semicolon();
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_expected_expression_before_newline{this->peek().span()});
       this->skip();
       break;
@@ -423,7 +423,7 @@ parse_statement:
 
     // catch (e) { }  // Invalid.
   case token_type::kw_catch: {
-    this->error_reporter_->report(diag_catch_without_try{
+    this->diag_reporter_->report(diag_catch_without_try{
         .catch_token = this->peek().span(),
     });
     bool parsed_catch = this->parse_and_visit_catch_or_finally_or_both(v);
@@ -433,7 +433,7 @@ parse_statement:
 
     // finally { }  // Invalid.
   case token_type::kw_finally: {
-    this->error_reporter_->report(diag_finally_without_try{
+    this->diag_reporter_->report(diag_finally_without_try{
         .finally_token = this->peek().span(),
     });
     bool parsed_finally = this->parse_and_visit_catch_or_finally_or_both(v);
@@ -475,7 +475,7 @@ parse_statement:
 
     // else { nay; } // Invalid.
   case token_type::kw_else: {
-    this->error_reporter_->report(diag_else_has_no_if{
+    this->diag_reporter_->report(diag_else_has_no_if{
         .else_token = this->peek().span(),
     });
     this->skip();
@@ -510,11 +510,11 @@ parse_statement:
     default:
       if (is_break) {
         if (!(this->in_switch_statement_ || this->in_loop_statement_)) {
-          this->error_reporter_->report(diag_invalid_break{token_span});
+          this->diag_reporter_->report(diag_invalid_break{token_span});
         }
       } else {
         if (!this->in_loop_statement_) {
-          this->error_reporter_->report(diag_invalid_continue{token_span});
+          this->diag_reporter_->report(diag_invalid_continue{token_span});
         }
       }
       break;
@@ -531,7 +531,7 @@ parse_statement:
 
     // enum E { a, b, c }  // TypeScript.
   case token_type::kw_enum: {
-    this->error_reporter_->report(diag_typescript_enum_not_implemented{
+    this->diag_reporter_->report(diag_typescript_enum_not_implemented{
         .enum_keyword = this->peek().span(),
     });
     this->skip();
@@ -547,7 +547,7 @@ parse_statement:
 
     // case 3:  // Invalid.
   case token_type::kw_case:
-    this->error_reporter_->report(diag_unexpected_case_outside_switch_statement{
+    this->diag_reporter_->report(diag_unexpected_case_outside_switch_statement{
         .case_token = this->peek().span(),
     });
     this->skip();
@@ -559,7 +559,7 @@ parse_statement:
 
     // default:  // Invalid.
   case token_type::kw_default:
-    this->error_reporter_->report(
+    this->diag_reporter_->report(
         diag_unexpected_default_outside_switch_statement{
             .default_token = this->peek().span(),
         });
@@ -572,7 +572,7 @@ parse_statement:
   case token_type::colon:
   case token_type::kw_extends:
   case token_type::question:
-    this->error_reporter_->report(diag_unexpected_token{
+    this->diag_reporter_->report(diag_unexpected_token{
         .token = this->peek().span(),
     });
     this->skip();
@@ -641,7 +641,7 @@ void parser::parse_and_visit_export(Visitor &v) {
     case token_type::kw_var: {
       token declaring_token = this->peek();
       this->skip();
-      this->error_reporter_->report(diag_cannot_export_default_variable{
+      this->diag_reporter_->report(diag_cannot_export_default_variable{
           .declaring_token = declaring_token.span(),
       });
       this->parse_and_visit_let_bindings(v, declaring_token,
@@ -706,16 +706,16 @@ void parser::parse_and_visit_export(Visitor &v) {
         switch (exported_bad_token.type) {
         case token_type::reserved_keyword_with_escape_sequence:
           exported_bad_token.report_errors_for_escape_sequences_in_keyword(
-              this->error_reporter_);
+              this->diag_reporter_);
           break;
         case token_type::string:
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_exporting_string_name_only_allowed_for_export_from{
                   .export_name = exported_bad_token.span(),
               });
           break;
         default:
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_cannot_export_variable_named_keyword{
                   .export_name = exported_bad_token.identifier_name(),
               });
@@ -773,12 +773,12 @@ void parser::parse_and_visit_export(Visitor &v) {
     expression *ast = this->parse_expression(v);
     switch (ast->kind()) {
     case expression_kind::variable:
-      this->error_reporter_->report(diag_exporting_requires_curlies{
+      this->diag_reporter_->report(diag_exporting_requires_curlies{
           .names = ast->span(),
       });
       break;
     default:
-      this->error_reporter_->report(diag_exporting_requires_default{
+      this->diag_reporter_->report(diag_exporting_requires_default{
           .expression = ast->span(),
       });
       break;
@@ -790,13 +790,13 @@ void parser::parse_and_visit_export(Visitor &v) {
 
   case token_type::end_of_file:
   case token_type::semicolon:
-    this->error_reporter_->report(diag_missing_token_after_export{
+    this->diag_reporter_->report(diag_missing_token_after_export{
         .export_token = export_token_span,
     });
     break;
 
   default:
-    this->error_reporter_->report(diag_unexpected_token_after_export{
+    this->diag_reporter_->report(diag_unexpected_token_after_export{
         .unexpected_token = this->peek().span(),
     });
     break;
@@ -819,7 +819,7 @@ void parser::parse_and_visit_statement_block_no_scope(Visitor &v) {
         return;
 
       case token_type::end_of_file:
-        this->error_reporter_->report(diag_unclosed_code_block{
+        this->diag_reporter_->report(diag_unclosed_code_block{
             .block_open = left_curly_span,
         });
         return;
@@ -845,7 +845,7 @@ void parser::parse_and_visit_function_declaration(
   switch (this->peek().type) {
   case token_type::kw_await:
     if (this->in_async_function_) {
-      this->error_reporter_->report(diag_cannot_declare_await_in_async_function{
+      this->diag_reporter_->report(diag_cannot_declare_await_in_async_function{
           .name = this->peek().identifier_name(),
       });
     }
@@ -853,7 +853,7 @@ void parser::parse_and_visit_function_declaration(
 
   case token_type::kw_yield:
     if (this->in_generator_function_) {
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_cannot_declare_yield_in_generator_function{
               .name = this->peek().identifier_name(),
           });
@@ -865,7 +865,7 @@ void parser::parse_and_visit_function_declaration(
   case token_type::identifier: {
     if (this->peek().type == token_type::kw_let &&
         require_name == name_requirement::required_for_export) {
-      this->error_reporter_->report(diag_cannot_export_let{
+      this->diag_reporter_->report(diag_cannot_export_let{
           .export_name = this->peek().span(),
       });
     }
@@ -898,11 +898,11 @@ void parser::parse_and_visit_function_declaration(
       this->visit_expression(full_expression, v, variable_context::rhs);
 
       if (full_expression == function) {
-        this->error_reporter_->report(diag_missing_name_in_function_statement{
+        this->diag_reporter_->report(diag_missing_name_in_function_statement{
             .where = source_code_span(function_token_begin, left_paren_end),
         });
       } else {
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_missing_name_or_parentheses_for_function{
                 .where = source_code_span(function_token_begin, left_paren_end),
                 .function = source_code_span(begin, function->span().end()),
@@ -912,7 +912,7 @@ void parser::parse_and_visit_function_declaration(
     }
 
     case name_requirement::required_for_export: {
-      this->error_reporter_->report(diag_missing_name_of_exported_function{
+      this->diag_reporter_->report(diag_missing_name_of_exported_function{
           .function_keyword = function_token_span,
       });
       this->parse_and_visit_function_parameters_and_body(
@@ -929,7 +929,7 @@ void parser::parse_and_visit_function_declaration(
 
     // { function }  // Invalid.
   default:
-    this->error_reporter_->report(diag_missing_name_in_function_statement{
+    this->diag_reporter_->report(diag_missing_name_in_function_statement{
         .where = function_token_span,
     });
     break;
@@ -958,7 +958,7 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
     }
     // TODO(strager): Emit a different error if a star was already present
     // (e.g. function* f*() {}).
-    this->error_reporter_->report(
+    this->diag_reporter_->report(
         diag_generator_function_star_belongs_before_name{
             .function_name = *name,
             .star = this->peek().span(),
@@ -980,7 +980,7 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
     this->skip();
 
     if (this->peek().type == token_type::equal_greater) {
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_functions_or_methods_should_not_have_arrow_operator{
               .arrow_operator = this->peek().span(),
           });
@@ -989,7 +989,7 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
 
     if (this->peek().type != token_type::left_curly) {
       const char8 *expected_body = this->lexer_.end_of_previous_token();
-      this->error_reporter_->report(diag_missing_function_body{
+      this->diag_reporter_->report(diag_missing_function_body{
           .expected_body = source_code_span(expected_body, expected_body)});
 
       // Don't parse a function body.
@@ -999,7 +999,7 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
 
     // function f {}  // Invalid.
   case token_type::left_curly:
-    this->error_reporter_->report(diag_missing_function_parameter_list{
+    this->diag_reporter_->report(diag_missing_function_parameter_list{
         .expected_parameter_list =
             source_code_span(this->lexer_.end_of_previous_token(),
                              this->lexer_.end_of_previous_token()),
@@ -1011,7 +1011,7 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
   case token_type::dot:
   case token_type::number:
   case token_type::right_curly:
-    this->error_reporter_->report(diag_missing_function_parameter_list{
+    this->diag_reporter_->report(diag_missing_function_parameter_list{
         .expected_parameter_list =
             source_code_span(this->lexer_.end_of_previous_token(),
                              this->lexer_.end_of_previous_token()),
@@ -1073,7 +1073,7 @@ void parser::parse_and_visit_function_parameters(Visitor &v) {
       if (last_parameter_spread_span.has_value()) {
         // function f(...args,)  // Trailing comma is illegal.
         QLJS_ASSERT(comma_span.has_value());
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_comma_not_allowed_after_spread_parameter{
                 .comma = *comma_span,
                 .spread = *last_parameter_spread_span,
@@ -1106,7 +1106,7 @@ void parser::parse_and_visit_class(Visitor &v,
 
   default: {
     const char8 *here = this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(diag_missing_body_for_class{
+    this->diag_reporter_->report(diag_missing_body_for_class{
         .class_keyword_and_name_and_heritage = source_code_span(here, here),
     });
     break;
@@ -1128,7 +1128,7 @@ void parser::parse_and_visit_class_heading(
   case token_type::kw_await:
   case token_type::kw_yield:
     if (this->peek().type == token_type::kw_let) {
-      this->error_reporter_->report(diag_cannot_declare_class_named_let{
+      this->diag_reporter_->report(diag_cannot_declare_class_named_let{
           .name = this->peek().identifier_name().span()});
     }
     optional_class_name = this->peek().identifier_name();
@@ -1179,12 +1179,12 @@ void parser::parse_and_visit_class_heading(
     case name_requirement::optional:
       break;
     case name_requirement::required_for_export:
-      this->error_reporter_->report(diag_missing_name_of_exported_class{
+      this->diag_reporter_->report(diag_missing_name_of_exported_class{
           .class_keyword = class_keyword_span,
       });
       break;
     case name_requirement::required_for_statement:
-      this->error_reporter_->report(diag_missing_name_in_class_statement{
+      this->diag_reporter_->report(diag_missing_name_in_class_statement{
           .class_keyword = class_keyword_span,
       });
       break;
@@ -1202,7 +1202,7 @@ void parser::parse_and_visit_class_body(Visitor &v) {
   while (this->peek().type != token_type::right_curly) {
     this->parse_and_visit_class_member(v);
     if (this->peek().type == token_type::end_of_file) {
-      this->error_reporter_->report(diag_unclosed_class_block{
+      this->diag_reporter_->report(diag_unclosed_class_block{
           .block_open = left_curly_span,
       });
       return;
@@ -1242,7 +1242,7 @@ void parser::parse_and_visit_class_member(Visitor &v) {
       case token_type::reserved_keyword_with_escape_sequence:
         // async static method() {}             // Invalid
         // async static *myAsyncGenerator() {}  // Invalid
-        this->error_reporter_->report(diag_async_static_method{
+        this->diag_reporter_->report(diag_async_static_method{
             .async_static =
                 source_code_span(async_token_begin, property_name_span.end()),
         });
@@ -1296,11 +1296,11 @@ void parser::parse_and_visit_class_member(Visitor &v) {
         //   const field
         // }
         if (u8"const" == property_name_span.string_view()) {
-          this->error_reporter_->report(diag_typescript_style_const_field{
+          this->diag_reporter_->report(diag_typescript_style_const_field{
               .const_token = property_name_span,
           });
         } else {
-          this->error_reporter_->report(diag_unexpected_token{
+          this->diag_reporter_->report(diag_unexpected_token{
               .token = property_name_span,
           });
         }
@@ -1479,10 +1479,9 @@ next:
 
     default:
       // function f() {}  // Invalid.
-      this->error_reporter_->report(
-          diag_methods_should_not_use_function_keyword{
-              .function_token = function_token.span(),
-          });
+      this->diag_reporter_->report(diag_methods_should_not_use_function_keyword{
+          .function_token = function_token.span(),
+      });
       goto next;
     }
     break;
@@ -1513,14 +1512,14 @@ next:
     break;
 
   case token_type::left_curly:
-    this->error_reporter_->report(diag_unexpected_token{
+    this->diag_reporter_->report(diag_unexpected_token{
         .token = this->peek().span(),
     });
     this->skip();
     break;
 
   case token_type::comma:
-    this->error_reporter_->report(diag_comma_not_allowed_between_class_methods{
+    this->diag_reporter_->report(diag_comma_not_allowed_between_class_methods{
         .unexpected_comma = this->peek().span(),
     });
     this->skip();
@@ -1547,7 +1546,7 @@ void parser::parse_and_visit_switch(Visitor &v) {
 
   if (this->peek().type == token_type::left_curly) {
     // switch { case 1: break; }  // Invalid.
-    this->error_reporter_->report(diag_missing_condition_for_switch_statement{
+    this->diag_reporter_->report(diag_missing_condition_for_switch_statement{
         .switch_keyword = switch_token_span,
     });
   } else {
@@ -1565,7 +1564,7 @@ void parser::parse_and_visit_switch(Visitor &v) {
   case token_type::kw_case:
   case token_type::kw_default: {
     const char8 *here = this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(diag_expected_left_curly{
+    this->diag_reporter_->report(diag_expected_left_curly{
         .expected_left_curly = source_code_span(here, here),
     });
     break;
@@ -1573,7 +1572,7 @@ void parser::parse_and_visit_switch(Visitor &v) {
 
   default: {
     const char8 *here = this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(diag_missing_body_for_switch_statement{
+    this->diag_reporter_->report(diag_missing_body_for_switch_statement{
         .switch_and_condition = source_code_span(here, here),
     });
     return;
@@ -1595,7 +1594,7 @@ void parser::parse_and_visit_switch(Visitor &v) {
       source_code_span case_token_span = this->peek().span();
       this->skip();
       if (this->peek().type == token_type::colon) {
-        this->error_reporter_->report(diag_expected_expression_for_switch_case{
+        this->diag_reporter_->report(diag_expected_expression_for_switch_case{
             .case_token = case_token_span,
         });
         this->skip();
@@ -1616,7 +1615,7 @@ void parser::parse_and_visit_switch(Visitor &v) {
 
     default: {
       if (is_before_first_switch_case) {
-        this->error_reporter_->report(diag_statement_before_first_switch_case{
+        this->diag_reporter_->report(diag_statement_before_first_switch_case{
             .unexpected_statement = this->peek().span(),
         });
       }
@@ -1646,7 +1645,7 @@ void parser::parse_and_visit_try_maybe_catch_maybe_finally(Visitor &v) {
     this->parse_and_visit_statement_block_no_scope(v);
     v.visit_exit_block_scope();
   } else {
-    this->error_reporter_->report(diag_missing_body_for_try_statement{
+    this->diag_reporter_->report(diag_missing_body_for_try_statement{
         .try_token = try_token_span,
     });
   }
@@ -1656,7 +1655,7 @@ void parser::parse_and_visit_try_maybe_catch_maybe_finally(Visitor &v) {
   if (parsed_try_body && !parsed_catch_or_finally) {
     const char8 *expected_catch_or_finally =
         this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(
+    this->diag_reporter_->report(
         diag_missing_catch_or_finally_for_try_statement{
             .expected_catch_or_finally = source_code_span(
                 expected_catch_or_finally, expected_catch_or_finally),
@@ -1682,7 +1681,7 @@ bool parser::parse_and_visit_catch_or_finally_or_both(Visitor &v) {
       switch (this->peek().type) {
       case token_type::kw_await:
         if (this->in_async_function_) {
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_cannot_declare_await_in_async_function{
                   .name = this->peek().identifier_name(),
               });
@@ -1691,7 +1690,7 @@ bool parser::parse_and_visit_catch_or_finally_or_both(Visitor &v) {
 
       case token_type::kw_yield:
         if (this->in_generator_function_) {
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_cannot_declare_yield_in_generator_function{
                   .name = this->peek().identifier_name(),
               });
@@ -1718,7 +1717,7 @@ bool parser::parse_and_visit_catch_or_finally_or_both(Visitor &v) {
       }
 
       case token_type::right_paren:
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_missing_catch_variable_between_parentheses{
                 .left_paren_to_right_paren = source_code_span(
                     catch_left_paren_span.begin(), this->peek().end),
@@ -1729,7 +1728,7 @@ bool parser::parse_and_visit_catch_or_finally_or_both(Visitor &v) {
 
         // catch ("junk") {}
       case token_type::string:
-        this->error_reporter_->report(diag_expected_variable_name_for_catch{
+        this->diag_reporter_->report(diag_expected_variable_name_for_catch{
             .unexpected_token = this->peek().span(),
         });
         this->skip();
@@ -1747,7 +1746,7 @@ bool parser::parse_and_visit_catch_or_finally_or_both(Visitor &v) {
       this->parse_and_visit_statement_block_no_scope(v);
     } else {
       const char8 *here = this->lexer_.end_of_previous_token();
-      this->error_reporter_->report(diag_missing_body_for_catch_clause{
+      this->diag_reporter_->report(diag_missing_body_for_catch_clause{
           .catch_token = source_code_span(here, here),
       });
     }
@@ -1764,7 +1763,7 @@ bool parser::parse_and_visit_catch_or_finally_or_both(Visitor &v) {
       this->parse_and_visit_statement_block_no_scope(v);
       v.visit_exit_block_scope();
     } else {
-      this->error_reporter_->report(diag_missing_body_for_finally_clause{
+      this->diag_reporter_->report(diag_missing_body_for_finally_clause{
           .finally_token = finally_token_span,
       });
     }
@@ -1791,7 +1790,7 @@ void parser::parse_and_visit_do_while(Visitor &v) {
     break;
   }
   case token_type::kw_while:
-    this->error_reporter_->report(diag_missing_body_for_do_while_statement{
+    this->diag_reporter_->report(diag_missing_body_for_do_while_statement{
         .do_token = do_token_span,
     });
     break;
@@ -1799,7 +1798,7 @@ void parser::parse_and_visit_do_while(Visitor &v) {
 
   if (this->peek().type != token_type::kw_while) {
     const char8 *here = this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(
+    this->diag_reporter_->report(
         diag_missing_while_and_condition_for_do_while_statement{
             .do_token = do_token_span,
             .expected_while = source_code_span(here, here),
@@ -1829,7 +1828,7 @@ void parser::parse_and_visit_for(Visitor &v) {
   }
 
   if (this->peek().type != token_type::left_paren) {
-    this->error_reporter_->report(diag_missing_for_loop_header{
+    this->diag_reporter_->report(diag_missing_for_loop_header{
         .for_token = for_token_span,
     });
     return;
@@ -1860,7 +1859,7 @@ void parser::parse_and_visit_for(Visitor &v) {
         case token_type::identifier:
         default:
           this->lexer_.insert_semicolon();
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_missing_semicolon_between_for_loop_condition_and_update{
                   .expected_semicolon = this->peek().span(),
               });
@@ -1868,7 +1867,7 @@ void parser::parse_and_visit_for(Visitor &v) {
 
           // for (init; cond) {}  // Invalid.
         case token_type::right_paren:
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_c_style_for_loop_is_missing_third_component{
                   .expected_last_component = this->peek().span(),
                   .existing_semicolon = first_semicolon_span,
@@ -1908,7 +1907,7 @@ void parser::parse_and_visit_for(Visitor &v) {
     case token_type::identifier:
     default:
       this->lexer_.insert_semicolon();
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_missing_semicolon_between_for_loop_init_and_condition{
               .expected_semicolon = this->peek().span(),
           });
@@ -1924,7 +1923,7 @@ void parser::parse_and_visit_for(Visitor &v) {
       this->visit_assignment_expression(init_expression, rhs, v);
 
       if (this->peek().type == token_type::semicolon) {
-        this->error_reporter_->report(diag_in_disallowed_in_c_style_for_loop{
+        this->diag_reporter_->report(diag_in_disallowed_in_c_style_for_loop{
             .in_token = in_token_span,
         });
         source_code_span first_semicolon_span = this->peek().span();
@@ -1946,7 +1945,7 @@ void parser::parse_and_visit_for(Visitor &v) {
 
       // for (expression) {}    // Invalid.
     case token_type::right_paren:
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_missing_for_loop_rhs_or_components_after_expression{
               .header =
                   source_code_span(left_paren_token_begin, this->peek().end),
@@ -2002,7 +2001,7 @@ void parser::parse_and_visit_for(Visitor &v) {
       case token_type::identifier:
         this->lexer_.roll_back_transaction(std::move(transaction));
         this->skip();  // Re-parse 'let'.
-        this->error_reporter_->report(diag_let_with_no_bindings{
+        this->diag_reporter_->report(diag_let_with_no_bindings{
             .where = declaring_token.span(),
         });
         break;
@@ -2071,7 +2070,7 @@ void parser::parse_and_visit_for(Visitor &v) {
 
       // for (let myVariable) {}    // Invalid.
     case token_type::right_paren:
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_missing_for_loop_rhs_or_components_after_declaration{
               .header =
                   source_code_span(left_paren_token_begin, this->peek().end),
@@ -2115,7 +2114,7 @@ void parser::parse_and_visit_for(Visitor &v) {
     expression *init_expression(nullptr);
     if (is_invalid_async_of_sequence) {
       // for (async of things) {}  // Invalid.
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_cannot_assign_to_variable_named_async_in_for_of_loop{
               .async_identifier = async_token.identifier_name(),
           });
@@ -2144,7 +2143,7 @@ void parser::parse_and_visit_for(Visitor &v) {
 
     // for () {}  // Invalid.
   case token_type::right_paren:
-    this->error_reporter_->report(diag_missing_header_of_for_loop{
+    this->diag_reporter_->report(diag_missing_header_of_for_loop{
         .where = source_code_span(left_paren_token_begin, this->peek().end),
     });
     for_loop_style = loop_style::other;
@@ -2157,18 +2156,18 @@ void parser::parse_and_visit_for(Visitor &v) {
     switch (for_loop_style) {
     case loop_style::c_style:
     case loop_style::other:
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_unexpected_semicolon_in_c_style_for_loop{
               .semicolon = this->peek().span(),
           });
       break;
     case loop_style::for_in:
-      this->error_reporter_->report(diag_unexpected_semicolon_in_for_in_loop{
+      this->diag_reporter_->report(diag_unexpected_semicolon_in_for_in_loop{
           .semicolon = this->peek().span(),
       });
       break;
     case loop_style::for_of:
-      this->error_reporter_->report(diag_unexpected_semicolon_in_for_of_loop{
+      this->diag_reporter_->report(diag_unexpected_semicolon_in_for_of_loop{
           .semicolon = this->peek().span(),
       });
       break;
@@ -2194,7 +2193,7 @@ void parser::parse_and_visit_for(Visitor &v) {
       this->parse_and_visit_statement(v, parse_statement_type::no_declarations);
   if (!parsed_body) {
     const char8 *here = this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(diag_missing_body_for_for_statement{
+    this->diag_reporter_->report(diag_missing_body_for_for_statement{
         .for_and_header = source_code_span(here, here),
     });
   }
@@ -2215,7 +2214,7 @@ void parser::parse_and_visit_while(Visitor &v) {
 
   if (this->peek().type == token_type::left_curly) {
     // while { body; }  // Invalid.
-    this->error_reporter_->report(diag_missing_condition_for_while_statement{
+    this->diag_reporter_->report(diag_missing_condition_for_while_statement{
         .while_keyword = while_token_span,
     });
   } else {
@@ -2232,7 +2231,7 @@ void parser::parse_and_visit_while(Visitor &v) {
       this->parse_and_visit_statement(v, parse_statement_type::no_declarations);
   if (!parsed_body) {
     const char8 *here = this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(diag_missing_body_for_while_statement{
+    this->diag_reporter_->report(diag_missing_body_for_while_statement{
         .while_and_condition = source_code_span(here, here),
     });
   }
@@ -2269,7 +2268,7 @@ void parser::parse_and_visit_if(Visitor &v) {
 
   if (this->peek().type == token_type::left_curly) {
     // if { body; }  // Invalid.
-    this->error_reporter_->report(diag_missing_condition_for_if_statement{
+    this->diag_reporter_->report(diag_missing_condition_for_if_statement{
         .if_keyword = if_token_span,
     });
   } else {
@@ -2309,7 +2308,7 @@ void parser::parse_and_visit_if(Visitor &v) {
   case token_type::kw_else:
   case token_type::right_curly:
     const char8 *end_of_if_condition = this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(diag_missing_body_for_if_statement{
+    this->diag_reporter_->report(diag_missing_body_for_if_statement{
         .expected_body =
             source_code_span(end_of_if_condition, end_of_if_condition),
     });
@@ -2332,7 +2331,7 @@ parse_maybe_else:
     bool has_left_curly = this->peek().type == token_type::left_curly;
     if (!this->peek().has_leading_newline && has_left_paren && has_left_curly) {
       // if (cond) {} else (cond) {} // Invalid
-      this->error_reporter_->report(diag_missing_if_after_else{
+      this->diag_reporter_->report(diag_missing_if_after_else{
           .expected_if = source_code_span(end_of_else, end_of_else),
       });
       parse_and_visit_body();
@@ -2364,15 +2363,15 @@ void parser::parse_and_visit_parenthesized_expression(Visitor &v) {
   }
 
   if (!have_expression_left_paren && !have_expression_right_paren) {
-    this->error_reporter_->report(ExpectedParenthesesError{
+    this->diag_reporter_->report(ExpectedParenthesesError{
         source_code_span(expression_begin, expression_end)});
   } else if (!have_expression_right_paren) {
-    this->error_reporter_->report(ExpectedParenthesisError{
+    this->diag_reporter_->report(ExpectedParenthesisError{
         .where = source_code_span(expression_end, expression_end),
         .token = ')',
     });
   } else if (!have_expression_left_paren) {
-    this->error_reporter_->report(ExpectedParenthesisError{
+    this->diag_reporter_->report(ExpectedParenthesisError{
         .where = source_code_span(expression_begin, expression_begin),
         .token = '(',
     });
@@ -2388,7 +2387,7 @@ void parser::parse_and_visit_import(Visitor &v) {
   switch (this->peek().type) {
     // import var from "module";  // Invalid.
   QLJS_CASE_RESERVED_KEYWORD:
-    this->error_reporter_->report(diag_cannot_import_variable_named_keyword{
+    this->diag_reporter_->report(diag_cannot_import_variable_named_keyword{
         .import_name = this->peek().identifier_name(),
     });
     goto identifier;
@@ -2396,7 +2395,7 @@ void parser::parse_and_visit_import(Visitor &v) {
     // import \u{76}ar from "module";  // Invalid.
   case token_type::reserved_keyword_with_escape_sequence:
     this->lexer_.peek().report_errors_for_escape_sequences_in_keyword(
-        this->error_reporter_);
+        this->diag_reporter_);
     goto identifier;
 
     // import let from "module";
@@ -2405,7 +2404,7 @@ void parser::parse_and_visit_import(Visitor &v) {
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier:
     if (this->peek().type == token_type::kw_let) {
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_cannot_import_let{.import_name = this->peek().span()});
     }
     v.visit_variable_declaration(this->peek().identifier_name(),
@@ -2473,14 +2472,14 @@ void parser::parse_and_visit_import(Visitor &v) {
     break;
 
   case token_type::string:
-    this->error_reporter_->report(diag_expected_from_before_module_specifier{
+    this->diag_reporter_->report(diag_expected_from_before_module_specifier{
         .module_specifier = this->peek().span(),
     });
     break;
 
   default: {
     const char8 *where = this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(diag_expected_from_and_module_specifier{
+    this->diag_reporter_->report(diag_expected_from_and_module_specifier{
         .where = source_code_span(where, where),
     });
     return;
@@ -2509,7 +2508,7 @@ void parser::parse_and_visit_name_space_import(Visitor &v) {
     break;
 
   case token_type::identifier:
-    this->error_reporter_->report(
+    this->diag_reporter_->report(
         diag_expected_as_before_imported_namespace_alias{
             .star_through_alias_token =
                 source_code_span(star_span.begin(), this->peek().end),
@@ -2526,7 +2525,7 @@ void parser::parse_and_visit_name_space_import(Visitor &v) {
   switch (this->peek().type) {
     // import * as var from "module";  // Invalid.
   QLJS_CASE_RESERVED_KEYWORD:
-    this->error_reporter_->report(diag_cannot_import_variable_named_keyword{
+    this->diag_reporter_->report(diag_cannot_import_variable_named_keyword{
         .import_name = this->peek().identifier_name(),
     });
     goto identifier;
@@ -2534,14 +2533,14 @@ void parser::parse_and_visit_name_space_import(Visitor &v) {
     // import * as \u{76}ar from "module";  // Invalid.
   case token_type::reserved_keyword_with_escape_sequence:
     this->lexer_.peek().report_errors_for_escape_sequences_in_keyword(
-        this->error_reporter_);
+        this->diag_reporter_);
     goto identifier;
 
   identifier:
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier:
     if (this->peek().type == token_type::kw_let) {
-      this->error_reporter_->report(diag_cannot_import_let{
+      this->diag_reporter_->report(diag_cannot_import_let{
           .import_name = this->peek().identifier_name().span()});
     }
     v.visit_variable_declaration(this->peek().identifier_name(),
@@ -2625,7 +2624,7 @@ void parser::parse_and_visit_named_exports(
         QLJS_CASE_CONTEXTUAL_KEYWORD:
         case token_type::identifier:
           if (right_token.type == token_type::kw_let) {
-            this->error_reporter_->report(
+            this->diag_reporter_->report(
                 diag_cannot_import_let{.import_name = right_token.span()});
           }
           v.visit_variable_declaration(right_token.identifier_name(),
@@ -2635,7 +2634,7 @@ void parser::parse_and_visit_named_exports(
 
           // import {var} from 'other';  // Invalid.
         QLJS_CASE_RESERVED_KEYWORD:
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_cannot_import_variable_named_keyword{
                   .import_name = right_token.identifier_name(),
               });
@@ -2649,7 +2648,7 @@ void parser::parse_and_visit_named_exports(
           // import {\u{76}ar} from 'other';  // Invalid.
         case token_type::reserved_keyword_with_escape_sequence:
           right_token.report_errors_for_escape_sequences_in_keyword(
-              this->error_reporter_);
+              this->diag_reporter_);
           // FIXME(strager): Declaring a variable with a keyword name is
           // sketchy. Delete this?
           v.visit_variable_declaration(right_token.identifier_name(),
@@ -2659,7 +2658,7 @@ void parser::parse_and_visit_named_exports(
 
         case token_type::string:
           QLJS_ASSERT(has_as);
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_expected_variable_name_for_import_as{
                   .unexpected_token = right_token.span(),
               });
@@ -2696,7 +2695,7 @@ void parser::parse_and_visit_named_exports(
         QLJS_CASE_CONTEXTUAL_KEYWORD:
         case token_type::identifier:
           if (this->peek().type == token_type::kw_let) {
-            this->error_reporter_->report(
+            this->diag_reporter_->report(
                 diag_cannot_import_let{.import_name = this->peek().span()});
           }
           v.visit_variable_declaration(this->peek().identifier_name(),
@@ -2707,7 +2706,7 @@ void parser::parse_and_visit_named_exports(
 
           // import {'name' as debugger} from 'other';  // Invalid.
         QLJS_CASE_RESERVED_KEYWORD:
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_cannot_import_variable_named_keyword{
                   .import_name = this->peek().identifier_name(),
               });
@@ -2720,7 +2719,7 @@ void parser::parse_and_visit_named_exports(
           // import {\u{76}ar} from 'other';  // Invalid.
         case token_type::reserved_keyword_with_escape_sequence:
           this->peek().report_errors_for_escape_sequences_in_keyword(
-              this->error_reporter_);
+              this->diag_reporter_);
           v.visit_variable_declaration(this->peek().identifier_name(),
                                        variable_kind::_import,
                                        variable_init_kind::normal);
@@ -2728,7 +2727,7 @@ void parser::parse_and_visit_named_exports(
           break;
 
         case token_type::string:
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_expected_variable_name_for_import_as{
                   .unexpected_token = this->peek().span(),
               });
@@ -2825,7 +2824,7 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
         } else {
           // let x y
           const char8 *here = this->lexer_.end_of_previous_token();
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_missing_comma_between_variable_declarations{
                   .expected_comma = source_code_span(here, here),
               });
@@ -2841,7 +2840,7 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
     switch (this->peek().type) {
     case token_type::kw_await:
       if (this->in_async_function_) {
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_cannot_declare_await_in_async_function{
                 .name = this->peek().identifier_name(),
             });
@@ -2850,7 +2849,7 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
 
     case token_type::kw_yield:
       if (this->in_generator_function_) {
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_cannot_declare_yield_in_generator_function{
                 .name = this->peek().identifier_name(),
             });
@@ -2897,17 +2896,16 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
             // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
             this->commit_transaction(std::move(transaction));
             assignment_ast->children_[1] = in_ast;
-            this->error_reporter_->report(
-                diag_in_disallowed_in_c_style_for_loop{
-                    .in_token = in_token_span,
-                });
+            this->diag_reporter_->report(diag_in_disallowed_in_c_style_for_loop{
+                .in_token = in_token_span,
+            });
           } else {
             this->roll_back_transaction(std::move(transaction));
             if (declaration_kind == variable_kind::_var) {
               // for (var x = "initial" in obj)
             } else {
               // for (let x = "prop" in obj)  // Invalid.
-              this->error_reporter_->report(
+              this->diag_reporter_->report(
                   diag_cannot_assign_to_loop_variable_in_for_of_or_in_loop{
                       .equal_token = equal_token.span()});
             }
@@ -2915,7 +2913,7 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
         } else if (is_in_for_initializer &&
                    this->peek().type == token_type::kw_of) {
           // for (var x = "initial" of obj)  // Invalid.
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_cannot_assign_to_loop_variable_in_for_of_or_in_loop{
                   .equal_token = equal_token.span()});
         }
@@ -2946,7 +2944,7 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
         }
         // let x null;  // ERROR
         const char8 *here = this->lexer_.end_of_previous_token();
-        this->error_reporter_->report(diag_missing_equal_after_variable{
+        this->diag_reporter_->report(diag_missing_equal_after_variable{
             .expected_equal = source_code_span(here, here),
         });
         this->parse_and_visit_expression(
@@ -2964,7 +2962,7 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
       default:
         if (declaration_kind == variable_kind::_const) {
           if (!allow_const_without_initializer) {
-            this->error_reporter_->report(
+            this->diag_reporter_->report(
                 diag_missing_initializer_in_const_declaration{
                     .variable_name = variable->span()});
           }
@@ -2980,7 +2978,7 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
       // \u{69}\u{66} // 'if', but escaped.
     case token_type::reserved_keyword_with_escape_sequence:
       this->lexer_.peek().report_errors_for_escape_sequences_in_keyword(
-          this->error_reporter_);
+          this->diag_reporter_);
       goto variable_name;
 
       // let {x} = xs;
@@ -3010,7 +3008,7 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
       case token_type::equal:
       case token_type::semicolon:
         this->lexer_.commit_transaction(std::move(transaction));
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_cannot_declare_variable_with_keyword_name{
                 .keyword = keyword_span,
             });
@@ -3023,9 +3021,9 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
       default:
         this->lexer_.roll_back_transaction(std::move(transaction));
         if (this->peek().has_leading_newline) {
-          this->error_reporter_->report(diag_let_with_no_bindings{let_span});
+          this->diag_reporter_->report(diag_let_with_no_bindings{let_span});
         } else {
-          this->error_reporter_->report(
+          this->diag_reporter_->report(
               diag_unexpected_token_in_variable_declaration{keyword_span});
           this->lexer_.insert_semicolon();
         }
@@ -3037,7 +3035,7 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
       // let 42;  // Invalid.
     case token_type::complete_template:
     case token_type::number:
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_unexpected_token_in_variable_declaration{
               .unexpected_token = this->peek().span(),
           });
@@ -3047,7 +3045,7 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
       // let v, `hello${world}`;  // Invalid.
     case token_type::incomplete_template:
       // TODO(strager): Improve the span.
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_unexpected_token_in_variable_declaration{
               .unexpected_token = this->peek().span(),
           });
@@ -3067,7 +3065,7 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
       break;
 
     case token_type::equal:
-      this->error_reporter_->report(diag_missing_variable_name_in_declaration{
+      this->diag_reporter_->report(diag_missing_variable_name_in_declaration{
           .equal_token = this->peek().span(),
       });
       this->skip();
@@ -3078,10 +3076,10 @@ void parser::parse_and_visit_let_bindings(Visitor &v, token declaring_token,
     case token_type::semicolon:
     default:
       if (first_binding) {
-        this->error_reporter_->report(diag_let_with_no_bindings{let_span});
+        this->diag_reporter_->report(diag_let_with_no_bindings{let_span});
       } else {
         QLJS_ASSERT(comma_span.has_value());
-        this->error_reporter_->report(
+        this->diag_reporter_->report(
             diag_stray_comma_in_let_statement{*comma_span});
       }
       break;
@@ -3122,13 +3120,13 @@ void parser::visit_binding_element(
   case expression_kind::compound_assignment:
     if (declaring_token.has_value()) {
       auto *assignment = static_cast<expression::assignment *>(ast);
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_cannot_update_variable_during_declaration{
               .declaring_token = *declaring_token,
               .updating_operator = assignment->operator_span_,
           });
     } else {
-      this->error_reporter_->report(diag_invalid_parameter{
+      this->diag_reporter_->report(diag_invalid_parameter{
           .parameter = ast->span(),
       });
     }
@@ -3161,7 +3159,7 @@ void parser::visit_binding_element(
       // If this is an import, we would emit diag_cannot_import_let
       // instead.
       QLJS_ASSERT(declaration_kind != variable_kind::_import);
-      this->error_reporter_->report(
+      this->diag_reporter_->report(
           diag_cannot_declare_variable_named_let_with_let{.name =
                                                               ident.span()});
     }
@@ -3186,7 +3184,7 @@ void parser::visit_binding_element(
     auto *await = expression_cast<expression::await>(ast);
     identifier ident(await->unary_operator_span());
     visit_variable_declaration(ident);
-    this->error_reporter_->report(diag_cannot_declare_await_in_async_function{
+    this->diag_reporter_->report(diag_cannot_declare_await_in_async_function{
         .name = ident,
     });
     break;
@@ -3195,7 +3193,7 @@ void parser::visit_binding_element(
   case expression_kind::yield_none: {
     identifier ident(ast->span());
     visit_variable_declaration(ident);
-    this->error_reporter_->report(
+    this->diag_reporter_->report(
         diag_cannot_declare_yield_in_generator_function{
             .name = ident,
         });
@@ -3228,14 +3226,14 @@ void parser::visit_binding_element(
   case expression_kind::unary_operator:
   case expression_kind::yield_many:
   case expression_kind::yield_one:
-    this->error_reporter_->report(diag_invalid_parameter{
+    this->diag_reporter_->report(diag_invalid_parameter{
         .parameter = ast->span(),
     });
     break;
 
     // function f([(p,)]) {}  // Invalid.
   case expression_kind::trailing_comma:
-    this->error_reporter_->report(diag_stray_comma_in_parameter{
+    this->diag_reporter_->report(diag_stray_comma_in_parameter{
         .comma = static_cast<expression::trailing_comma *>(ast)->comma_span(),
     });
     this->visit_binding_element(ast->child_0(), v, declaration_kind,
@@ -3253,7 +3251,7 @@ void parser::visit_binding_element(
     break;
 
   case expression_kind::call:
-    this->error_reporter_->report(diag_invalid_parameter{
+    this->diag_reporter_->report(diag_invalid_parameter{
         .parameter = ast->span(),
     });
     break;
@@ -3267,7 +3265,7 @@ void parser::visit_binding_element(
     break;
 
   case expression_kind::literal:
-    this->error_reporter_->report(diag_unexpected_literal_in_parameter_list{
+    this->diag_reporter_->report(diag_unexpected_literal_in_parameter_list{
         .literal = ast->span(),
     });
     break;

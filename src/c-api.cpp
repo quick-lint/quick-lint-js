@@ -24,29 +24,29 @@ template <class Locator, class ErrorReporter>
 class qljs_document_base {
  public:
   const auto* lint() {
-    this->error_reporter_.reset();
-    this->error_reporter_.set_input(this->document_.string(),
-                                    &this->document_.locator());
+    this->diag_reporter_.reset();
+    this->diag_reporter_.set_input(this->document_.string(),
+                                   &this->document_.locator());
     parser_options p_options;
     p_options.jsx = true;
-    parser p(this->document_.string(), &this->error_reporter_, p_options);
-    linter l(&this->error_reporter_, &this->config_.globals());
+    parser p(this->document_.string(), &this->diag_reporter_, p_options);
+    linter l(&this->diag_reporter_, &this->config_.globals());
     p.parse_and_visit_module_catching_fatal_parse_errors(l);
 
-    return this->error_reporter_.get_diagnostics();
+    return this->diag_reporter_.get_diagnostics();
   }
 
   const auto* lint_as_config_file() {
-    this->error_reporter_.reset();
-    this->error_reporter_.set_input(this->document_.string(),
-                                    &this->document_.locator());
+    this->diag_reporter_.reset();
+    this->diag_reporter_.set_input(this->document_.string(),
+                                   &this->document_.locator());
     configuration().load_from_json(this->document_.string(),
-                                   &this->error_reporter_);
-    return this->error_reporter_.get_diagnostics();
+                                   &this->diag_reporter_);
+    return this->diag_reporter_.get_diagnostics();
   }
 
   quick_lint_js::document<Locator> document_;
-  ErrorReporter error_reporter_;
+  ErrorReporter diag_reporter_;
   configuration config_;
 };
 }

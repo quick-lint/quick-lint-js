@@ -271,7 +271,7 @@ class linter {
   // declared in the module scope, not the global scope.
   global_scope global_scope_;
 
-  diag_reporter *error_reporter_;
+  diag_reporter *diag_reporter_;
 };
 QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(linter);
 }
