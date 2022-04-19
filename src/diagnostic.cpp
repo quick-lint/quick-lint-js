@@ -25,7 +25,7 @@
 // message: while evaluating constexpr function
 //          diagnostic_info_builder<diag_adjacent_jsx_without_parent>::add
 // message: while evaluating constexpr function
-//          diagnostic_info_for_error<diag_adjacent_jsx_without_parent>::get
+//          info_for_diagnostic<diag_adjacent_jsx_without_parent>::get
 #define DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE /* */
 #else
 #define DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE constexpr
@@ -46,19 +46,19 @@ constexpr std::uint16_t parse_code_string(const char* code_string) noexcept {
                                     (code_string[4] - '0') * 1);
 }
 
-std::array<char, 5> error_code_to_string(std::uint16_t error_code) noexcept {
-  QLJS_ASSERT(error_code <= 9999);
+std::array<char, 5> diag_code_to_string(std::uint16_t diag_code) noexcept {
+  QLJS_ASSERT(diag_code <= 9999);
   return std::array<char, 5>{
       'E',
-      static_cast<char>('0' + ((error_code / 1000) % 10)),
-      static_cast<char>('0' + ((error_code / 100) % 10)),
-      static_cast<char>('0' + ((error_code / 10) % 10)),
-      static_cast<char>('0' + ((error_code / 1) % 10)),
+      static_cast<char>('0' + ((diag_code / 1000) % 10)),
+      static_cast<char>('0' + ((diag_code / 100) % 10)),
+      static_cast<char>('0' + ((diag_code / 10) % 10)),
+      static_cast<char>('0' + ((diag_code / 1) % 10)),
   };
 }
 
 // Convert a QLJS_DIAG_TYPE user into a diagnostic_info.
-template <class Error>
+template <class Diag>
 class diagnostic_info_builder {
  public:
   QLJS_WARNING_PUSH
@@ -127,16 +127,16 @@ constexpr diagnostic_message_arg_info make_diagnostic_message_arg_info(
       offset, get_diagnostic_message_arg_type<ArgType>());
 }
 
-template <class Error>
-struct diagnostic_info_for_error;
+template <class Diag>
+struct info_for_diagnostic;
 
 #define MAKE_ARGS(...) MAKE_ARGS_N(QLJS_COUNT_ARGS(__VA_ARGS__), __VA_ARGS__)
 #define MAKE_ARGS_N(...) MAKE_ARGS_N_(__VA_ARGS__)
 #define MAKE_ARGS_N_(count, ...) MAKE_ARGS_##count(__VA_ARGS__)
 
-#define MAKE_ARGS_1(arg0)                                        \
-  make_diagnostic_message_arg_info<decltype(error_class::arg0)>( \
-      offsetof(error_class, arg0))
+#define MAKE_ARGS_1(arg0)                                       \
+  make_diagnostic_message_arg_info<decltype(diag_class::arg0)>( \
+      offsetof(diag_class, arg0))
 #define MAKE_ARGS_2(arg0, arg1) MAKE_ARGS_1(arg0), MAKE_ARGS_1(arg1)
 #define MAKE_ARGS_3(arg0, arg1, arg2) MAKE_ARGS_2(arg0, arg1), MAKE_ARGS_1(arg2)
 
@@ -145,8 +145,8 @@ struct diagnostic_info_for_error;
 
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call)       \
   template <>                                                                \
-  struct diagnostic_info_for_error<name> {                                   \
-    using error_class = name;                                                \
+  struct info_for_diagnostic<name> {                                         \
+    using diag_class = name;                                                 \
                                                                              \
     static DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE diagnostic_info get() noexcept { \
       return diagnostic_info_builder<name>(code, severity)                   \
@@ -160,7 +160,7 @@ QLJS_X_DIAG_TYPES
 DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE const diagnostic_info
     all_diagnostic_infos[] = {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  diagnostic_info_for_error<name>::get(),
+  info_for_diagnostic<name>::get(),
         QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 };
@@ -170,7 +170,7 @@ const diagnostic_info& get_diagnostic_info(diag_type type) noexcept {
 }
 
 std::array<char, 5> diagnostic_info::code_string() const noexcept {
-  return error_code_to_string(this->code);
+  return diag_code_to_string(this->code);
 }
 
 QLJS_WARNING_PUSH
