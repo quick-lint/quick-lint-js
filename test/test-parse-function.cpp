@@ -149,7 +149,7 @@ TEST(test_parse, function_with_arrow_operator) {
         v.errors,
         ElementsAre(ERROR_TYPE_OFFSETS(
             &code,
-            error_functions_or_methods_should_not_have_arrow_operator,  //
+            diag_functions_or_methods_should_not_have_arrow_operator,  //
             arrow_operator, strlen(u8"function f() "), u8"=>")));
   }
 }
@@ -168,7 +168,7 @@ TEST(test_parse, function_statement_with_no_name) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_name_in_function_statement,  //
+                    &code, diag_missing_name_in_function_statement,  //
                     where, 0, u8"function(")));
   }
 
@@ -185,7 +185,7 @@ TEST(test_parse, function_statement_with_no_name) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_name_in_function_statement,  //
+                    &code, diag_missing_name_in_function_statement,  //
                     where, strlen(u8"async "), u8"function(")));
   }
 
@@ -202,8 +202,8 @@ TEST(test_parse, function_statement_with_no_name) {
                                       "visit_variable_use"));             // z
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_2_OFFSETS(
-                    &code, error_missing_name_or_parentheses_for_function,  //
-                    where, strlen(u8"async "), u8"function(",               //
+                    &code, diag_missing_name_or_parentheses_for_function,  //
+                    where, strlen(u8"async "), u8"function(",              //
                     function, 0, u8"async function(x) {y;}")));
   }
 }
@@ -594,7 +594,7 @@ TEST(test_parse, function_statement_without_name_or_parameter_list_or_body) {
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_name_in_function_statement,  //
+                    &code, diag_missing_name_in_function_statement,  //
                     where, strlen(u8"{ "), u8"function")));
   }
 }
@@ -615,7 +615,7 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_function_parameter_list,  //
+                    &code, diag_missing_function_parameter_list,  //
                     expected_parameter_list, strlen(u8"{ function f"), u8"")));
   }
 
@@ -631,7 +631,7 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_function_parameter_list,  //
+                    &code, diag_missing_function_parameter_list,  //
                     expected_parameter_list, strlen(u8"function f"), u8"")));
   }
 
@@ -648,10 +648,10 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
     EXPECT_THAT(
         v.errors,
         UnorderedElementsAre(
-            ERROR_TYPE_OFFSETS(&code, error_missing_function_parameter_list,  //
+            ERROR_TYPE_OFFSETS(&code, diag_missing_function_parameter_list,  //
                                expected_parameter_list, strlen(u8"function f"),
                                u8""),
-            ERROR_TYPE_OFFSETS(&code, error_missing_operand_for_operator,  //
+            ERROR_TYPE_OFFSETS(&code, diag_missing_operand_for_operator,  //
                                where, strlen(u8"function f"), u8",")));
   }
 
@@ -673,13 +673,13 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
     EXPECT_THAT(
         v.errors,
         UnorderedElementsAre(
-            ERROR_TYPE_OFFSETS(&code, error_missing_function_parameter_list,  //
+            ERROR_TYPE_OFFSETS(&code, diag_missing_function_parameter_list,  //
                                expected_parameter_list, strlen(u8"function f"),
                                u8""),
-            ERROR_TYPE_OFFSETS(&code, error_missing_operand_for_operator,  //
+            ERROR_TYPE_OFFSETS(&code, diag_missing_operand_for_operator,  //
                                where, strlen(u8"function f"), u8"."),
             ERROR_TYPE_OFFSETS(&code,
-                               error_missing_semicolon_after_statement,  //
+                               diag_missing_semicolon_after_statement,  //
                                where, strlen(u8"function f.x()"), u8"")));
   }
 }
@@ -694,7 +694,7 @@ TEST(test_parse, named_function_statement_without_body) {
                                       "visit_enter_function_scope",   //
                                       "visit_exit_function_scope"));  //
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_missing_function_body,  //
+                              &code, diag_missing_function_body,  //
                               expected_body, strlen(u8"function f()"), u8"")));
   }
 
@@ -708,7 +708,7 @@ TEST(test_parse, named_function_statement_without_body) {
                                       "visit_variable_declaration",   // x
                                       "visit_exit_function_scope"));  //
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_missing_function_body,  //
+                              &code, diag_missing_function_body,  //
                               expected_body, strlen(u8"function f(x)"), u8"")));
   }
 
@@ -724,7 +724,7 @@ TEST(test_parse, named_function_statement_without_body) {
                                       "visit_exit_function_scope",   //
                                       "visit_exit_class_scope"));    //
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_missing_function_body,  //
+                              &code, diag_missing_function_body,  //
                               expected_body, strlen(u8"class f { m()"), u8"")));
   }
 
@@ -742,7 +742,7 @@ TEST(test_parse, named_function_statement_without_body) {
                                       "visit_exit_class_scope"));    //
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_function_body,  //
+                    &code, diag_missing_function_body,  //
                     expected_body, strlen(u8"class f { m(x)"), u8"")));
   }
 
@@ -755,7 +755,7 @@ TEST(test_parse, named_function_statement_without_body) {
                                       "visit_enter_function_scope",   //
                                       "visit_exit_function_scope"));  //
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_missing_function_body,  //
+                              &code, diag_missing_function_body,  //
                               expected_body,
                               strlen(u8"export default function f()"), u8"")));
   }
@@ -769,7 +769,7 @@ TEST(test_parse, named_function_statement_without_body) {
                                       "visit_enter_function_scope",   //
                                       "visit_exit_function_scope"));  //
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_missing_function_body,  //
+                              &code, diag_missing_function_body,  //
                               expected_body, strlen(u8"function* f()"), u8"")));
   }
 }
@@ -785,10 +785,10 @@ TEST(test_parse, unnamed_function_statement_without_body) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(
-            ERROR_TYPE_OFFSETS(&code, error_missing_function_body,  //
+            ERROR_TYPE_OFFSETS(&code, diag_missing_function_body,  //
                                expected_body, strlen(u8"function*()"), u8""),
             ERROR_TYPE_OFFSETS(&code,
-                               error_missing_name_in_function_statement,  //
+                               diag_missing_name_in_function_statement,  //
                                where, strlen(u8""), u8"function*(")));
   }
 
@@ -802,10 +802,10 @@ TEST(test_parse, unnamed_function_statement_without_body) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(
-            ERROR_TYPE_OFFSETS(&code, error_missing_function_body,  //
+            ERROR_TYPE_OFFSETS(&code, diag_missing_function_body,  //
                                expected_body, strlen(u8"function()"), u8""),
             ERROR_TYPE_OFFSETS(&code,
-                               error_missing_name_in_function_statement,  //
+                               diag_missing_name_in_function_statement,  //
                                where, strlen(u8""), u8"function(")));
   }
 
@@ -817,7 +817,7 @@ TEST(test_parse, unnamed_function_statement_without_body) {
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",   //
                                       "visit_exit_function_scope"));  //
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_missing_function_body,  //
+                              &code, diag_missing_function_body,  //
                               expected_body,
                               strlen(u8"export default function()"), u8"")));
   }
@@ -832,7 +832,7 @@ TEST(test_parse, named_function_expression_without_body) {
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_named_function_scope",  //
                                       "visit_exit_function_scope"));       //
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_missing_function_body,  //
+                              &code, diag_missing_function_body,  //
                               expected_body, strlen(u8"(function f()"), u8"")));
   }
 }
@@ -846,7 +846,7 @@ TEST(test_parse, unnamed_function_expression_without_body) {
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",   //
                                       "visit_exit_function_scope"));  //
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_missing_function_body,  //
+                              &code, diag_missing_function_body,  //
                               expected_body, strlen(u8"(function()"), u8"")));
   }
 }
@@ -893,8 +893,8 @@ TEST(test_parse, arrow_function_invoked_no_parens) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_OFFSETS(
-            &code, error_missing_parentheses_around_self_invoked_function,  //
-            func_start, 0, u8"",                                            //
+            &code, diag_missing_parentheses_around_self_invoked_function,  //
+            func_start, 0, u8"",                                           //
             invocation, strlen(u8"() => {}"), u8"(")));
   }
 }
@@ -913,8 +913,8 @@ TEST(test_parse, async_arrow_function_invoked_no_parens) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_OFFSETS(
-            &code, error_missing_parentheses_around_self_invoked_function,  //
-            func_start, 0, u8"",                                            //
+            &code, diag_missing_parentheses_around_self_invoked_function,  //
+            func_start, 0, u8"",                                           //
             invocation, strlen(u8"async () => {}"), u8"(")));
   }
 }
@@ -933,7 +933,7 @@ TEST(test_parse, arrow_function_without_parameter_list) {
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_arrow_function_parameter_list,  //
+                    &code, diag_missing_arrow_function_parameter_list,  //
                     arrow, 0, u8"=>")));
   }
 }
@@ -949,7 +949,7 @@ TEST(test_parse, function_with_invalid_parameters) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(error_invalid_parameter)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(diag_invalid_parameter)));
   }
 
   {
@@ -959,7 +959,7 @@ TEST(test_parse, function_with_invalid_parameters) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE(error_unexpected_literal_in_parameter_list)));
+        ElementsAre(ERROR_TYPE(diag_unexpected_literal_in_parameter_list)));
   }
 }
 
@@ -991,7 +991,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
            u8"(<>JSX fragment</>)"_sv,
 
            // TODO(strager): We should report
-           // error_unexpected_arrow_after_literal for these:
+           // diag_unexpected_arrow_after_literal for these:
            u8"(`<strong>${hello}</strong>`)"_sv,
            u8"(html`<strong>hello</strong>`)"_sv,
            u8"(html`<strong>${hello}</strong>`)"_sv,
@@ -1004,7 +1004,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     parser p(&code, &v, options);
     auto guard = p.enter_function(function_attributes::async_generator);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(error_invalid_parameter)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(diag_invalid_parameter)));
   }
 
   {
@@ -1014,7 +1014,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_unexpected_arrow_after_literal,  //
+                    &code, diag_unexpected_arrow_after_literal,  //
                     arrow, strlen(u8"((`<strong>hello</strong>`) "), u8"=>")));
   }
 
@@ -1025,7 +1025,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     auto guard = p.enter_function(function_attributes::generator);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_stray_comma_in_parameter,  //
+                              &code, diag_stray_comma_in_parameter,  //
                               comma, strlen(u8"([(x"), u8",")));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // x
@@ -1041,7 +1041,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE(
-                    error_cannot_declare_yield_in_generator_function)));
+                    diag_cannot_declare_yield_in_generator_function)));
   }
 
   {
@@ -1052,7 +1052,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     // TODO(strager): Show a more specific error which mentions parameters.
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE(
-                    error_cannot_refer_to_private_variable_without_object)));
+                    diag_cannot_refer_to_private_variable_without_object)));
   }
 
   {
@@ -1062,7 +1062,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE(error_unexpected_literal_in_parameter_list)));
+        ElementsAre(ERROR_TYPE(diag_unexpected_literal_in_parameter_list)));
   }
 
   {
@@ -1070,7 +1070,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(error_unexpected_token)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(diag_unexpected_token)));
   }
 }
 
@@ -1086,7 +1086,7 @@ TEST(test_parse, arrow_function_expression_without_arrow_operator) {
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_arrow_operator_in_arrow_function,  //
+                    &code, diag_missing_arrow_operator_in_arrow_function,  //
                     where, strlen(u8"(() "), u8"{")));
   }
 
@@ -1101,7 +1101,7 @@ TEST(test_parse, arrow_function_expression_without_arrow_operator) {
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_arrow_operator_in_arrow_function,  //
+                    &code, diag_missing_arrow_operator_in_arrow_function,  //
                     where, strlen(u8"(async () "), u8"{")));
   }
 
@@ -1116,7 +1116,7 @@ TEST(test_parse, arrow_function_expression_without_arrow_operator) {
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_arrow_operator_in_arrow_function,  //
+                    &code, diag_missing_arrow_operator_in_arrow_function,  //
                     where, strlen(u8"(()\n"), u8"{")));
   }
 
@@ -1133,7 +1133,7 @@ TEST(test_parse, arrow_function_expression_without_arrow_operator) {
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_arrow_operator_in_arrow_function,  //
+                    &code, diag_missing_arrow_operator_in_arrow_function,  //
                     where, strlen(u8"((a, b) "), u8"{")));
   }
 
@@ -1150,7 +1150,7 @@ TEST(test_parse, arrow_function_expression_without_arrow_operator) {
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_arrow_operator_in_arrow_function,  //
+                    &code, diag_missing_arrow_operator_in_arrow_function,  //
                     where, strlen(u8"(async (a, b) "), u8"{")));
   }
 
@@ -1166,12 +1166,12 @@ TEST(test_parse, arrow_function_expression_without_arrow_operator) {
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_arrow_operator_in_arrow_function,  //
+                    &code, diag_missing_arrow_operator_in_arrow_function,  //
                     where, strlen(u8"(async param "), u8"{")));
   }
 
   // TODO(strager): u8"(async (a, b)\n{});"_sv should report
-  // error_missing_arrow_operator_in_arrow_function.
+  // diag_missing_arrow_operator_in_arrow_function.
 }
 
 TEST(test_parse, not_arrow_function_expression_without_arrow_operator) {
@@ -1202,7 +1202,7 @@ TEST(test_parse, not_arrow_function_expression_without_arrow_operator) {
                                       "visit_end_of_module"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE(error_missing_semicolon_after_statement)));
+        ElementsAre(ERROR_TYPE(diag_missing_semicolon_after_statement)));
   }
 
   if ((false)) {  // TODO(strager): Treat '+' differently from ','.
@@ -1217,7 +1217,7 @@ TEST(test_parse, not_arrow_function_expression_without_arrow_operator) {
                                       "visit_end_of_module"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE(error_missing_semicolon_after_statement)));
+        ElementsAre(ERROR_TYPE(diag_missing_semicolon_after_statement)));
   }
 
   {
@@ -1247,12 +1247,11 @@ TEST(test_parse, generator_function_with_misplaced_star) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // x
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_2_OFFSETS(
-            &code, error_generator_function_star_belongs_before_name,  //
-            function_name, strlen(u8"function "), u8"f",               //
-            star, strlen(u8"function f"), u8"*")));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                    &code, diag_generator_function_star_belongs_before_name,  //
+                    function_name, strlen(u8"function "), u8"f",              //
+                    star, strlen(u8"function f"), u8"*")));
   }
 
   {
@@ -1271,7 +1270,7 @@ TEST(test_parse, generator_function_with_misplaced_star) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_generator_function_star_belongs_before_name, function_name,
+            diag_generator_function_star_belongs_before_name, function_name,
             offsets_matcher(&code, strlen(u8"*function "), u8"f"), star,
             offsets_matcher(&code, 0, u8"*"))));
   }
@@ -1289,12 +1288,11 @@ TEST(test_parse, generator_function_with_misplaced_star) {
                                       "visit_exit_function_scope",        //
                                       "visit_variable_use",               // f
                                       "visit_end_of_module"));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(ERROR_TYPE_2_OFFSETS(
-            &code, error_generator_function_star_belongs_before_name,  //
-            function_name, strlen(u8"*async function "), u8"f",        //
-            star, 0, u8"*")));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                    &code, diag_generator_function_star_belongs_before_name,  //
+                    function_name, strlen(u8"*async function "), u8"f",       //
+                    star, 0, u8"*")));
   }
 
   {
@@ -1308,10 +1306,10 @@ TEST(test_parse, generator_function_with_misplaced_star) {
         ElementsAre(
             ERROR_TYPE_OFFSETS(
                 &code,
-                error_generator_function_star_belongs_after_keyword_function,  //
+                diag_generator_function_star_belongs_after_keyword_function,  //
                 star, 0, u8"*"),
             ERROR_TYPE_OFFSETS(&code,
-                               error_missing_name_in_function_statement,  //
+                               diag_missing_name_in_function_statement,  //
                                where, strlen(u8"*"), u8"function")));
   }
 
@@ -1326,10 +1324,10 @@ TEST(test_parse, generator_function_with_misplaced_star) {
         ElementsAre(
             ERROR_TYPE_OFFSETS(
                 &code,
-                error_generator_function_star_belongs_after_keyword_function,  //
+                diag_generator_function_star_belongs_after_keyword_function,  //
                 star, 0, u8"*"),
             ERROR_TYPE_OFFSETS(&code,
-                               error_missing_name_in_function_statement,  //
+                               diag_missing_name_in_function_statement,  //
                                where, strlen(u8"*async "), u8"function")));
   }
 
@@ -1349,7 +1347,7 @@ TEST(test_parse, generator_function_with_misplaced_star) {
         v.errors,
         ElementsAre(ERROR_TYPE_OFFSETS(
             &code,
-            error_generator_function_star_belongs_after_keyword_function,  //
+            diag_generator_function_star_belongs_after_keyword_function,  //
             star, strlen(u8"let x = "), u8"*")));
   }
 
@@ -1368,7 +1366,7 @@ TEST(test_parse, generator_function_with_misplaced_star) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_generator_function_star_belongs_before_name, function_name,
+            diag_generator_function_star_belongs_before_name, function_name,
             offsets_matcher(&code, strlen(u8"let x = *function "), u8"f"), star,
             offsets_matcher(&code, strlen(u8"let x = "), u8"*"))));
   }
@@ -1389,7 +1387,7 @@ TEST(test_parse, generator_function_with_misplaced_star) {
         v.errors,
         ElementsAre(ERROR_TYPE_OFFSETS(
             &code,
-            error_generator_function_star_belongs_after_keyword_function,  //
+            diag_generator_function_star_belongs_after_keyword_function,  //
             star, strlen(u8"let x = "), u8"*")));
   }
 
@@ -1408,7 +1406,7 @@ TEST(test_parse, generator_function_with_misplaced_star) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_generator_function_star_belongs_before_name, function_name,
+            diag_generator_function_star_belongs_before_name, function_name,
             offsets_matcher(&code, strlen(u8"let x = *async function "), u8"f"),
             star, offsets_matcher(&code, strlen(u8"let x = "), u8"*"))));
   }
@@ -1422,7 +1420,7 @@ TEST(test_parse, generator_function_with_misplaced_star) {
         v.errors,
         ElementsAre(ERROR_TYPE_OFFSETS(
             &code,
-            error_generator_function_star_belongs_after_keyword_function,  //
+            diag_generator_function_star_belongs_after_keyword_function,  //
             star, strlen(u8"let x = "), u8"*")));
   }
 
@@ -1435,7 +1433,7 @@ TEST(test_parse, generator_function_with_misplaced_star) {
         v.errors,
         ElementsAre(ERROR_TYPE_OFFSETS(
             &code,
-            error_generator_function_star_belongs_after_keyword_function,  //
+            diag_generator_function_star_belongs_after_keyword_function,  //
             star, strlen(u8"let x = "), u8"*")));
   }
 }
@@ -1451,7 +1449,7 @@ TEST(test_parse, star_before_async_or_function_is_not_generator_star) {
                                       "visit_exit_function_scope",         //
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_missing_operand_for_operator,  //
+                              &code, diag_missing_operand_for_operator,  //
                               where, 0, u8"*")));
   }
 
@@ -1465,7 +1463,7 @@ TEST(test_parse, star_before_async_or_function_is_not_generator_star) {
                                       "visit_exit_function_scope",         //
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_missing_operand_for_operator,  //
+                              &code, diag_missing_operand_for_operator,  //
                               where, 0, u8"*")));
   }
 
@@ -1512,7 +1510,7 @@ TEST(test_parse, incomplete_function_body) {
                                       "visit_variable_use",               // a
                                       "visit_exit_function_scope"));      // f
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_unclosed_code_block,  //
+                              &code, diag_unclosed_code_block,  //
                               block_open, strlen(u8"function f() "), u8"{")));
   }
 }
@@ -1583,7 +1581,7 @@ TEST(test_parse, function_as_do_while_loop_body_is_disallowed) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_3_FIELDS(
-            error_function_statement_not_allowed_in_body, kind_of_statement,
+            diag_function_statement_not_allowed_in_body, kind_of_statement,
             statement_kind::do_while_loop,                                //
             expected_body, offsets_matcher(&code, strlen(u8"do"), u8""),  //
             function_keywords,
@@ -1603,7 +1601,7 @@ TEST(test_parse, function_as_do_while_loop_body_is_disallowed) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_function_statement_not_allowed_in_body, kind_of_statement,
+            diag_function_statement_not_allowed_in_body, kind_of_statement,
             statement_kind::do_while_loop,  //
             function_keywords,
             offsets_matcher(&code, strlen(u8"do "), u8"async function"))));
@@ -1624,7 +1622,7 @@ TEST(test_parse, function_as_for_loop_body_is_disallowed) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_3_FIELDS(
-            error_function_statement_not_allowed_in_body, kind_of_statement,
+            diag_function_statement_not_allowed_in_body, kind_of_statement,
             statement_kind::for_loop,  //
             expected_body,
             offsets_matcher(&code, strlen(u8"for (;cond;)"), u8""),  //
@@ -1643,7 +1641,7 @@ TEST(test_parse, function_as_for_loop_body_is_disallowed) {
                                       "visit_enter_function_scope_body",  // f
                                       "visit_exit_function_scope"));      // f
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_FIELDS(
-                              error_function_statement_not_allowed_in_body,
+                              diag_function_statement_not_allowed_in_body,
                               kind_of_statement,
                               statement_kind::for_loop,  //
                               function_keywords,
@@ -1666,7 +1664,7 @@ TEST(test_parse, function_as_while_loop_body_is_disallowed) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_3_FIELDS(
-            error_function_statement_not_allowed_in_body, kind_of_statement,
+            diag_function_statement_not_allowed_in_body, kind_of_statement,
             statement_kind::while_loop,  //
             expected_body,
             offsets_matcher(&code, strlen(u8"while (cond)"), u8""),  //
@@ -1685,7 +1683,7 @@ TEST(test_parse, function_as_while_loop_body_is_disallowed) {
                                       "visit_enter_function_scope_body",  // f
                                       "visit_exit_function_scope"));      // f
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_FIELDS(
-                              error_function_statement_not_allowed_in_body,
+                              diag_function_statement_not_allowed_in_body,
                               kind_of_statement,
                               statement_kind::while_loop,  //
                               function_keywords,
@@ -1710,7 +1708,7 @@ TEST(test_parse, function_as_with_statement_body_is_disallowed) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_3_FIELDS(
-            error_function_statement_not_allowed_in_body, kind_of_statement,
+            diag_function_statement_not_allowed_in_body, kind_of_statement,
             statement_kind::with_statement,  //
             expected_body,
             offsets_matcher(&code, strlen(u8"with (obj)"), u8""),  //
@@ -1731,7 +1729,7 @@ TEST(test_parse, function_as_with_statement_body_is_disallowed) {
                                       "visit_exit_function_scope",        // f
                                       "visit_exit_with_scope"));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_FIELDS(
-                              error_function_statement_not_allowed_in_body,
+                              diag_function_statement_not_allowed_in_body,
                               kind_of_statement,
                               statement_kind::with_statement,  //
                               function_keywords,
@@ -1760,7 +1758,7 @@ TEST(test_parse, invalid_function_parameter) {
             spy_visitor::visited_variable_declaration{
                 u8"p", variable_kind::_parameter, variable_init_kind::normal}));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_invalid_parameter,  //
+                              &code, diag_invalid_parameter,  //
                               parameter, strlen(u8"function f("), u8"g()")));
   }
 
@@ -1779,12 +1777,12 @@ TEST(test_parse, invalid_function_parameter) {
         ElementsAre(spy_visitor::visited_variable_declaration{
             u8"p", variable_kind::_parameter, variable_init_kind::normal}));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_invalid_parameter,  //
+                              &code, diag_invalid_parameter,  //
                               parameter, strlen(u8"("), u8"g()")));
   }
 
   {
-    // TODO(strager): Is error_unexpected_arrow_after_literal appropriate here?
+    // TODO(strager): Is diag_unexpected_arrow_after_literal appropriate here?
     // Maybe we should recover in a different way.
     padded_string code(u8"g(42) => {}"_sv);
     spy_visitor v;
@@ -1799,9 +1797,9 @@ TEST(test_parse, invalid_function_parameter) {
         v.errors,
         UnorderedElementsAre(
             ERROR_TYPE(
-                error_missing_operator_between_expression_and_arrow_function),
+                diag_missing_operator_between_expression_and_arrow_function),
             ERROR_TYPE_OFFSETS(&code,
-                               error_unexpected_literal_in_parameter_list,  //
+                               diag_unexpected_literal_in_parameter_list,  //
                                literal, strlen(u8"g("), u8"42")));
   }
 }

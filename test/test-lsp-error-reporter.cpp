@@ -48,7 +48,7 @@ TEST_F(test_lsp_error_reporter, big_int_literal_contains_decimal_point) {
   ASSERT_EQ(number_span.string_view(), u8"12.34n");
 
   lsp_error_reporter reporter = this->make_reporter(&input);
-  reporter.report(error_big_int_literal_contains_decimal_point{number_span});
+  reporter.report(diag_big_int_literal_contains_decimal_point{number_span});
   reporter.finish();
 
   ::boost::json::value diagnostics = this->parse_json();
@@ -74,7 +74,7 @@ TEST_F(test_lsp_error_reporter, assignment_before_variable_declaration) {
   ASSERT_EQ(declaration_span.string_view(), u8"x");
 
   lsp_error_reporter reporter = this->make_reporter(&input);
-  reporter.report(error_assignment_before_variable_declaration{
+  reporter.report(diag_assignment_before_variable_declaration{
       .assignment = identifier(assignment_span),
       .declaration = identifier(declaration_span)});
   reporter.finish();
@@ -101,7 +101,7 @@ TEST_F(test_lsp_error_reporter, assignment_to_undeclared_variable) {
   ASSERT_EQ(assignment_span.string_view(), u8"x");
 
   lsp_error_reporter reporter = this->make_reporter(&input);
-  reporter.report(error_assignment_to_undeclared_variable{
+  reporter.report(diag_assignment_to_undeclared_variable{
       .assignment = identifier(assignment_span)});
   reporter.finish();
 
@@ -126,12 +126,9 @@ TEST_F(test_lsp_error_reporter, multiple_errors) {
   source_code_span c_span(&input[2], &input[3]);
 
   lsp_error_reporter reporter = this->make_reporter(&input);
-  reporter.report(
-      error_assignment_to_const_global_variable{identifier(a_span)});
-  reporter.report(
-      error_assignment_to_const_global_variable{identifier(b_span)});
-  reporter.report(
-      error_assignment_to_const_global_variable{identifier(c_span)});
+  reporter.report(diag_assignment_to_const_global_variable{identifier(a_span)});
+  reporter.report(diag_assignment_to_const_global_variable{identifier(b_span)});
+  reporter.report(diag_assignment_to_const_global_variable{identifier(c_span)});
   reporter.finish();
 
   ::boost::json::value diagnostics = this->parse_json();

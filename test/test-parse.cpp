@@ -40,9 +40,9 @@ TEST(test_parse, statement_starting_with_invalid_token) {
     spy_visitor v;
     parser p(&code, &v);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_unexpected_token,  //
-                              token, 0, token)));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(&code, diag_unexpected_token,  //
+                                               token, 0, token)));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
   }
@@ -57,7 +57,7 @@ TEST(test_parse, comma_not_allowed_between_class_methods) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_comma_not_allowed_between_class_methods,  //
+                    &code, diag_comma_not_allowed_between_class_methods,  //
                     unexpected_comma, 44, u8",")));
     EXPECT_THAT(
         v.visits,
@@ -84,33 +84,33 @@ TEST(test_parse, commas_not_allowed_between_class_methods) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(
-            ERROR_TYPE_OFFSETS(
-                &code, error_comma_not_allowed_between_class_methods,  //
-                unexpected_comma, 10, u8","),
-            ERROR_TYPE_OFFSETS(
-                &code, error_comma_not_allowed_between_class_methods,  //
-                unexpected_comma, 11, u8","),
-            ERROR_TYPE_OFFSETS(
-                &code, error_comma_not_allowed_between_class_methods,  //
-                unexpected_comma, 12, u8","),
-            ERROR_TYPE_OFFSETS(
-                &code, error_comma_not_allowed_between_class_methods,  //
-                unexpected_comma, 48, u8","),
-            ERROR_TYPE_OFFSETS(
-                &code, error_comma_not_allowed_between_class_methods,  //
-                unexpected_comma, 49, u8","),
-            ERROR_TYPE_OFFSETS(
-                &code, error_comma_not_allowed_between_class_methods,  //
-                unexpected_comma, 50, u8","),
-            ERROR_TYPE_OFFSETS(
-                &code, error_comma_not_allowed_between_class_methods,  //
-                unexpected_comma, 111, u8","),
-            ERROR_TYPE_OFFSETS(
-                &code, error_comma_not_allowed_between_class_methods,  //
-                unexpected_comma, 112, u8","),
-            ERROR_TYPE_OFFSETS(
-                &code, error_comma_not_allowed_between_class_methods,  //
-                unexpected_comma, 113, u8",")));
+            ERROR_TYPE_OFFSETS(&code,
+                               diag_comma_not_allowed_between_class_methods,  //
+                               unexpected_comma, 10, u8","),
+            ERROR_TYPE_OFFSETS(&code,
+                               diag_comma_not_allowed_between_class_methods,  //
+                               unexpected_comma, 11, u8","),
+            ERROR_TYPE_OFFSETS(&code,
+                               diag_comma_not_allowed_between_class_methods,  //
+                               unexpected_comma, 12, u8","),
+            ERROR_TYPE_OFFSETS(&code,
+                               diag_comma_not_allowed_between_class_methods,  //
+                               unexpected_comma, 48, u8","),
+            ERROR_TYPE_OFFSETS(&code,
+                               diag_comma_not_allowed_between_class_methods,  //
+                               unexpected_comma, 49, u8","),
+            ERROR_TYPE_OFFSETS(&code,
+                               diag_comma_not_allowed_between_class_methods,  //
+                               unexpected_comma, 50, u8","),
+            ERROR_TYPE_OFFSETS(&code,
+                               diag_comma_not_allowed_between_class_methods,  //
+                               unexpected_comma, 111, u8","),
+            ERROR_TYPE_OFFSETS(&code,
+                               diag_comma_not_allowed_between_class_methods,  //
+                               unexpected_comma, 112, u8","),
+            ERROR_TYPE_OFFSETS(&code,
+                               diag_comma_not_allowed_between_class_methods,  //
+                               unexpected_comma, 113, u8",")));
 
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_declaration",       // class f
@@ -201,10 +201,9 @@ TEST(test_parse, asi_for_statement_at_newline) {
                             spy_visitor::visited_variable_use{u8"console"}));
     cli_source_position::offset_type end_of_first_expression =
         strlen(u8"console.log('hello')");
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_semicolon_after_statement,  //
-                    where, end_of_first_expression, u8"")));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, diag_missing_semicolon_after_statement,  //
+                              where, end_of_first_expression, u8"")));
   }
 
   for (string8 variable_kind : {u8"const", u8"let", u8"var"}) {
@@ -326,7 +325,7 @@ TEST(test_parse, asi_between_expression_statements) {
                             spy_visitor::visited_variable_use{u8"three"}));
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE(
-                    error_cannot_refer_to_private_variable_without_object)));
+                    diag_cannot_refer_to_private_variable_without_object)));
   }
 }
 
@@ -399,9 +398,9 @@ TEST(test_parse, utter_garbage) {
         v.errors,
         UnorderedElementsAre(
             ERROR_TYPE_OFFSETS(
-                &code, error_expected_parentheses_around_if_condition,  //
+                &code, diag_expected_parentheses_around_if_condition,  //
                 condition, strlen(u8"if "), u8":"),
-            ERROR_TYPE_OFFSETS(&code, error_unexpected_token,  //
+            ERROR_TYPE_OFFSETS(&code, diag_unexpected_token,  //
                                token, strlen(u8"if "), u8":")));
   }
 }
@@ -414,9 +413,9 @@ TEST(test_parse, statement_starting_with_extends) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // Base
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_unexpected_token,  //
-                              token, 0, u8"extends")));
+    EXPECT_THAT(v.errors,
+                ElementsAre(ERROR_TYPE_OFFSETS(&code, diag_unexpected_token,  //
+                                               token, 0, u8"extends")));
   }
 }
 
@@ -428,7 +427,7 @@ TEST(test_parse, stray_right_curly_at_top_level) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_end_of_module"));
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_unmatched_right_curly,  //
+                              &code, diag_unmatched_right_curly,  //
                               right_curly, 0, u8"}")));
   }
 }
@@ -450,7 +449,7 @@ TEST(test_parse,
                   ElementsAre(spy_visitor::visited_variable_use{keyword}));
       EXPECT_THAT(v.errors,
                   ElementsAre(ERROR_TYPE_OFFSETS(
-                      &code, error_keywords_cannot_contain_escape_sequences,  //
+                      &code, diag_keywords_cannot_contain_escape_sequences,  //
                       escape_sequence, 0, u8"\\u{??}")));
     }
 
@@ -466,7 +465,7 @@ TEST(test_parse,
                   ElementsAre(spy_visitor::visited_variable_use{keyword}));
       EXPECT_THAT(v.errors,
                   ElementsAre(ERROR_TYPE_OFFSETS(
-                      &code, error_keywords_cannot_contain_escape_sequences,  //
+                      &code, diag_keywords_cannot_contain_escape_sequences,  //
                       escape_sequence, strlen(u8"("), u8"\\u{??}")));
     }
   }
@@ -480,8 +479,9 @@ TEST(
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(
-                              error_keywords_cannot_contain_escape_sequences)));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE(diag_keywords_cannot_contain_escape_sequences)));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
@@ -494,8 +494,9 @@ TEST(
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(
-                              error_keywords_cannot_contain_escape_sequences)));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE(diag_keywords_cannot_contain_escape_sequences)));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
@@ -507,8 +508,9 @@ TEST(
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(
-                              error_keywords_cannot_contain_escape_sequences)));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE(diag_keywords_cannot_contain_escape_sequences)));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
@@ -520,8 +522,9 @@ TEST(
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(
-                              error_keywords_cannot_contain_escape_sequences)));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE(diag_keywords_cannot_contain_escape_sequences)));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // g
                                       "visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // if
@@ -542,8 +545,9 @@ TEST(
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(
-                              error_keywords_cannot_contain_escape_sequences)));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(ERROR_TYPE(diag_keywords_cannot_contain_escape_sequences)));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // if
                                       "visit_enter_function_scope_body",  //
@@ -690,7 +694,7 @@ TEST(test_parse, unimplemented_token_doesnt_crash_if_caught) {
     EXPECT_THAT(v.visits, IsEmpty());
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(&unimplemented_token_code,
-                                               error_unexpected_token,  //
+                                               diag_unexpected_token,  //
                                                token, 0, u8"]")));
   }
 }
@@ -820,7 +824,7 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
     parser p(&code, &v, p_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    ElementsAre(ERROR_TYPE(error_depth_limit_exceeded));
+    ElementsAre(ERROR_TYPE(diag_depth_limit_exceeded));
   }
 
   {
@@ -831,7 +835,7 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
     parser p(&code, &v);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
-    ElementsAre(ERROR_TYPE(error_depth_limit_exceeded));
+    ElementsAre(ERROR_TYPE(diag_depth_limit_exceeded));
   }
 }
 #endif

@@ -37,7 +37,7 @@ TEST_F(test_emacs_lisp_error_reporter, assignment_before_variable_declaration) {
   ASSERT_EQ(declaration_span.string_view(), u8"x");
 
   emacs_lisp_error_reporter reporter = this->make_reporter(&input);
-  reporter.report(error_assignment_before_variable_declaration{
+  reporter.report(diag_assignment_before_variable_declaration{
       .assignment = identifier(assignment_span),
       .declaration = identifier(declaration_span)});
   reporter.finish();
@@ -54,7 +54,7 @@ TEST_F(test_emacs_lisp_error_reporter, assignment_to_const_global_variable) {
   emacs_lisp_error_reporter reporter = this->make_reporter(&input);
 
   reporter.report(
-      error_assignment_to_const_global_variable{identifier(infinity_span)});
+      diag_assignment_to_const_global_variable{identifier(infinity_span)});
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -66,7 +66,7 @@ TEST_F(test_emacs_lisp_error_reporter,
   padded_string input(u8"if cond) {}"_sv);
   source_code_span parenthesis_span(&input[4 - 1], &input[4 - 1]);
   emacs_lisp_error_reporter reporter = this->make_reporter(&input);
-  reporter.report(error_expected_parenthesis_around_if_condition{
+  reporter.report(diag_expected_parenthesis_around_if_condition{
       .where = parenthesis_span,
       .token = '(',
   });
@@ -84,7 +84,7 @@ TEST_F(test_emacs_lisp_error_reporter, redeclaration_of_variable) {
   ASSERT_EQ(redeclaration_span.string_view(), u8"myvar");
 
   emacs_lisp_error_reporter reporter = this->make_reporter(&input);
-  reporter.report(error_redeclaration_of_variable{
+  reporter.report(diag_redeclaration_of_variable{
       identifier(redeclaration_span), identifier(original_declaration_span)});
   reporter.finish();
   EXPECT_EQ(
@@ -101,7 +101,7 @@ TEST_F(test_emacs_lisp_error_reporter,
   ASSERT_EQ(redeclaration_span.string_view(), u8"myvar");
 
   emacs_lisp_error_reporter reporter = this->make_reporter(&input);
-  reporter.report(error_redeclaration_of_variable{
+  reporter.report(diag_redeclaration_of_variable{
       identifier(redeclaration_span), identifier(original_declaration_span)});
   reporter.finish();
   EXPECT_EQ(
@@ -115,7 +115,7 @@ TEST_F(test_emacs_lisp_error_reporter, unexpected_hash_character) {
   ASSERT_EQ(hash_span.string_view(), u8"#");
 
   emacs_lisp_error_reporter reporter = this->make_reporter(&input);
-  reporter.report(error_unexpected_hash_character{hash_span});
+  reporter.report(diag_unexpected_hash_character{hash_span});
   reporter.finish();
   EXPECT_EQ(this->get_output(),
             u8R"--((((1 . 2) 0 "E0052" "unexpected '#'")))--");
@@ -127,7 +127,7 @@ TEST_F(test_emacs_lisp_error_reporter, use_of_undeclared_variable) {
   ASSERT_EQ(myvar_span.string_view(), u8"myvar");
 
   emacs_lisp_error_reporter reporter = this->make_reporter(&input);
-  reporter.report(error_use_of_undeclared_variable{identifier(myvar_span)});
+  reporter.report(diag_use_of_undeclared_variable{identifier(myvar_span)});
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -141,7 +141,7 @@ TEST_F(test_emacs_lisp_error_reporter,
   ASSERT_EQ(myvar_span.string_view(), u8"myvar");
 
   emacs_lisp_error_reporter reporter = this->make_reporter(&input);
-  reporter.report(error_use_of_undeclared_variable{identifier(myvar_span)});
+  reporter.report(diag_use_of_undeclared_variable{identifier(myvar_span)});
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),
@@ -153,7 +153,7 @@ TEST_F(test_emacs_lisp_error_reporter, blackslash_is_escaped) {
   source_code_span span(&input[5], &input[6]);
 
   emacs_lisp_error_reporter reporter = this->make_reporter(&input);
-  reporter.report(error_unexpected_backslash_in_identifier{span});
+  reporter.report(diag_unexpected_backslash_in_identifier{span});
   reporter.finish();
   EXPECT_EQ(this->get_output(),
             u8R"--((((6 . 7) 0 "E0043" "unexpected '\\' in identifier")))--");
@@ -164,7 +164,7 @@ TEST_F(test_emacs_lisp_error_reporter, double_quote_is_escaped) {
   source_code_span span(&input[12], &input[12]);
 
   emacs_lisp_error_reporter reporter = this->make_reporter(&input);
-  reporter.report(error_expected_from_and_module_specifier{span});
+  reporter.report(diag_expected_from_and_module_specifier{span});
   reporter.finish();
   EXPECT_EQ(
       this->get_output(),

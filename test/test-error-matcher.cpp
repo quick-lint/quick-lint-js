@@ -30,23 +30,23 @@ TEST(test_error_matcher, match_error_type) {
   padded_string code(u8"hello"_sv);
 
   ::testing::Matcher<const error_collector::error &> continue_matcher =
-      ERROR_TYPE(error_invalid_continue);
+      ERROR_TYPE(diag_invalid_continue);
   EXPECT_TRUE(
-      continue_matcher.Matches(error_collector::error(error_invalid_continue{
+      continue_matcher.Matches(error_collector::error(diag_invalid_continue{
           .continue_statement = source_code_span(&code[0], &code[5]),
       })));
   EXPECT_FALSE(
-      continue_matcher.Matches(error_collector::error(error_invalid_break{
+      continue_matcher.Matches(error_collector::error(diag_invalid_break{
           .break_statement = source_code_span(&code[0], &code[5]),
       })));
 
   ::testing::Matcher<const error_collector::error &> break_matcher =
-      ERROR_TYPE(error_invalid_break);
+      ERROR_TYPE(diag_invalid_break);
   EXPECT_FALSE(
-      break_matcher.Matches(error_collector::error(error_invalid_continue{
+      break_matcher.Matches(error_collector::error(diag_invalid_continue{
           .continue_statement = source_code_span(&code[0], &code[5]),
       })));
-  EXPECT_TRUE(break_matcher.Matches(error_collector::error(error_invalid_break{
+  EXPECT_TRUE(break_matcher.Matches(error_collector::error(diag_invalid_break{
       .break_statement = source_code_span(&code[0], &code[5]),
   })));
 }
@@ -54,37 +54,37 @@ TEST(test_error_matcher, match_error_type) {
 TEST(test_error_matcher, match_error_type_message) {
   padded_string code(u8"hello"_sv);
   ::testing::Matcher<const error_collector::error &> matcher =
-      ERROR_TYPE(error_invalid_break);
-  error_collector::error value(error_invalid_continue{
+      ERROR_TYPE(diag_invalid_break);
+  error_collector::error value(diag_invalid_continue{
       .continue_statement = source_code_span(&code[0], &code[5]),
   });
   EXPECT_EQ(get_matcher_message(matcher, value),
-            "whose type (error_invalid_continue) isn't error_invalid_break");
+            "whose type (diag_invalid_continue) isn't diag_invalid_break");
 }
 
 TEST(test_error_matcher, match_error_type_with_1_field) {
   padded_string code(u8"hello"_sv);
 
   ::testing::Matcher<const error_collector::error &> continue_matcher =
-      ERROR_TYPE_OFFSETS(&code, error_invalid_continue,  //
+      ERROR_TYPE_OFFSETS(&code, diag_invalid_continue,  //
                          continue_statement, 0, u8"hello");
   EXPECT_TRUE(
-      continue_matcher.Matches(error_collector::error(error_invalid_continue{
+      continue_matcher.Matches(error_collector::error(diag_invalid_continue{
           .continue_statement = source_code_span(&code[0], &code[5]),
       })));
   EXPECT_FALSE(
-      continue_matcher.Matches(error_collector::error(error_invalid_break{
+      continue_matcher.Matches(error_collector::error(diag_invalid_break{
           .break_statement = source_code_span(&code[0], &code[5]),
       })));
 
   ::testing::Matcher<const error_collector::error &> break_matcher =
-      ERROR_TYPE_OFFSETS(&code, error_invalid_break,  //
+      ERROR_TYPE_OFFSETS(&code, diag_invalid_break,  //
                          break_statement, 0, u8"hello");
   EXPECT_FALSE(
-      break_matcher.Matches(error_collector::error(error_invalid_continue{
+      break_matcher.Matches(error_collector::error(diag_invalid_continue{
           .continue_statement = source_code_span(&code[0], &code[5]),
       })));
-  EXPECT_TRUE(break_matcher.Matches(error_collector::error(error_invalid_break{
+  EXPECT_TRUE(break_matcher.Matches(error_collector::error(diag_invalid_break{
       .break_statement = source_code_span(&code[0], &code[5]),
   })));
 }
@@ -92,31 +92,31 @@ TEST(test_error_matcher, match_error_type_with_1_field) {
 TEST(test_error_matcher, match_error_type_with_1_field_message) {
   padded_string code(u8"hello"_sv);
   ::testing::Matcher<const error_collector::error &> matcher =
-      ERROR_TYPE_OFFSETS(&code, error_invalid_continue,  //
+      ERROR_TYPE_OFFSETS(&code, diag_invalid_continue,  //
                          continue_statement, 0, u8"hello");
-  error_collector::error value(error_invalid_break{
+  error_collector::error value(diag_invalid_break{
       .break_statement = source_code_span(&code[0], &code[5]),
   });
   EXPECT_EQ(get_matcher_message(matcher, value),
-            "whose type (error_invalid_break) isn't error_invalid_continue");
+            "whose type (diag_invalid_break) isn't diag_invalid_continue");
 }
 
 TEST(test_error_matcher, match_offsets_of_1_field_span) {
   padded_string code(u8"hello"_sv);
 
   ::testing::Matcher<const error_collector::error &> continue_matcher =
-      ERROR_TYPE_OFFSETS(&code, error_invalid_continue,  //
+      ERROR_TYPE_OFFSETS(&code, diag_invalid_continue,  //
                          continue_statement, 1, u8"ello");
   EXPECT_TRUE(
-      continue_matcher.Matches(error_collector::error(error_invalid_continue{
+      continue_matcher.Matches(error_collector::error(diag_invalid_continue{
           .continue_statement = source_code_span(&code[1], &code[5]),
       })));
   EXPECT_FALSE(
-      continue_matcher.Matches(error_collector::error(error_invalid_continue{
+      continue_matcher.Matches(error_collector::error(diag_invalid_continue{
           .continue_statement = source_code_span(&code[0], &code[5]),
       })));
   EXPECT_FALSE(
-      continue_matcher.Matches(error_collector::error(error_invalid_continue{
+      continue_matcher.Matches(error_collector::error(diag_invalid_continue{
           .continue_statement = source_code_span(&code[0], &code[4]),
       })));
 }
@@ -125,18 +125,18 @@ TEST(test_error_matcher, match_offsets_of_1_field_identifier) {
   padded_string code(u8"hello"_sv);
 
   ::testing::Matcher<const error_collector::error &> matcher =
-      ERROR_TYPE_OFFSETS(&code, error_assignment_to_undeclared_variable,  //
+      ERROR_TYPE_OFFSETS(&code, diag_assignment_to_undeclared_variable,  //
                          assignment, 1, u8"ello");
   EXPECT_TRUE(matcher.Matches(
-      error_collector::error(error_assignment_to_undeclared_variable{
+      error_collector::error(diag_assignment_to_undeclared_variable{
           .assignment = identifier(source_code_span(&code[1], &code[5])),
       })));
   EXPECT_FALSE(matcher.Matches(
-      error_collector::error(error_assignment_to_undeclared_variable{
+      error_collector::error(diag_assignment_to_undeclared_variable{
           .assignment = identifier(source_code_span(&code[0], &code[5])),
       })));
   EXPECT_FALSE(matcher.Matches(
-      error_collector::error(error_assignment_to_undeclared_variable{
+      error_collector::error(diag_assignment_to_undeclared_variable{
           .assignment = identifier(source_code_span(&code[0], &code[4])),
       })));
 }
@@ -145,9 +145,9 @@ TEST(test_error_matcher, match_offsets_of_1_field_message) {
   padded_string code(u8"hello"_sv);
   {
     ::testing::Matcher<const error_collector::error &> matcher =
-        ERROR_TYPE_OFFSETS(&code, error_invalid_continue,  //
+        ERROR_TYPE_OFFSETS(&code, diag_invalid_continue,  //
                            continue_statement, 0, u8"hello");
-    error_collector::error value(error_invalid_continue{
+    error_collector::error value(diag_invalid_continue{
         .continue_statement = source_code_span(&code[1], &code[4]),
     });
     EXPECT_EQ(get_matcher_message(matcher, value),
@@ -156,9 +156,9 @@ TEST(test_error_matcher, match_offsets_of_1_field_message) {
 
   {
     ::testing::Matcher<const error_collector::error &> matcher =
-        ERROR_TYPE_OFFSETS(&code, error_invalid_break,  //
+        ERROR_TYPE_OFFSETS(&code, diag_invalid_break,  //
                            break_statement, 0, u8"hello");
-    error_collector::error value(error_invalid_break{
+    error_collector::error value(diag_invalid_break{
         .break_statement = source_code_span(&code[1], &code[4]),
     });
     EXPECT_EQ(get_matcher_message(matcher, value),
@@ -171,22 +171,22 @@ TEST(test_error_matcher, match_offsets_of_2_fields_span) {
 
   ::testing::Matcher<const error_collector::error &> matcher =
       ERROR_TYPE_2_OFFSETS(&code,
-                           error_comma_not_allowed_after_spread_parameter,  //
-                           comma, strlen(u8"...x"), u8",",                  //
+                           diag_comma_not_allowed_after_spread_parameter,  //
+                           comma, strlen(u8"...x"), u8",",                 //
                            spread, 0, u8"...");
   EXPECT_TRUE(matcher.Matches(
-      error_collector::error(error_comma_not_allowed_after_spread_parameter{
+      error_collector::error(diag_comma_not_allowed_after_spread_parameter{
           .comma = source_code_span(&code[4], &code[5]),
           .spread = source_code_span(&code[0], &code[3]),
       })));
   EXPECT_FALSE(matcher.Matches(
-      error_collector::error(error_comma_not_allowed_after_spread_parameter{
+      error_collector::error(diag_comma_not_allowed_after_spread_parameter{
           .comma = source_code_span(&code[3], &code[5]),
           .spread = source_code_span(&code[0], &code[3]),
       })))
       << "when first doesn't match";
   EXPECT_FALSE(matcher.Matches(
-      error_collector::error(error_comma_not_allowed_after_spread_parameter{
+      error_collector::error(diag_comma_not_allowed_after_spread_parameter{
           .comma = source_code_span(&code[4], &code[5]),
           .spread = source_code_span(&code[1], &code[3]),
       })))
@@ -200,10 +200,10 @@ TEST(test_error_matcher, match_offsets_of_2_fields_message) {
   {
     ::testing::Matcher<const error_collector::error &> matcher =
         ERROR_TYPE_2_OFFSETS(&code,
-                             error_comma_not_allowed_after_spread_parameter,  //
-                             comma, strlen(u8"...x"), u8",",                  //
+                             diag_comma_not_allowed_after_spread_parameter,  //
+                             comma, strlen(u8"...x"), u8",",                 //
                              spread, 0, u8"...");
-    error_collector::error value(error_comma_not_allowed_after_spread_parameter{
+    error_collector::error value(diag_comma_not_allowed_after_spread_parameter{
         .comma = source_code_span(&code[3], &code[5]),
         .spread = source_code_span(&code[1], &code[3]),
     });
@@ -216,10 +216,10 @@ TEST(test_error_matcher, match_offsets_of_2_fields_message) {
   {
     ::testing::Matcher<const error_collector::error &> matcher =
         ERROR_TYPE_2_OFFSETS(&code,
-                             error_comma_not_allowed_after_spread_parameter,  //
-                             comma, strlen(u8"...x"), u8",",                  //
+                             diag_comma_not_allowed_after_spread_parameter,  //
+                             comma, strlen(u8"...x"), u8",",                 //
                              spread, 0, u8"...");
-    error_collector::error value(error_comma_not_allowed_after_spread_parameter{
+    error_collector::error value(diag_comma_not_allowed_after_spread_parameter{
         .comma = source_code_span(&code[3], &code[5]),
         .spread = source_code_span(&code[0], &code[3]),
     });
@@ -232,10 +232,10 @@ TEST(test_error_matcher, match_offsets_of_2_fields_message) {
   {
     ::testing::Matcher<const error_collector::error &> matcher =
         ERROR_TYPE_2_OFFSETS(&code,
-                             error_comma_not_allowed_after_spread_parameter,  //
-                             comma, strlen(u8"...x"), u8",",                  //
+                             diag_comma_not_allowed_after_spread_parameter,  //
+                             comma, strlen(u8"...x"), u8",",                 //
                              spread, 0, u8"...");
-    error_collector::error value(error_comma_not_allowed_after_spread_parameter{
+    error_collector::error value(diag_comma_not_allowed_after_spread_parameter{
         .comma = source_code_span(&code[4], &code[5]),
         .spread = source_code_span(&code[1], &code[3]),
     });

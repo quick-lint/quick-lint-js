@@ -26,8 +26,8 @@ TEST(test_buffering_error_reporter, buffers_all_visits) {
 
   linked_bump_allocator<alignof(void*)> memory;
   buffering_error_reporter error_reporter(&memory);
-  error_reporter.report(error_let_with_no_bindings{.where = span_of(let_code)});
-  error_reporter.report(error_expected_parenthesis_around_if_condition{
+  error_reporter.report(diag_let_with_no_bindings{.where = span_of(let_code)});
+  error_reporter.report(diag_expected_parenthesis_around_if_condition{
       .where = span_of(expression_code),
       .token = u8'(',
   });
@@ -36,12 +36,12 @@ TEST(test_buffering_error_reporter, buffers_all_visits) {
   error_reporter.move_into(&collector);
   EXPECT_THAT(
       collector.errors,
-      ElementsAre(ERROR_TYPE_FIELD(error_let_with_no_bindings, where,
-                                   span_of(let_code)),
-                  ERROR_TYPE_2_FIELDS(
-                      error_expected_parenthesis_around_if_condition, where,
-                      span_of(expression_code),  //
-                      token, u8'(')));
+      ElementsAre(
+          ERROR_TYPE_FIELD(diag_let_with_no_bindings, where, span_of(let_code)),
+          ERROR_TYPE_2_FIELDS(diag_expected_parenthesis_around_if_condition,
+                              where,
+                              span_of(expression_code),  //
+                              token, u8'(')));
 }
 
 TEST(test_buffering_error_reporter, not_destructing_does_not_leak) {
@@ -54,8 +54,7 @@ TEST(test_buffering_error_reporter, not_destructing_does_not_leak) {
       new (&error_reporter_storage) buffering_error_reporter(&memory);
 
   padded_string let_code(u8"let"_sv);
-  error_reporter->report(
-      error_let_with_no_bindings{.where = span_of(let_code)});
+  error_reporter->report(diag_let_with_no_bindings{.where = span_of(let_code)});
 
   // Destruct memory, but don't destruct error_reporter_storage.error_reporter.
 }

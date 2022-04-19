@@ -23,9 +23,9 @@
 // message: failure was caused by out of range index 3; allowed range is 0 <=
 //          index < 2
 // message: while evaluating constexpr function
-//          diagnostic_info_builder<error_adjacent_jsx_without_parent>::add
+//          diagnostic_info_builder<diag_adjacent_jsx_without_parent>::add
 // message: while evaluating constexpr function
-//          diagnostic_info_for_error<error_adjacent_jsx_without_parent>::get
+//          diagnostic_info_for_error<diag_adjacent_jsx_without_parent>::get
 #define DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE /* */
 #else
 #define DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE constexpr

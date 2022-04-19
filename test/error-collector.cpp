@@ -38,7 +38,7 @@ const char *error_collector::error::error_code() const noexcept {
 }
 
 const void *error_collector::error::data() const noexcept {
-  return &this->variant_error_unexpected_token_;  // Arbitrary member.
+  return &this->variant_diag_unexpected_token_;  // Arbitrary member.
 }
 
 #define QLJS_ERROR_TYPE(name, code, severity, struct_body, format_call)    \

@@ -39,7 +39,7 @@
 // * MESSAGE's second argument must have type *identifier* or *source_code_span*
 #define QLJS_X_ERROR_TYPES                                                     \
   QLJS_ERROR_TYPE(                                                             \
-      error_adjacent_jsx_without_parent, "E0189", diagnostic_severity::error,  \
+      diag_adjacent_jsx_without_parent, "E0189", diagnostic_severity::error,   \
       {                                                                        \
         source_code_span begin;                                                \
         source_code_span begin_of_second_element;                              \
@@ -50,7 +50,7 @@
               begin) MESSAGE(QLJS_TRANSLATABLE("children end here"), end))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_assignment_before_variable_declaration, "E0001",                   \
+      diag_assignment_before_variable_declaration, "E0001",                    \
       diagnostic_severity::error,                                              \
       {                                                                        \
         identifier assignment;                                                 \
@@ -61,20 +61,20 @@
           MESSAGE(QLJS_TRANSLATABLE("variable declared here"), declaration))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_assignment_makes_condition_constant, "E0188",                      \
+      diag_assignment_makes_condition_constant, "E0188",                       \
       diagnostic_severity::warning, { source_code_span assignment_operator; }, \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "'=' changes variables; to compare, use '===' instead"),     \
               assignment_operator))                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_assignment_to_const_global_variable, "E0002",                      \
+      diag_assignment_to_const_global_variable, "E0002",                       \
       diagnostic_severity::error, { identifier assignment; },                  \
       MESSAGE(QLJS_TRANSLATABLE("assignment to const global variable"),        \
               assignment))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_assignment_to_const_variable, "E0003", diagnostic_severity::error, \
+      diag_assignment_to_const_variable, "E0003", diagnostic_severity::error,  \
       {                                                                        \
         identifier declaration;                                                \
         identifier assignment;                                                 \
@@ -85,7 +85,7 @@
                   declaration))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_assignment_to_imported_variable, "E0185",                          \
+      diag_assignment_to_imported_variable, "E0185",                           \
       diagnostic_severity::error,                                              \
       {                                                                        \
         identifier declaration;                                                \
@@ -98,7 +98,7 @@
                   declaration))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_assignment_to_const_variable_before_its_declaration, "E0004",      \
+      diag_assignment_to_const_variable_before_its_declaration, "E0004",       \
       diagnostic_severity::error,                                              \
       {                                                                        \
         identifier declaration;                                                \
@@ -112,26 +112,26 @@
                   declaration))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_assignment_to_undeclared_variable, "E0059",                        \
+      diag_assignment_to_undeclared_variable, "E0059",                         \
       diagnostic_severity::warning, { identifier assignment; },                \
       MESSAGE(QLJS_TRANSLATABLE("assignment to undeclared variable"),          \
               assignment))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_await_operator_outside_async, "E0162", diagnostic_severity::error, \
+      diag_await_operator_outside_async, "E0162", diagnostic_severity::error,  \
       { source_code_span await_operator; },                                    \
       MESSAGE(QLJS_TRANSLATABLE("'await' is only allowed in async functions"), \
               await_operator))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_await_followed_by_arrow_function, "E0178",                         \
+      diag_await_followed_by_arrow_function, "E0178",                          \
       diagnostic_severity::error, { source_code_span await_operator; },        \
       MESSAGE(QLJS_TRANSLATABLE("'await' cannot be followed by an arrow "      \
                                 "function; use 'async' instead"),              \
               await_operator))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_async_static_method, "E0269", diagnostic_severity::error,          \
+      diag_async_static_method, "E0269", diagnostic_severity::error,           \
       { source_code_span async_static; },                                      \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE(                                                   \
@@ -139,18 +139,18 @@
           async_static))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_big_int_literal_contains_decimal_point, "E0005",                   \
+      diag_big_int_literal_contains_decimal_point, "E0005",                    \
       diagnostic_severity::error, { source_code_span where; },                 \
       MESSAGE(QLJS_TRANSLATABLE("BigInt literal contains decimal point"),      \
               where))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_big_int_literal_contains_exponent, "E0006",                        \
+      diag_big_int_literal_contains_exponent, "E0006",                         \
       diagnostic_severity::error, { source_code_span where; },                 \
       MESSAGE(QLJS_TRANSLATABLE("BigInt literal contains exponent"), where))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_c_style_for_loop_is_missing_third_component, "E0093",              \
+      diag_c_style_for_loop_is_missing_third_component, "E0093",               \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span expected_last_component;                              \
@@ -161,21 +161,21 @@
               expected_last_component))                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_assign_to_loop_variable_in_for_of_or_in_loop, "E0173",      \
+      diag_cannot_assign_to_loop_variable_in_for_of_or_in_loop, "E0173",       \
       diagnostic_severity::error, { source_code_span equal_token; },           \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "cannot assign to loop variable in for of/in loop"),         \
               equal_token))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_access_private_identifier_outside_class, "E0208",           \
+      diag_cannot_access_private_identifier_outside_class, "E0208",            \
       diagnostic_severity::error, { identifier private_identifier; },          \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("cannot access private identifier outside class"), \
           private_identifier))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_assign_to_variable_named_async_in_for_of_loop, "E0082",     \
+      diag_cannot_assign_to_variable_named_async_in_for_of_loop, "E0082",      \
       diagnostic_severity::error, { identifier async_identifier; },            \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE(                                                   \
@@ -183,77 +183,77 @@
           async_identifier))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_declare_await_in_async_function, "E0069",                   \
+      diag_cannot_declare_await_in_async_function, "E0069",                    \
       diagnostic_severity::error, { identifier name; },                        \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("cannot declare 'await' inside async function"),   \
           name))                                                               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_declare_class_named_let, "E0007",                           \
+      diag_cannot_declare_class_named_let, "E0007",                            \
       diagnostic_severity::error, { source_code_span name; },                  \
       MESSAGE(QLJS_TRANSLATABLE("classes cannot be named 'let'"), name))       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_declare_variable_named_let_with_let, "E0008",               \
+      diag_cannot_declare_variable_named_let_with_let, "E0008",                \
       diagnostic_severity::error, { source_code_span name; },                  \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "let statement cannot declare variables named 'let'"),       \
               name))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_declare_variable_with_keyword_name, "E0124",                \
+      diag_cannot_declare_variable_with_keyword_name, "E0124",                 \
       diagnostic_severity::error, { source_code_span keyword; },               \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("cannot declare variable named keyword '{0}'"),    \
           keyword))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_declare_yield_in_generator_function, "E0071",               \
+      diag_cannot_declare_yield_in_generator_function, "E0071",                \
       diagnostic_severity::error, { identifier name; },                        \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "cannot declare 'yield' inside generator function"),         \
               name))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_export_default_variable, "E0076",                           \
+      diag_cannot_export_default_variable, "E0076",                            \
       diagnostic_severity::error, { source_code_span declaring_token; },       \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "cannot declare and export variable with 'export default'"), \
               declaring_token))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_export_let, "E0009", diagnostic_severity::error,            \
+      diag_cannot_export_let, "E0009", diagnostic_severity::error,             \
       { source_code_span export_name; },                                       \
       MESSAGE(QLJS_TRANSLATABLE("cannot export variable named 'let'"),         \
               export_name))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_export_variable_named_keyword, "E0144",                     \
+      diag_cannot_export_variable_named_keyword, "E0144",                      \
       diagnostic_severity::error, { identifier export_name; },                 \
       MESSAGE(QLJS_TRANSLATABLE("cannot export variable named keyword '{0}'"), \
               export_name))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_import_let, "E0010", diagnostic_severity::error,            \
+      diag_cannot_import_let, "E0010", diagnostic_severity::error,             \
       { source_code_span import_name; },                                       \
       MESSAGE(QLJS_TRANSLATABLE("cannot import 'let'"), import_name))          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_import_variable_named_keyword, "E0145",                     \
+      diag_cannot_import_variable_named_keyword, "E0145",                      \
       diagnostic_severity::error, { identifier import_name; },                 \
       MESSAGE(QLJS_TRANSLATABLE("cannot import variable named keyword '{0}'"), \
               import_name))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_refer_to_private_variable_without_object, "E0155",          \
+      diag_cannot_refer_to_private_variable_without_object, "E0155",           \
       diagnostic_severity::error, { identifier private_identifier; },          \
       MESSAGE(QLJS_TRANSLATABLE("cannot reference private variables without "  \
                                 "object; use 'this.'"),                        \
               private_identifier))                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_cannot_update_variable_during_declaration, "E0136",                \
+      diag_cannot_update_variable_during_declaration, "E0136",                 \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span declaring_token;                                      \
@@ -267,13 +267,13 @@
                   declaring_token))                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_catch_without_try, "E0117", diagnostic_severity::error,            \
+      diag_catch_without_try, "E0117", diagnostic_severity::error,             \
       { source_code_span catch_token; },                                       \
       MESSAGE(QLJS_TRANSLATABLE("unexpected 'catch' without 'try'"),           \
               catch_token))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_class_statement_not_allowed_in_body, "E0149",                      \
+      diag_class_statement_not_allowed_in_body, "E0149",                       \
       diagnostic_severity::error,                                              \
       {                                                                        \
         statement_kind kind_of_statement;                                      \
@@ -287,13 +287,13 @@
                   class_keyword, kind_of_statement))                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_character_disallowed_in_identifiers, "E0011",                      \
+      diag_character_disallowed_in_identifiers, "E0011",                       \
       diagnostic_severity::error, { source_code_span character; },             \
       MESSAGE(QLJS_TRANSLATABLE("character is not allowed in identifiers"),    \
               character))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_comma_not_allowed_after_spread_parameter, "E0070",                 \
+      diag_comma_not_allowed_after_spread_parameter, "E0070",                  \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span comma;                                                \
@@ -304,46 +304,46 @@
           comma))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_comma_not_allowed_between_class_methods, "E0209",                  \
+      diag_comma_not_allowed_between_class_methods, "E0209",                   \
       diagnostic_severity::error, { source_code_span unexpected_comma; },      \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("commas are not allowed between class methods"),   \
           unexpected_comma))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_config_json_syntax_error, "E0164", diagnostic_severity::error,     \
+      diag_config_json_syntax_error, "E0164", diagnostic_severity::error,      \
       { source_code_span where; },                                             \
       MESSAGE(QLJS_TRANSLATABLE("JSON syntax error"), where))                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_config_global_groups_group_type_mismatch, "E0170",                 \
+      diag_config_global_groups_group_type_mismatch, "E0170",                  \
       diagnostic_severity::error, { source_code_span group; },                 \
       MESSAGE(QLJS_TRANSLATABLE("\"global-groups\" entries must be strings"),  \
               group))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_config_global_groups_type_mismatch, "E0169",                       \
+      diag_config_global_groups_type_mismatch, "E0169",                        \
       diagnostic_severity::error, { source_code_span value; },                 \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "\"global-groups\" must be a boolean or an array"),          \
               value))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_config_globals_descriptor_type_mismatch, "E0171",                  \
+      diag_config_globals_descriptor_type_mismatch, "E0171",                   \
       diagnostic_severity::error, { source_code_span descriptor; },            \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "\"globals\" descriptor must be a boolean or an object"),    \
               descriptor))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_config_globals_descriptor_shadowable_type_mismatch, "E0166",       \
+      diag_config_globals_descriptor_shadowable_type_mismatch, "E0166",        \
       diagnostic_severity::error, { source_code_span value; },                 \
       MESSAGE(QLJS_TRANSLATABLE("\"globals\" descriptor \"shadowable\" "       \
                                 "property must be a boolean"),                 \
               value))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_config_globals_descriptor_writable_type_mismatch, "E0167",         \
+      diag_config_globals_descriptor_writable_type_mismatch, "E0167",          \
       diagnostic_severity::error, { source_code_span value; },                 \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("\"globals\" descriptor \"writable\" property "    \
@@ -351,29 +351,29 @@
           value))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_config_globals_type_mismatch, "E0168", diagnostic_severity::error, \
+      diag_config_globals_type_mismatch, "E0168", diagnostic_severity::error,  \
       { source_code_span value; },                                             \
       MESSAGE(QLJS_TRANSLATABLE("\"globals\" must be an object"), value))      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_depth_limit_exceeded, "E0203", diagnostic_severity::error,         \
+      diag_depth_limit_exceeded, "E0203", diagnostic_severity::error,          \
       { source_code_span token; },                                             \
       MESSAGE(QLJS_TRANSLATABLE("depth limit exceeded"), token))               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_dot_dot_is_not_an_operator, "E0053", diagnostic_severity::error,   \
+      diag_dot_dot_is_not_an_operator, "E0053", diagnostic_severity::error,    \
       { source_code_span dots; },                                              \
       MESSAGE(QLJS_TRANSLATABLE("missing property name between '.' and '.'"),  \
               dots))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_else_has_no_if, "E0065", diagnostic_severity::error,               \
+      diag_else_has_no_if, "E0065", diagnostic_severity::error,                \
       { source_code_span else_token; },                                        \
       MESSAGE(QLJS_TRANSLATABLE("'else' has no corresponding 'if'"),           \
               else_token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_equals_does_not_distribute_over_or, "E0190",                       \
+      diag_equals_does_not_distribute_over_or, "E0190",                        \
       diagnostic_severity::warning,                                            \
       {                                                                        \
         source_code_span or_operator;                                          \
@@ -385,26 +385,26 @@
           MESSAGE(QLJS_TRANSLATABLE("'{0}' found here"), equals_operator))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_escaped_character_disallowed_in_identifiers, "E0012",              \
+      diag_escaped_character_disallowed_in_identifiers, "E0012",               \
       diagnostic_severity::error, { source_code_span escape_sequence; },       \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "escaped character is not allowed in identifiers"),          \
               escape_sequence))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_escaped_code_point_in_identifier_out_of_range, "E0013",            \
+      diag_escaped_code_point_in_identifier_out_of_range, "E0013",             \
       diagnostic_severity::error, { source_code_span escape_sequence; },       \
       MESSAGE(QLJS_TRANSLATABLE("code point out of range"), escape_sequence))  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_escaped_code_point_in_unicode_out_of_range, "E0207",               \
+      diag_escaped_code_point_in_unicode_out_of_range, "E0207",                \
       diagnostic_severity::error, { source_code_span escape_sequence; },       \
       MESSAGE(QLJS_TRANSLATABLE("code point in Unicode escape sequence must "  \
                                 "not be greater than U+10FFFF"),               \
               escape_sequence))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_escaped_hyphen_not_allowed_in_jsx_tag, "E0019",                    \
+      diag_escaped_hyphen_not_allowed_in_jsx_tag, "E0019",                     \
       diagnostic_severity::error, { source_code_span escape_sequence; },       \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE(                                                   \
@@ -412,14 +412,14 @@
           escape_sequence))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_extra_comma_not_allowed_between_arguments, "E0068",                \
+      diag_extra_comma_not_allowed_between_arguments, "E0068",                 \
       diagnostic_severity::error, { source_code_span comma; },                 \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "extra ',' is not allowed between function call arguments"), \
               comma))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_as_before_imported_namespace_alias, "E0126",              \
+      diag_expected_as_before_imported_namespace_alias, "E0126",               \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span star_through_alias_token;                             \
@@ -430,55 +430,55 @@
               star_through_alias_token, star_token, alias))                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_comma_to_separate_object_literal_entries, "E0131",        \
+      diag_expected_comma_to_separate_object_literal_entries, "E0131",         \
       diagnostic_severity::error, { source_code_span unexpected_token; },      \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("expected ',' between object literal entries"),    \
           unexpected_token))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_expression_before_newline, "E0014",                       \
+      diag_expected_expression_before_newline, "E0014",                        \
       diagnostic_severity::error, { source_code_span where; },                 \
       MESSAGE(QLJS_TRANSLATABLE("expected expression before newline"), where)) \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_expression_for_switch_case, "E0140",                      \
+      diag_expected_expression_for_switch_case, "E0140",                       \
       diagnostic_severity::error, { source_code_span case_token; },            \
       MESSAGE(QLJS_TRANSLATABLE("expected expression after 'case'"),           \
               case_token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_expression_before_semicolon, "E0015",                     \
+      diag_expected_expression_before_semicolon, "E0015",                      \
       diagnostic_severity::error, { source_code_span where; },                 \
       MESSAGE(QLJS_TRANSLATABLE("expected expression before semicolon"),       \
               where))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_from_and_module_specifier, "E0129",                       \
+      diag_expected_from_and_module_specifier, "E0129",                        \
       diagnostic_severity::error, { source_code_span where; },                 \
       MESSAGE(QLJS_TRANSLATABLE("expected 'from \"name_of_module.mjs\"'"),     \
               where))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_from_before_module_specifier, "E0128",                    \
+      diag_expected_from_before_module_specifier, "E0128",                     \
       diagnostic_severity::error, { source_code_span module_specifier; },      \
       MESSAGE(QLJS_TRANSLATABLE("expected 'from' before module specifier"),    \
               module_specifier))                                               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_hex_digits_in_unicode_escape, "E0016",                    \
+      diag_expected_hex_digits_in_unicode_escape, "E0016",                     \
       diagnostic_severity::error, { source_code_span escape_sequence; },       \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "expected hexadecimal digits in Unicode escape sequence"),   \
               escape_sequence))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_left_curly, "E0107", diagnostic_severity::error,          \
+      diag_expected_left_curly, "E0107", diagnostic_severity::error,           \
       { source_code_span expected_left_curly; },                               \
       MESSAGE(QLJS_TRANSLATABLE("expected '{{'"), expected_left_curly))        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_right_paren_for_function_call, "E0141",                   \
+      diag_expected_right_paren_for_function_call, "E0141",                    \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span expected_right_paren;                                 \
@@ -490,14 +490,14 @@
                   left_paren))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_parentheses_around_do_while_condition, "E0084",           \
+      diag_expected_parentheses_around_do_while_condition, "E0084",            \
       diagnostic_severity::error, { source_code_span condition; },             \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "do-while loop needs parentheses around condition"),         \
               condition))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_parenthesis_around_do_while_condition, "E0085",           \
+      diag_expected_parenthesis_around_do_while_condition, "E0085",            \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span where;                                                \
@@ -508,14 +508,14 @@
               where, token))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_parentheses_around_if_condition, "E0017",                 \
+      diag_expected_parentheses_around_if_condition, "E0017",                  \
       diagnostic_severity::error, { source_code_span condition; },             \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "if statement needs parentheses around condition"),          \
               condition))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_parenthesis_around_if_condition, "E0018",                 \
+      diag_expected_parenthesis_around_if_condition, "E0018",                  \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span where;                                                \
@@ -526,14 +526,14 @@
           where, token))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_parentheses_around_switch_condition, "E0091",             \
+      diag_expected_parentheses_around_switch_condition, "E0091",              \
       diagnostic_severity::error, { source_code_span condition; },             \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "switch statement needs parentheses around condition"),      \
               condition))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_parenthesis_around_switch_condition, "E0092",             \
+      diag_expected_parenthesis_around_switch_condition, "E0092",              \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span where;                                                \
@@ -544,14 +544,14 @@
               where, token))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_parentheses_around_while_condition, "E0087",              \
+      diag_expected_parentheses_around_while_condition, "E0087",               \
       diagnostic_severity::error, { source_code_span condition; },             \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("while loop needs parentheses around condition"),  \
           condition))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_parenthesis_around_while_condition, "E0088",              \
+      diag_expected_parenthesis_around_while_condition, "E0088",               \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span where;                                                \
@@ -562,14 +562,14 @@
           where, token))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_parentheses_around_with_expression, "E0089",              \
+      diag_expected_parentheses_around_with_expression, "E0089",               \
       diagnostic_severity::error, { source_code_span expression; },            \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "with statement needs parentheses around expression"),       \
               expression))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_parenthesis_around_with_expression, "E0090",              \
+      diag_expected_parenthesis_around_with_expression, "E0090",               \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span where;                                                \
@@ -580,42 +580,42 @@
               where, token))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_variable_name_for_catch, "E0135",                         \
+      diag_expected_variable_name_for_catch, "E0135",                          \
       diagnostic_severity::error, { source_code_span unexpected_token; },      \
       MESSAGE(QLJS_TRANSLATABLE("expected variable name for 'catch'"),         \
               unexpected_token))                                               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_expected_variable_name_for_import_as, "E0175",                     \
+      diag_expected_variable_name_for_import_as, "E0175",                      \
       diagnostic_severity::error, { source_code_span unexpected_token; },      \
       MESSAGE(QLJS_TRANSLATABLE("expected variable name for 'import'-'as'"),   \
               unexpected_token))                                               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_exporting_requires_default, "E0067", diagnostic_severity::error,   \
+      diag_exporting_requires_default, "E0067", diagnostic_severity::error,    \
       { source_code_span expression; },                                        \
       MESSAGE(QLJS_TRANSLATABLE("exporting requires 'default'"), expression))  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_exporting_requires_curlies, "E0066", diagnostic_severity::error,   \
+      diag_exporting_requires_curlies, "E0066", diagnostic_severity::error,    \
       { source_code_span names; },                                             \
       MESSAGE(QLJS_TRANSLATABLE("exporting requires '{{' and '}'"), names))    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_exporting_string_name_only_allowed_for_export_from, "E0153",       \
+      diag_exporting_string_name_only_allowed_for_export_from, "E0153",        \
       diagnostic_severity::error, { source_code_span export_name; },           \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "forwarding exports are only allowed in export-from"),       \
               export_name))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_finally_without_try, "E0118", diagnostic_severity::error,          \
+      diag_finally_without_try, "E0118", diagnostic_severity::error,           \
       { source_code_span finally_token; },                                     \
       MESSAGE(QLJS_TRANSLATABLE("unexpected 'finally' without 'try'"),         \
               finally_token))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_function_statement_not_allowed_in_body, "E0148",                   \
+      diag_function_statement_not_allowed_in_body, "E0148",                    \
       diagnostic_severity::error,                                              \
       {                                                                        \
         statement_kind kind_of_statement;                                      \
@@ -630,14 +630,14 @@
               function_keywords, kind_of_statement))                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_generator_function_star_belongs_after_keyword_function, "E0204",   \
+      diag_generator_function_star_belongs_after_keyword_function, "E0204",    \
       diagnostic_severity::error, { source_code_span star; },                  \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "generator function '*' belongs after keyword function"),    \
               star))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_generator_function_star_belongs_before_name, "E0133",              \
+      diag_generator_function_star_belongs_before_name, "E0133",               \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span function_name;                                        \
@@ -648,42 +648,42 @@
               star))                                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_in_disallowed_in_c_style_for_loop, "E0108",                        \
+      diag_in_disallowed_in_c_style_for_loop, "E0108",                         \
       diagnostic_severity::error, { source_code_span in_token; },              \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "'in' disallowed in C-style for loop initializer"),          \
               in_token))                                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_indexing_requires_expression, "E0075", diagnostic_severity::error, \
+      diag_indexing_requires_expression, "E0075", diagnostic_severity::error,  \
       { source_code_span squares; },                                           \
       MESSAGE(QLJS_TRANSLATABLE("indexing requires an expression"), squares))  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_invalid_expression_left_of_assignment, "E0020",                    \
+      diag_invalid_expression_left_of_assignment, "E0020",                     \
       diagnostic_severity::error, { source_code_span where; },                 \
       MESSAGE(QLJS_TRANSLATABLE("invalid expression left of assignment"),      \
               where))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_invalid_hex_escape_sequence, "E0060", diagnostic_severity::error,  \
+      diag_invalid_hex_escape_sequence, "E0060", diagnostic_severity::error,   \
       { source_code_span escape_sequence; },                                   \
       MESSAGE(QLJS_TRANSLATABLE("invalid hex escape sequence: {0}"),           \
               escape_sequence))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_invalid_lone_literal_in_object_literal, "E0021",                   \
+      diag_invalid_lone_literal_in_object_literal, "E0021",                    \
       diagnostic_severity::error, { source_code_span where; },                 \
       MESSAGE(QLJS_TRANSLATABLE("invalid lone literal in object literal"),     \
               where))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_invalid_parameter, "E0151", diagnostic_severity::error,            \
+      diag_invalid_parameter, "E0151", diagnostic_severity::error,             \
       { source_code_span parameter; },                                         \
       MESSAGE(QLJS_TRANSLATABLE("invalid function parameter"), parameter))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_invalid_quotes_around_string_literal, "E0197",                     \
+      diag_invalid_quotes_around_string_literal, "E0197",                      \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span opening_quote;                                        \
@@ -694,7 +694,7 @@
               opening_quote, suggested_quote))                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_invalid_rhs_for_dot_operator, "E0074", diagnostic_severity::error, \
+      diag_invalid_rhs_for_dot_operator, "E0074", diagnostic_severity::error,  \
       { source_code_span dot; },                                               \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "'.' operator needs a key name; use + to concatenate "       \
@@ -702,12 +702,12 @@
               dot))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_invalid_utf_8_sequence, "E0022", diagnostic_severity::error,       \
+      diag_invalid_utf_8_sequence, "E0022", diagnostic_severity::error,        \
       { source_code_span sequence; },                                          \
       MESSAGE(QLJS_TRANSLATABLE("invalid UTF-8 sequence"), sequence))          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_jsx_attribute_has_wrong_capitalization, "E0192",                   \
+      diag_jsx_attribute_has_wrong_capitalization, "E0192",                    \
       diagnostic_severity::error,                                              \
       {                                                                        \
         identifier attribute_name;                                             \
@@ -718,7 +718,7 @@
               attribute_name, expected_attribute_name))                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_jsx_attribute_renamed_by_react, "E0193",                           \
+      diag_jsx_attribute_renamed_by_react, "E0193",                            \
       diagnostic_severity::error,                                              \
       {                                                                        \
         identifier attribute_name;                                             \
@@ -729,7 +729,7 @@
               attribute_name, react_attribute_name))                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_jsx_event_attribute_should_be_camel_case, "E0191",                 \
+      diag_jsx_event_attribute_should_be_camel_case, "E0191",                  \
       diagnostic_severity::error,                                              \
       {                                                                        \
         identifier attribute_name;                                             \
@@ -739,19 +739,19 @@
               attribute_name, expected_attribute_name))                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_jsx_not_yet_implemented, "E0177", diagnostic_severity::error,      \
+      diag_jsx_not_yet_implemented, "E0177", diagnostic_severity::error,       \
       { source_code_span jsx_start; },                                         \
       MESSAGE(QLJS_TRANSLATABLE("React/JSX is not yet implemented"),           \
               jsx_start))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_keywords_cannot_contain_escape_sequences, "E0023",                 \
+      diag_keywords_cannot_contain_escape_sequences, "E0023",                  \
       diagnostic_severity::error, { source_code_span escape_sequence; },       \
       MESSAGE(QLJS_TRANSLATABLE("keywords cannot contain escape sequences"),   \
               escape_sequence))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_label_named_await_not_allowed_in_async_function, "E0206",          \
+      diag_label_named_await_not_allowed_in_async_function, "E0206",           \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span await;                                                \
@@ -762,25 +762,25 @@
               await))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_legacy_octal_literal_may_not_be_big_int, "E0032",                  \
+      diag_legacy_octal_literal_may_not_be_big_int, "E0032",                   \
       diagnostic_severity::error, { source_code_span characters; },            \
       MESSAGE(QLJS_TRANSLATABLE("legacy octal literal may not be BigInt"),     \
               characters))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_legacy_octal_literal_may_not_contain_underscores, "E0152",         \
+      diag_legacy_octal_literal_may_not_contain_underscores, "E0152",          \
       diagnostic_severity::error, { source_code_span underscores; },           \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "legacy octal literals may not contain underscores"),        \
               underscores))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_let_with_no_bindings, "E0024", diagnostic_severity::error,         \
+      diag_let_with_no_bindings, "E0024", diagnostic_severity::error,          \
       { source_code_span where; },                                             \
       MESSAGE(QLJS_TRANSLATABLE("{0} with no bindings"), where))               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_lexical_declaration_not_allowed_in_body, "E0150",                  \
+      diag_lexical_declaration_not_allowed_in_body, "E0150",                   \
       diagnostic_severity::error,                                              \
       {                                                                        \
         statement_kind kind_of_statement;                                      \
@@ -795,20 +795,20 @@
               declaring_keyword, kind_of_statement))                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_functions_or_methods_should_not_have_arrow_operator, "E0174",      \
+      diag_functions_or_methods_should_not_have_arrow_operator, "E0174",       \
       diagnostic_severity::error, { source_code_span arrow_operator; },        \
       MESSAGE(QLJS_TRANSLATABLE("functions/methods should not have '=>'"),     \
               arrow_operator))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_methods_should_not_use_function_keyword, "E0072",                  \
+      diag_methods_should_not_use_function_keyword, "E0072",                   \
       diagnostic_severity::error, { source_code_span function_token; },        \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("methods should not use the 'function' keyword"),  \
           function_token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_mismatched_jsx_tags, "E0187", diagnostic_severity::error,          \
+      diag_mismatched_jsx_tags, "E0187", diagnostic_severity::error,           \
       {                                                                        \
         source_code_span opening_tag_name;                                     \
         source_code_span closing_tag_name;                                     \
@@ -820,7 +820,7 @@
                   opening_tag_name, opening_tag_name_pretty))                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_array_close, "E0157", diagnostic_severity::error,          \
+      diag_missing_array_close, "E0157", diagnostic_severity::error,           \
       {                                                                        \
         source_code_span left_square;                                          \
         source_code_span expected_right_square;                                \
@@ -830,71 +830,71 @@
           MESSAGE(QLJS_TRANSLATABLE("array started here"), left_square))       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_arrow_operator_in_arrow_function, "E0176",                 \
+      diag_missing_arrow_operator_in_arrow_function, "E0176",                  \
       diagnostic_severity::error, { source_code_span where; },                 \
       MESSAGE(QLJS_TRANSLATABLE("missing arrow operator for arrow function"),  \
               where))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_arrow_function_parameter_list, "E0105",                    \
+      diag_missing_arrow_function_parameter_list, "E0105",                     \
       diagnostic_severity::error, { source_code_span arrow; },                 \
       MESSAGE(QLJS_TRANSLATABLE("missing parameters for arrow function"),      \
               arrow))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_body_for_catch_clause, "E0119",                            \
-      diagnostic_severity::error, { source_code_span catch_token; },           \
+      diag_missing_body_for_catch_clause, "E0119", diagnostic_severity::error, \
+      { source_code_span catch_token; },                                       \
       MESSAGE(QLJS_TRANSLATABLE("missing body for catch clause"),              \
               catch_token))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_body_for_class, "E0111", diagnostic_severity::error,       \
+      diag_missing_body_for_class, "E0111", diagnostic_severity::error,        \
       { source_code_span class_keyword_and_name_and_heritage; },               \
       MESSAGE(QLJS_TRANSLATABLE("missing body for class"),                     \
               class_keyword_and_name_and_heritage))                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_body_for_do_while_statement, "E0101",                      \
+      diag_missing_body_for_do_while_statement, "E0101",                       \
       diagnostic_severity::error, { source_code_span do_token; },              \
       MESSAGE(QLJS_TRANSLATABLE("missing body for do-while loop"), do_token))  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_body_for_finally_clause, "E0121",                          \
+      diag_missing_body_for_finally_clause, "E0121",                           \
       diagnostic_severity::error, { source_code_span finally_token; },         \
       MESSAGE(QLJS_TRANSLATABLE("missing body for finally clause"),            \
               finally_token))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_body_for_for_statement, "E0094",                           \
+      diag_missing_body_for_for_statement, "E0094",                            \
       diagnostic_severity::error, { source_code_span for_and_header; },        \
       MESSAGE(QLJS_TRANSLATABLE("missing body for 'for' loop"),                \
               for_and_header))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_body_for_if_statement, "E0064",                            \
-      diagnostic_severity::error, { source_code_span expected_body; },         \
+      diag_missing_body_for_if_statement, "E0064", diagnostic_severity::error, \
+      { source_code_span expected_body; },                                     \
       MESSAGE(QLJS_TRANSLATABLE("missing body for 'if' statement"),            \
               expected_body))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_body_for_switch_statement, "E0106",                        \
+      diag_missing_body_for_switch_statement, "E0106",                         \
       diagnostic_severity::error, { source_code_span switch_and_condition; },  \
       MESSAGE(QLJS_TRANSLATABLE("missing body for 'switch' statement"),        \
               switch_and_condition))                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_body_for_try_statement, "E0120",                           \
+      diag_missing_body_for_try_statement, "E0120",                            \
       diagnostic_severity::error, { source_code_span try_token; },             \
       MESSAGE(QLJS_TRANSLATABLE("missing body for try statement"), try_token)) \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_body_for_while_statement, "E0104",                         \
+      diag_missing_body_for_while_statement, "E0104",                          \
       diagnostic_severity::error, { source_code_span while_and_condition; },   \
       MESSAGE(QLJS_TRANSLATABLE("missing body for while loop"),                \
               while_and_condition))                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_catch_or_finally_for_try_statement, "E0122",               \
+      diag_missing_catch_or_finally_for_try_statement, "E0122",                \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span expected_catch_or_finally;                            \
@@ -906,7 +906,7 @@
           MESSAGE(QLJS_TRANSLATABLE("try statement starts here"), try_token))  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_catch_variable_between_parentheses, "E0130",               \
+      diag_missing_catch_variable_between_parentheses, "E0130",                \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span left_paren_to_right_paren;                            \
@@ -918,20 +918,20 @@
               left_paren_to_right_paren))                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_comma_between_object_literal_entries, "E0025",             \
+      diag_missing_comma_between_object_literal_entries, "E0025",              \
       diagnostic_severity::error, { source_code_span where; },                 \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("missing comma between object literal entries"),   \
           where))                                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_comma_between_variable_declarations, "E0132",              \
+      diag_missing_comma_between_variable_declarations, "E0132",               \
       diagnostic_severity::error, { source_code_span expected_comma; },        \
       MESSAGE(QLJS_TRANSLATABLE("missing ',' between variable declarations"),  \
               expected_comma))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_colon_in_conditional_expression, "E0146",                  \
+      diag_missing_colon_in_conditional_expression, "E0146",                   \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span expected_colon;                                       \
@@ -943,37 +943,37 @@
                   question))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_condition_for_if_statement, "E0138",                       \
+      diag_missing_condition_for_if_statement, "E0138",                        \
       diagnostic_severity::error, { source_code_span if_keyword; },            \
       MESSAGE(QLJS_TRANSLATABLE("missing condition for if statement"),         \
               if_keyword))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_condition_for_while_statement, "E0139",                    \
+      diag_missing_condition_for_while_statement, "E0139",                     \
       diagnostic_severity::error, { source_code_span while_keyword; },         \
       MESSAGE(QLJS_TRANSLATABLE("missing condition for while statement"),      \
               while_keyword))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_condition_for_switch_statement, "E0137",                   \
+      diag_missing_condition_for_switch_statement, "E0137",                    \
       diagnostic_severity::error, { source_code_span switch_keyword; },        \
       MESSAGE(QLJS_TRANSLATABLE("missing condition for switch statement"),     \
               switch_keyword))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_dots_for_attribute_spread, "E0186",                        \
+      diag_missing_dots_for_attribute_spread, "E0186",                         \
       diagnostic_severity::error, { source_code_span expected_dots; },         \
       MESSAGE(QLJS_TRANSLATABLE("missing '...' in JSX attribute spread"),      \
               expected_dots))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_equal_after_variable, "E0202", diagnostic_severity::error, \
+      diag_missing_equal_after_variable, "E0202", diagnostic_severity::error,  \
       { source_code_span expected_equal; },                                    \
       MESSAGE(QLJS_TRANSLATABLE("missing '=' after variable"),                 \
               expected_equal))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_expression_between_parentheses, "E0078",                   \
+      diag_missing_expression_between_parentheses, "E0078",                    \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span left_paren_to_right_paren;                            \
@@ -984,13 +984,13 @@
               left_paren_to_right_paren))                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_for_loop_header, "E0125", diagnostic_severity::error,      \
+      diag_missing_for_loop_header, "E0125", diagnostic_severity::error,       \
       { source_code_span for_token; },                                         \
       MESSAGE(QLJS_TRANSLATABLE("missing header and body for 'for' loop"),     \
               for_token))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_for_loop_rhs_or_components_after_expression, "E0097",      \
+      diag_missing_for_loop_rhs_or_components_after_expression, "E0097",       \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span header;                                               \
@@ -1006,7 +1006,7 @@
               for_token))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_for_loop_rhs_or_components_after_declaration, "E0098",     \
+      diag_missing_for_loop_rhs_or_components_after_declaration, "E0098",      \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span header;                                               \
@@ -1018,59 +1018,59 @@
           header))                                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_function_parameter_list, "E0073",                          \
+      diag_missing_function_parameter_list, "E0073",                           \
       diagnostic_severity::error,                                              \
       { source_code_span expected_parameter_list; },                           \
       MESSAGE(QLJS_TRANSLATABLE("missing function parameter list"),            \
               expected_parameter_list))                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_function_body, "E0172", diagnostic_severity::error,        \
+      diag_missing_function_body, "E0172", diagnostic_severity::error,         \
       { source_code_span expected_body; },                                     \
       MESSAGE(QLJS_TRANSLATABLE("missing body for function"), expected_body))  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_header_of_for_loop, "E0096", diagnostic_severity::error,   \
+      diag_missing_header_of_for_loop, "E0096", diagnostic_severity::error,    \
       { source_code_span where; },                                             \
       MESSAGE(QLJS_TRANSLATABLE("missing for loop header"), where))            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_initializer_in_const_declaration, "E0205",                 \
+      diag_missing_initializer_in_const_declaration, "E0205",                  \
       diagnostic_severity::error, { source_code_span variable_name; },         \
       MESSAGE(QLJS_TRANSLATABLE("missing initializer in const declaration"),   \
               variable_name))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_key_for_object_entry, "E0154", diagnostic_severity::error, \
+      diag_missing_key_for_object_entry, "E0154", diagnostic_severity::error,  \
       { source_code_span expression; },                                        \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "unexpected expression; missing key for object entry"),      \
               expression))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_name_in_function_statement, "E0061",                       \
+      diag_missing_name_in_function_statement, "E0061",                        \
       diagnostic_severity::error, { source_code_span where; },                 \
       MESSAGE(QLJS_TRANSLATABLE("missing name in function statement"), where)) \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_name_in_class_statement, "E0080",                          \
+      diag_missing_name_in_class_statement, "E0080",                           \
       diagnostic_severity::error, { source_code_span class_keyword; },         \
       MESSAGE(QLJS_TRANSLATABLE("missing name of class"), class_keyword))      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_name_of_exported_class, "E0081",                           \
+      diag_missing_name_of_exported_class, "E0081",                            \
       diagnostic_severity::error, { source_code_span class_keyword; },         \
       MESSAGE(QLJS_TRANSLATABLE("missing name of exported class"),             \
               class_keyword))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_name_of_exported_function, "E0079",                        \
+      diag_missing_name_of_exported_function, "E0079",                         \
       diagnostic_severity::error, { source_code_span function_keyword; },      \
       MESSAGE(QLJS_TRANSLATABLE("missing name of exported function"),          \
               function_keyword))                                               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_name_or_parentheses_for_function, "E0062",                 \
+      diag_missing_name_or_parentheses_for_function, "E0062",                  \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span where;                                                \
@@ -1080,30 +1080,30 @@
               where))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_operand_for_operator, "E0026", diagnostic_severity::error, \
+      diag_missing_operand_for_operator, "E0026", diagnostic_severity::error,  \
       { source_code_span where; },                                             \
       MESSAGE(QLJS_TRANSLATABLE("missing operand for operator"), where))       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_redundant_delete_statement_on_variable, "E0086",                   \
+      diag_redundant_delete_statement_on_variable, "E0086",                    \
       diagnostic_severity::warning, { source_code_span delete_expression; },   \
       MESSAGE(QLJS_TRANSLATABLE("redundant delete statement on variable"),     \
               delete_expression))                                              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_if_after_else, "E0184", diagnostic_severity::error,        \
+      diag_missing_if_after_else, "E0184", diagnostic_severity::error,         \
       { source_code_span expected_if; },                                       \
       MESSAGE(QLJS_TRANSLATABLE("missing 'if' after 'else'"), expected_if))    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_operator_between_expression_and_arrow_function, "E0063",   \
+      diag_missing_operator_between_expression_and_arrow_function, "E0063",    \
       diagnostic_severity::error, { source_code_span where; },                 \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "missing operator between expression and arrow function"),   \
               where))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_parentheses_around_exponent_with_unary_lhs, "E0195",       \
+      diag_missing_parentheses_around_exponent_with_unary_lhs, "E0195",        \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span exponent_expression;                                  \
@@ -1118,7 +1118,7 @@
               unary_operator))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_parentheses_around_self_invoked_function, "E0211",         \
+      diag_missing_parentheses_around_self_invoked_function, "E0211",          \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span invocation;                                           \
@@ -1130,7 +1130,7 @@
           MESSAGE(QLJS_TRANSLATABLE("function starts here"), func_start))      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_parentheses_around_unary_lhs_of_exponent, "E0194",         \
+      diag_missing_parentheses_around_unary_lhs_of_exponent, "E0194",          \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span unary_expression;                                     \
@@ -1145,25 +1145,25 @@
               exponent_operator, unary_expression))                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_property_name_for_dot_operator, "E0142",                   \
+      diag_missing_property_name_for_dot_operator, "E0142",                    \
       diagnostic_severity::error, { source_code_span dot; },                   \
       MESSAGE(QLJS_TRANSLATABLE("missing property name after '.' operator"),   \
               dot))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_semicolon_after_statement, "E0027",                        \
+      diag_missing_semicolon_after_statement, "E0027",                         \
       diagnostic_severity::error, { source_code_span where; },                 \
       MESSAGE(QLJS_TRANSLATABLE("missing semicolon after statement"), where))  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_semicolon_between_for_loop_condition_and_update, "E0100",  \
+      diag_missing_semicolon_between_for_loop_condition_and_update, "E0100",   \
       diagnostic_severity::error, { source_code_span expected_semicolon; },    \
       MESSAGE(QLJS_TRANSLATABLE("missing semicolon between condition and "     \
                                 "update parts of for loop"),                   \
               expected_semicolon))                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_semicolon_between_for_loop_init_and_condition, "E0099",    \
+      diag_missing_semicolon_between_for_loop_init_and_condition, "E0099",     \
       diagnostic_severity::error, { source_code_span expected_semicolon; },    \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("missing semicolon between init and condition "    \
@@ -1171,7 +1171,7 @@
           expected_semicolon))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_token_after_export, "E0113", diagnostic_severity::error,   \
+      diag_missing_token_after_export, "E0113", diagnostic_severity::error,    \
       { source_code_span export_token; },                                      \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "incomplete export; expected 'export default ...' or "       \
@@ -1180,17 +1180,17 @@
               export_token))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_value_for_object_literal_entry, "E0083",                   \
+      diag_missing_value_for_object_literal_entry, "E0083",                    \
       diagnostic_severity::error, { source_code_span key; },                   \
       MESSAGE(QLJS_TRANSLATABLE("missing value for object property"), key))    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_variable_name_in_declaration, "E0123",                     \
+      diag_missing_variable_name_in_declaration, "E0123",                      \
       diagnostic_severity::error, { source_code_span equal_token; },           \
       MESSAGE(QLJS_TRANSLATABLE("missing variable name"), equal_token))        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_missing_while_and_condition_for_do_while_statement, "E0103",       \
+      diag_missing_while_and_condition_for_do_while_statement, "E0103",        \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span do_token;                                             \
@@ -1203,7 +1203,7 @@
                   do_token))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_newline_not_allowed_between_async_and_parameter_list, "E0163",     \
+      diag_newline_not_allowed_between_async_and_parameter_list, "E0163",      \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span async;                                                \
@@ -1214,46 +1214,46 @@
               async) MESSAGE(QLJS_TRANSLATABLE("arrow is here"), arrow))       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_number_literal_contains_consecutive_underscores, "E0028",          \
+      diag_number_literal_contains_consecutive_underscores, "E0028",           \
       diagnostic_severity::error, { source_code_span underscores; },           \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "number literal contains consecutive underscores"),          \
               underscores))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_number_literal_contains_trailing_underscores, "E0029",             \
+      diag_number_literal_contains_trailing_underscores, "E0029",              \
       diagnostic_severity::error, { source_code_span underscores; },           \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("number literal contains trailing underscore(s)"), \
           underscores))                                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_octal_literal_may_not_have_exponent, "E0030",                      \
+      diag_octal_literal_may_not_have_exponent, "E0030",                       \
       diagnostic_severity::error, { source_code_span characters; },            \
       MESSAGE(QLJS_TRANSLATABLE("octal literal may not have exponent"),        \
               characters))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_octal_literal_may_not_have_decimal, "E0031",                       \
+      diag_octal_literal_may_not_have_decimal, "E0031",                        \
       diagnostic_severity::error, { source_code_span characters; },            \
       MESSAGE(QLJS_TRANSLATABLE("octal literal may not have decimal"),         \
               characters))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_private_properties_are_not_allowed_in_object_literals, "E0156",    \
+      diag_private_properties_are_not_allowed_in_object_literals, "E0156",     \
       diagnostic_severity::error, { identifier private_identifier; },          \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "private properties are not allowed in object literals"),    \
               private_identifier))                                             \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_redeclaration_of_global_variable, "E0033",                         \
+      diag_redeclaration_of_global_variable, "E0033",                          \
       diagnostic_severity::error, { identifier redeclaration; },               \
       MESSAGE(QLJS_TRANSLATABLE("redeclaration of global variable"),           \
               redeclaration))                                                  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_redeclaration_of_variable, "E0034", diagnostic_severity::error,    \
+      diag_redeclaration_of_variable, "E0034", diagnostic_severity::error,     \
       {                                                                        \
         identifier redeclaration;                                              \
         identifier original_declaration;                                       \
@@ -1264,77 +1264,77 @@
                   original_declaration))                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_regexp_literal_flags_cannot_contain_unicode_escapes, "E0035",      \
+      diag_regexp_literal_flags_cannot_contain_unicode_escapes, "E0035",       \
       diagnostic_severity::error, { source_code_span escape_sequence; },       \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "RegExp literal flags cannot contain Unicode escapes"),      \
               escape_sequence))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_return_statement_returns_nothing, "E0179",                         \
+      diag_return_statement_returns_nothing, "E0179",                          \
       diagnostic_severity::warning, { source_code_span return_keyword; },      \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("return statement returns nothing (undefined)"),   \
           return_keyword))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_statement_before_first_switch_case, "E0198",                       \
+      diag_statement_before_first_switch_case, "E0198",                        \
       diagnostic_severity::error, { source_code_span unexpected_statement; },  \
       MESSAGE(QLJS_TRANSLATABLE("unexpected statement before first switch "    \
                                 "case, expected 'case' or 'default'"),         \
               unexpected_statement))                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_stray_comma_in_let_statement, "E0036", diagnostic_severity::error, \
+      diag_stray_comma_in_let_statement, "E0036", diagnostic_severity::error,  \
       { source_code_span where; },                                             \
       MESSAGE(QLJS_TRANSLATABLE("stray comma in let statement"), where))       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_stray_comma_in_parameter, "E0180", diagnostic_severity::error,     \
+      diag_stray_comma_in_parameter, "E0180", diagnostic_severity::error,      \
       { source_code_span comma; },                                             \
       MESSAGE(QLJS_TRANSLATABLE("stray comma in function parameter"), comma))  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_typescript_enum_not_implemented, "E0127",                          \
+      diag_typescript_enum_not_implemented, "E0127",                           \
       diagnostic_severity::error, { source_code_span enum_keyword; },          \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript's 'enum' feature is not yet "      \
                                 "implemented by quick-lint-js"),               \
               enum_keyword))                                                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_typescript_style_const_field, "E0165", diagnostic_severity::error, \
+      diag_typescript_style_const_field, "E0165", diagnostic_severity::error,  \
       { source_code_span const_token; },                                       \
       MESSAGE(QLJS_TRANSLATABLE("const fields within classes are only "        \
                                 "allowed in TypeScript, not JavaScript"),      \
               const_token))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unclosed_block_comment, "E0037", diagnostic_severity::error,       \
+      diag_unclosed_block_comment, "E0037", diagnostic_severity::error,        \
       { source_code_span comment_open; },                                      \
       MESSAGE(QLJS_TRANSLATABLE("unclosed block comment"), comment_open))      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unclosed_class_block, "E0199", diagnostic_severity::error,         \
+      diag_unclosed_class_block, "E0199", diagnostic_severity::error,          \
       { source_code_span block_open; },                                        \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("unclosed class; expected '}' by end of file"),    \
           block_open))                                                         \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unclosed_code_block, "E0134", diagnostic_severity::error,          \
+      diag_unclosed_code_block, "E0134", diagnostic_severity::error,           \
       { source_code_span block_open; },                                        \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "unclosed code block; expected '}' by end of file"),         \
               block_open))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unclosed_identifier_escape_sequence, "E0038",                      \
+      diag_unclosed_identifier_escape_sequence, "E0038",                       \
       diagnostic_severity::error, { source_code_span escape_sequence; },       \
       MESSAGE(QLJS_TRANSLATABLE("unclosed identifier escape sequence"),        \
               escape_sequence))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unclosed_object_literal, "E0161", diagnostic_severity::error,      \
+      diag_unclosed_object_literal, "E0161", diagnostic_severity::error,       \
       {                                                                        \
         source_code_span object_open;                                          \
         source_code_span expected_object_close;                                \
@@ -1345,33 +1345,33 @@
                   object_open))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unclosed_regexp_literal, "E0039", diagnostic_severity::error,      \
+      diag_unclosed_regexp_literal, "E0039", diagnostic_severity::error,       \
       { source_code_span regexp_literal; },                                    \
       MESSAGE(QLJS_TRANSLATABLE("unclosed regexp literal"), regexp_literal))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unclosed_string_literal, "E0040", diagnostic_severity::error,      \
+      diag_unclosed_string_literal, "E0040", diagnostic_severity::error,       \
       { source_code_span string_literal; },                                    \
       MESSAGE(QLJS_TRANSLATABLE("unclosed string literal"), string_literal))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unclosed_jsx_string_literal, "E0181", diagnostic_severity::error,  \
+      diag_unclosed_jsx_string_literal, "E0181", diagnostic_severity::error,   \
       { source_code_span string_literal_begin; },                              \
       MESSAGE(QLJS_TRANSLATABLE("unclosed string literal"),                    \
               string_literal_begin))                                           \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unclosed_template, "E0041", diagnostic_severity::error,            \
+      diag_unclosed_template, "E0041", diagnostic_severity::error,             \
       { source_code_span incomplete_template; },                               \
       MESSAGE(QLJS_TRANSLATABLE("unclosed template"), incomplete_template))    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_at_character, "E0042", diagnostic_severity::error,      \
+      diag_unexpected_at_character, "E0042", diagnostic_severity::error,       \
       { source_code_span character; },                                         \
       MESSAGE(QLJS_TRANSLATABLE("unexpected '@'"), character))                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_arrow_after_expression, "E0160",                        \
+      diag_unexpected_arrow_after_expression, "E0160",                         \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span arrow;                                                \
@@ -1383,7 +1383,7 @@
                   expression))                                                 \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_arrow_after_literal, "E0158",                           \
+      diag_unexpected_arrow_after_literal, "E0158",                            \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span arrow;                                                \
@@ -1395,101 +1395,101 @@
                   literal_parameter))                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_backslash_in_identifier, "E0043",                       \
+      diag_unexpected_backslash_in_identifier, "E0043",                        \
       diagnostic_severity::error, { source_code_span backslash; },             \
       MESSAGE(QLJS_TRANSLATABLE("unexpected '\\' in identifier"), backslash))  \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_case_outside_switch_statement, "E0115",                 \
+      diag_unexpected_case_outside_switch_statement, "E0115",                  \
       diagnostic_severity::error, { source_code_span case_token; },            \
       MESSAGE(QLJS_TRANSLATABLE("unexpected 'case' outside switch statement"), \
               case_token))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_characters_in_number, "E0044",                          \
+      diag_unexpected_characters_in_number, "E0044",                           \
       diagnostic_severity::error, { source_code_span characters; },            \
       MESSAGE(QLJS_TRANSLATABLE("unexpected characters in number literal"),    \
               characters))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_control_character, "E0045", diagnostic_severity::error, \
+      diag_unexpected_control_character, "E0045", diagnostic_severity::error,  \
       { source_code_span character; },                                         \
       MESSAGE(QLJS_TRANSLATABLE("unexpected control character"), character))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_characters_in_binary_number, "E0046",                   \
+      diag_unexpected_characters_in_binary_number, "E0046",                    \
       diagnostic_severity::error, { source_code_span characters; },            \
       MESSAGE(QLJS_TRANSLATABLE("unexpected characters in binary literal"),    \
               characters))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_characters_in_octal_number, "E0047",                    \
+      diag_unexpected_characters_in_octal_number, "E0047",                     \
       diagnostic_severity::error, { source_code_span characters; },            \
       MESSAGE(QLJS_TRANSLATABLE("unexpected characters in octal literal"),     \
               characters))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_characters_in_hex_number, "E0048",                      \
+      diag_unexpected_characters_in_hex_number, "E0048",                       \
       diagnostic_severity::error, { source_code_span characters; },            \
       MESSAGE(QLJS_TRANSLATABLE("unexpected characters in hex literal"),       \
               characters))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_default_outside_switch_statement, "E0116",              \
+      diag_unexpected_default_outside_switch_statement, "E0116",               \
       diagnostic_severity::error, { source_code_span default_token; },         \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("unexpected 'default' outside switch statement"),  \
           default_token))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_greater_in_jsx_text, "E0182",                           \
+      diag_unexpected_greater_in_jsx_text, "E0182",                            \
       diagnostic_severity::error, { source_code_span greater; },               \
       MESSAGE(QLJS_TRANSLATABLE("'>' is not allowed directly in JSX text; "    \
                                 "write {{'>'} or &gt; instead"),               \
               greater))                                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_literal_in_parameter_list, "E0159",                     \
+      diag_unexpected_literal_in_parameter_list, "E0159",                      \
       diagnostic_severity::error, { source_code_span literal; },               \
       MESSAGE(QLJS_TRANSLATABLE("unexpected literal in parameter list; "       \
                                 "expected parameter name"),                    \
               literal))                                                        \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_right_curly_in_jsx_text, "E0183",                       \
+      diag_unexpected_right_curly_in_jsx_text, "E0183",                        \
       diagnostic_severity::error, { source_code_span right_curly; },           \
       MESSAGE(QLJS_TRANSLATABLE("'}' is not allowed directly in JSX text; "    \
                                 "write {{'}'} instead"),                       \
               right_curly))                                                    \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_semicolon_in_c_style_for_loop, "E0102",                 \
+      diag_unexpected_semicolon_in_c_style_for_loop, "E0102",                  \
       diagnostic_severity::error, { source_code_span semicolon; },             \
       MESSAGE(QLJS_TRANSLATABLE("C-style for loops have only three "           \
                                 "semicolon-separated components"),             \
               semicolon))                                                      \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_semicolon_in_for_in_loop, "E0110",                      \
+      diag_unexpected_semicolon_in_for_in_loop, "E0110",                       \
       diagnostic_severity::error, { source_code_span semicolon; },             \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("for-in loop expression cannot have semicolons"),  \
           semicolon))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_semicolon_in_for_of_loop, "E0109",                      \
+      diag_unexpected_semicolon_in_for_of_loop, "E0109",                       \
       diagnostic_severity::error, { source_code_span semicolon; },             \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("for-of loop expression cannot have semicolons"),  \
           semicolon))                                                          \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unopened_block_comment, "E0210", diagnostic_severity::error,       \
+      diag_unopened_block_comment, "E0210", diagnostic_severity::error,        \
       { source_code_span comment_close; },                                     \
       MESSAGE(QLJS_TRANSLATABLE("unopened block comment"), comment_close))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unused_variable_shadows, "E0196", diagnostic_severity::warning,    \
+      diag_unused_variable_shadows, "E0196", diagnostic_severity::warning,     \
       {                                                                        \
         identifier shadowing_declaration;                                      \
         identifier shadowed_declaration;                                       \
@@ -1500,38 +1500,38 @@
                   shadowed_declaration))                                       \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_no_digits_in_binary_number, "E0049", diagnostic_severity::error,   \
+      diag_no_digits_in_binary_number, "E0049", diagnostic_severity::error,    \
       { source_code_span characters; },                                        \
       MESSAGE(QLJS_TRANSLATABLE("binary number literal has no digits"),        \
               characters))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_no_digits_in_hex_number, "E0050", diagnostic_severity::error,      \
+      diag_no_digits_in_hex_number, "E0050", diagnostic_severity::error,       \
       { source_code_span characters; },                                        \
       MESSAGE(QLJS_TRANSLATABLE("hex number literal has no digits"),           \
               characters))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_no_digits_in_octal_number, "E0051", diagnostic_severity::error,    \
+      diag_no_digits_in_octal_number, "E0051", diagnostic_severity::error,     \
       { source_code_span characters; },                                        \
       MESSAGE(QLJS_TRANSLATABLE("octal number literal has no digits"),         \
               characters))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_hash_character, "E0052", diagnostic_severity::error,    \
+      diag_unexpected_hash_character, "E0052", diagnostic_severity::error,     \
       { source_code_span where; },                                             \
       MESSAGE(QLJS_TRANSLATABLE("unexpected '#'"), where))                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_bom_before_shebang, "E0095",                            \
-      diagnostic_severity::error, { source_code_span bom; },                   \
+      diag_unexpected_bom_before_shebang, "E0095", diagnostic_severity::error, \
+      { source_code_span bom; },                                               \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "unicode byte order mark (BOM) cannot appear before #! "     \
                   "at beginning of script"),                                   \
               bom))                                                            \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_identifier_in_expression, "E0147",                      \
+      diag_unexpected_identifier_in_expression, "E0147",                       \
       diagnostic_severity::error, { identifier unexpected; },                  \
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE(                                                   \
@@ -1541,13 +1541,13 @@
   /* NOTE(strager): Try not to use this error. Find or make a more descriptive \
      and helpful error instead. */                                             \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_token, "E0054", diagnostic_severity::error,             \
+      diag_unexpected_token, "E0054", diagnostic_severity::error,              \
       { source_code_span token; },                                             \
       MESSAGE(QLJS_TRANSLATABLE("unexpected token"), token))                   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_token_after_export, "E0112",                            \
-      diagnostic_severity::error, { source_code_span unexpected_token; },      \
+      diag_unexpected_token_after_export, "E0112", diagnostic_severity::error, \
+      { source_code_span unexpected_token; },                                  \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "unexpected token in export; expected 'export default ...' " \
                   "or 'export {{name}' or 'export * from ...' or 'export "     \
@@ -1555,34 +1555,34 @@
               unexpected_token))                                               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unexpected_token_in_variable_declaration, "E0114",                 \
+      diag_unexpected_token_in_variable_declaration, "E0114",                  \
       diagnostic_severity::error, { source_code_span unexpected_token; },      \
       MESSAGE(QLJS_TRANSLATABLE("unexpected token in variable declaration; "   \
                                 "expected variable name"),                     \
               unexpected_token))                                               \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unmatched_indexing_bracket, "E0055", diagnostic_severity::error,   \
+      diag_unmatched_indexing_bracket, "E0055", diagnostic_severity::error,    \
       { source_code_span left_square; },                                       \
       MESSAGE(QLJS_TRANSLATABLE("unmatched indexing bracket"), left_square))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unmatched_parenthesis, "E0056", diagnostic_severity::error,        \
+      diag_unmatched_parenthesis, "E0056", diagnostic_severity::error,         \
       { source_code_span where; },                                             \
       MESSAGE(QLJS_TRANSLATABLE("unmatched parenthesis"), where))              \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_unmatched_right_curly, "E0143", diagnostic_severity::error,        \
+      diag_unmatched_right_curly, "E0143", diagnostic_severity::error,         \
       { source_code_span right_curly; },                                       \
       MESSAGE(QLJS_TRANSLATABLE("unmatched '}'"), right_curly))                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_use_of_undeclared_variable, "E0057", diagnostic_severity::warning, \
+      diag_use_of_undeclared_variable, "E0057", diagnostic_severity::warning,  \
       { identifier name; },                                                    \
       MESSAGE(QLJS_TRANSLATABLE("use of undeclared variable: {0}"), name))     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_variable_used_before_declaration, "E0058",                         \
+      diag_variable_used_before_declaration, "E0058",                          \
       diagnostic_severity::error,                                              \
       {                                                                        \
         identifier use;                                                        \
@@ -1592,7 +1592,7 @@
           MESSAGE(QLJS_TRANSLATABLE("variable declared here"), declaration))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_function_call_before_declaration_in_block_scope, "E0077",          \
+      diag_function_call_before_declaration_in_block_scope, "E0077",           \
       diagnostic_severity::warning,                                            \
       {                                                                        \
         identifier use;                                                        \
@@ -1604,14 +1604,14 @@
           MESSAGE(QLJS_TRANSLATABLE("function declared here"), declaration))   \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_invalid_break, "E0200", diagnostic_severity::error,                \
+      diag_invalid_break, "E0200", diagnostic_severity::error,                 \
       { source_code_span break_statement; },                                   \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
                   "break can only be used inside of a loop or switch"),        \
               break_statement))                                                \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
-      error_invalid_continue, "E0201", diagnostic_severity::error,             \
+      diag_invalid_continue, "E0201", diagnostic_severity::error,              \
       { source_code_span continue_statement; },                                \
       MESSAGE(QLJS_TRANSLATABLE("continue can only be used inside of a loop"), \
               continue_statement))                                             \

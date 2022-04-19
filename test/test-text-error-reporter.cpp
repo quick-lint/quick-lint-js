@@ -54,12 +54,12 @@ TEST_F(test_text_error_reporter, change_source) {
 
   padded_string input_1(u8"aaaaaaaa"_sv);
   reporter.set_source(&input_1, /*file_name=*/"hello.js");
-  reporter.report(error_assignment_to_const_global_variable{
+  reporter.report(diag_assignment_to_const_global_variable{
       identifier(source_code_span(&input_1[4 - 1], &input_1[4 - 1]))});
 
   padded_string input_2(u8"bbbbbbbb"_sv);
   reporter.set_source(&input_2, /*file_name=*/"world.js");
-  reporter.report(error_assignment_to_const_global_variable{
+  reporter.report(diag_assignment_to_const_global_variable{
       identifier(source_code_span(&input_2[5 - 1], &input_2[5 - 1]))});
 
   EXPECT_EQ(
@@ -76,7 +76,7 @@ TEST_F(test_text_error_reporter, assignment_before_variable_declaration) {
   ASSERT_EQ(declaration_span.string_view(), u8"x");
 
   this->make_reporter(&input).report(
-      error_assignment_before_variable_declaration{
+      diag_assignment_before_variable_declaration{
           .assignment = identifier(assignment_span),
           .declaration = identifier(declaration_span)});
   EXPECT_EQ(
@@ -91,7 +91,7 @@ TEST_F(test_text_error_reporter, assignment_to_const_global_variable) {
   ASSERT_EQ(infinity_span.string_view(), u8"Infinity");
 
   this->make_reporter(&input).report(
-      error_assignment_to_const_global_variable{identifier(infinity_span)});
+      diag_assignment_to_const_global_variable{identifier(infinity_span)});
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:4: error: assignment to const global variable [E0002]\n");
 }
@@ -101,7 +101,7 @@ TEST_F(test_text_error_reporter, expected_parenthesis_around_if_condition) {
   source_code_span parenthesis_span(&input[4 - 1], &input[4 - 1]);
 
   this->make_reporter(&input).report(
-      error_expected_parenthesis_around_if_condition{
+      diag_expected_parenthesis_around_if_condition{
           .where = parenthesis_span,
           .token = '(',
       });
@@ -117,7 +117,7 @@ TEST_F(test_text_error_reporter, redeclaration_of_variable) {
   source_code_span redeclaration_span(&input[16 - 1], &input[20 + 1 - 1]);
   ASSERT_EQ(redeclaration_span.string_view(), u8"myvar");
 
-  this->make_reporter(&input).report(error_redeclaration_of_variable{
+  this->make_reporter(&input).report(diag_redeclaration_of_variable{
       identifier(redeclaration_span), identifier(original_declaration_span)});
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:16: error: redeclaration of variable: myvar [E0034]\n"
@@ -129,8 +129,7 @@ TEST_F(test_text_error_reporter, unexpected_hash_character) {
   source_code_span hash_span(&input[1 - 1], &input[1 + 1 - 1]);
   ASSERT_EQ(hash_span.string_view(), u8"#");
 
-  this->make_reporter(&input).report(
-      error_unexpected_hash_character{hash_span});
+  this->make_reporter(&input).report(diag_unexpected_hash_character{hash_span});
   EXPECT_EQ(this->get_output(), u8"FILE:1:1: error: unexpected '#' [E0052]\n");
 }
 
@@ -140,7 +139,7 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable) {
   ASSERT_EQ(myvar_span.string_view(), u8"myvar");
 
   this->make_reporter(&input).report(
-      error_use_of_undeclared_variable{identifier(myvar_span)});
+      diag_use_of_undeclared_variable{identifier(myvar_span)});
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:1: warning: use of undeclared variable: myvar [E0057]\n");
 }
@@ -151,7 +150,7 @@ TEST_F(test_text_error_reporter, use_of_undeclared_variable_escaped_error) {
   ASSERT_EQ(myvar_span.string_view(), u8"myvar");
 
   this->make_reporter(&input, /*escape_errors=*/true)
-      .report(error_use_of_undeclared_variable{identifier(myvar_span)});
+      .report(diag_use_of_undeclared_variable{identifier(myvar_span)});
   EXPECT_EQ(this->get_output(),
             u8"FILE:1:1: warning: use of undeclared variable: myvar [" +
                 this->create_escape_error_code(u8"E0057") + u8"]\n");
@@ -164,7 +163,7 @@ TEST_F(test_text_error_reporter, string8_view_parameter) {
   source_code_span close_span(&input[10 - 1], &input[10 + 1 - 1]);
   ASSERT_EQ(close_span.string_view(), u8"c");
 
-  this->make_reporter(&input).report(error_mismatched_jsx_tags{
+  this->make_reporter(&input).report(diag_mismatched_jsx_tags{
       .opening_tag_name = open_span,
       .closing_tag_name = close_span,
       .opening_tag_name_pretty = u8"a.b"sv,

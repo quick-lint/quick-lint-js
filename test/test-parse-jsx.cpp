@@ -35,7 +35,7 @@ TEST(test_parse_jsx, jsx_is_not_supported_in_vanilla_javascript) {
   parser p(&code, &v, options);
   p.parse_and_visit_module(v);
   EXPECT_THAT(v.errors, Contains(ERROR_TYPE_OFFSETS(
-                            &code, error_jsx_not_yet_implemented,  //
+                            &code, diag_jsx_not_yet_implemented,  //
                             jsx_start, 0, u8"<")));
 }
 
@@ -49,7 +49,7 @@ TEST(test_parse_jsx, parsing_stops_on_jsx_in_vanilla_javascript) {
   bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
   EXPECT_FALSE(ok);
   EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                            &code, error_jsx_not_yet_implemented,  //
+                            &code, diag_jsx_not_yet_implemented,  //
                             jsx_start, 0, u8"<")));
 }
 #endif
@@ -253,10 +253,9 @@ TEST(test_parse_jsx, attribute_without_name_must_be_spread) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"attr"}));
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_missing_dots_for_attribute_spread,  //
-                    expected_dots, strlen(u8"c = <div {"), u8"")));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+                              &code, diag_missing_dots_for_attribute_spread,  //
+                              expected_dots, strlen(u8"c = <div {"), u8"")));
   }
 }
 
@@ -268,7 +267,7 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_2_OFFSETS(
-                    &code, error_mismatched_jsx_tags,              //
+                    &code, diag_mismatched_jsx_tags,               //
                     opening_tag_name, strlen(u8"c = <"), u8"div",  //
                     closing_tag_name, strlen(u8"c = <div></"), u8"span")));
   }
@@ -280,7 +279,7 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_mismatched_jsx_tags,  //
+                              &code, diag_mismatched_jsx_tags,  //
                               opening_tag_name, strlen(u8"c = < "), u8"div")));
   }
 
@@ -291,7 +290,7 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_mismatched_jsx_tags,  //
+                              &code, diag_mismatched_jsx_tags,  //
                               opening_tag_name, strlen(u8"c = <"), u8"")));
   }
 
@@ -302,7 +301,7 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_mismatched_jsx_tags,  //
+                              &code, diag_mismatched_jsx_tags,  //
                               opening_tag_name, strlen(u8"c = < "),
                               u8"module . Component")));
   }
@@ -315,7 +314,7 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_mismatched_jsx_tags,  //
+                    &code, diag_mismatched_jsx_tags,  //
                     opening_tag_name, strlen(u8"c = < "), u8"svg : path")));
   }
 
@@ -327,7 +326,7 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_mismatched_jsx_tags,  //
+                    &code, diag_mismatched_jsx_tags,  //
                     closing_tag_name, strlen(u8"c = <div></ "), u8"span")));
   }
 
@@ -339,7 +338,7 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_OFFSETS(
-                    &code, error_mismatched_jsx_tags,  //
+                    &code, diag_mismatched_jsx_tags,  //
                     closing_tag_name, strlen(u8"c = <div></  "), u8"")));
   }
 
@@ -350,7 +349,7 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_mismatched_jsx_tags,  //
+                              &code, diag_mismatched_jsx_tags,  //
                               closing_tag_name, strlen(u8"c = <div></ "),
                               u8"module . Component")));
   }
@@ -362,7 +361,7 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_mismatched_jsx_tags,  //
+                              &code, diag_mismatched_jsx_tags,  //
                               closing_tag_name, strlen(u8"c = <div></ "),
                               u8"svg : path")));
   }
@@ -373,9 +372,9 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_mismatched_jsx_tags,
-                              opening_tag_name_pretty, u8"div"sv)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                                       opening_tag_name_pretty,
+                                                       u8"div"sv)));
   }
 
   // opening_tag_name_pretty for fragment tag:
@@ -385,7 +384,7 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(error_mismatched_jsx_tags,
+                ElementsAre(ERROR_TYPE_FIELD(diag_mismatched_jsx_tags,
                                              opening_tag_name_pretty, u8""sv)));
   }
 
@@ -395,10 +394,9 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(error_mismatched_jsx_tags,
-                                             opening_tag_name_pretty,
-                                             u8"module.Component"sv)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              diag_mismatched_jsx_tags, opening_tag_name_pretty,
+                              u8"module.Component"sv)));
   }
 
   // opening_tag_name_pretty for namespaced tag:
@@ -407,9 +405,9 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_mismatched_jsx_tags,
-                              opening_tag_name_pretty, u8"svg:path"sv)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                                       opening_tag_name_pretty,
+                                                       u8"svg:path"sv)));
   }
 
   for (string8_view jsx : {
@@ -457,7 +455,7 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(error_mismatched_jsx_tags)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE(diag_mismatched_jsx_tags)));
   }
 }
 
@@ -468,9 +466,9 @@ TEST(test_parse_jsx,
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_mismatched_jsx_tags,
-                              opening_tag_name_pretty, u8"div"sv)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                                       opening_tag_name_pretty,
+                                                       u8"div"sv)));
   }
 
   {
@@ -478,9 +476,9 @@ TEST(test_parse_jsx,
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_mismatched_jsx_tags,
-                              opening_tag_name_pretty, u8"my.Component"sv)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                                       opening_tag_name_pretty,
+                                                       u8"my.Component"sv)));
   }
 
   {
@@ -488,9 +486,9 @@ TEST(test_parse_jsx,
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_mismatched_jsx_tags,
-                              opening_tag_name_pretty, u8"svg:path"sv)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                                       opening_tag_name_pretty,
+                                                       u8"svg:path"sv)));
   }
 }
 
@@ -501,9 +499,9 @@ TEST(test_parse_jsx,
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
-                              error_mismatched_jsx_tags,
-                              opening_tag_name_pretty, u8R"(d\u{69}v)"sv)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(diag_mismatched_jsx_tags,
+                                                       opening_tag_name_pretty,
+                                                       u8R"(d\u{69}v)"sv)));
   }
 
   {
@@ -511,10 +509,9 @@ TEST(test_parse_jsx,
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(error_mismatched_jsx_tags,
-                                             opening_tag_name_pretty,
-                                             u8R"(s\u{76}g:p\u{69}th)"sv)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              diag_mismatched_jsx_tags, opening_tag_name_pretty,
+                              u8R"(s\u{76}g:p\u{69}th)"sv)));
   }
 
   {
@@ -522,10 +519,9 @@ TEST(test_parse_jsx,
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_FIELD(error_mismatched_jsx_tags,
-                                             opening_tag_name_pretty,
-                                             u8R"(m\u{79}.Com\u{70}onent)"sv)));
+    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_FIELD(
+                              diag_mismatched_jsx_tags, opening_tag_name_pretty,
+                              u8R"(m\u{79}.Com\u{70}onent)"sv)));
   }
 }
 
@@ -536,7 +532,7 @@ TEST(test_parse_jsx, begin_and_end_tags_match_after_normalization) {
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors, IsEmpty())
-        << "shouldn't report error_mismatched_jsx_tags";
+        << "shouldn't report diag_mismatched_jsx_tags";
   }
 }
 
@@ -549,7 +545,7 @@ TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_3_OFFSETS(
-            &code, error_adjacent_jsx_without_parent,                     //
+            &code, diag_adjacent_jsx_without_parent,                      //
             begin, strlen(u8"c = "), u8"",                                //
             begin_of_second_element, strlen(u8"c = <div></div> "), u8"",  //
             end, strlen(u8"c = <div></div> <div></div>"), u8"")));
@@ -563,7 +559,7 @@ TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_3_OFFSETS(
-            &code, error_adjacent_jsx_without_parent,                     //
+            &code, diag_adjacent_jsx_without_parent,                      //
             begin, strlen(u8"c = "), u8"",                                //
             begin_of_second_element, strlen(u8"c = <div></div> "), u8"",  //
             end, strlen(u8"c = <div></div> <div></div> <div></div>"), u8"")));
@@ -582,7 +578,7 @@ TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
                     spy_visitor::visited_variable_use{u8"SecondComponent"},
                     spy_visitor::visited_variable_use{u8"child"}));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE(error_adjacent_jsx_without_parent)));
+                ElementsAre(ERROR_TYPE(diag_adjacent_jsx_without_parent)));
   }
 
   // Because the second element is on its own line, ASI should kick in, and the
@@ -600,7 +596,7 @@ TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
         ElementsAre(spy_visitor::visited_variable_use{u8"FirstComponent"},
                     spy_visitor::visited_variable_use{u8"SecondComponent"}));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE(error_adjacent_jsx_without_parent)));
+                ElementsAre(ERROR_TYPE(diag_adjacent_jsx_without_parent)));
   }
 
   // The following code looks like adjacent JSX elements, but it's actually a
@@ -619,7 +615,7 @@ TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"child"},
                             spy_visitor::visited_variable_use{u8"done"}));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE(error_adjacent_jsx_without_parent)));
+                ElementsAre(ERROR_TYPE(diag_adjacent_jsx_without_parent)));
   }
 
   {
@@ -632,7 +628,7 @@ TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"First"},
                             spy_visitor::visited_variable_use{u8"Second"}));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE(error_adjacent_jsx_without_parent)));
+                ElementsAre(ERROR_TYPE(diag_adjacent_jsx_without_parent)));
   }
 }
 
@@ -663,7 +659,7 @@ TEST(test_parse_jsx, event_attributes_should_be_camel_case) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_jsx_event_attribute_should_be_camel_case,  //
+            diag_jsx_event_attribute_should_be_camel_case,  //
             attribute_name,
             offsets_matcher(&code, strlen(u8"c = <div "), u8"onclick"),  //
             expected_attribute_name, u8"onClick"sv)));
@@ -677,7 +673,7 @@ TEST(test_parse_jsx, event_attributes_should_be_camel_case) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_2_FIELDS(
-                    error_jsx_event_attribute_should_be_camel_case,  //
+                    diag_jsx_event_attribute_should_be_camel_case,  //
                     attribute_name,
                     offsets_matcher(&code, strlen(u8"c = <div "),
                                     u8"onclick"),  //
@@ -692,7 +688,7 @@ TEST(test_parse_jsx, event_attributes_should_be_camel_case) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_jsx_event_attribute_should_be_camel_case,  //
+            diag_jsx_event_attribute_should_be_camel_case,  //
             attribute_name,
             offsets_matcher(&code, strlen(u8"c = <div "), u8"onmouseenter"),  //
             expected_attribute_name, u8"onMouseEnter"sv)));
@@ -705,7 +701,7 @@ TEST(test_parse_jsx, event_attributes_should_be_camel_case) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors,
                 ElementsAre(ERROR_TYPE_2_FIELDS(
-                    error_jsx_event_attribute_should_be_camel_case,  //
+                    diag_jsx_event_attribute_should_be_camel_case,  //
                     attribute_name,
                     offsets_matcher(&code, strlen(u8"c = <div "),
                                     u8"oncustomevent"),  //
@@ -722,7 +718,7 @@ TEST(test_parse_jsx, miscapitalized_attribute) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_jsx_attribute_has_wrong_capitalization,  //
+            diag_jsx_attribute_has_wrong_capitalization,  //
             attribute_name,
             offsets_matcher(&code, strlen(u8"c = <td "), u8"colspan"),  //
             expected_attribute_name, u8"colSpan"sv)));
@@ -736,7 +732,7 @@ TEST(test_parse_jsx, miscapitalized_attribute) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_jsx_attribute_has_wrong_capitalization,  //
+            diag_jsx_attribute_has_wrong_capitalization,  //
             attribute_name,
             offsets_matcher(&code, strlen(u8"c = <div "), u8"onmouseenter"),  //
             expected_attribute_name, u8"onMouseEnter"sv)));
@@ -750,7 +746,7 @@ TEST(test_parse_jsx, miscapitalized_attribute) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_jsx_attribute_has_wrong_capitalization,  //
+            diag_jsx_attribute_has_wrong_capitalization,  //
             attribute_name,
             offsets_matcher(&code, strlen(u8"c = <div "), u8"onmouseENTER"),  //
             expected_attribute_name, u8"onMouseEnter"sv)));
@@ -766,7 +762,7 @@ TEST(test_parse_jsx, commonly_misspelled_attribute) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(ERROR_TYPE_2_FIELDS(
-            error_jsx_attribute_renamed_by_react,  //
+            diag_jsx_attribute_renamed_by_react,  //
             attribute_name,
             offsets_matcher(&code, strlen(u8"c = <span "), u8"class"),  //
             react_attribute_name, u8"className"sv)));

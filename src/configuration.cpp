@@ -113,7 +113,7 @@ void configuration::load_from_json(padded_string_view json,
     ::simdjson::ondemand::value v;
     if (globals.get(v) == ::simdjson::SUCCESS &&
         v.type().error() == ::simdjson::SUCCESS) {
-      reporter->report(error_config_globals_type_mismatch{
+      reporter->report(diag_config_globals_type_mismatch{
           .value = span_of_json_value(v),
       });
     } else {
@@ -195,7 +195,7 @@ bool configuration::load_global_groups_from_json(
         if (global_group_value.type().error() != ::simdjson::SUCCESS) {
           return false;
         }
-        reporter->report(error_config_global_groups_group_type_mismatch{
+        reporter->report(diag_config_global_groups_group_type_mismatch{
             .group = span_of_json_value(global_group_value),
         });
         break;
@@ -211,7 +211,7 @@ bool configuration::load_global_groups_from_json(
   case ::simdjson::ondemand::json_type::number:
   case ::simdjson::ondemand::json_type::object:
   case ::simdjson::ondemand::json_type::string:
-    reporter->report(error_config_global_groups_type_mismatch{
+    reporter->report(diag_config_global_groups_type_mismatch{
         .value = span_of_json_value(global_groups_value),
     });
     break;
@@ -265,13 +265,13 @@ bool configuration::load_globals_from_json(
       bool is_writable;
       bool ok = true;
       if (!this->get_bool_or_default<
-              error_config_globals_descriptor_shadowable_type_mismatch>(
+              diag_config_globals_descriptor_shadowable_type_mismatch>(
               descriptor_object["shadowable"], &is_shadowable, true,
               reporter)) {
         ok = false;
       }
       if (!this->get_bool_or_default<
-              error_config_globals_descriptor_writable_type_mismatch>(
+              diag_config_globals_descriptor_writable_type_mismatch>(
               descriptor_object["writable"], &is_writable, true, reporter)) {
         ok = false;
       }
@@ -288,7 +288,7 @@ bool configuration::load_globals_from_json(
     }
 
     default:
-      reporter->report(error_config_globals_descriptor_type_mismatch{
+      reporter->report(diag_config_globals_descriptor_type_mismatch{
           .descriptor = span_of_json_value(descriptor),
       });
       break;
@@ -419,7 +419,7 @@ void configuration::report_json_error(padded_string_view json,
   // TODO(strager): Produce better error messages. simdjson provides no location
   // information for errors:
   // https://github.com/simdjson/simdjson/issues/237
-  reporter->report(error_config_json_syntax_error{
+  reporter->report(diag_config_json_syntax_error{
       .where = source_code_span(json.data(), json.data()),
   });
 }
