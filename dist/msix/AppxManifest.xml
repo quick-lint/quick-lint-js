@@ -9,7 +9,7 @@
 
   <Identity
     Name="fa6b940b-8f96-4b46-8e21-703a63133e06"
-    Publisher="CN=quick-lint-js"
+    Publisher="CN=Matthew Glazar, O=Matthew Glazar, L=San Carlos, S=California, C=US"
     Version="2.4.0.0" />
 
   <Properties>

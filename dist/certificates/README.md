@@ -8,14 +8,11 @@ documentation](../../docs/CODE_SIGNING.md).
 
 ## Files
 
-* `quick-lint-js.cer`: Self-signed certificate (public key). Use this file to
-  verify signatures of quick-lint-js on macOS.
-  * SHA1: dc4f675b74b3a86c1f59fbdac17538b7d996db99
+* `quick-lint-js.crt`: CA-signed certificate (public key). Use this file to
+  verify signatures of quick-lint-js on macOS and Windows.
+  * SHA1 for leaf: 15764dadd7d55ae74a614e7932896478251b7375
 * `quick-lint-js.gpg.key`: GPG key (public key). Use this file to verify GPG
   signatures of quick-lint-js.
-* `DigiCertAssuredIDRootCA_comb.crt.pem`: DigiCert's certificate. Use this file
-  to verify timestamp signatures. Downloaded from
-  <https://knowledge.digicert.com/generalinformation/INFO4231.html>.
-* `DigiCertTrustedRootG4.crt`: DigiCert's certificate. Use this file
-  to verify timestamp signatures. Downloaded from
-  <https://www.digicert.com/kb/digicert-root-certificates.htm>.
+* `SSL_COM_ROOT_CERTIFICATION_AUTHORITY_RSA.crt`: SSL.com's certificate. Use
+  this file to verify timestamp signatures and `quick-lint-js.crt`. Downloaded
+  from <https://www.ssl.com/how-to/install-ssl-com-ca-root-certificates/>.

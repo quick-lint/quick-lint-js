@@ -851,9 +851,8 @@ func RelicVerifyDetachedFile(filePath string, detachedSignaturePath string) erro
 
 func GetRelicVerifyCertOptions() []string {
 	return []string{
-		"--cert", filepath.Join(DistPath, "certificates/quick-lint-js.cer"),
-		"--cert", filepath.Join(DistPath, "certificates/DigiCertAssuredIDRootCA_comb.crt.pem"),
-		"--cert", filepath.Join(DistPath, "certificates/DigiCertTrustedRootG4.crt"),
+		"--cert", filepath.Join(DistPath, "certificates/SSL_COM_ROOT_CERTIFICATION_AUTHORITY_RSA.crt"),
+		"--cert", filepath.Join(DistPath, "certificates/quick-lint-js.crt"),
 		"--cert", filepath.Join(DistPath, "certificates/quick-lint-js.gpg.key"),
 	}
 }
