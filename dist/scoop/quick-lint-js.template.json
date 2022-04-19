@@ -13,7 +13,7 @@
             "hash": "sha256:{{ .X86_ZIP_SHA256 }}"
         }
     },
-    "bin": "bin/quick-lint-js.exe",
+    "bin": "bin\\quick-lint-js.exe",
     "checkver": {
         "url": "https://c.quick-lint-js.com/releases/latest/scoop/quick-lint-js.json",
         "jsonpath": "$.version"

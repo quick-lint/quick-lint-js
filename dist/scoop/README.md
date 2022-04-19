@@ -5,6 +5,14 @@ package manager.
 
 The `make-manifest.go` script modifies `quick-lint-js.json`.
 
+## Manually building the manifest
+
+1. Download `windows.zip` and `windows-x86.zip` from
+   <https://c.quick-lint-js.com/>.
+2. Run:
+   `go run dist/scoop/make-manifest.go -BaseURI https://c.quick-lint-js.com/builds/BUILD_COMMIT_HASH/ -x86-ZIP windows-x86.zip -x64-ZIP windows.zip -Out quick-lint-js.json`
+3. Test installation: `scoop install .\quick-lint-js.json`
+
 ## Publishing
 
 Every build, [CI](../../.github/workflows/build-static.yml) updates
