@@ -38,12 +38,12 @@ quick_lint_js_add_executable(
   test-configuration-loader.cpp
   test-configuration.cpp
   test-crash.cpp
+  test-diag-code-list.cpp
   test-diagnostic-formatter.cpp
   test-diagnostic.cpp
   test-document.cpp
   test-emacs-lisp-diag-reporter.cpp
   test-emacs-location.cpp
-  test-error-list.cpp
   test-error-matcher.cpp
   test-error.cpp
   test-event-loop.cpp

@@ -11,9 +11,9 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/diag-code-list.h>
 #include <quick-lint-js/emacs-lisp-diag-reporter.h>
 #include <quick-lint-js/emacs-location.h>
-#include <quick-lint-js/error-list.h>
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/language.h>
@@ -74,7 +74,7 @@ bool get_escape_errors(option_when escape_errors) {
 class any_diag_reporter {
  public:
   static any_diag_reporter make(output_format format, option_when escape_errors,
-                                compiled_error_list *exit_fail_on) {
+                                compiled_diag_code_list *exit_fail_on) {
     switch (format) {
     case output_format::default_format:
     case output_format::gnu_like:

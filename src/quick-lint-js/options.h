@@ -5,7 +5,7 @@
 #define QUICK_LINT_JS_OPTIONS_H
 
 #include <optional>
-#include <quick-lint-js/error-list.h>
+#include <quick-lint-js/diag-code-list.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -38,7 +38,7 @@ struct options {
   quick_lint_js::option_when diagnostic_hyperlinks =
       quick_lint_js::option_when::auto_;
   std::vector<file_to_lint> files_to_lint;
-  compiled_error_list exit_fail_on;
+  compiled_diag_code_list exit_fail_on;
 
   std::vector<const char *> error_unrecognized_options;
   bool has_multiple_stdin = false;

@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_ERROR_LIST_H
-#define QUICK_LINT_JS_ERROR_LIST_H
+#ifndef QUICK_LINT_JS_DIAG_CODE_LIST_H
+#define QUICK_LINT_JS_DIAG_CODE_LIST_H
 
 #include <array>
 #include <bitset>
@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace quick_lint_js {
-struct parsed_error_list {
+struct parsed_diag_code_list {
   bool error_missing_predicate() const noexcept;
 
   std::vector<std::string_view> included_codes;
@@ -23,11 +23,11 @@ struct parsed_error_list {
   bool override_defaults = false;
 };
 
-parsed_error_list parse_error_list(const char* raw_error_list);
+parsed_diag_code_list parse_diag_code_list(const char* raw_diag_code_list);
 
-class compiled_error_list {
+class compiled_diag_code_list {
  public:
-  void add(const parsed_error_list&);
+  void add(const parsed_diag_code_list&);
 
   std::vector<std::string> parse_errors(std::string_view cli_option_name) const;
   std::vector<std::string> parse_warnings() const;
@@ -45,7 +45,7 @@ class compiled_error_list {
     bool override_defaults;
   };
 
-  std::vector<codes> parsed_error_lists_;
+  std::vector<codes> parsed_diag_code_lists_;
 
   // Collected errors and warnings:
   std::vector<std::string_view> unknown_codes_;

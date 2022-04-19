@@ -4,9 +4,9 @@
 #ifndef QUICK_LINT_JS_REPORTED_DIAG_STATISTICS_H
 #define QUICK_LINT_JS_REPORTED_DIAG_STATISTICS_H
 
+#include <quick-lint-js/diag-code-list.h>
 #include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/error-list.h>
 #include <quick-lint-js/text-diag-reporter.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/vim-qflist-json-diag-reporter.h>
@@ -16,7 +16,7 @@ template <typename T>
 class reported_diag_statistics final : public diag_reporter {
  public:
   explicit reported_diag_statistics(T reporter,
-                                    const compiled_error_list *predicate)
+                                    const compiled_diag_code_list *predicate)
       : reporter_(reporter), predicate_(predicate) {}
 
   T *get_reporter() { return &(this->reporter_); }
@@ -35,7 +35,7 @@ class reported_diag_statistics final : public diag_reporter {
  private:
   T reporter_;
 
-  const compiled_error_list *predicate_;
+  const compiled_diag_code_list *predicate_;
   bool found_matching_error_ = false;
 };
 }

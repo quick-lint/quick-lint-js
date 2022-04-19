@@ -56,12 +56,12 @@ quick_lint_js_add_library(
   cli-location.cpp
   configuration-loader.cpp
   configuration.cpp
+  diag-code-list.cpp
   diagnostic-formatter.cpp
   diagnostic.cpp
   document.cpp
   emacs-lisp-diag-reporter.cpp
   emacs-location.cpp
-  error-list.cpp
   file-canonical.cpp
   file-handle.cpp
   file-path.cpp
@@ -107,6 +107,7 @@ quick_lint_js_add_library(
   quick-lint-js/consteval.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
+  quick-lint-js/diag-code-list.h
   quick-lint-js/diag-reporter.h
   quick-lint-js/diagnostic-formatter.h
   quick-lint-js/diagnostic-types.h
@@ -114,7 +115,6 @@ quick_lint_js_add_library(
   quick-lint-js/document.h
   quick-lint-js/emacs-lisp-diag-reporter.h
   quick-lint-js/emacs-location.h
-  quick-lint-js/error-list.h
   quick-lint-js/event-loop.h
   quick-lint-js/expression.h
   quick-lint-js/feature.h

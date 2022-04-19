@@ -100,7 +100,7 @@ options parse_options(int argc, char** argv) {
       next_vim_file_bufnr = bufnr;
     } else if (const char* arg_value =
                    parser.match_option_with_value("--exit-fail-on"sv)) {
-      o.exit_fail_on.add(parse_error_list(arg_value));
+      o.exit_fail_on.add(parse_diag_code_list(arg_value));
     } else if (parser.match_flag_option("--help"sv, "--h"sv) ||
                parser.match_flag_shorthand('h')) {
       o.help = true;

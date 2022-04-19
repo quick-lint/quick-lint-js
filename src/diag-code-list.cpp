@@ -4,9 +4,9 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <quick-lint-js/diag-code-list.h>
 #include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/diagnostic.h>
-#include <quick-lint-js/error-list.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -21,12 +21,13 @@ bool contains(const Container& container, const T& item) {
 }
 }
 
-bool parsed_error_list::error_missing_predicate() const noexcept {
+bool parsed_diag_code_list::error_missing_predicate() const noexcept {
   return this->included_codes.empty() && this->excluded_codes.empty() &&
          this->included_categories.empty() && this->excluded_categories.empty();
 }
 
-parsed_error_list parse_error_list(const char* const raw_error_list) {
+parsed_diag_code_list parse_diag_code_list(
+    const char* const raw_diag_code_list) {
   static auto is_initial_category_character = [](char c) -> bool {
     return 'a' <= c && c <= 'z';
   };
@@ -37,7 +38,7 @@ parsed_error_list parse_error_list(const char* const raw_error_list) {
     return '0' <= c && c <= '9';
   };
 
-  parsed_error_list errors;
+  parsed_diag_code_list errors;
   std::size_t i = 0;
   bool need_comma = false;
 
@@ -45,43 +46,43 @@ parsed_error_list parse_error_list(const char* const raw_error_list) {
     auto parse_word = [&](auto& is_continue_character) -> std::string_view {
       std::size_t begin = i;
       i += 1;  // Skip initial character. Assume it is valid.
-      while (is_continue_character(raw_error_list[i])) {
+      while (is_continue_character(raw_diag_code_list[i])) {
         i += 1;
       }
       std::size_t end = i;
-      return std::string_view(&raw_error_list[begin], end - begin);
+      return std::string_view(&raw_diag_code_list[begin], end - begin);
     };
 
-    if (raw_error_list[i] == 'E') {
+    if (raw_diag_code_list[i] == 'E') {
       (is_include ? errors.included_codes : errors.excluded_codes)
           .emplace_back(parse_word(is_continue_code_character));
       return true;
-    } else if (is_initial_category_character(raw_error_list[i])) {
+    } else if (is_initial_category_character(raw_diag_code_list[i])) {
       (is_include ? errors.included_categories : errors.excluded_categories)
           .emplace_back(parse_word(is_continue_category_character));
       return true;
     } else {
-      errors.unexpected.emplace_back(&raw_error_list[i], 1);
+      errors.unexpected.emplace_back(&raw_diag_code_list[i], 1);
       return false;
     }
   };
 
   for (;;) {
-    i = i + std::strspn(&raw_error_list[i], " \t");
-    if (raw_error_list[i] == '\0') {
+    i = i + std::strspn(&raw_diag_code_list[i], " \t");
+    if (raw_diag_code_list[i] == '\0') {
       break;
     }
-    if (need_comma && raw_error_list[i] != ',') {
-      errors.unexpected.emplace_back(&raw_error_list[i], 1);
+    if (need_comma && raw_diag_code_list[i] != ',') {
+      errors.unexpected.emplace_back(&raw_diag_code_list[i], 1);
       break;
     }
-    i = i + std::strspn(&raw_error_list[i], " \t,");
+    i = i + std::strspn(&raw_diag_code_list[i], " \t,");
     need_comma = true;
 
-    if (raw_error_list[i] == '\0') {
+    if (raw_diag_code_list[i] == '\0') {
       break;
-    } else if (raw_error_list[i] == '+' || raw_error_list[i] == '-') {
-      bool is_include = raw_error_list[i] == '+';
+    } else if (raw_diag_code_list[i] == '+' || raw_diag_code_list[i] == '-') {
+      bool is_include = raw_diag_code_list[i] == '+';
       i += 1;
       if (!try_parse_category_or_code(/*is_include=*/is_include)) {
         break;
@@ -97,7 +98,7 @@ parsed_error_list parse_error_list(const char* const raw_error_list) {
   return errors;
 }
 
-void compiled_error_list::add(const parsed_error_list& error_list) {
+void compiled_diag_code_list::add(const parsed_diag_code_list& diag_code_list) {
   auto add_code = [this](std::string_view code, auto& code_set) -> void {
     std::optional<diag_type> code_error_type = error_type_from_code_slow(code);
     if (code_error_type.has_value()) {
@@ -107,23 +108,23 @@ void compiled_error_list::add(const parsed_error_list& error_list) {
     }
   };
 
-  codes& c = this->parsed_error_lists_.emplace_back();
-  for (std::string_view code : error_list.included_codes) {
+  codes& c = this->parsed_diag_code_lists_.emplace_back();
+  for (std::string_view code : diag_code_list.included_codes) {
     add_code(code, c.included_codes);
   }
-  for (std::string_view code : error_list.excluded_codes) {
+  for (std::string_view code : diag_code_list.excluded_codes) {
     add_code(code, c.excluded_codes);
   }
-  c.included_categories = error_list.included_categories;
-  c.excluded_categories = error_list.excluded_categories;
-  c.override_defaults = error_list.override_defaults;
+  c.included_categories = diag_code_list.included_categories;
+  c.excluded_categories = diag_code_list.excluded_categories;
+  c.override_defaults = diag_code_list.override_defaults;
 
-  if (error_list.error_missing_predicate()) {
+  if (diag_code_list.error_missing_predicate()) {
     this->has_missing_predicate_error_ = true;
   }
 }
 
-std::vector<std::string> compiled_error_list::parse_errors(
+std::vector<std::string> compiled_diag_code_list::parse_errors(
     std::string_view cli_option_name) const {
   std::vector<std::string> errors;
   if (this->has_missing_predicate_error_) {
@@ -133,7 +134,7 @@ std::vector<std::string> compiled_error_list::parse_errors(
   return errors;
 }
 
-std::vector<std::string> compiled_error_list::parse_warnings() const {
+std::vector<std::string> compiled_diag_code_list::parse_warnings() const {
   std::vector<std::string> warnings;
   auto check_category = [&warnings](std::string_view category) {
     if (category != "all") {
@@ -142,7 +143,7 @@ std::vector<std::string> compiled_error_list::parse_warnings() const {
     }
   };
 
-  for (const codes& c : this->parsed_error_lists_) {
+  for (const codes& c : this->parsed_diag_code_lists_) {
     for (std::string_view category : c.included_categories) {
       check_category(category);
     }
@@ -159,10 +160,10 @@ std::vector<std::string> compiled_error_list::parse_warnings() const {
   return warnings;
 }
 
-bool compiled_error_list::is_present(diag_type type) const noexcept {
+bool compiled_diag_code_list::is_present(diag_type type) const noexcept {
   bool is_default = true;  // For now, all codes are enabled by default.
   bool present = true;
-  for (const codes& c : this->parsed_error_lists_) {
+  for (const codes& c : this->parsed_diag_code_lists_) {
     std::size_t error_type_index = static_cast<std::size_t>(type);
     if (c.override_defaults || c.excluded_codes[error_type_index] ||
         (is_default && contains(c.excluded_categories, "all"))) {
@@ -176,8 +177,8 @@ bool compiled_error_list::is_present(diag_type type) const noexcept {
   return present;
 }
 
-bool compiled_error_list::is_user_provided() const noexcept {
-  return !parsed_error_lists_.empty();
+bool compiled_diag_code_list::is_user_provided() const noexcept {
+  return !parsed_diag_code_lists_.empty();
 }
 }
 
