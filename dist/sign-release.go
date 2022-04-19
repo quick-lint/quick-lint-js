@@ -25,15 +25,11 @@ import "time"
 // Path to the 'dist' directory containing this file (sign-release.go).
 var DistPath string
 
-type SigningStuff struct {
-	RelicConfigPath string
-}
+var RelicConfigPath string
 
 // Key: SHA256 hash of original file
 // Value: contents of transformed (signed) file
 var TransformCache map[SHA256Hash]FileTransformResult = make(map[SHA256Hash]FileTransformResult)
-
-var signingStuff SigningStuff
 
 var ProgramStartTime time.Time = time.Now()
 var TempDirs []string
@@ -43,14 +39,14 @@ func main() {
 
 	defer RemoveTempDirs()
 
-	flag.StringVar(&signingStuff.RelicConfigPath, "RelicConfig", "", "")
+	flag.StringVar(&RelicConfigPath, "RelicConfig", "", "")
 	flag.Parse()
 	if flag.NArg() != 2 {
 		os.Stderr.WriteString(fmt.Sprintf("error: source and destination directories\n"))
 		os.Exit(2)
 	}
 
-	signingStuff.RelicConfigPath, err = filepath.Abs(signingStuff.RelicConfigPath)
+	RelicConfigPath, err = filepath.Abs(RelicConfigPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -776,7 +772,7 @@ func RelicFile(inFilePath string, outFilePath string, signingType RelicSigningTy
 
 	signCommand := []string{
 		"relic", "sign",
-		"--config", signingStuff.RelicConfigPath,
+		"--config", RelicConfigPath,
 		"--file", inFileAbsolutePath,
 		"--output", outFileAbsolutePath,
 	}
@@ -796,7 +792,7 @@ func RelicFile(inFilePath string, outFilePath string, signingType RelicSigningTy
 	process := exec.Command(signCommand[0], signCommand[1:]...)
 	process.Stdout = os.Stdout
 	process.Stderr = os.Stderr
-	process.Dir = filepath.Dir(signingStuff.RelicConfigPath)
+	process.Dir = filepath.Dir(RelicConfigPath)
 	if err := process.Start(); err != nil {
 		return err
 	}
