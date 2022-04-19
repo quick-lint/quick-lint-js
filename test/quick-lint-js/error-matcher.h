@@ -208,7 +208,7 @@ class error_matcher {
   error_matcher &operator=(const error_matcher &) = default;
   error_matcher &operator=(error_matcher &&) = default;
 
-  /*implicit*/ operator testing::Matcher<const diag_collector::error &>() const;
+  /*implicit*/ operator testing::Matcher<const diag_collector::diag &>() const;
 
  private:
   class impl;

@@ -62,7 +62,7 @@ class test_parser {
     return ast;
   }
 
-  const std::vector<diag_collector::error>& errors() const noexcept {
+  const std::vector<diag_collector::diag>& errors() const noexcept {
     return this->errors_.errors;
   }
 

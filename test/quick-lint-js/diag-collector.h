@@ -17,11 +17,11 @@ namespace quick_lint_js {
 struct diag_collector : public diag_reporter {
   void report_impl(diag_type type, void *diag) override;
 
-  // Like std::variant<(error types)>, but with much faster compilation.
-  class error {
+  // Like std::variant<(diag types)>, but with much faster compilation.
+  class diag {
    public:
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  explicit error(const name &);
+  explicit diag(const name &);
     QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
@@ -29,13 +29,13 @@ struct diag_collector : public diag_reporter {
     const char *error_code() const noexcept;
     const void *data() const noexcept;
 
-    template <class Error>
-    friend const Error &get(const error &) noexcept;
+    template <class Diag>
+    friend const Diag &get(const diag &) noexcept;
 
-    template <class Error>
-    friend bool holds_alternative(const error &) noexcept;
+    template <class Diag>
+    friend bool holds_alternative(const diag &) noexcept;
 
-    friend void PrintTo(const error &, std::ostream *);
+    friend void PrintTo(const diag &, std::ostream *);
 
    private:
     diag_type type_;
@@ -47,16 +47,16 @@ struct diag_collector : public diag_reporter {
     };
   };
 
-  std::vector<error> errors;
+  std::vector<diag> errors;
 };
 
-template <class Error>
-const Error &get(const diag_collector::error &) noexcept;
+template <class Diag>
+const Diag &get(const diag_collector::diag &) noexcept;
 
-template <class Error>
-bool holds_alternative(const diag_collector::error &) noexcept;
+template <class Diag>
+bool holds_alternative(const diag_collector::diag &) noexcept;
 
-void PrintTo(const diag_collector::error &, std::ostream *);
+void PrintTo(const diag_collector::diag &, std::ostream *);
 
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
   void PrintTo(const name &, std::ostream *);

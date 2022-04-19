@@ -60,7 +60,7 @@ class test_lex : public ::testing::Test {
   void check_single_token_with_errors(
       string8_view input, string8_view expected_identifier_name,
       void (*check_errors)(padded_string_view input,
-                           const std::vector<diag_collector::error>&),
+                           const std::vector<diag_collector::diag>&),
       source_location = source_location::current());
   void check_tokens(string8_view input,
                     std::initializer_list<token_type> expected_token_types,
@@ -72,14 +72,14 @@ class test_lex : public ::testing::Test {
       string8_view input,
       std::initializer_list<token_type> expected_token_types,
       std::function<void(padded_string_view input,
-                         const std::vector<diag_collector::error>&)>
+                         const std::vector<diag_collector::diag>&)>
           check_errors,
       source_location = source_location::current());
   void check_tokens_with_errors(
       padded_string_view input,
       std::initializer_list<token_type> expected_token_types,
       std::function<void(padded_string_view input,
-                         const std::vector<diag_collector::error>&)>
+                         const std::vector<diag_collector::diag>&)>
           check_errors,
       source_location = source_location::current());
   std::vector<token> lex_to_eof(padded_string_view, diag_collector&);
@@ -3096,7 +3096,7 @@ void test_lex::check_single_token(string8_view input,
 void test_lex::check_single_token_with_errors(
     string8_view input, string8_view expected_identifier_name,
     void (*check_errors)(padded_string_view input,
-                         const std::vector<diag_collector::error>&),
+                         const std::vector<diag_collector::diag>&),
     source_location caller) {
   padded_string code(input);
   diag_collector errors;
@@ -3146,7 +3146,7 @@ void test_lex::check_tokens(
 void test_lex::check_tokens_with_errors(
     string8_view input, std::initializer_list<token_type> expected_token_types,
     std::function<void(padded_string_view input,
-                       const std::vector<diag_collector::error>&)>
+                       const std::vector<diag_collector::diag>&)>
         check_errors,
     source_location caller) {
   padded_string code(input);
@@ -3158,7 +3158,7 @@ void test_lex::check_tokens_with_errors(
     padded_string_view input,
     std::initializer_list<token_type> expected_token_types,
     std::function<void(padded_string_view input,
-                       const std::vector<diag_collector::error>&)>
+                       const std::vector<diag_collector::diag>&)>
         check_errors,
     source_location caller) {
   diag_collector errors;
