@@ -26,7 +26,7 @@ std::string get_matcher_message(::testing::Matcher<const Value &> matcher,
   return listener.str();
 }
 
-TEST(test_error_matcher, match_error_type) {
+TEST(test_diag_matcher, match_error_type) {
   padded_string code(u8"hello"_sv);
 
   ::testing::Matcher<const diag_collector::diag &> continue_matcher =
@@ -49,7 +49,7 @@ TEST(test_error_matcher, match_error_type) {
   })));
 }
 
-TEST(test_error_matcher, match_error_type_message) {
+TEST(test_diag_matcher, match_error_type_message) {
   padded_string code(u8"hello"_sv);
   ::testing::Matcher<const diag_collector::diag &> matcher =
       ERROR_TYPE(diag_invalid_break);
@@ -60,7 +60,7 @@ TEST(test_error_matcher, match_error_type_message) {
             "whose type (diag_invalid_continue) isn't diag_invalid_break");
 }
 
-TEST(test_error_matcher, match_error_type_with_1_field) {
+TEST(test_diag_matcher, match_error_type_with_1_field) {
   padded_string code(u8"hello"_sv);
 
   ::testing::Matcher<const diag_collector::diag &> continue_matcher =
@@ -85,7 +85,7 @@ TEST(test_error_matcher, match_error_type_with_1_field) {
   })));
 }
 
-TEST(test_error_matcher, match_error_type_with_1_field_message) {
+TEST(test_diag_matcher, match_error_type_with_1_field_message) {
   padded_string code(u8"hello"_sv);
   ::testing::Matcher<const diag_collector::diag &> matcher =
       ERROR_TYPE_OFFSETS(&code, diag_invalid_continue,  //
@@ -97,7 +97,7 @@ TEST(test_error_matcher, match_error_type_with_1_field_message) {
             "whose type (diag_invalid_break) isn't diag_invalid_continue");
 }
 
-TEST(test_error_matcher, match_offsets_of_1_field_span) {
+TEST(test_diag_matcher, match_offsets_of_1_field_span) {
   padded_string code(u8"hello"_sv);
 
   ::testing::Matcher<const diag_collector::diag &> continue_matcher =
@@ -117,7 +117,7 @@ TEST(test_error_matcher, match_offsets_of_1_field_span) {
       })));
 }
 
-TEST(test_error_matcher, match_offsets_of_1_field_identifier) {
+TEST(test_diag_matcher, match_offsets_of_1_field_identifier) {
   padded_string code(u8"hello"_sv);
 
   ::testing::Matcher<const diag_collector::diag &> matcher =
@@ -137,7 +137,7 @@ TEST(test_error_matcher, match_offsets_of_1_field_identifier) {
       })));
 }
 
-TEST(test_error_matcher, match_offsets_of_1_field_message) {
+TEST(test_diag_matcher, match_offsets_of_1_field_message) {
   padded_string code(u8"hello"_sv);
   {
     ::testing::Matcher<const diag_collector::diag &> matcher =
@@ -162,7 +162,7 @@ TEST(test_error_matcher, match_offsets_of_1_field_message) {
   }
 }
 
-TEST(test_error_matcher, match_offsets_of_2_fields_span) {
+TEST(test_diag_matcher, match_offsets_of_2_fields_span) {
   padded_string code(u8"...x,"_sv);
 
   ::testing::Matcher<const diag_collector::diag &> matcher =
@@ -189,7 +189,7 @@ TEST(test_error_matcher, match_offsets_of_2_fields_span) {
       << "when second doesn't match";
 }
 
-TEST(test_error_matcher, match_offsets_of_2_fields_message) {
+TEST(test_diag_matcher, match_offsets_of_2_fields_message) {
   padded_string code(u8"...x,"_sv);
 
   // Two wrong fields:

@@ -165,7 +165,7 @@ span_matcher::operator testing::Matcher<const source_code_span &>() const {
       new span_impl(this->expected_));
 }
 
-source_code_span error_matcher::field::get_span(const void *error_object) const
+source_code_span diag_matcher::field::get_span(const void *error_object) const
     noexcept {
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;
@@ -178,21 +178,21 @@ source_code_span error_matcher::field::get_span(const void *error_object) const
   QLJS_UNREACHABLE();
 }
 
-error_matcher::error_matcher(diag_type type) : state_{type, std::nullopt, {}} {}
+diag_matcher::diag_matcher(diag_type type) : state_{type, std::nullopt, {}} {}
 
-error_matcher::error_matcher(padded_string_view input, diag_type type,
-                             field field_0)
+diag_matcher::diag_matcher(padded_string_view input, diag_type type,
+                           field field_0)
     : state_{type, input, {field_0}} {}
 
-error_matcher::error_matcher(padded_string_view input, diag_type type,
-                             field field_0, field field_1)
+diag_matcher::diag_matcher(padded_string_view input, diag_type type,
+                           field field_0, field field_1)
     : state_{type, input, {field_0, field_1}} {}
 
-error_matcher::error_matcher(padded_string_view input, diag_type type,
-                             field field_0, field field_1, field field_2)
+diag_matcher::diag_matcher(padded_string_view input, diag_type type,
+                           field field_0, field field_1, field field_2)
     : state_{type, input, {field_0, field_1, field_2}} {}
 
-class error_matcher::impl
+class diag_matcher::impl
     : public testing::MatcherInterface<const diag_collector::diag &> {
  public:
   explicit impl(state s) : state_(std::move(s)) {}
@@ -250,7 +250,7 @@ class error_matcher::impl
   state state_;
 };
 
-/*implicit*/ error_matcher::operator testing::Matcher<
+/*implicit*/ diag_matcher::operator testing::Matcher<
     const diag_collector::diag &>() const {
   return testing::Matcher<const diag_collector::diag &>(new impl(this->state_));
 }
