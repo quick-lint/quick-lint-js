@@ -17,9 +17,9 @@ struct buffering_diag_reporter::impl {
   explicit impl(boost::container::pmr::memory_resource *memory) noexcept
       : memory_(memory) {}
 
-  struct any_error {
-    union underlying_error {
-      explicit underlying_error() noexcept {}
+  struct any_diag {
+    union underlying_diag {
+      explicit underlying_diag() noexcept {}
 
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format)    \
   ::quick_lint_js::name name;                                        \
@@ -30,12 +30,12 @@ struct buffering_diag_reporter::impl {
     };
 
     diag_type type;
-    underlying_error error;
+    underlying_diag diag;
   };
 
   boost::container::pmr::memory_resource *memory_;
-  std::deque<any_error, boost::container::pmr::polymorphic_allocator<any_error>>
-      errors_{this->memory_};
+  std::deque<any_diag, boost::container::pmr::polymorphic_allocator<any_diag>>
+      diagnostics_{this->memory_};
 };
 
 void buffering_diag_reporter::impl_deleter::operator()(impl *i) noexcept {
@@ -57,21 +57,21 @@ buffering_diag_reporter &buffering_diag_reporter::operator=(
 buffering_diag_reporter::~buffering_diag_reporter() = default;
 
 void buffering_diag_reporter::report_impl(diag_type type, void *diag) {
-  static constexpr unsigned char error_sizes[] = {
+  static constexpr unsigned char diag_sizes[] = {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
   sizeof(::quick_lint_js::name),
       QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
   };
 
-  impl::any_error &e = this->impl_->errors_.emplace_back();
+  impl::any_diag &e = this->impl_->diagnostics_.emplace_back();
   e.type = type;
-  std::memcpy(&e.error, diag, error_sizes[static_cast<std::ptrdiff_t>(type)]);
+  std::memcpy(&e.diag, diag, diag_sizes[static_cast<std::ptrdiff_t>(type)]);
 }
 
 void buffering_diag_reporter::copy_into(diag_reporter *other) const {
-  for (impl::any_error &error : this->impl_->errors_) {
-    other->report_impl(error.type, &error.error);
+  for (impl::any_diag &diag : this->impl_->diagnostics_) {
+    other->report_impl(diag.type, &diag.diag);
   }
 }
 
@@ -80,11 +80,11 @@ void buffering_diag_reporter::move_into(diag_reporter *other) {
 }
 
 bool buffering_diag_reporter::empty() const noexcept {
-  return this->impl_->errors_.empty();
+  return this->impl_->diagnostics_.empty();
 }
 
 void buffering_diag_reporter::clear() noexcept {
-  return this->impl_->errors_.clear();
+  return this->impl_->diagnostics_.clear();
 }
 }
 
