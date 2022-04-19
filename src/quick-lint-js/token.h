@@ -278,7 +278,7 @@ struct token {
   identifier identifier_name() const noexcept;
   source_code_span span() const noexcept;
 
-  // Report error_keywords_cannot_contain_escape_sequences for each escape
+  // Report diag_keywords_cannot_contain_escape_sequences for each escape
   // sequence in the most recently parsed keyword-looking identifier.
   //
   // Precondition:
