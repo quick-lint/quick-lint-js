@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
-#include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -23,7 +23,7 @@ global_declared_variable_set default_globals = configuration().globals();
 
 TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
   padded_string input(u8"let x = y, y = x;"_sv);
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   parser p(&input, &v);
   EXPECT_TRUE(p.parse_and_visit_statement(l));
@@ -39,7 +39,7 @@ TEST(
     test_lint,
     variables_with_different_escape_sequences_are_equivalent_after_normalization) {
   padded_string input(u8"let \\u{69} = 0; i += 1; \\u0069;"_sv);
-  error_collector v;
+  diag_collector v;
 
   linter l(&v, &default_globals);
   parser p(&input, &v);
@@ -51,7 +51,7 @@ TEST(
 TEST(test_lint,
      errors_for_variables_with_escape_sequences_cover_entire_variable_name) {
   padded_string input(u8R"(const immut\u{61}ble = 0; immut\u{61}ble = 1;)"_sv);
-  error_collector v;
+  diag_collector v;
 
   linter l(&v, &default_globals);
   parser p(&input, &v);
@@ -66,7 +66,7 @@ TEST(test_lint,
 
 TEST(test_lint, escape_sequences_are_allowed_for_arguments_variable) {
   padded_string input(u8R"(function f() { return \u{61}rgument\u{73}; })"_sv);
-  error_collector v;
+  diag_collector v;
 
   linter l(&v, &default_globals);
   parser p(&input, &v);
@@ -79,7 +79,7 @@ TEST(test_lint,
      function_statement_inside_if_does_not_conflict_with_let_variable) {
   padded_string input(u8"let f;\nif (true)\n  function f() {}"_sv);
 
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
@@ -91,7 +91,7 @@ TEST(test_lint,
 TEST(test_lint, typeof_with_conditional_operator) {
   {
     padded_string input(u8"typeof x ? 10 : 20;"_sv);
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
@@ -104,7 +104,7 @@ TEST(test_lint, typeof_with_conditional_operator) {
 TEST(test_lint, prefix_plusplus_on_const_variable) {
   {
     padded_string input(u8"const x = 42; ++x;"_sv);
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
@@ -118,7 +118,7 @@ TEST(test_lint, prefix_plusplus_on_const_variable) {
 
   {
     padded_string input(u8"const x = {y : 10};\n ++x.y;"_sv);
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
@@ -131,7 +131,7 @@ TEST(test_lint, prefix_plusplus_on_const_variable) {
 TEST(test_lint, prefix_plusplus_plus_operand) {
   {
     padded_string input(u8"const x = [42]; ++x[0];"_sv);
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
@@ -142,7 +142,7 @@ TEST(test_lint, prefix_plusplus_plus_operand) {
 
   {
     padded_string input(u8"const x = 42;\n const y =10;\n ++x + y;"_sv);
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     parser p(&input, &v);
     p.parse_and_visit_module(l);
@@ -157,7 +157,7 @@ TEST(test_lint, prefix_plusplus_plus_operand) {
 
 TEST(test_lint, use_await_label_in_non_async_function) {
   padded_string input(u8"function f() {await: for(;;){break await;}}"_sv);
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
@@ -168,7 +168,7 @@ TEST(test_lint, use_await_label_in_non_async_function) {
 
 TEST(test_lint, use_yield_label_in_non_generator_function) {
   padded_string input(u8"function f() {yield: for(;;){break yield;}}"_sv);
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
@@ -181,7 +181,7 @@ TEST(test_lint, escape_sequence_in_keyword_identifier) {
   // The parser should not report a stray 'finally' keyword.
   // The linter should not report that 'finally' is undeclared.
   padded_string input(u8"let which = \\u{66}inally;"_sv);
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);
@@ -195,7 +195,7 @@ TEST(test_lint, escape_sequence_in_keyword_identifier) {
 TEST(test_lint, delete_local_variable) {
   padded_string input(
       u8"function f(param) { let v; delete v; delete param; }"_sv);
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   parser p(&input, &v);
   p.parse_and_visit_module(l);

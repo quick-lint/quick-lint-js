@@ -7,7 +7,7 @@
 #include <iosfwd>
 #include <optional>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/gtest.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -16,7 +16,7 @@
 #include <vector>
 
 namespace quick_lint_js {
-struct spy_visitor : public error_collector {
+struct spy_visitor : public diag_collector {
   std::vector<std::string_view> visits;
 
   void visit_end_of_module() {

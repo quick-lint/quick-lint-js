@@ -5,8 +5,8 @@
 #include <gmock/gmock.h>
 #include <optional>
 #include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
@@ -193,7 +193,7 @@ error_matcher::error_matcher(padded_string_view input, diag_type type,
     : state_{type, input, {field_0, field_1, field_2}} {}
 
 class error_matcher::impl
-    : public testing::MatcherInterface<const error_collector::error &> {
+    : public testing::MatcherInterface<const diag_collector::error &> {
  public:
   explicit impl(state s) : state_(std::move(s)) {}
 
@@ -211,7 +211,7 @@ class error_matcher::impl
     // TODO(strager)
   }
 
-  bool MatchAndExplain(const error_collector::error &error,
+  bool MatchAndExplain(const diag_collector::error &error,
                        testing::MatchResultListener *listener) const override {
     bool type_matches = error.type() == this->state_.type;
     if (!type_matches) {
@@ -251,8 +251,8 @@ class error_matcher::impl
 };
 
 /*implicit*/ error_matcher::operator testing::Matcher<
-    const error_collector::error &>() const {
-  return testing::Matcher<const error_collector::error &>(
+    const diag_collector::error &>() const {
+  return testing::Matcher<const diag_collector::error &>(
       new impl(this->state_));
 }
 }

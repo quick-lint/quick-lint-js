@@ -9,8 +9,8 @@
 #include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/padded-string.h>
@@ -208,8 +208,7 @@ class error_matcher {
   error_matcher &operator=(const error_matcher &) = default;
   error_matcher &operator=(error_matcher &&) = default;
 
-  /*implicit*/ operator testing::Matcher<const error_collector::error &>()
-      const;
+  /*implicit*/ operator testing::Matcher<const diag_collector::error &>() const;
 
  private:
   class impl;

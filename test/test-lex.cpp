@@ -12,7 +12,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/characters.h>
-#include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
@@ -60,7 +60,7 @@ class test_lex : public ::testing::Test {
   void check_single_token_with_errors(
       string8_view input, string8_view expected_identifier_name,
       void (*check_errors)(padded_string_view input,
-                           const std::vector<error_collector::error>&),
+                           const std::vector<diag_collector::error>&),
       source_location = source_location::current());
   void check_tokens(string8_view input,
                     std::initializer_list<token_type> expected_token_types,
@@ -72,23 +72,23 @@ class test_lex : public ::testing::Test {
       string8_view input,
       std::initializer_list<token_type> expected_token_types,
       std::function<void(padded_string_view input,
-                         const std::vector<error_collector::error>&)>
+                         const std::vector<diag_collector::error>&)>
           check_errors,
       source_location = source_location::current());
   void check_tokens_with_errors(
       padded_string_view input,
       std::initializer_list<token_type> expected_token_types,
       std::function<void(padded_string_view input,
-                         const std::vector<error_collector::error>&)>
+                         const std::vector<diag_collector::error>&)>
           check_errors,
       source_location = source_location::current());
-  std::vector<token> lex_to_eof(padded_string_view, error_collector&);
+  std::vector<token> lex_to_eof(padded_string_view, diag_collector&);
   std::vector<token> lex_to_eof(padded_string_view,
                                 source_location = source_location::current());
   std::vector<token> lex_to_eof(string8_view,
                                 source_location = source_location::current());
 
-  lexer& make_lexer(padded_string_view input, error_collector* errors) {
+  lexer& make_lexer(padded_string_view input, diag_collector* errors) {
     this->lexers_.emplace_back(input, errors);
     return this->lexers_.back();
   }
@@ -110,7 +110,7 @@ TEST_F(test_lex, lex_block_comments) {
   EXPECT_THAT(this->lex_to_eof(u8"/**/"_sv), IsEmpty());
 
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"hello /* unterminated comment "_sv);
     lexer l(&input, &v);
     l.skip();
@@ -124,7 +124,7 @@ TEST_F(test_lex, lex_block_comments) {
 
 TEST_F(test_lex, lex_unopened_block_comment) {
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"hello */"_sv);
     lexer l(&input, &v);  // identifier
     EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -135,7 +135,7 @@ TEST_F(test_lex, lex_unopened_block_comment) {
                               comment_close, strlen(u8"hello "), u8"*/")));
   }
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"*-----*/"_sv);
     lexer l(&input, &v);
 
@@ -149,7 +149,7 @@ TEST_F(test_lex, lex_unopened_block_comment) {
                               comment_close, strlen(u8"*-----"), u8"*/")));
   }
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"*******/"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::star_star);
@@ -165,7 +165,7 @@ TEST_F(test_lex, lex_unopened_block_comment) {
                               comment_close, strlen(u8"******"), u8"*/")));
   }
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"*/"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::end_of_file);
@@ -175,7 +175,7 @@ TEST_F(test_lex, lex_unopened_block_comment) {
                               comment_close, 0, u8"*/")));
   }
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"**/"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::star);
@@ -190,7 +190,7 @@ TEST_F(test_lex, lex_unopened_block_comment) {
 TEST_F(test_lex, lex_regexp_literal_starting_with_star_slash) {
   {
     // '/*' is not an end of block comment because it precedes a regexp literal
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"*/ hello/"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::star);
@@ -209,7 +209,7 @@ TEST_F(test_lex, lex_regexp_literal_starting_with_star_slash) {
 TEST_F(test_lex, lex_regexp_literal_starting_with_star_star_slash) {
   {
     padded_string input(u8"3 **/ banana/"_sv);
-    error_collector v;
+    diag_collector v;
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::number);
     l.skip();
@@ -715,7 +715,7 @@ TEST_F(test_lex, lex_number_with_many_underscores) {
 
 TEST_F(test_lex, lex_number_with_multiple_groups_of_consecutive_underscores) {
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"123__45___6"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::number);
@@ -793,7 +793,7 @@ TEST_F(test_lex, lex_strings) {
   }
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"'unterminated" + string8(line_terminator) +
                         u8"hello");
     lexer l(&input, &v);
@@ -808,7 +808,7 @@ TEST_F(test_lex, lex_strings) {
   }
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"'separated" + string8(line_terminator) + u8"hello'");
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::string);
@@ -822,7 +822,7 @@ TEST_F(test_lex, lex_strings) {
   }
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"'separated" + string8(line_terminator) +
                         string8(line_terminator) + u8"hello'");
     lexer l(&input, &v);
@@ -846,7 +846,7 @@ TEST_F(test_lex, lex_strings) {
   }
 
   for (string8_view line_terminator : line_terminators_except_ls_ps) {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"let x = 'hello" + string8(line_terminator) +
                         u8"let y = 'world'");
     lexer l(&input, &v);
@@ -1169,7 +1169,7 @@ world`)",
       });
 
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"`${un}terminated"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
@@ -1200,7 +1200,7 @@ world`)",
 TEST_F(test_lex, templates_buffer_unicode_escape_errors) {
   {
     padded_string input(u8"`hello\\u`"_sv);
-    error_collector errors;
+    diag_collector errors;
     lexer& l = this->make_lexer(&input, &errors);
 
     EXPECT_EQ(l.peek().type, token_type::complete_template);
@@ -1217,7 +1217,7 @@ TEST_F(test_lex, templates_buffer_unicode_escape_errors) {
 
   {
     padded_string input(u8"`hello\\u{110000}`"_sv);
-    error_collector errors;
+    diag_collector errors;
     lexer& l = this->make_lexer(&input, &errors);
 
     EXPECT_EQ(l.peek().type, token_type::complete_template);
@@ -1234,7 +1234,7 @@ TEST_F(test_lex, templates_buffer_unicode_escape_errors) {
 
   {
     padded_string input(u8"`hello\\u${expr}`"_sv);
-    error_collector errors;
+    diag_collector errors;
     lexer& l = this->make_lexer(&input, &errors);
 
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
@@ -1253,7 +1253,7 @@ TEST_F(test_lex, templates_buffer_unicode_escape_errors) {
 TEST_F(test_lex, templates_do_not_buffer_valid_unicode_escapes) {
   {
     padded_string input(u8"`hell\\u{6f}`"_sv);
-    error_collector errors;
+    diag_collector errors;
     lexer& l = this->make_lexer(&input, &errors);
 
     EXPECT_EQ(l.peek().type, token_type::complete_template);
@@ -1267,7 +1267,7 @@ TEST_F(test_lex, templates_do_not_buffer_valid_unicode_escapes) {
 
   {
     padded_string input(u8"`hell\\u{6f}${expr}`"_sv);
-    error_collector errors;
+    diag_collector errors;
     lexer& l = this->make_lexer(&input, &errors);
 
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
@@ -1300,7 +1300,7 @@ TEST_F(test_lex, lex_regular_expression_literals) {
   auto check_regexp = [](string8_view raw_code) {
     padded_string code(raw_code);
     SCOPED_TRACE(code);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
 
     EXPECT_THAT(l.peek().type,
@@ -1326,7 +1326,7 @@ TEST_F(test_lex, lex_regular_expression_literals) {
   for (string8_view raw_code : {u8"/end_of_file"_sv, u8R"(/eof\)"_sv}) {
     padded_string code(raw_code);
     SCOPED_TRACE(code);
-    error_collector v;
+    diag_collector v;
     lexer l(&code, &v);
     EXPECT_EQ(l.peek().type, token_type::slash);
     l.reparse_as_regexp();
@@ -1346,7 +1346,7 @@ TEST_F(test_lex, lex_regular_expression_literals) {
     padded_string code(u8"/first_line" + string8(line_terminator) +
                        u8"second_line/");
     SCOPED_TRACE(code);
-    error_collector v;
+    diag_collector v;
     lexer l(&code, &v);
     EXPECT_EQ(l.peek().type, token_type::slash);
     l.reparse_as_regexp();
@@ -1367,7 +1367,7 @@ TEST_F(test_lex, lex_regular_expression_literals) {
     padded_string code(u8"/first[line" + string8(line_terminator) +
                        u8"second]line/");
     SCOPED_TRACE(code);
-    error_collector v;
+    diag_collector v;
     lexer l(&code, &v);
     EXPECT_EQ(l.peek().type, token_type::slash);
     l.reparse_as_regexp();
@@ -1405,7 +1405,7 @@ TEST_F(test_lex, lex_regular_expression_literal_with_digit_flag) {
 }
 
 TEST_F(test_lex, lex_unicode_escape_in_regular_expression_literal_flags) {
-  error_collector errors;
+  diag_collector errors;
   padded_string input(u8"/hello/\\u{67}i"_sv);
 
   lexer l(&input, &errors);
@@ -1424,7 +1424,7 @@ TEST_F(test_lex, lex_unicode_escape_in_regular_expression_literal_flags) {
 }
 
 TEST_F(test_lex, lex_non_ascii_in_regular_expression_literal_flags) {
-  error_collector errors;
+  diag_collector errors;
   padded_string input(u8"/hello/\u05d0"_sv);
 
   lexer l(&input, &errors);
@@ -1462,7 +1462,7 @@ TEST_F(test_lex, lex_regular_expression_literal_with_ascii_control_characters) {
        control_characters_except_line_terminators) {
     padded_string input(u8"/hello" + string8(control_character) + u8"world/");
     SCOPED_TRACE(input);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&input, &errors);
 
     l.reparse_as_regexp();
@@ -1477,7 +1477,7 @@ TEST_F(test_lex, lex_regular_expression_literal_with_ascii_control_characters) {
        control_characters_except_line_terminators) {
     padded_string input(u8"/hello\\" + string8(control_character) + u8"world/");
     SCOPED_TRACE(input);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&input, &errors);
 
     l.reparse_as_regexp();
@@ -2024,7 +2024,7 @@ TEST_F(
   for (string8 keyword : disallowed_binding_identifier_keywords) {
     padded_string code(escape_first_character_in_keyword(keyword));
     SCOPED_TRACE(code);
-    error_collector errors;
+    diag_collector errors;
     lexer& l = this->make_lexer(&code, &errors);
 
     EXPECT_THAT(l.peek().type,
@@ -2207,7 +2207,7 @@ TEST_F(test_lex, lex_shebang) {
 TEST_F(test_lex, lex_not_shebang) {
   // Whitespace must not appear between '#' and '!'.
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"# !notashebang"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
@@ -2219,7 +2219,7 @@ TEST_F(test_lex, lex_not_shebang) {
 
   // '#!' must be on the first line.
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"\n#!notashebang\n"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
@@ -2231,7 +2231,7 @@ TEST_F(test_lex, lex_not_shebang) {
 
   // Whitespace must not appear before '#!'.
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"  #!notashebang\n"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::bang) << "# should be skipped";
@@ -2242,7 +2242,7 @@ TEST_F(test_lex, lex_not_shebang) {
   }
 
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"#\\u{21}\n"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::private_identifier);
@@ -2259,7 +2259,7 @@ TEST_F(test_lex, lex_not_shebang) {
 TEST_F(test_lex, lex_unexpected_bom_before_shebang) {
   // BOM must not appear before '#!'.
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"\ufeff#!notashebang\n"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::end_of_file) << "# should be skipped";
@@ -2272,7 +2272,7 @@ TEST_F(test_lex, lex_unexpected_bom_before_shebang) {
 
 TEST_F(test_lex, lex_invalid_common_characters_are_disallowed) {
   {
-    error_collector v;
+    diag_collector v;
     padded_string input(u8"hello @ world"_sv);
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -2291,7 +2291,7 @@ TEST_F(test_lex, ascii_control_characters_are_disallowed) {
   for (string8_view control_character : control_characters_except_whitespace) {
     padded_string input(string8(control_character) + u8"hello");
     SCOPED_TRACE(input);
-    error_collector v;
+    diag_collector v;
 
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::identifier)
@@ -2306,7 +2306,7 @@ TEST_F(test_lex, ascii_control_characters_sorta_treated_like_whitespace) {
   for (string8_view control_character : control_characters_except_whitespace) {
     padded_string input(u8"  " + string8(control_character) + u8"  hello");
     SCOPED_TRACE(input);
-    error_collector v;
+    diag_collector v;
     lexer l(&input, &v);
     EXPECT_EQ(l.peek().type, token_type::identifier)
         << "control character should be skipped";
@@ -2409,7 +2409,7 @@ TEST_F(test_lex, insert_semicolon_at_beginning_of_input) {
 
 TEST_F(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
   padded_string code(u8"{ x }"_sv);
-  error_collector errors;
+  diag_collector errors;
   lexer l(&code, &errors);
 
   EXPECT_EQ(l.peek().type, token_type::left_curly);
@@ -2442,7 +2442,7 @@ TEST_F(test_lex, inserting_semicolon_at_right_curly_remembers_next_token) {
 
 TEST_F(test_lex, transaction_buffers_errors_until_commit) {
   padded_string code(u8"x 0b y"_sv);
-  error_collector errors;
+  diag_collector errors;
   lexer l(&code, &errors);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -2466,7 +2466,7 @@ TEST_F(test_lex, transaction_buffers_errors_until_commit) {
 
 TEST_F(test_lex, nested_transaction_buffers_errors_until_outer_commit) {
   padded_string code(u8"x y 0b z"_sv);
-  error_collector errors;
+  diag_collector errors;
   lexer l(&code, &errors);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);  // x
@@ -2499,7 +2499,7 @@ TEST_F(test_lex, nested_transaction_buffers_errors_until_outer_commit) {
 
 TEST_F(test_lex, rolled_back_inner_transaction_discards_errors) {
   padded_string code(u8"x y 0b z"_sv);
-  error_collector errors;
+  diag_collector errors;
   lexer l(&code, &errors);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);  // x
@@ -2525,7 +2525,7 @@ TEST_F(test_lex, rolled_back_inner_transaction_discards_errors) {
 
 TEST_F(test_lex, rolled_back_outer_transaction_discards_errors) {
   padded_string code(u8"x y 0b z"_sv);
-  error_collector errors;
+  diag_collector errors;
   lexer l(&code, &errors);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);  // x
@@ -2551,7 +2551,7 @@ TEST_F(test_lex, rolled_back_outer_transaction_discards_errors) {
 
 TEST_F(test_lex, errors_after_transaction_commit_are_reported_unbuffered) {
   padded_string code(u8"x 'y' 0b"_sv);
-  error_collector errors;
+  diag_collector errors;
   lexer l(&code, &errors);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -2574,7 +2574,7 @@ TEST_F(test_lex, errors_after_transaction_commit_are_reported_unbuffered) {
 
 TEST_F(test_lex, errors_after_transaction_rollback_are_reported_unbuffered) {
   padded_string code(u8"x 'y' 0b"_sv);
-  error_collector errors;
+  diag_collector errors;
   lexer l(&code, &errors);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -2599,7 +2599,7 @@ TEST_F(test_lex, errors_after_transaction_rollback_are_reported_unbuffered) {
 
 TEST_F(test_lex, rolling_back_transaction) {
   padded_string code(u8"x 'y' 3"_sv);
-  error_collector errors;
+  diag_collector errors;
   lexer l(&code, &errors);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -2626,7 +2626,7 @@ TEST_F(test_lex, rolling_back_transaction) {
 
 TEST_F(test_lex, insert_semicolon_after_rolling_back_transaction) {
   padded_string code(u8"x 'y' 3"_sv);
-  error_collector errors;
+  diag_collector errors;
   lexer l(&code, &errors);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
@@ -2656,7 +2656,7 @@ TEST_F(test_lex, unfinished_transaction_does_not_leak_memory) {
   // Clang's LeakSanitizer.
 
   padded_string code(u8"a b c d e f g"_sv);
-  error_collector errors;
+  diag_collector errors;
   lexer l(&code, &errors);
 
   [[maybe_unused]] lexer_transaction outer_transaction = l.begin_transaction();
@@ -2717,7 +2717,7 @@ TEST_F(test_lex, jsx_identifier) {
     SCOPED_TRACE(out_string8(tag_code));
 
     padded_string code(u8"!" + string8(tag_code));
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
     l.skip_in_jsx();  // Ignore '!'.
 
@@ -2782,7 +2782,7 @@ TEST_F(test_lex, jsx_string) {
     SCOPED_TRACE(out_string8(string_code));
 
     padded_string code(u8"!" + string8(string_code));
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
     l.skip_in_jsx();  // Ignore '!'.
 
@@ -2824,7 +2824,7 @@ TEST_F(test_lex, jsx_string) {
 TEST_F(test_lex, jsx_string_ignores_comments) {
   {
     padded_string code(u8"! 'hello // '\nworld'"sv);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
     l.skip_in_jsx();  // Ignore '!'.
 
@@ -2842,7 +2842,7 @@ TEST_F(test_lex, jsx_string_ignores_comments) {
 
   {
     padded_string code(u8R"(! "hello/* not"comment */world")"sv);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
     l.skip_in_jsx();  // Ignore '!'.
 
@@ -2861,7 +2861,7 @@ TEST_F(test_lex, jsx_string_ignores_comments) {
 
 TEST_F(test_lex, unterminated_jsx_string) {
   padded_string code(u8"! 'hello"sv);
-  error_collector errors;
+  diag_collector errors;
   lexer l(&code, &errors);
   l.skip_in_jsx();  // Ignore '!'.
 
@@ -2878,7 +2878,7 @@ TEST_F(test_lex, unterminated_jsx_string) {
 TEST_F(test_lex, jsx_tag) {
   {
     padded_string code(u8"<svg:rect>"_sv);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
     l.skip_in_jsx();  // Ignore '<'.
 
@@ -2897,7 +2897,7 @@ TEST_F(test_lex, jsx_tag) {
 
   {
     padded_string code(u8"<myModule.MyComponent>"_sv);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
     l.skip_in_jsx();  // Ignore '<'.
 
@@ -2918,7 +2918,7 @@ TEST_F(test_lex, jsx_tag) {
 TEST_F(test_lex, jsx_text_children) {
   {
     padded_string code(u8"<>hello world"_sv);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
     l.skip_in_jsx();  // Ignore '<'.
 
@@ -2930,7 +2930,7 @@ TEST_F(test_lex, jsx_text_children) {
 
   {
     padded_string code(u8"<>hello</>"_sv);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
     l.skip_in_jsx();  // Ignore '<'.
 
@@ -2946,7 +2946,7 @@ TEST_F(test_lex, jsx_text_children) {
   for (string8 text_begin : {u8"=", u8">", u8">>", u8">=", u8">>="}) {
     padded_string code(u8"<>" + text_begin + u8"hello");
     SCOPED_TRACE(code);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
     l.skip_in_jsx();  // Ignore '<'.
 
@@ -2980,7 +2980,7 @@ TEST_F(test_lex, jsx_text_children) {
 TEST_F(test_lex, jsx_illegal_text_children) {
   {
     padded_string code(u8"<>hello>world</>"_sv);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
     l.skip_in_jsx();  // Ignore '<'.
 
@@ -2994,7 +2994,7 @@ TEST_F(test_lex, jsx_illegal_text_children) {
 
   {
     padded_string code(u8"<>hello}world</>"_sv);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
     l.skip_in_jsx();  // Ignore '<'.
 
@@ -3012,7 +3012,7 @@ TEST_F(test_lex, jsx_expression_children) {
 
   {
     padded_string code(u8"<>hello {name}!</>"_sv);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
 
     // <>hello
@@ -3045,7 +3045,7 @@ TEST_F(test_lex, jsx_nested_children) {
 
   {
     padded_string code(u8"<>hello <span>world</span>!</>"_sv);
-    error_collector errors;
+    diag_collector errors;
     lexer l(&code, &errors);
     // <>hello
     EXPECT_EQ(l.peek().type, token_type::less);
@@ -3096,10 +3096,10 @@ void test_lex::check_single_token(string8_view input,
 void test_lex::check_single_token_with_errors(
     string8_view input, string8_view expected_identifier_name,
     void (*check_errors)(padded_string_view input,
-                         const std::vector<error_collector::error>&),
+                         const std::vector<diag_collector::error>&),
     source_location caller) {
   padded_string code(input);
-  error_collector errors;
+  diag_collector errors;
   std::vector<token> lexed_tokens = this->lex_to_eof(&code, errors);
 
   EXPECT_THAT_AT_CALLER(lexed_tokens,
@@ -3146,7 +3146,7 @@ void test_lex::check_tokens(
 void test_lex::check_tokens_with_errors(
     string8_view input, std::initializer_list<token_type> expected_token_types,
     std::function<void(padded_string_view input,
-                       const std::vector<error_collector::error>&)>
+                       const std::vector<diag_collector::error>&)>
         check_errors,
     source_location caller) {
   padded_string code(input);
@@ -3158,10 +3158,10 @@ void test_lex::check_tokens_with_errors(
     padded_string_view input,
     std::initializer_list<token_type> expected_token_types,
     std::function<void(padded_string_view input,
-                       const std::vector<error_collector::error>&)>
+                       const std::vector<diag_collector::error>&)>
         check_errors,
     source_location caller) {
-  error_collector errors;
+  diag_collector errors;
   std::vector<token> lexed_tokens = this->lex_to_eof(input, errors);
 
   std::vector<token_type> lexed_token_types;
@@ -3176,14 +3176,14 @@ void test_lex::check_tokens_with_errors(
 
 std::vector<token> test_lex::lex_to_eof(padded_string_view input,
                                         source_location caller) {
-  error_collector errors;
+  diag_collector errors;
   std::vector<token> tokens = this->lex_to_eof(input, errors);
   EXPECT_THAT_AT_CALLER(errors.errors, IsEmpty());
   return tokens;
 }
 
 std::vector<token> test_lex::lex_to_eof(padded_string_view input,
-                                        error_collector& errors) {
+                                        diag_collector& errors) {
   lexer& l = this->make_lexer(input, &errors);
   std::vector<token> tokens;
   while (l.peek().type != token_type::end_of_file) {

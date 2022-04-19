@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
-#include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
@@ -104,7 +104,7 @@ TEST(test_lint, global_variables_are_usable) {
   // Array;
   for (const char8 *global_variable : writable_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_assignment(identifier_of(global_variable));
     l.visit_variable_use(identifier_of(global_variable));
@@ -115,7 +115,7 @@ TEST(test_lint, global_variables_are_usable) {
   // NaN;
   for (const char8 *global_variable : non_writable_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_use(identifier_of(global_variable));
     l.visit_end_of_module();
@@ -128,7 +128,7 @@ TEST(test_lint, immutable_global_variables_are_not_assignable) {
     SCOPED_TRACE(out_string8(global_variable));
 
     // NaN = null;  // ERROR
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_assignment(identifier_of(global_variable));
     l.visit_end_of_module();
@@ -144,7 +144,7 @@ TEST(test_lint, immutable_global_variables_are_not_assignable) {
     // (() => {
     //   NaN = null;  // ERROR
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -241,7 +241,7 @@ constexpr const char8 *nodejs_global_variables[] = {
 TEST(test_lint, nodejs_global_variables_are_usable) {
   for (const char8 *global_variable : nodejs_global_variables) {
     SCOPED_TRACE(out_string8(global_variable));
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_use(identifier_of(global_variable));
     l.visit_end_of_module();
@@ -253,7 +253,7 @@ TEST(test_lint, non_module_nodejs_global_variables_are_shadowable) {
   for (variable_init_kind init_kind :
        {variable_init_kind::normal,
         variable_init_kind::initialized_with_equals}) {
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     // Intentionally excluded: __dirname, __filename, exports, module, require
     for (const char8 *global_variable : nodejs_global_variables) {
@@ -277,7 +277,7 @@ TEST(test_lint, any_variable_is_declarable_and_usable_if_opted_into) {
   const char8 anything_1_declaration[] = u8"thisVariableDoesNotExistInAnyList";
   const char8 anything_2_use[] = u8"iDoNotExistInAnyList";
 
-  error_collector v;
+  diag_collector v;
   linter l(&v, &config.globals());
   l.visit_variable_declaration(identifier_of(builtin_1_declaration),
                                variable_kind::_let, variable_init_kind::normal);
@@ -298,7 +298,7 @@ TEST(test_lint, let_or_const_or_class_variable_use_before_declaration) {
 
     // x;      // ERROR
     // let x;
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_use(identifier_of(use));
     l.visit_variable_declaration(identifier_of(declaration), kind,
@@ -318,7 +318,7 @@ TEST(test_lint, import_use_before_declaration_is_okay) {
 
   // x;
   // import x from "";
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_use(identifier_of(use));
   l.visit_variable_declaration(identifier_of(declaration),
@@ -345,7 +345,7 @@ TEST(test_lint, export_use_after_declaration_is_okay) {
 
     // let x;
     // export {x};
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(declaration), kind,
                                  variable_init_kind::normal);
@@ -372,7 +372,7 @@ TEST(test_lint, export_use_before_declaration_is_okay) {
 
     // export {x};
     // let x;
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_export_use(identifier_of(use));
     l.visit_variable_declaration(identifier_of(declaration), kind,
@@ -391,7 +391,7 @@ TEST(test_lint, let_variable_use_before_declaration_within_function) {
   //   x;      // ERROR
   //   let x;
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -416,7 +416,7 @@ TEST(test_lint, let_variable_use_before_declaration_within_for_loop_scope) {
   //   let x;             // ERROR
   // }
   // TODO(strager): Code above doesn't match visits below.
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_for_scope();
   l.visit_variable_use(identifier_of(use));
@@ -440,7 +440,7 @@ TEST(test_lint, let_variable_use_before_declaration_of_shadowing_variable) {
   //   let x;
   // });
   // let x;
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -465,7 +465,7 @@ TEST(test_lint, var_or_function_variable_use_before_declaration) {
 
     // x;
     // var x;  // x is hoisted
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_use(identifier_of(use));
     l.visit_variable_declaration(identifier_of(declaration), kind,
@@ -487,7 +487,7 @@ TEST(test_lint,
     //   var x;             // x is hoisted
     // }
     // TODO(strager): Code above doesn't match visits below.
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_for_scope();
     l.visit_variable_use(identifier_of(use));
@@ -509,7 +509,7 @@ TEST(test_lint, var_or_function_variable_use_after_declaration_in_block_scope) {
     //   var x;  // x has function scope
     // }
     // x;
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(declaration), kind,
@@ -533,7 +533,7 @@ TEST(
     //   var x;
     // });
     // x;        // ERROR
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -557,7 +557,7 @@ TEST(test_lint, var_variable_use_before_declaration_in_block_scope) {
   // {
   //   var x;  // x is hoisted
   // }
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_use(identifier_of(use));
   l.visit_enter_block_scope();
@@ -577,7 +577,7 @@ TEST(test_lint, function_variable_use_before_declaration_in_block_scope) {
   // {
   //   function f() {}
   // }
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_use(identifier_of(use));
   l.visit_enter_block_scope();
@@ -608,7 +608,7 @@ TEST(test_lint,
   //     var x;  // x is hoisted
   //   }
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -634,7 +634,7 @@ TEST(test_lint,
   //     function f() {}
   //   }
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -670,7 +670,7 @@ TEST(
     //   }
     //   var x;  // x is hoisted
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -694,7 +694,7 @@ TEST(test_lint, variable_use_after_declaration) {
 
     // let x;
     // x;
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(declaration), kind,
                                  variable_init_kind::normal);
@@ -708,7 +708,7 @@ TEST(test_lint, variable_use_with_no_declaration) {
   const char8 use[] = u8"x";
 
   // x;  // ERROR
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_use(identifier_of(use));
   l.visit_end_of_module();
@@ -722,7 +722,7 @@ TEST(test_lint, variable_export_with_no_declaration) {
   const char8 use[] = u8"x";
 
   // export {x};  // ERROR
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_export_use(identifier_of(use));
   l.visit_end_of_module();
@@ -738,7 +738,7 @@ TEST(test_lint, variable_use_in_function_with_no_declaration) {
   // (() => {
   //   x;      // ERROR
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -761,7 +761,7 @@ TEST(test_lint, variable_use_with_declaration_in_different_function) {
   // (() => {
   //   x;      // ERROR
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -792,7 +792,7 @@ TEST(test_lint,
   //   }
   //   let x;
   // }
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(outer_declaration),
                                variable_kind::_let, variable_init_kind::normal);
@@ -823,7 +823,7 @@ TEST(test_lint, use_of_variable_declared_in_grandparent_scope) {
   //     });
   //   });
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -849,7 +849,7 @@ TEST(test_lint, name_of_named_function_expression_is_usable_within_function) {
   // (function f() {
   //   f;
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_named_function_scope(identifier_of(declaration));
   l.visit_enter_function_scope_body();
@@ -870,7 +870,7 @@ TEST(test_lint,
   //     f;
   //   });
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_named_function_scope(identifier_of(declaration));
   l.visit_enter_function_scope_body();
@@ -895,7 +895,7 @@ TEST(
 
   // (function f(x = f) {
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_named_function_scope(identifier_of(declaration));
   l.visit_variable_use(identifier_of(use));
@@ -919,7 +919,7 @@ TEST(test_lint,
   // (function f() {
   // });
   // f;               // ERROR
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_use(identifier_of(use_before));
   l.visit_enter_named_function_scope(identifier_of(declaration));
@@ -946,7 +946,7 @@ TEST(test_lint, use_global_variable_within_functions) {
   // (() => {
   //   x;
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
                                variable_init_kind::normal);
@@ -976,7 +976,7 @@ TEST(test_lint, function_uses_variable_declared_in_outer_function) {
   //      x;
   //   });
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -1009,7 +1009,7 @@ TEST(test_lint, function_uses_global_variable_declared_later_in_module) {
   //   x;
   // });
   // let x;
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -1034,7 +1034,7 @@ TEST(test_lint, assign_to_mutable_variable) {
     //   let x;  // x is mutable
     //   x = 42;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -1058,7 +1058,7 @@ TEST(test_lint, assign_to_mutable_variable_shadowing_immutable_variable) {
   //   let x;          // x is mutable
   //   x = 42;
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(immutable_declaration),
                                variable_kind::_import,
@@ -1083,7 +1083,7 @@ TEST(test_lint, assign_to_immutable_const_variable) {
     //   const x = null;  // x is immutable
     //   x = 42;          // ERROR
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -1106,7 +1106,7 @@ TEST(test_lint, assign_to_immutable_const_variable) {
     // {
     //   x = 42;        // ERROR
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_const,
@@ -1133,7 +1133,7 @@ TEST(test_lint, assign_to_immutable_imported_variable) {
     // {
     //   x = 42;  // ERROR
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_import,
@@ -1157,7 +1157,7 @@ TEST(test_lint, assign_to_immutable_variable_before_declaration) {
 
   // x = 42;          // ERROR
   // const x = null;  // x is immutable
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_assignment(identifier_of(assignment));
   l.visit_variable_declaration(identifier_of(declaration),
@@ -1182,7 +1182,7 @@ TEST(test_lint, assign_to_shadowing_immutable_variable_before_declaration) {
   //   x = 42;          // ERROR
   //   const x = null;  // x is immutable
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(outer_declaration),
                                variable_kind::_let, variable_init_kind::normal);
@@ -1209,7 +1209,7 @@ TEST(test_lint, assign_to_immutable_variable_declared_in_parent_scope) {
   // (() => {
   //   x = 42;        // ERROR
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(declaration),
                                variable_kind::_const,
@@ -1235,7 +1235,7 @@ TEST(test_lint, assign_to_immutable_variable_declared_later_in_parent_scope) {
   //   x = 42;        // ERROR
   // });
   // const x = null;  // x is immutable
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -1266,7 +1266,7 @@ TEST(test_lint,
   //   }
   //   const x = null;  // x is immutable
   // }
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(outer_declaration),
                                variable_kind::_let, variable_init_kind::normal);
@@ -1297,7 +1297,7 @@ TEST(test_lint, assignment_to_const_variable_declared_in_grandparent_scope) {
   //     x = 42;  // ERROR
   //   });
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(declaration),
                                variable_kind::_const,
@@ -1322,7 +1322,7 @@ TEST(test_lint, assign_to_undeclared_variable) {
   const char8 assignment[] = u8"x";
 
   // x = null;  // ERROR
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_assignment(identifier_of(assignment));
   l.visit_end_of_module();
@@ -1338,7 +1338,7 @@ TEST(test_lint, assign_inside_function_to_undeclared_variable) {
   // (function() {
   //   x = null;  // ERROR
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -1357,7 +1357,7 @@ TEST(test_lint, assign_to_variable_before_declaration) {
 
   // x = null;
   // let x;     // ERROR
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_assignment(identifier_of(assignment));
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
@@ -1376,7 +1376,7 @@ TEST(test_lint, assign_to_variable_before_hoistable_declaration) {
 
   // x = null;
   // var x;     // x is hoisted.
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_assignment(identifier_of(assignment));
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_var,
@@ -1400,7 +1400,7 @@ TEST(test_lint, use_variable_declared_in_parent_function) {
     //   });
     //   let f;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -1433,7 +1433,7 @@ TEST(test_lint, use_variable_declared_in_grandparent_function) {
     //   });
     //   let f;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -1461,7 +1461,7 @@ TEST(test_lint, use_for_loop_let_variable_before_or_after_loop) {
   // element;                  // ERROR
   // for (let element of []);
   // element;                  // ERROR
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_use(identifier_of(use_before));
   l.visit_enter_for_scope();
@@ -1486,7 +1486,7 @@ TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
     // let v;
     // for (let _ of [])
     //   v;
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_let,
@@ -1506,7 +1506,7 @@ TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
     // for (let _ of [])
     //   v;
     // var v;             // v is hoisted
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_for_scope();
     l.visit_variable_use(identifier_of(use));
@@ -1526,7 +1526,7 @@ TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
     // for (let _ of [])
     //   v;               // ERROR
     // let v;
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_for_scope();
     l.visit_variable_use(identifier_of(use));
@@ -1550,7 +1550,7 @@ TEST(test_lint, use_undeclared_variable_in_function_scope_in_for_scope) {
   //   (() => {
   //     v;             // ERROR
   //   });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_for_scope();
   l.visit_enter_function_scope();
@@ -1575,7 +1575,7 @@ TEST(test_lint,
   //     v;
   //   });
   // let v;
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_for_scope();
   l.visit_enter_function_scope();
@@ -1602,7 +1602,7 @@ TEST(test_lint,
   //   let v;
   // }
   // TODO(strager): Code above doesn't match visits below.
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(outer_declaration),
                                variable_kind::_let, variable_init_kind::normal);
@@ -1632,7 +1632,7 @@ TEST(
   //   let v;
   // }
   // TODO(strager): Code above doesn't match visits below.
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(outer_declaration),
                                variable_kind::_let, variable_init_kind::normal);
@@ -1657,7 +1657,7 @@ TEST(test_lint, shadowing_variable_in_parent_block_scope_is_okay) {
   // {
   //   let x;
   // }
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(outer_declaration),
                                variable_kind::_let, variable_init_kind::normal);
@@ -1678,7 +1678,7 @@ TEST(test_lint, declaring_variable_twice_is_an_error) {
   // let x;
   // let x;  // ERROR
   // let x;  // ERROR
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
                                variable_init_kind::normal);
@@ -1706,7 +1706,7 @@ TEST(test_lint, declaring_variable_twice_with_var_is_okay) {
 
   // var x;
   // var x;
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_var,
                                variable_init_kind::normal);
@@ -1722,7 +1722,7 @@ TEST(test_lint, declaring_parameter_twice_is_okay) {
   const char8 second_declaration[] = u8"x";
 
   // ((x, x) => {});
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(declaration),
@@ -1744,7 +1744,7 @@ TEST(test_lint, declaring_function_twice_is_okay) {
 
   // function f() {}
   // function f() {}
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(declaration),
                                variable_kind::_function,
@@ -1770,7 +1770,7 @@ TEST(test_lint, mixing_var_and_function_in_same_function_scope_is_okay) {
   {
     // var x;
     // function x() {}
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_var,
@@ -1789,7 +1789,7 @@ TEST(test_lint, mixing_var_and_function_in_same_function_scope_is_okay) {
   {
     // function x() {}
     // var x;
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_function,
@@ -1810,7 +1810,7 @@ TEST(test_lint, mixing_var_and_function_in_same_function_scope_is_okay) {
     // {
     //   var x;
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_function,
@@ -1837,7 +1837,7 @@ TEST(test_lint, mixing_parameter_and_var_or_function_is_okay) {
     // ((x) => {
     //   var x;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_variable_declaration(identifier_of(declaration),
@@ -1857,7 +1857,7 @@ TEST(test_lint, mixing_parameter_and_var_or_function_is_okay) {
     // ((x) => {
     //   function x() {}
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_variable_declaration(identifier_of(declaration),
@@ -1890,7 +1890,7 @@ TEST(
          {variable_kind::_class, variable_kind::_const, variable_kind::_let}) {
       // var x;
       // let x; // ERROR
-      error_collector v;
+      diag_collector v;
       linter l(&v, &default_globals);
       l.visit_variable_declaration(identifier_of(declaration), declaration_kind,
                                    variable_init_kind::normal);
@@ -1914,7 +1914,7 @@ TEST(
           variable_kind::_function, variable_kind::_let, variable_kind::_var}) {
       // let x;
       // var x; // ERROR
-      error_collector v;
+      diag_collector v;
       linter l(&v, &default_globals);
       l.visit_variable_declaration(identifier_of(declaration), declaration_kind,
                                    variable_init_kind::normal);
@@ -1943,7 +1943,7 @@ TEST(test_lint, strict_variables_conflict_with_var_in_block_scope) {
     //   var x;
     // }
     // let x;    // ERROR
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(var_declaration),
@@ -1969,7 +1969,7 @@ TEST(test_lint, strict_variables_conflict_with_var_in_block_scope) {
     // {
     //   var x;  // ERROR
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(other_declaration),
                                  other_declaration_kind,
@@ -2001,7 +2001,7 @@ TEST(test_lint,
     //   function x() {}
     // }
     // let x;
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(function_declaration),
@@ -2023,7 +2023,7 @@ TEST(test_lint,
     // {
     //   function x() {}
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(other_declaration),
                                  other_declaration_kind,
@@ -2048,7 +2048,7 @@ TEST(test_lint, import_conflicts_with_any_variable_declaration) {
         variable_kind::_import, variable_kind::_let, variable_kind::_var}) {
     // import x from "";
     // let x;             // ERROR
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(import_declaration),
                                  variable_kind::_import,
@@ -2070,7 +2070,7 @@ TEST(test_lint, import_conflicts_with_any_variable_declaration) {
         variable_kind::_import, variable_kind::_let, variable_kind::_var}) {
     // let x;
     // import x from ""; // ERROR
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(other_declaration),
                                  other_declaration_kind,
@@ -2096,7 +2096,7 @@ TEST(test_lint,
   // try {
   // } catch ([e, e]) {  // ERROR
   // }
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_block_scope();
   l.visit_exit_block_scope();
@@ -2126,7 +2126,7 @@ TEST(test_lint, let_style_variable_in_same_scope_as_parameter_redeclares) {
     // ((x) => {
     //   let x; // ERROR
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_variable_declaration(identifier_of(parameter_declaration),
@@ -2159,7 +2159,7 @@ TEST(test_lint, let_variable_in_inner_scope_as_parameter_shadows) {
     //     let x;
     //   }
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_variable_declaration(identifier_of(parameter_declaration),
@@ -2186,7 +2186,7 @@ TEST(test_lint, catch_variable_does_not_conflict_with_var_variable) {
   // } catch (e) {
   //   var e;
   // }
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_block_scope();
   l.visit_variable_declaration(identifier_of(catch_declaration),
@@ -2211,7 +2211,7 @@ TEST(test_lint, catch_variable_conflicts_with_non_var_variables) {
     // } catch (e) {
     //   let e;       // ERROR
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_block_scope();
     l.visit_variable_declaration(identifier_of(catch_declaration),
@@ -2240,7 +2240,7 @@ TEST(test_lint, parameter_default_value_cannot_refer_to_local_variables) {
     // ((p = l) => {  // ERROR
     //   var l;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_variable_use(identifier_of(parameter_default_value));
@@ -2263,7 +2263,7 @@ TEST(test_lint, parameter_default_value_cannot_refer_to_local_variables) {
     // ((p = (() => l)) => {  // ERROR
     //   var l;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
 
@@ -2296,7 +2296,7 @@ TEST(test_lint, parameter_default_value_uses_undeclared_variable) {
   {
     // ((p = x) => {  // ERROR
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_variable_use(identifier_of(parameter_default_value));
@@ -2315,7 +2315,7 @@ TEST(test_lint, parameter_default_value_uses_undeclared_variable) {
   {
     // ((p = (() => x)) => {  // ERROR
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
 
@@ -2346,7 +2346,7 @@ TEST(test_lint, parameter_shadows_named_function_name) {
   // (function f(f) {
   //   f;
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_named_function_scope(identifier_of(function_declaration));
   l.visit_variable_declaration(identifier_of(parameter_declaration),
@@ -2370,7 +2370,7 @@ TEST(test_lint, let_shadows_named_function_name) {
     //   let f;
     //   f;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_named_function_scope(identifier_of(function_declaration));
     l.visit_enter_function_scope_body();
@@ -2389,7 +2389,7 @@ TEST(test_lint, let_shadows_named_function_name) {
     //   f;             // ERROR
     //   let f;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_named_function_scope(identifier_of(function_declaration));
     l.visit_enter_function_scope_body();
@@ -2413,7 +2413,7 @@ TEST(test_lint, let_shadows_global_variable) {
 
   {
     // let Array;
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(var_declaration),
                                  variable_kind::_let,
@@ -2426,7 +2426,7 @@ TEST(test_lint, let_shadows_global_variable) {
   {
     // Array;
     // let Array;
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_use(identifier_of(var_use));
     l.visit_variable_declaration(identifier_of(var_declaration),
@@ -2448,7 +2448,7 @@ TEST(test_lint,
     // C;             // ERROR
     const char8 class_declaration[] = u8"C";
     const char8 class_use[] = u8"C";
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_class_scope();
     l.visit_variable_declaration(identifier_of(class_declaration),
@@ -2470,7 +2470,7 @@ TEST(test_lint,
     const char8 class_declaration_1[] = u8"C";
     const char8 class_declaration_2[] = u8"C";
     const char8 class_declaration_3[] = u8"C";
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
 
     l.visit_enter_class_scope();
@@ -2509,7 +2509,7 @@ TEST(
   const char8 b_declaration[] = u8"b";
   const char8 b_assignment[] = u8"b";
 
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -2535,7 +2535,7 @@ TEST(test_lint, with_does_not_propagate_variable_uses) {
   {
     // with({})
     //   a;
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_with_scope();
     l.visit_variable_use(identifier_of(use));
@@ -2551,7 +2551,7 @@ TEST(test_lint, with_does_not_propagate_variable_uses) {
     // with ({})
     //   a = 2;
 
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(declaration),
                                  variable_kind::_const,
@@ -2570,7 +2570,7 @@ TEST(test_lint, with_does_not_propagate_variable_uses) {
     //   a = 2;
     // let a;
 
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_with_scope();
     l.visit_variable_assignment(identifier_of(assignment));
@@ -2590,7 +2590,7 @@ TEST(test_lint, with_does_not_propagate_variable_uses) {
     //   a = 2;
     // }
 
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_with_scope();
     l.visit_enter_block_scope();
@@ -2616,7 +2616,7 @@ TEST(test_lint, with_does_not_propagate_variable_uses) {
     //   }
     // }
 
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_with_scope();
     l.visit_enter_block_scope();
@@ -2641,7 +2641,7 @@ TEST(test_lint_magic_arguments,
   // (function() {
   //   arguments;
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -2657,7 +2657,7 @@ TEST(test_lint_magic_arguments,
   const char8 arguments_use[] = u8"arguments";
 
   // arguments;
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_use(identifier_of(arguments_use));
   l.visit_end_of_module();
@@ -2674,7 +2674,7 @@ TEST(test_lint_magic_arguments, parameter_named_arguments_does_not_conflict) {
   // (function(arguments) {
   //   arguments;
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(parameter_declaration),
@@ -2696,7 +2696,7 @@ TEST(test_lint_magic_arguments,
   {
     // (function(p = arguments) {
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_variable_use(identifier_of(parameter_default_value));
@@ -2719,7 +2719,7 @@ TEST(test_lint_magic_arguments,
     // (function(p = arguments) {
     //   let arguments;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_variable_use(identifier_of(parameter_default_value));
@@ -2743,7 +2743,7 @@ TEST(test_lint_magic_arguments, var_does_not_conflict_with_magic_arguments) {
   // (function() {
   //   var arguments;
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -2762,7 +2762,7 @@ TEST(test_lint_magic_arguments, let_shadows_magic_arguments) {
     // (function() {
     //   let arguments;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -2782,7 +2782,7 @@ TEST(test_lint_magic_arguments, let_shadows_magic_arguments) {
     //   arguments;      // ERROR
     //   let arguments;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -2806,7 +2806,7 @@ TEST(test_lint_magic_arguments, function_shadows_magic_arguments) {
   // (function() {
   //   function arguments() {}
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -2829,7 +2829,7 @@ TEST(test_lint_magic_arguments, catch_variable_shadows_magic_arguments) {
   //   } catch (arguments) {
   //   }
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -2862,7 +2862,7 @@ TEST(test_lint_delete, deleting_local_variable_is_a_warning) {
   //   let v;
   //   delete v;
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -2894,7 +2894,7 @@ TEST(test_lint_delete, deleting_local_variable_declared_later_is_a_warning) {
   //   delete v;
   //   let v;
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_enter_function_scope_body();
@@ -2924,7 +2924,7 @@ TEST(test_lint_delete, deleting_declared_module_variable_is_a_warning) {
 
   // let v;
   // delete v;
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
                                variable_init_kind::normal);
@@ -2954,7 +2954,7 @@ TEST(test_lint_delete, deleting_declared_global_variable_is_a_warning) {
   });
 
   // delete myGlobalVariable;
-  error_collector v;
+  diag_collector v;
   linter l(&v, &config.globals());
   l.visit_variable_delete_use(identifier(deleted_variable_span),
                               delete_keyword_span);
@@ -2967,7 +2967,7 @@ TEST(test_lint_typeof, using_undeclared_variable_in_typeof_is_not_an_error) {
   const char8 use[] = u8"v";
 
   // typeof v;
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_typeof_use(identifier_of(use));
   l.visit_end_of_module();
@@ -2981,7 +2981,7 @@ TEST(test_lint_typeof, typeof_declares_variable_automagically) {
 
   // typeof v;
   // v;
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_typeof_use(identifier_of(typeof_use));
   l.visit_variable_use(identifier_of(other_use));
@@ -3001,7 +3001,7 @@ TEST(test_lint_typeof,
   //   typeof v;
   // });
   // v;
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_use(identifier_of(use_before));
   l.visit_enter_function_scope();
@@ -3020,7 +3020,7 @@ TEST(test_lint_typeof, typeof_refers_to_already_declared_variable) {
 
   // let v;
   // typeof v;
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
                                variable_init_kind::normal);
@@ -3036,7 +3036,7 @@ TEST(test_lint_typeof, typeof_variable_declared_later_is_an_error) {
 
   // typeof v;  // ERROR
   // let v;
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_typeof_use(identifier_of(use));
   l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
@@ -3063,7 +3063,7 @@ TEST(
   //   typeof v;
   // });
   // v;           // ERROR
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_variable_use(identifier_of(use_before));
   l.visit_enter_function_scope();
@@ -3090,7 +3090,7 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
     // eval("var x = 42");
     // x;
     // x = 10;
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_variable_use(identifier_of(use));
@@ -3106,7 +3106,7 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
     // }
     // x;
     // x = 10;
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_block_scope();
     l.visit_variable_use(identifier_of(use_eval));
@@ -3124,7 +3124,7 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
     //   x;
     //   x = 10;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_use(identifier_of(use_eval));
     l.visit_enter_function_scope();
@@ -3143,7 +3143,7 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
     //   x = 10;
     // });
     // eval("var x = 42");
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -3164,7 +3164,7 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
     //   x;
     //   x = 10;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -3189,7 +3189,7 @@ TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
     //   x;
     //   x = 10;
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -3219,7 +3219,7 @@ TEST(test_lint_eval,
     // (function() {
     //   x;  // ERROR (use of undeclared variable)
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -3241,7 +3241,7 @@ TEST(test_lint_eval,
     //   eval("var x = 42;");
     // });
     // x;  // ERROR (use of undeclared variable)
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -3263,7 +3263,7 @@ TEST(test_lint_eval,
     //   x;      // ERROR (use of undeclared variable)
     //   x = 10; // ERROR (assignment to undeclared variable)
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -3292,7 +3292,7 @@ TEST(test_lint_eval,
     //   x;
     // }
     // x; // ERROR (use of undeclared variable)
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_named_function_scope(identifier_of(function_declaration));
     l.visit_variable_use(identifier_of(use_eval));
@@ -3317,7 +3317,7 @@ TEST(test_lint_eval,
     // eval("var x = 42;");
     // x;  // ERROR (use of undeclared variable)
     // x = 10;  // ERROR (assignment to undeclared variable)
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(eval_declaration),
                                  variable_kind::_let,
@@ -3347,7 +3347,7 @@ TEST(test_lint_eval,
     //     var eval;
     //   }
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -3385,7 +3385,7 @@ TEST(test_lint_eval, false_negatives_on_redeclaration_of_eval) {
     //   x;  // TODO: ERROR (use of undeclared variable)
     //   x = 10;  // TODO: ERROR (assignment to undeclared variable)
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(eval_declaration),
                                  variable_kind::_let,
@@ -3412,7 +3412,7 @@ TEST(test_lint_eval, false_negatives_on_redeclaration_of_eval) {
     //     x = 3;  // TODO: ERROR (assignment to const variable)
     //   }
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
@@ -3457,7 +3457,7 @@ TEST(test_lint_unused_shadow,
       //   // const/let/etc.
       //   let x = 6;  // WARNING
       // }
-      error_collector v;
+      diag_collector v;
       linter l(&v, &default_globals);
       l.visit_variable_declaration(identifier_of(outer_declaration),
                                    tc.outer_declaration_kind,
@@ -3487,7 +3487,7 @@ TEST(test_lint_unused_shadow,
       //     let x = 6;  // WARNING
       //   }
       // }
-      error_collector v;
+      diag_collector v;
       linter l(&v, &default_globals);
       l.visit_variable_declaration(identifier_of(outer_declaration),
                                    tc.outer_declaration_kind,
@@ -3521,7 +3521,7 @@ TEST(test_lint_unused_shadow,
     // {
     //   var x = 6;  // no warning
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_var,
@@ -3547,7 +3547,7 @@ TEST(test_lint_unused_shadow,
     // {
     //   let x;  // no warning
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
@@ -3573,7 +3573,7 @@ TEST(test_lint_unused_shadow,
     // (function() {
     //   let x = 6;  // no warning
     // });
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
@@ -3599,7 +3599,7 @@ TEST(test_lint_unused_shadow, shadowing_parameter_is_not_a_warning) {
   //     let x = 6;  // no warning
   //   }
   // });
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_function_scope();
   l.visit_variable_declaration(identifier_of(parameter),
@@ -3635,7 +3635,7 @@ TEST(test_lint_unused_shadow,
     // {
     //   let C = 6;  // no warning
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration), outer_kind,
                                  variable_init_kind::normal);
@@ -3660,7 +3660,7 @@ TEST(test_lint_unused_shadow, shadowing_catch_variable_is_not_a_warning) {
   //     let e = 6;  // no warning
   //   }
   // }
-  error_collector v;
+  diag_collector v;
   linter l(&v, &default_globals);
   l.visit_enter_block_scope();  // try
   l.visit_exit_block_scope();
@@ -3690,7 +3690,7 @@ TEST(test_lint_unused_shadow, using_shadowing_variable_is_not_a_warning) {
     //   let x = 6;  // no warning
     //   x;
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
@@ -3714,7 +3714,7 @@ TEST(test_lint_unused_shadow, using_shadowing_variable_is_not_a_warning) {
     //     x;
     //   }
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
@@ -3740,7 +3740,7 @@ TEST(test_lint_unused_shadow, using_shadowing_variable_is_not_a_warning) {
     //     x;
     //   });
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
@@ -3772,7 +3772,7 @@ TEST(test_lint_unused_shadow,
     //   x;          // ERROR
     //   let x = 6;  // no warning
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
@@ -3797,7 +3797,7 @@ TEST(test_lint_unused_shadow,
     //   }
     //   let x = 6;  // no warning
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
@@ -3824,7 +3824,7 @@ TEST(test_lint_unused_shadow,
     //   });
     //   let x = 6;    // no warning
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
@@ -3856,7 +3856,7 @@ TEST(test_lint_unused_shadow,
     //   let x = 6;  // no warning
     //   eval("x");
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
@@ -3880,7 +3880,7 @@ TEST(test_lint_unused_shadow,
     //     eval("x");
     //   }
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
@@ -3908,7 +3908,7 @@ TEST(test_lint_unused_shadow,
     //     }
     //   }
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
@@ -3936,7 +3936,7 @@ TEST(test_lint_unused_shadow,
     //     eval("x");
     //   });
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
@@ -3965,7 +3965,7 @@ TEST(test_lint_unused_shadow,
     //     });
     //   });
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,
@@ -4000,7 +4000,7 @@ TEST(test_lint_unused_shadow,
     //   let x = 6;  // no warning
     //   x = 7;
     // }
-    error_collector v;
+    diag_collector v;
     linter l(&v, &default_globals);
     l.visit_variable_declaration(identifier_of(outer_declaration),
                                  variable_kind::_let,

@@ -4,8 +4,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/buffering-diag-reporter.h>
+#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/linked-bump-allocator.h>
@@ -32,7 +32,7 @@ TEST(test_buffering_diag_reporter, buffers_all_visits) {
       .token = u8'(',
   });
 
-  error_collector collector;
+  diag_collector collector;
   diag_reporter.move_into(&collector);
   EXPECT_THAT(
       collector.errors,

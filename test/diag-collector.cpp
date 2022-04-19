@@ -2,12 +2,12 @@
 // See end of file for extended copyright information.
 
 #include <ostream>
-#include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 
 namespace quick_lint_js {
-void error_collector::report_impl(diag_type type, void *diag) {
+void diag_collector::report_impl(diag_type type, void *diag) {
   switch (type) {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
   case diag_type::name:                                                \
@@ -19,14 +19,14 @@ void error_collector::report_impl(diag_type type, void *diag) {
 }
 
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
-  error_collector::error::error(const name &data)                      \
+  diag_collector::error::error(const name &data)                       \
       : type_(diag_type::name), variant_##name##_(std::move(data)) {}
 QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
-diag_type error_collector::error::type() const noexcept { return this->type_; }
+diag_type diag_collector::error::type() const noexcept { return this->type_; }
 
-const char *error_collector::error::error_code() const noexcept {
+const char *diag_collector::error::error_code() const noexcept {
   switch (this->type_) {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
   case diag_type::name:                                                \
@@ -37,25 +37,25 @@ const char *error_collector::error::error_code() const noexcept {
   QLJS_UNREACHABLE();
 }
 
-const void *error_collector::error::data() const noexcept {
+const void *diag_collector::error::data() const noexcept {
   return &this->variant_diag_unexpected_token_;  // Arbitrary member.
 }
 
-#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call)     \
-  template <>                                                              \
-  bool holds_alternative<name>(const error_collector::error &e) noexcept { \
-    return e.type_ == diag_type::name;                                     \
-  }                                                                        \
-                                                                           \
-  template <>                                                              \
-  const name &get<name>(const error_collector::error &e) noexcept {        \
-    QLJS_ASSERT(holds_alternative<name>(e));                               \
-    return e.variant_##name##_;                                            \
+#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call)    \
+  template <>                                                             \
+  bool holds_alternative<name>(const diag_collector::error &e) noexcept { \
+    return e.type_ == diag_type::name;                                    \
+  }                                                                       \
+                                                                          \
+  template <>                                                             \
+  const name &get<name>(const diag_collector::error &e) noexcept {        \
+    QLJS_ASSERT(holds_alternative<name>(e));                              \
+    return e.variant_##name##_;                                           \
   }
 QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
-void PrintTo(const error_collector::error &e, std::ostream *out) {
+void PrintTo(const diag_collector::error &e, std::ostream *out) {
   *out << e.type_;
 }
 
