@@ -482,7 +482,8 @@ using namespace std::literals::string_view_literals;
   std::uint64_t hash = hash_fnv_1a_64(untranslated, %dULL);
   std::uint64_t table_size = %d;
   for (std::uint64_t attempt = 0; attempt <= %d; ++attempt) {
-    const const_hash_entry& hash_entry = const_hash_table[(hash + attempt*attempt) %% table_size];
+    const const_hash_entry& hash_entry =
+        const_hash_table[(hash + attempt * attempt) %% table_size];
     if (hash_entry.mapping_table_index == 0) {
       break;
     }
@@ -527,12 +528,13 @@ func WriteTranslationTableSource(table *TranslationTable, path string) error {
 #include <quick-lint-js/translation-table.h>
 
 namespace quick_lint_js {
-const translation_table translation_data = {
-    .mapping_table =
-        {
+const translation_table translation_data =
+    {
+        .mapping_table =
+            {
 `)
 	for _, mappingEntry := range table.MappingTable {
-		writer.WriteString("            {")
+		writer.WriteString("                {")
 		for i, stringOffset := range mappingEntry.StringOffsets {
 			if i != 0 {
 				writer.WriteString(", ")
@@ -542,21 +544,21 @@ const translation_table translation_data = {
 		writer.WriteString("},\n")
 	}
 	writer.WriteString(
-		`        },
+		`            },
 
-    // clang-format off
-    .string_table =
+        // clang-format off
+        .string_table =
 `)
-	DumpStringTable(table.StringTable, "        u8", writer)
+	DumpStringTable(table.StringTable, "            u8", writer)
 
 	writer.WriteString(
 		`,
-    // clang-format on
+        // clang-format on
 
-    .locale_table =
+        .locale_table =
 `)
 
-	DumpStringTable(table.LocaleTable, "        ", writer)
+	DumpStringTable(table.LocaleTable, "            ", writer)
 
 	writer.WriteString(
 		`,
