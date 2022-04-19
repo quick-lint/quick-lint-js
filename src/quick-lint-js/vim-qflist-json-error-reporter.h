@@ -31,7 +31,7 @@ class vim_qflist_json_error_reporter final : public error_reporter {
 
   void finish();
 
-  void report_impl(error_type type, void *error) override;
+  void report_impl(diag_type type, void *error) override;
 
  private:
   output_stream &output_;

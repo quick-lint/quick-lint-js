@@ -165,7 +165,7 @@ DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE const diagnostic_info
 #undef QLJS_DIAG_TYPE
 };
 
-const diagnostic_info& get_diagnostic_info(error_type type) noexcept {
+const diagnostic_info& get_diagnostic_info(diag_type type) noexcept {
   return all_diagnostic_infos[static_cast<std::ptrdiff_t>(type)];
 }
 
@@ -178,16 +178,16 @@ QLJS_WARNING_PUSH
 // is.
 QLJS_WARNING_IGNORE_GCC("-Wstringop-overflow")
 
-std::optional<error_type> error_type_from_code_slow(
+std::optional<diag_type> error_type_from_code_slow(
     std::string_view code) noexcept {
-  for (int i = 0; i < error_type_count; ++i) {
+  for (int i = 0; i < diag_type_count; ++i) {
     // TODO(strager): Parse the incoming code instead of stringifying each code
     // in the table.
     auto diag_code_string = all_diagnostic_infos[i].code_string();
     std::string_view diag_code_string_view(diag_code_string.data(),
                                            diag_code_string.size());
     if (diag_code_string_view == code) {
-      return static_cast<error_type>(i);
+      return static_cast<diag_type>(i);
     }
   }
   return std::nullopt;

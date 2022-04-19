@@ -34,7 +34,7 @@ void c_api_error_reporter<Diagnostic, Locator>::reset() {
 }
 
 template <class Diagnostic, class Locator>
-void c_api_error_reporter<Diagnostic, Locator>::report_impl(error_type type,
+void c_api_error_reporter<Diagnostic, Locator>::report_impl(diag_type type,
                                                             void *error) {
   c_api_error_formatter formatter(this);
   formatter.format(get_diagnostic_info(type), error);

@@ -49,7 +49,7 @@ class basic_text_error_reporter final : public error_reporter {
 
   std::vector<string8> messages() { return this->messages_; }
 
-  void report_impl(error_type type, void *error) override {
+  void report_impl(diag_type type, void *error) override {
     basic_text_error_formatter formatter(this);
     formatter.format(get_diagnostic_info(type), error);
   }

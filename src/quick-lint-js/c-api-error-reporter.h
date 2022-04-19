@@ -35,7 +35,7 @@ class c_api_error_reporter final : public error_reporter {
 
   const Diagnostic *get_diagnostics();
 
-  void report_impl(error_type type, void *error) override;
+  void report_impl(diag_type type, void *error) override;
 
  private:
   char8 *allocate_c_string(string8_view);

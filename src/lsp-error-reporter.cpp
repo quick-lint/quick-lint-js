@@ -28,7 +28,7 @@ lsp_error_reporter::lsp_error_reporter(byte_buffer &output,
 
 void lsp_error_reporter::finish() { this->output_.append_copy(u8"]"sv); }
 
-void lsp_error_reporter::report_impl(error_type type, void *error) {
+void lsp_error_reporter::report_impl(diag_type type, void *error) {
   if (this->need_comma_) {
     this->output_.append_copy(u8",\n"sv);
   }

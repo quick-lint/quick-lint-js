@@ -24,7 +24,7 @@ class error_tape final : public error_reporter {
     return this->found_matching_error_;
   }
 
-  void report_impl(error_type type, void *error) override final {
+  void report_impl(diag_type type, void *error) override final {
     if (this->predicate_->is_present(type)) {
       this->found_matching_error_ = true;
     }

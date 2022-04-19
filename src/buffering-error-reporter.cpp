@@ -29,7 +29,7 @@ struct buffering_error_reporter::impl {
 #undef QLJS_DIAG_TYPE
     };
 
-    error_type type;
+    diag_type type;
     underlying_error error;
   };
 
@@ -56,7 +56,7 @@ buffering_error_reporter &buffering_error_reporter::operator=(
 
 buffering_error_reporter::~buffering_error_reporter() = default;
 
-void buffering_error_reporter::report_impl(error_type type, void *error) {
+void buffering_error_reporter::report_impl(diag_type type, void *error) {
   static constexpr unsigned char error_sizes[] = {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
   sizeof(::quick_lint_js::name),

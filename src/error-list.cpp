@@ -99,7 +99,7 @@ parsed_error_list parse_error_list(const char* const raw_error_list) {
 
 void compiled_error_list::add(const parsed_error_list& error_list) {
   auto add_code = [this](std::string_view code, auto& code_set) -> void {
-    std::optional<error_type> code_error_type = error_type_from_code_slow(code);
+    std::optional<diag_type> code_error_type = error_type_from_code_slow(code);
     if (code_error_type.has_value()) {
       code_set[static_cast<std::size_t>(*code_error_type)] = true;
     } else {
@@ -159,7 +159,7 @@ std::vector<std::string> compiled_error_list::parse_warnings() const {
   return warnings;
 }
 
-bool compiled_error_list::is_present(error_type type) const noexcept {
+bool compiled_error_list::is_present(diag_type type) const noexcept {
   bool is_default = true;  // For now, all codes are enabled by default.
   bool present = true;
   for (const codes& c : this->parsed_error_lists_) {

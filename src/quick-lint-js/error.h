@@ -1624,30 +1624,30 @@ namespace quick_lint_js {
 QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
-enum class error_type {
+enum class diag_type {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) name,
   QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 };
 
-std::ostream& operator<<(std::ostream&, error_type);
+std::ostream& operator<<(std::ostream&, diag_type);
 
 template <class Error>
-struct error_type_from_type_detail;
+struct diag_type_from_type_detail;
 
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
   template <>                                                          \
-  struct error_type_from_type_detail<name> {                           \
-    static constexpr error_type type = error_type::name;               \
+  struct diag_type_from_type_detail<name> {                            \
+    static constexpr diag_type type = diag_type::name;                 \
   };
 QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
 template <class Error>
-inline constexpr error_type error_type_from_type =
-    error_type_from_type_detail<Error>::type;
+inline constexpr diag_type error_type_from_type =
+    diag_type_from_type_detail<Error>::type;
 
-inline constexpr int error_type_count = 0
+inline constexpr int diag_type_count = 0
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) +1
     QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE

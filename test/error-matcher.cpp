@@ -178,18 +178,17 @@ source_code_span error_matcher::field::get_span(const void *error_object) const
   QLJS_UNREACHABLE();
 }
 
-error_matcher::error_matcher(error_type type)
-    : state_{type, std::nullopt, {}} {}
+error_matcher::error_matcher(diag_type type) : state_{type, std::nullopt, {}} {}
 
-error_matcher::error_matcher(padded_string_view input, error_type type,
+error_matcher::error_matcher(padded_string_view input, diag_type type,
                              field field_0)
     : state_{type, input, {field_0}} {}
 
-error_matcher::error_matcher(padded_string_view input, error_type type,
+error_matcher::error_matcher(padded_string_view input, diag_type type,
                              field field_0, field field_1)
     : state_{type, input, {field_0, field_1}} {}
 
-error_matcher::error_matcher(padded_string_view input, error_type type,
+error_matcher::error_matcher(padded_string_view input, diag_type type,
                              field field_0, field field_1, field field_2)
     : state_{type, input, {field_0, field_1, field_2}} {}
 

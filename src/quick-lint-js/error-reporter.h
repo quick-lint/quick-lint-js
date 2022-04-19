@@ -26,14 +26,14 @@ class error_reporter {
   QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
-  virtual void report_impl(error_type type, void *error) = 0;
+  virtual void report_impl(diag_type type, void *error) = 0;
 };
 
 class null_error_reporter : public error_reporter {
  public:
   static null_error_reporter instance;
 
-  void report_impl(error_type, void *) override {}
+  void report_impl(diag_type, void *) override {}
 };
 inline null_error_reporter null_error_reporter::instance;
 }

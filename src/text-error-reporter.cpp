@@ -28,7 +28,7 @@ void text_error_reporter::set_source(padded_string_view input,
   this->file_path_ = file_path;
 }
 
-void text_error_reporter::report_impl(error_type type, void *error) {
+void text_error_reporter::report_impl(diag_type type, void *error) {
   QLJS_ASSERT(this->file_path_);
   QLJS_ASSERT(this->locator_.has_value());
   text_error_formatter formatter(

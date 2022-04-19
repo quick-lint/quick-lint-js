@@ -410,11 +410,11 @@ TEST(test_options, print_version) {
 TEST(test_options, exit_fail_on) {
   {
     options o = parse_options({"--exit-fail-on=E0003", "file.js"});
-    EXPECT_TRUE(o.exit_fail_on.is_present(
-        error_type::diag_assignment_to_const_variable))
+    EXPECT_TRUE(
+        o.exit_fail_on.is_present(diag_type::diag_assignment_to_const_variable))
         << "E0003 should cause failure";
     EXPECT_FALSE(o.exit_fail_on.is_present(
-        error_type::diag_big_int_literal_contains_decimal_point))
+        diag_type::diag_big_int_literal_contains_decimal_point))
         << "E0005 should not cause failure";
   }
 }

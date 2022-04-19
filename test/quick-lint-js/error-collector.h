@@ -15,7 +15,7 @@
 
 namespace quick_lint_js {
 struct error_collector : public error_reporter {
-  void report_impl(error_type type, void *error) override;
+  void report_impl(diag_type type, void *error) override;
 
   // Like std::variant<(error types)>, but with much faster compilation.
   class error {
@@ -25,7 +25,7 @@ struct error_collector : public error_reporter {
     QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
-    error_type type() const noexcept;
+    diag_type type() const noexcept;
     const char *error_code() const noexcept;
     const void *data() const noexcept;
 
@@ -38,7 +38,7 @@ struct error_collector : public error_reporter {
     friend void PrintTo(const error &, std::ostream *);
 
    private:
-    error_type type_;
+    diag_type type_;
     union {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
   name variant_##name##_;

@@ -32,14 +32,14 @@ class compiled_error_list {
   std::vector<std::string> parse_errors(std::string_view cli_option_name) const;
   std::vector<std::string> parse_warnings() const;
 
-  bool is_present(error_type) const noexcept;
+  bool is_present(diag_type) const noexcept;
 
   bool is_user_provided() const noexcept;
 
  private:
   struct codes {
-    std::bitset<error_type_count> included_codes;
-    std::bitset<error_type_count> excluded_codes;
+    std::bitset<diag_type_count> included_codes;
+    std::bitset<diag_type_count> excluded_codes;
     std::vector<std::string_view> included_categories;
     std::vector<std::string_view> excluded_categories;
     bool override_defaults;

@@ -20,7 +20,7 @@ class buffering_error_reporter final : public error_reporter {
 
   ~buffering_error_reporter() override;
 
-  void report_impl(error_type type, void *error) override;
+  void report_impl(diag_type type, void *error) override;
 
   void copy_into(error_reporter *other) const;
   void move_into(error_reporter *other);

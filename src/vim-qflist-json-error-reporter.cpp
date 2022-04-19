@@ -52,7 +52,7 @@ void vim_qflist_json_error_reporter::finish() {
   this->output_.append_literal(u8"]}"sv);
 }
 
-void vim_qflist_json_error_reporter::report_impl(error_type type, void *error) {
+void vim_qflist_json_error_reporter::report_impl(diag_type type, void *error) {
   if (this->need_comma_) {
     this->output_.append_literal(u8",\n"sv);
   }

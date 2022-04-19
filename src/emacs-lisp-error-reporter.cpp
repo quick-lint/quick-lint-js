@@ -22,7 +22,7 @@ void emacs_lisp_error_reporter::set_source(padded_string_view input) {
   this->locator_.emplace(input);
 }
 
-void emacs_lisp_error_reporter::report_impl(error_type type, void *error) {
+void emacs_lisp_error_reporter::report_impl(diag_type type, void *error) {
   QLJS_ASSERT(this->locator_.has_value());
   emacs_lisp_error_formatter formatter(/*output=*/&this->output_,
                                        /*locator=*/*this->locator_);
