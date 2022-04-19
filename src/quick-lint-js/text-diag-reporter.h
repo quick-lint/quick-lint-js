@@ -26,7 +26,7 @@ class text_diag_reporter final : public diag_reporter {
 
   void set_source(padded_string_view input, const char *file_name);
 
-  void report_impl(diag_type type, void *error) override;
+  void report_impl(diag_type type, void *diag) override;
 
  private:
   output_stream &output_;

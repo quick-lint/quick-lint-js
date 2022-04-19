@@ -137,14 +137,14 @@ class vscode_diag_reporter final : public diag_reporter {
 
   ::Napi::Array diagnostics() const { return this->diagnostics_; }
 
-  void report_impl(diag_type type, void* error) override {
+  void report_impl(diag_type type, void* diag) override {
     vscode_diag_formatter formatter(
         /*vscode=*/this->vscode_,
         /*env=*/this->env_,
         /*diagnostics=*/this->diagnostics_,
         /*locator=*/this->locator_,
         /*document_uri=*/this->document_uri_);
-    formatter.format(get_diagnostic_info(type), error);
+    formatter.format(get_diagnostic_info(type), diag);
   }
 
  private:

@@ -28,14 +28,14 @@ lsp_diag_reporter::lsp_diag_reporter(byte_buffer &output,
 
 void lsp_diag_reporter::finish() { this->output_.append_copy(u8"]"sv); }
 
-void lsp_diag_reporter::report_impl(diag_type type, void *error) {
+void lsp_diag_reporter::report_impl(diag_type type, void *diag) {
   if (this->need_comma_) {
     this->output_.append_copy(u8",\n"sv);
   }
   this->need_comma_ = true;
   lsp_diag_formatter formatter(/*output=*/this->output_,
                                /*locator=*/this->locator_);
-  formatter.format(get_diagnostic_info(type), error);
+  formatter.format(get_diagnostic_info(type), diag);
 }
 
 lsp_diag_formatter::lsp_diag_formatter(byte_buffer &output,

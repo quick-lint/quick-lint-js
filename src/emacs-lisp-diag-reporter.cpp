@@ -22,11 +22,11 @@ void emacs_lisp_diag_reporter::set_source(padded_string_view input) {
   this->locator_.emplace(input);
 }
 
-void emacs_lisp_diag_reporter::report_impl(diag_type type, void *error) {
+void emacs_lisp_diag_reporter::report_impl(diag_type type, void *diag) {
   QLJS_ASSERT(this->locator_.has_value());
   emacs_lisp_diag_formatter formatter(/*output=*/&this->output_,
                                       /*locator=*/*this->locator_);
-  formatter.format(get_diagnostic_info(type), error);
+  formatter.format(get_diagnostic_info(type), diag);
 }
 
 emacs_lisp_diag_formatter::emacs_lisp_diag_formatter(output_stream *output,

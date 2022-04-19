@@ -49,9 +49,9 @@ class basic_text_diag_reporter final : public diag_reporter {
 
   std::vector<string8> messages() { return this->messages_; }
 
-  void report_impl(diag_type type, void *error) override {
+  void report_impl(diag_type type, void *diag) override {
     basic_text_diag_formatter formatter(this);
-    formatter.format(get_diagnostic_info(type), error);
+    formatter.format(get_diagnostic_info(type), diag);
   }
 
  private:

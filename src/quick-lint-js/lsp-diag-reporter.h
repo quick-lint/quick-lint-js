@@ -29,7 +29,7 @@ class lsp_diag_reporter final : public diag_reporter {
 
   void finish();
 
-  void report_impl(diag_type type, void *error) override;
+  void report_impl(diag_type type, void *diag) override;
 
  private:
   byte_buffer &output_;

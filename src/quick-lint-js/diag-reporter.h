@@ -20,13 +20,13 @@ class diag_reporter {
   virtual ~diag_reporter() = default;
 
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
-  void report(name error) {                                       \
-    this->report_impl(error_type_from_type<name>, &error);        \
+  void report(name diag) {                                        \
+    this->report_impl(error_type_from_type<name>, &diag);         \
   }
   QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
-  virtual void report_impl(diag_type type, void *error) = 0;
+  virtual void report_impl(diag_type type, void *diag) = 0;
 };
 
 class null_diag_reporter : public diag_reporter {

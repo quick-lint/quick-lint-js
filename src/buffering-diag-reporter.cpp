@@ -56,7 +56,7 @@ buffering_diag_reporter &buffering_diag_reporter::operator=(
 
 buffering_diag_reporter::~buffering_diag_reporter() = default;
 
-void buffering_diag_reporter::report_impl(diag_type type, void *error) {
+void buffering_diag_reporter::report_impl(diag_type type, void *diag) {
   static constexpr unsigned char error_sizes[] = {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
   sizeof(::quick_lint_js::name),
@@ -66,7 +66,7 @@ void buffering_diag_reporter::report_impl(diag_type type, void *error) {
 
   impl::any_error &e = this->impl_->errors_.emplace_back();
   e.type = type;
-  std::memcpy(&e.error, error, error_sizes[static_cast<std::ptrdiff_t>(type)]);
+  std::memcpy(&e.error, diag, error_sizes[static_cast<std::ptrdiff_t>(type)]);
 }
 
 void buffering_diag_reporter::copy_into(diag_reporter *other) const {

@@ -28,7 +28,7 @@ void text_diag_reporter::set_source(padded_string_view input,
   this->file_path_ = file_path;
 }
 
-void text_diag_reporter::report_impl(diag_type type, void *error) {
+void text_diag_reporter::report_impl(diag_type type, void *diag) {
   QLJS_ASSERT(this->file_path_);
   QLJS_ASSERT(this->locator_.has_value());
   text_diag_formatter formatter(
@@ -36,7 +36,7 @@ void text_diag_reporter::report_impl(diag_type type, void *error) {
       /*file_path=*/this->file_path_,
       /*locator=*/*this->locator_,
       /*format_escape_errors=*/this->format_escape_errors_);
-  formatter.format(get_diagnostic_info(type), error);
+  formatter.format(get_diagnostic_info(type), diag);
 }
 
 text_diag_formatter::text_diag_formatter(output_stream *output,

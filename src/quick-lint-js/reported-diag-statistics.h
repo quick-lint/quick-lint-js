@@ -25,11 +25,11 @@ class reported_diag_statistics final : public diag_reporter {
     return this->found_matching_error_;
   }
 
-  void report_impl(diag_type type, void *error) override final {
+  void report_impl(diag_type type, void *diag) override final {
     if (this->predicate_->is_present(type)) {
       this->found_matching_error_ = true;
     }
-    this->reporter_.report_impl(type, error);
+    this->reporter_.report_impl(type, diag);
   }
 
  private:

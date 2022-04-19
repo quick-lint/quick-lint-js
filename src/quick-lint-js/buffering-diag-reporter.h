@@ -20,7 +20,7 @@ class buffering_diag_reporter final : public diag_reporter {
 
   ~buffering_diag_reporter() override;
 
-  void report_impl(diag_type type, void *error) override;
+  void report_impl(diag_type type, void *diag) override;
 
   void copy_into(diag_reporter *other) const;
   void move_into(diag_reporter *other);

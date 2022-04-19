@@ -7,11 +7,11 @@
 #include <quick-lint-js/unreachable.h>
 
 namespace quick_lint_js {
-void error_collector::report_impl(diag_type type, void *error) {
+void error_collector::report_impl(diag_type type, void *diag) {
   switch (type) {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
   case diag_type::name:                                                \
-    this->errors.emplace_back(*reinterpret_cast<const name *>(error)); \
+    this->errors.emplace_back(*reinterpret_cast<const name *>(diag));  \
     break;
     QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE

@@ -26,7 +26,7 @@ class emacs_lisp_diag_reporter final : public diag_reporter {
   void set_source(padded_string_view input);
   void finish();
 
-  void report_impl(diag_type type, void *error) override;
+  void report_impl(diag_type type, void *diag) override;
 
  private:
   output_stream &output_;

@@ -15,7 +15,7 @@
 
 namespace quick_lint_js {
 struct error_collector : public diag_reporter {
-  void report_impl(diag_type type, void *error) override;
+  void report_impl(diag_type type, void *diag) override;
 
   // Like std::variant<(error types)>, but with much faster compilation.
   class error {

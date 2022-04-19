@@ -52,7 +52,7 @@ void vim_qflist_json_diag_reporter::finish() {
   this->output_.append_literal(u8"]}"sv);
 }
 
-void vim_qflist_json_diag_reporter::report_impl(diag_type type, void *error) {
+void vim_qflist_json_diag_reporter::report_impl(diag_type type, void *diag) {
   if (this->need_comma_) {
     this->output_.append_literal(u8",\n"sv);
   }
@@ -62,7 +62,7 @@ void vim_qflist_json_diag_reporter::report_impl(diag_type type, void *error) {
                                            /*locator=*/*this->locator_,
                                            /*file_name=*/this->file_name_,
                                            /*bufnr=*/this->bufnr_);
-  formatter.format(get_diagnostic_info(type), error);
+  formatter.format(get_diagnostic_info(type), diag);
 }
 
 vim_qflist_json_diag_formatter::vim_qflist_json_diag_formatter(
