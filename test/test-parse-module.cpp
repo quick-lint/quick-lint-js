@@ -150,7 +150,7 @@ TEST(test_parse, export_default_of_variable_is_illegal) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // y
                                       "visit_variable_declaration"));  // x
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_cannot_export_default_variable,  //
                               declaring_token, strlen(u8"export default "),
                               declaration_kind)));
@@ -166,7 +166,7 @@ TEST(test_parse, export_sometimes_requires_semicolon) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_export_use",  // x
                                       "visit_variable_use",         // console
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_semicolon_after_statement,  //
                               where, strlen(u8"export {x}"), u8"")));
   }
@@ -178,7 +178,7 @@ TEST(test_parse, export_sometimes_requires_semicolon) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // console
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_semicolon_after_statement,  //
                               where, strlen(u8"export * from 'other'"), u8"")));
   }
@@ -192,7 +192,7 @@ TEST(test_parse, export_sometimes_requires_semicolon) {
                                       "visit_variable_use",  // y
                                       "visit_variable_use",  // console
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_semicolon_after_statement,  //
                               where, strlen(u8"export default x+y"), u8"")));
   }
@@ -208,7 +208,7 @@ TEST(test_parse, export_sometimes_requires_semicolon) {
                                       "visit_variable_use",  // console
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_missing_semicolon_after_statement,  //
                     where, strlen(u8"export default async () => {}"), u8"")));
   }
@@ -277,7 +277,7 @@ TEST(test_parse, exporting_by_string_name_is_only_allowed_for_export_from) {
     EXPECT_THAT(v.visits, IsEmpty());
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code, diag_exporting_string_name_only_allowed_for_export_from,  //
             export_name, strlen(u8"export {"), u8"'name'")));
   }
@@ -293,7 +293,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
     EXPECT_THAT(v.visits, IsEmpty());
     EXPECT_THAT(v.variable_uses, IsEmpty());
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_export_variable_named_keyword,  //
                     export_name, strlen(u8"export {"), keyword)));
   }
@@ -307,7 +307,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
     EXPECT_THAT(v.visits, IsEmpty());
     EXPECT_THAT(v.variable_uses, IsEmpty());
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_export_variable_named_keyword,  //
                     export_name, strlen(u8"export {"), keyword)));
   }
@@ -324,7 +324,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
       EXPECT_TRUE(p.parse_and_visit_statement(v));
       EXPECT_THAT(v.variable_uses, IsEmpty());
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_OFFSETS(
+                  ElementsAre(DIAG_TYPE_OFFSETS(
                       &code, diag_keywords_cannot_contain_escape_sequences,  //
                       escape_sequence, strlen(u8"export {"), u8"\\u{??}")));
     }
@@ -337,7 +337,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
       EXPECT_TRUE(p.parse_and_visit_statement(v));
       EXPECT_THAT(v.variable_uses, IsEmpty());
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_OFFSETS(
+                  ElementsAre(DIAG_TYPE_OFFSETS(
                       &code, diag_keywords_cannot_contain_escape_sequences,  //
                       escape_sequence, strlen(u8"export {"), u8"\\u{??}")));
     }
@@ -425,7 +425,7 @@ TEST(test_parse, invalid_export_expression) {
     padded_string code(u8"export stuff;"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_exporting_requires_curlies,  //
                               names, strlen(u8"export "), u8"stuff")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // stuff
@@ -440,8 +440,8 @@ TEST(test_parse, invalid_export_expression) {
         v.errors,
         // TODO(strager): Report diag_exporting_requires_curlies instead.
         ElementsAre(
-            ERROR_TYPE_OFFSETS(&code, diag_exporting_requires_default,  //
-                               expression, strlen(u8"export "), u8"a, b, c")));
+            DIAG_TYPE_OFFSETS(&code, diag_exporting_requires_default,  //
+                              expression, strlen(u8"export "), u8"a, b, c")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // a
                                       "visit_variable_use",    // b
                                       "visit_variable_use"));  // c
@@ -455,7 +455,7 @@ TEST(test_parse, invalid_export_expression) {
     EXPECT_THAT(v.errors,
                 // TODO(strager): Should we report
                 // diag_exporting_requires_curlies instead?
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_exporting_requires_default,  //
                     expression, strlen(u8"export "), u8"a, b, c+d")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // a
@@ -469,7 +469,7 @@ TEST(test_parse, invalid_export_expression) {
     padded_string code(u8"export 2 + x;"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_exporting_requires_default,  //
                               expression, strlen(u8"export "), u8"2 + x")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
@@ -482,7 +482,7 @@ TEST(test_parse, invalid_export) {
     padded_string code(u8"export ;"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_token_after_export,  //
                               export_token, 0, u8"export")));
     EXPECT_THAT(v.visits, IsEmpty());
@@ -493,7 +493,7 @@ TEST(test_parse, invalid_export) {
     padded_string code(u8"export "_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_token_after_export,  //
                               export_token, 0, u8"export")));
     EXPECT_THAT(v.visits, IsEmpty());
@@ -504,7 +504,7 @@ TEST(test_parse, invalid_export) {
     padded_string code(u8"export = x"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_unexpected_token_after_export,  //
                               unexpected_token, strlen(u8"export "), u8"=")));
     EXPECT_TRUE(p.parse_and_visit_statement(v));               // Parse '= x'.
@@ -608,7 +608,7 @@ TEST(test_parse, import_star_without_as_keyword) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_3_OFFSETS(
+        ElementsAre(DIAG_TYPE_3_OFFSETS(
             &code,
             diag_expected_as_before_imported_namespace_alias,               //
             star_through_alias_token, strlen(u8"import "), u8"* myExport",  //
@@ -626,7 +626,7 @@ TEST(test_parse, import_without_from_keyword) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_expected_from_before_module_specifier,  //
                     module_specifier, strlen(u8"import { x } "), u8"'other'")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // x
@@ -638,7 +638,7 @@ TEST(test_parse, import_without_from_keyword) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_expected_from_and_module_specifier,  //
                     where, strlen(u8"import { x }"), u8"")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // x
@@ -653,7 +653,7 @@ TEST(test_parse, import_as_invalid_token) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code, diag_expected_variable_name_for_import_as,  //
             unexpected_token, strlen(u8"import {myExport as "), u8"'string'")));
   }
@@ -664,7 +664,7 @@ TEST(test_parse, import_as_invalid_token) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_expected_variable_name_for_import_as,  //
                     unexpected_token, strlen(u8"import {'myExport' as "),
                     u8"'string'")));
@@ -698,7 +698,7 @@ TEST(test_parse, export_function_requires_a_name) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_missing_name_of_exported_function,  //
                     function_keyword, strlen(u8"export "), u8"function")));
   }
@@ -711,7 +711,7 @@ TEST(test_parse, export_function_requires_a_name) {
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_name_of_exported_function,  //
                               function_keyword, strlen(u8"export async "),
                               u8"function")));
@@ -736,7 +736,7 @@ TEST(test_parse, export_class_requires_a_name) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
                                       "visit_exit_class_scope"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_name_of_exported_class,  //
                               class_keyword, strlen(u8"export "), u8"class")));
   }
@@ -807,7 +807,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_OFFSETS(
+                  ElementsAre(DIAG_TYPE_OFFSETS(
                       &code, diag_cannot_import_variable_named_keyword,  //
                       import_name, strlen(u8"import { "), name)));
     }
@@ -823,7 +823,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
                   ElementsAre("visit_variable_declaration"));  // (name)
       EXPECT_THAT(
           v.errors,
-          ElementsAre(ERROR_TYPE_OFFSETS(
+          ElementsAre(DIAG_TYPE_OFFSETS(
               &code, diag_cannot_import_variable_named_keyword,  //
               import_name, strlen(u8"import { someFunction as "), name)));
     }
@@ -841,7 +841,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
               name, variable_kind::_import, variable_init_kind::normal}));
       EXPECT_THAT(
           v.errors,
-          ElementsAre(ERROR_TYPE_OFFSETS(
+          ElementsAre(DIAG_TYPE_OFFSETS(
               &code, diag_cannot_import_variable_named_keyword,  //
               import_name, strlen(u8"import { 'someFunction' as "), name)));
     }
@@ -855,7 +855,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_OFFSETS(
+                  ElementsAre(DIAG_TYPE_OFFSETS(
                       &code, diag_cannot_import_variable_named_keyword,  //
                       import_name, strlen(u8"import "), name)));
     }
@@ -869,7 +869,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_OFFSETS(
+                  ElementsAre(DIAG_TYPE_OFFSETS(
                       &code, diag_cannot_import_variable_named_keyword,  //
                       import_name, strlen(u8"import * as "), name)));
     }
@@ -891,7 +891,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
           ElementsAre(spy_visitor::visited_variable_declaration{
               keyword, variable_kind::_import, variable_init_kind::normal}));
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_OFFSETS(
+                  ElementsAre(DIAG_TYPE_OFFSETS(
                       &code, diag_keywords_cannot_contain_escape_sequences,  //
                       escape_sequence, strlen(u8"import { "), u8"\\u{??}")));
     }
@@ -908,7 +908,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
           ElementsAre(spy_visitor::visited_variable_declaration{
               keyword, variable_kind::_import, variable_init_kind::normal}));
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_OFFSETS(
+                  ElementsAre(DIAG_TYPE_OFFSETS(
                       &code, diag_keywords_cannot_contain_escape_sequences,  //
                       escape_sequence, strlen(u8"import { someFunction as "),
                       u8"\\u{??}")));
@@ -926,7 +926,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
           ElementsAre(spy_visitor::visited_variable_declaration{
               keyword, variable_kind::_import, variable_init_kind::normal}));
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_OFFSETS(
+                  ElementsAre(DIAG_TYPE_OFFSETS(
                       &code, diag_keywords_cannot_contain_escape_sequences,  //
                       escape_sequence, strlen(u8"import { 'someFunction' as "),
                       u8"\\u{??}")));
@@ -943,7 +943,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
           ElementsAre(spy_visitor::visited_variable_declaration{
               keyword, variable_kind::_import, variable_init_kind::normal}));
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_OFFSETS(
+                  ElementsAre(DIAG_TYPE_OFFSETS(
                       &code, diag_keywords_cannot_contain_escape_sequences,  //
                       escape_sequence, strlen(u8"import "), u8"\\u{??}")));
     }
@@ -960,7 +960,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
           ElementsAre(spy_visitor::visited_variable_declaration{
               keyword, variable_kind::_import, variable_init_kind::normal}));
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_OFFSETS(
+                  ElementsAre(DIAG_TYPE_OFFSETS(
                       &code, diag_keywords_cannot_contain_escape_sequences,  //
                       escape_sequence, strlen(u8"import * as "), u8"\\u{??}")));
     }

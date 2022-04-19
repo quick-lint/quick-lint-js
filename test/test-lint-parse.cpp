@@ -29,7 +29,7 @@ TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
   EXPECT_TRUE(p.parse_and_visit_statement(l));
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_OFFSETS(
+  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_OFFSETS(
                             &input, diag_variable_used_before_declaration,  //
                             use, 8, u8"y",                                  //
                             declaration, 11, u8"y")));
@@ -58,7 +58,7 @@ TEST(test_lint,
   p.parse_and_visit_module(l);
 
   EXPECT_THAT(v.errors,
-              ElementsAre(ERROR_TYPE_2_FIELDS(
+              ElementsAre(DIAG_TYPE_2_FIELDS(
                   diag_assignment_to_const_variable,                 //
                   assignment, offsets_matcher(&input, 26, 26 + 14),  //
                   declaration, offsets_matcher(&input, 6, 6 + 14))));
@@ -110,7 +110,7 @@ TEST(test_lint, prefix_plusplus_on_const_variable) {
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_FIELDS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
                               diag_assignment_to_const_variable, assignment,
                               offsets_matcher(&input, 16, 16 + 1), declaration,
                               offsets_matcher(&input, 6, 6 + 1))));
@@ -148,7 +148,7 @@ TEST(test_lint, prefix_plusplus_plus_operand) {
     p.parse_and_visit_module(l);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_2_FIELDS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
                               diag_assignment_to_const_variable, assignment,
                               offsets_matcher(&input, 31, 31 + 1), declaration,
                               offsets_matcher(&input, 6, 6 + 1))));
@@ -189,7 +189,7 @@ TEST(test_lint, escape_sequence_in_keyword_identifier) {
 
   EXPECT_THAT(
       v.errors,
-      ElementsAre(ERROR_TYPE(diag_keywords_cannot_contain_escape_sequences)));
+      ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
 }
 
 TEST(test_lint, delete_local_variable) {
@@ -203,8 +203,8 @@ TEST(test_lint, delete_local_variable) {
 
   EXPECT_THAT(
       v.errors,
-      ElementsAre(ERROR_TYPE(diag_redundant_delete_statement_on_variable),
-                  ERROR_TYPE(diag_redundant_delete_statement_on_variable)));
+      ElementsAre(DIAG_TYPE(diag_redundant_delete_statement_on_variable),
+                  DIAG_TYPE(diag_redundant_delete_statement_on_variable)));
 }
 }
 }

@@ -34,7 +34,7 @@ TEST(test_parse, condition_with_assignment_from_literal) {
     EXPECT_THAT(v.variable_assignments,
                 ElementsAre(spy_visitor::visited_variable_assignment{u8"x"}));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_assignment_makes_condition_constant,  //
                     assignment_operator, strlen(u8"if (x "), u8"=")));
   }
@@ -45,7 +45,7 @@ TEST(test_parse, condition_with_assignment_from_literal) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_assignment_makes_condition_constant,  //
                     assignment_operator, strlen(u8"if (o.prop "), u8"=")));
   }
@@ -62,7 +62,7 @@ TEST(test_parse, condition_with_assignment_from_literal) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE(diag_assignment_makes_condition_constant)));
+        ElementsAre(DIAG_TYPE(diag_assignment_makes_condition_constant)));
   }
 }
 
@@ -127,7 +127,7 @@ TEST(test_error_equals_does_not_distribute_over_or, examples) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
                     &code, diag_equals_does_not_distribute_over_or,   //
                     or_operator, strlen(u8"if (x === 'A' "), u8"||",  //
                     equals_operator, strlen(u8"if (x "), u8"===")));
@@ -139,7 +139,7 @@ TEST(test_error_equals_does_not_distribute_over_or, examples) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
                     &code, diag_equals_does_not_distribute_over_or,  //
                     or_operator, strlen(u8"if (x === 10 "), u8"||",  //
                     equals_operator, strlen(u8"if (x "), u8"===")));
@@ -151,7 +151,7 @@ TEST(test_error_equals_does_not_distribute_over_or, examples) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
                     &code, diag_equals_does_not_distribute_over_or,  //
                     or_operator, strlen(u8"if (x == 'A' "), u8"||",  //
                     equals_operator, strlen(u8"if (x "), u8"==")));

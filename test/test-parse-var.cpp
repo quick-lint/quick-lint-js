@@ -113,7 +113,7 @@ TEST(test_parse, parse_const_with_no_initializers) {
   EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_const);
   EXPECT_EQ(v.variable_declarations[0].init_kind, variable_init_kind::normal);
   EXPECT_THAT(v.errors,
-              ElementsAre(ERROR_TYPE_OFFSETS(
+              ElementsAre(DIAG_TYPE_OFFSETS(
                   &code, diag_missing_initializer_in_const_declaration,  //
                   variable_name, strlen(u8"const "), u8"x")));
 }
@@ -337,7 +337,7 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_stray_comma_in_let_statement,  //
                               where, strlen(u8"let a"), u8",")));
   }
@@ -348,7 +348,7 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_stray_comma_in_let_statement,  //
                               where, strlen(u8"let a"), u8",")));
   }
@@ -360,7 +360,7 @@ TEST(test_parse, parse_invalid_let) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 1);
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_token_in_variable_declaration,  //
                     unexpected_token, strlen(u8"let x, "), u8"42")));
   }
@@ -374,7 +374,7 @@ TEST(test_parse, parse_invalid_let) {
       EXPECT_TRUE(p.parse_and_visit_statement(v));
       EXPECT_THAT(v.variable_declarations, IsEmpty());
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_OFFSETS(
+                  ElementsAre(DIAG_TYPE_OFFSETS(
                       &code, diag_cannot_declare_variable_with_keyword_name,  //
                       keyword, strlen(u8"var "), keyword)));
     }
@@ -387,7 +387,7 @@ TEST(test_parse, parse_invalid_let) {
       EXPECT_TRUE(p.parse_and_visit_statement(v));
       EXPECT_THAT(v.variable_declarations, IsEmpty());
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_OFFSETS(
+                  ElementsAre(DIAG_TYPE_OFFSETS(
                       &code, diag_cannot_declare_variable_with_keyword_name,  //
                       keyword, strlen(u8"var "), keyword)));
     }
@@ -401,7 +401,7 @@ TEST(test_parse, parse_invalid_let) {
       EXPECT_THAT(v.variable_declarations, IsEmpty());
       EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
       EXPECT_THAT(v.errors,
-                  ElementsAre(ERROR_TYPE_OFFSETS(
+                  ElementsAre(DIAG_TYPE_OFFSETS(
                       &code, diag_cannot_declare_variable_with_keyword_name,  //
                       keyword, strlen(u8"var "), keyword)));
     }
@@ -418,7 +418,7 @@ TEST(test_parse, parse_invalid_let) {
                                       "visit_exit_block_scope",   //
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_token_in_variable_declaration,  //
                     unexpected_token, strlen(u8"let "), u8"while")));
   }
@@ -430,7 +430,7 @@ TEST(test_parse, parse_invalid_let) {
     p.parse_and_visit_module(v);
     EXPECT_EQ(v.variable_declarations.size(), 0);
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_token_in_variable_declaration,  //
                     unexpected_token, strlen(u8"let "), u8"42")));
   }
@@ -441,7 +441,7 @@ TEST(test_parse, parse_invalid_let) {
     parser p(&code, &v);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_token_in_variable_declaration,  //
                     unexpected_token, strlen(u8"let x, "), u8"`hello`")));
   }
@@ -457,7 +457,7 @@ TEST(test_parse, parse_invalid_let) {
                             "visit_end_of_module"));
     // TODO(strager): Improve the span.
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_token_in_variable_declaration,  //
                     unexpected_token, strlen(u8"let x, "), u8"`hello${")));
   }
@@ -469,7 +469,7 @@ TEST(test_parse, parse_invalid_let) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 0);
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_missing_value_for_object_literal_entry,  //
                     key, strlen(u8"let {"), u8"debugger")));
   }
@@ -481,7 +481,7 @@ TEST(test_parse, parse_invalid_let) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.variable_declarations.size(), 0);
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_invalid_lone_literal_in_object_literal,  //
                     where, strlen(u8"let {"), u8"42")));
   }
@@ -501,7 +501,7 @@ TEST(test_parse, parse_invalid_let) {
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"x", variable_kind::_let, variable_init_kind::normal}));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_token_in_variable_declaration,  //
                     unexpected_token, strlen(u8"let "), u8"true")));
   }
@@ -515,13 +515,13 @@ TEST(test_parse, parse_invalid_let) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // x
                                       "visit_variable_assignment",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                UnorderedElementsAre(
-                    ERROR_TYPE_OFFSETS(&code, diag_let_with_no_bindings,  //
-                                       where, 0, u8"let"),
-                    ERROR_TYPE_OFFSETS(
-                        &code, diag_missing_semicolon_after_statement,  //
-                        where, strlen(u8"let"), u8"")));
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            DIAG_TYPE_OFFSETS(&code, diag_let_with_no_bindings,  //
+                              where, 0, u8"let"),
+            DIAG_TYPE_OFFSETS(&code, diag_missing_semicolon_after_statement,  //
+                              where, strlen(u8"let"), u8"")));
   }
 
   {
@@ -536,10 +536,10 @@ TEST(test_parse, parse_invalid_let) {
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
                 UnorderedElementsAre(
-                    ERROR_TYPE_OFFSETS(
+                    DIAG_TYPE_OFFSETS(
                         &code, diag_missing_variable_name_in_declaration,  //
                         equal_token, strlen(u8"const "), u8"="),
-                    ERROR_TYPE_OFFSETS(
+                    DIAG_TYPE_OFFSETS(
                         &code, diag_missing_variable_name_in_declaration,  //
                         equal_token, strlen(u8"const = y, z = w, "), u8"=")));
   }
@@ -557,10 +557,10 @@ TEST(test_parse, parse_invalid_let) {
     EXPECT_THAT(
         v.errors,
         UnorderedElementsAre(
-            ERROR_TYPE_OFFSETS(
+            DIAG_TYPE_OFFSETS(
                 &code, diag_missing_comma_between_variable_declarations,  //
                 expected_comma, strlen(u8"let x"), u8""),
-            ERROR_TYPE_OFFSETS(
+            DIAG_TYPE_OFFSETS(
                 &code, diag_missing_comma_between_variable_declarations,  //
                 expected_comma, strlen(u8"let x y = z"), u8"")));
   }
@@ -579,10 +579,10 @@ TEST(test_parse, parse_invalid_let) {
     EXPECT_THAT(
         v.errors,
         UnorderedElementsAre(
-            ERROR_TYPE_OFFSETS(
+            DIAG_TYPE_OFFSETS(
                 &code, diag_missing_comma_between_variable_declarations,  //
                 expected_comma, strlen(u8"let x"), u8""),
-            ERROR_TYPE_OFFSETS(
+            DIAG_TYPE_OFFSETS(
                 &code, diag_missing_comma_between_variable_declarations,  //
                 expected_comma, strlen(u8"let x [y]=ys"), u8"")));
   }
@@ -622,7 +622,7 @@ TEST(test_parse, parse_invalid_let) {
             spy_visitor::visited_variable_declaration{
                 u8"z", variable_kind::_let, variable_init_kind::normal}));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
                     &code, diag_cannot_update_variable_during_declaration,  //
                     updating_operator, strlen(u8"let x "),
                     compound_assignment_operator,  //
@@ -638,7 +638,7 @@ TEST(test_parse, parse_invalid_let) {
     // TODO(strager): Report a better message. We should say 'let statement',
     // not 'parameter'.
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_literal_in_parameter_list,  //
                     literal, strlen(u8"let ["), u8"42")));
   }
@@ -659,7 +659,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
                                       "visit_end_of_module"));
 
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_missing_equal_after_variable,  //
                     expected_equal,
                     strlen(u8"async function f() {return 1;}\nlet x"), u8"")));
@@ -677,7 +677,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
                             "visit_variable_declaration",  // x
                             "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
@@ -693,7 +693,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
                                       "visit_variable_declaration",        // x
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
@@ -706,7 +706,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
@@ -720,7 +720,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
                                       "visit_variable_declaration",  // x
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
@@ -733,7 +733,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
@@ -747,7 +747,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
                                       "visit_variable_declaration",  // x
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
@@ -769,7 +769,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
                                       "visit_end_of_module"));
 
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_missing_equal_after_variable,  //
                     expected_equal,
                     strlen(u8"async function f() {return 1;}\nlet x"), u8"")));
@@ -788,7 +788,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
                                       "visit_variable_declaration",  // y
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
@@ -806,7 +806,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
                                       "visit_variable_declaration",        // y
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
@@ -821,7 +821,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
                                       "visit_variable_declaration",  // y
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
@@ -837,7 +837,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
                                       "visit_variable_declaration",  // y
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
@@ -852,7 +852,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
                                       "visit_variable_declaration",  // y
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
@@ -868,7 +868,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
                                       "visit_variable_declaration",  // y
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
@@ -881,7 +881,7 @@ TEST(test_parse, parse_invalid_var) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations, IsEmpty());
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_let_with_no_bindings,  //
                               where, 0, u8"var")));
   }
@@ -894,7 +894,7 @@ TEST(test_parse, parse_invalid_const) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.variable_declarations, IsEmpty());
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_let_with_no_bindings,  //
                               where, 0, u8"const")));
   }
@@ -915,7 +915,7 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"console"}));
     cli_source_position::offset_type end_of_let_statement =
         strlen(u8"let x = 2");
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_semicolon_after_statement,  //
                               where, end_of_let_statement, u8"")));
   }
@@ -929,7 +929,7 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"x", variable_kind::_let, variable_init_kind::normal}));
     cli_source_position::offset_type end_of_let_statement = strlen(u8"let x");
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_semicolon_after_statement,  //
                               where, end_of_let_statement, u8"")));
   }
@@ -1082,7 +1082,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
 
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_variable_named_let_with_let,  //
                     name, declaration_kind.size() + 1, u8"let")));
 
@@ -1097,7 +1097,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_variable_named_let_with_let,  //
                     name, strlen(u8"let {other, "), u8"let")));
   }
@@ -1108,7 +1108,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     padded_string code(u8"import let from 'weird';"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_cannot_import_let,  //
                               import_name, strlen(u8"import "), u8"let")));
 
@@ -1123,7 +1123,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     padded_string code(u8"import * as let from 'weird';"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_cannot_import_let,  //
                               import_name, strlen(u8"import * as "), u8"let")));
 
@@ -1138,7 +1138,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     padded_string code(u8"import { let } from 'weird';"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_cannot_import_let,  //
                               import_name, strlen(u8"import { "), u8"let")));
 
@@ -1154,7 +1154,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_import_let,  //
                     import_name, strlen(u8"import { someName as "), u8"let")));
     EXPECT_THAT(
@@ -1169,7 +1169,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_cannot_import_let,  //
                               import_name, strlen(u8"import { 'someName' as "),
                               u8"let")));
@@ -1185,7 +1185,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_export_let,  //
                     export_name, strlen(u8"export function "), u8"let")));
 
@@ -1200,7 +1200,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     padded_string code(u8"class let {}"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_cannot_declare_class_named_let,  //
                               name, strlen(u8"class "), u8"let")));
 
@@ -1326,7 +1326,7 @@ TEST(test_parse, declare_await_in_async_function) {
     // TODO(strager): Include a note referencing the origin of the async
     // function.
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_await_in_async_function,  //
                     name, strlen(u8"function "), u8"await")));
   }
@@ -1342,7 +1342,7 @@ TEST(test_parse, declare_await_in_async_function) {
         ElementsAre(spy_visitor::visited_variable_declaration{
             u8"await", variable_kind::_var, variable_init_kind::normal}));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_await_in_async_function,  //
                     name, strlen(u8"var "), u8"await")));
   }
@@ -1358,7 +1358,7 @@ TEST(test_parse, declare_await_in_async_function) {
         ElementsAre(spy_visitor::visited_variable_declaration{
             u8"await", variable_kind::_catch, variable_init_kind::normal}));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_await_in_async_function,  //
                     name, strlen(u8"try {} catch ("), u8"await")));
   }
@@ -1378,12 +1378,12 @@ TEST(test_parse, declare_await_in_async_function) {
                         variable_init_kind::normal}));
     EXPECT_THAT(v.errors,
                 UnorderedElementsAre(
-                    ERROR_TYPE_OFFSETS(
+                    DIAG_TYPE_OFFSETS(
                         &code, diag_cannot_declare_await_in_async_function,  //
                         name, strlen(u8"async function f("), u8"await"),
                     // TODO(strager): Drop the
                     // diag_missing_operand_for_operator error.
-                    ERROR_TYPE(diag_missing_operand_for_operator)));
+                    DIAG_TYPE(diag_missing_operand_for_operator)));
   }
 }
 
@@ -1575,7 +1575,7 @@ TEST(test_parse, forced_top_level_await_operator) {
         });
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_operand_for_operator,  //
                               where, 0, u8"await")));
   }
@@ -1686,7 +1686,7 @@ TEST(test_parse, declare_yield_in_generator_function) {
     // TODO(strager): Include a note referencing the origin of the generator
     // function.
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_yield_in_generator_function,  //
                     name, strlen(u8"function "), u8"yield")));
   }
@@ -1702,7 +1702,7 @@ TEST(test_parse, declare_yield_in_generator_function) {
         ElementsAre(spy_visitor::visited_variable_declaration{
             u8"yield", variable_kind::_var, variable_init_kind::normal}));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_yield_in_generator_function,  //
                     name, strlen(u8"var "), u8"yield")));
   }
@@ -1718,7 +1718,7 @@ TEST(test_parse, declare_yield_in_generator_function) {
         ElementsAre(spy_visitor::visited_variable_declaration{
             u8"yield", variable_kind::_catch, variable_init_kind::normal}));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_yield_in_generator_function,  //
                     name, strlen(u8"try {} catch ("), u8"yield")));
   }
@@ -1737,7 +1737,7 @@ TEST(test_parse, declare_yield_in_generator_function) {
                         u8"yield", variable_kind::_parameter,
                         variable_init_kind::normal}));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_yield_in_generator_function,  //
                     name, strlen(u8"function* f("), u8"yield")));
   }
@@ -2043,7 +2043,7 @@ TEST(test_parse, lexical_declaration_as_do_while_loop_body_is_disallowed) {
                                       "visit_variable_use"));        // cond
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_3_FIELDS(
+        ElementsAre(DIAG_TYPE_3_FIELDS(
             diag_lexical_declaration_not_allowed_in_body, kind_of_statement,
             statement_kind::do_while_loop,                                //
             expected_body, offsets_matcher(&code, strlen(u8"do"), u8""),  //
@@ -2064,7 +2064,7 @@ TEST(test_parse, lexical_declaration_as_for_loop_body_is_disallowed) {
                                       "visit_variable_declaration"));  // x
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_3_FIELDS(
+        ElementsAre(DIAG_TYPE_3_FIELDS(
             diag_lexical_declaration_not_allowed_in_body, kind_of_statement,
             statement_kind::for_loop,  //
             expected_body,
@@ -2087,7 +2087,7 @@ TEST(test_parse, lexical_declaration_as_if_statement_body_is_disallowed) {
                                         "visit_variable_declaration"));  // x
       EXPECT_THAT(
           v.errors,
-          ElementsAre(ERROR_TYPE_3_FIELDS(
+          ElementsAre(DIAG_TYPE_3_FIELDS(
               diag_lexical_declaration_not_allowed_in_body, kind_of_statement,
               statement_kind::if_statement,  //
               expected_body,
@@ -2109,7 +2109,7 @@ TEST(test_parse, lexical_declaration_as_if_statement_body_is_disallowed) {
                                         "visit_exit_block_scope"));    // else
       EXPECT_THAT(
           v.errors,
-          ElementsAre(ERROR_TYPE_3_FIELDS(
+          ElementsAre(DIAG_TYPE_3_FIELDS(
               diag_lexical_declaration_not_allowed_in_body, kind_of_statement,
               statement_kind::if_statement,  //
               expected_body,
@@ -2131,7 +2131,7 @@ TEST(test_parse, lexical_declaration_as_if_statement_body_is_disallowed) {
                                         "visit_variable_declaration"));  // x
       EXPECT_THAT(
           v.errors,
-          ElementsAre(ERROR_TYPE_3_FIELDS(
+          ElementsAre(DIAG_TYPE_3_FIELDS(
               diag_lexical_declaration_not_allowed_in_body, kind_of_statement,
               statement_kind::if_statement,  //
               expected_body,
@@ -2155,7 +2155,7 @@ TEST(test_parse, lexical_declaration_as_while_loop_body_is_disallowed) {
                                       "visit_variable_declaration"));  // x
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_3_FIELDS(
+        ElementsAre(DIAG_TYPE_3_FIELDS(
             diag_lexical_declaration_not_allowed_in_body, kind_of_statement,
             statement_kind::while_loop,  //
             expected_body,
@@ -2179,7 +2179,7 @@ TEST(test_parse, lexical_declaration_as_with_statement_body_is_disallowed) {
                                       "visit_exit_with_scope"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_3_FIELDS(
+        ElementsAre(DIAG_TYPE_3_FIELDS(
             diag_lexical_declaration_not_allowed_in_body, kind_of_statement,
             statement_kind::with_statement,  //
             expected_body,
@@ -2200,7 +2200,7 @@ TEST(test_parse, let_as_statement_body_does_not_allow_asi_before_left_square) {
                                       "visit_variable_declaration"));  // x
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_3_FIELDS(
+        ElementsAre(DIAG_TYPE_3_FIELDS(
             diag_lexical_declaration_not_allowed_in_body, kind_of_statement,
             statement_kind::if_statement,  //
             expected_body,

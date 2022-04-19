@@ -16,106 +16,106 @@
 #include <quick-lint-js/padded-string.h>
 #include <vector>
 
-#define ERROR_TYPE_FIELD(diag_type, member, matcher) \
-  ::testing::VariantWith<diag_type>(                 \
+#define DIAG_TYPE_FIELD(diag_type, member, matcher) \
+  ::testing::VariantWith<diag_type>(                \
       ::testing::Field(#member, &diag_type::member, matcher))
 
-#define ERROR_TYPE_2_FIELDS(diag_type, member_1, matcher_1, member_2, \
-                            matcher_2)                                \
-  ::testing::VariantWith<diag_type>(::testing::AllOf(                 \
-      ::testing::Field(#member_1, &diag_type::member_1, matcher_1),   \
+#define DIAG_TYPE_2_FIELDS(diag_type, member_1, matcher_1, member_2, \
+                           matcher_2)                                \
+  ::testing::VariantWith<diag_type>(::testing::AllOf(                \
+      ::testing::Field(#member_1, &diag_type::member_1, matcher_1),  \
       ::testing::Field(#member_2, &diag_type::member_2, matcher_2)))
 
-#define ERROR_TYPE_3_FIELDS(diag_type, member_1, matcher_1, member_2, \
-                            matcher_2, member_3, matcher_3)           \
-  ::testing::VariantWith<diag_type>(::testing::AllOf(                 \
-      ::testing::Field(#member_1, &diag_type::member_1, matcher_1),   \
-      ::testing::Field(#member_2, &diag_type::member_2, matcher_2),   \
+#define DIAG_TYPE_3_FIELDS(diag_type, member_1, matcher_1, member_2, \
+                           matcher_2, member_3, matcher_3)           \
+  ::testing::VariantWith<diag_type>(::testing::AllOf(                \
+      ::testing::Field(#member_1, &diag_type::member_1, matcher_1),  \
+      ::testing::Field(#member_2, &diag_type::member_2, matcher_2),  \
       ::testing::Field(#member_3, &diag_type::member_3, matcher_3)))
 
 // Equivalent to ::testing::VariantWith<type>(::testing::_), but compiles much
 // more quickly.
-#define ERROR_TYPE(type) \
+#define DIAG_TYPE(type) \
   ::quick_lint_js::diag_matcher(::quick_lint_js::diag_type::type)
 
 // Equivalent to the following, but compiles much more quickly:
 //
-//   ERROR_TYPE_FIELD(type, member_0,
+//   DIAG_TYPE_FIELD(type, member_0,
 //                    offsets_matcher(code, start_0, end_or_text_0))
 //
 // but compiles much more quickly.
-#define ERROR_TYPE_OFFSETS(code, type, member_0, start_0, end_or_text_0) \
-  ::quick_lint_js::diag_matcher(                                         \
-      code, ::quick_lint_js::diag_type::type,                            \
-      ::quick_lint_js::diag_matcher::field{                              \
-          #member_0,                                                     \
-          offsetof(type, member_0),                                      \
-          ::quick_lint_js::get_error_matcher_field_type<decltype(        \
-              type::member_0)>(),                                        \
-          start_0,                                                       \
-          end_or_text_0,                                                 \
+#define DIAG_TYPE_OFFSETS(code, type, member_0, start_0, end_or_text_0) \
+  ::quick_lint_js::diag_matcher(                                        \
+      code, ::quick_lint_js::diag_type::type,                           \
+      ::quick_lint_js::diag_matcher::field{                             \
+          #member_0,                                                    \
+          offsetof(type, member_0),                                     \
+          ::quick_lint_js::get_error_matcher_field_type<decltype(       \
+              type::member_0)>(),                                       \
+          start_0,                                                      \
+          end_or_text_0,                                                \
       })
 
 // Equivalent to the following, but compiles much more quickly:
 //
-//   ERROR_TYPE_FIELD(type,
+//   DIAG_TYPE_FIELD(type,
 //                    member_0, offsets_matcher(code, start_0, end_or_text_0),
 //                    member_1, offsets_matcher(code, start_1, end_or_text_1))
-#define ERROR_TYPE_2_OFFSETS(code, type, member_0, start_0, end_or_text_0, \
-                             member_1, start_1, end_or_text_1)             \
-  ::quick_lint_js::diag_matcher(                                           \
-      code, ::quick_lint_js::diag_type::type,                              \
-      ::quick_lint_js::diag_matcher::field{                                \
-          #member_0,                                                       \
-          offsetof(type, member_0),                                        \
-          ::quick_lint_js::get_error_matcher_field_type<decltype(          \
-              type::member_0)>(),                                          \
-          start_0,                                                         \
-          end_or_text_0,                                                   \
-      },                                                                   \
-      ::quick_lint_js::diag_matcher::field{                                \
-          #member_1,                                                       \
-          offsetof(type, member_1),                                        \
-          ::quick_lint_js::get_error_matcher_field_type<decltype(          \
-              type::member_1)>(),                                          \
-          start_1,                                                         \
-          end_or_text_1,                                                   \
+#define DIAG_TYPE_2_OFFSETS(code, type, member_0, start_0, end_or_text_0, \
+                            member_1, start_1, end_or_text_1)             \
+  ::quick_lint_js::diag_matcher(                                          \
+      code, ::quick_lint_js::diag_type::type,                             \
+      ::quick_lint_js::diag_matcher::field{                               \
+          #member_0,                                                      \
+          offsetof(type, member_0),                                       \
+          ::quick_lint_js::get_error_matcher_field_type<decltype(         \
+              type::member_0)>(),                                         \
+          start_0,                                                        \
+          end_or_text_0,                                                  \
+      },                                                                  \
+      ::quick_lint_js::diag_matcher::field{                               \
+          #member_1,                                                      \
+          offsetof(type, member_1),                                       \
+          ::quick_lint_js::get_error_matcher_field_type<decltype(         \
+              type::member_1)>(),                                         \
+          start_1,                                                        \
+          end_or_text_1,                                                  \
       })
 
 // Equivalent to the following, but compiles much more quickly:
 //
-//   ERROR_TYPE_FIELD(type,
+//   DIAG_TYPE_FIELD(type,
 //                    member_0, offsets_matcher(code, start_0, end_or_text_0),
 //                    member_1, offsets_matcher(code, start_1, end_or_text_1),
 //                    member_2, offsets_matcher(code, start_2, end_or_text_2))
-#define ERROR_TYPE_3_OFFSETS(code, type, member_0, start_0, end_or_text_0, \
-                             member_1, start_1, end_or_text_1, member_2,   \
-                             start_2, end_or_text_2)                       \
-  ::quick_lint_js::diag_matcher(                                           \
-      code, ::quick_lint_js::diag_type::type,                              \
-      ::quick_lint_js::diag_matcher::field{                                \
-          #member_0,                                                       \
-          offsetof(type, member_0),                                        \
-          ::quick_lint_js::get_error_matcher_field_type<decltype(          \
-              type::member_0)>(),                                          \
-          start_0,                                                         \
-          end_or_text_0,                                                   \
-      },                                                                   \
-      ::quick_lint_js::diag_matcher::field{                                \
-          #member_1,                                                       \
-          offsetof(type, member_1),                                        \
-          ::quick_lint_js::get_error_matcher_field_type<decltype(          \
-              type::member_1)>(),                                          \
-          start_1,                                                         \
-          end_or_text_1,                                                   \
-      },                                                                   \
-      ::quick_lint_js::diag_matcher::field{                                \
-          #member_2,                                                       \
-          offsetof(type, member_2),                                        \
-          ::quick_lint_js::get_error_matcher_field_type<decltype(          \
-              type::member_2)>(),                                          \
-          start_2,                                                         \
-          end_or_text_2,                                                   \
+#define DIAG_TYPE_3_OFFSETS(code, type, member_0, start_0, end_or_text_0, \
+                            member_1, start_1, end_or_text_1, member_2,   \
+                            start_2, end_or_text_2)                       \
+  ::quick_lint_js::diag_matcher(                                          \
+      code, ::quick_lint_js::diag_type::type,                             \
+      ::quick_lint_js::diag_matcher::field{                               \
+          #member_0,                                                      \
+          offsetof(type, member_0),                                       \
+          ::quick_lint_js::get_error_matcher_field_type<decltype(         \
+              type::member_0)>(),                                         \
+          start_0,                                                        \
+          end_or_text_0,                                                  \
+      },                                                                  \
+      ::quick_lint_js::diag_matcher::field{                               \
+          #member_1,                                                      \
+          offsetof(type, member_1),                                       \
+          ::quick_lint_js::get_error_matcher_field_type<decltype(         \
+              type::member_1)>(),                                         \
+          start_1,                                                        \
+          end_or_text_1,                                                  \
+      },                                                                  \
+      ::quick_lint_js::diag_matcher::field{                               \
+          #member_2,                                                      \
+          offsetof(type, member_2),                                       \
+          ::quick_lint_js::get_error_matcher_field_type<decltype(         \
+              type::member_2)>(),                                         \
+          start_2,                                                        \
+          end_or_text_2,                                                  \
       })
 
 namespace quick_lint_js {
@@ -170,7 +170,7 @@ class span_matcher {
 // A mix of ::testing::VariantWith, ::testing::Field, and offsets_matcher. These
 // are combined into one matcher to significantly reduce compile times.
 //
-// See ERROR_TYPE and ERROR_TYPE_OFFSETS for example usage.
+// See DIAG_TYPE and DIAG_TYPE_OFFSETS for example usage.
 class diag_matcher {
  public:
   enum class field_type {
@@ -221,7 +221,7 @@ class diag_matcher {
   state state_;
 };
 
-// Internal helper for ERROR_TYPE_OFFSETS macros.
+// Internal helper for DIAG_TYPE_OFFSETS macros.
 template <class>
 constexpr diag_matcher::field_type get_error_matcher_field_type() noexcept =
     delete;

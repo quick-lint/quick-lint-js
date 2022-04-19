@@ -59,7 +59,7 @@ TEST(test_parse, parse_invalid_math_expression) {
     padded_string code(u8"2 +"_sv);
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_operand_for_operator,  //
                               where, strlen(u8"2 "), u8"+")));
   }
@@ -69,7 +69,7 @@ TEST(test_parse, parse_invalid_math_expression) {
     padded_string code(u8"^ 2"_sv);
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_operand_for_operator,  //
                               where, 0, u8"^")));
   }
@@ -79,7 +79,7 @@ TEST(test_parse, parse_invalid_math_expression) {
     padded_string code(u8"2 * * 2"_sv);
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_operand_for_operator,  //
                               where, strlen(u8"2 "), u8"*")));
   }
@@ -92,10 +92,10 @@ TEST(test_parse, parse_invalid_math_expression) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(
-            ERROR_TYPE_OFFSETS(&code, diag_missing_operand_for_operator,  //
-                               where, strlen(u8"2 "), u8"&"),
-            ERROR_TYPE_OFFSETS(&code, diag_missing_operand_for_operator,  //
-                               where, strlen(u8"2 & "), u8"&")));
+            DIAG_TYPE_OFFSETS(&code, diag_missing_operand_for_operator,  //
+                              where, strlen(u8"2 "), u8"&"),
+            DIAG_TYPE_OFFSETS(&code, diag_missing_operand_for_operator,  //
+                              where, strlen(u8"2 & "), u8"&")));
   }
 
   {
@@ -103,7 +103,7 @@ TEST(test_parse, parse_invalid_math_expression) {
     padded_string code(u8"(2 *)"_sv);
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_operand_for_operator,  //
                               where, strlen(u8"(2 "), u8"*")));
   }
@@ -112,7 +112,7 @@ TEST(test_parse, parse_invalid_math_expression) {
     padded_string code(u8"2 * (3 + 4"_sv);
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_unmatched_parenthesis,  //
                               where, strlen(u8"2 * "), u8"(")));
   }
@@ -124,10 +124,10 @@ TEST(test_parse, parse_invalid_math_expression) {
     p.parse_and_visit_expression(v);
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(&code, diag_unmatched_parenthesis,  //
-                                       where, strlen(u8"2 * (3 + "), u8"("),
-                    ERROR_TYPE_OFFSETS(&code, diag_unmatched_parenthesis,  //
-                                       where, strlen(u8"2 * "), u8"(")));
+        ElementsAre(DIAG_TYPE_OFFSETS(&code, diag_unmatched_parenthesis,  //
+                                      where, strlen(u8"2 * (3 + "), u8"("),
+                    DIAG_TYPE_OFFSETS(&code, diag_unmatched_parenthesis,  //
+                                      where, strlen(u8"2 * "), u8"(")));
   }
 
   {
@@ -139,7 +139,7 @@ TEST(test_parse, parse_invalid_math_expression) {
                 ElementsAre("visit_variable_use", "visit_variable_assignment"));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_operand_for_operator,  //
                               where, strlen(u8"x "), u8"+=")));
   }
@@ -151,7 +151,7 @@ TEST(test_parse, stray_right_parenthesis) {
     padded_string code(u8")"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_unmatched_parenthesis,  //
                               where, 0, u8")")));
   }
@@ -163,10 +163,10 @@ TEST(test_parse, stray_right_parenthesis) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(&code, diag_unmatched_parenthesis,  //
-                                       where, strlen(u8"x"), u8")"),
-                    ERROR_TYPE_OFFSETS(&code, diag_unmatched_parenthesis,  //
-                                       where, strlen(u8"x)"), u8")")));
+        ElementsAre(DIAG_TYPE_OFFSETS(&code, diag_unmatched_parenthesis,  //
+                                      where, strlen(u8"x"), u8")"),
+                    DIAG_TYPE_OFFSETS(&code, diag_unmatched_parenthesis,  //
+                                      where, strlen(u8"x)"), u8")")));
   }
 
   {
@@ -176,10 +176,10 @@ TEST(test_parse, stray_right_parenthesis) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(&code, diag_unmatched_parenthesis,  //
-                                       where, strlen(u8"-x"), u8")"),
-                    ERROR_TYPE_OFFSETS(&code, diag_unmatched_parenthesis,  //
-                                       where, strlen(u8"-x)"), u8")")));
+        ElementsAre(DIAG_TYPE_OFFSETS(&code, diag_unmatched_parenthesis,  //
+                                      where, strlen(u8"-x"), u8")"),
+                    DIAG_TYPE_OFFSETS(&code, diag_unmatched_parenthesis,  //
+                                      where, strlen(u8"-x)"), u8")")));
   }
 
   {
@@ -188,7 +188,7 @@ TEST(test_parse, stray_right_parenthesis) {
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::async);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_unmatched_parenthesis,  //
                               where, strlen(u8"await p"), u8")")));
   }
@@ -199,7 +199,7 @@ TEST(test_parse, stray_right_parenthesis) {
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::generator);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_unmatched_parenthesis,  //
                               where, strlen(u8"yield p"), u8")")));
   }
@@ -209,7 +209,7 @@ TEST(test_parse, stray_right_parenthesis) {
     padded_string code(u8"return result)"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_unmatched_parenthesis,  //
                               where, strlen(u8"return result"), u8")")));
   }
@@ -219,7 +219,7 @@ TEST(test_parse, stray_right_parenthesis) {
     padded_string code(u8"throw banana)"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_unmatched_parenthesis,  //
                               where, strlen(u8"throw banana"), u8")")));
   }
@@ -238,7 +238,7 @@ TEST(test_parse, statement_starting_with_binary_only_operator) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_operand_for_operator,  //
                               where, 0, op)));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
@@ -250,7 +250,7 @@ TEST(test_parse, statement_starting_with_binary_only_operator) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_operand_for_operator,  //
                               where, 0, u8".")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // y
@@ -263,7 +263,7 @@ TEST(test_parse, invalid_identifier_after_expression) {
     padded_string code(u8"one two"_sv);
     parser p(&code, &v);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_semicolon_after_statement,  //
                               where, strlen(u8"one"), u8"")));
   }
@@ -274,7 +274,7 @@ TEST(test_parse, invalid_identifier_after_expression) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_identifier_in_expression,  //
                     unexpected, strlen(u8"(one "), u8"two")));
     EXPECT_THAT(v.variable_uses,
@@ -288,7 +288,7 @@ TEST(test_parse, invalid_identifier_after_expression) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_identifier_in_expression,  //
                     unexpected, strlen(u8"f(one "), u8"two")));
     EXPECT_THAT(v.variable_uses,
@@ -303,7 +303,7 @@ TEST(test_parse, invalid_identifier_after_expression) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_identifier_in_expression,  //
                     unexpected, strlen(u8"xs[one "), u8"two")));
     EXPECT_THAT(v.variable_uses,
@@ -319,13 +319,13 @@ TEST(test_parse, invalid_identifier_after_expression) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 UnorderedElementsAre(
-                    ERROR_TYPE_OFFSETS(
+                    DIAG_TYPE_OFFSETS(
                         &code, diag_unexpected_identifier_in_expression,  //
                         unexpected, strlen(u8"(a "), u8"b"),
-                    ERROR_TYPE_OFFSETS(
+                    DIAG_TYPE_OFFSETS(
                         &code, diag_unexpected_identifier_in_expression,  //
                         unexpected, strlen(u8"(a b "), u8"c"),
-                    ERROR_TYPE_OFFSETS(
+                    DIAG_TYPE_OFFSETS(
                         &code, diag_unexpected_identifier_in_expression,  //
                         unexpected, strlen(u8"(a b c "), u8"d")));
   }
@@ -338,7 +338,7 @@ TEST(test_parse, function_call_without_right_paren) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
                     &code, diag_expected_right_paren_for_function_call,  //
                     expected_right_paren, strlen(u8"f(x"), u8"",         //
                     left_paren, strlen(u8"f"), u8"(")));
@@ -350,7 +350,7 @@ TEST(test_parse, function_call_without_right_paren) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
                     &code, diag_expected_right_paren_for_function_call,  //
                     expected_right_paren, strlen(u8"{ f("), u8"",        //
                     left_paren, strlen(u8"{ f"), u8"(")));
@@ -366,7 +366,7 @@ TEST(test_parse, function_call_without_right_paren) {
                                       "visit_variable_use",  // y
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
                     &code, diag_expected_right_paren_for_function_call,  //
                     expected_right_paren, strlen(u8"f(x"), u8"",         //
                     left_paren, strlen(u8"f"), u8"(")));
@@ -383,7 +383,7 @@ TEST(test_parse, function_call_without_right_paren) {
                                       "visit_variable_assignment",  // y
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_2_OFFSETS(
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
                     &code, diag_expected_right_paren_for_function_call,  //
                     expected_right_paren, strlen(u8"f(x"), u8"",         //
                     left_paren, strlen(u8"f"), u8"(")));
@@ -644,7 +644,7 @@ TEST(test_parse, object_literal_method_with_arrow_operator) {
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code,
             diag_functions_or_methods_should_not_have_arrow_operator,  //
             arrow_operator, strlen(u8"let o = {method() "), u8"=>")));
@@ -833,7 +833,7 @@ TEST(test_parse, cannot_reference_private_identifier_outside_class) {
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code, diag_cannot_access_private_identifier_outside_class,  //
             private_identifier, strlen(u8"this."), u8"#x")));
   }
@@ -952,7 +952,7 @@ TEST(test_parse, parse_invalid_function_calls) {
     parser p(&code, &v);
     p.parse_and_visit_module(v);
 
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_semicolon_after_statement,  //
                               where, strlen(u8"(x)"), u8"")));
 
@@ -1165,7 +1165,7 @@ TEST(test_parse, async_followed_by_newline_and_arrow_function) {
                                       "visit_end_of_module"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_2_OFFSETS(
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
             &code,
             diag_newline_not_allowed_between_async_and_parameter_list,  //
             async, strlen(u8"x = "), u8"async",                         //
@@ -1179,7 +1179,7 @@ TEST(test_parse, trailing_comma_in_comma_expression_is_disallowed) {
     padded_string code(u8"(a, b, );"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_operand_for_operator,  //
                               where, strlen(u8"(a, b"), u8",")));
   }
@@ -1231,7 +1231,7 @@ TEST(test_parse, incomplete_unary_expression_with_following_statement_keyword) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_operand_for_operator,  //
                               where, 0, u8"!")));
   }
@@ -1245,7 +1245,7 @@ TEST(test_parse, incomplete_unary_expression_with_following_statement_keyword) {
                                       "visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_operand_for_operator,  //
                               where, 0, u8"!")));
   }
@@ -1259,10 +1259,10 @@ TEST(test_parse, incomplete_unary_expression_with_following_statement_keyword) {
     EXPECT_THAT(
         v.errors,
         UnorderedElementsAre(
-            ERROR_TYPE_OFFSETS(&code, diag_missing_operand_for_operator,  //
-                               where, 0, u8"!"),
-            ERROR_TYPE_OFFSETS(&code, diag_typescript_enum_not_implemented,  //
-                               enum_keyword, strlen(u8"!\n"), u8"enum")));
+            DIAG_TYPE_OFFSETS(&code, diag_missing_operand_for_operator,  //
+                              where, 0, u8"!"),
+            DIAG_TYPE_OFFSETS(&code, diag_typescript_enum_not_implemented,  //
+                              enum_keyword, strlen(u8"!\n"), u8"enum")));
   }
 }
 
@@ -1455,7 +1455,7 @@ TEST(test_parse, disallow_await_parameter_in_async_arrow_function) {
                                       "visit_enter_function_scope_body",
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_await_in_async_function,  //
                     name, strlen(u8"(async ("), u8"await")));
   }
@@ -1470,7 +1470,7 @@ TEST(test_parse, disallow_await_parameter_in_async_arrow_function) {
                                       "visit_enter_function_scope_body",
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_await_in_async_function,  //
                     name, strlen(u8"(async "), u8"await")));
   }
@@ -1489,13 +1489,13 @@ TEST(test_parse, disallow_await_parameter_in_async_arrow_function) {
     EXPECT_THAT(
         v.errors,
         ElementsAre(
-            ERROR_TYPE_OFFSETS(&code,
-                               diag_cannot_declare_await_in_async_function,  //
-                               name, strlen(u8"(async ("), u8"await"),
-            ERROR_TYPE_OFFSETS(&code,
-                               diag_cannot_declare_await_in_async_function,  //
-                               name, strlen(u8"(async (await, "), u8"await"),
-            ERROR_TYPE_OFFSETS(
+            DIAG_TYPE_OFFSETS(&code,
+                              diag_cannot_declare_await_in_async_function,  //
+                              name, strlen(u8"(async ("), u8"await"),
+            DIAG_TYPE_OFFSETS(&code,
+                              diag_cannot_declare_await_in_async_function,  //
+                              name, strlen(u8"(async (await, "), u8"await"),
+            DIAG_TYPE_OFFSETS(
                 &code, diag_cannot_declare_await_in_async_function,  //
                 name, strlen(u8"(async (await, await, "), u8"await")));
   }
@@ -1506,7 +1506,7 @@ TEST(test_parse, disallow_await_parameter_in_async_arrow_function) {
     parser p(&code, &v);
     p.parse_and_visit_expression(v);
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_await_in_async_function,  //
                     name, strlen(u8"(async ("), u8"await")));
     // TODO(strager): We're ignoring 'p'. Should we treat it as a parameter?

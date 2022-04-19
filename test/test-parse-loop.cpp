@@ -65,7 +65,7 @@ TEST(test_parse, do_while_without_parens) {
                                       "visit_variable_use"));     // cond
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code, diag_expected_parentheses_around_do_while_condition,  //
             condition, strlen(u8"do {} while "), u8"cond")));
   }
@@ -80,7 +80,7 @@ TEST(test_parse, do_while_without_parens) {
                                       "visit_variable_use"));     // cond
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code, diag_expected_parentheses_around_do_while_condition,  //
             condition, strlen(u8"do {} while "), u8"cond")));
   }
@@ -97,7 +97,7 @@ TEST(test_parse, do_while_without_parens) {
                                       "visit_exit_block_scope"));  //
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code, diag_expected_parentheses_around_do_while_condition,  //
             condition, strlen(u8"{ do {} while "), u8"cond")));
   }
@@ -112,7 +112,7 @@ TEST(test_parse, do_while_without_parens) {
                                       "visit_variable_use"));     // cond
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_2_FIELDS(
+        ElementsAre(DIAG_TYPE_2_FIELDS(
             diag_expected_parenthesis_around_do_while_condition,  //
             where,
             offsets_matcher(&code, strlen(u8"do {} while (cond"), u8""),  //
@@ -129,7 +129,7 @@ TEST(test_parse, do_while_without_parens) {
                                       "visit_variable_use"));     // cond
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_2_FIELDS(
+        ElementsAre(DIAG_TYPE_2_FIELDS(
             diag_expected_parenthesis_around_do_while_condition,            //
             where, offsets_matcher(&code, strlen(u8"do {} while "), u8""),  //
             token, u8'(')));
@@ -144,7 +144,7 @@ TEST(test_parse, do_while_without_body) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // cond
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_missing_body_for_do_while_statement,  //
                     do_token, 0, u8"do")));
   }
@@ -160,7 +160,7 @@ TEST(test_parse, do_while_without_while_and_condition) {
                                       "visit_exit_block_scope"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_2_OFFSETS(
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
             &code, diag_missing_while_and_condition_for_do_while_statement,  //
             do_token, 0, u8"do",                                             //
             expected_while, strlen(u8"do {}"), u8"")));
@@ -177,7 +177,7 @@ TEST(test_parse, do_while_without_while_and_condition) {
                                       "visit_end_of_module"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_2_OFFSETS(
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
             &code, diag_missing_while_and_condition_for_do_while_statement,  //
             do_token, 0, u8"do",                                             //
             expected_while, strlen(u8"do {}"), u8"")));
@@ -249,7 +249,7 @@ TEST(test_parse, c_style_for_loop_with_in_operator) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_in_disallowed_in_c_style_for_loop,  //
                               in_token, strlen(u8"for (a "), u8"in")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // b
@@ -265,7 +265,7 @@ TEST(test_parse, c_style_for_loop_with_in_operator) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_in_disallowed_in_c_style_for_loop,  //
                               in_token, strlen(u8"for (let x = a "), u8"in")));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
@@ -284,7 +284,7 @@ TEST(test_parse, c_style_for_loop_with_in_operator) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_in_disallowed_in_c_style_for_loop,  //
                               in_token, strlen(u8"for (var x = a "), u8"in")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // a
@@ -303,7 +303,7 @@ TEST(test_parse, for_loop_with_missing_component) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_header_of_for_loop,  //
                               where, strlen(u8"for "), u8"()")));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   //
@@ -317,7 +317,7 @@ TEST(test_parse, for_loop_with_missing_component) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_2_OFFSETS(
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
             &code,
             diag_missing_for_loop_rhs_or_components_after_expression,  //
             header, strlen(u8"for "), u8"(myVar)",                     //
@@ -334,7 +334,7 @@ TEST(test_parse, for_loop_with_missing_component) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_2_OFFSETS(
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
             &code,
             diag_missing_for_loop_rhs_or_components_after_declaration,  //
             header, strlen(u8"for "), u8"(let myVar)",                  //
@@ -357,7 +357,7 @@ TEST(test_parse, for_loop_with_missing_component) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_2_OFFSETS(
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
             &code, diag_c_style_for_loop_is_missing_third_component,  //
             existing_semicolon, strlen(u8"for (init"), u8";",         //
             expected_last_component, strlen(u8"for (init; cond"), u8")")));
@@ -376,7 +376,7 @@ TEST(test_parse, for_loop_with_missing_semicolons) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code,
             diag_missing_semicolon_between_for_loop_init_and_condition,  //
             expected_semicolon, strlen(u8"for (a"), u8"")));
@@ -394,7 +394,7 @@ TEST(test_parse, for_loop_with_missing_semicolons) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code,
             diag_missing_semicolon_between_for_loop_condition_and_update,  //
             expected_semicolon, strlen(u8"for (a; b"), u8"")));
@@ -413,7 +413,7 @@ TEST(test_parse, for_loop_with_extra_semicolons) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_semicolon_in_c_style_for_loop,  //
                     semicolon, strlen(u8"for (;;"), u8";")));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
@@ -428,15 +428,15 @@ TEST(test_parse, for_loop_with_extra_semicolons) {
     EXPECT_THAT(
         v.errors,
         UnorderedElementsAre(
-            ERROR_TYPE_OFFSETS(
-                &code, diag_unexpected_semicolon_in_c_style_for_loop,  //
-                semicolon, strlen(u8"for (;; "), u8";"),
-            ERROR_TYPE_OFFSETS(
-                &code, diag_unexpected_semicolon_in_c_style_for_loop,  //
-                semicolon, strlen(u8"for (;; ;"), u8";"),
-            ERROR_TYPE_OFFSETS(
-                &code, diag_unexpected_semicolon_in_c_style_for_loop,  //
-                semicolon, strlen(u8"for (;; ;;"), u8";")));
+            DIAG_TYPE_OFFSETS(&code,
+                              diag_unexpected_semicolon_in_c_style_for_loop,  //
+                              semicolon, strlen(u8"for (;; "), u8";"),
+            DIAG_TYPE_OFFSETS(&code,
+                              diag_unexpected_semicolon_in_c_style_for_loop,  //
+                              semicolon, strlen(u8"for (;; ;"), u8";"),
+            DIAG_TYPE_OFFSETS(&code,
+                              diag_unexpected_semicolon_in_c_style_for_loop,  //
+                              semicolon, strlen(u8"for (;; ;;"), u8";")));
   }
 
   {
@@ -445,7 +445,7 @@ TEST(test_parse, for_loop_with_extra_semicolons) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_semicolon_in_c_style_for_loop,  //
                     semicolon, strlen(u8"for (a;b;c"), u8";")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // a
@@ -468,10 +468,10 @@ TEST(test_parse, for_loop_with_extra_semicolons) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 UnorderedElementsAre(
-                    ERROR_TYPE_OFFSETS(
+                    DIAG_TYPE_OFFSETS(
                         &code, diag_unexpected_semicolon_in_for_of_loop,  //
                         semicolon, strlen(u8"for (a of b"), u8";"),
-                    ERROR_TYPE_OFFSETS(
+                    DIAG_TYPE_OFFSETS(
                         &code, diag_unexpected_semicolon_in_for_of_loop,  //
                         semicolon, strlen(u8"for (a of b; c"), u8";")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // b
@@ -492,7 +492,7 @@ TEST(test_parse, for_loop_with_extra_semicolons) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_semicolon_in_for_of_loop,  //
                     semicolon, strlen(u8"for (var a of b"), u8";")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // b
@@ -509,10 +509,10 @@ TEST(test_parse, for_loop_with_extra_semicolons) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
                 UnorderedElementsAre(
-                    ERROR_TYPE_OFFSETS(
+                    DIAG_TYPE_OFFSETS(
                         &code, diag_unexpected_semicolon_in_for_in_loop,  //
                         semicolon, strlen(u8"for (var a of b"), u8";"),
-                    ERROR_TYPE_OFFSETS(
+                    DIAG_TYPE_OFFSETS(
                         &code, diag_unexpected_semicolon_in_for_in_loop,  //
                         semicolon, strlen(u8"for (var a of b; c"), u8";")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // a
@@ -789,7 +789,7 @@ TEST(test_parse, for_in_loop_with_var_initializer) {
                                       "visit_exit_block_scope"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE(diag_missing_expression_between_parentheses)));
+        ElementsAre(DIAG_TYPE(diag_missing_expression_between_parentheses)));
   }
 }
 
@@ -807,7 +807,7 @@ TEST(test_parse, invalid_for_in_loop) {
                             "visit_exit_for_scope"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code,
             diag_cannot_assign_to_loop_variable_in_for_of_or_in_loop,  //
             equal_token, strlen(u8"for (const x "), u8"=")));
@@ -826,7 +826,7 @@ TEST(test_parse, invalid_for_in_loop) {
                             "visit_exit_for_scope"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code,
             diag_cannot_assign_to_loop_variable_in_for_of_or_in_loop,  //
             equal_token, strlen(u8"for (let x "), u8"=")));
@@ -904,7 +904,7 @@ TEST(test_parse, for_of_loop) {
                                       "visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
                                       "visit_exit_for_scope"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_let_with_no_bindings,  //
                               where, strlen(u8"for ("), u8"let")));
   }
@@ -994,7 +994,7 @@ TEST(test_parse, invalid_for_of_loop) {
                             "visit_exit_for_scope"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code,
             diag_cannot_assign_to_loop_variable_in_for_of_or_in_loop,  //
             equal_token, strlen(u8"for (const x "), u8"=")));
@@ -1013,7 +1013,7 @@ TEST(test_parse, invalid_for_of_loop) {
                             "visit_exit_for_scope"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code,
             diag_cannot_assign_to_loop_variable_in_for_of_or_in_loop,  //
             equal_token, strlen(u8"for (let x "), u8"=")));
@@ -1029,7 +1029,7 @@ TEST(test_parse, invalid_for_of_loop) {
                                       "visit_exit_block_scope"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_OFFSETS(
+        ElementsAre(DIAG_TYPE_OFFSETS(
             &code,
             diag_cannot_assign_to_loop_variable_in_for_of_or_in_loop,  //
             equal_token, strlen(u8"for (let x "), u8"=")));
@@ -1047,7 +1047,7 @@ TEST(test_parse, for_loop_without_body) {
                                       "visit_variable_declaration",  // x
                                       "visit_exit_for_scope"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_missing_body_for_for_statement,  //
                     for_and_header, strlen(u8"for (let x of myArray)"), u8"")));
   }
@@ -1063,7 +1063,7 @@ TEST(test_parse, for_loop_without_body) {
                                       "visit_variable_declaration",  // x
                                       "visit_exit_for_scope",        //
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_body_for_for_statement,  //
                               for_and_header,
                               strlen(u8"{ for (let x of myArray)"), u8"")));
@@ -1079,7 +1079,7 @@ TEST(test_parse, for_loop_without_header) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // y
                                       "visit_variable_assignment",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_for_loop_header,  //
                               for_token, 0, u8"for")));
   }
@@ -1094,7 +1094,7 @@ TEST(test_parse, for_loop_without_header) {
                                       "visit_variable_use",         // y
                                       "visit_variable_assignment",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_for_loop_header,  //
                               for_token, strlen(u8"{ "), u8"for")));
   }
@@ -1127,7 +1127,7 @@ TEST(test_parse, while_without_parens) {
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_expected_parentheses_around_while_condition,  //
                     condition, strlen(u8"while "), u8"cond")));
   }
@@ -1143,7 +1143,7 @@ TEST(test_parse, while_without_parens) {
                                       "visit_exit_block_scope"));
     EXPECT_THAT(
         v.errors,
-        ElementsAre(ERROR_TYPE_2_FIELDS(
+        ElementsAre(DIAG_TYPE_2_FIELDS(
             diag_expected_parenthesis_around_while_condition,              //
             where, offsets_matcher(&code, strlen(u8"while (cond"), u8""),  //
             token, u8')')));
@@ -1159,7 +1159,7 @@ TEST(test_parse, while_without_parens) {
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_2_FIELDS(
+                ElementsAre(DIAG_TYPE_2_FIELDS(
                     diag_expected_parenthesis_around_while_condition,         //
                     where, offsets_matcher(&code, strlen(u8"while "), u8""),  //
                     token, u8'(')));
@@ -1176,7 +1176,7 @@ TEST(test_parse, while_without_condition) {
                                       "visit_variable_use",       // go
                                       "visit_exit_block_scope"));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_missing_condition_for_while_statement,  //
                     while_keyword, 0, u8"while")));
   }
@@ -1190,7 +1190,7 @@ TEST(test_parse, while_without_body) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // cond
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_missing_body_for_while_statement,  //
                     while_and_condition, strlen(u8"while (cond)"), u8"")));
   }
@@ -1204,8 +1204,8 @@ TEST(test_parse, break_statement) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, IsEmpty());
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(&code, diag_invalid_break,  //
-                                               break_statement, 0, u8"break")));
+                ElementsAre(DIAG_TYPE_OFFSETS(&code, diag_invalid_break,  //
+                                              break_statement, 0, u8"break")));
   }
 
   {
@@ -1215,7 +1215,7 @@ TEST(test_parse, break_statement) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_invalid_break,  //
                     break_statement, strlen(u8"for (;;) { } "), u8"break")));
   }
@@ -1226,7 +1226,7 @@ TEST(test_parse, break_statement) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_invalid_break,  //
                     break_statement, strlen(u8"for (;;) { function f() { "),
                     u8"break")));
@@ -1237,7 +1237,7 @@ TEST(test_parse, break_statement) {
     padded_string code(u8"for (;;) { () => { break; } }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_invalid_break,  //
                               break_statement, strlen(u8"for (;;) { () => { "),
                               u8"break")));
@@ -1302,7 +1302,7 @@ TEST(test_parse, continue_statement) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, IsEmpty());
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_invalid_continue,  //
                               continue_statement, 0, u8"continue")));
   }
@@ -1313,7 +1313,7 @@ TEST(test_parse, continue_statement) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     ASSERT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_invalid_continue,  //
                     continue_statement, strlen(u8"switch (0) { default: "),
                     u8"continue")));
@@ -1325,7 +1325,7 @@ TEST(test_parse, continue_statement) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors,
-                ElementsAre(ERROR_TYPE_OFFSETS(
+                ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_invalid_continue,  //
                     continue_statement, strlen(u8"for (;;) { function f() { "),
                     u8"continue")));
@@ -1336,7 +1336,7 @@ TEST(test_parse, continue_statement) {
     padded_string code(u8"for (;;) { () => { continue; } }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_invalid_continue,  //
                               continue_statement,
                               strlen(u8"for (;;) { () => { "), u8"continue")));
@@ -1448,7 +1448,7 @@ TEST(test_parse,
               ElementsAre(spy_visitor::visited_variable_use{u8"xs"}));
   EXPECT_THAT(
       v.errors,
-      ElementsAre(ERROR_TYPE_OFFSETS(
+      ElementsAre(DIAG_TYPE_OFFSETS(
           &code, diag_cannot_assign_to_variable_named_async_in_for_of_loop,  //
           async_identifier, strlen(u8"for ("), u8"async")));
 }
