@@ -38,20 +38,20 @@
 
 namespace quick_lint_js {
 parser_transaction::parser_transaction(lexer* l,
-                                       error_reporter** error_reporter_pointer,
+                                       diag_reporter** error_reporter_pointer,
                                        monotonic_allocator* allocator)
     : lex_transaction(l->begin_transaction()),
       reporter(allocator),
-      old_error_reporter(
+      old_diag_reporter(
           std::exchange(*error_reporter_pointer, &this->reporter)) {}
 
-parser::parser(padded_string_view input, error_reporter* error_reporter)
-    : parser(input, error_reporter, parser_options()) {}
+parser::parser(padded_string_view input, diag_reporter* diag_reporter)
+    : parser(input, diag_reporter, parser_options()) {}
 
-parser::parser(padded_string_view input, error_reporter* error_reporter,
+parser::parser(padded_string_view input, diag_reporter* diag_reporter,
                parser_options options)
-    : lexer_(input, error_reporter),
-      error_reporter_(error_reporter),
+    : lexer_(input, diag_reporter),
+      error_reporter_(diag_reporter),
       options_(options) {}
 
 parser::function_guard parser::enter_function(function_attributes attributes) {
@@ -516,15 +516,15 @@ parser_transaction parser::begin_transaction() {
 
 void parser::commit_transaction(parser_transaction&& transaction) {
   auto* buffered_errors =
-      static_cast<buffering_error_reporter*>(this->error_reporter_);
-  buffered_errors->move_into(transaction.old_error_reporter);
-  this->error_reporter_ = transaction.old_error_reporter;
+      static_cast<buffering_diag_reporter*>(this->error_reporter_);
+  buffered_errors->move_into(transaction.old_diag_reporter);
+  this->error_reporter_ = transaction.old_diag_reporter;
 
   this->lexer_.commit_transaction(std::move(transaction.lex_transaction));
 }
 
 void parser::roll_back_transaction(parser_transaction&& transaction) {
-  this->error_reporter_ = transaction.old_error_reporter;
+  this->error_reporter_ = transaction.old_diag_reporter;
   this->lexer_.roll_back_transaction(std::move(transaction.lex_transaction));
 }
 

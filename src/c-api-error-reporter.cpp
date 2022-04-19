@@ -18,30 +18,30 @@
 
 namespace quick_lint_js {
 template <class Diagnostic, class Locator>
-c_api_error_reporter<Diagnostic, Locator>::c_api_error_reporter() = default;
+c_api_diag_reporter<Diagnostic, Locator>::c_api_diag_reporter() = default;
 
 template <class Diagnostic, class Locator>
-void c_api_error_reporter<Diagnostic, Locator>::set_input(
+void c_api_diag_reporter<Diagnostic, Locator>::set_input(
     padded_string_view input, const Locator *locator) {
   this->locator_ = locator;
   this->input_ = input.data();
 }
 
 template <class Diagnostic, class Locator>
-void c_api_error_reporter<Diagnostic, Locator>::reset() {
+void c_api_diag_reporter<Diagnostic, Locator>::reset() {
   this->diagnostics_.clear();
   // TODO(strager): Release allocated string memory.
 }
 
 template <class Diagnostic, class Locator>
-void c_api_error_reporter<Diagnostic, Locator>::report_impl(diag_type type,
-                                                            void *error) {
+void c_api_diag_reporter<Diagnostic, Locator>::report_impl(diag_type type,
+                                                           void *error) {
   c_api_error_formatter formatter(this);
   formatter.format(get_diagnostic_info(type), error);
 }
 
 template <class Diagnostic, class Locator>
-const Diagnostic *c_api_error_reporter<Diagnostic, Locator>::get_diagnostics() {
+const Diagnostic *c_api_diag_reporter<Diagnostic, Locator>::get_diagnostics() {
   // Null-terminate the returned errors.
   this->diagnostics_.emplace_back();
 
@@ -49,7 +49,7 @@ const Diagnostic *c_api_error_reporter<Diagnostic, Locator>::get_diagnostics() {
 }
 
 template <class Diagnostic, class Locator>
-char8 *c_api_error_reporter<Diagnostic, Locator>::allocate_c_string(
+char8 *c_api_diag_reporter<Diagnostic, Locator>::allocate_c_string(
     string8_view string) {
   char8 *result =
       this->string_allocator_.template allocate_uninitialized_array<char8>(
@@ -61,7 +61,7 @@ char8 *c_api_error_reporter<Diagnostic, Locator>::allocate_c_string(
 
 template <class Diagnostic, class Locator>
 c_api_error_formatter<Diagnostic, Locator>::c_api_error_formatter(
-    c_api_error_reporter<Diagnostic, Locator> *reporter)
+    c_api_diag_reporter<Diagnostic, Locator> *reporter)
     : reporter_(reporter) {}
 
 template <class Diagnostic, class Locator>
@@ -123,7 +123,7 @@ void c_api_error_formatter<Diagnostic, Locator>::write_after_message(
 
 template class c_api_error_formatter<qljs_web_demo_diagnostic,
                                      web_demo_locator>;
-template class c_api_error_reporter<qljs_web_demo_diagnostic, web_demo_locator>;
+template class c_api_diag_reporter<qljs_web_demo_diagnostic, web_demo_locator>;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

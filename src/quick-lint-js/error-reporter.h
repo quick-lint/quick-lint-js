@@ -7,17 +7,17 @@
 #include <quick-lint-js/diagnostic-types.h>
 
 namespace quick_lint_js {
-class error_reporter {
+class diag_reporter {
  public:
-  error_reporter() noexcept = default;
+  diag_reporter() noexcept = default;
 
-  error_reporter(const error_reporter &) noexcept = default;
-  error_reporter &operator=(const error_reporter &) noexcept = default;
+  diag_reporter(const diag_reporter &) noexcept = default;
+  diag_reporter &operator=(const diag_reporter &) noexcept = default;
 
-  error_reporter(error_reporter &&) noexcept = default;
-  error_reporter &operator=(error_reporter &&) noexcept = default;
+  diag_reporter(diag_reporter &&) noexcept = default;
+  diag_reporter &operator=(diag_reporter &&) noexcept = default;
 
-  virtual ~error_reporter() = default;
+  virtual ~diag_reporter() = default;
 
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
   void report(name error) {                                       \
@@ -29,13 +29,13 @@ class error_reporter {
   virtual void report_impl(diag_type type, void *error) = 0;
 };
 
-class null_error_reporter : public error_reporter {
+class null_diag_reporter : public diag_reporter {
  public:
-  static null_error_reporter instance;
+  static null_diag_reporter instance;
 
   void report_impl(diag_type, void *) override {}
 };
-inline null_error_reporter null_error_reporter::instance;
+inline null_diag_reporter null_diag_reporter::instance;
 }
 
 #endif

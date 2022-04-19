@@ -19,9 +19,9 @@
 namespace quick_lint_js {
 class emacs_lisp_error_formatter;
 
-class emacs_lisp_error_reporter final : public error_reporter {
+class emacs_lisp_diag_reporter final : public diag_reporter {
  public:
-  explicit emacs_lisp_error_reporter(output_stream *output);
+  explicit emacs_lisp_diag_reporter(output_stream *output);
 
   void set_source(padded_string_view input);
   void finish();

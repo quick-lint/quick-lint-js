@@ -11,18 +11,18 @@
 #include <quick-lint-js/token.h>
 
 namespace quick_lint_js {
-emacs_lisp_error_reporter::emacs_lisp_error_reporter(output_stream *output)
+emacs_lisp_diag_reporter::emacs_lisp_diag_reporter(output_stream *output)
     : output_(*output) {
   this->output_.append_copy(u8'(');
 }
 
-void emacs_lisp_error_reporter::finish() { this->output_.append_copy(u8')'); }
+void emacs_lisp_diag_reporter::finish() { this->output_.append_copy(u8')'); }
 
-void emacs_lisp_error_reporter::set_source(padded_string_view input) {
+void emacs_lisp_diag_reporter::set_source(padded_string_view input) {
   this->locator_.emplace(input);
 }
 
-void emacs_lisp_error_reporter::report_impl(diag_type type, void *error) {
+void emacs_lisp_diag_reporter::report_impl(diag_type type, void *error) {
   QLJS_ASSERT(this->locator_.has_value());
   emacs_lisp_error_formatter formatter(/*output=*/&this->output_,
                                        /*locator=*/*this->locator_);

@@ -66,7 +66,7 @@ void configuration::remove_global_variable(string8_view name) {
 }
 
 void configuration::load_from_json(padded_string_view json,
-                                   error_reporter* reporter) {
+                                   diag_reporter* reporter) {
   ::simdjson::ondemand::parser json_parser;
   ::simdjson::ondemand::document document;
   ::simdjson::error_code parse_error =
@@ -145,8 +145,7 @@ void configuration::reset() {
 }
 
 bool configuration::load_global_groups_from_json(
-    ::simdjson::ondemand::value& global_groups_value,
-    error_reporter* reporter) {
+    ::simdjson::ondemand::value& global_groups_value, diag_reporter* reporter) {
   ::simdjson::ondemand::json_type global_groups_value_type;
   if (global_groups_value.type().get(global_groups_value_type) !=
       ::simdjson::SUCCESS) {
@@ -220,7 +219,7 @@ bool configuration::load_global_groups_from_json(
 }
 
 bool configuration::load_globals_from_json(
-    ::simdjson::ondemand::object& globals_value, error_reporter* reporter) {
+    ::simdjson::ondemand::object& globals_value, diag_reporter* reporter) {
   for (simdjson::simdjson_result<::simdjson::ondemand::field> global_field :
        globals_value) {
     std::string_view key;
@@ -393,7 +392,7 @@ bool configuration::should_remove_global_variable(string8_view name) {
 template <class Error>
 bool configuration::get_bool_or_default(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value, bool* out,
-    bool default_value, error_reporter* reporter) {
+    bool default_value, diag_reporter* reporter) {
   ::simdjson::ondemand::value v;
   ::simdjson::error_code error = value.get(v);
   switch (error) {
@@ -415,7 +414,7 @@ bool configuration::get_bool_or_default(
 }
 
 void configuration::report_json_error(padded_string_view json,
-                                      error_reporter* reporter) {
+                                      diag_reporter* reporter) {
   // TODO(strager): Produce better error messages. simdjson provides no location
   // information for errors:
   // https://github.com/simdjson/simdjson/issues/237

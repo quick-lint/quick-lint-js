@@ -41,7 +41,7 @@ struct loaded_config_file {
   padded_string file_content;
 
   // Errors discovered while parsing file_content.
-  buffering_error_reporter errors;
+  buffering_diag_reporter errors;
 
   // The path to the quick-lint-js.config file. Never nullptr.
   const canonical_path* config_path;

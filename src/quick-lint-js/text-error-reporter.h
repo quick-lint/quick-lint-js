@@ -20,9 +20,9 @@
 namespace quick_lint_js {
 class text_error_formatter;
 
-class text_error_reporter final : public error_reporter {
+class text_diag_reporter final : public diag_reporter {
  public:
-  explicit text_error_reporter(output_stream *output, bool escape_errors);
+  explicit text_diag_reporter(output_stream *output, bool escape_errors);
 
   void set_source(padded_string_view input, const char *file_name);
 

@@ -20,20 +20,20 @@ source_code_span span_of(const padded_string& code) {
   return source_code_span(code.data(), code.null_terminator());
 }
 
-TEST(test_buffering_error_reporter, buffers_all_visits) {
+TEST(test_buffering_diag_reporter, buffers_all_visits) {
   padded_string let_code(u8"let"_sv);
   padded_string expression_code(u8"2+2==5"_sv);
 
   linked_bump_allocator<alignof(void*)> memory;
-  buffering_error_reporter error_reporter(&memory);
-  error_reporter.report(diag_let_with_no_bindings{.where = span_of(let_code)});
-  error_reporter.report(diag_expected_parenthesis_around_if_condition{
+  buffering_diag_reporter diag_reporter(&memory);
+  diag_reporter.report(diag_let_with_no_bindings{.where = span_of(let_code)});
+  diag_reporter.report(diag_expected_parenthesis_around_if_condition{
       .where = span_of(expression_code),
       .token = u8'(',
   });
 
   error_collector collector;
-  error_reporter.move_into(&collector);
+  diag_reporter.move_into(&collector);
   EXPECT_THAT(
       collector.errors,
       ElementsAre(
@@ -44,19 +44,19 @@ TEST(test_buffering_error_reporter, buffers_all_visits) {
                               token, u8'(')));
 }
 
-TEST(test_buffering_error_reporter, not_destructing_does_not_leak) {
+TEST(test_buffering_diag_reporter, not_destructing_does_not_leak) {
   // This test relies on a leak checker such as Valgrind's memtest or
   // Clang's LeakSanitizer.
 
   linked_bump_allocator<alignof(void*)> memory;
-  std::aligned_union_t<0, buffering_error_reporter> error_reporter_storage;
-  buffering_error_reporter* error_reporter =
-      new (&error_reporter_storage) buffering_error_reporter(&memory);
+  std::aligned_union_t<0, buffering_diag_reporter> error_reporter_storage;
+  buffering_diag_reporter* diag_reporter =
+      new (&error_reporter_storage) buffering_diag_reporter(&memory);
 
   padded_string let_code(u8"let"_sv);
-  error_reporter->report(diag_let_with_no_bindings{.where = span_of(let_code)});
+  diag_reporter->report(diag_let_with_no_bindings{.where = span_of(let_code)});
 
-  // Destruct memory, but don't destruct error_reporter_storage.error_reporter.
+  // Destruct memory, but don't destruct error_reporter_storage.diag_reporter.
 }
 }
 }

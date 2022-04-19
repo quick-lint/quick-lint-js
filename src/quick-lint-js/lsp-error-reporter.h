@@ -23,9 +23,9 @@
 namespace quick_lint_js {
 class lsp_error_formatter;
 
-class lsp_error_reporter final : public error_reporter {
+class lsp_diag_reporter final : public diag_reporter {
  public:
-  explicit lsp_error_reporter(byte_buffer &output, padded_string_view input);
+  explicit lsp_diag_reporter(byte_buffer &output, padded_string_view input);
 
   void finish();
 

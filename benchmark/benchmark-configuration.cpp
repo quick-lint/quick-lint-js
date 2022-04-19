@@ -13,12 +13,12 @@ namespace {
 void benchmark_parse_config_json(::benchmark::State& state,
                                  string8_view config_json) {
   padded_string config_json_string(config_json);
-  null_error_reporter error_reporter;
+  null_diag_reporter diag_reporter;
 
   configuration config;
   for (auto _ : state) {
     config.reset();
-    config.load_from_json(&config_json_string, &error_reporter);
+    config.load_from_json(&config_json_string, &diag_reporter);
     ::benchmark::ClobberMemory();
   }
 }

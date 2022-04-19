@@ -18,13 +18,13 @@ using ::testing::ElementsAre;
 
 namespace quick_lint_js {
 namespace {
-class basic_text_error_reporter;
+class basic_text_diag_reporter;
 class basic_text_error_formatter;
 
 class basic_text_error_formatter
     : public diagnostic_formatter<basic_text_error_formatter> {
  public:
-  explicit basic_text_error_formatter(basic_text_error_reporter *reporter)
+  explicit basic_text_error_formatter(basic_text_diag_reporter *reporter)
       : reporter_(reporter) {}
 
   void write_before_message([[maybe_unused]] std::string_view code,
@@ -39,13 +39,13 @@ class basic_text_error_formatter
                            const source_code_span &);
 
  private:
-  basic_text_error_reporter *reporter_;
+  basic_text_diag_reporter *reporter_;
   string8 current_message_;
 };
 
-class basic_text_error_reporter final : public error_reporter {
+class basic_text_diag_reporter final : public diag_reporter {
  public:
-  explicit basic_text_error_reporter() = default;
+  explicit basic_text_diag_reporter() = default;
 
   std::vector<string8> messages() { return this->messages_; }
 
@@ -71,7 +71,7 @@ class test_translation : public ::testing::Test {
   void TearDown() override { initialize_translations_from_locale("C"); }
 
  protected:
-  basic_text_error_reporter reporter;
+  basic_text_diag_reporter reporter;
 
   source_code_span dummy_span() {
     static const char8 hello[] = u8"hello";

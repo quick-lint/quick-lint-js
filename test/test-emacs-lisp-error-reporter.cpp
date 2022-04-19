@@ -12,10 +12,10 @@
 
 namespace quick_lint_js {
 namespace {
-class test_emacs_lisp_error_reporter : public ::testing::Test {
+class test_emacs_lisp_diag_reporter : public ::testing::Test {
  protected:
-  emacs_lisp_error_reporter make_reporter(padded_string_view input) {
-    emacs_lisp_error_reporter reporter(&this->stream_);
+  emacs_lisp_diag_reporter make_reporter(padded_string_view input) {
+    emacs_lisp_diag_reporter reporter(&this->stream_);
     reporter.set_source(input);
     return reporter;
   }
@@ -29,14 +29,14 @@ class test_emacs_lisp_error_reporter : public ::testing::Test {
   memory_output_stream stream_;
 };
 
-TEST_F(test_emacs_lisp_error_reporter, assignment_before_variable_declaration) {
+TEST_F(test_emacs_lisp_diag_reporter, assignment_before_variable_declaration) {
   padded_string input(u8"x=0;let x;"_sv);
   source_code_span assignment_span(&input[1 - 1], &input[1 + 1 - 1]);
   ASSERT_EQ(assignment_span.string_view(), u8"x");
   source_code_span declaration_span(&input[9 - 1], &input[9 + 1 - 1]);
   ASSERT_EQ(declaration_span.string_view(), u8"x");
 
-  emacs_lisp_error_reporter reporter = this->make_reporter(&input);
+  emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_assignment_before_variable_declaration{
       .assignment = identifier(assignment_span),
       .declaration = identifier(declaration_span)});
@@ -46,12 +46,12 @@ TEST_F(test_emacs_lisp_error_reporter, assignment_before_variable_declaration) {
       u8R"--((((1 . 2) 0 "E0001" "variable assigned before its declaration")))--");
 }
 
-TEST_F(test_emacs_lisp_error_reporter, assignment_to_const_global_variable) {
+TEST_F(test_emacs_lisp_diag_reporter, assignment_to_const_global_variable) {
   padded_string input(u8"to Infinity and beyond"_sv);
   source_code_span infinity_span(&input[4 - 1], &input[11 + 1 - 1]);
   ASSERT_EQ(infinity_span.string_view(), u8"Infinity");
 
-  emacs_lisp_error_reporter reporter = this->make_reporter(&input);
+  emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
 
   reporter.report(
       diag_assignment_to_const_global_variable{identifier(infinity_span)});
@@ -61,11 +61,11 @@ TEST_F(test_emacs_lisp_error_reporter, assignment_to_const_global_variable) {
       u8R"--((((4 . 12) 0 "E0002" "assignment to const global variable")))--");
 }
 
-TEST_F(test_emacs_lisp_error_reporter,
+TEST_F(test_emacs_lisp_diag_reporter,
        expected_parenthesis_around_if_condition) {
   padded_string input(u8"if cond) {}"_sv);
   source_code_span parenthesis_span(&input[4 - 1], &input[4 - 1]);
-  emacs_lisp_error_reporter reporter = this->make_reporter(&input);
+  emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_expected_parenthesis_around_if_condition{
       .where = parenthesis_span,
       .token = '(',
@@ -76,14 +76,14 @@ TEST_F(test_emacs_lisp_error_reporter,
       u8R"--((((4 . 4) 0 "E0018" "if statement is missing '(' around condition")))--");
 }
 
-TEST_F(test_emacs_lisp_error_reporter, redeclaration_of_variable) {
+TEST_F(test_emacs_lisp_diag_reporter, redeclaration_of_variable) {
   padded_string input(u8"let myvar; let myvar;"_sv);
   source_code_span original_declaration_span(&input[5 - 1], &input[9 + 1 - 1]);
   ASSERT_EQ(original_declaration_span.string_view(), u8"myvar");
   source_code_span redeclaration_span(&input[16 - 1], &input[20 + 1 - 1]);
   ASSERT_EQ(redeclaration_span.string_view(), u8"myvar");
 
-  emacs_lisp_error_reporter reporter = this->make_reporter(&input);
+  emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_redeclaration_of_variable{
       identifier(redeclaration_span), identifier(original_declaration_span)});
   reporter.finish();
@@ -92,7 +92,7 @@ TEST_F(test_emacs_lisp_error_reporter, redeclaration_of_variable) {
       u8R"--((((16 . 21) 0 "E0034" "redeclaration of variable: myvar")))--");
 }
 
-TEST_F(test_emacs_lisp_error_reporter,
+TEST_F(test_emacs_lisp_diag_reporter,
        redeclaration_of_variable_after_multi_byte) {
   padded_string input(u8"/*\u263b*/let myvar; let myvar;"_sv);
   source_code_span original_declaration_span(&input[11], &input[16]);
@@ -100,7 +100,7 @@ TEST_F(test_emacs_lisp_error_reporter,
   source_code_span redeclaration_span(&input[22], &input[27]);
   ASSERT_EQ(redeclaration_span.string_view(), u8"myvar");
 
-  emacs_lisp_error_reporter reporter = this->make_reporter(&input);
+  emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_redeclaration_of_variable{
       identifier(redeclaration_span), identifier(original_declaration_span)});
   reporter.finish();
@@ -109,24 +109,24 @@ TEST_F(test_emacs_lisp_error_reporter,
       u8R"--((((21 . 26) 0 "E0034" "redeclaration of variable: myvar")))--");
 }
 
-TEST_F(test_emacs_lisp_error_reporter, unexpected_hash_character) {
+TEST_F(test_emacs_lisp_diag_reporter, unexpected_hash_character) {
   padded_string input(u8"#"_sv);
   source_code_span hash_span(&input[1 - 1], &input[1 + 1 - 1]);
   ASSERT_EQ(hash_span.string_view(), u8"#");
 
-  emacs_lisp_error_reporter reporter = this->make_reporter(&input);
+  emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_unexpected_hash_character{hash_span});
   reporter.finish();
   EXPECT_EQ(this->get_output(),
             u8R"--((((1 . 2) 0 "E0052" "unexpected '#'")))--");
 }
 
-TEST_F(test_emacs_lisp_error_reporter, use_of_undeclared_variable) {
+TEST_F(test_emacs_lisp_diag_reporter, use_of_undeclared_variable) {
   padded_string input(u8"myvar;"_sv);
   source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
   ASSERT_EQ(myvar_span.string_view(), u8"myvar");
 
-  emacs_lisp_error_reporter reporter = this->make_reporter(&input);
+  emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_use_of_undeclared_variable{identifier(myvar_span)});
   reporter.finish();
   EXPECT_EQ(
@@ -134,13 +134,13 @@ TEST_F(test_emacs_lisp_error_reporter, use_of_undeclared_variable) {
       u8R"--((((1 . 6) 2 "E0057" "use of undeclared variable: myvar")))--");
 }
 
-TEST_F(test_emacs_lisp_error_reporter,
+TEST_F(test_emacs_lisp_diag_reporter,
        use_of_undeclared_variable_after_multibyte) {
   padded_string input(u8"/*\u2639*/myvar;"_sv);
   source_code_span myvar_span(&input[7], &input[12]);
   ASSERT_EQ(myvar_span.string_view(), u8"myvar");
 
-  emacs_lisp_error_reporter reporter = this->make_reporter(&input);
+  emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_use_of_undeclared_variable{identifier(myvar_span)});
   reporter.finish();
   EXPECT_EQ(
@@ -148,22 +148,22 @@ TEST_F(test_emacs_lisp_error_reporter,
       u8R"--((((6 . 11) 2 "E0057" "use of undeclared variable: myvar")))--");
 }
 
-TEST_F(test_emacs_lisp_error_reporter, blackslash_is_escaped) {
+TEST_F(test_emacs_lisp_diag_reporter, blackslash_is_escaped) {
   padded_string input(u8"hello\backslash"_sv);
   source_code_span span(&input[5], &input[6]);
 
-  emacs_lisp_error_reporter reporter = this->make_reporter(&input);
+  emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_unexpected_backslash_in_identifier{span});
   reporter.finish();
   EXPECT_EQ(this->get_output(),
             u8R"--((((6 . 7) 0 "E0043" "unexpected '\\' in identifier")))--");
 }
 
-TEST_F(test_emacs_lisp_error_reporter, double_quote_is_escaped) {
+TEST_F(test_emacs_lisp_diag_reporter, double_quote_is_escaped) {
   padded_string input(u8"import { x } ;"_sv);
   source_code_span span(&input[12], &input[12]);
 
-  emacs_lisp_error_reporter reporter = this->make_reporter(&input);
+  emacs_lisp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_expected_from_and_module_specifier{span});
   reporter.finish();
   EXPECT_EQ(

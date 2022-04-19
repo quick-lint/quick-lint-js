@@ -20,7 +20,7 @@
 #include <vector>
 
 namespace quick_lint_js {
-class error_reporter;
+class diag_reporter;
 struct lexer_transaction;
 
 // A lexer reads JavaScript source code one token at a time.
@@ -40,7 +40,7 @@ class lexer {
     jsx,  // Allows '-'.
   };
 
-  explicit lexer(padded_string_view input, error_reporter*) noexcept;
+  explicit lexer(padded_string_view input, diag_reporter*) noexcept;
 
   // Return information about the current token.
   const token& peek() const noexcept { return this->last_token_; }
@@ -172,7 +172,7 @@ class lexer {
     token_type type;
     const char8* end;
     // Might be null.
-    buffering_error_reporter* escape_sequence_errors;
+    buffering_diag_reporter* escape_sequence_errors;
   };
 
   // The result of parsing an identifier.
@@ -226,7 +226,7 @@ class lexer {
 
   parsed_template_body parse_template_body(const char8* input,
                                            const char8* template_begin,
-                                           error_reporter*);
+                                           diag_reporter*);
 
   void parse_binary_number();
   void parse_legacy_octal_number();  // 0775, 09999, 08.24
@@ -250,7 +250,7 @@ class lexer {
   };
 
   parsed_unicode_escape parse_unicode_escape(const char8* input,
-                                             error_reporter*) noexcept;
+                                             diag_reporter*) noexcept;
 
   parsed_identifier parse_identifier(const char8*, identifier_kind);
   const char8* parse_identifier_fast_only(const char8*);
@@ -298,7 +298,7 @@ class lexer {
   token last_token_;
   const char8* last_last_token_end_;
   const char8* input_;
-  error_reporter* error_reporter_;
+  diag_reporter* error_reporter_;
   padded_string_view original_input_;
 
   monotonic_allocator allocator_;
@@ -313,18 +313,18 @@ struct lexer_transaction {
   explicit lexer_transaction(token old_last_token,
                              const char8* old_last_last_token_end,
                              const char8* old_input,
-                             error_reporter** error_reporter_pointer,
+                             diag_reporter** error_reporter_pointer,
                              allocator_type* allocator)
       : allocator_rewind(allocator),
         old_last_token(old_last_token),
         old_last_last_token_end(old_last_last_token_end),
         old_input(old_input),
         reporter(allocator),
-        old_error_reporter(
+        old_diag_reporter(
             std::exchange(*error_reporter_pointer, &this->reporter)) {}
 
   // Don't allow copying a transaction. lexer::error_reporter_ might point to
-  // lexer_transaction::error_reporter.
+  // lexer_transaction::diag_reporter.
   lexer_transaction(const lexer_transaction&) = delete;
   lexer_transaction& operator=(const lexer_transaction&) = delete;
 
@@ -335,8 +335,8 @@ struct lexer_transaction {
   token old_last_token;
   const char8* old_last_last_token_end;
   const char8* old_input;
-  buffering_error_reporter reporter;
-  error_reporter* old_error_reporter;
+  buffering_diag_reporter reporter;
+  diag_reporter* old_diag_reporter;
 };
 }
 

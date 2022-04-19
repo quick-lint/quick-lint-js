@@ -1107,7 +1107,7 @@ world`)",
 
   {
     padded_string code(u8"`hello${42}`"_sv);
-    lexer l(&code, &null_error_reporter::instance);
+    lexer l(&code, &null_diag_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     EXPECT_EQ(l.peek().span().string_view(), u8"`hello${");
     const char8* template_begin = l.peek().begin;
@@ -1124,7 +1124,7 @@ world`)",
 
   {
     padded_string code(u8"`${42}world`"_sv);
-    lexer l(&code, &null_error_reporter::instance);
+    lexer l(&code, &null_diag_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     EXPECT_EQ(l.peek().span().string_view(), u8"`${");
     const char8* template_begin = l.peek().begin;
@@ -1141,7 +1141,7 @@ world`)",
 
   {
     padded_string code(u8"`${left}${right}`"_sv);
-    lexer l(&code, &null_error_reporter::instance);
+    lexer l(&code, &null_diag_reporter::instance);
     EXPECT_EQ(l.peek().type, token_type::incomplete_template);
     const char8* template_begin = l.peek().begin;
     l.skip();
@@ -1392,7 +1392,7 @@ TEST_F(test_lex, lex_regular_expression_literals) {
 TEST_F(test_lex, lex_regular_expression_literal_with_digit_flag) {
   padded_string input(u8"/cellular/3g"_sv);
 
-  lexer l(&input, &null_error_reporter::instance);
+  lexer l(&input, &null_diag_reporter::instance);
   EXPECT_EQ(l.peek().type, token_type::slash);
   l.reparse_as_regexp();
   EXPECT_EQ(l.peek().type, token_type::regexp);
@@ -1442,7 +1442,7 @@ TEST_F(test_lex,
        lex_regular_expression_literals_preserves_leading_newline_flag) {
   {
     padded_string code(u8"\n/ /"_sv);
-    lexer l(&code, &null_error_reporter::instance);
+    lexer l(&code, &null_diag_reporter::instance);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, token_type::regexp);
     EXPECT_TRUE(l.peek().has_leading_newline);
@@ -1450,7 +1450,7 @@ TEST_F(test_lex,
 
   {
     padded_string code(u8"/ /"_sv);
-    lexer l(&code, &null_error_reporter::instance);
+    lexer l(&code, &null_diag_reporter::instance);
     l.reparse_as_regexp();
     EXPECT_EQ(l.peek().type, token_type::regexp);
     EXPECT_FALSE(l.peek().has_leading_newline);
@@ -1555,7 +1555,7 @@ TEST_F(test_lex, non_ascii_identifier_with_escape_sequence) {
 TEST_F(test_lex,
        identifier_with_escape_sequences_source_code_span_is_in_place) {
   padded_string input(u8"\\u{77}a\\u{74}"_sv);
-  lexer l(&input, &null_error_reporter::instance);
+  lexer l(&input, &null_diag_reporter::instance);
   source_code_span span = l.peek().identifier_name().span();
   EXPECT_EQ(span.begin(), &input[0]);
   EXPECT_EQ(span.end(), &input[input.size()]);
@@ -2318,7 +2318,7 @@ TEST_F(test_lex, ascii_control_characters_sorta_treated_like_whitespace) {
 TEST_F(test_lex, lex_token_notes_leading_newline) {
   for (string8_view line_terminator : line_terminators) {
     padded_string code(u8"a b" + string8(line_terminator) + u8"c d");
-    lexer l(&code, &null_error_reporter::instance);
+    lexer l(&code, &null_diag_reporter::instance);
     EXPECT_FALSE(l.peek().has_leading_newline);  // a
     l.skip();
     EXPECT_FALSE(l.peek().has_leading_newline);  // b
@@ -2332,7 +2332,7 @@ TEST_F(test_lex, lex_token_notes_leading_newline) {
 TEST_F(test_lex, lex_token_notes_leading_newline_after_single_line_comment) {
   for (string8_view line_terminator : line_terminators) {
     padded_string code(u8"a // hello" + string8(line_terminator) + u8"b");
-    lexer l(&code, &null_error_reporter::instance);
+    lexer l(&code, &null_diag_reporter::instance);
     EXPECT_FALSE(l.peek().has_leading_newline);  // a
     l.skip();
     EXPECT_TRUE(l.peek().has_leading_newline);  // b
@@ -2342,7 +2342,7 @@ TEST_F(test_lex, lex_token_notes_leading_newline_after_single_line_comment) {
 TEST_F(test_lex, lex_token_notes_leading_newline_after_comment_with_newline) {
   for (string8_view line_terminator : line_terminators) {
     padded_string code(u8"a /*" + string8(line_terminator) + u8"*/ b");
-    lexer l(&code, &null_error_reporter::instance);
+    lexer l(&code, &null_diag_reporter::instance);
     EXPECT_FALSE(l.peek().has_leading_newline);  // a
     l.skip();
     EXPECT_TRUE(l.peek().has_leading_newline);  // b
@@ -2351,7 +2351,7 @@ TEST_F(test_lex, lex_token_notes_leading_newline_after_comment_with_newline) {
 
 TEST_F(test_lex, lex_token_notes_leading_newline_after_comment) {
   padded_string code(u8"a /* comment */\nb"_sv);
-  lexer l(&code, &null_error_reporter::instance);
+  lexer l(&code, &null_diag_reporter::instance);
   EXPECT_FALSE(l.peek().has_leading_newline);  // a
   l.skip();
   EXPECT_TRUE(l.peek().has_leading_newline);  // b
@@ -2359,7 +2359,7 @@ TEST_F(test_lex, lex_token_notes_leading_newline_after_comment) {
 
 TEST_F(test_lex, inserting_semicolon_at_newline_remembers_next_token) {
   padded_string code(u8"hello\nworld"_sv);
-  lexer l(&code, &null_error_reporter::instance);
+  lexer l(&code, &null_diag_reporter::instance);
 
   EXPECT_EQ(l.peek().type, token_type::identifier);
   EXPECT_EQ(l.peek().identifier_name().normalized_name(), u8"hello");
@@ -2387,7 +2387,7 @@ TEST_F(test_lex, inserting_semicolon_at_newline_remembers_next_token) {
 
 TEST_F(test_lex, insert_semicolon_at_beginning_of_input) {
   padded_string code(u8"hello world"_sv);
-  lexer l(&code, &null_error_reporter::instance);
+  lexer l(&code, &null_diag_reporter::instance);
 
   l.insert_semicolon();
   EXPECT_EQ(l.peek().type, token_type::semicolon);

@@ -12,22 +12,22 @@
 
 namespace quick_lint_js {
 namespace {
-class test_vim_qflist_json_error_reporter : public ::testing::Test {
+class test_vim_qflist_json_diag_reporter : public ::testing::Test {
  protected:
-  vim_qflist_json_error_reporter make_reporter() {
-    return vim_qflist_json_error_reporter(&this->stream_);
+  vim_qflist_json_diag_reporter make_reporter() {
+    return vim_qflist_json_diag_reporter(&this->stream_);
   }
 
-  vim_qflist_json_error_reporter make_reporter(padded_string_view input,
-                                               int vim_bufnr) {
-    vim_qflist_json_error_reporter reporter(&this->stream_);
+  vim_qflist_json_diag_reporter make_reporter(padded_string_view input,
+                                              int vim_bufnr) {
+    vim_qflist_json_diag_reporter reporter(&this->stream_);
     reporter.set_source(input, /*vim_bufnr=*/vim_bufnr);
     return reporter;
   }
 
-  vim_qflist_json_error_reporter make_reporter(padded_string_view input,
-                                               const char *file_name) {
-    vim_qflist_json_error_reporter reporter(&this->stream_);
+  vim_qflist_json_diag_reporter make_reporter(padded_string_view input,
+                                              const char *file_name) {
+    vim_qflist_json_diag_reporter reporter(&this->stream_);
     reporter.set_source(input, /*file_name=*/file_name);
     return reporter;
   }
@@ -43,7 +43,7 @@ class test_vim_qflist_json_error_reporter : public ::testing::Test {
   memory_output_stream stream_;
 };
 
-TEST_F(test_vim_qflist_json_error_reporter,
+TEST_F(test_vim_qflist_json_diag_reporter,
        assignment_before_variable_declaration) {
   padded_string input(u8"x=0;let x;"_sv);
   source_code_span assignment_span(&input[1 - 1], &input[1 + 1 - 1]);
@@ -51,7 +51,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
   source_code_span declaration_span(&input[9 - 1], &input[9 + 1 - 1]);
   ASSERT_EQ(declaration_span.string_view(), u8"x");
 
-  vim_qflist_json_error_reporter reporter =
+  vim_qflist_json_diag_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
   reporter.report(diag_assignment_before_variable_declaration{
       .assignment = identifier(assignment_span),
@@ -71,13 +71,13 @@ TEST_F(test_vim_qflist_json_error_reporter,
             "variable assigned before its declaration");
 }
 
-TEST_F(test_vim_qflist_json_error_reporter, multiple_errors) {
+TEST_F(test_vim_qflist_json_diag_reporter, multiple_errors) {
   padded_string input(u8"abc"_sv);
   source_code_span a_span(&input[0], &input[1]);
   source_code_span b_span(&input[1], &input[2]);
   source_code_span c_span(&input[2], &input[3]);
 
-  vim_qflist_json_error_reporter reporter =
+  vim_qflist_json_diag_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/42);
   reporter.report(diag_assignment_to_const_global_variable{identifier(a_span)});
   reporter.report(diag_assignment_to_const_global_variable{identifier(b_span)});
@@ -89,12 +89,12 @@ TEST_F(test_vim_qflist_json_error_reporter, multiple_errors) {
   ASSERT_EQ(qflist.size(), 3);
 }
 
-TEST_F(test_vim_qflist_json_error_reporter,
+TEST_F(test_vim_qflist_json_diag_reporter,
        errors_have_buffer_number_if_requested) {
   padded_string input(u8""_sv);
   source_code_span span(&input[0], &input[0]);
 
-  vim_qflist_json_error_reporter reporter =
+  vim_qflist_json_diag_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/42);
   reporter.report(diag_assignment_to_const_global_variable{identifier(span)});
   reporter.finish();
@@ -106,8 +106,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
   EXPECT_FALSE(qflist[0].as_object().contains("filename"));
 }
 
-TEST_F(test_vim_qflist_json_error_reporter,
-       errors_have_file_name_if_requested) {
+TEST_F(test_vim_qflist_json_diag_reporter, errors_have_file_name_if_requested) {
   padded_string input(u8""_sv);
   source_code_span span(&input[0], &input[0]);
 
@@ -115,7 +114,7 @@ TEST_F(test_vim_qflist_json_error_reporter,
                                 "file\"name\'with\nfunky\tcharacters"}) {
     SCOPED_TRACE(file_name);
 
-    vim_qflist_json_error_reporter reporter =
+    vim_qflist_json_diag_reporter reporter =
         this->make_reporter(&input, /*file_name=*/file_name);
     reporter.report(diag_assignment_to_const_global_variable{identifier(span)});
     reporter.finish();
@@ -128,12 +127,12 @@ TEST_F(test_vim_qflist_json_error_reporter,
   }
 }
 
-TEST_F(test_vim_qflist_json_error_reporter,
+TEST_F(test_vim_qflist_json_diag_reporter,
        errors_have_file_name_and_buffer_number_if_requested) {
   padded_string input(u8""_sv);
   source_code_span span(&input[0], &input[0]);
 
-  vim_qflist_json_error_reporter reporter = this->make_reporter();
+  vim_qflist_json_diag_reporter reporter = this->make_reporter();
   reporter.set_source(&input, /*file_name=*/"hello.js", /*vim_bufnr=*/1337);
   reporter.report(diag_assignment_to_const_global_variable{identifier(span)});
   reporter.finish();
@@ -145,8 +144,8 @@ TEST_F(test_vim_qflist_json_error_reporter,
   EXPECT_EQ(look_up(qflist, 0, "filename"), "hello.js");
 }
 
-TEST_F(test_vim_qflist_json_error_reporter, change_source) {
-  vim_qflist_json_error_reporter reporter = this->make_reporter();
+TEST_F(test_vim_qflist_json_diag_reporter, change_source) {
+  vim_qflist_json_diag_reporter reporter = this->make_reporter();
 
   padded_string input_1(u8"aaaaaaaa"_sv);
   reporter.set_source(&input_1, /*file_name=*/"hello.js", /*vim_bufnr=*/1);
@@ -182,13 +181,13 @@ TEST_F(test_vim_qflist_json_error_reporter, change_source) {
   EXPECT_FALSE(qflist[2].as_object().contains("filename"));
 }
 
-TEST_F(test_vim_qflist_json_error_reporter,
+TEST_F(test_vim_qflist_json_diag_reporter,
        assignment_to_const_global_variable) {
   padded_string input(u8"to Infinity and beyond"_sv);
   source_code_span infinity_span(&input[4 - 1], &input[11 + 1 - 1]);
   ASSERT_EQ(infinity_span.string_view(), u8"Infinity");
 
-  vim_qflist_json_error_reporter reporter =
+  vim_qflist_json_diag_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/42);
   reporter.report(
       diag_assignment_to_const_global_variable{identifier(infinity_span)});
@@ -207,14 +206,14 @@ TEST_F(test_vim_qflist_json_error_reporter,
   EXPECT_EQ(look_up(qflist, 0, "vcol"), 0);
 }
 
-TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_variable) {
+TEST_F(test_vim_qflist_json_diag_reporter, redeclaration_of_variable) {
   padded_string input(u8"let myvar; let myvar;"_sv);
   source_code_span original_declaration_span(&input[5 - 1], &input[9 + 1 - 1]);
   ASSERT_EQ(original_declaration_span.string_view(), u8"myvar");
   source_code_span redeclaration_span(&input[16 - 1], &input[20 + 1 - 1]);
   ASSERT_EQ(redeclaration_span.string_view(), u8"myvar");
 
-  vim_qflist_json_error_reporter reporter =
+  vim_qflist_json_diag_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
   reporter.report(diag_redeclaration_of_variable{
       identifier(redeclaration_span), identifier(original_declaration_span)});
@@ -232,12 +231,12 @@ TEST_F(test_vim_qflist_json_error_reporter, redeclaration_of_variable) {
   EXPECT_EQ(look_up(qflist, 0, "text"), "redeclaration of variable: myvar");
 }
 
-TEST_F(test_vim_qflist_json_error_reporter, unexpected_hash_character) {
+TEST_F(test_vim_qflist_json_diag_reporter, unexpected_hash_character) {
   padded_string input(u8"#"_sv);
   source_code_span hash_span(&input[1 - 1], &input[1 + 1 - 1]);
   ASSERT_EQ(hash_span.string_view(), u8"#");
 
-  vim_qflist_json_error_reporter reporter =
+  vim_qflist_json_diag_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
   reporter.report(diag_unexpected_hash_character{hash_span});
   reporter.finish();
@@ -254,12 +253,12 @@ TEST_F(test_vim_qflist_json_error_reporter, unexpected_hash_character) {
   EXPECT_EQ(look_up(qflist, 0, "text"), "unexpected '#'");
 }
 
-TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
+TEST_F(test_vim_qflist_json_diag_reporter, use_of_undeclared_variable) {
   padded_string input(u8"myvar;"_sv);
   source_code_span myvar_span(&input[1 - 1], &input[5 + 1 - 1]);
   ASSERT_EQ(myvar_span.string_view(), u8"myvar");
 
-  vim_qflist_json_error_reporter reporter =
+  vim_qflist_json_diag_reporter reporter =
       this->make_reporter(&input, /*vim_bufnr=*/0);
   reporter.report(diag_use_of_undeclared_variable{identifier(myvar_span)});
   reporter.finish();

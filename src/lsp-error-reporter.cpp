@@ -20,15 +20,15 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-lsp_error_reporter::lsp_error_reporter(byte_buffer &output,
-                                       padded_string_view input)
+lsp_diag_reporter::lsp_diag_reporter(byte_buffer &output,
+                                     padded_string_view input)
     : output_(output), locator_(input) {
   this->output_.append_copy(u8"["sv);
 }
 
-void lsp_error_reporter::finish() { this->output_.append_copy(u8"]"sv); }
+void lsp_diag_reporter::finish() { this->output_.append_copy(u8"]"sv); }
 
-void lsp_error_reporter::report_impl(diag_type type, void *error) {
+void lsp_diag_reporter::report_impl(diag_type type, void *error) {
   if (this->need_comma_) {
     this->output_.append_copy(u8",\n"sv);
   }

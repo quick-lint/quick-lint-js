@@ -71,26 +71,25 @@ bool get_escape_errors(option_when escape_errors) {
   QLJS_UNREACHABLE();
 }
 
-class any_error_reporter {
+class any_diag_reporter {
  public:
-  static any_error_reporter make(output_format format,
-                                 option_when escape_errors,
-                                 compiled_error_list *exit_fail_on) {
+  static any_diag_reporter make(output_format format, option_when escape_errors,
+                                compiled_error_list *exit_fail_on) {
     switch (format) {
     case output_format::default_format:
     case output_format::gnu_like:
-      return any_error_reporter(error_tape<text_error_reporter>(
-          text_error_reporter(
+      return any_diag_reporter(error_tape<text_diag_reporter>(
+          text_diag_reporter(
               file_output_stream::get_stderr(),
               /*escape_errors=*/get_escape_errors(escape_errors)),
           exit_fail_on));
     case output_format::vim_qflist_json:
-      return any_error_reporter(error_tape<vim_qflist_json_error_reporter>(
-          vim_qflist_json_error_reporter(file_output_stream::get_stdout()),
+      return any_diag_reporter(error_tape<vim_qflist_json_diag_reporter>(
+          vim_qflist_json_diag_reporter(file_output_stream::get_stdout()),
           exit_fail_on));
     case output_format::emacs_lisp:
-      return any_error_reporter(error_tape<emacs_lisp_error_reporter>(
-          emacs_lisp_error_reporter(file_output_stream::get_stdout()),
+      return any_diag_reporter(error_tape<emacs_lisp_diag_reporter>(
+          emacs_lisp_diag_reporter(file_output_stream::get_stdout()),
           exit_fail_on));
     }
     QLJS_UNREACHABLE();
@@ -101,11 +100,11 @@ class any_error_reporter {
         [&](auto &r) {
           using reporter_type = std::decay_t<decltype(r)>;
           if constexpr (std::is_base_of_v<
-                            error_tape<vim_qflist_json_error_reporter>,
+                            error_tape<vim_qflist_json_diag_reporter>,
                             reporter_type>) {
             r.get_reporter()->set_source(input, file.path, file.vim_bufnr);
           } else if constexpr (std::is_base_of_v<
-                                   error_tape<emacs_lisp_error_reporter>,
+                                   error_tape<emacs_lisp_diag_reporter>,
                                    reporter_type>) {
             r.get_reporter()->set_source(input);
           } else {
@@ -115,8 +114,8 @@ class any_error_reporter {
         this->tape_);
   }
 
-  error_reporter *get() noexcept {
-    return visit([](error_reporter &r) { return &r; }, this->tape_);
+  diag_reporter *get() noexcept {
+    return visit([](diag_reporter &r) { return &r; }, this->tape_);
   }
 
   bool get_error() noexcept {
@@ -128,11 +127,11 @@ class any_error_reporter {
         [&](auto &r) {
           using reporter_type = std::decay_t<decltype(r)>;
           if constexpr (std::is_base_of_v<
-                            error_tape<vim_qflist_json_error_reporter>,
+                            error_tape<vim_qflist_json_diag_reporter>,
                             reporter_type>) {
             r.get_reporter()->finish();
           } else if constexpr (std::is_base_of_v<
-                                   error_tape<emacs_lisp_error_reporter>,
+                                   error_tape<emacs_lisp_diag_reporter>,
                                    reporter_type>) {
             r.get_reporter()->finish();
           }
@@ -141,18 +140,18 @@ class any_error_reporter {
   }
 
  private:
-  using tape_variant = variant<error_tape<text_error_reporter>,
-                               error_tape<vim_qflist_json_error_reporter>,
-                               error_tape<emacs_lisp_error_reporter>>;
+  using tape_variant = variant<error_tape<text_diag_reporter>,
+                               error_tape<vim_qflist_json_diag_reporter>,
+                               error_tape<emacs_lisp_diag_reporter>>;
 
-  explicit any_error_reporter(tape_variant &&tape) : tape_(tape) {}
+  explicit any_diag_reporter(tape_variant &&tape) : tape_(tape) {}
 
   tape_variant tape_;
 };
 
 [[noreturn]] void handle_options(quick_lint_js::options o);
 
-void process_file(padded_string_view input, configuration &, error_reporter *,
+void process_file(padded_string_view input, configuration &, diag_reporter *,
                   bool print_parser_visits);
 
 void run_lsp_server();
@@ -208,8 +207,8 @@ void handle_options(quick_lint_js::options o) {
     std::exit(EXIT_FAILURE);
   }
 
-  quick_lint_js::any_error_reporter reporter =
-      quick_lint_js::any_error_reporter::make(
+  quick_lint_js::any_diag_reporter reporter =
+      quick_lint_js::any_diag_reporter::make(
           o.output_format, o.diagnostic_hyperlinks, &o.exit_fail_on);
 
   configuration default_config;
@@ -516,11 +515,11 @@ QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(
     multi_visitor<debug_visitor, debug_visitor>);
 
 void process_file(padded_string_view input, configuration &config,
-                  error_reporter *error_reporter, bool print_parser_visits) {
+                  diag_reporter *diag_reporter, bool print_parser_visits) {
   parser_options p_options;
   p_options.jsx = true;
-  parser p(input, error_reporter, p_options);
-  linter l(error_reporter, &config.globals());
+  parser p(input, diag_reporter, p_options);
+  linter l(diag_reporter, &config.globals());
 
   auto run_parser = [&p](auto &visitor) -> void {
 #if QLJS_HAVE_SETJMP

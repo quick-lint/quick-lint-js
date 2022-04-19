@@ -117,7 +117,7 @@ source_code_span token::span() const noexcept {
 }
 
 void token::report_errors_for_escape_sequences_in_keyword(
-    error_reporter* reporter) const {
+    diag_reporter* reporter) const {
   QLJS_ASSERT(this->type == token_type::reserved_keyword_with_escape_sequence);
   QLJS_ASSERT(this->identifier_escape_sequences);
   QLJS_ASSERT(!this->identifier_escape_sequences->empty());
@@ -129,7 +129,7 @@ void token::report_errors_for_escape_sequences_in_keyword(
 }
 
 void token::report_errors_for_escape_sequences_in_template(
-    error_reporter* reporter) const {
+    diag_reporter* reporter) const {
   QLJS_ASSERT(this->type == token_type::complete_template ||
               this->type == token_type::incomplete_template);
   if (this->template_escape_sequence_errors) {
@@ -137,9 +137,9 @@ void token::report_errors_for_escape_sequences_in_template(
   }
 }
 
-lexer::lexer(padded_string_view input, error_reporter* error_reporter) noexcept
+lexer::lexer(padded_string_view input, diag_reporter* diag_reporter) noexcept
     : input_(input.data()),
-      error_reporter_(error_reporter),
+      error_reporter_(diag_reporter),
       original_input_(input) {
   this->last_token_.end = this->input_;
   this->parse_bom_before_shebang();
@@ -876,14 +876,14 @@ void lexer::skip_in_template(const char8* template_begin) {
 
 lexer::parsed_template_body lexer::parse_template_body(
     const char8* input, const char8* template_begin,
-    error_reporter* error_reporter) {
-  buffering_error_reporter* escape_sequence_errors = nullptr;
+    diag_reporter* diag_reporter) {
+  buffering_diag_reporter* escape_sequence_errors = nullptr;
   const char8* c = input;
   for (;;) {
     switch (*c) {
     case '\0':
       if (this->is_eof(c)) {
-        error_reporter->report(
+        diag_reporter->report(
             diag_unclosed_template{source_code_span(template_begin, c)});
         return parsed_template_body{token_type::complete_template, c,
                                     escape_sequence_errors};
@@ -903,7 +903,7 @@ lexer::parsed_template_body lexer::parse_template_body(
       switch (*c) {
       case '\0':
         if (this->is_eof(c)) {
-          error_reporter->report(
+          diag_reporter->report(
               diag_unclosed_template{source_code_span(template_begin, c)});
           return parsed_template_body{token_type::complete_template, c,
                                       escape_sequence_errors};
@@ -914,7 +914,7 @@ lexer::parsed_template_body lexer::parse_template_body(
       case 'u': {
         if (!escape_sequence_errors) {
           escape_sequence_errors =
-              this->allocator_.new_object<buffering_error_reporter>(
+              this->allocator_.new_object<buffering_diag_reporter>(
                   &this->allocator_);
         }
         c = this->parse_unicode_escape(escape_sequence_start,
@@ -1110,24 +1110,24 @@ lexer_transaction lexer::begin_transaction() {
 }
 
 void lexer::commit_transaction(lexer_transaction&& transaction) {
-  buffering_error_reporter* buffered_errors =
-      static_cast<buffering_error_reporter*>(this->error_reporter_);
-  buffered_errors->move_into(transaction.old_error_reporter);
+  buffering_diag_reporter* buffered_errors =
+      static_cast<buffering_diag_reporter*>(this->error_reporter_);
+  buffered_errors->move_into(transaction.old_diag_reporter);
 
-  this->error_reporter_ = transaction.old_error_reporter;
+  this->error_reporter_ = transaction.old_diag_reporter;
 }
 
 void lexer::roll_back_transaction(lexer_transaction&& transaction) {
   this->last_token_ = transaction.old_last_token;
   this->last_last_token_end_ = transaction.old_last_last_token_end;
   this->input_ = transaction.old_input;
-  this->error_reporter_ = transaction.old_error_reporter;
+  this->error_reporter_ = transaction.old_diag_reporter;
 }
 
 bool lexer::transaction_has_lex_errors(const lexer_transaction&) const
     noexcept {
-  buffering_error_reporter* buffered_errors =
-      static_cast<buffering_error_reporter*>(this->error_reporter_);
+  buffering_diag_reporter* buffered_errors =
+      static_cast<buffering_diag_reporter*>(this->error_reporter_);
   return !buffered_errors->empty();
 }
 
@@ -1424,7 +1424,7 @@ const char8* lexer::parse_hex_digits_and_underscores(
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 lexer::parsed_unicode_escape lexer::parse_unicode_escape(
-    const char8* input, error_reporter* reporter) noexcept {
+    const char8* input, diag_reporter* reporter) noexcept {
   const char8* escape_sequence_begin = input;
   auto get_escape_span = [escape_sequence_begin, &input]() {
     return source_code_span(escape_sequence_begin, input);

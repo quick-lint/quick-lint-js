@@ -124,11 +124,11 @@ class vscode_error_formatter
   string8 message_;
 };
 
-class vscode_error_reporter final : public error_reporter {
+class vscode_diag_reporter final : public diag_reporter {
  public:
-  explicit vscode_error_reporter(vscode_module* vscode, ::Napi::Env env,
-                                 const lsp_locator* locator,
-                                 ::Napi::Value document_uri) noexcept
+  explicit vscode_diag_reporter(vscode_module* vscode, ::Napi::Env env,
+                                const lsp_locator* locator,
+                                ::Napi::Value document_uri) noexcept
       : vscode_(vscode),
         env_(env),
         diagnostics_(::Napi::Array::New(env)),

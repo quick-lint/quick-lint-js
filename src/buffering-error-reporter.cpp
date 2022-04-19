@@ -13,7 +13,7 @@
 #include <type_traits>
 
 namespace quick_lint_js {
-struct buffering_error_reporter::impl {
+struct buffering_diag_reporter::impl {
   explicit impl(boost::container::pmr::memory_resource *memory) noexcept
       : memory_(memory) {}
 
@@ -38,25 +38,25 @@ struct buffering_error_reporter::impl {
       errors_{this->memory_};
 };
 
-void buffering_error_reporter::impl_deleter::operator()(impl *i) noexcept {
+void buffering_diag_reporter::impl_deleter::operator()(impl *i) noexcept {
   if (i) {
     delete_object(i->memory_, i);
   }
 }
 
-buffering_error_reporter::buffering_error_reporter(
+buffering_diag_reporter::buffering_diag_reporter(
     boost::container::pmr::memory_resource *memory)
     : impl_(new_object<impl>(memory, memory)) {}
 
-buffering_error_reporter::buffering_error_reporter(
-    buffering_error_reporter &&) = default;
+buffering_diag_reporter::buffering_diag_reporter(buffering_diag_reporter &&) =
+    default;
 
-buffering_error_reporter &buffering_error_reporter::operator=(
-    buffering_error_reporter &&) = default;
+buffering_diag_reporter &buffering_diag_reporter::operator=(
+    buffering_diag_reporter &&) = default;
 
-buffering_error_reporter::~buffering_error_reporter() = default;
+buffering_diag_reporter::~buffering_diag_reporter() = default;
 
-void buffering_error_reporter::report_impl(diag_type type, void *error) {
+void buffering_diag_reporter::report_impl(diag_type type, void *error) {
   static constexpr unsigned char error_sizes[] = {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
   sizeof(::quick_lint_js::name),
@@ -69,21 +69,21 @@ void buffering_error_reporter::report_impl(diag_type type, void *error) {
   std::memcpy(&e.error, error, error_sizes[static_cast<std::ptrdiff_t>(type)]);
 }
 
-void buffering_error_reporter::copy_into(error_reporter *other) const {
+void buffering_diag_reporter::copy_into(diag_reporter *other) const {
   for (impl::any_error &error : this->impl_->errors_) {
     other->report_impl(error.type, &error.error);
   }
 }
 
-void buffering_error_reporter::move_into(error_reporter *other) {
+void buffering_diag_reporter::move_into(diag_reporter *other) {
   this->copy_into(other);
 }
 
-bool buffering_error_reporter::empty() const noexcept {
+bool buffering_diag_reporter::empty() const noexcept {
   return this->impl_->errors_.empty();
 }
 
-void buffering_error_reporter::clear() noexcept {
+void buffering_diag_reporter::clear() noexcept {
   return this->impl_->errors_.clear();
 }
 }

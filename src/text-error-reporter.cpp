@@ -18,17 +18,17 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-text_error_reporter::text_error_reporter(output_stream *output,
-                                         bool escape_errors)
+text_diag_reporter::text_diag_reporter(output_stream *output,
+                                       bool escape_errors)
     : output_(*output), format_escape_errors_(escape_errors) {}
 
-void text_error_reporter::set_source(padded_string_view input,
-                                     const char *file_path) {
+void text_diag_reporter::set_source(padded_string_view input,
+                                    const char *file_path) {
   this->locator_.emplace(input);
   this->file_path_ = file_path;
 }
 
-void text_error_reporter::report_impl(diag_type type, void *error) {
+void text_diag_reporter::report_impl(diag_type type, void *error) {
   QLJS_ASSERT(this->file_path_);
   QLJS_ASSERT(this->locator_.has_value());
   text_error_formatter formatter(

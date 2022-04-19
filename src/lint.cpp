@@ -162,9 +162,9 @@ std::vector<string8_view> global_declared_variable_set::get_all_variable_names()
   return result;
 }
 
-linter::linter(error_reporter *error_reporter,
+linter::linter(diag_reporter *diag_reporter,
                const global_declared_variable_set *global_variables)
-    : global_scope_(global_variables), error_reporter_(error_reporter) {}
+    : global_scope_(global_variables), error_reporter_(diag_reporter) {}
 
 void linter::visit_enter_block_scope() { this->scopes_.push(); }
 

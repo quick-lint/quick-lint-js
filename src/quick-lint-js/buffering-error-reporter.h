@@ -11,19 +11,19 @@
 #include <quick-lint-js/token.h>
 
 namespace quick_lint_js {
-class buffering_error_reporter final : public error_reporter {
+class buffering_diag_reporter final : public diag_reporter {
  public:
-  explicit buffering_error_reporter(boost::container::pmr::memory_resource *);
+  explicit buffering_diag_reporter(boost::container::pmr::memory_resource *);
 
-  buffering_error_reporter(buffering_error_reporter &&);
-  buffering_error_reporter &operator=(buffering_error_reporter &&);
+  buffering_diag_reporter(buffering_diag_reporter &&);
+  buffering_diag_reporter &operator=(buffering_diag_reporter &&);
 
-  ~buffering_error_reporter() override;
+  ~buffering_diag_reporter() override;
 
   void report_impl(diag_type type, void *error) override;
 
-  void copy_into(error_reporter *other) const;
-  void move_into(error_reporter *other);
+  void copy_into(diag_reporter *other) const;
+  void move_into(diag_reporter *other);
 
   bool empty() const noexcept;
 

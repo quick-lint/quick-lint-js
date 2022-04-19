@@ -64,7 +64,7 @@ class global_declared_variable_set {
 // The linter class implements variable lookup internally.
 class linter {
  public:
-  explicit linter(error_reporter *error_reporter,
+  explicit linter(diag_reporter *diag_reporter,
                   const global_declared_variable_set *global_variables);
 
   void visit_enter_block_scope();
@@ -271,7 +271,7 @@ class linter {
   // declared in the module scope, not the global scope.
   global_scope global_scope_;
 
-  error_reporter *error_reporter_;
+  diag_reporter *error_reporter_;
 };
 QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(linter);
 }

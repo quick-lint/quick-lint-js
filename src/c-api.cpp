@@ -55,8 +55,8 @@ class qljs_document_base {
 struct qljs_web_demo_document final
     : public quick_lint_js::qljs_document_base<
           quick_lint_js::web_demo_locator,
-          quick_lint_js::c_api_error_reporter<
-              qljs_web_demo_diagnostic, quick_lint_js::web_demo_locator>> {
+          quick_lint_js::c_api_diag_reporter<qljs_web_demo_diagnostic,
+                                             quick_lint_js::web_demo_locator>> {
  public:
   void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);
@@ -66,7 +66,7 @@ struct qljs_web_demo_document final
     quick_lint_js::padded_string padded_text(text);
     this->config_.reset();
     this->config_.load_from_json(&padded_text,
-                                 &quick_lint_js::null_error_reporter::instance);
+                                 &quick_lint_js::null_diag_reporter::instance);
   }
 };
 

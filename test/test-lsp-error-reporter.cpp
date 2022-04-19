@@ -21,10 +21,10 @@ namespace {
 constexpr int lsp_error_severity = 1;
 constexpr int lsp_warning_severity = 2;
 
-class test_lsp_error_reporter : public ::testing::Test {
+class test_lsp_diag_reporter : public ::testing::Test {
  protected:
-  lsp_error_reporter make_reporter(padded_string_view input) {
-    return lsp_error_reporter(this->buffer_, input);
+  lsp_diag_reporter make_reporter(padded_string_view input) {
+    return lsp_diag_reporter(this->buffer_, input);
   }
 
   ::boost::json::value parse_json() {
@@ -42,12 +42,12 @@ class test_lsp_error_reporter : public ::testing::Test {
   byte_buffer buffer_;
 };
 
-TEST_F(test_lsp_error_reporter, big_int_literal_contains_decimal_point) {
+TEST_F(test_lsp_diag_reporter, big_int_literal_contains_decimal_point) {
   padded_string input(u8"12.34n"_sv);
   source_code_span number_span(&input[0], &input[6]);
   ASSERT_EQ(number_span.string_view(), u8"12.34n");
 
-  lsp_error_reporter reporter = this->make_reporter(&input);
+  lsp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_big_int_literal_contains_decimal_point{number_span});
   reporter.finish();
 
@@ -66,14 +66,14 @@ TEST_F(test_lsp_error_reporter, big_int_literal_contains_decimal_point) {
             "https://quick-lint-js.com/errors/E0005/");
 }
 
-TEST_F(test_lsp_error_reporter, assignment_before_variable_declaration) {
+TEST_F(test_lsp_diag_reporter, assignment_before_variable_declaration) {
   padded_string input(u8"x=0;let x;"_sv);
   source_code_span assignment_span(&input[0], &input[1]);
   ASSERT_EQ(assignment_span.string_view(), u8"x");
   source_code_span declaration_span(&input[8], &input[9]);
   ASSERT_EQ(declaration_span.string_view(), u8"x");
 
-  lsp_error_reporter reporter = this->make_reporter(&input);
+  lsp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_assignment_before_variable_declaration{
       .assignment = identifier(assignment_span),
       .declaration = identifier(declaration_span)});
@@ -95,12 +95,12 @@ TEST_F(test_lsp_error_reporter, assignment_before_variable_declaration) {
   // TODO(#200): Show the declaration as relatedInformation.
 }
 
-TEST_F(test_lsp_error_reporter, assignment_to_undeclared_variable) {
+TEST_F(test_lsp_diag_reporter, assignment_to_undeclared_variable) {
   padded_string input(u8"x=5;"_sv);
   source_code_span assignment_span(&input[0], &input[1]);
   ASSERT_EQ(assignment_span.string_view(), u8"x");
 
-  lsp_error_reporter reporter = this->make_reporter(&input);
+  lsp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_assignment_to_undeclared_variable{
       .assignment = identifier(assignment_span)});
   reporter.finish();
@@ -119,13 +119,13 @@ TEST_F(test_lsp_error_reporter, assignment_to_undeclared_variable) {
             "https://quick-lint-js.com/errors/E0059/");
 }
 
-TEST_F(test_lsp_error_reporter, multiple_errors) {
+TEST_F(test_lsp_diag_reporter, multiple_errors) {
   padded_string input(u8"abc"_sv);
   source_code_span a_span(&input[0], &input[1]);
   source_code_span b_span(&input[1], &input[2]);
   source_code_span c_span(&input[2], &input[3]);
 
-  lsp_error_reporter reporter = this->make_reporter(&input);
+  lsp_diag_reporter reporter = this->make_reporter(&input);
   reporter.report(diag_assignment_to_const_global_variable{identifier(a_span)});
   reporter.report(diag_assignment_to_const_global_variable{identifier(b_span)});
   reporter.report(diag_assignment_to_const_global_variable{identifier(c_span)});

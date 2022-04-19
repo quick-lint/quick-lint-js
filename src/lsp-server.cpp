@@ -446,10 +446,10 @@ void linting_lsp_server_handler::get_config_file_diagnostics_notification(
   notification_json.append_copy(version_json);
 
   notification_json.append_copy(u8R"--(,"diagnostics":)--"sv);
-  lsp_error_reporter error_reporter(notification_json,
-                                    &config_file->file_content);
-  config_file->errors.copy_into(&error_reporter);
-  error_reporter.finish();
+  lsp_diag_reporter diag_reporter(notification_json,
+                                  &config_file->file_content);
+  config_file->errors.copy_into(&diag_reporter);
+  diag_reporter.finish();
 
   notification_json.append_copy(u8R"--(},"jsonrpc":"2.0"})--"sv);
 }
@@ -591,12 +591,12 @@ void lsp_javascript_linter::lint_and_get_diagnostics_notification(
 void lsp_javascript_linter::lint_and_get_diagnostics(
     configuration& config, padded_string_view code,
     byte_buffer& diagnostics_json) {
-  lsp_error_reporter error_reporter(diagnostics_json, code);
+  lsp_diag_reporter diag_reporter(diagnostics_json, code);
 
   parser_options p_options;
   p_options.jsx = true;
-  parser p(code, &error_reporter, p_options);
-  linter l(&error_reporter, &config.globals());
+  parser p(code, &diag_reporter, p_options);
+  linter l(&diag_reporter, &config.globals());
 #if QLJS_HAVE_SETJMP
   bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);
   if (!ok) {
@@ -607,7 +607,7 @@ void lsp_javascript_linter::lint_and_get_diagnostics(
   p.parse_and_visit_module(l);
 #endif
 
-  error_reporter.finish();
+  diag_reporter.finish();
 }
 
 namespace {

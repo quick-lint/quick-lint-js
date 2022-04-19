@@ -136,8 +136,8 @@
   case ::quick_lint_js::token_type::question_question_equal
 
 namespace quick_lint_js {
-class buffering_error_reporter;
-class error_reporter;
+class buffering_diag_reporter;
+class diag_reporter;
 class identifier;
 class source_code_span;
 
@@ -284,7 +284,7 @@ struct token {
   // Precondition:
   //   this->type == token_type::reserved_keyword_with_escape_sequence
   // Precondition: This function was not previously called for the same token.
-  void report_errors_for_escape_sequences_in_keyword(error_reporter*) const;
+  void report_errors_for_escape_sequences_in_keyword(diag_reporter*) const;
 
   // Report errors for each invalid escape sequence in the most recently parsed
   // template.
@@ -293,7 +293,7 @@ struct token {
   //   this->type == token_type::complete_template ||
   //   this->type == token_type::incomplete_template
   // Precondition: This function was not previously called for the same token.
-  void report_errors_for_escape_sequences_in_template(error_reporter*) const;
+  void report_errors_for_escape_sequences_in_template(diag_reporter*) const;
 
   token_type type;
 
@@ -311,7 +311,7 @@ struct token {
     // Used only if this is a reserved_keyword_with_escape_sequence token.
     escape_sequence_list* identifier_escape_sequences;
     // Used only if this is a complete_template or incomplete_template token.
-    buffering_error_reporter* template_escape_sequence_errors;
+    buffering_diag_reporter* template_escape_sequence_errors;
   };
 };
 }
