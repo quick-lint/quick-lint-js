@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_ERROR_COLLECTOR_H
-#define QUICK_LINT_JS_ERROR_COLLECTOR_H
+#ifndef QUICK_LINT_JS_DIAG_COLLECTOR_H
+#define QUICK_LINT_JS_DIAG_COLLECTOR_H
 
 #include <iosfwd>
 #include <quick-lint-js/assert.h>
