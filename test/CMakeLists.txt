@@ -25,6 +25,7 @@ quick_lint_js_add_executable(
   quick-lint-js/spy-lsp-endpoint-remote.h
   quick-lint-js/spy-lsp-message-parser.h
   quick-lint-js/spy-visitor.h
+  quick-lint-js/test-translation-table-generated.h
   spy-visitor.cpp
   test-array.cpp
   test-assert.cpp
@@ -123,6 +124,14 @@ if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
   )
 endif ()
 quick_lint_js_enable_bigobj_if_supported(quick-lint-js-test)
+
+# HACK(strager): LTO builds are very slow. Our tests don't
+# *need* LTO optimizations. Disable LTO for our tests.
+set_target_properties(
+  quick-lint-js-test
+  PROPERTIES
+  INTERPROCEDURAL_OPTIMIZATION OFF
+)
 
 add_test(
   NAME quick-lint-js-test

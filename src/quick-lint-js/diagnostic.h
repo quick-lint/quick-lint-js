@@ -4,10 +4,14 @@
 #ifndef QUICK_LINT_JS_DIAGNOSTIC_H
 #define QUICK_LINT_JS_DIAGNOSTIC_H
 
+#include <array>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/translation.h>
+#include <quick-lint-js/warning.h>
 #include <string_view>
 
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105191
@@ -27,6 +31,8 @@ enum class diagnostic_severity : std::uint8_t {
 };
 
 enum class diagnostic_arg_type : std::uint8_t {
+  invalid = 0,
+
   char8,
   identifier,
   source_code_span,
@@ -35,22 +41,52 @@ enum class diagnostic_arg_type : std::uint8_t {
   variable_kind,
 };
 
+// If we support more than two infos (i.e. more than one note), the VS Code
+// plugin needs to be updated. See NOTE(multiple notes).
+constexpr int diagnostic_max_message_count = 2;
+
 struct diagnostic_message_arg_info {
-  std::uint8_t offset QLJS_WORK_AROUND_GCC_BUG_105191;
-  diagnostic_arg_type type QLJS_WORK_AROUND_GCC_BUG_105191;
+  // offset_shift is how many bits are removed in compact_offset.
+  //
+  // For example, if offset_shift is 3, then an arg must be 8-byte aligned.
+  static constexpr int offset_shift = 1;
+  static constexpr int offset_mask = (1 << offset_shift) - 1;
+  static constexpr int offset_bits = 5;
+
+  /*implicit*/ constexpr diagnostic_message_arg_info() noexcept
+      : compact_offset(0), type(diagnostic_arg_type::invalid) {}
+
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_CLANG("-Wimplicit-int-conversion")
+  QLJS_WARNING_IGNORE_GCC("-Wconversion")
+  /*implicit*/ constexpr diagnostic_message_arg_info(
+      std::size_t offset, diagnostic_arg_type type) noexcept
+      : compact_offset(offset >> offset_shift), type(type) {
+    // offset should be small.
+    QLJS_CONSTEXPR_ASSERT((offset >> offset_shift) < (1 << offset_bits));
+    // offset should be aligned.
+    QLJS_CONSTEXPR_ASSERT((offset & offset_mask) == 0);
+  }
+  QLJS_WARNING_POP
+
+  constexpr std::size_t offset() const noexcept {
+    return static_cast<std::size_t>(this->compact_offset << offset_shift);
+  }
+
+  std::uint8_t compact_offset : offset_bits QLJS_WORK_AROUND_GCC_BUG_105191;
+  diagnostic_arg_type type : (8 - offset_bits) QLJS_WORK_AROUND_GCC_BUG_105191;
 };
 
-struct diagnostic_message_info {
-  translatable_message format;
-  diagnostic_severity severity QLJS_WORK_AROUND_GCC_BUG_105191;
-  diagnostic_message_arg_info args[3];
-};
+using diagnostic_message_args = std::array<diagnostic_message_arg_info, 3>;
 
 struct diagnostic_info {
-  char code[6];
-  // If we support more than two infos (i.e. more than one note), the VS Code
-  // plugin needs to be updated. See NOTE(multiple notes).
-  diagnostic_message_info messages[2];
+  std::array<char, 5> code_string() const noexcept;
+
+  std::uint16_t code : 14;
+  diagnostic_severity severity : 2 QLJS_WORK_AROUND_GCC_BUG_105191;
+
+  translatable_message message_formats[diagnostic_max_message_count];
+  diagnostic_message_args message_args[diagnostic_max_message_count];
 };
 
 const diagnostic_info &get_diagnostic_info(error_type) noexcept;

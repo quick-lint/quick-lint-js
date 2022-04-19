@@ -10,213 +10,262 @@ const translation_table translation_data =
     {
         .mapping_table =
             {
-                {0, 0, 0, 0},
-                {1, 9596, 17839, 0},
-                {51, 9636, 17918, 0},
-                {113, 9682, 17971, 0},
-                {189, 9743, 18051, 0},
-                {263, 9802, 18130, 0},
-                {334, 9854, 18190, 0},
-                {365, 9882, 18220, 28676},
-                {508, 9979, 18371, 28806},
-                {558, 10016, 18412, 0},
-                {628, 10076, 18481, 0},
-                {721, 10145, 18561, 28832},
-                {792, 10188, 18614, 28883},
-                {822, 10221, 18651, 28914},
-                {895, 10269, 18717, 28963},
-                {927, 10307, 18774, 29008},
-                {957, 10340, 18814, 29052},
-                {1005, 10388, 18869, 29097},
-                {1084, 10453, 18967, 0},
-                {1105, 10471, 18990, 0},
-                {1144, 10504, 19030, 0},
-                {1200, 10556, 19093, 29163},
-                {1280, 10624, 19183, 29228},
-                {1347, 10685, 19261, 29289},
-                {1413, 10749, 19335, 29354},
-                {1490, 0, 19405, 29430},
-                {1509, 10814, 19426, 29449},
-                {1524, 10828, 19445, 29464},
-                {1604, 10887, 19535, 29520},
-                {1644, 10923, 19581, 29560},
-                {1676, 10952, 19619, 29593},
-                {1724, 10990, 19679, 29644},
-                {1764, 11024, 19722, 29693},
-                {1800, 11060, 19774, 29735},
-                {1873, 11110, 19864, 0},
-                {1927, 11157, 19934, 0},
-                {1993, 11206, 20004, 29784},
-                {2055, 11251, 20073, 29832},
-                {2120, 11300, 20150, 29886},
-                {2181, 11357, 20223, 29949},
-                {2226, 11401, 20292, 29997},
-                {2271, 11436, 20341, 30040},
-                {2347, 11479, 20408, 30088},
-                {2382, 11499, 20436, 30113},
-                {2427, 11542, 20503, 30171},
-                {2501, 11605, 20583, 30240},
-                {2573, 11658, 20654, 30296},
-                {2607, 11698, 20701, 30340},
-                {2654, 11728, 20740, 0},
-                {2738, 11800, 20836, 30371},
-                {2784, 11824, 20862, 30389},
-                {2824, 11870, 20932, 0},
-                {2882, 11915, 20999, 0},
-                {2972, 11990, 21090, 30442},
-                {3013, 12013, 21124, 30476},
-                {3062, 12056, 21188, 30515},
-                {3108, 12077, 21220, 30546},
-                {3155, 12125, 21279, 30585},
-                {3206, 12174, 21350, 30631},
-                {3237, 12205, 21385, 30665},
-                {3301, 12253, 21439, 30713},
-                {3332, 12289, 21483, 30766},
-                {3381, 12333, 21537, 30819},
-                {3420, 12371, 21572, 30860},
-                {3457, 12408, 21608, 30901},
-                {3496, 0, 21657, 30945},
-                {3510, 12448, 21670, 30963},
-                {3540, 12481, 21705, 31001},
-                {3576, 12516, 21749, 31038},
-                {3608, 12553, 21793, 31079},
-                {3663, 12608, 21865, 31136},
-                {3727, 12673, 21934, 31209},
-                {3790, 12742, 22005, 31280},
-                {3823, 12777, 22041, 0},
-                {3862, 12818, 22083, 31320},
-                {3894, 12847, 22118, 31350},
-                {3929, 12879, 22156, 31383},
-                {4006, 12936, 22233, 31446},
-                {4091, 12996, 22319, 31516},
-                {0, 13042, 22388, 31557},
-                {4152, 13088, 22457, 31598},
-                {4205, 13139, 22521, 31657},
-                {4234, 0, 22552, 0},
-                {4302, 0, 22622, 31687},
-                {4332, 13166, 22646, 0},
-                {4376, 13205, 22695, 0},
-                {4460, 13259, 22761, 31712},
-                {4530, 13311, 22827, 31766},
-                {4571, 13344, 22875, 31802},
-                {4613, 13391, 22934, 31835},
-                {4659, 13439, 23004, 31875},
-                {4834, 13586, 23148, 32050},
-                {4871, 13618, 23187, 32081},
-                {4896, 13641, 23212, 32103},
-                {4933, 13674, 23254, 32138},
-                {4980, 13712, 23301, 32173},
-                {5011, 13739, 23333, 32201},
-                {5045, 13772, 23376, 32238},
-                {5084, 13811, 23426, 32276},
-                {5141, 13852, 23493, 0},
-                {5204, 13902, 23560, 32322},
-                {5258, 13941, 23622, 32374},
-                {5319, 13991, 23697, 32438},
-                {5369, 14042, 23763, 32491},
-                {5437, 0, 23824, 32541},
-                {5481, 14088, 23873, 32580},
-                {5515, 14126, 23919, 32608},
-                {5544, 14153, 23952, 32634},
-                {5592, 14204, 24015, 0},
-                {5632, 14246, 24073, 32684},
-                {5663, 14274, 24109, 32714},
-                {5694, 14306, 24148, 32750},
-                {5730, 14342, 24191, 32790},
-                {5763, 14372, 24227, 32821},
-                {5784, 14395, 24257, 32846},
-                {5820, 14426, 24296, 32879},
-                {5855, 14458, 24334, 0},
-                {5882, 14484, 24366, 32911},
-                {5915, 14515, 24404, 32948},
-                {5948, 14543, 24440, 32978},
-                {5982, 14575, 24475, 33012},
-                {6035, 14625, 24532, 33058},
-                {6079, 14673, 24592, 33102},
-                {6128, 14718, 24648, 33150},
-                {6161, 14753, 24690, 33181},
-                {6199, 14792, 24736, 33219},
-                {6234, 14830, 24781, 33256},
-                {6270, 14865, 24820, 33296},
-                {6303, 14904, 24860, 33329},
-                {6327, 14928, 24893, 33352},
-                {6361, 14960, 24936, 33385},
-                {6402, 14999, 24985, 0},
-                {6446, 15040, 25036, 33426},
-                {6486, 15075, 25080, 33465},
-                {6504, 15097, 25103, 33488},
-                {6539, 15128, 25136, 33522},
-                {6576, 15162, 25171, 33559},
-                {6620, 15203, 25218, 33602},
-                {6648, 15232, 25256, 33632},
-                {6700, 15287, 25320, 33680},
-                {6737, 15325, 25369, 33716},
-                {0, 0, 25421, 0},
-                {6782, 15366, 25467, 33758},
-                {6813, 15400, 25511, 33793},
-                {6886, 15465, 25589, 33859},
-                {6958, 15528, 25668, 33920},
-                {6991, 15562, 25713, 33954},
-                {7011, 15584, 25738, 33975},
-                {7074, 15657, 25841, 34048},
-                {7143, 15705, 25920, 34099},
-                {7183, 15752, 25981, 34155},
-                {7210, 15780, 26010, 34185},
-                {7255, 15815, 26063, 34229},
-                {7298, 15851, 26107, 34272},
-                {7333, 15886, 26157, 34310},
-                {7399, 15940, 26233, 34368},
-                {7439, 15973, 26268, 34401},
-                {7477, 16004, 26300, 34432},
-                {7519, 16043, 26347, 34475},
-                {0, 0, 26402, 0},
-                {0, 0, 26455, 0},
-                {7572, 16087, 26502, 34532},
-                {7608, 16116, 26543, 34563},
-                {7654, 16167, 26606, 34602},
-                {7704, 16219, 26680, 34646},
-                {7731, 16245, 26710, 34668},
-                {7756, 16268, 26741, 34698},
-                {7826, 16317, 26803, 34759},
-                {7862, 16353, 26854, 34796},
-                {7903, 16391, 26895, 34840},
-                {7930, 16415, 26923, 34865},
-                {7953, 16439, 26951, 34891},
-                {7972, 16457, 26971, 34906},
-                {7988, 16472, 26985, 34923},
-                {8005, 16487, 26999, 34940},
-                {8036, 16516, 27033, 34973},
-                {8089, 16559, 27085, 35014},
-                {8134, 16592, 27138, 35053},
-                {8190, 16638, 27193, 35097},
-                {8224, 0, 27227, 35131},
-                {8243, 16673, 27243, 35150},
-                {8289, 16713, 27292, 35187},
-                {8340, 16750, 27337, 35221},
-                {8377, 16790, 27389, 35258},
-                {8422, 16829, 27436, 35294},
-                {8449, 16858, 27470, 35322},
-                {8485, 16910, 27532, 35384},
-                {8544, 16971, 27604, 35445},
-                {8607, 0, 27682, 35514},
-                {8626, 17033, 27699, 35533},
-                {8806, 17189, 27858, 35704},
-                {8898, 17254, 27936, 35774},
-                {8996, 17331, 28022, 35857},
-                {9034, 17345, 28039, 35870},
-                {9072, 17372, 28073, 35903},
-                {9098, 17394, 28099, 0},
-                {9125, 17417, 28130, 35921},
-                {9189, 17472, 28209, 35989},
-                {9246, 17504, 28257, 36030},
-                {9283, 17527, 28288, 36065},
-                {9321, 17565, 28329, 36102},
-                {9351, 17588, 28353, 36129},
-                {9397, 17626, 28400, 36157},
-                {9441, 17671, 28457, 36195},
-                {9489, 17717, 28525, 36240},
-                {9532, 17767, 28586, 36283},
-                {9579, 17818, 28658, 36331},
+                {0, 0, 0, 0, 0},
+                {1, 9559, 17769, 0, 36204},
+                {51, 9599, 17848, 0, 36244},
+                {113, 9645, 17901, 0, 36290},
+                {189, 9706, 17981, 0, 36351},
+                {263, 9765, 18060, 0, 36410},
+                {334, 9817, 18120, 0, 36462},
+                {0, 0, 0, 0, 36490},
+                {365, 9845, 18150, 28564, 36557},
+                {0, 0, 0, 0, 36654},
+                {0, 0, 0, 0, 36707},
+                {508, 9942, 18301, 28694, 36777},
+                {558, 9979, 18342, 0, 36814},
+                {628, 10039, 18411, 0, 36874},
+                {721, 10108, 18491, 28720, 36943},
+                {0, 0, 0, 0, 36986},
+                {792, 10151, 18544, 28771, 37002},
+                {0, 0, 0, 0, 37035},
+                {0, 0, 0, 0, 37046},
+                {822, 10184, 18581, 28802, 37061},
+                {0, 0, 0, 0, 37109},
+                {0, 0, 0, 0, 37122},
+                {0, 0, 0, 0, 37139},
+                {0, 0, 0, 0, 37156},
+                {0, 0, 0, 0, 37206},
+                {0, 0, 0, 0, 37268},
+                {895, 10232, 18647, 28851, 37330},
+                {927, 10270, 18704, 28896, 37368},
+                {957, 10303, 18744, 28940, 37401},
+                {1005, 10351, 18799, 28985, 37449},
+                {1084, 10416, 18897, 0, 37514},
+                {1105, 10434, 18920, 0, 37532},
+                {1144, 10467, 18960, 0, 37565},
+                {1200, 10519, 19023, 29051, 37617},
+                {0, 0, 0, 0, 37685},
+                {0, 0, 0, 0, 37703},
+                {0, 0, 0, 0, 37716},
+                {0, 0, 0, 0, 37731},
+                {1280, 10587, 19113, 29116, 37750},
+                {1347, 10648, 19191, 29177, 37811},
+                {1413, 10712, 19265, 29242, 37875},
+                {0, 0, 0, 0, 37940},
+                {0, 0, 0, 0, 37954},
+                {0, 0, 0, 0, 37972},
+                {1490, 0, 19335, 29318, 38025},
+                {1509, 10777, 19356, 29337, 38044},
+                {1524, 10791, 19375, 29352, 38058},
+                {1604, 10850, 19465, 29408, 38117},
+                {1644, 10886, 19511, 29448, 38153},
+                {1676, 10915, 19549, 29481, 38182},
+                {0, 0, 0, 0, 38234},
+                {1724, 10953, 19609, 29532, 38266},
+                {0, 0, 0, 0, 38300},
+                {1764, 10987, 19652, 29581, 38356},
+                {1800, 11023, 19704, 29623, 38392},
+                {1873, 11073, 19794, 0, 38442},
+                {1927, 11120, 19864, 0, 38489},
+                {1993, 11169, 19934, 29672, 38538},
+                {2055, 11214, 20003, 29720, 38583},
+                {2120, 11263, 20080, 29774, 38632},
+                {2181, 11320, 20153, 29837, 38689},
+                {2226, 11364, 20222, 29885, 38733},
+                {2271, 11399, 20271, 29928, 38768},
+                {2347, 11442, 20338, 29976, 38811},
+                {2382, 11462, 20366, 30001, 38831},
+                {2427, 11505, 20433, 30059, 38874},
+                {2501, 11568, 20513, 30128, 38937},
+                {2573, 11621, 20584, 30184, 38990},
+                {0, 0, 0, 0, 39030},
+                {2607, 11661, 20631, 30228, 39048},
+                {2654, 11691, 20670, 0, 39078},
+                {2738, 11763, 20766, 30259, 39150},
+                {2784, 11787, 20792, 30277, 39174},
+                {2824, 11833, 20862, 0, 39220},
+                {2882, 11878, 20929, 0, 39265},
+                {2972, 11953, 21020, 30330, 39340},
+                {3013, 11976, 21054, 30364, 39369},
+                {3062, 12019, 21118, 30403, 39412},
+                {3108, 12040, 21150, 30434, 39433},
+                {3155, 12088, 21209, 30473, 39481},
+                {3206, 12137, 21280, 30519, 39530},
+                {3237, 12168, 21315, 30553, 39561},
+                {0, 0, 0, 0, 39609},
+                {0, 0, 0, 0, 39669},
+                {0, 0, 0, 0, 39711},
+                {3301, 12216, 21369, 30601, 39743},
+                {3332, 12252, 21413, 30654, 39779},
+                {3381, 12296, 21467, 30707, 39823},
+                {3420, 12334, 21502, 30748, 39861},
+                {3457, 12371, 21538, 30789, 39898},
+                {3496, 0, 21587, 30833, 39938},
+                {3510, 12411, 21600, 30851, 39952},
+                {3540, 12444, 21635, 30889, 39985},
+                {3576, 12479, 21679, 30926, 40020},
+                {3608, 12516, 21723, 30967, 40057},
+                {3663, 12571, 21795, 31024, 40112},
+                {3727, 12636, 21864, 31097, 40177},
+                {3790, 12705, 21935, 31168, 40246},
+                {3823, 12740, 21971, 0, 40281},
+                {0, 0, 0, 0, 40322},
+                {0, 0, 0, 0, 40346},
+                {3862, 12781, 22013, 31208, 40368},
+                {3894, 12810, 22048, 31238, 40397},
+                {3929, 12842, 22086, 31271, 40429},
+                {4006, 12899, 22163, 31334, 40486},
+                {4091, 12959, 22249, 31404, 40546},
+                {0, 13005, 22318, 31445, 40592},
+                {4152, 13051, 22387, 31486, 40638},
+                {0, 0, 0, 0, 40689},
+                {4205, 13102, 22451, 31545, 40714},
+                {4234, 0, 22482, 0, 40741},
+                {4302, 0, 22552, 31575, 40796},
+                {0, 0, 0, 0, 40819},
+                {4332, 13129, 22576, 0, 40840},
+                {4376, 13168, 22625, 0, 40879},
+                {4460, 13222, 22691, 31600, 40933},
+                {0, 0, 0, 0, 40985},
+                {4530, 13274, 22757, 31654, 40990},
+                {4571, 13307, 22805, 31690, 41023},
+                {4613, 13354, 22864, 31723, 41070},
+                {0, 0, 0, 0, 41118},
+                {4659, 13402, 22934, 31763, 41150},
+                {4834, 13549, 23078, 31938, 41297},
+                {4871, 13581, 23117, 31969, 41329},
+                {4896, 13604, 23142, 31991, 41352},
+                {4943, 13642, 23189, 32026, 41390},
+                {4974, 13669, 23221, 32054, 41417},
+                {5008, 13702, 23264, 32091, 41450},
+                {5047, 13741, 23314, 32129, 41489},
+                {5104, 13782, 23381, 0, 41530},
+                {5167, 13832, 23448, 32175, 41580},
+                {5221, 13871, 23510, 32227, 41619},
+                {5282, 13921, 23585, 32291, 41669},
+                {5332, 13972, 23651, 32344, 41720},
+                {0, 0, 0, 0, 41766},
+                {5400, 0, 23712, 32394, 41805},
+                {0, 0, 0, 0, 41847},
+                {5444, 14018, 23761, 32433, 41885},
+                {0, 0, 0, 0, 41923},
+                {5478, 14056, 23807, 32461, 41975},
+                {0, 0, 0, 0, 42002},
+                {5507, 14083, 23840, 32487, 42028},
+                {5555, 14134, 23903, 0, 42079},
+                {5595, 14176, 23961, 32537, 42121},
+                {5626, 14204, 23997, 32567, 42149},
+                {5657, 14236, 24036, 32603, 42181},
+                {5693, 14272, 24079, 32643, 42217},
+                {5726, 14302, 24115, 32674, 42247},
+                {5747, 14325, 24145, 32699, 42270},
+                {5783, 14356, 24184, 32732, 42301},
+                {5818, 14388, 24222, 0, 42333},
+                {5845, 14414, 24254, 32764, 42359},
+                {5878, 14445, 24292, 32801, 42390},
+                {5911, 14473, 24328, 32831, 42418},
+                {5945, 14505, 24363, 32865, 42450},
+                {5998, 14555, 24420, 32911, 42500},
+                {6042, 14603, 24480, 32955, 42548},
+                {0, 0, 0, 0, 42593},
+                {6091, 14648, 24536, 33003, 42662},
+                {6124, 14683, 24578, 33034, 42697},
+                {6162, 14722, 24624, 33072, 42736},
+                {6197, 14760, 24669, 33109, 42774},
+                {6233, 14795, 24708, 33149, 42809},
+                {6266, 14834, 24748, 33182, 42848},
+                {6290, 14858, 24781, 33205, 42872},
+                {6324, 14890, 24824, 33238, 42904},
+                {6365, 14929, 24873, 0, 42943},
+                {6409, 14970, 24924, 33279, 42984},
+                {6449, 15005, 24968, 33318, 43019},
+                {6467, 15027, 24991, 33341, 43041},
+                {6502, 15058, 25024, 33375, 43072},
+                {6539, 15092, 25059, 33412, 43106},
+                {6583, 15133, 25106, 33455, 43147},
+                {6611, 15162, 25144, 33485, 43176},
+                {6663, 15217, 25208, 33533, 43231},
+                {0, 0, 0, 0, 43269},
+                {0, 0, 0, 0, 43319},
+                {0, 0, 0, 0, 43363},
+                {6700, 15255, 25257, 33569, 43412},
+                {0, 0, 25309, 0, 43453},
+                {6745, 15296, 25355, 33611, 43495},
+                {6776, 15330, 25399, 33646, 43529},
+                {6849, 15395, 25477, 33712, 43594},
+                {6921, 15458, 25556, 33773, 43657},
+                {6954, 15492, 25601, 33807, 43691},
+                {0, 0, 0, 0, 43713},
+                {0, 0, 0, 0, 43761},
+                {6974, 15514, 25626, 33828, 43800},
+                {7037, 15587, 25729, 33901, 43873},
+                {7106, 15635, 25808, 33952, 43921},
+                {7146, 15682, 25869, 34008, 43968},
+                {7173, 15710, 25898, 34038, 43996},
+                {7218, 15745, 25951, 34082, 44031},
+                {7261, 15781, 25995, 34125, 44067},
+                {0, 0, 0, 0, 44102},
+                {7296, 15816, 26045, 34163, 44127},
+                {7362, 15870, 26121, 34221, 44181},
+                {7402, 15903, 26156, 34254, 44214},
+                {7440, 15934, 26188, 34285, 44245},
+                {7482, 15973, 26235, 34328, 44284},
+                {0, 0, 26290, 0, 44328},
+                {0, 0, 0, 0, 44373},
+                {0, 0, 0, 0, 44382},
+                {0, 0, 26343, 0, 44401},
+                {7535, 16017, 26390, 34385, 44435},
+                {7571, 16046, 26431, 34416, 44464},
+                {7617, 16097, 26494, 34455, 44515},
+                {0, 0, 0, 0, 44567},
+                {0, 0, 0, 0, 44588},
+                {7667, 16149, 26568, 34499, 44609},
+                {7694, 16175, 26598, 34521, 44635},
+                {0, 0, 0, 0, 44658},
+                {7719, 16198, 26629, 34551, 44702},
+                {7789, 16247, 26691, 34612, 44751},
+                {7825, 16283, 26742, 34649, 44787},
+                {7866, 16321, 26783, 34693, 44825},
+                {7893, 16345, 26811, 34718, 44849},
+                {7916, 16369, 26839, 34744, 44873},
+                {7935, 16387, 26859, 34759, 44891},
+                {7951, 16402, 26873, 34776, 44906},
+                {7968, 16417, 26887, 34793, 44921},
+                {7999, 16446, 26921, 34826, 44950},
+                {8052, 16489, 26973, 34867, 44993},
+                {8097, 16522, 27026, 34906, 45026},
+                {8153, 16568, 27081, 34950, 45072},
+                {8187, 0, 27115, 34984, 45107},
+                {8206, 16603, 27131, 35003, 45124},
+                {8252, 16643, 27180, 35040, 45164},
+                {8303, 16680, 27225, 35074, 45201},
+                {8340, 16720, 27277, 35111, 45241},
+                {8385, 16759, 27324, 35147, 45280},
+                {8412, 16788, 27358, 35175, 45309},
+                {8448, 16840, 27420, 35237, 45361},
+                {8507, 16901, 27492, 35298, 45422},
+                {0, 0, 0, 0, 45484},
+                {8570, 0, 27570, 35367, 45560},
+                {8589, 16963, 27587, 35386, 45577},
+                {8769, 17119, 27746, 35557, 45733},
+                {8861, 17184, 27824, 35627, 45798},
+                {8959, 17261, 27910, 35710, 45875},
+                {8997, 17275, 27927, 35723, 45889},
+                {9035, 17302, 27961, 35756, 45916},
+                {9061, 17324, 27987, 0, 45938},
+                {9088, 17347, 28018, 35774, 45961},
+                {9152, 17402, 28097, 35842, 46016},
+                {9209, 17434, 28145, 35883, 46048},
+                {9246, 17457, 28176, 35918, 46079},
+                {9284, 17495, 28217, 35955, 46120},
+                {9314, 17518, 28241, 35982, 46143},
+                {0, 0, 0, 0, 46181},
+                {9360, 17556, 28288, 36010, 46210},
+                {9404, 17601, 28345, 36048, 46255},
+                {9452, 17647, 28413, 36093, 46301},
+                {9495, 17697, 28474, 36136, 46351},
+                {9542, 17748, 28546, 36184, 46402},
+                {0, 0, 0, 0, 46423},
             },
 
         // clang-format off
@@ -313,7 +362,6 @@ const translation_table translation_data =
         u8"Unvollst\u00e4ndiger Export. M\u00f6glichkeiten sind: 'export default ...' oder 'export {{name}' oder 'export * from ...' oder 'export class' oder 'export function' oder 'export let'\0"
         u8"Indizierung erfordert einen Ausdruck\0"
         u8"Ung\u00fcltige UTF-8 Sequenz\0"
-        u8"Ung\u00fcltiges Binding in let-Statement\0"
         u8"Ung\u00fcltiger Ausdruck linkerseits der Zuweisung\0"
         u8"Ung\u00fcltiger Funktionsparameter\0"
         u8"Ung\u00fcltige Hex-Escapesequenz: {0}\0"
@@ -512,7 +560,6 @@ const translation_table translation_data =
         u8"INCOMPLETE EXPORT; EXPECTED 'EXPORT DEFAULT ...' OR 'EXPORT {{NAME}' OR 'EXPORT * FROM ...' OR 'EXPORT CLASS' OR 'EXPORT FUNCTION' OR 'EXPORT LET'\0"
         u8"INDEXING REQUIRES AN EXPRESSION\0"
         u8"INVALID UTF-8 SEQUENCE\0"
-        u8"INVALID BINDING IN LET STATEMENT\0"
         u8"INVALID EXPRESSION LEFT OF ASSIGNMENT\0"
         u8"INVALID FUNCTION PARAMETER\0"
         u8"INVALID HEX ESCAPE SEQUENCE: {0}\0"
@@ -712,7 +759,6 @@ const translation_table translation_data =
         u8"export incompl ; 'export default ...' ou 'export {{name}' ou 'export * from ...' ou 'export class' ou 'export function' ou 'export let' attendu\0"
         u8"l'indexation n\u00e9cessite une expression\0"
         u8"s\u00e9quence UTF-8 invalide\0"
-        u8"liaison invalide dans une instruction let\0"
         u8"expression invalide \u00e0 gauche de l'assignation\0"
         u8"param\u00e8tre de fonction invalide\0"
         u8"s\u00e9quence d'\u00e9chappement hex invalide: {0}\0"
@@ -898,7 +944,6 @@ const translation_table translation_data =
         u8"ofullst\u00e4ndig exportering; f\u00f6rv\u00e4ntades 'export default ...' eller 'export {{name}' eller 'export * from ...' eller 'export class' eller 'export function' eller 'export let'\0"
         u8"indexering kr\u00e4ver ett uttryck\0"
         u8"ogiltig UTF-8 sekvens\0"
-        u8"ogiltig bindelse i let p\u00e5st\u00e5ende\0"
         u8"ogiltigt uttryck f\u00f6re tilldelning\0"
         u8"ogiltig funktions parameter\0"
         u8"ogiltig kring\u00e5ende hex sekvens: {0}\0"
@@ -1003,14 +1048,270 @@ const translation_table translation_data =
         u8"while loop beh\u00f6ver paranteser runt vilkoren\0"
         u8"with p\u00e5st\u00e5ende saknar '{1}' runt uttryck\0"
         u8"with p\u00e5st\u00e5ende saknar paranteser runt uttryck\0"
-        u8"{0} utan bindningar",
+        u8"{0} utan bindningar\0"
+        u8"\"global-groups\" entries must be strings\0"
+        u8"\"global-groups\" must be a boolean or an array\0"
+        u8"\"globals\" descriptor \"shadowable\" property must be a boolean\0"
+        u8"\"globals\" descriptor \"writable\" property must be a boolean\0"
+        u8"\"globals\" descriptor must be a boolean or an object\0"
+        u8"\"globals\" must be an object\0"
+        u8"'**' operator cannot be used after unary '{1}' without parentheses\0"
+        u8"'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key\0"
+        u8"'=' changes variables; to compare, use '===' instead\0"
+        u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead\0"
+        u8"'?' creates a conditional expression\0"
+        u8"'async static' is not allowed; write 'static async' instead\0"
+        u8"'await' cannot be followed by an arrow function; use 'async' instead\0"
+        u8"'await' is only allowed in async functions\0"
+        u8"'do-while' loop\0"
+        u8"'else' has no corresponding 'if'\0"
+        u8"'for' loop\0"
+        u8"'if' statement\0"
+        u8"'in' disallowed in C-style for loop initializer\0"
+        u8"'while' loop\0"
+        u8"'with' statement\0"
+        u8"'{0}' found here\0"
+        u8"'{0}' is not allowed for strings; use {1} instead\0"
+        u8"'{0}' operator cannot be used before '**' without parentheses\0"
+        u8"'}' is not allowed directly in JSX text; write {{'}'} instead\0"
+        u8"BigInt literal contains decimal point\0"
+        u8"BigInt literal contains exponent\0"
+        u8"C-style for loop is missing its third component\0"
+        u8"C-style for loops have only three semicolon-separated components\0"
+        u8"JSON syntax error\0"
+        u8"React/JSX is not yet implemented\0"
+        u8"RegExp literal flags cannot contain Unicode escapes\0"
+        u8"TypeScript's 'enum' feature is not yet implemented by quick-lint-js\0"
+        u8"a 'do-while' loop\0"
+        u8"a 'for' loop\0"
+        u8"a 'while' loop\0"
+        u8"a 'with' statement\0"
+        u8"a class statement is not allowed as the body of {1:singular}\0"
+        u8"a function statement is not allowed as the body of {1:singular}\0"
+        u8"a lexical declaration is not allowed as the body of {1:singular}\0"
+        u8"a {{0} b }} c\0"
+        u8"an 'if' statement\0"
+        u8"another invalid string, do not use outside benchmark\0"
+        u8"array started here\0"
+        u8"arrow is here\0"
+        u8"assigning to 'async' in a for-of loop requires parentheses\0"
+        u8"assignment to const global variable\0"
+        u8"assignment to const variable\0"
+        u8"assignment to const variable before its declaration\0"
+        u8"assignment to imported variable\0"
+        u8"assignment to undeclared variable\0"
+        u8"attribute has wrong capitalization; write '{1}' instead\0"
+        u8"binary number literal has no digits\0"
+        u8"break can only be used inside of a loop or switch\0"
+        u8"cannot access private identifier outside class\0"
+        u8"cannot assign to loop variable in for of/in loop\0"
+        u8"cannot declare 'await' inside async function\0"
+        u8"cannot declare 'yield' inside generator function\0"
+        u8"cannot declare and export variable with 'export default'\0"
+        u8"cannot declare variable named keyword '{0}'\0"
+        u8"cannot export variable named 'let'\0"
+        u8"cannot export variable named keyword '{0}'\0"
+        u8"cannot import 'let'\0"
+        u8"cannot import variable named keyword '{0}'\0"
+        u8"cannot reference private variables without object; use 'this.'\0"
+        u8"cannot update variable with '{0}' while declaring it\0"
+        u8"character is not allowed in identifiers\0"
+        u8"children end here\0"
+        u8"classes cannot be named 'let'\0"
+        u8"code point in Unicode escape sequence must not be greater than U+10FFFF\0"
+        u8"code point out of range\0"
+        u8"commas are not allowed after spread parameter\0"
+        u8"commas are not allowed between class methods\0"
+        u8"const fields within classes are only allowed in TypeScript, not JavaScript\0"
+        u8"const variable declared here\0"
+        u8"continue can only be used inside of a loop\0"
+        u8"depth limit exceeded\0"
+        u8"do-while loop is missing '{1}' around condition\0"
+        u8"do-while loop needs parentheses around condition\0"
+        u8"do-while statement starts here\0"
+        u8"escaped character is not allowed in identifiers\0"
+        u8"escaping '-' is not allowed in tag names; write '-' instead\0"
+        u8"event attributes must be camelCase: '{1}'\0"
+        u8"existing variable declared here\0"
+        u8"expected ')' to close function call\0"
+        u8"expected ',' between object literal entries\0"
+        u8"expected 'as' between '{1}' and '{2}'\0"
+        u8"expected 'from \"name_of_module.mjs\"'\0"
+        u8"expected 'from' before module specifier\0"
+        u8"expected '{{'\0"
+        u8"expected expression after 'case'\0"
+        u8"expected expression before newline\0"
+        u8"expected expression before semicolon\0"
+        u8"expected hexadecimal digits in Unicode escape sequence\0"
+        u8"expected parameter for arrow function, but got a literal instead\0"
+        u8"expected parameter for arrow function, but got an expression instead\0"
+        u8"expected variable name for 'catch'\0"
+        u8"expected variable name for 'import'-'as'\0"
+        u8"expected {1:headlinese}\0"
+        u8"expected {1:singular}\0"
+        u8"exporting requires 'default'\0"
+        u8"exporting requires '{{' and '}'\0"
+        u8"extra ',' is not allowed between function call arguments\0"
+        u8"for loop needs an iterable, or condition and update clauses\0"
+        u8"for-in loop expression cannot have semicolons\0"
+        u8"for-of loop expression cannot have semicolons\0"
+        u8"forwarding exports are only allowed in export-from\0"
+        u8"free {1} and {0} {1} {2}\0"
+        u8"function call started here\0"
+        u8"function called before declaration in block scope: {0}\0"
+        u8"function declared here\0"
+        u8"function starts here\0"
+        u8"functions/methods should not have '=>'\0"
+        u8"generator function '*' belongs after keyword function\0"
+        u8"generator function '*' belongs before function name\0"
+        u8"here\0"
+        u8"hex number literal has no digits\0"
+        u8"if statement is missing '{1}' around condition\0"
+        u8"if statement needs parentheses around condition\0"
+        u8"imported variable declared here\0"
+        u8"incomplete export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'\0"
+        u8"indexing requires an expression\0"
+        u8"invalid UTF-8 sequence\0"
+        u8"invalid expression left of assignment\0"
+        u8"invalid function parameter\0"
+        u8"invalid hex escape sequence: {0}\0"
+        u8"invalid lone literal in object literal\0"
+        u8"keywords cannot contain escape sequences\0"
+        u8"label named 'await' not allowed in async function\0"
+        u8"legacy octal literal may not be BigInt\0"
+        u8"legacy octal literals may not contain underscores\0"
+        u8"let statement cannot declare variables named 'let'\0"
+        u8"methods should not use the 'function' keyword\0"
+        u8"mismatched JSX tags; expected '</{1}>'\0"
+        u8"missing ',' between variable declarations\0"
+        u8"missing '...' in JSX attribute spread\0"
+        u8"missing ':' in conditional expression\0"
+        u8"missing '<>' and '</>' to enclose multiple children\0"
+        u8"missing '=' after variable\0"
+        u8"missing 'if' after 'else'\0"
+        u8"missing 'while (condition)' for do-while statement\0"
+        u8"missing arrow operator for arrow function\0"
+        u8"missing body for 'for' loop\0"
+        u8"missing body for 'if' statement\0"
+        u8"missing body for 'switch' statement\0"
+        u8"missing body for catch clause\0"
+        u8"missing body for class\0"
+        u8"missing body for do-while loop\0"
+        u8"missing body for finally clause\0"
+        u8"missing body for function\0"
+        u8"missing body for try statement\0"
+        u8"missing body for while loop\0"
+        u8"missing body for {1:headlinese}\0"
+        u8"missing catch or finally clause for try statement\0"
+        u8"missing catch variable name between parentheses\0"
+        u8"missing comma between object literal entries\0"
+        u8"missing comparison; '{1}' does not extend to the right side of '{0}'\0"
+        u8"missing condition for if statement\0"
+        u8"missing condition for switch statement\0"
+        u8"missing condition for while statement\0"
+        u8"missing end of array; expected ']'\0"
+        u8"missing expression between parentheses\0"
+        u8"missing for loop header\0"
+        u8"missing function parameter list\0"
+        u8"missing header and body for 'for' loop\0"
+        u8"missing initializer in const declaration\0"
+        u8"missing name in function statement\0"
+        u8"missing name of class\0"
+        u8"missing name of exported class\0"
+        u8"missing name of exported function\0"
+        u8"missing name or parentheses for function\0"
+        u8"missing operand for operator\0"
+        u8"missing operator between expression and arrow function\0"
+        u8"missing parameters for arrow function\0"
+        u8"missing parentheses around left-hand side of '**'\0"
+        u8"missing parentheses around operand of '{0}'\0"
+        u8"missing parentheses around self-invoked function\0"
+        u8"missing property name after '.' operator\0"
+        u8"missing property name between '.' and '.'\0"
+        u8"missing semicolon after statement\0"
+        u8"missing semicolon between condition and update parts of for loop\0"
+        u8"missing semicolon between init and condition parts of for loop\0"
+        u8"missing value for object property\0"
+        u8"missing variable name\0"
+        u8"misspelled React attribute; write '{1}' instead\0"
+        u8"new variable shadows existing variable\0"
+        u8"newline is not allowed between 'async' and arrow function parameter list\0"
+        u8"number literal contains consecutive underscores\0"
+        u8"number literal contains trailing underscore(s)\0"
+        u8"object literal started here\0"
+        u8"octal literal may not have decimal\0"
+        u8"octal literal may not have exponent\0"
+        u8"octal number literal has no digits\0"
+        u8"opening '<{1}>' tag here\0"
+        u8"private properties are not allowed in object literals\0"
+        u8"redeclaration of global variable\0"
+        u8"redeclaration of variable: {0}\0"
+        u8"redundant delete statement on variable\0"
+        u8"remove '{0}' to update an existing variable\0"
+        u8"return statement returns nothing (undefined)\0"
+        u8"see here\0"
+        u8"something happened\0"
+        u8"stray comma in function parameter\0"
+        u8"stray comma in let statement\0"
+        u8"switch statement is missing '{1}' around condition\0"
+        u8"switch statement needs parentheses around condition\0"
+        u8"this {0} looks fishy\0"
+        u8"this {1} looks fishy\0"
+        u8"try statement starts here\0"
+        u8"unclosed block comment\0"
+        u8"unclosed class; expected '}' by end of file\0"
+        u8"unclosed code block; expected '}' by end of file\0"
+        u8"unclosed identifier escape sequence\0"
+        u8"unclosed object literal; expected '}'\0"
+        u8"unclosed regexp literal\0"
+        u8"unclosed string literal\0"
+        u8"unclosed template\0"
+        u8"unexpected '#'\0"
+        u8"unexpected '@'\0"
+        u8"unexpected '\\' in identifier\0"
+        u8"unexpected 'case' outside switch statement\0"
+        u8"unexpected 'catch' without 'try'\0"
+        u8"unexpected 'default' outside switch statement\0"
+        u8"unexpected 'finally' without 'try'\0"
+        u8"unexpected '{0}'\0"
+        u8"unexpected characters in binary literal\0"
+        u8"unexpected characters in hex literal\0"
+        u8"unexpected characters in number literal\0"
+        u8"unexpected characters in octal literal\0"
+        u8"unexpected control character\0"
+        u8"unexpected expression; missing key for object entry\0"
+        u8"unexpected identifier in expression; missing operator before\0"
+        u8"unexpected literal in parameter list; expected parameter name\0"
+        u8"unexpected statement before first switch case, expected 'case' or 'default'\0"
+        u8"unexpected token\0"
+        u8"unexpected token in export; expected 'export default ...' or 'export {{name}' or 'export * from ...' or 'export class' or 'export function' or 'export let'\0"
+        u8"unexpected token in variable declaration; expected variable name\0"
+        u8"unicode byte order mark (BOM) cannot appear before #! at beginning of script\0"
+        u8"unmatched '}'\0"
+        u8"unmatched indexing bracket\0"
+        u8"unmatched parenthesis\0"
+        u8"unopened block comment\0"
+        u8"use 'while' instead to loop until a condition is false\0"
+        u8"use of undeclared variable: {0}\0"
+        u8"variable already declared here\0"
+        u8"variable assigned before its declaration\0"
+        u8"variable declared here\0"
+        u8"variable used before declaration: {0}\0"
+        u8"what is this '{1}' nonsense?\0"
+        u8"while loop is missing '{1}' around condition\0"
+        u8"while loop needs parentheses around condition\0"
+        u8"with statement is missing '{1}' around expression\0"
+        u8"with statement needs parentheses around expression\0"
+        u8"{0} with no bindings\0"
+        u8"~~~ invalid string, do not use outside benchmark ~~~",
         // clang-format on
 
         .locale_table =
             "de\0"
             "en@loud\0"
             "fr_FR\0"
-            "sv_SE",
+            "sv_SE\0"
+            "",
 };
 }
 

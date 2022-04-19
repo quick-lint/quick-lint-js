@@ -6,6 +6,10 @@
 
 namespace boost {
 void throw_exception(const std::exception&) { std::terminate(); }
+
+void throw_exception(const std::exception&, boost::source_location const&) {
+  std::terminate();
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

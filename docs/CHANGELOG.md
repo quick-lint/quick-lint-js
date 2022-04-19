@@ -8,9 +8,29 @@ Semantic Versioning.
 
 ## Unreleased
 
+## Fixed
+
+* When using the `de`, `fr_FR`, or `sv_SV` locale, some error messages are no
+  longer blank.
+
+## Changed
+
+* The Windows MSIX installer is now signed with a Microsoft-trusted certificate.
+  If you installed quick-lint-js using a prior version of the MSIX installer,
+  Windows won't let you upgrade. Uninstall the old version of quick-lint-js
+  before installing a new version.
+* The Windows executable is now signed with a Microsoft-trusted certificate.
+
+## 2.4.0 (2022-04-15)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.4.0/)
+
 ### Added
 
-* Missing parentheses around a self-invoked arrow function are now reported as [E0211][]
+* Missing parentheses around a self-invoked arrow function are now reported as
+  [E0211][]. (Implemented by [Sarah Schulte][].)
+* [E0179][] is now reported if a JSX element such as `<div />` follows `return`
+  (implemented by [Rob Miner][]).
 
 ### Fixed
 
@@ -20,7 +40,8 @@ Semantic Versioning.
 ### Changed
 
 * Windows builds (x86, x64, ARM, and ARM64) are now built with MinGW's C and C++
-  runtime libraries instead of Microsoft's.
+  runtime libraries instead of Microsoft's. This fixes a compliance issue with
+  GPLv3.
 
 ## 2.3.1 (2022-03-24)
 
@@ -31,7 +52,7 @@ Semantic Versioning.
 * Windows: The 32-bit x86 builds are now code-signed.
 * Windows: Tab-completion now works in PowerShell. (Completion needs to be
   [installed manually][install-powershell-completions].) (Implemented by [Tony
-  Sathre][]).
+  Sathre][].)
 
 ### Fixed
 
@@ -463,6 +484,8 @@ Beta release.
 [Matheus de Sousa]: https://github.com/keyehzy
 [Nico Sonack]: https://github.com/herrhotzenplotz
 [Piotr Dąbrowski]: https://github.com/yhnavein
+[Rob Miner]: https://github.com/robminer6
+[Sarah Schulte]: https://github.com/cgsdev0
 [Shivam Mehta]: https://github.com/maniac-en
 [Tony Sathre]: https://github.com/tonysathre
 [coc.nvim]: https://github.com/neoclide/coc.nvim

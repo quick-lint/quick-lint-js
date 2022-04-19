@@ -179,7 +179,7 @@ func TestCreateTranslationTable(t *testing.T) {
 		if !reflect.DeepEqual(table.Locales, expectedLocaleNames) {
 			t.Errorf("expected %#v, but got %#v", expectedLocaleNames, table.Locales)
 		}
-		expectedLocaleTable := []byte("de_DE\x00en_US\x00")
+		expectedLocaleTable := []byte("de_DE\x00en_US\x00\x00")
 		if !reflect.DeepEqual(table.LocaleTable, expectedLocaleTable) {
 			t.Errorf("expected %#v, but got %#v", expectedLocaleTable, table.LocaleTable)
 		}

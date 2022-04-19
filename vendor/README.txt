@@ -10,16 +10,16 @@ The benchmark directory contains Google Benchmark, a performance measurement
 framework for C++ code.
 
 Copyright: Copyright 2015 Google Inc. All rights reserved.; Copyright 2016 Ismael Jimenez Martinez. All rights reserved.
-Download URL: https://codeload.github.com/google/benchmark/tar.gz/v1.5.1
-Download date: August 20, 2020
-Git commit: 8039b4030795b1c9b8cedb78e3a2a6fb89574b6e
+Download URL: https://github.com/google/benchmark/archive/refs/tags/v1.6.1.tar.gz
+Download date: April 18, 2022
+Git commit: 0d98dba29d66e93259db7daa53a9327df767a415
 License file: LICENSE
 License type: Apache-2.0
 Location: benchmark
 Project URL: https://github.com/google/benchmark
-Release URL: https://github.com/google/benchmark/releases/tag/v1.5.1
-Release date: June 9, 2020
-Version: v1.5.1
+Release URL: https://github.com/google/benchmark/releases/tag/v1.6.1
+Release date: January 10, 2022
+Version: v1.6.1
 
 ## boost
 
@@ -47,21 +47,13 @@ release archive:
 
 Additionally, the following patches have been manually applied:
 
-* boost-json-pmr.patch
 * boost-static-var.patch
 
 Additionally, the following directories and files have been deleted to reduce
 storage consumption:
 
-* boost/boost/align/
-* boost/boost/io/
-* boost/boost/predef/
 * boost/boost/shared_ptr.hpp
 * boost/boost/smart_ptr/
-* boost/boost/system/
-* boost/boost/type_traits/
-* boost/boost/utility/
-* boost/boost/winapi/
 
 Copyright: various
 Download URL: https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.bz2
@@ -169,6 +161,8 @@ consumption:
 The following patches have been manually applied:
 
 * simdjson-cmake-version.patch
+* simdjson-smaller-number-parsing.patch
+* simdjson-warnings.patch
 
 Copyright: Copyright 2018-2019 The simdjson authors; various
 Download URL: https://codeload.github.com/simdjson/simdjson/tar.gz/refs/tags/v1.0.0

@@ -9,12 +9,17 @@
 #include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/have.h>
 #include <quick-lint-js/pipe.h>
 #include <quick-lint-js/process.h>
 #include <spawn.h>
 #include <string>
 #include <unistd.h>
 #include <vector>
+
+#if QLJS_HAVE_CRT_EXTERNS_H
+#include <crt_externs.h>
+#endif
 
 using namespace std::literals::string_literals;
 using namespace std::literals::string_view_literals;
@@ -59,6 +64,9 @@ std::string run_program(std::vector<std::string> command,
   }
   std::filesystem::current_path(new_cwd);
   ::pid_t pid;
+#if QLJS_HAVE_NS_GET_ENVIRON
+  char**& environ = *::_NSGetEnviron();
+#endif
   int rc = ::posix_spawnp(/*pid=*/&pid, /*file=*/exe_file,
                           /*file_actions=*/&file_actions,
                           /*attrp=*/nullptr,
@@ -94,8 +102,9 @@ std::map<std::string, std::string> get_yarn_packages_versions(
   std::string_view json = lines[lines.size() - 1];
   QLJS_ALWAYS_ASSERT(!json.empty());
 
-  std::error_code error;
-  ::boost::json::value root = ::boost::json::parse(json, error);
+  ::boost::json::error_code error;
+  ::boost::json::value root =
+      ::boost::json::parse(to_boost_string_view(json), error);
   if (error != std::error_code()) {
     std::fprintf(stderr, "error: parsing 'yarn list' JSON failed\n");
     std::exit(1);
@@ -104,7 +113,8 @@ std::map<std::string, std::string> get_yarn_packages_versions(
   std::map<std::string, std::string> package_versions;
   ::boost::json::value packages = look_up(root, "data", "trees");
   for (::boost::json::value package : packages.as_array()) {
-    std::string full_package_name(look_up(package, "name").as_string());
+    std::string full_package_name(
+        to_string_view(look_up(package, "name").as_string()));
     std::size_t version_separator_index = full_package_name.rfind('@');
     QLJS_ALWAYS_ASSERT(version_separator_index != full_package_name.npos);
     std::string_view package_name =
@@ -344,17 +354,18 @@ benchmark_config benchmark_config::load() {
                                package_json_content.error_to_string().c_str());
                   std::exit(1);
                 }
-                std::error_code error;
+                ::boost::json::error_code error;
                 ::boost::json::value package_info = ::boost::json::parse(
-                    to_string_view(package_json_content->string_view()), error);
+                    to_boost_string_view(package_json_content->string_view()),
+                    error);
                 if (error != std::error_code()) {
                   std::fprintf(stderr, "error: %s: parsing JSON failed\n",
                                package_json_path);
                   std::exit(1);
                 }
-                metadata["vscode-eslint"] =
+                metadata["vscode-eslint"] = to_string_view(
                     look_up(package_info, "dependencies", "vscode-eslint")
-                        .as_string();
+                        .as_string());
 
                 return metadata;
               },

@@ -16,9 +16,7 @@ namespace quick_lint_js {
 ::boost::json::string_view to_boost_string_view(std::string_view sv);
 #endif
 
-#if !defined(BOOST_JSON_STANDALONE)
 std::string_view to_string_view(::boost::json::string_view sv);
-#endif
 std::string_view to_string_view(const ::boost::json::string &s);
 
 template <class... Keys>

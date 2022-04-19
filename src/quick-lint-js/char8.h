@@ -40,6 +40,7 @@ inline string8_view out_string8(string8_view sv) noexcept { return sv; }
 #endif
 
 string8 to_string8(const std::string &);
+string8 to_string8(std::string_view);
 std::string to_string(const string8_view &);
 
 std::string_view to_string_view(string8_view);

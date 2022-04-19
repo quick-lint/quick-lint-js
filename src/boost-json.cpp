@@ -18,11 +18,9 @@ namespace quick_lint_js {
 }
 #endif
 
-#if !defined(BOOST_JSON_STANDALONE)
 std::string_view to_string_view(::boost::json::string_view sv) {
   return std::string_view(sv.data(), sv.size());
 }
-#endif
 
 std::string_view to_string_view(const ::boost::json::string& s) {
   return std::string_view(s.data(), s.size());

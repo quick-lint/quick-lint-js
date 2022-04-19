@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <algorithm>
 #include <memory>
 #include <quick-lint-js/c-api-error-reporter.h>
 #include <quick-lint-js/c-api.h>
@@ -111,8 +112,10 @@ void c_api_error_formatter<Diagnostic, Locator>::write_after_message(
     diag.begin_offset = narrow_cast<int>(r.begin);
     diag.end_offset = narrow_cast<int>(r.end);
   }
-  // FIXME(strager): code is not guaranteed to be null-terminated.
-  diag.code = code.data();
+
+  char *code_end = std::copy(code.begin(), code.end(), &diag.code[0]);
+  *code_end = '\0';
+
   diag.message = reinterpret_cast<const char *>(
       this->reporter_->allocate_c_string(this->current_message_));
   diag.severity = diag_severity;

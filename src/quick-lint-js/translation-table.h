@@ -25,8 +25,7 @@ struct translation_table {
 
   static QLJS_CONSTEVAL std::uint16_t mapping_index_for_untranslated_string(
       std::string_view s) noexcept {
-    return translation_table_const_hash_table_look_up(
-        s, unallocated_mapping_index);
+    return translation_table_const_hash_table_look_up(s);
   }
 };
 

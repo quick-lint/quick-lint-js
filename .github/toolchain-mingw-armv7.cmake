@@ -8,6 +8,8 @@ set(CMAKE_SYSTEM_PROCESSOR arm)
 
 set(CMAKE_C_COMPILER armv7-w64-mingw32-cc)
 set(CMAKE_CXX_COMPILER armv7-w64-mingw32-c++)
+set(CMAKE_CXX_COMPILER_AR armv7-w64-mingw32-ar)
+set(CMAKE_CXX_COMPILER_RANLIB armv7-w64-mingw32-ranlib)
 set(CMAKE_RC_COMPILER armv7-w64-mingw32-windres)
 
 set(CMAKE_SYSTEM_INCLUDE_PATH /opt/llvm-mingw/armv7-w64-mingw32/include)

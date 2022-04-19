@@ -39,9 +39,7 @@ class translatable_messages {
   const char* translate(const translatable_message& message);
 
  private:
-  static inline constexpr int invalid_locale_index = -1;
-
-  int locale_index_ = invalid_locale_index;
+  int locale_index_ = translation_table_locale_count;
 };
 
 // An un-translated message.
@@ -49,21 +47,18 @@ class translatable_message {
  public:
   /*implicit*/ constexpr translatable_message()
       : translation_table_mapping_index_(
-            translation_table::mapping_index_for_untranslated_string(
-                std::string_view())) {}
+            translation_table::unallocated_mapping_index) {}
 
   explicit QLJS_CONSTEVAL translatable_message(const char* raw_message,
                                                int length)
-      : message_(raw_message),
-        translation_table_mapping_index_(
+      : translation_table_mapping_index_(
             translation_table::mapping_index_for_untranslated_string(
                 std::string_view(raw_message,
                                  static_cast<std::size_t>(length)))) {}
 
-  constexpr const char* c_str() const noexcept { return this->message_; }
-
-  constexpr bool empty() const noexcept {
-    return !this->message_ || this->message_[0] == '\0';
+  constexpr bool valid() const noexcept {
+    return this->translation_table_mapping_index_ !=
+           translation_table::unallocated_mapping_index;
   }
 
   constexpr std::uint16_t translation_table_mapping_index() const noexcept {
@@ -71,7 +66,6 @@ class translatable_message {
   }
 
  private:
-  const char* message_ = "";
   std::uint16_t translation_table_mapping_index_;
 };
 

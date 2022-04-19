@@ -19,10 +19,11 @@ jobs:
           - {runs_on: ubuntu-latest, name: "Linux x86_64", archive_name: "linux", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-builder:v1", test: true, CC: gcc-8, CXX: g++-8, LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: ubuntu-latest, name: "Linux ARM", archive_name: "linux-armhf", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v2", test: false, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-armhf.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
           - {runs_on: ubuntu-latest, name: "Linux AArch64", archive_name: "linux-aarch64", archive_extension: ".tar.gz", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-cross-builder:v1", test: false, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-linux-aarch64.cmake -G Ninja", LDFLAGS: "-static-libgcc -static-libstdc++"}
-          - {runs_on: windows-2022, name: "Windows x86", archive_name: "windows-x86", archive_extension: ".zip", test: true, CC: "c:/msys64/mingw32/bin/gcc.exe", CXX: "c:/msys64/mingw32/bin/g++.exe", CMAKE_FLAGS: "-G Ninja", chocolatey_packages: "ninja", msys2_packages: "mingw-w64-i686-gcc ninja", LDFLAGS: "-static"}
+          # HACK(strager): -Wl,-allow-multiple-definition works around a GCC bug: https://sourceware.org/bugzilla/show_bug.cgi?id=12762
+          - {runs_on: windows-2022, name: "Windows x86", archive_name: "windows-x86", archive_extension: ".zip", test: true, CC: "c:/msys64/mingw32/bin/gcc.exe", CXX: "c:/msys64/mingw32/bin/g++.exe", CMAKE_FLAGS: "-G Ninja", chocolatey_packages: "ninja", msys2_packages: "mingw-w64-i686-gcc ninja", LDFLAGS: "-static -Wl,-allow-multiple-definition"}
           - {runs_on: windows-2022, name: "Windows x64", archive_name: "windows", archive_extension: ".zip", test: true, CC: "c:/msys64/ucrt64/bin/gcc.exe", CXX: "c:/msys64/ucrt64/bin/g++.exe", CMAKE_FLAGS: "-G Ninja", chocolatey_packages: "ninja", msys2_packages: "mingw-w64-ucrt-x86_64-gcc ninja", LDFLAGS: "-static"}
-          - {runs_on: ubuntu-latest, name: "Windows ARM", archive_name: "windows-arm", archive_extension: ".zip", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-mingw-builder:v1", test: false, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-mingw-armv7.cmake -G Ninja", LDFLAGS: "-static"}
-          - {runs_on: ubuntu-latest, name: "Windows ARM64", archive_name: "windows-arm64", archive_extension: ".zip", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-mingw-builder:v1", test: false, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-mingw-aarch64.cmake -G Ninja", LDFLAGS: "-static"}
+          - {runs_on: ubuntu-latest, name: "Windows ARM", archive_name: "windows-arm", archive_extension: ".zip", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-mingw-builder:v1", test: false, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-mingw-armv7.cmake -G Ninja", LDFLAGS: "-static -Wl,-allow-multiple-definition"}
+          - {runs_on: ubuntu-latest, name: "Windows ARM64", archive_name: "windows-arm64", archive_extension: ".zip", docker_container: "ghcr.io/quick-lint/quick-lint-js-github-mingw-builder:v1", test: false, CMAKE_FLAGS: "-DCMAKE_TOOLCHAIN_FILE=.github/toolchain-mingw-aarch64.cmake -G Ninja", LDFLAGS: "-static -Wl,-allow-multiple-definition"}
     runs-on: ${{ matrix.toolchain.runs_on }}
     container: ${{ matrix.toolchain.docker_container }}
     env:
@@ -58,7 +59,7 @@ jobs:
       - name: configure
         run: |
           env | grep '^CMAKE\|^QUICK_LINT_JS' | sort
-          cmake ${CMAKE_C_COMPILER:+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER:+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=${{ matrix.toolchain.test }} -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" ${CMAKE_EXTRA_FLAGS} -S . -B build
+          cmake ${CMAKE_C_COMPILER:+-DCMAKE_C_COMPILER="${CMAKE_C_COMPILER}"} ${CMAKE_CXX_COMPILER:+-DCMAKE_CXX_COMPILER="${CMAKE_CXX_COMPILER}"} -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=${{ matrix.toolchain.test }} -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=YES -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS}" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${CMAKE_EXE_LINKER_FLAGS}" -DCMAKE_SHARED_LINKER_FLAGS="${CMAKE_SHARED_LINKER_FLAGS}" ${CMAKE_EXTRA_FLAGS} -S . -B build
         shell: bash
       - name: build
         run: cmake --build build --config Release

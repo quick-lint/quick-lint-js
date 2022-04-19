@@ -18,7 +18,7 @@ typedef enum qljs_severity {
 typedef struct qljs_web_demo_document qljs_web_demo_document;
 struct qljs_web_demo_diagnostic {
   const char* message;
-  const char* code;
+  char code[6];  // null-terminated
   qljs_severity severity;
   // Offsets count UTF-16 code units.
   int begin_offset;

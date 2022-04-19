@@ -55,3 +55,4 @@ authored portions of quick-lint-js:
 * emadflash; signed CLA-v1.md
 * wagner riffel; w@104d.net; signed CLA-v1.md
 * Sarah Schulte; sarah.schulte@samsara.com; signed CLA-v1.md
+* Rob Miner; robminer@umich.edu; signed CLA-v1.md

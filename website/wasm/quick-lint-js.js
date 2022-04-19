@@ -288,6 +288,10 @@ class DocumentForWebDemo {
   }
 
   _parseDiagnostics(diagnosticsPointer) {
+    let rawDiagnostics = new Uint8Array(
+      this._process._heap,
+      diagnosticsPointer
+    );
     let rawDiagnosticsU32 = new Uint32Array(
       this._process._heap,
       diagnosticsPointer
@@ -298,20 +302,21 @@ class DocumentForWebDemo {
     );
     // struct qljs_web_demo_diagnostic {
     //   const char* message;
-    //   const char* code;
+    //   char code[6];
     //   qljs_vscode_severity severity;
     //   int begin_offset;
     //   int end_offset;
     // };
     let ERROR = {
       message: 0,
-      code: 1,
-      severity: 2,
-      begin_offset: 3,
-      end_offset: 4,
+      code: 4,
+      severity: 3,
+      begin_offset: 4,
+      end_offset: 5,
 
-      _ptr_size: 5,
-      _u32_size: 5,
+      _byte_size: 6 * 4,
+      _ptr_size: 6,
+      _u32_size: 6,
     };
     let diagnostics = [];
     for (let i = 0; ; ++i) {
@@ -319,9 +324,10 @@ class DocumentForWebDemo {
       if (messagePtr === 0) {
         break;
       }
-      let codePtr = rawDiagnosticsPtr[i * ERROR._ptr_size + ERROR.code];
       diagnostics.push({
-        code: decodeUTF8CString(new Uint8Array(this._process._heap, codePtr)),
+        code: decodeUTF8CString(
+          rawDiagnostics.slice(i * ERROR._byte_size + ERROR.code)
+        ),
         message: decodeUTF8CString(
           new Uint8Array(this._process._heap, messagePtr)
         ),

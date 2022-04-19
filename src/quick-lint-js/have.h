@@ -21,6 +21,18 @@
 #include <version>
 #endif
 
+#if defined(QLJS_HAVE_CRT_EXTERNS_H) && QLJS_HAVE_CRT_EXTERNS_H
+#elif defined(__has_include)
+#if __has_include(<crt_externs.h>)
+#define QLJS_HAVE_CRT_EXTERNS_H 1
+#endif
+#elif defined(__APPLE__)
+#define QLJS_HAVE_CRT_EXTERNS_H 1
+#endif
+#if !defined(QLJS_HAVE_CRT_EXTERNS_H)
+#define QLJS_HAVE_CRT_EXTERNS_H 0
+#endif
+
 #if defined(QLJS_HAVE_FCNTL_H) && QLJS_HAVE_FCNTL_H
 #elif defined(__has_include)
 #if __has_include(<fcntl.h>) && !defined(__MINGW32__)
@@ -176,6 +188,14 @@
 #define QLJS_HAVE_GETTID 1
 #else
 #define QLJS_HAVE_GETTID 0
+#endif
+#endif
+
+#if !defined(QLJS_HAVE_NS_GET_ENVIRON)
+#if QLJS_HAVE_CRT_EXTERNS_H
+#define QLJS_HAVE_NS_GET_ENVIRON 1
+#else
+#define QLJS_HAVE_NS_GET_ENVIRON 0
 #endif
 #endif
 

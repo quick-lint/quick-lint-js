@@ -282,17 +282,14 @@ TEST_F(test_vim_qflist_json_error_reporter, use_of_undeclared_variable) {
 
 TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
   constexpr diagnostic_info diag_info = {
-      .code = "E9999",
-      .messages =
+      .code = 9999,
+      .severity = diagnostic_severity::error,
+      .message_formats = {QLJS_TRANSLATABLE("something happened")},
+      .message_args =
           {
-              diagnostic_message_info{
-                  .format = "something happened"_translatable,
-                  .severity = diagnostic_severity::error,
-                  .args =
-                      {
-                          {0, diagnostic_arg_type::source_code_span},
-                      },
-              },
+              diagnostic_message_args{{
+                  {0, diagnostic_arg_type::source_code_span},
+              }},
           },
   };
 
@@ -321,27 +318,20 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
     source_code_span world_span;
   };
   constexpr diagnostic_info diag_info = {
-      .code = "E9999",
-      .messages =
+      .code = 9999,
+      .severity = diagnostic_severity::error,
+      .message_formats = {QLJS_TRANSLATABLE("something happened"),
+                          QLJS_TRANSLATABLE("here")},
+      .message_args =
           {
-              diagnostic_message_info{
-                  .format = "something happened"_translatable,
-                  .severity = diagnostic_severity::error,
-                  .args =
-                      {
-                          {offsetof(test_diag, hello_span),
-                           diagnostic_arg_type::source_code_span},
-                      },
-              },
-              diagnostic_message_info{
-                  .format = "here"_translatable,
-                  .severity = diagnostic_severity::note,
-                  .args =
-                      {
-                          {offsetof(test_diag, world_span),
-                           diagnostic_arg_type::source_code_span},
-                      },
-              },
+              diagnostic_message_args{{
+                  {offsetof(test_diag, hello_span),
+                   diagnostic_arg_type::source_code_span},
+              }},
+              diagnostic_message_args{{
+                  {offsetof(test_diag, world_span),
+                   diagnostic_arg_type::source_code_span},
+              }},
           },
   };
 

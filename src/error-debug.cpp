@@ -8,8 +8,8 @@
 namespace quick_lint_js {
 std::ostream& operator<<(std::ostream& out, error_type type) {
   switch (type) {
-#define QLJS_ERROR_TYPE(name, code, struct_body, format_call) \
-  case error_type::name:                                      \
+#define QLJS_ERROR_TYPE(name, code, severity, struct_body, format_call) \
+  case error_type::name:                                                \
     return out << #name;
     QLJS_X_ERROR_TYPES
 #undef QLJS_ERROR_TYPE

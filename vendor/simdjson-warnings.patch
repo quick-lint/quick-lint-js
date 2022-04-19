@@ -1,0 +1,63 @@
+commit 6698eb96b99576b8d53f8d90c9023717379e1c0f
+Author: Ivan Volnov <51086293+ivan-volnov@users.noreply.github.com>
+Date:   Fri Jan 21 03:16:27 2022 +0800
+
+    Fix C++20 build warnings (#1782) (#1787)
+   
+    * Fix C++20 build warnings (#1782)
+   
+    * Build fix for ppc64 (#1782)
+
+diff --git a/include/simdjson/arm64/simd.h b/include/simdjson/arm64/simd.h
+index 3867f798..dd5ac65f 100644
+--- a/include/simdjson/arm64/simd.h
++++ b/include/simdjson/arm64/simd.h
+@@ -132,7 +132,7 @@ simdjson_really_inline int8x16_t make_int8x16_t(int8_t x1,  int8_t x2,  int8_t x
+     simdjson_really_inline simd8<T>& operator&=(const simd8<T> other) { auto this_cast = static_cast<simd8<T>*>(this); *this_cast = *this_cast & other; return *this_cast; }
+     simdjson_really_inline simd8<T>& operator^=(const simd8<T> other) { auto this_cast = static_cast<simd8<T>*>(this); *this_cast = *this_cast ^ other; return *this_cast; }
+
+-    simdjson_really_inline Mask operator==(const simd8<T> other) const { return vceqq_u8(*this, other); }
++    friend simdjson_really_inline Mask operator==(const simd8<T> lhs, const simd8<T> rhs) { return vceqq_u8(lhs, rhs); }
+
+     template<int N=1>
+     simdjson_really_inline simd8<T> prev(const simd8<T> prev_chunk) const {
+diff --git a/include/simdjson/haswell/simd.h b/include/simdjson/haswell/simd.h
+index 2cc3e1b6..590f5f74 100644
+--- a/include/simdjson/haswell/simd.h
++++ b/include/simdjson/haswell/simd.h
+@@ -45,7 +45,7 @@ namespace simd {
+     simdjson_really_inline base8() : base<simd8<T>>() {}
+     simdjson_really_inline base8(const __m256i _value) : base<simd8<T>>(_value) {}
+
+-    simdjson_really_inline Mask operator==(const simd8<T> other) const { return _mm256_cmpeq_epi8(*this, other); }
++    friend simdjson_really_inline Mask operator==(const simd8<T> lhs, const simd8<T> rhs) { return _mm256_cmpeq_epi8(lhs, rhs); }
+
+     static const int SIZE = sizeof(base<T>::value);
+
+diff --git a/include/simdjson/ppc64/simd.h b/include/simdjson/ppc64/simd.h
+index a3661c16..d68169f3 100644
+--- a/include/simdjson/ppc64/simd.h
++++ b/include/simdjson/ppc64/simd.h
+@@ -69,8 +69,8 @@ struct base8 : base<simd8<T>> {
+   simdjson_really_inline base8() : base<simd8<T>>() {}
+   simdjson_really_inline base8(const __m128i _value) : base<simd8<T>>(_value) {}
+
+-  simdjson_really_inline Mask operator==(const simd8<T> other) const {
+-    return (__m128i)vec_cmpeq(this->value, (__m128i)other);
++  friend simdjson_really_inline Mask operator==(const simd8<T> lhs, const simd8<T> rhs) {
++    return (__m128i)vec_cmpeq(lhs.value, (__m128i)rhs);
+   }
+
+   static const int SIZE = sizeof(base<simd8<T>>::value);
+diff --git a/include/simdjson/westmere/simd.h b/include/simdjson/westmere/simd.h
+index b94f9110..497f0ce5 100644
+--- a/include/simdjson/westmere/simd.h
++++ b/include/simdjson/westmere/simd.h
+@@ -44,7 +44,7 @@ namespace simd {
+     simdjson_really_inline base8() : base<simd8<T>>() {}
+     simdjson_really_inline base8(const __m128i _value) : base<simd8<T>>(_value) {}
+
+-    simdjson_really_inline Mask operator==(const simd8<T> other) const { return _mm_cmpeq_epi8(*this, other); }
++    friend simdjson_really_inline Mask operator==(const simd8<T> lhs, const simd8<T> rhs) { return _mm_cmpeq_epi8(lhs, rhs); }
+
+     static const int SIZE = sizeof(base<simd8<T>>::value);

@@ -17,13 +17,13 @@ keys:
   windows_key:
     token: file_token
     keyfile: quick-lint-js-PRIVATE.key
-    x509certificate: quick-lint-js.cer
+    x509certificate: quick-lint-js.crt
     timestamp: true
 
 timestamp:
   urls:
-    - http://timestamp.digicert.com
-  cacert: DigiCertAssuredIDRootCA_comb.crt.pem
+    - http://ts.ssl.com
+  cacert: SSL_COM_ROOT_CERTIFICATION_AUTHORITY_RSA.crt
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar

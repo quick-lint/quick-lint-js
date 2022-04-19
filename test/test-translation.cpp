@@ -8,6 +8,7 @@
 #include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/error.h>
+#include <quick-lint-js/test-translation-table-generated.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/translation.h>
 #include <string>
@@ -88,6 +89,26 @@ TEST_F(test_translation, english_loud_language_upper_cases_base) {
   initialize_translations_from_locale("en.utf8@loud");
   this->reporter.report(error_unexpected_hash_character{this->dummy_span()});
   EXPECT_THAT(this->reporter.messages(), ElementsAre(u8"UNEXPECTED '#'"));
+}
+
+TEST_F(test_translation, full_translation_table) {
+  for (std::size_t locale_index = 0;
+       locale_index < std::size(test_locale_names); ++locale_index) {
+    const char *locale_name = test_locale_names[locale_index];
+    SCOPED_TRACE(locale_name);
+    translatable_messages messages;
+    if (*locale_name == '\0') {
+      messages.use_messages_from_source_code();
+    } else {
+      EXPECT_TRUE(messages.use_messages_from_locale(locale_name));
+    }
+
+    for (const translated_string &test_case : test_translation_table) {
+      ASSERT_TRUE(test_case.translatable.valid());
+      EXPECT_EQ(messages.translate(test_case.translatable),
+                to_string_view(test_case.expected_per_locale[locale_index]));
+    }
+  }
 }
 }
 }
