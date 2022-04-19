@@ -39,13 +39,13 @@ quick_lint_js_add_executable(
   test-configuration.cpp
   test-crash.cpp
   test-diag-code-list.cpp
+  test-diag-code.cpp
   test-diag-matcher.cpp
   test-diagnostic-formatter.cpp
   test-diagnostic.cpp
   test-document.cpp
   test-emacs-lisp-diag-reporter.cpp
   test-emacs-location.cpp
-  test-error.cpp
   test-event-loop.cpp
   test-file-canonical.cpp
   test-file-path.cpp
