@@ -13,7 +13,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/characters.h>
 #include <quick-lint-js/diag-collector.h>
-#include <quick-lint-js/error-matcher.h>
+#include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>

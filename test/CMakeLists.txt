@@ -8,13 +8,13 @@ include(QuickLintJSTarget)
 quick_lint_js_add_executable(
   quick-lint-js-test
   diag-collector.cpp
-  error-matcher.cpp
+  diag-matcher.cpp
   parse-json.cpp
   parse-support.cpp
   quick-lint-js/array.h
   quick-lint-js/characters.h
   quick-lint-js/diag-collector.h
-  quick-lint-js/error-matcher.h
+  quick-lint-js/diag-matcher.h
   quick-lint-js/file-matcher.h
   quick-lint-js/gtest.h
   quick-lint-js/mock-inotify.h
@@ -39,12 +39,12 @@ quick_lint_js_add_executable(
   test-configuration.cpp
   test-crash.cpp
   test-diag-code-list.cpp
+  test-diag-matcher.cpp
   test-diagnostic-formatter.cpp
   test-diagnostic.cpp
   test-document.cpp
   test-emacs-lisp-diag-reporter.cpp
   test-emacs-location.cpp
-  test-error-matcher.cpp
   test-error.cpp
   test-event-loop.cpp
   test-file-canonical.cpp

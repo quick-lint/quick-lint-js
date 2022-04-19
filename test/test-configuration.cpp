@@ -5,8 +5,8 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/diag-collector.h>
+#include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/error-matcher.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lint.h>
 #include <string_view>

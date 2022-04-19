@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_ERROR_MATCHER_H
-#define QUICK_LINT_JS_ERROR_MATCHER_H
+#ifndef QUICK_LINT_JS_DIAG_MATCHER_H
+#define QUICK_LINT_JS_DIAG_MATCHER_H
 
 #include <cstddef>
 #include <gmock/gmock.h>
