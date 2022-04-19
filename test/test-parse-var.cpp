@@ -8,9 +8,9 @@
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error-matcher.h>
-#include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-support.h>

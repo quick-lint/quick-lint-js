@@ -4,7 +4,7 @@
 #include <benchmark/benchmark.h>
 #include <cstdio>
 #include <cstdlib>
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/null-visitor.h>
 #include <quick-lint-js/padded-string.h>

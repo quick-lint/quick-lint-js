@@ -4,7 +4,7 @@
 #ifndef QUICK_LINT_JS_ERROR_REPORTER_H
 #define QUICK_LINT_JS_ERROR_REPORTER_H
 
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/diagnostic-types.h>
 
 namespace quick_lint_js {
 class error_reporter {

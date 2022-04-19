@@ -4,9 +4,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/buffering-error-reporter.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/error-collector.h>
 #include <quick-lint-js/error-matcher.h>
-#include <quick-lint-js/error.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/linked-bump-allocator.h>
 #include <quick-lint-js/padded-string.h>

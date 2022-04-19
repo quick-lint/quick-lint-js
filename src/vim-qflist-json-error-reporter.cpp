@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/optional.h>

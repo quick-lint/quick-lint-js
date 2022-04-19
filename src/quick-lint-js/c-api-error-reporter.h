@@ -7,9 +7,9 @@
 #include <cstdint>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/diagnostic-formatter.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/error-reporter.h>
-#include <quick-lint-js/error.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>

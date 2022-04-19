@@ -2,7 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <ostream>
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/unreachable.h>
 
 namespace quick_lint_js {

@@ -6,7 +6,7 @@
 
 #include <array>
 #include <bitset>
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <string>
 #include <string_view>
 #include <vector>

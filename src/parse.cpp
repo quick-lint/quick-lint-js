@@ -9,8 +9,8 @@
 #include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/error-reporter.h>
-#include <quick-lint-js/error.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/jsx.h>
 #include <quick-lint-js/lex.h>

@@ -4,9 +4,9 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/error-list.h>
-#include <quick-lint-js/error.h>
 #include <string>
 #include <string_view>
 #include <vector>

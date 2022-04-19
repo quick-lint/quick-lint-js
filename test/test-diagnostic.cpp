@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/diagnostic.h>
-#include <quick-lint-js/error.h>
 #include <string_view>
 
 using namespace std::literals::string_view_literals;

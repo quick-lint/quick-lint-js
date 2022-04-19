@@ -7,7 +7,7 @@
 #include <cstdlib>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/configuration.h>
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/parse.h>

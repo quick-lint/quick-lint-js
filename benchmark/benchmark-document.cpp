@@ -4,8 +4,8 @@
 #include <benchmark/benchmark.h>
 #include <cstddef>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/document.h>
-#include <quick-lint-js/error.h>
 #include <quick-lint-js/generate-code.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lsp-location.h>

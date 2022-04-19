@@ -4,9 +4,9 @@
 #ifndef QUICK_LINT_JS_ERROR_TAPE_H
 #define QUICK_LINT_JS_ERROR_TAPE_H
 
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/error-list.h>
 #include <quick-lint-js/error-reporter.h>
-#include <quick-lint-js/error.h>
 #include <quick-lint-js/text-error-reporter.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/vim-qflist-json-error-reporter.h>

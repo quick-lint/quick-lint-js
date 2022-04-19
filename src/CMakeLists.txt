@@ -108,6 +108,7 @@ quick_lint_js_add_library(
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
   quick-lint-js/diagnostic-formatter.h
+  quick-lint-js/diagnostic-types.h
   quick-lint-js/diagnostic.h
   quick-lint-js/document.h
   quick-lint-js/emacs-lisp-error-reporter.h
@@ -115,7 +116,6 @@ quick_lint_js_add_library(
   quick-lint-js/error-list.h
   quick-lint-js/error-reporter.h
   quick-lint-js/error-tape.h
-  quick-lint-js/error.h
   quick-lint-js/event-loop.h
   quick-lint-js/expression.h
   quick-lint-js/feature.h

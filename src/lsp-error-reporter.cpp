@@ -4,7 +4,7 @@
 #if !defined(__EMSCRIPTEN__)
 
 #include <quick-lint-js/byte-buffer.h>
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp-error-reporter.h>

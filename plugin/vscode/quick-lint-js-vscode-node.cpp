@@ -10,10 +10,10 @@
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/diagnostic-formatter.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/error-reporter.h>
-#include <quick-lint-js/error.h>
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/lint.h>

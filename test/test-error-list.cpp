@@ -4,8 +4,8 @@
 #include <array>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/error-list.h>
-#include <quick-lint-js/error.h>
 #include <string_view>
 #include <vector>
 

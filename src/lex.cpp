@@ -9,7 +9,7 @@
 #include <quick-lint-js/bit.h>
 #include <quick-lint-js/buffering-error-reporter.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/lex.h>

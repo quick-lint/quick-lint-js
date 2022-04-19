@@ -8,8 +8,8 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/diagnostic-formatter.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/error-reporter.h>
-#include <quick-lint-js/error.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/options.h>

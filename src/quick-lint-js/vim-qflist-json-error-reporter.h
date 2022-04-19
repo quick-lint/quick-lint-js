@@ -6,8 +6,8 @@
 
 #include <optional>
 #include <quick-lint-js/diagnostic-formatter.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/error-reporter.h>
-#include <quick-lint-js/error.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/padded-string.h>
