@@ -21,7 +21,7 @@
 #include <string>
 
 namespace quick_lint_js {
-class lsp_error_formatter;
+class lsp_diag_formatter;
 
 class lsp_diag_reporter final : public diag_reporter {
  public:
@@ -37,9 +37,9 @@ class lsp_diag_reporter final : public diag_reporter {
   bool need_comma_ = false;
 };
 
-class lsp_error_formatter : public diagnostic_formatter<lsp_error_formatter> {
+class lsp_diag_formatter : public diagnostic_formatter<lsp_diag_formatter> {
  public:
-  explicit lsp_error_formatter(byte_buffer &output, lsp_locator &);
+  explicit lsp_diag_formatter(byte_buffer &output, lsp_locator &);
   void write_before_message(std::string_view code, diagnostic_severity,
                             const source_code_span &origin);
   void write_message_part(std::string_view code, diagnostic_severity,

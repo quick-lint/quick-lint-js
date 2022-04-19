@@ -31,7 +31,7 @@ void text_diag_reporter::set_source(padded_string_view input,
 void text_diag_reporter::report_impl(diag_type type, void *error) {
   QLJS_ASSERT(this->file_path_);
   QLJS_ASSERT(this->locator_.has_value());
-  text_error_formatter formatter(
+  text_diag_formatter formatter(
       /*output=*/&this->output_,
       /*file_path=*/this->file_path_,
       /*locator=*/*this->locator_,
@@ -39,16 +39,16 @@ void text_diag_reporter::report_impl(diag_type type, void *error) {
   formatter.format(get_diagnostic_info(type), error);
 }
 
-text_error_formatter::text_error_formatter(output_stream *output,
-                                           const char *file_path,
-                                           cli_locator &locator,
-                                           bool format_escape_errors)
+text_diag_formatter::text_diag_formatter(output_stream *output,
+                                         const char *file_path,
+                                         cli_locator &locator,
+                                         bool format_escape_errors)
     : output_(*output),
       file_path_(file_path),
       locator_(locator),
       format_escape_errors_(format_escape_errors) {}
 
-void text_error_formatter::write_before_message(
+void text_diag_formatter::write_before_message(
     [[maybe_unused]] std::string_view code, diagnostic_severity sev,
     const source_code_span &origin) {
   cli_source_range r = this->locator_.range(origin);
@@ -72,15 +72,15 @@ void text_error_formatter::write_before_message(
   }
 }
 
-void text_error_formatter::write_message_part(
+void text_diag_formatter::write_message_part(
     [[maybe_unused]] std::string_view code, diagnostic_severity,
     string8_view message) {
   this->output_.append_copy(message);
 }
 
-void text_error_formatter::write_after_message(std::string_view code,
-                                               diagnostic_severity,
-                                               const source_code_span &) {
+void text_diag_formatter::write_after_message(std::string_view code,
+                                              diagnostic_severity,
+                                              const source_code_span &) {
   if (this->format_escape_errors_) {
     this->output_.append_copy(
         u8" [\x1B]8;;https://quick-lint-js.com/errors/"sv);

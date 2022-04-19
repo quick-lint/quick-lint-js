@@ -36,7 +36,7 @@ void c_api_diag_reporter<Diagnostic, Locator>::reset() {
 template <class Diagnostic, class Locator>
 void c_api_diag_reporter<Diagnostic, Locator>::report_impl(diag_type type,
                                                            void *error) {
-  c_api_error_formatter formatter(this);
+  c_api_diag_formatter formatter(this);
   formatter.format(get_diagnostic_info(type), error);
 }
 
@@ -60,12 +60,12 @@ char8 *c_api_diag_reporter<Diagnostic, Locator>::allocate_c_string(
 }
 
 template <class Diagnostic, class Locator>
-c_api_error_formatter<Diagnostic, Locator>::c_api_error_formatter(
+c_api_diag_formatter<Diagnostic, Locator>::c_api_diag_formatter(
     c_api_diag_reporter<Diagnostic, Locator> *reporter)
     : reporter_(reporter) {}
 
 template <class Diagnostic, class Locator>
-void c_api_error_formatter<Diagnostic, Locator>::write_before_message(
+void c_api_diag_formatter<Diagnostic, Locator>::write_before_message(
     std::string_view, diagnostic_severity sev, const source_code_span &) {
   if (sev == diagnostic_severity::note) {
     // Don't write notes. Only write the main message.
@@ -75,7 +75,7 @@ void c_api_error_formatter<Diagnostic, Locator>::write_before_message(
 }
 
 template <class Diagnostic, class Locator>
-void c_api_error_formatter<Diagnostic, Locator>::write_message_part(
+void c_api_diag_formatter<Diagnostic, Locator>::write_message_part(
     std::string_view, diagnostic_severity sev, string8_view message) {
   if (sev == diagnostic_severity::note) {
     // Don't write notes. Only write the main message.
@@ -85,7 +85,7 @@ void c_api_error_formatter<Diagnostic, Locator>::write_message_part(
 }
 
 template <class Diagnostic, class Locator>
-void c_api_error_formatter<Diagnostic, Locator>::write_after_message(
+void c_api_diag_formatter<Diagnostic, Locator>::write_after_message(
     std::string_view code, diagnostic_severity sev,
     const source_code_span &origin) {
   qljs_severity diag_severity = qljs_severity_error;
@@ -121,8 +121,7 @@ void c_api_error_formatter<Diagnostic, Locator>::write_after_message(
   diag.severity = diag_severity;
 }
 
-template class c_api_error_formatter<qljs_web_demo_diagnostic,
-                                     web_demo_locator>;
+template class c_api_diag_formatter<qljs_web_demo_diagnostic, web_demo_locator>;
 template class c_api_diag_reporter<qljs_web_demo_diagnostic, web_demo_locator>;
 }
 

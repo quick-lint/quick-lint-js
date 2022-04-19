@@ -18,7 +18,7 @@
 #include <quick-lint-js/token.h>
 
 namespace quick_lint_js {
-class text_error_formatter;
+class text_diag_formatter;
 
 class text_diag_reporter final : public diag_reporter {
  public:
@@ -35,11 +35,10 @@ class text_diag_reporter final : public diag_reporter {
   bool format_escape_errors_;
 };
 
-class text_error_formatter : public diagnostic_formatter<text_error_formatter> {
+class text_diag_formatter : public diagnostic_formatter<text_diag_formatter> {
  public:
-  explicit text_error_formatter(output_stream *output, const char *file_path,
-                                cli_locator &locator,
-                                bool format_escape_errors);
+  explicit text_diag_formatter(output_stream *output, const char *file_path,
+                               cli_locator &locator, bool format_escape_errors);
 
   void write_before_message(std::string_view code, diagnostic_severity,
                             const source_code_span &origin);

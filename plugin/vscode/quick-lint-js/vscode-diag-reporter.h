@@ -12,13 +12,13 @@
 #include <string_view>
 
 namespace quick_lint_js {
-class vscode_error_formatter
-    : public diagnostic_formatter<vscode_error_formatter> {
+class vscode_diag_formatter
+    : public diagnostic_formatter<vscode_diag_formatter> {
  public:
-  explicit vscode_error_formatter(vscode_module* vscode, ::Napi::Env env,
-                                  ::Napi::Array diagnostics,
-                                  const lsp_locator* locator,
-                                  ::Napi::Value document_uri)
+  explicit vscode_diag_formatter(vscode_module* vscode, ::Napi::Env env,
+                                 ::Napi::Array diagnostics,
+                                 const lsp_locator* locator,
+                                 ::Napi::Value document_uri)
       : vscode_(vscode),
         env_(env),
         diagnostics_(diagnostics),
@@ -138,7 +138,7 @@ class vscode_diag_reporter final : public diag_reporter {
   ::Napi::Array diagnostics() const { return this->diagnostics_; }
 
   void report_impl(diag_type type, void* error) override {
-    vscode_error_formatter formatter(
+    vscode_diag_formatter formatter(
         /*vscode=*/this->vscode_,
         /*env=*/this->env_,
         /*diagnostics=*/this->diagnostics_,

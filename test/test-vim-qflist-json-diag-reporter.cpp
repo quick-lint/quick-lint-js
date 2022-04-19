@@ -275,7 +275,7 @@ TEST_F(test_vim_qflist_json_diag_reporter, use_of_undeclared_variable) {
   EXPECT_EQ(look_up(qflist, 0, "type"), "W");
 }
 
-TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
+TEST(test_vim_qflist_json_diag_formatter, single_span_simple_message) {
   constexpr diagnostic_info diag_info = {
       .code = 9999,
       .severity = diagnostic_severity::error,
@@ -293,8 +293,8 @@ TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
   vim_locator locator(&code);
 
   memory_output_stream stream;
-  vim_qflist_json_error_formatter formatter(&stream, locator, "FILE",
-                                            /*bufnr=*/std::string_view());
+  vim_qflist_json_diag_formatter formatter(&stream, locator, "FILE",
+                                           /*bufnr=*/std::string_view());
   formatter.format(diag_info, &hello_span);
   stream.flush();
 
@@ -307,7 +307,7 @@ TEST(test_vim_qflist_json_error_formatter, single_span_simple_message) {
   EXPECT_EQ(object["text"], "something happened");
 }
 
-TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
+TEST(test_vim_qflist_json_diag_formatter, message_with_note_ignores_note) {
   struct test_diag {
     source_code_span hello_span;
     source_code_span world_span;
@@ -338,8 +338,8 @@ TEST(test_vim_qflist_json_error_formatter, message_with_note_ignores_note) {
       .hello_span = source_code_span(&code[0], &code[5]),
       .world_span = source_code_span(&code[6], &code[11]),
   };
-  vim_qflist_json_error_formatter formatter(&stream, locator, "FILE",
-                                            /*bufnr=*/std::string_view());
+  vim_qflist_json_diag_formatter formatter(&stream, locator, "FILE",
+                                           /*bufnr=*/std::string_view());
   formatter.format(diag_info, &diag);
   stream.flush();
 

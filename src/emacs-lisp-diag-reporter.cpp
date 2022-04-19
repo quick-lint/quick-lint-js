@@ -24,16 +24,16 @@ void emacs_lisp_diag_reporter::set_source(padded_string_view input) {
 
 void emacs_lisp_diag_reporter::report_impl(diag_type type, void *error) {
   QLJS_ASSERT(this->locator_.has_value());
-  emacs_lisp_error_formatter formatter(/*output=*/&this->output_,
-                                       /*locator=*/*this->locator_);
+  emacs_lisp_diag_formatter formatter(/*output=*/&this->output_,
+                                      /*locator=*/*this->locator_);
   formatter.format(get_diagnostic_info(type), error);
 }
 
-emacs_lisp_error_formatter::emacs_lisp_error_formatter(output_stream *output,
-                                                       emacs_locator &locator)
+emacs_lisp_diag_formatter::emacs_lisp_diag_formatter(output_stream *output,
+                                                     emacs_locator &locator)
     : output_(*output), locator_(locator) {}
 
-void emacs_lisp_error_formatter::write_before_message(
+void emacs_lisp_diag_formatter::write_before_message(
     std::string_view code, diagnostic_severity sev,
     const source_code_span &origin) {
   if (sev == diagnostic_severity::note) {
@@ -67,7 +67,7 @@ void write_elisp_stringp_escaped_message(output_stream &output,
 }
 }
 
-void emacs_lisp_error_formatter::write_message_part(
+void emacs_lisp_diag_formatter::write_message_part(
     [[maybe_unused]] std::string_view code, diagnostic_severity sev,
     string8_view message) {
   if (sev == diagnostic_severity::note) {
@@ -76,7 +76,7 @@ void emacs_lisp_error_formatter::write_message_part(
   write_elisp_stringp_escaped_message(this->output_, message);
 }
 
-void emacs_lisp_error_formatter::write_after_message(
+void emacs_lisp_diag_formatter::write_after_message(
     [[maybe_unused]] std::string_view code, diagnostic_severity sev,
     const source_code_span &) {
   if (sev == diagnostic_severity::note) {

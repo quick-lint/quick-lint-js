@@ -33,18 +33,18 @@ void lsp_diag_reporter::report_impl(diag_type type, void *error) {
     this->output_.append_copy(u8",\n"sv);
   }
   this->need_comma_ = true;
-  lsp_error_formatter formatter(/*output=*/this->output_,
-                                /*locator=*/this->locator_);
+  lsp_diag_formatter formatter(/*output=*/this->output_,
+                               /*locator=*/this->locator_);
   formatter.format(get_diagnostic_info(type), error);
 }
 
-lsp_error_formatter::lsp_error_formatter(byte_buffer &output,
-                                         lsp_locator &locator)
+lsp_diag_formatter::lsp_diag_formatter(byte_buffer &output,
+                                       lsp_locator &locator)
     : output_(output), locator_(locator) {}
 
-void lsp_error_formatter::write_before_message(std::string_view code,
-                                               diagnostic_severity sev,
-                                               const source_code_span &origin) {
+void lsp_diag_formatter::write_before_message(std::string_view code,
+                                              diagnostic_severity sev,
+                                              const source_code_span &origin) {
   char8 severity_type{};
   switch (sev) {
   case diagnostic_severity::error:
@@ -84,7 +84,7 @@ void lsp_error_formatter::write_before_message(std::string_view code,
       u8",\"message\":\""sv);
 }
 
-void lsp_error_formatter::write_message_part(
+void lsp_diag_formatter::write_message_part(
     [[maybe_unused]] std::string_view code, diagnostic_severity sev,
     string8_view message) {
   if (sev == diagnostic_severity::note) {
@@ -95,7 +95,7 @@ void lsp_error_formatter::write_message_part(
   write_json_escaped_string(this->output_, message);
 }
 
-void lsp_error_formatter::write_after_message(
+void lsp_diag_formatter::write_after_message(
     [[maybe_unused]] std::string_view code, diagnostic_severity sev,
     const source_code_span &) {
   if (sev == diagnostic_severity::note) {

@@ -17,7 +17,7 @@
 #include <quick-lint-js/token.h>
 
 namespace quick_lint_js {
-class emacs_lisp_error_formatter;
+class emacs_lisp_diag_formatter;
 
 class emacs_lisp_diag_reporter final : public diag_reporter {
  public:
@@ -33,11 +33,11 @@ class emacs_lisp_diag_reporter final : public diag_reporter {
   std::optional<emacs_locator> locator_;
 };
 
-class emacs_lisp_error_formatter
-    : public diagnostic_formatter<emacs_lisp_error_formatter> {
+class emacs_lisp_diag_formatter
+    : public diagnostic_formatter<emacs_lisp_diag_formatter> {
  public:
-  explicit emacs_lisp_error_formatter(output_stream *output,
-                                      emacs_locator &locator);
+  explicit emacs_lisp_diag_formatter(output_stream *output,
+                                     emacs_locator &locator);
 
   void write_before_message(std::string_view code, diagnostic_severity,
                             const source_code_span &origin);

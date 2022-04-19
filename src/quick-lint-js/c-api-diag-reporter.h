@@ -23,7 +23,7 @@ class lsp_locator;
 class web_demo_locator;
 
 template <class Diagnostic, class Locator>
-class c_api_error_formatter;
+class c_api_diag_formatter;
 
 template <class Diagnostic, class Locator>
 class c_api_diag_reporter final : public diag_reporter {
@@ -45,14 +45,14 @@ class c_api_diag_reporter final : public diag_reporter {
   const char8 *input_;
   monotonic_allocator string_allocator_;
 
-  friend c_api_error_formatter<Diagnostic, Locator>;
+  friend c_api_diag_formatter<Diagnostic, Locator>;
 };
 
 template <class Diagnostic, class Locator>
-class c_api_error_formatter
-    : public diagnostic_formatter<c_api_error_formatter<Diagnostic, Locator>> {
+class c_api_diag_formatter
+    : public diagnostic_formatter<c_api_diag_formatter<Diagnostic, Locator>> {
  public:
-  explicit c_api_error_formatter(
+  explicit c_api_diag_formatter(
       c_api_diag_reporter<Diagnostic, Locator> *reporter);
 
   void write_before_message(std::string_view code, diagnostic_severity,
@@ -70,8 +70,8 @@ class c_api_error_formatter
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_CLANG("-Wweak-template-vtables")
 
-extern template class c_api_error_formatter<qljs_web_demo_diagnostic,
-                                            web_demo_locator>;
+extern template class c_api_diag_formatter<qljs_web_demo_diagnostic,
+                                           web_demo_locator>;
 extern template class c_api_diag_reporter<qljs_web_demo_diagnostic,
                                           web_demo_locator>;
 

@@ -58,14 +58,14 @@ void vim_qflist_json_diag_reporter::report_impl(diag_type type, void *error) {
   }
   this->need_comma_ = true;
   QLJS_ASSERT(this->locator_.has_value());
-  vim_qflist_json_error_formatter formatter(/*output=*/&this->output_,
-                                            /*locator=*/*this->locator_,
-                                            /*file_name=*/this->file_name_,
-                                            /*bufnr=*/this->bufnr_);
+  vim_qflist_json_diag_formatter formatter(/*output=*/&this->output_,
+                                           /*locator=*/*this->locator_,
+                                           /*file_name=*/this->file_name_,
+                                           /*bufnr=*/this->bufnr_);
   formatter.format(get_diagnostic_info(type), error);
 }
 
-vim_qflist_json_error_formatter::vim_qflist_json_error_formatter(
+vim_qflist_json_diag_formatter::vim_qflist_json_diag_formatter(
     output_stream *output, quick_lint_js::vim_locator &locator,
     std::string_view file_name, std::string_view bufnr)
     : output_(*output),
@@ -73,7 +73,7 @@ vim_qflist_json_error_formatter::vim_qflist_json_error_formatter(
       file_name_(file_name),
       bufnr_(bufnr) {}
 
-void vim_qflist_json_error_formatter::write_before_message(
+void vim_qflist_json_diag_formatter::write_before_message(
     std::string_view code, diagnostic_severity sev,
     const source_code_span &origin) {
   string8_view severity_type{};
@@ -106,7 +106,7 @@ void vim_qflist_json_error_formatter::write_before_message(
   this->output_.append_literal(u8"\", \"vcol\": 0, \"text\": \""sv);
 }
 
-void vim_qflist_json_error_formatter::write_message_part(
+void vim_qflist_json_diag_formatter::write_message_part(
     [[maybe_unused]] std::string_view code, diagnostic_severity sev,
     string8_view message) {
   if (sev == diagnostic_severity::note) {
@@ -117,7 +117,7 @@ void vim_qflist_json_error_formatter::write_message_part(
   write_json_escaped_string(this->output_, message);
 }
 
-void vim_qflist_json_error_formatter::write_after_message(
+void vim_qflist_json_diag_formatter::write_after_message(
     [[maybe_unused]] std::string_view code, diagnostic_severity sev,
     const source_code_span &) {
   if (sev == diagnostic_severity::note) {

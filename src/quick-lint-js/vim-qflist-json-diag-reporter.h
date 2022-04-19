@@ -16,7 +16,7 @@
 #include <string>
 
 namespace quick_lint_js {
-class vim_qflist_json_error_formatter;
+class vim_qflist_json_diag_formatter;
 
 class vim_qflist_json_diag_reporter final : public diag_reporter {
  public:
@@ -41,13 +41,13 @@ class vim_qflist_json_diag_reporter final : public diag_reporter {
   bool need_comma_ = false;
 };
 
-class vim_qflist_json_error_formatter
-    : public diagnostic_formatter<vim_qflist_json_error_formatter> {
+class vim_qflist_json_diag_formatter
+    : public diagnostic_formatter<vim_qflist_json_diag_formatter> {
  public:
-  explicit vim_qflist_json_error_formatter(output_stream *output,
-                                           quick_lint_js::vim_locator &locator,
-                                           std::string_view file_name,
-                                           std::string_view bufnr);
+  explicit vim_qflist_json_diag_formatter(output_stream *output,
+                                          quick_lint_js::vim_locator &locator,
+                                          std::string_view file_name,
+                                          std::string_view bufnr);
   void write_before_message(std::string_view code, diagnostic_severity,
                             const source_code_span &origin);
   void write_message_part(std::string_view code, diagnostic_severity,

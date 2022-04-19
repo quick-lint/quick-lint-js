@@ -19,12 +19,12 @@ using ::testing::ElementsAre;
 namespace quick_lint_js {
 namespace {
 class basic_text_diag_reporter;
-class basic_text_error_formatter;
+class basic_text_diag_formatter;
 
-class basic_text_error_formatter
-    : public diagnostic_formatter<basic_text_error_formatter> {
+class basic_text_diag_formatter
+    : public diagnostic_formatter<basic_text_diag_formatter> {
  public:
-  explicit basic_text_error_formatter(basic_text_diag_reporter *reporter)
+  explicit basic_text_diag_formatter(basic_text_diag_reporter *reporter)
       : reporter_(reporter) {}
 
   void write_before_message([[maybe_unused]] std::string_view code,
@@ -50,17 +50,17 @@ class basic_text_diag_reporter final : public diag_reporter {
   std::vector<string8> messages() { return this->messages_; }
 
   void report_impl(diag_type type, void *error) override {
-    basic_text_error_formatter formatter(this);
+    basic_text_diag_formatter formatter(this);
     formatter.format(get_diagnostic_info(type), error);
   }
 
  private:
   std::vector<string8> messages_;
 
-  friend basic_text_error_formatter;
+  friend basic_text_diag_formatter;
 };
 
-void basic_text_error_formatter::write_after_message(
+void basic_text_diag_formatter::write_after_message(
     [[maybe_unused]] std::string_view code, diagnostic_severity,
     const source_code_span &) {
   this->reporter_->messages_.emplace_back(std::move(this->current_message_));
