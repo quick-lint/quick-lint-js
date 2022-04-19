@@ -178,7 +178,7 @@ QLJS_WARNING_PUSH
 // is.
 QLJS_WARNING_IGNORE_GCC("-Wstringop-overflow")
 
-std::optional<diag_type> error_type_from_code_slow(
+std::optional<diag_type> diag_type_from_code_slow(
     std::string_view code) noexcept {
   for (int i = 0; i < diag_type_count; ++i) {
     // TODO(strager): Parse the incoming code instead of stringifying each code

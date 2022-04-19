@@ -100,7 +100,7 @@ parsed_diag_code_list parse_diag_code_list(
 
 void compiled_diag_code_list::add(const parsed_diag_code_list& diag_code_list) {
   auto add_code = [this](std::string_view code, auto& code_set) -> void {
-    std::optional<diag_type> code_error_type = error_type_from_code_slow(code);
+    std::optional<diag_type> code_error_type = diag_type_from_code_slow(code);
     if (code_error_type.has_value()) {
       code_set[static_cast<std::size_t>(*code_error_type)] = true;
     } else {

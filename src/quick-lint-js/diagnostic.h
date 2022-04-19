@@ -90,7 +90,7 @@ struct diagnostic_info {
 };
 
 const diagnostic_info &get_diagnostic_info(diag_type) noexcept;
-std::optional<diag_type> error_type_from_code_slow(
+std::optional<diag_type> diag_type_from_code_slow(
     std::string_view code) noexcept;
 }
 
