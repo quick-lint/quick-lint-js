@@ -1,46 +1,45 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_TEXT_ERROR_REPORTER_H
-#define QUICK_LINT_JS_TEXT_ERROR_REPORTER_H
+#ifndef QUICK_LINT_JS_LSP_ERROR_REPORTER_H
+#define QUICK_LINT_JS_LSP_ERROR_REPORTER_H
+
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
 
 #include <optional>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/byte-buffer.h>
+#include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/diagnostic-formatter.h>
 #include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/error-reporter.h>
-#include <quick-lint-js/language.h>
+#include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/options.h>
-#include <quick-lint-js/output-stream.h>
+#include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
+#include <string>
 
 namespace quick_lint_js {
-class text_error_formatter;
+class lsp_error_formatter;
 
-class text_diag_reporter final : public diag_reporter {
+class lsp_diag_reporter final : public diag_reporter {
  public:
-  explicit text_diag_reporter(output_stream *output, bool escape_errors);
+  explicit lsp_diag_reporter(byte_buffer &output, padded_string_view input);
 
-  void set_source(padded_string_view input, const char *file_name);
+  void finish();
 
   void report_impl(diag_type type, void *error) override;
 
  private:
-  output_stream &output_;
-  std::optional<cli_locator> locator_;
-  const char *file_path_;
-  bool format_escape_errors_;
+  byte_buffer &output_;
+  lsp_locator locator_;
+  bool need_comma_ = false;
 };
 
-class text_error_formatter : public diagnostic_formatter<text_error_formatter> {
+class lsp_error_formatter : public diagnostic_formatter<lsp_error_formatter> {
  public:
-  explicit text_error_formatter(output_stream *output, const char *file_path,
-                                cli_locator &locator,
-                                bool format_escape_errors);
-
+  explicit lsp_error_formatter(byte_buffer &output, lsp_locator &);
   void write_before_message(std::string_view code, diagnostic_severity,
                             const source_code_span &origin);
   void write_message_part(std::string_view code, diagnostic_severity,
@@ -49,12 +48,12 @@ class text_error_formatter : public diagnostic_formatter<text_error_formatter> {
                            const source_code_span &origin);
 
  private:
-  output_stream &output_;
-  const char *file_path_;
-  cli_locator &locator_;
-  bool format_escape_errors_;
+  byte_buffer &output_;
+  lsp_locator &locator_;
 };
 }
+
+#endif
 
 #endif
 

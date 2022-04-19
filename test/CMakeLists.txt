@@ -30,7 +30,7 @@ quick_lint_js_add_executable(
   test-array.cpp
   test-assert.cpp
   test-bit.cpp
-  test-buffering-error-reporter.cpp
+  test-buffering-diag-reporter.cpp
   test-buffering-visitor.cpp
   test-byte-buffer.cpp
   test-c-api.cpp
@@ -41,7 +41,7 @@ quick_lint_js_add_executable(
   test-diagnostic-formatter.cpp
   test-diagnostic.cpp
   test-document.cpp
-  test-emacs-lisp-error-reporter.cpp
+  test-emacs-lisp-diag-reporter.cpp
   test-emacs-location.cpp
   test-error-list.cpp
   test-error-matcher.cpp
@@ -59,8 +59,8 @@ quick_lint_js_add_executable(
   test-lint-parse.cpp
   test-lint.cpp
   test-locale.cpp
+  test-lsp-diag-reporter.cpp
   test-lsp-endpoint.cpp
-  test-lsp-error-reporter.cpp
   test-lsp-location.cpp
   test-lsp-message-parser.cpp
   test-lsp-pipe-writer.cpp
@@ -87,7 +87,7 @@ quick_lint_js_add_executable(
   test-simd.cpp
   test-string-view.cpp
   test-temporary-directory.cpp
-  test-text-error-reporter.cpp
+  test-text-diag-reporter.cpp
   test-translation.cpp
   test-uri.cpp
   test-utf-16.cpp
@@ -95,7 +95,7 @@ quick_lint_js_add_executable(
   test-vector-profiler.cpp
   test-vector.cpp
   test-vim-location.cpp
-  test-vim-qflist-json-error-reporter.cpp
+  test-vim-qflist-json-diag-reporter.cpp
   test-web-demo-location.cpp
   test-write-integer.cpp
 )

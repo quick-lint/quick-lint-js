@@ -5,7 +5,7 @@
 #include <array>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
-#include <quick-lint-js/error-reporter.h>
+#include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/global-variables.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/narrow-cast.h>

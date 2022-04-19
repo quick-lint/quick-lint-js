@@ -6,8 +6,8 @@
 
 #include <boost/container/pmr/memory_resource.hpp>
 #include <memory>
+#include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/token.h>
 
 namespace quick_lint_js {

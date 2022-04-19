@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <memory>
-#include <quick-lint-js/c-api-error-reporter.h>
+#include <quick-lint-js/c-api-diag-reporter.h>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/location.h>

@@ -3,7 +3,7 @@
 
 #include <benchmark/benchmark.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/error-reporter.h>
+#include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/padded-string.h>
 

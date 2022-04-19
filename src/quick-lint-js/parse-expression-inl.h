@@ -9,12 +9,12 @@
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/buffering-error-reporter.h>
+#include <quick-lint-js/buffering-diag-reporter.h>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/expression.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/language.h>

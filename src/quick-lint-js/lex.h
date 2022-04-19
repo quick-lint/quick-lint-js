@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
-#include <quick-lint-js/buffering-error-reporter.h>
+#include <quick-lint-js/buffering-diag-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/identifier.h>
 #include <quick-lint-js/linked-bump-allocator.h>

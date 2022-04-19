@@ -9,7 +9,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
-#include <quick-lint-js/vim-qflist-json-error-reporter.h>
+#include <quick-lint-js/vim-qflist-json-diag-reporter.h>
 #include <string>
 
 using namespace std::literals::string_view_literals;

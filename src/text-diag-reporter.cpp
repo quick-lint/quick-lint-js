@@ -7,7 +7,7 @@
 #include <quick-lint-js/optional.h>
 #include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/text-error-reporter.h>
+#include <quick-lint-js/text-diag-reporter.h>
 #include <quick-lint-js/token.h>
 #include <string_view>
 

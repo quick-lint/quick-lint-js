@@ -44,9 +44,9 @@ quick_lint_js_add_library(
   assert.cpp
   basic-configuration-filesystem.cpp
   boost.cpp
-  buffering-error-reporter.cpp
+  buffering-diag-reporter.cpp
   byte-buffer.cpp
-  c-api-error-reporter.cpp
+  c-api-diag-reporter.cpp
   c-api.cpp
   change-detecting-filesystem-inotify.cpp
   change-detecting-filesystem-kqueue.cpp
@@ -59,7 +59,7 @@ quick_lint_js_add_library(
   diagnostic-formatter.cpp
   diagnostic.cpp
   document.cpp
-  emacs-lisp-error-reporter.cpp
+  emacs-lisp-diag-reporter.cpp
   emacs-location.cpp
   error-list.cpp
   file-canonical.cpp
@@ -78,7 +78,7 @@ quick_lint_js_add_library(
   locale.cpp
   location.cpp
   logger.cpp
-  lsp-error-reporter.cpp
+  lsp-diag-reporter.cpp
   lsp-location.cpp
   lsp-message-parser.cpp
   lsp-pipe-writer.cpp
@@ -94,10 +94,10 @@ quick_lint_js_add_library(
   quick-lint-js/assert.h
   quick-lint-js/basic-configuration-filesystem.h
   quick-lint-js/bit.h
-  quick-lint-js/buffering-error-reporter.h
+  quick-lint-js/buffering-diag-reporter.h
   quick-lint-js/buffering-visitor.h
   quick-lint-js/byte-buffer.h
-  quick-lint-js/c-api-error-reporter.h
+  quick-lint-js/c-api-diag-reporter.h
   quick-lint-js/c-api.h
   quick-lint-js/change-detecting-filesystem.h
   quick-lint-js/char8.h
@@ -107,14 +107,14 @@ quick_lint_js_add_library(
   quick-lint-js/consteval.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
+  quick-lint-js/diag-reporter.h
   quick-lint-js/diagnostic-formatter.h
   quick-lint-js/diagnostic-types.h
   quick-lint-js/diagnostic.h
   quick-lint-js/document.h
-  quick-lint-js/emacs-lisp-error-reporter.h
+  quick-lint-js/emacs-lisp-diag-reporter.h
   quick-lint-js/emacs-location.h
   quick-lint-js/error-list.h
-  quick-lint-js/error-reporter.h
   quick-lint-js/error-tape.h
   quick-lint-js/event-loop.h
   quick-lint-js/expression.h
@@ -138,8 +138,8 @@ quick_lint_js_add_library(
   quick-lint-js/location.h
   quick-lint-js/log.h
   quick-lint-js/logger.h
+  quick-lint-js/lsp-diag-reporter.h
   quick-lint-js/lsp-endpoint.h
-  quick-lint-js/lsp-error-reporter.h
   quick-lint-js/lsp-location.h
   quick-lint-js/lsp-message-parser.h
   quick-lint-js/lsp-pipe-writer.h
@@ -161,7 +161,7 @@ quick_lint_js_add_library(
   quick-lint-js/simd.h
   quick-lint-js/simdjson.h
   quick-lint-js/temporary-directory.h
-  quick-lint-js/text-error-reporter.h
+  quick-lint-js/text-diag-reporter.h
   quick-lint-js/thread.h
   quick-lint-js/translation-table-generated.h
   quick-lint-js/translation-table.h
@@ -173,13 +173,13 @@ quick_lint_js_add_library(
   quick-lint-js/vector.h
   quick-lint-js/version.h
   quick-lint-js/vim-location.h
-  quick-lint-js/vim-qflist-json-error-reporter.h
+  quick-lint-js/vim-qflist-json-diag-reporter.h
   quick-lint-js/warning.h
   quick-lint-js/web-demo-location.h
   quick-lint-js/windows.h
   simdjson.cpp
   temporary-directory.cpp
-  text-error-reporter.cpp
+  text-diag-reporter.cpp
   thread.cpp
   translation-table-generated.cpp
   translation.cpp
@@ -187,7 +187,7 @@ quick_lint_js_add_library(
   utf-16.cpp
   utf-8.cpp
   vim-location.cpp
-  vim-qflist-json-error-reporter.cpp
+  vim-qflist-json-diag-reporter.cpp
   web-demo-location.cpp
 )
 target_compile_definitions(

@@ -7,8 +7,8 @@
 #include <iosfwd>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/token.h>
 #include <utility>
 #include <vector>

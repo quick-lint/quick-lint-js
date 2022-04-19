@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <memory>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/c-api-error-reporter.h>
+#include <quick-lint-js/c-api-diag-reporter.h>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>

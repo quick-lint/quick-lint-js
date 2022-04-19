@@ -1,45 +1,60 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LSP_ERROR_REPORTER_H
-#define QUICK_LINT_JS_LSP_ERROR_REPORTER_H
+#ifndef QUICK_LINT_JS_C_API_ERROR_REPORTER_H
+#define QUICK_LINT_JS_C_API_ERROR_REPORTER_H
 
-#if defined(__EMSCRIPTEN__)
-// No LSP on the web.
-#else
-
-#include <optional>
-#include <quick-lint-js/byte-buffer.h>
+#include <cstdint>
+#include <quick-lint-js/char8.h>
+#include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/diagnostic-formatter.h>
 #include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/diagnostic.h>
-#include <quick-lint-js/error-reporter.h>
-#include <quick-lint-js/location.h>
-#include <quick-lint-js/lsp-location.h>
+#include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
-#include <string>
+#include <quick-lint-js/warning.h>
+#include <vector>
+
+struct qljs_web_demo_diagnostic;
 
 namespace quick_lint_js {
-class lsp_error_formatter;
+class lsp_locator;
+class web_demo_locator;
 
-class lsp_diag_reporter final : public diag_reporter {
+template <class Diagnostic, class Locator>
+class c_api_error_formatter;
+
+template <class Diagnostic, class Locator>
+class c_api_diag_reporter final : public diag_reporter {
  public:
-  explicit lsp_diag_reporter(byte_buffer &output, padded_string_view input);
+  explicit c_api_diag_reporter();
 
-  void finish();
+  void set_input(padded_string_view input, const Locator *);
+  void reset();
+
+  const Diagnostic *get_diagnostics();
 
   void report_impl(diag_type type, void *error) override;
 
  private:
-  byte_buffer &output_;
-  lsp_locator locator_;
-  bool need_comma_ = false;
+  char8 *allocate_c_string(string8_view);
+
+  std::vector<Diagnostic> diagnostics_;
+  const Locator *locator_;
+  const char8 *input_;
+  monotonic_allocator string_allocator_;
+
+  friend c_api_error_formatter<Diagnostic, Locator>;
 };
 
-class lsp_error_formatter : public diagnostic_formatter<lsp_error_formatter> {
+template <class Diagnostic, class Locator>
+class c_api_error_formatter
+    : public diagnostic_formatter<c_api_error_formatter<Diagnostic, Locator>> {
  public:
-  explicit lsp_error_formatter(byte_buffer &output, lsp_locator &);
+  explicit c_api_error_formatter(
+      c_api_diag_reporter<Diagnostic, Locator> *reporter);
+
   void write_before_message(std::string_view code, diagnostic_severity,
                             const source_code_span &origin);
   void write_message_part(std::string_view code, diagnostic_severity,
@@ -48,12 +63,20 @@ class lsp_error_formatter : public diagnostic_formatter<lsp_error_formatter> {
                            const source_code_span &origin);
 
  private:
-  byte_buffer &output_;
-  lsp_locator &locator_;
+  c_api_diag_reporter<Diagnostic, Locator> *reporter_;
+  string8 current_message_;
 };
-}
 
-#endif
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_CLANG("-Wweak-template-vtables")
+
+extern template class c_api_error_formatter<qljs_web_demo_diagnostic,
+                                            web_demo_locator>;
+extern template class c_api_diag_reporter<qljs_web_demo_diagnostic,
+                                          web_demo_locator>;
+
+QLJS_WARNING_POP
+}
 
 #endif
 

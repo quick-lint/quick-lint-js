@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/lsp-error-reporter.h>
+#include <quick-lint-js/lsp-diag-reporter.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-json.h>
 #include <sstream>

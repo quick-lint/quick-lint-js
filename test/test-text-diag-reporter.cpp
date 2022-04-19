@@ -9,7 +9,7 @@
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/text-error-reporter.h>
+#include <quick-lint-js/text-diag-reporter.h>
 #include <string>
 
 using namespace std::literals::string_literals;

@@ -11,7 +11,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
-#include <quick-lint-js/emacs-lisp-error-reporter.h>
+#include <quick-lint-js/emacs-lisp-diag-reporter.h>
 #include <quick-lint-js/emacs-location.h>
 #include <quick-lint-js/error-list.h>
 #include <quick-lint-js/error-tape.h>
@@ -28,7 +28,7 @@
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/pipe-writer.h>
-#include <quick-lint-js/text-error-reporter.h>
+#include <quick-lint-js/text-diag-reporter.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
@@ -36,7 +36,7 @@
 #include <quick-lint-js/vector-profiler.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/version.h>
-#include <quick-lint-js/vim-qflist-json-error-reporter.h>
+#include <quick-lint-js/vim-qflist-json-diag-reporter.h>
 #include <string>
 #include <tuple>
 #include <unordered_map>

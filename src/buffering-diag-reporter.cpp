@@ -6,7 +6,7 @@
 #include <deque>
 #include <memory>
 #include <quick-lint-js/allocator.h>
-#include <quick-lint-js/buffering-error-reporter.h>
+#include <quick-lint-js/buffering-diag-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>

@@ -7,7 +7,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-json.h>
 #include <quick-lint-js/vim-location.h>
-#include <quick-lint-js/vim-qflist-json-error-reporter.h>
+#include <quick-lint-js/vim-qflist-json-diag-reporter.h>
 #include <sstream>
 
 namespace quick_lint_js {

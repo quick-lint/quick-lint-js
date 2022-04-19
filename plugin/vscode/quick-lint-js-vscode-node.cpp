@@ -9,11 +9,11 @@
 #include <quick-lint-js/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/diagnostic-formatter.h>
 #include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/document.h>
-#include <quick-lint-js/error-reporter.h>
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/lint.h>
@@ -25,7 +25,7 @@
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/pipe.h>
 #include <quick-lint-js/thread.h>
-#include <quick-lint-js/vscode-error-reporter.h>
+#include <quick-lint-js/vscode-diag-reporter.h>
 #include <quick-lint-js/vscode.h>
 #include <string>
 #include <string_view>
