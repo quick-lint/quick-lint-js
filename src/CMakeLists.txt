@@ -115,7 +115,6 @@ quick_lint_js_add_library(
   quick-lint-js/emacs-lisp-diag-reporter.h
   quick-lint-js/emacs-location.h
   quick-lint-js/error-list.h
-  quick-lint-js/error-tape.h
   quick-lint-js/event-loop.h
   quick-lint-js/expression.h
   quick-lint-js/feature.h
@@ -157,6 +156,7 @@ quick_lint_js_add_library(
   quick-lint-js/parse.h
   quick-lint-js/pipe-writer.h
   quick-lint-js/pipe.h
+  quick-lint-js/reported-diag-statistics.h
   quick-lint-js/result.h
   quick-lint-js/simd.h
   quick-lint-js/simdjson.h

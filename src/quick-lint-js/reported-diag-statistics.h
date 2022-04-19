@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_ERROR_TAPE_H
-#define QUICK_LINT_JS_ERROR_TAPE_H
+#ifndef QUICK_LINT_JS_REPORTED_DIAG_STATISTICS_H
+#define QUICK_LINT_JS_REPORTED_DIAG_STATISTICS_H
 
 #include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/diagnostic-types.h>
@@ -13,9 +13,10 @@
 
 namespace quick_lint_js {
 template <typename T>
-class error_tape final : public diag_reporter {
+class reported_diag_statistics final : public diag_reporter {
  public:
-  explicit error_tape(T reporter, const compiled_error_list *predicate)
+  explicit reported_diag_statistics(T reporter,
+                                    const compiled_error_list *predicate)
       : reporter_(reporter), predicate_(predicate) {}
 
   T *get_reporter() { return &(this->reporter_); }

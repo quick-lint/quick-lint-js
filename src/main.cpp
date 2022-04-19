@@ -14,7 +14,6 @@
 #include <quick-lint-js/emacs-lisp-diag-reporter.h>
 #include <quick-lint-js/emacs-location.h>
 #include <quick-lint-js/error-list.h>
-#include <quick-lint-js/error-tape.h>
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/language.h>
@@ -28,6 +27,7 @@
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/pipe-writer.h>
+#include <quick-lint-js/reported-diag-statistics.h>
 #include <quick-lint-js/text-diag-reporter.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
@@ -78,19 +78,21 @@ class any_diag_reporter {
     switch (format) {
     case output_format::default_format:
     case output_format::gnu_like:
-      return any_diag_reporter(error_tape<text_diag_reporter>(
+      return any_diag_reporter(reported_diag_statistics<text_diag_reporter>(
           text_diag_reporter(
               file_output_stream::get_stderr(),
               /*escape_errors=*/get_escape_errors(escape_errors)),
           exit_fail_on));
     case output_format::vim_qflist_json:
-      return any_diag_reporter(error_tape<vim_qflist_json_diag_reporter>(
-          vim_qflist_json_diag_reporter(file_output_stream::get_stdout()),
-          exit_fail_on));
+      return any_diag_reporter(
+          reported_diag_statistics<vim_qflist_json_diag_reporter>(
+              vim_qflist_json_diag_reporter(file_output_stream::get_stdout()),
+              exit_fail_on));
     case output_format::emacs_lisp:
-      return any_diag_reporter(error_tape<emacs_lisp_diag_reporter>(
-          emacs_lisp_diag_reporter(file_output_stream::get_stdout()),
-          exit_fail_on));
+      return any_diag_reporter(
+          reported_diag_statistics<emacs_lisp_diag_reporter>(
+              emacs_lisp_diag_reporter(file_output_stream::get_stdout()),
+              exit_fail_on));
     }
     QLJS_UNREACHABLE();
   }
@@ -99,13 +101,13 @@ class any_diag_reporter {
     visit(
         [&](auto &r) {
           using reporter_type = std::decay_t<decltype(r)>;
-          if constexpr (std::is_base_of_v<
-                            error_tape<vim_qflist_json_diag_reporter>,
-                            reporter_type>) {
+          if constexpr (std::is_base_of_v<reported_diag_statistics<
+                                              vim_qflist_json_diag_reporter>,
+                                          reporter_type>) {
             r.get_reporter()->set_source(input, file.path, file.vim_bufnr);
-          } else if constexpr (std::is_base_of_v<
-                                   error_tape<emacs_lisp_diag_reporter>,
-                                   reporter_type>) {
+          } else if constexpr (std::is_base_of_v<reported_diag_statistics<
+                                                     emacs_lisp_diag_reporter>,
+                                                 reporter_type>) {
             r.get_reporter()->set_source(input);
           } else {
             r.get_reporter()->set_source(input, file.path);
@@ -126,13 +128,13 @@ class any_diag_reporter {
     visit(
         [&](auto &r) {
           using reporter_type = std::decay_t<decltype(r)>;
-          if constexpr (std::is_base_of_v<
-                            error_tape<vim_qflist_json_diag_reporter>,
-                            reporter_type>) {
+          if constexpr (std::is_base_of_v<reported_diag_statistics<
+                                              vim_qflist_json_diag_reporter>,
+                                          reporter_type>) {
             r.get_reporter()->finish();
-          } else if constexpr (std::is_base_of_v<
-                                   error_tape<emacs_lisp_diag_reporter>,
-                                   reporter_type>) {
+          } else if constexpr (std::is_base_of_v<reported_diag_statistics<
+                                                     emacs_lisp_diag_reporter>,
+                                                 reporter_type>) {
             r.get_reporter()->finish();
           }
         },
@@ -140,9 +142,10 @@ class any_diag_reporter {
   }
 
  private:
-  using tape_variant = variant<error_tape<text_diag_reporter>,
-                               error_tape<vim_qflist_json_diag_reporter>,
-                               error_tape<emacs_lisp_diag_reporter>>;
+  using tape_variant =
+      variant<reported_diag_statistics<text_diag_reporter>,
+              reported_diag_statistics<vim_qflist_json_diag_reporter>,
+              reported_diag_statistics<emacs_lisp_diag_reporter>>;
 
   explicit any_diag_reporter(tape_variant &&tape) : tape_(tape) {}
 
