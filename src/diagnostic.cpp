@@ -57,7 +57,7 @@ std::array<char, 5> error_code_to_string(std::uint16_t error_code) noexcept {
   };
 }
 
-// Convert a QLJS_ERROR_TYPE user into a diagnostic_info.
+// Convert a QLJS_DIAG_TYPE user into a diagnostic_info.
 template <class Error>
 class diagnostic_info_builder {
  public:
@@ -143,7 +143,7 @@ struct diagnostic_info_for_error;
 #define MESSAGE(message_format, ...) \
   .add(message_format, MAKE_ARGS(__VA_ARGS__))
 
-#define QLJS_ERROR_TYPE(name, code, severity, struct_body, format_call)      \
+#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call)       \
   template <>                                                                \
   struct diagnostic_info_for_error<name> {                                   \
     using error_class = name;                                                \
@@ -153,16 +153,16 @@ struct diagnostic_info_for_error;
           format_call.build();                                               \
     }                                                                        \
   };
-QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+QLJS_X_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
 }
 
 DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE const diagnostic_info
     all_diagnostic_infos[] = {
-#define QLJS_ERROR_TYPE(name, code, severity, struct_body, format_call) \
+#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
   diagnostic_info_for_error<name>::get(),
-        QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+        QLJS_X_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
 };
 
 const diagnostic_info& get_diagnostic_info(error_type type) noexcept {

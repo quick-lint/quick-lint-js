@@ -14,10 +14,10 @@ struct error_name_and_code {
   const char* code;
 };
 static constexpr error_name_and_code all_errors[] = {
-#define QLJS_ERROR_TYPE(error_name, error_code, severity, struct_body, format) \
+#define QLJS_DIAG_TYPE(error_name, error_code, severity, struct_body, format) \
   {.name = #error_name, .code = error_code},
-    QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+    QLJS_X_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
 };
 
 std::string next_unused_error_code() {

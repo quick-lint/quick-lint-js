@@ -17,10 +17,10 @@ namespace quick_lint_js {
 namespace {
 TEST(test_error_list, compiled_default_matches_all_errors) {
   compiled_error_list errors;
-#define QLJS_ERROR_TYPE(error_name, error_code, severity, struct_body, format) \
+#define QLJS_DIAG_TYPE(error_name, error_code, severity, struct_body, format) \
   EXPECT_TRUE(errors.is_present(error_type::error_name)) << #error_name;
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+  QLJS_X_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
 
   EXPECT_THAT(errors.parse_errors("--testoption"), IsEmpty());
   EXPECT_THAT(errors.parse_warnings(), IsEmpty());
@@ -76,10 +76,10 @@ TEST(test_error_list, compiled_exclude_all_matches_no_errors) {
   compiled_error_list errors;
   errors.add(parsed_errors);
 
-#define QLJS_ERROR_TYPE(error_name, error_code, severity, struct_body, format) \
+#define QLJS_DIAG_TYPE(error_name, error_code, severity, struct_body, format) \
   EXPECT_FALSE(errors.is_present(error_type::error_name)) << #error_name;
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+  QLJS_X_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
 
   EXPECT_THAT(errors.parse_errors("--testoption"), IsEmpty());
   EXPECT_THAT(errors.parse_warnings(), IsEmpty());

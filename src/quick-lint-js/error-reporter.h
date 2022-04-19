@@ -19,12 +19,12 @@ class error_reporter {
 
   virtual ~error_reporter() = default;
 
-#define QLJS_ERROR_TYPE(name, code, severity, struct_body, format) \
-  void report(name error) {                                        \
-    this->report_impl(error_type_from_type<name>, &error);         \
+#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
+  void report(name error) {                                       \
+    this->report_impl(error_type_from_type<name>, &error);        \
   }
-  QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+  QLJS_X_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
 
   virtual void report_impl(error_type type, void *error) = 0;
 };

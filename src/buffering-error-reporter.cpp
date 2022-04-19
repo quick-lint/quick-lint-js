@@ -21,12 +21,12 @@ struct buffering_error_reporter::impl {
     union underlying_error {
       explicit underlying_error() noexcept {}
 
-#define QLJS_ERROR_TYPE(name, code, severity, struct_body, format)   \
+#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format)    \
   ::quick_lint_js::name name;                                        \
   static_assert(std::is_trivially_copyable_v<::quick_lint_js::name>, \
                 #name " should be trivially copyable");
-      QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+      QLJS_X_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
     };
 
     error_type type;
@@ -58,10 +58,10 @@ buffering_error_reporter::~buffering_error_reporter() = default;
 
 void buffering_error_reporter::report_impl(error_type type, void *error) {
   static constexpr unsigned char error_sizes[] = {
-#define QLJS_ERROR_TYPE(name, code, severity, struct_body, format) \
+#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
   sizeof(::quick_lint_js::name),
-      QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+      QLJS_X_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
   };
 
   impl::any_error &e = this->impl_->errors_.emplace_back();

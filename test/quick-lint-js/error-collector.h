@@ -20,10 +20,10 @@ struct error_collector : public error_reporter {
   // Like std::variant<(error types)>, but with much faster compilation.
   class error {
    public:
-#define QLJS_ERROR_TYPE(name, code, severity, struct_body, format_call) \
+#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
   explicit error(const name &);
-    QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+    QLJS_X_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
 
     error_type type() const noexcept;
     const char *error_code() const noexcept;
@@ -40,10 +40,10 @@ struct error_collector : public error_reporter {
    private:
     error_type type_;
     union {
-#define QLJS_ERROR_TYPE(name, code, severity, struct_body, format_call) \
+#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
   name variant_##name##_;
-      QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+      QLJS_X_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
     };
   };
 
@@ -58,10 +58,10 @@ bool holds_alternative(const error_collector::error &) noexcept;
 
 void PrintTo(const error_collector::error &, std::ostream *);
 
-#define QLJS_ERROR_TYPE(name, code, severity, struct_body, format_call) \
+#define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
   void PrintTo(const name &, std::ostream *);
-QLJS_X_ERROR_TYPES
-#undef QLJS_ERROR_TYPE
+QLJS_X_DIAG_TYPES
+#undef QLJS_DIAG_TYPE
 }
 
 #endif
