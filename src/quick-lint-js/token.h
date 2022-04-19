@@ -311,7 +311,7 @@ struct token {
     // Used only if this is a reserved_keyword_with_escape_sequence token.
     escape_sequence_list* identifier_escape_sequences;
     // Used only if this is a complete_template or incomplete_template token.
-    buffering_diag_reporter* template_escape_sequence_errors;
+    buffering_diag_reporter* template_escape_sequence_diagnostics;
   };
 };
 }

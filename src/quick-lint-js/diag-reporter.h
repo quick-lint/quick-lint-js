@@ -21,7 +21,7 @@ class diag_reporter {
 
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format) \
   void report(name diag) {                                        \
-    this->report_impl(error_type_from_type<name>, &diag);         \
+    this->report_impl(diag_type_from_type<name>, &diag);          \
   }
   QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE

@@ -1644,7 +1644,7 @@ QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 
 template <class Error>
-inline constexpr diag_type error_type_from_type =
+inline constexpr diag_type diag_type_from_type =
     diag_type_from_type_detail<Error>::type;
 
 inline constexpr int diag_type_count = 0

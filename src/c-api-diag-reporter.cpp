@@ -42,7 +42,7 @@ void c_api_diag_reporter<Diagnostic, Locator>::report_impl(diag_type type,
 
 template <class Diagnostic, class Locator>
 const Diagnostic *c_api_diag_reporter<Diagnostic, Locator>::get_diagnostics() {
-  // Null-terminate the returned errors.
+  // Null-terminate the returned diagnostics.
   this->diagnostics_.emplace_back();
 
   return this->diagnostics_.data();

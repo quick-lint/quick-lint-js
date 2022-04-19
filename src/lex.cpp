@@ -132,8 +132,8 @@ void token::report_errors_for_escape_sequences_in_template(
     diag_reporter* reporter) const {
   QLJS_ASSERT(this->type == token_type::complete_template ||
               this->type == token_type::incomplete_template);
-  if (this->template_escape_sequence_errors) {
-    this->template_escape_sequence_errors->move_into(reporter);
+  if (this->template_escape_sequence_diagnostics) {
+    this->template_escape_sequence_diagnostics->move_into(reporter);
   }
 }
 
@@ -575,8 +575,8 @@ bool lexer::try_parse_current_token() {
     this->input_ += 1;
     parsed_template_body body = this->parse_template_body(
         this->input_, this->last_token_.begin, this->diag_reporter_);
-    this->last_token_.template_escape_sequence_errors =
-        body.escape_sequence_errors;
+    this->last_token_.template_escape_sequence_diagnostics =
+        body.escape_sequence_diagnostics;
     this->last_token_.type = body.type;
     this->input_ = body.end;
     this->last_token_.end = this->input_;
@@ -679,7 +679,7 @@ bool lexer::test_for_regexp(const char8* regexp_begin) {
   this->last_token_.begin = this->input_;
   this->reparse_as_regexp();
 
-  bool parsed_ok = !this->transaction_has_lex_errors(transaction);
+  bool parsed_ok = !this->transaction_has_lex_diagnostics(transaction);
   this->roll_back_transaction(std::move(transaction));
   return parsed_ok;
 }
@@ -868,8 +868,8 @@ void lexer::skip_in_template(const char8* template_begin) {
   parsed_template_body body = this->parse_template_body(
       this->input_, template_begin, this->diag_reporter_);
   this->last_token_.type = body.type;
-  this->last_token_.template_escape_sequence_errors =
-      body.escape_sequence_errors;
+  this->last_token_.template_escape_sequence_diagnostics =
+      body.escape_sequence_diagnostics;
   this->input_ = body.end;
   this->last_token_.end = body.end;
 }
@@ -877,7 +877,7 @@ void lexer::skip_in_template(const char8* template_begin) {
 lexer::parsed_template_body lexer::parse_template_body(
     const char8* input, const char8* template_begin,
     diag_reporter* diag_reporter) {
-  buffering_diag_reporter* escape_sequence_errors = nullptr;
+  buffering_diag_reporter* escape_sequence_diagnostics = nullptr;
   const char8* c = input;
   for (;;) {
     switch (*c) {
@@ -886,7 +886,7 @@ lexer::parsed_template_body lexer::parse_template_body(
         diag_reporter->report(
             diag_unclosed_template{source_code_span(template_begin, c)});
         return parsed_template_body{token_type::complete_template, c,
-                                    escape_sequence_errors};
+                                    escape_sequence_diagnostics};
       } else {
         ++c;
         break;
@@ -895,7 +895,7 @@ lexer::parsed_template_body lexer::parse_template_body(
     case '`':
       ++c;
       return parsed_template_body{token_type::complete_template, c,
-                                  escape_sequence_errors};
+                                  escape_sequence_diagnostics};
 
     case '\\': {
       const char8* escape_sequence_start = c;
@@ -906,19 +906,19 @@ lexer::parsed_template_body lexer::parse_template_body(
           diag_reporter->report(
               diag_unclosed_template{source_code_span(template_begin, c)});
           return parsed_template_body{token_type::complete_template, c,
-                                      escape_sequence_errors};
+                                      escape_sequence_diagnostics};
         } else {
           ++c;
           break;
         }
       case 'u': {
-        if (!escape_sequence_errors) {
-          escape_sequence_errors =
+        if (!escape_sequence_diagnostics) {
+          escape_sequence_diagnostics =
               this->allocator_.new_object<buffering_diag_reporter>(
                   &this->allocator_);
         }
         c = this->parse_unicode_escape(escape_sequence_start,
-                                       escape_sequence_errors)
+                                       escape_sequence_diagnostics)
                 .end;
         break;
       }
@@ -933,7 +933,7 @@ lexer::parsed_template_body lexer::parse_template_body(
       if (c[1] == '{') {
         c += 2;
         return parsed_template_body{token_type::incomplete_template, c,
-                                    escape_sequence_errors};
+                                    escape_sequence_diagnostics};
       }
       ++c;
       break;
@@ -1110,9 +1110,9 @@ lexer_transaction lexer::begin_transaction() {
 }
 
 void lexer::commit_transaction(lexer_transaction&& transaction) {
-  buffering_diag_reporter* buffered_errors =
+  buffering_diag_reporter* buffered_diagnostics =
       static_cast<buffering_diag_reporter*>(this->diag_reporter_);
-  buffered_errors->move_into(transaction.old_diag_reporter);
+  buffered_diagnostics->move_into(transaction.old_diag_reporter);
 
   this->diag_reporter_ = transaction.old_diag_reporter;
 }
@@ -1124,11 +1124,11 @@ void lexer::roll_back_transaction(lexer_transaction&& transaction) {
   this->diag_reporter_ = transaction.old_diag_reporter;
 }
 
-bool lexer::transaction_has_lex_errors(const lexer_transaction&) const
+bool lexer::transaction_has_lex_diagnostics(const lexer_transaction&) const
     noexcept {
-  buffering_diag_reporter* buffered_errors =
+  buffering_diag_reporter* buffered_diagnostics =
       static_cast<buffering_diag_reporter*>(this->diag_reporter_);
-  return !buffered_errors->empty();
+  return !buffered_diagnostics->empty();
 }
 
 void lexer::insert_semicolon() {

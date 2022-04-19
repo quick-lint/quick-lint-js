@@ -65,7 +65,7 @@ class lexer {
   // template literal (instead of a '}' token, an 'engineer' token, and the
   // beginning of another template literal).
   //
-  // The given template_begin is used for error reporting.
+  // The given template_begin is used for diagnostic reporting.
   //
   // Precondition: this->peek().type == token_type::right_curly
   void skip_in_template(const char8* template_begin);
@@ -118,8 +118,8 @@ class lexer {
   // You can call begin_transaction again before calling commit_transaction
   // or roll_back_transaction. Doing so begins a nested transaction.
   //
-  // Inside a transaction, errors are not reported until commit_transaction is
-  // called for the outer-most nested transaction.
+  // Inside a transaction, diagnostics are not reported until commit_transaction
+  // is called for the outer-most nested transaction.
   lexer_transaction begin_transaction();
 
   // After calling commit_transaction, it's almost as if you never called
@@ -138,13 +138,13 @@ class lexer {
   // roll_back_transaction effectively undoes calls to skip, insert_semicolon,
   // etc.
   //
-  // Calling roll_back_transaction will not report lexer errors which might have
-  // been reported if it weren't for begin_transaction.
+  // Calling roll_back_transaction will not report lexer diagnostics which might
+  // have been reported if it weren't for begin_transaction.
   void roll_back_transaction(lexer_transaction&&);
 
-  // transaction_has_lex_errors can only be called while the given transaction
-  // is the most recent active transaction.
-  bool transaction_has_lex_errors(const lexer_transaction&) const noexcept;
+  // transaction_has_lex_diagnostics can only be called while the given
+  // transaction is the most recent active transaction.
+  bool transaction_has_lex_diagnostics(const lexer_transaction&) const noexcept;
 
   void insert_semicolon();
 
@@ -172,7 +172,7 @@ class lexer {
     token_type type;
     const char8* end;
     // Might be null.
-    buffering_diag_reporter* escape_sequence_errors;
+    buffering_diag_reporter* escape_sequence_diagnostics;
   };
 
   // The result of parsing an identifier.

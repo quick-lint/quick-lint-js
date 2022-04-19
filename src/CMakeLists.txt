@@ -251,8 +251,8 @@ quick_lint_js_add_library(
   quick-lint-js-lib-debug
   char8-debug.cpp
   cli-location-debug.cpp
+  diag-debug.cpp
   emacs-location-debug.cpp
-  error-debug.cpp
   language-debug.cpp
   lex-debug.cpp
   lsp-location-debug.cpp

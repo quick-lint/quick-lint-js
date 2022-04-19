@@ -121,7 +121,7 @@ class any_diag_reporter {
   }
 
   bool get_error() noexcept {
-    return visit([](auto &r) { return r.found_matching_error(); }, this->tape_);
+    return visit([](auto &r) { return r.found_matching_diag(); }, this->tape_);
   }
 
   void finish() {

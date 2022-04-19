@@ -178,7 +178,7 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
 
   if (!name_has_upper && is_event_attribute) {
     bump_vector<char8, monotonic_allocator> fixed_name(
-        "check_jsx_attribute fixed_name", &this->error_memory_);
+        "check_jsx_attribute fixed_name", &this->diagnostic_memory_);
     fixed_name += name;
     fixed_name[2] = toupper(fixed_name[2]);
     this->diag_reporter_->report(diag_jsx_event_attribute_should_be_camel_case{
@@ -266,7 +266,8 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
     if (is_async_arrow_using_with_await_operator) {
       // await (x) => {}   // Invalid.
       // await () => expr  // Invalid.
-      // We treated 'await' as 'async' elsewhere. Don't report any error here.
+      // We treated 'await' as 'async' elsewhere. Don't report any diagnostic
+      // here.
       return arrow_function;
     } else {
       // f() => {}         // Invalid.
@@ -515,9 +516,9 @@ parser_transaction parser::begin_transaction() {
 }
 
 void parser::commit_transaction(parser_transaction&& transaction) {
-  auto* buffered_errors =
+  auto* buffered_diagnostics =
       static_cast<buffering_diag_reporter*>(this->diag_reporter_);
-  buffered_errors->move_into(transaction.old_diag_reporter);
+  buffered_diagnostics->move_into(transaction.old_diag_reporter);
   this->diag_reporter_ = transaction.old_diag_reporter;
 
   this->lexer_.commit_transaction(std::move(transaction.lex_transaction));

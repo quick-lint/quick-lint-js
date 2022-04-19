@@ -920,7 +920,7 @@ expression* parser::parse_await_expression(Visitor& v, token await_token,
               prec);
         }
         bool parsed_ok = transaction.reporter.empty() &&
-                         !this->lexer_.transaction_has_lex_errors(
+                         !this->lexer_.transaction_has_lex_diagnostics(
                              transaction.lex_transaction);
 
         this->roll_back_transaction(std::move(transaction));
@@ -2768,7 +2768,7 @@ next:
       }
       if (mismatch) {
         bump_vector<char8, monotonic_allocator> opening_tag_name_pretty(
-            "opening_tag_name_pretty", &this->error_memory_);
+            "opening_tag_name_pretty", &this->diagnostic_memory_);
         if (tag_namespace) {
           opening_tag_name_pretty += tag_namespace->span().string_view();
           opening_tag_name_pretty += u8':';

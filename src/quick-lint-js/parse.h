@@ -123,7 +123,7 @@ class parser {
   //
   // If a statement was not parsed (e.g. end of file), then:
   // * no tokens are consumed
-  // * no error is reported
+  // * no diagnostic is reported
   // * this function returns false
   template <QLJS_PARSE_VISITOR Visitor>
   [[nodiscard]] bool parse_and_visit_statement(
@@ -417,8 +417,8 @@ class parser {
   // You can call begin_transaction again before calling commit_transaction
   // or roll_back_transaction. Doing so begins a nested transaction.
   //
-  // Inside a transaction, errors are not reported until commit_transaction is
-  // called for the outer-most nested transaction.
+  // Inside a transaction, diagnostics are not reported until commit_transaction
+  // is called for the outer-most nested transaction.
   //
   // A parser transaction does not cover visits. Use a buffering_visitor
   // if you need to optionally visit.
@@ -443,8 +443,8 @@ class parser {
   // roll_back_transaction effectively undoes calls to parse_expression,
   // skip, etc.
   //
-  // Calling roll_back_transaction will not report parser or lexer errors which
-  // might have been reported if it weren't for begin_transaction.
+  // Calling roll_back_transaction will not report parser or lexer diagnostics
+  // which might have been reported if it weren't for begin_transaction.
   void roll_back_transaction(parser_transaction &&);
 
   [[noreturn]] void crash_on_unimplemented_token(
@@ -536,8 +536,8 @@ class parser {
   // Memory used for temporary memory allocations (e.g. vectors on the stack).
   monotonic_allocator temporary_memory_;
 
-  // Memory used for strings in error messages.
-  monotonic_allocator error_memory_;
+  // Memory used for strings in diagnostic messages.
+  monotonic_allocator diagnostic_memory_;
 
   // These are stored in a stack here (rather than on the C++ stack via local
   // variables) so that memory can be released in case we call setjmp.

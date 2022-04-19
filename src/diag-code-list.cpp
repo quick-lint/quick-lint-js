@@ -38,7 +38,7 @@ parsed_diag_code_list parse_diag_code_list(
     return '0' <= c && c <= '9';
   };
 
-  parsed_diag_code_list errors;
+  parsed_diag_code_list diag_codes;
   std::size_t i = 0;
   bool need_comma = false;
 
@@ -54,15 +54,16 @@ parsed_diag_code_list parse_diag_code_list(
     };
 
     if (raw_diag_code_list[i] == 'E') {
-      (is_include ? errors.included_codes : errors.excluded_codes)
+      (is_include ? diag_codes.included_codes : diag_codes.excluded_codes)
           .emplace_back(parse_word(is_continue_code_character));
       return true;
     } else if (is_initial_category_character(raw_diag_code_list[i])) {
-      (is_include ? errors.included_categories : errors.excluded_categories)
+      (is_include ? diag_codes.included_categories
+                  : diag_codes.excluded_categories)
           .emplace_back(parse_word(is_continue_category_character));
       return true;
     } else {
-      errors.unexpected.emplace_back(&raw_diag_code_list[i], 1);
+      diag_codes.unexpected.emplace_back(&raw_diag_code_list[i], 1);
       return false;
     }
   };
@@ -73,7 +74,7 @@ parsed_diag_code_list parse_diag_code_list(
       break;
     }
     if (need_comma && raw_diag_code_list[i] != ',') {
-      errors.unexpected.emplace_back(&raw_diag_code_list[i], 1);
+      diag_codes.unexpected.emplace_back(&raw_diag_code_list[i], 1);
       break;
     }
     i = i + std::strspn(&raw_diag_code_list[i], " \t,");
@@ -91,18 +92,18 @@ parsed_diag_code_list parse_diag_code_list(
       if (!try_parse_category_or_code(/*is_include=*/true)) {
         break;
       }
-      errors.override_defaults = true;
+      diag_codes.override_defaults = true;
     }
   }
 
-  return errors;
+  return diag_codes;
 }
 
 void compiled_diag_code_list::add(const parsed_diag_code_list& diag_code_list) {
   auto add_code = [this](std::string_view code, auto& code_set) -> void {
-    std::optional<diag_type> code_error_type = diag_type_from_code_slow(code);
-    if (code_error_type.has_value()) {
-      code_set[static_cast<std::size_t>(*code_error_type)] = true;
+    std::optional<diag_type> code_diag_type = diag_type_from_code_slow(code);
+    if (code_diag_type.has_value()) {
+      code_set[static_cast<std::size_t>(*code_diag_type)] = true;
     } else {
       this->unknown_codes_.emplace_back(code);
     }
@@ -164,12 +165,12 @@ bool compiled_diag_code_list::is_present(diag_type type) const noexcept {
   bool is_default = true;  // For now, all codes are enabled by default.
   bool present = true;
   for (const codes& c : this->parsed_diag_code_lists_) {
-    std::size_t error_type_index = static_cast<std::size_t>(type);
-    if (c.override_defaults || c.excluded_codes[error_type_index] ||
+    std::size_t diag_type_index = static_cast<std::size_t>(type);
+    if (c.override_defaults || c.excluded_codes[diag_type_index] ||
         (is_default && contains(c.excluded_categories, "all"))) {
       present = false;
     }
-    if (c.included_codes[error_type_index] ||
+    if (c.included_codes[diag_type_index] ||
         (is_default && contains(c.included_categories, "all"))) {
       present = true;
     }
