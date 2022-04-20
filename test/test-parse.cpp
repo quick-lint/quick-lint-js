@@ -59,17 +59,23 @@ TEST(test_parse, comma_not_allowed_between_class_methods) {
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_comma_not_allowed_between_class_methods,  //
                     unexpected_comma, 44, u8",")));
-    EXPECT_THAT(
-        v.visits,
-        ElementsAre("visit_variable_declaration", "visit_enter_class_scope",
-                    "visit_property_declaration", "visit_enter_function_scope",
-                    "visit_enter_function_scope_body",
-                    "visit_exit_function_scope", "visit_property_declaration",
-                    "visit_enter_function_scope", "visit_variable_declaration",
-                    "visit_enter_function_scope_body",
-                    "visit_enter_block_scope", "visit_variable_use",
-                    "visit_variable_use", "visit_exit_block_scope",
-                    "visit_exit_function_scope", "visit_exit_class_scope"));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       //
+                            "visit_enter_class_scope",          //
+                            "visit_property_declaration",       //
+                            "visit_enter_function_scope",       //
+                            "visit_enter_function_scope_body",  //
+                            "visit_exit_function_scope",        //
+                            "visit_property_declaration",       //
+                            "visit_enter_function_scope",       //
+                            "visit_variable_declaration",       //
+                            "visit_enter_function_scope_body",  //
+                            "visit_enter_block_scope",          //
+                            "visit_variable_use",               //
+                            "visit_variable_use",               //
+                            "visit_exit_block_scope",           //
+                            "visit_exit_function_scope",        //
+                            "visit_exit_class_scope"));
   }
 }
 
