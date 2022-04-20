@@ -1,8 +1,5 @@
 #!/usr/bin/make -f
 
-export CC = gcc-9
-export CXX = g++-9
-
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 # HACK(strager): Work around the following error when

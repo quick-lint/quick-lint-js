@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: build
-        run: ./dist/debian/build.sh
+        run: CC=gcc-9 CXX=g++-9 ./dist/debian/build.sh
 
       - name: upload build to workflow
         uses: actions/upload-artifact@v2
