@@ -9,6 +9,18 @@ set -x
 
 cd "$(dirname "${0}")/../.."
 
+variant=default
+while [ "${#}" -gt 0 ]; do
+  case "${1}" in
+    --xenial) variant=xenial ;;
+    *)
+      printf 'error: unrecognized option: %s\n' >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
 package_version="$(head -n1 version)"
 
 DEB_BUILD_OPTIONS="parallel=$(nproc)"
@@ -22,6 +34,11 @@ tar xzf "quick-lint-js_${package_version}.orig.tar.gz"
 cp -a debian "quick-lint-js-${package_version}/debian"
 
 cd "quick-lint-js-${package_version}/"
+if [ "${variant}" != default ]; then
+  cp -a "debian/rules-${variant}" debian/rules
+fi
+rm debian/rules-*
+
 dpkg-buildpackage -rfakeroot -uc -us
 
 errors="$(mktemp)"

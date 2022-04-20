@@ -1,6 +1,14 @@
 #!/usr/bin/make -f
+# This rules file is for older Debian distributions such as Ubuntu 16.04 Xenial.
 
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+# HACK(strager): Work around the following error when
+# linking quick-lint-js on Ubuntu 16.04 with LTO enabled:
+#
+#   /usr/lib/gcc/x86_64-linux-gnu/9/libstdc++.so: undefined reference to `pthread_create'
+#   /usr/lib/gcc/x86_64-linux-gnu/9/libstdc++.so: undefined reference to `pthread_join'
+export DEB_LDFLAGS_MAINT_APPEND = -fuse-ld=gold
 
 %:
 	dh $@ --parallel

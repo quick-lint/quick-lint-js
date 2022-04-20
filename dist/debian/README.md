@@ -11,6 +11,8 @@ On a Debian-based machine, install dependencies for .deb generation:
 
 Then, run the `build.sh` script:
 
+    # If you are on an old distribution (such as Ubuntu 16.04 Xenial), give
+    # the '--xenial' flag to build.sh.
     $ ./dist/debian/build.sh
 
 The above command will create `dist/debian/quick-lint-js_2.4.1-1_amd64.deb`,
