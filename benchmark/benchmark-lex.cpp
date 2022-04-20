@@ -3,7 +3,7 @@
 
 #include <benchmark/benchmark.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/error-reporter.h>
+#include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/padded-string.h>
 
@@ -12,7 +12,7 @@ namespace {
 void benchmark_lex(::benchmark::State &state, string8_view raw_source) {
   padded_string source(raw_source);
   for (auto _ : state) {
-    lexer l(&source, &null_error_reporter::instance);
+    lexer l(&source, &null_diag_reporter::instance);
     while (l.peek().type != token_type::end_of_file) {
       l.skip();
     }

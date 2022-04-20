@@ -4,7 +4,7 @@
 #include <benchmark/benchmark.h>
 #include <cstdio>
 #include <cstdlib>
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/null-visitor.h>
 #include <quick-lint-js/padded-string.h>
@@ -29,7 +29,7 @@ void benchmark_parse_file(benchmark::State &state) {
   padded_string source = quick_lint_js::read_file_or_exit(source_path);
 
   for (auto _ : state) {
-    parser p(&source, &null_error_reporter::instance);
+    parser p(&source, &null_diag_reporter::instance);
     null_visitor visitor;
     p.parse_and_visit_module(visitor);
   }
@@ -39,7 +39,7 @@ BENCHMARK(benchmark_parse_file);
 void benchmark_parse(benchmark::State &state, string8_view raw_source) {
   padded_string source(raw_source);
   for (auto _ : state) {
-    parser p(&source, &null_error_reporter::instance);
+    parser p(&source, &null_diag_reporter::instance);
     null_visitor visitor;
     p.parse_and_visit_module(visitor);
   }

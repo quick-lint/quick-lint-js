@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/diagnostic.h>
-#include <quick-lint-js/error.h>
 #include <string_view>
 
 using namespace std::literals::string_view_literals;
@@ -14,7 +14,7 @@ namespace quick_lint_js {
 namespace {
 template <class Error>
 inline const diagnostic_info& diagnostic_info_for_error =
-    get_diagnostic_info(error_type_from_type<Error>);
+    get_diagnostic_info(diag_type_from_type<Error>);
 
 TEST(test_diagnostic, diagnostic_info) {
   translatable_messages source_code_messages;
@@ -22,14 +22,14 @@ TEST(test_diagnostic, diagnostic_info) {
 
   {
     const diagnostic_info& info = diagnostic_info_for_error<
-        error_expected_parentheses_around_if_condition>;
+        diag_expected_parentheses_around_if_condition>;
     EXPECT_EQ(info.code, 17);
     EXPECT_EQ(info.severity, diagnostic_severity::error);
     EXPECT_STREQ(source_code_messages.translate(info.message_formats[0]),
                  "if statement needs parentheses around condition");
     EXPECT_EQ(
         info.message_args[0][0].offset(),
-        offsetof(error_expected_parentheses_around_if_condition, condition));
+        offsetof(diag_expected_parentheses_around_if_condition, condition));
     EXPECT_EQ(info.message_args[0][0].type,
               diagnostic_arg_type::source_code_span);
     EXPECT_FALSE(info.message_formats[1].valid());
@@ -37,55 +37,55 @@ TEST(test_diagnostic, diagnostic_info) {
 
   {
     const diagnostic_info& info = diagnostic_info_for_error<
-        error_expected_parenthesis_around_if_condition>;
+        diag_expected_parenthesis_around_if_condition>;
     EXPECT_EQ(info.code, 18);
     EXPECT_EQ(info.severity, diagnostic_severity::error);
     EXPECT_STREQ(source_code_messages.translate(info.message_formats[0]),
                  "if statement is missing '{1}' around condition");
     EXPECT_EQ(info.message_args[0][0].offset(),
-              offsetof(error_expected_parenthesis_around_if_condition, where));
+              offsetof(diag_expected_parenthesis_around_if_condition, where));
     EXPECT_EQ(info.message_args[0][0].type,
               diagnostic_arg_type::source_code_span);
     EXPECT_EQ(info.message_args[0][1].offset(),
-              offsetof(error_expected_parenthesis_around_if_condition, token));
+              offsetof(diag_expected_parenthesis_around_if_condition, token));
     EXPECT_EQ(info.message_args[0][1].type, diagnostic_arg_type::char8);
     EXPECT_FALSE(info.message_formats[1].valid());
   }
 
   {
     const diagnostic_info& info = diagnostic_info_for_error<
-        error_function_call_before_declaration_in_block_scope>;
+        diag_function_call_before_declaration_in_block_scope>;
     EXPECT_EQ(info.code, 77);
     EXPECT_EQ(info.severity, diagnostic_severity::warning);
     EXPECT_STREQ(source_code_messages.translate(info.message_formats[0]),
                  "function called before declaration in block scope: {0}");
     EXPECT_EQ(
         info.message_args[0][0].offset(),
-        offsetof(error_function_call_before_declaration_in_block_scope, use));
+        offsetof(diag_function_call_before_declaration_in_block_scope, use));
     EXPECT_EQ(info.message_args[0][0].type, diagnostic_arg_type::identifier);
     EXPECT_STREQ(source_code_messages.translate(info.message_formats[1]),
                  "function declared here");
     EXPECT_EQ(info.message_args[1][0].offset(),
-              offsetof(error_function_call_before_declaration_in_block_scope,
+              offsetof(diag_function_call_before_declaration_in_block_scope,
                        declaration));
     EXPECT_EQ(info.message_args[1][0].type, diagnostic_arg_type::identifier);
   }
 
   {
     const diagnostic_info& info =
-        diagnostic_info_for_error<error_class_statement_not_allowed_in_body>;
+        diagnostic_info_for_error<diag_class_statement_not_allowed_in_body>;
     EXPECT_EQ(info.code, 149);
     EXPECT_EQ(info.severity, diagnostic_severity::error);
     EXPECT_STREQ(source_code_messages.translate(info.message_formats[0]),
                  "missing body for {1:headlinese}");
     EXPECT_EQ(
         info.message_args[0][0].offset(),
-        offsetof(error_class_statement_not_allowed_in_body, expected_body));
+        offsetof(diag_class_statement_not_allowed_in_body, expected_body));
     EXPECT_EQ(info.message_args[0][0].type,
               diagnostic_arg_type::source_code_span);
     EXPECT_EQ(
         info.message_args[0][1].offset(),
-        offsetof(error_class_statement_not_allowed_in_body, kind_of_statement));
+        offsetof(diag_class_statement_not_allowed_in_body, kind_of_statement));
     EXPECT_EQ(info.message_args[0][1].type,
               diagnostic_arg_type::statement_kind);
     EXPECT_STREQ(
@@ -93,12 +93,12 @@ TEST(test_diagnostic, diagnostic_info) {
         "a class statement is not allowed as the body of {1:singular}");
     EXPECT_EQ(
         info.message_args[1][0].offset(),
-        offsetof(error_class_statement_not_allowed_in_body, class_keyword));
+        offsetof(diag_class_statement_not_allowed_in_body, class_keyword));
     EXPECT_EQ(info.message_args[1][0].type,
               diagnostic_arg_type::source_code_span);
     EXPECT_EQ(
         info.message_args[1][1].offset(),
-        offsetof(error_class_statement_not_allowed_in_body, kind_of_statement));
+        offsetof(diag_class_statement_not_allowed_in_body, kind_of_statement));
     EXPECT_EQ(info.message_args[1][1].type,
               diagnostic_arg_type::statement_kind);
   }

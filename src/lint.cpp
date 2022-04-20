@@ -5,7 +5,7 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/error-reporter.h>
+#include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
@@ -162,9 +162,9 @@ std::vector<string8_view> global_declared_variable_set::get_all_variable_names()
   return result;
 }
 
-linter::linter(error_reporter *error_reporter,
+linter::linter(diag_reporter *diag_reporter,
                const global_declared_variable_set *global_variables)
-    : global_scope_(global_variables), error_reporter_(error_reporter) {}
+    : global_scope_(global_variables), diag_reporter_(diag_reporter) {}
 
 void linter::visit_enter_block_scope() { this->scopes_.push(); }
 
@@ -294,18 +294,17 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
         declared_scope ==
             declared_variable_scope::declared_in_descendant_scope &&
         used_var.kind == used_variable_kind::use) {
-      this->error_reporter_->report(
-          error_function_call_before_declaration_in_block_scope{used_var.name,
-                                                                name});
+      this->diag_reporter_->report(
+          diag_function_call_before_declaration_in_block_scope{used_var.name,
+                                                               name});
     }
     if (used_var.kind == used_variable_kind::_delete) {
       // TODO(strager): What if the variable was parenthesized? We should
       // include the closing parenthesis.
-      this->error_reporter_->report(
-          error_redundant_delete_statement_on_variable{
-              .delete_expression = source_code_span(
-                  used_var.delete_keyword_begin, used_var.name.span().end()),
-          });
+      this->diag_reporter_->report(diag_redundant_delete_statement_on_variable{
+          .delete_expression = source_code_span(used_var.delete_keyword_begin,
+                                                used_var.name.span().end()),
+      });
     }
     if (kind == variable_kind::_class || kind == variable_kind::_const ||
         kind == variable_kind::_let) {
@@ -317,8 +316,8 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
         break;
       case used_variable_kind::_typeof:
       case used_variable_kind::use:
-        this->error_reporter_->report(
-            error_variable_used_before_declaration{used_var.name, name});
+        this->diag_reporter_->report(
+            diag_variable_used_before_declaration{used_var.name, name});
         break;
       case used_variable_kind::_delete:
         // Use before declaration is legal for delete.
@@ -380,7 +379,7 @@ void linter::visit_variable_delete_use(identifier name,
   if (variable_is_declared) {
     // TODO(strager): What if the variable was parenthesized? We should include
     // the closing parenthesis.
-    this->error_reporter_->report(error_redundant_delete_statement_on_variable{
+    this->diag_reporter_->report(diag_redundant_delete_statement_on_variable{
         .delete_expression =
             source_code_span(delete_keyword.begin(), name.span().end()),
     });
@@ -465,8 +464,8 @@ void linter::visit_end_of_module() {
     if (!is_variable_declared(used_var)) {
       switch (used_var.kind) {
       case used_variable_kind::assignment:
-        this->error_reporter_->report(
-            error_assignment_to_undeclared_variable{used_var.name});
+        this->diag_reporter_->report(
+            diag_assignment_to_undeclared_variable{used_var.name});
         break;
       case used_variable_kind::_delete:
         // TODO(strager): Report a warning if the global variable is not
@@ -474,8 +473,8 @@ void linter::visit_end_of_module() {
         break;
       case used_variable_kind::_export:
       case used_variable_kind::use:
-        this->error_reporter_->report(
-            error_use_of_undeclared_variable{used_var.name});
+        this->diag_reporter_->report(
+            diag_use_of_undeclared_variable{used_var.name});
         break;
       case used_variable_kind::_typeof:
         // 'typeof foo' is often used to detect if the variable 'foo' is
@@ -489,13 +488,13 @@ void linter::visit_end_of_module() {
     if (!is_variable_declared(used_var)) {
       switch (used_var.kind) {
       case used_variable_kind::assignment:
-        this->error_reporter_->report(
-            error_assignment_to_undeclared_variable{used_var.name});
+        this->diag_reporter_->report(
+            diag_assignment_to_undeclared_variable{used_var.name});
         break;
       // TODO(strager): Is 'default' correct here?
       default:
-        this->error_reporter_->report(
-            error_use_of_undeclared_variable{used_var.name});
+        this->diag_reporter_->report(
+            diag_use_of_undeclared_variable{used_var.name});
         break;
       }
     }
@@ -614,7 +613,7 @@ void linter::propagate_variable_declarations_to_parent_scope() {
           (already_declared_variable->kind == variable_kind::_const ||
            already_declared_variable->kind == variable_kind::_let ||
            already_declared_variable->kind == variable_kind::_var)) {
-        this->error_reporter_->report(error_unused_variable_shadows{
+        this->diag_reporter_->report(diag_unused_variable_shadows{
             .shadowing_declaration = var.declaration,
             .shadowed_declaration = already_declared_variable->declaration,
         });
@@ -658,16 +657,16 @@ void linter::report_error_if_assignment_is_illegal(
   switch (kind) {
   case variable_kind::_const:
     if (is_global_variable) {
-      this->error_reporter_->report(
-          error_assignment_to_const_global_variable{assignment});
+      this->diag_reporter_->report(
+          diag_assignment_to_const_global_variable{assignment});
     } else {
       if (is_assigned_before_declaration) {
-        this->error_reporter_->report(
-            error_assignment_to_const_variable_before_its_declaration{
+        this->diag_reporter_->report(
+            diag_assignment_to_const_variable_before_its_declaration{
                 *declaration, assignment, kind});
       } else {
-        this->error_reporter_->report(
-            error_assignment_to_const_variable{*declaration, assignment, kind});
+        this->diag_reporter_->report(
+            diag_assignment_to_const_variable{*declaration, assignment, kind});
       }
     }
     break;
@@ -676,8 +675,8 @@ void linter::report_error_if_assignment_is_illegal(
     QLJS_WARNING_PUSH
     QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
 
-    this->error_reporter_->report(
-        error_assignment_to_imported_variable{*declaration, assignment, kind});
+    this->diag_reporter_->report(
+        diag_assignment_to_imported_variable{*declaration, assignment, kind});
 
     QLJS_WARNING_POP
     break;
@@ -691,9 +690,8 @@ void linter::report_error_if_assignment_is_illegal(
       QLJS_WARNING_PUSH
       QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
 
-      this->error_reporter_->report(
-          error_assignment_before_variable_declaration{
-              .assignment = assignment, .declaration = *declaration});
+      this->diag_reporter_->report(diag_assignment_before_variable_declaration{
+          .assignment = assignment, .declaration = *declaration});
 
       QLJS_WARNING_POP
     }
@@ -787,10 +785,10 @@ void linter::report_error_if_variable_declaration_conflicts(
            declared_variable_scope::declared_in_descendant_scope);
   if (!redeclaration_ok) {
     if (already_declared_is_global_variable) {
-      this->error_reporter_->report(
-          error_redeclaration_of_global_variable{newly_declared_name});
+      this->diag_reporter_->report(
+          diag_redeclaration_of_global_variable{newly_declared_name});
     } else {
-      this->error_reporter_->report(error_redeclaration_of_variable{
+      this->diag_reporter_->report(diag_redeclaration_of_variable{
           newly_declared_name, *already_declared});
     }
   }

@@ -5,7 +5,7 @@
 #include <array>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
-#include <quick-lint-js/error-reporter.h>
+#include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/global-variables.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -66,7 +66,7 @@ void configuration::remove_global_variable(string8_view name) {
 }
 
 void configuration::load_from_json(padded_string_view json,
-                                   error_reporter* reporter) {
+                                   diag_reporter* reporter) {
   ::simdjson::ondemand::parser json_parser;
   ::simdjson::ondemand::document document;
   ::simdjson::error_code parse_error =
@@ -113,7 +113,7 @@ void configuration::load_from_json(padded_string_view json,
     ::simdjson::ondemand::value v;
     if (globals.get(v) == ::simdjson::SUCCESS &&
         v.type().error() == ::simdjson::SUCCESS) {
-      reporter->report(error_config_globals_type_mismatch{
+      reporter->report(diag_config_globals_type_mismatch{
           .value = span_of_json_value(v),
       });
     } else {
@@ -145,8 +145,7 @@ void configuration::reset() {
 }
 
 bool configuration::load_global_groups_from_json(
-    ::simdjson::ondemand::value& global_groups_value,
-    error_reporter* reporter) {
+    ::simdjson::ondemand::value& global_groups_value, diag_reporter* reporter) {
   ::simdjson::ondemand::json_type global_groups_value_type;
   if (global_groups_value.type().get(global_groups_value_type) !=
       ::simdjson::SUCCESS) {
@@ -195,7 +194,7 @@ bool configuration::load_global_groups_from_json(
         if (global_group_value.type().error() != ::simdjson::SUCCESS) {
           return false;
         }
-        reporter->report(error_config_global_groups_group_type_mismatch{
+        reporter->report(diag_config_global_groups_group_type_mismatch{
             .group = span_of_json_value(global_group_value),
         });
         break;
@@ -211,7 +210,7 @@ bool configuration::load_global_groups_from_json(
   case ::simdjson::ondemand::json_type::number:
   case ::simdjson::ondemand::json_type::object:
   case ::simdjson::ondemand::json_type::string:
-    reporter->report(error_config_global_groups_type_mismatch{
+    reporter->report(diag_config_global_groups_type_mismatch{
         .value = span_of_json_value(global_groups_value),
     });
     break;
@@ -220,7 +219,7 @@ bool configuration::load_global_groups_from_json(
 }
 
 bool configuration::load_globals_from_json(
-    ::simdjson::ondemand::object& globals_value, error_reporter* reporter) {
+    ::simdjson::ondemand::object& globals_value, diag_reporter* reporter) {
   for (simdjson::simdjson_result<::simdjson::ondemand::field> global_field :
        globals_value) {
     std::string_view key;
@@ -265,13 +264,13 @@ bool configuration::load_globals_from_json(
       bool is_writable;
       bool ok = true;
       if (!this->get_bool_or_default<
-              error_config_globals_descriptor_shadowable_type_mismatch>(
+              diag_config_globals_descriptor_shadowable_type_mismatch>(
               descriptor_object["shadowable"], &is_shadowable, true,
               reporter)) {
         ok = false;
       }
       if (!this->get_bool_or_default<
-              error_config_globals_descriptor_writable_type_mismatch>(
+              diag_config_globals_descriptor_writable_type_mismatch>(
               descriptor_object["writable"], &is_writable, true, reporter)) {
         ok = false;
       }
@@ -288,7 +287,7 @@ bool configuration::load_globals_from_json(
     }
 
     default:
-      reporter->report(error_config_globals_descriptor_type_mismatch{
+      reporter->report(diag_config_globals_descriptor_type_mismatch{
           .descriptor = span_of_json_value(descriptor),
       });
       break;
@@ -393,7 +392,7 @@ bool configuration::should_remove_global_variable(string8_view name) {
 template <class Error>
 bool configuration::get_bool_or_default(
     ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value, bool* out,
-    bool default_value, error_reporter* reporter) {
+    bool default_value, diag_reporter* reporter) {
   ::simdjson::ondemand::value v;
   ::simdjson::error_code error = value.get(v);
   switch (error) {
@@ -415,11 +414,11 @@ bool configuration::get_bool_or_default(
 }
 
 void configuration::report_json_error(padded_string_view json,
-                                      error_reporter* reporter) {
+                                      diag_reporter* reporter) {
   // TODO(strager): Produce better error messages. simdjson provides no location
   // information for errors:
   // https://github.com/simdjson/simdjson/issues/237
-  reporter->report(error_config_json_syntax_error{
+  reporter->report(diag_config_json_syntax_error{
       .where = source_code_span(json.data(), json.data()),
   });
 }

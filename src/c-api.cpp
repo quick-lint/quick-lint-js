@@ -5,12 +5,12 @@
 #include <cstddef>
 #include <memory>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/c-api-error-reporter.h>
+#include <quick-lint-js/c-api-diag-reporter.h>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/document.h>
-#include <quick-lint-js/error.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
@@ -24,29 +24,29 @@ template <class Locator, class ErrorReporter>
 class qljs_document_base {
  public:
   const auto* lint() {
-    this->error_reporter_.reset();
-    this->error_reporter_.set_input(this->document_.string(),
-                                    &this->document_.locator());
+    this->diag_reporter_.reset();
+    this->diag_reporter_.set_input(this->document_.string(),
+                                   &this->document_.locator());
     parser_options p_options;
     p_options.jsx = true;
-    parser p(this->document_.string(), &this->error_reporter_, p_options);
-    linter l(&this->error_reporter_, &this->config_.globals());
+    parser p(this->document_.string(), &this->diag_reporter_, p_options);
+    linter l(&this->diag_reporter_, &this->config_.globals());
     p.parse_and_visit_module_catching_fatal_parse_errors(l);
 
-    return this->error_reporter_.get_diagnostics();
+    return this->diag_reporter_.get_diagnostics();
   }
 
   const auto* lint_as_config_file() {
-    this->error_reporter_.reset();
-    this->error_reporter_.set_input(this->document_.string(),
-                                    &this->document_.locator());
+    this->diag_reporter_.reset();
+    this->diag_reporter_.set_input(this->document_.string(),
+                                   &this->document_.locator());
     configuration().load_from_json(this->document_.string(),
-                                   &this->error_reporter_);
-    return this->error_reporter_.get_diagnostics();
+                                   &this->diag_reporter_);
+    return this->diag_reporter_.get_diagnostics();
   }
 
   quick_lint_js::document<Locator> document_;
-  ErrorReporter error_reporter_;
+  ErrorReporter diag_reporter_;
   configuration config_;
 };
 }
@@ -55,8 +55,8 @@ class qljs_document_base {
 struct qljs_web_demo_document final
     : public quick_lint_js::qljs_document_base<
           quick_lint_js::web_demo_locator,
-          quick_lint_js::c_api_error_reporter<
-              qljs_web_demo_diagnostic, quick_lint_js::web_demo_locator>> {
+          quick_lint_js::c_api_diag_reporter<qljs_web_demo_diagnostic,
+                                             quick_lint_js::web_demo_locator>> {
  public:
   void set_text(quick_lint_js::string8_view replacement) {
     this->document_.set_text(replacement);
@@ -66,7 +66,7 @@ struct qljs_web_demo_document final
     quick_lint_js::padded_string padded_text(text);
     this->config_.reset();
     this->config_.load_from_json(&padded_text,
-                                 &quick_lint_js::null_error_reporter::instance);
+                                 &quick_lint_js::null_diag_reporter::instance);
   }
 };
 

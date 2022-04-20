@@ -44,9 +44,10 @@ quick_lint_js_add_library(
   assert.cpp
   basic-configuration-filesystem.cpp
   boost.cpp
-  buffering-error-reporter.cpp
+  buffering-diag-reporter.cpp
+  buffering-visitor.cpp
   byte-buffer.cpp
-  c-api-error-reporter.cpp
+  c-api-diag-reporter.cpp
   c-api.cpp
   change-detecting-filesystem-inotify.cpp
   change-detecting-filesystem-kqueue.cpp
@@ -56,12 +57,12 @@ quick_lint_js_add_library(
   cli-location.cpp
   configuration-loader.cpp
   configuration.cpp
+  diag-code-list.cpp
   diagnostic-formatter.cpp
   diagnostic.cpp
   document.cpp
-  emacs-lisp-error-reporter.cpp
+  emacs-lisp-diag-reporter.cpp
   emacs-location.cpp
-  error-list.cpp
   file-canonical.cpp
   file-handle.cpp
   file-path.cpp
@@ -78,7 +79,7 @@ quick_lint_js_add_library(
   locale.cpp
   location.cpp
   logger.cpp
-  lsp-error-reporter.cpp
+  lsp-diag-reporter.cpp
   lsp-location.cpp
   lsp-message-parser.cpp
   lsp-pipe-writer.cpp
@@ -86,6 +87,8 @@ quick_lint_js_add_library(
   options.cpp
   output-stream.cpp
   padded-string.cpp
+  parse-expression.cpp
+  parse-statement.cpp
   parse.cpp
   pipe-writer.cpp
   pipe.cpp
@@ -94,10 +97,10 @@ quick_lint_js_add_library(
   quick-lint-js/assert.h
   quick-lint-js/basic-configuration-filesystem.h
   quick-lint-js/bit.h
-  quick-lint-js/buffering-error-reporter.h
+  quick-lint-js/buffering-diag-reporter.h
   quick-lint-js/buffering-visitor.h
   quick-lint-js/byte-buffer.h
-  quick-lint-js/c-api-error-reporter.h
+  quick-lint-js/c-api-diag-reporter.h
   quick-lint-js/c-api.h
   quick-lint-js/change-detecting-filesystem.h
   quick-lint-js/char8.h
@@ -107,15 +110,14 @@ quick_lint_js_add_library(
   quick-lint-js/consteval.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
+  quick-lint-js/diag-code-list.h
+  quick-lint-js/diag-reporter.h
   quick-lint-js/diagnostic-formatter.h
+  quick-lint-js/diagnostic-types.h
   quick-lint-js/diagnostic.h
   quick-lint-js/document.h
-  quick-lint-js/emacs-lisp-error-reporter.h
+  quick-lint-js/emacs-lisp-diag-reporter.h
   quick-lint-js/emacs-location.h
-  quick-lint-js/error-list.h
-  quick-lint-js/error-reporter.h
-  quick-lint-js/error-tape.h
-  quick-lint-js/error.h
   quick-lint-js/event-loop.h
   quick-lint-js/expression.h
   quick-lint-js/feature.h
@@ -138,8 +140,8 @@ quick_lint_js_add_library(
   quick-lint-js/location.h
   quick-lint-js/log.h
   quick-lint-js/logger.h
+  quick-lint-js/lsp-diag-reporter.h
   quick-lint-js/lsp-endpoint.h
-  quick-lint-js/lsp-error-reporter.h
   quick-lint-js/lsp-location.h
   quick-lint-js/lsp-message-parser.h
   quick-lint-js/lsp-pipe-writer.h
@@ -151,17 +153,16 @@ quick_lint_js_add_library(
   quick-lint-js/options.h
   quick-lint-js/output-stream.h
   quick-lint-js/padded-string.h
-  quick-lint-js/parse-expression-inl.h
-  quick-lint-js/parse-statement-inl.h
   quick-lint-js/parse-visitor.h
   quick-lint-js/parse.h
   quick-lint-js/pipe-writer.h
   quick-lint-js/pipe.h
+  quick-lint-js/reported-diag-statistics.h
   quick-lint-js/result.h
   quick-lint-js/simd.h
   quick-lint-js/simdjson.h
   quick-lint-js/temporary-directory.h
-  quick-lint-js/text-error-reporter.h
+  quick-lint-js/text-diag-reporter.h
   quick-lint-js/thread.h
   quick-lint-js/translation-table-generated.h
   quick-lint-js/translation-table.h
@@ -173,13 +174,13 @@ quick_lint_js_add_library(
   quick-lint-js/vector.h
   quick-lint-js/version.h
   quick-lint-js/vim-location.h
-  quick-lint-js/vim-qflist-json-error-reporter.h
+  quick-lint-js/vim-qflist-json-diag-reporter.h
   quick-lint-js/warning.h
   quick-lint-js/web-demo-location.h
   quick-lint-js/windows.h
   simdjson.cpp
   temporary-directory.cpp
-  text-error-reporter.cpp
+  text-diag-reporter.cpp
   thread.cpp
   translation-table-generated.cpp
   translation.cpp
@@ -187,7 +188,7 @@ quick_lint_js_add_library(
   utf-16.cpp
   utf-8.cpp
   vim-location.cpp
-  vim-qflist-json-error-reporter.cpp
+  vim-qflist-json-diag-reporter.cpp
   web-demo-location.cpp
 )
 target_compile_definitions(
@@ -251,8 +252,8 @@ quick_lint_js_add_library(
   quick-lint-js-lib-debug
   char8-debug.cpp
   cli-location-debug.cpp
+  diag-debug.cpp
   emacs-location-debug.cpp
-  error-debug.cpp
   language-debug.cpp
   lex-debug.cpp
   lsp-location-debug.cpp

@@ -11,10 +11,6 @@
 #include <string>
 
 namespace quick_lint_js {
-template void parser::parse_and_visit_module<spy_visitor>(spy_visitor& v);
-template bool parser::parse_and_visit_statement<spy_visitor>(
-    spy_visitor& v, parser::parse_statement_type);
-
 string8 escape_first_character_in_keyword(string8_view keyword) {
   constexpr char8 alphabet[] = u8"0123456789abcdef";
   string8 result;

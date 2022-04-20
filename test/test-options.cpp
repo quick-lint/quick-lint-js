@@ -5,8 +5,8 @@
 #include <gtest/gtest.h>
 #include <initializer_list>
 #include <iostream>
-#include <quick-lint-js/error-list.h>
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/diag-code-list.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/output-stream.h>
@@ -410,11 +410,11 @@ TEST(test_options, print_version) {
 TEST(test_options, exit_fail_on) {
   {
     options o = parse_options({"--exit-fail-on=E0003", "file.js"});
-    EXPECT_TRUE(o.exit_fail_on.is_present(
-        error_type::error_assignment_to_const_variable))
+    EXPECT_TRUE(
+        o.exit_fail_on.is_present(diag_type::diag_assignment_to_const_variable))
         << "E0003 should cause failure";
     EXPECT_FALSE(o.exit_fail_on.is_present(
-        error_type::error_big_int_literal_contains_decimal_point))
+        diag_type::diag_big_int_literal_contains_decimal_point))
         << "E0005 should not cause failure";
   }
 }
@@ -495,7 +495,7 @@ TEST(test_options, dump_errors) {
   {
     options o;
 
-    parsed_error_list parsed_errors;
+    parsed_diag_code_list parsed_errors;
     parsed_errors.included_categories.emplace_back("banana");
     parsed_errors.excluded_codes.emplace_back("E9999");
     o.exit_fail_on.add(parsed_errors);
@@ -511,7 +511,7 @@ TEST(test_options, dump_errors) {
 
   {
     options o;
-    o.exit_fail_on.add(parsed_error_list());
+    o.exit_fail_on.add(parsed_diag_code_list());
 
     memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
@@ -590,7 +590,7 @@ TEST(test_options, dump_errors) {
   {
     options o;
     o.lsp_server = true;
-    o.exit_fail_on.add(parse_error_list("E0001"));
+    o.exit_fail_on.add(parse_diag_code_list("E0001"));
 
     memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);

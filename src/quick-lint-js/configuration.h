@@ -17,7 +17,7 @@
 #include <vector>
 
 namespace quick_lint_js {
-class error_reporter;
+class diag_reporter;
 
 class configuration {
  public:
@@ -32,7 +32,7 @@ class configuration {
   void add_global_variable(global_declared_variable);
   void remove_global_variable(string8_view name);
 
-  void load_from_json(padded_string_view, error_reporter*);
+  void load_from_json(padded_string_view, diag_reporter*);
 
   void reset();
 
@@ -41,9 +41,8 @@ class configuration {
   bool errors_were_reported = false;
 
  private:
-  bool load_global_groups_from_json(simdjson::ondemand::value&,
-                                    error_reporter*);
-  bool load_globals_from_json(simdjson::ondemand::object&, error_reporter*);
+  bool load_global_groups_from_json(simdjson::ondemand::value&, diag_reporter*);
+  bool load_globals_from_json(simdjson::ondemand::object&, diag_reporter*);
 
   bool should_remove_global_variable(string8_view name);
 
@@ -53,9 +52,9 @@ class configuration {
   template <class Error>
   bool get_bool_or_default(
       ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value,
-      bool* out, bool default_value, error_reporter*);
+      bool* out, bool default_value, diag_reporter*);
 
-  void report_json_error(padded_string_view json, error_reporter*);
+  void report_json_error(padded_string_view json, diag_reporter*);
 
   global_declared_variable_set globals_;
   std::vector<string8> globals_to_remove_;

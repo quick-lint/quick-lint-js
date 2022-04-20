@@ -9,8 +9,8 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/error-reporter.h>
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/diag-reporter.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/expression.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/language.h>
@@ -60,12 +60,12 @@ struct parser_transaction {
   // Private to parser's transaction functions. Do not construct, read, or
   // modify.
 
-  explicit parser_transaction(lexer *l, error_reporter **error_reporter_pointer,
+  explicit parser_transaction(lexer *l, diag_reporter **diag_reporter_pointer,
                               monotonic_allocator *allocator);
 
   lexer_transaction lex_transaction;
-  buffering_error_reporter reporter;
-  error_reporter *old_error_reporter;
+  buffering_diag_reporter reporter;
+  diag_reporter *old_diag_reporter;
 };
 
 // A parser reads JavaScript source code and calls the member functions of a
@@ -80,8 +80,8 @@ class parser {
   class depth_guard;
 
  public:
-  explicit parser(padded_string_view input, error_reporter *error_reporter);
-  explicit parser(padded_string_view input, error_reporter *error_reporter,
+  explicit parser(padded_string_view input, diag_reporter *diag_reporter);
+  explicit parser(padded_string_view input, diag_reporter *diag_reporter,
                   parser_options options);
 
   quick_lint_js::lexer &lexer() noexcept { return this->lexer_; }
@@ -94,8 +94,8 @@ class parser {
   // called.
   //
   // Returns false if QLJS_PARSER_UNIMPLEMENTED was called.
-  template <QLJS_PARSE_VISITOR Visitor>
-  bool parse_and_visit_module_catching_fatal_parse_errors(Visitor &v) {
+  bool parse_and_visit_module_catching_fatal_parse_errors(
+      parse_visitor_base &v) {
     this->have_fatal_parse_error_jmp_buf_ = true;
     bool ok;
     if (setjmp(this->fatal_parse_error_jmp_buf_) == 0) {
@@ -110,8 +110,7 @@ class parser {
   }
 #endif
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_module(Visitor &v);
+  void parse_and_visit_module(parse_visitor_base &v);
 
   enum class parse_statement_type {
     any_statement,
@@ -123,21 +122,18 @@ class parser {
   //
   // If a statement was not parsed (e.g. end of file), then:
   // * no tokens are consumed
-  // * no error is reported
+  // * no diagnostic is reported
   // * this function returns false
-  template <QLJS_PARSE_VISITOR Visitor>
   [[nodiscard]] bool parse_and_visit_statement(
-      Visitor &v, parse_statement_type statement_type =
-                      parse_statement_type::any_statement);
+      parse_visitor_base &v, parse_statement_type statement_type =
+                                 parse_statement_type::any_statement);
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_expression(Visitor &v) {
+  void parse_and_visit_expression(parse_visitor_base &v) {
     this->parse_and_visit_expression(v, precedence{});
   }
 
   // The Visitor is only used for the bodies of arrow and function expressions.
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_expression(Visitor &v) {
+  expression *parse_expression(parse_visitor_base &v) {
     return this->parse_expression(v, precedence{});
   }
 
@@ -147,20 +143,15 @@ class parser {
     rhs,
   };
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void visit_expression(expression *ast, Visitor &v, variable_context context);
-  template <QLJS_PARSE_VISITOR Visitor>
+  void visit_expression(expression *ast, parse_visitor_base &v,
+                        variable_context context);
   void visit_assignment_expression(expression *lhs, expression *rhs,
-                                   Visitor &v);
-  template <QLJS_PARSE_VISITOR Visitor>
-  void visit_compound_or_conditional_assignment_expression(expression *lhs,
-                                                           expression *rhs,
-                                                           Visitor &v);
-  template <QLJS_PARSE_VISITOR Visitor>
-  void maybe_visit_assignment(expression *ast, Visitor &v);
+                                   parse_visitor_base &v);
+  void visit_compound_or_conditional_assignment_expression(
+      expression *lhs, expression *rhs, parse_visitor_base &v);
+  void maybe_visit_assignment(expression *ast, parse_visitor_base &v);
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_statement_block_no_scope(Visitor &v);
+  void parse_and_visit_statement_block_no_scope(parse_visitor_base &v);
 
   enum class name_requirement {
     optional,
@@ -168,21 +159,17 @@ class parser {
     required_for_statement,
   };
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_function_declaration(Visitor &v,
+  void parse_and_visit_function_declaration(parse_visitor_base &v,
                                             function_attributes attributes,
                                             const char8 *begin,
                                             name_requirement require_name);
-  template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_function_parameters_and_body(
-      Visitor &v, std::optional<source_code_span> name,
+      parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
-  template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_function_parameters_and_body_no_scope(
-      Visitor &v, std::optional<source_code_span> name,
+      parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_function_parameters(Visitor &v);
+  void parse_and_visit_function_parameters(parse_visitor_base &v);
   std::optional<source_code_span> is_maybe_function_statement();
   // If the function returns nullopt, no tokens are consumed.
   //
@@ -192,40 +179,31 @@ class parser {
   // In this case `*async` is consumed.
   std::optional<function_attributes> try_parse_function_with_leading_star();
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_class(Visitor &v, name_requirement require_name);
+  void parse_and_visit_class(parse_visitor_base &v,
+                             name_requirement require_name);
   // Parse the 'class' keyword, the class's optional name, and any extends
   // clause.
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_class_heading(Visitor &v, name_requirement require_name);
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_class_body(Visitor &v);
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_class_member(Visitor &v);
+  void parse_and_visit_class_heading(parse_visitor_base &v,
+                                     name_requirement require_name);
+  void parse_and_visit_class_body(parse_visitor_base &v);
+  void parse_and_visit_class_member(parse_visitor_base &v);
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_try_maybe_catch_maybe_finally(Visitor &v);
-  template <QLJS_PARSE_VISITOR Visitor>
-  [[nodiscard]] bool parse_and_visit_catch_or_finally_or_both(Visitor &v);
+  void parse_and_visit_try_maybe_catch_maybe_finally(parse_visitor_base &v);
+  [[nodiscard]] bool parse_and_visit_catch_or_finally_or_both(
+      parse_visitor_base &v);
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_do_while(Visitor &v);
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_for(Visitor &v);
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_while(Visitor &v);
+  void parse_and_visit_do_while(parse_visitor_base &v);
+  void parse_and_visit_for(parse_visitor_base &v);
+  void parse_and_visit_while(parse_visitor_base &v);
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_if(Visitor &v);
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_switch(Visitor &v);
+  void parse_and_visit_if(parse_visitor_base &v);
+  void parse_and_visit_switch(parse_visitor_base &v);
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_with(Visitor &v);
+  void parse_and_visit_with(parse_visitor_base &v);
 
   template <class ExpectedParenthesesError, class ExpectedParenthesisError,
-            bool CheckForSketchyConditions, QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_parenthesized_expression(Visitor &v);
+            bool CheckForSketchyConditions>
+  void parse_and_visit_parenthesized_expression(parse_visitor_base &v);
 
   void error_on_sketchy_condition(expression *);
 
@@ -233,42 +211,33 @@ class parser {
   void error_on_lexical_declaration(statement_kind statement_kind);
   void error_on_function_statement(statement_kind statement_kind);
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_import(Visitor &v);
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_name_space_import(Visitor &v);
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_named_exports_for_import(Visitor &v);
+  void parse_and_visit_import(parse_visitor_base &v);
+  void parse_and_visit_name_space_import(parse_visitor_base &v);
+  void parse_and_visit_named_exports_for_import(parse_visitor_base &v);
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_export(Visitor &v);
-  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_export(parse_visitor_base &v);
   void parse_and_visit_named_exports_for_export(
-      Visitor &v,
+      parse_visitor_base &v,
       bump_vector<token, monotonic_allocator> &out_exported_bad_tokens);
-  template <QLJS_PARSE_VISITOR Visitor>
   void parse_and_visit_named_exports(
-      Visitor &v,
+      parse_visitor_base &v,
       bump_vector<token, monotonic_allocator> *out_exported_bad_tokens);
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_variable_declaration_statement(Visitor &v);
-  template <QLJS_PARSE_VISITOR Visitor>
+  void parse_and_visit_variable_declaration_statement(parse_visitor_base &v);
   void parse_and_visit_let_bindings(
-      Visitor &v, token declaring_token, bool allow_in_operator,
+      parse_visitor_base &v, token declaring_token, bool allow_in_operator,
       bool allow_const_without_initializer = false,
       bool is_in_for_initializer = false);
   // declaring_token is the const/let/var token.
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_let_bindings(Visitor &v, token declaring_token,
+  void parse_and_visit_let_bindings(parse_visitor_base &v,
+                                    token declaring_token,
                                     variable_kind declaration_kind,
                                     bool allow_in_operator,
                                     bool allow_const_without_initializer,
                                     bool is_in_for_initializer);
   bool is_let_token_a_variable_reference(token following_token,
                                          bool allow_declarations) noexcept;
-  template <QLJS_PARSE_VISITOR Visitor>
-  void visit_binding_element(expression *ast, Visitor &v,
+  void visit_binding_element(expression *ast, parse_visitor_base &v,
                              variable_kind declaration_kind,
                              std::optional<source_code_span> declaring_token,
                              variable_init_kind init_kind);
@@ -326,8 +295,7 @@ class parser {
     expression_arena::vector<source_code_span> operator_spans_;
   };
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_and_visit_expression(Visitor &v, precedence prec) {
+  void parse_and_visit_expression(parse_visitor_base &v, precedence prec) {
     monotonic_allocator &alloc = *this->expressions_.allocator();
     auto rewind_guard = alloc.make_rewind_guard();
 
@@ -338,64 +306,52 @@ class parser {
     }
   }
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_expression(Visitor &, precedence);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_primary_expression(Visitor &, precedence);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_async_expression(Visitor &, token async_token, precedence);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_async_expression_only(Visitor &, token async_token,
+  expression *parse_expression(parse_visitor_base &, precedence);
+  expression *parse_primary_expression(parse_visitor_base &, precedence);
+  expression *parse_async_expression(parse_visitor_base &, token async_token,
+                                     precedence);
+  expression *parse_async_expression_only(parse_visitor_base &,
+                                          token async_token,
                                           bool allow_in_operator);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_await_expression(Visitor &, token await_token,
+  expression *parse_await_expression(parse_visitor_base &, token await_token,
                                      precedence prec);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_expression_remainder(Visitor &, expression *, precedence);
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_arrow_function_expression_remainder(Visitor &,
+  expression *parse_expression_remainder(parse_visitor_base &, expression *,
+                                         precedence);
+  void parse_arrow_function_expression_remainder(parse_visitor_base &,
                                                  source_code_span arrow_span,
                                                  binary_expression_builder &,
                                                  bool allow_in_operator);
   // Precondition: Current token is '=>'.
-  template <QLJS_PARSE_VISITOR Visitor>
-  void parse_arrow_function_expression_remainder(Visitor &,
+  void parse_arrow_function_expression_remainder(parse_visitor_base &,
                                                  binary_expression_builder &,
                                                  bool allow_in_operator);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_call_expression_remainder(Visitor &, expression *callee);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_index_expression_remainder(Visitor &, expression *lhs);
-  template <QLJS_PARSE_VISITOR Visitor>
+  expression *parse_call_expression_remainder(parse_visitor_base &,
+                                              expression *callee);
+  expression *parse_index_expression_remainder(parse_visitor_base &,
+                                               expression *lhs);
   expression *parse_arrow_function_body(
-      Visitor &, function_attributes, const char8 *parameter_list_begin,
-      bool allow_in_operator,
+      parse_visitor_base &, function_attributes,
+      const char8 *parameter_list_begin, bool allow_in_operator,
       expression_arena::array_ptr<expression *> &&parameters);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_function_expression(Visitor &, function_attributes,
+  expression *parse_function_expression(parse_visitor_base &,
+                                        function_attributes,
                                         const char8 *span_begin);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_object_literal(Visitor &);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_class_expression(Visitor &);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_jsx_expression(Visitor &);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_jsx_element_or_fragment(Visitor &);
+  expression *parse_object_literal(parse_visitor_base &);
+  expression *parse_class_expression(parse_visitor_base &);
+  expression *parse_jsx_expression(parse_visitor_base &);
+  expression *parse_jsx_element_or_fragment(parse_visitor_base &);
   // tag is optional. If it is nullptr, parse a fragment. Otherwise, parse an
   // element.
   //
   // Precondition: previous token was '<' (for fragments) or an identifier (for
   //               elements).
   // Postcondition: current token is '>' or end_of_file.
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_jsx_element_or_fragment(Visitor &, identifier *tag,
+  expression *parse_jsx_element_or_fragment(parse_visitor_base &,
+                                            identifier *tag,
                                             const char8 *less_begin);
   void check_jsx_attribute(const identifier &attribute_name);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_tagged_template(Visitor &, expression *tag);
-  template <QLJS_PARSE_VISITOR Visitor>
-  expression *parse_untagged_template(Visitor &);
+  expression *parse_tagged_template(parse_visitor_base &, expression *tag);
+  expression *parse_untagged_template(parse_visitor_base &);
 
   function_attributes parse_generator_star(function_attributes);
 
@@ -417,8 +373,8 @@ class parser {
   // You can call begin_transaction again before calling commit_transaction
   // or roll_back_transaction. Doing so begins a nested transaction.
   //
-  // Inside a transaction, errors are not reported until commit_transaction is
-  // called for the outer-most nested transaction.
+  // Inside a transaction, diagnostics are not reported until commit_transaction
+  // is called for the outer-most nested transaction.
   //
   // A parser transaction does not cover visits. Use a buffering_visitor
   // if you need to optionally visit.
@@ -443,8 +399,8 @@ class parser {
   // roll_back_transaction effectively undoes calls to parse_expression,
   // skip, etc.
   //
-  // Calling roll_back_transaction will not report parser or lexer errors which
-  // might have been reported if it weren't for begin_transaction.
+  // Calling roll_back_transaction will not report parser or lexer diagnostics
+  // which might have been reported if it weren't for begin_transaction.
   void roll_back_transaction(parser_transaction &&);
 
   [[noreturn]] void crash_on_unimplemented_token(
@@ -529,15 +485,15 @@ class parser {
   };
 
   quick_lint_js::lexer lexer_;
-  error_reporter *error_reporter_;
+  diag_reporter *diag_reporter_;
   parser_options options_;
   quick_lint_js::expression_arena expressions_;
 
   // Memory used for temporary memory allocations (e.g. vectors on the stack).
   monotonic_allocator temporary_memory_;
 
-  // Memory used for strings in error messages.
-  monotonic_allocator error_memory_;
+  // Memory used for strings in diagnostic messages.
+  monotonic_allocator diagnostic_memory_;
 
   // These are stored in a stack here (rather than on the C++ stack via local
   // variables) so that memory can be released in case we call setjmp.
@@ -584,10 +540,45 @@ class parser {
   [[nodiscard]] loop_guard enter_loop();
   [[nodiscard]] class_guard enter_class();
 };
-}
 
-#include <quick-lint-js/parse-expression-inl.h>
-#include <quick-lint-js/parse-statement-inl.h>
+template <class ExpectedParenthesesError, class ExpectedParenthesisError,
+          bool CheckForSketchyConditions>
+void parser::parse_and_visit_parenthesized_expression(parse_visitor_base &v) {
+  bool have_expression_left_paren = this->peek().type == token_type::left_paren;
+  if (have_expression_left_paren) {
+    this->skip();
+  }
+  const char8 *expression_begin = this->peek().begin;
+
+  expression *ast = this->parse_expression(v);
+  this->visit_expression(ast, v, variable_context::rhs);
+  if constexpr (CheckForSketchyConditions) {
+    this->error_on_sketchy_condition(ast);
+  }
+
+  const char8 *expression_end = this->lexer_.end_of_previous_token();
+  bool have_expression_right_paren =
+      this->peek().type == token_type::right_paren;
+  if (have_expression_right_paren) {
+    this->skip();
+  }
+
+  if (!have_expression_left_paren && !have_expression_right_paren) {
+    this->diag_reporter_->report(ExpectedParenthesesError{
+        source_code_span(expression_begin, expression_end)});
+  } else if (!have_expression_right_paren) {
+    this->diag_reporter_->report(ExpectedParenthesisError{
+        .where = source_code_span(expression_end, expression_end),
+        .token = ')',
+    });
+  } else if (!have_expression_left_paren) {
+    this->diag_reporter_->report(ExpectedParenthesisError{
+        .where = source_code_span(expression_begin, expression_begin),
+        .token = '(',
+    });
+  }
+}
+}
 
 #endif
 

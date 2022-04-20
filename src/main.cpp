@@ -11,10 +11,9 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
-#include <quick-lint-js/emacs-lisp-error-reporter.h>
+#include <quick-lint-js/diag-code-list.h>
+#include <quick-lint-js/emacs-lisp-diag-reporter.h>
 #include <quick-lint-js/emacs-location.h>
-#include <quick-lint-js/error-list.h>
-#include <quick-lint-js/error-tape.h>
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/language.h>
@@ -28,7 +27,8 @@
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/pipe-writer.h>
-#include <quick-lint-js/text-error-reporter.h>
+#include <quick-lint-js/reported-diag-statistics.h>
+#include <quick-lint-js/text-diag-reporter.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
@@ -36,7 +36,7 @@
 #include <quick-lint-js/vector-profiler.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/version.h>
-#include <quick-lint-js/vim-qflist-json-error-reporter.h>
+#include <quick-lint-js/vim-qflist-json-diag-reporter.h>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -71,27 +71,28 @@ bool get_escape_errors(option_when escape_errors) {
   QLJS_UNREACHABLE();
 }
 
-class any_error_reporter {
+class any_diag_reporter {
  public:
-  static any_error_reporter make(output_format format,
-                                 option_when escape_errors,
-                                 compiled_error_list *exit_fail_on) {
+  static any_diag_reporter make(output_format format, option_when escape_errors,
+                                compiled_diag_code_list *exit_fail_on) {
     switch (format) {
     case output_format::default_format:
     case output_format::gnu_like:
-      return any_error_reporter(error_tape<text_error_reporter>(
-          text_error_reporter(
+      return any_diag_reporter(reported_diag_statistics<text_diag_reporter>(
+          text_diag_reporter(
               file_output_stream::get_stderr(),
               /*escape_errors=*/get_escape_errors(escape_errors)),
           exit_fail_on));
     case output_format::vim_qflist_json:
-      return any_error_reporter(error_tape<vim_qflist_json_error_reporter>(
-          vim_qflist_json_error_reporter(file_output_stream::get_stdout()),
-          exit_fail_on));
+      return any_diag_reporter(
+          reported_diag_statistics<vim_qflist_json_diag_reporter>(
+              vim_qflist_json_diag_reporter(file_output_stream::get_stdout()),
+              exit_fail_on));
     case output_format::emacs_lisp:
-      return any_error_reporter(error_tape<emacs_lisp_error_reporter>(
-          emacs_lisp_error_reporter(file_output_stream::get_stdout()),
-          exit_fail_on));
+      return any_diag_reporter(
+          reported_diag_statistics<emacs_lisp_diag_reporter>(
+              emacs_lisp_diag_reporter(file_output_stream::get_stdout()),
+              exit_fail_on));
     }
     QLJS_UNREACHABLE();
   }
@@ -100,13 +101,13 @@ class any_error_reporter {
     visit(
         [&](auto &r) {
           using reporter_type = std::decay_t<decltype(r)>;
-          if constexpr (std::is_base_of_v<
-                            error_tape<vim_qflist_json_error_reporter>,
-                            reporter_type>) {
+          if constexpr (std::is_base_of_v<reported_diag_statistics<
+                                              vim_qflist_json_diag_reporter>,
+                                          reporter_type>) {
             r.get_reporter()->set_source(input, file.path, file.vim_bufnr);
-          } else if constexpr (std::is_base_of_v<
-                                   error_tape<emacs_lisp_error_reporter>,
-                                   reporter_type>) {
+          } else if constexpr (std::is_base_of_v<reported_diag_statistics<
+                                                     emacs_lisp_diag_reporter>,
+                                                 reporter_type>) {
             r.get_reporter()->set_source(input);
           } else {
             r.get_reporter()->set_source(input, file.path);
@@ -115,25 +116,25 @@ class any_error_reporter {
         this->tape_);
   }
 
-  error_reporter *get() noexcept {
-    return visit([](error_reporter &r) { return &r; }, this->tape_);
+  diag_reporter *get() noexcept {
+    return visit([](diag_reporter &r) { return &r; }, this->tape_);
   }
 
   bool get_error() noexcept {
-    return visit([](auto &r) { return r.found_matching_error(); }, this->tape_);
+    return visit([](auto &r) { return r.found_matching_diag(); }, this->tape_);
   }
 
   void finish() {
     visit(
         [&](auto &r) {
           using reporter_type = std::decay_t<decltype(r)>;
-          if constexpr (std::is_base_of_v<
-                            error_tape<vim_qflist_json_error_reporter>,
-                            reporter_type>) {
+          if constexpr (std::is_base_of_v<reported_diag_statistics<
+                                              vim_qflist_json_diag_reporter>,
+                                          reporter_type>) {
             r.get_reporter()->finish();
-          } else if constexpr (std::is_base_of_v<
-                                   error_tape<emacs_lisp_error_reporter>,
-                                   reporter_type>) {
+          } else if constexpr (std::is_base_of_v<reported_diag_statistics<
+                                                     emacs_lisp_diag_reporter>,
+                                                 reporter_type>) {
             r.get_reporter()->finish();
           }
         },
@@ -141,18 +142,19 @@ class any_error_reporter {
   }
 
  private:
-  using tape_variant = variant<error_tape<text_error_reporter>,
-                               error_tape<vim_qflist_json_error_reporter>,
-                               error_tape<emacs_lisp_error_reporter>>;
+  using tape_variant =
+      variant<reported_diag_statistics<text_diag_reporter>,
+              reported_diag_statistics<vim_qflist_json_diag_reporter>,
+              reported_diag_statistics<emacs_lisp_diag_reporter>>;
 
-  explicit any_error_reporter(tape_variant &&tape) : tape_(tape) {}
+  explicit any_diag_reporter(tape_variant &&tape) : tape_(tape) {}
 
   tape_variant tape_;
 };
 
 [[noreturn]] void handle_options(quick_lint_js::options o);
 
-void process_file(padded_string_view input, configuration &, error_reporter *,
+void process_file(padded_string_view input, configuration &, diag_reporter *,
                   bool print_parser_visits);
 
 void run_lsp_server();
@@ -208,8 +210,8 @@ void handle_options(quick_lint_js::options o) {
     std::exit(EXIT_FAILURE);
   }
 
-  quick_lint_js::any_error_reporter reporter =
-      quick_lint_js::any_error_reporter::make(
+  quick_lint_js::any_diag_reporter reporter =
+      quick_lint_js::any_diag_reporter::make(
           o.output_format, o.diagnostic_hyperlinks, &o.exit_fail_on);
 
   configuration default_config;
@@ -263,81 +265,81 @@ void handle_options(quick_lint_js::options o) {
   std::exit(EXIT_SUCCESS);
 }
 
-class debug_visitor {
+class debug_visitor final : public parse_visitor_base {
  public:
-  void visit_end_of_module() {
+  void visit_end_of_module() override {
     this->output_->append_copy(u8"end of module\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_block_scope() {
+  void visit_enter_block_scope() override {
     this->output_->append_copy(u8"entered block scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_with_scope() {
+  void visit_enter_with_scope() override {
     this->output_->append_copy(u8"entered with scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_class_scope() {
+  void visit_enter_class_scope() override {
     this->output_->append_copy(u8"entered class scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_for_scope() {
+  void visit_enter_for_scope() override {
     this->output_->append_copy(u8"entered for scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_function_scope() {
+  void visit_enter_function_scope() override {
     this->output_->append_copy(u8"entered function scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_function_scope_body() {
+  void visit_enter_function_scope_body() override {
     this->output_->append_copy(u8"entered function scope body\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_named_function_scope(identifier) {
+  void visit_enter_named_function_scope(identifier) override {
     this->output_->append_copy(u8"entered named function scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_exit_block_scope() {
+  void visit_exit_block_scope() override {
     this->output_->append_copy(u8"exited block scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_exit_with_scope() {
+  void visit_exit_with_scope() override {
     this->output_->append_copy(u8"exited with scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_exit_class_scope() {
+  void visit_exit_class_scope() override {
     this->output_->append_copy(u8"exited class scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_exit_for_scope() {
+  void visit_exit_for_scope() override {
     this->output_->append_copy(u8"exited for scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_exit_function_scope() {
+  void visit_exit_function_scope() override {
     this->output_->append_copy(u8"exited function scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_keyword_variable_use(identifier name) {
+  void visit_keyword_variable_use(identifier name) override {
     this->output_->append_copy(u8"keyword variable use: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
     this->output_->flush();
   }
 
-  void visit_property_declaration(std::optional<identifier> name) {
+  void visit_property_declaration(std::optional<identifier> name) override {
     this->output_->append_copy(u8"property declaration"sv);
     if (name.has_value()) {
       this->output_->append_copy(u8": "sv);
@@ -347,7 +349,7 @@ class debug_visitor {
     this->output_->flush();
   }
 
-  void visit_variable_assignment(identifier name) {
+  void visit_variable_assignment(identifier name) override {
     this->output_->append_copy(u8"variable assignment: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
@@ -355,7 +357,7 @@ class debug_visitor {
   }
 
   void visit_variable_declaration(identifier name, variable_kind,
-                                  variable_init_kind) {
+                                  variable_init_kind) override {
     this->output_->append_copy(u8"variable declaration: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
@@ -363,28 +365,29 @@ class debug_visitor {
   }
 
   void visit_variable_delete_use(
-      identifier name, [[maybe_unused]] source_code_span delete_keyword) {
+      identifier name,
+      [[maybe_unused]] source_code_span delete_keyword) override {
     this->output_->append_copy(u8"variable delete use: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
     this->output_->flush();
   }
 
-  void visit_variable_export_use(identifier name) {
+  void visit_variable_export_use(identifier name) override {
     this->output_->append_copy(u8"variable export use: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
     this->output_->flush();
   }
 
-  void visit_variable_typeof_use(identifier name) {
+  void visit_variable_typeof_use(identifier name) override {
     this->output_->append_copy(u8"variable typeof use: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
     this->output_->flush();
   }
 
-  void visit_variable_use(identifier name) {
+  void visit_variable_use(identifier name) override {
     this->output_->append_copy(u8"variable use: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
@@ -393,117 +396,116 @@ class debug_visitor {
 
   file_output_stream *output_ = file_output_stream::get_stderr();
 };
-QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(debug_visitor);
 
-template <QLJS_PARSE_VISITOR Visitor1, QLJS_PARSE_VISITOR Visitor2>
-class multi_visitor {
+template <class Visitor1, class Visitor2>
+class multi_visitor final : public parse_visitor_base {
  public:
   explicit multi_visitor(Visitor1 *visitor_1, Visitor2 *visitor_2) noexcept
       : visitor_1_(visitor_1), visitor_2_(visitor_2) {}
 
-  void visit_end_of_module() {
+  void visit_end_of_module() override {
     this->visitor_1_->visit_end_of_module();
     this->visitor_2_->visit_end_of_module();
   }
 
-  void visit_enter_block_scope() {
+  void visit_enter_block_scope() override {
     this->visitor_1_->visit_enter_block_scope();
     this->visitor_2_->visit_enter_block_scope();
   }
 
-  void visit_enter_with_scope() {
+  void visit_enter_with_scope() override {
     this->visitor_1_->visit_enter_with_scope();
     this->visitor_2_->visit_enter_with_scope();
   }
 
-  void visit_enter_class_scope() {
+  void visit_enter_class_scope() override {
     this->visitor_1_->visit_enter_class_scope();
     this->visitor_2_->visit_enter_class_scope();
   }
 
-  void visit_enter_for_scope() {
+  void visit_enter_for_scope() override {
     this->visitor_1_->visit_enter_for_scope();
     this->visitor_2_->visit_enter_for_scope();
   }
 
-  void visit_enter_function_scope() {
+  void visit_enter_function_scope() override {
     this->visitor_1_->visit_enter_function_scope();
     this->visitor_2_->visit_enter_function_scope();
   }
 
-  void visit_enter_function_scope_body() {
+  void visit_enter_function_scope_body() override {
     this->visitor_1_->visit_enter_function_scope_body();
     this->visitor_2_->visit_enter_function_scope_body();
   }
 
-  void visit_enter_named_function_scope(identifier name) {
+  void visit_enter_named_function_scope(identifier name) override {
     this->visitor_1_->visit_enter_named_function_scope(name);
     this->visitor_2_->visit_enter_named_function_scope(name);
   }
 
-  void visit_exit_block_scope() {
+  void visit_exit_block_scope() override {
     this->visitor_1_->visit_exit_block_scope();
     this->visitor_2_->visit_exit_block_scope();
   }
 
-  void visit_exit_with_scope() {
+  void visit_exit_with_scope() override {
     this->visitor_1_->visit_exit_with_scope();
     this->visitor_2_->visit_exit_with_scope();
   }
 
-  void visit_exit_class_scope() {
+  void visit_exit_class_scope() override {
     this->visitor_1_->visit_exit_class_scope();
     this->visitor_2_->visit_exit_class_scope();
   }
 
-  void visit_exit_for_scope() {
+  void visit_exit_for_scope() override {
     this->visitor_1_->visit_exit_for_scope();
     this->visitor_2_->visit_exit_for_scope();
   }
 
-  void visit_exit_function_scope() {
+  void visit_exit_function_scope() override {
     this->visitor_1_->visit_exit_function_scope();
     this->visitor_2_->visit_exit_function_scope();
   }
 
-  void visit_keyword_variable_use(identifier name) {
+  void visit_keyword_variable_use(identifier name) override {
     this->visitor_1_->visit_keyword_variable_use(name);
     this->visitor_2_->visit_keyword_variable_use(name);
   }
 
-  void visit_property_declaration(std::optional<identifier> name) {
+  void visit_property_declaration(std::optional<identifier> name) override {
     this->visitor_1_->visit_property_declaration(name);
     this->visitor_2_->visit_property_declaration(name);
   }
 
-  void visit_variable_assignment(identifier name) {
+  void visit_variable_assignment(identifier name) override {
     this->visitor_1_->visit_variable_assignment(name);
     this->visitor_2_->visit_variable_assignment(name);
   }
 
   void visit_variable_declaration(identifier name, variable_kind kind,
-                                  variable_init_kind init_kind) {
+                                  variable_init_kind init_kind) override {
     this->visitor_1_->visit_variable_declaration(name, kind, init_kind);
     this->visitor_2_->visit_variable_declaration(name, kind, init_kind);
   }
 
   void visit_variable_delete_use(identifier name,
-                                 source_code_span delete_keyword) {
+                                 source_code_span delete_keyword) override {
     this->visitor_1_->visit_variable_delete_use(name, delete_keyword);
     this->visitor_2_->visit_variable_delete_use(name, delete_keyword);
   }
 
-  void visit_variable_export_use(identifier name) {
+  void visit_variable_export_use(identifier name) override {
     this->visitor_1_->visit_variable_export_use(name);
     this->visitor_2_->visit_variable_export_use(name);
   }
 
-  void visit_variable_typeof_use(identifier name) {
+  void visit_variable_typeof_use(identifier name) override {
     this->visitor_1_->visit_variable_typeof_use(name);
     this->visitor_2_->visit_variable_typeof_use(name);
   }
 
-  void visit_variable_use(identifier name) {
+  void visit_variable_use(identifier name) override {
     this->visitor_1_->visit_variable_use(name);
     this->visitor_2_->visit_variable_use(name);
   }
@@ -512,15 +514,13 @@ class multi_visitor {
   Visitor1 *visitor_1_;
   Visitor2 *visitor_2_;
 };
-QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(
-    multi_visitor<debug_visitor, debug_visitor>);
 
 void process_file(padded_string_view input, configuration &config,
-                  error_reporter *error_reporter, bool print_parser_visits) {
+                  diag_reporter *diag_reporter, bool print_parser_visits) {
   parser_options p_options;
   p_options.jsx = true;
-  parser p(input, error_reporter, p_options);
-  linter l(error_reporter, &config.globals());
+  parser p(input, diag_reporter, p_options);
+  linter l(diag_reporter, &config.globals());
 
   auto run_parser = [&p](auto &visitor) -> void {
 #if QLJS_HAVE_SETJMP
@@ -531,13 +531,9 @@ void process_file(padded_string_view input, configuration &config,
   };
 
   if (print_parser_visits) {
-    linked_bump_allocator<alignof(void *)> v_allocator;
-    buffering_visitor v(&v_allocator);
-    run_parser(v);
-
     debug_visitor logger;
     multi_visitor visitor(&logger, &l);
-    v.move_into(visitor);
+    run_parser(visitor);
   } else {
     run_parser(l);
   }

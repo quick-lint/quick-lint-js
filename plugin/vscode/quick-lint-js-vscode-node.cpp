@@ -9,11 +9,11 @@
 #include <quick-lint-js/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/configuration.h>
+#include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/diagnostic-formatter.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/document.h>
-#include <quick-lint-js/error-reporter.h>
-#include <quick-lint-js/error.h>
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/lint.h>
@@ -25,7 +25,7 @@
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/pipe.h>
 #include <quick-lint-js/thread.h>
-#include <quick-lint-js/vscode-error-reporter.h>
+#include <quick-lint-js/vscode-diag-reporter.h>
 #include <quick-lint-js/vscode.h>
 #include <string>
 #include <string_view>
@@ -98,18 +98,18 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     QLJS_ASSERT(this->type_ == document_type::lintable);
     vscode->load_non_persistent(env);
 
-    vscode_error_reporter error_reporter(
-        vscode, env, &this->document_.locator(), this->uri());
+    vscode_diag_reporter diag_reporter(vscode, env, &this->document_.locator(),
+                                       this->uri());
     parser_options p_options;
     p_options.jsx = true;
-    parser p(this->document_.string(), &error_reporter, p_options);
-    linter l(&error_reporter, &this->config_->globals());
+    parser p(this->document_.string(), &diag_reporter, p_options);
+    linter l(&diag_reporter, &this->config_->globals());
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(l);
     if (!ok) {
       // TODO(strager): Show a pop-up message explaining that the parser
       // crashed.
     }
-    return std::move(error_reporter).diagnostics();
+    return std::move(diag_reporter).diagnostics();
   }
 
   ::Napi::Array lint_config(::Napi::Env env, vscode_module* vscode,
@@ -118,9 +118,9 @@ class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
     vscode->load_non_persistent(env);
 
     lsp_locator locator(&loaded_config->file_content);
-    vscode_error_reporter error_reporter(vscode, env, &locator, this->uri());
-    loaded_config->errors.copy_into(&error_reporter);
-    return std::move(error_reporter).diagnostics();
+    vscode_diag_reporter diag_reporter(vscode, env, &locator, this->uri());
+    loaded_config->errors.copy_into(&diag_reporter);
+    return std::move(diag_reporter).diagnostics();
   }
 
   ::Napi::Value uri() { return this->vscode_document_.Value().uri(); }

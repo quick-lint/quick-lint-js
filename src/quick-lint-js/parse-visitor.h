@@ -8,55 +8,46 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
-
-// For portability, use QLJS_PARSE_VISITOR in template parameter lists instead
-// of using parse_visitor directly:
-//
-//   template <QLJS_PARSE_VISITOR Visitor>
-//   void visit_thing(Visitor &v) { ... }
-#if QLJS_HAVE_CXX_CONCEPTS
-#define QLJS_PARSE_VISITOR ::quick_lint_js::parse_visitor
-#else
-#define QLJS_PARSE_VISITOR class
-#endif
-
-#if QLJS_HAVE_CXX_CONCEPTS
-#define QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(...) \
-  static_assert(::quick_lint_js::parse_visitor<__VA_ARGS__>)
-#else
-#define QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(...) static_assert(true)
-#endif
+#include <type_traits>
 
 namespace quick_lint_js {
-#if QLJS_HAVE_CXX_CONCEPTS
-template <class Visitor>
-concept parse_visitor = requires(Visitor v, identifier name,
-                                 source_code_span span, variable_kind var_kind,
-                                 variable_init_kind var_init_kind) {
-  {v.visit_end_of_module()};
-  {v.visit_enter_block_scope()};
-  {v.visit_enter_with_scope()};
-  {v.visit_enter_class_scope()};
-  {v.visit_enter_for_scope()};
-  {v.visit_enter_function_scope()};
-  {v.visit_enter_function_scope_body()};
-  {v.visit_enter_named_function_scope(name)};
-  {v.visit_exit_block_scope()};
-  {v.visit_exit_with_scope()};
-  {v.visit_exit_class_scope()};
-  {v.visit_exit_for_scope()};
-  {v.visit_exit_function_scope()};
-  {v.visit_keyword_variable_use(name)};
-  {v.visit_property_declaration(std::nullopt)};
-  {v.visit_property_declaration(std::optional<identifier>(name))};
-  {v.visit_variable_assignment(name)};
-  {v.visit_variable_declaration(name, var_kind, var_init_kind)};
-  {v.visit_variable_delete_use(name, span)};
-  {v.visit_variable_export_use(name)};
-  {v.visit_variable_typeof_use(name)};
-  {v.visit_variable_use(name)};
+// TOdO(strager): Rename this class to parse_visitor.
+class parse_visitor_base {
+ public:
+  parse_visitor_base() noexcept = default;
+
+  parse_visitor_base(const parse_visitor_base &) noexcept = default;
+  parse_visitor_base &operator=(const parse_visitor_base &) noexcept = default;
+
+  parse_visitor_base(parse_visitor_base &&) noexcept = default;
+  parse_visitor_base &operator=(parse_visitor_base &&) noexcept = default;
+
+  virtual ~parse_visitor_base() = default;
+
+  virtual void visit_enter_block_scope() = 0;
+  virtual void visit_enter_with_scope() = 0;
+  virtual void visit_enter_class_scope() = 0;
+  virtual void visit_enter_for_scope() = 0;
+  virtual void visit_enter_function_scope() = 0;
+  virtual void visit_enter_function_scope_body() = 0;
+  virtual void visit_enter_named_function_scope(identifier) = 0;
+  virtual void visit_exit_block_scope() = 0;
+  virtual void visit_exit_with_scope() = 0;
+  virtual void visit_exit_class_scope() = 0;
+  virtual void visit_exit_for_scope() = 0;
+  virtual void visit_exit_function_scope() = 0;
+  virtual void visit_keyword_variable_use(identifier name) = 0;
+  virtual void visit_property_declaration(std::optional<identifier>) = 0;
+  virtual void visit_variable_declaration(identifier name, variable_kind kind,
+                                          variable_init_kind init_kind) = 0;
+  virtual void visit_variable_assignment(identifier name) = 0;
+  virtual void visit_variable_delete_use(identifier name,
+                                         source_code_span delete_keyword) = 0;
+  virtual void visit_variable_export_use(identifier name) = 0;
+  virtual void visit_variable_typeof_use(identifier name) = 0;
+  virtual void visit_variable_use(identifier name) = 0;
+  virtual void visit_end_of_module() = 0;
 };
-#endif
 }
 
 #endif

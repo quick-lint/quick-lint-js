@@ -22,7 +22,7 @@
 #endif
 
 namespace quick_lint_js {
-enum class error_type;
+enum class diag_type;
 
 enum class diagnostic_severity : std::uint8_t {
   error,
@@ -89,8 +89,8 @@ struct diagnostic_info {
   diagnostic_message_args message_args[diagnostic_max_message_count];
 };
 
-const diagnostic_info &get_diagnostic_info(error_type) noexcept;
-std::optional<error_type> error_type_from_code_slow(
+const diagnostic_info &get_diagnostic_info(diag_type) noexcept;
+std::optional<diag_type> diag_type_from_code_slow(
     std::string_view code) noexcept;
 }
 

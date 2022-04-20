@@ -12,7 +12,7 @@
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
-#include <quick-lint-js/error-collector.h>
+#include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/null-visitor.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
@@ -23,11 +23,6 @@
 
 namespace quick_lint_js {
 class expression;
-
-extern template void parser::parse_and_visit_module<spy_visitor>(
-    spy_visitor& v);
-extern template bool parser::parse_and_visit_statement<spy_visitor>(
-    spy_visitor& v, parser::parse_statement_type);
 
 // Escape the first character in the given keyword with a JavaScript identifier
 // escape sequence (\u{..}).
@@ -62,7 +57,7 @@ class test_parser {
     return ast;
   }
 
-  const std::vector<error_collector::error>& errors() const noexcept {
+  const std::vector<diag_collector::diag>& errors() const noexcept {
     return this->errors_.errors;
   }
 
@@ -83,7 +78,7 @@ class test_parser {
   cli_locator locator;
 
  private:
-  error_collector errors_;
+  diag_collector errors_;
   quick_lint_js::parser parser_;
   std::vector<expression*> expressions_needing_cleanup_;
 };

@@ -4,10 +4,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/diagnostic-formatter.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/diagnostic.h>
-#include <quick-lint-js/error-reporter.h>
-#include <quick-lint-js/error.h>
 #include <quick-lint-js/test-translation-table-generated.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/translation.h>
@@ -18,13 +18,13 @@ using ::testing::ElementsAre;
 
 namespace quick_lint_js {
 namespace {
-class basic_text_error_reporter;
-class basic_text_error_formatter;
+class basic_text_diag_reporter;
+class basic_text_diag_formatter;
 
-class basic_text_error_formatter
-    : public diagnostic_formatter<basic_text_error_formatter> {
+class basic_text_diag_formatter
+    : public diagnostic_formatter<basic_text_diag_formatter> {
  public:
-  explicit basic_text_error_formatter(basic_text_error_reporter *reporter)
+  explicit basic_text_diag_formatter(basic_text_diag_reporter *reporter)
       : reporter_(reporter) {}
 
   void write_before_message([[maybe_unused]] std::string_view code,
@@ -39,28 +39,28 @@ class basic_text_error_formatter
                            const source_code_span &);
 
  private:
-  basic_text_error_reporter *reporter_;
+  basic_text_diag_reporter *reporter_;
   string8 current_message_;
 };
 
-class basic_text_error_reporter final : public error_reporter {
+class basic_text_diag_reporter final : public diag_reporter {
  public:
-  explicit basic_text_error_reporter() = default;
+  explicit basic_text_diag_reporter() = default;
 
   std::vector<string8> messages() { return this->messages_; }
 
-  void report_impl(error_type type, void *error) override {
-    basic_text_error_formatter formatter(this);
-    formatter.format(get_diagnostic_info(type), error);
+  void report_impl(diag_type type, void *diag) override {
+    basic_text_diag_formatter formatter(this);
+    formatter.format(get_diagnostic_info(type), diag);
   }
 
  private:
   std::vector<string8> messages_;
 
-  friend basic_text_error_formatter;
+  friend basic_text_diag_formatter;
 };
 
-void basic_text_error_formatter::write_after_message(
+void basic_text_diag_formatter::write_after_message(
     [[maybe_unused]] std::string_view code, diagnostic_severity,
     const source_code_span &) {
   this->reporter_->messages_.emplace_back(std::move(this->current_message_));
@@ -71,7 +71,7 @@ class test_translation : public ::testing::Test {
   void TearDown() override { initialize_translations_from_locale("C"); }
 
  protected:
-  basic_text_error_reporter reporter;
+  basic_text_diag_reporter reporter;
 
   source_code_span dummy_span() {
     static const char8 hello[] = u8"hello";
@@ -81,13 +81,13 @@ class test_translation : public ::testing::Test {
 
 TEST_F(test_translation, c_language_does_not_translate_diagnostics) {
   initialize_translations_from_locale("C");
-  this->reporter.report(error_unexpected_hash_character{this->dummy_span()});
+  this->reporter.report(diag_unexpected_hash_character{this->dummy_span()});
   EXPECT_THAT(this->reporter.messages(), ElementsAre(u8"unexpected '#'"));
 }
 
 TEST_F(test_translation, english_loud_language_upper_cases_base) {
   initialize_translations_from_locale("en.utf8@loud");
-  this->reporter.report(error_unexpected_hash_character{this->dummy_span()});
+  this->reporter.report(diag_unexpected_hash_character{this->dummy_span()});
   EXPECT_THAT(this->reporter.messages(), ElementsAre(u8"UNEXPECTED '#'"));
 }
 

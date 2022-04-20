@@ -67,7 +67,7 @@ Here's the script strager uses to compare benchmarks on Linux:
 
     taskset 4 ./quick-lint-js-benchmark-"${benchmark_name}".before --benchmark_min_time=1 --benchmark_repetitions=3 --benchmark_counters_tabular=true --benchmark_out_format=json --benchmark_out=before.json "${@}"
     taskset 4 ./quick-lint-js-benchmark-"${benchmark_name}".after0 --benchmark_min_time=1 --benchmark_repetitions=3 --benchmark_counters_tabular=true --benchmark_out_format=json --benchmark_out=after0.json "${@}"
-    nix-shell -p 'python3.withPackages (pythonPackages: [ pythonPackages.scipy ])' --run 'vendor/benchmark/tools/compare.py benchmarks before.json after0.json'
+    nix-shell -p 'python3.withPackages (pythonPackages: [ pythonPackages.pandas pythonPackages.scipy ])' --run 'vendor/benchmark/tools/compare.py benchmarks before.json after0.json'
 
 Some notes:
 

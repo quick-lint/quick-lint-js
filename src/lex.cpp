@@ -7,9 +7,9 @@
 #include <iterator>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/bit.h>
-#include <quick-lint-js/buffering-error-reporter.h>
+#include <quick-lint-js/buffering-diag-reporter.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/lex.h>
@@ -118,29 +118,29 @@ source_code_span token::span() const noexcept {
 }
 
 void token::report_errors_for_escape_sequences_in_keyword(
-    error_reporter* reporter) const {
+    diag_reporter* reporter) const {
   QLJS_ASSERT(this->type == token_type::reserved_keyword_with_escape_sequence);
   QLJS_ASSERT(this->identifier_escape_sequences);
   QLJS_ASSERT(!this->identifier_escape_sequences->empty());
   for (const source_code_span& escape_sequence :
        *this->identifier_escape_sequences) {
-    reporter->report(error_keywords_cannot_contain_escape_sequences{
+    reporter->report(diag_keywords_cannot_contain_escape_sequences{
         .escape_sequence = escape_sequence});
   }
 }
 
 void token::report_errors_for_escape_sequences_in_template(
-    error_reporter* reporter) const {
+    diag_reporter* reporter) const {
   QLJS_ASSERT(this->type == token_type::complete_template ||
               this->type == token_type::incomplete_template);
-  if (this->template_escape_sequence_errors) {
-    this->template_escape_sequence_errors->move_into(reporter);
+  if (this->template_escape_sequence_diagnostics) {
+    this->template_escape_sequence_diagnostics->move_into(reporter);
   }
 }
 
-lexer::lexer(padded_string_view input, error_reporter* error_reporter) noexcept
+lexer::lexer(padded_string_view input, diag_reporter* diag_reporter) noexcept
     : input_(input.data()),
-      error_reporter_(error_reporter),
+      diag_reporter_(diag_reporter),
       original_input_(input) {
   this->last_token_.end = this->input_;
   this->parse_bom_before_shebang();
@@ -155,7 +155,7 @@ void lexer::parse_bom_before_shebang() {
     input += 3;
     if (static_cast<unsigned char>(input[0]) == '#' &&
         static_cast<unsigned char>(input[1]) == '!') {
-      this->error_reporter_->report(error_unexpected_bom_before_shebang{
+      this->diag_reporter_->report(diag_unexpected_bom_before_shebang{
           source_code_span(&this->input_[0], &this->input_[3])});
       input += 2;
       this->skip_line_comment_body();
@@ -471,7 +471,7 @@ bool lexer::try_parse_current_token() {
       bool parsed_ok = this->test_for_regexp(&this->input_[1]);
 
       if (!parsed_ok) {
-        this->error_reporter_->report(error_unopened_block_comment{
+        this->diag_reporter_->report(diag_unopened_block_comment{
             source_code_span(starpos, &this->input_[2])});
         this->input_ += 2;
         this->skip_whitespace();
@@ -575,9 +575,9 @@ bool lexer::try_parse_current_token() {
   case '`': {
     this->input_ += 1;
     parsed_template_body body = this->parse_template_body(
-        this->input_, this->last_token_.begin, this->error_reporter_);
-    this->last_token_.template_escape_sequence_errors =
-        body.escape_sequence_errors;
+        this->input_, this->last_token_.begin, this->diag_reporter_);
+    this->last_token_.template_escape_sequence_diagnostics =
+        body.escape_sequence_diagnostics;
     this->last_token_.type = body.type;
     this->input_ = body.end;
     this->last_token_.end = this->input_;
@@ -608,7 +608,7 @@ bool lexer::try_parse_current_token() {
       this->last_token_.end = ident.after;
       this->last_token_.type = token_type::private_identifier;
     } else {
-      this->error_reporter_->report(error_unexpected_hash_character{
+      this->diag_reporter_->report(diag_unexpected_hash_character{
           source_code_span(&this->input_[0], &this->input_[1])});
       this->input_ += 1;
       this->skip_whitespace();
@@ -652,7 +652,7 @@ bool lexer::try_parse_current_token() {
   case u8'\x1f':    // US Unit Separator
   case u8'\x7f': {  // DEL Delete
     const char8* end = this->input_ + 1;
-    this->error_reporter_->report(error_unexpected_control_character{
+    this->diag_reporter_->report(diag_unexpected_control_character{
         .character = source_code_span(this->input_, end)});
     this->input_ = end;
     this->skip_whitespace();
@@ -661,7 +661,7 @@ bool lexer::try_parse_current_token() {
 
   case u8'@': {
     const char8* end = this->input_ + 1;
-    this->error_reporter_->report(error_unexpected_at_character{
+    this->diag_reporter_->report(diag_unexpected_at_character{
         .character = source_code_span(this->input_, end)});
     this->input_ = end;
     this->skip_whitespace();
@@ -680,7 +680,7 @@ bool lexer::test_for_regexp(const char8* regexp_begin) {
   this->last_token_.begin = this->input_;
   this->reparse_as_regexp();
 
-  bool parsed_ok = !this->transaction_has_lex_errors(transaction);
+  bool parsed_ok = !this->transaction_has_lex_diagnostics(transaction);
   this->roll_back_transaction(std::move(transaction));
   return parsed_ok;
 }
@@ -693,7 +693,7 @@ const char8* lexer::parse_string_literal() noexcept {
     switch (static_cast<unsigned char>(*c)) {
     case '\0':
       if (this->is_eof(c)) {
-        this->error_reporter_->report(error_unclosed_string_literal{
+        this->diag_reporter_->report(diag_unclosed_string_literal{
             source_code_span(&this->input_[0], c)});
         return c;
       } else {
@@ -727,8 +727,8 @@ const char8* lexer::parse_string_literal() noexcept {
           ++current_c;
         }
       }
-      this->error_reporter_->report(
-          error_unclosed_string_literal{source_code_span(&this->input_[0], c)});
+      this->diag_reporter_->report(
+          diag_unclosed_string_literal{source_code_span(&this->input_[0], c)});
       return c;
     }
 
@@ -738,7 +738,7 @@ const char8* lexer::parse_string_literal() noexcept {
       switch (*c) {
       case '\0':
         if (this->is_eof(c)) {
-          this->error_reporter_->report(error_unclosed_string_literal{
+          this->diag_reporter_->report(diag_unclosed_string_literal{
               source_code_span(&this->input_[0], c)});
           return c;
         } else {
@@ -756,7 +756,7 @@ const char8* lexer::parse_string_literal() noexcept {
         ++c;
         for (int i = 0; i < 2; ++i) {
           if (!is_hex_digit(*(c + i))) {
-            this->error_reporter_->report(error_invalid_hex_escape_sequence{
+            this->diag_reporter_->report(diag_invalid_hex_escape_sequence{
                 source_code_span(escape_sequence_start, c)});
             break;
           }
@@ -764,7 +764,7 @@ const char8* lexer::parse_string_literal() noexcept {
         break;
       case 'u':
         c = this->parse_unicode_escape(escape_sequence_start,
-                                       this->error_reporter_)
+                                       this->diag_reporter_)
                 .end;
         break;
       default:
@@ -795,7 +795,7 @@ const char8* lexer::parse_jsx_string_literal() noexcept {
   const char8* c = &this->input_[1];
   for (; *c != opening_quote; ++c) {
     if (*c == '\0' && this->is_eof(c)) {
-      this->error_reporter_->report(error_unclosed_jsx_string_literal{
+      this->diag_reporter_->report(diag_unclosed_jsx_string_literal{
           .string_literal_begin =
               source_code_span(&this->input_[0], &this->input_[1]),
       });
@@ -819,7 +819,7 @@ const char8* lexer::parse_smart_quote_string_literal(
 
   bool is_double_quote = opening_quote.code_point == left_double_quote ||
                          opening_quote.code_point == right_double_quote;
-  this->error_reporter_->report(error_invalid_quotes_around_string_literal{
+  this->diag_reporter_->report(diag_invalid_quotes_around_string_literal{
       .opening_quote = source_code_span(opening_quote_begin, opening_quote_end),
       .suggested_quote = is_double_quote ? u8'"' : u8'\'',
   });
@@ -846,14 +846,14 @@ const char8* lexer::parse_smart_quote_string_literal(
         return c + decoded.size;
       }
       if (this->is_newline_character(decoded.code_point)) {
-        this->error_reporter_->report(error_unclosed_string_literal{
+        this->diag_reporter_->report(diag_unclosed_string_literal{
             .string_literal = source_code_span(opening_quote_begin, c),
         });
         return c;
       }
     }
     if (*c == '\0' && this->is_eof(c)) {
-      this->error_reporter_->report(error_unclosed_string_literal{
+      this->diag_reporter_->report(diag_unclosed_string_literal{
           .string_literal = source_code_span(opening_quote_begin, c),
       });
       return c;
@@ -867,27 +867,27 @@ void lexer::skip_in_template(const char8* template_begin) {
   QLJS_ASSERT(this->peek().type == token_type::right_curly);
   this->last_token_.begin = this->input_;
   parsed_template_body body = this->parse_template_body(
-      this->input_, template_begin, this->error_reporter_);
+      this->input_, template_begin, this->diag_reporter_);
   this->last_token_.type = body.type;
-  this->last_token_.template_escape_sequence_errors =
-      body.escape_sequence_errors;
+  this->last_token_.template_escape_sequence_diagnostics =
+      body.escape_sequence_diagnostics;
   this->input_ = body.end;
   this->last_token_.end = body.end;
 }
 
 lexer::parsed_template_body lexer::parse_template_body(
     const char8* input, const char8* template_begin,
-    error_reporter* error_reporter) {
-  buffering_error_reporter* escape_sequence_errors = nullptr;
+    diag_reporter* diag_reporter) {
+  buffering_diag_reporter* escape_sequence_diagnostics = nullptr;
   const char8* c = input;
   for (;;) {
     switch (*c) {
     case '\0':
       if (this->is_eof(c)) {
-        error_reporter->report(
-            error_unclosed_template{source_code_span(template_begin, c)});
+        diag_reporter->report(
+            diag_unclosed_template{source_code_span(template_begin, c)});
         return parsed_template_body{token_type::complete_template, c,
-                                    escape_sequence_errors};
+                                    escape_sequence_diagnostics};
       } else {
         ++c;
         break;
@@ -896,7 +896,7 @@ lexer::parsed_template_body lexer::parse_template_body(
     case '`':
       ++c;
       return parsed_template_body{token_type::complete_template, c,
-                                  escape_sequence_errors};
+                                  escape_sequence_diagnostics};
 
     case '\\': {
       const char8* escape_sequence_start = c;
@@ -904,22 +904,22 @@ lexer::parsed_template_body lexer::parse_template_body(
       switch (*c) {
       case '\0':
         if (this->is_eof(c)) {
-          error_reporter->report(
-              error_unclosed_template{source_code_span(template_begin, c)});
+          diag_reporter->report(
+              diag_unclosed_template{source_code_span(template_begin, c)});
           return parsed_template_body{token_type::complete_template, c,
-                                      escape_sequence_errors};
+                                      escape_sequence_diagnostics};
         } else {
           ++c;
           break;
         }
       case 'u': {
-        if (!escape_sequence_errors) {
-          escape_sequence_errors =
-              this->allocator_.new_object<buffering_error_reporter>(
+        if (!escape_sequence_diagnostics) {
+          escape_sequence_diagnostics =
+              this->allocator_.new_object<buffering_diag_reporter>(
                   &this->allocator_);
         }
         c = this->parse_unicode_escape(escape_sequence_start,
-                                       escape_sequence_errors)
+                                       escape_sequence_diagnostics)
                 .end;
         break;
       }
@@ -934,7 +934,7 @@ lexer::parsed_template_body lexer::parse_template_body(
       if (c[1] == '{') {
         c += 2;
         return parsed_template_body{token_type::incomplete_template, c,
-                                    escape_sequence_errors};
+                                    escape_sequence_diagnostics};
       }
       ++c;
       break;
@@ -1006,7 +1006,7 @@ next:
   switch (static_cast<unsigned char>(*c)) {
   case '\0':
     if (this->is_eof(c)) {
-      this->error_reporter_->report(error_unclosed_regexp_literal{
+      this->diag_reporter_->report(diag_unclosed_regexp_literal{
           source_code_span(this->last_token_.begin, c)});
       break;
     } else {
@@ -1019,7 +1019,7 @@ next:
     switch (*c) {
     case '\0':
       if (this->is_eof(c)) {
-        this->error_reporter_->report(error_unclosed_regexp_literal{
+        this->diag_reporter_->report(diag_unclosed_regexp_literal{
             source_code_span(this->last_token_.begin, c)});
         break;
       } else {
@@ -1073,8 +1073,8 @@ next:
       if (ident.escape_sequences) {
         for (const source_code_span& escape_sequence :
              *ident.escape_sequences) {
-          this->error_reporter_->report(
-              error_regexp_literal_flags_cannot_contain_unicode_escapes{
+          this->diag_reporter_->report(
+              diag_regexp_literal_flags_cannot_contain_unicode_escapes{
                   .escape_sequence = escape_sequence});
         }
       }
@@ -1086,7 +1086,7 @@ next:
   case u8'\r':
   case 0xe2:
     if (this->newline_character_size(c) != 0) {
-      this->error_reporter_->report(error_unclosed_regexp_literal{
+      this->diag_reporter_->report(diag_unclosed_regexp_literal{
           source_code_span(this->last_token_.begin, c)});
       break;
     }
@@ -1105,31 +1105,31 @@ lexer_transaction lexer::begin_transaction() {
       /*old_last_token=*/this->last_token_,
       /*old_last_last_token_end=*/this->last_last_token_end_,
       /*old_input=*/this->input_,
-      /*error_reporter_pointer=*/
-      &this->error_reporter_,
+      /*diag_reporter_pointer=*/
+      &this->diag_reporter_,
       /*memory=*/&this->transaction_allocator_);
 }
 
 void lexer::commit_transaction(lexer_transaction&& transaction) {
-  buffering_error_reporter* buffered_errors =
-      static_cast<buffering_error_reporter*>(this->error_reporter_);
-  buffered_errors->move_into(transaction.old_error_reporter);
+  buffering_diag_reporter* buffered_diagnostics =
+      static_cast<buffering_diag_reporter*>(this->diag_reporter_);
+  buffered_diagnostics->move_into(transaction.old_diag_reporter);
 
-  this->error_reporter_ = transaction.old_error_reporter;
+  this->diag_reporter_ = transaction.old_diag_reporter;
 }
 
 void lexer::roll_back_transaction(lexer_transaction&& transaction) {
   this->last_token_ = transaction.old_last_token;
   this->last_last_token_end_ = transaction.old_last_last_token_end;
   this->input_ = transaction.old_input;
-  this->error_reporter_ = transaction.old_error_reporter;
+  this->diag_reporter_ = transaction.old_diag_reporter;
 }
 
-bool lexer::transaction_has_lex_errors(const lexer_transaction&) const
+bool lexer::transaction_has_lex_diagnostics(const lexer_transaction&) const
     noexcept {
-  buffering_error_reporter* buffered_errors =
-      static_cast<buffering_error_reporter*>(this->error_reporter_);
-  return !buffered_errors->empty();
+  buffering_diag_reporter* buffered_diagnostics =
+      static_cast<buffering_diag_reporter*>(this->diag_reporter_);
+  return !buffered_diagnostics->empty();
 }
 
 void lexer::insert_semicolon() {
@@ -1184,7 +1184,7 @@ const char8* lexer::check_garbage_in_number_literal(const char8* input) {
 done_parsing_garbage:
   const char8* garbage_end = input;
   if (garbage_end != garbage_begin) {
-    this->error_reporter_->report(
+    this->diag_reporter_->report(
         Error{source_code_span(garbage_begin, garbage_end)});
     input = garbage_end;
   }
@@ -1205,9 +1205,9 @@ void lexer::parse_binary_number() {
 
   if (found_digits) {
     this->input_ = check_garbage_in_number_literal<
-        error_unexpected_characters_in_binary_number>(input);
+        diag_unexpected_characters_in_binary_number>(input);
   } else {
-    this->error_reporter_->report(error_no_digits_in_binary_number{
+    this->diag_reporter_->report(diag_no_digits_in_binary_number{
         source_code_span(this->last_token_.begin, input)});
     this->input_ = input;
   }
@@ -1223,8 +1223,8 @@ parse_digits_again:
     while (*input == '_') {
       input += 1;
     }
-    this->error_reporter_->report(
-        error_legacy_octal_literal_may_not_contain_underscores{
+    this->diag_reporter_->report(
+        diag_legacy_octal_literal_may_not_contain_underscores{
             .underscores = source_code_span(underscores_start, input),
         });
     goto parse_digits_again;
@@ -1240,7 +1240,7 @@ parse_digits_again:
   bool has_decimal_point = *input == '.';
   if (has_decimal_point) {
     input += 1;
-    this->error_reporter_->report(error_octal_literal_may_not_have_decimal{
+    this->diag_reporter_->report(diag_octal_literal_may_not_have_decimal{
         source_code_span(garbage_begin, input)});
     input = this->parse_octal_digits(input);
   }
@@ -1250,20 +1250,20 @@ parse_digits_again:
     if (*input == '-' || *input == '+') {
       input += 1;
     }
-    this->error_reporter_->report(error_octal_literal_may_not_have_exponent{
+    this->diag_reporter_->report(diag_octal_literal_may_not_have_exponent{
         source_code_span(garbage_begin, input)});
     input = this->parse_octal_digits(input);
   }
   bool is_bigint = *input == 'n';
   if (is_bigint) {
     input += 1;
-    this->error_reporter_->report(error_legacy_octal_literal_may_not_be_big_int{
+    this->diag_reporter_->report(diag_legacy_octal_literal_may_not_be_big_int{
         source_code_span(garbage_begin, input)});
     input = this->parse_octal_digits(input);
   }
 
   this->input_ = check_garbage_in_number_literal<
-      error_unexpected_characters_in_octal_number>(input);
+      diag_unexpected_characters_in_octal_number>(input);
 }
 
 void lexer::parse_modern_octal_number() {
@@ -1275,7 +1275,7 @@ void lexer::parse_modern_octal_number() {
   input = this->parse_digits_and_underscores(
       [](char8 character) -> bool { return is_octal_digit(character); }, input);
   if (input == this->input_) {
-    this->error_reporter_->report(error_no_digits_in_octal_number{
+    this->diag_reporter_->report(diag_no_digits_in_octal_number{
         source_code_span(this->last_token_.begin, input)});
     return;
   }
@@ -1283,7 +1283,7 @@ void lexer::parse_modern_octal_number() {
     ++input;
   }
   this->input_ = check_garbage_in_number_literal<
-      error_unexpected_characters_in_octal_number>(input);
+      diag_unexpected_characters_in_octal_number>(input);
 }
 
 void lexer::parse_number() {
@@ -1296,7 +1296,7 @@ void lexer::parse_number() {
     const char8* garbage_end =
         this->parse_identifier(garbage_begin, identifier_kind::javascript)
             .after;
-    this->error_reporter_->report(error_unexpected_characters_in_number{
+    this->diag_reporter_->report(diag_unexpected_characters_in_number{
         source_code_span(garbage_begin, garbage_end)});
     input = garbage_end;
   };
@@ -1325,12 +1325,11 @@ void lexer::parse_number() {
   if (is_bigint) {
     input += 1;
     if (has_decimal_point) {
-      this->error_reporter_->report(
-          error_big_int_literal_contains_decimal_point{
-              source_code_span(number_begin, input)});
+      this->diag_reporter_->report(diag_big_int_literal_contains_decimal_point{
+          source_code_span(number_begin, input)});
     }
     if (has_exponent) {
-      this->error_reporter_->report(error_big_int_literal_contains_exponent{
+      this->diag_reporter_->report(diag_big_int_literal_contains_exponent{
           source_code_span(number_begin, input)});
     }
     QLJS_SLOW_ASSERT(
@@ -1375,9 +1374,9 @@ void lexer::parse_hexadecimal_number() {
 
   if (found_digits) {
     this->input_ = check_garbage_in_number_literal<
-        error_unexpected_characters_in_hex_number>(input);
+        diag_unexpected_characters_in_hex_number>(input);
   } else {
-    this->error_reporter_->report(error_no_digits_in_hex_number{
+    this->diag_reporter_->report(diag_no_digits_in_hex_number{
         source_code_span(this->last_token_.begin, input)});
     this->input_ = input;
   }
@@ -1403,20 +1402,20 @@ const char8* lexer::parse_digits_and_underscores(Func&& is_valid_digit,
         }
 
         if (is_valid_digit(*input)) {
-          this->error_reporter_->report(
-              error_number_literal_contains_consecutive_underscores{
+          this->diag_reporter_->report(
+              diag_number_literal_contains_consecutive_underscores{
                   source_code_span(garbage_begin, input)});
         } else {
-          this->error_reporter_->report(
-              error_number_literal_contains_trailing_underscores{
+          this->diag_reporter_->report(
+              diag_number_literal_contains_trailing_underscores{
                   source_code_span(garbage_begin, input)});
         }
       }
     }
   }
   if (garbage_begin != nullptr && has_trailing_underscore == true) {
-    this->error_reporter_->report(
-        error_number_literal_contains_trailing_underscores{
+    this->diag_reporter_->report(
+        diag_number_literal_contains_trailing_underscores{
             source_code_span(garbage_begin, input)});
   }
   return input;
@@ -1444,7 +1443,7 @@ const char8* lexer::parse_hex_digits_and_underscores(
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 lexer::parsed_unicode_escape lexer::parse_unicode_escape(
-    const char8* input, error_reporter* reporter) noexcept {
+    const char8* input, diag_reporter* reporter) noexcept {
   const char8* escape_sequence_begin = input;
   auto get_escape_span = [escape_sequence_begin, &input]() {
     return source_code_span(escape_sequence_begin, input);
@@ -1458,10 +1457,10 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
     bool found_non_hex_digit = false;
     while (*input != u8'}') {
       if (!this->is_identifier_byte(*input)) {
-        // TODO: Add an enum to error_unclosed_identifier_escape_sequence to
+        // TODO: Add an enum to diag_unclosed_identifier_escape_sequence to
         // indicate whether the token is a template literal, a string literal
         // or an identifier.
-        reporter->report(error_unclosed_identifier_escape_sequence{
+        reporter->report(diag_unclosed_identifier_escape_sequence{
             .escape_sequence = get_escape_span()});
         return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
       }
@@ -1473,7 +1472,7 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
     code_point_hex_end = input;
     ++input;  // Skip "}".
     if (found_non_hex_digit || code_point_hex_begin == code_point_hex_end) {
-      reporter->report(error_expected_hex_digits_in_unicode_escape{
+      reporter->report(diag_expected_hex_digits_in_unicode_escape{
           .escape_sequence = get_escape_span()});
       return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
     }
@@ -1482,15 +1481,15 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
     code_point_hex_begin = input;
     for (int i = 0; i < 4; ++i) {
       if (*input == '\0' && this->is_eof(input)) {
-        // TODO: Add an enum to error_expected_hex_digits_in_unicode_escape to
+        // TODO: Add an enum to diag_expected_hex_digits_in_unicode_escape to
         // indicate whether the token is a template literal, a string literal
         // or an identifier.
-        reporter->report(error_expected_hex_digits_in_unicode_escape{
+        reporter->report(diag_expected_hex_digits_in_unicode_escape{
             .escape_sequence = get_escape_span()});
         return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
       }
       if (!is_hex_digit(*input)) {
-        reporter->report(error_expected_hex_digits_in_unicode_escape{
+        reporter->report(diag_expected_hex_digits_in_unicode_escape{
             .escape_sequence =
                 source_code_span(escape_sequence_begin, input + 1)});
         return parsed_unicode_escape{.end = input, .code_point = std::nullopt};
@@ -1509,7 +1508,7 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
     code_point = 0x110000;
   }
   if (code_point >= 0x110000) {
-    reporter->report(error_escaped_code_point_in_unicode_out_of_range{
+    reporter->report(diag_escaped_code_point_in_unicode_out_of_range{
         .escape_sequence = get_escape_span()});
   }
   return parsed_unicode_escape{.end = input, .code_point = code_point};
@@ -1628,27 +1627,26 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
   auto parse_unicode_escape = [&]() {
     const char8* escape_begin = input;
     parsed_unicode_escape escape =
-        this->parse_unicode_escape(escape_begin, this->error_reporter_);
+        this->parse_unicode_escape(escape_begin, this->diag_reporter_);
 
     if (escape.code_point.has_value()) {
       bool is_initial_identifier_character = escape_begin == identifier_begin;
       char32_t code_point = *escape.code_point;
       if (code_point >= 0x110000) {
         // parse_unicode_escape reported
-        // error_escaped_code_point_in_identifier_out_of_range already.
+        // diag_escaped_code_point_in_identifier_out_of_range already.
         normalized.append(escape_begin, escape.end);
       } else if (!is_initial_identifier_character &&
                  kind == identifier_kind::jsx && code_point == u'-') {
-        this->error_reporter_->report(
-            error_escaped_hyphen_not_allowed_in_jsx_tag{
-                .escape_sequence = source_code_span(escape_begin, escape.end)});
+        this->diag_reporter_->report(diag_escaped_hyphen_not_allowed_in_jsx_tag{
+            .escape_sequence = source_code_span(escape_begin, escape.end)});
         normalized.append(escape_begin, escape.end);
       } else if (!(is_initial_identifier_character
                        ? this->is_initial_identifier_character(code_point)
                        : this->is_identifier_character(
                              code_point, identifier_kind::javascript))) {
-        this->error_reporter_->report(
-            error_escaped_character_disallowed_in_identifiers{
+        this->diag_reporter_->report(
+            diag_escaped_character_disallowed_in_identifiers{
                 .escape_sequence = source_code_span(escape_begin, escape.end)});
         normalized.append(escape_begin, escape.end);
       } else {
@@ -1684,7 +1682,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
         }
         input += decode_result.size;
       }
-      this->error_reporter_->report(error_invalid_utf_8_sequence{
+      this->diag_reporter_->report(diag_invalid_utf_8_sequence{
           .sequence = source_code_span(errors_begin, input)});
       normalized.append(errors_begin, input);
       continue;
@@ -1697,7 +1695,7 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
         const char8* backslash_begin = input;
         input += 1;
         const char8* backslash_end = input;
-        this->error_reporter_->report(error_unexpected_backslash_in_identifier{
+        this->diag_reporter_->report(diag_unexpected_backslash_in_identifier{
             .backslash = source_code_span(backslash_begin, backslash_end)});
         normalized.append(backslash_begin, backslash_end);
       }
@@ -1718,10 +1716,8 @@ lexer::parsed_identifier lexer::parse_identifier_slow(
             this->is_non_ascii_whitespace_character(code_point)) {
           break;
         } else {
-          this->error_reporter_->report(
-              error_character_disallowed_in_identifiers{
-                  .character =
-                      source_code_span(character_begin, character_end)});
+          this->diag_reporter_->report(diag_character_disallowed_in_identifiers{
+              .character = source_code_span(character_begin, character_end)});
           // Allow non-ASCII characters in the identifier. Otherwise, we'd try
           // parsing the invalid character as an identifier character again,
           // causing an infinite loop.
@@ -1931,7 +1927,7 @@ found_comment_end:
 
   QLJS_UNREACHABLE();
 found_end_of_file:
-  this->error_reporter_->report(error_unclosed_block_comment{
+  this->diag_reporter_->report(diag_unclosed_block_comment{
       .comment_open = source_code_span(&this->input_[0], &this->input_[2])});
   this->input_ += strlen(this->input_);
 }
@@ -1962,13 +1958,13 @@ void lexer::skip_jsx_text() {
       goto done;
 
     case u8'>':
-      this->error_reporter_->report(error_unexpected_greater_in_jsx_text{
+      this->diag_reporter_->report(diag_unexpected_greater_in_jsx_text{
           .greater = source_code_span(c, c + 1),
       });
       break;
 
     case u8'}':
-      this->error_reporter_->report(error_unexpected_right_curly_in_jsx_text{
+      this->diag_reporter_->report(diag_unexpected_right_curly_in_jsx_text{
           .right_curly = source_code_span(c, c + 1),
       });
       break;

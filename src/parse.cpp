@@ -6,11 +6,11 @@
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/buffering-error-reporter.h>
+#include <quick-lint-js/buffering-diag-reporter.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
-#include <quick-lint-js/error-reporter.h>
-#include <quick-lint-js/error.h>
+#include <quick-lint-js/diag-reporter.h>
+#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/jsx.h>
 #include <quick-lint-js/lex.h>
@@ -38,20 +38,20 @@
 
 namespace quick_lint_js {
 parser_transaction::parser_transaction(lexer* l,
-                                       error_reporter** error_reporter_pointer,
+                                       diag_reporter** diag_reporter_pointer,
                                        monotonic_allocator* allocator)
     : lex_transaction(l->begin_transaction()),
       reporter(allocator),
-      old_error_reporter(
-          std::exchange(*error_reporter_pointer, &this->reporter)) {}
+      old_diag_reporter(
+          std::exchange(*diag_reporter_pointer, &this->reporter)) {}
 
-parser::parser(padded_string_view input, error_reporter* error_reporter)
-    : parser(input, error_reporter, parser_options()) {}
+parser::parser(padded_string_view input, diag_reporter* diag_reporter)
+    : parser(input, diag_reporter, parser_options()) {}
 
-parser::parser(padded_string_view input, error_reporter* error_reporter,
+parser::parser(padded_string_view input, diag_reporter* diag_reporter,
                parser_options options)
-    : lexer_(input, error_reporter),
-      error_reporter_(error_reporter),
+    : lexer_(input, diag_reporter),
+      diag_reporter_(diag_reporter),
       options_(options) {}
 
 parser::function_guard parser::enter_function(function_attributes attributes) {
@@ -153,24 +153,23 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
   if (auto alias_it = aliases.find(name); alias_it != aliases.end()) {
     const jsx_attribute& alias = alias_it->second;
     if (name.size() != alias.expected.size()) {
-      this->error_reporter_->report(error_jsx_attribute_renamed_by_react{
+      this->diag_reporter_->report(diag_jsx_attribute_renamed_by_react{
           .attribute_name = attribute_name,
           .react_attribute_name = alias.expected,
       });
       return;
     } else if (is_event_attribute) {
-      this->error_reporter_->report(
-          error_jsx_event_attribute_should_be_camel_case{
+      this->diag_reporter_->report(
+          diag_jsx_event_attribute_should_be_camel_case{
               .attribute_name = attribute_name,
               .expected_attribute_name = alias.expected,
           });
       return;
     } else {
-      this->error_reporter_->report(
-          error_jsx_attribute_has_wrong_capitalization{
-              .attribute_name = attribute_name,
-              .expected_attribute_name = alias.expected,
-          });
+      this->diag_reporter_->report(diag_jsx_attribute_has_wrong_capitalization{
+          .attribute_name = attribute_name,
+          .expected_attribute_name = alias.expected,
+      });
       return;
     }
   }
@@ -179,14 +178,13 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
 
   if (!name_has_upper && is_event_attribute) {
     bump_vector<char8, monotonic_allocator> fixed_name(
-        "check_jsx_attribute fixed_name", &this->error_memory_);
+        "check_jsx_attribute fixed_name", &this->diagnostic_memory_);
     fixed_name += name;
     fixed_name[2] = toupper(fixed_name[2]);
-    this->error_reporter_->report(
-        error_jsx_event_attribute_should_be_camel_case{
-            .attribute_name = attribute_name,
-            .expected_attribute_name = string8_view(fixed_name),
-        });
+    this->diag_reporter_->report(diag_jsx_event_attribute_should_be_camel_case{
+        .attribute_name = attribute_name,
+        .expected_attribute_name = string8_view(fixed_name),
+    });
     fixed_name.release();
   }
 
@@ -198,8 +196,8 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
 
     if (auto alias_it = aliases.find(lowered_name); alias_it != aliases.end()) {
       if (alias_it->second.expected != name) {
-        this->error_reporter_->report(
-            error_jsx_attribute_has_wrong_capitalization{
+        this->diag_reporter_->report(
+            diag_jsx_attribute_has_wrong_capitalization{
                 .attribute_name = attribute_name,
                 .expected_attribute_name = alias_it->second.expected,
             });
@@ -249,8 +247,8 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
     expression* last_parameter =
         parameter_list->child(parameter_list->child_count() - 1);
     if (last_parameter->kind() == expression_kind::spread) {
-      this->error_reporter_->report(
-          error_comma_not_allowed_after_spread_parameter{
+      this->diag_reporter_->report(
+          diag_comma_not_allowed_after_spread_parameter{
               .comma = parameter_list->comma_span(),
               .spread = last_parameter->span(),
           });
@@ -268,14 +266,15 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
     if (is_async_arrow_using_with_await_operator) {
       // await (x) => {}   // Invalid.
       // await () => expr  // Invalid.
-      // We treated 'await' as 'async' elsewhere. Don't report any error here.
+      // We treated 'await' as 'async' elsewhere. Don't report any diagnostic
+      // here.
       return arrow_function;
     } else {
       // f() => {}         // Invalid.
       source_code_span missing_operator_span(call->span().begin(),
                                              call->left_paren_span().end());
-      this->error_reporter_->report(
-          error_missing_operator_between_expression_and_arrow_function{
+      this->diag_reporter_->report(
+          diag_missing_operator_between_expression_and_arrow_function{
               .where = missing_operator_span,
           });
       std::array<expression*, 2> children{lhs->child_0(), arrow_function};
@@ -292,7 +291,7 @@ void parser::error_on_sketchy_condition(expression* ast) {
   if (ast->kind() == expression_kind::assignment &&
       ast->child_1()->kind() == expression_kind::literal) {
     auto* assignment = static_cast<expression::assignment*>(ast);
-    this->error_reporter_->report(error_assignment_makes_condition_constant{
+    this->diag_reporter_->report(diag_assignment_makes_condition_constant{
         .assignment_operator = assignment->operator_span_,
     });
   }
@@ -306,7 +305,7 @@ void parser::error_on_sketchy_condition(expression* ast) {
     if (right_operator.string_view() == u8"||"sv &&
         (left_operator.string_view() == u8"=="sv ||
          left_operator.string_view() == u8"==="sv)) {
-      this->error_reporter_->report(error_equals_does_not_distribute_over_or{
+      this->diag_reporter_->report(diag_equals_does_not_distribute_over_or{
           .or_operator = right_operator,
           .equals_operator = left_operator,
       });
@@ -317,7 +316,7 @@ void parser::error_on_sketchy_condition(expression* ast) {
 void parser::error_on_class_statement(statement_kind statement_kind) {
   if (this->peek().type == token_type::kw_class) {
     const char8* expected_body = this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(error_class_statement_not_allowed_in_body{
+    this->diag_reporter_->report(diag_class_statement_not_allowed_in_body{
         .kind_of_statement = statement_kind,
         .expected_body = source_code_span(expected_body, expected_body),
         .class_keyword = this->peek().span(),
@@ -347,7 +346,7 @@ void parser::error_on_lexical_declaration(statement_kind statement_kind) {
   }
   if (is_lexical_declaration) {
     const char8* expected_body = this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(error_lexical_declaration_not_allowed_in_body{
+    this->diag_reporter_->report(diag_lexical_declaration_not_allowed_in_body{
         .kind_of_statement = statement_kind,
         .expected_body = source_code_span(expected_body, expected_body),
         .declaring_keyword = this->peek().span(),
@@ -360,7 +359,7 @@ void parser::error_on_function_statement(statement_kind statement_kind) {
       this->is_maybe_function_statement();
   if (function_keywords.has_value()) {
     const char8* expected_body = this->lexer_.end_of_previous_token();
-    this->error_reporter_->report(error_function_statement_not_allowed_in_body{
+    this->diag_reporter_->report(diag_function_statement_not_allowed_in_body{
         .kind_of_statement = statement_kind,
         .expected_body = source_code_span(expected_body, expected_body),
         .function_keywords = *function_keywords,
@@ -422,14 +421,14 @@ parser::try_parse_function_with_leading_star() {
   // *function f() {}
   this->skip();
   if (this->peek().type == token_type::identifier) {
-    this->error_reporter_->report(
-        error_generator_function_star_belongs_before_name{
+    this->diag_reporter_->report(
+        diag_generator_function_star_belongs_before_name{
             .function_name = this->peek().span(),
             .star = star_token.span(),
         });
   } else {
-    this->error_reporter_->report(
-        error_generator_function_star_belongs_after_keyword_function{
+    this->diag_reporter_->report(
+        diag_generator_function_star_belongs_after_keyword_function{
             .star = star_token.span()});
   }
   this->lexer_.roll_back_transaction(std::move(transaction));
@@ -499,8 +498,8 @@ void parser::consume_semicolon() {
       // Automatically insert a semicolon, then consume it.
     } else {
       this->lexer_.insert_semicolon();
-      this->error_reporter_->report(
-          error_missing_semicolon_after_statement{this->peek().span()});
+      this->diag_reporter_->report(
+          diag_missing_semicolon_after_statement{this->peek().span()});
       this->skip();
     }
     break;
@@ -512,21 +511,21 @@ bool parser::is_arrow_kind(expression* ast) noexcept {
 }
 
 parser_transaction parser::begin_transaction() {
-  return parser_transaction(&this->lexer_, &this->error_reporter_,
+  return parser_transaction(&this->lexer_, &this->diag_reporter_,
                             &this->temporary_memory_);
 }
 
 void parser::commit_transaction(parser_transaction&& transaction) {
-  auto* buffered_errors =
-      static_cast<buffering_error_reporter*>(this->error_reporter_);
-  buffered_errors->move_into(transaction.old_error_reporter);
-  this->error_reporter_ = transaction.old_error_reporter;
+  auto* buffered_diagnostics =
+      static_cast<buffering_diag_reporter*>(this->diag_reporter_);
+  buffered_diagnostics->move_into(transaction.old_diag_reporter);
+  this->diag_reporter_ = transaction.old_diag_reporter;
 
   this->lexer_.commit_transaction(std::move(transaction.lex_transaction));
 }
 
 void parser::roll_back_transaction(parser_transaction&& transaction) {
-  this->error_reporter_ = transaction.old_error_reporter;
+  this->diag_reporter_ = transaction.old_diag_reporter;
   this->lexer_.roll_back_transaction(std::move(transaction.lex_transaction));
 }
 
@@ -535,7 +534,7 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
                                           const char* qljs_function_name) {
 #if QLJS_HAVE_SETJMP
   if (this->have_fatal_parse_error_jmp_buf_) {
-    this->error_reporter_->report(error_unexpected_token{
+    this->diag_reporter_->report(diag_unexpected_token{
         .token = this->peek().span(),
     });
     std::longjmp(this->fatal_parse_error_jmp_buf_, 1);
@@ -559,7 +558,7 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
 void parser::crash_on_depth_limit_exceeded() {
 #if QLJS_HAVE_SETJMP
   if (this->have_fatal_parse_error_jmp_buf_) {
-    this->error_reporter_->report(error_depth_limit_exceeded{
+    this->diag_reporter_->report(diag_depth_limit_exceeded{
         .token = this->peek().span(),
     });
     std::longjmp(this->fatal_parse_error_jmp_buf_, 1);

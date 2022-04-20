@@ -62,34 +62,34 @@ class global_declared_variable_set {
 // * Use of undeclared variables
 //
 // The linter class implements variable lookup internally.
-class linter {
+class linter final : public parse_visitor_base {
  public:
-  explicit linter(error_reporter *error_reporter,
+  explicit linter(diag_reporter *diag_reporter,
                   const global_declared_variable_set *global_variables);
 
-  void visit_enter_block_scope();
-  void visit_enter_with_scope();
-  void visit_enter_class_scope();
-  void visit_enter_for_scope();
-  void visit_enter_function_scope();
-  void visit_enter_function_scope_body();
-  void visit_enter_named_function_scope(identifier);
-  void visit_exit_block_scope();
-  void visit_exit_with_scope();
-  void visit_exit_class_scope();
-  void visit_exit_for_scope();
-  void visit_exit_function_scope();
-  void visit_keyword_variable_use(identifier name);
-  void visit_property_declaration(std::optional<identifier>);
+  void visit_enter_block_scope() override;
+  void visit_enter_with_scope() override;
+  void visit_enter_class_scope() override;
+  void visit_enter_for_scope() override;
+  void visit_enter_function_scope() override;
+  void visit_enter_function_scope_body() override;
+  void visit_enter_named_function_scope(identifier) override;
+  void visit_exit_block_scope() override;
+  void visit_exit_with_scope() override;
+  void visit_exit_class_scope() override;
+  void visit_exit_for_scope() override;
+  void visit_exit_function_scope() override;
+  void visit_keyword_variable_use(identifier name) override;
+  void visit_property_declaration(std::optional<identifier>) override;
   void visit_variable_declaration(identifier name, variable_kind kind,
-                                  variable_init_kind init_kind);
-  void visit_variable_assignment(identifier name);
+                                  variable_init_kind init_kind) override;
+  void visit_variable_assignment(identifier name) override;
   void visit_variable_delete_use(identifier name,
-                                 source_code_span delete_keyword);
-  void visit_variable_export_use(identifier name);
-  void visit_variable_typeof_use(identifier name);
-  void visit_variable_use(identifier name);
-  void visit_end_of_module();
+                                 source_code_span delete_keyword) override;
+  void visit_variable_export_use(identifier name) override;
+  void visit_variable_typeof_use(identifier name) override;
+  void visit_variable_use(identifier name) override;
+  void visit_end_of_module() override;
 
  private:
   enum class declared_variable_scope {
@@ -271,9 +271,8 @@ class linter {
   // declared in the module scope, not the global scope.
   global_scope global_scope_;
 
-  error_reporter *error_reporter_;
+  diag_reporter *diag_reporter_;
 };
-QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(linter);
 }
 
 #endif
