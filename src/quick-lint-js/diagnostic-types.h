@@ -1239,8 +1239,8 @@
       MESSAGE(QLJS_TRANSLATABLE("octal literal may not have decimal"),         \
               characters))                                                     \
                                                                                \
-  QLJS_ERROR_TYPE(                                                             \
-      error_number_literal_will_lose_precision, "E0212",                       \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_number_literal_will_lose_precision, "E0212",                        \
       diagnostic_severity::warning, { source_code_span characters; },          \
       MESSAGE(QLJS_TRANSLATABLE("number literal will lose precision"),         \
               characters))                                                     \
