@@ -1336,12 +1336,10 @@ void lexer::parse_number() {
         !(number_begin[0] == u8'0' && this->is_digit(number_begin[1])));
   }
   if (!has_decimal_point && !has_exponent && !is_bigint) {
-    std::string input_string =
-        to_string(string8_view(number_begin, input - number_begin));
     std::string cleaned_string = "";
-    for (size_t i = 0; i < input_string.size(); ++i) {
-      if (input_string[i] != '_') {
-        cleaned_string.push_back(input_string[i]);
+    for (char8 c : string8_view(number_begin, input - number_begin)) {
+      if (c != '_') {
+        cleaned_string.push_back(static_cast<char>(c));
       }
     }
     double num = std::stod(cleaned_string);
