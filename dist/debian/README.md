@@ -7,7 +7,9 @@ quick-lint-js on Debian, Ubuntu, and other Linux distributions.
 
 On a Debian-based machine, install dependencies for .deb generation:
 
-    $ sudo apt-get install build-essential cmake debhelper dpkg-dev fakeroot git lintian pkg-config
+    # libgmock-dev, libgtest-dev, libsimdjson-dev, and pkg-config are optional
+    # when building with --xenial.
+    $ sudo apt-get install build-essential cmake debhelper dpkg-dev fakeroot git libgmock-dev libgtest-dev libsimdjson-dev lintian pkg-config
 
 Then, run the `build.sh` script:
 

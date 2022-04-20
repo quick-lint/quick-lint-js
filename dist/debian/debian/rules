@@ -5,10 +5,25 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 %:
 	dh $@ --parallel
 
+# HACK(strager): googletest was compiled without -fchar8_t (default for
+# -std=c++20). It is missing symbols which might be referenced if quick-lint-js
+# is built with -fchar8_t. Tell quick-lint-js' build system that -fchar8_t
+# exists (QUICK_LINT_JS_HAVE_FCHAR8_T_FLAG=YES) but doesn't work
+# (QUICK_LINT_JS_HAVE_WORKING_FCHAR8_T=NO), causing it to build with
+# -fno-char8_t. This fixes undefined symbol errors when linking tests.
+#
+# HACK(strager): Debian's Boost is too old for quick-lint-js. Tell quick-lint-js
+# to use its vendored version of Boost (QUICK_LINT_JS_USE_BUNDLED_BOOST=YES).
 override_dh_auto_configure:
 	dh_auto_configure -- \
+		-DQUICK_LINT_JS_HAVE_FCHAR8_T_FLAG=YES \
+		-DQUICK_LINT_JS_HAVE_WORKING_FCHAR8_T=NO \
 		-DQUICK_LINT_JS_INSTALL_VIM_DIR=share/vim/addons \
 		-DQUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS=ON \
+		-DQUICK_LINT_JS_USE_BUNDLED_BOOST=YES \
+		-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_BENCHMARK=NO \
+		-DQUICK_LINT_JS_USE_BUNDLED_GOOGLE_TEST=NO \
+		-DQUICK_LINT_JS_USE_BUNDLED_SIMDJSON=NO \
 		-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=YES
 
 override_dh_auto_install:
