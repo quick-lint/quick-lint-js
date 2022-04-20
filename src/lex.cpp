@@ -1343,9 +1343,9 @@ void lexer::parse_number() {
       }
     }
     double num = std::stod(cleaned_string);
-    std::string result_string = std::to_string(num);
-    result_string.erase(result_string.find('.'),
-                        result_string[result_string.length() - 1]);
+    std::array<char, 20> result_string; // or however big it needs to be
+    int rc = std::snprintf(result_string.data(), result_string.size(), "%.0f", num);
+    // (check rc)
     if (cleaned_string != result_string) {
       this->error_reporter_->report(error_number_literal_will_lose_precision{
           source_code_span(number_begin, input)});
