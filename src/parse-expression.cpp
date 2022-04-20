@@ -1,9 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PARSE_EXPRESSION_INL_H
-#define QUICK_LINT_JS_PARSE_EXPRESSION_INL_H
-
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
@@ -30,8 +27,8 @@
 #include <utility>
 
 namespace quick_lint_js {
-inline void parser::visit_expression(expression* ast, parse_visitor_base& v,
-                                     parser::variable_context context) {
+void parser::visit_expression(expression* ast, parse_visitor_base& v,
+                              parser::variable_context context) {
   auto visit_children = [&] {
     for (expression* child : ast->children()) {
       this->visit_expression(child, v, context);
@@ -172,23 +169,21 @@ inline void parser::visit_expression(expression* ast, parse_visitor_base& v,
   }
 }
 
-inline void parser::visit_assignment_expression(expression* lhs,
-                                                expression* rhs,
-                                                parse_visitor_base& v) {
+void parser::visit_assignment_expression(expression* lhs, expression* rhs,
+                                         parse_visitor_base& v) {
   this->visit_expression(lhs, v, variable_context::lhs);
   this->visit_expression(rhs, v, variable_context::rhs);
   this->maybe_visit_assignment(lhs, v);
 }
 
-inline void parser::visit_compound_or_conditional_assignment_expression(
+void parser::visit_compound_or_conditional_assignment_expression(
     expression* lhs, expression* rhs, parse_visitor_base& v) {
   this->visit_expression(lhs, v, variable_context::rhs);
   this->visit_expression(rhs, v, variable_context::rhs);
   this->maybe_visit_assignment(lhs, v);
 }
 
-inline void parser::maybe_visit_assignment(expression* ast,
-                                           parse_visitor_base& v) {
+void parser::maybe_visit_assignment(expression* ast, parse_visitor_base& v) {
   switch (ast->kind()) {
   case expression_kind::array:
     for (expression* child : ast->children()) {
@@ -212,8 +207,7 @@ inline void parser::maybe_visit_assignment(expression* ast,
   }
 }
 
-inline expression* parser::parse_expression(parse_visitor_base& v,
-                                            precedence prec) {
+expression* parser::parse_expression(parse_visitor_base& v, precedence prec) {
   depth_guard guard(this);
   expression* ast = this->parse_primary_expression(v, prec);
   if (!prec.binary_operators && prec.math_or_logical_or_assignment) {
@@ -223,8 +217,8 @@ inline expression* parser::parse_expression(parse_visitor_base& v,
 }
 
 // TODO(strager): Why do we need precedence here? Could we get rid of prec?
-inline expression* parser::parse_primary_expression(parse_visitor_base& v,
-                                                    precedence prec) {
+expression* parser::parse_primary_expression(parse_visitor_base& v,
+                                             precedence prec) {
   switch (this->peek().type) {
   // f  // Variable name.
   identifier:
@@ -691,9 +685,8 @@ inline expression* parser::parse_primary_expression(parse_visitor_base& v,
   }
 }
 
-inline expression* parser::parse_async_expression(parse_visitor_base& v,
-                                                  token async_token,
-                                                  precedence prec) {
+expression* parser::parse_async_expression(parse_visitor_base& v,
+                                           token async_token, precedence prec) {
   expression* ast = this->parse_async_expression_only(
       v, async_token, /*allow_in_operator=*/prec.in_operator);
   if (!prec.binary_operators) {
@@ -702,9 +695,9 @@ inline expression* parser::parse_async_expression(parse_visitor_base& v,
   return this->parse_expression_remainder(v, ast, prec);
 }
 
-inline expression* parser::parse_async_expression_only(parse_visitor_base& v,
-                                                       token async_token,
-                                                       bool allow_in_operator) {
+expression* parser::parse_async_expression_only(parse_visitor_base& v,
+                                                token async_token,
+                                                bool allow_in_operator) {
   const char8* async_begin = async_token.begin;
 
   auto parse_arrow_function_arrow_and_body =
@@ -852,9 +845,8 @@ inline expression* parser::parse_async_expression_only(parse_visitor_base& v,
   QLJS_UNREACHABLE();
 }
 
-inline expression* parser::parse_await_expression(parse_visitor_base& v,
-                                                  token await_token,
-                                                  precedence prec) {
+expression* parser::parse_await_expression(parse_visitor_base& v,
+                                           token await_token, precedence prec) {
   bool is_identifier = [&]() -> bool {
     if (this->in_async_function_ ||
         (this->in_top_level_ &&
@@ -1014,9 +1006,9 @@ inline expression* parser::parse_await_expression(parse_visitor_base& v,
   }
 }
 
-inline expression* parser::parse_expression_remainder(parse_visitor_base& v,
-                                                      expression* ast,
-                                                      precedence prec) {
+expression* parser::parse_expression_remainder(parse_visitor_base& v,
+                                               expression* ast,
+                                               precedence prec) {
   if (prec.commas) {
     QLJS_ASSERT(prec.binary_operators);
   }
@@ -1542,7 +1534,7 @@ next:
   return build_expression();
 }
 
-inline void parser::parse_arrow_function_expression_remainder(
+void parser::parse_arrow_function_expression_remainder(
     parse_visitor_base& v, binary_expression_builder& children,
     bool allow_in_operator) {
   QLJS_ASSERT(this->peek().type == token_type::equal_greater);
@@ -1552,7 +1544,7 @@ inline void parser::parse_arrow_function_expression_remainder(
                                                   allow_in_operator);
 }
 
-inline void parser::parse_arrow_function_expression_remainder(
+void parser::parse_arrow_function_expression_remainder(
     parse_visitor_base& v, source_code_span arrow_span,
     binary_expression_builder& binary_builder, bool allow_in_operator) {
   if (binary_builder.has_multiple_children()) {
@@ -1706,8 +1698,8 @@ inline void parser::parse_arrow_function_expression_remainder(
       this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs));
 }
 
-inline expression* parser::parse_call_expression_remainder(
-    parse_visitor_base& v, expression* callee) {
+expression* parser::parse_call_expression_remainder(parse_visitor_base& v,
+                                                    expression* callee) {
   source_code_span left_paren_span = this->peek().span();
   expression_arena::vector<expression*> call_children(
       "parse_expression_remainder call children",
@@ -1750,8 +1742,8 @@ inline expression* parser::parse_call_expression_remainder(
       /*span_end=*/call_span_end);
 }
 
-inline expression* parser::parse_index_expression_remainder(
-    parse_visitor_base& v, expression* lhs) {
+expression* parser::parse_index_expression_remainder(parse_visitor_base& v,
+                                                     expression* lhs) {
   QLJS_ASSERT(this->peek().type == token_type::left_square);
   source_code_span left_square_span = this->peek().span();
   this->skip();
@@ -1781,7 +1773,7 @@ inline expression* parser::parse_index_expression_remainder(
   return this->make_expression<expression::index>(lhs, subscript, end);
 }
 
-inline expression* parser::parse_arrow_function_body(
+expression* parser::parse_arrow_function_body(
     parse_visitor_base& v, function_attributes attributes,
     const char8* parameter_list_begin, bool allow_in_operator,
     expression_arena::array_ptr<expression*>&& parameters) {
@@ -1811,9 +1803,9 @@ inline expression* parser::parse_arrow_function_body(
       attributes, std::move(parameters), parameter_list_begin, span_end);
 }
 
-inline expression* parser::parse_function_expression(
-    parse_visitor_base& v, function_attributes attributes,
-    const char8* span_begin) {
+expression* parser::parse_function_expression(parse_visitor_base& v,
+                                              function_attributes attributes,
+                                              const char8* span_begin) {
   QLJS_ASSERT(this->peek().type == token_type::kw_function);
   this->skip();
   attributes = this->parse_generator_star(attributes);
@@ -1859,7 +1851,7 @@ inline expression* parser::parse_function_expression(
                    attributes, source_code_span(span_begin, span_end));
 }
 
-inline expression* parser::parse_object_literal(parse_visitor_base& v) {
+expression* parser::parse_object_literal(parse_visitor_base& v) {
   QLJS_ASSERT(this->peek().type == token_type::left_curly);
   const char8* left_curly_begin = this->peek().begin;
   const char8* right_curly_end;
@@ -2428,7 +2420,7 @@ done:
       source_code_span(left_curly_begin, right_curly_end));
 }
 
-inline expression* parser::parse_class_expression(parse_visitor_base& v) {
+expression* parser::parse_class_expression(parse_visitor_base& v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
   const char8* span_begin = this->peek().begin;
 
@@ -2451,7 +2443,7 @@ inline expression* parser::parse_class_expression(parse_visitor_base& v) {
       source_code_span(span_begin, span_end));
 }
 
-inline expression* parser::parse_jsx_expression(parse_visitor_base& v) {
+expression* parser::parse_jsx_expression(parse_visitor_base& v) {
   QLJS_ASSERT(this->peek().type == token_type::less);
 
   if (!this->options_.jsx) {
@@ -2495,8 +2487,7 @@ inline expression* parser::parse_jsx_expression(parse_visitor_base& v) {
   return ast;
 }
 
-inline expression* parser::parse_jsx_element_or_fragment(
-    parse_visitor_base& v) {
+expression* parser::parse_jsx_element_or_fragment(parse_visitor_base& v) {
   QLJS_ASSERT(this->options_.jsx);
   QLJS_ASSERT(this->peek().type == token_type::less);
 
@@ -2529,8 +2520,9 @@ inline expression* parser::parse_jsx_element_or_fragment(
   }
 }
 
-inline expression* parser::parse_jsx_element_or_fragment(
-    parse_visitor_base& v, identifier* tag, const char8* less_begin) {
+expression* parser::parse_jsx_element_or_fragment(parse_visitor_base& v,
+                                                  identifier* tag,
+                                                  const char8* less_begin) {
   depth_guard d_guard(this);
 
   // If temp_tag_storage is nullopt, then there is no namespace. If
@@ -2846,8 +2838,8 @@ next:
   QLJS_UNREACHABLE();
 }
 
-inline expression* parser::parse_tagged_template(parse_visitor_base& v,
-                                                 expression* tag) {
+expression* parser::parse_tagged_template(parse_visitor_base& v,
+                                          expression* tag) {
   if (this->peek().type == token_type::complete_template) {
     source_code_span template_span = this->peek().span();
     this->skip();
@@ -2894,7 +2886,7 @@ inline expression* parser::parse_tagged_template(parse_visitor_base& v,
   }
 }
 
-inline expression* parser::parse_untagged_template(parse_visitor_base& v) {
+expression* parser::parse_untagged_template(parse_visitor_base& v) {
   if (this->peek().type == token_type::complete_template) {
     QLJS_UNIMPLEMENTED();
   }
@@ -2941,8 +2933,6 @@ inline expression* parser::parse_untagged_template(parse_visitor_base& v) {
   }
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

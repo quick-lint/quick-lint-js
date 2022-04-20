@@ -1,9 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PARSE_STATEMENT_INL_H
-#define QUICK_LINT_JS_PARSE_STATEMENT_INL_H
-
 #include <boost/container/pmr/memory_resource.hpp>
 #include <cstdlib>
 #include <optional>
@@ -25,7 +22,7 @@
 #include <utility>
 
 namespace quick_lint_js {
-inline void parser::parse_and_visit_module(parse_visitor_base &v) {
+void parser::parse_and_visit_module(parse_visitor_base &v) {
   bool done = false;
   while (!done) {
     bool parsed_statement = this->parse_and_visit_statement(
@@ -52,7 +49,7 @@ inline void parser::parse_and_visit_module(parse_visitor_base &v) {
   v.visit_end_of_module();
 }
 
-inline bool parser::parse_and_visit_statement(
+bool parser::parse_and_visit_statement(
     parse_visitor_base &v, parser::parse_statement_type statement_type) {
   depth_guard d_guard(this);
   auto parse_expression_end = [this]() -> void {
@@ -588,7 +585,7 @@ parse_statement:
   return true;
 }
 
-inline void parser::parse_and_visit_export(parse_visitor_base &v) {
+void parser::parse_and_visit_export(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_export);
   source_code_span export_token_span = this->peek().span();
   this->skip();
@@ -800,8 +797,7 @@ inline void parser::parse_and_visit_export(parse_visitor_base &v) {
   }
 }
 
-inline void parser::parse_and_visit_statement_block_no_scope(
-    parse_visitor_base &v) {
+void parser::parse_and_visit_statement_block_no_scope(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::left_curly);
   source_code_span left_curly_span = this->peek().span();
   this->skip();
@@ -829,7 +825,7 @@ inline void parser::parse_and_visit_statement_block_no_scope(
   }
 }
 
-inline void parser::parse_and_visit_function_declaration(
+void parser::parse_and_visit_function_declaration(
     parse_visitor_base &v, function_attributes attributes, const char8 *begin,
     parser::name_requirement require_name) {
   QLJS_ASSERT(this->peek().type == token_type::kw_function);
@@ -932,7 +928,7 @@ inline void parser::parse_and_visit_function_declaration(
   }
 }
 
-inline void parser::parse_and_visit_function_parameters_and_body(
+void parser::parse_and_visit_function_parameters_and_body(
     parse_visitor_base &v, std::optional<source_code_span> name,
     function_attributes attributes) {
   v.visit_enter_function_scope();
@@ -941,7 +937,7 @@ inline void parser::parse_and_visit_function_parameters_and_body(
   v.visit_exit_function_scope();
 }
 
-inline void parser::parse_and_visit_function_parameters_and_body_no_scope(
+void parser::parse_and_visit_function_parameters_and_body_no_scope(
     parse_visitor_base &v, std::optional<source_code_span> name,
     function_attributes attributes) {
   function_guard guard = this->enter_function(attributes);
@@ -1025,7 +1021,7 @@ inline void parser::parse_and_visit_function_parameters_and_body_no_scope(
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
-inline void parser::parse_and_visit_function_parameters(parse_visitor_base &v) {
+void parser::parse_and_visit_function_parameters(parse_visitor_base &v) {
   std::optional<source_code_span> last_parameter_spread_span = std::nullopt;
   bool first_parameter = true;
   for (;;) {
@@ -1083,8 +1079,8 @@ done:;
 }
 QLJS_WARNING_POP
 
-inline void parser::parse_and_visit_class(
-    parse_visitor_base &v, parser::name_requirement require_name) {
+void parser::parse_and_visit_class(parse_visitor_base &v,
+                                   parser::name_requirement require_name) {
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
 
   this->parse_and_visit_class_heading(v, /*require_name=*/require_name);
@@ -1106,7 +1102,7 @@ inline void parser::parse_and_visit_class(
   }
 }
 
-inline void parser::parse_and_visit_class_heading(
+void parser::parse_and_visit_class_heading(
     parse_visitor_base &v, parser::name_requirement require_name) {
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
   source_code_span class_keyword_span = this->peek().span();
@@ -1183,7 +1179,7 @@ inline void parser::parse_and_visit_class_heading(
   }
 }
 
-inline void parser::parse_and_visit_class_body(parse_visitor_base &v) {
+void parser::parse_and_visit_class_body(parse_visitor_base &v) {
   class_guard g(this, std::exchange(this->in_class_, true));
 
   source_code_span left_curly_span = this->peek().span();
@@ -1203,7 +1199,7 @@ inline void parser::parse_and_visit_class_body(parse_visitor_base &v) {
   this->skip();
 }
 
-inline void parser::parse_and_visit_class_member(parse_visitor_base &v) {
+void parser::parse_and_visit_class_member(parse_visitor_base &v) {
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wshadow-local")
 
@@ -1527,7 +1523,7 @@ next:
   QLJS_WARNING_POP
 }
 
-inline void parser::parse_and_visit_switch(parse_visitor_base &v) {
+void parser::parse_and_visit_switch(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_switch);
   source_code_span switch_token_span = this->peek().span();
   this->skip();
@@ -1620,7 +1616,7 @@ inline void parser::parse_and_visit_switch(parse_visitor_base &v) {
   v.visit_exit_block_scope();
 }
 
-inline void parser::parse_and_visit_try_maybe_catch_maybe_finally(
+void parser::parse_and_visit_try_maybe_catch_maybe_finally(
     parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_try);
   source_code_span try_token_span = this->peek().span();
@@ -1652,8 +1648,7 @@ inline void parser::parse_and_visit_try_maybe_catch_maybe_finally(
   }
 }
 
-inline bool parser::parse_and_visit_catch_or_finally_or_both(
-    parse_visitor_base &v) {
+bool parser::parse_and_visit_catch_or_finally_or_both(parse_visitor_base &v) {
   bool parsed_catch = false;
   bool parsed_finally = false;
 
@@ -1760,7 +1755,7 @@ inline bool parser::parse_and_visit_catch_or_finally_or_both(
   return parsed_catch || parsed_finally;
 }
 
-inline void parser::parse_and_visit_do_while(parse_visitor_base &v) {
+void parser::parse_and_visit_do_while(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_do);
   source_code_span do_token_span = this->peek().span();
   this->skip();
@@ -1804,7 +1799,7 @@ inline void parser::parse_and_visit_do_while(parse_visitor_base &v) {
   }
 }
 
-inline void parser::parse_and_visit_for(parse_visitor_base &v) {
+void parser::parse_and_visit_for(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_for);
   source_code_span for_token_span = this->peek().span();
   this->skip();
@@ -2192,7 +2187,7 @@ inline void parser::parse_and_visit_for(parse_visitor_base &v) {
   }
 }
 
-inline void parser::parse_and_visit_while(parse_visitor_base &v) {
+void parser::parse_and_visit_while(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_while);
   source_code_span while_token_span = this->peek().span();
   this->skip();
@@ -2222,7 +2217,7 @@ inline void parser::parse_and_visit_while(parse_visitor_base &v) {
   }
 }
 
-inline void parser::parse_and_visit_with(parse_visitor_base &v) {
+void parser::parse_and_visit_with(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_with);
   this->skip();
 
@@ -2244,7 +2239,7 @@ inline void parser::parse_and_visit_with(parse_visitor_base &v) {
   v.visit_exit_with_scope();
 }
 
-inline void parser::parse_and_visit_if(parse_visitor_base &v) {
+void parser::parse_and_visit_if(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_if);
   source_code_span if_token_span = this->peek().span();
   this->skip();
@@ -2323,45 +2318,7 @@ parse_maybe_else:
   }
 }
 
-template <class ExpectedParenthesesError, class ExpectedParenthesisError,
-          bool CheckForSketchyConditions>
-void parser::parse_and_visit_parenthesized_expression(parse_visitor_base &v) {
-  bool have_expression_left_paren = this->peek().type == token_type::left_paren;
-  if (have_expression_left_paren) {
-    this->skip();
-  }
-  const char8 *expression_begin = this->peek().begin;
-
-  expression *ast = this->parse_expression(v);
-  this->visit_expression(ast, v, variable_context::rhs);
-  if constexpr (CheckForSketchyConditions) {
-    this->error_on_sketchy_condition(ast);
-  }
-
-  const char8 *expression_end = this->lexer_.end_of_previous_token();
-  bool have_expression_right_paren =
-      this->peek().type == token_type::right_paren;
-  if (have_expression_right_paren) {
-    this->skip();
-  }
-
-  if (!have_expression_left_paren && !have_expression_right_paren) {
-    this->diag_reporter_->report(ExpectedParenthesesError{
-        source_code_span(expression_begin, expression_end)});
-  } else if (!have_expression_right_paren) {
-    this->diag_reporter_->report(ExpectedParenthesisError{
-        .where = source_code_span(expression_end, expression_end),
-        .token = ')',
-    });
-  } else if (!have_expression_left_paren) {
-    this->diag_reporter_->report(ExpectedParenthesisError{
-        .where = source_code_span(expression_begin, expression_begin),
-        .token = '(',
-    });
-  }
-}
-
-inline void parser::parse_and_visit_import(parse_visitor_base &v) {
+void parser::parse_and_visit_import(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_import);
   source_code_span import_span = this->peek().span();
   this->skip();
@@ -2478,7 +2435,7 @@ inline void parser::parse_and_visit_import(parse_visitor_base &v) {
   }
 }
 
-inline void parser::parse_and_visit_name_space_import(parse_visitor_base &v) {
+void parser::parse_and_visit_name_space_import(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::star);
   source_code_span star_span = this->peek().span();
   this->skip();
@@ -2536,19 +2493,18 @@ inline void parser::parse_and_visit_name_space_import(parse_visitor_base &v) {
   }
 }
 
-inline void parser::parse_and_visit_named_exports_for_export(
+void parser::parse_and_visit_named_exports_for_export(
     parse_visitor_base &v,
     bump_vector<token, monotonic_allocator> &out_exported_bad_tokens) {
   this->parse_and_visit_named_exports(
       v, /*out_exported_bad_tokens=*/&out_exported_bad_tokens);
 }
 
-inline void parser::parse_and_visit_named_exports_for_import(
-    parse_visitor_base &v) {
+void parser::parse_and_visit_named_exports_for_import(parse_visitor_base &v) {
   this->parse_and_visit_named_exports(v, /*out_exported_bad_tokens=*/nullptr);
 }
 
-inline void parser::parse_and_visit_named_exports(
+void parser::parse_and_visit_named_exports(
     parse_visitor_base &v,
     bump_vector<token, monotonic_allocator> *out_exported_bad_tokens) {
   bool is_export = out_exported_bad_tokens != nullptr;
@@ -2735,7 +2691,7 @@ done:
   this->skip();
 }
 
-inline void parser::parse_and_visit_variable_declaration_statement(
+void parser::parse_and_visit_variable_declaration_statement(
     parse_visitor_base &v) {
   token declaring_token = this->peek();
   QLJS_ASSERT(declaring_token.type == token_type::kw_const ||
@@ -2747,9 +2703,11 @@ inline void parser::parse_and_visit_variable_declaration_statement(
   this->consume_semicolon();
 }
 
-inline void parser::parse_and_visit_let_bindings(
-    parse_visitor_base &v, token declaring_token, bool allow_in_operator,
-    bool allow_const_without_initializer, bool is_in_for_initializer) {
+void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
+                                          token declaring_token,
+                                          bool allow_in_operator,
+                                          bool allow_const_without_initializer,
+                                          bool is_in_for_initializer) {
   variable_kind declaration_kind;
   switch (declaring_token.type) {
   case token_type::kw_const:
@@ -2775,10 +2733,12 @@ inline void parser::parse_and_visit_let_bindings(
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
-inline void parser::parse_and_visit_let_bindings(
-    parse_visitor_base &v, token declaring_token,
-    variable_kind declaration_kind, bool allow_in_operator,
-    bool allow_const_without_initializer, bool is_in_for_initializer) {
+void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
+                                          token declaring_token,
+                                          variable_kind declaration_kind,
+                                          bool allow_in_operator,
+                                          bool allow_const_without_initializer,
+                                          bool is_in_for_initializer) {
   source_code_span let_span = declaring_token.span();
   bool first_binding = true;
   for (;;) {
@@ -3064,7 +3024,7 @@ inline void parser::parse_and_visit_let_bindings(
 }
 QLJS_WARNING_POP
 
-inline void parser::visit_binding_element(
+void parser::visit_binding_element(
     expression *ast, parse_visitor_base &v, variable_kind declaration_kind,
     std::optional<source_code_span> declaring_token,
     variable_init_kind init_kind) {
@@ -3246,8 +3206,6 @@ inline void parser::visit_binding_element(
   }
 }
 }
-
-#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

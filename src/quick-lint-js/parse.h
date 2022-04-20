@@ -163,10 +163,10 @@ class parser {
                                             function_attributes attributes,
                                             const char8 *begin,
                                             name_requirement require_name);
-  inline void parse_and_visit_function_parameters_and_body(
+  void parse_and_visit_function_parameters_and_body(
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
-  inline void parse_and_visit_function_parameters_and_body_no_scope(
+  void parse_and_visit_function_parameters_and_body_no_scope(
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
   void parse_and_visit_function_parameters(parse_visitor_base &v);
@@ -216,15 +216,15 @@ class parser {
   void parse_and_visit_named_exports_for_import(parse_visitor_base &v);
 
   void parse_and_visit_export(parse_visitor_base &v);
-  inline void parse_and_visit_named_exports_for_export(
+  void parse_and_visit_named_exports_for_export(
       parse_visitor_base &v,
       bump_vector<token, monotonic_allocator> &out_exported_bad_tokens);
-  inline void parse_and_visit_named_exports(
+  void parse_and_visit_named_exports(
       parse_visitor_base &v,
       bump_vector<token, monotonic_allocator> *out_exported_bad_tokens);
 
   void parse_and_visit_variable_declaration_statement(parse_visitor_base &v);
-  inline void parse_and_visit_let_bindings(
+  void parse_and_visit_let_bindings(
       parse_visitor_base &v, token declaring_token, bool allow_in_operator,
       bool allow_const_without_initializer = false,
       bool is_in_for_initializer = false);
@@ -540,10 +540,45 @@ class parser {
   [[nodiscard]] loop_guard enter_loop();
   [[nodiscard]] class_guard enter_class();
 };
-}
 
-#include <quick-lint-js/parse-expression-inl.h>
-#include <quick-lint-js/parse-statement-inl.h>
+template <class ExpectedParenthesesError, class ExpectedParenthesisError,
+          bool CheckForSketchyConditions>
+void parser::parse_and_visit_parenthesized_expression(parse_visitor_base &v) {
+  bool have_expression_left_paren = this->peek().type == token_type::left_paren;
+  if (have_expression_left_paren) {
+    this->skip();
+  }
+  const char8 *expression_begin = this->peek().begin;
+
+  expression *ast = this->parse_expression(v);
+  this->visit_expression(ast, v, variable_context::rhs);
+  if constexpr (CheckForSketchyConditions) {
+    this->error_on_sketchy_condition(ast);
+  }
+
+  const char8 *expression_end = this->lexer_.end_of_previous_token();
+  bool have_expression_right_paren =
+      this->peek().type == token_type::right_paren;
+  if (have_expression_right_paren) {
+    this->skip();
+  }
+
+  if (!have_expression_left_paren && !have_expression_right_paren) {
+    this->diag_reporter_->report(ExpectedParenthesesError{
+        source_code_span(expression_begin, expression_end)});
+  } else if (!have_expression_right_paren) {
+    this->diag_reporter_->report(ExpectedParenthesisError{
+        .where = source_code_span(expression_end, expression_end),
+        .token = ')',
+    });
+  } else if (!have_expression_left_paren) {
+    this->diag_reporter_->report(ExpectedParenthesisError{
+        .where = source_code_span(expression_begin, expression_begin),
+        .token = '(',
+    });
+  }
+}
+}
 
 #endif
 

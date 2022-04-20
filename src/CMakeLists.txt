@@ -87,6 +87,8 @@ quick_lint_js_add_library(
   options.cpp
   output-stream.cpp
   padded-string.cpp
+  parse-expression.cpp
+  parse-statement.cpp
   parse.cpp
   pipe-writer.cpp
   pipe.cpp
@@ -151,8 +153,6 @@ quick_lint_js_add_library(
   quick-lint-js/options.h
   quick-lint-js/output-stream.h
   quick-lint-js/padded-string.h
-  quick-lint-js/parse-expression-inl.h
-  quick-lint-js/parse-statement-inl.h
   quick-lint-js/parse-visitor.h
   quick-lint-js/parse.h
   quick-lint-js/pipe-writer.h
