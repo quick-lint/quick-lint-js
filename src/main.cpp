@@ -534,13 +534,9 @@ void process_file(padded_string_view input, configuration &config,
   };
 
   if (print_parser_visits) {
-    linked_bump_allocator<alignof(void *)> v_allocator;
-    buffering_visitor v(&v_allocator);
-    run_parser(v);
-
     debug_visitor logger;
     multi_visitor visitor(&logger, &l);
-    v.move_into(visitor);
+    run_parser(visitor);
   } else {
     run_parser(l);
   }
