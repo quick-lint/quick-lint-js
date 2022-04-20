@@ -21,6 +21,7 @@
 #include <quick-lint-js/utf-8.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
+#include <string>
 #include <type_traits>
 #include <utility>
 
@@ -1334,6 +1335,24 @@ void lexer::parse_number() {
     }
     QLJS_SLOW_ASSERT(
         !(number_begin[0] == u8'0' && this->is_digit(number_begin[1])));
+  }
+  if (!has_decimal_point && !has_exponent && !is_bigint) {
+    std::string input_string =
+        to_string(string8_view(number_begin, input - number_begin));
+    std::string cleaned_string = "";
+    for (size_t i = 0; i < input_string.size(); ++i) {
+      if (input_string[i] != '_') {
+        cleaned_string.push_back(input_string[i]);
+      }
+    }
+    double num = std::stod(cleaned_string);
+    std::string result_string = std::to_string(num);
+    result_string.erase(result_string.find('.'),
+                        result_string[result_string.length() - 1]);
+    if (cleaned_string != result_string) {
+      this->error_reporter_->report(error_number_literal_will_lose_precision{
+          source_code_span(number_begin, input)});
+    }
   }
 
   switch (*input) {

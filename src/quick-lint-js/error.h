@@ -1240,6 +1240,12 @@
               characters))                                                     \
                                                                                \
   QLJS_ERROR_TYPE(                                                             \
+      error_number_literal_will_lose_precision, "E0212",                       \
+      diagnostic_severity::warning, { source_code_span characters; },          \
+      MESSAGE(QLJS_TRANSLATABLE("number literal will lose precision"),         \
+              characters))                                                     \
+                                                                               \
+  QLJS_ERROR_TYPE(                                                             \
       error_private_properties_are_not_allowed_in_object_literals, "E0156",    \
       diagnostic_severity::error, { identifier private_identifier; },          \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
