@@ -16,11 +16,16 @@ export DEB_LDFLAGS_MAINT_APPEND = -fuse-ld=gold
 	dh $@ --parallel
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DQUICK_LINT_JS_INSTALL_VIM_DIR=share/vim/addons -DQUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS=ON -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=YES
+	dh_auto_configure -- \
+		-DQUICK_LINT_JS_INSTALL_VIM_DIR=share/vim/addons \
+		-DQUICK_LINT_JS_INSTALL_VIM_NEOVIM_TAGS=ON \
+		-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=YES
 
 override_dh_auto_install:
 	dh_auto_install
-	install -m644 -D plugin/vim/quick-lint-js.yaml debian/tmp/usr/share/vim/registry/quick-lint-js.yaml
+	install -m644 -D \
+		plugin/vim/quick-lint-js.yaml \
+		debian/tmp/usr/share/vim/registry/quick-lint-js.yaml
 
 override_dh_strip:
 	dh_strip $@ --dbg-package=quick-lint-js-dbgsym
