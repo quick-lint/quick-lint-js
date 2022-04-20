@@ -36,9 +36,10 @@ cp -a debian "quick-lint-js-${package_version}/debian"
 cd "quick-lint-js-${package_version}/"
 if [ "${variant}" != default ]; then
   cp -a "debian/control-${variant}" debian/control
+  cp -a "debian/copyright-${variant}" debian/copyright
   cp -a "debian/rules-${variant}" debian/rules
 fi
-rm debian/control-* debian/rules-*
+rm debian/control-* debian/copyright-* debian/rules-*
 
 dpkg-buildpackage -rfakeroot -uc -us
 
