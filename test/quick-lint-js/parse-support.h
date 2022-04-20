@@ -24,11 +24,6 @@
 namespace quick_lint_js {
 class expression;
 
-extern template void parser::parse_and_visit_module<spy_visitor>(
-    spy_visitor& v);
-extern template bool parser::parse_and_visit_statement<spy_visitor>(
-    spy_visitor& v, parser::parse_statement_type);
-
 // Escape the first character in the given keyword with a JavaScript identifier
 // escape sequence (\u{..}).
 //

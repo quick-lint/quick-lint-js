@@ -18,7 +18,7 @@ QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_MSVC(26495)  // Variable is uninitialized.
 
 namespace quick_lint_js {
-class buffering_visitor {
+class buffering_visitor final : public parse_visitor_base {
  public:
   explicit buffering_visitor(boost::container::pmr::memory_resource *memory)
       : visits_(memory) {}
@@ -103,63 +103,63 @@ class buffering_visitor {
     }
   }
 
-  void visit_end_of_module() {
+  void visit_end_of_module() override {
     this->visits_.emplace_back(visit_kind::end_of_module);
   }
 
-  void visit_enter_block_scope() {
+  void visit_enter_block_scope() override {
     this->visits_.emplace_back(visit_kind::enter_block_scope);
   }
 
-  void visit_enter_with_scope() {
+  void visit_enter_with_scope() override {
     this->visits_.emplace_back(visit_kind::enter_with_scope);
   }
 
-  void visit_enter_class_scope() {
+  void visit_enter_class_scope() override {
     this->visits_.emplace_back(visit_kind::enter_class_scope);
   }
 
-  void visit_enter_for_scope() {
+  void visit_enter_for_scope() override {
     this->visits_.emplace_back(visit_kind::enter_for_scope);
   }
 
-  void visit_enter_function_scope() {
+  void visit_enter_function_scope() override {
     this->visits_.emplace_back(visit_kind::enter_function_scope);
   }
 
-  void visit_enter_function_scope_body() {
+  void visit_enter_function_scope_body() override {
     this->visits_.emplace_back(visit_kind::enter_function_scope_body);
   }
 
-  void visit_enter_named_function_scope(identifier name) {
+  void visit_enter_named_function_scope(identifier name) override {
     this->visits_.emplace_back(visit_kind::enter_named_function_scope, name);
   }
 
-  void visit_exit_block_scope() {
+  void visit_exit_block_scope() override {
     this->visits_.emplace_back(visit_kind::exit_block_scope);
   }
 
-  void visit_exit_with_scope() {
+  void visit_exit_with_scope() override {
     this->visits_.emplace_back(visit_kind::exit_with_scope);
   }
 
-  void visit_exit_class_scope() {
+  void visit_exit_class_scope() override {
     this->visits_.emplace_back(visit_kind::exit_class_scope);
   }
 
-  void visit_exit_for_scope() {
+  void visit_exit_for_scope() override {
     this->visits_.emplace_back(visit_kind::exit_for_scope);
   }
 
-  void visit_exit_function_scope() {
+  void visit_exit_function_scope() override {
     this->visits_.emplace_back(visit_kind::exit_function_scope);
   }
 
-  void visit_keyword_variable_use(identifier name) {
+  void visit_keyword_variable_use(identifier name) override {
     this->visits_.emplace_back(visit_kind::keyword_variable_use, name);
   }
 
-  void visit_property_declaration(std::optional<identifier> name) {
+  void visit_property_declaration(std::optional<identifier> name) override {
     if (name.has_value()) {
       this->visits_.emplace_back(visit_kind::property_declaration_with_name,
                                  *name);
@@ -168,31 +168,31 @@ class buffering_visitor {
     }
   }
 
-  void visit_variable_assignment(identifier name) {
+  void visit_variable_assignment(identifier name) override {
     this->visits_.emplace_back(visit_kind::variable_assignment, name);
   }
 
   void visit_variable_declaration(identifier name, variable_kind kind,
-                                  variable_init_kind init_kind) {
+                                  variable_init_kind init_kind) override {
     this->visits_.emplace_back(visit_kind::variable_declaration, name, kind,
                                init_kind);
   }
 
   void visit_variable_delete_use(identifier name,
-                                 source_code_span delete_keyword) {
+                                 source_code_span delete_keyword) override {
     this->visits_.emplace_back(visit_kind::variable_delete_use, name,
                                delete_keyword);
   }
 
-  void visit_variable_export_use(identifier name) {
+  void visit_variable_export_use(identifier name) override {
     this->visits_.emplace_back(visit_kind::variable_export_use, name);
   }
 
-  void visit_variable_typeof_use(identifier name) {
+  void visit_variable_typeof_use(identifier name) override {
     this->visits_.emplace_back(visit_kind::variable_typeof_use, name);
   }
 
-  void visit_variable_use(identifier name) {
+  void visit_variable_use(identifier name) override {
     this->visits_.emplace_back(visit_kind::variable_use, name);
   }
 

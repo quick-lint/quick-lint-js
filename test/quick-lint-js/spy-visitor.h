@@ -16,38 +16,38 @@
 #include <vector>
 
 namespace quick_lint_js {
-struct spy_visitor : public diag_collector {
+struct spy_visitor final : public diag_collector, public parse_visitor_base {
   std::vector<std::string_view> visits;
 
-  void visit_end_of_module() {
+  void visit_end_of_module() override {
     this->visits.emplace_back("visit_end_of_module");
   }
 
-  void visit_enter_block_scope() {
+  void visit_enter_block_scope() override {
     this->visits.emplace_back("visit_enter_block_scope");
   }
 
-  void visit_enter_with_scope() {
+  void visit_enter_with_scope() override {
     this->visits.emplace_back("visit_enter_with_scope");
   }
 
-  void visit_enter_class_scope() {
+  void visit_enter_class_scope() override {
     this->visits.emplace_back("visit_enter_class_scope");
   }
 
-  void visit_enter_for_scope() {
+  void visit_enter_for_scope() override {
     this->visits.emplace_back("visit_enter_for_scope");
   }
 
-  void visit_enter_function_scope() {
+  void visit_enter_function_scope() override {
     this->visits.emplace_back("visit_enter_function_scope");
   }
 
-  void visit_enter_function_scope_body() {
+  void visit_enter_function_scope_body() override {
     this->visits.emplace_back("visit_enter_function_scope_body");
   }
 
-  void visit_enter_named_function_scope(identifier name) {
+  void visit_enter_named_function_scope(identifier name) override {
     this->enter_named_function_scopes.emplace_back(
         visited_enter_named_function_scope{string8(name.normalized_name())});
     this->visits.emplace_back("visit_enter_named_function_scope");
@@ -66,27 +66,27 @@ struct spy_visitor : public diag_collector {
   };
   std::vector<visited_enter_named_function_scope> enter_named_function_scopes;
 
-  void visit_exit_block_scope() {
+  void visit_exit_block_scope() override {
     this->visits.emplace_back("visit_exit_block_scope");
   }
 
-  void visit_exit_with_scope() {
+  void visit_exit_with_scope() override {
     this->visits.emplace_back("visit_exit_with_scope");
   }
 
-  void visit_exit_class_scope() {
+  void visit_exit_class_scope() override {
     this->visits.emplace_back("visit_exit_class_scope");
   }
 
-  void visit_exit_for_scope() {
+  void visit_exit_for_scope() override {
     this->visits.emplace_back("visit_exit_for_scope");
   }
 
-  void visit_exit_function_scope() {
+  void visit_exit_function_scope() override {
     this->visits.emplace_back("visit_exit_function_scope");
   }
 
-  void visit_keyword_variable_use(identifier name) {
+  void visit_keyword_variable_use(identifier name) override {
     this->variable_uses.emplace_back(
         visited_variable_use{string8(name.normalized_name())});
     this->visits.emplace_back("visit_keyword_variable_use");
@@ -96,7 +96,7 @@ struct spy_visitor : public diag_collector {
     this->visits.emplace_back("visit_property_declaration");
   }
 
-  void visit_property_declaration(std::optional<identifier> name) {
+  void visit_property_declaration(std::optional<identifier> name) override {
     if (name.has_value()) {
       this->property_declarations.emplace_back(
           visited_property_declaration{string8(name->normalized_name())});
@@ -119,7 +119,7 @@ struct spy_visitor : public diag_collector {
   };
   std::vector<visited_property_declaration> property_declarations;
 
-  void visit_variable_assignment(identifier name) {
+  void visit_variable_assignment(identifier name) override {
     this->variable_assignments.emplace_back(
         visited_variable_assignment{string8(name.normalized_name())});
     this->visits.emplace_back("visit_variable_assignment");
@@ -139,7 +139,7 @@ struct spy_visitor : public diag_collector {
   std::vector<visited_variable_assignment> variable_assignments;
 
   void visit_variable_declaration(identifier name, variable_kind kind,
-                                  variable_init_kind init_kind) {
+                                  variable_init_kind init_kind) override {
     this->variable_declarations.emplace_back(visited_variable_declaration{
         string8(name.normalized_name()), kind, init_kind});
     this->visits.emplace_back("visit_variable_declaration");
@@ -162,25 +162,26 @@ struct spy_visitor : public diag_collector {
   std::vector<visited_variable_declaration> variable_declarations;
 
   void visit_variable_delete_use(
-      identifier name, [[maybe_unused]] source_code_span delete_keyword) {
+      identifier name,
+      [[maybe_unused]] source_code_span delete_keyword) override {
     this->variable_uses.emplace_back(
         visited_variable_use{string8(name.normalized_name())});
     this->visits.emplace_back("visit_variable_delete_use");
   }
 
-  void visit_variable_export_use(identifier name) {
+  void visit_variable_export_use(identifier name) override {
     this->variable_uses.emplace_back(
         visited_variable_use{string8(name.normalized_name())});
     this->visits.emplace_back("visit_variable_export_use");
   }
 
-  void visit_variable_typeof_use(identifier name) {
+  void visit_variable_typeof_use(identifier name) override {
     this->variable_uses.emplace_back(
         visited_variable_use{string8(name.normalized_name())});
     this->visits.emplace_back("visit_variable_typeof_use");
   }
 
-  void visit_variable_use(identifier name) {
+  void visit_variable_use(identifier name) override {
     this->variable_uses.emplace_back(
         visited_variable_use{string8(name.normalized_name())});
     this->visits.emplace_back("visit_variable_use");

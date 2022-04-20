@@ -9,30 +9,30 @@
 #include <quick-lint-js/parse-visitor.h>
 
 namespace quick_lint_js {
-class null_visitor {
+class null_visitor final : public parse_visitor_base {
  public:
-  void visit_end_of_module() {}
-  void visit_enter_block_scope() {}
-  void visit_enter_with_scope() {}
-  void visit_enter_class_scope() {}
-  void visit_enter_for_scope() {}
-  void visit_enter_function_scope() {}
-  void visit_enter_function_scope_body() {}
-  void visit_enter_named_function_scope(identifier) {}
-  void visit_exit_block_scope() {}
-  void visit_exit_with_scope() {}
-  void visit_exit_class_scope() {}
-  void visit_exit_for_scope() {}
-  void visit_exit_function_scope() {}
-  void visit_keyword_variable_use(identifier) {}
-  void visit_property_declaration(std::optional<identifier>) {}
-  void visit_variable_assignment(identifier) {}
+  void visit_end_of_module() override {}
+  void visit_enter_block_scope() override {}
+  void visit_enter_with_scope() override {}
+  void visit_enter_class_scope() override {}
+  void visit_enter_for_scope() override {}
+  void visit_enter_function_scope() override {}
+  void visit_enter_function_scope_body() override {}
+  void visit_enter_named_function_scope(identifier) override {}
+  void visit_exit_block_scope() override {}
+  void visit_exit_with_scope() override {}
+  void visit_exit_class_scope() override {}
+  void visit_exit_for_scope() override {}
+  void visit_exit_function_scope() override {}
+  void visit_keyword_variable_use(identifier) override {}
+  void visit_property_declaration(std::optional<identifier>) override {}
+  void visit_variable_assignment(identifier) override {}
   void visit_variable_declaration(identifier, variable_kind,
-                                  variable_init_kind) {}
-  void visit_variable_delete_use(identifier, source_code_span) {}
-  void visit_variable_export_use(identifier) {}
-  void visit_variable_typeof_use(identifier) {}
-  void visit_variable_use(identifier) {}
+                                  variable_init_kind) override {}
+  void visit_variable_delete_use(identifier, source_code_span) override {}
+  void visit_variable_export_use(identifier) override {}
+  void visit_variable_typeof_use(identifier) override {}
+  void visit_variable_use(identifier) override {}
 };
 QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(null_visitor);
 }

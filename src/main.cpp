@@ -265,81 +265,81 @@ void handle_options(quick_lint_js::options o) {
   std::exit(EXIT_SUCCESS);
 }
 
-class debug_visitor {
+class debug_visitor final : public parse_visitor_base {
  public:
-  void visit_end_of_module() {
+  void visit_end_of_module() override {
     this->output_->append_copy(u8"end of module\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_block_scope() {
+  void visit_enter_block_scope() override {
     this->output_->append_copy(u8"entered block scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_with_scope() {
+  void visit_enter_with_scope() override {
     this->output_->append_copy(u8"entered with scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_class_scope() {
+  void visit_enter_class_scope() override {
     this->output_->append_copy(u8"entered class scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_for_scope() {
+  void visit_enter_for_scope() override {
     this->output_->append_copy(u8"entered for scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_function_scope() {
+  void visit_enter_function_scope() override {
     this->output_->append_copy(u8"entered function scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_function_scope_body() {
+  void visit_enter_function_scope_body() override {
     this->output_->append_copy(u8"entered function scope body\n"sv);
     this->output_->flush();
   }
 
-  void visit_enter_named_function_scope(identifier) {
+  void visit_enter_named_function_scope(identifier) override {
     this->output_->append_copy(u8"entered named function scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_exit_block_scope() {
+  void visit_exit_block_scope() override {
     this->output_->append_copy(u8"exited block scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_exit_with_scope() {
+  void visit_exit_with_scope() override {
     this->output_->append_copy(u8"exited with scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_exit_class_scope() {
+  void visit_exit_class_scope() override {
     this->output_->append_copy(u8"exited class scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_exit_for_scope() {
+  void visit_exit_for_scope() override {
     this->output_->append_copy(u8"exited for scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_exit_function_scope() {
+  void visit_exit_function_scope() override {
     this->output_->append_copy(u8"exited function scope\n"sv);
     this->output_->flush();
   }
 
-  void visit_keyword_variable_use(identifier name) {
+  void visit_keyword_variable_use(identifier name) override {
     this->output_->append_copy(u8"keyword variable use: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
     this->output_->flush();
   }
 
-  void visit_property_declaration(std::optional<identifier> name) {
+  void visit_property_declaration(std::optional<identifier> name) override {
     this->output_->append_copy(u8"property declaration"sv);
     if (name.has_value()) {
       this->output_->append_copy(u8": "sv);
@@ -349,7 +349,7 @@ class debug_visitor {
     this->output_->flush();
   }
 
-  void visit_variable_assignment(identifier name) {
+  void visit_variable_assignment(identifier name) override {
     this->output_->append_copy(u8"variable assignment: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
@@ -357,7 +357,7 @@ class debug_visitor {
   }
 
   void visit_variable_declaration(identifier name, variable_kind,
-                                  variable_init_kind) {
+                                  variable_init_kind) override {
     this->output_->append_copy(u8"variable declaration: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
@@ -365,28 +365,29 @@ class debug_visitor {
   }
 
   void visit_variable_delete_use(
-      identifier name, [[maybe_unused]] source_code_span delete_keyword) {
+      identifier name,
+      [[maybe_unused]] source_code_span delete_keyword) override {
     this->output_->append_copy(u8"variable delete use: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
     this->output_->flush();
   }
 
-  void visit_variable_export_use(identifier name) {
+  void visit_variable_export_use(identifier name) override {
     this->output_->append_copy(u8"variable export use: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
     this->output_->flush();
   }
 
-  void visit_variable_typeof_use(identifier name) {
+  void visit_variable_typeof_use(identifier name) override {
     this->output_->append_copy(u8"variable typeof use: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
     this->output_->flush();
   }
 
-  void visit_variable_use(identifier name) {
+  void visit_variable_use(identifier name) override {
     this->output_->append_copy(u8"variable use: "sv);
     this->output_->append_copy(name.normalized_name());
     this->output_->append_copy(u8'\n');
@@ -398,114 +399,114 @@ class debug_visitor {
 QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(debug_visitor);
 
 template <QLJS_PARSE_VISITOR Visitor1, QLJS_PARSE_VISITOR Visitor2>
-class multi_visitor {
+class multi_visitor final : public parse_visitor_base {
  public:
   explicit multi_visitor(Visitor1 *visitor_1, Visitor2 *visitor_2) noexcept
       : visitor_1_(visitor_1), visitor_2_(visitor_2) {}
 
-  void visit_end_of_module() {
+  void visit_end_of_module() override {
     this->visitor_1_->visit_end_of_module();
     this->visitor_2_->visit_end_of_module();
   }
 
-  void visit_enter_block_scope() {
+  void visit_enter_block_scope() override {
     this->visitor_1_->visit_enter_block_scope();
     this->visitor_2_->visit_enter_block_scope();
   }
 
-  void visit_enter_with_scope() {
+  void visit_enter_with_scope() override {
     this->visitor_1_->visit_enter_with_scope();
     this->visitor_2_->visit_enter_with_scope();
   }
 
-  void visit_enter_class_scope() {
+  void visit_enter_class_scope() override {
     this->visitor_1_->visit_enter_class_scope();
     this->visitor_2_->visit_enter_class_scope();
   }
 
-  void visit_enter_for_scope() {
+  void visit_enter_for_scope() override {
     this->visitor_1_->visit_enter_for_scope();
     this->visitor_2_->visit_enter_for_scope();
   }
 
-  void visit_enter_function_scope() {
+  void visit_enter_function_scope() override {
     this->visitor_1_->visit_enter_function_scope();
     this->visitor_2_->visit_enter_function_scope();
   }
 
-  void visit_enter_function_scope_body() {
+  void visit_enter_function_scope_body() override {
     this->visitor_1_->visit_enter_function_scope_body();
     this->visitor_2_->visit_enter_function_scope_body();
   }
 
-  void visit_enter_named_function_scope(identifier name) {
+  void visit_enter_named_function_scope(identifier name) override {
     this->visitor_1_->visit_enter_named_function_scope(name);
     this->visitor_2_->visit_enter_named_function_scope(name);
   }
 
-  void visit_exit_block_scope() {
+  void visit_exit_block_scope() override {
     this->visitor_1_->visit_exit_block_scope();
     this->visitor_2_->visit_exit_block_scope();
   }
 
-  void visit_exit_with_scope() {
+  void visit_exit_with_scope() override {
     this->visitor_1_->visit_exit_with_scope();
     this->visitor_2_->visit_exit_with_scope();
   }
 
-  void visit_exit_class_scope() {
+  void visit_exit_class_scope() override {
     this->visitor_1_->visit_exit_class_scope();
     this->visitor_2_->visit_exit_class_scope();
   }
 
-  void visit_exit_for_scope() {
+  void visit_exit_for_scope() override {
     this->visitor_1_->visit_exit_for_scope();
     this->visitor_2_->visit_exit_for_scope();
   }
 
-  void visit_exit_function_scope() {
+  void visit_exit_function_scope() override {
     this->visitor_1_->visit_exit_function_scope();
     this->visitor_2_->visit_exit_function_scope();
   }
 
-  void visit_keyword_variable_use(identifier name) {
+  void visit_keyword_variable_use(identifier name) override {
     this->visitor_1_->visit_keyword_variable_use(name);
     this->visitor_2_->visit_keyword_variable_use(name);
   }
 
-  void visit_property_declaration(std::optional<identifier> name) {
+  void visit_property_declaration(std::optional<identifier> name) override {
     this->visitor_1_->visit_property_declaration(name);
     this->visitor_2_->visit_property_declaration(name);
   }
 
-  void visit_variable_assignment(identifier name) {
+  void visit_variable_assignment(identifier name) override {
     this->visitor_1_->visit_variable_assignment(name);
     this->visitor_2_->visit_variable_assignment(name);
   }
 
   void visit_variable_declaration(identifier name, variable_kind kind,
-                                  variable_init_kind init_kind) {
+                                  variable_init_kind init_kind) override {
     this->visitor_1_->visit_variable_declaration(name, kind, init_kind);
     this->visitor_2_->visit_variable_declaration(name, kind, init_kind);
   }
 
   void visit_variable_delete_use(identifier name,
-                                 source_code_span delete_keyword) {
+                                 source_code_span delete_keyword) override {
     this->visitor_1_->visit_variable_delete_use(name, delete_keyword);
     this->visitor_2_->visit_variable_delete_use(name, delete_keyword);
   }
 
-  void visit_variable_export_use(identifier name) {
+  void visit_variable_export_use(identifier name) override {
     this->visitor_1_->visit_variable_export_use(name);
     this->visitor_2_->visit_variable_export_use(name);
   }
 
-  void visit_variable_typeof_use(identifier name) {
+  void visit_variable_typeof_use(identifier name) override {
     this->visitor_1_->visit_variable_typeof_use(name);
     this->visitor_2_->visit_variable_typeof_use(name);
   }
 
-  void visit_variable_use(identifier name) {
+  void visit_variable_use(identifier name) override {
     this->visitor_1_->visit_variable_use(name);
     this->visitor_2_->visit_variable_use(name);
   }

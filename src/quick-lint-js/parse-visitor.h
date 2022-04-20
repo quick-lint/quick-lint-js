@@ -8,6 +8,7 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
+#include <type_traits>
 
 // For portability, use QLJS_PARSE_VISITOR in template parameter lists instead
 // of using parse_visitor directly:
@@ -28,11 +29,49 @@
 #endif
 
 namespace quick_lint_js {
+// TOdO(strager): Drop the parse_visitor concept and rename this class.
+class parse_visitor_base {
+ public:
+  parse_visitor_base() noexcept = default;
+
+  parse_visitor_base(const parse_visitor_base &) noexcept = default;
+  parse_visitor_base &operator=(const parse_visitor_base &) noexcept = default;
+
+  parse_visitor_base(parse_visitor_base &&) noexcept = default;
+  parse_visitor_base &operator=(parse_visitor_base &&) noexcept = default;
+
+  virtual ~parse_visitor_base() = default;
+
+  virtual void visit_enter_block_scope() = 0;
+  virtual void visit_enter_with_scope() = 0;
+  virtual void visit_enter_class_scope() = 0;
+  virtual void visit_enter_for_scope() = 0;
+  virtual void visit_enter_function_scope() = 0;
+  virtual void visit_enter_function_scope_body() = 0;
+  virtual void visit_enter_named_function_scope(identifier) = 0;
+  virtual void visit_exit_block_scope() = 0;
+  virtual void visit_exit_with_scope() = 0;
+  virtual void visit_exit_class_scope() = 0;
+  virtual void visit_exit_for_scope() = 0;
+  virtual void visit_exit_function_scope() = 0;
+  virtual void visit_keyword_variable_use(identifier name) = 0;
+  virtual void visit_property_declaration(std::optional<identifier>) = 0;
+  virtual void visit_variable_declaration(identifier name, variable_kind kind,
+                                          variable_init_kind init_kind) = 0;
+  virtual void visit_variable_assignment(identifier name) = 0;
+  virtual void visit_variable_delete_use(identifier name,
+                                         source_code_span delete_keyword) = 0;
+  virtual void visit_variable_export_use(identifier name) = 0;
+  virtual void visit_variable_typeof_use(identifier name) = 0;
+  virtual void visit_variable_use(identifier name) = 0;
+  virtual void visit_end_of_module() = 0;
+};
+
 #if QLJS_HAVE_CXX_CONCEPTS
 template <class Visitor>
-concept parse_visitor = requires(Visitor v, identifier name,
-                                 source_code_span span, variable_kind var_kind,
-                                 variable_init_kind var_init_kind) {
+concept parse_visitor = std::is_base_of_v<parse_visitor_base, Visitor>
+    &&requires(Visitor &v, identifier name, source_code_span span,
+               variable_kind var_kind, variable_init_kind var_init_kind) {
   {v.visit_end_of_module()};
   {v.visit_enter_block_scope()};
   {v.visit_enter_with_scope()};
