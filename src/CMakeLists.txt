@@ -45,6 +45,7 @@ quick_lint_js_add_library(
   basic-configuration-filesystem.cpp
   boost.cpp
   buffering-diag-reporter.cpp
+  buffering-visitor.cpp
   byte-buffer.cpp
   c-api-diag-reporter.cpp
   c-api.cpp

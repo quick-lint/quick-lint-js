@@ -23,85 +23,8 @@ class buffering_visitor final : public parse_visitor_base {
   explicit buffering_visitor(boost::container::pmr::memory_resource *memory)
       : visits_(memory) {}
 
-  template <QLJS_PARSE_VISITOR Visitor>
-  void move_into(Visitor &target) {
-    this->copy_into(target);
-  }
-
-  template <QLJS_PARSE_VISITOR Visitor>
-  void copy_into(Visitor &target) const {
-    for (auto &v : this->visits_) {
-      switch (v.kind) {
-      case visit_kind::end_of_module:
-        target.visit_end_of_module();
-        break;
-      case visit_kind::enter_block_scope:
-        target.visit_enter_block_scope();
-        break;
-      case visit_kind::enter_with_scope:
-        target.visit_enter_with_scope();
-        break;
-      case visit_kind::enter_class_scope:
-        target.visit_enter_class_scope();
-        break;
-      case visit_kind::enter_for_scope:
-        target.visit_enter_for_scope();
-        break;
-      case visit_kind::enter_function_scope:
-        target.visit_enter_function_scope();
-        break;
-      case visit_kind::enter_function_scope_body:
-        target.visit_enter_function_scope_body();
-        break;
-      case visit_kind::enter_named_function_scope:
-        target.visit_enter_named_function_scope(v.name);
-        break;
-      case visit_kind::exit_block_scope:
-        target.visit_exit_block_scope();
-        break;
-      case visit_kind::exit_with_scope:
-        target.visit_exit_with_scope();
-        break;
-      case visit_kind::exit_class_scope:
-        target.visit_exit_class_scope();
-        break;
-      case visit_kind::exit_for_scope:
-        target.visit_exit_for_scope();
-        break;
-      case visit_kind::exit_function_scope:
-        target.visit_exit_function_scope();
-        break;
-      case visit_kind::keyword_variable_use:
-        target.visit_keyword_variable_use(v.name);
-        break;
-      case visit_kind::property_declaration_with_name:
-        target.visit_property_declaration(v.name);
-        break;
-      case visit_kind::property_declaration_without_name:
-        target.visit_property_declaration(std::nullopt);
-        break;
-      case visit_kind::variable_assignment:
-        target.visit_variable_assignment(v.name);
-        break;
-      case visit_kind::variable_delete_use:
-        target.visit_variable_delete_use(v.name, v.extra_span);
-        break;
-      case visit_kind::variable_export_use:
-        target.visit_variable_export_use(v.name);
-        break;
-      case visit_kind::variable_typeof_use:
-        target.visit_variable_typeof_use(v.name);
-        break;
-      case visit_kind::variable_use:
-        target.visit_variable_use(v.name);
-        break;
-      case visit_kind::variable_declaration:
-        target.visit_variable_declaration(v.name, v.var_decl.var_kind,
-                                          v.var_decl.var_init_kind);
-        break;
-      }
-    }
-  }
+  void move_into(parse_visitor_base &target);
+  void copy_into(parse_visitor_base &target) const;
 
   void visit_end_of_module() override {
     this->visits_.emplace_back(visit_kind::end_of_module);
