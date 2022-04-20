@@ -339,6 +339,68 @@ TEST_F(test_lex, lex_binary_numbers) {
   this->check_tokens(u8"0b01n"_sv, {token_type::number});
 }
 
+TEST_F(test_lex, fail_lex_integer_loses_precision) {
+  this->check_tokens_with_errors(
+      u8"9007199254740993"_sv, {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(
+            errors,
+            ElementsAre(DIAG_TYPE_2_FIELDS(
+                diag_integer_literal_will_lose_precision,                     //
+                characters, offsets_matcher(input, 0, u8"9007199254740993"),  //
+                rounded_val, u8"9007199254740992"sv)));
+      });
+  this->check_tokens(u8"999999999999999"_sv, {token_type::number});
+  this->check_tokens(
+      u8"179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368"_sv,
+      {token_type::number});
+  this->check_tokens_with_errors(
+      u8"1" + string8(309, u8'0'), {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(DIAG_TYPE_2_FIELDS(
+                        diag_integer_literal_will_lose_precision,  //
+                        characters,
+                        offsets_matcher(input, 0,
+                                        310),  //
+                        rounded_val, u8"inf"sv)));
+      });
+  this->check_tokens_with_errors(
+      u8"179769313486231580000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"_sv,
+      {token_type::number}, [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(
+            errors,
+            ElementsAre(DIAG_TYPE_2_FIELDS(
+                diag_integer_literal_will_lose_precision,  //
+                characters,
+                offsets_matcher(input, 0,
+                                309),  //
+                rounded_val,
+                u8"179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368"sv)));
+      });
+  this->check_tokens_with_errors(
+      u8"179769313486231589999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999"_sv,
+      {token_type::number}, [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(DIAG_TYPE_2_FIELDS(
+                        diag_integer_literal_will_lose_precision,  //
+                        characters,
+                        offsets_matcher(input, 0,
+                                        309),  //
+                        rounded_val, u8"inf"sv)));
+      });
+  this->check_tokens_with_errors(
+      u8"18014398509481986"_sv, {token_type::number},
+      [](padded_string_view input, const auto& errors) {
+        EXPECT_THAT(errors,
+                    ElementsAre(DIAG_TYPE_2_FIELDS(
+                        diag_integer_literal_will_lose_precision,  //
+                        characters,
+                        offsets_matcher(input, 0, u8"18014398509481986"),  //
+                        rounded_val, u8"18014398509481984"sv)));
+      });
+}
+
 TEST_F(test_lex, fail_lex_binary_number_no_digits) {
   this->check_tokens_with_errors(
       u8"0b"_sv, {token_type::number},

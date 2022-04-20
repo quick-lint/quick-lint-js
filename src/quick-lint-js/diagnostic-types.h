@@ -1240,6 +1240,17 @@
               characters))                                                     \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_integer_literal_will_lose_precision, "E0212",                       \
+      diagnostic_severity::warning,                                            \
+      {                                                                        \
+        source_code_span characters;                                           \
+        string8_view rounded_val;                                              \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("integer cannot be represented and will be "   \
+                                "rounded to '{1}'"),                           \
+              characters, rounded_val))                                        \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_private_properties_are_not_allowed_in_object_literals, "E0156",     \
       diagnostic_severity::error, { identifier private_identifier; },          \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

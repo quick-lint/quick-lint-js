@@ -1,26 +1,26 @@
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
-#
+# 
 # This file is part of quick-lint-js.
-#
+# 
 # quick-lint-js is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-#
+# 
 # quick-lint-js is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License
 # along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
-#
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-04-20 13:07-0700\n"
+"POT-Creation-Date: 2022-04-25 19:26-0400\n"
 "PO-Revision-Date: 2021-06-16 00:13+0200\n"
 "Last-Translator: U-DESKTOP-7SNN35D\\Kim <kimlindbla@gmail.com>\n"
 "Language-Team: Swedish (Standard)\n"
@@ -804,6 +804,10 @@ msgid "octal literal may not have decimal"
 msgstr "oktal nummerlitteräl kan inte ha decimaler"
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "integer cannot be represented and will be rounded to '{1}'"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "private properties are not allowed in object literals"
 msgstr "privata egenskaper är inte tillåtna i objektlitteräler"
 
@@ -1096,6 +1100,10 @@ msgstr ""
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr ""
+
+#, fuzzy
+#~ msgid "number literal will lose precision"
+#~ msgstr "hex nummerlitteral har inga siffror"
 
 #~ msgid "invalid binding in let statement"
 #~ msgstr "ogiltig bindelse i let påstående"

@@ -1248,6 +1248,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "integer cannot be represented and will be rounded to '{1}'"_translatable,
+        {
+            u8"integer cannot be represented and will be rounded to '{1}'",
+            u8"integer cannot be represented and will be rounded to '{1}'",
+            u8"integer cannot be represented and will be rounded to '{1}'",
+            u8"integer cannot be represented and will be rounded to '{1}'",
+            u8"integer cannot be represented and will be rounded to '{1}'",
+        },
+    },
+    {
         "invalid UTF-8 sequence"_translatable,
         {
             u8"invalid UTF-8 sequence",
