@@ -396,9 +396,8 @@ class debug_visitor final : public parse_visitor_base {
 
   file_output_stream *output_ = file_output_stream::get_stderr();
 };
-QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(debug_visitor);
 
-template <QLJS_PARSE_VISITOR Visitor1, QLJS_PARSE_VISITOR Visitor2>
+template <class Visitor1, class Visitor2>
 class multi_visitor final : public parse_visitor_base {
  public:
   explicit multi_visitor(Visitor1 *visitor_1, Visitor2 *visitor_2) noexcept
@@ -515,8 +514,6 @@ class multi_visitor final : public parse_visitor_base {
   Visitor1 *visitor_1_;
   Visitor2 *visitor_2_;
 };
-QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(
-    multi_visitor<debug_visitor, debug_visitor>);
 
 void process_file(padded_string_view input, configuration &config,
                   diag_reporter *diag_reporter, bool print_parser_visits) {

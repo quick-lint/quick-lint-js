@@ -196,7 +196,6 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
   };
   std::vector<visited_variable_use> variable_uses;
 };
-QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(spy_visitor);
 
 void PrintTo(const spy_visitor::visited_property_declaration &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_assignment &, std::ostream *);

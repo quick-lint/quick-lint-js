@@ -273,7 +273,6 @@ class linter final : public parse_visitor_base {
 
   diag_reporter *diag_reporter_;
 };
-QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(linter);
 }
 
 #endif

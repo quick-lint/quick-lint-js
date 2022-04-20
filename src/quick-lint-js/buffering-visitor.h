@@ -186,7 +186,6 @@ class buffering_visitor final : public parse_visitor_base {
   std::deque<visit, boost::container::pmr::polymorphic_allocator<visit>>
       visits_;
 };
-QLJS_STATIC_ASSERT_IS_PARSE_VISITOR(buffering_visitor);
 }
 
 QLJS_WARNING_POP
