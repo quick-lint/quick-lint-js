@@ -10,7 +10,8 @@ distribution):
 1. [Create a self-signed CA for code signing][macos-create-ca].
 2. [Create a certificate for code signing][macos-create-cert].
 
-You will also need a GnuPG key.
+You will also need a GnuPG key. Generate one with an RSA key of at least 4096
+bits.
 
 ## Creating signing files
 

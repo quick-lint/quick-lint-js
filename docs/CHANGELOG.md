@@ -13,6 +13,12 @@ Semantic Versioning.
 * [E0150][] no longer crashes quick-lint-js when using a German (`de`) locale.
   (Fixed by [Nico Sonack][].)
 
+### Changed
+
+* This release is signed with a new GPG key.
+  * Old fingerprint: 0327DE8F9CEF499851D19F6ED20BA9DCCF0E9D20
+  * New fingerprint: A6851D57A65803E98C05DA01C08A7BC89CA2F557
+
 ## 2.4.2 (2022-04-22)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.4.2/)

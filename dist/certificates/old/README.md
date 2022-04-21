@@ -6,6 +6,8 @@ use.
 
 ## Files
 
+* `quick-lint-js.gpg.key`: GPG key (public key). Use this file to verify GPG
+  signatures of quick-lint-js.
 * `quick-lint-js.cer`: Self-signed certificate (public key). Use this file to
   verify signatures of quick-lint-js on macOS and Windows.
   * SHA1: dc4f675b74b3a86c1f59fbdac17538b7d996db99
