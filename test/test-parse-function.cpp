@@ -249,7 +249,7 @@ TEST(test_parse, unused_arrow_expression) {
   }
 
   {
-    padded_string code(u8"() => {}"_sv);
+    padded_string code(u8"() => {};"_sv);
     spy_visitor v;
     parser p(&code, &v);
     p.parse_and_visit_module(v);
@@ -965,7 +965,7 @@ TEST(test_parse, async_arrow_function_invoked_no_parens) {
 
 TEST(test_parse, arrow_function_without_parameter_list) {
   {
-    padded_string code(u8"(=> x + y)"_sv);
+    padded_string code(u8"=> x + y"_sv);
     spy_visitor v;
     parser p(&code, &v);
     p.parse_and_visit_module(v);
