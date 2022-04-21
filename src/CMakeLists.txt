@@ -177,6 +177,7 @@ quick_lint_js_add_library(
   quick-lint-js/vim-qflist-json-diag-reporter.h
   quick-lint-js/warning.h
   quick-lint-js/web-demo-location.h
+  quick-lint-js/windows-error.h
   quick-lint-js/windows.h
   simdjson.cpp
   temporary-directory.cpp
@@ -190,6 +191,7 @@ quick_lint_js_add_library(
   vim-location.cpp
   vim-qflist-json-diag-reporter.cpp
   web-demo-location.cpp
+  windows-error.cpp
 )
 target_compile_definitions(
   quick-lint-js-lib
