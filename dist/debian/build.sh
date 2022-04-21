@@ -1,18 +1,17 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 set -e
 set -u
-set -x
 
 cd "$(dirname "${0}")/../.."
 
-variant=default
+package_options=()
 while [ "${#}" -gt 0 ]; do
   case "${1}" in
-    --xenial) variant=xenial ;;
+    --xenial) package_options+=(--xenial) ;;
     *)
       printf 'error: unrecognized option: %s\n' >&2
       exit 2
@@ -26,22 +25,15 @@ package_version="$(head -n1 version)"
 DEB_BUILD_OPTIONS="parallel=$(nproc)"
 export DEB_BUILD_OPTIONS
 
-git archive --format tar.gz --prefix "quick-lint-js-${package_version}/" --output "dist/debian/quick-lint-js_${package_version}.orig.tar.gz" HEAD
+./dist/debian/package.sh "${package_options:+${package_options}}" --output-directory dist/debian/
 
-cd dist/debian/
-rm -rf "quick-lint-js-${package_version}/"
-tar xzf "quick-lint-js_${package_version}.orig.tar.gz"
-cp -a debian "quick-lint-js-${package_version}/debian"
-
-cd "quick-lint-js-${package_version}/"
-if [ "${variant}" != default ]; then
-  cp -a "debian/control-${variant}" debian/control
-  cp -a "debian/copyright-${variant}" debian/copyright
-  cp -a "debian/rules-${variant}" debian/rules
-fi
-rm debian/control-* debian/copyright-* debian/rules-*
-
-dpkg-buildpackage -rfakeroot -uc -us
+(
+  cd dist/debian/
+  rm -rf "quick-lint-js-${package_version}/"
+  dpkg-source --extract "quick-lint-js_${package_version}-1.dsc"
+  cd "quick-lint-js-${package_version}/"
+  dpkg-buildpackage -rfakeroot -b -uc -us
+)
 
 errors="$(mktemp)"
 trap 'rm -f "${errors}"' EXIT
@@ -53,10 +45,9 @@ strict_lintian() {
   fi
 }
 
-cd ../
-strict_lintian "quick-lint-js_${package_version}-1_amd64.deb"
-strict_lintian "quick-lint-js-dbgsym_${package_version}-1_amd64.deb"
-strict_lintian "quick-lint-js-vim_${package_version}-1_all.deb"
+strict_lintian "dist/debian/quick-lint-js_${package_version}-1_amd64.deb"
+strict_lintian "dist/debian/quick-lint-js-dbgsym_${package_version}-1_amd64.deb"
+strict_lintian "dist/debian/quick-lint-js-vim_${package_version}-1_all.deb"
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
