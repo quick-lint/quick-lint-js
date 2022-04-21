@@ -35,8 +35,16 @@ export DEB_BUILD_OPTIONS
   dpkg-buildpackage -rfakeroot -b -uc -us
 )
 
+# elf-error is noisy, so turn it of for the dbgsym package if supported:
+# https://salsa.debian.org/lintian/lintian/-/merge_requests/387
+dbgsym_lintian_options=()
+lintian_version="$(lintian --version | grep -o '[0-9].*')"
+if dpkg --compare-versions "${lintian_version}" ge 2.114.0; then
+  dbgsym_lintian_options+=(--suppress-tags elf-error)
+fi
+
 ./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js_${package_version}-1_amd64.deb"
-./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js-dbgsym_${package_version}-1_amd64.deb"
+./dist/debian/strict-lintian.sh "${dbgsym_lintian_options[@]:+${dbgsym_lintian_options[@]}}" "dist/debian/build/quick-lint-js-dbgsym_${package_version}-1_amd64.deb"
 ./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js-vim_${package_version}-1_all.deb"
 
 # quick-lint-js finds bugs in JavaScript programs.

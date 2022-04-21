@@ -10,7 +10,7 @@ errors="$(mktemp)"
 trap 'rm -f "${errors}"' EXIT
 
 lintian "${@}" | tee "${errors}"
-if [ -s "${errors}" ]; then
+if grep -c -q -v '^N:' "${errors}"; then
   printf 'error: lintian reported an error\n' >&2
   exit 1
 fi

@@ -7,7 +7,7 @@ Section: devel
 Priority: optional
 Maintainer: Matthew "strager" Glazar <strager.nds@gmail.com>
 Build-Depends: debhelper (>= 9), cmake (>= 3.10)
-Standards-Version: 4.5.1.0
+Standards-Version: 4.6.0.1
 Homepage: https://quick-lint-js.com/
 Vcs-Browser: https://github.com/quick-lint/quick-lint-js
 Vcs-Git: https://github.com/quick-lint/quick-lint-js.git
@@ -16,7 +16,8 @@ Package: quick-lint-js
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: JavaScript linter
- quick-lint-js finds bugs in your JavaScript code.
+ quick-lint-js finds bugs in your JavaScript code. This package includes the
+ CLI and LSP server.
 
 Package: quick-lint-js-dbgsym
 Section: debug
@@ -29,4 +30,5 @@ Package: quick-lint-js-vim
 Architecture: all
 Depends: ${misc:Depends}, quick-lint-js, vim, vim-addon-manager
 Description: Vim and Neovim plugin for quick-lint-js
- quick-lint-js finds bugs in your JavaScript code.
+ quick-lint-js finds bugs in your JavaScript code. This plugin uses
+ quick-lint-js to highlight errors in your editor.

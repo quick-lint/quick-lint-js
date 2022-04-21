@@ -1,0 +1,8 @@
+# This control file is for older Debian distributions such as Ubuntu 16.04
+# Xenial.
+
+quick-lint-js source: source-contains-prebuilt-javascript-object benchmark/benchmark-lsp/corpus/edex-ui-filesystem.class.js
+quick-lint-js source: source-is-missing benchmark/benchmark-lsp/corpus/edex-ui-filesystem.class.js line length is 545 characters (>512)
+
+quick-lint-js source: debian-control-has-dbgsym-package quick-lint-js-dbgsym
+quick-lint-js source: package-uses-deprecated-debhelper-compat-version 9
