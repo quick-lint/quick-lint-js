@@ -26,18 +26,18 @@ jobs:
           if-no-files-found: error
           name: quick-lint-js-deb-${{ github.sha }}
           path: |
-            dist/debian/quick-lint-js-dbgsym_*
-            dist/debian/quick-lint-js-vim_*
-            dist/debian/quick-lint-js_*
+            dist/debian/build/quick-lint-js-dbgsym_*
+            dist/debian/build/quick-lint-js-vim_*
+            dist/debian/build/quick-lint-js_*
       - name: upload build to long-term storage
         if: ${{ github.event_name == 'push' && github.repository_owner == 'quick-lint' != null }}
         uses: quick-lint/sftp-upload@master
         with:
           host: ${{ secrets.artifacts_host }}
           local-file-globs: |
-            dist/debian/quick-lint-js-dbgsym_*
-            dist/debian/quick-lint-js-vim_*
-            dist/debian/quick-lint-js_*
+            dist/debian/build/quick-lint-js-dbgsym_*
+            dist/debian/build/quick-lint-js-vim_*
+            dist/debian/build/quick-lint-js_*
           private-key: ${{ secrets.artifacts_key }}
           remote-directory: ${{ secrets.artifacts_root }}/builds/${{ github.sha }}/debian/
           user: ${{ secrets.artifacts_user }}

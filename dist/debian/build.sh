@@ -25,10 +25,10 @@ package_version="$(head -n1 version)"
 DEB_BUILD_OPTIONS="parallel=$(nproc)"
 export DEB_BUILD_OPTIONS
 
-./dist/debian/package.sh "${package_options:+${package_options}}" --output-directory dist/debian/
+./dist/debian/package.sh "${package_options:+${package_options}}" --output-directory dist/debian/build/
 
 (
-  cd dist/debian/
+  cd dist/debian/build/
   rm -rf "quick-lint-js-${package_version}/"
   dpkg-source --extract "quick-lint-js_${package_version}-1.dsc"
   cd "quick-lint-js-${package_version}/"
@@ -45,9 +45,9 @@ strict_lintian() {
   fi
 }
 
-strict_lintian "dist/debian/quick-lint-js_${package_version}-1_amd64.deb"
-strict_lintian "dist/debian/quick-lint-js-dbgsym_${package_version}-1_amd64.deb"
-strict_lintian "dist/debian/quick-lint-js-vim_${package_version}-1_all.deb"
+strict_lintian "dist/debian/build/quick-lint-js_${package_version}-1_amd64.deb"
+strict_lintian "dist/debian/build/quick-lint-js-dbgsym_${package_version}-1_amd64.deb"
+strict_lintian "dist/debian/build/quick-lint-js-vim_${package_version}-1_all.deb"
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
