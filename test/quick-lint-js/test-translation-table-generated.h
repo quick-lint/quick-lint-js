@@ -1918,6 +1918,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "number literal will lose precision"_translatable,
+        {
+            u8"number literal will lose precision",
+            u8"number literal will lose precision",
+            u8"number literal will lose precision",
+            u8"number literal will lose precision",
+            u8"number literal will lose precision",
+        },
+    },
+    {
         "object literal started here"_translatable,
         {
             u8"object literal started here",
