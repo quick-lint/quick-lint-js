@@ -35,19 +35,9 @@ export DEB_BUILD_OPTIONS
   dpkg-buildpackage -rfakeroot -b -uc -us
 )
 
-errors="$(mktemp)"
-trap 'rm -f "${errors}"' EXIT
-strict_lintian() {
-  lintian "${@}" | tee "${errors}"
-  if [ -s "${errors}" ]; then
-    printf 'error: lintian reported an error\n' >&2
-    exit 1
-  fi
-}
-
-strict_lintian "dist/debian/build/quick-lint-js_${package_version}-1_amd64.deb"
-strict_lintian "dist/debian/build/quick-lint-js-dbgsym_${package_version}-1_amd64.deb"
-strict_lintian "dist/debian/build/quick-lint-js-vim_${package_version}-1_all.deb"
+./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js_${package_version}-1_amd64.deb"
+./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js-dbgsym_${package_version}-1_amd64.deb"
+./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js-vim_${package_version}-1_all.deb"
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
