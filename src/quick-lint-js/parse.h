@@ -243,14 +243,14 @@ class parser {
                              variable_init_kind init_kind);
 
   struct precedence {
-    bool binary_operators = true;
-    bool math_or_logical_or_assignment = true;
-    bool commas = true;
-    bool in_operator = true;
+    bool binary_operators : 1 = true;
+    bool math_or_logical_or_assignment : 1 = true;
+    bool commas : 1 = true;
+    bool in_operator : 1 = true;
 
     // If true, parse unexpected trailing identifiers as part of the
     // expression (and emit an error).
-    bool trailing_identifiers = false;
+    bool trailing_identifiers : 1 = false;
 
     // If true, try parsing a trailing '{' as the body of an arrow function. For
     // example:
@@ -259,9 +259,9 @@ class parser {
     //    ^ missing '=>'
     //
     // If false, stop parsing at a trailing '{' and do not report an error.
-    bool trailing_curly_is_arrow_body = true;
+    bool trailing_curly_is_arrow_body : 1 = true;
 
-    bool conditional_operator = true;
+    bool conditional_operator : 1 = true;
   };
 
   // binary_expression_builder helps in the creation of a
