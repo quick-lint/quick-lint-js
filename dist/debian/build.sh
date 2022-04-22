@@ -21,7 +21,7 @@ while [ "${#}" -gt 0 ]; do
 done
 
 package_version="$(head -n1 version)"
-debian_package_version="${package_version}-1"
+debian_package_version="${package_version}-2"
 
 DEB_BUILD_OPTIONS="parallel=$(nproc)"
 export DEB_BUILD_OPTIONS
