@@ -5,9 +5,9 @@
 #define QUICK_LINT_JS_SIMD_H
 
 #include <cstdint>
+#include <quick-lint-js/attribute.h>
 #include <quick-lint-js/bit.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/force-inline.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>

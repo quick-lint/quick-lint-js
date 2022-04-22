@@ -95,6 +95,7 @@ quick_lint_js_add_library(
   quick-lint-js/allocator.h
   quick-lint-js/arg-parser.h
   quick-lint-js/assert.h
+  quick-lint-js/attribute.h
   quick-lint-js/basic-configuration-filesystem.h
   quick-lint-js/bit.h
   quick-lint-js/buffering-diag-reporter.h
@@ -125,7 +126,6 @@ quick_lint_js_add_library(
   quick-lint-js/file-handle.h
   quick-lint-js/file-path.h
   quick-lint-js/file.h
-  quick-lint-js/force-inline.h
   quick-lint-js/global-variables.h
   quick-lint-js/hash-fnv.h
   quick-lint-js/have.h

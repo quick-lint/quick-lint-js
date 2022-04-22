@@ -6,8 +6,8 @@
 #define QUICK_LINT_JS_SIMD_NEON_ARM_H
 
 #include <cstdint>
+#include <quick-lint-js/attribute.h>
 #include <quick-lint-js/bit.h>
-#include <quick-lint-js/force-inline.h>
 #include <quick-lint-js/simd.h>
 
 #if QLJS_HAVE_ARM_NEON

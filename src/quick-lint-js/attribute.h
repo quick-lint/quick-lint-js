@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FORCE_INLINE_H
-#define QUICK_LINT_JS_FORCE_INLINE_H
+#ifndef QUICK_LINT_JS_ATTRIBUTE_H
+#define QUICK_LINT_JS_ATTRIBUTE_H
 
 #if defined(__clang__) || defined(__GNUC__)
 #define QLJS_FORCE_INLINE [[gnu::always_inline]]

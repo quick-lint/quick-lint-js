@@ -12,8 +12,8 @@
 #include <map>
 #include <memory>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/attribute.h>
 #include <quick-lint-js/feature.h>
-#include <quick-lint-js/force-inline.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/warning.h>
 #include <string>
