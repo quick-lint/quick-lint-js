@@ -42,24 +42,15 @@
 
 #define QLJS_UNIMPLEMENTED() QLJS_ALWAYS_ASSERT(false)
 
-#define QLJS_ALWAYS_ASSERT(...)                    \
-  do {                                             \
-    if (__VA_ARGS__) {                             \
-    } else {                                       \
-      QLJS_REPORT_ASSERTION_FAILURE_(__VA_ARGS__); \
-      QLJS_ASSERT_TRAP();                          \
-    }                                              \
+#define QLJS_ALWAYS_ASSERT(...)                                               \
+  do {                                                                        \
+    if (__VA_ARGS__) {                                                        \
+    } else {                                                                  \
+      ::quick_lint_js::report_assertion_failure(__FILE__, __LINE__, __func__, \
+                                                #__VA_ARGS__);                \
+      QLJS_ASSERT_TRAP();                                                     \
+    }                                                                         \
   } while (false)
-
-#if QLJS_HAVE_FILE_NAME_MACRO
-#define QLJS_REPORT_ASSERTION_FAILURE_(...)                                    \
-  ::quick_lint_js::report_assertion_failure(__FILE_NAME__, __LINE__, __func__, \
-                                            #__VA_ARGS__)
-#else
-#define QLJS_REPORT_ASSERTION_FAILURE_(...)                               \
-  ::quick_lint_js::report_assertion_failure(__FILE__, __LINE__, __func__, \
-                                            #__VA_ARGS__)
-#endif
 
 #define QLJS_NEVER_ASSERT(...) \
   do {                         \
