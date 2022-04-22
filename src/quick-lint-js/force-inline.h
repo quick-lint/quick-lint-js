@@ -9,8 +9,7 @@
 #elif defined(_MSC_VER)
 #define QLJS_FORCE_INLINE __forceinline
 #else
-#define QLJS_WARNING_PUSH /* empty */
-#define QLJS_WARNING_POP  /* empty */
+#define QLJS_FORCE_INLINE /* empty */
 #endif
 
 #endif
