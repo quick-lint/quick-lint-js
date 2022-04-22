@@ -2704,7 +2704,7 @@ void parser::parse_and_visit_variable_declaration_statement(
 }
 
 void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
-                                          token declaring_token,
+                                          const token &declaring_token,
                                           bool allow_in_operator,
                                           bool allow_const_without_initializer,
                                           bool is_in_for_initializer) {
@@ -2734,7 +2734,7 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wmaybe-uninitialized")
 void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
-                                          token declaring_token,
+                                          const token &declaring_token,
                                           variable_kind declaration_kind,
                                           bool allow_in_operator,
                                           bool allow_const_without_initializer,

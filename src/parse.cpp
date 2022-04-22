@@ -441,7 +441,7 @@ parser::try_parse_function_with_leading_star() {
 }
 
 bool parser::is_let_token_a_variable_reference(
-    token following_token, bool allow_declarations) noexcept {
+    const token& following_token, bool allow_declarations) noexcept {
   switch (following_token.type) {
   QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL:
   QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
