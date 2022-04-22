@@ -25,7 +25,7 @@ package_version="$(head -n1 version)"
 DEB_BUILD_OPTIONS="parallel=$(nproc)"
 export DEB_BUILD_OPTIONS
 
-./dist/debian/package.sh "${package_options:+${package_options}}" --output-directory dist/debian/build/
+./dist/debian/package.sh "${package_options[@]:+${package_options[@]}}" --output-directory dist/debian/build/
 
 (
   cd dist/debian/build/
