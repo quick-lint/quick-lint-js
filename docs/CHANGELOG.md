@@ -6,6 +6,16 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Changed
+
+* The name of package installed by the MSIX installer has changed. It used to be
+  "fa6b940b-8f96-4b46-8e21-703a63133e06" but now it is
+  "quick-lint.quick-lint-js". If you installed quick-lint-js using a prior
+  version of the MSIX installer, Windows won't let you upgrade. Uninstall the
+  old version of quick-lint-js before installing a new version.
+
 ## 2.4.1 (2022-04-19)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.4.1/)
