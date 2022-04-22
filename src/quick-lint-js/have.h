@@ -430,6 +430,14 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_FILE_NAME_MACRO)
+#if defined(__clang__)
+#define QLJS_HAVE_FILE_NAME_MACRO 1
+#else
+#define QLJS_HAVE_FILE_NAME_MACRO 0
+#endif
+#endif
+
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

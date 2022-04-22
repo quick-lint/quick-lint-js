@@ -29,10 +29,17 @@
 #include <csetjmp>
 #endif
 
+#if QLJS_HAVE_FILE_NAME_MACRO
+#define QLJS_PARSER_UNIMPLEMENTED()                                        \
+  do {                                                                     \
+    this->crash_on_unimplemented_token(__FILE_NAME__, __LINE__, __func__); \
+  } while (false)
+#else
 #define QLJS_PARSER_UNIMPLEMENTED()                                   \
   do {                                                                \
     this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__); \
   } while (false)
+#endif
 
 #define QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(expected_token_type) \
   do {                                                              \
