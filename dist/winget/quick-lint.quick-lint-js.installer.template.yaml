@@ -16,7 +16,7 @@ Installers:
   - Windows.Universal
   MinimumOSVersion: 10.0.0.0
   Architecture: x64
-  PackageFamilyName: fa6b940b-8f96-4b46-8e21-703a63133e06_y724facbts4te
+  PackageFamilyName: fa6b940b-8f96-4b46-8e21-703a63133e06_116557qebcmn6
 
 ManifestType: installer
 ManifestVersion: 1.1.0
