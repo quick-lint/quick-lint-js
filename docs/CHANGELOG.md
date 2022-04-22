@@ -20,12 +20,12 @@ Semantic Versioning.
 
 [Downloads](https://c.quick-lint-js.com/releases/2.4.1/)
 
-## Fixed
+### Fixed
 
 * When using the `de`, `fr_FR`, or `sv_SV` locale, some error messages are no
   longer blank.
 
-## Changed
+### Changed
 
 * The Windows MSIX installer is now signed with a Microsoft-trusted certificate.
   If you installed quick-lint-js using a prior version of the MSIX installer,
