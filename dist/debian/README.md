@@ -66,4 +66,17 @@ To view in the Pop!\_Shop:
 4. Search for "quick-lint". (For some reason, searching for "quick-lint-js"
    shows no results.)
 
+## Releasing downstream
+
+To release to downstream Debian, we [ship a source package to Debian mentors][].
+
+1. Download a signed release .tar.gz and .tar.gz.asc (e.g. from
+   <https://c.quick-lint-js.com/releases/latest/source/>).
+2. Create a package using `package.sh`:
+   `./dist/debian/package.sh --output-directory debian-package --orig path/to/quick-lint-js-2.4.1.tar.gz --sign`
+   * NOTE: `package.sh` will use the `debian` sources from your checkout
+     (`./dist/debian/debian/`), not from the signed release tarball.
+3. Upload the package: `dput mentors debian-package/quick-lint-js_2.4.1-1_source.changes`
+
 [appstream-generator]: https://github.com/ximion/appstream-generator
+[debian-mentors]: https://mentors.debian.net/intro-maintainers/
