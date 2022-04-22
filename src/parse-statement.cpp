@@ -108,10 +108,9 @@ parse_statement:
       this->lexer_.roll_back_transaction(std::move(transaction));
       expression *ast =
           this->parse_expression(v, precedence{.in_operator = true});
-      if (ast->kind() == expression_kind::arrow_function_with_expression ||
-          ast->kind() == expression_kind::arrow_function_with_statements) {
-        this->error_reporter_->report(
-            error_unused_arrow_function{.where = let_token.span()});
+      if (ast->kind() == expression_kind::arrow_function) {
+        this->diag_reporter_->report(
+            diag_unused_arrow_function{.where = let_token.span()});
       }
       this->visit_expression(ast, v, variable_context::rhs);
       parse_expression_end();
@@ -169,10 +168,9 @@ parse_statement:
     case token_type::slash: {
       expression *ast =
           this->parse_async_expression(v, async_token, precedence{});
-      if (ast->kind() == expression_kind::arrow_function_with_expression ||
-          ast->kind() == expression_kind::arrow_function_with_statements) {
-        this->error_reporter_->report(
-            error_unused_arrow_function{.where = async_token.span()});
+      if (ast->kind() == expression_kind::arrow_function) {
+        this->diag_reporter_->report(
+            diag_unused_arrow_function{.where = async_token.span()});
       }
       this->visit_expression(ast, v, variable_context::rhs);
       break;
@@ -249,10 +247,9 @@ parse_statement:
     token expression_start_token = this->peek();
     expression *ast = this->parse_expression(v);
     if (expression_start_token.type == token_type::left_paren &&
-        (ast->kind() == expression_kind::arrow_function_with_expression ||
-         ast->kind() == expression_kind::arrow_function_with_statements)) {
-      this->error_reporter_->report(
-          error_unused_arrow_function{.where = expression_start_token.span()});
+        ast->kind() == expression_kind::arrow_function) {
+      this->diag_reporter_->report(
+          diag_unused_arrow_function{.where = expression_start_token.span()});
     }
     this->visit_expression(ast, v, variable_context::rhs);
     parse_expression_end();
