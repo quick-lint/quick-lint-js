@@ -505,12 +505,12 @@ void linting_lsp_server_handler::apply_document_changes(
     bool is_incremental =
         change["range"].get(raw_range) == ::simdjson::error_code::SUCCESS;
     if (is_incremental) {
-      std::optional<int> start_line = maybe_get_int(raw_range["start"]["line"]);
-      std::optional<int> start_character =
-          maybe_get_int(raw_range["start"]["character"]);
-      std::optional<int> end_line = maybe_get_int(raw_range["end"]["line"]);
-      std::optional<int> end_character =
-          maybe_get_int(raw_range["end"]["character"]);
+      auto start = raw_range["start"];
+      std::optional<int> start_line = maybe_get_int(start["line"]);
+      std::optional<int> start_character = maybe_get_int(start["character"]);
+      auto end = raw_range["end"];
+      std::optional<int> end_line = maybe_get_int(end["line"]);
+      std::optional<int> end_character = maybe_get_int(end["character"]);
       if (!(start_line.has_value() && start_character.has_value() &&
             end_line.has_value() && end_character.has_value())) {
         // Ignore invalid change.
