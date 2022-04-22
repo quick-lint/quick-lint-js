@@ -777,8 +777,8 @@ TEST(test_parse, expression_statement) {
                                       "visit_enter_function_scope_body",
                                       "visit_variable_use",  // rhs
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                              &code, error_unused_arrow_function,  //
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code, diag_unused_arrow_function,  //
                               where, 0, u8"async")));
   }
 
@@ -1073,8 +1073,8 @@ TEST(test_parse, statement_beginning_with_async_or_let) {
                               "visit_enter_function_scope_body",  //
                               "visit_variable_use",               // body
                               "visit_exit_function_scope"));
-      EXPECT_THAT(v.errors, ElementsAre(ERROR_TYPE_OFFSETS(
-                                &code, error_unused_arrow_function,  //
+      EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                                &code, diag_unused_arrow_function,  //
                                 where, 0, name)));
     }
 
