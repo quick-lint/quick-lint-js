@@ -164,7 +164,7 @@ void lexer::parse_bom_before_shebang() {
   }
 }
 
-void lexer::parse_current_token() {
+[[gnu::noinline]] void lexer::parse_current_token() {
   this->last_last_token_end_ = const_cast<char8*>(this->last_token_.end);
   this->last_token_.has_leading_newline = false;
   this->skip_whitespace();
