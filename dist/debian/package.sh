@@ -10,9 +10,12 @@ cd "$(dirname "${0}")/../.."
 
 variant=default
 output_directory=
+orig_file=
+have_orig_signature=
 while [ "${#}" -gt 0 ]; do
   case "${1}" in
     --xenial) variant=xenial ;;
+    --orig) orig_file="${2}" ; shift ;;
     --output-directory) output_directory="${2}" ; shift ;;
     *)
       printf 'error: unrecognized option: %s\n' >&2
@@ -30,7 +33,15 @@ package_version="$(head -n1 version)"
 
 temp_dir="$(mktemp -d)"
 
-git archive --format tar.gz --prefix "quick-lint-js-${package_version}/" --output "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz" HEAD
+if [ -n "${orig_file}" ]; then
+  cp "${orig_file}" "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz"
+  if [ -f "${orig_file}.asc" ]; then
+    cp "${orig_file}.asc" "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz.asc"
+    have_orig_signature=1
+  fi
+else
+  git archive --format tar.gz --prefix "quick-lint-js-${package_version}/" --output "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz" HEAD
+fi
 
 tar xzf "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz" -C "${temp_dir}"
 source_dir="${temp_dir}/quick-lint-js-${package_version}"
@@ -56,6 +67,9 @@ cp "${temp_dir}/quick-lint-js_${package_version}"-*.debian.tar.xz "${output_dire
 cp "${temp_dir}/quick-lint-js_${package_version}"-*.dsc "${output_directory}"
 cp "${temp_dir}/quick-lint-js_${package_version}"-*_source.changes "${output_directory}"
 cp "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz" "${output_directory}"
+if [ -n "${have_orig_signature}" ]; then
+  cp "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz.asc" "${output_directory}"
+fi
 
 # HACK(strager): Some versions of dpkg-buildpackage run dpkg-buildinfo, and some
 # don't. Copy the buildinfo file if it exists. Otherwise, lintian complains
@@ -68,7 +82,7 @@ rm -r "${temp_dir}"
 
 suppressed_tags=newer-standards-version
 lintian_version="$(lintian --version | grep -o '[0-9].*')"
-if dpkg --compare-versions "${lintian_version}" ge 2.62.0; then
+if [ -z "${have_orig_signature}" ] && dpkg --compare-versions "${lintian_version}" ge 2.62.0; then
   # We built the orig tarball from Git, so it is not signed. Don't complain
   # about a missing signature.
   suppressed_tags="${suppressed_tags},orig-tarball-missing-upstream-signature"
