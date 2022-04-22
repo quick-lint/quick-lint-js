@@ -12,11 +12,13 @@ variant=default
 output_directory=
 orig_file=
 have_orig_signature=
+sign=
 while [ "${#}" -gt 0 ]; do
   case "${1}" in
     --xenial) variant=xenial ;;
     --orig) orig_file="${2}" ; shift ;;
     --output-directory) output_directory="${2}" ; shift ;;
+    --sign) sign=1 ;;
     *)
       printf 'error: unrecognized option: %s\n' >&2
       exit 2
@@ -59,7 +61,11 @@ rm "${source_dir}/debian/"{compat,control,copyright,rules,source/lintian-overrid
 
 (
   cd "${source_dir}"
-  dpkg-buildpackage -S -d -uc -us
+  options=()
+  if [ -z "${sign}" ]; then
+    options+=(-uc -us)
+  fi
+  dpkg-buildpackage -S -d "${options[@]:+${options[@]}}"
 )
 
 mkdir -p "${output_directory}"
