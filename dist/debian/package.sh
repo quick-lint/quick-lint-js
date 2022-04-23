@@ -70,9 +70,9 @@ rm "${source_dir}/debian/"{compat,control,copyright,rules,source/lintian-overrid
 )
 
 mkdir -p "${output_directory}"
-cp "${temp_dir}/quick-lint-js_${package_version}"-*.debian.tar.xz "${output_directory}"
-cp "${temp_dir}/quick-lint-js_${package_version}"-*.dsc "${output_directory}"
-cp "${temp_dir}/quick-lint-js_${package_version}"-*_source.changes "${output_directory}"
+cp "${temp_dir}/quick-lint-js_${debian_package_version}".debian.tar.xz "${output_directory}"
+cp "${temp_dir}/quick-lint-js_${debian_package_version}".dsc "${output_directory}"
+cp "${temp_dir}/quick-lint-js_${debian_package_version}"_source.changes "${output_directory}"
 cp "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz" "${output_directory}"
 if [ -n "${have_orig_signature}" ]; then
   cp "${temp_dir}/quick-lint-js_${package_version}.orig.tar.gz.asc" "${output_directory}"
@@ -81,8 +81,8 @@ fi
 # HACK(strager): Some versions of dpkg-buildpackage run dpkg-buildinfo, and some
 # don't. Copy the buildinfo file if it exists. Otherwise, lintian complains
 # about the missing buildinfo file.
-if [ -f "${temp_dir}/quick-lint-js_${package_version}"-*_source.buildinfo ]; then
-  cp "${temp_dir}/quick-lint-js_${package_version}"-*_source.buildinfo "${output_directory}"
+if [ -f "${temp_dir}/quick-lint-js_${debian_package_version}"_source.buildinfo ]; then
+  cp "${temp_dir}/quick-lint-js_${debian_package_version}"_source.buildinfo "${output_directory}"
 fi
 
 rm -r "${temp_dir}"
