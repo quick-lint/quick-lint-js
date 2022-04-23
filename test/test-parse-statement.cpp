@@ -133,7 +133,7 @@ TEST(test_parse, return_statement_disallows_newline) {
   for (const char8* second_line : {
            u8"!true",
            u8"'string'",
-           u8"() => {}",
+           u8"(() => {})",
            u8"(2 + 2)",
            u8"+42",
            u8"-42",

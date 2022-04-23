@@ -1489,6 +1489,11 @@
       MESSAGE(QLJS_TRANSLATABLE("unopened block comment"), comment_close))     \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_unused_arrow_function, "E0212", diagnostic_severity::warning,       \
+      { source_code_span where; },                                             \
+      MESSAGE(QLJS_TRANSLATABLE("unused arrow function"), where))              \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_unused_variable_shadows, "E0196", diagnostic_severity::warning,     \
       {                                                                        \
         identifier shadowing_declaration;                                      \

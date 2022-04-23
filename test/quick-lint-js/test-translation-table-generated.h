@@ -2448,6 +2448,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "unused arrow function"_translatable,
+        {
+            u8"unused arrow function",
+            u8"unused arrow function",
+            u8"unused arrow function",
+            u8"unused arrow function",
+            u8"unused arrow function",
+        },
+    },
+    {
         "use 'while' instead to loop until a condition is false"_translatable,
         {
             u8"use 'while' instead to loop until a condition is false",

@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-04-20 13:07-0700\n"
+"POT-Creation-Date: 2022-04-22 13:19+0530\n"
 "PO-Revision-Date: 2021-11-17 17:05+0100\n"
 "Last-Translator: Matthew \"strager\" Glazar <strager.nds@gmail.com>\n"
 "Language-Team: English\n"
@@ -962,6 +962,10 @@ msgstr "FOR-OF LOOP EXPRESSION CANNOT HAVE SEMICOLONS"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unopened block comment"
 msgstr "UNOPENED BLOCK COMMENT"
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "unused arrow function"
+msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "new variable shadows existing variable"

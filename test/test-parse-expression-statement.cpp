@@ -768,12 +768,18 @@ TEST(test_parse, expression_statement) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"async => rhs;"_sv);
+    padded_string code(u8"async => rhs;"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",
                                       "visit_variable_declaration",  // async
                                       "visit_enter_function_scope_body",
                                       "visit_variable_use",  // rhs
                                       "visit_exit_function_scope"));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code, diag_unused_arrow_function,  //
+                              where, 0, u8"async")));
   }
 
   {
@@ -1057,13 +1063,19 @@ TEST(test_parse, statement_beginning_with_async_or_let) {
     }
 
     {
-      spy_visitor v = parse_and_visit_statement(name + u8" => {body;};");
+      padded_string code(name + u8" => {body;}");
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_enter_function_scope",       //
                               "visit_variable_declaration",       // (name)
                               "visit_enter_function_scope_body",  //
                               "visit_variable_use",               // body
                               "visit_exit_function_scope"));
+      EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                                &code, diag_unused_arrow_function,  //
+                                where, 0, name)));
     }
 
     {

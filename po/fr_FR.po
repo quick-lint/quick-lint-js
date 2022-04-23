@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-04-20 13:07-0700\n"
+"POT-Creation-Date: 2022-04-22 13:19+0530\n"
 "PO-Revision-Date: 2022-02-06 21:12+0100\n"
 "Last-Translator: even4void <chl@aliquote.org>\n"
 "Language-Team: French\n"
@@ -987,6 +987,10 @@ msgstr "une instruction de boucle for-of ne peut contenir de points-virgules"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unopened block comment"
 msgstr "commentaire de bloc non ouvert"
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "unused arrow function"
+msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "new variable shadows existing variable"
