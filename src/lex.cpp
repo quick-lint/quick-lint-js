@@ -67,8 +67,16 @@
   c(0xf0):c(0xf1):c(0xf2):c(0xf3):c(0xf4):c(0xf5):c(0xf6):c(0xf7):c(0xf8):c(0xf9):c(0xfa):c(0xfb):c(0xfc):c(0xfd):c(0xfe):c(0xff)
 // clang-format on
 
+#define QLJS_CASE_NEWLINE_START \
+  case u8'\n':                  \
+  case u8'\r':                  \
+  case line_separator_paragraph_separator_first_byte
+
 namespace quick_lint_js {
 namespace {
+constexpr char8 line_separator_paragraph_separator_first_byte =
+    static_cast<char8>(0xe2);
+
 static constexpr char32_t left_single_quote = U'\u2018';
 static constexpr char32_t left_double_quote = U'\u201c';
 static constexpr char32_t right_single_quote = U'\u2019';
@@ -1001,7 +1009,7 @@ void lexer::reparse_as_regexp() {
 
   const char8* c = &this->input_[1];
 next:
-  switch (static_cast<unsigned char>(*c)) {
+  switch (*c) {
   case '\0':
     if (this->is_eof(c)) {
       this->diag_reporter_->report(diag_unclosed_regexp_literal{
@@ -1034,7 +1042,7 @@ next:
   case '[':
     ++c;
     for (;;) {
-      switch (static_cast<unsigned char>(*c)) {
+      switch (*c) {
       case u8']':
       case u8'\0':
         goto next;
@@ -1047,9 +1055,7 @@ next:
         }
         break;
 
-      case u8'\n':
-      case u8'\r':
-      case 0xe2:
+      QLJS_CASE_NEWLINE_START:
         if (this->newline_character_size(c) != 0) {
           goto next;
         }
@@ -1080,9 +1086,7 @@ next:
     break;
   }
 
-  case u8'\n':
-  case u8'\r':
-  case 0xe2:
+  QLJS_CASE_NEWLINE_START:
     if (this->newline_character_size(c) != 0) {
       this->diag_reporter_->report(diag_unclosed_regexp_literal{
           source_code_span(this->last_token_.begin, c)});
@@ -1846,11 +1850,13 @@ void lexer::skip_block_comment() {
 
   for (;;) {
     char_vector chars = char_vector::load(c);
-    bool_vector matches = (chars == char_vector::repeated(u8'*')) |
-                          (chars == char_vector::repeated(u8'\0')) |
-                          (chars == char_vector::repeated(u8'\n')) |
-                          (chars == char_vector::repeated(u8'\r')) |
-                          (chars == char_vector::repeated(0xe2));
+    bool_vector matches =
+        (chars == char_vector::repeated(u8'*')) |
+        (chars == char_vector::repeated(u8'\0')) |
+        (chars == char_vector::repeated(u8'\n')) |
+        (chars == char_vector::repeated(u8'\r')) |
+        (chars == char_vector::repeated(static_cast<std::uint8_t>(
+                      line_separator_paragraph_separator_first_byte)));
     std::uint32_t mask = matches.mask();
     if (mask != 0) {
       for (int i = countr_zero(mask); i < chars.size; ++i) {
