@@ -172,7 +172,7 @@ void lexer::parse_bom_before_shebang() {
 }
 
 [[gnu::noinline]] void lexer::parse_current_token() {
-  this->last_last_token_end_ = const_cast<char8*>(this->last_token_.end);
+  this->last_last_token_end_ = this->last_token_.end;
   this->last_token_.has_leading_newline = false;
   this->skip_whitespace();
 
@@ -953,7 +953,7 @@ lexer::parsed_template_body lexer::parse_template_body(
 }
 
 void lexer::skip_in_jsx() {
-  this->last_last_token_end_ = const_cast<char8*>(this->last_token_.end);
+  this->last_last_token_end_ = this->last_token_.end;
   this->last_token_.has_leading_newline = false;
   this->skip_whitespace();
 
@@ -1003,7 +1003,7 @@ void lexer::reparse_as_regexp() {
   QLJS_ASSERT(this->last_token_.type == token_type::slash ||
               this->last_token_.type == token_type::slash_equal);
 
-  this->input_ = const_cast<char8*>(this->last_token_.begin);
+  this->input_ = this->last_token_.begin;
   QLJS_ASSERT(this->input_[0] == '/');
   this->last_token_.type = token_type::regexp;
 
