@@ -32,6 +32,7 @@ if [ "${output_directory}" = "" ]; then
 fi
 
 package_version="$(head -n1 version)"
+debian_package_version="$(dpkg-parsechangelog --file ./dist/debian/debian/changelog --show-field Version)"
 
 temp_dir="$(mktemp -d)"
 
@@ -104,7 +105,7 @@ fi
 ./dist/debian/strict-lintian.sh \
   --suppress-tags "${suppressed_tags}" \
   --profile debian \
-  "${output_directory}/quick-lint-js_${package_version}"-*_source.changes
+  "${output_directory}/quick-lint-js_${debian_package_version}"_source.changes
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
