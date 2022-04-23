@@ -1729,6 +1729,9 @@ void lexer::skip_whitespace() {
 
 next:
   char8 c = input[0];
+  unsigned char c0 = static_cast<unsigned char>(input[0]);
+  unsigned char c1 = static_cast<unsigned char>(input[1]);
+  unsigned char c2 = static_cast<unsigned char>(input[2]);
   if (c == ' ' || c == '\t' || c == '\f' || c == '\v') {
     input += 1;
     goto next;
@@ -1736,11 +1739,10 @@ next:
     this->last_token_.has_leading_newline = true;
     input += 1;
     goto next;
-  } else if (static_cast<unsigned char>(c) >= 0xc2) {
-    [[unlikely]] switch (static_cast<unsigned char>(c)) {
+  } else if (c0 >= 0xc2) {
+    [[unlikely]] switch (c0) {
     case 0xe1:
-      if (static_cast<unsigned char>(input[1]) == 0x9a &&
-          static_cast<unsigned char>(input[2]) == 0x80) {
+      if (c1 == 0x9a && c2 == 0x80) {
         // U+1680 Ogham Space Mark
         input += 3;
         goto next;
@@ -1749,8 +1751,8 @@ next:
       }
 
     case 0xe2:
-      if (static_cast<unsigned char>(input[1]) == 0x80) {
-        switch (static_cast<unsigned char>(input[2])) {
+      if (c1 == 0x80) {
+        switch (c2) {
         case 0x80:  // U+2000 En Quad
         case 0x81:  // U+2001 Em Quad
         case 0x82:  // U+2002 En Space
@@ -1776,8 +1778,8 @@ next:
         default:
           goto done;
         }
-      } else if (static_cast<unsigned char>(input[1]) == 0x81) {
-        if (static_cast<unsigned char>(input[2]) == 0x9f) {
+      } else if (c1 == 0x81) {
+        if (c2 == 0x9f) {
           // U+205F Medium Mathematical Space (MMSP)
           input += 3;
           goto next;
@@ -1789,8 +1791,7 @@ next:
       }
 
     case 0xe3:
-      if (static_cast<unsigned char>(input[1]) == 0x80 &&
-          static_cast<unsigned char>(input[2]) == 0x80) {
+      if (c1 == 0x80 && c2 == 0x80) {
         // U+3000 Ideographic Space
         input += 3;
         goto next;
@@ -1799,8 +1800,7 @@ next:
       }
 
     case 0xef:
-      if (static_cast<unsigned char>(input[1]) == 0xbb &&
-          static_cast<unsigned char>(input[2]) == 0xbf) {
+      if (c1 == 0xbb && c2 == 0xbf) {
         // U+FEFF Zero Width No-Break Space (BOM, ZWNBSP)
         input += 3;
         goto next;
@@ -1809,7 +1809,7 @@ next:
       }
 
     case 0xc2:
-      if (static_cast<unsigned char>(input[1]) == 0xa0) {
+      if (c1 == 0xa0) {
         // U+00A0 No-Break Space (NBSP)
         input += 2;
         goto next;
