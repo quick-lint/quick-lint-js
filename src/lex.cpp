@@ -77,10 +77,10 @@ namespace {
 constexpr char8 line_separator_paragraph_separator_first_byte =
     static_cast<char8>(0xe2);
 
-static constexpr char32_t left_single_quote = U'\u2018';
-static constexpr char32_t left_double_quote = U'\u201c';
-static constexpr char32_t right_single_quote = U'\u2019';
-static constexpr char32_t right_double_quote = U'\u201d';
+constexpr char32_t left_single_quote = U'\u2018';
+constexpr char32_t left_double_quote = U'\u201c';
+constexpr char32_t right_single_quote = U'\u2019';
+constexpr char32_t right_double_quote = U'\u201d';
 
 bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
                               char32_t code_point) {
