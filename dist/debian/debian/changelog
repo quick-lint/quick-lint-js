@@ -1,3 +1,9 @@
+quick-lint-js (2.4.2-1) unstable; urgency=medium
+
+  * New patch release.
+
+ -- Matthew "strager" Glazar <strager.nds@gmail.com>  Fri, 22 Apr 2022 19:44:40 -0700
+
 quick-lint-js (2.4.1-2) unstable; urgency=medium
 
   * Fix lintian issues.

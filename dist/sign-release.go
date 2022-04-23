@@ -116,7 +116,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sourceTarballPath := filepath.Join(destinationDir, "source/quick-lint-js-2.4.1.tar.gz")
+	sourceTarballPath := filepath.Join(destinationDir, "source/quick-lint-js-2.4.2.tar.gz")
 	log.Printf("signing: %s\n", sourceTarballPath)
 	if err := RelicFile(sourceTarballPath, sourceTarballPath+".asc", RelicSignPGP); err != nil {
 		log.Fatal(err)
@@ -161,23 +161,23 @@ var filesToTransform map[DeepPath]FileTransformType = map[DeepPath]FileTransform
 	NewDeepPath2("manual/windows-arm.zip", "bin/quick-lint-js.exe"):                                               RelicWindows,
 	NewDeepPath2("manual/windows-x86.zip", "bin/quick-lint-js.exe"):                                               RelicWindows,
 	NewDeepPath2("manual/windows.zip", "bin/quick-lint-js.exe"):                                                   RelicWindows,
-	NewDeepPath2("npm/quick-lint-js-2.4.1.tgz", "package/darwin-arm64/bin/quick-lint-js"):                         RelicApple,
-	NewDeepPath2("npm/quick-lint-js-2.4.1.tgz", "package/darwin-x64/bin/quick-lint-js"):                           RelicApple,
-	NewDeepPath2("npm/quick-lint-js-2.4.1.tgz", "package/linux-arm/bin/quick-lint-js"):                            RelicPGP,
-	NewDeepPath2("npm/quick-lint-js-2.4.1.tgz", "package/linux-arm64/bin/quick-lint-js"):                          RelicPGP,
-	NewDeepPath2("npm/quick-lint-js-2.4.1.tgz", "package/linux-x64/bin/quick-lint-js"):                            RelicPGP,
-	NewDeepPath2("npm/quick-lint-js-2.4.1.tgz", "package/win32-arm64/bin/quick-lint-js.exe"):                      RelicWindows,
-	NewDeepPath2("npm/quick-lint-js-2.4.1.tgz", "package/win32-ia32/bin/quick-lint-js.exe"):                       RelicWindows,
-	NewDeepPath2("npm/quick-lint-js-2.4.1.tgz", "package/win32-x64/bin/quick-lint-js.exe"):                        RelicWindows,
-	NewDeepPath2("vscode/quick-lint-js-2.4.1.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-arm64.node"): RelicApple,
-	NewDeepPath2("vscode/quick-lint-js-2.4.1.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-x64.node"):   RelicApple,
-	NewDeepPath2("vscode/quick-lint-js-2.4.1.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm.node"):    RelicPGP,
-	NewDeepPath2("vscode/quick-lint-js-2.4.1.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm64.node"):  RelicPGP,
-	NewDeepPath2("vscode/quick-lint-js-2.4.1.vsix", "extension/dist/quick-lint-js-vscode-node_linux-x64.node"):    RelicPGP,
-	NewDeepPath2("vscode/quick-lint-js-2.4.1.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm.node"):    RelicWindows,
-	NewDeepPath2("vscode/quick-lint-js-2.4.1.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm64.node"):  RelicWindows,
-	NewDeepPath2("vscode/quick-lint-js-2.4.1.vsix", "extension/dist/quick-lint-js-vscode-node_win32-ia32.node"):   RelicWindows,
-	NewDeepPath2("vscode/quick-lint-js-2.4.1.vsix", "extension/dist/quick-lint-js-vscode-node_win32-x64.node"):    RelicWindows,
+	NewDeepPath2("npm/quick-lint-js-2.4.2.tgz", "package/darwin-arm64/bin/quick-lint-js"):                         RelicApple,
+	NewDeepPath2("npm/quick-lint-js-2.4.2.tgz", "package/darwin-x64/bin/quick-lint-js"):                           RelicApple,
+	NewDeepPath2("npm/quick-lint-js-2.4.2.tgz", "package/linux-arm/bin/quick-lint-js"):                            RelicPGP,
+	NewDeepPath2("npm/quick-lint-js-2.4.2.tgz", "package/linux-arm64/bin/quick-lint-js"):                          RelicPGP,
+	NewDeepPath2("npm/quick-lint-js-2.4.2.tgz", "package/linux-x64/bin/quick-lint-js"):                            RelicPGP,
+	NewDeepPath2("npm/quick-lint-js-2.4.2.tgz", "package/win32-arm64/bin/quick-lint-js.exe"):                      RelicWindows,
+	NewDeepPath2("npm/quick-lint-js-2.4.2.tgz", "package/win32-ia32/bin/quick-lint-js.exe"):                       RelicWindows,
+	NewDeepPath2("npm/quick-lint-js-2.4.2.tgz", "package/win32-x64/bin/quick-lint-js.exe"):                        RelicWindows,
+	NewDeepPath2("vscode/quick-lint-js-2.4.2.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-arm64.node"): RelicApple,
+	NewDeepPath2("vscode/quick-lint-js-2.4.2.vsix", "extension/dist/quick-lint-js-vscode-node_darwin-x64.node"):   RelicApple,
+	NewDeepPath2("vscode/quick-lint-js-2.4.2.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm.node"):    RelicPGP,
+	NewDeepPath2("vscode/quick-lint-js-2.4.2.vsix", "extension/dist/quick-lint-js-vscode-node_linux-arm64.node"):  RelicPGP,
+	NewDeepPath2("vscode/quick-lint-js-2.4.2.vsix", "extension/dist/quick-lint-js-vscode-node_linux-x64.node"):    RelicPGP,
+	NewDeepPath2("vscode/quick-lint-js-2.4.2.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm.node"):    RelicWindows,
+	NewDeepPath2("vscode/quick-lint-js-2.4.2.vsix", "extension/dist/quick-lint-js-vscode-node_win32-arm64.node"):  RelicWindows,
+	NewDeepPath2("vscode/quick-lint-js-2.4.2.vsix", "extension/dist/quick-lint-js-vscode-node_win32-ia32.node"):   RelicWindows,
+	NewDeepPath2("vscode/quick-lint-js-2.4.2.vsix", "extension/dist/quick-lint-js-vscode-node_win32-x64.node"):    RelicWindows,
 	NewDeepPath("windows/quick-lint-js.msix"):                                                                     RelicWindows,
 	NewDeepPath2("windows/quick-lint-js.msix", "quick-lint-js.exe"):                                               RelicWindows,
 }

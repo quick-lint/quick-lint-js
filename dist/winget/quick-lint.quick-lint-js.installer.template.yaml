@@ -5,7 +5,7 @@
 # http://creativecommons.org/publicdomain/zero/1.0/
 
 PackageIdentifier: quick-lint.quick-lint-js
-PackageVersion: 2.4.1.0
+PackageVersion: 2.4.2.0
 
 Installers:
 - InstallerUrl: {{ .BaseURI }}windows/quick-lint-js.msix
