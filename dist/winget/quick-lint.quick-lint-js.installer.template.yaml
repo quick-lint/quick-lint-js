@@ -10,6 +10,9 @@ PackageVersion: 2.4.1.0
 Installers:
 - InstallerUrl: {{ .BaseURI }}windows/quick-lint-js.msix
   InstallerSha256: {{ .MSIXSHA256 }}
+{{- if .MSIXSignatureSHA256 }}
+  SignatureSha256: {{ .MSIXSignatureSHA256 }}
+{{- end }}
   InstallerType: msix
   Platform:
   - Windows.Desktop
