@@ -152,8 +152,7 @@ void lexer::parse_bom_before_shebang() {
       static_cast<unsigned char>(input[1]) == 0xbb &&
       static_cast<unsigned char>(input[2]) == 0xbf) {
     input += 3;
-    if (static_cast<unsigned char>(input[0]) == '#' &&
-        static_cast<unsigned char>(input[1]) == '!') {
+    if (input[0] == u8'#' && input[1] == u8'!') {
       this->diag_reporter_->report(diag_unexpected_bom_before_shebang{
           source_code_span(&this->input_[0], &this->input_[3])});
       input += 2;
