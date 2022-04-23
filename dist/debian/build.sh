@@ -21,6 +21,7 @@ while [ "${#}" -gt 0 ]; do
 done
 
 package_version="$(head -n1 version)"
+debian_package_version="${package_version}-1"
 
 DEB_BUILD_OPTIONS="parallel=$(nproc)"
 export DEB_BUILD_OPTIONS
@@ -30,7 +31,7 @@ export DEB_BUILD_OPTIONS
 (
   cd dist/debian/build/
   rm -rf "quick-lint-js-${package_version}/"
-  dpkg-source --extract "quick-lint-js_${package_version}-1.dsc"
+  dpkg-source --extract "quick-lint-js_${debian_package_version}.dsc"
   cd "quick-lint-js-${package_version}/"
   dpkg-buildpackage -rfakeroot -b -uc -us
 )
@@ -43,9 +44,9 @@ if dpkg --compare-versions "${lintian_version}" ge 2.114.0; then
   dbgsym_lintian_options+=(--suppress-tags elf-error)
 fi
 
-./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js_${package_version}-1_amd64.deb"
-./dist/debian/strict-lintian.sh "${dbgsym_lintian_options[@]:+${dbgsym_lintian_options[@]}}" "dist/debian/build/quick-lint-js-dbgsym_${package_version}-1_amd64.deb"
-./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js-vim_${package_version}-1_all.deb"
+./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js_${debian_package_version}_amd64.deb"
+./dist/debian/strict-lintian.sh "${dbgsym_lintian_options[@]:+${dbgsym_lintian_options[@]}}" "dist/debian/build/quick-lint-js-dbgsym_${debian_package_version}_amd64.deb"
+./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js-vim_${debian_package_version}_all.deb"
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
