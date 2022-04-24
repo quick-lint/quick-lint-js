@@ -26,18 +26,17 @@ export function makeServer({
       response.end(`bad method ${request.method}`);
       return;
     }
+    if (!request.path.startsWith("/")) {
+      response.writeHead(400);
+      response.end(`bad path ${request.path}`);
+      return;
+    }
 
     if (/^\/(?:[^/]+\/)*$/.test(request.path)) {
       serveDirectoryAsync(request, response);
-      return;
-    }
-    if (request.path.startsWith("/")) {
+    } else {
       serveFileAsync(request, response);
-      return;
     }
-
-    response.writeHead(400);
-    response.end(`bad path ${request.path}`);
   }
 
   async function serveDirectoryAsync(request, response) {
