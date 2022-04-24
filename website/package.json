@@ -9,7 +9,7 @@
     "node": ">=14.14.0"
   },
   "dependencies": {
-    "asciidoctor": "^2.2.5",
+    "@asciidoctor/core": "2.2.5",
     "ejs": "^3.1.6",
     "esbuild-wasm": "^0.13.2",
     "express": "^4.17.1",
