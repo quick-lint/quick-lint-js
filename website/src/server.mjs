@@ -2,7 +2,6 @@
 // See end of file for extended copyright information.
 
 import ejs from "ejs";
-import express from "express";
 import fs from "fs";
 import mime from "mime";
 import os from "os";
@@ -19,11 +18,27 @@ export function makeServer({
     esbuildBundles: esbuildBundles,
     htmlRedirects: htmlRedirects,
   });
+  return serve;
 
-  let app = express.Router();
-  app.get(/^\/((?:[^/]+\/)*)$/, serveDirectoryAsync);
-  app.get(/^\/(.*)$/, serveFileAsync);
-  return app;
+  function serve(request, response) {
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      response.writeHead(405);
+      response.end(`bad method ${request.method}`);
+      return;
+    }
+
+    if (/^\/((?:[^/]+\/)*)$/.test(request.path)) {
+      serveDirectoryAsync(request, response);
+      return;
+    }
+    if (/^\/(.*)$/.test(request.path)) {
+      serveFileAsync(request, response);
+      return;
+    }
+
+    response.writeHead(400);
+    response.end(`bad path ${request.path}`);
+  }
 
   async function serveDirectoryAsync(request, response) {
     let classifiedDirectory = await router.classifyDirectoryRouteAsync(
