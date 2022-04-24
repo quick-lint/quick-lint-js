@@ -15,6 +15,7 @@
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/windows-error.h>
 
 #if QLJS_HAVE_STD_FILESYSTEM
 #include <filesystem>
@@ -55,13 +56,12 @@ inline ::testing::AssertionResult assert_same_file(const char* lhs_expr,
               FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
           /*hTemplateFile=*/nullptr));
       if (!handle.valid()) {
-        ADD_FAILURE() << path << ": "
-                      << windows_handle_file_ref::get_last_error_message();
+        ADD_FAILURE() << path << ": " << windows_last_error_message();
         return id;
       }
       EXPECT_TRUE(::GetFileInformationByHandleEx(handle.get(), ::FileIdInfo,
                                                  &id, sizeof(id)))
-          << path << ": " << windows_handle_file_ref::get_last_error_message();
+          << path << ": " << windows_last_error_message();
       return id;
     };
     ::FILE_ID_INFO lhs_id = get_file_id(lhs_path);

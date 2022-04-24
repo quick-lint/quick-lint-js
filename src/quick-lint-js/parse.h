@@ -29,10 +29,17 @@
 #include <csetjmp>
 #endif
 
+#if QLJS_HAVE_FILE_NAME_MACRO
+#define QLJS_PARSER_UNIMPLEMENTED()                                        \
+  do {                                                                     \
+    this->crash_on_unimplemented_token(__FILE_NAME__, __LINE__, __func__); \
+  } while (false)
+#else
 #define QLJS_PARSER_UNIMPLEMENTED()                                   \
   do {                                                                \
     this->crash_on_unimplemented_token(__FILE__, __LINE__, __func__); \
   } while (false)
+#endif
 
 #define QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(expected_token_type) \
   do {                                                              \
@@ -225,17 +232,17 @@ class parser {
 
   void parse_and_visit_variable_declaration_statement(parse_visitor_base &v);
   void parse_and_visit_let_bindings(
-      parse_visitor_base &v, token declaring_token, bool allow_in_operator,
-      bool allow_const_without_initializer = false,
+      parse_visitor_base &v, const token &declaring_token,
+      bool allow_in_operator, bool allow_const_without_initializer = false,
       bool is_in_for_initializer = false);
   // declaring_token is the const/let/var token.
   void parse_and_visit_let_bindings(parse_visitor_base &v,
-                                    token declaring_token,
+                                    const token &declaring_token,
                                     variable_kind declaration_kind,
                                     bool allow_in_operator,
                                     bool allow_const_without_initializer,
                                     bool is_in_for_initializer);
-  bool is_let_token_a_variable_reference(token following_token,
+  bool is_let_token_a_variable_reference(const token &following_token,
                                          bool allow_declarations) noexcept;
   void visit_binding_element(expression *ast, parse_visitor_base &v,
                              variable_kind declaration_kind,
@@ -243,14 +250,14 @@ class parser {
                              variable_init_kind init_kind);
 
   struct precedence {
-    bool binary_operators = true;
-    bool math_or_logical_or_assignment = true;
-    bool commas = true;
-    bool in_operator = true;
+    bool binary_operators : 1 = true;
+    bool math_or_logical_or_assignment : 1 = true;
+    bool commas : 1 = true;
+    bool in_operator : 1 = true;
 
     // If true, parse unexpected trailing identifiers as part of the
     // expression (and emit an error).
-    bool trailing_identifiers = false;
+    bool trailing_identifiers : 1 = false;
 
     // If true, try parsing a trailing '{' as the body of an arrow function. For
     // example:
@@ -259,9 +266,9 @@ class parser {
     //    ^ missing '=>'
     //
     // If false, stop parsing at a trailing '{' and do not report an error.
-    bool trailing_curly_is_arrow_body = true;
+    bool trailing_curly_is_arrow_body : 1 = true;
 
-    bool conditional_operator = true;
+    bool conditional_operator : 1 = true;
   };
 
   // binary_expression_builder helps in the creation of a
@@ -308,13 +315,13 @@ class parser {
 
   expression *parse_expression(parse_visitor_base &, precedence);
   expression *parse_primary_expression(parse_visitor_base &, precedence);
-  expression *parse_async_expression(parse_visitor_base &, token async_token,
-                                     precedence);
+  expression *parse_async_expression(parse_visitor_base &,
+                                     const token &async_token, precedence);
   expression *parse_async_expression_only(parse_visitor_base &,
-                                          token async_token,
+                                          const token &async_token,
                                           bool allow_in_operator);
-  expression *parse_await_expression(parse_visitor_base &, token await_token,
-                                     precedence prec);
+  expression *parse_await_expression(parse_visitor_base &,
+                                     const token &await_token, precedence prec);
   expression *parse_expression_remainder(parse_visitor_base &, expression *,
                                          precedence);
   void parse_arrow_function_expression_remainder(parse_visitor_base &,

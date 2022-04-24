@@ -1,18 +1,17 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
 set -e
 set -u
-set -x
 
 cd "$(dirname "${0}")/../.."
 
-variant=default
+package_options=()
 while [ "${#}" -gt 0 ]; do
   case "${1}" in
-    --xenial) variant=xenial ;;
+    --xenial) package_options+=(--xenial) ;;
     *)
       printf 'error: unrecognized option: %s\n' >&2
       exit 2
@@ -22,40 +21,32 @@ while [ "${#}" -gt 0 ]; do
 done
 
 package_version="$(head -n1 version)"
+debian_package_version="$(dpkg-parsechangelog --file ./dist/debian/debian/changelog --show-field Version)"
 
 DEB_BUILD_OPTIONS="parallel=$(nproc)"
 export DEB_BUILD_OPTIONS
 
-git archive --format tar.gz --prefix "quick-lint-js-${package_version}/" --output "dist/debian/quick-lint-js_${package_version}.orig.tar.gz" HEAD
+./dist/debian/package.sh "${package_options[@]:+${package_options[@]}}" --output-directory dist/debian/build/
 
-cd dist/debian/
-rm -rf "quick-lint-js-${package_version}/"
-tar xzf "quick-lint-js_${package_version}.orig.tar.gz"
-cp -a debian "quick-lint-js-${package_version}/debian"
+(
+  cd dist/debian/build/
+  rm -rf "quick-lint-js-${package_version}/"
+  dpkg-source --extract "quick-lint-js_${debian_package_version}.dsc"
+  cd "quick-lint-js-${package_version}/"
+  dpkg-buildpackage -rfakeroot -b -uc -us
+)
 
-cd "quick-lint-js-${package_version}/"
-if [ "${variant}" != default ]; then
-  cp -a "debian/control-${variant}" debian/control
-  cp -a "debian/rules-${variant}" debian/rules
+# elf-error is noisy, so turn it of for the dbgsym package if supported:
+# https://salsa.debian.org/lintian/lintian/-/merge_requests/387
+dbgsym_lintian_options=()
+lintian_version="$(lintian --version | grep -o '[0-9].*')"
+if dpkg --compare-versions "${lintian_version}" ge 2.114.0; then
+  dbgsym_lintian_options+=(--suppress-tags elf-error)
 fi
-rm debian/control-* debian/rules-*
 
-dpkg-buildpackage -rfakeroot -uc -us
-
-errors="$(mktemp)"
-trap 'rm -f "${errors}"' EXIT
-strict_lintian() {
-  lintian "${@}" | tee "${errors}"
-  if [ -s "${errors}" ]; then
-    printf 'error: lintian reported an error\n' >&2
-    exit 1
-  fi
-}
-
-cd ../
-strict_lintian "quick-lint-js_${package_version}-1_amd64.deb"
-strict_lintian "quick-lint-js-dbgsym_${package_version}-1_amd64.deb"
-strict_lintian "quick-lint-js-vim_${package_version}-1_all.deb"
+./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js_${debian_package_version}_amd64.deb"
+./dist/debian/strict-lintian.sh "${dbgsym_lintian_options[@]:+${dbgsym_lintian_options[@]}}" "dist/debian/build/quick-lint-js-dbgsym_${debian_package_version}_amd64.deb"
+./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js-vim_${debian_package_version}_all.deb"
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar

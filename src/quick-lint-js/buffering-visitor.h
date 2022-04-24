@@ -26,73 +26,70 @@ class buffering_visitor final : public parse_visitor_base {
   void move_into(parse_visitor_base &target);
   void copy_into(parse_visitor_base &target) const;
 
-  void visit_end_of_module() override {
-    this->visits_.emplace_back(visit_kind::end_of_module);
-  }
+  void visit_end_of_module() override { this->add(visit_kind::end_of_module); }
 
   void visit_enter_block_scope() override {
-    this->visits_.emplace_back(visit_kind::enter_block_scope);
+    this->add(visit_kind::enter_block_scope);
   }
 
   void visit_enter_with_scope() override {
-    this->visits_.emplace_back(visit_kind::enter_with_scope);
+    this->add(visit_kind::enter_with_scope);
   }
 
   void visit_enter_class_scope() override {
-    this->visits_.emplace_back(visit_kind::enter_class_scope);
+    this->add(visit_kind::enter_class_scope);
   }
 
   void visit_enter_for_scope() override {
-    this->visits_.emplace_back(visit_kind::enter_for_scope);
+    this->add(visit_kind::enter_for_scope);
   }
 
   void visit_enter_function_scope() override {
-    this->visits_.emplace_back(visit_kind::enter_function_scope);
+    this->add(visit_kind::enter_function_scope);
   }
 
   void visit_enter_function_scope_body() override {
-    this->visits_.emplace_back(visit_kind::enter_function_scope_body);
+    this->add(visit_kind::enter_function_scope_body);
   }
 
   void visit_enter_named_function_scope(identifier name) override {
-    this->visits_.emplace_back(visit_kind::enter_named_function_scope, name);
+    this->add(name, visit_kind::enter_named_function_scope);
   }
 
   void visit_exit_block_scope() override {
-    this->visits_.emplace_back(visit_kind::exit_block_scope);
+    this->add(visit_kind::exit_block_scope);
   }
 
   void visit_exit_with_scope() override {
-    this->visits_.emplace_back(visit_kind::exit_with_scope);
+    this->add(visit_kind::exit_with_scope);
   }
 
   void visit_exit_class_scope() override {
-    this->visits_.emplace_back(visit_kind::exit_class_scope);
+    this->add(visit_kind::exit_class_scope);
   }
 
   void visit_exit_for_scope() override {
-    this->visits_.emplace_back(visit_kind::exit_for_scope);
+    this->add(visit_kind::exit_for_scope);
   }
 
   void visit_exit_function_scope() override {
-    this->visits_.emplace_back(visit_kind::exit_function_scope);
+    this->add(visit_kind::exit_function_scope);
   }
 
   void visit_keyword_variable_use(identifier name) override {
-    this->visits_.emplace_back(visit_kind::keyword_variable_use, name);
+    this->add(name, visit_kind::keyword_variable_use);
   }
 
   void visit_property_declaration(std::optional<identifier> name) override {
     if (name.has_value()) {
-      this->visits_.emplace_back(visit_kind::property_declaration_with_name,
-                                 *name);
+      this->add(*name, visit_kind::property_declaration_with_name);
     } else {
-      this->visits_.emplace_back(visit_kind::property_declaration_without_name);
+      this->add(visit_kind::property_declaration_without_name);
     }
   }
 
   void visit_variable_assignment(identifier name) override {
-    this->visits_.emplace_back(visit_kind::variable_assignment, name);
+    this->add(name, visit_kind::variable_assignment);
   }
 
   void visit_variable_declaration(identifier name, variable_kind kind,
@@ -108,15 +105,15 @@ class buffering_visitor final : public parse_visitor_base {
   }
 
   void visit_variable_export_use(identifier name) override {
-    this->visits_.emplace_back(visit_kind::variable_export_use, name);
+    this->add(name, visit_kind::variable_export_use);
   }
 
   void visit_variable_typeof_use(identifier name) override {
-    this->visits_.emplace_back(visit_kind::variable_typeof_use, name);
+    this->add(name, visit_kind::variable_typeof_use);
   }
 
   void visit_variable_use(identifier name) override {
-    this->visits_.emplace_back(visit_kind::variable_use, name);
+    this->add(name, visit_kind::variable_use);
   }
 
  private:
@@ -144,6 +141,16 @@ class buffering_visitor final : public parse_visitor_base {
     variable_use,
     variable_declaration,
   };
+
+  // These 'add' functions significantly reduces code size by discouraging the
+  // inlining of visit::visit and std::deque<>::emplace_back.
+  [[gnu::noinline]] void add(visit_kind kind) {
+    this->visits_.emplace_back(kind);
+  }
+
+  [[gnu::noinline]] void add(const identifier &name, visit_kind kind) {
+    this->visits_.emplace_back(kind, name);
+  }
 
   struct visit {
     explicit visit(visit_kind kind) noexcept : kind(kind) {}

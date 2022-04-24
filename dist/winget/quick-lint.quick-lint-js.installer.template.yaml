@@ -5,18 +5,21 @@
 # http://creativecommons.org/publicdomain/zero/1.0/
 
 PackageIdentifier: quick-lint.quick-lint-js
-PackageVersion: 2.4.1
+PackageVersion: 2.4.2.0
 
 Installers:
 - InstallerUrl: {{ .BaseURI }}windows/quick-lint-js.msix
   InstallerSha256: {{ .MSIXSHA256 }}
+{{- if .MSIXSignatureSHA256 }}
+  SignatureSha256: {{ .MSIXSignatureSHA256 }}
+{{- end }}
   InstallerType: msix
   Platform:
   - Windows.Desktop
   - Windows.Universal
   MinimumOSVersion: 10.0.0.0
   Architecture: x64
-  PackageFamilyName: fa6b940b-8f96-4b46-8e21-703a63133e06_y724facbts4te
+  PackageFamilyName: quick-lint.quick-lint-js_116557qebcmn6
 
 ManifestType: installer
 ManifestVersion: 1.1.0

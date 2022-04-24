@@ -7,7 +7,7 @@
 This file contains instructions for installing and using the quick-lint-js
 plugin.
 
-This plugin version is designed for quick-lint-js version 2.4.1. Older or
+This plugin version is designed for quick-lint-js version 2.4.2. Older or
 newer versions might or might not work.
 
 1. Installing quick-lint-js	|quick-lint-js-app-install|

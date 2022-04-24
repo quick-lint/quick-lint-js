@@ -8,7 +8,7 @@
     <script>
       //<%
       let fs = await import("fs");
-      let asciidoctor = (await import("asciidoctor")).default();
+      let asciidoctor = (await import("@asciidoctor/core")).default();
 
       let adoc = await fs.promises.readFile(
         "../../../docs/config.adoc",

@@ -3,7 +3,7 @@
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
-	dh $@ --parallel
+	dh $@
 
 # HACK(strager): googletest was compiled without -fchar8_t (default for
 # -std=c++20). It is missing symbols which might be referenced if quick-lint-js
@@ -31,6 +31,3 @@ override_dh_auto_install:
 	install -m644 -D \
 		plugin/vim/quick-lint-js.yaml \
 		debian/tmp/usr/share/vim/registry/quick-lint-js.yaml
-
-override_dh_strip:
-	dh_strip $@ --dbg-package=quick-lint-js-dbgsym

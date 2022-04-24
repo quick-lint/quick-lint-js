@@ -3,7 +3,9 @@
 
 package main
 
+import "archive/zip"
 import "crypto/sha256"
+import "errors"
 import "flag"
 import "fmt"
 import "io"
@@ -24,8 +26,9 @@ var WingetSourcePath string
 var BaseURIRegexp *regexp.Regexp = regexp.MustCompile(`^https?://.*/$`)
 
 type TemplateVariables struct {
-	BaseURI    string
-	MSIXSHA256 string
+	BaseURI             string
+	MSIXSHA256          string
+	MSIXSignatureSHA256 string
 }
 
 func main() {
@@ -70,9 +73,14 @@ func Main() error {
 	if err != nil {
 		return err
 	}
+	msixSignatureSHA256, err := SHA256MSIXSignature(MSIXPath)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
 	variables := TemplateVariables{
-		BaseURI:    BaseURI,
-		MSIXSHA256: msixSHA256,
+		BaseURI:             BaseURI,
+		MSIXSHA256:          msixSHA256,
+		MSIXSignatureSHA256: msixSignatureSHA256,
 	}
 
 	filesToTransform := map[string]string{
@@ -121,8 +129,34 @@ func SHA256File(path string) (string, error) {
 		return "", err
 	}
 	defer file.Close()
+	return SHA256Reader(file)
+}
+
+func SHA256MSIXSignature(msixPath string) (string, error) {
+	file, err := os.Open(msixPath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return "", err
+	}
+	zipReader, err := zip.NewReader(file, fileInfo.Size())
+	if err != nil {
+		return "", err
+	}
+	signatureFile, err := zipReader.Open("AppxSignature.p7x")
+	if err != nil {
+		return "", err
+	}
+	defer signatureFile.Close()
+	return SHA256Reader(signatureFile)
+}
+
+func SHA256Reader(reader io.Reader) (string, error) {
 	hasher := sha256.New()
-	if _, err := io.Copy(hasher, file); err != nil {
+	if _, err := io.Copy(hasher, reader); err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("%x", hasher.Sum(nil)), nil

@@ -28,6 +28,7 @@
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/thread.h>
 #include <quick-lint-js/warning.h>
+#include <quick-lint-js/windows-error.h>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -2434,7 +2435,7 @@ void move_file(const std::string& from, const std::string& to) {
           /*lpReserved=*/nullptr);
       if (!ok) {
         ADD_FAILURE() << "failed to move " << from << " to " << to << ": "
-                      << windows_handle_file::get_last_error_message();
+                      << windows_last_error_message();
       }
       return;
     }

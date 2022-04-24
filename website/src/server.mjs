@@ -1,13 +1,14 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import colors from "colors/safe.js";
 import ejs from "ejs";
-import express from "express";
 import fs from "fs";
 import mime from "mime";
 import os from "os";
 import path from "path";
 import { Router, makeHTMLRedirect } from "./router.mjs";
+import { performance } from "perf_hooks";
 
 export function makeServer({
   esbuildBundles = {},
@@ -19,11 +20,29 @@ export function makeServer({
     esbuildBundles: esbuildBundles,
     htmlRedirects: htmlRedirects,
   });
+  return serve;
 
-  let app = express.Router();
-  app.get(/^\/((?:[^/]+\/)*)$/, serveDirectoryAsync);
-  app.get(/^\/(.*)$/, serveFileAsync);
-  return app;
+  function serve(request, response) {
+    logRequestResponse(request, response);
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      response.writeHead(405);
+      response.end(`bad method ${request.method}`);
+      return;
+    }
+    if (!request.url.startsWith("/")) {
+      response.writeHead(400);
+      response.end(`bad URL ${request.url}`);
+      return;
+    }
+    // TODO(strager): Don't modify request. Use a parameter instead.
+    request.path = request.url.match(/^[^?]+/)[0];
+
+    if (/^\/(?:[^/]+\/)*$/.test(request.path)) {
+      serveDirectoryAsync(request, response);
+    } else {
+      serveFileAsync(request, response);
+    }
+  }
 
   async function serveDirectoryAsync(request, response) {
     let classifiedDirectory = await router.classifyDirectoryRouteAsync(
@@ -188,6 +207,29 @@ export function makeServer({
         );
     }
   }
+}
+
+let statusToColor = {
+  // Key is the range; 2 means 200-299.
+  2: colors.green,
+  3: colors.cyan,
+  4: colors.yellow,
+  5: colors.red,
+};
+
+function logRequestResponse(request, response) {
+  let beginTime = performance.now();
+  response.on("finish", () => {
+    let endTime = performance.now();
+    let durationMilliseconds = endTime - beginTime;
+    let statusColor =
+      statusToColor[Math.floor(response.statusCode / 100)] ?? colors.red;
+    console.log(
+      `${request.method} ${request.url} ${statusColor(
+        response.statusCode
+      )} ${durationMilliseconds.toFixed(2)} ms`
+    );
+  });
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -1,9 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import express from "express";
 import http from "http";
-import morgan from "morgan";
 import path from "path";
 import url from "url";
 import { listenAsync, urlFromServerAddress } from "./src/net.mjs";
@@ -18,11 +16,7 @@ let DEFAULT_PORT = 9001;
 async function mainAsync() {
   let { host, port } = parseArguments(process.argv.slice(2));
 
-  let app = express();
-  app.use(morgan("dev"));
-  app.use(makeServer(websiteConfig));
-
-  let server = http.createServer(app);
+  let server = http.createServer(makeServer(websiteConfig));
   await listenAsync(server, { host: host, port: port });
   console.log(`Server running: ${urlFromServerAddress(server.address())}`);
 }

@@ -6,16 +6,28 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## 2.4.2 (2022-04-22)
+
+[Downloads](https://c.quick-lint-js.com/releases/2.4.2/)
+
+### Changed
+
+* The name of package installed by the MSIX installer has changed. It used to be
+  "fa6b940b-8f96-4b46-8e21-703a63133e06" but now it is
+  "quick-lint.quick-lint-js". If you installed quick-lint-js using a prior
+  version of the MSIX installer, Windows won't let you upgrade. Uninstall the
+  old version of quick-lint-js before installing a new version.
+
 ## 2.4.1 (2022-04-19)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.4.1/)
 
-## Fixed
+### Fixed
 
 * When using the `de`, `fr_FR`, or `sv_SV` locale, some error messages are no
   longer blank.
 
-## Changed
+### Changed
 
 * The Windows MSIX installer is now signed with a Microsoft-trusted certificate.
   If you installed quick-lint-js using a prior version of the MSIX installer,

@@ -68,12 +68,20 @@
   c(0xf0):c(0xf1):c(0xf2):c(0xf3):c(0xf4):c(0xf5):c(0xf6):c(0xf7):c(0xf8):c(0xf9):c(0xfa):c(0xfb):c(0xfc):c(0xfd):c(0xfe):c(0xff)
 // clang-format on
 
+#define QLJS_CASE_NEWLINE_START \
+  case u8'\n':                  \
+  case u8'\r':                  \
+  case line_separator_paragraph_separator_first_byte
+
 namespace quick_lint_js {
 namespace {
-static constexpr char32_t left_single_quote = U'\u2018';
-static constexpr char32_t left_double_quote = U'\u201c';
-static constexpr char32_t right_single_quote = U'\u2019';
-static constexpr char32_t right_double_quote = U'\u201d';
+constexpr char8 line_separator_paragraph_separator_first_byte =
+    static_cast<char8>(0xe2);
+
+constexpr char32_t left_single_quote = U'\u2018';
+constexpr char32_t left_double_quote = U'\u201c';
+constexpr char32_t right_single_quote = U'\u2019';
+constexpr char32_t right_double_quote = U'\u201d';
 
 bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
                               char32_t code_point) {
@@ -153,8 +161,7 @@ void lexer::parse_bom_before_shebang() {
       static_cast<unsigned char>(input[1]) == 0xbb &&
       static_cast<unsigned char>(input[2]) == 0xbf) {
     input += 3;
-    if (static_cast<unsigned char>(input[0]) == '#' &&
-        static_cast<unsigned char>(input[1]) == '!') {
+    if (input[0] == u8'#' && input[1] == u8'!') {
       this->diag_reporter_->report(diag_unexpected_bom_before_shebang{
           source_code_span(&this->input_[0], &this->input_[3])});
       input += 2;
@@ -165,8 +172,8 @@ void lexer::parse_bom_before_shebang() {
   }
 }
 
-void lexer::parse_current_token() {
-  this->last_last_token_end_ = const_cast<char8*>(this->last_token_.end);
+[[gnu::noinline]] void lexer::parse_current_token() {
+  this->last_last_token_end_ = this->last_token_.end;
   this->last_token_.has_leading_newline = false;
   this->skip_whitespace();
 
@@ -947,7 +954,7 @@ lexer::parsed_template_body lexer::parse_template_body(
 }
 
 void lexer::skip_in_jsx() {
-  this->last_last_token_end_ = const_cast<char8*>(this->last_token_.end);
+  this->last_last_token_end_ = this->last_token_.end;
   this->last_token_.has_leading_newline = false;
   this->skip_whitespace();
 
@@ -997,13 +1004,13 @@ void lexer::reparse_as_regexp() {
   QLJS_ASSERT(this->last_token_.type == token_type::slash ||
               this->last_token_.type == token_type::slash_equal);
 
-  this->input_ = const_cast<char8*>(this->last_token_.begin);
+  this->input_ = this->last_token_.begin;
   QLJS_ASSERT(this->input_[0] == '/');
   this->last_token_.type = token_type::regexp;
 
   const char8* c = &this->input_[1];
 next:
-  switch (static_cast<unsigned char>(*c)) {
+  switch (*c) {
   case '\0':
     if (this->is_eof(c)) {
       this->diag_reporter_->report(diag_unclosed_regexp_literal{
@@ -1036,7 +1043,7 @@ next:
   case '[':
     ++c;
     for (;;) {
-      switch (static_cast<unsigned char>(*c)) {
+      switch (*c) {
       case u8']':
       case u8'\0':
         goto next;
@@ -1049,9 +1056,7 @@ next:
         }
         break;
 
-      case u8'\n':
-      case u8'\r':
-      case 0xe2:
+      QLJS_CASE_NEWLINE_START:
         if (this->newline_character_size(c) != 0) {
           goto next;
         }
@@ -1082,9 +1087,7 @@ next:
     break;
   }
 
-  case u8'\n':
-  case u8'\r':
-  case 0xe2:
+  QLJS_CASE_NEWLINE_START:
     if (this->newline_character_size(c) != 0) {
       this->diag_reporter_->report(diag_unclosed_regexp_literal{
           source_code_span(this->last_token_.begin, c)});
@@ -1748,6 +1751,9 @@ void lexer::skip_whitespace() {
 
 next:
   char8 c = input[0];
+  unsigned char c0 = static_cast<unsigned char>(input[0]);
+  unsigned char c1 = static_cast<unsigned char>(input[1]);
+  unsigned char c2 = static_cast<unsigned char>(input[2]);
   if (c == ' ' || c == '\t' || c == '\f' || c == '\v') {
     input += 1;
     goto next;
@@ -1755,11 +1761,10 @@ next:
     this->last_token_.has_leading_newline = true;
     input += 1;
     goto next;
-  } else if (static_cast<unsigned char>(c) >= 0xc2) {
-    [[unlikely]] switch (static_cast<unsigned char>(c)) {
+  } else if (c0 >= 0xc2) {
+    [[unlikely]] switch (c0) {
     case 0xe1:
-      if (static_cast<unsigned char>(input[1]) == 0x9a &&
-          static_cast<unsigned char>(input[2]) == 0x80) {
+      if (c1 == 0x9a && c2 == 0x80) {
         // U+1680 Ogham Space Mark
         input += 3;
         goto next;
@@ -1768,8 +1773,8 @@ next:
       }
 
     case 0xe2:
-      if (static_cast<unsigned char>(input[1]) == 0x80) {
-        switch (static_cast<unsigned char>(input[2])) {
+      if (c1 == 0x80) {
+        switch (c2) {
         case 0x80:  // U+2000 En Quad
         case 0x81:  // U+2001 Em Quad
         case 0x82:  // U+2002 En Space
@@ -1795,8 +1800,8 @@ next:
         default:
           goto done;
         }
-      } else if (static_cast<unsigned char>(input[1]) == 0x81) {
-        if (static_cast<unsigned char>(input[2]) == 0x9f) {
+      } else if (c1 == 0x81) {
+        if (c2 == 0x9f) {
           // U+205F Medium Mathematical Space (MMSP)
           input += 3;
           goto next;
@@ -1808,8 +1813,7 @@ next:
       }
 
     case 0xe3:
-      if (static_cast<unsigned char>(input[1]) == 0x80 &&
-          static_cast<unsigned char>(input[2]) == 0x80) {
+      if (c1 == 0x80 && c2 == 0x80) {
         // U+3000 Ideographic Space
         input += 3;
         goto next;
@@ -1818,8 +1822,7 @@ next:
       }
 
     case 0xef:
-      if (static_cast<unsigned char>(input[1]) == 0xbb &&
-          static_cast<unsigned char>(input[2]) == 0xbf) {
+      if (c1 == 0xbb && c2 == 0xbf) {
         // U+FEFF Zero Width No-Break Space (BOM, ZWNBSP)
         input += 3;
         goto next;
@@ -1828,7 +1831,7 @@ next:
       }
 
     case 0xc2:
-      if (static_cast<unsigned char>(input[1]) == 0xa0) {
+      if (c1 == 0xa0) {
         // U+00A0 No-Break Space (NBSP)
         input += 2;
         goto next;
@@ -1866,11 +1869,13 @@ void lexer::skip_block_comment() {
 
   for (;;) {
     char_vector chars = char_vector::load(c);
-    bool_vector matches = (chars == char_vector::repeated(u8'*')) |
-                          (chars == char_vector::repeated(u8'\0')) |
-                          (chars == char_vector::repeated(u8'\n')) |
-                          (chars == char_vector::repeated(u8'\r')) |
-                          (chars == char_vector::repeated(0xe2));
+    bool_vector matches =
+        (chars == char_vector::repeated(u8'*')) |
+        (chars == char_vector::repeated(u8'\0')) |
+        (chars == char_vector::repeated(u8'\n')) |
+        (chars == char_vector::repeated(u8'\r')) |
+        (chars == char_vector::repeated(static_cast<std::uint8_t>(
+                      line_separator_paragraph_separator_first_byte)));
     std::uint32_t mask = matches.mask();
     if (mask != 0) {
       for (int i = countr_zero(mask); i < chars.size; ++i) {

@@ -2,7 +2,6 @@
 // See end of file for extended copyright information.
 
 import axios from "axios";
-import express from "express";
 import fs from "fs";
 import http from "http";
 import os from "os";
@@ -11,7 +10,6 @@ import { listenAsync, urlFromServerAddress } from "../src/net.mjs";
 import { makeServer } from "../src/server.mjs";
 
 describe("server", () => {
-  let app;
   let request;
   let server;
   let wwwRootPath;
@@ -19,8 +17,7 @@ describe("server", () => {
   beforeEach(async () => {
     wwwRootPath = fs.mkdtempSync(os.tmpdir() + path.sep);
 
-    app = express();
-    app.use(
+    server = http.createServer(
       makeServer({
         esbuildBundles: {
           "/app.bundle.js": {
@@ -33,8 +30,6 @@ describe("server", () => {
         wwwRootPath: wwwRootPath,
       })
     );
-
-    server = http.createServer(app);
     await listenAsync(server, { host: "localhost", port: 0 });
     request = axios.create({
       baseURL: urlFromServerAddress(server.address()).toString(),

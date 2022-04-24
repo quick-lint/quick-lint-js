@@ -686,7 +686,8 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
 }
 
 expression* parser::parse_async_expression(parse_visitor_base& v,
-                                           token async_token, precedence prec) {
+                                           const token& async_token,
+                                           precedence prec) {
   expression* ast = this->parse_async_expression_only(
       v, async_token, /*allow_in_operator=*/prec.in_operator);
   if (!prec.binary_operators) {
@@ -696,7 +697,7 @@ expression* parser::parse_async_expression(parse_visitor_base& v,
 }
 
 expression* parser::parse_async_expression_only(parse_visitor_base& v,
-                                                token async_token,
+                                                const token& async_token,
                                                 bool allow_in_operator) {
   const char8* async_begin = async_token.begin;
 
@@ -846,7 +847,8 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
 }
 
 expression* parser::parse_await_expression(parse_visitor_base& v,
-                                           token await_token, precedence prec) {
+                                           const token& await_token,
+                                           precedence prec) {
   bool is_identifier = [&]() -> bool {
     if (this->in_async_function_ ||
         (this->in_top_level_ &&
@@ -1870,7 +1872,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
     this->skip();
     return property_name;
   };
-  auto parse_equal = [&](token key_token, expression* key) {
+  auto parse_equal = [&](const token& key_token, expression* key) {
     expression* lhs;
     bool missing_key;
     switch (key_token.type) {

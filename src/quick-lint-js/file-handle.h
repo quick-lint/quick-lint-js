@@ -98,10 +98,6 @@ struct file_read_result
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-std::string windows_error_message(DWORD error);
-#endif
-
-#if QLJS_HAVE_WINDOWS_H
 // windows_handle_file_ref is a non-owning reference to a Win32 file handle.
 //
 // windows_handle_file_ref may hold an invalid handle (NULL or

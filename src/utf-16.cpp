@@ -8,6 +8,7 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/utf-16.h>
+#include <quick-lint-js/windows-error.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -68,7 +69,7 @@ char *mbargv::warg_to_mbarg(wchar_t *warg) {
 
 void mbargv::conversion_failed(wchar_t *warg) {
   std::fprintf(stderr, "error: failed to convert %Ls to mbstring\n", warg);
-  std::fprintf(stderr, "%s\n", windows_error_message(GetLastError()).c_str());
+  std::fprintf(stderr, "%s\n", windows_last_error_message().c_str());
   std::exit(EXIT_FAILURE);
 }
 

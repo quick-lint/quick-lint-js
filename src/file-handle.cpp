@@ -14,6 +14,7 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/pipe.h>
 #include <quick-lint-js/string-view.h>
+#include <quick-lint-js/windows-error.h>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -167,7 +168,7 @@ std::size_t windows_handle_file_ref::get_pipe_buffer_size() {
 }
 
 std::string windows_handle_file_ref::get_last_error_message() {
-  return windows_error_message(::GetLastError());
+  return windows_last_error_message();
 }
 
 windows_handle_file_ref windows_handle_file_ref::get_stdout() noexcept {
@@ -356,33 +357,6 @@ void posix_fd_file::close() {
 posix_fd_file_ref posix_fd_file::ref() const noexcept { return *this; }
 #endif
 
-#if QLJS_HAVE_WINDOWS_H
-std::string windows_error_message(DWORD error) {
-  // TODO(strager): Use FormatMessageW.
-  LPSTR get_last_error_message;
-  DWORD get_last_error_message_length = ::FormatMessageA(
-      /*dwFlags=*/FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-          FORMAT_MESSAGE_IGNORE_INSERTS,
-      /*lpSource=*/nullptr,
-      /*dwMessageId=*/error,
-      /*dwLanguageId=*/0,
-      /*lpBuffer=*/reinterpret_cast<LPSTR>(&get_last_error_message),
-      /*nSize=*/(std::numeric_limits<DWORD>::max)(),
-      /*Arguments=*/nullptr);
-  if (get_last_error_message_length == 0) {
-    // FormatMessageA failed.
-    return "unknown error";
-  }
-
-  std::string_view message(
-      get_last_error_message,
-      narrow_cast<std::size_t>(get_last_error_message_length));
-  message = remove_suffix_if_present(message, "\r\n");
-  std::string message_copy(message);
-  static_cast<void>(::LocalFree(get_last_error_message));
-  return message_copy;
-}
-#endif
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

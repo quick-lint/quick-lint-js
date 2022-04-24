@@ -11,6 +11,7 @@
 #include <cstring>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/pipe.h>
+#include <quick-lint-js/windows-error.h>
 
 #if QLJS_HAVE_PIPE
 #include <fcntl.h>
@@ -53,7 +54,7 @@ pipe_fds make_pipe() {
   if (!::CreatePipe(&readPipe, &writePipe, /*lpPipeAttributes=*/nullptr,
                     /*nSize=*/0)) {
     std::fprintf(stderr, "error: failed to create pipe: %s\n",
-                 windows_handle_file::get_last_error_message().c_str());
+                 windows_last_error_message().c_str());
     std::abort();
   }
   return pipe_fds{
