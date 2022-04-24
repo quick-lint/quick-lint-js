@@ -26,11 +26,16 @@ export function makeServer({
       response.end(`bad method ${request.method}`);
       return;
     }
-    if (!request.path.startsWith("/")) {
+    if (!request.url.startsWith("/")) {
       response.writeHead(400);
-      response.end(`bad path ${request.path}`);
+      response.end(`bad URL ${request.url}`);
       return;
     }
+    // HACK(strager): Override Express.js' path property.
+    // TODO(strager): Change to a simple assignment. Or avoid altogether.
+    Object.defineProperty(request, "path", {
+      value: request.url.match(/^[^?]+/)[0],
+    });
 
     if (/^\/(?:[^/]+\/)*$/.test(request.path)) {
       serveDirectoryAsync(request, response);
