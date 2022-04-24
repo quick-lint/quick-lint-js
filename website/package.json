@@ -16,11 +16,11 @@
     "jsdom": "17.0.0",
     "markdown-it": "^12.2.0",
     "mime": "^2.5.2",
-    "morgan": "^1.10.0",
     "quick-lint-js-node-test-runner": "../tools/quick-lint-js-node-test-runner/"
   },
   "devDependencies": {
     "axios": "^0.21.4",
+    "colors": "^1.4.0",
     "prettier": "^2.4.1"
   }
 }

@@ -3,7 +3,6 @@
 
 import express from "express";
 import http from "http";
-import morgan from "morgan";
 import path from "path";
 import url from "url";
 import { listenAsync, urlFromServerAddress } from "./src/net.mjs";
@@ -19,7 +18,6 @@ async function mainAsync() {
   let { host, port } = parseArguments(process.argv.slice(2));
 
   let app = express();
-  app.use(morgan("dev"));
   app.use(makeServer(websiteConfig));
 
   let server = http.createServer(app);
