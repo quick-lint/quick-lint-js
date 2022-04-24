@@ -11,7 +11,6 @@ import { listenAsync, urlFromServerAddress } from "../src/net.mjs";
 import { makeServer } from "../src/server.mjs";
 
 describe("server", () => {
-  let app;
   let request;
   let server;
   let wwwRootPath;
@@ -19,7 +18,7 @@ describe("server", () => {
   beforeEach(async () => {
     wwwRootPath = fs.mkdtempSync(os.tmpdir() + path.sep);
 
-    app = express();
+    let app = express();
     app.use(
       makeServer({
         esbuildBundles: {
