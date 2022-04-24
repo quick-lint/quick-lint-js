@@ -34,11 +34,8 @@ export function makeServer({
       response.end(`bad URL ${request.url}`);
       return;
     }
-    // HACK(strager): Override Express.js' path property.
-    // TODO(strager): Change to a simple assignment. Or avoid altogether.
-    Object.defineProperty(request, "path", {
-      value: request.url.match(/^[^?]+/)[0],
-    });
+    // TODO(strager): Don't modify request. Use a parameter instead.
+    request.path = request.url.match(/^[^?]+/)[0];
 
     if (/^\/(?:[^/]+\/)*$/.test(request.path)) {
       serveDirectoryAsync(request, response);
