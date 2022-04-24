@@ -27,11 +27,11 @@ export function makeServer({
       return;
     }
 
-    if (/^\/((?:[^/]+\/)*)$/.test(request.path)) {
+    if (/^\/(?:[^/]+\/)*$/.test(request.path)) {
       serveDirectoryAsync(request, response);
       return;
     }
-    if (/^\/(.*)$/.test(request.path)) {
+    if (request.path.startsWith("/")) {
       serveFileAsync(request, response);
       return;
     }
