@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <cstring>
 #include <iterator>
@@ -1347,12 +1348,21 @@ void lexer::parse_number() {
     }
     if (cleaned_string.size() > 15) {
       double num = std::stod(cleaned_string);
-      std::array<char, 20> result_string; // or however big it needs to be
-      int rc = std::snprintf(result_string.data(), result_string.size(), "%.0f", num);
-      // (check rc)
-      if (cleaned_string != result_string) {
-        this->error_reporter_->report(error_number_literal_will_lose_precision{
-          source_code_span(number_begin, input)});
+      std::array<char, 309> result_string;
+      int rc = std::snprintf(result_string.data(), result_string.size(), "%.0f",
+                             num);
+      if (rc < 0 || rc >= result_string.size()) {
+        this->diag_reporter_->report(diag_number_literal_will_lose_precision{
+            source_code_span(number_begin, input)});
+      } else {
+        for (size_t i = 0; i < cleaned_string.size(); ++i) {
+          if (cleaned_string[i] != result_string[i]) {
+            this->diag_reporter_->report(
+                diag_number_literal_will_lose_precision{
+                    source_code_span(number_begin, input)});
+            break;
+          }
+        }
       }
     }
   }

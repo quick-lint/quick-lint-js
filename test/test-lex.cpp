@@ -344,16 +344,16 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
       u8"9007199254740993"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_OFFSETS(
-                        input, error_number_literal_will_lose_precision,  //
+                    ElementsAre(DIAG_TYPE_OFFSETS(
+                        input, diag_number_literal_will_lose_precision,  //
                         characters, 0, u8"9007199254740993")));
       });
   this->check_tokens_with_errors(
       u8"18014398509481986"_sv, {token_type::number},
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(ERROR_TYPE_OFFSETS(
-                        input, error_number_literal_will_lose_precision,  //
+                    ElementsAre(DIAG_TYPE_OFFSETS(
+                        input, diag_number_literal_will_lose_precision,  //
                         characters, 0, u8"18014398509481986")));
       });
 }
