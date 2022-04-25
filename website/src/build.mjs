@@ -4,6 +4,7 @@
 import assert from "assert";
 import fs from "fs";
 import path from "path";
+import url from "url";
 import { Router, isHiddenPath } from "./router.mjs";
 
 export async function makeBuildInstructionsAsync({
@@ -127,7 +128,7 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
       }
     } else if (classification.type === "index-script") {
       let { routes } = await import(
-        path.join(router.wwwRootPath, relativePath)
+        url.pathToFileURL(path.join(router.wwwRootPath, relativePath))
       );
       for (let routeURI in routes) {
         if (!Object.prototype.hasOwnProperty.call(routes, routeURI)) {
