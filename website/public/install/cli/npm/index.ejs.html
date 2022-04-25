@@ -9,16 +9,7 @@
     <link href="../../../main.css" rel="stylesheet" />
   </head>
   <body class="side-bar-nav">
-    <header>
-      <%- await include("../../../common-nav.ejs.html") %>
-      <nav class="breadcrumbs">
-        <ol>
-          <li><a href="../../">Install</a></li>
-          <li><a href="../">CLI &amp; LSP server</a></li>
-          <li>npm</li>
-        </ol>
-      </nav>
-    </header>
+    <%- await include("../common-header.ejs.html", {breadcrumbName: `npm`}) %>
 
     <main>
       <h2>
