@@ -48,59 +48,55 @@ msgstr ""
 
 #: src/diagnostic-formatter.cpp
 msgid "'do-while' loop"
-msgstr ""
+msgstr "do-while-Schleife"
 
 #: src/diagnostic-formatter.cpp
 msgid "'for' loop"
-msgstr ""
+msgstr "for-Schleife"
 
 #: src/diagnostic-formatter.cpp
-#, fuzzy
 msgid "'if' statement"
-msgstr "Körper der if-Anweisung fehlt"
+msgstr "if-Anweisung"
 
 #: src/diagnostic-formatter.cpp
 msgid "'while' loop"
-msgstr ""
+msgstr "while-Schleife"
 
 #: src/diagnostic-formatter.cpp
-#, fuzzy
 msgid "'with' statement"
-msgstr "Körper des switch-Statements fehlt"
+msgstr "with-Anweisung"
 
 #: src/diagnostic-formatter.cpp
 msgid "a 'do-while' loop"
-msgstr ""
+msgstr "eine do-While-Schleife"
 
 #: src/diagnostic-formatter.cpp
 msgid "a 'for' loop"
-msgstr ""
+msgstr "eine for-Schleife"
 
 #: src/diagnostic-formatter.cpp
-#, fuzzy
 msgid "an 'if' statement"
-msgstr "Körper der if-Anweisung fehlt"
+msgstr "eine if-Anweisung"
 
 #: src/diagnostic-formatter.cpp
 msgid "a 'while' loop"
-msgstr ""
+msgstr "eine while-Schleife"
 
 #: src/diagnostic-formatter.cpp
-#, fuzzy
 msgid "a 'with' statement"
-msgstr "Körper des switch-Statements fehlt"
+msgstr "eine with-Anweisung"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing '<>' and '</>' to enclose multiple children"
-msgstr ""
+msgstr "'<>' und '</>' fehlt, um mehrere Children einzuschließen"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "children end here"
-msgstr ""
+msgstr "Children enden hier"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'=' changes variables; to compare, use '===' instead"
-msgstr ""
+msgstr "'=' verändert Variable. Für Vergleich '===' anstattdessen verwenden"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "assignment to const global variable"
@@ -115,14 +111,12 @@ msgid "const variable declared here"
 msgstr "Konstante Variable wurde hier deklariert"
 
 #: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
 msgid "assignment to imported variable"
-msgstr "Zuweisung an konstante Variable"
+msgstr "Zuweisung an importierte Variable"
 
 #: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
 msgid "imported variable declared here"
-msgstr "Konstante Variable wurde hier deklariert"
+msgstr "Importierte Variable wurde hier deklariert"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "assignment to const variable before its declaration"
@@ -287,9 +281,8 @@ msgid "depth limit exceeded"
 msgstr "Maximale Verschachtelungstiefe überschritten"
 
 #: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
 msgid "missing property name between '.' and '.'"
-msgstr "Eigenschaftsname fehlt nach dem '.'-Operator"
+msgstr "Eigenschaftsname fehlt zwischen '.' und '.'"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'else' has no corresponding 'if'"
@@ -297,11 +290,11 @@ msgstr "'else' ohne zugehöriges 'if'"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing comparison; '{1}' does not extend to the right side of '{0}'"
-msgstr ""
+msgstr "Vergleich fehlt. '{1}' wird nicht auf der rechten Seite von '{0}' angewandt"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'{0}' found here"
-msgstr ""
+msgstr "'{0}' ist hier"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "escaped character is not allowed in identifiers"
@@ -318,9 +311,8 @@ msgstr ""
 "sein"
 
 #: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
 msgid "escaping '-' is not allowed in tag names; write '-' instead"
-msgstr "'async static' ist ungültig. 'static asysc' anstattdessen verwenden."
+msgstr "Escape von '-' ist in Tagnamen nicht erlaubt. '-' anstattdessen schreiben"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "extra ',' is not allowed between function call arguments"
@@ -474,9 +466,8 @@ msgid "invalid function parameter"
 msgstr "Ungültiger Funktionsparameter"
 
 #: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
 msgid "'{0}' is not allowed for strings; use {1} instead"
-msgstr "'async static' ist ungültig. 'static asysc' anstattdessen verwenden."
+msgstr "'{0}' ist für Strings nicht erlaubt. '{1}' anstattdessen verwenden."
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid ""
@@ -492,15 +483,15 @@ msgstr "Ungültige UTF-8 Sequenz"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "attribute has wrong capitalization; write '{1}' instead"
-msgstr ""
+msgstr "Attribut mit falscher Groß- und Kleinschreibung; '{1}' anstattdessen schreiben"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "misspelled React attribute; write '{1}' instead"
-msgstr ""
+msgstr "React-Attribut ist falsch geschrieben; '{1}' anstattdessen schreiben"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "event attributes must be camelCase: '{1}'"
-msgstr ""
+msgstr "Event-Attribute müssen im camelCase geschrieben werden: '{1}'"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "React/JSX is not yet implemented"
@@ -529,7 +520,7 @@ msgstr "{0} ohne Binding"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "a lexical declaration is not allowed as the body of {1:singular}"
 msgstr ""
-"Eine lexikalische Deklaration ist nicht als Körper von {0:singular} erlaubt"
+"Eine lexikalische Deklaration ist nicht als Körper von {1:singular} erlaubt"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "functions/methods should not have '=>'"
@@ -541,11 +532,11 @@ msgstr "Methoden sollten nicht mehr das 'function'-Schlüsselwort verwenden"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "mismatched JSX tags; expected '</{1}>'"
-msgstr ""
+msgstr "Unpassender JSX-Tag; '</{1}>' wurde anstattdessen erwartet"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "opening '<{1}>' tag here"
-msgstr ""
+msgstr "Öffnender '<{1}>' Tag ist hier"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing end of array; expected ']'"
@@ -641,7 +632,7 @@ msgstr "Bedingung des switch-Statements fehlt"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing '...' in JSX attribute spread"
-msgstr ""
+msgstr "'...' fehlt in JSX-Attribut-Spread"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing '=' after variable"
@@ -716,38 +707,35 @@ msgstr "Unnötiges delete-Statement für Variable"
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
 msgid "missing 'if' after 'else'"
-msgstr "'=' fehlt nach Variablenname"
+msgstr "'if' fehlt nach 'else'"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing operator between expression and arrow function"
 msgstr "Operator fehlt zwischen Ausdruck und Arrow-Funktion"
 
 #: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
 msgid "missing parentheses around operand of '{0}'"
-msgstr "Name oder Klammern fehlen für die Funktion"
+msgstr "Klammern fehlen um den Operanden von '{0}'"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'{0}' operator cannot be used before '**' without parentheses"
-msgstr ""
+msgstr "Der Operator '{0}' kann nicht vor '**' ohne Klammern benutzt werden"
 
 #: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
 msgid "missing parentheses around self-invoked function"
-msgstr "Name oder Klammern fehlen für die Funktion"
+msgstr "Klammern um selbstaufgerufene Funktion fehlen"
 
 #: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
 msgid "function starts here"
 msgstr "Funktionsaufruf beginnt hier"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing parentheses around left-hand side of '**'"
-msgstr ""
+msgstr "Klammern um linke Seite von '**' fehlen"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'**' operator cannot be used after unary '{1}' without parentheses"
-msgstr ""
+msgstr "Ohne Klammern kann der Operator '**' nicht nach unärem '{1}' verwendet werden"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing property name after '.' operator"
@@ -811,11 +799,11 @@ msgstr "Zahlenliteral endet mit Unterstrich(en)"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "octal literal may not have exponent"
-msgstr "Oktalliterale mit Exponenten sind verboten"
+msgstr "Oktalliterale mit Exponenten sind nicht erlaubt"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "octal literal may not have decimal"
-msgstr "Oktalliterale mit Dezimalpunkt sind verboten"
+msgstr "Oktalliterale mit Dezimalpunkt sind nicht erlaubt"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "private properties are not allowed in object literals"
@@ -839,21 +827,20 @@ msgstr "RegExp-Literale dürfen keine Unicode Escapes enthalten"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "return statement returns nothing (undefined)"
-msgstr ""
+msgstr "Return-Statement gibt nichts (undefined) zurück"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid ""
 "unexpected statement before first switch case, expected 'case' or 'default'"
-msgstr ""
+msgstr "Unerwartetes Statment vor dem ersten Switch-Case. Entweder 'case' oder 'default' erwartet."
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "stray comma in let statement"
 msgstr "Vereinzeltes Komma in let-Statement"
 
 #: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
 msgid "stray comma in function parameter"
-msgstr "Ungültiger Funktionsparameter"
+msgstr "Vereinzeltes Komme in Funktionsparameter"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "TypeScript's 'enum' feature is not yet implemented by quick-lint-js"
@@ -873,9 +860,8 @@ msgid "unclosed block comment"
 msgstr "Blockkommentar ohne Ende"
 
 #: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
 msgid "unclosed class; expected '}' by end of file"
-msgstr "Code-Block ohne Ende. '}' bis spätestens zum Ende der Datei erwartet"
+msgstr "Klasse ohne Ende. '}' bis spätestens zum Ende der Datei erwartet"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unclosed code block; expected '}' by end of file"
@@ -955,7 +941,7 @@ msgstr "Unerwartetes 'default' außerhalb des switch-Statements"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"
-msgstr ""
+msgstr "'>' darf nicht direkt in JSX-Text verwendet werden. Anstattdessen {{'>} oder &gt; schreiben."
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unexpected literal in parameter list; expected parameter name"
@@ -963,7 +949,7 @@ msgstr "Unerwartetes Literal in Parameterliste. Parametername erwartet"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'}' is not allowed directly in JSX text; write {{'}'} instead"
-msgstr ""
+msgstr "'}' darf nicht direkt in JSX-Text verwendet werden. Anstattdessen {{'}'} schreiben"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "C-style for loops have only three semicolon-separated components"
@@ -975,7 +961,6 @@ msgid "for-in loop expression cannot have semicolons"
 msgstr "Ausdruck der for-in-Schleife darf keine Semikolon beinhalten"
 
 #: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
 msgid "for-of loop expression cannot have semicolons"
 msgstr "Ausdruck der for-in-Schleife darf keine Semikolon beinhalten"
 
@@ -985,12 +970,11 @@ msgstr "Blockkommentar ohne Beginn"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "new variable shadows existing variable"
-msgstr ""
+msgstr "Neue Variable macht bereits existierende unsichtbar"
 
 #: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
 msgid "existing variable declared here"
-msgstr "Konstante Variable wurde hier deklariert"
+msgstr "Bereits existierende Variable wurde hier deklariert"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "binary number literal has no digits"
@@ -1057,7 +1041,7 @@ msgstr "Variable {0} wird verwendet, ist jedoch nicht deklariert"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "variable used before declaration: {0}"
-msgstr "Variable '{0}' wird vor Deklaration verwendet"
+msgstr "Variable '{0}' wird ihrer Deklaration verwendet"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "function called before declaration in block scope: {0}"
@@ -1079,43 +1063,43 @@ msgstr "continue ist nur innerhalb von Schleifen gültig"
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"
-msgstr ""
+msgstr "etwas geschah"
 
 #: test/test-diagnostic-formatter.cpp
 msgid "see here"
-msgstr ""
+msgstr "siehe hier"
 
 #: test/test-diagnostic-formatter.cpp
 msgid "this {0} looks fishy"
-msgstr ""
+msgstr "dieses {0} sieht merkwürdig aus"
 
 #: test/test-diagnostic-formatter.cpp
 msgid "this {1} looks fishy"
-msgstr ""
+msgstr "dieses {1} sieht merkwürdig aus"
 
 #: test/test-diagnostic-formatter.cpp
 msgid "free {1} and {0} {1} {2}"
-msgstr ""
+msgstr "freies {1} und {0} {1} {2}"
 
 #: test/test-diagnostic-formatter.cpp
 msgid "what is this '{1}' nonsense?"
-msgstr ""
+msgstr "Was soll dieser '{1}' Humbug?"
 
 #: test/test-diagnostic-formatter.cpp
 msgid "a {{0} b }} c"
-msgstr ""
+msgstr "a {{0} b }} c"
 
 #: test/test-diagnostic-formatter.cpp
 msgid "expected {1:headlinese}"
-msgstr ""
+msgstr "{1:headlinese} erwartet"
 
 #: test/test-diagnostic-formatter.cpp
 msgid "expected {1:singular}"
-msgstr ""
+msgstr "{1:singular} erwartet"
 
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
-msgstr ""
+msgstr "hier"
 
 #~ msgid "invalid binding in let statement"
 #~ msgstr "Ungültiges Binding in let-Statement"

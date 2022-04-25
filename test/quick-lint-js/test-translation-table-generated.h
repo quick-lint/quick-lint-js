@@ -91,7 +91,7 @@ inline constexpr translated_string test_translation_table[] = {
         "'**' operator cannot be used after unary '{1}' without parentheses"_translatable,
         {
             u8"'**' operator cannot be used after unary '{1}' without parentheses",
-            u8"'**' operator cannot be used after unary '{1}' without parentheses",
+            u8"Ohne Klammern kann der Operator '**' nicht nach un\u00e4rem '{1}' verwendet werden",
             u8"'**' operator cannot be used after unary '{1}' without parentheses",
             u8"'**' operator cannot be used after unary '{1}' without parentheses",
             u8"'**' operator cannot be used after unary '{1}' without parentheses",
@@ -111,7 +111,7 @@ inline constexpr translated_string test_translation_table[] = {
         "'=' changes variables; to compare, use '===' instead"_translatable,
         {
             u8"'=' changes variables; to compare, use '===' instead",
-            u8"'=' changes variables; to compare, use '===' instead",
+            u8"'=' ver\u00e4ndert Variable. F\u00fcr Vergleich '===' anstattdessen verwenden",
             u8"'=' changes variables; to compare, use '===' instead",
             u8"'=' changes variables; to compare, use '===' instead",
             u8"'=' changes variables; to compare, use '===' instead",
@@ -121,7 +121,7 @@ inline constexpr translated_string test_translation_table[] = {
         "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"_translatable,
         {
             u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead",
-            u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead",
+            u8"'>' darf nicht direkt in JSX-Text verwendet werden. Anstattdessen {{'>} oder &gt; schreiben.",
             u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead",
             u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead",
             u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead",
@@ -171,7 +171,7 @@ inline constexpr translated_string test_translation_table[] = {
         "'do-while' loop"_translatable,
         {
             u8"'do-while' loop",
-            u8"'do-while' loop",
+            u8"do-while-Schleife",
             u8"'do-while' loop",
             u8"'do-while' loop",
             u8"'do-while' loop",
@@ -191,7 +191,7 @@ inline constexpr translated_string test_translation_table[] = {
         "'for' loop"_translatable,
         {
             u8"'for' loop",
-            u8"'for' loop",
+            u8"for-Schleife",
             u8"'for' loop",
             u8"'for' loop",
             u8"'for' loop",
@@ -201,7 +201,7 @@ inline constexpr translated_string test_translation_table[] = {
         "'if' statement"_translatable,
         {
             u8"'if' statement",
-            u8"'if' statement",
+            u8"if-Anweisung",
             u8"'if' statement",
             u8"'if' statement",
             u8"'if' statement",
@@ -221,7 +221,7 @@ inline constexpr translated_string test_translation_table[] = {
         "'while' loop"_translatable,
         {
             u8"'while' loop",
-            u8"'while' loop",
+            u8"while-Schleife",
             u8"'while' loop",
             u8"'while' loop",
             u8"'while' loop",
@@ -231,7 +231,7 @@ inline constexpr translated_string test_translation_table[] = {
         "'with' statement"_translatable,
         {
             u8"'with' statement",
-            u8"'with' statement",
+            u8"with-Anweisung",
             u8"'with' statement",
             u8"'with' statement",
             u8"'with' statement",
@@ -241,7 +241,7 @@ inline constexpr translated_string test_translation_table[] = {
         "'{0}' found here"_translatable,
         {
             u8"'{0}' found here",
-            u8"'{0}' found here",
+            u8"'{0}' ist hier",
             u8"'{0}' found here",
             u8"'{0}' found here",
             u8"'{0}' found here",
@@ -251,7 +251,7 @@ inline constexpr translated_string test_translation_table[] = {
         "'{0}' is not allowed for strings; use {1} instead"_translatable,
         {
             u8"'{0}' is not allowed for strings; use {1} instead",
-            u8"'{0}' is not allowed for strings; use {1} instead",
+            u8"'{0}' ist f\u00fcr Strings nicht erlaubt. '{1}' anstattdessen verwenden.",
             u8"'{0}' is not allowed for strings; use {1} instead",
             u8"'{0}' is not allowed for strings; use {1} instead",
             u8"'{0}' is not allowed for strings; use {1} instead",
@@ -261,7 +261,7 @@ inline constexpr translated_string test_translation_table[] = {
         "'{0}' operator cannot be used before '**' without parentheses"_translatable,
         {
             u8"'{0}' operator cannot be used before '**' without parentheses",
-            u8"'{0}' operator cannot be used before '**' without parentheses",
+            u8"Der Operator '{0}' kann nicht vor '**' ohne Klammern benutzt werden",
             u8"'{0}' operator cannot be used before '**' without parentheses",
             u8"'{0}' operator cannot be used before '**' without parentheses",
             u8"'{0}' operator cannot be used before '**' without parentheses",
@@ -271,7 +271,7 @@ inline constexpr translated_string test_translation_table[] = {
         "'}' is not allowed directly in JSX text; write {{'}'} instead"_translatable,
         {
             u8"'}' is not allowed directly in JSX text; write {{'}'} instead",
-            u8"'}' is not allowed directly in JSX text; write {{'}'} instead",
+            u8"'}' darf nicht direkt in JSX-Text verwendet werden. Anstattdessen {{'}'} schreiben",
             u8"'}' is not allowed directly in JSX text; write {{'}'} instead",
             u8"'}' is not allowed directly in JSX text; write {{'}'} instead",
             u8"'}' is not allowed directly in JSX text; write {{'}'} instead",
@@ -361,7 +361,7 @@ inline constexpr translated_string test_translation_table[] = {
         "a 'do-while' loop"_translatable,
         {
             u8"a 'do-while' loop",
-            u8"a 'do-while' loop",
+            u8"eine do-While-Schleife",
             u8"a 'do-while' loop",
             u8"a 'do-while' loop",
             u8"a 'do-while' loop",
@@ -371,7 +371,7 @@ inline constexpr translated_string test_translation_table[] = {
         "a 'for' loop"_translatable,
         {
             u8"a 'for' loop",
-            u8"a 'for' loop",
+            u8"eine for-Schleife",
             u8"a 'for' loop",
             u8"a 'for' loop",
             u8"a 'for' loop",
@@ -381,7 +381,7 @@ inline constexpr translated_string test_translation_table[] = {
         "a 'while' loop"_translatable,
         {
             u8"a 'while' loop",
-            u8"a 'while' loop",
+            u8"eine while-Schleife",
             u8"a 'while' loop",
             u8"a 'while' loop",
             u8"a 'while' loop",
@@ -391,7 +391,7 @@ inline constexpr translated_string test_translation_table[] = {
         "a 'with' statement"_translatable,
         {
             u8"a 'with' statement",
-            u8"a 'with' statement",
+            u8"eine with-Anweisung",
             u8"a 'with' statement",
             u8"a 'with' statement",
             u8"a 'with' statement",
@@ -421,7 +421,7 @@ inline constexpr translated_string test_translation_table[] = {
         "a lexical declaration is not allowed as the body of {1:singular}"_translatable,
         {
             u8"a lexical declaration is not allowed as the body of {1:singular}",
-            u8"Eine lexikalische Deklaration ist nicht als K\u00f6rper von {0:singular} erlaubt",
+            u8"Eine lexikalische Deklaration ist nicht als K\u00f6rper von {1:singular} erlaubt",
             u8"A LEXICAL DECLARATION IS NOT ALLOWED AS THE BODY OF {1:singular}",
             u8"une d\u00e9claration lexicale ne peut constituer le corps de {1:singular}",
             u8"lexikaliskt deklaration \u00e4r inte till\u00e5tet inuti ett stycke av {1:singular}",
@@ -441,7 +441,7 @@ inline constexpr translated_string test_translation_table[] = {
         "an 'if' statement"_translatable,
         {
             u8"an 'if' statement",
-            u8"an 'if' statement",
+            u8"eine if-Anweisung",
             u8"an 'if' statement",
             u8"an 'if' statement",
             u8"an 'if' statement",
@@ -521,7 +521,7 @@ inline constexpr translated_string test_translation_table[] = {
         "assignment to imported variable"_translatable,
         {
             u8"assignment to imported variable",
-            u8"assignment to imported variable",
+            u8"Zuweisung an importierte Variable",
             u8"assignment to imported variable",
             u8"assignment to imported variable",
             u8"assignment to imported variable",
@@ -541,7 +541,7 @@ inline constexpr translated_string test_translation_table[] = {
         "attribute has wrong capitalization; write '{1}' instead"_translatable,
         {
             u8"attribute has wrong capitalization; write '{1}' instead",
-            u8"attribute has wrong capitalization; write '{1}' instead",
+            u8"Attribut mit falscher Gro\u00df- und Kleinschreibung; '{1}' anstattdessen schreiben",
             u8"attribute has wrong capitalization; write '{1}' instead",
             u8"attribute has wrong capitalization; write '{1}' instead",
             u8"attribute has wrong capitalization; write '{1}' instead",
@@ -701,7 +701,7 @@ inline constexpr translated_string test_translation_table[] = {
         "children end here"_translatable,
         {
             u8"children end here",
-            u8"children end here",
+            u8"Children enden hier",
             u8"children end here",
             u8"children end here",
             u8"children end here",
@@ -841,7 +841,7 @@ inline constexpr translated_string test_translation_table[] = {
         "escaping '-' is not allowed in tag names; write '-' instead"_translatable,
         {
             u8"escaping '-' is not allowed in tag names; write '-' instead",
-            u8"escaping '-' is not allowed in tag names; write '-' instead",
+            u8"Escape von '-' ist in Tagnamen nicht erlaubt. '-' anstattdessen schreiben",
             u8"escaping '-' is not allowed in tag names; write '-' instead",
             u8"escaping '-' is not allowed in tag names; write '-' instead",
             u8"escaping '-' is not allowed in tag names; write '-' instead",
@@ -851,7 +851,7 @@ inline constexpr translated_string test_translation_table[] = {
         "event attributes must be camelCase: '{1}'"_translatable,
         {
             u8"event attributes must be camelCase: '{1}'",
-            u8"event attributes must be camelCase: '{1}'",
+            u8"Event-Attribute m\u00fcssen im camelCase geschrieben werden: '{1}'",
             u8"event attributes must be camelCase: '{1}'",
             u8"event attributes must be camelCase: '{1}'",
             u8"event attributes must be camelCase: '{1}'",
@@ -861,7 +861,7 @@ inline constexpr translated_string test_translation_table[] = {
         "existing variable declared here"_translatable,
         {
             u8"existing variable declared here",
-            u8"existing variable declared here",
+            u8"Bereits existierende Variable wurde hier deklariert",
             u8"existing variable declared here",
             u8"existing variable declared here",
             u8"existing variable declared here",
@@ -1011,7 +1011,7 @@ inline constexpr translated_string test_translation_table[] = {
         "expected {1:headlinese}"_translatable,
         {
             u8"expected {1:headlinese}",
-            u8"expected {1:headlinese}",
+            u8"{1:headlinese} erwartet",
             u8"expected {1:headlinese}",
             u8"expected {1:headlinese}",
             u8"expected {1:headlinese}",
@@ -1021,7 +1021,7 @@ inline constexpr translated_string test_translation_table[] = {
         "expected {1:singular}"_translatable,
         {
             u8"expected {1:singular}",
-            u8"expected {1:singular}",
+            u8"{1:singular} erwartet",
             u8"expected {1:singular}",
             u8"expected {1:singular}",
             u8"expected {1:singular}",
@@ -1081,7 +1081,7 @@ inline constexpr translated_string test_translation_table[] = {
         "for-of loop expression cannot have semicolons"_translatable,
         {
             u8"for-of loop expression cannot have semicolons",
-            u8"for-of loop expression cannot have semicolons",
+            u8"Ausdruck der for-in-Schleife darf keine Semikolon beinhalten",
             u8"FOR-OF LOOP EXPRESSION CANNOT HAVE SEMICOLONS",
             u8"une instruction de boucle for-of ne peut contenir de points-virgules",
             u8"for-of loop satser kan inte ha semikolon",
@@ -1101,7 +1101,7 @@ inline constexpr translated_string test_translation_table[] = {
         "free {1} and {0} {1} {2}"_translatable,
         {
             u8"free {1} and {0} {1} {2}",
-            u8"free {1} and {0} {1} {2}",
+            u8"freies {1} und {0} {1} {2}",
             u8"free {1} and {0} {1} {2}",
             u8"free {1} and {0} {1} {2}",
             u8"free {1} and {0} {1} {2}",
@@ -1141,7 +1141,7 @@ inline constexpr translated_string test_translation_table[] = {
         "function starts here"_translatable,
         {
             u8"function starts here",
-            u8"function starts here",
+            u8"Funktionsaufruf beginnt hier",
             u8"function starts here",
             u8"function starts here",
             u8"function starts here",
@@ -1181,7 +1181,7 @@ inline constexpr translated_string test_translation_table[] = {
         "here"_translatable,
         {
             u8"here",
-            u8"here",
+            u8"hier",
             u8"here",
             u8"here",
             u8"here",
@@ -1221,7 +1221,7 @@ inline constexpr translated_string test_translation_table[] = {
         "imported variable declared here"_translatable,
         {
             u8"imported variable declared here",
-            u8"imported variable declared here",
+            u8"Importierte Variable wurde hier deklariert",
             u8"imported variable declared here",
             u8"imported variable declared here",
             u8"imported variable declared here",
@@ -1361,7 +1361,7 @@ inline constexpr translated_string test_translation_table[] = {
         "mismatched JSX tags; expected '</{1}>'"_translatable,
         {
             u8"mismatched JSX tags; expected '</{1}>'",
-            u8"mismatched JSX tags; expected '</{1}>'",
+            u8"Unpassender JSX-Tag; '</{1}>' wurde anstattdessen erwartet",
             u8"mismatched JSX tags; expected '</{1}>'",
             u8"mismatched JSX tags; expected '</{1}>'",
             u8"mismatched JSX tags; expected '</{1}>'",
@@ -1381,7 +1381,7 @@ inline constexpr translated_string test_translation_table[] = {
         "missing '...' in JSX attribute spread"_translatable,
         {
             u8"missing '...' in JSX attribute spread",
-            u8"missing '...' in JSX attribute spread",
+            u8"'...' fehlt in JSX-Attribut-Spread",
             u8"missing '...' in JSX attribute spread",
             u8"missing '...' in JSX attribute spread",
             u8"missing '...' in JSX attribute spread",
@@ -1401,7 +1401,7 @@ inline constexpr translated_string test_translation_table[] = {
         "missing '<>' and '</>' to enclose multiple children"_translatable,
         {
             u8"missing '<>' and '</>' to enclose multiple children",
-            u8"missing '<>' and '</>' to enclose multiple children",
+            u8"'<>' und '</>' fehlt, um mehrere Children einzuschlie\u00dfen",
             u8"missing '<>' and '</>' to enclose multiple children",
             u8"missing '<>' and '</>' to enclose multiple children",
             u8"missing '<>' and '</>' to enclose multiple children",
@@ -1591,7 +1591,7 @@ inline constexpr translated_string test_translation_table[] = {
         "missing comparison; '{1}' does not extend to the right side of '{0}'"_translatable,
         {
             u8"missing comparison; '{1}' does not extend to the right side of '{0}'",
-            u8"missing comparison; '{1}' does not extend to the right side of '{0}'",
+            u8"Vergleich fehlt. '{1}' wird nicht auf der rechten Seite von '{0}' angewandt",
             u8"missing comparison; '{1}' does not extend to the right side of '{0}'",
             u8"missing comparison; '{1}' does not extend to the right side of '{0}'",
             u8"missing comparison; '{1}' does not extend to the right side of '{0}'",
@@ -1771,7 +1771,7 @@ inline constexpr translated_string test_translation_table[] = {
         "missing parentheses around left-hand side of '**'"_translatable,
         {
             u8"missing parentheses around left-hand side of '**'",
-            u8"missing parentheses around left-hand side of '**'",
+            u8"Klammern um linke Seite von '**' fehlen",
             u8"missing parentheses around left-hand side of '**'",
             u8"missing parentheses around left-hand side of '**'",
             u8"missing parentheses around left-hand side of '**'",
@@ -1781,7 +1781,7 @@ inline constexpr translated_string test_translation_table[] = {
         "missing parentheses around operand of '{0}'"_translatable,
         {
             u8"missing parentheses around operand of '{0}'",
-            u8"missing parentheses around operand of '{0}'",
+            u8"Klammern fehlen um den Operanden von '{0}'",
             u8"missing parentheses around operand of '{0}'",
             u8"missing parentheses around operand of '{0}'",
             u8"missing parentheses around operand of '{0}'",
@@ -1791,7 +1791,7 @@ inline constexpr translated_string test_translation_table[] = {
         "missing parentheses around self-invoked function"_translatable,
         {
             u8"missing parentheses around self-invoked function",
-            u8"missing parentheses around self-invoked function",
+            u8"Klammern um selbstaufgerufene Funktion fehlen",
             u8"missing parentheses around self-invoked function",
             u8"missing parentheses around self-invoked function",
             u8"missing parentheses around self-invoked function",
@@ -1811,7 +1811,7 @@ inline constexpr translated_string test_translation_table[] = {
         "missing property name between '.' and '.'"_translatable,
         {
             u8"missing property name between '.' and '.'",
-            u8"missing property name between '.' and '.'",
+            u8"Eigenschaftsname fehlt zwischen '.' und '.'",
             u8"missing property name between '.' and '.'",
             u8"nom de propri\u00e9t\u00e9 manquante entre '.' et '.'",
             u8"missing property name between '.' and '.'",
@@ -1871,7 +1871,7 @@ inline constexpr translated_string test_translation_table[] = {
         "misspelled React attribute; write '{1}' instead"_translatable,
         {
             u8"misspelled React attribute; write '{1}' instead",
-            u8"misspelled React attribute; write '{1}' instead",
+            u8"React-Attribut ist falsch geschrieben; '{1}' anstattdessen schreiben",
             u8"misspelled React attribute; write '{1}' instead",
             u8"misspelled React attribute; write '{1}' instead",
             u8"misspelled React attribute; write '{1}' instead",
@@ -1881,7 +1881,7 @@ inline constexpr translated_string test_translation_table[] = {
         "new variable shadows existing variable"_translatable,
         {
             u8"new variable shadows existing variable",
-            u8"new variable shadows existing variable",
+            u8"Neue Variable macht bereits existierende unsichtbar",
             u8"new variable shadows existing variable",
             u8"new variable shadows existing variable",
             u8"new variable shadows existing variable",
@@ -1931,7 +1931,7 @@ inline constexpr translated_string test_translation_table[] = {
         "octal literal may not have decimal"_translatable,
         {
             u8"octal literal may not have decimal",
-            u8"Oktalliterale mit Dezimalpunkt sind verboten",
+            u8"Oktalliterale mit Dezimalpunkt sind nicht erlaubt",
             u8"OCTAL LITERAL MAY NOT HAVE DECIMAL",
             u8"un litt\u00e9ral octal ne peut avoir de partie d\u00e9cimale",
             u8"oktal nummerlitter\u00e4l kan inte ha decimaler",
@@ -1941,7 +1941,7 @@ inline constexpr translated_string test_translation_table[] = {
         "octal literal may not have exponent"_translatable,
         {
             u8"octal literal may not have exponent",
-            u8"Oktalliterale mit Exponenten sind verboten",
+            u8"Oktalliterale mit Exponenten sind nicht erlaubt",
             u8"OCTAL LITERAL MAY NOT HAVE EXPONENT",
             u8"un litt\u00e9ral octal ne peut avoir d'exposant",
             u8"oktal nummerlitter\u00e4l kan inte ha exponent",
@@ -1961,7 +1961,7 @@ inline constexpr translated_string test_translation_table[] = {
         "opening '<{1}>' tag here"_translatable,
         {
             u8"opening '<{1}>' tag here",
-            u8"opening '<{1}>' tag here",
+            u8"\u00d6ffnender '<{1}>' Tag ist hier",
             u8"opening '<{1}>' tag here",
             u8"opening '<{1}>' tag here",
             u8"opening '<{1}>' tag here",
@@ -2021,7 +2021,7 @@ inline constexpr translated_string test_translation_table[] = {
         "return statement returns nothing (undefined)"_translatable,
         {
             u8"return statement returns nothing (undefined)",
-            u8"return statement returns nothing (undefined)",
+            u8"Return-Statement gibt nichts (undefined) zur\u00fcck",
             u8"return statement returns nothing (undefined)",
             u8"l'instruction de retour ne retourne rien (undefined)",
             u8"return statement returns nothing (undefined)",
@@ -2031,7 +2031,7 @@ inline constexpr translated_string test_translation_table[] = {
         "see here"_translatable,
         {
             u8"see here",
-            u8"see here",
+            u8"siehe hier",
             u8"see here",
             u8"see here",
             u8"see here",
@@ -2041,7 +2041,7 @@ inline constexpr translated_string test_translation_table[] = {
         "something happened"_translatable,
         {
             u8"something happened",
-            u8"something happened",
+            u8"etwas geschah",
             u8"something happened",
             u8"something happened",
             u8"something happened",
@@ -2051,7 +2051,7 @@ inline constexpr translated_string test_translation_table[] = {
         "stray comma in function parameter"_translatable,
         {
             u8"stray comma in function parameter",
-            u8"stray comma in function parameter",
+            u8"Vereinzeltes Komme in Funktionsparameter",
             u8"stray comma in function parameter",
             u8"virgule isol\u00e9e dans un param\u00e8tre de fonction",
             u8"stray comma in function parameter",
@@ -2091,7 +2091,7 @@ inline constexpr translated_string test_translation_table[] = {
         "this {0} looks fishy"_translatable,
         {
             u8"this {0} looks fishy",
-            u8"this {0} looks fishy",
+            u8"dieses {0} sieht merkw\u00fcrdig aus",
             u8"this {0} looks fishy",
             u8"this {0} looks fishy",
             u8"this {0} looks fishy",
@@ -2101,7 +2101,7 @@ inline constexpr translated_string test_translation_table[] = {
         "this {1} looks fishy"_translatable,
         {
             u8"this {1} looks fishy",
-            u8"this {1} looks fishy",
+            u8"dieses {1} sieht merkw\u00fcrdig aus",
             u8"this {1} looks fishy",
             u8"this {1} looks fishy",
             u8"this {1} looks fishy",
@@ -2131,7 +2131,7 @@ inline constexpr translated_string test_translation_table[] = {
         "unclosed class; expected '}' by end of file"_translatable,
         {
             u8"unclosed class; expected '}' by end of file",
-            u8"unclosed class; expected '}' by end of file",
+            u8"Klasse ohne Ende. '}' bis sp\u00e4testens zum Ende der Datei erwartet",
             u8"unclosed class; expected '}' by end of file",
             u8"unclosed class; expected '}' by end of file",
             u8"unclosed class; expected '}' by end of file",
@@ -2361,7 +2361,7 @@ inline constexpr translated_string test_translation_table[] = {
         "unexpected statement before first switch case, expected 'case' or 'default'"_translatable,
         {
             u8"unexpected statement before first switch case, expected 'case' or 'default'",
-            u8"unexpected statement before first switch case, expected 'case' or 'default'",
+            u8"Unerwartetes Statment vor dem ersten Switch-Case. Entweder 'case' oder 'default' erwartet.",
             u8"unexpected statement before first switch case, expected 'case' or 'default'",
             u8"unexpected statement before first switch case, expected 'case' or 'default'",
             u8"unexpected statement before first switch case, expected 'case' or 'default'",
@@ -2501,7 +2501,7 @@ inline constexpr translated_string test_translation_table[] = {
         "variable used before declaration: {0}"_translatable,
         {
             u8"variable used before declaration: {0}",
-            u8"Variable '{0}' wird vor Deklaration verwendet",
+            u8"Variable '{0}' wird ihrer Deklaration verwendet",
             u8"VARIABLE USED BEFORE DECLARATION: {0}",
             u8"variable utilis\u00e9e avant sa d\u00e9claration : {0}",
             u8"variabel anv\u00e4nd f\u00f6re: {0}",
@@ -2511,7 +2511,7 @@ inline constexpr translated_string test_translation_table[] = {
         "what is this '{1}' nonsense?"_translatable,
         {
             u8"what is this '{1}' nonsense?",
-            u8"what is this '{1}' nonsense?",
+            u8"Was soll dieser '{1}' Humbug?",
             u8"what is this '{1}' nonsense?",
             u8"what is this '{1}' nonsense?",
             u8"what is this '{1}' nonsense?",
