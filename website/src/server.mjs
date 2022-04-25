@@ -9,6 +9,7 @@ import os from "os";
 import path from "path";
 import { Router, makeHTMLRedirect } from "./router.mjs";
 import { performance } from "perf_hooks";
+import { readFileAsync } from "./fs.mjs";
 
 export function makeServer({
   esbuildBundles = {},
@@ -119,7 +120,7 @@ export function makeServer({
       }
 
       case "copy":
-        let html = await fs.promises.readFile(
+        let html = await readFileAsync(
           path.join(router.wwwRootPath, classifiedDirectory.path)
         );
         response.writeHeader(200, { "content-type": "text/html" });
@@ -162,7 +163,7 @@ export function makeServer({
         }
 
         let filePath = path.join(router.wwwRootPath, request.path);
-        let content = await fs.promises.readFile(filePath);
+        let content = await readFileAsync(filePath);
         response.writeHeader(200, headers);
         response.end(content);
         return;
@@ -190,7 +191,7 @@ export function makeServer({
             response.end(error.stack);
             return;
           }
-          let content = await fs.promises.readFile(bundlePath);
+          let content = await readFileAsync(bundlePath);
           response.writeHeader(200, {
             "content-type": "application/javascript",
           });
