@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-04-20 18:18-0400\n"
+"POT-Creation-Date: 2022-04-25 19:26-0400\n"
 "PO-Revision-Date: 2021-11-18 03:48+0100\n"
 "Last-Translator: Nico Sonack <nsonack@outlook.com>\n"
 "Language-Team: German\n"
@@ -818,9 +818,8 @@ msgid "octal literal may not have decimal"
 msgstr "Oktalliterale mit Dezimalpunkt sind verboten"
 
 #: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
-msgid "number literal will lose precision"
-msgstr "Hexadezimales Zahlenliteral ohne Ziffern"
+msgid "integer cannot be represented and will be rounded to '{1}'"
+msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "private properties are not allowed in object literals"
@@ -1121,6 +1120,10 @@ msgstr ""
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr ""
+
+#, fuzzy
+#~ msgid "number literal will lose precision"
+#~ msgstr "Hexadezimales Zahlenliteral ohne Ziffern"
 
 #~ msgid "invalid binding in let statement"
 #~ msgstr "Ungültiges Binding in let-Statement"

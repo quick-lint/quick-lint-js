@@ -1360,13 +1360,8 @@ void lexer::parse_number() {
         error = true;
       }
       if (!error) {
-        double num;
-        try {
-          num = std::stod(cleaned_string);
-        } catch (...) {
-          long double long_num = stold(cleaned_string);
-          num = long_num;
-        }
+        long double long_num = stold(cleaned_string);
+        double num = long_num;
         std::array<char, 310> result_string;
         int rc = std::snprintf(result_string.data(), result_string.size(),
                                "%.0f", num);
