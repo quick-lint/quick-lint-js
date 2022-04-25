@@ -1347,21 +1347,64 @@ void lexer::parse_number() {
       }
     }
     if (cleaned_string.size() > 15) {
-      double num = std::stod(cleaned_string);
-      std::array<char, 309> result_string;
+      bump_vector<char8, monotonic_allocator> num_pretty(
+          "opening_tag_name_pretty", &this->allocator_);
+      if (cleaned_string.size() > 309) {
+        num_pretty += u8"inf";
+        string8_view num_pretty_view(num_pretty);
+        this->diag_reporter_->report(diag_number_literal_will_lose_precision{
+            .characters = source_code_span(number_begin, input),
+            .rounded_val = num_pretty_view,
+        });
+        return;
+      }
+      double num;
+      try {
+        num = std::stod(cleaned_string);
+      } catch (...) {
+        long double long_num = stold(cleaned_string);
+        num = long_num;
+      }
+      std::array<char, 310> result_string;
       int rc = std::snprintf(result_string.data(), result_string.size(), "%.0f",
                              num);
       if (rc < 0 || rc >= result_string.size()) {
+        // I think the inside of this if block is unreachable.
+        num_pretty += u8"inf";
+        string8_view num_pretty_view(num_pretty);
         this->diag_reporter_->report(diag_number_literal_will_lose_precision{
-            source_code_span(number_begin, input)});
+            .characters = source_code_span(number_begin, input),
+            .rounded_val = num_pretty_view,
+        });
       } else {
         for (size_t i = 0; i < cleaned_string.size(); ++i) {
           if (cleaned_string[i] != result_string[i]) {
+            size_t j = 0;
+            while (j != '\0') {
+              num_pretty += result_string[j];
+              ++j;
+            }
+            string8_view num_pretty_view(num_pretty);
             this->diag_reporter_->report(
                 diag_number_literal_will_lose_precision{
-                    source_code_span(number_begin, input)});
-            break;
+                    .characters = source_code_span(number_begin, input),
+                    .rounded_val = num_pretty_view,
+                });
+            return;
           }
+        }
+        if (result_string[cleaned_string.size()] != '\0') {
+          size_t i = 0;
+          while (i != '\0') {
+            num_pretty += result_string[i];
+            ++i;
+          }
+          string8_view num_pretty_view(num_pretty);
+          this->diag_reporter_->report(diag_number_literal_will_lose_precision{
+              .characters = source_code_span(number_begin, input),
+              .rounded_val = num_pretty_view,
+          });
+          return;
         }
       }
     }
