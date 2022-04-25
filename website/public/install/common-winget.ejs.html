@@ -3,16 +3,26 @@
 <!-- See end of file for extended copyright information. -->
 %>
 
-<header>
-  <%- await include("../../common-nav.ejs.html") %>
-  <nav class="breadcrumbs">
-    <ol>
-      <li><a href="../../">Install</a></li>
-      <li><a href="../">CLI &amp; LSP server</a></li>
-      <li><%= breadcrumbName %></li>
-    </ol>
-  </nav>
-</header>
+<p>
+  quick-lint-js has a winget package, making it easy to install the CLI and LSP
+  server on Windows.
+</p>
+
+<p>
+  In order to install quick-lint-js' winget package, you must first install
+  winget. winget is included in Windows 11 and can be
+  <a href="https://docs.microsoft.com/en-us/windows/package-manager/winget/"
+    >installed on Windows 10</a
+  >.
+</p>
+
+<p>
+  Open a command prompt or PowerShell window. Run the following command to
+  install quick-lint-js:
+</p>
+<blockquote>
+  <pre><code class="shell-session"><kbd>winget install quick-lint-js</kbd></code></pre>
+</blockquote>
 
 <%#
 <!--
