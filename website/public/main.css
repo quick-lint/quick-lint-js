@@ -227,6 +227,13 @@ nav.breadcrumbs ol > li:not(:first-child)::before {
   content: "➤ ";
 }
 
+/* HACK(strager): The '>' symbol pushes some breadcrumbs down for some reason.
+   This causes vertical misalignment between breadcrumbs. Fix this by tweaking
+   line-height. I don't know why this works. */
+nav.breadcrumbs ol > li {
+  line-height: 100%;
+}
+
 @media (prefers-color-scheme: dark) {
   a:link {
     color: #3398e0;
