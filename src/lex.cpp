@@ -1340,8 +1340,10 @@ void lexer::parse_number() {
         !(number_begin[0] == u8'0' && this->is_digit(number_begin[1])));
   }
   if (!has_decimal_point && !has_exponent && !is_bigint) {
+  string8_view number_literal(number_begin, input - number_begin)
+  if (number_literal.size() > 15) {
     std::string cleaned_string = "";
-    for (char8 c : string8_view(number_begin, input - number_begin)) {
+    for (char8 c : number_literal) {
       if (c != '_') {
         cleaned_string.push_back(static_cast<char>(c));
       }
