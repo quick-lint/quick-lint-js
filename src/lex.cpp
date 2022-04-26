@@ -1376,11 +1376,8 @@ void lexer::parse_number() {
         } else {
           for (size_t i = 0; i < cleaned_string.size(); ++i) {
             if (cleaned_string[i] != result_string[i]) {
-              size_t j = 0;
-              while (j != '\0') {
-                num_pretty += result_string[j];
-                ++j;
-              }
+              char8* rounded_val = this->allocator_.allocate_uninitialized_array<char8>(result_string_view.size());
+              std::copy(result_string_view.begin(), result_string_view.end(), rounded_val);
               string8_view num_pretty_view(num_pretty);
               this->diag_reporter_->report(
                   diag_number_literal_will_lose_precision{
