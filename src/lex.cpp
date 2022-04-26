@@ -1353,11 +1353,9 @@ void lexer::parse_number() {
       bump_vector<char8, monotonic_allocator> num_pretty(
           "opening_tag_name_pretty", &this->allocator_);
       if (cleaned_string.size() > 309) {
-        num_pretty += u8"inf";
-        string8_view num_pretty_view(num_pretty);
         this->diag_reporter_->report(diag_number_literal_will_lose_precision{
             .characters = source_code_span(number_begin, input),
-            .rounded_val = num_pretty_view,
+            .rounded_val = u8"inf"sv,
         });
         error = true;
       }
