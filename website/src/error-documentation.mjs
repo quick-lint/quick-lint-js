@@ -201,6 +201,7 @@ export class ErrorDocumentation {
               titleErrorCode = match.groups.code;
               titleErrorDescription = match.groups.description;
             }
+            inTitle = false;
           }
           break;
 
