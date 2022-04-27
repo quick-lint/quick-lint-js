@@ -261,14 +261,6 @@ export class ErrorDocumentation {
         `${this.filePath}: error: file name doesn't match error code in title (${this.titleErrorCode})`
       );
     }
-    if (
-      this.codeBlocks.length === 1 &&
-      this.codeBlocks[0].text === "/* TODO */\n"
-    ) {
-      // Don't check in-progress documentation.
-      // TODO(strager): Remove this check.
-      return [];
-    }
     if (this.shouldCheckCodeBlocks) {
       if (this.codeBlocks.length === 0) {
         foundProblems.push(`${this.filePath}: error: missing code blocks`);
