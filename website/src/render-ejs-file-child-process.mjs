@@ -12,7 +12,7 @@ import ejs from "ejs";
 import fs from "fs";
 import path from "path";
 import url from "url";
-import { getQuickLintJSVersionInfo } from "./qljs-version.mjs";
+import { getQuickLintJSVersionInfoAsync } from "./qljs-version.mjs";
 
 process.on("message", (message, _sendHandle) => {
   let { currentURI, ejsFilePath } = message;
@@ -81,7 +81,7 @@ async function renderEJSFileAsync({ currentURI, ejsFilePath }) {
           let suffix = uri.endsWith("/") ? "/" : "";
           return path.posix.relative(currentURI, uri) + suffix;
         },
-        qljsVersionInfo: await getQuickLintJSVersionInfo(),
+        qljsVersionInfo: await getQuickLintJSVersionInfoAsync(),
         collapseInteriorWhitespace: (s) => {
           return s.replace(/\s+/g, " ");
         },

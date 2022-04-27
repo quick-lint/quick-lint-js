@@ -66,7 +66,7 @@ export function makeServer({
 
         let out = null;
         try {
-          out = await router.renderEJSFile(
+          out = await router.renderEJSFileAsync(
             path.join(router.wwwRootPath, classifiedDirectory.path),
             { currentURI: request.path }
           );
@@ -101,7 +101,7 @@ export function makeServer({
         let routeDestination = routes[request.path];
         let out = null;
         try {
-          out = await router.renderEJSFile(
+          out = await router.renderEJSFileAsync(
             path.join(
               router.wwwRootPath,
               classifiedDirectory.routerDirectory,

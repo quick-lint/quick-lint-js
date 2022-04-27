@@ -154,7 +154,7 @@ export class Router {
     return { type: "static", contentType: contentType };
   }
 
-  async renderEJSFile(ejsFilePath, { currentURI }) {
+  async renderEJSFileAsync(ejsFilePath, { currentURI }) {
     let childProcess = await renderEJSChildProcessPool.takeAsync();
     try {
       return await childProcess.renderAsync({ currentURI, ejsFilePath });
