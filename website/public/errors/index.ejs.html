@@ -54,7 +54,7 @@
         <% for (let doc of documents) { %>
         <li>
           <a href="<%= doc.titleErrorCode %>/"
-            ><%= doc.titleErrorCode %>: <%= doc.titleErrorDescription %></a
+            ><%= doc.titleErrorCode %>: <%- doc.titleErrorDescriptionHTML %></a
           >
         </li>
         <% } %>
