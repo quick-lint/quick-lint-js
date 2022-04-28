@@ -1290,6 +1290,47 @@ void lexer::parse_modern_octal_number() {
       diag_unexpected_characters_in_octal_number>(input);
 }
 
+void lexer::check_precision_loss(const char8* number_begin,
+                                 const char8* input) {
+  string8_view number_literal(number_begin, input - number_begin);
+  const size_t GUARANTEED_ACC_LENGTH = 15;
+  const size_t MAX_ACC_LENGTH = 309;
+  if (number_literal.size() > GUARANTEED_ACC_LENGTH) {
+    std::string cleaned_string = "";
+    for (char8 c : number_literal) {
+      if (c != '_') {
+        cleaned_string.push_back(static_cast<char>(c));
+      }
+    }
+    if (cleaned_string.size() > GUARANTEED_ACC_LENGTH) {
+      if (cleaned_string.size() > MAX_ACC_LENGTH) {
+        this->diag_reporter_->report(diag_number_literal_will_lose_precision{
+            .characters = source_code_span(number_begin, input),
+            .rounded_val = u8"inf"sv,
+        });
+        return;
+      }
+      double num = strtod(cleaned_string.c_str(), nullptr);
+      std::array<char, MAX_ACC_LENGTH + 1> result_string;
+      int rc = std::snprintf(result_string.data(), result_string.size(), "%.0f",
+                             num);
+      QLJS_ALWAYS_ASSERT(rc >= 0 && rc < result_string.size());
+      std::string_view result_string_view(result_string.data(), rc);
+      if (cleaned_string != result_string_view) {
+        char8* rounded_val =
+            this->allocator_.allocate_uninitialized_array<char8>(
+                result_string_view.size());
+        std::copy(result_string_view.begin(), result_string_view.end(),
+                  rounded_val);
+        this->diag_reporter_->report(diag_number_literal_will_lose_precision{
+            .characters = source_code_span(number_begin, input),
+            .rounded_val = rounded_val,
+        });
+      }
+    }
+  }
+}
+
 void lexer::parse_number() {
   QLJS_SLOW_ASSERT(this->is_digit(this->input_[0]) || this->input_[0] == '.');
   const char8* input = this->input_;
@@ -1340,70 +1381,7 @@ void lexer::parse_number() {
         !(number_begin[0] == u8'0' && this->is_digit(number_begin[1])));
   }
   if (!has_decimal_point && !has_exponent && !is_bigint) {
-  string8_view number_literal(number_begin, input - number_begin)
-  if (number_literal.size() > 15) {
-    std::string cleaned_string = "";
-    for (char8 c : number_literal) {
-      if (c != '_') {
-        cleaned_string.push_back(static_cast<char>(c));
-      }
-    }
-    if (cleaned_string.size() > 15) {
-      bool error = false;
-      bump_vector<char8, monotonic_allocator> num_pretty(
-          "opening_tag_name_pretty", &this->allocator_);
-      if (cleaned_string.size() > 309) {
-        this->diag_reporter_->report(diag_number_literal_will_lose_precision{
-            .characters = source_code_span(number_begin, input),
-            .rounded_val = u8"inf"sv,
-        });
-        error = true;
-      }
-      if (!error) {
-        long double long_num = stold(cleaned_string);
-        double num = long_num;
-        std::array<char, 310> result_string;
-        int rc = std::snprintf(result_string.data(), result_string.size(),
-                               "%.0f", num);
-        if (rc < 0 || rc >= result_string.size()) {
-          // I think the inside of this if block is unreachable.
-          num_pretty += u8"inf";
-          string8_view num_pretty_view(num_pretty);
-          this->diag_reporter_->report(diag_number_literal_will_lose_precision{
-              .characters = source_code_span(number_begin, input),
-              .rounded_val = num_pretty_view,
-          });
-        } else {
-          std::string_view result_string_view(result_string.data(), rc);
-          if (cleaned_string != result_string_view) {
-              char8* rounded_val = this->allocator_.allocate_uninitialized_array<char8>(result_string_view.size());
-              std::copy(result_string_view.begin(), result_string_view.end(), rounded_val);
-              string8_view num_pretty_view(num_pretty);
-              this->diag_reporter_->report(
-                  diag_number_literal_will_lose_precision{
-                      .characters = source_code_span(number_begin, input),
-                      .rounded_val = num_pretty_view,
-                  });
-              error = true;
-              break;
-            }
-          }
-          if (result_string[cleaned_string.size()] != '\0' && !error) {
-            size_t i = 0;
-            while (i != '\0') {
-              num_pretty += result_string[i];
-              ++i;
-            }
-            string8_view num_pretty_view(num_pretty);
-            this->diag_reporter_->report(
-                diag_number_literal_will_lose_precision{
-                    .characters = source_code_span(number_begin, input),
-                    .rounded_val = num_pretty_view,
-                });
-          }
-        }
-      }
-    }
+    check_precision_loss(number_begin, input);
   }
 
   switch (*input) {
