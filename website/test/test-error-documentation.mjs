@@ -31,7 +31,7 @@ describe("error documentation", () => {
       "# E0123: title goes here\n"
     );
     expect(doc.titleErrorCode).toBe("E0123");
-    expect(doc.titleErrorDescription).toBe("title goes here");
+    expect(doc.titleErrorDescriptionHTML).toBe("title goes here");
   });
 
   it("title with HTML entity", () => {
@@ -40,8 +40,23 @@ describe("error documentation", () => {
       "# E0123: title &#x67;oes here\n"
     );
     expect(doc.titleErrorCode).toBe("E0123");
-    // TODO(strager): Translate HTML entities.
-    expect(doc.titleErrorDescription).toBe("title &#x67;oes here");
+    expect(doc.titleErrorDescriptionHTML).toBe("title goes here");
+  });
+
+  it("title with < HTML entity", () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "# E0123: test &lt; test\n"
+    );
+    expect(doc.titleErrorDescriptionHTML).toBe("test &lt; test");
+  });
+
+  it("title with inline code", () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "# E0123: title goes `here`\n"
+    );
+    expect(doc.titleErrorDescriptionHTML).toBe("title goes <code>here</code>");
   });
 
   it("title with extra colon", () => {
@@ -50,7 +65,7 @@ describe("error documentation", () => {
       "# E0123: banana: strawberry: apple\n"
     );
     expect(doc.titleErrorCode).toBe("E0123");
-    expect(doc.titleErrorDescription).toBe("banana: strawberry: apple");
+    expect(doc.titleErrorDescriptionHTML).toBe("banana: strawberry: apple");
   });
 
   it("level 2 heading is not title", () => {
@@ -59,7 +74,7 @@ describe("error documentation", () => {
       "## E0123: title goes here\n"
     );
     expect(doc.titleErrorCode).toBe("");
-    expect(doc.titleErrorDescription).toBe("");
+    expect(doc.titleErrorDescriptionHTML).toBe("");
   });
 
   it("no code blocks", () => {

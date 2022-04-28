@@ -365,8 +365,6 @@ class parser {
   expression *maybe_wrap_erroneous_arrow_function(expression *arrow_function,
                                                   expression *lhs);
 
-  bool is_arrow_kind(expression *ast) noexcept;
-
   void consume_semicolon();
 
   const token &peek() const noexcept { return this->lexer_.peek(); }

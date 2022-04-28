@@ -121,7 +121,7 @@ export class ErrorDocumentation {
     markdownTokens,
     shouldCheckCodeBlocks,
     titleErrorCode,
-    titleErrorDescription,
+    titleErrorDescriptionHTML,
   }) {
     this._markdownEnv = markdownEnv;
     this._markdownTokens = markdownTokens;
@@ -130,7 +130,7 @@ export class ErrorDocumentation {
     this.filePath = filePath;
     this.shouldCheckCodeBlocks = shouldCheckCodeBlocks;
     this.titleErrorCode = titleErrorCode;
-    this.titleErrorDescription = titleErrorDescription;
+    this.titleErrorDescriptionHTML = titleErrorDescriptionHTML;
     this.diagnostics = null;
   }
 
@@ -179,7 +179,7 @@ export class ErrorDocumentation {
     let configForExamples = null;
     let shouldCheckCodeBlocks = true;
     let titleErrorCode = "";
-    let titleErrorDescription = "";
+    let titleErrorDescriptionHTML = "";
 
     let inTitle = false;
     let currentBlock;
@@ -199,8 +199,9 @@ export class ErrorDocumentation {
             );
             if (match !== null) {
               titleErrorCode = match.groups.code;
-              titleErrorDescription = match.groups.description;
+              titleErrorDescriptionHTML = match.groups.description;
             }
+            inTitle = false;
           }
           break;
 
@@ -221,7 +222,11 @@ export class ErrorDocumentation {
 
         case "inline":
           if (inTitle) {
-            currentBlock += token.content;
+            currentBlock += markdownParser.renderer.render(
+              [token],
+              markdownParser.options,
+              markdownEnv
+            );
           }
           break;
 
@@ -241,7 +246,7 @@ export class ErrorDocumentation {
       markdownTokens: tokens,
       shouldCheckCodeBlocks: shouldCheckCodeBlocks,
       titleErrorCode: titleErrorCode,
-      titleErrorDescription: titleErrorDescription,
+      titleErrorDescriptionHTML: titleErrorDescriptionHTML,
     });
   }
 
@@ -260,14 +265,6 @@ export class ErrorDocumentation {
       foundProblems.push(
         `${this.filePath}: error: file name doesn't match error code in title (${this.titleErrorCode})`
       );
-    }
-    if (
-      this.codeBlocks.length === 1 &&
-      this.codeBlocks[0].text === "/* TODO */\n"
-    ) {
-      // Don't check in-progress documentation.
-      // TODO(strager): Remove this check.
-      return [];
     }
     if (this.shouldCheckCodeBlocks) {
       if (this.codeBlocks.length === 0) {

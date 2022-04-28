@@ -4,8 +4,9 @@
 import fs from "fs";
 import path from "path";
 import url from "url";
-import { makeBuildInstructionsAsync } from "./src/build.mjs";
 import { Router, makeHTMLRedirect } from "./src/router.mjs";
+import { makeBuildInstructionsAsync } from "./src/build.mjs";
+import { readFileAsync } from "./src/fs.mjs";
 import { websiteConfig } from "./src/config.mjs";
 
 let __filename = url.fileURLToPath(import.meta.url);
@@ -23,7 +24,7 @@ async function mainAsync() {
     let to = path.relative("", path.resolve(targetDirectory, toPath));
     console.log(`copy: ${from} -> ${to}`);
     await fs.promises.mkdir(path.dirname(to), { recursive: true });
-    await fs.promises.writeFile(to, await fs.promises.readFile(from));
+    await fs.promises.writeFile(to, await readFileAsync(from));
   }
 
   for (let instruction of instructions) {
@@ -44,7 +45,7 @@ async function mainAsync() {
         let outPath = path.join(targetDirectory, instruction.destinationPath);
         console.log(`build EJS: ${ejsPath} -> ${outPath}`);
         await fs.promises.mkdir(path.dirname(outPath), { recursive: true });
-        let out = await router.renderEJSFile(
+        let out = await router.renderEJSFileAsync(
           ejsPath,
           instruction.ejsVariables,
           {

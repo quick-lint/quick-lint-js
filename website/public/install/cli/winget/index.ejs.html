@@ -4,13 +4,13 @@
 <html lang="en">
   <head>
     <%- await include("../../../common-head.ejs.html", { title: `Install
-    quick-lint-js CLI on GNU/Linux`, description: `Install quick-lint-js's CLI
-    on GNU/Linux` }) %>
+    quick-lint-js CLI with winget`, description: `Install quick-lint-js's CLI
+    with winget` }) %>
     <link href="../../../main.css" rel="stylesheet" />
   </head>
   <body class="side-bar-nav">
-    <%- await include("../common-header.ejs.html", {breadcrumbName: `Manual
-    (GNU/Linux)`}) %>
+    <%- await include("../common-header.ejs.html", {breadcrumbName: `winget`})
+    %>
 
     <main>
       <h2>
@@ -23,16 +23,23 @@
           height="29"
         /><img
           class="os-logo"
-          src="../../../linux.svg"
+          src="../../../windows.svg"
           alt=""
-          title="GNU/Linux"
+          title="Windows"
           width="29"
           height="29"
         />
-        Install CLI and LSP server on GNU/Linux
+        Install CLI and LSP server with winget
       </h2>
+      <%- await include("../../common-winget.ejs.html") %>
 
-      <%- await include("../../common-static.ejs.html", {os: "linux"}) %>
+      <p>
+        Now the CLI, called <code>quick-lint-js</code>, is available in your
+        user path:
+      </p>
+      <blockquote>
+        <pre><code class="shell-session"><kbd>quick-lint-js --help</kbd></code></pre>
+      </blockquote>
     </main>
 
     <footer><%- await include("../../../common-footer-nav.ejs.html") %></footer>

@@ -986,7 +986,7 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
       this->diag_reporter_->report(diag_missing_operand_for_operator{
           .where = operator_span,
       });
-    } else if (this->is_arrow_kind(child) &&
+    } else if (child->kind() == expression_kind::arrow_function &&
                child->attributes() != function_attributes::async) {
       // await (param) => { }  // Invalid.
       this->roll_back_transaction(std::move(transaction));

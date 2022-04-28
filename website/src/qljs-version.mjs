@@ -8,7 +8,7 @@ import url from "url";
 let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
 
-export async function getQuickLintJSVersionInfo() {
+export async function getQuickLintJSVersionInfoAsync() {
   let data = await fs.promises.readFile(
     path.join(__dirname, "..", "..", "version"),
     "utf-8"

@@ -2,37 +2,37 @@
 <!-- Copyright (C) 2020  Matthew "strager" Glazar -->
 <!-- See end of file for extended copyright information. -->
 <html lang="en">
-  <head>
-    <%- await include("../../../common-head.ejs.html", { title: `Install
-    quick-lint-js CLI on GNU/Linux`, description: `Install quick-lint-js's CLI
-    on GNU/Linux` }) %>
-    <link href="../../../main.css" rel="stylesheet" />
-  </head>
+  <%- await include("../common-head.ejs.html", {where: "with winget"}) %>
   <body class="side-bar-nav">
-    <%- await include("../common-header.ejs.html", {breadcrumbName: `Manual
-    (GNU/Linux)`}) %>
+    <%- await include("../common-header.ejs.html", {breadcrumbName: "winget"})
+    %>
 
     <main>
       <h2>
         <img
           class="install-logo"
-          src="../../../gnome-terminal.svg"
+          src="../../../kate.svg"
           alt=""
-          title="CLI and LSP server"
+          title="Kate"
           width="29"
           height="29"
         /><img
           class="os-logo"
-          src="../../../linux.svg"
+          src="../../../windows.svg"
           alt=""
-          title="GNU/Linux"
+          title="Windows"
           width="29"
           height="29"
         />
-        Install CLI and LSP server on GNU/Linux
+        Install for Kate with winget
       </h2>
 
-      <%- await include("../../common-static.ejs.html", {os: "linux"}) %>
+      <h3>Install prerequisites</h3>
+      <%- await include("../common-prerequisites.ejs.html") %>
+
+      <h3>Install quick-lint-js</h3>
+      <%- await include("../../common-winget.ejs.html") %> <%- await
+      include("../common-configure.ejs.html") %>
     </main>
 
     <footer><%- await include("../../../common-footer-nav.ejs.html") %></footer>
