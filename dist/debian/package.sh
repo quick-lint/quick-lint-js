@@ -52,13 +52,14 @@ source_dir="${temp_dir}/quick-lint-js-${package_version}"
 cp -aL dist/debian/debian "${source_dir}/debian"
 temp_debian_dir="${source_dir}/debian"
 if [ "${variant}" != default ]; then
+  cp -a "dist/debian/debian/changelog-${variant}" "${source_dir}/debian/compat"
   cp -a "dist/debian/debian/compat-${variant}" "${source_dir}/debian/compat"
   cp -a "dist/debian/debian/control-${variant}" "${source_dir}/debian/control"
   cp -a "dist/debian/debian/copyright-${variant}" "${source_dir}/debian/copyright"
   cp -a "dist/debian/debian/rules-${variant}" "${source_dir}/debian/rules"
   cp -a "dist/debian/debian/source/lintian-overrides-${variant}" "${source_dir}/debian/source/lintian-overrides"
 fi
-rm "${source_dir}/debian/"{compat,control,copyright,rules,source/lintian-overrides}-*
+rm "${source_dir}/debian/"{changelog,compat,control,copyright,rules,source/lintian-overrides}-*
 
 (
   cd "${source_dir}"
