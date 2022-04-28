@@ -290,7 +290,8 @@ msgstr "'else' ohne zugehöriges 'if'"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing comparison; '{1}' does not extend to the right side of '{0}'"
-msgstr "Vergleich fehlt. '{1}' wird nicht auf der rechten Seite von '{0}' angewandt"
+msgstr ""
+"Vergleich fehlt. '{1}' wird nicht auf der rechten Seite von '{0}' angewandt"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'{0}' found here"
@@ -312,7 +313,8 @@ msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "escaping '-' is not allowed in tag names; write '-' instead"
-msgstr "Escape von '-' ist in Tagnamen nicht erlaubt. '-' anstattdessen schreiben"
+msgstr ""
+"Escape von '-' ist in Tagnamen nicht erlaubt. '-' anstattdessen schreiben"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "extra ',' is not allowed between function call arguments"
@@ -483,7 +485,9 @@ msgstr "Ungültige UTF-8 Sequenz"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "attribute has wrong capitalization; write '{1}' instead"
-msgstr "Attribut mit falscher Groß- und Kleinschreibung; '{1}' anstattdessen schreiben"
+msgstr ""
+"Attribut mit falscher Groß- und Kleinschreibung; '{1}' anstattdessen "
+"schreiben"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "misspelled React attribute; write '{1}' instead"
@@ -735,7 +739,8 @@ msgstr "Klammern um linke Seite von '**' fehlen"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'**' operator cannot be used after unary '{1}' without parentheses"
-msgstr "Ohne Klammern kann der Operator '**' nicht nach unärem '{1}' verwendet werden"
+msgstr ""
+"Ohne Klammern kann der Operator '**' nicht nach unärem '{1}' verwendet werden"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing property name after '.' operator"
@@ -836,7 +841,9 @@ msgstr "Return-Statement gibt nichts (undefined) zurück"
 #: src/quick-lint-js/diagnostic-types.h
 msgid ""
 "unexpected statement before first switch case, expected 'case' or 'default'"
-msgstr "Unerwartetes Statment vor dem ersten Switch-Case. Entweder 'case' oder 'default' erwartet."
+msgstr ""
+"Unerwartetes Statment vor dem ersten Switch-Case. Entweder 'case' oder "
+"'default' erwartet."
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "stray comma in let statement"
@@ -945,7 +952,9 @@ msgstr "Unerwartetes 'default' außerhalb des switch-Statements"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"
-msgstr "'>' darf nicht direkt in JSX-Text verwendet werden. Anstattdessen {{'>} oder &gt; schreiben."
+msgstr ""
+"'>' darf nicht direkt in JSX-Text verwendet werden. Anstattdessen {{'>} oder "
+"&gt; schreiben."
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unexpected literal in parameter list; expected parameter name"
@@ -953,7 +962,9 @@ msgstr "Unerwartetes Literal in Parameterliste. Parametername erwartet"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'}' is not allowed directly in JSX text; write {{'}'} instead"
-msgstr "'}' darf nicht direkt in JSX-Text verwendet werden. Anstattdessen {{'}'} schreiben"
+msgstr ""
+"'}' darf nicht direkt in JSX-Text verwendet werden. Anstattdessen {{'}'} "
+"schreiben"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "C-style for loops have only three semicolon-separated components"

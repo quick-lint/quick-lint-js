@@ -19,8 +19,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 256;
-constexpr std::size_t translation_table_string_table_size = 48608;
+constexpr std::uint16_t translation_table_mapping_table_size = 257;
+constexpr std::size_t translation_table_string_table_size = 48667;
 constexpr std::size_t translation_table_locale_table_size = 24;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_hash_table_look_up(
