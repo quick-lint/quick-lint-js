@@ -9,13 +9,47 @@ import re
 import pathlib
 
 
+ASCIIDOCTOR_VERSION = "2.0.17"
+
+
 def main():
     qljs_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     os.chdir(qljs_dir)
 
+    gem_home = os.path.join(qljs_dir, "man", "gems")
+    env = dict(os.environ, GEM_HOME=gem_home)
+
+    asciidoctor_is_installed = (
+        subprocess.call(
+            [
+                "gem",
+                "list",
+                "--installed",
+                "--version",
+                ASCIIDOCTOR_VERSION,
+                "asciidoctor",
+            ],
+            env=env,
+            stdout=subprocess.DEVNULL,
+        )
+        == 0
+    )
+    if not asciidoctor_is_installed:
+        subprocess.check_call(
+            [
+                "gem",
+                "install",
+                "--version",
+                ASCIIDOCTOR_VERSION,
+                "asciidoctor",
+            ],
+            env=env,
+        )
+
+    asciidoctor_path = os.path.join(gem_home, "bin", "asciidoctor")
     subprocess.check_output(
         [
-            "asciidoctor",
+            asciidoctor_path,
             "-b",
             "manpage",
             "-D",
@@ -23,11 +57,12 @@ def main():
             "-o",
             "quick-lint-js.1",
             "cli.adoc",
-        ]
+        ],
+        env=env,
     )
     subprocess.check_output(
         [
-            "asciidoctor",
+            asciidoctor_path,
             "-b",
             "manpage",
             "-D",
@@ -35,7 +70,8 @@ def main():
             "-o",
             "quick-lint-js.config.5",
             "config.adoc",
-        ]
+        ],
+        env=env,
     )
 
     process_man(pathlib.Path("man/quick-lint-js.1"))
