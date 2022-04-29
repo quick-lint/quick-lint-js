@@ -1292,7 +1292,8 @@ void lexer::parse_modern_octal_number() {
 
 void lexer::check_precision_loss(const char8* number_begin,
                                  const char8* input) {
-  string8_view number_literal(number_begin, input - number_begin);
+  string8_view number_literal(number_begin,
+                              static_cast<size_t>(input - number_begin));
   const size_t GUARANTEED_ACC_LENGTH = 15;
   const size_t MAX_ACC_LENGTH = 309;
   if (number_literal.size() > GUARANTEED_ACC_LENGTH) {
@@ -1314,17 +1315,21 @@ void lexer::check_precision_loss(const char8* number_begin,
       std::array<char, MAX_ACC_LENGTH + 1> result_string;
       int rc = std::snprintf(result_string.data(), result_string.size(), "%.0f",
                              num);
-      QLJS_ALWAYS_ASSERT(rc >= 0 && rc < result_string.size());
-      std::string_view result_string_view(result_string.data(), rc);
+      QLJS_ALWAYS_ASSERT(rc >= 0 &&
+                         static_cast<size_t>(rc) < result_string.size());
+      std::string_view result_string_view(result_string.data(),
+                                          static_cast<size_t>(rc));
       if (cleaned_string != result_string_view) {
         char8* rounded_val =
             this->allocator_.allocate_uninitialized_array<char8>(
                 result_string_view.size());
         std::copy(result_string_view.begin(), result_string_view.end(),
                   rounded_val);
+        string8_view rounded_val_string_view =
+            string8_view(rounded_val, result_string_view.size());
         this->diag_reporter_->report(diag_number_literal_will_lose_precision{
             .characters = source_code_span(number_begin, input),
-            .rounded_val = rounded_val,
+            .rounded_val = rounded_val_string_view,
         });
       }
     }
