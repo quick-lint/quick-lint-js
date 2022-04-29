@@ -60,7 +60,7 @@ in your web browser to look at warnings from appstream-generator.
 To view in the Pop!\_Shop:
 
 1. Add the following entry to `/etc/apt/sources.list.d/quick-lint-js.list`:
-   `deb [arch=amd64 trusted=yes allow-insecure=yes] http://172.17.0.1:8069/ experimental main`
+   `deb [arch=amd64 trusted=yes allow-insecure=yes] http://localhost:8069/ experimental main`
 2. Run `sudo apt update`.
 3. Open the Pop!\_Shop.
 4. Search for "quick-lint". (For some reason, searching for "quick-lint-js"
