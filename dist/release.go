@@ -98,7 +98,7 @@ var Steps []Step = []Step{
 		Run: func() {
 			cmd := exec.Command("./docs/man/generate-man-pages")
 			if err := cmd.Run(); err != nil {
-				log.Fatalf("failed to generate man pages: %v", err)
+				Stopf("failed to generate man pages: %v", err)
 			}
 		},
 	},
@@ -132,7 +132,7 @@ var Steps []Step = []Step{
 		Title: "Download builds",
 		Run: func() {
 			if ReleaseCommitHash == "" {
-				log.Fatalf("missing -ReleaseCommitHash\n")
+				Stopf("missing -ReleaseCommitHash\n")
 			}
 			fmt.Printf("Download the build artifacts from the artifact server:\n")
 			fmt.Printf("$ rsync -av github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/builds/%s/ builds/\n", ReleaseCommitHash)
@@ -224,7 +224,7 @@ var Steps []Step = []Step{
 		Title: "Publish the website",
 		Run: func() {
 			if ReleaseCommitHash == "" {
-				log.Fatalf("missing -ReleaseCommitHash\n")
+				Stopf("missing -ReleaseCommitHash\n")
 			}
 			fmt.Printf("Publish the website: Run `./website/deploy.sh %s`.\n", ReleaseCommitHash)
 			WaitForDone()
@@ -365,6 +365,12 @@ retry:
 	goto retry
 }
 
+// Print a message and stop. Use this instead of log.Fatalf.
+func Stopf(format string, a ...interface{}) {
+	log.Printf(format, a...)
+	Stop()
+}
+
 func Stop() {
 	fmt.Printf("\nStopped at step #%d\n", CurrentStepIndex+1)
 	fmt.Printf("To resume, run:\n")
@@ -383,7 +389,7 @@ func UpdateReleaseVersionsInFiles(paths []string) {
 		path = filepath.Join(DistPath, "..", path)
 		data, err := os.ReadFile(path)
 		if err != nil {
-			log.Fatalf("failed to read file: %v", err)
+			Stopf("failed to read file: %v", err)
 		}
 		fileContents[path] = data
 	}
@@ -395,7 +401,7 @@ func UpdateReleaseVersionsInFiles(paths []string) {
 	for path, data := range fileContents {
 		fileMode := fs.FileMode(0644) // Unused, because the file should already exist.
 		if err := os.WriteFile(path, data, fileMode); err != nil {
-			log.Fatalf("failed to write updated file: %v", err)
+			Stopf("failed to write updated file: %v", err)
 		}
 	}
 }
@@ -431,7 +437,7 @@ func GetCurrentGitCommitHash() string {
 	cmd.Stderr = os.Stderr
 	stdout, err := cmd.Output()
 	if err != nil {
-		log.Fatalf("failed to get Git commit hash: %v", err)
+		Stopf("failed to get Git commit hash: %v", err)
 	}
 	return strings.TrimSpace(string(stdout))
 }
@@ -441,7 +447,7 @@ func GetGitUncommittedChanges() []string {
 	cmd.Stderr = os.Stderr
 	stdout, err := cmd.Output()
 	if err != nil {
-		log.Fatalf("failed to get Git commit hash: %v", err)
+		Stopf("failed to get Git commit hash: %v", err)
 	}
 	changes := RemoveEmptyStrings(StringLines(string(stdout)))
 	return changes
@@ -455,7 +461,7 @@ type VersionFileInfo struct {
 func ReadVersionFile() VersionFileInfo {
 	data, err := os.ReadFile(filepath.Join(DistPath, "..", "version"))
 	if err != nil {
-		log.Fatalf("failed to read version file: %v", err)
+		Stopf("failed to read version file: %v", err)
 	}
 	lines := StringLines(string(data))
 	return VersionFileInfo{
