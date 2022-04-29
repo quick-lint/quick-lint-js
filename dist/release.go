@@ -322,10 +322,16 @@ func main() {
 	DistPath = filepath.Dir(scriptPath)
 
 	startAtStepNumber := 0
+	listSteps := false
+	flag.BoolVar(&listSteps, "ListSteps", false, "")
 	flag.IntVar(&startAtStepNumber, "StartAtStep", 1, "")
 	flag.StringVar(&ReleaseCommitHash, "ReleaseCommitHash", "", "")
 	flag.StringVar(&OldReleaseVersion, "OldReleaseVersion", "", "")
 	flag.Parse()
+	if listSteps {
+		ListSteps()
+		os.Exit(0)
+	}
 	if flag.NArg() != 1 {
 		fmt.Fprintf(os.Stderr, "error: expected exactly one argument (a version number)\n")
 		os.Exit(2)
@@ -345,6 +351,12 @@ func main() {
 		step.Run()
 		fmt.Printf("\n")
 		CurrentStepIndex += 1
+	}
+}
+
+func ListSteps() {
+	for stepIndex, step := range Steps {
+		fmt.Printf("#%d: %s\n", stepIndex+1, step.Title)
 	}
 }
 
