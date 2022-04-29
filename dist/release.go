@@ -27,6 +27,21 @@ var ReleaseVersion string
 
 var Steps []Step = []Step{
 	Step{
+		Title: "Verifying checkout",
+		Run: func() {
+			uncommittedChanges := GetGitUncommittedChanges()
+			if len(uncommittedChanges) > 0 {
+				fmt.Printf("fatal error: uncommitted changes in Git:\n")
+				for _, line := range uncommittedChanges {
+					fmt.Printf("  %s\n", line)
+				}
+				Stop()
+			}
+			fmt.Printf("No uncommitted changes found\n")
+		},
+	},
+
+	Step{
 		Title: "Update release notes file",
 		Run: func() {
 			fmt.Printf("Update the release notes file: docs/CHANGELOG.md\n")
@@ -329,17 +344,21 @@ retry:
 		return
 	}
 	if text == "stop\n" {
-		fmt.Printf("\nStopped at step #%d\n", CurrentStepIndex+1)
-		fmt.Printf("To resume, run:\n")
-		fmt.Printf("$ go run dist/release.go -StartAtStep=%d -OldReleaseVersion=%s", CurrentStepIndex+1, OldReleaseVersion)
-		if ReleaseCommitHash != "" {
-			fmt.Printf(" -ReleaseCommitHash=%s", ReleaseCommitHash)
-		}
-		fmt.Printf(" %s\n", ReleaseVersion)
-		os.Exit(0)
+		Stop()
 	}
 	fmt.Printf("What's that? Type 'done' or 'stop': ")
 	goto retry
+}
+
+func Stop() {
+	fmt.Printf("\nStopped at step #%d\n", CurrentStepIndex+1)
+	fmt.Printf("To resume, run:\n")
+	fmt.Printf("$ go run dist/release.go -StartAtStep=%d -OldReleaseVersion=%s", CurrentStepIndex+1, OldReleaseVersion)
+	if ReleaseCommitHash != "" {
+		fmt.Printf(" -ReleaseCommitHash=%s", ReleaseCommitHash)
+	}
+	fmt.Printf(" %s\n", ReleaseVersion)
+	os.Exit(0)
 }
 
 func GetCurrentGitCommitHash() string {
@@ -352,6 +371,17 @@ func GetCurrentGitCommitHash() string {
 	return strings.TrimSpace(string(stdout))
 }
 
+func GetGitUncommittedChanges() []string {
+	cmd := exec.Command("git", "status", "--porcelain", "--untracked-files=no")
+	cmd.Stderr = os.Stderr
+	stdout, err := cmd.Output()
+	if err != nil {
+		log.Fatalf("failed to get Git commit hash: %v", err)
+	}
+	changes := RemoveEmptyStrings(StringLines(string(stdout)))
+	return changes
+}
+
 type VersionFileInfo struct {
 	VersionNumber string
 	ReleaseDate   string
@@ -362,11 +392,25 @@ func ReadVersionFile() VersionFileInfo {
 	if err != nil {
 		log.Fatalf("failed to read version file: %v", err)
 	}
-	lines := strings.Split(string(data), "\n")
+	lines := StringLines(string(data))
 	return VersionFileInfo{
 		VersionNumber: lines[0],
 		ReleaseDate:   lines[1],
 	}
+}
+
+func StringLines(s string) []string {
+	return strings.Split(s, "\n")
+}
+
+func RemoveEmptyStrings(ss []string) []string {
+	result := []string{}
+	for _, s := range ss {
+		if s != "" {
+			result = append(result, s)
+		}
+	}
+	return result
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
