@@ -4,12 +4,15 @@
 package main
 
 import "bufio"
+import "bytes"
 import "flag"
 import "fmt"
+import "io/fs"
 import "log"
 import "os"
 import "os/exec"
 import "path/filepath"
+import "regexp"
 import "runtime"
 import "strings"
 
@@ -24,6 +27,8 @@ type Step struct {
 var OldReleaseVersion string
 var ReleaseCommitHash string
 var ReleaseVersion string
+
+var ThreePartVersionRegexp *regexp.Regexp = regexp.MustCompile("\\b\\d+\\.\\d+\\.\\d+\\b")
 
 var Steps []Step = []Step{
 	Step{
@@ -50,30 +55,38 @@ var Steps []Step = []Step{
 	},
 
 	Step{
-		Title: "Update version number and release date",
+		Title: "Update version number in files",
+		Run: func() {
+			UpdateReleaseVersionsInFiles([]string{
+				"Formula/quick-lint-js.rb",
+				"dist/arch/PKGBUILD-dev",
+				"dist/arch/PKGBUILD-git",
+				"dist/arch/PKGBUILD-release",
+				"dist/chocolatey/quick-lint-js.nuspec",
+				"dist/chocolatey/tools/VERIFICATION.txt",
+				"dist/debian/README.md",
+				"dist/npm/BUILDING.md",
+				"dist/npm/package.json",
+				"dist/scoop/quick-lint-js.template.json",
+				"dist/sign-release.go",
+				"plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt",
+				"plugin/vscode-lsp/README.md",
+				"plugin/vscode/BUILDING.md",
+			})
+		},
+	},
+
+	Step{
+		Title: "Manually update version number and release date",
 		Run: func() {
 			fmt.Printf("Change these files containing version numbers:\n")
-			fmt.Printf("* Formula/quick-lint-js.rb\n")
-			fmt.Printf("* dist/arch/PKGBUILD-dev\n")
-			fmt.Printf("* dist/arch/PKGBUILD-git\n")
-			fmt.Printf("* dist/arch/PKGBUILD-release\n")
-			fmt.Printf("* dist/chocolatey/quick-lint-js.nuspec\n")
-			fmt.Printf("* dist/chocolatey/tools/VERIFICATION.txt\n")
-			fmt.Printf("* dist/debian/README.md\n")
-			fmt.Printf("* dist/debian/debian/changelog\n")
 			fmt.Printf("* dist/debian/debian/changelog-xenial\n")
+			fmt.Printf("* dist/debian/debian/changelog\n")
 			fmt.Printf("* dist/msix/AppxManifest.xml\n")
-			fmt.Printf("* dist/npm/BUILDING.md\n")
-			fmt.Printf("* dist/npm/package.json\n")
-			fmt.Printf("* dist/scoop/quick-lint-js.template.json\n")
-			fmt.Printf("* dist/sign-release.go\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.installer.template.yaml\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.locale.en-US.template.yaml\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.template.yaml\n")
-			fmt.Printf("* plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt\n")
-			fmt.Printf("* plugin/vscode-lsp/README.md\n")
 			fmt.Printf("* plugin/vscode-lsp/package.json\n")
-			fmt.Printf("* plugin/vscode/BUILDING.md\n")
 			fmt.Printf("* plugin/vscode/package.json\n")
 			fmt.Printf("* version\n")
 			WaitForDone()
@@ -360,6 +373,56 @@ func Stop() {
 	}
 	fmt.Printf(" %s\n", ReleaseVersion)
 	os.Exit(0)
+}
+
+func UpdateReleaseVersionsInFiles(paths []string) {
+	fileContents := make(map[string][]byte)
+
+	for _, path := range paths {
+		path = filepath.Join(DistPath, "..", path)
+		data, err := os.ReadFile(path)
+		if err != nil {
+			log.Fatalf("failed to read file: %v", err)
+		}
+		fileContents[path] = data
+	}
+
+	for path, data := range fileContents {
+		fileContents[path] = UpdateReleaseVersions(data, path)
+	}
+
+	for path, data := range fileContents {
+		fileMode := fs.FileMode(0644) // Unused, because the file should already exist.
+		if err := os.WriteFile(path, data, fileMode); err != nil {
+			log.Fatalf("failed to write updated file: %v", err)
+		}
+	}
+}
+
+func UpdateReleaseVersions(fileContent []byte, pathForDebugging string) []byte {
+	oldVersion := []byte(OldReleaseVersion)
+	newVersion := []byte(ReleaseVersion)
+	foundOldVersion := false
+	foundUnexpectedVersion := false
+	fileContent = ThreePartVersionRegexp.ReplaceAllFunc(fileContent, func(match []byte) []byte {
+		if bytes.Equal(match, oldVersion) {
+			foundOldVersion = true
+			return newVersion
+		} else {
+			foundUnexpectedVersion = true
+			log.Printf("error: found unexpected version number in %s: %s\n", pathForDebugging, string(match))
+			return match
+		}
+	})
+	if !foundOldVersion {
+		log.Printf("error: failed to find old version number %s in %s\n", OldReleaseVersion, pathForDebugging)
+		os.Exit(1)
+	}
+	if foundUnexpectedVersion {
+		os.Exit(1)
+	}
+
+	return fileContent
 }
 
 func GetCurrentGitCommitHash() string {
