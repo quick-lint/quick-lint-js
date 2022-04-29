@@ -5,7 +5,7 @@
 # directly.
 
 find_non_vendor_files() {
-  git ls-files --cached --exclude-standard --others \
+  git ls-files --cached --exclude-standard \
     | { grep -v '^vendor/.*/' || true ; } \
     | {
       while read path ; do
