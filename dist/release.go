@@ -152,18 +152,31 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Create a Scoop manifest",
 		Run: func() {
-			fmt.Printf("Create a Scoop manifest:\n")
-			fmt.Printf("$ go run ./dist/scoop/make-manifest.go -BaseURI \"https://c.quick-lint-js.com/releases/%s/\" -x86-ZIP signed-builds/manual/windows-x86.zip -x64-ZIP signed-builds/manual/windows.zip -Out signed-builds/scoop/quick-lint-js.json\n", ReleaseVersion)
-			WaitForDone()
+			cmd := exec.Command(
+				"go", "run", "./dist/scoop/make-manifest.go", "-BaseURI",
+				fmt.Sprintf("https://c.quick-lint-js.com/releases/%s/", ReleaseVersion),
+				"-x86-ZIP", "signed-builds/manual/windows-x86.zip",
+				"-x64-ZIP", "signed-builds/manual/windows.zip",
+				"-Out", "signed-builds/scoop/quick-lint-js.json",
+			)
+			if err := cmd.Run(); err != nil {
+				Stopf("failed to create Scoop manifest: %v", err)
+			}
 		},
 	},
 
 	Step{
 		Title: "Create a winget manifest",
 		Run: func() {
-			fmt.Printf("Create a winget manifest:\n")
-			fmt.Printf("$ go run ./dist/winget/make-manifests.go -BaseURI \"https://c.quick-lint-js.com/releases/%s/\" -MSIX signed-builds/windows/quick-lint-js.msix -OutDir signed-builds/winget/\n", ReleaseVersion)
-			WaitForDone()
+			cmd := exec.Command(
+				"go", "run", "./dist/winget/make-manifests.go", "-BaseURI",
+				fmt.Sprintf("https://c.quick-lint-js.com/releases/%s/", ReleaseVersion),
+				"-MSIX", "signed-builds/windows/quick-lint-js.msix",
+				"-OutDir", "signed-builds/winget/",
+			)
+			if err := cmd.Run(); err != nil {
+				Stopf("failed to create winget manifest: %v", err)
+			}
 		},
 	},
 
