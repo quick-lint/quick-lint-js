@@ -96,9 +96,10 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Re-generate man pages",
 		Run: func() {
-			fmt.Printf("Re-generate man pages to include the updated version number by running:\n")
-			fmt.Printf("$ ./docs/man/generate-man-pages\n")
-			WaitForDone()
+			cmd := exec.Command("./docs/man/generate-man-pages")
+			if err := cmd.Run(); err != nil {
+				log.Fatalf("failed to generate man pages: %v", err)
+			}
 		},
 	},
 
