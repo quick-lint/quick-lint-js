@@ -4,22 +4,48 @@
 package main
 
 import "bufio"
+import "bytes"
 import "flag"
 import "fmt"
+import "io/fs"
 import "log"
 import "os"
 import "os/exec"
+import "path/filepath"
+import "regexp"
+import "runtime"
 import "strings"
+
+// Path to the 'dist' directory containing this file (sign-release.go).
+var DistPath string
 
 type Step struct {
 	Title string
 	Run   func()
 }
 
+var OldReleaseVersion string
 var ReleaseCommitHash string
 var ReleaseVersion string
 
+var ThreePartVersionRegexp *regexp.Regexp = regexp.MustCompile("\\b\\d+\\.\\d+\\.\\d+\\b")
+
 var Steps []Step = []Step{
+	Step{
+		Title: "Verifying checkout",
+		Run: func() {
+			uncommittedChanges := GetGitUncommittedChanges()
+			if len(uncommittedChanges) > 0 {
+				fmt.Printf("fatal error: uncommitted changes in Git:\n")
+				for _, line := range uncommittedChanges {
+					fmt.Printf("  %s\n", line)
+				}
+				Stop()
+			}
+			fmt.Printf("No uncommitted changes found\n")
+		},
+	},
+
 	Step{
 		Title: "Update release notes file",
 		Run: func() {
@@ -29,29 +55,38 @@ var Steps []Step = []Step{
 	},
 
 	Step{
-		Title: "Update version number and release date",
+		Title: "Update version number in files",
+		Run: func() {
+			UpdateReleaseVersionsInFiles([]string{
+				"Formula/quick-lint-js.rb",
+				"dist/arch/PKGBUILD-dev",
+				"dist/arch/PKGBUILD-git",
+				"dist/arch/PKGBUILD-release",
+				"dist/chocolatey/quick-lint-js.nuspec",
+				"dist/chocolatey/tools/VERIFICATION.txt",
+				"dist/debian/README.md",
+				"dist/npm/BUILDING.md",
+				"dist/npm/package.json",
+				"dist/scoop/quick-lint-js.template.json",
+				"dist/sign-release.go",
+				"plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt",
+				"plugin/vscode-lsp/README.md",
+				"plugin/vscode/BUILDING.md",
+			})
+		},
+	},
+
+	Step{
+		Title: "Manually update version number and release date",
 		Run: func() {
 			fmt.Printf("Change these files containing version numbers:\n")
-			fmt.Printf("* Formula/quick-lint-js.rb\n")
-			fmt.Printf("* dist/arch/PKGBUILD-dev\n")
-			fmt.Printf("* dist/arch/PKGBUILD-git\n")
-			fmt.Printf("* dist/arch/PKGBUILD-release\n")
-			fmt.Printf("* dist/chocolatey/quick-lint-js.nuspec\n")
-			fmt.Printf("* dist/chocolatey/tools/VERIFICATION.txt\n")
-			fmt.Printf("* dist/debian/README.md\n")
+			fmt.Printf("* dist/debian/debian/changelog-xenial\n")
 			fmt.Printf("* dist/debian/debian/changelog\n")
 			fmt.Printf("* dist/msix/AppxManifest.xml\n")
-			fmt.Printf("* dist/npm/BUILDING.md\n")
-			fmt.Printf("* dist/npm/package.json\n")
-			fmt.Printf("* dist/scoop/quick-lint-js.template.json\n")
-			fmt.Printf("* dist/sign-release.go\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.installer.template.yaml\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.locale.en-US.template.yaml\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.template.yaml\n")
-			fmt.Printf("* plugin/vim/quick-lint-js.vim/doc/quick-lint-js.txt\n")
-			fmt.Printf("* plugin/vscode-lsp/README.md\n")
 			fmt.Printf("* plugin/vscode-lsp/package.json\n")
-			fmt.Printf("* plugin/vscode/BUILDING.md\n")
 			fmt.Printf("* plugin/vscode/package.json\n")
 			fmt.Printf("* version\n")
 			WaitForDone()
@@ -61,9 +96,10 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Re-generate man pages",
 		Run: func() {
-			fmt.Printf("Re-generate man pages to include the updated version number by running:\n")
-			fmt.Printf("$ ./docs/man/generate-man-pages\n")
-			WaitForDone()
+			cmd := exec.Command("./docs/man/generate-man-pages")
+			if err := cmd.Run(); err != nil {
+				Stopf("failed to generate man pages: %v", err)
+			}
 		},
 	},
 
@@ -96,7 +132,7 @@ var Steps []Step = []Step{
 		Title: "Download builds",
 		Run: func() {
 			if ReleaseCommitHash == "" {
-				log.Fatalf("missing -ReleaseCommitHash\n")
+				Stopf("missing -ReleaseCommitHash\n")
 			}
 			fmt.Printf("Download the build artifacts from the artifact server:\n")
 			fmt.Printf("$ rsync -av github-ci@c.quick-lint-js.com:/var/www/c.quick-lint-js.com/builds/%s/ builds/\n", ReleaseCommitHash)
@@ -116,18 +152,31 @@ var Steps []Step = []Step{
 	Step{
 		Title: "Create a Scoop manifest",
 		Run: func() {
-			fmt.Printf("Create a Scoop manifest:\n")
-			fmt.Printf("$ go run ./dist/scoop/make-manifest.go -BaseURI \"https://c.quick-lint-js.com/releases/%s/\" -x86-ZIP signed-builds/manual/windows-x86.zip -x64-ZIP signed-builds/manual/windows.zip -Out signed-builds/scoop/quick-lint-js.json\n", ReleaseVersion)
-			WaitForDone()
+			cmd := exec.Command(
+				"go", "run", "./dist/scoop/make-manifest.go", "-BaseURI",
+				fmt.Sprintf("https://c.quick-lint-js.com/releases/%s/", ReleaseVersion),
+				"-x86-ZIP", "signed-builds/manual/windows-x86.zip",
+				"-x64-ZIP", "signed-builds/manual/windows.zip",
+				"-Out", "signed-builds/scoop/quick-lint-js.json",
+			)
+			if err := cmd.Run(); err != nil {
+				Stopf("failed to create Scoop manifest: %v", err)
+			}
 		},
 	},
 
 	Step{
 		Title: "Create a winget manifest",
 		Run: func() {
-			fmt.Printf("Create a winget manifest:\n")
-			fmt.Printf("$ go run ./dist/winget/make-manifests.go -BaseURI \"https://c.quick-lint-js.com/releases/%s/\" -MSIX signed-builds/windows/quick-lint-js.msix -OutDir signed-builds/winget/\n", ReleaseVersion)
-			WaitForDone()
+			cmd := exec.Command(
+				"go", "run", "./dist/winget/make-manifests.go", "-BaseURI",
+				fmt.Sprintf("https://c.quick-lint-js.com/releases/%s/", ReleaseVersion),
+				"-MSIX", "signed-builds/windows/quick-lint-js.msix",
+				"-OutDir", "signed-builds/winget/",
+			)
+			if err := cmd.Run(); err != nil {
+				Stopf("failed to create winget manifest: %v", err)
+			}
 		},
 	},
 
@@ -188,7 +237,7 @@ var Steps []Step = []Step{
 		Title: "Publish the website",
 		Run: func() {
 			if ReleaseCommitHash == "" {
-				log.Fatalf("missing -ReleaseCommitHash\n")
+				Stopf("missing -ReleaseCommitHash\n")
 			}
 			fmt.Printf("Publish the website: Run `./website/deploy.sh %s`.\n", ReleaseCommitHash)
 			WaitForDone()
@@ -229,7 +278,9 @@ var Steps []Step = []Step{
 			fmt.Printf("1. Clone https://github.com/NixOS/nixpkgs with Git.\n")
 			fmt.Printf("2. Update the version number and SHA1 hash in the pkgs/development/tools/quick-lint-js/default.nix file.\n")
 			fmt.Printf("3. Test installation by running `nix-env -i -f . -A quick-lint-js`.\n")
-			fmt.Printf("4. Commit all files with message \"quick-lint-js: OLDVERSION -> %s\".\n", ReleaseVersion)
+			// TODO(strager): OldReleaseVersion is incorrect if the
+			// Nixpkgs package is older than the previous release.
+			fmt.Printf("4. Commit all files with message \"quick-lint-js: %s -> %s\".\n", OldReleaseVersion, ReleaseVersion)
 			fmt.Printf("5. Push to a fork on GitHub.\n")
 			fmt.Printf("6. Create a pull request on GitHub.\n")
 			WaitForDone()
@@ -277,10 +328,23 @@ var CurrentStepIndex int
 func main() {
 	ConsoleInput = bufio.NewReader(os.Stdin)
 
+	_, scriptPath, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("could not determine path of .go file")
+	}
+	DistPath = filepath.Dir(scriptPath)
+
 	startAtStepNumber := 0
+	listSteps := false
+	flag.BoolVar(&listSteps, "ListSteps", false, "")
 	flag.IntVar(&startAtStepNumber, "StartAtStep", 1, "")
 	flag.StringVar(&ReleaseCommitHash, "ReleaseCommitHash", "", "")
+	flag.StringVar(&OldReleaseVersion, "OldReleaseVersion", "", "")
 	flag.Parse()
+	if listSteps {
+		ListSteps()
+		os.Exit(0)
+	}
 	if flag.NArg() != 1 {
 		fmt.Fprintf(os.Stderr, "error: expected exactly one argument (a version number)\n")
 		os.Exit(2)
@@ -288,12 +352,24 @@ func main() {
 	ReleaseVersion = flag.Arg(0)
 	CurrentStepIndex = startAtStepNumber - 1
 
+	if OldReleaseVersion == "" {
+		version := ReadVersionFile()
+		OldReleaseVersion = version.VersionNumber
+		fmt.Printf("note: detected previous release version: %s\n", OldReleaseVersion)
+	}
+
 	for CurrentStepIndex < len(Steps) {
 		step := &Steps[CurrentStepIndex]
 		fmt.Printf("#%d: %s\n", CurrentStepIndex+1, step.Title)
 		step.Run()
 		fmt.Printf("\n")
 		CurrentStepIndex += 1
+	}
+}
+
+func ListSteps() {
+	for stepIndex, step := range Steps {
+		fmt.Printf("#%d: %s\n", stepIndex+1, step.Title)
 	}
 }
 
@@ -308,17 +384,77 @@ retry:
 		return
 	}
 	if text == "stop\n" {
-		fmt.Printf("\nStopped at step #%d\n", CurrentStepIndex+1)
-		fmt.Printf("To resume, run:\n")
-		fmt.Printf("$ go run dist/release.go -StartAtStep=%d", CurrentStepIndex+1)
-		if ReleaseCommitHash != "" {
-			fmt.Printf(" -ReleaseCommitHash=%s", ReleaseCommitHash)
-		}
-		fmt.Printf(" %s\n", ReleaseVersion)
-		os.Exit(0)
+		Stop()
 	}
 	fmt.Printf("What's that? Type 'done' or 'stop': ")
 	goto retry
+}
+
+// Print a message and stop. Use this instead of log.Fatalf.
+func Stopf(format string, a ...interface{}) {
+	log.Printf(format, a...)
+	Stop()
+}
+
+func Stop() {
+	fmt.Printf("\nStopped at step #%d\n", CurrentStepIndex+1)
+	fmt.Printf("To resume, run:\n")
+	fmt.Printf("$ go run dist/release.go -StartAtStep=%d -OldReleaseVersion=%s", CurrentStepIndex+1, OldReleaseVersion)
+	if ReleaseCommitHash != "" {
+		fmt.Printf(" -ReleaseCommitHash=%s", ReleaseCommitHash)
+	}
+	fmt.Printf(" %s\n", ReleaseVersion)
+	os.Exit(0)
+}
+
+func UpdateReleaseVersionsInFiles(paths []string) {
+	fileContents := make(map[string][]byte)
+
+	for _, path := range paths {
+		path = filepath.Join(DistPath, "..", path)
+		data, err := os.ReadFile(path)
+		if err != nil {
+			Stopf("failed to read file: %v", err)
+		}
+		fileContents[path] = data
+	}
+
+	for path, data := range fileContents {
+		fileContents[path] = UpdateReleaseVersions(data, path)
+	}
+
+	for path, data := range fileContents {
+		fileMode := fs.FileMode(0644) // Unused, because the file should already exist.
+		if err := os.WriteFile(path, data, fileMode); err != nil {
+			Stopf("failed to write updated file: %v", err)
+		}
+	}
+}
+
+func UpdateReleaseVersions(fileContent []byte, pathForDebugging string) []byte {
+	oldVersion := []byte(OldReleaseVersion)
+	newVersion := []byte(ReleaseVersion)
+	foundOldVersion := false
+	foundUnexpectedVersion := false
+	fileContent = ThreePartVersionRegexp.ReplaceAllFunc(fileContent, func(match []byte) []byte {
+		if bytes.Equal(match, oldVersion) {
+			foundOldVersion = true
+			return newVersion
+		} else {
+			foundUnexpectedVersion = true
+			log.Printf("error: found unexpected version number in %s: %s\n", pathForDebugging, string(match))
+			return match
+		}
+	})
+	if !foundOldVersion {
+		log.Printf("error: failed to find old version number %s in %s\n", OldReleaseVersion, pathForDebugging)
+		os.Exit(1)
+	}
+	if foundUnexpectedVersion {
+		os.Exit(1)
+	}
+
+	return fileContent
 }
 
 func GetCurrentGitCommitHash() string {
@@ -326,9 +462,51 @@ func GetCurrentGitCommitHash() string {
 	cmd.Stderr = os.Stderr
 	stdout, err := cmd.Output()
 	if err != nil {
-		log.Fatalf("failed to get Git commit hash: %v", err)
+		Stopf("failed to get Git commit hash: %v", err)
 	}
 	return strings.TrimSpace(string(stdout))
+}
+
+func GetGitUncommittedChanges() []string {
+	cmd := exec.Command("git", "status", "--porcelain", "--untracked-files=no")
+	cmd.Stderr = os.Stderr
+	stdout, err := cmd.Output()
+	if err != nil {
+		Stopf("failed to get Git commit hash: %v", err)
+	}
+	changes := RemoveEmptyStrings(StringLines(string(stdout)))
+	return changes
+}
+
+type VersionFileInfo struct {
+	VersionNumber string
+	ReleaseDate   string
+}
+
+func ReadVersionFile() VersionFileInfo {
+	data, err := os.ReadFile(filepath.Join(DistPath, "..", "version"))
+	if err != nil {
+		Stopf("failed to read version file: %v", err)
+	}
+	lines := StringLines(string(data))
+	return VersionFileInfo{
+		VersionNumber: lines[0],
+		ReleaseDate:   lines[1],
+	}
+}
+
+func StringLines(s string) []string {
+	return strings.Split(s, "\n")
+}
+
+func RemoveEmptyStrings(ss []string) []string {
+	result := []string{}
+	for _, s := range ss {
+		if s != "" {
+			result = append(result, s)
+		}
+	}
+	return result
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
