@@ -9,13 +9,19 @@ import "fmt"
 import "log"
 import "os"
 import "os/exec"
+import "path/filepath"
+import "runtime"
 import "strings"
+
+// Path to the 'dist' directory containing this file (sign-release.go).
+var DistPath string
 
 type Step struct {
 	Title string
 	Run   func()
 }
 
+var OldReleaseVersion string
 var ReleaseCommitHash string
 var ReleaseVersion string
 
@@ -229,7 +235,9 @@ var Steps []Step = []Step{
 			fmt.Printf("1. Clone https://github.com/NixOS/nixpkgs with Git.\n")
 			fmt.Printf("2. Update the version number and SHA1 hash in the pkgs/development/tools/quick-lint-js/default.nix file.\n")
 			fmt.Printf("3. Test installation by running `nix-env -i -f . -A quick-lint-js`.\n")
-			fmt.Printf("4. Commit all files with message \"quick-lint-js: OLDVERSION -> %s\".\n", ReleaseVersion)
+			// TODO(strager): OldReleaseVersion is incorrect if the
+			// Nixpkgs package is older than the previous release.
+			fmt.Printf("4. Commit all files with message \"quick-lint-js: %s -> %s\".\n", OldReleaseVersion, ReleaseVersion)
 			fmt.Printf("5. Push to a fork on GitHub.\n")
 			fmt.Printf("6. Create a pull request on GitHub.\n")
 			WaitForDone()
@@ -277,9 +285,16 @@ var CurrentStepIndex int
 func main() {
 	ConsoleInput = bufio.NewReader(os.Stdin)
 
+	_, scriptPath, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("could not determine path of .go file")
+	}
+	DistPath = filepath.Dir(scriptPath)
+
 	startAtStepNumber := 0
 	flag.IntVar(&startAtStepNumber, "StartAtStep", 1, "")
 	flag.StringVar(&ReleaseCommitHash, "ReleaseCommitHash", "", "")
+	flag.StringVar(&OldReleaseVersion, "OldReleaseVersion", "", "")
 	flag.Parse()
 	if flag.NArg() != 1 {
 		fmt.Fprintf(os.Stderr, "error: expected exactly one argument (a version number)\n")
@@ -287,6 +302,12 @@ func main() {
 	}
 	ReleaseVersion = flag.Arg(0)
 	CurrentStepIndex = startAtStepNumber - 1
+
+	if OldReleaseVersion == "" {
+		version := ReadVersionFile()
+		OldReleaseVersion = version.VersionNumber
+		fmt.Printf("note: detected previous release version: %s\n", OldReleaseVersion)
+	}
 
 	for CurrentStepIndex < len(Steps) {
 		step := &Steps[CurrentStepIndex]
@@ -310,7 +331,7 @@ retry:
 	if text == "stop\n" {
 		fmt.Printf("\nStopped at step #%d\n", CurrentStepIndex+1)
 		fmt.Printf("To resume, run:\n")
-		fmt.Printf("$ go run dist/release.go -StartAtStep=%d", CurrentStepIndex+1)
+		fmt.Printf("$ go run dist/release.go -StartAtStep=%d -OldReleaseVersion=%s", CurrentStepIndex+1, OldReleaseVersion)
 		if ReleaseCommitHash != "" {
 			fmt.Printf(" -ReleaseCommitHash=%s", ReleaseCommitHash)
 		}
@@ -329,6 +350,23 @@ func GetCurrentGitCommitHash() string {
 		log.Fatalf("failed to get Git commit hash: %v", err)
 	}
 	return strings.TrimSpace(string(stdout))
+}
+
+type VersionFileInfo struct {
+	VersionNumber string
+	ReleaseDate   string
+}
+
+func ReadVersionFile() VersionFileInfo {
+	data, err := os.ReadFile(filepath.Join(DistPath, "..", "version"))
+	if err != nil {
+		log.Fatalf("failed to read version file: %v", err)
+	}
+	lines := strings.Split(string(data), "\n")
+	return VersionFileInfo{
+		VersionNumber: lines[0],
+		ReleaseDate:   lines[1],
+	}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
