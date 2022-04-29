@@ -61,6 +61,7 @@ var Steps []Step = []Step{
 			fmt.Printf("* dist/chocolatey/tools/VERIFICATION.txt\n")
 			fmt.Printf("* dist/debian/README.md\n")
 			fmt.Printf("* dist/debian/debian/changelog\n")
+			fmt.Printf("* dist/debian/debian/changelog-xenial\n")
 			fmt.Printf("* dist/msix/AppxManifest.xml\n")
 			fmt.Printf("* dist/npm/BUILDING.md\n")
 			fmt.Printf("* dist/npm/package.json\n")
