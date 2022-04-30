@@ -6,6 +6,7 @@
 #include <optional>
 #include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/identifier-support.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/spy-visitor.h>
@@ -15,16 +16,6 @@ using ::testing::ElementsAre;
 
 namespace quick_lint_js {
 namespace {
-template <std::size_t N>
-source_code_span span_of(const char8 (&code)[N]) {
-  return source_code_span(&code[0], &code[N]);
-}
-
-template <std::size_t N>
-identifier identifier_of(const char8 (&name)[N]) {
-  return identifier(span_of(name));
-}
-
 TEST(test_buffering_visitor, buffers_all_visits) {
   const char8 delete_keyword[] = u8"delete";
   const char8 function_name[] = u8"function";

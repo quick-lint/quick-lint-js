@@ -8,6 +8,7 @@
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
+#include <quick-lint-js/identifier-support.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
@@ -18,14 +19,6 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-source_code_span span_of(const char8 *code) {
-  return source_code_span(&code[0], &code[strlen(code)]);
-}
-
-identifier identifier_of(const char8 *name) {
-  return identifier(span_of(name));
-}
-
 global_declared_variable_set default_globals = configuration().globals();
 
 constexpr const char8 *writable_global_variables[] = {
