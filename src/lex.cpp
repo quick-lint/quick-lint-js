@@ -74,6 +74,8 @@
   case u8'\r':                  \
   case line_separator_paragraph_separator_first_byte
 
+QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
+
 namespace quick_lint_js {
 namespace {
 constexpr char8 line_separator_paragraph_separator_first_byte =
@@ -1300,7 +1302,7 @@ void lexer::check_precision_loss(const char8* number_begin,
     std::string cleaned_string = "";
     for (char8 c : number_literal) {
       if (c != '_') {
-        cleaned_string.push_back(c);
+        cleaned_string.push_back(static_cast<char>(c));
       }
     }
     if (cleaned_string.size() > GUARANTEED_ACC_LENGTH) {
