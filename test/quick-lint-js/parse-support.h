@@ -179,11 +179,11 @@ constexpr inline std::array disallowed_binding_identifier_keywords = make_array(
 constexpr inline std::array reserved_keywords = concat(
     disallowed_binding_identifier_keywords, make_array(u8"await", u8"yield"));
 
-constexpr std::array inline contextual_keywords =
+constexpr inline std::array contextual_keywords =
     make_array(u8"as", u8"async", u8"from", u8"get", u8"let", u8"meta", u8"of",
                u8"set", u8"static", u8"target");
 
-constexpr std::array inline keywords =
+constexpr inline std::array keywords =
     concat(reserved_keywords, contextual_keywords);
 }
 }
