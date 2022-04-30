@@ -154,10 +154,12 @@ export class Router {
     return { type: "static", contentType: contentType };
   }
 
-  async renderEJSFileAsync(ejsFilePath, { currentURI }) {
+  async renderEJSFile(ejsFilePath, { currentURI }) {
     let childProcess = await renderEJSChildProcessPool.takeAsync();
     try {
-      return await childProcess.renderAsync({ currentURI, ejsFilePath });
+      let page = await childProcess.renderAsync({ currentURI, ejsFilePath });
+      let PagePostProcess = page.replaceAll(/<script> *\/\/<\/script>/g, "");
+      return PagePostProcess;
     } finally {
       renderEJSChildProcessPool.recycle(childProcess);
     }
