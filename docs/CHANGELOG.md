@@ -8,6 +8,12 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+* [E0144][] and [E0145][] are now reported for `implements`, `interface`,
+  `package`, `private`, `protected`, and `public` (in addition to other
+  keywords).
+
 ### Fixed
 
 * [E0150][] no longer crashes quick-lint-js when using a German (`de`) locale.
@@ -546,6 +552,7 @@ Beta release.
 [E0111]: https://quick-lint-js.com/errors/E0111/
 [E0119]: https://quick-lint-js.com/errors/E0119/
 [E0144]: https://quick-lint-js.com/errors/E0144/
+[E0145]: https://quick-lint-js.com/errors/E0145/
 [E0150]: https://quick-lint-js.com/errors/E0150/
 [E0151]: https://quick-lint-js.com/errors/E0151/
 [E0173]: https://quick-lint-js.com/errors/E0173/
