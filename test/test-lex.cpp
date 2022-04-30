@@ -352,12 +352,12 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
       });
   this->check_tokens_with_errors(
       u8"999999999999999"_sv, {token_type::number},
-      [](padded_string_view input, const auto& errors) {
+      [](padded_string_view, const auto& errors) {
         EXPECT_THAT(errors, IsEmpty());
       });
   this->check_tokens_with_errors(
       u8"179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368"_sv,
-      {token_type::number}, [](padded_string_view input, const auto& errors) {
+      {token_type::number}, [](padded_string_view, const auto& errors) {
         EXPECT_THAT(errors, IsEmpty());
       });
   this->check_tokens_with_errors(

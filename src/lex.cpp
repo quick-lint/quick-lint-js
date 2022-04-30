@@ -1300,7 +1300,7 @@ void lexer::check_precision_loss(const char8* number_begin,
     std::string cleaned_string = "";
     for (char8 c : number_literal) {
       if (c != '_') {
-        cleaned_string.push_back(static_cast<char>(c));
+        cleaned_string.push_back(c);
       }
     }
     if (cleaned_string.size() > GUARANTEED_ACC_LENGTH) {
