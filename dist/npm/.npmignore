@@ -3,9 +3,7 @@
 
 /BUILDING.md
 
-/darwin-*/share/
-/linux-*/share/
-/win32-*/share/
+/*-*/share/
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
