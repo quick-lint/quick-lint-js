@@ -12,6 +12,8 @@ Semantic Versioning.
 
 * [E0150][] no longer crashes quick-lint-js when using a German (`de`) locale.
   (Fixed by [Nico Sonack][].)
+* The npm package now includes `copyright` files listing software licenses and
+  copyright notices.
 
 ### Changed
 
