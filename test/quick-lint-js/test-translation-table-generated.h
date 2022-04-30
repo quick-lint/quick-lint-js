@@ -358,6 +358,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript's 'interface' feature is not allowed in JavaScript code"_translatable,
+        {
+            u8"TypeScript's 'interface' feature is not allowed in JavaScript code",
+            u8"TypeScript's 'interface' feature is not allowed in JavaScript code",
+            u8"TypeScript's 'interface' feature is not allowed in JavaScript code",
+            u8"TypeScript's 'interface' feature is not allowed in JavaScript code",
+            u8"TypeScript's 'interface' feature is not allowed in JavaScript code",
+        },
+    },
+    {
         "a 'do-while' loop"_translatable,
         {
             u8"a 'do-while' loop",

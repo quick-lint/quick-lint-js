@@ -315,7 +315,35 @@ parse_statement:
         this->diag_reporter_);
     goto parse_loop_label_or_expression_starting_with_identifier;
 
-  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+  case ::quick_lint_js::token_type::kw_interface:
+    if (this->options_.typescript) {
+      this->parse_and_visit_typescript_interface(v);
+    } else {
+      source_code_span interface_keyword_span = this->peek().span();
+      lexer_transaction transaction = this->lexer_.begin_transaction();
+      this->skip();
+      bool is_typescript_interface =
+          this->peek().type == token_type::identifier;
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      if (is_typescript_interface) {
+        this->diag_reporter_->report(
+            diag_typescript_interfaces_not_allowed_in_javascript{
+                .interface_keyword = interface_keyword_span,
+            });
+        // TODO(strager): Would it be smarter to skip until '{' then skip until
+        // '}'?
+        this->parse_and_visit_typescript_interface(v);
+      } else {
+        goto parse_loop_label_or_expression_starting_with_identifier;
+      }
+    }
+    break;
+
+  case ::quick_lint_js::token_type::kw_implements:
+  case ::quick_lint_js::token_type::kw_package:
+  case ::quick_lint_js::token_type::kw_private:
+  case ::quick_lint_js::token_type::kw_protected:
+  case ::quick_lint_js::token_type::kw_public:
     // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
     goto parse_loop_label_or_expression_starting_with_identifier;
 
@@ -1538,6 +1566,30 @@ next:
   }
 
   QLJS_WARNING_POP
+}
+
+void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
+  QLJS_ASSERT(this->peek().type == token_type::kw_interface);
+  this->skip();
+
+  switch (this->peek().type) {
+  // TODO(strager): Allow contextual keywords.
+  case token_type::identifier:
+    v.visit_variable_declaration(this->peek().identifier_name(),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    this->skip();
+    break;
+
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
+  }
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
+  this->skip();
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+  this->skip();
 }
 
 void parser::parse_and_visit_switch(parse_visitor_base &v) {

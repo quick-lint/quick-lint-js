@@ -696,6 +696,10 @@ void linter::report_error_if_assignment_is_illegal(
       QLJS_WARNING_POP
     }
     break;
+  case variable_kind::_interface:
+    // TODO(#690)
+    QLJS_UNIMPLEMENTED();
+    break;
   }
 }
 
@@ -765,6 +769,16 @@ void linter::report_error_if_variable_declaration_conflicts(
     break;
   case vk::_import:
     break;
+
+  case vk::_interface:
+    // TODO(#690)
+    QLJS_UNIMPLEMENTED();
+    break;
+  }
+
+  if (kind == vk::_interface) {
+    // TODO(#690)
+    QLJS_UNIMPLEMENTED();
   }
 
   bool redeclaration_ok =

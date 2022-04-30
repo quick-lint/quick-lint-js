@@ -1313,6 +1313,13 @@
               enum_keyword))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_interfaces_not_allowed_in_javascript, "E0213",           \
+      diagnostic_severity::error, { source_code_span interface_keyword; },     \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript's 'interface' feature is not "     \
+                                "allowed in JavaScript code"),                 \
+              interface_keyword))                                              \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_style_const_field, "E0165", diagnostic_severity::error,  \
       { source_code_span const_token; },                                       \
       MESSAGE(QLJS_TRANSLATABLE("const fields within classes are only "        \

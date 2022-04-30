@@ -79,6 +79,7 @@ quick_lint_js_add_executable(
   test-parse-loop.cpp
   test-parse-module.cpp
   test-parse-statement.cpp
+  test-parse-typescript-interface.cpp
   test-parse-var.cpp
   test-parse-warning.cpp
   test-parse.cpp

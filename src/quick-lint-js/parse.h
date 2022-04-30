@@ -61,6 +61,9 @@ struct parser_options {
 
   // If true, parse JSX language extensions: https://facebook.github.io/jsx/
   bool jsx = false;
+
+  // If true, parse TypeScript instead of JavaScript.
+  bool typescript = false;
 };
 
 struct parser_transaction {
@@ -194,6 +197,8 @@ class parser {
                                      name_requirement require_name);
   void parse_and_visit_class_body(parse_visitor_base &v);
   void parse_and_visit_class_member(parse_visitor_base &v);
+
+  void parse_and_visit_typescript_interface(parse_visitor_base &v);
 
   void parse_and_visit_try_maybe_catch_maybe_finally(parse_visitor_base &v);
   [[nodiscard]] bool parse_and_visit_catch_or_finally_or_both(

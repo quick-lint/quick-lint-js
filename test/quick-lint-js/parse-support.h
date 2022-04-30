@@ -117,6 +117,12 @@ constexpr parser_options jsx_options = [] {
   return options;
 }();
 
+constexpr parser_options typescript_options = [] {
+  parser_options options;
+  options.typescript = true;
+  return options;
+}();
+
 inline spy_visitor parse_and_visit_module(string8_view raw_code) {
   padded_string code(raw_code);
   spy_visitor v;
