@@ -242,6 +242,12 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
         this->diag_reporter_);
     goto identifier;
 
+  // protected
+  // implements
+  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+    // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
+    goto identifier;
+
   // false
   // "hello"
   // 42
@@ -805,6 +811,10 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
     QLJS_UNREACHABLE();
   }
 
+  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+    // TODO(#73): Disallow parameters named 'protected', 'implements', etc. in
+    // strict mode.
+    [[fallthrough]];
   // async parameter => expression-or-block  // Arrow function.
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier:
@@ -1499,11 +1509,17 @@ next:
   case token_type::kw_function:
   case token_type::kw_get:
   case token_type::kw_if:
+  case token_type::kw_implements:
   case token_type::kw_import:
+  case token_type::kw_interface:
   case token_type::kw_let:
   case token_type::kw_new:
   case token_type::kw_null:
   case token_type::kw_of:
+  case token_type::kw_package:
+  case token_type::kw_private:
+  case token_type::kw_protected:
+  case token_type::kw_public:
   case token_type::kw_return:
   case token_type::kw_set:
   case token_type::kw_static:
@@ -1822,6 +1838,9 @@ expression* parser::parse_function_expression(parse_visitor_base& v,
     // NOTE(strager): A function expression named 'await' or 'yield' is allowed
     // even within async functions and generator functions.
     [[fallthrough]];
+  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+    // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
+    [[fallthrough]];
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier:
     function_name = this->peek().identifier_name();
@@ -1997,7 +2016,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
     // {10: value}
     // {keyAndValue}
     QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET:
-    QLJS_CASE_RESERVED_KEYWORD:
+    QLJS_CASE_STRICT_RESERVED_KEYWORD:
     case token_type::identifier:
     case token_type::number:
     case token_type::reserved_keyword_with_escape_sequence:
@@ -2065,6 +2084,11 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
           entries.emplace_back(key, value);
           break;
         }
+
+        // { protected }
+        QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+          // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
+          goto single_token_key_and_value_identifier;
 
         // { \u{69}f }  // Invalid.
         case token_type::reserved_keyword_with_escape_sequence:

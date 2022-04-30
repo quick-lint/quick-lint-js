@@ -750,7 +750,7 @@ TEST(test_parse, class_statement_with_keyword_property) {
     }
   }
 
-  for (string8 keyword : reserved_keywords) {
+  for (string8 keyword : strict_reserved_keywords) {
     string8 property = escape_first_character_in_keyword(keyword);
     for (string8 prefix :
          {u8"", u8"*", u8"async", u8"async *", u8"get", u8"set", u8"static",

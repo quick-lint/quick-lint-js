@@ -284,7 +284,7 @@ TEST(test_parse, exporting_by_string_name_is_only_allowed_for_export_from) {
 }
 
 TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
-  for (string8 keyword : reserved_keywords) {
+  for (string8 keyword : strict_reserved_keywords) {
     padded_string code(u8"export {" + keyword + u8"};");
     SCOPED_TRACE(code);
     spy_visitor v;
@@ -298,7 +298,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
                     export_name, strlen(u8"export {"), keyword)));
   }
 
-  for (string8 keyword : reserved_keywords) {
+  for (string8 keyword : strict_reserved_keywords) {
     padded_string code(u8"export {" + keyword + u8" as thing};");
     SCOPED_TRACE(code);
     spy_visitor v;
@@ -313,6 +313,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
   }
 
   // TODO(strager): Test u8"await" and u8"yield".
+  // TODO(#73): Disallow 'protected', 'implements', etc.
   for (string8 keyword : disallowed_binding_identifier_keywords) {
     string8 exported_variable = escape_first_character_in_keyword(keyword);
 
@@ -797,7 +798,7 @@ TEST(test_parse, imported_variables_can_be_named_contextual_keywords) {
 }
 
 TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
-  for (string8 name : reserved_keywords) {
+  for (string8 name : strict_reserved_keywords) {
     {
       padded_string code(u8"import { " + name + u8" } from 'other';");
       SCOPED_TRACE(code);
@@ -876,6 +877,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
   }
 
   // TODO(strager): Test u8"await" and u8"yield".
+  // TODO(#73): Disallow 'protected', 'implements', etc.
   for (string8 keyword : disallowed_binding_identifier_keywords) {
     string8 imported_variable = escape_first_character_in_keyword(keyword);
 

@@ -2187,6 +2187,7 @@ TEST_F(test_parse_expression, object_literal_with_contextual_keyword_keyvalue) {
 
 TEST_F(test_parse_expression,
        object_literal_with_reserved_keyword_keyvalue_is_an_error) {
+  // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
   for (string8 keyword : disallowed_binding_identifier_keywords) {
     SCOPED_TRACE(out_string8(keyword));
 
@@ -3411,7 +3412,7 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
 
 TEST_F(test_parse_expression,
        reserved_keywords_for_object_properties_can_contain_escape_sequences) {
-  for (string8 keyword : reserved_keywords) {
+  for (string8 keyword : strict_reserved_keywords) {
     string8 property = escape_first_character_in_keyword(keyword);
 
     {

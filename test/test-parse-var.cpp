@@ -365,6 +365,7 @@ TEST(test_parse, parse_invalid_let) {
                     unexpected_token, strlen(u8"let x, "), u8"42")));
   }
 
+  // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
   for (string8 keyword : disallowed_binding_identifier_keywords) {
     {
       padded_string code(u8"var " + keyword);
@@ -1749,10 +1750,11 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
                std::back_inserter(variable_names),
                [](const char8* keyword) { return keyword != u8"let"_sv; });
   variable_names.push_back(u8"await");
-  variable_names.push_back(u8"private");
-  variable_names.push_back(u8"protected");
-  variable_names.push_back(u8"public");
   variable_names.push_back(u8"yield");
+  // TODO(#73): Disallow these ('protected', 'implements', etc.) in strict mode.
+  for (const char8* keyword : strict_only_reserved_keywords) {
+    variable_names.push_back(keyword);
+  }
 
   for (string8 name : variable_names) {
     SCOPED_TRACE(out_string8(name));

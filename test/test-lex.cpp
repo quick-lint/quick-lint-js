@@ -1986,11 +1986,17 @@ TEST_F(test_lex, lex_reserved_keywords) {
   this->check_tokens(u8"for"_sv, {token_type::kw_for});
   this->check_tokens(u8"function"_sv, {token_type::kw_function});
   this->check_tokens(u8"if"_sv, {token_type::kw_if});
+  this->check_tokens(u8"implements"_sv, {token_type::kw_implements});
   this->check_tokens(u8"import"_sv, {token_type::kw_import});
   this->check_tokens(u8"in"_sv, {token_type::kw_in});
   this->check_tokens(u8"instanceof"_sv, {token_type::kw_instanceof});
+  this->check_tokens(u8"interface"_sv, {token_type::kw_interface});
   this->check_tokens(u8"new"_sv, {token_type::kw_new});
   this->check_tokens(u8"null"_sv, {token_type::kw_null});
+  this->check_tokens(u8"package"_sv, {token_type::kw_package});
+  this->check_tokens(u8"private"_sv, {token_type::kw_private});
+  this->check_tokens(u8"protected"_sv, {token_type::kw_protected});
+  this->check_tokens(u8"public"_sv, {token_type::kw_public});
   this->check_tokens(u8"return"_sv, {token_type::kw_return});
   this->check_tokens(u8"super"_sv, {token_type::kw_super});
   this->check_tokens(u8"switch"_sv, {token_type::kw_switch});
@@ -2020,6 +2026,8 @@ TEST_F(test_lex, lex_contextual_keywords) {
 TEST_F(
     test_lex,
     lex_reserved_keywords_except_await_and_yield_sometimes_cannot_contain_escape_sequences) {
+  // TODO(#73): Also lex 'protected', 'implements', etc. as
+  // reserved_keyword_with_escape_sequence in strict mode.
   for (string8 keyword : disallowed_binding_identifier_keywords) {
     padded_string code(escape_first_character_in_keyword(keyword));
     SCOPED_TRACE(code);

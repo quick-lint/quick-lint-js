@@ -440,6 +440,7 @@ TEST(test_parse, stray_right_curly_at_top_level) {
 
 TEST(test_parse,
      reserved_keywords_except_await_and_yield_cannot_contain_escape_sequences) {
+  // TODO(#73): Test 'protected', 'implements', etc. in strict mode.
   for (string8 keyword : disallowed_binding_identifier_keywords) {
     string8 escaped_keyword = escape_first_character_in_keyword(keyword);
 

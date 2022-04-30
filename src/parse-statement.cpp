@@ -315,6 +315,10 @@ parse_statement:
         this->diag_reporter_);
     goto parse_loop_label_or_expression_starting_with_identifier;
 
+  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+    // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
+    goto parse_loop_label_or_expression_starting_with_identifier;
+
     // class C {}
   case token_type::kw_class: {
     this->parse_and_visit_class(
@@ -852,6 +856,11 @@ void parser::parse_and_visit_function_declaration(
     }
     goto named_function;
 
+  // function protected() {}
+  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+    // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
+    goto named_function;
+
   named_function:
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier: {
@@ -1035,6 +1044,9 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v) {
     }
 
     switch (this->peek().type) {
+    QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+      // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
+      [[fallthrough]];
     case token_type::kw_await:
       // TODO(#241): Disallow parameters named 'await' for async functions.
       [[fallthrough]];
@@ -1110,10 +1122,15 @@ void parser::parse_and_visit_class_heading(
 
   std::optional<identifier> optional_class_name;
   switch (this->peek().type) {
+  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+    // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
+    [[fallthrough]];
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier:
   case token_type::kw_await:
   case token_type::kw_yield:
+    // TODO(#707): Disallow classes named 'await' in async functions.
+    // TODO(#707): Disallow classes named 'yield' in generator functions.
     if (this->peek().type == token_type::kw_let) {
       this->diag_reporter_->report(diag_cannot_declare_class_named_let{
           .name = this->peek().identifier_name().span()});
@@ -1678,6 +1695,10 @@ bool parser::parse_and_visit_catch_or_finally_or_both(parse_visitor_base &v) {
                   .name = this->peek().identifier_name(),
               });
         }
+        goto catch_identifier;
+
+      QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+        // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
         goto catch_identifier;
 
       catch_identifier:
@@ -2325,7 +2346,7 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
 
   switch (this->peek().type) {
     // import var from "module";  // Invalid.
-  QLJS_CASE_RESERVED_KEYWORD:
+  QLJS_CASE_STRICT_RESERVED_KEYWORD:
     this->diag_reporter_->report(diag_cannot_import_variable_named_keyword{
         .import_name = this->peek().identifier_name(),
     });
@@ -2462,7 +2483,7 @@ void parser::parse_and_visit_name_space_import(parse_visitor_base &v) {
 
   switch (this->peek().type) {
     // import * as var from "module";  // Invalid.
-  QLJS_CASE_RESERVED_KEYWORD:
+  QLJS_CASE_STRICT_RESERVED_KEYWORD:
     this->diag_reporter_->report(diag_cannot_import_variable_named_keyword{
         .import_name = this->peek().identifier_name(),
     });
@@ -2513,7 +2534,7 @@ void parser::parse_and_visit_named_exports(
   for (;;) {
     bool left_is_keyword = false;
     switch (this->peek().type) {
-    QLJS_CASE_RESERVED_KEYWORD:
+    QLJS_CASE_STRICT_RESERVED_KEYWORD:
     case token_type::reserved_keyword_with_escape_sequence:
       if (out_exported_bad_tokens) {
         out_exported_bad_tokens->emplace_back(this->peek());
@@ -2568,7 +2589,7 @@ void parser::parse_and_visit_named_exports(
           break;
 
           // import {var} from 'other';  // Invalid.
-        QLJS_CASE_RESERVED_KEYWORD:
+        QLJS_CASE_STRICT_RESERVED_KEYWORD:
           this->diag_reporter_->report(
               diag_cannot_import_variable_named_keyword{
                   .import_name = right_token.identifier_name(),
@@ -2640,7 +2661,7 @@ void parser::parse_and_visit_named_exports(
           break;
 
           // import {'name' as debugger} from 'other';  // Invalid.
-        QLJS_CASE_RESERVED_KEYWORD:
+        QLJS_CASE_STRICT_RESERVED_KEYWORD:
           this->diag_reporter_->report(
               diag_cannot_import_variable_named_keyword{
                   .import_name = this->peek().identifier_name(),
@@ -2789,6 +2810,11 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
                 .name = this->peek().identifier_name(),
             });
       }
+      goto variable_name;
+
+    // let protected = 42;
+    QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+      // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
       goto variable_name;
 
       // let x;

@@ -164,6 +164,12 @@ inline spy_visitor parse_and_visit_expression(string8_view raw_code) {
   return v;
 }
 
+// Identifiers which are ReservedWord-s only in strict mode.
+// https://262.ecma-international.org/11.0/#sec-keywords-and-reserved-words
+constexpr inline std::array strict_only_reserved_keywords =
+    make_array(u8"implements", u8"interface", u8"package", u8"private",
+               u8"protected", u8"public");
+
 // Exclusions from BindingIdentifier (ReservedWord except 'await' and 'yield')
 // https://262.ecma-international.org/11.0/#prod-ReservedWord
 // https://262.ecma-international.org/11.0/#prod-BindingIdentifier
@@ -174,15 +180,25 @@ constexpr inline std::array disallowed_binding_identifier_keywords = make_array(
     u8"if", u8"import", u8"in", u8"instanceof", u8"new", u8"null", u8"return",
     u8"super", u8"switch", u8"this", u8"throw", u8"true", u8"try", u8"typeof",
     u8"var", u8"void", u8"while", u8"with");
+constexpr inline std::array strict_disallowed_binding_identifier_keywords =
+    concat(disallowed_binding_identifier_keywords,
+           strict_only_reserved_keywords);
 
-// ReservedWord https://262.ecma-international.org/11.0/#prod-ReservedWord
+// ReservedWord in non-strict mode.
+// https://262.ecma-international.org/11.0/#prod-ReservedWord
 constexpr inline std::array reserved_keywords = concat(
     disallowed_binding_identifier_keywords, make_array(u8"await", u8"yield"));
+// ReservedWord in strict mode. Includes all of reserved_keywords.
+// https://262.ecma-international.org/11.0/#sec-keywords-and-reserved-words
+constexpr inline std::array strict_reserved_keywords =
+    concat(strict_disallowed_binding_identifier_keywords,
+           make_array(u8"await", u8"yield"));
 
 constexpr inline std::array contextual_keywords =
     make_array(u8"as", u8"async", u8"from", u8"get", u8"let", u8"meta", u8"of",
                u8"set", u8"static", u8"target");
 
+// ReservedWord or contextual keyword in strict mode or non-strict mode.
 constexpr inline std::array keywords =
     concat(reserved_keywords, contextual_keywords);
 }

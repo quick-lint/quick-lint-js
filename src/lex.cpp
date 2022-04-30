@@ -238,6 +238,12 @@ bool lexer::try_parse_current_token() {
         this->last_token_.type = token_type::identifier;
         break;
 
+      QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+        // TODO(#73): Treat 'protected', 'implements', etc. in strict mode as
+        // reserved words.
+        this->last_token_.type = token_type::identifier;
+        break;
+
       QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD:
         // Escape sequences in identifiers prevent it from becoming a reserved
         // keyword.
@@ -2190,13 +2196,19 @@ const char* to_string(token_type type) {
     QLJS_CASE(kw_function)
     QLJS_CASE(kw_get)
     QLJS_CASE(kw_if)
+    QLJS_CASE(kw_implements)
     QLJS_CASE(kw_import)
     QLJS_CASE(kw_in)
     QLJS_CASE(kw_instanceof)
+    QLJS_CASE(kw_interface)
     QLJS_CASE(kw_let)
     QLJS_CASE(kw_new)
     QLJS_CASE(kw_null)
     QLJS_CASE(kw_of)
+    QLJS_CASE(kw_package)
+    QLJS_CASE(kw_private)
+    QLJS_CASE(kw_protected)
+    QLJS_CASE(kw_public)
     QLJS_CASE(kw_return)
     QLJS_CASE(kw_set)
     QLJS_CASE(kw_static)

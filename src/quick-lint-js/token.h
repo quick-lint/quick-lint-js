@@ -56,12 +56,28 @@
   QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_FUNCTION_AND_YIELD: \
   case ::quick_lint_js::token_type::kw_function
 
-// Non-contextual keywords, including future reserved words.
-// TODO(strager): private, public, and protected should be in this list.
+// Non-contextual keywords, including future reserved words, for non-strict
+// mode.
 #define QLJS_CASE_RESERVED_KEYWORD                   \
   QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_YIELD: \
   case ::quick_lint_js::token_type::kw_await:        \
   case ::quick_lint_js::token_type::kw_yield
+
+// Non-contextual keywords, including future reserved words, for strict mode.
+// Includes everything from QLJS_CASE_RESERVED_KEYWORD.
+#define QLJS_CASE_STRICT_RESERVED_KEYWORD \
+  QLJS_CASE_RESERVED_KEYWORD:             \
+  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD
+
+// Everything in QLJS_CASE_STRICT_RESERVED_KEYWORD except everything in
+// QLJS_CASE_RESERVED_KEYWORD.
+#define QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD     \
+  case ::quick_lint_js::token_type::kw_implements: \
+  case ::quick_lint_js::token_type::kw_interface:  \
+  case ::quick_lint_js::token_type::kw_package:    \
+  case ::quick_lint_js::token_type::kw_private:    \
+  case ::quick_lint_js::token_type::kw_protected:  \
+  case ::quick_lint_js::token_type::kw_public
 
 #define QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC \
   case ::quick_lint_js::token_type::kw_as:                                   \
@@ -81,9 +97,10 @@
   case ::quick_lint_js::token_type::kw_get:                  \
   case ::quick_lint_js::token_type::kw_set
 
+// Any kind of keyword in strict or non-strict mode.
 #define QLJS_CASE_KEYWORD       \
   QLJS_CASE_CONTEXTUAL_KEYWORD: \
-  QLJS_CASE_RESERVED_KEYWORD
+  QLJS_CASE_STRICT_RESERVED_KEYWORD
 
 #define QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_STAR    \
   case ::quick_lint_js::token_type::ampersand:               \
@@ -185,7 +202,8 @@ enum class token_type {
   // parser's context, hence we distinguish them from token_type::identifier.
   reserved_keyword_with_escape_sequence,
 
-  // Reserved words and contextual keywords ('kw' stands for 'KeyWord'):
+  // Reserved words, future reserved words, conditionally reserved words, and
+  // contextual keywords ('kw' stands for 'KeyWord'):
   kw_as,
   kw_async,
   kw_await,
@@ -210,13 +228,19 @@ enum class token_type {
   kw_function,
   kw_get,
   kw_if,
+  kw_implements,
   kw_import,
   kw_in,
   kw_instanceof,
+  kw_interface,
   kw_let,
   kw_new,
   kw_null,
   kw_of,
+  kw_package,
+  kw_private,
+  kw_protected,
+  kw_public,
   kw_return,
   kw_set,
   kw_static,
