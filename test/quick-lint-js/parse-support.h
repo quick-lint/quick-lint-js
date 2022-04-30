@@ -164,27 +164,20 @@ inline spy_visitor parse_and_visit_expression(string8_view raw_code) {
   return v;
 }
 
-// ReservedWord https://262.ecma-international.org/11.0/#prod-ReservedWord
-constexpr inline std::array reserved_keywords = make_array(
-    u8"await", u8"break", u8"case", u8"catch", u8"class", u8"const",
-    u8"continue", u8"debugger", u8"default", u8"delete", u8"do", u8"else",
-    u8"enum", u8"export", u8"extends", u8"false", u8"finally", u8"for",
-    u8"function", u8"if", u8"import", u8"in", u8"instanceof", u8"new", u8"null",
-    u8"return", u8"super", u8"switch", u8"this", u8"throw", u8"true", u8"try",
-    u8"typeof", u8"var", u8"void", u8"while", u8"with", u8"yield");
-
 // Exclusions from BindingIdentifier (ReservedWord except 'await' and 'yield')
 // https://262.ecma-international.org/11.0/#prod-ReservedWord
 // https://262.ecma-international.org/11.0/#prod-BindingIdentifier
-std::vector<const char8*> inline disallowed_binding_identifier_keywords = []() {
-  std::vector<const char8*> result;
-  for (const char8* keyword : reserved_keywords) {
-    if (!(keyword == u8"await"_sv || keyword == u8"yield"_sv)) {
-      result.push_back(keyword);
-    }
-  }
-  return result;
-}();
+constexpr inline std::array disallowed_binding_identifier_keywords = make_array(
+    u8"break", u8"case", u8"catch", u8"class", u8"const", u8"continue",
+    u8"debugger", u8"default", u8"delete", u8"do", u8"else", u8"enum",
+    u8"export", u8"extends", u8"false", u8"finally", u8"for", u8"function",
+    u8"if", u8"import", u8"in", u8"instanceof", u8"new", u8"null", u8"return",
+    u8"super", u8"switch", u8"this", u8"throw", u8"true", u8"try", u8"typeof",
+    u8"var", u8"void", u8"while", u8"with");
+
+// ReservedWord https://262.ecma-international.org/11.0/#prod-ReservedWord
+constexpr inline std::array reserved_keywords = concat(
+    disallowed_binding_identifier_keywords, make_array(u8"await", u8"yield"));
 
 constexpr std::array inline contextual_keywords =
     make_array(u8"as", u8"async", u8"from", u8"get", u8"let", u8"meta", u8"of",
