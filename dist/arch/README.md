@@ -36,7 +36,7 @@ For convenience, we have a Docker image based on Arch Linux.
 Pick a version number for the new Docker image (e.g. `v3`), then run the
 following commands:
 
-    $ docker build --tag ghcr.io/quick-lint/quick-lint-js-dist-arch:VERSION_NUMBER_HERE dist/arch/
+    $ tar ch -C dist/arch/ . | docker build --tag ghcr.io/quick-lint/quick-lint-js-dist-arch:VERSION_NUMBER_HERE -
     $ docker login ghcr.io -u YOUR_GITHUB_USER_NAME_HERE
     $ docker push ghcr.io/quick-lint/quick-lint-js-dist-arch:VERSION_NUMBER_HERE
 

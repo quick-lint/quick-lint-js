@@ -9,6 +9,8 @@ RUN useradd --create-home --shell /bin/sh qljs-builder && \
     printf 'qljs-builder ALL=(ALL) NOPASSWD: ALL\n' >/etc/sudoers.d/qljs-builder
 USER qljs-builder
 
+# If this fails, you need to follow the quick-lint-js.gpg.key symlink:
+# $ tar ch -C dist/arch/ . | docker build -
 COPY quick-lint-js.gpg.key /tmp/quick-lint-js.gpg.key
 RUN gpg --import /tmp/quick-lint-js.gpg.key
 
