@@ -1294,10 +1294,14 @@ void lexer::parse_modern_octal_number() {
 
 void lexer::check_integer_precision_loss(string8_view number_literal) {
   // Any integer which is 15 or fewer digits is guaranteed to be able to be
-  // represented accurately without precision loss.
+  // represented accurately without precision loss. This is because Numbers have
+  // 53 bits of precision, which is equal to 53 log10(2) ≈ 15.955 decimal digits
+  // of precision.
   const size_t GUARANTEED_ACC_LENGTH = 15;
   // There is no integer which can be represented accurately that is greater
-  // than 309 digits long.
+  // than 309 digits long. This is because the largest representable Number is
+  // equal to 2^1023 × (1 + (1 − 2^−52)) ≈ 1.7976931348623157 × 10^308, which is
+  // 309 digits long.
   const size_t MAX_ACC_LENGTH = 309;
   if (number_literal.size() <= GUARANTEED_ACC_LENGTH) {
     return;
