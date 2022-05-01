@@ -234,7 +234,7 @@ class lexer {
   void parse_hexadecimal_number();
   template <class Error>
   const char8* check_garbage_in_number_literal(const char8* input);
-  void check_precision_loss(const char8* number_begin, const char8* input);
+  void check_integer_precision_loss(string8_view number_literal);
   void parse_number();
 
   template <class Func>

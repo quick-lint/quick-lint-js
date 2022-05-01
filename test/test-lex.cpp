@@ -346,7 +346,7 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
         EXPECT_THAT(
             errors,
             ElementsAre(DIAG_TYPE_2_FIELDS(
-                diag_number_literal_will_lose_precision,                      //
+                diag_integer_literal_will_lose_precision,                     //
                 characters, offsets_matcher(input, 0, u8"9007199254740993"),  //
                 rounded_val, u8"9007199254740992"sv)));
       });
@@ -359,7 +359,7 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(DIAG_TYPE_2_FIELDS(
-                        diag_number_literal_will_lose_precision,  //
+                        diag_integer_literal_will_lose_precision,  //
                         characters,
                         offsets_matcher(input, 0,
                                         310),  //
@@ -371,7 +371,7 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
         EXPECT_THAT(
             errors,
             ElementsAre(DIAG_TYPE_2_FIELDS(
-                diag_number_literal_will_lose_precision,  //
+                diag_integer_literal_will_lose_precision,  //
                 characters,
                 offsets_matcher(input, 0,
                                 309),  //
@@ -383,7 +383,7 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
       {token_type::number}, [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(DIAG_TYPE_2_FIELDS(
-                        diag_number_literal_will_lose_precision,  //
+                        diag_integer_literal_will_lose_precision,  //
                         characters,
                         offsets_matcher(input, 0,
                                         309),  //
@@ -394,7 +394,7 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
                     ElementsAre(DIAG_TYPE_2_FIELDS(
-                        diag_number_literal_will_lose_precision,  //
+                        diag_integer_literal_will_lose_precision,  //
                         characters,
                         offsets_matcher(input, 0, u8"18014398509481986"),  //
                         rounded_val, u8"18014398509481984"sv)));

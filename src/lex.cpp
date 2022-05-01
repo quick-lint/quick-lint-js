@@ -1292,53 +1292,55 @@ void lexer::parse_modern_octal_number() {
       diag_unexpected_characters_in_octal_number>(input);
 }
 
-void lexer::check_precision_loss(const char8* number_begin,
-                                 const char8* input) {
-  string8_view number_literal(number_begin,
-                              narrow_cast<size_t>(input - number_begin));
+void lexer::check_integer_precision_loss(string8_view number_literal) {
+  // Any integer which is 15 or fewer digits is guaranteed to be able to be
+  // represented accurately without precision loss.
   const size_t GUARANTEED_ACC_LENGTH = 15;
+  // There is no integer which can be represented accurately that is greater
+  // than 309 digits long.
   const size_t MAX_ACC_LENGTH = 309;
   if (number_literal.size() <= GUARANTEED_ACC_LENGTH) {
     return;
   }
-    std::string cleaned_string = "";
-    for (char8 c : number_literal) {
-      if (c != '_') {
-        cleaned_string.push_back(static_cast<char>(c));
-      }
+  std::string cleaned_string = "";
+  for (char8 c : number_literal) {
+    if (c != '_') {
+      cleaned_string.push_back(static_cast<char>(c));
     }
-    if (cleaned_string.size() <= GUARANTEED_ACC_LENGTH) {
-      return;
-    }
-      if (cleaned_string.size() > MAX_ACC_LENGTH) {
-        this->diag_reporter_->report(diag_number_literal_will_lose_precision{
-            .characters = source_code_span(number_begin, input),
-            .rounded_val = u8"inf"sv,
-        });
-        return;
-      }
-      double num = strtod(cleaned_string.c_str(), nullptr);
-      std::array<char, MAX_ACC_LENGTH + 1> result_string;
-      int rc = std::snprintf(result_string.data(), result_string.size(), "%.0f",
-                             num);
-      QLJS_ALWAYS_ASSERT(rc >= 0);
-      QLJS_ALWAYS_ASSERT(static_cast<size_t>(rc) < result_string.size());
-      std::string_view result_string_view(result_string.data(),
-                                          static_cast<size_t>(rc));
-      if (cleaned_string != result_string_view) {
-        char8* rounded_val =
-            this->allocator_.allocate_uninitialized_array<char8>(
-                result_string_view.size());
-        std::copy(result_string_view.begin(), result_string_view.end(),
-                  rounded_val);
-        string8_view rounded_val_string_view =
-            string8_view(rounded_val, result_string_view.size());
-        this->diag_reporter_->report(diag_number_literal_will_lose_precision{
-            .characters = source_code_span(number_begin, input),
-            .rounded_val = rounded_val_string_view,
-        });
-      }
-    }
+  }
+  if (cleaned_string.size() <= GUARANTEED_ACC_LENGTH) {
+    return;
+  }
+  if (cleaned_string.size() > MAX_ACC_LENGTH) {
+    this->diag_reporter_->report(diag_integer_literal_will_lose_precision{
+        .characters =
+            source_code_span(number_literal.data(),
+                             number_literal.data() + number_literal.size()),
+        .rounded_val = u8"inf"sv,
+    });
+    return;
+  }
+  double num = strtod(cleaned_string.c_str(), nullptr);
+  std::array<char, MAX_ACC_LENGTH + 1> result_string;
+  int rc =
+      std::snprintf(result_string.data(), result_string.size(), "%.0f", num);
+  QLJS_ALWAYS_ASSERT(rc >= 0);
+  QLJS_ALWAYS_ASSERT(static_cast<size_t>(rc) < result_string.size());
+  std::string_view result_string_view(result_string.data(),
+                                      static_cast<size_t>(rc));
+  if (cleaned_string != result_string_view) {
+    char8* rounded_val = this->allocator_.allocate_uninitialized_array<char8>(
+        result_string_view.size());
+    std::copy(result_string_view.begin(), result_string_view.end(),
+              rounded_val);
+    string8_view rounded_val_string_view =
+        string8_view(rounded_val, result_string_view.size());
+    this->diag_reporter_->report(diag_integer_literal_will_lose_precision{
+        .characters =
+            source_code_span(number_literal.data(),
+                             number_literal.data() + number_literal.size()),
+        .rounded_val = rounded_val_string_view,
+    });
   }
 }
 
@@ -1392,7 +1394,9 @@ void lexer::parse_number() {
         !(number_begin[0] == u8'0' && this->is_digit(number_begin[1])));
   }
   if (!has_decimal_point && !has_exponent && !is_bigint) {
-    check_precision_loss(number_begin, input);
+    check_integer_precision_loss(
+        string8_view(
+            number_begin, narrow_cast<size_t>(input - number_begin)));
   }
 
   switch (*input) {

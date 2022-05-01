@@ -1240,7 +1240,7 @@
               characters))                                                     \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_number_literal_will_lose_precision, "E0212",                        \
+      diag_integer_literal_will_lose_precision, "E0212",                       \
       diagnostic_severity::warning,                                            \
       {                                                                        \
         source_code_span characters;                                           \
