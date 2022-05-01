@@ -1321,8 +1321,8 @@ void lexer::check_precision_loss(const char8* number_begin,
       std::array<char, MAX_ACC_LENGTH + 1> result_string;
       int rc = std::snprintf(result_string.data(), result_string.size(), "%.0f",
                              num);
-      QLJS_ALWAYS_ASSERT(rc >= 0 &&
-                         static_cast<size_t>(rc) < result_string.size());
+      QLJS_ALWAYS_ASSERT(rc >= 0);
+      QLJS_ALWAYS_ASSERT(static_cast<size_t>(rc) < result_string.size());
       std::string_view result_string_view(result_string.data(),
                                           static_cast<size_t>(rc));
       if (cleaned_string != result_string_view) {
