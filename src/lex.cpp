@@ -1307,7 +1307,9 @@ void lexer::check_precision_loss(const char8* number_begin,
         cleaned_string.push_back(static_cast<char>(c));
       }
     }
-    if (cleaned_string.size() > GUARANTEED_ACC_LENGTH) {
+    if (cleaned_string.size() <= GUARANTEED_ACC_LENGTH) {
+      return;
+    }
       if (cleaned_string.size() > MAX_ACC_LENGTH) {
         this->diag_reporter_->report(diag_number_literal_will_lose_precision{
             .characters = source_code_span(number_begin, input),
