@@ -350,15 +350,10 @@ TEST_F(test_lex, fail_lex_integer_loses_precision) {
                 characters, offsets_matcher(input, 0, u8"9007199254740993"),  //
                 rounded_val, u8"9007199254740992"sv)));
       });
-  this->check_tokens_with_errors(u8"999999999999999"_sv, {token_type::number},
-                                 [](padded_string_view, const auto& errors) {
-                                   EXPECT_THAT(errors, IsEmpty());
-                                 });
-  this->check_tokens_with_errors(
+  this->check_tokens(u8"999999999999999"_sv, {token_type::number});
+  this->check_tokens(
       u8"179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368"_sv,
-      {token_type::number}, [](padded_string_view, const auto& errors) {
-        EXPECT_THAT(errors, IsEmpty());
-      });
+      {token_type::number});
   this->check_tokens_with_errors(
       u8"1" + string8(309, u8'0'), {token_type::number},
       [](padded_string_view input, const auto& errors) {
