@@ -1395,8 +1395,7 @@ void lexer::parse_number() {
   }
   if (!has_decimal_point && !has_exponent && !is_bigint) {
     check_integer_precision_loss(
-        string8_view(
-            number_begin, narrow_cast<size_t>(input - number_begin)));
+        string8_view(number_begin, narrow_cast<size_t>(input - number_begin)));
   }
 
   switch (*input) {
