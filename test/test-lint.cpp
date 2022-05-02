@@ -1201,6 +1201,153 @@ TEST(test_lint, assign_to_immutable_const_variable) {
   }
 }
 
+TEST(test_lint, interfaces_are_ignored_in_assignments) {
+  const char8 outer_declaration[] = u8"I";
+  const char8 declaration[] = u8"I";
+  const char8 assignment[] = u8"I";
+
+  {
+    // interface I {}
+    // I = null;       // ERROR
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_end_of_module();
+
+    // TODO(strager): Report a more helpful message.
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
+                              diag_assignment_to_undeclared_variable,
+                              assignment, span_matcher(assignment))));
+  }
+
+  {
+    // interface I {}
+    // {
+    //   I = null;       // ERROR
+    // }
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_enter_block_scope();
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_block_scope();
+    l.visit_end_of_module();
+
+    // TODO(strager): Report a more helpful message.
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
+                              diag_assignment_to_undeclared_variable,
+                              assignment, span_matcher(assignment))));
+  }
+
+  {
+    // let I;
+    // {
+    //   interface I {}
+    //   I = null;
+    // }
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(outer_declaration),
+                                 variable_kind::_let,
+                                 variable_init_kind::normal);
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_block_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // let I;
+    // interface I {}
+    // {
+    //   I = null;
+    // }
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(outer_declaration),
+                                 variable_kind::_let,
+                                 variable_init_kind::normal);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_enter_block_scope();
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_block_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // let I;
+    // interface I {}
+    // I = null;
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(outer_declaration),
+                                 variable_kind::_let,
+                                 variable_init_kind::normal);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // interface I {}
+    // let I;
+    // I = null;
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_variable_declaration(identifier_of(outer_declaration),
+                                 variable_kind::_let,
+                                 variable_init_kind::normal);
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // (() => {
+    //   I = null;
+    // });
+    // interface I {}
+    // let I;
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_exit_function_scope();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_variable_declaration(identifier_of(outer_declaration),
+                                 variable_kind::_let,
+                                 variable_init_kind::normal);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
 TEST(test_lint, assign_to_immutable_imported_variable) {
   const char8 declaration[] = u8"x";
   const char8 assignment[] = u8"x";

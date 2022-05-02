@@ -27,6 +27,8 @@ struct global_declared_variable {
 
 class global_declared_variable_set {
  public:
+  using found_variable_type = std::optional<global_declared_variable>;
+
   void add_predefined_global_variable(const char8 *name, bool is_writable);
 
   // FIXME(strager): Bug: if we add a variable with one set of flags (e.g.
@@ -41,6 +43,10 @@ class global_declared_variable_set {
 
   std::optional<global_declared_variable> find(identifier name) const noexcept;
   std::optional<global_declared_variable> find(string8_view name) const
+      noexcept;
+
+  // See linter::declared_variable_set::find_runtime.
+  std::optional<global_declared_variable> find_runtime(identifier name) const
       noexcept;
 
   // For testing only:
@@ -110,6 +116,11 @@ class linter final : public parse_visitor_base {
     // variable has an initializer with '='. See
     // variable_init_kind::initialized_with_equals.
     bool declaration_possibly_looks_like_assignment;
+
+    // Returns true if this variable can be used in expressions.
+    //
+    // Returns false if this variable can only be used in types.
+    bool is_runtime() const noexcept;
   };
 
   enum class used_variable_kind {
@@ -140,12 +151,17 @@ class linter final : public parse_visitor_base {
 
   class declared_variable_set {
    public:
+    using found_variable_type = declared_variable *;
+
     declared_variable *add_variable_declaration(
         identifier name, variable_kind, declared_variable_scope,
         bool declaration_possibly_looks_like_assignment);
 
     const declared_variable *find(identifier name) const noexcept;
     declared_variable *find(identifier name) noexcept;
+
+    // Like find, but ignores type-only variables (e.g. interfaces).
+    declared_variable *find_runtime(identifier name) noexcept;
 
     void clear() noexcept;
 

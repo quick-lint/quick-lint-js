@@ -10,6 +10,7 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/optional.h>
+#include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/warning.h>
 #include <vector>
 
@@ -148,6 +149,13 @@ std::optional<global_declared_variable> global_declared_variable_set::find(
     };
   }
   return std::nullopt;
+}
+
+std::optional<global_declared_variable>
+global_declared_variable_set::find_runtime(identifier name) const noexcept {
+  // global_declared_variable_set doesn't support type-only variables. All
+  // variables are accessible at run-time.
+  return this->find(name);
 }
 
 std::vector<string8_view> global_declared_variable_set::get_all_variable_names()
@@ -334,12 +342,14 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
              if (name.normalized_name() != used_var.name.normalized_name()) {
                return false;
              }
-             declared->is_used = true;
              switch (used_var.kind) {
              case used_variable_kind::assignment:
-               this->report_error_if_assignment_is_illegal(
-                   declared, used_var.name,
-                   /*is_assigned_before_declaration=*/false);
+               if (declared->is_runtime()) {
+                 declared->is_used = true;
+                 this->report_error_if_assignment_is_illegal(
+                     declared, used_var.name,
+                     /*is_assigned_before_declaration=*/false);
+               }
                break;
              case used_variable_kind::_export:
                // TODO(strager): This shouldn't happen. export statements are
@@ -348,6 +358,9 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
              case used_variable_kind::_delete:
              case used_variable_kind::_typeof:
              case used_variable_kind::use:
+               // TODO(#690): I think we need to do this only if
+               // declared->is_runtime().
+               declared->is_used = true;
                break;
              }
              return true;
@@ -357,7 +370,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
 void linter::visit_variable_assignment(identifier name) {
   QLJS_ASSERT(!this->scopes_.empty());
   scope &current_scope = this->current_scope();
-  declared_variable *var = current_scope.declared_variables.find(name);
+  declared_variable *var = current_scope.declared_variables.find_runtime(name);
   if (var) {
     var->is_used = true;
     this->report_error_if_assignment_is_illegal(
@@ -514,6 +527,11 @@ template <class Scope>
 void linter::propagate_variable_uses_to_parent_scope(
     Scope &parent_scope, bool allow_variable_use_before_declaration,
     bool consume_arguments) {
+  // found_variable_type is either declared_variable* or
+  // std::optional<global_declared_variable>.
+  using found_variable_type = typename std::decay_t<decltype(
+      Scope::declared_variables)>::found_variable_type;
+
   constexpr bool parent_scope_is_global_scope =
       std::is_same_v<Scope, global_scope>;
 
@@ -539,8 +557,25 @@ void linter::propagate_variable_uses_to_parent_scope(
 
   if (!current_scope.used_eval_in_this_scope) {
     for (const used_variable &used_var : current_scope.variables_used) {
-      QLJS_ASSERT(!current_scope.declared_variables.find(used_var.name));
-      auto var = parent_scope.declared_variables.find(used_var.name);
+      found_variable_type var = {};
+      switch (used_var.kind) {
+      case used_variable_kind::_delete:
+      case used_variable_kind::_export:
+      case used_variable_kind::_typeof:
+      case used_variable_kind::assignment:
+      case used_variable_kind::use:
+        QLJS_ASSERT(
+            !current_scope.declared_variables.find_runtime(used_var.name));
+        // TODO(#690): Don't allow expressions to reference interfaces. Add
+        // visit_type_use separate from visit_variable_use.
+        if (used_var.kind == used_variable_kind::use) {
+          var = parent_scope.declared_variables.find(used_var.name);
+        } else {
+          var = parent_scope.declared_variables.find_runtime(used_var.name);
+        }
+        break;
+      }
+
       if (var) {
         // This variable was declared in the parent scope. Don't propagate.
         if (used_var.kind == used_variable_kind::assignment) {
@@ -800,6 +835,23 @@ void linter::report_error_if_variable_declaration_conflicts(
   }
 }
 
+bool linter::declared_variable::is_runtime() const noexcept {
+  switch (this->kind) {
+  case variable_kind::_catch:
+  case variable_kind::_class:
+  case variable_kind::_const:
+  case variable_kind::_function:
+  case variable_kind::_import:
+  case variable_kind::_let:
+  case variable_kind::_parameter:
+  case variable_kind::_var:
+    return true;
+  case variable_kind::_interface:
+    return false;
+  }
+  QLJS_UNREACHABLE();
+}
+
 linter::declared_variable *
 linter::declared_variable_set::add_variable_declaration(
     identifier name, variable_kind kind, declared_variable_scope declared_scope,
@@ -825,6 +877,17 @@ linter::declared_variable *linter::declared_variable_set::find(
   string8_view name_view = name.normalized_name();
   for (declared_variable &var : this->variables_) {
     if (var.declaration.normalized_name() == name_view) {
+      return &var;
+    }
+  }
+  return nullptr;
+}
+
+linter::declared_variable *linter::declared_variable_set::find_runtime(
+    identifier name) noexcept {
+  string8_view name_view = name.normalized_name();
+  for (declared_variable &var : this->variables_) {
+    if (var.is_runtime() && var.declaration.normalized_name() == name_view) {
       return &var;
     }
   }
