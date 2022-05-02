@@ -768,17 +768,8 @@ void linter::report_error_if_variable_declaration_conflicts(
     QLJS_ASSERT(kind != vk::_import);
     break;
   case vk::_import:
-    break;
-
   case vk::_interface:
-    // TODO(#690)
-    QLJS_UNIMPLEMENTED();
     break;
-  }
-
-  if (kind == vk::_interface) {
-    // TODO(#690)
-    QLJS_UNIMPLEMENTED();
   }
 
   bool redeclaration_ok =
@@ -796,7 +787,8 @@ void linter::report_error_if_variable_declaration_conflicts(
            declared_variable_scope::declared_in_descendant_scope) ||
       (kind == vk::_function &&
        newly_declared_declaration_scope ==
-           declared_variable_scope::declared_in_descendant_scope);
+           declared_variable_scope::declared_in_descendant_scope) ||
+      (kind == vk::_interface || other_kind == vk::_interface);
   if (!redeclaration_ok) {
     if (already_declared_is_global_variable) {
       this->diag_reporter_->report(

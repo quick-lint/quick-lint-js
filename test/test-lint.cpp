@@ -2009,6 +2009,142 @@ TEST(
   }
 }
 
+TEST(test_lint, mixing_non_type_and_type_only_is_okay) {
+  const char8 type_declaration[] = u8"C";
+  const char8 non_type_declaration[] = u8"C";
+
+  for (variable_kind type_declaration_kind : {variable_kind::_interface}) {
+    for (variable_kind non_type_declaration_kind : {
+             variable_kind::_catch,
+             variable_kind::_const,
+             variable_kind::_function,
+             variable_kind::_let,
+             variable_kind::_parameter,
+             variable_kind::_var,
+         }) {
+      SCOPED_TRACE(type_declaration_kind);
+      SCOPED_TRACE(non_type_declaration_kind);
+
+      {
+        // interface C {}
+        // let C;
+        diag_collector v;
+        linter l(&v, &default_globals);
+        l.visit_variable_declaration(identifier_of(type_declaration),
+                                     type_declaration_kind,
+                                     variable_init_kind::normal);
+        l.visit_variable_declaration(identifier_of(non_type_declaration),
+                                     non_type_declaration_kind,
+                                     variable_init_kind::normal);
+        l.visit_end_of_module();
+
+        EXPECT_THAT(v.errors, IsEmpty());
+      }
+
+      {
+        // let C;
+        // interface C {}
+        diag_collector v;
+        linter l(&v, &default_globals);
+        l.visit_variable_declaration(identifier_of(non_type_declaration),
+                                     non_type_declaration_kind,
+                                     variable_init_kind::normal);
+        l.visit_variable_declaration(identifier_of(type_declaration),
+                                     type_declaration_kind,
+                                     variable_init_kind::normal);
+        l.visit_end_of_module();
+
+        EXPECT_THAT(v.errors, IsEmpty());
+      }
+    }
+  }
+}
+
+TEST(test_lint, interfaces_merge_with_interfaces_and_classes) {
+  const char8 interface_declaration[] = u8"C";
+  const char8 other_declaration[] = u8"C";
+
+  for (variable_kind other_declaration_kind : {
+           variable_kind::_class,
+           variable_kind::_interface,
+       }) {
+    SCOPED_TRACE(other_declaration_kind);
+
+    {
+      // interface C {}
+      // class C {}
+      diag_collector v;
+      linter l(&v, &default_globals);
+      l.visit_variable_declaration(identifier_of(interface_declaration),
+                                   variable_kind::_interface,
+                                   variable_init_kind::normal);
+      l.visit_variable_declaration(identifier_of(other_declaration),
+                                   other_declaration_kind,
+                                   variable_init_kind::normal);
+      l.visit_end_of_module();
+
+      EXPECT_THAT(v.errors, IsEmpty());
+    }
+
+    {
+      // class C {}
+      // interface C {}
+      diag_collector v;
+      linter l(&v, &default_globals);
+      l.visit_variable_declaration(identifier_of(other_declaration),
+                                   other_declaration_kind,
+                                   variable_init_kind::normal);
+      l.visit_variable_declaration(identifier_of(interface_declaration),
+                                   variable_kind::_interface,
+                                   variable_init_kind::normal);
+      l.visit_end_of_module();
+
+      EXPECT_THAT(v.errors, IsEmpty());
+    }
+  }
+}
+
+// When we import, we don't know whether the imported declaration is type-only
+// (interface), runtime-only (function or variable), or mixed (class). We take
+// the conservative approach and assume that the user wrote correct code (thus
+// we report no diagnostic).
+TEST(test_lint, mixing_interface_and_import_is_not_an_error) {
+  const char8 interface_declaration[] = u8"C";
+  const char8 imported_declaration[] = u8"C";
+
+  {
+    // import {C} from "module";
+    // interface C {}
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(imported_declaration),
+                                 variable_kind::_import,
+                                 variable_init_kind::normal);
+    l.visit_variable_declaration(identifier_of(interface_declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // interface C {}
+    // import {C} from "module";
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(interface_declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_variable_declaration(identifier_of(imported_declaration),
+                                 variable_kind::_import,
+                                 variable_init_kind::normal);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
 TEST(test_lint, strict_variables_conflict_with_var_in_block_scope) {
   const char8 var_declaration[] = u8"x";
   const char8 other_declaration[] = u8"x";
