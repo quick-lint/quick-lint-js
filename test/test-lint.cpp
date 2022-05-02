@@ -376,6 +376,88 @@ TEST(test_lint, export_use_before_declaration_is_okay) {
   }
 }
 
+TEST(test_lint, interface_use_after_declaration_is_okay) {
+  const char8 declaration[] = u8"I";
+  const char8 use[] = u8"I";
+
+  // interface I {}
+  // ({}) as I;
+  diag_collector v;
+  linter l(&v, &default_globals);
+  // TODO(strager): This should be visit_type_use.
+  l.visit_variable_declaration(identifier_of(declaration),
+                               variable_kind::_interface,
+                               variable_init_kind::normal);
+  l.visit_variable_use(identifier_of(use));
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint, interface_use_in_block_scope_after_declaration_is_okay) {
+  const char8 declaration[] = u8"I";
+  const char8 use[] = u8"I";
+
+  // interface I {}
+  // {
+  //   ({}) as I;
+  // }
+  diag_collector v;
+  linter l(&v, &default_globals);
+  // TODO(strager): This should be visit_type_use.
+  l.visit_variable_declaration(identifier_of(declaration),
+                               variable_kind::_interface,
+                               variable_init_kind::normal);
+  l.visit_enter_block_scope();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_exit_block_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_lint, interface_use_after_declaration_in_block_scope_is_an_error) {
+  const char8 declaration[] = u8"I";
+  const char8 use[] = u8"I";
+
+  // {
+  //   interface I {}
+  // }
+  // ({}) as I;
+  diag_collector v;
+  linter l(&v, &default_globals);
+  l.visit_enter_block_scope();
+  // TODO(strager): This should be visit_type_use.
+  l.visit_variable_declaration(identifier_of(declaration),
+                               variable_kind::_interface,
+                               variable_init_kind::normal);
+  l.visit_exit_block_scope();
+  l.visit_variable_use(identifier_of(use));
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors,
+              ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
+                                          span_matcher(use))));
+}
+
+TEST(test_lint, interface_use_before_declaration_is_okay) {
+  const char8 declaration[] = u8"I";
+  const char8 use[] = u8"I";
+
+  // ({}) as I;
+  // interface I {}
+  diag_collector v;
+  linter l(&v, &default_globals);
+  // TODO(strager): This should be visit_type_use.
+  l.visit_variable_use(identifier_of(use));
+  l.visit_variable_declaration(identifier_of(declaration),
+                               variable_kind::_interface,
+                               variable_init_kind::normal);
+  l.visit_end_of_module();
+
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
 TEST(test_lint, let_variable_use_before_declaration_within_function) {
   const char8 declaration[] = u8"x";
   const char8 use[] = u8"x";
