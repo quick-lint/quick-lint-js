@@ -331,6 +331,7 @@ TEST(test_lint, export_use_after_declaration_is_okay) {
            variable_kind::_const,
            variable_kind::_function,
            variable_kind::_import,
+           variable_kind::_interface,
            variable_kind::_let,
            variable_kind::_var,
        }) {
@@ -358,6 +359,7 @@ TEST(test_lint, export_use_before_declaration_is_okay) {
            variable_kind::_const,
            variable_kind::_function,
            variable_kind::_import,
+           variable_kind::_interface,
            variable_kind::_let,
            variable_kind::_var,
        }) {
