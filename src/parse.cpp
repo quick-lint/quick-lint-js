@@ -101,8 +101,8 @@ parser::binary_expression_builder::binary_expression_builder(
   this->children_.emplace_back(first_child);
 }
 
-expression* parser::binary_expression_builder::last_expression() const
-    noexcept {
+expression* parser::binary_expression_builder::last_expression()
+    const noexcept {
   return this->children_.back();
 }
 

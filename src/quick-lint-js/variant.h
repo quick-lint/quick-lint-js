@@ -73,7 +73,7 @@ auto visit(Visitor&& f, const variant<Ts...>& v) {
 
 #define QLJS_VARIANT_MIXIN                                                  \
   template <class T>                                                        \
-      auto&& get() && noexcept {                                            \
+  auto&& get()&& noexcept {                                                 \
     return std::move(this->template get<T>());                              \
   }                                                                         \
                                                                             \
@@ -83,7 +83,7 @@ auto visit(Visitor&& f, const variant<Ts...>& v) {
   }                                                                         \
                                                                             \
   template <std::size_t Index>                                              \
-      auto&& get() && noexcept {                                            \
+  auto&& get()&& noexcept {                                                 \
     return std::move(this->template get<Index>());                          \
   }                                                                         \
                                                                             \
@@ -142,13 +142,13 @@ class variant<T0> {
   }
 
   template <class T>
-      T& get() & noexcept {
+  T& get() & noexcept {
     static_assert(std::is_same_v<T, T0>, "unexpected T");
     return this->data_0_;
   }
 
   template <std::size_t Index>
-      T0& get() & noexcept {
+  T0& get() & noexcept {
     static_assert(Index == 0, "unexpected Index");
     return this->data_0_;
   }
@@ -255,7 +255,7 @@ class variant<T0, T1> {
   }
 
   template <class T>
-      T& get() & noexcept {
+  T& get() & noexcept {
     if constexpr (std::is_same_v<T, T0>) {
       QLJS_ASSERT(this->tag_ == 0);
       return this->data_0_;
@@ -268,7 +268,7 @@ class variant<T0, T1> {
   }
 
   template <std::size_t Index>
-      auto& get() & noexcept {
+  auto& get() & noexcept {
     if constexpr (Index == 0) {
       QLJS_ASSERT(this->tag_ == 0);
       return this->data_0_;
@@ -446,7 +446,7 @@ class variant<T0, T1, T2> {
   }
 
   template <class T>
-      T& get() & noexcept {
+  T& get() & noexcept {
     if constexpr (std::is_same_v<T, T0>) {
       QLJS_ASSERT(this->tag_ == 0);
       return this->data_0_;
@@ -462,7 +462,7 @@ class variant<T0, T1, T2> {
   }
 
   template <std::size_t Index>
-      auto& get() & noexcept {
+  auto& get() & noexcept {
     if constexpr (Index == 0) {
       QLJS_ASSERT(this->tag_ == 0);
       return this->data_0_;

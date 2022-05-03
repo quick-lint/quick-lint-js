@@ -29,8 +29,8 @@ emacs_source_range emacs_locator::range(source_code_span span) const {
   return emacs_source_range(begin, end);
 }
 
-emacs_source_position emacs_locator::position(const char8 *source) const
-    noexcept {
+emacs_source_position emacs_locator::position(
+    const char8 *source) const noexcept {
   emacs_source_position::offset_type offset = this->offset(source);
   // Emacs point starts at 1
   return this->position(offset + 1);
