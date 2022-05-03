@@ -1137,8 +1137,8 @@ void lexer::roll_back_transaction(lexer_transaction&& transaction) {
   this->diag_reporter_ = transaction.old_diag_reporter;
 }
 
-bool lexer::transaction_has_lex_diagnostics(const lexer_transaction&) const
-    noexcept {
+bool lexer::transaction_has_lex_diagnostics(
+    const lexer_transaction&) const noexcept {
   buffering_diag_reporter* buffered_diagnostics =
       static_cast<buffering_diag_reporter*>(this->diag_reporter_);
   return !buffered_diagnostics->empty();
