@@ -44,6 +44,7 @@ class parse_visitor_base {
   virtual void visit_variable_delete_use(identifier name,
                                          source_code_span delete_keyword) = 0;
   virtual void visit_variable_export_use(identifier name) = 0;
+  virtual void visit_variable_type_use(identifier name) = 0;
   virtual void visit_variable_typeof_use(identifier name) = 0;
   virtual void visit_variable_use(identifier name) = 0;
   virtual void visit_end_of_module() = 0;

@@ -46,6 +46,7 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_variable_delete_use(identifier_of(variable_name),
                               span_of(delete_keyword));
   v.visit_variable_export_use(identifier_of(variable_name));
+  v.visit_variable_type_use(identifier_of(variable_name));
   v.visit_variable_typeof_use(identifier_of(variable_name));
   v.visit_variable_use(identifier_of(variable_name));
 
@@ -72,6 +73,7 @@ TEST(test_buffering_visitor, buffers_all_visits) {
                           "visit_variable_declaration",        //
                           "visit_variable_delete_use",         //
                           "visit_variable_export_use",         //
+                          "visit_variable_type_use",           //
                           "visit_variable_typeof_use",         //
                           "visit_variable_use"));
 }

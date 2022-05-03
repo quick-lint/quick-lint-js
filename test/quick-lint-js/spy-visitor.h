@@ -171,6 +171,12 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
     this->visits.emplace_back("visit_variable_export_use");
   }
 
+  void visit_variable_type_use(identifier name) override {
+    this->variable_uses.emplace_back(
+        visited_variable_use{string8(name.normalized_name())});
+    this->visits.emplace_back("visit_variable_type_use");
+  }
+
   void visit_variable_typeof_use(identifier name) override {
     this->variable_uses.emplace_back(
         visited_variable_use{string8(name.normalized_name())});

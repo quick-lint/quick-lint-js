@@ -406,6 +406,11 @@ void linter::visit_variable_export_use(identifier name) {
   this->visit_variable_use(name, used_variable_kind::_export);
 }
 
+void linter::visit_variable_type_use(identifier name) {
+  // TODO(#690)
+  static_cast<void>(name);
+}
+
 void linter::visit_variable_typeof_use(identifier name) {
   this->visit_variable_use(name, used_variable_kind::_typeof);
 }
