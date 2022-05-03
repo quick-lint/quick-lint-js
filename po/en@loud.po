@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-04-29 21:51-0700\n"
+"POT-Creation-Date: 2022-05-02 18:09-0700\n"
 "PO-Revision-Date: 2021-11-17 17:05+0100\n"
 "Last-Translator: Matthew \"strager\" Glazar <strager.nds@gmail.com>\n"
 "Language-Team: English\n"
@@ -1037,6 +1037,11 @@ msgstr "UNMATCHED PARENTHESIS"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unmatched '}'"
 msgstr "UNMATCHED '}'"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "use of undeclared type: {0}"
+msgstr "USE OF UNDECLARED VARIABLE: {0}"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "use of undeclared variable: {0}"

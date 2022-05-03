@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-04-29 21:51-0700\n"
+"POT-Creation-Date: 2022-05-02 18:09-0700\n"
 "PO-Revision-Date: 2021-11-18 03:48+0100\n"
 "Last-Translator: Nico Sonack <nsonack@outlook.com>\n"
 "Language-Team: German\n"
@@ -1056,6 +1056,11 @@ msgstr "Zugehörige Klammer fehlt"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unmatched '}'"
 msgstr "Zugehörige geschweifte Klammer fehlt"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "use of undeclared type: {0}"
+msgstr "Variable {0} wird verwendet, ist jedoch nicht deklariert"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "use of undeclared variable: {0}"

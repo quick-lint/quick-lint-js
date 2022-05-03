@@ -158,6 +158,12 @@ global_declared_variable_set::find_runtime(identifier name) const noexcept {
   return this->find(name);
 }
 
+std::optional<global_declared_variable> global_declared_variable_set::find_type(
+    identifier) const noexcept {
+  // global_declared_variable_set doesn't support type-only variables.
+  return std::nullopt;
+}
+
 std::vector<string8_view> global_declared_variable_set::get_all_variable_names()
     const {
   std::vector<string8_view> result;
@@ -333,6 +339,9 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
       case used_variable_kind::_export:
         // Use before declaration is legal for variable exports.
         break;
+      case used_variable_kind::type:
+        // Use before declaration is legal for types.
+        break;
       }
     }
     return true;
@@ -362,6 +371,10 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
                // declared->is_runtime().
                declared->is_used = true;
                break;
+             case used_variable_kind::type:
+               // TODO(#690)
+               QLJS_UNIMPLEMENTED();
+               break;
              }
              return true;
            });
@@ -387,6 +400,7 @@ void linter::visit_variable_delete_use(identifier name,
 
   QLJS_ASSERT(!this->scopes_.empty());
   scope &current_scope = this->current_scope();
+  // TODO(#690): Don't allow 'delete' to reference type-only variables.
   bool variable_is_declared =
       current_scope.declared_variables.find(name) != nullptr;
   if (variable_is_declared) {
@@ -407,8 +421,7 @@ void linter::visit_variable_export_use(identifier name) {
 }
 
 void linter::visit_variable_type_use(identifier name) {
-  // TODO(#690)
-  static_cast<void>(name);
+  this->visit_variable_use(name, used_variable_kind::type);
 }
 
 void linter::visit_variable_typeof_use(identifier name) {
@@ -422,7 +435,11 @@ void linter::visit_variable_use(identifier name) {
 void linter::visit_variable_use(identifier name, used_variable_kind use_kind) {
   QLJS_ASSERT(!this->scopes_.empty());
   scope &current_scope = this->current_scope();
-  declared_variable *var = current_scope.declared_variables.find(name);
+  // TODO(strager): Should we use find_runtime for non-type uses?
+  declared_variable *var =
+      use_kind == used_variable_kind::type
+          ? current_scope.declared_variables.find_type(name)
+          : current_scope.declared_variables.find(name);
   if (var) {
     var->is_used = true;
   } else {
@@ -494,6 +511,10 @@ void linter::visit_end_of_module() {
         this->diag_reporter_->report(
             diag_use_of_undeclared_variable{used_var.name});
         break;
+      case used_variable_kind::type:
+        this->diag_reporter_->report(
+            diag_use_of_undeclared_type{used_var.name});
+        break;
       case used_variable_kind::_typeof:
         // 'typeof foo' is often used to detect if the variable 'foo' is
         // declared. Do not report that the variable is undeclared.
@@ -508,6 +529,10 @@ void linter::visit_end_of_module() {
       case used_variable_kind::assignment:
         this->diag_reporter_->report(
             diag_assignment_to_undeclared_variable{used_var.name});
+        break;
+      case used_variable_kind::type:
+        this->diag_reporter_->report(
+            diag_use_of_undeclared_type{used_var.name});
         break;
       // TODO(strager): Is 'default' correct here?
       default:
@@ -579,6 +604,10 @@ void linter::propagate_variable_uses_to_parent_scope(
           var = parent_scope.declared_variables.find_runtime(used_var.name);
         }
         break;
+      case used_variable_kind::type:
+        QLJS_ASSERT(!current_scope.declared_variables.find_type(used_var.name));
+        var = parent_scope.declared_variables.find_type(used_var.name);
+        break;
       }
 
       if (var) {
@@ -605,7 +634,21 @@ void linter::propagate_variable_uses_to_parent_scope(
 
     for (const used_variable &used_var :
          current_scope.variables_used_in_descendant_scope) {
-      const auto var = parent_scope.declared_variables.find(used_var.name);
+      found_variable_type var = {};
+      switch (used_var.kind) {
+      case used_variable_kind::_delete:
+      case used_variable_kind::_export:
+      case used_variable_kind::_typeof:
+      case used_variable_kind::assignment:
+      case used_variable_kind::use:
+        // TODO(#690): Don't allow expressions to reference interfaces.
+        var = parent_scope.declared_variables.find(used_var.name);
+        break;
+      case used_variable_kind::type:
+        var = parent_scope.declared_variables.find_type(used_var.name);
+        break;
+      }
+
       if (var) {
         // This variable was declared in the parent scope. Don't propagate.
         if (used_var.kind == used_variable_kind::assignment) {
@@ -857,6 +900,23 @@ bool linter::declared_variable::is_runtime() const noexcept {
   QLJS_UNREACHABLE();
 }
 
+bool linter::declared_variable::is_type() const noexcept {
+  switch (this->kind) {
+  case variable_kind::_class:
+  case variable_kind::_import:
+  case variable_kind::_interface:
+    return true;
+  case variable_kind::_catch:
+  case variable_kind::_const:
+  case variable_kind::_function:
+  case variable_kind::_let:
+  case variable_kind::_parameter:
+  case variable_kind::_var:
+    return false;
+  }
+  QLJS_UNREACHABLE();
+}
+
 linter::declared_variable *
 linter::declared_variable_set::add_variable_declaration(
     identifier name, variable_kind kind, declared_variable_scope declared_scope,
@@ -893,6 +953,17 @@ linter::declared_variable *linter::declared_variable_set::find_runtime(
   string8_view name_view = name.normalized_name();
   for (declared_variable &var : this->variables_) {
     if (var.is_runtime() && var.declaration.normalized_name() == name_view) {
+      return &var;
+    }
+  }
+  return nullptr;
+}
+
+linter::declared_variable *linter::declared_variable_set::find_type(
+    identifier name) noexcept {
+  string8_view name_view = name.normalized_name();
+  for (declared_variable &var : this->variables_) {
+    if (var.is_type() && var.declaration.normalized_name() == name_view) {
       return &var;
     }
   }

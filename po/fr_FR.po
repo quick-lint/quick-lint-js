@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-04-29 21:51-0700\n"
+"POT-Creation-Date: 2022-05-02 18:09-0700\n"
 "PO-Revision-Date: 2022-02-06 21:12+0100\n"
 "Last-Translator: even4void <chl@aliquote.org>\n"
 "Language-Team: French\n"
@@ -1065,6 +1065,11 @@ msgstr "parenthèse non appariée"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unmatched '}'"
 msgstr "'}' non apparié"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "use of undeclared type: {0}"
+msgstr "utilisation d'une variable non déclarée : {0}"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "use of undeclared variable: {0}"

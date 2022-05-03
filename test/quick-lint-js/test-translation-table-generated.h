@@ -2478,6 +2478,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "use of undeclared type: {0}"_translatable,
+        {
+            u8"use of undeclared type: {0}",
+            u8"use of undeclared type: {0}",
+            u8"use of undeclared type: {0}",
+            u8"use of undeclared type: {0}",
+            u8"use of undeclared type: {0}",
+        },
+    },
+    {
         "use of undeclared variable: {0}"_translatable,
         {
             u8"use of undeclared variable: {0}",

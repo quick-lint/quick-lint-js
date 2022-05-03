@@ -1595,6 +1595,11 @@
       MESSAGE(QLJS_TRANSLATABLE("unmatched '}'"), right_curly))                \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_use_of_undeclared_type, "E0214", diagnostic_severity::warning,      \
+      { identifier name; },                                                    \
+      MESSAGE(QLJS_TRANSLATABLE("use of undeclared type: {0}"), name))         \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_use_of_undeclared_variable, "E0057", diagnostic_severity::warning,  \
       { identifier name; },                                                    \
       MESSAGE(QLJS_TRANSLATABLE("use of undeclared variable: {0}"), name))     \

@@ -49,6 +49,10 @@ class global_declared_variable_set {
   std::optional<global_declared_variable> find_runtime(identifier name) const
       noexcept;
 
+  // See linter::declared_variable_set::find_type.
+  std::optional<global_declared_variable> find_type(identifier name) const
+      noexcept;
+
   // For testing only:
   std::vector<string8_view> get_all_variable_names() const;
 
@@ -120,8 +124,15 @@ class linter final : public parse_visitor_base {
 
     // Returns true if this variable can be used in expressions.
     //
-    // Returns false if this variable can only be used in types.
+    // Returns false if this variable can only be used in TypeScript type
+    // signatures and module exports.
     bool is_runtime() const noexcept;
+
+    // Returns true if this variable can be used in TypeScript type signatures
+    // or module exports.
+    //
+    // Returns false if this variable can only be used at run-time.
+    bool is_type() const noexcept;
   };
 
   enum class used_variable_kind {
@@ -129,6 +140,7 @@ class linter final : public parse_visitor_base {
     _export,
     _typeof,
     assignment,
+    type,  // TypeScript only.
     use,
   };
 
@@ -163,6 +175,9 @@ class linter final : public parse_visitor_base {
 
     // Like find, but ignores type-only variables (e.g. interfaces).
     declared_variable *find_runtime(identifier name) noexcept;
+
+    // Like find, but ignores runtime-only variables (e.g. functions).
+    declared_variable *find_type(identifier name) noexcept;
 
     void clear() noexcept;
 

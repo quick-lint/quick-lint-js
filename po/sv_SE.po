@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-04-29 21:51-0700\n"
+"POT-Creation-Date: 2022-05-02 18:09-0700\n"
 "PO-Revision-Date: 2021-06-16 00:13+0200\n"
 "Last-Translator: U-DESKTOP-7SNN35D\\Kim <kimlindbla@gmail.com>\n"
 "Language-Team: Swedish (Standard)\n"
@@ -1039,6 +1039,11 @@ msgstr "omatchad parantes"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unmatched '}'"
 msgstr "omatchad '}'"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "use of undeclared type: {0}"
+msgstr "användning av odeklarerad variabel: {0}"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "use of undeclared variable: {0}"

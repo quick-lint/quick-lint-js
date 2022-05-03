@@ -378,86 +378,247 @@ TEST(test_lint, export_use_before_declaration_is_okay) {
   }
 }
 
-TEST(test_lint, interface_use_after_declaration_is_okay) {
+TEST(test_lint, type_use_after_declaration_is_okay) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
 
-  // interface I {}
-  // ({}) as I;
-  diag_collector v;
-  linter l(&v, &default_globals);
-  // TODO(strager): This should be visit_type_use.
-  l.visit_variable_declaration(identifier_of(declaration),
-                               variable_kind::_interface,
-                               variable_init_kind::normal);
-  l.visit_variable_use(identifier_of(use));
-  l.visit_end_of_module();
+  for (variable_kind kind :
+       {variable_kind::_class, variable_kind::_interface}) {
+    SCOPED_TRACE(kind);
 
-  EXPECT_THAT(v.errors, IsEmpty());
+    // interface I {}
+    // ({}) as I;
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(declaration), kind,
+                                 variable_init_kind::normal);
+    l.visit_variable_type_use(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 
-TEST(test_lint, interface_use_in_block_scope_after_declaration_is_okay) {
+TEST(test_lint, type_use_in_block_scope_after_declaration_is_okay) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
 
-  // interface I {}
-  // {
-  //   ({}) as I;
-  // }
-  diag_collector v;
-  linter l(&v, &default_globals);
-  // TODO(strager): This should be visit_type_use.
-  l.visit_variable_declaration(identifier_of(declaration),
-                               variable_kind::_interface,
-                               variable_init_kind::normal);
-  l.visit_enter_block_scope();
-  l.visit_variable_use(identifier_of(use));
-  l.visit_exit_block_scope();
-  l.visit_end_of_module();
+  for (variable_kind kind :
+       {variable_kind::_class, variable_kind::_interface}) {
+    SCOPED_TRACE(kind);
 
-  EXPECT_THAT(v.errors, IsEmpty());
+    // interface I {}
+    // {
+    //   ({}) as I;
+    // }
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(declaration), kind,
+                                 variable_init_kind::normal);
+    l.visit_enter_block_scope();
+    l.visit_variable_type_use(identifier_of(use));
+    l.visit_exit_block_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 
-TEST(test_lint, interface_use_after_declaration_in_block_scope_is_an_error) {
-  const char8 declaration[] = u8"I";
-  const char8 use[] = u8"I";
+TEST(test_lint, type_use_with_no_declaration_is_an_error) {
+  const char8 use[] = u8"C";
 
-  // {
-  //   interface I {}
-  // }
-  // ({}) as I;
+  // ({}) as C;  // ERROR
   diag_collector v;
   linter l(&v, &default_globals);
-  l.visit_enter_block_scope();
-  // TODO(strager): This should be visit_type_use.
-  l.visit_variable_declaration(identifier_of(declaration),
-                               variable_kind::_interface,
-                               variable_init_kind::normal);
-  l.visit_exit_block_scope();
-  l.visit_variable_use(identifier_of(use));
+  l.visit_variable_type_use(identifier_of(use));
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                          span_matcher(use))));
+  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type,
+                                                    name, span_matcher(use))));
 }
 
-TEST(test_lint, interface_use_before_declaration_is_okay) {
+TEST(test_lint, type_use_after_declaration_in_block_scope_is_an_error) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
 
-  // ({}) as I;
-  // interface I {}
-  diag_collector v;
-  linter l(&v, &default_globals);
-  // TODO(strager): This should be visit_type_use.
-  l.visit_variable_use(identifier_of(use));
-  l.visit_variable_declaration(identifier_of(declaration),
-                               variable_kind::_interface,
-                               variable_init_kind::normal);
-  l.visit_end_of_module();
+  for (variable_kind kind :
+       {variable_kind::_class, variable_kind::_interface}) {
+    SCOPED_TRACE(kind);
 
-  EXPECT_THAT(v.errors, IsEmpty());
+    // {
+    //   interface I {}
+    // }
+    // ({}) as I;
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_enter_block_scope();
+    l.visit_variable_declaration(identifier_of(declaration), kind,
+                                 variable_init_kind::normal);
+    l.visit_exit_block_scope();
+    l.visit_variable_type_use(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
+                                            span_matcher(use))));
+  }
+}
+
+TEST(test_lint, type_use_before_declaration_is_okay) {
+  const char8 declaration[] = u8"I";
+  const char8 use[] = u8"I";
+
+  for (variable_kind kind :
+       {variable_kind::_class, variable_kind::_interface}) {
+    SCOPED_TRACE(kind);
+
+    // ({}) as I;
+    // interface I {}
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_type_use(identifier_of(use));
+    l.visit_variable_declaration(identifier_of(declaration), kind,
+                                 variable_init_kind::normal);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_lint, type_use_of_import_is_okay) {
+  const char8 declaration[] = u8"I";
+  const char8 use[] = u8"I";
+
+  {
+    // ({}) as I;
+    // import {I} from "module";
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_type_use(identifier_of(use));
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_import,
+                                 variable_init_kind::normal);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // import {I} from "module";
+    // ({}) as I;
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_import,
+                                 variable_init_kind::normal);
+    l.visit_variable_type_use(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_lint, type_use_does_not_see_non_type_variables) {
+  const char8 declaration[] = u8"I";
+  const char8 use[] = u8"I";
+
+  for (variable_kind kind : {
+           variable_kind::_catch,
+           variable_kind::_const,
+           variable_kind::_function,
+           variable_kind::_let,
+           variable_kind::_parameter,
+           variable_kind::_var,
+       }) {
+    SCOPED_TRACE(kind);
+
+    {
+      // let I;
+      // ({}) as I;
+      diag_collector v;
+      linter l(&v, &default_globals);
+      l.visit_variable_declaration(identifier_of(declaration), kind,
+                                   variable_init_kind::normal);
+      l.visit_variable_type_use(identifier_of(use));
+      l.visit_end_of_module();
+
+      // TODO(strager): Report a more helpful message indicating that 'I' is a
+      // function or variable, not a type.
+      EXPECT_THAT(v.errors,
+                  ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
+                                              span_matcher(use))));
+    }
+
+    {
+      // let I;
+      // {
+      //   ({}) as I;
+      // }
+      diag_collector v;
+      linter l(&v, &default_globals);
+      l.visit_variable_declaration(identifier_of(declaration), kind,
+                                   variable_init_kind::normal);
+      l.visit_enter_block_scope();
+      l.visit_variable_type_use(identifier_of(use));
+      l.visit_exit_block_scope();
+      l.visit_end_of_module();
+
+      // TODO(strager): Report a more helpful message indicating that 'I' is a
+      // function or variable, not a type.
+      EXPECT_THAT(v.errors,
+                  ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
+                                              span_matcher(use))));
+    }
+
+    {
+      // let I;
+      // (() => {
+      //   ({}) as I;
+      // });
+      diag_collector v;
+      linter l(&v, &default_globals);
+      l.visit_variable_declaration(identifier_of(declaration), kind,
+                                   variable_init_kind::normal);
+      l.visit_enter_function_scope();
+      l.visit_enter_function_scope_body();
+      l.visit_variable_type_use(identifier_of(use));
+      l.visit_exit_function_scope();
+      l.visit_end_of_module();
+
+      // TODO(strager): Report a more helpful message indicating that 'I' is a
+      // function or variable, not a type.
+      EXPECT_THAT(v.errors,
+                  ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
+                                              span_matcher(use))));
+    }
+
+    {
+      // (() => {
+      //   (() => {
+      //     ({}) as I;
+      //   });
+      // });
+      // let I;
+      diag_collector v;
+      linter l(&v, &default_globals);
+      l.visit_variable_declaration(identifier_of(declaration), kind,
+                                   variable_init_kind::normal);
+      l.visit_enter_function_scope();
+      l.visit_enter_function_scope_body();
+      l.visit_enter_function_scope();
+      l.visit_enter_function_scope_body();
+      l.visit_variable_type_use(identifier_of(use));
+      l.visit_exit_function_scope();
+      l.visit_exit_function_scope();
+      l.visit_end_of_module();
+
+      // TODO(strager): Report a more helpful message indicating that 'I' is a
+      // function or variable, not a type.
+      EXPECT_THAT(v.errors,
+                  ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
+                                              span_matcher(use))));
+    }
+  }
 }
 
 TEST(test_lint, let_variable_use_before_declaration_within_function) {
