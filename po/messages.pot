@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-05-02 18:09-0700\n"
+"POT-Creation-Date: 2022-05-02 19:39-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -168,6 +168,10 @@ msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "classes cannot be named 'let'"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "classes cannot be named 'await' in async function"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h

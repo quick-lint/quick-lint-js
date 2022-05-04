@@ -1157,8 +1157,12 @@ void parser::parse_and_visit_class_heading(
   case token_type::identifier:
   case token_type::kw_await:
   case token_type::kw_yield:
-    // TODO(#707): Disallow classes named 'await' in async functions.
-    // TODO(#707): Disallow classes named 'yield' in generator functions.
+    // TODO(#707): Disallow classes named 'yield' in generator function.
+    if (this->in_async_function_) {
+      this->diag_reporter_->report(
+          diag_cannot_declare_class_named_await_in_async_function{
+              .name = this->peek().identifier_name().span()});
+    }
     if (this->peek().type == token_type::kw_let) {
       this->diag_reporter_->report(diag_cannot_declare_class_named_let{
           .name = this->peek().identifier_name().span()});

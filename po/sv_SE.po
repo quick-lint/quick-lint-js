@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
-"POT-Creation-Date: 2022-05-02 18:09-0700\n"
+"POT-Creation-Date: 2022-05-02 19:39-0700\n"
 "PO-Revision-Date: 2021-06-16 00:13+0200\n"
 "Last-Translator: U-DESKTOP-7SNN35D\\Kim <kimlindbla@gmail.com>\n"
 "Language-Team: Swedish (Standard)\n"
@@ -175,6 +175,11 @@ msgstr "kan inte deklarera 'await' inuti async funktion"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "classes cannot be named 'let'"
 msgstr "klass kan inte benämnas 'let'"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "classes cannot be named 'await' in async function"
+msgstr "kan inte deklarera 'await' inuti async funktion"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "let statement cannot declare variables named 'let'"
