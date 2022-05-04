@@ -321,9 +321,12 @@ async function isFileReadableAsync(path) {
 }
 
 async function checkFileReadabilityAsync(path) {
-  if (await isFileReadableAsync(path)) {
-    return null;
-  }
+  // The order of checks here is important.
+  //
+  // * Check lstat before stat to distinguish between symlink-doesn't-exist and
+  //   symlink-target-doesn't-exist.
+  // * Check stat before isFileReadableAsync, because isFileReadableAsync
+  //   returns true on Windows when the symlink target doesn't exist.
 
   try {
     await fs.promises.lstat(path);
@@ -341,6 +344,10 @@ async function checkFileReadabilityAsync(path) {
       return "broken-symlink";
     }
     throw error;
+  }
+
+  if (await isFileReadableAsync(path)) {
+    return null;
   }
 
   return "unreadable";

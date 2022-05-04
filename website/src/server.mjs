@@ -7,6 +7,7 @@ import fs from "fs";
 import mime from "mime";
 import os from "os";
 import path from "path";
+import url from "url";
 import { Router, makeHTMLRedirect } from "./router.mjs";
 import { performance } from "perf_hooks";
 import { readFileAsync } from "./fs.mjs";
@@ -85,7 +86,7 @@ export function makeServer({
           router.wwwRootPath,
           classifiedDirectory.routerScript
         );
-        let { routes } = await import(routerScriptPath);
+        let { routes } = await import(url.pathToFileURL(routerScriptPath));
         if (!Object.prototype.hasOwnProperty.call(routes, request.path)) {
           response.writeHeader(404);
           response.end(`${request.path} is not routed by ${routerScriptPath}`);

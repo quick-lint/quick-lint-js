@@ -162,7 +162,7 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
 }
 
 function relativeURIToRelativePath(uri) {
-  return uri.replace(/^\//, "");
+  return uri.replace(/^\//, "").replace(/\//g, path.sep);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

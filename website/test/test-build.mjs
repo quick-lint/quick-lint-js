@@ -71,7 +71,7 @@ describe("build", () => {
 
     let buildInstructions = await makeBuildInstructionsAsync({ wwwRootPath });
     expect(buildInstructions).toEqual([
-      { type: "copy", path: "subdir/index.html" },
+      { type: "copy", path: path.join("subdir", "index.html") },
     ]);
   });
 
@@ -86,8 +86,8 @@ describe("build", () => {
     expect(buildInstructions).toEqual([
       {
         type: "build-ejs",
-        sourcePath: "subdir/index.ejs.html",
-        destinationPath: "subdir/index.html",
+        sourcePath: path.join("subdir", "index.ejs.html"),
+        destinationPath: path.join("subdir", "index.html"),
         ejsVariables: {
           currentURI: "/subdir/",
         },
@@ -131,8 +131,8 @@ describe("build", () => {
       let buildInstructions = await makeBuildInstructionsAsync({ wwwRootPath });
       expect(buildInstructions).toContain({
         type: "build-ejs",
-        sourcePath: "generated/index.ejs.html",
-        destinationPath: "generated/index.html",
+        sourcePath: path.join("generated", "index.ejs.html"),
+        destinationPath: path.join("generated", "index.html"),
         ejsVariables: {
           currentURI: "/generated/",
         },
@@ -153,8 +153,8 @@ describe("build", () => {
       let buildInstructions = await makeBuildInstructionsAsync({ wwwRootPath });
       expect(buildInstructions).toContain({
         type: "build-ejs",
-        sourcePath: "generated/page.ejs.html",
-        destinationPath: "generated/subdir/index.html",
+        sourcePath: path.join("generated", "page.ejs.html"),
+        destinationPath: path.join("generated", "subdir", "index.html"),
         ejsVariables: {
           currentURI: "/generated/subdir/",
         },
@@ -190,7 +190,7 @@ describe("build", () => {
 
       let buildInstructions = await makeBuildInstructionsAsync({ wwwRootPath });
       expect(buildInstructions).toEqual([
-        { type: "copy", path: "subdir/test.tar.bz2" },
+        { type: "copy", path: path.join("subdir", "test.tar.bz2") },
       ]);
     });
   });
@@ -321,7 +321,7 @@ describe("build", () => {
     expect(buildInstructions).toEqual([
       {
         type: "html-redirect",
-        htmlPath: "subdir/from.html",
+        htmlPath: path.join("subdir", "from.html"),
         redirectTargetURL: "to/",
       },
     ]);
