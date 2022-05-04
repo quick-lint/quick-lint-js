@@ -57,6 +57,7 @@ quick_lint_js_add_executable(
   test-lex.cpp
   test-linked-bump-allocator.cpp
   test-lint-parse.cpp
+  test-lint-type.cpp
   test-lint.cpp
   test-locale.cpp
   test-lsp-diag-reporter.cpp
