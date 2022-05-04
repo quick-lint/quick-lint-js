@@ -1,7 +1,7 @@
 {
   "scripts": {
     "build": "node --experimental-modules run-build.mjs www",
-    "fmt": "prettier --write '**/*.css' '**/*.html' '**/*.js' '**/*.mjs'",
+    "fmt": "prettier --write \"**/*.css\" \"**/*.html\" \"**/*.js\" \"**/*.mjs\"",
     "start": "node --experimental-modules run-server.mjs",
     "test": "node --experimental-modules run-tests.mjs"
   },
