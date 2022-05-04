@@ -149,7 +149,7 @@ done:
 
 std::string_view canonical_path::path() const &noexcept { return this->path_; }
 
-std::string &&canonical_path::path() &&noexcept {
+std::string &&canonical_path::path() && noexcept {
   return std::move(this->path_);
 }
 
@@ -208,7 +208,7 @@ std::string_view canonical_path_result::path() const &noexcept {
   return this->path_.path();
 }
 
-std::string &&canonical_path_result::path() &&noexcept {
+std::string &&canonical_path_result::path() && noexcept {
   return std::move(this->path_).path();
 }
 
@@ -220,7 +220,7 @@ const canonical_path &canonical_path_result::canonical() const &noexcept {
   return this->path_;
 }
 
-canonical_path &&canonical_path_result::canonical() &&noexcept {
+canonical_path &&canonical_path_result::canonical() && noexcept {
   return std::move(this->path_);
 }
 

@@ -185,13 +185,13 @@ void byte_buffer::remove_current_chunk_if_empty() {
   }
 }
 
-byte_buffer::size_type byte_buffer::bytes_remaining_in_current_chunk()
-    const noexcept {
+byte_buffer::size_type byte_buffer::bytes_remaining_in_current_chunk() const
+    noexcept {
   return narrow_cast<size_type>(this->current_chunk_end_ - this->cursor_);
 }
 
-byte_buffer::size_type byte_buffer::bytes_used_in_current_chunk()
-    const noexcept {
+byte_buffer::size_type byte_buffer::bytes_used_in_current_chunk() const
+    noexcept {
   return narrow_cast<size_type>(this->cursor_ -
                                 chunk_begin(this->chunks_.back()));
 }

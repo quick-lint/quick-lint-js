@@ -928,8 +928,8 @@ inline expression *expression::child(int index) const noexcept {
   return children[index];
 }
 
-inline expression_arena::array_ptr<expression *> expression::children()
-    const noexcept {
+inline expression_arena::array_ptr<expression *> expression::children() const
+    noexcept {
   switch (this->kind_) {
   case expression_kind::assignment:
   case expression_kind::compound_assignment:
@@ -1029,8 +1029,8 @@ inline int expression::object_entry_count() const noexcept {
   }
 }
 
-inline object_property_value_pair expression::object_entry(
-    int index) const noexcept {
+inline object_property_value_pair expression::object_entry(int index) const
+    noexcept {
   switch (this->kind_) {
   case expression_kind::object:
     return static_cast<const expression::object *>(this)->entries_[index];
