@@ -294,6 +294,33 @@ TEST(test_parse, await_in_async_function) {
   }
 }
 
+TEST(test_parse, class_named_await_in_async_function) {
+  {
+    spy_visitor v = parse_and_visit_statement(u8"class await {}");
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"function f() {\n"
+        u8"class await {}\n"
+        u8"}");
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"async function g() {\nclass await {}\n}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_cannot_declare_class_named_await_in_async_function,
+            name, strlen(u8"async function g() {\nclass "), u8"await")));
+  }
+}
+
 TEST(test_parse, await_asi_in_async_function) {
   {
     spy_visitor v = parse_and_visit_statement(
