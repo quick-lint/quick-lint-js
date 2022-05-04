@@ -33,13 +33,15 @@ async function isSymlinkInGitAsync(filePath) {
   let S_IFLNK = 0x120000;
   let S_IFMT = 0x170000;
 
+  let parentPath = path.dirname(filePath);
   try {
-    let { stdout, stderr } = await execFileAsync("git", [
-      "ls-files",
-      "--stage",
-      "--",
-      filePath,
-    ]);
+    let { stdout, stderr } = await execFileAsync(
+      "git",
+      ["ls-files", "--stage", "--", filePath],
+      {
+        cwd: parentPath,
+      }
+    );
     if (stdout === "") {
       // File does not exist.
       return false;
@@ -48,7 +50,22 @@ async function isSymlinkInGitAsync(filePath) {
     let mode = parseInt(modeString, 16);
     return (mode & S_IFMT) == S_IFLNK;
   } catch (e) {
-    console.warn(`failed to ask Git if file ${filePath} is symlink:`, e);
+    if (await isDirectoryInGitCheckoutAsync(parentPath)) {
+      console.warn(`failed to ask Git if file ${filePath} is symlink:`, e);
+    } else {
+      // Don't spam the console for files which aren't in a Git checkout at all.
+    }
+    return false;
+  }
+}
+
+async function isDirectoryInGitCheckoutAsync(path) {
+  try {
+    await execFileAsync("git", ["rev-parse"], {
+      cwd: path,
+    });
+    return true;
+  } catch (e) {
     return false;
   }
 }
