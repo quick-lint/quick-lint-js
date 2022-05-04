@@ -59,8 +59,8 @@ int vim_locator::find_line_at_offset(offset_type offset) const {
          1;
 }
 
-vim_locator::offset_type vim_locator::offset(
-    const char8 *source) const noexcept {
+vim_locator::offset_type vim_locator::offset(const char8 *source) const
+    noexcept {
   return narrow_cast<offset_type>(source - this->input_.data());
 }
 

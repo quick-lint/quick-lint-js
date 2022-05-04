@@ -224,8 +224,8 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
     this->deallocate_bytes(p, bytes);
   }
 
-  bool do_is_equal(const boost::container::pmr::memory_resource& other)
-      const noexcept override {
+  bool do_is_equal(const boost::container::pmr::memory_resource& other) const
+      noexcept override {
     return this == static_cast<const linked_bump_allocator*>(&other);
   }
 

@@ -1258,6 +1258,7 @@ TEST(test_parse, async_method_prohibits_newline_after_async_keyword) {
     EXPECT_EQ(v.property_declarations[0].name, u8"async");
   }
 }
+
 TEST(test_parse, typescript_style_const_field) {
   {
     spy_visitor v;

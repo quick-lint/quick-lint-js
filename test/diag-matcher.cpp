@@ -165,8 +165,8 @@ span_matcher::operator testing::Matcher<const source_code_span &>() const {
       new span_impl(this->expected_));
 }
 
-source_code_span diag_matcher::field::get_span(
-    const void *error_object) const noexcept {
+source_code_span diag_matcher::field::get_span(const void *error_object) const
+    noexcept {
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;
   switch (this->member_type) {
