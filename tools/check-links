@@ -95,7 +95,7 @@ class Crawler:
     def get_urls_from_page(self, soup) -> list:
         href_tags = soup.find_all(href=True)
         hrefs = [tag.get("href") for tag in href_tags]
-        script_srcs = list(map(lambda x: x.get("src"), soup.findAll("script")))
+        script_srcs = [tag.get("src") for tag in soup.findAll("script")]
         hrefs.extend(src for src in script_srcs if src is not None)
         return hrefs
 
