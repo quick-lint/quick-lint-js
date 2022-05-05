@@ -268,11 +268,11 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
   using diags_matcher =
       testing::Matcher<const std::vector<diag_collector::diag>&>;
 
-  static constexpr char8 outer_declaration[] = u8"I";
-  static constexpr char8 declaration[] = u8"I";
+  static const char8 outer_declaration[] = u8"I";
+  static const char8 declaration[] = u8"I";
 
-  static constexpr char8 assignment[] = u8"I";
-  static constexpr char8 use[] = u8"I";
+  static const char8 assignment[] = u8"I";
+  static const char8 use[] = u8"I";
 
   static const padded_string delete_expression(u8"delete I"_sv);
   static const source_code_span delete_keyword_span(
