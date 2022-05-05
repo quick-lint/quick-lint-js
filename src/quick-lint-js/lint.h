@@ -272,8 +272,14 @@ class linter final : public parse_visitor_base {
       const declared_variable *var, const identifier &assignment,
       bool is_assigned_before_declaration) const;
   void report_error_if_assignment_is_illegal(
+      const declared_variable &var, const identifier &assignment,
+      bool is_assigned_before_declaration) const;
+  void report_error_if_assignment_is_illegal(
       const std::optional<global_declared_variable> &var,
       const identifier &assignment, bool is_assigned_before_declaration) const;
+  void report_error_if_assignment_is_illegal(
+      const global_declared_variable &var, const identifier &assignment,
+      bool is_assigned_before_declaration) const;
   void report_error_if_assignment_is_illegal(
       variable_kind kind, bool is_global_variable,
       const identifier *declaration, const identifier &assignment,
@@ -281,7 +287,8 @@ class linter final : public parse_visitor_base {
 
   template <class DeclaredVariableType>
   void report_errors_for_variable_use(const used_variable &,
-                                      const DeclaredVariableType &) const;
+                                      const DeclaredVariableType &,
+                                      bool use_is_before_declaration) const;
 
   void report_error_if_variable_declaration_conflicts_in_scope(
       const scope &scope, identifier name, variable_kind kind,

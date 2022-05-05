@@ -312,13 +312,10 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
           diag_function_call_before_declaration_in_block_scope{used_var.name,
                                                                name});
     }
-    this->report_errors_for_variable_use(used_var, *declared);
-    if (used_var.kind == used_variable_kind::assignment) {
-      this->report_error_if_assignment_is_illegal(
-          declared, used_var.name,
-          /*is_assigned_before_declaration=*/kind == variable_kind::_class ||
-              kind == variable_kind::_const || kind == variable_kind::_let);
-    }
+    this->report_errors_for_variable_use(
+        used_var, *declared,
+        /*use_is_before_declaration=*/kind == variable_kind::_class ||
+            kind == variable_kind::_const || kind == variable_kind::_let);
     switch (used_var.kind) {
     case used_variable_kind::assignment:
       break;
@@ -403,7 +400,8 @@ void linter::visit_variable_delete_use(identifier name,
   declared_variable *already_declared =
       current_scope.declared_variables.find(name);
   if (already_declared) {
-    this->report_errors_for_variable_use(used_var, *already_declared);
+    this->report_errors_for_variable_use(used_var, *already_declared,
+                                         /*use_is_before_declaration=*/false);
   } else {
     current_scope.variables_used.push_back(std::move(used_var));
   }
@@ -605,11 +603,9 @@ void linter::propagate_variable_uses_to_parent_scope(
 
       if (var) {
         // This variable was declared in the parent scope. Don't propagate.
-        if (used_var.kind == used_variable_kind::assignment) {
-          this->report_error_if_assignment_is_illegal(
-              var, used_var.name, /*is_assigned_before_declaration=*/false);
-        }
-        this->report_errors_for_variable_use(used_var, *var);
+        this->report_errors_for_variable_use(
+            used_var, *var,
+            /*use_is_before_declaration=*/false);
         if constexpr (!parent_scope_is_global_scope) {
           var->is_used = true;
         }
@@ -645,11 +641,9 @@ void linter::propagate_variable_uses_to_parent_scope(
 
       if (var) {
         // This variable was declared in the parent scope. Don't propagate.
-        if (used_var.kind == used_variable_kind::assignment) {
-          this->report_error_if_assignment_is_illegal(
-              var, used_var.name, /*is_assigned_before_declaration=*/false);
-        }
-        this->report_errors_for_variable_use(used_var, *var);
+        this->report_errors_for_variable_use(
+            used_var, *var,
+            /*use_is_before_declaration=*/false);
       } else if (is_current_scope_function_name(used_var)) {
         // Treat this variable as declared in the current scope.
       } else {
@@ -703,10 +697,17 @@ void linter::propagate_variable_declarations_to_parent_scope() {
 void linter::report_error_if_assignment_is_illegal(
     const declared_variable *var, const identifier &assignment,
     bool is_assigned_before_declaration) const {
+  this->report_error_if_assignment_is_illegal(*var, assignment,
+                                              is_assigned_before_declaration);
+}
+
+void linter::report_error_if_assignment_is_illegal(
+    const declared_variable &var, const identifier &assignment,
+    bool is_assigned_before_declaration) const {
   this->report_error_if_assignment_is_illegal(
-      /*kind=*/var->kind,
+      /*kind=*/var.kind,
       /*is_global_variable=*/false,
-      /*declaration=*/&var->declaration,
+      /*declaration=*/&var.declaration,
       /*assignment=*/assignment,
       /*is_assigned_before_declaration=*/is_assigned_before_declaration);
 }
@@ -715,8 +716,15 @@ void linter::report_error_if_assignment_is_illegal(
     const std::optional<global_declared_variable> &var,
     const identifier &assignment, bool is_assigned_before_declaration) const {
   QLJS_ASSERT(var.has_value());
+  this->report_error_if_assignment_is_illegal(*var, assignment,
+                                              is_assigned_before_declaration);
+}
+
+void linter::report_error_if_assignment_is_illegal(
+    const global_declared_variable &var, const identifier &assignment,
+    bool is_assigned_before_declaration) const {
   this->report_error_if_assignment_is_illegal(
-      /*kind=*/var->kind(),
+      /*kind=*/var.kind(),
       /*is_global_variable=*/true,
       /*declaration=*/nullptr,
       /*assignment=*/assignment,
@@ -783,9 +791,16 @@ void linter::report_error_if_assignment_is_illegal(
 
 template <class DeclaredVariableType>
 void linter::report_errors_for_variable_use(
-    const used_variable &used_var, const DeclaredVariableType &) const {
+    const used_variable &used_var, const DeclaredVariableType &declared,
+    bool use_is_before_declaration) const {
   constexpr bool declared_in_global_scope =
       std::is_same_v<DeclaredVariableType, global_declared_variable>;
+
+  if (used_var.kind == used_variable_kind::assignment) {
+    this->report_error_if_assignment_is_illegal(
+        declared, used_var.name,
+        /*is_assigned_before_declaration=*/use_is_before_declaration);
+  }
 
   if (!declared_in_global_scope &&
       used_var.kind == used_variable_kind::_delete) {
