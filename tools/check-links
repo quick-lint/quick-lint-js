@@ -101,7 +101,14 @@ class Crawler:
         return hrefs
 
     def in_allowed_file_soup(self, url_response) -> bool:
-        return url_response.headers["Content-type"] in self.allowed_file_ext_for_soup
+        url = urlparse(url_response.url)
+        if url.path.endswith("/"):
+            # URLs which look like directories, such as
+            # https://quick-lint-js.com/blog/, should always serve HTML.
+            return True
+        return (
+            url_response.headers.get("Content-type") in self.allowed_file_ext_for_soup
+        )
 
     def report_error(self, error, packet) -> None:
         self.broken_links.append(packet.url)
