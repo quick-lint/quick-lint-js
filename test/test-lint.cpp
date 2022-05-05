@@ -2853,26 +2853,120 @@ TEST(test_lint_delete, deleting_local_variable_is_a_warning) {
                                          delete_expression.data() + 8);
   ASSERT_EQ(deleted_variable_span.string_view(), u8"v"_sv);
 
-  // (() => {
-  //   let v;
-  //   delete v;
-  // });
-  diag_collector v;
-  linter l(&v, &default_globals);
-  l.visit_enter_function_scope();
-  l.visit_enter_function_scope_body();
-  l.visit_variable_declaration(identifier_of(declaration), variable_kind::_let,
-                               variable_init_kind::normal);
-  l.visit_variable_delete_use(identifier(deleted_variable_span),
-                              delete_keyword_span);
-  l.visit_exit_function_scope();
-  l.visit_end_of_module();
+  {
+    // (() => {
+    //   let v;
+    //   delete v;
+    // });
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_let,
+                                 variable_init_kind::normal);
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
 
-  EXPECT_THAT(
-      v.errors,
-      ElementsAre(DIAG_TYPE_FIELD(
-          diag_redundant_delete_statement_on_variable, delete_expression,
-          offsets_matcher(&delete_expression, 0, u8"delete x"))));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_FIELD(
+            diag_redundant_delete_statement_on_variable, delete_expression,
+            offsets_matcher(&delete_expression, 0, u8"delete x"))));
+  }
+
+  {
+    // (() => {
+    //   let v;
+    //   {
+    //     delete v;
+    //   }
+    // });
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_let,
+                                 variable_init_kind::normal);
+    l.visit_enter_block_scope();
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_exit_block_scope();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_FIELD(
+            diag_redundant_delete_statement_on_variable, delete_expression,
+            offsets_matcher(&delete_expression, 0, u8"delete x"))));
+  }
+
+  {
+    // (() => {
+    //   let v;
+    //   (() => {
+    //     delete v;
+    //   });
+    // });
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_let,
+                                 variable_init_kind::normal);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_exit_function_scope();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_FIELD(
+            diag_redundant_delete_statement_on_variable, delete_expression,
+            offsets_matcher(&delete_expression, 0, u8"delete x"))));
+  }
+
+  {
+    // (() => {
+    //   let v;
+    //   (() => {
+    //     (() => {
+    //       delete v;
+    //     });
+    //   });
+    // });
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_let,
+                                 variable_init_kind::normal);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_exit_function_scope();
+    l.visit_exit_function_scope();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_FIELD(
+            diag_redundant_delete_statement_on_variable, delete_expression,
+            offsets_matcher(&delete_expression, 0, u8"delete x"))));
+  }
 }
 
 TEST(test_lint_delete, deleting_local_variable_declared_later_is_a_warning) {
@@ -2948,14 +3042,32 @@ TEST(test_lint_delete, deleting_declared_global_variable_is_ok) {
       .is_shadowable = true,
   });
 
-  // delete myGlobalVariable;
-  diag_collector v;
-  linter l(&v, &config.globals());
-  l.visit_variable_delete_use(identifier(deleted_variable_span),
-                              delete_keyword_span);
-  l.visit_end_of_module();
+  {
+    // delete myGlobalVariable;
+    diag_collector v;
+    linter l(&v, &config.globals());
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // (() => {
+    //   delete myGlobalVariable;
+    // });
+    diag_collector v;
+    linter l(&v, &config.globals());
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 
 TEST(test_lint_typeof, using_undeclared_variable_in_typeof_is_not_an_error) {

@@ -616,6 +616,17 @@ void linter::propagate_variable_uses_to_parent_scope(
           this->report_error_if_assignment_is_illegal(
               var, used_var.name, /*is_assigned_before_declaration=*/false);
         }
+        if (!parent_scope_is_global_scope &&
+            used_var.kind == used_variable_kind::_delete) {
+          // TODO(strager): What if the variable was parenthesized? We should
+          // include the closing parenthesis.
+          this->diag_reporter_->report(
+              diag_redundant_delete_statement_on_variable{
+                  .delete_expression =
+                      source_code_span(used_var.delete_keyword_begin,
+                                       used_var.name.span().end()),
+              });
+        }
         if constexpr (!parent_scope_is_global_scope) {
           var->is_used = true;
         }
@@ -654,6 +665,17 @@ void linter::propagate_variable_uses_to_parent_scope(
         if (used_var.kind == used_variable_kind::assignment) {
           this->report_error_if_assignment_is_illegal(
               var, used_var.name, /*is_assigned_before_declaration=*/false);
+        }
+        if (!parent_scope_is_global_scope &&
+            used_var.kind == used_variable_kind::_delete) {
+          // TODO(strager): What if the variable was parenthesized? We should
+          // include the closing parenthesis.
+          this->diag_reporter_->report(
+              diag_redundant_delete_statement_on_variable{
+                  .delete_expression =
+                      source_code_span(used_var.delete_keyword_begin,
+                                       used_var.name.span().end()),
+              });
         }
       } else if (is_current_scope_function_name(used_var)) {
         // Treat this variable as declared in the current scope.
