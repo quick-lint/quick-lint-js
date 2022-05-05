@@ -269,6 +269,7 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
   static constexpr char8 declaration[] = u8"I";
 
   static constexpr char8 assignment[] = u8"I";
+  static constexpr char8 use[] = u8"I";
 
   struct variable_visit_kind {
     const char* description;
@@ -296,6 +297,15 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
           .variable_does_not_exist_matcher = ElementsAre(
               DIAG_TYPE_FIELD(diag_assignment_to_undeclared_variable,
                               assignment, span_matcher(assignment))),
+          .variable_exists_matcher = IsEmpty(),
+      },
+
+      {
+          .description = "visit_variable_use",
+          .visit = [](linter& l) { l.visit_variable_use(identifier_of(use)); },
+          // TODO(strager): Report a more helpful message.
+          .variable_does_not_exist_matcher = ElementsAre(DIAG_TYPE_FIELD(
+              diag_use_of_undeclared_variable, name, span_matcher(use))),
           .variable_exists_matcher = IsEmpty(),
       },
   };

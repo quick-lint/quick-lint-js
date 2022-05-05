@@ -428,11 +428,12 @@ void linter::visit_variable_use(identifier name) {
 void linter::visit_variable_use(identifier name, used_variable_kind use_kind) {
   QLJS_ASSERT(!this->scopes_.empty());
   scope &current_scope = this->current_scope();
-  // TODO(strager): Should we use find_runtime for non-type uses?
   declared_variable *var =
       use_kind == used_variable_kind::type
           ? current_scope.declared_variables.find_type(name)
-          : current_scope.declared_variables.find(name);
+          : use_kind == used_variable_kind::_export
+                ? current_scope.declared_variables.find(name)
+                : current_scope.declared_variables.find_runtime(name);
   if (var) {
     var->is_used = true;
   } else {
@@ -589,13 +590,7 @@ void linter::propagate_variable_uses_to_parent_scope(
       case used_variable_kind::use:
         QLJS_ASSERT(
             !current_scope.declared_variables.find_runtime(used_var.name));
-        // TODO(#690): Don't allow expressions to reference interfaces. Add
-        // visit_type_use separate from visit_variable_use.
-        if (used_var.kind == used_variable_kind::use) {
-          var = parent_scope.declared_variables.find(used_var.name);
-        } else {
-          var = parent_scope.declared_variables.find_runtime(used_var.name);
-        }
+        var = parent_scope.declared_variables.find_runtime(used_var.name);
         break;
       case used_variable_kind::type:
         QLJS_ASSERT(!current_scope.declared_variables.find_type(used_var.name));
