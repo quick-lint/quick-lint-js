@@ -2934,7 +2934,7 @@ TEST(test_lint_delete, deleting_declared_module_variable_is_a_warning) {
           offsets_matcher(&delete_expression, 0, u8"delete x"))));
 }
 
-TEST(test_lint_delete, deleting_declared_global_variable_is_a_warning) {
+TEST(test_lint_delete, deleting_declared_global_variable_is_ok) {
   padded_string code(u8"delete myGlobalVariable"_sv);
   source_code_span delete_keyword_span(code.data(), code.data() + 6);
   ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
