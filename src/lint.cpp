@@ -320,13 +320,16 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
                                                 used_var.name.span().end()),
       });
     }
+    if (used_var.kind == used_variable_kind::assignment) {
+      this->report_error_if_assignment_is_illegal(
+          declared, used_var.name,
+          /*is_assigned_before_declaration=*/kind == variable_kind::_class ||
+              kind == variable_kind::_const || kind == variable_kind::_let);
+    }
     if (kind == variable_kind::_class || kind == variable_kind::_const ||
         kind == variable_kind::_let) {
       switch (used_var.kind) {
       case used_variable_kind::assignment:
-        this->report_error_if_assignment_is_illegal(
-            declared, used_var.name,
-            /*is_assigned_before_declaration=*/true);
         break;
       case used_variable_kind::_typeof:
       case used_variable_kind::use:

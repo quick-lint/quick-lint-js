@@ -1144,6 +1144,24 @@ TEST(test_lint, assign_to_immutable_imported_variable) {
                               declaration, span_matcher(declaration),  //
                               var_kind, variable_kind::_import)));
   }
+
+  {
+    // x = 42;  // ERROR
+    // import {x} from "module";   // x is immutable
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_assignment(identifier_of(assignment));
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_import,
+                                 variable_init_kind::normal);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_3_FIELDS(
+                              diag_assignment_to_imported_variable,    //
+                              assignment, span_matcher(assignment),    //
+                              declaration, span_matcher(declaration),  //
+                              var_kind, variable_kind::_import)));
+  }
 }
 
 TEST(test_lint, assign_to_immutable_variable_before_declaration) {
