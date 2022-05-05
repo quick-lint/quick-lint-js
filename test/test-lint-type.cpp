@@ -236,12 +236,12 @@ TEST(test_lint_type, type_use_does_not_see_non_type_variables) {
     }
 
     {
+      // let I;
       // (() => {
       //   (() => {
       //     ({}) as I;
       //   });
       // });
-      // let I;
       diag_collector v;
       linter l(&v, &default_globals);
       l.visit_variable_declaration(identifier_of(declaration), kind,
