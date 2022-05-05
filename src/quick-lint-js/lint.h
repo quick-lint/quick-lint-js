@@ -279,6 +279,10 @@ class linter final : public parse_visitor_base {
       const identifier *declaration, const identifier &assignment,
       bool is_assigned_before_declaration) const;
 
+  template <class DeclaredVariableType>
+  void report_errors_for_variable_use(const used_variable &,
+                                      const DeclaredVariableType &) const;
+
   void report_error_if_variable_declaration_conflicts_in_scope(
       const scope &scope, identifier name, variable_kind kind,
       declared_variable_scope declaration_scope) const;

@@ -312,14 +312,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
           diag_function_call_before_declaration_in_block_scope{used_var.name,
                                                                name});
     }
-    if (used_var.kind == used_variable_kind::_delete) {
-      // TODO(strager): What if the variable was parenthesized? We should
-      // include the closing parenthesis.
-      this->diag_reporter_->report(diag_redundant_delete_statement_on_variable{
-          .delete_expression = source_code_span(used_var.delete_keyword_begin,
-                                                used_var.name.span().end()),
-      });
-    }
+    this->report_errors_for_variable_use(used_var, *declared);
     if (used_var.kind == used_variable_kind::assignment) {
       this->report_error_if_assignment_is_illegal(
           declared, used_var.name,
@@ -403,19 +396,16 @@ void linter::visit_variable_delete_use(identifier name,
 
   QLJS_ASSERT(!this->scopes_.empty());
   scope &current_scope = this->current_scope();
+
+  used_variable used_var(name, used_variable_kind::_delete,
+                         delete_keyword.begin());
   // TODO(#690): Don't allow 'delete' to reference type-only variables.
-  bool variable_is_declared =
-      current_scope.declared_variables.find(name) != nullptr;
-  if (variable_is_declared) {
-    // TODO(strager): What if the variable was parenthesized? We should include
-    // the closing parenthesis.
-    this->diag_reporter_->report(diag_redundant_delete_statement_on_variable{
-        .delete_expression =
-            source_code_span(delete_keyword.begin(), name.span().end()),
-    });
+  declared_variable *already_declared =
+      current_scope.declared_variables.find(name);
+  if (already_declared) {
+    this->report_errors_for_variable_use(used_var, *already_declared);
   } else {
-    current_scope.variables_used.emplace_back(name, used_variable_kind::_delete,
-                                              delete_keyword.begin());
+    current_scope.variables_used.push_back(std::move(used_var));
   }
 }
 
@@ -619,17 +609,7 @@ void linter::propagate_variable_uses_to_parent_scope(
           this->report_error_if_assignment_is_illegal(
               var, used_var.name, /*is_assigned_before_declaration=*/false);
         }
-        if (!parent_scope_is_global_scope &&
-            used_var.kind == used_variable_kind::_delete) {
-          // TODO(strager): What if the variable was parenthesized? We should
-          // include the closing parenthesis.
-          this->diag_reporter_->report(
-              diag_redundant_delete_statement_on_variable{
-                  .delete_expression =
-                      source_code_span(used_var.delete_keyword_begin,
-                                       used_var.name.span().end()),
-              });
-        }
+        this->report_errors_for_variable_use(used_var, *var);
         if constexpr (!parent_scope_is_global_scope) {
           var->is_used = true;
         }
@@ -669,17 +649,7 @@ void linter::propagate_variable_uses_to_parent_scope(
           this->report_error_if_assignment_is_illegal(
               var, used_var.name, /*is_assigned_before_declaration=*/false);
         }
-        if (!parent_scope_is_global_scope &&
-            used_var.kind == used_variable_kind::_delete) {
-          // TODO(strager): What if the variable was parenthesized? We should
-          // include the closing parenthesis.
-          this->diag_reporter_->report(
-              diag_redundant_delete_statement_on_variable{
-                  .delete_expression =
-                      source_code_span(used_var.delete_keyword_begin,
-                                       used_var.name.span().end()),
-              });
-        }
+        this->report_errors_for_variable_use(used_var, *var);
       } else if (is_current_scope_function_name(used_var)) {
         // Treat this variable as declared in the current scope.
       } else {
@@ -808,6 +778,23 @@ void linter::report_error_if_assignment_is_illegal(
     // TODO(#690)
     QLJS_UNIMPLEMENTED();
     break;
+  }
+}
+
+template <class DeclaredVariableType>
+void linter::report_errors_for_variable_use(
+    const used_variable &used_var, const DeclaredVariableType &) const {
+  constexpr bool declared_in_global_scope =
+      std::is_same_v<DeclaredVariableType, global_declared_variable>;
+
+  if (!declared_in_global_scope &&
+      used_var.kind == used_variable_kind::_delete) {
+    // TODO(strager): What if the variable was parenthesized? We should
+    // include the closing parenthesis.
+    this->diag_reporter_->report(diag_redundant_delete_statement_on_variable{
+        .delete_expression = source_code_span(used_var.delete_keyword_begin,
+                                              used_var.name.span().end()),
+    });
   }
 }
 
