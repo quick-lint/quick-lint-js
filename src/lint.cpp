@@ -344,13 +344,15 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
              if (name.normalized_name() != used_var.name.normalized_name()) {
                return false;
              }
+             if (declared->is_runtime()) {
+               this->report_errors_for_variable_use(
+                   used_var, declared,
+                   /*is_assigned_before_declaration=*/false);
+             }
              switch (used_var.kind) {
              case used_variable_kind::assignment:
                if (declared->is_runtime()) {
                  declared->is_used = true;
-                 this->report_error_if_assignment_is_illegal(
-                     declared, used_var.name,
-                     /*is_assigned_before_declaration=*/false);
                }
                break;
              case used_variable_kind::_export:

@@ -2954,6 +2954,35 @@ TEST(test_lint_delete, deleting_local_variable_is_a_warning) {
 
   {
     // (() => {
+    //   (() => {
+    //     delete v;
+    //   });
+    //   let v;
+    // });
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_exit_function_scope();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_let,
+                                 variable_init_kind::normal);
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_FIELD(
+            diag_redundant_delete_statement_on_variable, delete_expression,
+            offsets_matcher(&delete_expression, 0, u8"delete x"))));
+  }
+
+  {
+    // (() => {
     //   let v;
     //   (() => {
     //     (() => {
