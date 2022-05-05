@@ -326,26 +326,26 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
           /*is_assigned_before_declaration=*/kind == variable_kind::_class ||
               kind == variable_kind::_const || kind == variable_kind::_let);
     }
-    if (kind == variable_kind::_class || kind == variable_kind::_const ||
-        kind == variable_kind::_let) {
-      switch (used_var.kind) {
-      case used_variable_kind::assignment:
-        break;
-      case used_variable_kind::_typeof:
-      case used_variable_kind::use:
+    switch (used_var.kind) {
+    case used_variable_kind::assignment:
+      break;
+    case used_variable_kind::_typeof:
+    case used_variable_kind::use:
+      if (kind == variable_kind::_class || kind == variable_kind::_const ||
+          kind == variable_kind::_let) {
         this->diag_reporter_->report(
             diag_variable_used_before_declaration{used_var.name, name});
-        break;
-      case used_variable_kind::_delete:
-        // Use before declaration is legal for delete.
-        break;
-      case used_variable_kind::_export:
-        // Use before declaration is legal for variable exports.
-        break;
-      case used_variable_kind::type:
-        // Use before declaration is legal for types.
-        break;
       }
+      break;
+    case used_variable_kind::_delete:
+      // Use before declaration is legal for delete.
+      break;
+    case used_variable_kind::_export:
+      // Use before declaration is legal for variable exports.
+      break;
+    case used_variable_kind::type:
+      // Use before declaration is legal for types.
+      break;
     }
     return true;
   });
