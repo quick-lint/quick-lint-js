@@ -157,6 +157,19 @@ class linter final : public parse_visitor_base {
       QLJS_ASSERT(kind == used_variable_kind::_delete);
     }
 
+    // Returns true if this variable was used in an expression or in a module
+    // export.
+    //
+    // Returns false if this variable was used in a TypeScript type signature.
+    bool is_runtime() const noexcept;
+
+    // Returns true if this variable was used in a TypeScript type signature.
+    //
+    // Returns false if this variable was used in a run-time expression.
+    //
+    // TODO(#690): Return true if this variable was used in a module export.
+    bool is_type() const noexcept;
+
     identifier name;
     const char8 *delete_keyword_begin;  // used_variable_kind::_delete only
     used_variable_kind kind;

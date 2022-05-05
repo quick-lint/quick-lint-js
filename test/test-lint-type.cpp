@@ -271,6 +271,14 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
   static constexpr char8 assignment[] = u8"I";
   static constexpr char8 use[] = u8"I";
 
+  static const padded_string delete_expression(u8"delete I"_sv);
+  static const source_code_span delete_keyword_span(
+      delete_expression.data(), delete_expression.data() + 6);
+  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
+  static const source_code_span deleted_variable_span(
+      delete_expression.data() + 7, delete_expression.data() + 8);
+  ASSERT_EQ(deleted_variable_span.string_view(), u8"I"_sv);
+
   struct variable_visit_kind {
     const char* description;
     void (*visit)(linter&);
@@ -298,6 +306,19 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
               DIAG_TYPE_FIELD(diag_assignment_to_undeclared_variable,
                               assignment, span_matcher(assignment))),
           .variable_exists_matcher = IsEmpty(),
+      },
+
+      {
+          .description = "visit_variable_delete_use",
+          .visit =
+              [](linter& l) {
+                l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                            delete_keyword_span);
+              },
+          .variable_does_not_exist_matcher = IsEmpty(),
+          .variable_exists_matcher = ElementsAre(DIAG_TYPE_FIELD(
+              diag_redundant_delete_statement_on_variable, delete_expression,
+              offsets_matcher(&delete_expression, 0, u8"delete I"))),
       },
 
       {

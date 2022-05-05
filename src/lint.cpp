@@ -344,6 +344,10 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
              if (name.normalized_name() != used_var.name.normalized_name()) {
                return false;
              }
+             if (!((declared->is_runtime() && used_var.is_runtime()) ||
+                   (declared->is_type() && used_var.is_type()))) {
+               return false;
+             }
              if (declared->is_runtime()) {
                this->report_errors_for_variable_use(
                    used_var, declared,
@@ -398,9 +402,8 @@ void linter::visit_variable_delete_use(identifier name,
 
   used_variable used_var(name, used_variable_kind::_delete,
                          delete_keyword.begin());
-  // TODO(#690): Don't allow 'delete' to reference type-only variables.
   declared_variable *already_declared =
-      current_scope.declared_variables.find(name);
+      current_scope.declared_variables.find_runtime(name);
   if (already_declared) {
     this->report_errors_for_variable_use(used_var, *already_declared,
                                          /*use_is_before_declaration=*/false);
@@ -936,6 +939,36 @@ bool linter::declared_variable::is_type() const noexcept {
   case variable_kind::_let:
   case variable_kind::_parameter:
   case variable_kind::_var:
+    return false;
+  }
+  QLJS_UNREACHABLE();
+}
+
+bool linter::used_variable::is_runtime() const noexcept {
+  switch (this->kind) {
+  case used_variable_kind::_delete:
+  case used_variable_kind::_export:
+  case used_variable_kind::_typeof:
+  case used_variable_kind::assignment:
+  case used_variable_kind::use:
+    return true;
+  case used_variable_kind::type:
+    return false;
+  }
+  QLJS_UNREACHABLE();
+}
+
+bool linter::used_variable::is_type() const noexcept {
+  switch (this->kind) {
+  case used_variable_kind::type:
+    return true;
+  case used_variable_kind::_export:
+    // TODO(#690): Return true if this variable was used in a module export.
+    return false;
+  case used_variable_kind::_delete:
+  case used_variable_kind::_typeof:
+  case used_variable_kind::assignment:
+  case used_variable_kind::use:
     return false;
   }
   QLJS_UNREACHABLE();
