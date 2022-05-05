@@ -96,8 +96,7 @@ class Crawler:
         href_tags = soup.find_all(href=True)
         hrefs = [tag.get("href") for tag in href_tags]
         script_srcs = list(map(lambda x: x.get("src"), soup.findAll("script")))
-        if None not in script_srcs:
-            hrefs.extend(script_srcs)
+        hrefs.extend(src for src in script_srcs if src is not None)
         return hrefs
 
     def in_allowed_file_soup(self, url_response) -> bool:
