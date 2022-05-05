@@ -35,6 +35,7 @@ update_template_file() {
 
   mkdir -p po
   msgmerge --backup=none --update -- "${pot_file}" "${pot_temp_file}"
+  sed -i -e '/^.POT-Creation-Date:/d' "${pot_file}"
 
   rm -- "${pot_temp_file}"
 }
