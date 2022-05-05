@@ -265,6 +265,9 @@ TEST(test_lint_type, type_use_does_not_see_non_type_variables) {
 }
 
 TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
+  using diags_matcher =
+      testing::Matcher<const std::vector<diag_collector::diag>&>;
+
   static constexpr char8 outer_declaration[] = u8"I";
   static constexpr char8 declaration[] = u8"I";
 
@@ -284,14 +287,13 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
     void (*visit)(linter&);
 
     // Used when no run-time variable exists with the same name as the
-    // interface.
-    testing::Matcher<const std::vector<diag_collector::diag>&>
-        variable_does_not_exist_matcher;
-
-    // Used when a run-time variable exists with the same name as the
-    // interface.
-    testing::Matcher<const std::vector<diag_collector::diag>&>
-        variable_exists_matcher;
+    // If a run-time variable exists with the same name as the interface,
+    // 'runtime_var_kind' is set to that variable's kind.
+    //
+    // If no run-time variable exists with the same name as the interface,
+    // 'runtime_var_kind' is nullopt.
+    diags_matcher (*get_diags_matcher)(
+        std::optional<variable_kind> runtime_var_kind);
   };
 
   variable_visit_kind variable_visit_kinds[] = {
@@ -301,11 +303,17 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
               [](linter& l) {
                 l.visit_variable_assignment(identifier_of(assignment));
               },
-          // TODO(strager): Report a more helpful message.
-          .variable_does_not_exist_matcher = ElementsAre(
-              DIAG_TYPE_FIELD(diag_assignment_to_undeclared_variable,
-                              assignment, span_matcher(assignment))),
-          .variable_exists_matcher = IsEmpty(),
+          .get_diags_matcher = [](std::optional<variable_kind> runtime_var_kind)
+              -> diags_matcher {
+            if (runtime_var_kind.has_value()) {
+              return IsEmpty();
+            } else {
+              // TODO(strager): Report a more helpful message.
+              return ElementsAre(
+                  DIAG_TYPE_FIELD(diag_assignment_to_undeclared_variable,
+                                  assignment, span_matcher(assignment)));
+            }
+          },
       },
 
       {
@@ -315,20 +323,31 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
                 l.visit_variable_delete_use(identifier(deleted_variable_span),
                                             delete_keyword_span);
               },
-          .variable_does_not_exist_matcher = IsEmpty(),
-          .variable_exists_matcher = ElementsAre(DIAG_TYPE_FIELD(
-              diag_redundant_delete_statement_on_variable, delete_expression,
-              offsets_matcher(&delete_expression, 0, u8"delete I"))),
+          .get_diags_matcher = [](std::optional<variable_kind> runtime_var_kind)
+              -> diags_matcher {
+            if (runtime_var_kind.has_value()) {
+              return ElementsAre(DIAG_TYPE_FIELD(
+                  diag_redundant_delete_statement_on_variable,
+                  delete_expression,
+                  offsets_matcher(&delete_expression, 0, u8"delete I")));
+            } else {
+              return IsEmpty();
+            }
+          },
       },
 
-      {
-          .description = "visit_variable_use",
-          .visit = [](linter& l) { l.visit_variable_use(identifier_of(use)); },
-          // TODO(strager): Report a more helpful message.
-          .variable_does_not_exist_matcher = ElementsAre(DIAG_TYPE_FIELD(
-              diag_use_of_undeclared_variable, name, span_matcher(use))),
-          .variable_exists_matcher = IsEmpty(),
-      },
+      {.description = "visit_variable_use",
+       .visit = [](linter& l) { l.visit_variable_use(identifier_of(use)); },
+       .get_diags_matcher =
+           [](std::optional<variable_kind> runtime_var_kind) -> diags_matcher {
+         if (runtime_var_kind.has_value()) {
+           return IsEmpty();
+         } else {
+           // TODO(strager): Report a more helpful message.
+           return ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable,
+                                              name, span_matcher(use)));
+         }
+       }},
   };
 
   for (variable_visit_kind& visit_kind : variable_visit_kinds) {
@@ -345,7 +364,7 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
       visit_kind.visit(l);
       l.visit_end_of_module();
 
-      EXPECT_THAT(v.errors, visit_kind.variable_does_not_exist_matcher);
+      EXPECT_THAT(v.errors, visit_kind.get_diags_matcher(std::nullopt));
     }
 
     {
@@ -363,7 +382,7 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
       l.visit_exit_block_scope();
       l.visit_end_of_module();
 
-      EXPECT_THAT(v.errors, visit_kind.variable_does_not_exist_matcher);
+      EXPECT_THAT(v.errors, visit_kind.get_diags_matcher(std::nullopt));
     }
 
     {
@@ -372,10 +391,10 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
       //   interface I {}
       //   I;
       // }
+      variable_kind outer_kind = variable_kind::_let;
       diag_collector v;
       linter l(&v, &default_globals);
-      l.visit_variable_declaration(identifier_of(outer_declaration),
-                                   variable_kind::_let,
+      l.visit_variable_declaration(identifier_of(outer_declaration), outer_kind,
                                    variable_init_kind::normal);
       l.visit_enter_block_scope();
       l.visit_variable_declaration(identifier_of(declaration),
@@ -385,7 +404,7 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
       l.visit_exit_block_scope();
       l.visit_end_of_module();
 
-      EXPECT_THAT(v.errors, visit_kind.variable_exists_matcher);
+      EXPECT_THAT(v.errors, visit_kind.get_diags_matcher(outer_kind));
     }
 
     {
@@ -394,10 +413,10 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
       // {
       //   I;
       // }
+      variable_kind outer_kind = variable_kind::_let;
       diag_collector v;
       linter l(&v, &default_globals);
-      l.visit_variable_declaration(identifier_of(outer_declaration),
-                                   variable_kind::_let,
+      l.visit_variable_declaration(identifier_of(outer_declaration), outer_kind,
                                    variable_init_kind::normal);
       l.visit_variable_declaration(identifier_of(declaration),
                                    variable_kind::_interface,
@@ -407,17 +426,17 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
       l.visit_exit_block_scope();
       l.visit_end_of_module();
 
-      EXPECT_THAT(v.errors, visit_kind.variable_exists_matcher);
+      EXPECT_THAT(v.errors, visit_kind.get_diags_matcher(outer_kind));
     }
 
     {
       // let I;
       // interface I {}
       // I;
+      variable_kind outer_kind = variable_kind::_let;
       diag_collector v;
       linter l(&v, &default_globals);
-      l.visit_variable_declaration(identifier_of(outer_declaration),
-                                   variable_kind::_let,
+      l.visit_variable_declaration(identifier_of(outer_declaration), outer_kind,
                                    variable_init_kind::normal);
       l.visit_variable_declaration(identifier_of(declaration),
                                    variable_kind::_interface,
@@ -425,25 +444,25 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
       visit_kind.visit(l);
       l.visit_end_of_module();
 
-      EXPECT_THAT(v.errors, visit_kind.variable_exists_matcher);
+      EXPECT_THAT(v.errors, visit_kind.get_diags_matcher(outer_kind));
     }
 
     {
       // interface I {}
       // let I;
       // I;
+      variable_kind outer_kind = variable_kind::_let;
       diag_collector v;
       linter l(&v, &default_globals);
       l.visit_variable_declaration(identifier_of(declaration),
                                    variable_kind::_interface,
                                    variable_init_kind::normal);
-      l.visit_variable_declaration(identifier_of(outer_declaration),
-                                   variable_kind::_let,
+      l.visit_variable_declaration(identifier_of(outer_declaration), outer_kind,
                                    variable_init_kind::normal);
       visit_kind.visit(l);
       l.visit_end_of_module();
 
-      EXPECT_THAT(v.errors, visit_kind.variable_exists_matcher);
+      EXPECT_THAT(v.errors, visit_kind.get_diags_matcher(outer_kind));
     }
 
     {
@@ -452,6 +471,7 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
       // });
       // interface I {}
       // let I;
+      variable_kind outer_kind = variable_kind::_let;
       diag_collector v;
       linter l(&v, &default_globals);
       l.visit_enter_function_scope();
@@ -461,12 +481,11 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
       l.visit_variable_declaration(identifier_of(declaration),
                                    variable_kind::_interface,
                                    variable_init_kind::normal);
-      l.visit_variable_declaration(identifier_of(outer_declaration),
-                                   variable_kind::_let,
+      l.visit_variable_declaration(identifier_of(outer_declaration), outer_kind,
                                    variable_init_kind::normal);
       l.visit_end_of_module();
 
-      EXPECT_THAT(v.errors, visit_kind.variable_exists_matcher);
+      EXPECT_THAT(v.errors, visit_kind.get_diags_matcher(outer_kind));
     }
   }
 }
