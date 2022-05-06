@@ -527,6 +527,10 @@ void linter::visit_end_of_module() {
         this->diag_reporter_->report(
             diag_assignment_to_undeclared_variable{used_var.name});
         break;
+      case used_variable_kind::_delete:
+        // TODO(strager): Report a warning if the global variable is not
+        // deletable.
+        break;
       case used_variable_kind::type:
         this->diag_reporter_->report(
             diag_use_of_undeclared_type{used_var.name});

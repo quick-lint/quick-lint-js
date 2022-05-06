@@ -3117,6 +3117,43 @@ TEST(test_lint_delete, deleting_declared_global_variable_is_ok) {
   }
 }
 
+TEST(test_lint_delete, deleting_undeclared_global_variable_is_ok) {
+  padded_string code(u8"delete myGlobalVariable"_sv);
+  source_code_span delete_keyword_span(code.data(), code.data() + 6);
+  ASSERT_EQ(delete_keyword_span.string_view(), u8"delete"_sv);
+  source_code_span deleted_variable_span(code.data() + 7, code.data() + 23);
+  ASSERT_EQ(deleted_variable_span.string_view(), u8"myGlobalVariable"_sv);
+
+  configuration config;
+
+  {
+    // delete myGlobalVariable;
+    diag_collector v;
+    linter l(&v, &config.globals());
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // (() => {
+    //   delete myGlobalVariable;
+    // });
+    diag_collector v;
+    linter l(&v, &config.globals());
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_delete_use(identifier(deleted_variable_span),
+                                delete_keyword_span);
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
 TEST(test_lint_typeof, using_undeclared_variable_in_typeof_is_not_an_error) {
   const char8 use[] = u8"v";
 
