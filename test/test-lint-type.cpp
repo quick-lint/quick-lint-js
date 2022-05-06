@@ -181,6 +181,82 @@ TEST(test_lint_type, type_use_of_import_is_okay) {
   }
 }
 
+TEST(test_lint_type, interface_can_be_exported) {
+  const char8 declaration[] = u8"I";
+  const char8 use[] = u8"I";
+
+  {
+    // interface I {}
+    // export {I};
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_variable_export_use(identifier_of(use));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // export {I};
+    // interface I {}
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_export_use(identifier_of(use));
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // interface I {}
+    // (() => {
+    //   export {I};
+    // });
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_export_use(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // interface I {}
+    // (() => {
+    //   (() => {
+    //     export {I};
+    //   });
+    // });
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_export_use(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_exit_function_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
 TEST(test_lint_type, type_use_does_not_see_non_type_variables) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";

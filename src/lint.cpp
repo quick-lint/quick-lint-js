@@ -572,8 +572,9 @@ void linter::propagate_variable_uses_to_parent_scope(
       found_variable_type var = {};
       switch (used_var.kind) {
       case used_variable_kind::_export:
-        // TODO(#690): Look for both type-only and runtime-only too.
-        [[fallthrough]];
+        QLJS_ASSERT(!current_scope.declared_variables.find(used_var.name));
+        var = parent_scope.declared_variables.find(used_var.name);
+        break;
       case used_variable_kind::_delete:
       case used_variable_kind::_typeof:
       case used_variable_kind::assignment:
@@ -614,8 +615,8 @@ void linter::propagate_variable_uses_to_parent_scope(
       found_variable_type var = {};
       switch (used_var.kind) {
       case used_variable_kind::_export:
-        // TODO(#690): Look for both type-only and runtime-only too.
-        [[fallthrough]];
+        var = parent_scope.declared_variables.find(used_var.name);
+        break;
       case used_variable_kind::_delete:
       case used_variable_kind::_typeof:
       case used_variable_kind::assignment:
