@@ -369,8 +369,7 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
                declared->is_used = true;
                break;
              case used_variable_kind::type:
-               // TODO(#690)
-               QLJS_UNIMPLEMENTED();
+               // TODO(strager): Do we need to set declared->is_used?
                break;
              }
              return true;

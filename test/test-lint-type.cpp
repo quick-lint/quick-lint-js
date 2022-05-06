@@ -115,16 +115,36 @@ TEST(test_lint_type, type_use_before_declaration_is_okay) {
        {variable_kind::_class, variable_kind::_interface}) {
     SCOPED_TRACE(kind);
 
-    // ({}) as I;
-    // interface I {}
-    diag_collector v;
-    linter l(&v, &default_globals);
-    l.visit_variable_type_use(identifier_of(use));
-    l.visit_variable_declaration(identifier_of(declaration), kind,
-                                 variable_init_kind::normal);
-    l.visit_end_of_module();
+    {
+      // ({}) as I;
+      // interface I {}
+      diag_collector v;
+      linter l(&v, &default_globals);
+      l.visit_variable_type_use(identifier_of(use));
+      l.visit_variable_declaration(identifier_of(declaration), kind,
+                                   variable_init_kind::normal);
+      l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, IsEmpty());
+      EXPECT_THAT(v.errors, IsEmpty());
+    }
+
+    {
+      // (() => {
+      //   ({}) as I;
+      // });
+      // interface I {}
+      diag_collector v;
+      linter l(&v, &default_globals);
+      l.visit_enter_function_scope();
+      l.visit_enter_function_scope_body();
+      l.visit_variable_type_use(identifier_of(use));
+      l.visit_exit_function_scope();
+      l.visit_variable_declaration(identifier_of(declaration), kind,
+                                   variable_init_kind::normal);
+      l.visit_end_of_module();
+
+      EXPECT_THAT(v.errors, IsEmpty());
+    }
   }
 }
 
