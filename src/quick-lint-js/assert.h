@@ -51,7 +51,7 @@
     }                                              \
   } while (false)
 
-#if QLJS_HAVE_FILE_NAME_MACRO && (defined(NDEBUG) && NDEBUG)
+#if QLJS_HAVE_FILE_NAME_MACRO
 #define QLJS_REPORT_ASSERTION_FAILURE_(...)                                    \
   ::quick_lint_js::report_assertion_failure(__FILE_NAME__, __LINE__, __func__, \
                                             #__VA_ARGS__)

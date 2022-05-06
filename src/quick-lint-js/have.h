@@ -431,7 +431,7 @@
 #endif
 
 #if !defined(QLJS_HAVE_FILE_NAME_MACRO)
-#if defined(__clang__)
+#if defined(__clang__) && (defined(NDEBUG) && NDEBUG)
 #define QLJS_HAVE_FILE_NAME_MACRO 1
 #else
 #define QLJS_HAVE_FILE_NAME_MACRO 0
