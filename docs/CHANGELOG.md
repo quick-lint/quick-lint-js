@@ -27,6 +27,7 @@ Semantic Versioning.
 * The npm package now includes `copyright` files listing software licenses and
   copyright notices.
 * [E0086][] is no longer falsely reported in some cases.
+* quick-lint-js no longer creates and writes messages to `/tmp/qljs.log`.
 
 ### Changed
 

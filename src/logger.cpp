@@ -32,7 +32,7 @@ QLJS_WARNING_IGNORE_GCC("-Wformat-security")
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=format")
 
 // Define this macro to a non-empty string to log to the specified file:
-#define QLJS_DEBUG_LOGGING_FILE "/tmp/qljs.log"
+// #define QLJS_DEBUG_LOGGING_FILE "/tmp/qljs.log"
 
 namespace quick_lint_js {
 namespace {
