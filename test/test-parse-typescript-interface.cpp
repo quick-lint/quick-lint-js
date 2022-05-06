@@ -52,6 +52,36 @@ TEST(test_parse_typescript_interface, empty_interface) {
           u8"I", variable_kind::_interface, variable_init_kind::normal}));
   EXPECT_THAT(v.errors, IsEmpty());
 }
+
+TEST(test_parse_typescript_interface, extends) {
+  padded_string code(u8"interface I extends A {}"_sv);
+  spy_visitor v;
+  parser p(&code, &v, typescript_options);
+  p.parse_and_visit_module(v);
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // I
+                                    "visit_variable_type_use",     // A
+                                    "visit_end_of_module"));
+  EXPECT_THAT(v.variable_uses,
+              ElementsAre(spy_visitor::visited_variable_use{u8"A"}));
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
+TEST(test_parse_typescript_interface, extends_multiple_things) {
+  padded_string code(u8"interface I extends A, B, C {}"_sv);
+  spy_visitor v;
+  parser p(&code, &v, typescript_options);
+  p.parse_and_visit_module(v);
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // I
+                                    "visit_variable_type_use",     // A
+                                    "visit_variable_type_use",     // B
+                                    "visit_variable_type_use",     // C
+                                    "visit_end_of_module"));
+  EXPECT_THAT(v.variable_uses,
+              ElementsAre(spy_visitor::visited_variable_use{u8"A"},
+                          spy_visitor::visited_variable_use{u8"B"},
+                          spy_visitor::visited_variable_use{u8"C"}));
+  EXPECT_THAT(v.errors, IsEmpty());
+}
 }
 }
 

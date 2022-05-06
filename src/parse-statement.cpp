@@ -1590,10 +1590,29 @@ void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
     break;
   }
 
+  if (this->peek().type == token_type::kw_extends) {
+    this->parse_and_visit_typescript_interface_extends(v);
+  }
+
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
   this->skip();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
   this->skip();
+}
+
+void parser::parse_and_visit_typescript_interface_extends(
+    parse_visitor_base &v) {
+  QLJS_ASSERT(this->peek().type == token_type::kw_extends);
+
+  this->skip();
+next_extends:
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+  v.visit_variable_type_use(this->peek().identifier_name());
+  this->skip();
+  if (this->peek().type == token_type::comma) {
+    this->skip();
+    goto next_extends;
+  }
 }
 
 void parser::parse_and_visit_switch(parse_visitor_base &v) {
