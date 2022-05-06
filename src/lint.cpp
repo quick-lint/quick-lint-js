@@ -366,8 +366,6 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
              case used_variable_kind::_delete:
              case used_variable_kind::_typeof:
              case used_variable_kind::use:
-               // TODO(#690): I think we need to do this only if
-               // declared->is_runtime().
                declared->is_used = true;
                break;
              case used_variable_kind::type:
