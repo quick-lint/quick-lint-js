@@ -233,6 +233,25 @@ TEST(test_lint_type, interface_can_be_exported) {
   }
 
   {
+    // (() => {
+    //   export {I};
+    // });
+    // interface I {}
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_enter_function_scope();
+    l.visit_enter_function_scope_body();
+    l.visit_variable_export_use(identifier_of(use));
+    l.visit_exit_function_scope();
+    l.visit_variable_declaration(identifier_of(declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
     // interface I {}
     // (() => {
     //   (() => {

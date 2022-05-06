@@ -166,8 +166,6 @@ class linter final : public parse_visitor_base {
     // Returns true if this variable was used in a TypeScript type signature.
     //
     // Returns false if this variable was used in a run-time expression.
-    //
-    // TODO(#690): Return true if this variable was used in a module export.
     bool is_type() const noexcept;
 
     identifier name;

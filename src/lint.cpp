@@ -949,11 +949,9 @@ bool linter::used_variable::is_runtime() const noexcept {
 
 bool linter::used_variable::is_type() const noexcept {
   switch (this->kind) {
+  case used_variable_kind::_export:
   case used_variable_kind::type:
     return true;
-  case used_variable_kind::_export:
-    // TODO(#690): Return true if this variable was used in a module export.
-    return false;
   case used_variable_kind::_delete:
   case used_variable_kind::_typeof:
   case used_variable_kind::assignment:
