@@ -492,7 +492,8 @@ void linter::visit_end_of_module() {
     return is_variable_declared_by_typeof(var);
   };
 
-  for (const used_variable &used_var : global_scope.variables_used) {
+  auto check_if_variable_is_undeclared =
+      [&](const used_variable &used_var) -> void {
     if (!is_variable_declared(used_var)) {
       switch (used_var.kind) {
       case used_variable_kind::assignment:
@@ -518,33 +519,13 @@ void linter::visit_end_of_module() {
         break;
       }
     }
+  };
+  for (const used_variable &used_var : global_scope.variables_used) {
+    check_if_variable_is_undeclared(used_var);
   }
   for (const used_variable &used_var :
        global_scope.variables_used_in_descendant_scope) {
-    if (!is_variable_declared(used_var)) {
-      switch (used_var.kind) {
-      case used_variable_kind::assignment:
-        this->diag_reporter_->report(
-            diag_assignment_to_undeclared_variable{used_var.name});
-        break;
-      case used_variable_kind::_delete:
-        // TODO(strager): Report a warning if the global variable is not
-        // deletable.
-        break;
-      case used_variable_kind::type:
-        this->diag_reporter_->report(
-            diag_use_of_undeclared_type{used_var.name});
-        break;
-      case used_variable_kind::_export:
-      case used_variable_kind::use:
-        this->diag_reporter_->report(
-            diag_use_of_undeclared_variable{used_var.name});
-        break;
-      case used_variable_kind::_typeof:
-        QLJS_UNREACHABLE();
-        break;
-      }
-    }
+    check_if_variable_is_undeclared(used_var);
   }
 }
 
