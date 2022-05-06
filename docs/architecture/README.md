@@ -204,6 +204,7 @@ Nygard][ADR-bible].
 * [ADR012: Assertions](ADR012-Assertions.md)
 * [ADR013: Dependencies](ADR013-Dependencies.md)
 * [ADR014: Plugins](ADR014-Plugins.md)
+* [ADR015: Logging and tracing](ADR015-Logging-and-tracing.md)
 
 ### Rejected ADRs
 
