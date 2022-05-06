@@ -772,8 +772,8 @@ void linter::report_error_if_assignment_is_illegal(
     }
     break;
   case variable_kind::_interface:
-    // TODO(#690)
-    QLJS_UNIMPLEMENTED();
+    // Interfaces can't be assigned to.
+    QLJS_UNREACHABLE();
     break;
   }
 }
