@@ -574,8 +574,10 @@ void linter::propagate_variable_uses_to_parent_scope(
     for (const used_variable &used_var : current_scope.variables_used) {
       found_variable_type var = {};
       switch (used_var.kind) {
-      case used_variable_kind::_delete:
       case used_variable_kind::_export:
+        // TODO(#690): Look for both type-only and runtime-only too.
+        [[fallthrough]];
+      case used_variable_kind::_delete:
       case used_variable_kind::_typeof:
       case used_variable_kind::assignment:
       case used_variable_kind::use:
@@ -614,8 +616,10 @@ void linter::propagate_variable_uses_to_parent_scope(
          current_scope.variables_used_in_descendant_scope) {
       found_variable_type var = {};
       switch (used_var.kind) {
-      case used_variable_kind::_delete:
       case used_variable_kind::_export:
+        // TODO(#690): Look for both type-only and runtime-only too.
+        [[fallthrough]];
+      case used_variable_kind::_delete:
       case used_variable_kind::_typeof:
       case used_variable_kind::assignment:
       case used_variable_kind::use:
