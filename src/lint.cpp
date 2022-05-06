@@ -503,14 +503,14 @@ void linter::visit_end_of_module() {
         // TODO(strager): Report a warning if the global variable is not
         // deletable.
         break;
+      case used_variable_kind::type:
+        this->diag_reporter_->report(
+            diag_use_of_undeclared_type{used_var.name});
+        break;
       case used_variable_kind::_export:
       case used_variable_kind::use:
         this->diag_reporter_->report(
             diag_use_of_undeclared_variable{used_var.name});
-        break;
-      case used_variable_kind::type:
-        this->diag_reporter_->report(
-            diag_use_of_undeclared_type{used_var.name});
         break;
       case used_variable_kind::_typeof:
         // 'typeof foo' is often used to detect if the variable 'foo' is
@@ -535,10 +535,13 @@ void linter::visit_end_of_module() {
         this->diag_reporter_->report(
             diag_use_of_undeclared_type{used_var.name});
         break;
-      // TODO(strager): Is 'default' correct here?
-      default:
+      case used_variable_kind::_export:
+      case used_variable_kind::use:
         this->diag_reporter_->report(
             diag_use_of_undeclared_variable{used_var.name});
+        break;
+      case used_variable_kind::_typeof:
+        QLJS_UNREACHABLE();
         break;
       }
     }
