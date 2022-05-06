@@ -1607,9 +1607,22 @@ void parser::parse_and_visit_typescript_interface_extends(
   this->skip();
 next_extends:
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-  v.visit_variable_type_use(this->peek().identifier_name());
+  identifier ident = this->peek().identifier_name();
   this->skip();
+
+  if (this->peek().type == token_type::dot) {
+    // extends mynamespace.MyInterface
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+    this->skip();
+    v.visit_variable_namespace_use(ident);
+  } else {
+    // extends MyInterface
+    v.visit_variable_type_use(ident);
+  }
+
   if (this->peek().type == token_type::comma) {
+    // extends IBanana, IOrange
     this->skip();
     goto next_extends;
   }

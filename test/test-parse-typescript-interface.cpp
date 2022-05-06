@@ -66,6 +66,19 @@ TEST(test_parse_typescript_interface, extends) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
+TEST(test_parse_typescript_interface, extends_interface_from_namespace) {
+  padded_string code(u8"interface I extends ns.A {}"_sv);
+  spy_visitor v;
+  parser p(&code, &v, typescript_options);
+  p.parse_and_visit_module(v);
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // I
+                                    "visit_variable_namespace_use",  // ns
+                                    "visit_end_of_module"));
+  EXPECT_THAT(v.variable_uses,
+              ElementsAre(spy_visitor::visited_variable_use{u8"ns"}));
+  EXPECT_THAT(v.errors, IsEmpty());
+}
+
 TEST(test_parse_typescript_interface, extends_multiple_things) {
   padded_string code(u8"interface I extends A, B, C {}"_sv);
   spy_visitor v;
