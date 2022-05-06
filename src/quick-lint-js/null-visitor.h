@@ -31,6 +31,7 @@ class null_visitor final : public parse_visitor_base {
                                   variable_init_kind) override {}
   void visit_variable_delete_use(identifier, source_code_span) override {}
   void visit_variable_export_use(identifier) override {}
+  void visit_variable_namespace_use(identifier) override {}
   void visit_variable_type_use(identifier) override {}
   void visit_variable_typeof_use(identifier) override {}
   void visit_variable_use(identifier) override {}

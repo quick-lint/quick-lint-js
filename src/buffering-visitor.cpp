@@ -69,6 +69,9 @@ void buffering_visitor::copy_into(parse_visitor_base &target) const {
     case visit_kind::variable_export_use:
       target.visit_variable_export_use(v.name);
       break;
+    case visit_kind::variable_namespace_use:
+      target.visit_variable_namespace_use(v.name);
+      break;
     case visit_kind::variable_type_use:
       target.visit_variable_type_use(v.name);
       break;

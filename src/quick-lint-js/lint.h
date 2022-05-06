@@ -97,6 +97,7 @@ class linter final : public parse_visitor_base {
   void visit_variable_delete_use(identifier name,
                                  source_code_span delete_keyword) override;
   void visit_variable_export_use(identifier name) override;
+  void visit_variable_namespace_use(identifier name) override;
   void visit_variable_type_use(identifier name) override;
   void visit_variable_typeof_use(identifier name) override;
   void visit_variable_use(identifier name) override;

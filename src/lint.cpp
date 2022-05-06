@@ -413,6 +413,10 @@ void linter::visit_variable_export_use(identifier name) {
   this->visit_variable_use(name, used_variable_kind::_export);
 }
 
+void linter::visit_variable_namespace_use(identifier) {
+  // TODO(#690): Look up TypeScript namespace variables and imports.
+}
+
 void linter::visit_variable_type_use(identifier name) {
   this->visit_variable_use(name, used_variable_kind::type);
 }

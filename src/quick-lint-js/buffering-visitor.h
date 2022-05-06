@@ -108,6 +108,10 @@ class buffering_visitor final : public parse_visitor_base {
     this->add(name, visit_kind::variable_export_use);
   }
 
+  void visit_variable_namespace_use(identifier name) override {
+    this->add(name, visit_kind::variable_namespace_use);
+  }
+
   void visit_variable_type_use(identifier name) override {
     this->add(name, visit_kind::variable_type_use);
   }
@@ -141,6 +145,7 @@ class buffering_visitor final : public parse_visitor_base {
     variable_assignment,
     variable_delete_use,
     variable_export_use,
+    variable_namespace_use,
     variable_type_use,
     variable_typeof_use,
     variable_use,

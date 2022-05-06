@@ -380,6 +380,13 @@ class debug_visitor final : public parse_visitor_base {
     this->output_->flush();
   }
 
+  void visit_variable_namespace_use(identifier name) override {
+    this->output_->append_copy(u8"variable namespace use: "sv);
+    this->output_->append_copy(name.normalized_name());
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
+  }
+
   void visit_variable_type_use(identifier name) override {
     this->output_->append_copy(u8"variable type use: "sv);
     this->output_->append_copy(name.normalized_name());
@@ -505,6 +512,11 @@ class multi_visitor final : public parse_visitor_base {
   void visit_variable_export_use(identifier name) override {
     this->visitor_1_->visit_variable_export_use(name);
     this->visitor_2_->visit_variable_export_use(name);
+  }
+
+  void visit_variable_namespace_use(identifier name) override {
+    this->visitor_1_->visit_variable_namespace_use(name);
+    this->visitor_2_->visit_variable_namespace_use(name);
   }
 
   void visit_variable_type_use(identifier name) override {
