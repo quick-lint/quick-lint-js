@@ -13,6 +13,12 @@ Semantic Versioning.
 * [E0144][] and [E0145][] are now reported for `implements`, `interface`,
   `package`, `private`, `protected`, and `public` (in addition to other
   keywords).
+* [E0086][] is now reported in more cases, such as when the deleted variable was
+  declared outside the function containing the `delete` expression.
+* Classes named `await` in `async` functions now report [E0707][] (implemented
+  by [ooblegork][]).
+* Integer literals which are silently rounded at run-time now report [E0212][]
+  (implemented by [Rob Miner][]).
 
 ### Fixed
 
@@ -20,6 +26,7 @@ Semantic Versioning.
   (Fixed by [Nico Sonack][].)
 * The npm package now includes `copyright` files listing software licenses and
   copyright notices.
+* [E0086][] is no longer falsely reported in some cases.
 
 ### Changed
 
@@ -526,6 +533,7 @@ Beta release.
 [coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
 [install-powershell-completions]: https://github.com/quick-lint/quick-lint-js/blob/master/completions/README.md#powershell
+[ooblegork]: https://github.com/ooblegork
 [tiagovla]: https://github.com/tiagovla
 [wagner riffel]: https://github.com/wgrr
 
@@ -544,6 +552,7 @@ Beta release.
 [E0057]: https://quick-lint-js.com/errors/E0057/
 [E0060]: https://quick-lint-js.com/errors/E0060/
 [E0073]: https://quick-lint-js.com/errors/E0073/
+[E0086]: https://quick-lint-js.com/errors/E0086/
 [E0094]: https://quick-lint-js.com/errors/E0094/
 [E0104]: https://quick-lint-js.com/errors/E0104/
 [E0106]: https://quick-lint-js.com/errors/E0106/
@@ -583,3 +592,5 @@ Beta release.
 [E0205]: https://quick-lint-js.com/errors/E0205/
 [E0207]: https://quick-lint-js.com/errors/E0207/
 [E0211]: https://quick-lint-js.com/errors/E0211/
+[E0212]: https://quick-lint-js.com/errors/E0212/
+[E0707]: https://quick-lint-js.com/errors/E0707/
