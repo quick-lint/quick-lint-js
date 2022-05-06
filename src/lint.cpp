@@ -619,8 +619,7 @@ void linter::propagate_variable_uses_to_parent_scope(
       case used_variable_kind::_typeof:
       case used_variable_kind::assignment:
       case used_variable_kind::use:
-        // TODO(#690): Don't allow expressions to reference interfaces.
-        var = parent_scope.declared_variables.find(used_var.name);
+        var = parent_scope.declared_variables.find_runtime(used_var.name);
         break;
       case used_variable_kind::type:
         var = parent_scope.declared_variables.find_type(used_var.name);

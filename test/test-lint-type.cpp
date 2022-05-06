@@ -392,6 +392,30 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
       EXPECT_THAT(v.errors, visit_kind.get_diags_matcher(std::nullopt));
     }
 
+    {
+      // interface I {}
+      // (() => {
+      //   (() => {
+      //     I;            // ERROR
+      //   });
+      // });
+      diag_collector v;
+      linter l(&v, &default_globals);
+      l.visit_variable_declaration(identifier_of(declaration),
+                                   variable_kind::_interface,
+                                   variable_init_kind::normal);
+      l.visit_enter_function_scope();
+      l.visit_enter_function_scope_body();
+      l.visit_enter_function_scope();
+      l.visit_enter_function_scope_body();
+      visit_kind.visit(l);
+      l.visit_exit_function_scope();
+      l.visit_exit_function_scope();
+      l.visit_end_of_module();
+
+      EXPECT_THAT(v.errors, visit_kind.get_diags_matcher(std::nullopt));
+    }
+
     for (variable_kind outer_kind : {
              variable_kind::_catch,
              variable_kind::_const,
