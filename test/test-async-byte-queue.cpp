@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/async-byte-queue.h>
 #include <quick-lint-js/char8.h>
@@ -239,14 +240,23 @@ TEST(test_async_byte_queue, append_aligned) {
   char8* data_0 = static_cast<char8*>(q.append(1));
   data_0[0] = u8'a';
 
-  std::uint64_t* data_1 = static_cast<std::uint64_t*>(
-      q.append_aligned(sizeof(std::uint64_t) * 2, alignof(std::uint64_t)));
-  data_1[0] = 0x1122334455667788ULL;
-  data_1[1] = 0x99aabbccddeeff00ULL;
+  std::uint64_t* data_1;
+  q.append_aligned(sizeof(std::uint64_t) * 2, alignof(std::uint64_t),
+                   [&](void* data) -> std::size_t {
+                     data_1 = static_cast<std::uint64_t*>(data);
+                     data_1[0] = 0x1122334455667788ULL;
+                     data_1[1] = 0x99aabbccddeeff00ULL;
+                     return sizeof(std::uint64_t) * 2;
+                   });
 
-  std::uint64_t* data_2 = static_cast<std::uint64_t*>(
-      q.append_aligned(sizeof(std::uint64_t), alignof(std::uint64_t)));
-  data_2[0] = 0x1010202030304040ULL;
+  std::uint64_t* data_2;
+  q.append_aligned(sizeof(std::uint64_t), alignof(std::uint64_t),
+                   [&](void* data) -> std::size_t {
+                     data_2 = static_cast<std::uint64_t*>(data);
+                     data_2[0] = 0x1010202030304040ULL;
+                     return sizeof(std::uint64_t);
+                   });
+
   EXPECT_EQ(reinterpret_cast<std::uintptr_t>(data_1 + 2),
             reinterpret_cast<std::uintptr_t>(data_2))
       << "data_1 should be in the same chunk as data_2";
@@ -255,6 +265,31 @@ TEST(test_async_byte_queue, append_aligned) {
 
   string8 taken_data = q.take_committed_string8();
   EXPECT_EQ(taken_data.size(), 1 + sizeof(std::uint64_t) * 3);
+}
+
+TEST(test_async_byte_queue, append_aligned_with_rewind) {
+  async_byte_queue q;
+  string8 expected_data;
+
+  char8* first_byte = static_cast<char8*>(q.append(1));
+  first_byte[0] = u8'a';
+
+  q.append_aligned(sizeof(std::uint32_t) * 3, alignof(std::uint32_t),
+                   [](void* data) -> std::size_t {
+                     std::uint32_t* out = static_cast<std::uint32_t*>(data);
+                     out[0] = 0x11111111ULL;
+                     out[1] = 0x22222222ULL;
+                     return sizeof(std::uint32_t) * 2;
+                   });
+
+  q.commit();
+
+  string8 taken_data = q.take_committed_string8();
+  EXPECT_EQ(taken_data.size(), 1 + sizeof(std::uint32_t) * 2);
+  EXPECT_THAT(taken_data,
+              ::testing::ElementsAre(u8'a',                     // first_byte
+                                     0x11, 0x11, 0x11, 0x11,    // out[0]
+                                     0x22, 0x22, 0x22, 0x22));  // out[1]
 }
 }
 }

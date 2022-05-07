@@ -18,11 +18,24 @@ long-running server, and its Visual Studio Code extension is also long-running.
 
 ## Decision
 
+quick-lint-js has two mechanisms: logging and tracing.
+
+### Logging
+
 Debugging messages are strings which are appended to a text file. If the C++
 macro `QLJS_DEBUG_LOGGING_FILE` is defined, messages are logged to the file at
 that path. To write messages, call the `QLJS_DEBUG_LOG` macro.
 
+### Tracing
+
+quick-lint-js can write a binary log. The format is compatible with the [Common
+Trace Format][] and is described by a [CTF metadata
+file](../../src/trace-metadata.cpp). See the [documentation on our tracing
+format](../TRACING.md).
+
 ## Consequences
+
+### Logging
 
 Logging to a file (rather than stdout/stderr) is useful when using vscode-test.
 vscode-test often swallows data written to stdout and stderr.
@@ -44,3 +57,9 @@ only `printf`-style format strings.
 
 The logging implementation is simple (as it relies on the C++ standard library
 to do string formatting and file I/O).
+
+### Tracing
+
+To be determined.
+
+[Common Trace Format]: https://diamon.org/ctf/

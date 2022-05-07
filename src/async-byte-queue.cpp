@@ -26,15 +26,13 @@ void* async_byte_queue::append(size_type byte_count) {
   return std::exchange(this->writer_cursor_, this->writer_cursor_ + byte_count);
 }
 
-void* async_byte_queue::append_aligned(size_type byte_count,
-                                       size_type alignment) {
-  this->reserve_aligned(byte_count, alignment);
-  return std::exchange(this->writer_cursor_, this->writer_cursor_ + byte_count);
+void async_byte_queue::append_copy(char8 data) {
+  return this->append_copy(&data, sizeof(data));
 }
 
-void async_byte_queue::append_copy(char8 data) {
-  void* out = this->append(1);
-  std::memcpy(out, &data, 1);
+void async_byte_queue::append_copy(const void* data, size_type byte_count) {
+  void* out = this->append(byte_count);
+  std::memcpy(out, data, byte_count);
 }
 
 void async_byte_queue::commit() {

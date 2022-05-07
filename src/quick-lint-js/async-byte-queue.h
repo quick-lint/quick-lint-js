@@ -34,10 +34,17 @@ class async_byte_queue {
   void* append(size_type byte_count);
 
   // Writer thread only.
-  void* append_aligned(size_type byte_count, size_type alignment);
+  template <class Func>
+  void append_aligned(size_type max_byte_count, size_type alignment, Func&& f) {
+    this->reserve_aligned(max_byte_count, alignment);
+    size_type bytes_written = f(this->writer_cursor_);
+    QLJS_ASSERT(bytes_written <= max_byte_count);
+    this->writer_cursor_ += bytes_written;
+  }
 
   // Writer thread only.
   void append_copy(char8 data);
+  void append_copy(const void* data, size_type byte_count);
 
   // Writer thread only.
   void commit();

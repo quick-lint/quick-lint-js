@@ -1,0 +1,113 @@
+// Copyright (C) 2020  Matthew "strager" Glazar
+// See end of file for extended copyright information.
+
+// This file is a template for the 010 Editor. Use it to inspect quick-lint-js
+// trace files. See docs/TRACING.md for more details.
+
+typedef uquad document_id <format=hex>;
+typedef struct {
+    uquad length;
+    if (length > 0) {
+        wchar_t data[length];
+    }
+} utf16le_string <read=read_utf16le_string>;
+
+wstring read_utf16le_string(utf16le_string &s) {
+    if (s.length == 0) {
+        return L"(empty string)";
+    } else {
+        return s.data;
+    }
+}
+
+struct Header {
+    uint magic; // 0xc1 0x1f 0xfc 0xc1
+    byte uuid[16];
+    uquad thread_id;
+    ubyte compression_mode;
+};
+
+enum <ubyte> EventType {
+    init = 0x01,
+    vscode_document_opened = 0x02,
+    vscode_document_closed = 0x03,
+    vscode_document_changed = 0x04,
+};
+
+struct InitEvent {
+    string version;
+};
+
+struct VSCodeDocumentOpenedEvent {
+    document_id doc_id;
+    utf16le_string uri;
+    utf16le_string language_id;
+    utf16le_string content;
+};
+
+struct VSCodeDocumentClosedEvent {
+    document_id doc_id;
+    utf16le_string uri;
+    utf16le_string language_id;
+};
+
+struct VSCodeDocumentChange {
+    uquad start_line;
+    uquad start_character;
+    uquad end_line;
+    uquad end_character;
+    uquad range_offset;
+    uquad range_length;
+    utf16le_string text;
+};
+
+struct VSCodeDocumentChangedEvent {
+    document_id doc_id;
+    uquad change_count;
+    VSCodeDocumentChange changes[change_count] <optimize=false>;
+};
+
+typedef struct {
+    uquad timestamp;
+    EventType event_id;
+    if (event_id == init) {
+        InitEvent event <open=true, name="InitEvent">;
+    }
+    if (event_id == vscode_document_opened) {
+        VSCodeDocumentOpenedEvent event <open=true, name="VSCodeDocumentOpenedEvent">;
+    }
+    if (event_id == vscode_document_closed) {
+        VSCodeDocumentClosedEvent event <open=true, name="VSCodeDocumentClosedEvent">;
+    }
+    if (event_id == vscode_document_changed) {
+        VSCodeDocumentChangedEvent event <open=true, name="VSCodeDocumentChangedEvent">;
+    }
+} Event <read=ReadEvent>;
+
+string ReadEvent(Event &e) {
+    return EnumToString(e.event_id);
+}
+
+LittleEndian();
+Header header;
+while (!FEof()) {
+    Event event;
+}
+
+// quick-lint-js finds bugs in JavaScript programs.
+// Copyright (C) 2020  Matthew "strager" Glazar
+//
+// This file is part of quick-lint-js.
+//
+// quick-lint-js is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// quick-lint-js is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.

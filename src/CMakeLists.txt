@@ -99,6 +99,8 @@ quick_lint_js_add_library(
   quick-lint-js/async-byte-queue.h
   quick-lint-js/attribute.h
   quick-lint-js/basic-configuration-filesystem.h
+  quick-lint-js/binary-reader.h
+  quick-lint-js/binary-writer.h
   quick-lint-js/bit.h
   quick-lint-js/buffering-diag-reporter.h
   quick-lint-js/buffering-visitor.h
@@ -167,6 +169,8 @@ quick_lint_js_add_library(
   quick-lint-js/temporary-directory.h
   quick-lint-js/text-diag-reporter.h
   quick-lint-js/thread.h
+  quick-lint-js/trace-metadata.h
+  quick-lint-js/trace-writer.h
   quick-lint-js/translation-table-generated.h
   quick-lint-js/translation-table.h
   quick-lint-js/translation.h
@@ -186,6 +190,9 @@ quick_lint_js_add_library(
   temporary-directory.cpp
   text-diag-reporter.cpp
   thread.cpp
+  trace-metadata.cpp
+  trace-stream-reader.cpp
+  trace-writer.cpp
   translation-table-generated.cpp
   translation.cpp
   uri.cpp

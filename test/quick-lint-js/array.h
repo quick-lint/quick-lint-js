@@ -20,6 +20,11 @@ inline constexpr auto make_array(Args&&... items) {
   return std::array<item_type, sizeof...(items)>{std::forward<Args>(items)...};
 }
 
+template <class T, class... Args>
+inline constexpr auto make_array_explicit(Args&&... items) {
+  return std::array<T, sizeof...(items)>{T(std::forward<Args>(items))...};
+}
+
 template <class T, std::size_t LHSSize, std::size_t RHSSize,
           std::size_t... LHSIndexes, std::size_t... RHSIndexes>
 inline constexpr std::array<T, LHSSize + RHSSize> concat_impl(
