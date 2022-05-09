@@ -29,6 +29,7 @@ quick_lint_js_add_executable(
   spy-visitor.cpp
   test-array.cpp
   test-assert.cpp
+  test-async-byte-queue.cpp
   test-bit.cpp
   test-buffering-diag-reporter.cpp
   test-buffering-visitor.cpp

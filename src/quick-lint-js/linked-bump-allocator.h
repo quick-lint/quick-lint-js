@@ -12,6 +12,7 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/math.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/pointer.h>
 
 #if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
 #include <sanitizer/asan_interface.h>
@@ -253,7 +254,7 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
           ::operator new(allocation_size(size), allocation_alignment());
 #else
       void* chunk = ::operator new(allocation_size(size));
-      QLJS_ASSERT(is_aligned(chunk));
+      QLJS_ASSERT(is_aligned(chunk, Alignment));
 #endif
       return new (chunk) chunk_header{
           .previous = previous,
@@ -278,13 +279,6 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
   static constexpr std::size_t align_up(std::size_t size) noexcept {
     return (size + Alignment - 1) & ~(Alignment - 1);
   }
-
-#if !QLJS_HAVE_SIZED_ALIGNED_NEW
-  static bool is_aligned(void* p) noexcept {
-    std::size_t alignment_mask = Alignment - 1;
-    return (reinterpret_cast<std::uintptr_t>(p) & alignment_mask) == 0;
-  }
-#endif
 
   [[nodiscard]] void* allocate_bytes(std::size_t size) {
     this->assert_not_disabled();
