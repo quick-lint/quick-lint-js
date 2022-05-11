@@ -240,7 +240,7 @@ TEST_F(test_configuration_loader,
 
   configuration_loader loader(basic_configuration_filesystem::instance());
   std::string js_file = temp_dir + "/hello.js";
-  write_file(js_file, u8""sv);
+  write_file_or_exit(js_file, u8""sv);
   auto loaded_config = loader.load_for_file(file_to_lint{
       .path = js_file.c_str(),
       .config_file = nullptr,
@@ -252,10 +252,10 @@ TEST_F(test_configuration_loader,
 TEST_F(test_configuration_loader, find_quick_lint_js_config_in_same_directory) {
   std::string temp_dir = this->make_temporary_directory();
   std::string config_file = temp_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({})"sv);
+  write_file_or_exit(config_file, u8R"({})"sv);
 
   std::string js_file = temp_dir + "/hello.js";
-  write_file(js_file, u8""sv);
+  write_file_or_exit(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(js_file);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
@@ -268,10 +268,10 @@ TEST_F(test_configuration_loader,
   std::string temp_dir = this->make_temporary_directory();
   this->set_current_working_directory(temp_dir);
   std::string config_file = "quick-lint-js.config";
-  write_file(config_file, u8"{}"sv);
+  write_file_or_exit(config_file, u8"{}"sv);
 
   std::string js_file = "hello.js";
-  write_file(js_file, u8""sv);
+  write_file_or_exit(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(js_file);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
@@ -285,7 +285,7 @@ TEST_F(test_configuration_loader, quick_lint_js_config_directory_fails) {
   create_directory(config_file);
 
   std::string js_file = temp_dir + "/hello.js";
-  write_file(js_file, u8""sv);
+  write_file_or_exit(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
 
   auto loaded_config = loader.load_for_file(js_file);
@@ -306,10 +306,10 @@ TEST_F(test_configuration_loader, find_config_in_parent_directory) {
   std::string temp_dir = this->make_temporary_directory();
   create_directory(temp_dir + "/dir");
   std::string config_file = temp_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}"sv);
+  write_file_or_exit(config_file, u8"{}"sv);
 
   std::string js_file = temp_dir + "/dir/hello.js";
-  write_file(js_file, u8""sv);
+  write_file_or_exit(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(js_file);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
@@ -323,10 +323,10 @@ TEST_F(test_configuration_loader,
   this->set_current_working_directory(temp_dir);
   create_directory("dir");
   std::string config_file = "quick-lint-js.config";
-  write_file(config_file, u8"{}"sv);
+  write_file_or_exit(config_file, u8"{}"sv);
 
   std::string js_file = "dir/hello.js";
-  write_file(js_file, u8""sv);
+  write_file_or_exit(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(js_file);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
@@ -339,10 +339,10 @@ TEST_F(test_configuration_loader, find_config_in_parent_directory_of_cwd) {
   create_directory(temp_dir + "/dir");
   this->set_current_working_directory(temp_dir + "/dir");
   std::string config_file = "../quick-lint-js.config";
-  write_file(config_file, u8"{}"sv);
+  write_file_or_exit(config_file, u8"{}"sv);
 
   std::string js_file = "hello.js";
-  write_file(js_file, u8""sv);
+  write_file_or_exit(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(js_file);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
@@ -359,10 +359,10 @@ TEST_F(test_configuration_loader, find_config_in_ancestor_directory) {
   create_directory(temp_dir + "/a/b/c/d/e");
   create_directory(temp_dir + "/a/b/c/d/e/f");
   std::string config_file = temp_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}"sv);
+  write_file_or_exit(config_file, u8"{}"sv);
 
   std::string js_file = temp_dir + "/a/b/c/d/e/f/hello.js";
-  write_file(js_file, u8""sv);
+  write_file_or_exit(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(js_file);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
@@ -376,10 +376,10 @@ TEST_F(test_configuration_loader,
   create_directory(temp_dir + "/dir");
   create_directory(temp_dir + "/dir/subdir");
   std::string config_file_outside_dir = temp_dir + "/quick-lint-js.config";
-  write_file(config_file_outside_dir, u8"{}"sv);
+  write_file_or_exit(config_file_outside_dir, u8"{}"sv);
   std::string config_file_inside_subdir =
       temp_dir + "/dir/subdir/quick-lint-js.config";
-  write_file(config_file_inside_subdir, u8"{}"sv);
+  write_file_or_exit(config_file_inside_subdir, u8"{}"sv);
 
   // Valid search path order:
   // * $temp_dir/dir/quick-lint-js.config
@@ -393,7 +393,7 @@ TEST_F(test_configuration_loader,
   // * $temp_dir/quick-lint-js.config
 
   std::string js_file = temp_dir + "/dir/subdir/../hello.js";
-  write_file(js_file, u8""sv);
+  write_file_or_exit(js_file, u8""sv);
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(js_file);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
@@ -405,7 +405,7 @@ TEST_F(test_configuration_loader, find_no_config_if_stdin) {
   std::string temp_dir = this->make_temporary_directory();
   this->set_current_working_directory(temp_dir);
   std::string config_file = "quick-lint-js.config";
-  write_file(config_file, u8"{}"sv);
+  write_file_or_exit(config_file, u8"{}"sv);
 
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(file_to_lint{
@@ -422,11 +422,11 @@ TEST_F(test_configuration_loader,
        find_config_file_in_directory_given_missing_path_for_config_search) {
   std::string config_project_dir = this->make_temporary_directory();
   std::string config_file = config_project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}"sv);
+  write_file_or_exit(config_file, u8"{}"sv);
 
   std::string js_project_dir = this->make_temporary_directory();
   std::string js_file = js_project_dir + "/test.js";
-  write_file(js_file, u8""sv);
+  write_file_or_exit(js_file, u8""sv);
 
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(file_to_lint{
@@ -446,9 +446,9 @@ TEST_F(test_configuration_loader,
        find_config_file_in_directory_given_path_for_config_search_for_stdin) {
   std::string project_dir = this->make_temporary_directory();
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}"sv);
+  write_file_or_exit(config_file, u8"{}"sv);
   std::string js_file = project_dir + "/test.js";
-  write_file(js_file, u8"{}"sv);
+  write_file_or_exit(js_file, u8"{}"sv);
 
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(file_to_lint{
@@ -466,7 +466,8 @@ TEST_F(test_configuration_loader,
 TEST_F(test_configuration_loader, file_with_config_file_gets_loaded_config) {
   std::string temp_dir = this->make_temporary_directory();
   std::string config_file = temp_dir + "/config.json";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})"sv);
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})"sv);
 
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config = loader.load_for_file(file_to_lint{
@@ -484,7 +485,8 @@ TEST_F(test_configuration_loader,
        files_with_same_config_file_get_same_loaded_config) {
   std::string temp_dir = this->make_temporary_directory();
   std::string config_file = temp_dir + "/config.json";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})"sv);
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})"sv);
 
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config_one = loader.load_for_file(file_to_lint{
@@ -506,11 +508,11 @@ TEST_F(test_configuration_loader,
        files_with_different_config_files_get_different_loaded_config) {
   std::string temp_dir = this->make_temporary_directory();
   std::string config_file_one = temp_dir + "/config-one.json";
-  write_file(config_file_one,
-             u8R"({"globals": {"testGlobalVariableOne": true}})"sv);
+  write_file_or_exit(config_file_one,
+                     u8R"({"globals": {"testGlobalVariableOne": true}})"sv);
   std::string config_file_two = temp_dir + "/config-two.json";
-  write_file(config_file_two,
-             u8R"({"globals": {"testGlobalVariableTwo": true}})"sv);
+  write_file_or_exit(config_file_two,
+                     u8R"({"globals": {"testGlobalVariableTwo": true}})"sv);
 
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config_one = loader.load_for_file(file_to_lint{
@@ -564,18 +566,19 @@ TEST_F(test_configuration_loader,
        found_quick_lint_js_config_is_loaded_only_once) {
   std::string temp_dir = this->make_temporary_directory();
   std::string config_file = temp_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})"sv);
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})"sv);
 
   configuration_loader loader(basic_configuration_filesystem::instance());
   std::string js_file_one = temp_dir + "/one.js";
-  write_file(js_file_one, u8""sv);
+  write_file_or_exit(js_file_one, u8""sv);
   auto loaded_config_one = loader.load_for_file(file_to_lint{
       .path = js_file_one.c_str(),
       .config_file = nullptr,
   });
   EXPECT_TRUE(loaded_config_one.ok()) << loaded_config_one.error_to_string();
   std::string js_file_two = temp_dir + "/two.js";
-  write_file(js_file_two, u8""sv);
+  write_file_or_exit(js_file_two, u8""sv);
   auto loaded_config_two = loader.load_for_file(file_to_lint{
       .path = js_file_two.c_str(),
       .config_file = nullptr,
@@ -592,18 +595,19 @@ TEST_F(
   {
     std::string temp_dir = this->make_temporary_directory();
     std::string config_file = temp_dir + "/quick-lint-js.config";
-    write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})"sv);
+    write_file_or_exit(config_file,
+                       u8R"({"globals": {"testGlobalVariable": true}})"sv);
 
     configuration_loader loader(basic_configuration_filesystem::instance());
     std::string js_file_one = temp_dir + "/one.js";
-    write_file(js_file_one, u8""sv);
+    write_file_or_exit(js_file_one, u8""sv);
     auto loaded_config_one = loader.load_for_file(file_to_lint{
         .path = js_file_one.c_str(),
         .config_file = nullptr,
     });
     EXPECT_TRUE(loaded_config_one.ok()) << loaded_config_one.error_to_string();
     std::string js_file_two = temp_dir + "/two.js";
-    write_file(js_file_two, u8""sv);
+    write_file_or_exit(js_file_two, u8""sv);
     auto loaded_config_two = loader.load_for_file(file_to_lint{
         .path = js_file_two.c_str(),
         .config_file = config_file.c_str(),
@@ -617,18 +621,19 @@ TEST_F(
   {
     std::string temp_dir = this->make_temporary_directory();
     std::string config_file = temp_dir + "/quick-lint-js.config";
-    write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})"sv);
+    write_file_or_exit(config_file,
+                       u8R"({"globals": {"testGlobalVariable": true}})"sv);
 
     configuration_loader loader(basic_configuration_filesystem::instance());
     std::string js_file_one = temp_dir + "/one.js";
-    write_file(js_file_one, u8""sv);
+    write_file_or_exit(js_file_one, u8""sv);
     auto loaded_config_one = loader.load_for_file(file_to_lint{
         .path = js_file_one.c_str(),
         .config_file = config_file.c_str(),
     });
     EXPECT_TRUE(loaded_config_one.ok()) << loaded_config_one.error_to_string();
     std::string js_file_two = temp_dir + "/two.js";
-    write_file(js_file_two, u8""sv);
+    write_file_or_exit(js_file_two, u8""sv);
     auto loaded_config_two = loader.load_for_file(file_to_lint{
         .path = js_file_two.c_str(),
         .config_file = nullptr,
@@ -644,7 +649,7 @@ TEST_F(test_configuration_loader,
        finding_config_succeeds_even_if_file_is_missing) {
   std::string temp_dir = this->make_temporary_directory();
   std::string config_file = temp_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({})"sv);
+  write_file_or_exit(config_file, u8R"({})"sv);
 
   std::string js_file = temp_dir + "/hello.js";
   configuration_loader loader(basic_configuration_filesystem::instance());
@@ -657,7 +662,7 @@ TEST_F(test_configuration_loader,
        finding_config_succeeds_even_if_directory_is_missing) {
   std::string temp_dir = this->make_temporary_directory();
   std::string config_file = temp_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({})"sv);
+  write_file_or_exit(config_file, u8R"({})"sv);
 
   std::string js_file = temp_dir + "/dir/hello.js";
   configuration_loader loader(basic_configuration_filesystem::instance());
@@ -689,9 +694,9 @@ TEST_F(test_configuration_loader, config_found_initially_is_unchanged) {
   {
     std::string project_dir = this->make_temporary_directory();
     std::string js_file = project_dir + "/hello.js";
-    write_file(js_file, u8"");
+    write_file_or_exit(js_file, u8"");
     std::string config_file = project_dir + "/quick-lint-js.config";
-    write_file(config_file, u8"{}");
+    write_file_or_exit(config_file, u8"{}");
 
     change_detecting_configuration_loader loader;
     loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
@@ -706,14 +711,14 @@ TEST_F(test_configuration_loader,
        rewriting_config_completely_is_detected_as_change) {
   std::string project_dir = this->make_temporary_directory();
   std::string js_file = project_dir + "/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"before": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"before": true}})");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
-  write_file(config_file, u8R"({"globals": {"after": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"after": true}})");
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -726,9 +731,9 @@ TEST_F(test_configuration_loader,
        rewriting_config_partially_is_detected_as_change) {
   std::string project_dir = this->make_temporary_directory();
   std::string js_file = project_dir + "/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"before": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"before": true}})");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
@@ -755,15 +760,15 @@ TEST_F(test_configuration_loader,
        rewriting_config_back_to_original_keeps_config) {
   std::string project_dir = this->make_temporary_directory();
   std::string js_file = project_dir + "/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"a": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"a": true}})");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
-  write_file(config_file, u8R"({"globals": {"b": true}})");
-  write_file(config_file, u8R"({"globals": {"a": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"b": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"a": true}})");
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -775,12 +780,12 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
   create_directory(project_dir + "/dir");
   std::string js_file = project_dir + "/dir/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/dir/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"before": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"before": true}})");
   create_directory(project_dir + "/temp");
   std::string new_config_file = project_dir + "/temp/new-config";
-  write_file(new_config_file, u8R"({"globals": {"after": true}})");
+  write_file_or_exit(new_config_file, u8R"({"globals": {"after": true}})");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
@@ -799,12 +804,12 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
   create_directory(project_dir + "/dir");
   std::string js_file = project_dir + "/dir/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/dir/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
   create_directory(project_dir + "/temp");
   std::string new_config_file = project_dir + "/temp/new-config";
-  write_file(new_config_file, u8"{}");
+  write_file_or_exit(new_config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
@@ -820,9 +825,9 @@ TEST_F(test_configuration_loader,
        moving_config_file_away_and_back_keeps_config) {
   std::string project_dir = this->make_temporary_directory();
   std::string js_file = project_dir + "/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
@@ -839,13 +844,13 @@ TEST_F(test_configuration_loader,
 TEST_F(test_configuration_loader, creating_config_in_same_dir_is_detected) {
   std::string project_dir = this->make_temporary_directory();
   std::string js_file = project_dir + "/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -863,7 +868,7 @@ TEST_F(test_configuration_loader,
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -876,13 +881,13 @@ TEST_F(test_configuration_loader, creating_config_in_parent_dir_is_detected) {
   std::string project_dir = this->make_temporary_directory();
   create_directory(project_dir + "/dir");
   std::string js_file = project_dir + "/dir/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -896,15 +901,15 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
   create_directory(project_dir + "/dir");
   std::string js_file = project_dir + "/dir/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string outer_config_file = project_dir + "/quick-lint-js.config";
-  write_file(outer_config_file, u8"{}");
+  write_file_or_exit(outer_config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
 
   std::string inner_config_file = project_dir + "/dir/quick-lint-js.config";
-  write_file(inner_config_file, u8"{}");
+  write_file_or_exit(inner_config_file, u8"{}");
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -916,9 +921,9 @@ TEST_F(test_configuration_loader,
 TEST_F(test_configuration_loader, deleting_config_in_same_dir_is_detected) {
   std::string project_dir = this->make_temporary_directory();
   std::string js_file = project_dir + "/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
@@ -938,11 +943,11 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
   create_directory(project_dir + "/dir");
   std::string js_file = project_dir + "/dir/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string outer_config_file = project_dir + "/quick-lint-js.config";
-  write_file(outer_config_file, u8"{}");
+  write_file_or_exit(outer_config_file, u8"{}");
   std::string inner_config_file = project_dir + "/dir/quick-lint-js.config";
-  write_file(inner_config_file, u8"{}");
+  write_file_or_exit(inner_config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
@@ -961,9 +966,9 @@ TEST_F(test_configuration_loader,
 TEST_F(test_configuration_loader, moving_config_away_in_same_dir_is_detected) {
   std::string project_dir = this->make_temporary_directory();
   std::string js_file = project_dir + "/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
@@ -982,11 +987,11 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
   create_directory(project_dir + "/dir");
   std::string js_file = project_dir + "/dir/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string outer_config_file = project_dir + "/quick-lint-js.config";
-  write_file(outer_config_file, u8"{}");
+  write_file_or_exit(outer_config_file, u8"{}");
   std::string inner_config_file = project_dir + "/dir/quick-lint-js.config";
-  write_file(inner_config_file, u8"{}");
+  write_file_or_exit(inner_config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
@@ -1003,9 +1008,9 @@ TEST_F(test_configuration_loader,
 TEST_F(test_configuration_loader, moving_config_into_same_dir_is_detected) {
   std::string project_dir = this->make_temporary_directory();
   std::string js_file = project_dir + "/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string temp_config_file = project_dir + "/temp.config";
-  write_file(temp_config_file, u8"{}");
+  write_file_or_exit(temp_config_file, u8"{}");
   std::string renamed_config_file = project_dir + "/quick-lint-js.config";
 
   change_detecting_configuration_loader loader;
@@ -1024,9 +1029,9 @@ TEST_F(test_configuration_loader, moving_config_into_parent_dir_is_detected) {
   std::string project_dir = this->make_temporary_directory();
   create_directory(project_dir + "/dir");
   std::string js_file = project_dir + "/dir/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string temp_config_file = project_dir + "/temp.config";
-  write_file(temp_config_file, u8"{}");
+  write_file_or_exit(temp_config_file, u8"{}");
   std::string renamed_config_file = project_dir + "/quick-lint-js.config";
 
   change_detecting_configuration_loader loader;
@@ -1046,11 +1051,11 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
   create_directory(project_dir + "/dir");
   std::string js_file = project_dir + "/dir/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string outer_config_file = project_dir + "/quick-lint-js.config";
-  write_file(outer_config_file, u8"{}");
+  write_file_or_exit(outer_config_file, u8"{}");
   std::string temp_config_file = project_dir + "/dir/temp.config";
-  write_file(temp_config_file, u8"{}");
+  write_file_or_exit(temp_config_file, u8"{}");
   std::string inner_config_file = project_dir + "/dir/quick-lint-js.config";
 
   change_detecting_configuration_loader loader;
@@ -1070,9 +1075,9 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
   create_directory(project_dir + "/olddir");
   std::string js_file = project_dir + "/olddir/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/olddir/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
@@ -1093,9 +1098,9 @@ TEST_F(test_configuration_loader,
   create_directory(project_dir + "/olddir");
   create_directory(project_dir + "/olddir/subdir");
   std::string js_file = project_dir + "/olddir/subdir/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/olddir/subdir/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
@@ -1115,9 +1120,9 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
   create_directory(project_dir + "/olddir");
   std::string js_file = project_dir + "/olddir/hello.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
@@ -1132,9 +1137,9 @@ TEST_F(test_configuration_loader,
 TEST_F(test_configuration_loader, moving_file_keeps_config) {
   std::string project_dir = this->make_temporary_directory();
   std::string js_file = project_dir + "/oldfile.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
@@ -1161,7 +1166,7 @@ TEST_F(test_configuration_loader,
       << "creating dir should not change associated config file";
 
   std::string config_file = project_dir + "/dir/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   changes = loader.detect_changes_and_refresh();
   ASSERT_THAT(changes, ElementsAre(::testing::_))
@@ -1181,7 +1186,7 @@ TEST_F(
 
   create_directory(project_dir + "/dir");
   std::string config_file = project_dir + "/dir/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -1197,7 +1202,7 @@ TEST_F(test_configuration_loader,
   std::unordered_set<std::string> js_files;
   for (int i = 0; i < 10; ++i) {
     std::string js_file = project_dir + "/hello" + std::to_string(i) + ".js";
-    write_file(js_file, u8"");
+    write_file_or_exit(js_file, u8"");
     auto [_iterator, inserted] = js_files.insert(std::move(js_file));
     ASSERT_TRUE(inserted) << "duplicate js_file: " << js_file;
   }
@@ -1208,7 +1213,7 @@ TEST_F(test_configuration_loader,
   }
 
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -1233,15 +1238,15 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
 
   std::string outer_js_file = project_dir + "/outer.js";
-  write_file(outer_js_file, u8"");
+  write_file_or_exit(outer_js_file, u8"");
   std::string outer_config_file = project_dir + "/quick-lint-js.config";
-  write_file(outer_config_file, u8R"({"globals": {"before": true}})");
+  write_file_or_exit(outer_config_file, u8R"({"globals": {"before": true}})");
 
   create_directory(project_dir + "/dir");
   std::string inner_js_file = project_dir + "/dir/inner.js";
-  write_file(inner_js_file, u8"");
+  write_file_or_exit(inner_js_file, u8"");
   std::string inner_config_file = project_dir + "/dir/quick-lint-js.config";
-  write_file(inner_config_file, u8R"({"globals": {"inner": true}})");
+  write_file_or_exit(inner_config_file, u8R"({"globals": {"inner": true}})");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(inner_js_file, /*token=*/&inner_js_file);
@@ -1250,7 +1255,7 @@ TEST_F(test_configuration_loader,
   EXPECT_EQ(std::remove(inner_config_file.c_str()), 0)
       << "failed to delete " << inner_config_file << ": "
       << std::strerror(errno);
-  write_file(outer_config_file, u8R"({"globals": {"after": true}})");
+  write_file_or_exit(outer_config_file, u8R"({"globals": {"after": true}})");
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -1275,7 +1280,8 @@ TEST_F(test_configuration_loader,
 TEST_F(test_configuration_loader, load_config_file_directly) {
   std::string project_dir = this->make_temporary_directory();
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
 
   configuration_loader loader(basic_configuration_filesystem::instance());
   auto loaded_config =
@@ -1289,12 +1295,12 @@ TEST_F(test_configuration_loader,
        rewriting_direct_config_file_completely_is_detected_as_change) {
   std::string project_dir = this->make_temporary_directory();
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"before": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"before": true}})");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
 
-  write_file(config_file, u8R"({"globals": {"after": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"after": true}})");
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -1316,7 +1322,8 @@ TEST_F(test_configuration_loader,
       loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
   EXPECT_FALSE(loaded_config.ok());
 
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
 
   std::vector<configuration_change> changes =
       loader.detect_changes_and_refresh();
@@ -1332,7 +1339,8 @@ TEST_F(test_configuration_loader,
        deleting_direct_config_file_is_detected_as_change) {
   std::string project_dir = this->make_temporary_directory();
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
@@ -1353,18 +1361,18 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
   std::string js_file = project_dir + "/hello.js";
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"before": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"before": true}})");
 
   change_detecting_configuration_loader loader;
   auto loaded_config =
       loader.watch_and_load_for_file(js_file, /*token=*/nullptr);
   ASSERT_TRUE(loaded_config.ok()) << loaded_config.error_to_string();
 
-  write_file(config_file, u8R"({"globals": {"during": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"during": true}})");
   loader.unwatch_file(js_file);
   EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
 
-  write_file(config_file, u8R"({"globals": {"after": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"after": true}})");
   EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
 }
 
@@ -1372,16 +1380,16 @@ TEST_F(test_configuration_loader,
        unwatching_config_file_then_modifying_is_not_a_change) {
   std::string project_dir = this->make_temporary_directory();
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"before": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"before": true}})");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_config_file(config_file, /*token=*/nullptr);
 
-  write_file(config_file, u8R"({"globals": {"during": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"during": true}})");
   loader.unwatch_file(config_file);
   EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
 
-  write_file(config_file, u8R"({"globals": {"after": true}})");
+  write_file_or_exit(config_file, u8R"({"globals": {"after": true}})");
   EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
 }
 
@@ -1395,9 +1403,10 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
 
   std::string js_file = project_dir + "/test.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
 
   change_detecting_configuration_loader loader;
   auto loaded_config =
@@ -1428,7 +1437,8 @@ TEST_F(test_configuration_loader,
 
   std::string project_dir = this->make_temporary_directory();
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
 
   change_detecting_configuration_loader loader;
   auto loaded_config =
@@ -1467,9 +1477,10 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
 
   std::string js_file = project_dir + "/test.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
   EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
       << "failed to make " << config_file
       << " unreadable: " << std::strerror(errno);
@@ -1513,7 +1524,8 @@ TEST_F(test_configuration_loader,
 
   std::string project_dir = this->make_temporary_directory();
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
   EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
       << "failed to make " << config_file
       << " unreadable: " << std::strerror(errno);
@@ -1550,9 +1562,10 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
 
   std::string js_file = project_dir + "/test.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
   EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
       << "failed to make " << config_file
       << " unreadable: " << std::strerror(errno);
@@ -1580,7 +1593,8 @@ TEST_F(test_configuration_loader,
 
   std::string project_dir = this->make_temporary_directory();
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
   EXPECT_EQ(::chmod(config_file.c_str(), 0000), 0)
       << "failed to make " << config_file
       << " unreadable: " << std::strerror(errno);
@@ -1609,9 +1623,10 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
 
   std::string js_file = project_dir + "/test.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_for_file(js_file, /*token=*/&js_file);
@@ -1645,7 +1660,8 @@ TEST_F(
 
   std::string project_dir = this->make_temporary_directory();
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
 
   change_detecting_configuration_loader loader;
   loader.watch_and_load_config_file(config_file, /*token=*/&config_file);
@@ -1688,9 +1704,10 @@ TEST_F(
   std::string project_dir = this->make_temporary_directory();
 
   std::string js_file = project_dir + "/test.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
   std::string config_file_canonical_path(
       canonicalize_path(config_file)->path());
 
@@ -1738,7 +1755,8 @@ TEST_F(
 
   std::string project_dir = this->make_temporary_directory();
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
   std::string config_file_canonical_path(
       canonicalize_path(config_file)->path());
 
@@ -1780,10 +1798,11 @@ TEST_F(test_configuration_loader,
   std::string dir = project_dir + "/dir";
   create_directory(dir);
   std::string js_file = dir + "/test.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string js_file_canonical_path(canonicalize_path(js_file)->path());
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
       << "failed to make " << dir << " unreadable: " << std::strerror(errno);
 
@@ -1821,7 +1840,8 @@ TEST_F(
   std::string dir = project_dir + "/dir";
   create_directory(dir);
   std::string config_file = dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
   std::string config_file_canonical_path(
       canonicalize_path(config_file)->path());
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
@@ -1861,10 +1881,11 @@ TEST_F(test_configuration_loader,
   std::string dir = project_dir + "/dir";
   create_directory(dir);
   std::string js_file = dir + "/test.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string js_file_canonical_path(canonicalize_path(js_file)->path());
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
 
   change_detecting_configuration_loader loader;
   auto loaded_config =
@@ -1897,7 +1918,8 @@ TEST_F(
   std::string dir = project_dir + "/dir";
   create_directory(dir);
   std::string config_file = dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
   std::string config_file_canonical_path(
       canonicalize_path(config_file)->path());
 
@@ -1932,10 +1954,11 @@ TEST_F(test_configuration_loader,
   std::string dir = project_dir + "/dir";
   create_directory(dir);
   std::string js_file = dir + "/test.js";
-  write_file(js_file, u8"");
+  write_file_or_exit(js_file, u8"");
   std::string js_file_canonical_path(canonicalize_path(js_file)->path());
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
       << "failed to make " << dir << " unreadable: " << std::strerror(errno);
 
@@ -1965,7 +1988,8 @@ TEST_F(test_configuration_loader,
   std::string dir = project_dir + "/dir";
   create_directory(dir);
   std::string config_file = dir + "/quick-lint-js.config";
-  write_file(config_file, u8R"({"globals": {"testGlobalVariable": true}})");
+  write_file_or_exit(config_file,
+                     u8R"({"globals": {"testGlobalVariable": true}})");
   std::string config_file_canonical_path(
       canonicalize_path(config_file)->path());
   EXPECT_EQ(::chmod(dir.c_str(), 0600), 0)
@@ -1994,9 +2018,9 @@ TEST_F(test_configuration_loader,
        changing_direct_config_path_symlink_is_detected_as_change) {
   std::string project_dir = this->make_temporary_directory();
   std::string before_config_file = project_dir + "/before.config";
-  write_file(before_config_file, u8R"({"globals": {"before": true}})");
+  write_file_or_exit(before_config_file, u8R"({"globals": {"before": true}})");
   std::string after_config_file = project_dir + "/after.config";
-  write_file(after_config_file, u8R"({"globals": {"after": true}})");
+  write_file_or_exit(after_config_file, u8R"({"globals": {"after": true}})");
   std::string config_symlink = project_dir + "/quick-lint-js.config";
   ASSERT_EQ(::symlink("before.config", config_symlink.c_str()), 0)
       << std::strerror(errno);
@@ -2027,9 +2051,9 @@ TEST_F(test_configuration_loader,
   create_directory(project_dir + "/before");
   create_directory(project_dir + "/after");
   std::string before_config_file = project_dir + "/before/quick-lint-js.config";
-  write_file(before_config_file, u8R"({"globals": {"before": true}})");
+  write_file_or_exit(before_config_file, u8R"({"globals": {"before": true}})");
   std::string after_config_file = project_dir + "/after/quick-lint-js.config";
-  write_file(after_config_file, u8R"({"globals": {"after": true}})");
+  write_file_or_exit(after_config_file, u8R"({"globals": {"after": true}})");
   std::string subdir_symlink = project_dir + "/subdir";
   ASSERT_EQ(::symlink("before", subdir_symlink.c_str()), 0)
       << std::strerror(errno);
@@ -2060,10 +2084,10 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
   create_directory(project_dir + "/before");
   create_directory(project_dir + "/after");
-  write_file(project_dir + "/before/quick-lint-js.config",
-             u8R"({"globals": {"before": true}})");
-  write_file(project_dir + "/after/quick-lint-js.config",
-             u8R"({"globals": {"after": true}})");
+  write_file_or_exit(project_dir + "/before/quick-lint-js.config",
+                     u8R"({"globals": {"before": true}})");
+  write_file_or_exit(project_dir + "/after/quick-lint-js.config",
+                     u8R"({"globals": {"after": true}})");
 
   std::string subdir = project_dir + "/subdir";
   move_file(project_dir + "/before", subdir);
@@ -2093,7 +2117,7 @@ TEST_F(test_configuration_loader,
 
   std::string project_dir = this->make_temporary_directory();
   std::string config_file = project_dir + "/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   auto loaded_config =
@@ -2115,7 +2139,7 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
   create_directory(project_dir + "/subdir");
   std::string config_file = project_dir + "/subdir/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   auto loaded_config =
@@ -2144,7 +2168,7 @@ TEST_F(test_configuration_loader,
   std::string project_dir = this->make_temporary_directory();
   create_directory(project_dir + "/subdir");
   std::string config_file = project_dir + "/subdir/quick-lint-js.config";
-  write_file(config_file, u8"{}");
+  write_file_or_exit(config_file, u8"{}");
 
   change_detecting_configuration_loader loader;
   auto loaded_config =
@@ -2185,7 +2209,7 @@ TEST_F(test_configuration_loader,
 
     std::string project_dir = this->make_temporary_directory();
     std::string config_file = project_dir + "/quick-lint-js.config";
-    write_file(config_file, u8"{}");
+    write_file_or_exit(config_file, u8"{}");
 
     change_detecting_configuration_loader loader;
     auto loaded_config =

@@ -22,7 +22,7 @@ void benchmark_no_config_file(::benchmark::State& state) {
     create_directory(path);
   }
   path += "/hello.js";
-  write_file(path, u8"");
+  write_file_or_exit(path, u8"");
 
   for (auto _ : state) {
     configuration_loader loader(basic_configuration_filesystem::instance());

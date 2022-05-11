@@ -284,11 +284,11 @@ padded_string read_file_or_exit(const char *path) {
   return *std::move(r);
 }
 
-void write_file(const std::string &path, string8_view content) {
-  write_file(path.c_str(), content);
+void write_file_or_exit(const std::string &path, string8_view content) {
+  write_file_or_exit(path.c_str(), content);
 }
 
-void write_file(const char *path, string8_view content) {
+void write_file_or_exit(const char *path, string8_view content) {
   FILE *file = std::fopen(path, "wb");
   if (!file) {
     std::fprintf(stderr, "fatal: failed to open file %s for writing: %s\n",

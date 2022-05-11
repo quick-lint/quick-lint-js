@@ -54,7 +54,7 @@ bool process_ignores_filesystem_permissions() noexcept {
 
 TEST_F(test_file_canonical, canonical_path_to_regular_file) {
   std::string temp_file_path = this->make_temporary_directory() + "/temp.js";
-  write_file(temp_file_path, u8"hello\nworld!\n");
+  write_file_or_exit(temp_file_path, u8"hello\nworld!\n");
 
   result<canonical_path_result, canonicalize_path_io_error> canonical =
       canonicalize_path(temp_file_path);
@@ -114,7 +114,7 @@ TEST_F(test_file_canonical,
 
 TEST_F(test_file_canonical, canonical_path_to_file_with_trailing_slash_fails) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/file.txt", u8"");
+  write_file_or_exit(temp_dir + "/file.txt", u8"");
 
   std::string input_path = temp_dir + "/file.txt/";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -217,7 +217,7 @@ TEST_F(test_file_canonical,
 
 TEST_F(test_file_canonical, canonical_path_with_file_parent_fails) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/file", u8"");
+  write_file_or_exit(temp_dir + "/file", u8"");
 
   std::string input_path = temp_dir + "/file/subfile";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -236,7 +236,7 @@ TEST_F(test_file_canonical, canonical_path_with_file_parent_fails) {
 
 TEST_F(test_file_canonical, canonical_path_removes_dot_components) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/temp.js", u8"");
+  write_file_or_exit(temp_dir + "/temp.js", u8"");
 
   std::string input_path = temp_dir + "/./temp.js";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -264,7 +264,7 @@ TEST_F(test_file_canonical, canonical_path_removes_trailing_dot_component) {
 TEST_F(test_file_canonical,
        canonical_path_fails_with_dot_component_after_regular_file) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/just-a-file", u8"");
+  write_file_or_exit(temp_dir + "/just-a-file", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/./something";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -306,8 +306,8 @@ TEST_F(test_file_canonical,
 TEST_F(test_file_canonical,
        canonical_path_fails_with_dot_dot_component_after_regular_file) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/just-a-file", u8"");
-  write_file(temp_dir + "/other.txt", u8"");
+  write_file_or_exit(temp_dir + "/just-a-file", u8"");
+  write_file_or_exit(temp_dir + "/other.txt", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/../other.text";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -328,7 +328,7 @@ TEST_F(test_file_canonical,
 TEST_F(test_file_canonical,
        canonical_path_with_component_and_dot_dot_after_regular_file) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/just-a-file", u8"");
+  write_file_or_exit(temp_dir + "/just-a-file", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/fake-subdir/..";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -344,7 +344,7 @@ TEST_F(test_file_canonical,
 TEST_F(test_file_canonical,
        canonical_path_fails_with_component_and_dot_dot_after_regular_file) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/just-a-file", u8"");
+  write_file_or_exit(temp_dir + "/just-a-file", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/fake-subdir/..";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -365,7 +365,7 @@ TEST_F(test_file_canonical,
 #if QLJS_FILE_PATH_ALLOWS_FOLLOWING_COMPONENTS
 TEST_F(test_file_canonical, canonical_path_with_dot_after_regular_file) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/just-a-file", u8"");
+  write_file_or_exit(temp_dir + "/just-a-file", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/.";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -380,7 +380,7 @@ TEST_F(test_file_canonical, canonical_path_with_dot_after_regular_file) {
 TEST_F(test_file_canonical,
        canonical_path_fails_with_trailing_dot_component_for_regular_file) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/just-a-file", u8"");
+  write_file_or_exit(temp_dir + "/just-a-file", u8"");
 
   std::string input_path = temp_dir + "/just-a-file/.";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -400,7 +400,7 @@ TEST_F(test_file_canonical,
 
 TEST_F(test_file_canonical, canonical_path_removes_redundant_slashes) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/temp.js", u8"");
+  write_file_or_exit(temp_dir + "/temp.js", u8"");
 
   std::string input_path;
   for (char c : temp_dir) {
@@ -471,7 +471,7 @@ TEST_F(test_file_canonical,
 TEST_F(test_file_canonical, canonical_path_removes_dot_dot_components) {
   std::string temp_dir = this->make_temporary_directory();
   create_directory(temp_dir + "/dir");
-  write_file(temp_dir + "/temp.js", u8"");
+  write_file_or_exit(temp_dir + "/temp.js", u8"");
 
   std::string input_path = temp_dir + "/dir/../temp.js";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -487,7 +487,7 @@ TEST_F(test_file_canonical,
        canonical_path_removes_dot_and_dot_dot_components_from_root) {
   for (std::string component : {".", ".."}) {
     std::string temp_dir = this->make_temporary_directory();
-    write_file(temp_dir + "/temp.js", u8"");
+    write_file_or_exit(temp_dir + "/temp.js", u8"");
 
     bool is_definitely_root_relative_path;
 #if QLJS_HAVE_STD_FILESYSTEM
@@ -525,7 +525,7 @@ TEST_F(test_file_canonical,
       canonicalize_path(temp_dir);
   ASSERT_TRUE(temp_dir_canonical.ok())
       << temp_dir_canonical.error().to_string();
-  write_file(temp_dir + "/real.js", u8"");
+  write_file_or_exit(temp_dir + "/real.js", u8"");
 
   result<canonical_path_result, canonicalize_path_io_error> canonical =
       canonicalize_path(temp_dir + "/does-not-exist/../real.js");
@@ -541,7 +541,7 @@ TEST_F(test_file_canonical,
 
 TEST_F(test_file_canonical, canonical_path_makes_relative_paths_absolute) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/temp.js", u8"");
+  write_file_or_exit(temp_dir + "/temp.js", u8"");
   this->set_current_working_directory(temp_dir);
 
   std::string input_path = "temp.js";
@@ -559,7 +559,7 @@ TEST_F(test_file_canonical,
        canonical_path_makes_relative_paths_with_dot_dot_absolute) {
   std::string temp_dir = this->make_temporary_directory();
   create_directory(temp_dir + "/dir");
-  write_file(temp_dir + "/temp.js", u8"");
+  write_file_or_exit(temp_dir + "/temp.js", u8"");
   this->set_current_working_directory(temp_dir + "/dir");
 
   std::string input_path = "../temp.js";
@@ -588,7 +588,7 @@ TEST_F(test_file_canonical,
 
 TEST_F(test_file_canonical, canonical_path_with_root_as_cwd) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/temp.js", u8"");
+  write_file_or_exit(temp_dir + "/temp.js", u8"");
 #if defined(_WIN32)
   EXPECT_EQ(temp_dir[1], ':')
       << "Expected ':' after drive letter in " << temp_dir;
@@ -618,7 +618,7 @@ TEST_F(test_file_canonical, canonical_path_with_root_as_cwd) {
 #if QLJS_HAVE_UNISTD_H
 TEST_F(test_file_canonical, canonical_path_resolves_file_absolute_symlinks) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/realfile", u8"");
+  write_file_or_exit(temp_dir + "/realfile", u8"");
   ASSERT_EQ(::symlink((temp_dir + "/realfile").c_str(),
                       (temp_dir + "/linkfile").c_str()),
             0)
@@ -638,7 +638,7 @@ TEST_F(test_file_canonical, canonical_path_resolves_file_absolute_symlinks) {
 
 TEST_F(test_file_canonical, canonical_path_resolves_file_relative_symlinks) {
   std::string temp_dir = this->make_temporary_directory();
-  write_file(temp_dir + "/realfile", u8"");
+  write_file_or_exit(temp_dir + "/realfile", u8"");
   ASSERT_EQ(::symlink("realfile", (temp_dir + "/linkfile").c_str()), 0)
       << std::strerror(errno);
 
@@ -662,7 +662,7 @@ TEST_F(test_file_canonical,
                       (temp_dir + "/linkdir").c_str()),
             0)
       << std::strerror(errno);
-  write_file(temp_dir + "/realdir/temp.js", u8"");
+  write_file_or_exit(temp_dir + "/realdir/temp.js", u8"");
 
   std::string input_path = temp_dir + "/linkdir/temp.js";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -683,7 +683,7 @@ TEST_F(test_file_canonical,
   create_directory(temp_dir + "/realdir");
   ASSERT_EQ(::symlink("realdir", (temp_dir + "/linkdir").c_str()), 0)
       << std::strerror(errno);
-  write_file(temp_dir + "/realdir/temp.js", u8"");
+  write_file_or_exit(temp_dir + "/realdir/temp.js", u8"");
 
   std::string input_path = temp_dir + "/linkdir/temp.js";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -707,7 +707,7 @@ TEST_F(test_file_canonical,
                       (temp_dir + "/linkdir").c_str()),
             0)
       << std::strerror(errno);
-  write_file(temp_dir + "/dir/temp.js", u8"");
+  write_file_or_exit(temp_dir + "/dir/temp.js", u8"");
 
   std::string input_path = temp_dir + "/linkdir/../temp.js";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -726,7 +726,7 @@ TEST_F(test_file_canonical, canonical_path_resolves_dot_dot_inside_symlinks) {
   create_directory(temp_dir + "/otherdir");
   ASSERT_EQ(::symlink("../otherdir", (temp_dir + "/dir/linkdir").c_str()), 0)
       << std::strerror(errno);
-  write_file(temp_dir + "/otherdir/temp.js", u8"");
+  write_file_or_exit(temp_dir + "/otherdir/temp.js", u8"");
 
   std::string input_path = temp_dir + "/dir/linkdir/temp.js";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -815,7 +815,7 @@ TEST_F(test_file_canonical, canonical_path_resolves_symlinks_in_cwd) {
   create_directory(temp_dir + "/realdir");
   ASSERT_EQ(::symlink("realdir", (temp_dir + "/linkdir").c_str()), 0)
       << std::strerror(errno);
-  write_file(temp_dir + "/realdir/temp.js", u8"");
+  write_file_or_exit(temp_dir + "/realdir/temp.js", u8"");
   this->set_current_working_directory(temp_dir + "/linkdir");
 
   std::string input_path = "temp.js";
@@ -839,7 +839,7 @@ TEST_F(test_file_canonical,
       << std::strerror(errno);
   create_directory(temp_dir + "/realdir");
   create_directory(temp_dir + "/realdir/subdir");
-  write_file(temp_dir + "/realdir/subdir/hello.js", u8"");
+  write_file_or_exit(temp_dir + "/realdir/subdir/hello.js", u8"");
 
   std::string input_path = temp_dir + "/linkdir/hello.js";
   result<canonical_path_result, canonicalize_path_io_error> canonical =
@@ -864,7 +864,7 @@ TEST_F(test_file_canonical, unsearchable_parent_directory) {
 
   std::string temp_dir = this->make_temporary_directory();
   create_directory(temp_dir + "/dir");
-  write_file(temp_dir + "/dir/file", u8"hello");
+  write_file_or_exit(temp_dir + "/dir/file", u8"hello");
   ASSERT_EQ(::chmod((temp_dir + "/dir").c_str(), 0600), 0)
       << std::strerror(errno);
 
@@ -886,7 +886,7 @@ TEST_F(test_file_canonical, unsearchable_grandparent_directory) {
   std::string temp_dir = this->make_temporary_directory();
   create_directory(temp_dir + "/dir");
   create_directory(temp_dir + "/dir/subdir");
-  write_file(temp_dir + "/dir/subdir/file", u8"hello");
+  write_file_or_exit(temp_dir + "/dir/subdir/file", u8"hello");
   ASSERT_EQ(::chmod((temp_dir + "/dir").c_str(), 0600), 0)
       << std::strerror(errno);
 

@@ -21,7 +21,7 @@ TEST(test_temporary_directory, delete_directory_containing_unwritable_file) {
   std::string sub_dir = temp_dir + "/subdir";
   create_directory(sub_dir);
   std::string unwritable_file = sub_dir + "/unwritable";
-  write_file(unwritable_file, u8"unwritable file");
+  write_file_or_exit(unwritable_file, u8"unwritable file");
   EXPECT_EQ(::chmod(unwritable_file.c_str(), 0000), 0)
       << "failed to make " << unwritable_file
       << " inaccessible: " << std::strerror(errno);
@@ -40,7 +40,7 @@ TEST(test_temporary_directory,
   std::string untraversable_dir = sub_dir + "/untraversable_dir";
   create_directory(untraversable_dir);
   std::string unfindable_file = untraversable_dir + "/unfindable_file";
-  write_file(unfindable_file, u8"can't see me!");
+  write_file_or_exit(unfindable_file, u8"can't see me!");
   EXPECT_EQ(::chmod(untraversable_dir.c_str(), 0600), 0)
       << "failed to make " << untraversable_dir
       << " untraversable: " << std::strerror(errno);
