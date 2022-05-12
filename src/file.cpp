@@ -152,6 +152,16 @@ std::string read_file_io_error::to_string() const {
   std::exit(1);
 }
 
+std::string write_file_io_error::to_string() const {
+  return "failed to write to "s + this->path + ": "s +
+         this->io_error.to_string();
+}
+
+[[noreturn]] void write_file_io_error::print_and_exit() const {
+  std::fprintf(stderr, "error: %s\n", this->to_string().c_str());
+  std::exit(1);
+}
+
 bool operator==(const read_file_io_error &lhs,
                 const read_file_io_error &rhs) noexcept {
   return lhs.path == rhs.path && lhs.io_error == rhs.io_error;
@@ -284,40 +294,50 @@ padded_string read_file_or_exit(const char *path) {
   return *std::move(r);
 }
 
-void write_file_or_exit(const std::string &path, string8_view content) {
-  write_file_or_exit(path.c_str(), content);
+result<void, write_file_io_error> write_file(const std::string &path,
+                                             string8_view content) {
+  return write_file(path.c_str(), content);
 }
 
 #if defined(QLJS_FILE_POSIX)
-void write_file_or_exit(const char *path, string8_view content) {
+result<void, write_file_io_error> write_file(const char *path,
+                                             string8_view content) {
   posix_fd_file file(
       ::open(path, O_CLOEXEC | O_CREAT | O_TRUNC | O_WRONLY, 0644));
   if (!file.valid()) {
-    std::fprintf(stderr, "fatal: failed to open file %s for writing: %s\n",
-                 path, std::strerror(errno));
-    std::abort();
+    return result<void, write_file_io_error>::failure(write_file_io_error{
+        .path = path,
+        .io_error = posix_file_io_error{errno},
+    });
   }
 
   ssize_t written = ::write(file.get(), content.data(), content.size());
   if (written == -1) {
-    std::fprintf(stderr, "fatal: failed to write to file %s: %s\n", path,
-                 std::strerror(errno));
-    std::abort();
+    return result<void, write_file_io_error>::failure(write_file_io_error{
+        .path = path,
+        .io_error = posix_file_io_error{errno},
+    });
   }
   if (narrow_cast<std::size_t>(written) != content.size()) {
-    std::fprintf(stderr, "fatal: failed to write entirety of file %s\n", path);
-    std::abort();
+    return result<void, write_file_io_error>::failure(write_file_io_error{
+        .path = path,
+        .io_error = posix_file_io_error{EIO},
+    });
   }
+
+  return {};
 }
 #endif
 
 #if defined(QLJS_FILE_WINDOWS)
-void write_file_or_exit(const char *path, string8_view content) {
+result<void, write_file_io_error> write_file(const char *path,
+                                             string8_view content) {
   std::optional<std::wstring> wpath = mbstring_to_wstring(path);
   if (!wpath) {
-    std::fprintf(stderr, "fatal: failed to convert path to wide string: %s\n",
-                 path);
-    std::abort();
+    return result<void, write_file_io_error>::failure(write_file_io_error{
+        .path = path,
+        .io_error = windows_file_io_error{::GetLastError()},
+    });
   }
   windows_handle_file file(::CreateFileW(
       wpath->c_str(), /*dwDesiredAccess=*/GENERIC_WRITE,
@@ -327,10 +347,10 @@ void write_file_or_exit(const char *path, string8_view content) {
       /*dwFlagsAndAttributes=*/FILE_ATTRIBUTE_NORMAL,
       /*hTemplateFile=*/nullptr));
   if (!file.valid()) {
-    std::fprintf(stderr, "fatal: failed to open file %s for writing: %s\n",
-                 path,
-                 windows_file_io_error{::GetLastError()}.to_string().c_str());
-    std::abort();
+    return result<void, write_file_io_error>::failure(write_file_io_error{
+        .path = path,
+        .io_error = windows_file_io_error{::GetLastError()},
+    });
   }
 
   ::DWORD bytes_written;
@@ -340,18 +360,32 @@ void write_file_or_exit(const char *path, string8_view content) {
           /*nNumberOfBytesToWrite=*/narrow_cast<::DWORD>(content.size()),
           /*lpNumberOfBytesWritten=*/&bytes_written,
           /*lpOverlapped=*/nullptr)) {
-    std::fprintf(stderr, "fatal: failed to write to file %s: %s\n", path,
-                 windows_file_io_error{::GetLastError()}.to_string().c_str());
-    std::abort();
+    return result<void, write_file_io_error>::failure(write_file_io_error{
+        .path = path,
+        .io_error = windows_file_io_error{::GetLastError()},
+    });
   }
   if (bytes_written != content.size()) {
-    std::fprintf(stderr, "fatal: failed to write entirety of file %s: %s\n",
-                 path,
-                 windows_file_io_error{::GetLastError()}.to_string().c_str());
-    std::abort();
+    return result<void, write_file_io_error>::failure(write_file_io_error{
+        .path = path,
+        .io_error = windows_file_io_error{ERROR_PARTIAL_COPY},
+    });
   }
+
+  return {};
 }
 #endif
+
+void write_file_or_exit(const std::string &path, string8_view content) {
+  write_file_or_exit(path.c_str(), content);
+}
+
+void write_file_or_exit(const char *path, string8_view content) {
+  result<void, write_file_io_error> result = write_file(path, content);
+  if (!result.ok()) {
+    result.error().print_and_exit();
+  }
+}
 
 #if QLJS_HAVE_WINDOWS_H
 bool file_ids_equal(const ::FILE_ID_INFO &a, const ::FILE_ID_INFO &b) noexcept {
