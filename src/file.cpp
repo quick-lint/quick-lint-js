@@ -350,30 +350,11 @@ result<void, write_file_io_error> write_file(const char *path,
     return file.propagate();
   }
 
-  int size_to_write = narrow_cast<int>(content.size());
-  std::optional<int> written = file->write(content.data(), size_to_write);
-  if (!written.has_value()) {
+  auto write_result = file->write_full(content.data(), content.size());
+  if (!write_result.ok()) {
     return result<void, write_file_io_error>::failure(write_file_io_error{
         .path = path,
-#if defined(QLJS_FILE_WINDOWS)
-        .io_error = windows_file_io_error{::GetLastError()},
-#elif defined(QLJS_FILE_POSIX)
-        .io_error = posix_file_io_error{errno},
-#else
-#error "Unsupported platform"
-#endif
-    });
-  }
-  if (*written != size_to_write) {
-    return result<void, write_file_io_error>::failure(write_file_io_error{
-        .path = path,
-#if defined(QLJS_FILE_WINDOWS)
-        .io_error = windows_file_io_error{ERROR_PARTIAL_COPY},
-#elif defined(QLJS_FILE_POSIX)
-        .io_error = posix_file_io_error{EIO},
-#else
-#error "Unsupported platform"
-#endif
+        .io_error = write_result.error(),
     });
   }
 
