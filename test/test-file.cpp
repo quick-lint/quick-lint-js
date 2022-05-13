@@ -166,11 +166,8 @@ TEST_F(test_file, read_pipe_multiple_writes) {
 
   auto write_message = [&](const char* message) -> void {
     std::size_t message_size = std::strlen(message);
-    std::optional<int> bytes_written =
-        pipe.writer.write(message, narrow_cast<int>(message_size));
-    ASSERT_TRUE(bytes_written.has_value())
-        << pipe.writer.get_last_error_message();
-    EXPECT_EQ(*bytes_written, message_size);
+    auto write_result = pipe.writer.write_full(message, message_size);
+    ASSERT_TRUE(write_result.ok()) << write_result.error_to_string();
   };
   std::thread writer_thread([&]() {
     write_message("hello");
@@ -198,11 +195,8 @@ TEST_F(test_file, read_pipe_empty_writes) {
 
   auto write_message = [&](const char* message) -> void {
     std::size_t message_size = std::strlen(message);
-    std::optional<int> bytes_written =
-        pipe.writer.write(message, narrow_cast<int>(message_size));
-    ASSERT_TRUE(bytes_written.has_value())
-        << pipe.writer.get_last_error_message();
-    EXPECT_EQ(*bytes_written, message_size);
+    auto write_result = pipe.writer.write_full(message, message_size);
+    ASSERT_TRUE(write_result.ok()) << write_result.error_to_string();
   };
   std::thread writer_thread([&]() {
     write_message("");

@@ -94,15 +94,11 @@ file_output_stream* file_output_stream::get_stderr() {
 }
 
 void file_output_stream::flush_impl(string8_view data) {
-  int data_size = narrow_cast<int>(data.size());
-  std::optional<int> written = this->file_.write(data.data(), data_size);
-  if (!written.has_value()) {
-    QLJS_UNIMPLEMENTED();
-  }
-  if (*written != data_size) {
-    // TODO(strager): What do we do with partial writes? Currently we only use
-    // file_output_stream for TTYs/consoles, blocking pipes, and regular files
-    // (stdout/stderr).
+  // TODO(strager): What do we do with partial writes? Currently we only use
+  // file_output_stream for TTYs/consoles, blocking pipes, and regular files
+  // (stdout/stderr).
+  auto write_result = this->file_.write_full(data.data(), data.size());
+  if (!write_result.ok()) {
     QLJS_UNIMPLEMENTED();
   }
 }

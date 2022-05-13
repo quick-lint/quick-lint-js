@@ -197,10 +197,8 @@ TEST_F(test_event_loop, does_not_write_to_unwritable_pipe) {
 #endif
 
 void write_full_message(platform_file_ref file, string8_view message) {
-  std::optional<int> bytes_written =
-      file.write(message.data(), narrow_cast<int>(message.size()));
-  EXPECT_TRUE(bytes_written.has_value()) << file.get_last_error_message();
-  EXPECT_EQ(bytes_written, message.size());
+  auto write_result = file.write_full(message.data(), message.size());
+  EXPECT_TRUE(write_result.ok()) << write_result.error_to_string();
 }
 }
 }
