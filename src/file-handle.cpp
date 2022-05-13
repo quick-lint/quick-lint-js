@@ -131,14 +131,11 @@ result<std::size_t, windows_file_io_error> windows_handle_file_ref::write(
 result<void, windows_file_io_error> windows_handle_file_ref::write_full(
     const void *buffer, std::size_t buffer_size) noexcept {
   QLJS_ASSERT(this->valid());
-  ::DWORD size_to_write = narrow_cast<::DWORD>(buffer_size);
-  ::DWORD write_size;
-  if (!::WriteFile(this->handle_, buffer, size_to_write, &write_size,
-                   /*lpOverlapped=*/nullptr)) {
-    return result<void, windows_file_io_error>::failure(
-        windows_file_io_error{::GetLastError()});
+  auto write_result = this->write(buffer, buffer_size);
+  if (!write_result.ok()) {
+    return write_result.propagate();
   }
-  if (write_size != size_to_write) {
+  if (*write_result != buffer_size) {
     // TODO(strager): Should we retry with the remaining buffer?
     return result<void, windows_file_io_error>::failure(
         windows_file_io_error{ERROR_PARTIAL_COPY});
@@ -274,12 +271,11 @@ result<std::size_t, posix_file_io_error> posix_fd_file_ref::write(
 result<void, posix_file_io_error> posix_fd_file_ref::write_full(
     const void *buffer, std::size_t buffer_size) noexcept {
   QLJS_ASSERT(this->valid());
-  ::ssize_t written_size = ::write(this->fd_, buffer, buffer_size);
-  if (written_size == -1) {
-    return result<void, posix_file_io_error>::failure(
-        posix_file_io_error{errno});
+  auto write_result = this->write(buffer, buffer_size);
+  if (!write_result.ok()) {
+    return write_result.propagate();
   }
-  if (narrow_cast<std::size_t>(written_size) != buffer_size) {
+  if (*write_result != buffer_size) {
     // TODO(strager): Should we retry with the remaining buffer?
     return result<void, posix_file_io_error>::failure(posix_file_io_error{EIO});
   }
