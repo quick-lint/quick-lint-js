@@ -300,18 +300,30 @@ result<void, write_file_io_error> write_file(const std::string &path,
 }
 
 #if defined(QLJS_FILE_POSIX)
-result<void, write_file_io_error> write_file(const char *path,
-                                             string8_view content) {
+result<platform_file, write_file_io_error> open_file_for_writing(
+    const char *path) {
   posix_fd_file file(
       ::open(path, O_CLOEXEC | O_CREAT | O_TRUNC | O_WRONLY, 0644));
   if (!file.valid()) {
-    return result<void, write_file_io_error>::failure(write_file_io_error{
-        .path = path,
-        .io_error = posix_file_io_error{errno},
-    });
+    return result<platform_file, write_file_io_error>::failure(
+        write_file_io_error{
+            .path = path,
+            .io_error = posix_file_io_error{errno},
+        });
+  }
+  return std::move(file);
+}
+#endif
+
+#if defined(QLJS_FILE_POSIX)
+result<void, write_file_io_error> write_file(const char *path,
+                                             string8_view content) {
+  auto file = open_file_for_writing(path);
+  if (!file.ok()) {
+    return file.propagate();
   }
 
-  ssize_t written = ::write(file.get(), content.data(), content.size());
+  ssize_t written = ::write(file->get(), content.data(), content.size());
   if (written == -1) {
     return result<void, write_file_io_error>::failure(write_file_io_error{
         .path = path,
@@ -330,14 +342,15 @@ result<void, write_file_io_error> write_file(const char *path,
 #endif
 
 #if defined(QLJS_FILE_WINDOWS)
-result<void, write_file_io_error> write_file(const char *path,
-                                             string8_view content) {
+result<platform_file, write_file_io_error> open_file_for_writing(
+    const char *path) {
   std::optional<std::wstring> wpath = mbstring_to_wstring(path);
   if (!wpath) {
-    return result<void, write_file_io_error>::failure(write_file_io_error{
-        .path = path,
-        .io_error = windows_file_io_error{::GetLastError()},
-    });
+    return result<platform_file, write_file_io_error>::failure(
+        write_file_io_error{
+            .path = path,
+            .io_error = windows_file_io_error{::GetLastError()},
+        });
   }
   windows_handle_file file(::CreateFileW(
       wpath->c_str(), /*dwDesiredAccess=*/GENERIC_WRITE,
@@ -347,15 +360,27 @@ result<void, write_file_io_error> write_file(const char *path,
       /*dwFlagsAndAttributes=*/FILE_ATTRIBUTE_NORMAL,
       /*hTemplateFile=*/nullptr));
   if (!file.valid()) {
-    return result<void, write_file_io_error>::failure(write_file_io_error{
-        .path = path,
-        .io_error = windows_file_io_error{::GetLastError()},
-    });
+    return result<platform_file, write_file_io_error>::failure(
+        write_file_io_error{
+            .path = path,
+            .io_error = windows_file_io_error{::GetLastError()},
+        });
+  }
+  return std::move(file);
+}
+#endif
+
+#if defined(QLJS_FILE_WINDOWS)
+result<void, write_file_io_error> write_file(const char *path,
+                                             string8_view content) {
+  auto file = open_file_for_writing(path);
+  if (!file.ok()) {
+    return file.propagate();
   }
 
   ::DWORD bytes_written;
   if (!::WriteFile(
-          /*hFile=*/file.get(),
+          /*hFile=*/file->get(),
           /*lpBuffer=*/content.data(),
           /*nNumberOfBytesToWrite=*/narrow_cast<::DWORD>(content.size()),
           /*lpNumberOfBytesWritten=*/&bytes_written,

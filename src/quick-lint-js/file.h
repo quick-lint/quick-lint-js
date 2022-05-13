@@ -61,6 +61,10 @@ result<void, write_file_io_error> write_file(const char *path,
 void write_file_or_exit(const std::string &path, string8_view content);
 void write_file_or_exit(const char *path, string8_view content);
 
+// Truncates the file if it exists.
+result<platform_file, write_file_io_error> open_file_for_writing(
+    const char *path);
+
 #if QLJS_HAVE_WINDOWS_H
 bool file_ids_equal(const ::FILE_ID_INFO &, const ::FILE_ID_INFO &) noexcept;
 #endif
