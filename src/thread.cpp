@@ -5,16 +5,35 @@
 #include <cstring>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/have.h>
+#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/thread.h>
 #include <utility>
 
 #if defined(QLJS_THREADS_WINDOWS)
 #include <process.h>
+#endif
+
+#if QLJS_HAVE_WINDOWS_H
 #include <quick-lint-js/windows.h>
 #endif
 
 #if defined(QLJS_THREADS_POSIX)
 #include <pthread.h>
+#endif
+
+#if QLJS_HAVE_MACH
+#include <mach/mach_init.h>
+#include <mach/thread_act.h>
+#endif
+
+#if QLJS_HAVE_GETTID
+#include <sys/types.h>
+#endif
+
+#if QLJS_HAVE_GETTID_SYSCALL
+#include <sys/syscall.h>
+#include <unistd.h>
 #endif
 
 namespace quick_lint_js {
@@ -152,6 +171,34 @@ void condition_variable::notify_all() {
   QLJS_ALWAYS_ASSERT(rc == 0);
 }
 #endif
+
+std::uint64_t get_current_thread_id() noexcept {
+#if QLJS_HAVE_WINDOWS_H
+  return ::GetCurrentThreadId();
+#elif QLJS_HAVE_GETTID
+  return ::gettid();
+#elif QLJS_HAVE_GETTID_SYSCALL
+  long rc = ::syscall(__NR_gettid);
+  if (rc < 0) {
+    // NOTE(strager): We can't log an error message here because our logging
+    // calls this function.
+    return 0;
+  }
+  return narrow_cast<std::uint64_t>(rc);
+#elif QLJS_HAVE_MACH
+  ::thread_identifier_info_data_t info;
+  ::mach_msg_type_number_t info_count = THREAD_IDENTIFIER_INFO_COUNT;
+  ::kern_return_t rc =
+      ::thread_info(::mach_thread_self(), THREAD_IDENTIFIER_INFO,
+                    reinterpret_cast<thread_info_t>(&info), &info_count);
+  QLJS_ALWAYS_ASSERT(rc == KERN_SUCCESS);
+  QLJS_ALWAYS_ASSERT(info_count == THREAD_IDENTIFIER_INFO_COUNT);
+  return info.thread_id;
+#else
+#warning "Unsupported platform"
+  return 0;
+#endif
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

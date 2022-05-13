@@ -9,6 +9,7 @@
 #ifndef QUICK_LINT_JS_THREAD_H
 #define QUICK_LINT_JS_THREAD_H
 
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <quick-lint-js/have.h>
@@ -159,6 +160,8 @@ class condition_variable {
   ::pthread_cond_t cond_var_handle_;
 #endif
 };
+
+std::uint64_t get_current_thread_id() noexcept;
 }
 
 #endif

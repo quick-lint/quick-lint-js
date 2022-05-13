@@ -191,6 +191,14 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_GETTID_SYSCALL)
+#if defined(__linux__)
+#define QLJS_HAVE_GETTID_SYSCALL 1
+#else
+#define QLJS_HAVE_GETTID_SYSCALL 0
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_NS_GET_ENVIRON)
 #if QLJS_HAVE_CRT_EXTERNS_H
 #define QLJS_HAVE_NS_GET_ENVIRON 1
@@ -375,6 +383,15 @@
 #endif
 #if !defined(QLJS_HAVE_FTS_H)
 #define QLJS_HAVE_FTS_H 0
+#endif
+
+#if !defined(QLJS_HAVE_MACH) && defined(__has_include)
+#if __has_include(<mach/mach_init.h>)
+#define QLJS_HAVE_MACH 1
+#endif
+#endif
+#if !defined(QLJS_HAVE_MACH)
+#define QLJS_HAVE_MACH 0
 #endif
 
 #if !defined(QLJS_HAVE_SETJMP) && defined(__has_include)

@@ -91,6 +91,7 @@ quick_lint_js_add_executable(
   test-string-view.cpp
   test-temporary-directory.cpp
   test-text-diag-reporter.cpp
+  test-thread.cpp
   test-translation.cpp
   test-uri.cpp
   test-utf-16.cpp

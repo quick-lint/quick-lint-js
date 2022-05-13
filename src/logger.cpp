@@ -17,10 +17,6 @@
 #include <string.h>
 #include <vector>
 
-#if QLJS_HAVE_GETTID
-#include <sys/types.h>
-#endif
-
 #if QLJS_HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -66,11 +62,8 @@ void file_logger::log(std::string_view message) {
   }
 
 #if QLJS_HAVE_GETPID
-#if QLJS_HAVE_GETTID
-  std::fprintf(file, "[%d.%d] ", ::getpid(), ::gettid());
-#else
-  std::fprintf(file, "[%d] ", ::getpid());
-#endif
+  std::fprintf(file, "[%d.%llu] ", ::getpid(),
+               narrow_cast<unsigned long long>(get_current_thread_id()));
 #endif
   std::fprintf(file, "%.*s", narrow_cast<int>(message.size()), message.data());
   std::fflush(file);
