@@ -115,18 +115,6 @@ file_read_result windows_handle_file_ref::read(void *buffer,
                         : file_read_result(narrow_cast<int>(read_size));
 }
 
-std::optional<int> windows_handle_file_ref::write(const void *buffer,
-                                                  int buffer_size) noexcept {
-  QLJS_ASSERT(this->valid());
-  DWORD write_size;
-  if (!::WriteFile(this->handle_, buffer, narrow_cast<DWORD>(buffer_size),
-                   &write_size,
-                   /*lpOverlapped=*/nullptr)) {
-    return std::nullopt;
-  }
-  return narrow_cast<int>(write_size);
-}
-
 result<void, windows_file_io_error> windows_handle_file_ref::write_full(
     const void *buffer, std::size_t buffer_size) noexcept {
   QLJS_ASSERT(this->valid());
@@ -257,17 +245,6 @@ file_read_result posix_fd_file_ref::read(void *buffer,
   }
   return read_size == 0 ? file_read_result::end_of_file()
                         : file_read_result(narrow_cast<int>(read_size));
-}
-
-std::optional<int> posix_fd_file_ref::write(const void *buffer,
-                                            int buffer_size) noexcept {
-  QLJS_ASSERT(this->valid());
-  ::ssize_t written_size =
-      ::write(this->fd_, buffer, narrow_cast<std::size_t>(buffer_size));
-  if (written_size == -1) {
-    return std::nullopt;
-  }
-  return narrow_cast<int>(written_size);
 }
 
 result<void, posix_file_io_error> posix_fd_file_ref::write_full(
