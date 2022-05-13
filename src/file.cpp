@@ -315,32 +315,6 @@ result<platform_file, write_file_io_error> open_file_for_writing(
 }
 #endif
 
-#if defined(QLJS_FILE_POSIX)
-result<void, write_file_io_error> write_file(const char *path,
-                                             string8_view content) {
-  auto file = open_file_for_writing(path);
-  if (!file.ok()) {
-    return file.propagate();
-  }
-
-  ssize_t written = ::write(file->get(), content.data(), content.size());
-  if (written == -1) {
-    return result<void, write_file_io_error>::failure(write_file_io_error{
-        .path = path,
-        .io_error = posix_file_io_error{errno},
-    });
-  }
-  if (narrow_cast<std::size_t>(written) != content.size()) {
-    return result<void, write_file_io_error>::failure(write_file_io_error{
-        .path = path,
-        .io_error = posix_file_io_error{EIO},
-    });
-  }
-
-  return {};
-}
-#endif
-
 #if defined(QLJS_FILE_WINDOWS)
 result<platform_file, write_file_io_error> open_file_for_writing(
     const char *path) {
@@ -369,7 +343,6 @@ result<platform_file, write_file_io_error> open_file_for_writing(
 }
 #endif
 
-#if QLJS_FILE_WINDOWS
 result<void, write_file_io_error> write_file(const char *path,
                                              string8_view content) {
   auto file = open_file_for_writing(path);
@@ -377,28 +350,35 @@ result<void, write_file_io_error> write_file(const char *path,
     return file.propagate();
   }
 
-  ::DWORD bytes_written;
-  if (!::WriteFile(
-          /*hFile=*/file->get(),
-          /*lpBuffer=*/content.data(),
-          /*nNumberOfBytesToWrite=*/narrow_cast<::DWORD>(content.size()),
-          /*lpNumberOfBytesWritten=*/&bytes_written,
-          /*lpOverlapped=*/nullptr)) {
+  int size_to_write = narrow_cast<int>(content.size());
+  std::optional<int> written = file->write(content.data(), size_to_write);
+  if (!written.has_value()) {
     return result<void, write_file_io_error>::failure(write_file_io_error{
         .path = path,
+#if defined(QLJS_FILE_WINDOWS)
         .io_error = windows_file_io_error{::GetLastError()},
+#elif defined(QLJS_FILE_POSIX)
+        .io_error = posix_file_io_error{errno},
+#else
+#error "Unsupported platform"
+#endif
     });
   }
-  if (bytes_written != content.size()) {
+  if (*written != size_to_write) {
     return result<void, write_file_io_error>::failure(write_file_io_error{
         .path = path,
+#if defined(QLJS_FILE_WINDOWS)
         .io_error = windows_file_io_error{ERROR_PARTIAL_COPY},
+#elif defined(QLJS_FILE_POSIX)
+        .io_error = posix_file_io_error{EIO},
+#else
+#error "Unsupported platform"
+#endif
     });
   }
 
   return {};
 }
-#endif
 
 void write_file_or_exit(const std::string &path, string8_view content) {
   write_file_or_exit(path.c_str(), content);
