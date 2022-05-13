@@ -65,15 +65,14 @@ void background_thread_pipe_writer::write_all_now_blocking(
 #else
     const byte_buffer_chunk& chunk = data.iovec()[0];
     QLJS_ASSERT(chunk.size != 0);  // Writing can hang if given size 0.
-    std::optional<int> raw_bytes_written =
-        this->pipe_.write(chunk.data, narrow_cast<int>(chunk.size));
-    if (!raw_bytes_written.has_value()) {
+    auto write_result = this->pipe_.write(chunk.data, chunk.size);
+    if (!write_result.ok()) {
 #if defined(QLJS_HAVE_UNISTD_H)
-      QLJS_ASSERT(errno != EAGAIN);
+      QLJS_ASSERT(write_result.error().error != EAGAIN);
 #endif
       QLJS_UNIMPLEMENTED();
     }
-    std::size_t bytes_written = narrow_cast<std::size_t>(*raw_bytes_written);
+    std::size_t bytes_written = *write_result;
 #endif
     QLJS_ASSERT(bytes_written != 0);
     data.remove_front(bytes_written);
@@ -189,17 +188,16 @@ void non_blocking_pipe_writer::write_as_much_as_possible_now_non_blocking(
 #else
     const byte_buffer_chunk& chunk = data.iovec()[0];
     QLJS_ASSERT(chunk.size != 0);  // Writing can hang if given size 0.
-    std::optional<int> raw_bytes_written =
-        this->pipe_.write(chunk.data, narrow_cast<int>(chunk.size));
-    if (!raw_bytes_written.has_value()) {
+    auto write_result = this->pipe_.write(chunk.data, chunk.size);
+    if (!write_result.ok()) {
 #if QLJS_HAVE_UNISTD_H
-      if (errno == EAGAIN) {
+      if (write_result.error().error == EAGAIN) {
         break;
       }
 #endif
       QLJS_UNIMPLEMENTED();
     }
-    std::size_t bytes_written = narrow_cast<std::size_t>(*raw_bytes_written);
+    std::size_t bytes_written = *write_result;
 #if QLJS_HAVE_WINDOWS_H
     if (bytes_written == 0) {
       break;

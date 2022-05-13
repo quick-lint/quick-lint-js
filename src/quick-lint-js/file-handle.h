@@ -111,7 +111,8 @@ class windows_handle_file_ref {
   HANDLE get() noexcept;
 
   file_read_result read(void *buffer, int buffer_size) noexcept;
-  std::optional<int> write(const void *buffer, int buffer_size) noexcept;
+  result<std::size_t, windows_file_io_error> write(
+      const void *buffer, std::size_t buffer_size) noexcept;
   result<void, windows_file_io_error> write_full(
       const void *buffer, std::size_t buffer_size) noexcept;
 
@@ -177,7 +178,8 @@ class posix_fd_file_ref {
   int get() const noexcept;
 
   file_read_result read(void *buffer, int buffer_size) noexcept;
-  std::optional<int> write(const void *buffer, int buffer_size) noexcept;
+  result<std::size_t, posix_file_io_error> write(
+      const void *buffer, std::size_t buffer_size) noexcept;
   result<void, posix_file_io_error> write_full(
       const void *buffer, std::size_t buffer_size) noexcept;
 
