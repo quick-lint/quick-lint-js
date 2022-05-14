@@ -139,7 +139,7 @@ bool change_detecting_filesystem_win32::handle_event(
   default:
     std::fprintf(stderr,
                  "error: change_detecting_filesystem_win32 received unexpected "
-                 "error: %u (number_of_bytes_transferred=%u)\n",
+                 "error: %lu (number_of_bytes_transferred=%lu)\n",
                  error, number_of_bytes_transferred);
     QLJS_UNIMPLEMENTED();
     return true;
