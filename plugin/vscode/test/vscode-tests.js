@@ -603,7 +603,7 @@ tests = {
           path.basename(vscode.window.activeTextEditor.document.fileName),
           "quick-lint-js.config"
         );
-      }, 1000);
+      });
     },
 
   "dismissing quick-lint-js.config error pop-up does not open config file":
