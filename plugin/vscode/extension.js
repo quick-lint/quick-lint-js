@@ -72,6 +72,16 @@ async function activateAsync(extensionContext) {
     })
   );
 
+  toDispose.push(
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      logErrors(() => {
+        if (event.affectsConfiguration("quick-lint-js")) {
+          workspace.configurationChanged();
+        }
+      });
+    })
+  );
+
   function lintVisibleEditors() {
     for (let editor of vscode.window.visibleTextEditors) {
       workspace.editorVisibilityChanged(editor.document);

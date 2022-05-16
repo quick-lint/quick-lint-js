@@ -439,6 +439,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         env, "QLJSWorkspace",
         {
             InstanceMethod<&qljs_workspace::close_document>("closeDocument"),
+            InstanceMethod<&qljs_workspace::configuration_changed>(
+                "configurationChanged"),
             InstanceMethod<&qljs_workspace::dispose>("dispose"),
             InstanceMethod<&qljs_workspace::document_changed>(
                 "documentChanged"),
@@ -458,31 +460,53 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
         vscode_diagnostic_collection_ref_(
             ::Napi::Persistent(info[1].As<::Napi::Object>())) {
     QLJS_DEBUG_LOG("Workspace %p: created\n", this);
-    this->init_logging(info.Env());
+    this->update_logging(info.Env());
     this->fs_change_detection_thread_ =
         thread([this]() -> void { this->run_fs_change_detection_thread(); });
   }
 
-  void init_logging(::Napi::Env env) {
-    // TODO(strager): Detect config changes.
+  // Enable or disable logging depending on the user's configuration.
+  void update_logging(::Napi::Env env) {
     extension_configuration config(env, this->vscode_);
-    if (config.get_logging(env) !=
-        extension_configuration::logging_value::off) {
+    switch (config.get_logging(env)) {
+    case extension_configuration::logging_value::off:
+      this->disable_logging();
+      break;
+    case extension_configuration::logging_value::verbose:
+      this->enable_logging(env);
+      break;
+    }
+  }
+
+  // Enable logging if logging is disabled.
+  void enable_logging(::Napi::Env env) {
+    if (this->logger_enabled_) {
+      return;
+    }
+    if (this->logger_.IsEmpty()) {
       addon_state* state = env.GetInstanceData<addon_state>();
       this->logger_ = ::Napi::Persistent(state->qljs_logger_class.New(
           {this->vscode_.create_output_channel(env, "quick-lint-js")}));
-      enable_logger(qljs_logger::Unwrap(this->logger_.Value()));
-      QLJS_DEBUG_LOG("Configured VS Code logger\n");
     }
+    enable_logger(qljs_logger::Unwrap(this->logger_.Value()));
+    this->logger_enabled_ = true;
+    QLJS_DEBUG_LOG("Configured VS Code logger\n");
+  }
+
+  // Disable logging if logging is enabled.
+  void disable_logging() {
+    if (!this->logger_enabled_) {
+      return;
+    }
+    QLJS_DEBUG_LOG("Disabling VS Code logger\n");
+    QLJS_ASSERT(!this->logger_.IsEmpty());
+    disable_logger(qljs_logger::Unwrap(this->logger_.Value()));
+    this->logger_enabled_ = false;
   }
 
   ~qljs_workspace() {
     // See NOTE[workspace-cleanup].
     this->dispose();
-
-    if (!this->logger_.IsEmpty()) {
-      disable_logger(qljs_logger::Unwrap(this->logger_.Value()));
-    }
   }
 
   ::Napi::Value dispose(const ::Napi::CallbackInfo& info) {
@@ -500,6 +524,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     this->fs_change_detection_event_loop_.stop();
     this->fs_change_detection_thread_.join();
     this->dispose_documents();
+
+    this->disable_logging();
 
     this->disposed_ = true;
   }
@@ -530,6 +556,14 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       this->qljs_documents_.erase(vscode_document);
       this->fs_.forget_document(doc);
     }
+
+    return env.Undefined();
+  }
+
+  ::Napi::Value configuration_changed(const ::Napi::CallbackInfo& info) {
+    ::Napi::Env env = info.Env();
+
+    this->update_logging(env);
 
     return env.Undefined();
   }
@@ -908,6 +942,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   ::Napi::ObjectReference vscode_diagnostic_collection_ref_;
 
   ::Napi::ObjectReference logger_;  // An optional qljs_logger.
+  bool logger_enabled_ = false;
 };
 
 ::Napi::Object create_workspace(const ::Napi::CallbackInfo& info) {

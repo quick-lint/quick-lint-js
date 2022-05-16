@@ -891,17 +891,8 @@ tests = {
   "no output channel by default": async ({ addCleanup }) => {
     let outputChannelMocker = VSCodeOutputChannelMocker.mock({ addCleanup });
 
-    let scratchDirectory = makeScratchDirectory({ addCleanup });
-    let jsFilePath = path.join(scratchDirectory, "hello.js");
-    fs.writeFileSync(jsFilePath, "test;");
-    let jsURI = vscode.Uri.file(jsFilePath);
-
     await loadExtensionAsync({ addCleanup });
-    let jsDocument = await vscode.workspace.openTextDocument(jsURI);
-    let jsEditor = await vscode.window.showTextDocument(
-      jsDocument,
-      vscode.ViewColumn.One
-    );
+    await causeLogMessagesAsync({ addCleanup });
 
     assert.deepStrictEqual(outputChannelMocker.getOutputChannels(), []);
   },
@@ -916,17 +907,8 @@ tests = {
       .update("logging", "verbose", vscode.ConfigurationTarget.Workspace);
     addCleanup(resetConfigurationAsync);
 
-    let scratchDirectory = makeScratchDirectory({ addCleanup });
-    let jsFilePath = path.join(scratchDirectory, "hello.js");
-    fs.writeFileSync(jsFilePath, "test;");
-    let jsURI = vscode.Uri.file(jsFilePath);
-
     await loadExtensionAsync({ addCleanup });
-    let jsDocument = await vscode.workspace.openTextDocument(jsURI);
-    let jsEditor = await vscode.window.showTextDocument(
-      jsDocument,
-      vscode.ViewColumn.One
-    );
+    await causeLogMessagesAsync({ addCleanup });
 
     assert.deepStrictEqual(
       outputChannelMocker.getOutputChannels().map((c) => c.name),
@@ -939,8 +921,88 @@ tests = {
     );
   },
 
-  // TODO(strager): Allow user to turn logging on or off after loading the
-  // extension.
+  "output channel gets messages if logging is enabled after loading extension":
+    async ({ addCleanup }) => {
+      let outputChannelMocker = VSCodeOutputChannelMocker.mock({ addCleanup });
+
+      await loadExtensionAsync({ addCleanup });
+      await causeLogMessagesAsync({ addCleanup });
+
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("logging", "verbose", vscode.ConfigurationTarget.Workspace);
+      addCleanup(resetConfigurationAsync);
+
+      await pollAsync(async () => {
+        assert.deepStrictEqual(
+          outputChannelMocker.getOutputChannels().map((c) => c.name),
+          ["quick-lint-js"]
+        );
+        let channel = outputChannelMocker.getOutputChannels()[0];
+        assert.ok(
+          channel._data.length > 0,
+          "at least one message should have been logged by enabling logging"
+        );
+      });
+    },
+
+  "output channel gets no more messages if logging is disabled after loading extension":
+    async ({ addCleanup }) => {
+      let outputChannelMocker = VSCodeOutputChannelMocker.mock({ addCleanup });
+
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("logging", "verbose", vscode.ConfigurationTarget.Workspace);
+      addCleanup(resetConfigurationAsync);
+
+      await loadExtensionAsync({ addCleanup });
+      await causeLogMessagesAsync({ addCleanup });
+
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("logging", "off", vscode.ConfigurationTarget.Workspace);
+      await waitForAsynchronousLogMessagesAsync();
+      let messagesAfterDisablingLogging =
+        outputChannelMocker.getOutputChannels()[0]._data;
+
+      await causeLogMessagesAsync({ addCleanup });
+      let messages = outputChannelMocker.getOutputChannels()[0]._data;
+      assert.strictEqual(messages, messagesAfterDisablingLogging);
+    },
+
+  "enabling then disabling then enabling logging reuses output channel":
+    async ({ addCleanup }) => {
+      let outputChannelMocker = VSCodeOutputChannelMocker.mock({ addCleanup });
+
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("logging", "verbose", vscode.ConfigurationTarget.Workspace);
+      addCleanup(resetConfigurationAsync);
+
+      await loadExtensionAsync({ addCleanup });
+      await causeLogMessagesAsync({ addCleanup });
+
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("logging", "off", vscode.ConfigurationTarget.Workspace);
+      let messagesAfterDisablingLogging =
+        outputChannelMocker.getOutputChannels()[0]._data;
+
+      await vscode.workspace
+        .getConfiguration("quick-lint-js")
+        .update("logging", "verbose", vscode.ConfigurationTarget.Workspace);
+      await causeLogMessagesAsync({ addCleanup });
+
+      assert.deepStrictEqual(
+        outputChannelMocker.getOutputChannels().map((c) => c.name),
+        ["quick-lint-js"]
+      );
+      let messagesAfterReenablingLogging =
+        outputChannelMocker.getOutputChannels()[0]._data;
+      assert.ok(
+        messagesAfterReenablingLogging.startsWith(messagesAfterDisablingLogging)
+      );
+    },
 
   // TODO(strager): Allow the user to delete the extenion, thereby deleting
   // the output channel.
@@ -1277,6 +1339,24 @@ function mockKqueueErrors({ addCleanup, directoryOpenError = 0 }) {
   addCleanup(() => {
     qljsExtension.mockKqueueErrors(0);
   });
+}
+
+async function causeLogMessagesAsync({ addCleanup }) {
+  let scratchDirectory = makeScratchDirectory({ addCleanup });
+  let jsFilePath = path.join(scratchDirectory, "hello.js");
+  fs.writeFileSync(jsFilePath, "test;");
+  let jsDocument = await vscode.workspace.openTextDocument(
+    vscode.Uri.file(jsFilePath)
+  );
+  let jsEditor = await vscode.window.showTextDocument(
+    jsDocument,
+    vscode.ViewColumn.One
+  );
+  await waitForAsynchronousLogMessagesAsync();
+}
+
+async function waitForAsynchronousLogMessagesAsync() {
+  await sleepAsync(100);
 }
 
 // Convert an array of vscode.Diagnostic into an array of plain JavaScript
