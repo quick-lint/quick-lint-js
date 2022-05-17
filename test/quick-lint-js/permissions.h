@@ -1,46 +1,24 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_TEMPORARY_DIRECTORY_H
-#define QUICK_LINT_JS_TEMPORARY_DIRECTORY_H
+#ifndef QUICK_LINT_JS_PERMISSIONS_H
+#define QUICK_LINT_JS_PERMISSIONS_H
 
-#if defined(__EMSCRIPTEN__)
-// No filesystem on web.
-#else
-
-#include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
-#include <quick-lint-js/result.h>
-#include <string>
+
+#if QLJS_HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 namespace quick_lint_js {
-struct create_directory_io_error {
-  platform_file_io_error io_error;
-  bool is_directory_already_exists_error;
-
-  std::string to_string() const;
-};
-
-// Crashes on failure.
-std::string make_temporary_directory();
-
-result<void, create_directory_io_error> create_directory(
-    const std::string& path);
-
-// Crashes on failure.
-void create_directory_or_exit(const std::string& path);
-
-// Crashes on failure.
-void delete_directory_recursive(const std::string& path);
-
-// Crashes on failure.
-std::string get_current_working_directory();
-
-// Crashes on failure.
-void set_current_working_directory(const char* path);
-}
-
+inline bool process_ignores_filesystem_permissions() noexcept {
+#if QLJS_HAVE_UNISTD_H
+  return ::geteuid() == 0;
+#else
+  return false;
 #endif
+}
+}
 
 #endif
 

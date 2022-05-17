@@ -26,6 +26,7 @@
 #include <quick-lint-js/mock-kqueue.h>
 #include <quick-lint-js/mock-win32.h>
 #include <quick-lint-js/options.h>
+#include <quick-lint-js/permissions.h>
 #include <quick-lint-js/thread.h>
 #include <quick-lint-js/warning.h>
 #include <quick-lint-js/windows-error.h>
@@ -223,14 +224,6 @@ class change_detecting_configuration_loader {
 
 class test_configuration_loader : public ::testing::Test,
                                   protected filesystem_test {};
-
-bool process_ignores_filesystem_permissions() noexcept {
-#if QLJS_HAVE_UNISTD_H
-  return ::geteuid() == 0;
-#else
-  return false;
-#endif
-}
 
 TEST_F(test_configuration_loader,
        file_with_no_config_file_gets_default_config) {

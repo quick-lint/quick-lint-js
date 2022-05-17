@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/file-matcher.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/permissions.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <string>
 
@@ -50,6 +51,49 @@ TEST(test_temporary_directory,
   EXPECT_FILE_DOES_NOT_EXIST(unfindable_file);
   EXPECT_FILE_DOES_NOT_EXIST(untraversable_dir);
   EXPECT_FILE_DOES_NOT_EXIST(sub_dir);
+}
+#endif
+
+TEST(test_temporary_directory,
+     creating_directory_over_existing_directory_fails) {
+  std::string temp_dir = make_temporary_directory();
+
+  std::string sub_dir = temp_dir + "/sub_dir";
+  auto result = create_directory(sub_dir);
+  ASSERT_TRUE(result.ok()) << result.error_to_string();
+
+  auto result_2 = create_directory(sub_dir);
+  ASSERT_FALSE(result_2.ok());
+  EXPECT_TRUE(result_2.error().is_directory_already_exists_error);
+}
+
+TEST(test_temporary_directory, creating_directory_over_existing_file_fails) {
+  std::string temp_dir = make_temporary_directory();
+
+  std::string file = temp_dir + "/file";
+  write_file_or_exit(file, u8"hello");
+
+  auto result_2 = create_directory(file);
+  ASSERT_FALSE(result_2.ok());
+  EXPECT_FALSE(result_2.error().is_directory_already_exists_error);
+}
+
+#if QLJS_HAVE_UNISTD_H
+TEST(test_temporary_directory,
+     creating_directory_in_unwritable_directory_fails) {
+  if (process_ignores_filesystem_permissions()) {
+    GTEST_SKIP() << "cannot run test as root";
+  }
+
+  std::string temp_dir = make_temporary_directory();
+
+  EXPECT_EQ(::chmod(temp_dir.c_str(), 0555), 0)
+      << "failed to make " << temp_dir
+      << " unwritable: " << std::strerror(errno);
+
+  auto result = create_directory(temp_dir + "/sub_dir");
+  ASSERT_FALSE(result.ok());
+  EXPECT_FALSE(result.error().is_directory_already_exists_error);
 }
 #endif
 }

@@ -10,10 +10,12 @@
 #include <cstring>
 #include <exception>
 #include <limits.h>
+#include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/utf-16.h>
 #include <random>
 #include <string>
 
@@ -25,6 +27,10 @@
 #include <filesystem>
 #endif
 
+#if QLJS_HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+
 #if QLJS_HAVE_MKDTEMP
 #include <sys/stat.h>
 #endif
@@ -34,6 +40,10 @@
 #endif
 
 namespace quick_lint_js {
+std::string create_directory_io_error::to_string() const {
+  return this->io_error.to_string();
+}
+
 #if QLJS_HAVE_MKDTEMP
 std::string make_temporary_directory() {
   std::string temp_directory_name = "/tmp/quick-lint-js.XXXXXX";
@@ -75,23 +85,67 @@ std::string make_temporary_directory() {
 #error "Unsupported platform"
 #endif
 
-result<void, platform_file_io_error> create_directory(const std::string &path) {
-#if QLJS_HAVE_STD_FILESYSTEM
+result<void, create_directory_io_error> create_directory(
+    const std::string &path) {
+#if QLJS_HAVE_WINDOWS_H
+  std::optional<std::wstring> wpath = mbstring_to_wstring(path.c_str());
+  if (!wpath.has_value()) {
+    QLJS_UNIMPLEMENTED();
+  }
+  if (!::CreateDirectoryW(wpath->c_str(), /*lpSecurityAttributes=*/nullptr)) {
+    ::DWORD error = ::GetLastError();
+    bool directory_existed = false;
+    if (error == ERROR_ALREADY_EXISTS) {
+      ::DWORD attributes = ::GetFileAttributesW(wpath->c_str());
+      if (attributes != INVALID_FILE_ATTRIBUTES) {
+        directory_existed = attributes & FILE_ATTRIBUTE_DIRECTORY;
+      }
+    }
+    return result<void, create_directory_io_error>::failure(
+        create_directory_io_error{
+            .io_error =
+                windows_file_io_error{
+                    .error = error,
+                },
+            .is_directory_already_exists_error = directory_existed,
+        });
+  }
+  return {};
+#elif QLJS_HAVE_FCNTL_H
+  if (::mkdir(path.c_str(), 0755) != 0) {
+    int error = errno;
+    bool directory_existed = false;
+    if (error == EEXIST) {
+      struct ::stat s;
+      if (::lstat(path.c_str(), &s) == 0) {
+        directory_existed = S_ISDIR(s.st_mode);
+      }
+    }
+    return result<void, create_directory_io_error>::failure(
+        create_directory_io_error{
+            .io_error =
+                posix_file_io_error{
+                    .error = error,
+                },
+            .is_directory_already_exists_error = directory_existed,
+        });
+  }
+  return {};
+#elif QLJS_HAVE_STD_FILESYSTEM
   std::error_code error;
   if (!std::filesystem::create_directory(to_string8(path), error)) {
     // TODO(strager): Return the proper error code from 'error'.
-    return result<void, platform_file_io_error>::failure(platform_file_io_error{
-        .error = 0,
-    });
+    return result<void, create_directory_io_error>::failure(
+        create_directory_io_error{
+            .io_error =
+                platform_file_io_error{
+                    .error = 0,
+                },
+        });
   }
   return {};
 #else
-  if (::mkdir(path.c_str(), 0755) != 0) {
-    return result<void, platform_file_io_error>::failure(platform_file_io_error{
-        .error = errno,
-    });
-  }
-  return {};
+#error "Unsupported platform"
 #endif
 }
 
