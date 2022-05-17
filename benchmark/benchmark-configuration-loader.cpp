@@ -19,7 +19,7 @@ void benchmark_no_config_file(::benchmark::State& state) {
   std::string path = temp_dir;
   for (int i = 0; i < extra_depth; ++i) {
     path += "/subdir" + std::to_string(i);
-    create_directory(path);
+    create_directory_or_exit(path);
   }
   path += "/hello.js";
   write_file_or_exit(path, u8"");

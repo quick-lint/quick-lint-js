@@ -75,7 +75,7 @@ std::string make_temporary_directory() {
 #error "Unsupported platform"
 #endif
 
-void create_directory(const std::string &path) {
+void create_directory_or_exit(const std::string &path) {
 #if QLJS_HAVE_STD_FILESYSTEM
   std::filesystem::create_directory(to_string8(path));
 #else

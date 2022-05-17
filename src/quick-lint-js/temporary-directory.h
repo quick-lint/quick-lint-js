@@ -15,7 +15,7 @@ namespace quick_lint_js {
 std::string make_temporary_directory();
 
 // Crashes on failure.
-void create_directory(const std::string& path);
+void create_directory_or_exit(const std::string& path);
 
 // Crashes on failure.
 void delete_directory_recursive(const std::string& path);

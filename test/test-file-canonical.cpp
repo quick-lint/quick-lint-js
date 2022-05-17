@@ -70,7 +70,7 @@ TEST_F(test_file_canonical, canonical_path_to_regular_file) {
 TEST_F(test_file_canonical, canonical_path_to_directory) {
   std::string temp_dir = this->make_temporary_directory();
   std::string input_path = temp_dir + "/dir";
-  create_directory(input_path);
+  create_directory_or_exit(input_path);
 
   result<canonical_path_result, canonicalize_path_io_error> canonical =
       canonicalize_path(input_path);
@@ -101,7 +101,7 @@ TEST_F(test_file_canonical,
        canonical_path_to_directory_removes_trailing_slash) {
   std::string temp_dir = this->make_temporary_directory();
   std::string input_path = temp_dir + "/dir/";
-  create_directory(input_path);
+  create_directory_or_exit(input_path);
 
   result<canonical_path_result, canonicalize_path_io_error> canonical =
       canonicalize_path(input_path);
@@ -158,7 +158,7 @@ TEST_F(test_file_canonical,
   ASSERT_TRUE(temp_dir_canonical.ok())
       << temp_dir_canonical.error().to_string();
 
-  create_directory(temp_dir + "/dir");
+  create_directory_or_exit(temp_dir + "/dir");
   result<canonical_path_result, canonicalize_path_io_error> canonicalized =
       canonicalize_path(temp_dir + "/dir/does-not-exist.txt");
   ASSERT_TRUE(canonicalized.ok()) << canonicalized.error().to_string();
@@ -197,7 +197,7 @@ TEST_F(test_file_canonical,
     SCOPED_TRACE(character);
 
     std::string temp_dir = this->make_temporary_directory();
-    create_directory(temp_dir + "/parent" + character + "dir");
+    create_directory_or_exit(temp_dir + "/parent" + character + "dir");
     result<canonical_path_result, canonicalize_path_io_error>
         parent_dir_canonical =
             canonicalize_path(temp_dir + "/parent" + character + "dir");
@@ -470,7 +470,7 @@ TEST_F(test_file_canonical,
 
 TEST_F(test_file_canonical, canonical_path_removes_dot_dot_components) {
   std::string temp_dir = this->make_temporary_directory();
-  create_directory(temp_dir + "/dir");
+  create_directory_or_exit(temp_dir + "/dir");
   write_file_or_exit(temp_dir + "/temp.js", u8"");
 
   std::string input_path = temp_dir + "/dir/../temp.js";
@@ -558,7 +558,7 @@ TEST_F(test_file_canonical, canonical_path_makes_relative_paths_absolute) {
 TEST_F(test_file_canonical,
        canonical_path_makes_relative_paths_with_dot_dot_absolute) {
   std::string temp_dir = this->make_temporary_directory();
-  create_directory(temp_dir + "/dir");
+  create_directory_or_exit(temp_dir + "/dir");
   write_file_or_exit(temp_dir + "/temp.js", u8"");
   this->set_current_working_directory(temp_dir + "/dir");
 
@@ -657,7 +657,7 @@ TEST_F(test_file_canonical, canonical_path_resolves_file_relative_symlinks) {
 TEST_F(test_file_canonical,
        canonical_path_resolves_directory_absolute_symlinks) {
   std::string temp_dir = this->make_temporary_directory();
-  create_directory(temp_dir + "/realdir");
+  create_directory_or_exit(temp_dir + "/realdir");
   ASSERT_EQ(::symlink((temp_dir + "/realdir").c_str(),
                       (temp_dir + "/linkdir").c_str()),
             0)
@@ -680,7 +680,7 @@ TEST_F(test_file_canonical,
 TEST_F(test_file_canonical,
        canonical_path_resolves_directory_relative_symlinks) {
   std::string temp_dir = this->make_temporary_directory();
-  create_directory(temp_dir + "/realdir");
+  create_directory_or_exit(temp_dir + "/realdir");
   ASSERT_EQ(::symlink("realdir", (temp_dir + "/linkdir").c_str()), 0)
       << std::strerror(errno);
   write_file_or_exit(temp_dir + "/realdir/temp.js", u8"");
@@ -701,8 +701,8 @@ TEST_F(test_file_canonical,
 TEST_F(test_file_canonical,
        canonical_path_resolves_dot_dot_with_directory_symlinks) {
   std::string temp_dir = this->make_temporary_directory();
-  create_directory(temp_dir + "/dir");
-  create_directory(temp_dir + "/dir/subdir");
+  create_directory_or_exit(temp_dir + "/dir");
+  create_directory_or_exit(temp_dir + "/dir/subdir");
   ASSERT_EQ(::symlink((temp_dir + "/dir/subdir").c_str(),
                       (temp_dir + "/linkdir").c_str()),
             0)
@@ -722,8 +722,8 @@ TEST_F(test_file_canonical,
 
 TEST_F(test_file_canonical, canonical_path_resolves_dot_dot_inside_symlinks) {
   std::string temp_dir = this->make_temporary_directory();
-  create_directory(temp_dir + "/dir");
-  create_directory(temp_dir + "/otherdir");
+  create_directory_or_exit(temp_dir + "/dir");
+  create_directory_or_exit(temp_dir + "/otherdir");
   ASSERT_EQ(::symlink("../otherdir", (temp_dir + "/dir/linkdir").c_str()), 0)
       << std::strerror(errno);
   write_file_or_exit(temp_dir + "/otherdir/temp.js", u8"");
@@ -812,7 +812,7 @@ TEST_F(test_file_canonical, canonical_path_with_broken_symlink_file_fails) {
 
 TEST_F(test_file_canonical, canonical_path_resolves_symlinks_in_cwd) {
   std::string temp_dir = this->make_temporary_directory();
-  create_directory(temp_dir + "/realdir");
+  create_directory_or_exit(temp_dir + "/realdir");
   ASSERT_EQ(::symlink("realdir", (temp_dir + "/linkdir").c_str()), 0)
       << std::strerror(errno);
   write_file_or_exit(temp_dir + "/realdir/temp.js", u8"");
@@ -837,8 +837,8 @@ TEST_F(test_file_canonical,
       << std::strerror(errno);
   ASSERT_EQ(::symlink("realdir", (temp_dir + "/otherlinkdir").c_str()), 0)
       << std::strerror(errno);
-  create_directory(temp_dir + "/realdir");
-  create_directory(temp_dir + "/realdir/subdir");
+  create_directory_or_exit(temp_dir + "/realdir");
+  create_directory_or_exit(temp_dir + "/realdir/subdir");
   write_file_or_exit(temp_dir + "/realdir/subdir/hello.js", u8"");
 
   std::string input_path = temp_dir + "/linkdir/hello.js";
@@ -863,7 +863,7 @@ TEST_F(test_file_canonical, unsearchable_parent_directory) {
   }
 
   std::string temp_dir = this->make_temporary_directory();
-  create_directory(temp_dir + "/dir");
+  create_directory_or_exit(temp_dir + "/dir");
   write_file_or_exit(temp_dir + "/dir/file", u8"hello");
   ASSERT_EQ(::chmod((temp_dir + "/dir").c_str(), 0600), 0)
       << std::strerror(errno);
@@ -884,8 +884,8 @@ TEST_F(test_file_canonical, unsearchable_grandparent_directory) {
   }
 
   std::string temp_dir = this->make_temporary_directory();
-  create_directory(temp_dir + "/dir");
-  create_directory(temp_dir + "/dir/subdir");
+  create_directory_or_exit(temp_dir + "/dir");
+  create_directory_or_exit(temp_dir + "/dir/subdir");
   write_file_or_exit(temp_dir + "/dir/subdir/file", u8"hello");
   ASSERT_EQ(::chmod((temp_dir + "/dir").c_str(), 0600), 0)
       << std::strerror(errno);
