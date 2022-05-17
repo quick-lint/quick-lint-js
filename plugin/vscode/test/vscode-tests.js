@@ -1303,16 +1303,16 @@ function normalizeDiagnostics(vscodeDiagnosticsOrURI) {
     endLine: diag.range.end.line,
     endCharacter: diag.range.end.character,
     relatedInformation:
-      typeof diag.relatedInformation === "undefined" ?
-      [] :
-      diag.relatedInformation.map(info => ({
-        message: info.message,
-        uri: info.location.uri.toString(),
-        startLine: info.location.range.start.line,
-        startCharacter: info.location.range.start.character,
-        endLine: info.location.range.end.line,
-        endCharacter: info.location.range.end.character,
-      })),
+      typeof diag.relatedInformation === "undefined"
+        ? []
+        : diag.relatedInformation.map((info) => ({
+            message: info.message,
+            uri: info.location.uri.toString(),
+            startLine: info.location.range.start.line,
+            startCharacter: info.location.range.start.character,
+            endLine: info.location.range.end.line,
+            endCharacter: info.location.range.end.character,
+          })),
   }));
 }
 
