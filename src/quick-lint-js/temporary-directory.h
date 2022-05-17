@@ -8,11 +8,15 @@
 // No filesystem on web.
 #else
 
+#include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/result.h>
 #include <string>
 
 namespace quick_lint_js {
 // Crashes on failure.
 std::string make_temporary_directory();
+
+result<void, platform_file_io_error> create_directory(const std::string& path);
 
 // Crashes on failure.
 void create_directory_or_exit(const std::string& path);

@@ -75,16 +75,33 @@ std::string make_temporary_directory() {
 #error "Unsupported platform"
 #endif
 
-void create_directory_or_exit(const std::string &path) {
+result<void, platform_file_io_error> create_directory(const std::string &path) {
 #if QLJS_HAVE_STD_FILESYSTEM
-  std::filesystem::create_directory(to_string8(path));
+  std::error_code error;
+  if (!std::filesystem::create_directory(to_string8(path), error)) {
+    // TODO(strager): Return the proper error code from 'error'.
+    return result<void, platform_file_io_error>::failure(platform_file_io_error{
+        .error = 0,
+    });
+  }
+  return {};
 #else
   if (::mkdir(path.c_str(), 0755) != 0) {
+    return result<void, platform_file_io_error>::failure(platform_file_io_error{
+        .error = errno,
+    });
+  }
+  return {};
+#endif
+}
+
+void create_directory_or_exit(const std::string &path) {
+  auto result = create_directory(path);
+  if (!result.ok()) {
     std::fprintf(stderr, "error: failed to create directory %s: %s\n",
-                 path.c_str(), std::strerror(errno));
+                 path.c_str(), result.error_to_string().c_str());
     std::terminate();
   }
-#endif
 }
 
 #if QLJS_HAVE_FTS_H
