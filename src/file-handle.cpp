@@ -73,6 +73,9 @@ bool operator!=(posix_file_io_error lhs, posix_file_io_error rhs) noexcept {
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
+windows_handle_file_ref::windows_handle_file_ref() noexcept
+    : handle_(this->invalid_handle_1) {}
+
 windows_handle_file_ref::windows_handle_file_ref(HANDLE handle) noexcept
     : handle_(handle) {}
 
@@ -194,6 +197,8 @@ windows_handle_file_ref windows_handle_file_ref::get_stdout() noexcept {
 windows_handle_file_ref windows_handle_file_ref::get_stderr() noexcept {
   return windows_handle_file_ref(::GetStdHandle(STD_ERROR_HANDLE));
 }
+
+windows_handle_file::windows_handle_file() noexcept = default;
 
 windows_handle_file::windows_handle_file(HANDLE handle) noexcept
     : windows_handle_file_ref(handle) {}

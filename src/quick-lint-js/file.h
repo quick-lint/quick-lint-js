@@ -16,6 +16,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/result.h>
 #include <string>
+#include <vector>
 
 #if QLJS_HAVE_WINDOWS_H
 #include <quick-lint-js/windows.h>
@@ -45,6 +46,7 @@ struct write_file_io_error {
   [[noreturn]] void print_and_exit() const;
 };
 
+result<padded_string, read_file_io_error> read_file(const std::string &path);
 result<padded_string, read_file_io_error> read_file(const char *path);
 result<padded_string, read_file_io_error> read_file(const char *path,
                                                     platform_file_ref);
@@ -68,6 +70,11 @@ result<platform_file, write_file_io_error> open_file_for_writing(
 #if QLJS_HAVE_WINDOWS_H
 bool file_ids_equal(const ::FILE_ID_INFO &, const ::FILE_ID_INFO &) noexcept;
 #endif
+
+// Excludes '.' and '..'.
+//
+// Result is not necessarily sorted.
+std::vector<std::string> list_files_in_directory(const std::string &directory);
 }
 
 #endif

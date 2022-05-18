@@ -12,6 +12,7 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/result.h>
 #include <string>
+#include <string_view>
 
 namespace quick_lint_js {
 struct create_directory_io_error {
@@ -40,6 +41,10 @@ std::string get_current_working_directory();
 
 // Crashes on failure.
 void set_current_working_directory(const char* path);
+
+// format is a std::strftime format string.
+result<std::string, platform_file_io_error> make_timestamped_directory(
+    std::string_view parent_directory, const char* format);
 }
 
 #endif

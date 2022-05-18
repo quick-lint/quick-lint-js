@@ -104,6 +104,7 @@ struct file_read_result
 // INVALID_HANDLE_VALUE).
 class windows_handle_file_ref {
  public:
+  explicit windows_handle_file_ref() noexcept;
   explicit windows_handle_file_ref(HANDLE) noexcept;
 
   bool valid() const noexcept;
@@ -138,6 +139,7 @@ class windows_handle_file_ref {
 // INVALID_HANDLE_VALUE).
 class windows_handle_file : private windows_handle_file_ref {
  public:
+  explicit windows_handle_file() noexcept;
   explicit windows_handle_file(HANDLE) noexcept;
 
   windows_handle_file(const windows_handle_file &) = delete;

@@ -35,6 +35,16 @@
           ],
           "default": "off",
           "description": "Log messages useful for quick-lint-js contributors."
+        },
+        "quick-lint-js.tracing": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Log document changes. Useful for quick-lint-js contributors."
         }
       }
     },

@@ -8,16 +8,19 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <exception>
 #include <limits.h>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/file-path.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
 #include <random>
 #include <string>
+#include <string_view>
 
 #if QLJS_HAVE_FTS_H
 #include <fts.h>
@@ -280,6 +283,32 @@ void set_current_working_directory(const char *path) {
     std::terminate();
   }
 #endif
+}
+
+result<std::string, platform_file_io_error> make_timestamped_directory(
+    std::string_view parent_directory, const char *format) {
+  std::time_t now = std::time(nullptr);
+  std::tm *now_tm = std::localtime(&now);
+
+  std::string directory(parent_directory);
+  directory += QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR;
+  std::size_t name_begin_index = directory.size();
+  std::size_t name_size = 1;
+retry:
+  directory.resize(name_begin_index + name_size + 1);
+  std::size_t actual_name_size = std::strftime(&directory[name_begin_index],
+                                               name_size + 1, format, now_tm);
+  if (actual_name_size == 0) {
+    name_size *= 2;
+    goto retry;
+  }
+  directory.resize(name_begin_index + actual_name_size);
+
+  auto result = make_unique_directory(directory);
+  if (!result.ok()) {
+    return result.propagate();
+  }
+  return directory;
 }
 }
 

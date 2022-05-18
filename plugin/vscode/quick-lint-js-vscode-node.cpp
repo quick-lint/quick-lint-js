@@ -25,7 +25,10 @@
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/pipe.h>
 #include <quick-lint-js/thread.h>
+#include <quick-lint-js/trace-flusher.h>
+#include <quick-lint-js/trace-writer.h>
 #include <quick-lint-js/vscode-diag-reporter.h>
+#include <quick-lint-js/vscode-tracer.h>
 #include <quick-lint-js/vscode.h>
 #include <string>
 #include <string_view>
@@ -50,6 +53,8 @@ class addon_state {
   ::Napi::FunctionReference qljs_document_class;
   ::Napi::FunctionReference qljs_logger_class;
   ::Napi::FunctionReference qljs_workspace_class;
+
+  trace_flusher tracer;
 };
 
 class qljs_document : public ::Napi::ObjectWrap<qljs_document> {
@@ -398,14 +403,17 @@ class extension_configuration {
     verbose,
   };
 
+  enum class tracing_value {
+    off,  // default
+    verbose,
+  };
+
   explicit extension_configuration(::Napi::Env env, vscode_module& vscode)
       : config_ref_(::Napi::Persistent(
             vscode.get_configuration(env, "quick-lint-js"))) {}
 
   logging_value get_logging(::Napi::Env env) {
-    ::Napi::Value value =
-        this->config_ref_.Get("get").As<::Napi::Function>().Call(
-            this->config_ref_.Value(), {::Napi::String::New(env, "logging")});
+    ::Napi::Value value = this->get(env, "logging");
     if (!value.IsString()) {
       return logging_value::off;
     }
@@ -415,6 +423,24 @@ class extension_configuration {
     } else {
       return logging_value::off;
     }
+  }
+
+  tracing_value get_tracing(::Napi::Env env) {
+    ::Napi::Value value = this->get(env, "tracing");
+    if (!value.IsString()) {
+      return tracing_value::off;
+    }
+    std::string string_value = value.As<::Napi::String>().Utf8Value();
+    if (string_value == "verbose") {
+      return tracing_value::verbose;
+    } else {
+      return tracing_value::off;
+    }
+  }
+
+  ::Napi::Value get(::Napi::Env env, const char* section) {
+    return this->config_ref_.Get("get").As<::Napi::Function>().Call(
+        this->config_ref_.Value(), {::Napi::String::New(env, section)});
   }
 
  private:
@@ -451,14 +477,16 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   explicit qljs_workspace(const ::Napi::CallbackInfo& info)
       : ::Napi::ObjectWrap<qljs_workspace>(info),
-        vscode_(info[0].As<::Napi::Object>()),
+        tracer_(&info.Env().GetInstanceData<addon_state>()->tracer,
+                info[0].As<::Napi::String>().Utf8Value()),
+        vscode_(info[1].As<::Napi::Object>()),
         check_for_config_file_changes_on_js_thread_(
             /*env=*/info.Env(),
             /*resourceName=*/"quick-lint-js-fs-thread",
             /*object=*/this->Value()),
         qljs_documents_(info.Env()),
         vscode_diagnostic_collection_ref_(
-            ::Napi::Persistent(info[1].As<::Napi::Object>())) {
+            ::Napi::Persistent(info[2].As<::Napi::Object>())) {
     QLJS_DEBUG_LOG("Workspace %p: created\n", this);
     this->update_logging(info.Env());
     this->fs_change_detection_thread_ =
@@ -474,6 +502,14 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       break;
     case extension_configuration::logging_value::verbose:
       this->enable_logging(env);
+      break;
+    }
+    switch (config.get_tracing(env)) {
+    case extension_configuration::tracing_value::off:
+      this->tracer_.disable();
+      break;
+    case extension_configuration::tracing_value::verbose:
+      this->tracer_.enable();
       break;
     }
   }
@@ -547,13 +583,17 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   ::Napi::Value close_document(const ::Napi::CallbackInfo& info) {
     ::Napi::Env env = info.Env();
 
-    ::Napi::Value vscode_document = info[0];
-    ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_document);
-    if (!qljs_doc.IsUndefined()) {
-      qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
+    vscode_document vscode_doc(info[0].As<::Napi::Object>());
+    ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_doc.get());
+    qljs_document* doc =
+        qljs_doc.IsUndefined()
+            ? nullptr
+            : qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
+    this->tracer_.trace_vscode_document_closed(env, vscode_doc, doc);
+    if (doc) {
       QLJS_DEBUG_LOG("Document %p: Closing\n", doc);
       this->delete_diagnostics(doc);
-      this->qljs_documents_.erase(vscode_document);
+      this->qljs_documents_.erase(vscode_doc.get());
       this->fs_.forget_document(doc);
     }
 
@@ -599,6 +639,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     if (!qljs_doc.IsUndefined()) {
       qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
       ::Napi::Array changes = info[1].As<::Napi::Array>();
+      this->tracer_.trace_vscode_document_changed(env, doc, changes);
       doc->replace_text(changes);
       this->after_modification(env, doc);
     }
@@ -642,6 +683,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       this->fs_.overlay_document(*file_path, doc);
     }
     this->qljs_documents_.set(vscode_doc, js_doc);
+
+    this->tracer_.trace_vscode_document_opened(env, vscode_doc, doc);
 
     switch (type) {
     case document_type::lintable:
@@ -925,6 +968,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
   };
 
   bool disposed_ = false;
+  vscode_tracer tracer_;
   vscode_module vscode_;
   fs_change_detection_event_loop fs_change_detection_event_loop_{this};
   vscode_configuration_filesystem fs_{fs_change_detection_event_loop_.fs()};
@@ -951,6 +995,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 
   ::Napi::Object options = info[0].As<::Napi::Object>();
   return state->qljs_workspace_class.New({
+      /*log_directory=*/options.Get("logDirectory"),
       /*vscode=*/options.Get("vscode"),
       /*vscode_diagnostic_collection=*/
       options.Get("vscodeDiagnosticCollection"),
@@ -984,11 +1029,14 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 #endif
 
 std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
-  return std::unique_ptr<addon_state>(new addon_state{
+  std::unique_ptr<addon_state> state(new addon_state{
       .qljs_document_class = ::Napi::Persistent(qljs_document::init(env)),
       .qljs_logger_class = ::Napi::Persistent(qljs_logger::init(env)),
       .qljs_workspace_class = ::Napi::Persistent(qljs_workspace::init(env)),
   });
+  state->tracer.register_current_thread();
+  state->tracer.start_flushing_thread();
+  return state;
 }
 
 ::Napi::Object initialize_addon(::Napi::Env env, ::Napi::Object exports) {

@@ -27,6 +27,7 @@ async function activateAsync(extensionContext) {
   toDispose.push(diagnostics);
 
   let workspace = qljs.createWorkspace({
+    logDirectory: extensionContext?.logUri?.fsPath || "",
     vscode: vscode,
     vscodeDiagnosticCollection: diagnostics,
   });

@@ -14,6 +14,10 @@ inline int to_int(::Napi::Value v) {
   return narrow_cast<int>(v.As<::Napi::Number>().Int64Value());
 }
 
+inline std::uint64_t to_uint64(::Napi::Value v) {
+  return narrow_cast<std::uint64_t>(v.As<::Napi::Number>().Int64Value());
+}
+
 inline std::optional<std::string> to_optional_string(::Napi::Value v) {
   if (v.IsNull()) {
     return std::nullopt;

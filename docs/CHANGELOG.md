@@ -19,6 +19,9 @@ Semantic Versioning.
   by [ooblegork][]).
 * Integer literals which are silently rounded at run-time now report [E0212][]
   (implemented by [Rob Miner][]).
+* VS Code: The new `quick-lint-js.tracing` setting can be set to `"verbose"` to
+  log changes to documents. This keylogger option can be used by quick-lint-js
+  contributors to investigate bugs. This new option is disabled by default.
 
 ### Fixed
 

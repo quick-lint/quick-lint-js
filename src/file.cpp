@@ -22,6 +22,10 @@
 #include <stdlib.h>
 #include <string>
 
+#if QLJS_HAVE_DIRENT_H
+#include <dirent.h>
+#endif
+
 #if QLJS_HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -237,6 +241,10 @@ result<padded_string, read_file_io_error> read_file(const char *path,
   return *std::move(r);
 }
 
+result<padded_string, read_file_io_error> read_file(const std::string &path) {
+  return read_file(path.c_str());
+}
+
 #if defined(QLJS_FILE_WINDOWS)
 result<padded_string, read_file_io_error> read_file(const char *path) {
   // TODO(strager): Avoid copying the path string, especially on success.
@@ -379,6 +387,42 @@ bool file_ids_equal(const ::FILE_ID_INFO &a, const ::FILE_ID_INFO &b) noexcept {
          std::memcmp(&b.FileId, &a.FileId, sizeof(b.FileId)) == 0;
 }
 #endif
+
+std::vector<std::string> list_files_in_directory(const std::string &directory) {
+#if QLJS_HAVE_STD_FILESYSTEM
+  std::vector<std::string> result;
+  for (auto &entry : std::filesystem::directory_iterator(directory)) {
+    result.push_back(entry.path().filename().string());
+  }
+  return result;
+#elif QLJS_HAVE_DIRENT_H
+  std::vector<std::string> result;
+  ::DIR *d = ::opendir(directory.c_str());
+  for (;;) {
+    errno = 0;
+    ::dirent *entry = ::readdir(d);
+    if (!entry) {
+      if (errno != 0) {
+        std::fprintf(stderr, "fatal: failed to read directory %s: %s\n",
+                     directory.c_str(), std::strerror(errno));
+        std::abort();
+      }
+      break;
+    }
+    bool is_dot_or_dot_dot =
+        entry->d_name[0] == '.' &&
+        (entry->d_name[1] == '\0' ||
+         (entry->d_name[1] == '.' && entry->d_name[2] == '\0'));
+    if (!is_dot_or_dot_dot) {
+      result.emplace_back(entry->d_name);
+    }
+  }
+  ::closedir(d);
+  return result;
+#else
+#error "Unsupported platform"
+#endif
+}
 }
 
 #endif

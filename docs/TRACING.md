@@ -24,7 +24,13 @@ called `thread###` (where `###` is one or more decimal digits).
 
 ## Producing traces
 
-(not yet implemented)
+To produce a trace with the Visual Studio Code extension, set the
+`quick-lint-js.tracing` setting to `"verbose"`.
+
+To find the trace directory: Open the Command Palette (ctrl-shift-P) then type
+"Developer: Open Extension Logs Folder". Open the `quick-lint.quick-lint-js`
+directory. Traces are written into a directory named `trace_%TIMESTAMP%` (e.g.
+`trace_2022-05-17-19-41-14.zlNiwm`).
 
 ## Consuming traces
 

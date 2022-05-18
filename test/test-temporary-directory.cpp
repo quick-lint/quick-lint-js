@@ -3,8 +3,10 @@
 
 #include <cerrno>
 #include <cstring>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/file-matcher.h>
+#include <quick-lint-js/file-path.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/permissions.h>
 #include <quick-lint-js/temporary-directory.h>
@@ -96,6 +98,42 @@ TEST(test_temporary_directory,
   EXPECT_FALSE(result.error().is_directory_already_exists_error);
 }
 #endif
+
+TEST(test_temporary_directory, timestamped_directory) {
+  std::string temp_dir = make_temporary_directory();
+
+  result<std::string, platform_file_io_error> d =
+      make_timestamped_directory(temp_dir, "dir_%Y-%m-%d-%H-%M-%S");
+  ASSERT_TRUE(d.ok()) << d.error_to_string();
+
+  std::vector<std::string> files = list_files_in_directory(temp_dir);
+  for (std::string& file : files) {
+    file = temp_dir + QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR + file;
+  }
+  EXPECT_THAT(files, ::testing::ElementsAre(*d));
+}
+
+TEST(test_temporary_directory,
+     timestamped_directory_is_uniquified_on_timestamp_collision) {
+  std::string temp_dir = make_temporary_directory();
+
+  // Collisions are likely because the directory name only includes the date,
+  // not the time.
+  result<std::string, platform_file_io_error> d1 =
+      make_timestamped_directory(temp_dir, "dir_%Y-%m-%d");
+  ASSERT_TRUE(d1.ok()) << d1.error_to_string();
+  result<std::string, platform_file_io_error> d2 =
+      make_timestamped_directory(temp_dir, "dir_%Y-%m-%d");
+  ASSERT_TRUE(d2.ok()) << d2.error_to_string();
+
+  EXPECT_NE(*d1, *d2);
+
+  std::vector<std::string> files = list_files_in_directory(temp_dir);
+  for (std::string& file : files) {
+    file = temp_dir + QLJS_PREFERRED_PATH_DIRECTORY_SEPARATOR + file;
+  }
+  EXPECT_THAT(files, ::testing::UnorderedElementsAre(*d1, *d2));
+}
 }
 }
 

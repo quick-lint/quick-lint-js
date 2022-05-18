@@ -169,6 +169,7 @@ quick_lint_js_add_library(
   quick-lint-js/temporary-directory.h
   quick-lint-js/text-diag-reporter.h
   quick-lint-js/thread.h
+  quick-lint-js/trace-flusher.h
   quick-lint-js/trace-metadata.h
   quick-lint-js/trace-writer.h
   quick-lint-js/translation-table-generated.h
@@ -190,6 +191,7 @@ quick_lint_js_add_library(
   temporary-directory.cpp
   text-diag-reporter.cpp
   thread.cpp
+  trace-flusher.cpp
   trace-metadata.cpp
   trace-stream-reader.cpp
   trace-writer.cpp

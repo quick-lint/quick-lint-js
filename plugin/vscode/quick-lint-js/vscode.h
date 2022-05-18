@@ -246,6 +246,7 @@ class vscode_document {
   // vscode.Document#uri
   ::Napi::Object uri() { return this->doc_.Get("uri").As<::Napi::Object>(); }
 
+  ::Napi::Object get() const { return this->doc_; }
   napi_env Env() const { return this->doc_.Env(); }
   operator napi_value() const { return this->doc_; }
   operator ::Napi::Value() const { return this->doc_; }
