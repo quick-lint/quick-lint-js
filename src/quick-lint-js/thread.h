@@ -46,10 +46,7 @@ class thread {
 
   template <class Func>
   explicit thread(Func &&func) : thread() {
-    std::unique_ptr<thread_closure<Func>> closure =
-        std::make_unique<thread_closure<Func>>(std::forward<Func>(func));
-    this->start(thread_closure<Func>::run, closure.get());
-    closure.release();
+    this->start(std::forward<Func>(func));
   }
 
   thread(const thread &) = delete;
@@ -60,6 +57,15 @@ class thread {
 
   ~thread();
 
+  template <class Func>
+  void start(Func &&func) {
+    std::unique_ptr<thread_closure<Func>> closure =
+        std::make_unique<thread_closure<Func>>(std::forward<Func>(func));
+    this->start(thread_closure<Func>::run, closure.get());
+    closure.release();
+  }
+
+  bool joinable() const noexcept;
   void join();
 
  private:

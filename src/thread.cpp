@@ -51,8 +51,10 @@ thread& thread::operator=(thread&& other) {
 
 thread::~thread() { QLJS_ASSERT(!this->thread_handle_.valid()); }
 
+bool thread::joinable() const noexcept { return this->thread_handle_.valid(); }
+
 void thread::join() {
-  QLJS_ASSERT(this->thread_handle_.valid());
+  QLJS_ASSERT(this->joinable());
   ::DWORD rc = ::WaitForSingleObject(this->thread_handle_.get(), INFINITE);
   QLJS_ALWAYS_ASSERT(rc != WAIT_FAILED);
   QLJS_ASSERT(rc == WAIT_OBJECT_0);
@@ -116,8 +118,10 @@ thread& thread::operator=(thread&& other) {
 
 thread::~thread() { QLJS_ASSERT(!this->thread_is_running_); }
 
+bool thread::joinable() const noexcept { return this->thread_is_running_; }
+
 void thread::join() {
-  QLJS_ASSERT(this->thread_is_running_);
+  QLJS_ASSERT(this->joinable());
 
   int rc = ::pthread_join(this->thread_handle_, /*retval=*/nullptr);
   QLJS_ALWAYS_ASSERT(rc == 0);
