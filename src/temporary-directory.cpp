@@ -45,41 +45,72 @@ std::string create_directory_io_error::to_string() const {
 }
 
 #if QLJS_HAVE_MKDTEMP
+result<void, platform_file_io_error> make_unique_directory(std::string &path) {
+  path += ".XXXXXX";
+  if (!::mkdtemp(path.data())) {
+    return result<void, platform_file_io_error>::failure(
+        platform_file_io_error{.error = errno});
+  }
+  return {};
+}
+#elif QLJS_HAVE_STD_FILESYSTEM
+result<void, platform_file_io_error> make_unique_directory(std::string &path) {
+  std::string_view characters = "abcdefghijklmnopqrstuvwxyz";
+  std::uniform_int_distribution<std::size_t> character_index_distribution(
+      0, characters.size() - 1);
+
+  std::random_device system_rng;
+  std::mt19937 rng(/*seed=*/system_rng());
+  std::error_code error;
+
+  for (int attempt = 0; attempt < 100; ++attempt) {
+    std::string suffix = ".";
+    for (int i = 0; i < 10; ++i) {
+      suffix += characters[character_index_distribution(rng)];
+    }
+
+    std::filesystem::path directory_path = path + suffix;
+    if (!std::filesystem::create_directory(directory_path, error)) {
+      continue;
+    }
+
+    path += suffix;
+    return {};
+  }
+
+  // TODO(strager): Return the proper error code from 'error'.
+  return result<void, platform_file_io_error>::failure(platform_file_io_error{
+      .error = 0,
+  });
+}
+#else
+#error "Unsupported platform"
+#endif
+
+#if QLJS_HAVE_MKDTEMP
 std::string make_temporary_directory() {
-  std::string temp_directory_name = "/tmp/quick-lint-js.XXXXXX";
-  if (!::mkdtemp(temp_directory_name.data())) {
-    std::fprintf(stderr, "failed to create temporary directory\n");
+  std::string temp_directory_name = "/tmp/quick-lint-js";
+  auto result = make_unique_directory(temp_directory_name);
+  if (!result.ok()) {
+    std::fprintf(stderr, "failed to create temporary directory: %s\n",
+                 result.error_to_string().c_str());
     std::abort();
   }
   return temp_directory_name;
 }
 #elif QLJS_HAVE_STD_FILESYSTEM
 std::string make_temporary_directory() {
-  std::string_view characters = "abcdefghijklmnopqrstuvwxyz";
-  std::uniform_int_distribution<std::size_t> character_index_distribution(
-      0, characters.size() - 1);
-
   std::filesystem::path system_temp_dir_path =
       std::filesystem::temp_directory_path();
-  std::random_device system_rng;
-  std::mt19937 rng(/*seed=*/system_rng());
-
-  for (int attempt = 0; attempt < 100; ++attempt) {
-    std::string file_name = "quick-lint-js.";
-    for (int i = 0; i < 10; ++i) {
-      file_name += characters[character_index_distribution(rng)];
-    }
-
-    std::filesystem::path temp_directory_path =
-        system_temp_dir_path / file_name;
-    std::error_code error;
-    if (!std::filesystem::create_directory(temp_directory_path, error)) {
-      continue;
-    }
-    return temp_directory_path.string();
+  std::string temp_directory_name =
+      (system_temp_dir_path / "quick-lint-js").string();
+  auto result = make_unique_directory(temp_directory_name);
+  if (!result.ok()) {
+    std::fprintf(stderr, "failed to create temporary directory: %s\n",
+                 result.error_to_string().c_str());
+    std::abort();
   }
-  std::fprintf(stderr, "failed to create temporary directory\n");
-  std::abort();
+  return temp_directory_name;
 }
 #else
 #error "Unsupported platform"

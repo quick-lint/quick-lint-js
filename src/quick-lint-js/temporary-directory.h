@@ -21,6 +21,8 @@ struct create_directory_io_error {
   std::string to_string() const;
 };
 
+result<void, platform_file_io_error> make_unique_directory(std::string& path);
+
 // Crashes on failure.
 std::string make_temporary_directory();
 
