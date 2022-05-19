@@ -260,7 +260,7 @@ class instrumented_vector {
         /*object_id=*/reinterpret_cast<std::uintptr_t>(this),
         /*owner=*/this->debug_owner_,
         /*event=*/event,
-        /*object_id=*/reinterpret_cast<std::uintptr_t>(this->data()),
+        /*data_pointer=*/reinterpret_cast<std::uintptr_t>(this->data()),
         /*size=*/this->size(),
         /*capacity=*/this->capacity());
   }
