@@ -36,6 +36,29 @@ directory. Traces are written into a directory named `trace_%TIMESTAMP%` (e.g.
 
 There are a few tools which can consume traces produced by quick-lint-js.
 
+### quick-lint-js-analyze-trace
+
+Build the quick-lint-js-analyze-trace CMake target, then run it with a trace
+file. For example:
+
+    $ ninja -C build quick-lint-js-analyze-trace
+    $ ./build/tools/quick-lint-js-analyze-trace ~/.config/Code/logs/20220516T161030/exthost25/quick-lint.quick-lint-js/trace_2022-05-18-18-57-48.yDTFNq/thread1
+    @0000.000000000 init version='2.4.2'
+    @0000.000000000 document 0x3fce028423e0 opened: file:///home/strager/Projects/quicklint-js/sandbox/hello.js
+    @0000.000000000 document 0 closed: output:tasks
+    @0000.000000000 document 0x3fce028423e0 changed
+                    3:0->3:0: 'h'
+    @0000.000000000 document 0x3fce028423e0 changed
+                    3:1->3:1: 'e'
+    @0000.000000000 document 0x3fce028423e0 changed
+                    3:2->3:2: 'l'
+    @0000.000000000 document 0x3fce028423e0 changed
+                    3:3->3:3: 'l'
+    @0000.000000000 document 0x3fce028423e0 changed
+                    3:4->3:4: 'o'
+    @0000.000000000 document 0x3fce028423e0 changed
+                    3:5->3:5: 'hello'
+
 ### Babeltrace
 
 The [Babeltrace][] tool can dump traces:
