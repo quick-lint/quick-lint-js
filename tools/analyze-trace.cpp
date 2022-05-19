@@ -1,18 +1,108 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <cerrno>
+#include <cstdint>
 #include <cstdio>
 #include <quick-lint-js/arg-parser.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/document.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/trace-stream-reader.h>
+#include <string_view>
 #include <vector>
+
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
 struct analyze_options {
   std::vector<const char*> trace_files;
+  std::optional<std::uint64_t> dump_final_document_content_document_id;
+};
+
+class document_content_dumper : public trace_stream_event_visitor {
+ public:
+  explicit document_content_dumper(std::uint64_t document_id)
+      : document_id_(document_id) {}
+
+  void visit_error_invalid_magic() override {
+    std::fprintf(stderr, "error: invalid magic\n");
+  }
+
+  void visit_error_invalid_uuid() override {
+    std::fprintf(stderr, "error: invalid UUID\n");
+  }
+
+  void visit_error_unsupported_compression_mode(std::uint8_t mode) override {
+    std::fprintf(stderr, "error: unsupported compression mode: %#02x\n", mode);
+  }
+
+  void visit_packet_header(const packet_header&) override {}
+
+  void visit_init_event(const init_event&) override {}
+
+  void visit_vscode_document_opened_event(
+      const vscode_document_opened_event& event) override {
+    if (event.document_id != this->document_id_) {
+      return;
+    }
+    this->doc_.set_text(this->to_utf8(event.content));
+  }
+
+  void visit_vscode_document_closed_event(
+      const vscode_document_closed_event& event) override {
+    if (event.document_id != this->document_id_) {
+      return;
+    }
+    this->doc_.set_text(u8"(document closed)");
+  }
+
+  void visit_vscode_document_changed_event(
+      const vscode_document_changed_event& event) override {
+    if (event.document_id != this->document_id_) {
+      return;
+    }
+
+    for (const auto& change : event.changes) {
+      this->doc_.replace_text(
+          lsp_range{
+              .start =
+                  {
+                      .line = narrow_cast<int>(change.range.start.line),
+                      .character =
+                          narrow_cast<int>(change.range.start.character),
+                  },
+              .end =
+                  {
+                      .line = narrow_cast<int>(change.range.end.line),
+                      .character = narrow_cast<int>(change.range.end.character),
+                  },
+          },
+          this->to_utf8(change.text));
+    }
+  }
+
+  void print_document_content() {
+    padded_string_view s = this->doc_.string();
+    std::fwrite(s.data(), 1, narrow_cast<std::size_t>(s.size()), stdout);
+  }
+
+ private:
+  string8 to_utf8(std::u16string_view s) {
+    // TODO(strager): Support non-ASCII.
+    string8 result;
+    for (char16_t c : s) {
+      result += narrow_cast<char8>(c);
+    }
+    return result;
+  }
+
+  document<lsp_locator> doc_;
+  std::uint64_t document_id_;
 };
 
 class event_dumper : public trace_stream_event_visitor {
@@ -104,6 +194,18 @@ analyze_options parse_analyze_options(int argc, char** argv) {
   while (!parser.done()) {
     if (const char* argument = parser.match_argument()) {
       o.trace_files.push_back(argument);
+    } else if (const char* arg_value = parser.match_option_with_value(
+                   "--dump-final-document-content"sv)) {
+      errno = 0;
+      char* end;
+      unsigned long long document_id =
+          std::strtoull(arg_value, &end, /*base=*/0);
+      if (errno != 0 || end == arg_value || *end != '\0') {
+        std::fprintf(stderr, "error: malformed document ID: %s\n", arg_value);
+        std::exit(2);
+      }
+      o.dump_final_document_content_document_id =
+          narrow_cast<std::uint64_t>(document_id);
     } else {
       const char* unrecognized = parser.match_anything();
       std::fprintf(stderr, "error: unrecognized option: %s\n", unrecognized);
@@ -129,13 +231,21 @@ int main(int argc, char** argv) {
     return 2;
   }
 
-  auto file = read_file(argv[1]);
+  auto file = read_file(o.trace_files[0]);
   if (!file.ok()) {
     file.error().print_and_exit();
   }
-  event_dumper dumper;
-  read_trace_stream(file->data(), narrow_cast<std::size_t>(file->size()),
-                    dumper);
+
+  if (o.dump_final_document_content_document_id.has_value()) {
+    document_content_dumper dumper(*o.dump_final_document_content_document_id);
+    read_trace_stream(file->data(), narrow_cast<std::size_t>(file->size()),
+                      dumper);
+    dumper.print_document_content();
+  } else {
+    event_dumper dumper;
+    read_trace_stream(file->data(), narrow_cast<std::size_t>(file->size()),
+                      dumper);
+  }
 
   return 0;
 }
