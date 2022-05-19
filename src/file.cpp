@@ -319,7 +319,7 @@ result<platform_file, write_file_io_error> open_file_for_writing(
             .io_error = posix_file_io_error{errno},
         });
   }
-  return std::move(file);
+  return file;
 }
 #endif
 
