@@ -326,7 +326,7 @@ class DocumentForWebDemo {
       }
       diagnostics.push({
         code: decodeUTF8CString(
-          rawDiagnostics.slice(i * ERROR._byte_size + ERROR.code)
+          rawDiagnostics.subarray(i * ERROR._byte_size + ERROR.code)
         ),
         message: decodeUTF8CString(
           new Uint8Array(this._process._heap, messagePtr)
