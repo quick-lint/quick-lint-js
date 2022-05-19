@@ -2,12 +2,19 @@
 // See end of file for extended copyright information.
 
 #include <cstdio>
+#include <quick-lint-js/arg-parser.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/trace-stream-reader.h>
+#include <vector>
 
 namespace quick_lint_js {
+namespace {
+struct analyze_options {
+  std::vector<const char*> trace_files;
+};
+
 class event_dumper : public trace_stream_event_visitor {
  private:
   static constexpr int header_width = 16;
@@ -89,16 +96,35 @@ class event_dumper : public trace_stream_event_visitor {
     }
   }
 };
+
+analyze_options parse_analyze_options(int argc, char** argv) {
+  analyze_options o;
+
+  arg_parser parser(argc, argv);
+  while (!parser.done()) {
+    if (const char* argument = parser.match_argument()) {
+      o.trace_files.push_back(argument);
+    } else {
+      const char* unrecognized = parser.match_anything();
+      std::fprintf(stderr, "error: unrecognized option: %s\n", unrecognized);
+      std::exit(2);
+    }
+  }
+
+  return o;
+}
+}
 }
 
 int main(int argc, char** argv) {
   using namespace quick_lint_js;
 
-  if (argc < 2) {
+  analyze_options o = parse_analyze_options(argc, argv);
+  if (o.trace_files.empty()) {
     std::fprintf(stderr, "error: missing trace file\n");
     return 2;
   }
-  if (argc > 2) {
+  if (o.trace_files.size() > 1) {
     std::fprintf(stderr, "error: unexpected arguments\n");
     return 2;
   }
