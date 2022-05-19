@@ -86,6 +86,14 @@ class document_content_dumper : public trace_stream_event_visitor {
     }
   }
 
+  void visit_vscode_document_sync_event(
+      const vscode_document_sync_event& event) override {
+    if (event.document_id != this->document_id_) {
+      return;
+    }
+    // TODO(strager): Verify that this->doc_ matches event.content.
+  }
+
   void print_document_content() {
     padded_string_view s = this->doc_.string();
     std::fwrite(s.data(), 1, narrow_cast<std::size_t>(s.size()), stdout);
@@ -164,6 +172,16 @@ class event_dumper : public trace_stream_event_visitor {
       this->print_utf16(change.text);
       std::printf("'\n");
     }
+  }
+
+  void visit_vscode_document_sync_event(
+      const vscode_document_sync_event& event) override {
+    this->print_event_header(event);
+    std::printf("document ");
+    this->print_document_id(event.document_id);
+    std::printf(" sync: ");
+    this->print_utf16(event.uri);
+    std::printf("\n");
   }
 
  private:

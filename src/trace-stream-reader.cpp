@@ -118,6 +118,17 @@ void read_trace_stream(const void* data, std::size_t data_size,
       break;
     }
 
+    case 0x05:
+      v.visit_vscode_document_sync_event(
+          trace_stream_event_visitor::vscode_document_sync_event{
+              .timestamp = timestamp,
+              .document_id = r.u64_le(),
+              .uri = read_utf16le_string(),
+              .language_id = read_utf16le_string(),
+              .content = read_utf16le_string(),
+          });
+      break;
+
     default:
       // TODO(strager): Report an error.
       return;

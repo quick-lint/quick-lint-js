@@ -32,6 +32,7 @@ enum <ubyte> EventType {
     vscode_document_opened = 0x02,
     vscode_document_closed = 0x03,
     vscode_document_changed = 0x04,
+    vscode_document_sync = 0x05,
 };
 
 struct InitEvent {
@@ -67,6 +68,13 @@ struct VSCodeDocumentChangedEvent {
     VSCodeDocumentChange changes[change_count] <optimize=false>;
 };
 
+struct VSCodeDocumentSyncEvent {
+    document_id doc_id;
+    utf16le_string uri;
+    utf16le_string language_id;
+    utf16le_string content;
+};
+
 typedef struct {
     uquad timestamp;
     EventType event_id;
@@ -81,6 +89,9 @@ typedef struct {
     }
     if (event_id == vscode_document_changed) {
         VSCodeDocumentChangedEvent event <open=true, name="VSCodeDocumentChangedEvent">;
+    }
+    if (event_id == vscode_document_sync) {
+        VSCodeDocumentSyncEvent event <open=true, name="VSCodeDocumentChangedSync">;
     }
 } Event <read=ReadEvent>;
 

@@ -245,6 +245,45 @@ TEST(test_trace_writer, write_event_vscode_document_changed) {
           0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
           'b', 0, 'y', 0, 'e', 0));
 }
+
+TEST(test_trace_writer, write_event_vscode_document_sync) {
+  async_byte_queue data;
+  trace_writer w(&data);
+
+  w.write_event_vscode_document_sync(
+      trace_event_vscode_document_sync{
+          .timestamp = 0x5678,
+          .document_id = 0x1234,
+          .uri = const_cast<char16_t*>(u"test.js"),
+          .language_id = const_cast<char16_t*>(u"js"),
+          .content = const_cast<char16_t*>(u"hi"),
+      },
+      u16_cstring_trace_string_writer());
+
+  data.commit();
+  EXPECT_THAT(data.take_committed_string8(),
+              ElementsAre(
+                  // Timestamp
+                  0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                  // Event ID
+                  0x05,
+
+                  // Document ID
+                  0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                  // URI
+                  0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
+
+                  // Language ID
+                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'j', 0, 's', 0,
+
+                  // Content
+                  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                  'h', 0, 'i', 0));
+}
 }
 }
 

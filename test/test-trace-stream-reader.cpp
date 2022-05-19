@@ -269,6 +269,53 @@ TEST(test_trace_stream_reader, vscode_document_changed_event) {
                               changes_matcher))));
   read_trace_stream(stream.data(), stream.size(), v);
 }
+
+TEST(test_trace_stream_reader, vscode_document_sync_event) {
+  auto stream =
+      concat(example_packet_header,
+             make_array_explicit<std::uint8_t>(
+                 // Timestamp
+                 0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                 // Event ID
+                 0x05,
+
+                 // Document ID
+                 0x34, 0x12, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                 // URI
+                 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                 't', 0, 'e', 0, 's', 0, 't', 0, '.', 0, 'j', 0, 's', 0,
+
+                 // Language ID
+                 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                 'j', 0, 's', 0,
+
+                 // Content
+                 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
+                 'h', 0, 'i', 0));
+
+  nice_mock_trace_stream_event_visitor v;
+  EXPECT_CALL(
+      v,
+      visit_vscode_document_sync_event(::testing::AllOf(
+          ::testing::Field(&trace_stream_event_visitor::
+                               vscode_document_sync_event::timestamp,
+                           0x5678),
+          ::testing::Field(&trace_stream_event_visitor::
+                               vscode_document_sync_event::document_id,
+                           0x1234),
+          ::testing::Field(
+              &trace_stream_event_visitor::vscode_document_sync_event::uri,
+              u"test.js"),
+          ::testing::Field(&trace_stream_event_visitor::
+                               vscode_document_sync_event::language_id,
+                           u"js"),
+          ::testing::Field(
+              &trace_stream_event_visitor::vscode_document_sync_event::content,
+              u"hi"))));
+  read_trace_stream(stream.data(), stream.size(), v);
+}
 }
 }
 

@@ -65,6 +65,8 @@ struct trace_init_event_spy : trace_stream_event_visitor {
       const vscode_document_closed_event&) override {}
   void visit_vscode_document_changed_event(
       const vscode_document_changed_event&) override {}
+  void visit_vscode_document_sync_event(
+      const vscode_document_sync_event&) override {}
 
   std::vector<std::string> init_versions;
 };

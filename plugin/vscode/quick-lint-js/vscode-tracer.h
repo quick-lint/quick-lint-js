@@ -189,6 +189,26 @@ class vscode_tracer {
     }
   }
 
+  void trace_vscode_document_sync(::Napi::Env env, vscode_document vscode_doc,
+                                  void* doc) {
+    trace_writer* tw = this->tracer_->trace_writer_for_current_thread();
+    if (tw) {
+      ::Napi::Object uri = vscode_doc.uri();
+      tw->write_event_vscode_document_sync(
+          trace_event_vscode_document_sync{
+              .timestamp = this->timestamp(),
+              .document_id = reinterpret_cast<std::uintptr_t>(doc),
+              .uri = ::napi_value(
+                  uri.Get("toString").As<::Napi::Function>().Call(uri, {})),
+              .language_id = ::napi_value(vscode_doc.get().Get("languageId")),
+              .content = ::napi_value(vscode_doc.get_text()),
+          },
+          napi_string_writer(env));
+      tw->commit();
+      this->tracer_->flush_async();
+    }
+  }
+
  private:
   std::uint64_t timestamp() {
     // TODO(strager)

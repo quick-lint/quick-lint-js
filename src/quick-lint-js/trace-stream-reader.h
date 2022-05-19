@@ -68,6 +68,14 @@ class trace_stream_event_visitor {
     std::vector<vscode_document_change> changes;
   };
 
+  struct vscode_document_sync_event {
+    std::uint64_t timestamp;
+    std::uint64_t document_id;
+    std::u16string_view uri;
+    std::u16string_view language_id;
+    std::u16string_view content;
+  };
+
   virtual ~trace_stream_event_visitor() = 0;
 
   virtual void visit_error_invalid_magic() = 0;
@@ -83,6 +91,8 @@ class trace_stream_event_visitor {
       const vscode_document_closed_event&) = 0;
   virtual void visit_vscode_document_changed_event(
       const vscode_document_changed_event&) = 0;
+  virtual void visit_vscode_document_sync_event(
+      const vscode_document_sync_event&) = 0;
 };
 }
 

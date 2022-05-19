@@ -67,6 +67,16 @@ struct trace_event_vscode_document_changed {
   std::uint64_t change_count;
 };
 
+struct trace_event_vscode_document_sync {
+  static constexpr std::uint8_t id = 0x05;
+
+  std::uint64_t timestamp;
+  std::uint64_t document_id;
+  void* uri;
+  void* language_id;
+  void* content;
+};
+
 class trace_writer {
  public:
   explicit trace_writer(async_byte_queue*);
@@ -89,6 +99,10 @@ class trace_writer {
   template <class StringWriter>
   void write_event_vscode_document_changed(
       const trace_event_vscode_document_changed&, StringWriter&&);
+
+  template <class StringWriter>
+  void write_event_vscode_document_sync(const trace_event_vscode_document_sync&,
+                                        StringWriter&&);
 
  private:
   template <class Func>
@@ -175,6 +189,20 @@ void trace_writer::write_utf16le_string(void* string,
                                   capacity);
         return code_unit_count * sizeof(char16_t);
       });
+}
+
+template <class StringWriter>
+void trace_writer::write_event_vscode_document_sync(
+    const trace_event_vscode_document_sync& event,
+    StringWriter&& string_writer) {
+  this->append_binary(8 + 1 + 8, [&](binary_writer& w) {
+    w.u64_le(event.timestamp);
+    w.u8(event.id);
+    w.u64_le(event.document_id);
+  });
+  this->write_utf16le_string(event.uri, string_writer);
+  this->write_utf16le_string(event.language_id, string_writer);
+  this->write_utf16le_string(event.content, string_writer);
 }
 }
 

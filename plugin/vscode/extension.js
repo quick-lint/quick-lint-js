@@ -83,6 +83,14 @@ async function activateAsync(extensionContext) {
     })
   );
 
+  toDispose.push(
+    vscode.workspace.onDidSaveTextDocument((vscodeDocument) => {
+      logErrors(() => {
+        workspace.documentSaved(vscodeDocument);
+      });
+    })
+  );
+
   function lintVisibleEditors() {
     for (let editor of vscode.window.visibleTextEditors) {
       workspace.editorVisibilityChanged(editor.document);

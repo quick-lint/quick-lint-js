@@ -470,6 +470,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
             InstanceMethod<&qljs_workspace::dispose>("dispose"),
             InstanceMethod<&qljs_workspace::document_changed>(
                 "documentChanged"),
+            InstanceMethod<&qljs_workspace::document_saved>("documentSaved"),
             InstanceMethod<&qljs_workspace::editor_visibility_changed>(
                 "editorVisibilityChanged"),
         });
@@ -642,6 +643,21 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       this->tracer_.trace_vscode_document_changed(env, doc, changes);
       doc->replace_text(changes);
       this->after_modification(env, doc);
+    }
+
+    return env.Undefined();
+  }
+
+  ::Napi::Value document_saved(const ::Napi::CallbackInfo& info) {
+    ::Napi::Env env = info.Env();
+
+    ::Napi::Object vscode_doc = info[0].As<::Napi::Object>();
+    ::Napi::Value qljs_doc = this->qljs_documents_.get(vscode_doc);
+    if (!qljs_doc.IsUndefined()) {
+      qljs_document* doc = qljs_document::Unwrap(qljs_doc.As<::Napi::Object>());
+      QLJS_DEBUG_LOG("Document %p: Saved\n", doc);
+      this->tracer_.trace_vscode_document_sync(env, vscode_document(vscode_doc),
+                                               doc);
     }
 
     return env.Undefined();

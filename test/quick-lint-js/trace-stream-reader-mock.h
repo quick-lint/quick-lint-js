@@ -24,6 +24,8 @@ class mock_trace_stream_event_visitor : public trace_stream_event_visitor {
               (const vscode_document_changed_event&), (override));
   MOCK_METHOD(void, visit_vscode_document_closed_event,
               (const vscode_document_closed_event&), (override));
+  MOCK_METHOD(void, visit_vscode_document_sync_event,
+              (const vscode_document_sync_event&), (override));
 };
 
 using nice_mock_trace_stream_event_visitor =

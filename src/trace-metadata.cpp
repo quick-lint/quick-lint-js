@@ -122,6 +122,18 @@ event {
   };
 };
 
+// Not related to any particular Visual Studio Code event.
+event {
+  id = 5;
+  name = "vscode_document_sync";
+  fields := struct {
+    document_id doc_id; // Cannot be 0.
+    utf16le_string uri;
+    utf16le_string language_id;
+    utf16le_string content;
+  };
+};
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //
