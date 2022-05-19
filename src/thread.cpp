@@ -180,7 +180,13 @@ std::uint64_t get_current_thread_id() noexcept {
 #if QLJS_HAVE_WINDOWS_H
   return ::GetCurrentThreadId();
 #elif QLJS_HAVE_GETTID
-  return ::gettid();
+  pid_t tid = ::gettid();
+  if (tid < 0) {
+    // NOTE(strager): We can't log an error message here because our logging
+    // calls this function.
+    return 0;
+  }
+  return narrow_cast<std::uint64_t>(tid);
 #elif QLJS_HAVE_GETTID_SYSCALL
   long rc = ::syscall(__NR_gettid);
   if (rc < 0) {
