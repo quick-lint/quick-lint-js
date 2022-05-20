@@ -175,6 +175,14 @@ class change_detecting_configuration_loader {
     return this->loader_.unwatch_file(std::forward<Args>(args)...);
   }
 
+  template <class... Args>
+  auto unwatch_all_files() {
+#if defined(_WIN32)
+    std::lock_guard<mutex> lock(this->mutex_);
+#endif
+    return this->loader_.unwatch_all_files();
+  }
+
   auto fs_take_watch_errors() {
 #if defined(_WIN32)
     std::lock_guard<mutex> lock(this->mutex_);
@@ -1380,6 +1388,30 @@ TEST_F(test_configuration_loader,
 
   write_file_or_exit(config_file, u8R"({"globals": {"during": true}})");
   loader.unwatch_file(config_file);
+  EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
+
+  write_file_or_exit(config_file, u8R"({"globals": {"after": true}})");
+  EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
+}
+
+TEST_F(test_configuration_loader,
+       unwatching_all_then_modifying_files_is_not_a_change) {
+  std::string project_dir = this->make_temporary_directory();
+  std::string js_file_1 = project_dir + "/hello1.js";
+  std::string js_file_2 = project_dir + "/hello2.js";
+  std::string config_file = project_dir + "/quick-lint-js.config";
+  write_file_or_exit(config_file, u8R"({"globals": {"before": true}})");
+
+  change_detecting_configuration_loader loader;
+  auto loaded_config_1 =
+      loader.watch_and_load_for_file(js_file_1, /*token=*/nullptr);
+  ASSERT_TRUE(loaded_config_1.ok()) << loaded_config_1.error_to_string();
+  auto loaded_config_2 =
+      loader.watch_and_load_for_file(js_file_2, /*token=*/nullptr);
+  ASSERT_TRUE(loaded_config_1.ok()) << loaded_config_2.error_to_string();
+
+  write_file_or_exit(config_file, u8R"({"globals": {"during": true}})");
+  loader.unwatch_all_files();
   EXPECT_THAT(loader.detect_changes_and_refresh(), IsEmpty());
 
   write_file_or_exit(config_file, u8R"({"globals": {"after": true}})");

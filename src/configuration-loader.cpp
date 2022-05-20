@@ -271,6 +271,11 @@ void configuration_loader::unwatch_file(const std::string& file_path) {
       this->watched_input_paths_.end());
 }
 
+void configuration_loader::unwatch_all_files() {
+  this->watched_config_paths_.clear();
+  this->watched_input_paths_.clear();
+}
+
 std::vector<configuration_change> configuration_loader::refresh() {
   std::vector<configuration_change> changes;
 

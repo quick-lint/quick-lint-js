@@ -574,10 +574,8 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
     });
     this->qljs_documents_.clear();
 
-    // TODO(strager): Create a configuration_loader::clear() function.
-    for (auto& [path, _doc] : this->fs_.overlaid_documents_) {
-      this->config_loader_.unwatch_file(path);
-    }
+    this->config_loader_.unwatch_all_files();
+
     this->fs_.clear();
   }
 

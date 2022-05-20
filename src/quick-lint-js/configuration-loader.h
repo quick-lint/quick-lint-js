@@ -102,6 +102,9 @@ class configuration_loader {
   // Undo a call to watch_and_load_for_file or watch_and_load_config_file.
   void unwatch_file(const std::string& file_path);
 
+  // Undo all calls to watch_and_load_for_file or watch_and_load_config_file.
+  void unwatch_all_files();
+
   // Scans the filesystem for changes to configuration files.
   //
   // refresh checks files registered with watch_and_load_for_file and
