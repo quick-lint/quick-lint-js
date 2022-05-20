@@ -261,8 +261,6 @@ class vscode_configuration_filesystem : public configuration_filesystem {
 
   std::unordered_map<std::string, qljs_document*> overlaid_documents_;
   configuration_filesystem* underlying_fs_;
-
-  friend class qljs_workspace;  // HACK(strager)
 };
 
 // Like ::Napi::TypedThreadSafeFunction, but with saner lifetime semantics.
