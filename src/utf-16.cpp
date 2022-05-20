@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <optional>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/utf-16.h>
@@ -162,6 +163,52 @@ std::size_t count_utf_8_code_units(std::wstring_view utf_16) noexcept {
       reinterpret_cast<const char16_t *>(utf_16.data()), utf_16.size()));
 }
 #endif
+
+string8 utf_16_to_utf_8(std::u16string_view s) {
+  string8 result;
+  result.reserve(s.size());
+  auto end = s.end();
+  auto it = s.begin();
+  while (it != end) {
+    char16_t c = *it;
+    if (0xd800 <= c && c <= 0xdbff) {
+      // Surrogate pair.
+      char16_t c2 = it + 1 == end ? 0 : it[1];
+      if (0xdc00 <= c2 && c2 <= 0xdfff) {
+        char32_t cp = 0x1'0000 +
+                      ((static_cast<char32_t>(c & 0x3ff) << 10) | (c2 & 0x3ff));
+        // 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        result += static_cast<char8>(((cp >> (3 * 6)) & 0x07) | 0b1111'0000);
+        result += static_cast<char8>(((cp >> (2 * 6)) & 0x3f) | 0b1000'0000);
+        result += static_cast<char8>(((cp >> (1 * 6)) & 0x3f) | 0b1000'0000);
+        result += static_cast<char8>(((cp >> (0 * 6)) & 0x3f) | 0b1000'0000);
+        it += 2;
+      } else {
+        // Incomplete surrogate pair (invalid).
+        goto three_byte_output;
+      }
+    } else if (0xdc00 <= c && c <= 0xdfff) {
+      // Second half of a surrogate pair (invalid).
+      goto three_byte_output;
+    } else if (c >= 0x0800) {
+    three_byte_output:
+      // 1110xxxx 10xxxxxx 10xxxxxx
+      result += static_cast<char8>(((c >> (2 * 6)) & 0x0f) | 0b1110'0000);
+      result += static_cast<char8>(((c >> (1 * 6)) & 0x3f) | 0b1000'0000);
+      result += static_cast<char8>(((c >> (0 * 6)) & 0x3f) | 0b1000'0000);
+      it += 1;
+    } else if (c >= 0x0080) {
+      // 110xxxxx 10xxxxxx
+      result += static_cast<char8>(((c >> 6) & 0x1f) | 0b1100'0000);
+      result += static_cast<char8>(((c >> 0) & 0x3f) | 0b1000'0000);
+      it += 1;
+    } else {
+      result += narrow_cast<char8>(c);
+      it += 1;
+    }
+  }
+  return result;
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

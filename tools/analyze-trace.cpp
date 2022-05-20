@@ -14,6 +14,7 @@
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/trace-stream-reader.h>
+#include <quick-lint-js/utf-16.h>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -45,15 +46,6 @@ lsp_range to_lsp_range(
   };
 }
 
-string8 to_utf8(std::u16string_view s) {
-  // TODO(strager): Support non-ASCII.
-  string8 result;
-  for (char16_t c : s) {
-    result += narrow_cast<char8>(c);
-  }
-  return result;
-}
-
 class document_content_dumper : public trace_stream_event_visitor {
  public:
   explicit document_content_dumper(std::uint64_t document_id)
@@ -80,7 +72,7 @@ class document_content_dumper : public trace_stream_event_visitor {
     if (event.document_id != this->document_id_) {
       return;
     }
-    this->doc_.set_text(to_utf8(event.content));
+    this->doc_.set_text(utf_16_to_utf_8(event.content));
   }
 
   void visit_vscode_document_closed_event(
@@ -98,7 +90,8 @@ class document_content_dumper : public trace_stream_event_visitor {
     }
 
     for (const auto& change : event.changes) {
-      this->doc_.replace_text(to_lsp_range(change.range), to_utf8(change.text));
+      this->doc_.replace_text(to_lsp_range(change.range),
+                              utf_16_to_utf_8(change.text));
     }
   }
 
@@ -138,7 +131,8 @@ class document_content_checker : public trace_stream_event_visitor {
     if (event.document_id == 0) {
       return;
     }
-    this->documents_[event.document_id].set_text(to_utf8(event.content));
+    this->documents_[event.document_id].set_text(
+        utf_16_to_utf_8(event.content));
   }
 
   void visit_vscode_document_closed_event(
@@ -164,7 +158,8 @@ class document_content_checker : public trace_stream_event_visitor {
     }
     document<lsp_locator>& doc = doc_it->second;
     for (const auto& change : event.changes) {
-      doc.replace_text(to_lsp_range(change.range), to_utf8(change.text));
+      doc.replace_text(to_lsp_range(change.range),
+                       utf_16_to_utf_8(change.text));
     }
   }
 
@@ -183,7 +178,7 @@ class document_content_checker : public trace_stream_event_visitor {
     document<lsp_locator>& doc = doc_it->second;
 
     string8_view actual = doc.string().string_view();
-    string8 expected = to_utf8(event.content);
+    string8 expected = utf_16_to_utf_8(event.content);
     if (actual != expected) {
       std::fprintf(stderr, "error: document mismatch\n");
 
@@ -290,10 +285,8 @@ class event_dumper : public trace_stream_event_visitor {
   }
 
   void print_utf16(std::u16string_view s) {
-    // TODO(strager): Support non-ASCII.
-    for (char16_t c : s) {
-      putchar(narrow_cast<char8>(c));
-    }
+    string8 utf_8 = utf_16_to_utf_8(s);
+    std::fwrite(utf_8.data(), 1, utf_8.size(), stdout);
   }
 };
 

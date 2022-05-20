@@ -5,6 +5,7 @@
 #define QUICK_LINT_JS_UTF_16_H
 
 #include <optional>
+#include <quick-lint-js/char8.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -36,6 +37,8 @@ std::size_t count_utf_8_code_units(std::u16string_view) noexcept;
 #if defined(_WIN32)
 std::size_t count_utf_8_code_units(std::wstring_view) noexcept;
 #endif
+
+string8 utf_16_to_utf_8(std::u16string_view);
 }
 #endif
 

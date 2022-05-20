@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <gtest/gtest.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/utf-16.h>
 #include <string_view>
@@ -44,6 +45,55 @@ TEST(test_utf_16_windows, wstring_to_mbstring) {
   EXPECT_EQ(wstring_to_mbstring(L"\xd83c\xdf55").value(), "\xf0\x9f\x8d\x95");
 }
 #endif
+
+TEST(test_utf_16, utf_16_to_utf_8) {
+  EXPECT_EQ(utf_16_to_utf_8(u""sv), u8"");
+
+  // One UTF-8 code unit per code point:
+  EXPECT_EQ(utf_16_to_utf_8(u"-h"sv), u8"-h");
+
+  // Two UTF-8 code units per code point:
+  EXPECT_EQ(utf_16_to_utf_8(u"\u0080"), u8"\u0080");
+  EXPECT_EQ(utf_16_to_utf_8(u"\u0567"), u8"\u0567");
+  EXPECT_EQ(utf_16_to_utf_8(u"\u07ff"), u8"\u07ff");
+
+  // Three UTF-8 code units per code point:
+  EXPECT_EQ(utf_16_to_utf_8(u"\u0800"), u8"\u0800");
+  EXPECT_EQ(utf_16_to_utf_8(u"\uabcd"), u8"\uabcd");
+  EXPECT_EQ(utf_16_to_utf_8(u"\uffff"), u8"\uffff");
+
+  // Surrogate pairs (four UTF-8 code units per code point):
+  EXPECT_EQ(utf_16_to_utf_8(u"\U00010000"), u8"\U00010000");
+  EXPECT_EQ(utf_16_to_utf_8(u"\U000fedcb"), u8"\U000fedcb");
+  EXPECT_EQ(utf_16_to_utf_8(u"\U0010ffff"), u8"\U0010ffff");
+}
+
+TEST(test_utf_16, invalid_utf_16_to_utf_8_adds_replacement_character) {
+  // U+D800 through U+DFFF are reserved.
+  // If naively coded, U+D83C would be 'ed a0 bc' in UTF-8.
+  // If naively coded, U+DF55 would be 'ef bf bd' in UTF-8.
+
+  // U+0FEDCB is 'f3 be b7 8b' in UTF-8.
+
+  // Incomplete surrogate pair (high surrogate only):
+  EXPECT_EQ(utf_16_to_utf_8(u"\xd83c"), "\xed\xa0\xbc"_s8v);
+  EXPECT_EQ(utf_16_to_utf_8(u"\xd83cxyz"), "\xed\xa0\xbcxyz"_s8v);
+  EXPECT_EQ(utf_16_to_utf_8(u"\xd83c\U000fedcb"),
+            "\xed\xa0\xbc"_s8v
+            "\xf3\xbe\xb7\x8b"_s8v);
+
+  // Incomplete surrogate pair (low surrogate only):
+  EXPECT_EQ(utf_16_to_utf_8(u"\xdf55"), "\xed\xbd\x95"_s8v);
+  EXPECT_EQ(utf_16_to_utf_8(u"\xdf55xyz"), "\xed\xbd\x95xyz"_s8v);
+  EXPECT_EQ(utf_16_to_utf_8(u"\xdf55\U000fedcb"),
+            "\xed\xbd\x95"_s8v
+            "\xf3\xbe\xb7\x8b"_s8v);
+
+  // Reversed surrogate pair:
+  EXPECT_EQ(utf_16_to_utf_8(u"\xdf55\xd83c"),
+            "\xed\xbd\x95"_s8v
+            "\xed\xa0\xbc"_s8v);
+}
 
 TEST(test_count_utf_8_code_units_in_utf_16, empty_string) {
   EXPECT_EQ(count_utf_8_code_units(u""sv), 0);
