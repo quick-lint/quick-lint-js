@@ -1089,8 +1089,7 @@ next:
       // void a ** b  // Invalid.
       case expression_kind::unary_operator: {
         auto* lhs = static_cast<expression::unary_operator*>(maybe_unary_lhs);
-        // HACK(strager): Should we create expression::_void?
-        if (lhs->unary_operator_begin_[0] == u8'v') {
+        if (lhs->is_void_operator()) {
           // void a ** b  // Invalid.
           this->diag_reporter_->report(
               diag_missing_parentheses_around_exponent_with_unary_lhs{

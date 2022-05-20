@@ -835,6 +835,11 @@ class expression::unary_operator final
                           source_code_span operator_span) noexcept
       : expression::expression_with_prefix_operator_base(kind, child,
                                                          operator_span) {}
+
+  bool is_void_operator() const {
+    // HACK(strager): Should we create expression::_void?
+    return this->unary_operator_begin_[0] == u8'v';
+  }
 };
 static_assert(expression_arena::is_allocatable<expression::unary_operator>);
 
