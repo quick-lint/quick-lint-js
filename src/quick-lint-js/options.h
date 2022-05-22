@@ -33,6 +33,7 @@ struct options {
   bool version = false;
   bool print_parser_visits = false;
   bool lsp_server = false;
+  bool snarky = false;
   quick_lint_js::output_format output_format =
       quick_lint_js::output_format::default_format;
   quick_lint_js::option_when diagnostic_hyperlinks =

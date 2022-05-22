@@ -23,6 +23,7 @@ function _quick-lint-js() {
         '(--lsp-server)--exit-fail-on=[Fail with a non-zero exit code if any of these errors are found (default\: "all")]'
         '(--lsp-server)--output-format=[Format to print feedback]:format:((vim-qflist-json\:"machine-readable JSON which can be given to Vim'\''s setqflist function" gnu-like\:"a human-readable format similar to GCC" emacs-lisp\:"Emacs Lisp association list format"))'
         '(--lsp-server)--diagnostic-hyperlinks=[Control whether to hyperlink error codes or not]:when:((auto\:"shows error codes as hyperlinks only if the error output is a terminal" always\:"always shows error codes as hyperlinks" never\:"never shows error codes as hyperlinks"))'
+        '--snarky[Add spice to your failures]'
         '--vim-file-bufnr=[Select a vim buffer for outputting feedback]')
 
         _arguments -M "r:|[_]=* r:|=*" -S "${args[@]}" && ret=0

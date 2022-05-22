@@ -194,6 +194,9 @@ void run(int argc, char **argv) {
 }
 
 void run(quick_lint_js::options o) {
+  if (o.snarky) {
+    initialize_translations_from_locale("en_US@snarky");
+  }
   if (o.help) {
     quick_lint_js::print_help_message();
     std::exit(EXIT_SUCCESS);
@@ -725,6 +728,7 @@ void print_help_message() {
   print_option("--vim-file-bufnr=[NUMBER]",
                "Select a vim buffer for outputting feedback");
   print_option("-h, --help", "Print help message");
+  print_option("--snarky", "Add spice to your failures");
 
   bool mention_man_page = false;
 #if defined(_POSIX2_VERSION)

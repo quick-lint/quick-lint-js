@@ -9,6 +9,7 @@ complete -c quick-lint-js -l stdin -d 'Read standard input as a JavaScript file'
 complete -c quick-lint-js -l exit-fail-on -d 'Fail with a non-zero exit code if any of these errors are found (default: "all")' -r
 complete -c quick-lint-js -l output-format -d 'Format to print feedback' -xa 'gnu-like\t"(default) a human-readable format similar to GCC" vim-qflist-json\t"machine-readable JSON which can be given to Vim\'s setqflist function" emacs-lisp\t"Emacs Lisp association list format"'
 complete -c quick-lint-js -l diagnostic-hyperlinks -d 'Control whether to hyperlink error codes or not' -xa 'auto\t"(default) shows error codes as hyperlinks only if the error output is a terminal" always\t"always shows error codes as hyperlinks" never\t"never shows error codes as hyperlinks"'
+complete -c quick-lint-js -l snarky -d 'Add spice to your failures' -r
 complete -c quick-lint-js -l vim-file-bufnr -d 'Select a vim buffer for outputting feedback' -r
 
 # quick-lint-js finds bugs in JavaScript programs.

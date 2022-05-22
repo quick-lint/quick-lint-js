@@ -38,6 +38,10 @@
             ToolTip = "Control whether to hyperlink error codes or not`n`nauto: shows error codes as hyperlinks only if the error output is a terminal`nalways: always shows error codes as hyperlinks`nnever: never shows error codes as hyperlinks"
         },
         @{
+            CompletionText = '--snarky'
+            ToolTip = 'Add spice to your failures'
+        },
+        @{
             CompletionText = '--vim-file-bufnr='
             ToolTip = 'Select a vim buffer for outputting feedback'
         }

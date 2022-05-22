@@ -109,6 +109,8 @@ options parse_options(int argc, char** argv) {
       o.version = true;
     } else if (parser.match_flag_option("--lsp-server"sv, "--lsp"sv)) {
       o.lsp_server = true;
+    } else if (parser.match_flag_option("--snarky"sv, "--snarky"sv)) {
+      o.snarky = true;
     } else if (parser.match_flag_option("--stdin"sv, ""sv)) {
       if (has_stdin) {
         o.has_multiple_stdin = true;

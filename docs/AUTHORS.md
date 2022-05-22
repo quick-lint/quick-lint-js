@@ -12,6 +12,7 @@ The following contributors are copyright holders of portions of quick-lint-js:
 
 * CodeItQuick; evanontario@hotmail.com
 * EdTheDagger
+* david doroz; dd8788@rit.edu
 * spicyyboi
 
 ## Authors

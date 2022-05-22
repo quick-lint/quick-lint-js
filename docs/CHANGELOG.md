@@ -22,6 +22,8 @@ Semantic Versioning.
 * VS Code: The new `quick-lint-js.tracing` setting can be set to `"verbose"` to
   log changes to documents. This keylogger option can be used by quick-lint-js
   contributors to investigate bugs. This new option is disabled by default.
+* CLI: The `--snarky` option makes error messages more interesting. Implemented
+  by [david doroz][].
 
 ### Fixed
 
@@ -536,6 +538,7 @@ Beta release.
 [Tony Sathre]: https://github.com/tonysathre
 [coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
+[david doroz]: https://github.com/DaviddHub
 [install-powershell-completions]: https://github.com/quick-lint/quick-lint-js/blob/master/completions/README.md#powershell
 [ooblegork]: https://github.com/ooblegork
 [tiagovla]: https://github.com/tiagovla
