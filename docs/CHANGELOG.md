@@ -32,6 +32,11 @@ Semantic Versioning.
 * The npm package now includes `copyright` files listing software licenses and
   copyright notices.
 * [E0086][] is no longer falsely reported in some cases.
+* VS Code (Windows x64): When the extension is first loaded, and a file has
+  errors, quick-lint-js no longer reports the first error always on the first
+  line. (The issue was a [compiler
+  bug](https://lists.gnu.org/archive/html/bug-binutils/2022-05/msg00099.html)
+  which we worked around.)
 * quick-lint-js no longer creates and writes messages to `/tmp/qljs.log`.
 
 ### Changed
