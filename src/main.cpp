@@ -153,7 +153,7 @@ class any_diag_reporter {
 };
 
 void init();
-[[noreturn]] void handle_options(quick_lint_js::options o);
+[[noreturn]] void run(quick_lint_js::options o);
 
 void process_file(padded_string_view input, configuration &, diag_reporter *,
                   bool print_parser_visits);
@@ -170,13 +170,13 @@ int wmain(int argc, wchar_t **wargv) {
   quick_lint_js::init();
   quick_lint_js::mbargv m(argc, wargv);
   quick_lint_js::options o = quick_lint_js::parse_options(m.size(), m.data());
-  quick_lint_js::handle_options(o);
+  quick_lint_js::run(o);
 }
 #else
 int main(int argc, char **argv) {
   quick_lint_js::init();
   quick_lint_js::options o = quick_lint_js::parse_options(argc, argv);
-  quick_lint_js::handle_options(o);
+  quick_lint_js::run(o);
 }
 #endif
 
@@ -189,7 +189,7 @@ void init() {
   quick_lint_js::initialize_translations_from_environment();
 }
 
-void handle_options(quick_lint_js::options o) {
+void run(quick_lint_js::options o) {
   if (o.help) {
     quick_lint_js::print_help_message();
     std::exit(EXIT_SUCCESS);
