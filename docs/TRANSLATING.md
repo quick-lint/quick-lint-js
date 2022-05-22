@@ -15,8 +15,9 @@ translation-data.cpp file
 
 ## Adding a new language (.po file)
 
-To add a translation for a new language, run the `tools/create-translation`
-script. This script creates a file in the po directory for your language. See
+To add a translation for a new language, run
+`tools/create-translation --locale=fr_FR` (changing the locale as appropriate).
+This script creates a file in the po directory for your language. See
 documentation for [GNU gettext msginit][] for details.
 
 [GNU gettext msginit]: https://www.gnu.org/software/gettext/manual/html_node/Creating.html#Creating
