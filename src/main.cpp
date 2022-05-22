@@ -152,6 +152,7 @@ class any_diag_reporter {
   tape_variant tape_;
 };
 
+void init();
 [[noreturn]] void handle_options(quick_lint_js::options o);
 
 void process_file(padded_string_view input, configuration &, diag_reporter *,
@@ -166,22 +167,14 @@ void print_version_information();
 
 #if defined(_WIN32)
 int wmain(int argc, wchar_t **wargv) {
-#if QLJS_FEATURE_VECTOR_PROFILING
-  quick_lint_js::vector_instrumentation::register_dump_on_exit_if_requested();
-#endif
-  quick_lint_js::initialize_translations_from_environment();
-
+  quick_lint_js::init();
   quick_lint_js::mbargv m(argc, wargv);
   quick_lint_js::options o = quick_lint_js::parse_options(m.size(), m.data());
   quick_lint_js::handle_options(o);
 }
 #else
 int main(int argc, char **argv) {
-#if QLJS_FEATURE_VECTOR_PROFILING
-  quick_lint_js::vector_instrumentation::register_dump_on_exit_if_requested();
-#endif
-  quick_lint_js::initialize_translations_from_environment();
-
+  quick_lint_js::init();
   quick_lint_js::options o = quick_lint_js::parse_options(argc, argv);
   quick_lint_js::handle_options(o);
 }
@@ -189,6 +182,13 @@ int main(int argc, char **argv) {
 
 namespace quick_lint_js {
 namespace {
+void init() {
+#if QLJS_FEATURE_VECTOR_PROFILING
+  quick_lint_js::vector_instrumentation::register_dump_on_exit_if_requested();
+#endif
+  quick_lint_js::initialize_translations_from_environment();
+}
+
 void handle_options(quick_lint_js::options o) {
   if (o.help) {
     quick_lint_js::print_help_message();
