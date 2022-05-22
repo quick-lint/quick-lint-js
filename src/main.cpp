@@ -153,6 +153,7 @@ class any_diag_reporter {
 };
 
 void init();
+[[noreturn]] void run(int argc, char **argv);
 [[noreturn]] void run(quick_lint_js::options o);
 
 void process_file(padded_string_view input, configuration &, diag_reporter *,
@@ -169,14 +170,12 @@ void print_version_information();
 int wmain(int argc, wchar_t **wargv) {
   quick_lint_js::init();
   quick_lint_js::mbargv m(argc, wargv);
-  quick_lint_js::options o = quick_lint_js::parse_options(m.size(), m.data());
-  quick_lint_js::run(o);
+  quick_lint_js::run(m.size(), m.data());
 }
 #else
 int main(int argc, char **argv) {
   quick_lint_js::init();
-  quick_lint_js::options o = quick_lint_js::parse_options(argc, argv);
-  quick_lint_js::run(o);
+  quick_lint_js::run(argc, argv);
 }
 #endif
 
@@ -187,6 +186,11 @@ void init() {
   quick_lint_js::vector_instrumentation::register_dump_on_exit_if_requested();
 #endif
   quick_lint_js::initialize_translations_from_environment();
+}
+
+void run(int argc, char **argv) {
+  options o = parse_options(argc, argv);
+  run(o);
 }
 
 void run(quick_lint_js::options o) {
