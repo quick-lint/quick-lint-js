@@ -305,7 +305,7 @@ var Steps []Step = []Step{
 		Run: func() {
 			fmt.Printf("1. Clone https://github.com/microsoft/winget-pkgs with Git.\n")
 			fmt.Printf("2. Copy .../signed-builds/winget/* manifests/q/quick-lint/quick-lint-js/%s.0/\n", ReleaseVersion)
-			fmt.Printf("3. Commit all files with message \"Add quick-lint-js version %s\".\n", ReleaseVersion)
+			fmt.Printf("3. Commit all files with message \"Add quick-lint-js version %s.0\".\n", ReleaseVersion)
 			fmt.Printf("4. Push to a fork on GitHub.\n")
 			fmt.Printf("5. Create a pull request on GitHub.\n")
 			WaitForDone()
