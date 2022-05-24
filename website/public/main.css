@@ -20,16 +20,20 @@ figure {
 }
 img + figcaption,
 picture + figcaption,
+video + figcaption,
 .side-by-side-comparison + figcaption,
 pre + figcaption {
   font-style: italic;
 }
-figure > img {
+figure > img,
+figure > video {
   width: 100%;
   height: auto;
 }
 img + figcaption,
 picture + figcaption,
+pre.emphasized + figcaption,
+video + figcaption,
 .side-by-side-comparison + figcaption {
   text-align: center;
 }
