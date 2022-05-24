@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html>
+  <head>
+    <%- await include("../../common-head.ejs.html", { title: `Sometimes it *is*
+    a compiler bug`, description: `My journey in finding and fixing a bug in a
+    C++ toolchain` }) %>
+    <link href="../../main.css" rel="stylesheet" />
+    <style>
+      .subtitle {
+        font-style: italic;
+      }
+
+      figure {
+        margin-left: 1em;
+        margin-top: 1em;
+        margin-bottom: 1.5em;
+        margin-right: 1em;
+      }
+
+      figure > img,
+      figure > video {
+        margin: 1em;
+        width: calc(100% - 4em);
+        box-shadow: 0 0 2em black;
+        border-radius: 0.5em;
+      }
+
+      figure > pre.emphasized {
+        margin-left: 2em;
+        margin-right: 2em;
+        border: 1px dashed rgba(0, 0, 0, 0.3);
+        background-color: rgba(0, 0, 0, 0.03);
+        padding: 0.5rem;
+      }
+      @media (prefers-color-scheme: dark) {
+        figure > pre.emphasized {
+          border-color: rgba(255, 255, 255, 0.3);
+          background-color: rgba(0, 0, 0, 0.1);
+        }
+      }
+
+      pre mark {
+        text-decoration: none;
+      }
+
+      pre ins {
+        text-decoration: none;
+      }
+
+      pre del {
+        text-decoration: none;
+        opacity: 0.5;
+      }
+
+      pre kbd {
+        font-weight: bold;
+      }
+      pre kbd::before {
+        font-weight: normal;
+      }
+
+      code .comment {
+        color: #004900;
+      }
+      code.function,
+      code .function {
+        color: #5a4208;
+      }
+      code.literal,
+      code .literal {
+        color: #670000;
+      }
+      code.type,
+      code .type {
+        color: #004961;
+      }
+      @media (prefers-color-scheme: dark) {
+        code .comment {
+          color: #b3e49b;
+        }
+        code.function,
+        code .function {
+          color: #f0f0bd;
+        }
+        code.literal,
+        code .literal {
+          color: #ffc5aa;
+        }
+        code.type,
+        code .type {
+          color: #7cf4d9;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header><%- await include("../../common-nav.ejs.html") %></header>
+
+    <main>
+      <h2>Sometimes, it <em>is</em> a compiler bug</h2>
+      <p class="subtitle">
+        My journey in finding and fixing a bug in a C++ toolchain.
+      </p>
+
+      <p>
+        Written by <a href="https://strager.net/">strager</a> on
+        <time>2022-05-25</time>
+      </p>
+
+      <section id="table-of-contents">
+        <ol>
+          <li><a href="#introduction">Introduction</a></li>
+          <li><a href="#reproducing">Reproducing the bug</a></li>
+          <li><a href="#isolating">Isolating the bug</a></li>
+          <li><a href="#root-cause">Finding the root cause</a></li>
+          <li><a href="#fixing">Fixing the bug</a></li>
+          <li><a href="#cleanup">Finishing up</a></li>
+          <li><a href="#conclusion">Conclusion</a></li>
+        </ol>
+      </section>
+
+      <section id="introduction">
+        <h3>Introduction</h3>
+        <p>
+          I was watching a programming Twitch stream when I noticed the coder
+          make a mistake. I quickly pointed them to the
+          <a href="../../">quick-lint-js</a> VS Code extension which I knew
+          would highlight their mistake. My heart sank when
+          <a
+            href="https://clips.twitch.tv/SparklingDignifiedCougarResidentSleeper-RHRLrGb3lgZtUhVu"
+            >quick-lint-js reported an error that didn't exist</a
+          >:
+        </p>
+        <figure>
+          <img
+            src="original-bug.jpg"
+            alt="JavaScript code, where 'const' in 'const fs = require('fs/promises')' has a red underline"
+            width="633"
+            height="211"
+          />
+          <figcaption>
+            quick-lint-js reporting an error on line 1, despite there being no
+            mistake<br />
+            Source:
+            <a
+              href="https://clips.twitch.tv/SparklingDignifiedCougarResidentSleeper-RHRLrGb3lgZtUhVu"
+              >ryan_the_rhg</a
+            >
+          </figcaption>
+        </figure>
+
+        <p>
+          Upon further investigation, a mistake
+          <em>did</em> exist, but quick-lint-js reported the error at the wrong
+          location. The mistake was on line 5, but quick-lint-js reported it on
+          line 1:
+        </p>
+        <figure>
+          <img
+            src="original-bug-hovered.jpg"
+            alt="Hovering over a JavaScript error: 'await is only allowed in async functions'"
+            width="633"
+            height="211"
+          />
+          <figcaption>
+            quick-lint-js correctly says "'await' is only allowed in async
+            functions" but in the wrong place<br />
+            Source:
+            <a
+              href="https://clips.twitch.tv/SparklingDignifiedCougarResidentSleeper-RHRLrGb3lgZtUhVu"
+              >ryan_the_rhg</a
+            >
+          </figcaption>
+        </figure>
+
+        <p>
+          This post chronicles the journey in finding, root-causing, and fixing
+          this bug.
+        </p>
+      </section>
+
+      <section id="reproducing">
+        <h3>Reproducing the bug</h3>
+        <p>
+          The first step I took is to make the bug happen on my computer. I
+          started by doing exactly what the streamer did: introduce a mistake in
+          a JavaScript file, install the production version of quick-lint-js
+          using the VS Code Marketplace, then close the extension tab. Of
+          course, the bug didn't happen when I tried.
+        </p>
+
+        <p>I tried a few more times, in case the bug was spurious. No luck.</p>
+
+        <p>
+          Then I decided to upgrade VS Code. No
+          <abbr title="reproduction">repro</abbr>.
+        </p>
+
+        <p>Then I tried on Windows instead of Linux. No repro.</p>
+
+        <p>
+          While streaming my repro attempts on
+          <a href="https://twitch.tv/strager">my Twitch stream</a>, one viewer,
+          HPWebcamAble, said he encountered the problem too and could reproduce
+          it. Nice! He
+          <a
+            href="https://github.com/quick-lint/quick-lint-js/issues/718#issuecomment-1132432091"
+            >posted a video of the bug</a
+          >. He was able to reproduce it by reloading VS Code. Unfortunately, I
+          tried on my machine to no avail.
+        </p>
+
+        <figure>
+          <video
+            controls
+            disablepictureinpicture
+            loop
+            playsinline
+            preload="auto"
+            width="1600"
+            height="588"
+          >
+            <source src="hpwebcamable-repro.mp4" type="video/mp4" />
+          </video>
+          <figcaption>
+            HPWebcamAble demonstrating the bug on his machine
+          </figcaption>
+        </figure>
+
+        <p>
+          Hypothesis: The bug was a race condition, and a fast machine (like
+          mine) didn't trigger the race condition.
+        </p>
+
+        <p>
+          I built an unoptimized version of the extension, hoping it would slow
+          things down enough to trigger the race condition. The extension didn't
+          work at all; it didn't even load. Oops, I forgot I had installed the
+          32-bit (x86) version of VS Code for testing, and I was building the
+          64-bit (x64) version of the extension.
+        </p>
+
+        <p>
+          I switched to the x64 version of VS Code and installed quick-lint-js
+          from the VS Code Marketplace. The buggy squiggly appeared! I
+          successfully reproduced the bug.
+        </p>
+
+        <p>Conclusion: The problem was specific to Windows x64 builds.</p>
+      </section>
+
+      <section id="isolating">
+        <h3>Isolating the bug</h3>
+        <p>
+          To investigate further, I needed to build the extension from source.
+          When I tried, the bug didn't happen. Hmm.
+        </p>
+
+        <p>
+          The quick-lint-js VS Code extension is written in C++. You can build
+          it with different C++ compilers:
+        </p>
+        <ol>
+          <li>
+            I originally tried a Debug build using MSVC (from Visual Studio
+            2022), but the bug didn't reproduce.
+          </li>
+          <li>
+            Then I tried a Debug build using Clang (LLVM-MinGW), and the bug
+            still didn't reproduce.
+          </li>
+          <li>
+            Then I tried a Release build with GCC (MinGW), and I successfully
+            reproduced the bug.
+          </li>
+        </ol>
+
+        <p>
+          Now that I could change the code, my first instinct was to 🪵 add 🪵
+          logging 🪵 everywhere. I started by logging the line and character
+          numbers calculated by the core quick-lint-js engine. Everything looked
+          good.
+        </p>
+
+        <p>
+          Then I logged the
+          <code class="javascript type">Diagnostic</code> objects given to VS
+          Code. There was an obvious problem: the line and column numbers for
+          the first diagnostic were not integral:
+        </p>
+        <figure>
+          <img
+            src="range-console-log.jpg"
+            alt="Output of console.log showing _character and _line equal to 1.2030528096229781e-307"
+            width="696"
+            height="215"
+          />
+          <figcaption>
+            console.log of the
+            <code class="javascript type">Diagnostic</code> object
+          </figcaption>
+        </figure>
+
+        <p>
+          What the heck is
+          <code class="javascript literal">1.2030528096229781e-307</code> and
+          where is it coming from??
+        </p>
+
+        <p>
+          I tried hard-coding <code class="javascript literal">42</code> as the
+          line number. The
+          <code class="javascript type">Diagnostic</code> object still had the
+          strange number.
+        </p>
+
+        <p>
+          I tried logging the number before I stored it in the
+          <code class="javascript type">Diagnostic</code> object. The log showed
+          the broken number, but the bug disappeared. When I added this extra
+          logging, I created a second JavaScript number object. I changed the
+          logging code to use the same number object as was given to the
+          <code class="javascript type">Diagnostic</code> object, and the bug
+          reappeared.
+        </p>
+
+        <p>
+          To create numbers in the JavaScript VM, the quick-lint-js C++ code
+          uses
+          <a
+            href="https://nodejs.org/dist/latest-v16.x/docs/api/n-api.html"
+            title="Node.js API"
+            ><dfn id="napi-definition">N-API</dfn> (aka Node-API)</a
+          >. (VS Code extensions are written for Node.js.) The function I was
+          calling was <code class="cxx function">napi_create_double</code> which
+          creates a JavaScript number object from a C++
+          <code class="cxx type">double</code>. Maybe
+          <code class="cxx function">napi_create_double</code> was failing? I
+          double-checked the error code. <code class="cxx">napi_ok</code>.
+        </p>
+
+        <p>
+          I was calling <code class="cxx function">napi_create_double</code>,
+          but my number is always an integer. (Fractional line numbers don't
+          make sense in VS Code.) I tried
+          <code class="cxx function">napi_create_int32</code>, and it worked
+          perfectly. Something was wrong with
+          <code class="cxx function">napi_create_double</code> specifically.
+        </p>
+
+        <p>
+          Hypothesis: The compiler is generating incorrect code for the call to
+          <code class="cxx function">napi_create_double</code>. Perhaps GCC
+          wasn't adhering to the Windows x64 calling convention when calling
+          N-API functions. I checked Microsoft's documentation on
+          <a
+            href="https://docs.microsoft.com/en-us/cpp/build/x64-calling-convention?view=msvc-170"
+            >Windows x64 ABI</a
+          >
+          and checked the assembly code generated by GCC when calling
+          <code class="cxx function">napi_create_double</code>. GCC was doing
+          the right thing by storing the number in the
+          <code class="x86">xmm1</code> register.
+        </p>
+
+        <p>
+          Hypothesis: Some earlier code corrupted N-API somehow. I moved my test
+          code into the extension initialization. The logged number was still
+          corrupted, but the bug disappeared.
+        </p>
+
+        <p>
+          Hypothesis: The bug happened only for the very first number I create.
+          I ran my test code in a loop and confirmed that only the first number
+          is broken. This is why creating a number during initialization (for
+          testing) made the bug disappear.
+        </p>
+
+        <figure>
+          <pre
+            class="emphasized"
+          ><code class="cxx">for (<span class=type>int</span> i = <span class=literal>0</span>; i &lt; <span class=literal>10</span>; ++i) {
+  <span class=type>napi_value</span> jstest;
+  <span class=type>double</span> original = <span class=literal>42.0</span>;
+  <span class=type>napi_status</span> status = <span class=function>napi_create_double</span>(env, original, &jstest);
+  <span class=function>QLJS_ASSERT</span>(status == napi_ok);
+  <span class=type>double</span> result;
+  status = <span class=function>napi_get_value_double</span>(env, jstest, &result);
+  <span class=function>QLJS_ASSERT</span>(status == napi_ok);
+  <span class=function>QLJS_DEBUG_LOG</span>(<span class=literal>"init test: %g -&gt; %g\n"</span>, original, result);
+}</code></pre>
+          <figcaption>
+            Test code which demonstrates the bug in
+            <code class="cxx function">napi_create_double</code>
+          </figcaption>
+        </figure>
+
+        <figure>
+          <pre class="emphasized"><code>init test: 42 -&gt; 1.20305e-307
+init test: 42 -&gt; 42
+init test: 42 -&gt; 42
+init test: 42 -&gt; 42
+init test: 42 -&gt; 42
+init test: 42 -&gt; 42
+init test: 42 -&gt; 42
+init test: 42 -&gt; 42
+init test: 42 -&gt; 42
+init test: 42 -&gt; 42</code></pre>
+          <figcaption>Output of test code</figcaption>
+        </figure>
+      </section>
+
+      <section id="root-cause">
+        <h3>Finding the root cause</h3>
+        <p>
+          I now know that the first call to
+          <code class="cxx function">napi_create_double</code> creates a broken
+          JavaScript number. What is
+          <code class="cxx function">napi_create_double</code> doing?
+        </p>
+
+        <p>
+          I looked at the
+          <a
+            href="https://github.com/nodejs/node/blob/v18.2.0/src/js_native_api_v8.cc#L1515-L1525"
+            >C++ code for
+            <code class="cxx function">napi_create_double</code></a
+          >
+          in Node.js. Nothing looked suspicious. I also looked at the Git
+          history. The function hasn't changed since it was introduced.
+        </p>
+
+        <p>
+          On Windows, an <dfn>implib</dfn> is the glue code between DLLs. In my
+          case, a Node.js implib allowed the quick-lint-js extension DLL to call
+          <a href="#napi-definition">N-API functions</a> in VS Code.
+        </p>
+
+        <p>
+          I took a peek at the implib code for
+          <code class="cxx function">napi_create_double</code>. Nothing looked
+          suspicious, but it was calling
+          <code class="cxx function">__delayLoadHelper2</code>. I looked at
+          <a
+            href="https://docs.microsoft.com/en-us/cpp/build/reference/understanding-the-helper-function?view=msvc-170"
+            >its documentation</a
+          >
+          and found no errata about
+          <code class="cxx type">double</code> arguments. (But that's no
+          guarantee that the function is bug-free!)
+        </p>
+
+        <figure id="implib-code">
+          <pre
+            class="emphasized"
+          ><code class=x86><mark><span class=function>napi_create_double</span></mark>:
+  jmp    1f
+1:
+  lea    __imp_napi_create_double,%rax
+  jmp    <span class=function>__tailMerge_node_napi_lib</span>
+
+<span class=function>__tailMerge_node_napi_lib</span>:
+  push   %rcx
+  push   %rdx
+  push   %r8
+  push   %r9
+  sub    $0x28,%rsp
+  mov    %rax,%rdx
+  lea    .text$2,%rcx
+  <mark>call   <span class=function>__delayLoadHelper2</span></mark>
+  add    $0x28,%rsp
+  pop    %r9
+  pop    %r8
+  pop    %rdx
+  pop    %rcx
+  jmp    *%rax</code></pre>
+          <figcaption>
+            Assembly of <code class="cxx function">napi_create_double</code> and
+            related code generated by dlltool
+          </figcaption>
+        </figure>
+
+        <p>
+          When does my number get corrupted? I attached a C++ debugger (<a
+            href="https://www.sourceware.org/gdb/"
+            title="The GNU Project Debugger"
+            >gdb</a
+          >) to VS Code. I set a breakpoint on the extension's initialization
+          and I stepped through the code. Inside
+          <code class="cxx function">napi_create_double</code> in the implib,
+          the <code class="x86">xmm1</code> register contained
+          <code class="x86 literal">42.0</code> as expected. I kept stepping
+          through and didn't see any changes to <code class="x86">xmm1</code>.
+        </p>
+
+        <p>
+          Stepping through each and every assembly instruction to detect a
+          change to a register is tedious. I decided to try a new feature of
+          gdb: register watchpoints. I ran
+          <code class="gdb">watch xmm1 -thread 1</code>, and immediately got an
+          answer: a function in NTDLL (part of Windows) was modifying
+          <code class="x86">xmm1</code>! Hey, that number looks familiar!
+        </p>
+
+        <figure>
+          <pre class="emphasized"><code>(gdb) <kbd>watch xmm1 -thread 1</kbd>
+(gdb) <kbd>continue</kbd>
+Thread 1 hit Watchpoint 1: $xmm1
+
+Old value =
+  {v8_bfloat16 = {<del>[redacted]</del>},
+   v4_float = {<del>[redacted]</del>},
+   v2_double = {<mark>42</mark>, 0},
+   <del>[redacted]</del>}
+New value =
+  {v8_bfloat16 = {<del>[redacted]</del>},
+   v4_float = {<del>[redacted]</del>},
+   v2_double = {<mark>1.2030528096229781e-307</mark>, 0},
+   <del>[redacted]</del>}
+0x00007fff34b63006 in ntdll!RtlLookupFunctionEntry ()
+  from C:\WINDOWS\SYSTEM32\ntdll.dll
+
+(gdb) <kbd>disassemble 0x00007fff34b62ffb, 0x00007fff34b63011</kbd>
+Dump of assembler code from 0x7fff34b62ffb to 0x7fff34b63011:
+   0x00007fff34b62ffb:      movups (%rdx),%xmm0
+   0x00007fff34b62ffe:      movups %xmm0,(%rsi)
+   0x00007fff34b63001:      movsd  0x10(%rdx),%xmm1
+<mark>=&gt; 0x00007fff34b63006:      movsd  %xmm1,0x10(%rsi)</mark>
+   0x00007fff34b6300b:      mov    (%rsi),%rbp
+   0x00007fff34b6300e:      mov    %r11,%rax
+End of assembler dump.</code></pre>
+          <figcaption>
+            gdb hit a watchpoint for <code class="x86">xmm1</code> in NTDLL
+          </figcaption>
+        </figure>
+
+        <p>
+          I looked at the documentation for the
+          <a
+            href="https://docs.microsoft.com/en-us/cpp/build/x64-software-conventions?redirectedfrom=MSDN&view=msvc-170"
+            >Windows x64 ABI</a
+          >. <code class="x86">xmm1</code> is a <em>volatile</em> register that
+          is supposed to be saved by the caller. I looked at the
+          <a href="#implib-code">implib code</a>, and sure enough,
+          <code class="x86">xmm1</code> wasn't being saved. I think I found the
+          root cause!
+        </p>
+      </section>
+
+      <section id="fixing">
+        <h3>Fixing the bug</h3>
+        <p>
+          My current hypothesis: The implib code should have saved
+          <code class="x86">xmm1</code>, but it didn't.
+        </p>
+
+        <p>
+          I needed to change the implib code. The code is generated by
+          <dfn>dlltool</dfn>
+          which is part of
+          <a href="https://www.gnu.org/software/binutils/">GNU binutils</a>. So
+          let's build binutils from source.
+        </p>
+
+        <p>What a pain.</p>
+
+        <p>
+          Because I previously installed binutils using MSYS, I decided to use
+          their options to build binutils from source. I cloned the binutils-gdb
+          Git repository, then I copy-pasted some commands from MSYS'
+          <a
+            href="https://github.com/msys2/MINGW-packages/blob/8fa1309831e20a83cc87812a940c303bbf730066/mingw-w64-binutils/PKGBUILD"
+            >PKGBUILD file</a
+          >, filling in some variables with educated guesses. (I guessed wrong a
+          few times, of course.) Builds were slow because half my CPU was
+          dedicated to streaming on Twitch.
+        </p>
+
+        <p>
+          Eventually, I got everything but gdb compiling. (I didn't want to
+          build gdb, but I couldn't figure out how to build only dlltool.)
+          However, I realized that "everything" isn't everything. dlltool didn't
+          get built. Huh?
+        </p>
+
+        <p>
+          It turns out I broke something along the way and needed to
+          clean-build. Yay Autotools! After a clean build, everything was built,
+          including dlltool (but not gdb for some reason).
+        </p>
+
+        <p>
+          I told the quick-lint-js build system to use my newly-built dlltool,
+          then fired off a build. dlltool gave me a cryptic message:
+        </p>
+        <figure>
+          <pre
+            class="emphasized"
+          ><code>dlltool.exe: 🤖 CreateProcess 🤖</code></pre>
+          <figcaption>
+            dlltool's world-class error message<br />Robots added by the editor
+          </figcaption>
+        </figure>
+
+        <p>
+          <code class="cxx function">CreateProcess</code> is a Windows API for
+          running .exe files. I pulled out
+          <a
+            href="https://docs.microsoft.com/en-us/sysinternals/downloads/procmon"
+            >Procmon</a
+          >
+          to see which <code class="cxx function">CreateProcess</code> call was
+          failing. dlltool was trying to run <code>as</code> (GAS, the GNU
+          Assembler), but couldn't find it.
+        </p>
+
+        <p>
+          In a normal installation of binutils, all the tools are in the same
+          directory. However, in my development build,
+          <code>dlltool.exe</code> and <code>as.exe</code> were in different
+          directories.
+        </p>
+
+        <p>
+          I decided to run the binutils installation script, installing
+          everything into temporary directory called <code>stragerusr</code>:
+        </p>
+        <figure>
+          <pre
+            class="emphasized"
+          ><code>$ <kbd>make install PREFIX=<mark>/Projects/binutils-gdb/stragerusr</mark></kbd>
+make[1]: Entering directory '/Projects/binutils-gdb/build'
+/bin/sh ../mkinstalldirs /ucrt64 /ucrt64
+make[2]: Entering directory '/Projects/binutils-gdb/build/bfd'
+make  install-recursive
+make[3]: Entering directory '/Projects/binutils-gdb/build/bfd'
+Making install in po
+make[4]: Entering directory '/Projects/binutils-gdb/build/bfd/po'
+if test -r ../../../bfd/../mkinstalldirs; then \
+  ../../../bfd/../mkinstalldirs /ucrt64/share; \
+else \
+  ../../../bfd/mkinstalldirs /ucrt64/share; \
+fi 
+installing da.gmo as <mark>/ucrt64/share/locale/da/LC_MESSAGES/bfd.mo</mark>
+installing es.gmo as <mark>/ucrt64/share/locale/es/LC_MESSAGES/bfd.mo</mark>
+installing fi.gmo as <mark>/ucrt64/share/locale/fi/LC_MESSAGES/bfd.mo</mark>
+installing fr.gmo as <mark>/ucrt64/share/locale/fr/LC_MESSAGES/bfd.mo</mark></code></pre>
+          <figcaption>
+            Trying to install binutils into a temporary directory
+          </figcaption>
+        </figure>
+
+        <p>
+          After a minute, I realized that binutils was being installed in
+          <code>/ucrt64</code>, not into my temporary directory. Oh no!
+        </p>
+
+        <p>
+          I canceled the install script and tried recompiling quick-lint-js.
+          Everything was broken. To clean up the mess I made, I reinstalled
+          everything using MSYS:
+        </p>
+        <figure>
+          <pre
+            class="emphasized"
+          ><code class="shell-session"><kbd>pacman -Qqn | pacman -S -</kbd></code></pre>
+          <figcaption>Reinstalling every installed MSYS package</figcaption>
+        </figure>
+
+        <p>
+          Back to fixing the <code>CreateProcess</code> error. I copied
+          <code>/ucrt64/bin/as.exe</code> into my build directory containing
+          <code>dlltool.exe</code>. Then dlltool worked fine.
+        </p>
+
+        <p>
+          I built the quick-lint-js VS Code extension and ran it. VS Code
+          crashed! Hmm.
+        </p>
+
+        <p>
+          I looked at the implib generated by the new dlltool. The assembly was
+          different. I used a newer version of binutils than I was using
+          previously. The newest version has a patch to support Structured
+          Exception Handling (SEH). I reverted that patch, re-built the
+          extension, and VS Code no longer crashed. Of course, the
+          <code class="cxx function">napi_create_double</code> bug persisted.
+        </p>
+
+        <p>
+          I took a break. The next day, I tried dlltool with the SEH patch and
+          it didn't crash. Huh. Maybe I screwed something up the previous day.
+          🤷‍♀️
+        </p>
+
+        <p>
+          I hacked dlltool to save <code class="x86">xmm1</code>. I made a few
+          mistakes along the way:
+        </p>
+        <ul>
+          <li>wrong assembly instruction to store to memory</li>
+          <li>used an aligned store on unaligned addresses</li>
+          <li>restored the stack pointer incorrectly</li>
+          <li>
+            modified the x86 (32-bit) code instead of the x64 (64-bit) code
+          </li>
+        </ul>
+
+        <p>
+          Eventually, my dlltool patch fixed the
+          <code class="cxx function">napi_create_double</code> bug! I reverted
+          all my debugging changes to the quick-lint-js extension and tried
+          again. The original bug was gone. Hurray!
+        </p>
+
+        <figure>
+          <pre
+            class="emphasized"
+          ><code class=x86><span class="function">__tailMerge_node_napi_lib</span>:
+  <span class=comment>// save volatile registers</span>
+<ins>  sub    $0x108,%rsp</ins>
+<ins>  vmovupd %ymm5,0xe8(%rsp)</ins>
+<ins>  vmovupd %ymm4,0xc8(%rsp)</ins>
+<ins>  vmovupd %ymm3,0xa8(%rsp)</ins>
+<ins>  vmovupd %ymm2,0x88(%rsp)</ins>
+<ins>  <span class=comment><mark>// note: ymm1 includes xmm1</mark></span></ins>
+<ins>  <mark>vmovupd %ymm1,0x68(%rsp)</mark></ins>
+<ins>  vmovupd %ymm0,0x48(%rsp)</ins>
+  mov    %rcx,0x40(%rsp)
+  mov    %rdx,0x38(%rsp)
+  mov    %r8,0x30(%rsp)
+  mov    %r9,0x28(%rsp)
+  mov    %rax,%rdx
+  lea    .text$2(%rip),%rcx
+  call   <span class=function>__delayLoadHelper2</span>
+  <span class=comment>// restore volatile registers</span>
+  mov    0x28(%rsp),%r9
+  mov    0x30(%rsp),%r8
+  mov    0x38(%rsp),%rdx
+  mov    0x40(%rsp),%rcx
+<ins>  vmovupd 0x48(%rsp),%ymm0</ins>
+<ins>  <mark>vmovupd 0x68(%rsp),%ymm1</mark></ins>
+<ins>  vmovupd 0x88(%rsp),%ymm2</ins>
+<ins>  vmovupd 0xa8(%rsp),%ymm3</ins>
+<ins>  vmovupd 0xc8(%rsp),%ymm4</ins>
+<ins>  vmovupd 0xe8(%rsp),%ymm5</ins>
+<ins>  add    $0x108,%rsp</ins>
+  jmp    *%rax</code></pre>
+          <figcaption>Assembly generated by my patched dlltool</figcaption>
+        </figure>
+      </section>
+
+      <section id="cleanup">
+        <h3>Finishing up</h3>
+        <p>
+          Now that I had a proven fix in dlltool, there's a problem: How can I
+          make quick-lint-js' CI builds use the patched dlltool? I want to avoid
+          custom toolchains for this open-source project.
+        </p>
+
+        <p>
+          Because we fully understand the root cause, I decided to
+          <a
+            href="https://github.com/quick-lint/quick-lint-js/commit/40d12917dd842571e56d4636053e5573052389a9"
+            >create a workaround</a
+          >: When initializing the extension, call
+          <code class="cxx function">napi_create_double</code> once and ignore
+          the result. For good measure, I did the same for other N-API functions
+          which have <code class="cxx type">double</code> parameters:
+        </p>
+        <figure>
+          <pre
+            class="emphasized"
+          ><code class=cxx><span class=type>void</span> <span class=function>work_around_dlltool_bug</span>(<span class=type>napi_env</span> env) {
+  <span class=comment>// Call all napi_ functions with any double parameters.</span>
+  <span class=type>napi_value</span> value;
+  <span class=function>napi_create_double</span>(env, <span class=literal>0.0</span>, &amp;value);
+  <span class=function>napi_create_date</span>(env, <span class=literal>0.0</span>, &amp;value);
+}</code></pre>
+          <figcaption>quick-lint-js' workaround for the dlltool bug</figcaption>
+        </figure>
+
+        <p>
+          However, this workaround only applies to quick-lint-js. What about
+          other projects which might have the same issue? I emailed a
+          <a
+            href="https://lists.gnu.org/archive/html/bug-binutils/2022-05/msg00099.html"
+            >bug report with my patch</a
+          >
+          to the binutils bugs mailing list. Hopefully, the binutils developers
+          accept my patch so others don't go through three days of debugging the
+          issue as I did.
+        </p>
+      </section>
+
+      <section id="conclusion">
+        <h3>Conclusion</h3>
+        <p>
+          I've hit compiler bugs before, but this bug was the hardest I've
+          squashed. Investigating and fixing it took a few days and spanned
+          several codebases.
+        </p>
+
+        <p>
+          I'm happy I was able to
+          <a href="https://twitch.tv/strager"
+            >live-stream the bug fixing process</a
+          >
+          on Twitch and write this public post about it.
+        </p>
+
+        <p>Special thanks to HPWebcamAble for reproducing the bug.</p>
+      </section>
+    </main>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
