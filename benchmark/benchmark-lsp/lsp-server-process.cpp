@@ -424,7 +424,7 @@ void lsp_server_process::create_file_on_disk_if_needed(string8_view path) {
   ::boost::json::error_code error;
   ::boost::json::value root =
       ::boost::json::parse(to_boost_string_view(this->message_content_), error);
-  if (error != std::error_code()) {
+  if (error != ::boost::json::error_code()) {
     std::fprintf(stderr, "error: parsing JSON from LSP server failed\n");
     std::exit(1);
   }
