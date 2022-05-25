@@ -291,6 +291,20 @@ benchmark_config benchmark_config::load() {
       },
 
       benchmark_config_server{
+          .name = "Rome",
+          .program_name = "Rome",
+          .command = {"rome_lsp"},
+          .allow_incremental_changes = false,
+          .parallelize_open = false,
+          .workspace_configuration_json = R"({
+            "analysis": {
+              "enableCodeActions": false,
+              "enableDiagnostics": true
+            }
+          })",
+      },
+
+      benchmark_config_server{
           .name = "TypeScript",
           .program_name = "TypeScript",
           .command = {"node", "./node_modules/.bin/typescript-language-server",
@@ -390,6 +404,16 @@ benchmark_config benchmark_config::load() {
                 return std::map<std::string, std::string>{
                     {"version"s, std::string(parts[2])},
                 };
+              },
+      },
+
+      benchmark_config_program{
+          .name = "Rome",
+          .get_metadata =
+              []() {
+                // TODO(strager): Add version information when Rome adopts a
+                // --version option.
+                return std::map<std::string, std::string>{};
               },
       },
 

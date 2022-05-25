@@ -1,1 +1,1 @@
-if (false) undeclaredVariable.hasOwnProperty();
+if (false == true) undeclaredVariable.hasOwnProperty();

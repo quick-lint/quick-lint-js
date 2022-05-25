@@ -22,6 +22,7 @@ struct benchmark_config_server {
   std::string initialization_options_json = "{}";
   bool need_files_on_disk = false;
   bool supports_jsx = false;
+  bool parallelize_open = true;
   bool wait_for_empty_diagnostics_on_open = true;
   std::string workspace_configuration_json = "{}";
 };

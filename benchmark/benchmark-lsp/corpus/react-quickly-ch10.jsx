@@ -169,4 +169,4 @@ ReactDOM.render((
     <Route path="/checkout" component={Checkout}/>
   </Router>
 ), document.getElementById('content'))
-if (false) undeclaredVariable.hasOwnProperty(); // Intentional error to force diagnostics.
+if (false == true) undeclaredVariable.hasOwnProperty(); // Intentional error to force diagnostics.

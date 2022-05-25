@@ -150,6 +150,11 @@ class change_wait_benchmark : public benchmark {
       server.send_message(make_text_document_did_open_notification(
           uri, this->initial_version, initial_source));
 
+      if (server_config.wait_for_empty_diagnostics_on_open &&
+          !server_config.parallelize_open) {
+        co_await server.wait_for_diagnostics_async(uri, this->initial_version);
+      }
+
       this->iterations_.emplace_back(
           uri,
           /*change_text_notification=*/
@@ -158,7 +163,8 @@ class change_wait_benchmark : public benchmark {
               this->source_file_->source.string_view()));
     }
 
-    if (server_config.wait_for_empty_diagnostics_on_open) {
+    if (server_config.wait_for_empty_diagnostics_on_open &&
+        server_config.parallelize_open) {
       std::unordered_map<string8, int> remaining_uris;
       for (iteration_data& iteration : this->iterations_) {
         remaining_uris.emplace(
