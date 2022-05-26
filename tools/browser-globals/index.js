@@ -48,7 +48,11 @@ async function mainAsync() {
   let globals = [];
   for (let idlObject of idlObjects) {
     let exposedGlobals = getExposedGlobals(idlObject, idlObjects);
-    for (let global of exposedGlobals.getGlobals()) {
+    for (let global of exposedGlobals.getGlobalsForNamespace("Window")) {
+      globals.push(global);
+    }
+    // EventTarget is implemented by Window.
+    for (let global of exposedGlobals.getGlobalsForNamespace("EventTarget")) {
       globals.push(global);
     }
   }
@@ -231,71 +235,73 @@ function getExposedGlobals(idlObject, allIDLObjects) {
 
 class Globals {
   constructor() {
-    this._globals = [];
+    this._globalsByNamespace = new Map();
   }
 
-  addGlobal(globalName) {
-    this._globals.push(globalName);
+  addGlobal(namespace, globalName) {
+    this.getGlobalsForNamespace(namespace).push(globalName);
   }
 
-  addGlobals(globalNames) {
-    this._globals.push(...globalNames);
+  addGlobals(namespace, globalNames) {
+    this.getGlobalsForNamespace(namespace).push(...globalNames);
   }
 
-  getGlobals() {
-    return this._globals;
+  getGlobalsForNamespace(namespace) {
+    let globals = this._globalsByNamespace.get(namespace);
+    if (typeof globals === "undefined") {
+      globals = [];
+      this._globalsByNamespace.set(namespace, globals);
+    }
+    return globals;
   }
 }
 
 function getExposedGlobalsForInterface(idlObject) {
   let globals = new Globals();
 
-  let globalNames = [
-    "EventTarget", // implemented by Window
-    "Window",
-  ];
-  if (globalNames.includes(idlObject.name)) {
-    globals.addGlobals(getInterfaceMemberNames(idlObject));
+  let namespaceWhitelist = ["EventTarget", "Window"];
+  if (namespaceWhitelist.includes(idlObject.name)) {
+    globals.addGlobals(idlObject.name, getInterfaceMemberNames(idlObject));
   }
 
-  let exposed = false;
+  let exposingNamespaces = new Set();
   for (let attr of idlObject.extAttrs) {
     if (attr.name === "Exposed") {
       if (
         attr.params.rhsType === "identifier" &&
         attr.params.tokens.secondaryName.value === "Window"
       ) {
-        exposed = true;
-        break;
+        exposingNamespaces.add("Window");
       }
       if (
         attr.params.rhsType === "identifier-list" &&
         attr.params.list.some((token) => token.value === "Window")
       ) {
-        exposed = true;
-        break;
+        exposingNamespaces.add("Window");
       }
     }
   }
-  if (
-    exposed &&
-    !idlObject.extAttrs.some((attr) => attr.name === "LegacyNamespace")
-  ) {
-    globals.addGlobal(idlObject.name);
+  for (let namespace of exposingNamespaces) {
+    if (!idlObject.extAttrs.some((attr) => attr.name === "LegacyNamespace")) {
+      globals.addGlobal(namespace, idlObject.name);
+    }
   }
 
   for (let attr of idlObject.extAttrs) {
     if (attr.name === "LegacyFactoryFunction") {
       if (attr.params.rhsType === "identifier") {
-        globals.addGlobal(attr.params.tokens.secondaryName.value);
+        globals.addGlobal("Window", attr.params.tokens.secondaryName.value);
       }
     }
     if (attr.name === "LegacyWindowAlias") {
       if (attr.params.rhsType === "identifier") {
-        globals.addGlobal(attr.params.tokens.secondaryName.value);
+        globals.addGlobal("Window", attr.params.tokens.secondaryName.value);
       }
       if (attr.params.rhsType === "identifier-list") {
-        globals.addGlobals(attr.params.list.map((token) => token.value));
+        globals.addGlobals(
+          "Window",
+          attr.params.list.map((token) => token.value)
+        );
       }
     }
   }
@@ -314,7 +320,7 @@ function getExposedGlobalsForIncludes(idlObject, allIDLObjects) {
       throw new TypeError(`Could not find mixin named ${mixinName}`);
     }
     for (let mixin of mixins) {
-      globals.addGlobals(getInterfaceMemberNames(mixin));
+      globals.addGlobals(idlObject.target, getInterfaceMemberNames(mixin));
     }
   }
   return globals;
