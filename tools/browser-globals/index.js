@@ -55,12 +55,11 @@ async function mainAsync() {
     listRemovedInterfaces(path.join(specsDirectory, "dom/dom.bs"))
   );
 
-  let globals = [
-    ...exposedGlobals.getGlobalsForNamespace("Window"),
+  let globals = exposedGlobals.getGlobalsForNamespaces([
+    "Window",
     // EventTarget is implemented by Window.
-    ...exposedGlobals.getGlobalsForNamespace("EventTarget"),
-  ];
-  globals.sort();
+    "EventTarget",
+  ]);
   writeCPPFile(globals, process.stdout);
 }
 
@@ -240,14 +239,23 @@ class Globals {
   }
 
   addGlobal(namespace, globalName) {
-    this.getGlobalsForNamespace(namespace).push(globalName);
+    this._getGlobalsForNamespace(namespace).push(globalName);
   }
 
   addGlobals(namespace, globalNames) {
-    this.getGlobalsForNamespace(namespace).push(...globalNames);
+    this._getGlobalsForNamespace(namespace).push(...globalNames);
   }
 
-  getGlobalsForNamespace(namespace) {
+  getGlobalsForNamespaces(namespaces) {
+    let globals = [];
+    for (let namespace of namespaces) {
+      globals.push(...this._getGlobalsForNamespace(namespace));
+    }
+    globals.sort();
+    return globals;
+  }
+
+  _getGlobalsForNamespace(namespace) {
     let globals = this._globalsByNamespace.get(namespace);
     if (typeof globals === "undefined") {
       globals = [];
