@@ -25,4 +25,3 @@ To manually test this package, [build](#Building), then run `cli.js`:
 [Ninja]: https://ninja-build.org/
 [Node.js]: https://nodejs.org/
 [emscripten-sdk]: https://emscripten.org/docs/getting_started/downloads.html
-

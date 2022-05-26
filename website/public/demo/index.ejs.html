@@ -11,7 +11,6 @@
       main {
         position: relative;
       }
-      
       #code-input,
       #shadow-code-input {
         width: 100%;
@@ -50,6 +49,8 @@
       }
       #shadow-code-input {
         z-index: 1;
+        /* !important is required because codegrepper extension adds position:relative
+        the html tag and breaks the demo */
         position: absolute !important;
       }
 
