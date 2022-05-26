@@ -173,7 +173,7 @@ const global_group global_groups[] = {
         .globals = global_variables_browser,
         .non_writable_globals = nullptr,
         .non_shadowable_globals = nullptr,
-        .globals_count = 1023,
+        .globals_count = 990,
         .non_writable_globals_count = 0,
         .non_shadowable_globals_count = 0,
     },

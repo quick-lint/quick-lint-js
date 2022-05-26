@@ -247,12 +247,13 @@ class Globals {
   }
 
   getGlobalsForNamespaces(namespaces) {
-    let globals = [];
+    let globals = new Set();
     for (let namespace of namespaces) {
-      globals.push(...this._getGlobalsForNamespace(namespace));
+      for (let global of this._getGlobalsForNamespace(namespace)) {
+        globals.add(global);
+      }
     }
-    globals.sort();
-    return globals;
+    return [...globals].sort();
   }
 
   _getGlobalsForNamespace(namespace) {
