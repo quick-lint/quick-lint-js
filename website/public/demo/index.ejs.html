@@ -49,7 +49,9 @@
       }
       #shadow-code-input {
         z-index: 1;
-        position: absolute;
+        /* !important is required because codegrepper extension adds position:relative
+        the html tag and breaks the demo */
+        position: absolute !important;
       }
 
       #shadow-code-input {

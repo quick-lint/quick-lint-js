@@ -7,8 +7,8 @@ In other words, this package contains WebAssembly bindings.
 
 ## Building
 
-To build the bindings, install the [emscripten SDK][emscripten-sdk], [Ninja][],
-and [Node.js][], then run the following commands:
+To build the bindings, install the [emscripten SDK][emscripten-sdk], [Ninja][Ninja],
+and [Node.js][Node.js], then run the following commands:
 
     $ cd website/
     $ emcmake cmake -S .. -B build-emscripten -G Ninja -DCMAKE_BUILD_TYPE=Release
