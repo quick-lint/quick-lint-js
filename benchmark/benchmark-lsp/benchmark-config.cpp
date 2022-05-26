@@ -240,6 +240,7 @@ benchmark_config benchmark_config::load() {
             "unstable": true
           })",
           .supports_jsx = true,
+          .parallelize_open = false,
           .workspace_configuration_json = R"({
             "enable": true,
             "lint": true,
