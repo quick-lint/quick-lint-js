@@ -26,8 +26,3 @@ To manually test this package, [build](#Building), then run `cli.js`:
 [Node.js]: https://nodejs.org/
 [emscripten-sdk]: https://emscripten.org/docs/getting_started/downloads.html
 
-```rust
-
-```
-
-
