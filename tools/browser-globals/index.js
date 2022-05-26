@@ -48,13 +48,9 @@ async function mainAsync() {
   let globals = [];
   for (let idlObject of idlObjects) {
     let exposedGlobals = getExposedGlobals(idlObject, idlObjects);
-    for (let global of exposedGlobals.getGlobalsForNamespace("Window")) {
-      globals.push(global);
-    }
+    globals.push(...exposedGlobals.getGlobalsForNamespace("Window"));
     // EventTarget is implemented by Window.
-    for (let global of exposedGlobals.getGlobalsForNamespace("EventTarget")) {
-      globals.push(global);
-    }
+    globals.push(...exposedGlobals.getGlobalsForNamespace("EventTarget"));
   }
   globals.push(...extraGlobals);
   globals.push(
