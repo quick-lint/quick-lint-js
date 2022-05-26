@@ -36,18 +36,18 @@ async function mainAsync() {
   let idlObjects = [];
   for (let specPath of specPaths) {
     idlObjects.push(
-      ...yieldIDLObjectsFromSpecificationFile(specPath, idlSourceOutputStream)
+      ...getIDLObjectsFromSpecificationFile(specPath, idlSourceOutputStream)
     );
   }
   for (let idlPath of idlPaths) {
     idlObjects.push(
-      ...yieldIDLObjectsFromIDLFile(idlPath, idlSourceOutputStream)
+      ...getIDLObjectsFromIDLFile(idlPath, idlSourceOutputStream)
     );
   }
 
   let globals = [];
   for (let idlObject of idlObjects) {
-    for (let global of yieldExposedGlobals(idlObject, idlObjects)) {
+    for (let global of getExposedGlobals(idlObject, idlObjects)) {
       globals.push(global);
     }
   }
@@ -60,18 +60,17 @@ async function mainAsync() {
   writeCPPFile(globals, process.stdout);
 }
 
-function* yieldIDLObjectsFromSpecificationFile(
-  specPath,
-  idlSourceOutputStream
-) {
+function getIDLObjectsFromSpecificationFile(specPath, idlSourceOutputStream) {
   let idlExtractor = new IDLExtractor();
   let root = parse5.parse(fs.readFileSync(specPath, "utf-8"));
   idlExtractor.visitRoot(root);
+  let result = [];
   for (let idl of idlExtractor.getIDLs()) {
     idlSourceOutputStream.write(idl);
     idlSourceOutputStream.write("\n");
-    yield* WebIDL2.parse(idl);
+    result.push(...WebIDL2.parse(idl));
   }
+  return result;
 }
 
 class DOMExtractorBase {
@@ -201,43 +200,43 @@ class IDLExtractor extends DOMExtractorBase {
   }
 }
 
-function* yieldIDLObjectsFromIDLFile(idlPath, idlSourceOutputStream) {
+function getIDLObjectsFromIDLFile(idlPath, idlSourceOutputStream) {
   let idl = fs.readFileSync(idlPath, "utf-8");
   idlSourceOutputStream.write(idl);
-  yield* WebIDL2.parse(idl);
+  return WebIDL2.parse(idl);
 }
 
-function* yieldExposedGlobals(idlObject, allIDLObjects) {
+function getExposedGlobals(idlObject, allIDLObjects) {
   switch (idlObject.type) {
     case "callback interface":
     case "interface":
     case "namespace":
-      yield* yieldExposedGlobalsForInterface(idlObject);
-      break;
+      return getExposedGlobalsForInterface(idlObject);
 
     case "includes":
-      yield* yieldExposedGlobalsForIncludes(idlObject, allIDLObjects);
-      break;
+      return getExposedGlobalsForIncludes(idlObject, allIDLObjects);
 
     case "callback":
     case "dictionary":
     case "enum":
     case "interface mixin":
     case "typedef":
-      break;
+      return [];
 
     default:
       throw new TypeError(`Unexpected IDL object type: ${idlObject.type}`);
   }
 }
 
-function* yieldExposedGlobalsForInterface(idlObject) {
+function getExposedGlobalsForInterface(idlObject) {
+  let globals = [];
+
   let globalNames = [
     "EventTarget", // implemented by Window
     "Window",
   ];
   if (globalNames.includes(idlObject.name)) {
-    yield* yieldInterfaceMemberNames(idlObject);
+    globals.push(...getInterfaceMemberNames(idlObject));
   }
 
   let exposed = false;
@@ -263,27 +262,30 @@ function* yieldExposedGlobalsForInterface(idlObject) {
     exposed &&
     !idlObject.extAttrs.some((attr) => attr.name === "LegacyNamespace")
   ) {
-    yield idlObject.name;
+    globals.push(idlObject.name);
   }
 
   for (let attr of idlObject.extAttrs) {
     if (attr.name === "LegacyFactoryFunction") {
       if (attr.params.rhsType === "identifier") {
-        yield attr.params.tokens.secondaryName.value;
+        globals.push(attr.params.tokens.secondaryName.value);
       }
     }
     if (attr.name === "LegacyWindowAlias") {
       if (attr.params.rhsType === "identifier") {
-        yield attr.params.tokens.secondaryName.value;
+        globals.push(attr.params.tokens.secondaryName.value);
       }
       if (attr.params.rhsType === "identifier-list") {
-        yield* attr.params.list.map((token) => token.value);
+        globals.push(...attr.params.list.map((token) => token.value));
       }
     }
   }
+
+  return globals;
 }
 
-function* yieldExposedGlobalsForIncludes(idlObject, allIDLObjects) {
+function getExposedGlobalsForIncludes(idlObject, allIDLObjects) {
+  let globals = [];
   if (idlObject.target === "Window") {
     let mixinName = idlObject.includes;
     let mixins = allIDLObjects.filter(
@@ -293,18 +295,20 @@ function* yieldExposedGlobalsForIncludes(idlObject, allIDLObjects) {
       throw new TypeError(`Could not find mixin named ${mixinName}`);
     }
     for (let mixin of mixins) {
-      yield* yieldInterfaceMemberNames(mixin);
+      globals.push(...getInterfaceMemberNames(mixin));
     }
   }
+  return globals;
 }
 
-function* yieldInterfaceMemberNames(idlObject) {
+function getInterfaceMemberNames(idlObject) {
+  let result = [];
   for (let member of idlObject.members) {
     switch (member.type) {
       case "attribute":
       case "operation":
         if (member.name !== "") {
-          yield member.name;
+          result.push(member.name);
         }
         break;
 
@@ -317,6 +321,7 @@ function* yieldInterfaceMemberNames(idlObject) {
         );
     }
   }
+  return result;
 }
 
 function listRemovedInterfaces(specPath) {
