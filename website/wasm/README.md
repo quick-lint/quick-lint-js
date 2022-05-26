@@ -1,4 +1,3 @@
-
 # quick-lint-js JavaScript interface
 
 This directory contains code which bridges JavaScript to WebAssembly-compiled
