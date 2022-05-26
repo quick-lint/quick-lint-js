@@ -38,6 +38,25 @@ video + figcaption,
   text-align: center;
 }
 
+.side-by-side-comparison {
+  display: grid;
+  grid-template-areas: "before after";
+}
+.side-by-side-comparison .before {
+  grid-area: "before";
+}
+.side-by-side-comparison .after {
+  grid-area: "after";
+}
+.side-by-side-comparison figure {
+  margin: 0.5em;
+}
+.side-by-side-comparison figcaption {
+  font-style: italic;
+  text-align: center;
+  margin-bottom: 0.5em;
+}
+
 header {
   margin-top: 1rem;
 }
