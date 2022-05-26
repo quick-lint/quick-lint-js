@@ -105,7 +105,7 @@ std::map<std::string, std::string> get_yarn_packages_versions(
   ::boost::json::error_code error;
   ::boost::json::value root =
       ::boost::json::parse(to_boost_string_view(json), error);
-  if (error != std::error_code()) {
+  if (error != ::boost::json::error_code()) {
     std::fprintf(stderr, "error: parsing 'yarn list' JSON failed\n");
     std::exit(1);
   }
@@ -373,7 +373,7 @@ benchmark_config benchmark_config::load() {
                 ::boost::json::value package_info = ::boost::json::parse(
                     to_boost_string_view(package_json_content->string_view()),
                     error);
-                if (error != std::error_code()) {
+                if (error != ::boost::json::error_code()) {
                   std::fprintf(stderr, "error: %s: parsing JSON failed\n",
                                package_json_path);
                   std::exit(1);
