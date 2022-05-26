@@ -12,6 +12,8 @@ Semantic Versioning.
 
 * `DOMError`, `MutationEvent`, and some other browser global variables are now
   recognized.
+* New global group: `web-worker` (enabled by default)
+* The `importScripts` global function is now recognized by default.
 
 ## 2.5.0 (2022-05-23)
 

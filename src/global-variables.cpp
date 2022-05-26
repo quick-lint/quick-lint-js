@@ -231,6 +231,15 @@ const global_group global_groups[] = {
         .non_writable_globals_count = 0,
         .non_shadowable_globals_count = 0,
     },
+    {
+        .name = u8"web-worker",
+        .globals = global_variables_web_worker,
+        .non_writable_globals = nullptr,
+        .non_shadowable_globals = nullptr,
+        .globals_count = 232,
+        .non_writable_globals_count = 0,
+        .non_shadowable_globals_count = 0,
+    },
 };
 static_assert(global_group_count == std::size(global_groups),
               "configuration::global_group_count should match the number of "

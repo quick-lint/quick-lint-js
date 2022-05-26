@@ -55,12 +55,21 @@ async function mainAsync() {
     listRemovedInterfaces(path.join(specsDirectory, "dom/dom.bs"))
   );
 
-  let globals = exposedGlobals.getGlobalsForNamespaces([
-    "Window",
-    // EventTarget is implemented by Window.
-    "EventTarget",
-  ]);
-  writeCPPFile(globals, process.stdout);
+  writeCPPFile({
+    browserGlobals: exposedGlobals.getGlobalsForNamespaces([
+      "Window",
+      // EventTarget is implemented by Window.
+      "EventTarget",
+    ]),
+    webWorkerGlobals: exposedGlobals.getGlobalsForNamespaces([
+      "DedicatedWorker",
+      "DedicatedWorkerGlobalScope",
+      "EventTarget",
+      "Worker",
+      "WorkerGlobalScope",
+    ]),
+    outputStream: process.stdout,
+  });
 }
 
 function getIDLObjectsFromSpecificationFile(specPath, idlSourceOutputStream) {
@@ -267,7 +276,14 @@ class Globals {
 }
 
 function collectExposedGlobalsForInterface(globals, idlObject) {
-  let namespaceWhitelist = ["EventTarget", "Window"];
+  let namespaceWhitelist = [
+    "DedicatedWorker",
+    "DedicatedWorkerGlobalScope",
+    "EventTarget",
+    "Window",
+    "Worker",
+    "WorkerGlobalScope",
+  ];
   if (namespaceWhitelist.includes(idlObject.name)) {
     globals.addGlobals(idlObject.name, getInterfaceMemberNames(idlObject));
   }
@@ -275,17 +291,13 @@ function collectExposedGlobalsForInterface(globals, idlObject) {
   let exposingNamespaces = new Set();
   for (let attr of idlObject.extAttrs) {
     if (attr.name === "Exposed") {
-      if (
-        attr.params.rhsType === "identifier" &&
-        attr.params.tokens.secondaryName.value === "Window"
-      ) {
-        exposingNamespaces.add("Window");
+      if (attr.params.rhsType === "identifier") {
+        exposingNamespaces.add(attr.params.tokens.secondaryName.value);
       }
-      if (
-        attr.params.rhsType === "identifier-list" &&
-        attr.params.list.some((token) => token.value === "Window")
-      ) {
-        exposingNamespaces.add("Window");
+      if (attr.params.rhsType === "identifier-list") {
+        for (let param of attr.params.list) {
+          exposingNamespaces.add(param.value);
+        }
       }
     }
   }
@@ -403,7 +415,18 @@ class NullWriter extends stream.Writable {
   }
 }
 
-function writeCPPFile(globals, outputStream) {
+function writeCPPFile({ browserGlobals, webWorkerGlobals, outputStream }) {
+  function writeStrings(strings) {
+    for (let string of strings) {
+      if (!/^[A-Za-z0-9_$]+$/g.test(string)) {
+        throw new TypeError(
+          `Global variable name doesn't look like an identifier: ${string}`
+        );
+      }
+      outputStream.write(`\n    u8"${string}\\0"`);
+    }
+  }
+
   outputStream.write(`\
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
@@ -415,16 +438,11 @@ function writeCPPFile(globals, outputStream) {
 
 namespace quick_lint_js {
 const char8 global_variables_browser[] =`);
+  writeStrings(browserGlobals);
+  outputStream.write(`;
 
-  for (let global of globals) {
-    if (!/^[A-Za-z0-9_$]+$/g.test(global)) {
-      throw new TypeError(
-        `Global variable name doesn't look like an identifier: ${global}`
-      );
-    }
-    outputStream.write(`\n    u8"${global}\\0"`);
-  }
-
+const char8 global_variables_web_worker[] =`);
+  writeStrings(webWorkerGlobals);
   outputStream.write(`;
 }
 

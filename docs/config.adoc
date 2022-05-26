@@ -164,6 +164,9 @@ This group is enabled by default.
 This group is enabled by default.
 *node.js-es*:: globals defined by Node.js for ES modules, including *console* and *process*.
 This group is enabled by default.
+*web-worker*:: globals defined in HTML standards for dedicated Web Workers, including *postMessage*, *self*, and *console*.
+This group is enabled by default.
+(Introduced in version 2.6.0.)
 
 == Examples
 
