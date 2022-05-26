@@ -47,7 +47,8 @@ async function mainAsync() {
 
   let globals = [];
   for (let idlObject of idlObjects) {
-    let exposedGlobals = getExposedGlobals(idlObject, idlObjects);
+    let exposedGlobals = new Globals();
+    collectExposedGlobals(exposedGlobals, idlObject, idlObjects);
     globals.push(...exposedGlobals.getGlobalsForNamespace("Window"));
     // EventTarget is implemented by Window.
     globals.push(...exposedGlobals.getGlobalsForNamespace("EventTarget"));
@@ -207,22 +208,24 @@ function getIDLObjectsFromIDLFile(idlPath, idlSourceOutputStream) {
   return WebIDL2.parse(idl);
 }
 
-function getExposedGlobals(idlObject, allIDLObjects) {
+function collectExposedGlobals(globals, idlObject, allIDLObjects) {
   switch (idlObject.type) {
     case "callback interface":
     case "interface":
     case "namespace":
-      return getExposedGlobalsForInterface(idlObject);
+      collectExposedGlobalsForInterface(globals, idlObject);
+      break;
 
     case "includes":
-      return getExposedGlobalsForIncludes(idlObject, allIDLObjects);
+      collectExposedGlobalsForIncludes(globals, idlObject, allIDLObjects);
+      break;
 
     case "callback":
     case "dictionary":
     case "enum":
     case "interface mixin":
     case "typedef":
-      return new Globals();
+      break;
 
     default:
       throw new TypeError(`Unexpected IDL object type: ${idlObject.type}`);
@@ -252,9 +255,7 @@ class Globals {
   }
 }
 
-function getExposedGlobalsForInterface(idlObject) {
-  let globals = new Globals();
-
+function collectExposedGlobalsForInterface(globals, idlObject) {
   let namespaceWhitelist = ["EventTarget", "Window"];
   if (namespaceWhitelist.includes(idlObject.name)) {
     globals.addGlobals(idlObject.name, getInterfaceMemberNames(idlObject));
@@ -301,12 +302,9 @@ function getExposedGlobalsForInterface(idlObject) {
       }
     }
   }
-
-  return globals;
 }
 
-function getExposedGlobalsForIncludes(idlObject, allIDLObjects) {
-  let globals = new Globals();
+function collectExposedGlobalsForIncludes(globals, idlObject, allIDLObjects) {
   if (idlObject.target === "Window") {
     let mixinName = idlObject.includes;
     let mixins = allIDLObjects.filter(
@@ -319,7 +317,6 @@ function getExposedGlobalsForIncludes(idlObject, allIDLObjects) {
       globals.addGlobals(idlObject.target, getInterfaceMemberNames(mixin));
     }
   }
-  return globals;
 }
 
 function getInterfaceMemberNames(idlObject) {
