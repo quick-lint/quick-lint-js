@@ -52,6 +52,9 @@ async function mainAsync() {
     }
   }
   globals.push(...extraGlobals);
+  globals.push(
+    ...listRemovedInterfaces(path.join(specsDirectory, "dom/dom.bs"))
+  );
   globals.sort();
 
   writeCPPFile(globals, process.stdout);
@@ -71,14 +74,7 @@ function* yieldIDLObjectsFromSpecificationFile(
   }
 }
 
-class IDLExtractor {
-  constructor() {
-    this._currentIDLChunks = [];
-    this._inIDL = false;
-    this._inPre = false;
-    this._idls = [];
-  }
-
+class DOMExtractorBase {
   visitRoot(root) {
     this.visitNode(root);
   }
@@ -104,6 +100,31 @@ class IDLExtractor {
     } else {
       this.visitElement(node);
     }
+  }
+
+  visitElement(node) {
+    // Implement in base classes.
+    this.visitNodeChildren(node);
+  }
+
+  visitTextNode(_node) {
+    // Implement in base classes.
+  }
+
+  visitNodeChildren(node) {
+    for (let child of node.childNodes) {
+      this.visitNode(child);
+    }
+  }
+}
+
+class IDLExtractor extends DOMExtractorBase {
+  constructor() {
+    super();
+    this._currentIDLChunks = [];
+    this._inIDL = false;
+    this._inPre = false;
+    this._idls = [];
   }
 
   visitElement(node) {
@@ -168,12 +189,6 @@ class IDLExtractor {
     ) {
       // Parse Markdown embedded within HTML (yuck).
       this._idls.push(match[1]);
-    }
-  }
-
-  visitNodeChildren(node) {
-    for (let child of node.childNodes) {
-      this.visitNode(child);
     }
   }
 
@@ -300,6 +315,50 @@ function* yieldInterfaceMemberNames(idlObject) {
         throw new TypeError(
           `Unexpected member type for ${idlObject.name}.${member.name}: ${member.type}`
         );
+    }
+  }
+}
+
+function listRemovedInterfaces(specPath) {
+  let root = parse5.parse(fs.readFileSync(specPath, "utf-8"));
+  let extractor = new HistoricalInterfaceExtractor();
+  extractor.visitRoot(root);
+  return extractor._interfaceNames;
+}
+
+class HistoricalInterfaceExtractor extends DOMExtractorBase {
+  constructor() {
+    super();
+    this._inHistorical = false;
+    this._inHistoricalDfn = false;
+    this._interfaceNames = [];
+  }
+
+  visitElement(node) {
+    let oldInHistorical = this._inHistorical;
+    if (
+      node.tagName === "ul" &&
+      node.attrs.some(
+        (attr) => attr.name === "dfn-type" && attr.value === "interface"
+      )
+    ) {
+      this._inHistorical = true;
+    }
+
+    let oldInHistoricalDfn = this._inHistoricalDfn;
+    if (this._inHistorical && node.tagName === "dfn") {
+      this._inHistoricalDfn = true;
+    }
+
+    this.visitNodeChildren(node);
+
+    this._inHistoricalDfn = oldInHistoricalDfn;
+    this._inHistorical = oldInHistorical;
+  }
+
+  visitTextNode(node) {
+    if (this._inHistoricalDfn) {
+      this._interfaceNames.push(node.value);
     }
   }
 }
