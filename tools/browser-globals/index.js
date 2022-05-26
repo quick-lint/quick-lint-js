@@ -45,20 +45,22 @@ async function mainAsync() {
     );
   }
 
-  let globals = [];
+  let exposedGlobals = new Globals();
   for (let idlObject of idlObjects) {
-    let exposedGlobals = new Globals();
     collectExposedGlobals(exposedGlobals, idlObject, idlObjects);
-    globals.push(...exposedGlobals.getGlobalsForNamespace("Window"));
-    // EventTarget is implemented by Window.
-    globals.push(...exposedGlobals.getGlobalsForNamespace("EventTarget"));
   }
-  globals.push(...extraGlobals);
-  globals.push(
-    ...listRemovedInterfaces(path.join(specsDirectory, "dom/dom.bs"))
+  exposedGlobals.addGlobals("Window", extraGlobals);
+  exposedGlobals.addGlobals(
+    "Window",
+    listRemovedInterfaces(path.join(specsDirectory, "dom/dom.bs"))
   );
-  globals.sort();
 
+  let globals = [
+    ...exposedGlobals.getGlobalsForNamespace("Window"),
+    // EventTarget is implemented by Window.
+    ...exposedGlobals.getGlobalsForNamespace("EventTarget"),
+  ];
+  globals.sort();
   writeCPPFile(globals, process.stdout);
 }
 
