@@ -1078,6 +1078,11 @@ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript interface methods cannot be marked as a generator"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript interface properties cannot be 'static'"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 

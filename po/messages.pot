@@ -1037,6 +1037,10 @@ msgid "TypeScript interface methods cannot be marked 'async'"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "TypeScript interface methods cannot be marked as a generator"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "TypeScript interface properties cannot be 'static'"
 msgstr ""
 

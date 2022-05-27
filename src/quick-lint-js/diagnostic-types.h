@@ -1648,6 +1648,14 @@
               async_keyword))                                                  \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_interface_methods_cannot_be_generators, "E0218",                    \
+      diagnostic_severity::error, { source_code_span star; },                  \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE(                                                   \
+              "TypeScript interface methods cannot be marked as a generator"), \
+          star))                                                               \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_interface_properties_cannot_be_static, "E0216",                     \
       diagnostic_severity::error, { source_code_span static_keyword; },        \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

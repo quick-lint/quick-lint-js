@@ -392,6 +392,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript interface methods cannot be marked as a generator"_translatable,
+        {
+            u8"TypeScript interface methods cannot be marked as a generator",
+            u8"TypeScript interface methods cannot be marked as a generator",
+            u8"TypeScript interface methods cannot be marked as a generator",
+            u8"TypeScript interface methods cannot be marked as a generator",
+            u8"TypeScript interface methods cannot be marked as a generator",
+            u8"TypeScript interface methods cannot be marked as a generator",
+        },
+    },
+    {
         "TypeScript interface properties cannot be 'static'"_translatable,
         {
             u8"TypeScript interface properties cannot be 'static'",

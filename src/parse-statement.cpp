@@ -1273,6 +1273,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
   function_attributes method_attributes = function_attributes::normal;
   bool async_static = false;
   std::optional<source_code_span> static_keyword;
+  std::optional<source_code_span> star_token;
 
   auto is_keyword = [](const std::optional<source_code_span> &keyword,
                        const std::optional<identifier> &property_name) -> bool {
@@ -1298,6 +1299,15 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           });
         }
       };
+  auto error_if_generator_star_in_interface =
+      [&](const std::optional<identifier> &property_name) {
+        if (is_interface && is_keyword(star_token, property_name)) {
+          this->diag_reporter_->report(
+              diag_interface_methods_cannot_be_generators{
+                  .star = *star_token,
+              });
+        }
+      };
 
   auto parse_and_visit_field_or_method_impl =
       [&, this, is_interface](std::optional<identifier> property_name,
@@ -1307,6 +1317,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       if (this->peek().type == token_type::star) {
         // async static *m() {}  // Invalid.
         method_attributes = function_attributes::async_generator;
+        star_token = this->peek().span();
         this->skip();
       }
       switch (this->peek().type) {
@@ -1320,7 +1331,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         identifier new_property_name = this->peek().identifier_name();
         if (is_interface) {
           // diag_interface_methods_cannot_be_async and
-          // diag_interface_properties_cannot_be_static are reported later.
+          // diag_interface_properties_cannot_be_static (And maybe
+          // diag_interface_methods_cannot_be_generators) are reported later.
           QLJS_ASSERT(async_keyword.has_value());
           QLJS_ASSERT(static_keyword.has_value());
         } else {
@@ -1348,6 +1360,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       v.visit_property_declaration(property_name);
       if (is_interface) {
         error_if_async_in_interface(property_name);
+        error_if_generator_star_in_interface(property_name);
         error_if_static_in_interface(property_name);
         v.visit_enter_function_scope();
         function_guard guard = this->enter_function(method_attributes);
@@ -1486,6 +1499,7 @@ next:
       if (this->peek().type == token_type::star) {
         // async *g() {}
         method_attributes = function_attributes::async_generator;
+        star_token = this->peek().span();
         this->skip();
       }
       if (this->peek().type == token_type::kw_static) {
@@ -1500,6 +1514,7 @@ next:
     // *g() {}
   case token_type::star:
     method_attributes = function_attributes::generator;
+    star_token = this->peek().span();
     this->skip();
     break;
 
