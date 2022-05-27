@@ -732,8 +732,9 @@ msgid "function starts here"
 msgstr "FUNCTION CALL STARTED HERE"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "missing parentheses around left-hand side of '**'"
-msgstr ""
+msgstr "MISSING NAME OR PARENTHESES FOR FUNCTION"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'**' operator cannot be used after unary '{1}' without parentheses"
@@ -949,16 +950,18 @@ msgid "unexpected 'default' outside switch statement"
 msgstr "UNEXPECTED 'DEFAULT' OUTSIDE SWITCH STATEMENT"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"
-msgstr ""
+msgstr "'ASYNC STATIC' IS NOT ALLOWED; WRITE 'STATIC ASYNC' INSTEAD"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unexpected literal in parameter list; expected parameter name"
 msgstr "UNEXPECTED LITERAL IN PARAMETER LIST; EXPECTED PARAMETER NAME"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "'}' is not allowed directly in JSX text; write {{'}'} instead"
-msgstr ""
+msgstr "'ASYNC STATIC' IS NOT ALLOWED; WRITE 'STATIC ASYNC' INSTEAD"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "C-style for loops have only three semicolon-separated components"
