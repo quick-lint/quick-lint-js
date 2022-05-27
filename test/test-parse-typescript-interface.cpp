@@ -432,6 +432,39 @@ TEST(test_parse_typescript_interface, static_properties_are_not_allowed) {
                     static_keyword, strlen(u8"interface I { "), u8"static")));
   }
 }
+
+TEST(test_parse_typescript_interface, async_methods_are_not_allowed) {
+  {
+    padded_string code(u8"interface I { async method(); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  //
+                                      "visit_property_declaration",   // method
+                                      "visit_enter_function_scope",   // method
+                                      "visit_exit_function_scope",    // method
+                                      "visit_exit_interface_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_interface_methods_cannot_be_async,  //
+                    async_keyword, strlen(u8"interface I { "), u8"async")));
+  }
+
+  {
+    // ASI activates after 'async'.
+    padded_string code(u8"interface I { async\nmethod(); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"async"},
+                    spy_visitor::visited_property_declaration{u8"method"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
 }
 }
 

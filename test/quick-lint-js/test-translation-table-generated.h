@@ -381,6 +381,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript interface methods cannot be marked 'async'"_translatable,
+        {
+            u8"TypeScript interface methods cannot be marked 'async'",
+            u8"TypeScript interface methods cannot be marked 'async'",
+            u8"TypeScript interface methods cannot be marked 'async'",
+            u8"TypeScript interface methods cannot be marked 'async'",
+            u8"TypeScript interface methods cannot be marked 'async'",
+            u8"TypeScript interface methods cannot be marked 'async'",
+        },
+    },
+    {
         "TypeScript interface properties cannot be 'static'"_translatable,
         {
             u8"TypeScript interface properties cannot be 'static'",

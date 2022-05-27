@@ -1289,13 +1289,26 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
               });
         }
       };
+  std::optional<source_code_span> async_keyword;
+  auto is_async =
+      [&async_keyword](const std::optional<identifier> &property_name) {
+        return async_keyword.has_value() &&
+               (!property_name.has_value() ||
+                property_name->span().begin() != async_keyword->begin());
+      };
+  auto error_if_async_in_interface =
+      [&](const std::optional<identifier> &property_name) {
+        if (is_interface && is_async(property_name)) {
+          this->diag_reporter_->report(diag_interface_methods_cannot_be_async{
+              .async_keyword = *async_keyword,
+          });
+        }
+      };
 
   auto parse_and_visit_field_or_method_impl =
-      [this, &v, &async_static, &async_token_begin, is_interface,
-       &error_if_static_in_interface](
-          std::optional<identifier> property_name,
-          source_code_span property_name_span,
-          function_attributes method_attributes) -> void {
+      [&, this, is_interface](std::optional<identifier> property_name,
+                              source_code_span property_name_span,
+                              function_attributes method_attributes) -> void {
     if (async_static) {
       if (this->peek().type == token_type::star) {
         // async static *m() {}  // Invalid.
@@ -1331,6 +1344,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     case token_type::left_paren:
       v.visit_property_declaration(property_name);
       if (is_interface) {
+        error_if_async_in_interface(property_name);
         error_if_static_in_interface(property_name);
         v.visit_enter_function_scope();
         function_guard guard = this->enter_function(method_attributes);
@@ -1440,6 +1454,7 @@ next:
     // async f() {}
   case token_type::kw_async:
     last_ident = this->peek().identifier_name();
+    async_keyword = this->peek().span();
     async_token_begin = this->peek().begin;
     this->skip();
     if (this->peek().has_leading_newline) {

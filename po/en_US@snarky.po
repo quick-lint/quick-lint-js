@@ -1047,6 +1047,11 @@ msgstr "function declared here"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript interface methods cannot be marked 'async'"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript interface properties cannot be 'static'"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
