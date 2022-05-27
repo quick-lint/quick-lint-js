@@ -135,6 +135,23 @@ TEST(test_parse, unclosed_interface_statement) {
                               &code, diag_unclosed_interface_block,  //
                               block_open, strlen(u8"interface I "), u8"{")));
   }
+
+  {
+    padded_string code(u8"interface I { method() "_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  //
+                                      "visit_property_declaration",   // method
+                                      "visit_enter_function_scope",   // method
+                                      "visit_exit_function_scope",    // method
+                                      "visit_exit_interface_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code, diag_unclosed_interface_block,  //
+                              block_open, strlen(u8"interface I "), u8"{")));
+  }
 }
 
 TEST(test_parse_typescript_interface, property_without_type) {
