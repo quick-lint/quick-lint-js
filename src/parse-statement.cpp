@@ -1270,7 +1270,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
   QLJS_WARNING_IGNORE_GCC("-Wshadow-local")
 
   std::optional<identifier> last_ident;
-  const char8 *async_token_begin = nullptr;
   function_attributes method_attributes = function_attributes::normal;
   bool async_static = false;
   std::optional<source_code_span> static_keyword;
@@ -1326,8 +1325,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           QLJS_ASSERT(static_keyword.has_value());
         } else {
           this->diag_reporter_->report(diag_async_static_method{
-              .async_static =
-                  source_code_span(async_token_begin, property_name_span.end()),
+              .async_static = source_code_span(async_keyword->begin(),
+                                               property_name_span.end()),
           });
         }
         property_name = new_property_name;
@@ -1459,7 +1458,6 @@ next:
   case token_type::kw_async:
     last_ident = this->peek().identifier_name();
     async_keyword = this->peek().span();
-    async_token_begin = this->peek().begin;
     this->skip();
     if (this->peek().has_leading_newline) {
       switch (this->peek().type) {
