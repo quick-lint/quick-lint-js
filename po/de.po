@@ -1088,6 +1088,13 @@ msgid "function declared here"
 msgstr "Funktion wird hier deklariert"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript interface methods cannot be 'static'"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "break can only be used inside of a loop or switch"
 msgstr ""
 "'break' ist nur innerhalb von Schleifen und dem switch-Statement gültig"

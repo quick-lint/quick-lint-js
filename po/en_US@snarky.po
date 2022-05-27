@@ -1046,6 +1046,11 @@ msgid "function declared here"
 msgstr "function declared here"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript interface methods cannot be 'static'"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "break can only be used inside of a loop or switch"
 msgstr "break can only be used inside of a loop or switch"
 

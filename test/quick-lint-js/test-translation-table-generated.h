@@ -381,6 +381,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript interface methods cannot be 'static'"_translatable,
+        {
+            u8"TypeScript interface methods cannot be 'static'",
+            u8"TypeScript interface methods cannot be 'static'",
+            u8"TypeScript interface methods cannot be 'static'",
+            u8"TypeScript interface methods cannot be 'static'",
+            u8"TypeScript interface methods cannot be 'static'",
+            u8"TypeScript interface methods cannot be 'static'",
+        },
+    },
+    {
         "TypeScript's 'enum' feature is not yet implemented by quick-lint-js"_translatable,
         {
             u8"TypeScript's 'enum' feature is not yet implemented by quick-lint-js",

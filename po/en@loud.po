@@ -1071,6 +1071,11 @@ msgid "function declared here"
 msgstr "VARIABLE DECLARED HERE"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript interface methods cannot be 'static'"
+msgstr "TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "break can only be used inside of a loop or switch"
 msgstr "BREAK CAN ONLY BE USED INSIDE OF A LOOP OR SWITCH"
 

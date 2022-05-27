@@ -1273,12 +1273,19 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
   const char8 *async_token_begin = nullptr;
   function_attributes method_attributes = function_attributes::normal;
   bool async_static = false;
+  std::optional<source_code_span> static_keyword;
+  auto is_static =
+      [&static_keyword](const std::optional<identifier> &property_name) {
+        return static_keyword.has_value() &&
+               (!property_name.has_value() ||
+                property_name->span().begin() != static_keyword->begin());
+      };
 
   auto parse_and_visit_field_or_method_impl =
-      [this, &v, &async_static, &async_token_begin, is_interface](
-          std::optional<identifier> property_name,
-          source_code_span property_name_span,
-          function_attributes method_attributes) -> void {
+      [this, &v, &async_static, &async_token_begin, is_interface, &is_static,
+       &static_keyword](std::optional<identifier> property_name,
+                        source_code_span property_name_span,
+                        function_attributes method_attributes) -> void {
     if (async_static) {
       if (this->peek().type == token_type::star) {
         // async static *m() {}  // Invalid.
@@ -1314,6 +1321,11 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     case token_type::left_paren:
       v.visit_property_declaration(property_name);
       if (is_interface) {
+        if (is_static(property_name)) {
+          this->diag_reporter_->report(diag_interface_methods_cannot_be_static{
+              .static_keyword = *static_keyword,
+          });
+        }
         v.visit_enter_function_scope();
         function_guard guard = this->enter_function(method_attributes);
         this->parse_and_visit_function_parameters(v, property_name_span);
@@ -1406,6 +1418,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     // static f() {}
   case token_type::kw_static:
     last_ident = this->peek().identifier_name();
+    static_keyword = this->peek().span();
     this->skip();
     break;
 
