@@ -1320,17 +1320,26 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier:
       case token_type::private_identifier:
-      case token_type::reserved_keyword_with_escape_sequence:
+      case token_type::reserved_keyword_with_escape_sequence: {
         // async static method() {}             // Invalid
         // async static *myAsyncGenerator() {}  // Invalid
-        this->diag_reporter_->report(diag_async_static_method{
-            .async_static =
-                source_code_span(async_token_begin, property_name_span.end()),
-        });
-        property_name = this->peek().identifier_name();
+        identifier new_property_name = this->peek().identifier_name();
+        if (is_interface) {
+          // diag_interface_methods_cannot_be_async and
+          // diag_interface_properties_cannot_be_static are reported later.
+          QLJS_ASSERT(async_keyword.has_value());
+          QLJS_ASSERT(static_keyword.has_value());
+        } else {
+          this->diag_reporter_->report(diag_async_static_method{
+              .async_static =
+                  source_code_span(async_token_begin, property_name_span.end()),
+          });
+        }
+        property_name = new_property_name;
         property_name_span = property_name->span();
         this->skip();
         break;
+      }
         // async static() {}
       default:
         break;
@@ -1490,6 +1499,7 @@ next:
         // async static method() {}  // Invalid
         // async static() {}
         async_static = true;
+        static_keyword = this->peek().span();
       }
     }
     break;

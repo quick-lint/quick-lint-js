@@ -465,6 +465,41 @@ TEST(test_parse_typescript_interface, async_methods_are_not_allowed) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
+
+TEST(test_parse_typescript_interface,
+     static_async_methods_are_definitely_not_allowed) {
+  {
+    padded_string code(u8"interface I { static async method(); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ::testing::UnorderedElementsAre(
+            DIAG_TYPE_OFFSETS(&code, diag_interface_methods_cannot_be_async,  //
+                              async_keyword, strlen(u8"interface I { static "),
+                              u8"async"),
+            DIAG_TYPE_OFFSETS(
+                &code, diag_interface_properties_cannot_be_static,  //
+                static_keyword, strlen(u8"interface I { "), u8"static")));
+  }
+
+  {
+    padded_string code(u8"interface I { async static method(); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ::testing::UnorderedElementsAre(
+            DIAG_TYPE_OFFSETS(&code, diag_interface_methods_cannot_be_async,  //
+                              async_keyword, strlen(u8"interface I { "),
+                              u8"async"),
+            DIAG_TYPE_OFFSETS(
+                &code, diag_interface_properties_cannot_be_static,  //
+                static_keyword, strlen(u8"interface I { async "), u8"static")));
+  }
+}
 }
 }
 
