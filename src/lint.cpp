@@ -14,6 +14,8 @@
 #include <quick-lint-js/warning.h>
 #include <vector>
 
+QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
+
 // The linter class implements single-pass variable lookup. A single-pass
 // algorithm is complicated in JavaScript for a few reasons:
 //
@@ -196,6 +198,8 @@ void linter::visit_enter_function_scope_body() {
       /*consume_arguments=*/true);
 }
 
+void linter::visit_enter_interface_scope() { this->scopes_.push(); }
+
 void linter::visit_enter_named_function_scope(identifier function_name) {
   scope &current_scope = this->scopes_.push();
   current_scope.function_expression_declaration = declared_variable{
@@ -254,6 +258,8 @@ void linter::visit_exit_function_scope() {
       /*consume_arguments=*/true);
   this->scopes_.pop();
 }
+
+void linter::visit_exit_interface_scope() { QLJS_UNIMPLEMENTED(); }
 
 void linter::visit_keyword_variable_use(identifier) {
   // Ignore. The parser should have already reported E0023.

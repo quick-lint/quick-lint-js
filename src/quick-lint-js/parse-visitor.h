@@ -30,12 +30,14 @@ class parse_visitor_base {
   virtual void visit_enter_for_scope() = 0;
   virtual void visit_enter_function_scope() = 0;
   virtual void visit_enter_function_scope_body() = 0;
+  virtual void visit_enter_interface_scope() = 0;
   virtual void visit_enter_named_function_scope(identifier) = 0;
   virtual void visit_exit_block_scope() = 0;
   virtual void visit_exit_with_scope() = 0;
   virtual void visit_exit_class_scope() = 0;
   virtual void visit_exit_for_scope() = 0;
   virtual void visit_exit_function_scope() = 0;
+  virtual void visit_exit_interface_scope() = 0;
   virtual void visit_keyword_variable_use(identifier name) = 0;
   virtual void visit_property_declaration(std::optional<identifier>) = 0;
   virtual void visit_variable_declaration(identifier name, variable_kind kind,

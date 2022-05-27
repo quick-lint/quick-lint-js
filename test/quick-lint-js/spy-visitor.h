@@ -47,6 +47,10 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
     this->visits.emplace_back("visit_enter_function_scope_body");
   }
 
+  void visit_enter_interface_scope() override {
+    this->visits.emplace_back("visit_enter_interface_scope");
+  }
+
   void visit_enter_named_function_scope(identifier name) override {
     this->enter_named_function_scopes.emplace_back(
         visited_enter_named_function_scope{string8(name.normalized_name())});
@@ -84,6 +88,10 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
 
   void visit_exit_function_scope() override {
     this->visits.emplace_back("visit_exit_function_scope");
+  }
+
+  void visit_exit_interface_scope() override {
+    this->visits.emplace_back("visit_exit_interface_scope");
   }
 
   void visit_keyword_variable_use(identifier name) override {

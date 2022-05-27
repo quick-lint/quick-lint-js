@@ -1596,8 +1596,10 @@ void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
 
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
   this->skip();
+  v.visit_enter_interface_scope();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
   this->skip();
+  v.visit_exit_interface_scope();
 }
 
 void parser::parse_and_visit_typescript_interface_extends(

@@ -31,11 +31,13 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_enter_named_function_scope(identifier_of(function_name));
   v.visit_enter_function_scope();
   v.visit_enter_function_scope_body();
+  v.visit_enter_interface_scope();
   v.visit_exit_block_scope();
   v.visit_exit_with_scope();
   v.visit_exit_class_scope();
   v.visit_exit_for_scope();
   v.visit_exit_function_scope();
+  v.visit_exit_interface_scope();
   v.visit_keyword_variable_use(identifier_of(variable_name));
   v.visit_property_declaration(std::nullopt);
   v.visit_property_declaration(identifier_of(property_name));
@@ -61,11 +63,13 @@ TEST(test_buffering_visitor, buffers_all_visits) {
                           "visit_enter_named_function_scope",  //
                           "visit_enter_function_scope",        //
                           "visit_enter_function_scope_body",   //
+                          "visit_enter_interface_scope",       //
                           "visit_exit_block_scope",            //
                           "visit_exit_with_scope",             //
                           "visit_exit_class_scope",            //
                           "visit_exit_for_scope",              //
                           "visit_exit_function_scope",         //
+                          "visit_exit_interface_scope",        //
                           "visit_keyword_variable_use",        //
                           "visit_property_declaration",        //
                           "visit_property_declaration",        //

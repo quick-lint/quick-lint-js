@@ -18,12 +18,14 @@ class null_visitor final : public parse_visitor_base {
   void visit_enter_for_scope() override {}
   void visit_enter_function_scope() override {}
   void visit_enter_function_scope_body() override {}
+  void visit_enter_interface_scope() override {}
   void visit_enter_named_function_scope(identifier) override {}
   void visit_exit_block_scope() override {}
   void visit_exit_with_scope() override {}
   void visit_exit_class_scope() override {}
   void visit_exit_for_scope() override {}
   void visit_exit_function_scope() override {}
+  void visit_exit_interface_scope() override {}
   void visit_keyword_variable_use(identifier) override {}
   void visit_property_declaration(std::optional<identifier>) override {}
   void visit_variable_assignment(identifier) override {}

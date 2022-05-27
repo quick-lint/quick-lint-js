@@ -30,7 +30,9 @@ TEST(test_parse_typescript_interface, not_supported_in_vanilla_javascript) {
   options.typescript = false;
   parser p(&code, &v, options);
   p.parse_and_visit_module(v);
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // I
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                    "visit_enter_interface_scope",  // I
+                                    "visit_exit_interface_scope",   // I
                                     "visit_end_of_module"));
   EXPECT_THAT(v.errors,
               ElementsAre(DIAG_TYPE_OFFSETS(
@@ -44,7 +46,9 @@ TEST(test_parse_typescript_interface, empty_interface) {
   spy_visitor v;
   parser p(&code, &v, typescript_options);
   p.parse_and_visit_module(v);
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // I
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                    "visit_enter_interface_scope",  // I
+                                    "visit_exit_interface_scope",   // I
                                     "visit_end_of_module"));
   EXPECT_THAT(
       v.variable_declarations,
@@ -58,8 +62,10 @@ TEST(test_parse_typescript_interface, extends) {
   spy_visitor v;
   parser p(&code, &v, typescript_options);
   p.parse_and_visit_module(v);
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // I
-                                    "visit_variable_type_use",     // A
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                    "visit_variable_type_use",      // A
+                                    "visit_enter_interface_scope",  // I
+                                    "visit_exit_interface_scope",   // I
                                     "visit_end_of_module"));
   EXPECT_THAT(v.variable_uses,
               ElementsAre(spy_visitor::visited_variable_use{u8"A"}));
@@ -73,6 +79,8 @@ TEST(test_parse_typescript_interface, extends_interface_from_namespace) {
   p.parse_and_visit_module(v);
   EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // I
                                     "visit_variable_namespace_use",  // ns
+                                    "visit_enter_interface_scope",   // I
+                                    "visit_exit_interface_scope",    // I
                                     "visit_end_of_module"));
   EXPECT_THAT(v.variable_uses,
               ElementsAre(spy_visitor::visited_variable_use{u8"ns"}));
@@ -84,10 +92,12 @@ TEST(test_parse_typescript_interface, extends_multiple_things) {
   spy_visitor v;
   parser p(&code, &v, typescript_options);
   p.parse_and_visit_module(v);
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // I
-                                    "visit_variable_type_use",     // A
-                                    "visit_variable_type_use",     // B
-                                    "visit_variable_type_use",     // C
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                    "visit_variable_type_use",      // A
+                                    "visit_variable_type_use",      // B
+                                    "visit_variable_type_use",      // C
+                                    "visit_enter_interface_scope",  // I
+                                    "visit_exit_interface_scope",   // I
                                     "visit_end_of_module"));
   EXPECT_THAT(v.variable_uses,
               ElementsAre(spy_visitor::visited_variable_use{u8"A"},

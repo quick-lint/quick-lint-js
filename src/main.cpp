@@ -309,6 +309,11 @@ class debug_visitor final : public parse_visitor_base {
     this->output_->flush();
   }
 
+  void visit_enter_interface_scope() override {
+    this->output_->append_copy(u8"entered interface scope\n"sv);
+    this->output_->flush();
+  }
+
   void visit_enter_named_function_scope(identifier) override {
     this->output_->append_copy(u8"entered named function scope\n"sv);
     this->output_->flush();
@@ -336,6 +341,11 @@ class debug_visitor final : public parse_visitor_base {
 
   void visit_exit_function_scope() override {
     this->output_->append_copy(u8"exited function scope\n"sv);
+    this->output_->flush();
+  }
+
+  void visit_exit_interface_scope() override {
+    this->output_->append_copy(u8"exited interface scope\n"sv);
     this->output_->flush();
   }
 
@@ -459,6 +469,11 @@ class multi_visitor final : public parse_visitor_base {
     this->visitor_2_->visit_enter_function_scope_body();
   }
 
+  void visit_enter_interface_scope() override {
+    this->visitor_1_->visit_enter_interface_scope();
+    this->visitor_2_->visit_enter_interface_scope();
+  }
+
   void visit_enter_named_function_scope(identifier name) override {
     this->visitor_1_->visit_enter_named_function_scope(name);
     this->visitor_2_->visit_enter_named_function_scope(name);
@@ -487,6 +502,11 @@ class multi_visitor final : public parse_visitor_base {
   void visit_exit_function_scope() override {
     this->visitor_1_->visit_exit_function_scope();
     this->visitor_2_->visit_exit_function_scope();
+  }
+
+  void visit_exit_interface_scope() override {
+    this->visitor_1_->visit_exit_interface_scope();
+    this->visitor_2_->visit_exit_interface_scope();
   }
 
   void visit_keyword_variable_use(identifier name) override {
