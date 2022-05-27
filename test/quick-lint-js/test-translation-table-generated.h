@@ -381,14 +381,14 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
-        "TypeScript interface methods cannot be 'static'"_translatable,
+        "TypeScript interface properties cannot be 'static'"_translatable,
         {
-            u8"TypeScript interface methods cannot be 'static'",
-            u8"TypeScript interface methods cannot be 'static'",
-            u8"TypeScript interface methods cannot be 'static'",
-            u8"TypeScript interface methods cannot be 'static'",
-            u8"TypeScript interface methods cannot be 'static'",
-            u8"TypeScript interface methods cannot be 'static'",
+            u8"TypeScript interface properties cannot be 'static'",
+            u8"TypeScript interface properties cannot be 'static'",
+            u8"TypeScript interface properties cannot be 'static'",
+            u8"TypeScript interface properties cannot be 'static'",
+            u8"TypeScript interface properties cannot be 'static'",
+            u8"TypeScript interface properties cannot be 'static'",
         },
     },
     {

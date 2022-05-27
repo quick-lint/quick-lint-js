@@ -1641,10 +1641,10 @@
           MESSAGE(QLJS_TRANSLATABLE("function declared here"), declaration))   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_interface_methods_cannot_be_static, "E0216",                        \
+      diag_interface_properties_cannot_be_static, "E0216",                     \
       diagnostic_severity::error, { source_code_span static_keyword; },        \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
-                  "TypeScript interface methods cannot be 'static'"),          \
+                  "TypeScript interface properties cannot be 'static'"),       \
               static_keyword))                                                 \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \

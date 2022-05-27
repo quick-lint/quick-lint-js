@@ -347,7 +347,56 @@ TEST(test_parse_typescript_interface, static_properties_are_not_allowed) {
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_interface_methods_cannot_be_static,  //
+                    &code, diag_interface_properties_cannot_be_static,  //
+                    static_keyword, strlen(u8"interface I { "), u8"static")));
+  }
+
+  {
+    padded_string code(u8"interface I { static field; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  //
+                                      "visit_property_declaration",   // field
+                                      "visit_exit_interface_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_interface_properties_cannot_be_static,  //
+                    static_keyword, strlen(u8"interface I { "), u8"static")));
+  }
+
+  {
+    padded_string code(u8"interface I { static field\n method(); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_interface_properties_cannot_be_static,  //
+                    static_keyword, strlen(u8"interface I { "), u8"static")));
+  }
+
+  {
+    padded_string code(u8"interface I { static field\n ['methodName'](); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_interface_properties_cannot_be_static,  //
+                    static_keyword, strlen(u8"interface I { "), u8"static")));
+  }
+
+  {
+    padded_string code(u8"interface I { static async\n method(); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_interface_properties_cannot_be_static,  //
                     static_keyword, strlen(u8"interface I { "), u8"static")));
   }
 
@@ -363,7 +412,23 @@ TEST(test_parse_typescript_interface, static_properties_are_not_allowed) {
         ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_interface_methods_cannot_be_static,  //
+                    &code, diag_interface_properties_cannot_be_static,  //
+                    static_keyword, strlen(u8"interface I { "), u8"static")));
+  }
+
+  {
+    // ASI doesn't activate after 'static'.
+    // TODO(strager): Is this a bug in the TypeScript compiler?
+    padded_string code(u8"interface I { static\nfield; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"field"}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_interface_properties_cannot_be_static,  //
                     static_keyword, strlen(u8"interface I { "), u8"static")));
   }
 }

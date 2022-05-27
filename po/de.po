@@ -1089,7 +1089,7 @@ msgstr "Funktion wird hier deklariert"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
-msgid "TypeScript interface methods cannot be 'static'"
+msgid "TypeScript interface properties cannot be 'static'"
 msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
 "implementiert"

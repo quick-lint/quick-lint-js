@@ -1280,12 +1280,22 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
                (!property_name.has_value() ||
                 property_name->span().begin() != static_keyword->begin());
       };
+  auto error_if_static_in_interface =
+      [&](const std::optional<identifier> &property_name) {
+        if (is_interface && is_static(property_name)) {
+          this->diag_reporter_->report(
+              diag_interface_properties_cannot_be_static{
+                  .static_keyword = *static_keyword,
+              });
+        }
+      };
 
   auto parse_and_visit_field_or_method_impl =
-      [this, &v, &async_static, &async_token_begin, is_interface, &is_static,
-       &static_keyword](std::optional<identifier> property_name,
-                        source_code_span property_name_span,
-                        function_attributes method_attributes) -> void {
+      [this, &v, &async_static, &async_token_begin, is_interface,
+       &error_if_static_in_interface](
+          std::optional<identifier> property_name,
+          source_code_span property_name_span,
+          function_attributes method_attributes) -> void {
     if (async_static) {
       if (this->peek().type == token_type::star) {
         // async static *m() {}  // Invalid.
@@ -1321,11 +1331,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     case token_type::left_paren:
       v.visit_property_declaration(property_name);
       if (is_interface) {
-        if (is_static(property_name)) {
-          this->diag_reporter_->report(diag_interface_methods_cannot_be_static{
-              .static_keyword = *static_keyword,
-          });
-        }
+        error_if_static_in_interface(property_name);
         v.visit_enter_function_scope();
         function_guard guard = this->enter_function(method_attributes);
         this->parse_and_visit_function_parameters(v, property_name_span);
@@ -1342,6 +1348,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     case token_type::end_of_file:
     case token_type::right_curly:
     case token_type::semicolon:
+      error_if_static_in_interface(property_name);
       v.visit_property_declaration(property_name);
       this->consume_semicolon();
       break;
@@ -1362,6 +1369,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         //   field        // ASI
         //   method() {}
         // }
+        error_if_static_in_interface(property_name);
         v.visit_property_declaration(property_name);
       } else {
         // class C {
@@ -1388,6 +1396,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         //   field        // ASI
         //   [expr]() {}
         // }
+        error_if_static_in_interface(property_name);
         v.visit_property_declaration(property_name);
       } else {
         QLJS_PARSER_UNIMPLEMENTED();
@@ -1447,6 +1456,7 @@ next:
       case token_type::identifier:
       case token_type::private_identifier:
       case token_type::star:
+        error_if_static_in_interface(last_ident);
         v.visit_property_declaration(last_ident);
         return;
       default:
