@@ -849,6 +849,10 @@ msgid "unclosed code block; expected '}' by end of file"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "unclosed interface; expected '}' by end of file"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "unclosed identifier escape sequence"
 msgstr ""
 

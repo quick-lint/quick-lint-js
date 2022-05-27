@@ -2405,6 +2405,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "unclosed interface; expected '}' by end of file"_translatable,
+        {
+            u8"unclosed interface; expected '}' by end of file",
+            u8"unclosed interface; expected '}' by end of file",
+            u8"unclosed interface; expected '}' by end of file",
+            u8"unclosed interface; expected '}' by end of file",
+            u8"unclosed interface; expected '}' by end of file",
+            u8"unclosed interface; expected '}' by end of file",
+        },
+    },
+    {
         "unclosed object literal; expected '}'"_translatable,
         {
             u8"unclosed object literal; expected '}'",

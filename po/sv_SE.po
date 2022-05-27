@@ -878,6 +878,11 @@ msgid "unclosed code block; expected '}' by end of file"
 msgstr "oavslutad kod stycke; förväntade '}' innan slutet av filen"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "unclosed interface; expected '}' by end of file"
+msgstr "oavslutad kod stycke; förväntade '}' innan slutet av filen"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "unclosed identifier escape sequence"
 msgstr "oavslutad identifierare flyktsekvens"
 

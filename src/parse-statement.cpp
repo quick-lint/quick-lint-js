@@ -1594,11 +1594,8 @@ void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
     this->parse_and_visit_typescript_interface_extends(v);
   }
 
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
-  this->skip();
   v.visit_enter_interface_scope();
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
-  this->skip();
+  this->parse_and_visit_typescript_interface_body(v);
   v.visit_exit_interface_scope();
 }
 
@@ -1627,6 +1624,46 @@ next_extends:
     // extends IBanana, IOrange
     this->skip();
     goto next_extends;
+  }
+}
+
+void parser::parse_and_visit_typescript_interface_body(parse_visitor_base &v) {
+  QLJS_ASSERT(this->peek().type == token_type::left_curly);
+  source_code_span left_curly_span = this->peek().span();
+  this->skip();
+
+  while (this->peek().type != token_type::right_curly) {
+    this->parse_and_visit_typescript_interface_member(v);
+    if (this->peek().type == token_type::end_of_file) {
+      this->diag_reporter_->report(diag_unclosed_interface_block{
+          .block_open = left_curly_span,
+      });
+      return;
+    }
+  }
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+  this->skip();
+}
+
+void parser::parse_and_visit_typescript_interface_member(
+    parse_visitor_base &v) {
+  switch (this->peek().type) {
+  case token_type::identifier:
+    v.visit_property_declaration(this->peek().identifier_name());
+    this->skip();
+    break;
+
+  case token_type::semicolon:
+    this->skip();
+    break;
+
+  case token_type::end_of_file:
+    break;
+
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
   }
 }
 

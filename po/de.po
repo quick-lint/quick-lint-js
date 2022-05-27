@@ -890,6 +890,11 @@ msgid "unclosed code block; expected '}' by end of file"
 msgstr "Code-Block ohne Ende. '}' bis spätestens zum Ende der Datei erwartet"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "unclosed interface; expected '}' by end of file"
+msgstr "Klasse ohne Ende. '}' bis spätestens zum Ende der Datei erwartet"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "unclosed identifier escape sequence"
 msgstr "Unbeendete Bezeichner-Escapesequenz"
 

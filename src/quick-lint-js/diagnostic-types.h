@@ -1353,6 +1353,13 @@
               block_open))                                                     \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_unclosed_interface_block, "E0215", diagnostic_severity::error,      \
+      { source_code_span block_open; },                                        \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "unclosed interface; expected '}' by end of file"),          \
+              block_open))                                                     \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_unclosed_identifier_escape_sequence, "E0038",                       \
       diagnostic_severity::error, { source_code_span escape_sequence; },       \
       MESSAGE(QLJS_TRANSLATABLE("unclosed identifier escape sequence"),        \

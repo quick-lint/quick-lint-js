@@ -105,6 +105,56 @@ TEST(test_parse_typescript_interface, extends_multiple_things) {
                           spy_visitor::visited_variable_use{u8"C"}));
   EXPECT_THAT(v.errors, IsEmpty());
 }
+
+TEST(test_parse, unclosed_interface_statement) {
+  {
+    padded_string code(u8"interface I { "_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  //
+                                      "visit_exit_interface_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code, diag_unclosed_interface_block,  //
+                              block_open, strlen(u8"interface I "), u8"{")));
+  }
+
+  {
+    padded_string code(u8"interface I { property "_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  //
+                                      "visit_property_declaration",  // property
+                                      "visit_exit_interface_scope",  //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code, diag_unclosed_interface_block,  //
+                              block_open, strlen(u8"interface I "), u8"{")));
+  }
+}
+
+TEST(test_parse_typescript_interface, property_without_type) {
+  padded_string code(u8"interface I { a;b\nc }"_sv);
+  spy_visitor v;
+  parser p(&code, &v, typescript_options);
+  p.parse_and_visit_module(v);
+  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                    "visit_enter_interface_scope",  // I
+                                    "visit_property_declaration",   // a
+                                    "visit_property_declaration",   // b
+                                    "visit_property_declaration",   // c
+                                    "visit_exit_interface_scope",   // I
+                                    "visit_end_of_module"));
+  EXPECT_THAT(v.property_declarations,
+              ElementsAre(spy_visitor::visited_property_declaration{u8"a"},
+                          spy_visitor::visited_property_declaration{u8"b"},
+                          spy_visitor::visited_property_declaration{u8"c"}));
+  EXPECT_THAT(v.errors, IsEmpty());
+}
 }
 }
 

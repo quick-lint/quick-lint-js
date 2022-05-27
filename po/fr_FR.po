@@ -901,6 +901,11 @@ msgid "unclosed code block; expected '}' by end of file"
 msgstr "bloc de code non fermé ; '}' attendu avant la fin du fichier"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "unclosed interface; expected '}' by end of file"
+msgstr "bloc de code non fermé ; '}' attendu avant la fin du fichier"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "unclosed identifier escape sequence"
 msgstr "séquence d'échappement d'identifiant non fermée"
 
