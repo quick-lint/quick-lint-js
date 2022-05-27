@@ -988,8 +988,14 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
     break;
 
   case function_parameter_parse_result::missing_parameters_ignore_body:
-  case function_parameter_parse_result::parsed_parameters_missing_body:
     break;
+
+  case function_parameter_parse_result::parsed_parameters_missing_body: {
+    const char8 *expected_body = this->lexer_.end_of_previous_token();
+    this->diag_reporter_->report(diag_missing_function_body{
+        .expected_body = source_code_span(expected_body, expected_body)});
+    break;
+  }
   }
 }
 
@@ -1035,9 +1041,6 @@ parser::parse_and_visit_function_parameters(
     }
 
     if (this->peek().type != token_type::left_curly) {
-      const char8 *expected_body = this->lexer_.end_of_previous_token();
-      this->diag_reporter_->report(diag_missing_function_body{
-          .expected_body = source_code_span(expected_body, expected_body)});
       return function_parameter_parse_result::parsed_parameters_missing_body;
     }
     return function_parameter_parse_result::parsed_parameters;
@@ -1263,8 +1266,6 @@ void parser::parse_and_visit_class_body(parse_visitor_base &v) {
 
 void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
                                                        bool is_interface) {
-  static_cast<void>(is_interface);  // TODO(strager): Use or delete.
-
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wshadow-local")
 
@@ -1274,7 +1275,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
   bool async_static = false;
 
   auto parse_and_visit_field_or_method_impl =
-      [this, &v, &async_static, &async_token_begin](
+      [this, &v, &async_static, &async_token_begin, is_interface](
           std::optional<identifier> property_name,
           source_code_span property_name_span,
           function_attributes method_attributes) -> void {
@@ -1312,8 +1313,15 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     case token_type::left_curly:
     case token_type::left_paren:
       v.visit_property_declaration(property_name);
-      this->parse_and_visit_function_parameters_and_body(
-          v, /*name=*/property_name_span, method_attributes);
+      if (is_interface) {
+        v.visit_enter_function_scope();
+        function_guard guard = this->enter_function(method_attributes);
+        this->parse_and_visit_function_parameters(v, property_name_span);
+        v.visit_exit_function_scope();
+      } else {
+        this->parse_and_visit_function_parameters_and_body(
+            v, /*name=*/property_name_span, method_attributes);
+      }
       break;
 
       // field;

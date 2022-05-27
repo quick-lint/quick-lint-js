@@ -138,22 +138,181 @@ TEST(test_parse, unclosed_interface_statement) {
 }
 
 TEST(test_parse_typescript_interface, property_without_type) {
-  padded_string code(u8"interface I { a;b\nc }"_sv);
-  spy_visitor v;
-  parser p(&code, &v, typescript_options);
-  p.parse_and_visit_module(v);
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
-                                    "visit_enter_interface_scope",  // I
-                                    "visit_property_declaration",   // a
-                                    "visit_property_declaration",   // b
-                                    "visit_property_declaration",   // c
-                                    "visit_exit_interface_scope",   // I
-                                    "visit_end_of_module"));
-  EXPECT_THAT(v.property_declarations,
-              ElementsAre(spy_visitor::visited_property_declaration{u8"a"},
-                          spy_visitor::visited_property_declaration{u8"b"},
-                          spy_visitor::visited_property_declaration{u8"c"}));
-  EXPECT_THAT(v.errors, IsEmpty());
+  {
+    padded_string code(u8"interface I { a;b\nc }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  // I
+                                      "visit_property_declaration",   // a
+                                      "visit_property_declaration",   // b
+                                      "visit_property_declaration",   // c
+                                      "visit_exit_interface_scope",   // I
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.property_declarations,
+                ElementsAre(spy_visitor::visited_property_declaration{u8"a"},
+                            spy_visitor::visited_property_declaration{u8"b"},
+                            spy_visitor::visited_property_declaration{u8"c"}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"interface I { 'fieldName'; }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",   //
+                            "visit_enter_interface_scope",  //
+                            "visit_property_declaration",   // 'fieldName'
+                            "visit_exit_interface_scope"));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"interface I { 3.14; }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",   //
+                            "visit_enter_interface_scope",  //
+                            "visit_property_declaration",   // 3.14
+                            "visit_exit_interface_scope"));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
+  }
+}
+
+TEST(test_parse_typescript_interface, interface_with_methods) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"interface Monster { eatMuffins(muffinCount); }");
+
+    ASSERT_EQ(v.variable_declarations.size(), 2);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"Monster");
+    EXPECT_EQ(v.variable_declarations[1].name, u8"muffinCount");
+
+    ASSERT_EQ(v.property_declarations.size(), 1);
+    EXPECT_EQ(v.property_declarations[0].name, u8"eatMuffins");
+
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",   // Monster
+                            "visit_enter_interface_scope",  //
+                            "visit_property_declaration",   // eatMuffins
+                            "visit_enter_function_scope",   //
+                            "visit_variable_declaration",   // muffinCount
+                            "visit_exit_function_scope",    //
+                            "visit_exit_interface_scope"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"interface I { get length(); }"_sv);
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"length"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"interface I { set length(value); }"_sv);
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"length"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"interface I { a(); b(); c(); }"_sv);
+    ASSERT_EQ(v.property_declarations.size(), 3);
+    EXPECT_EQ(v.property_declarations[0].name, u8"a");
+    EXPECT_EQ(v.property_declarations[1].name, u8"b");
+    EXPECT_EQ(v.property_declarations[2].name, u8"c");
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"interface I { \"stringKey\"(); }");
+    ASSERT_EQ(v.property_declarations.size(), 1);
+    EXPECT_EQ(v.property_declarations[0].name, std::nullopt);
+  }
+}
+
+TEST(test_parse_typescript_interface, interface_with_keyword_property) {
+  for (string8 keyword : keywords) {
+    {
+      string8 code = u8"interface I { " + keyword + u8"(); }";
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
+      ASSERT_EQ(v.property_declarations.size(), 1);
+      EXPECT_EQ(v.property_declarations[0].name, keyword);
+    }
+
+    for (string8 prefix : {u8"get", u8"set"}) {
+      string8 code = u8"interface I { " + prefix + u8" " + keyword + u8"(); }";
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
+      ASSERT_EQ(v.property_declarations.size(), 1);
+      EXPECT_EQ(v.property_declarations[0].name, keyword);
+    }
+
+    {
+      string8 code = u8"interface I { " + keyword + u8" }";
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
+      EXPECT_THAT(
+          v.property_declarations,
+          ElementsAre(spy_visitor::visited_property_declaration{keyword}));
+    }
+
+    {
+      string8 code = u8"interface I { " + keyword + u8"; }";
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
+      EXPECT_THAT(
+          v.property_declarations,
+          ElementsAre(spy_visitor::visited_property_declaration{keyword}));
+    }
+  }
+
+  for (string8 keyword : strict_reserved_keywords) {
+    string8 property = escape_first_character_in_keyword(keyword);
+    for (string8 prefix : {u8"", u8"get", u8"set"}) {
+      padded_string code(u8"interface I { " + prefix + u8" " + property +
+                         u8"(); }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_statement(code.string_view());
+      EXPECT_THAT(
+          v.property_declarations,
+          ElementsAre(spy_visitor::visited_property_declaration{keyword}));
+    }
+  }
+}
+
+TEST(test_parse_typescript_interface, interface_with_number_methods) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"interface Wat { 42.0(); }"_sv);
+
+    ASSERT_EQ(v.variable_declarations.size(), 1);
+    EXPECT_EQ(v.variable_declarations[0].name, u8"Wat");
+
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",   // Wat
+                            "visit_enter_interface_scope",  //
+                            "visit_property_declaration",   // 42.0
+                            "visit_enter_function_scope",   //
+                            "visit_exit_function_scope",    //
+                            "visit_exit_interface_scope"));
+  }
+}
+
+TEST(test_parse_typescript_interface, interface_allows_stray_semicolons) {
+  spy_visitor v =
+      parse_and_visit_typescript_statement(u8"interface I{ ; f() ; ; }"_sv);
+  ASSERT_EQ(v.property_declarations.size(), 1);
+  EXPECT_EQ(v.property_declarations[0].name, u8"f");
 }
 }
 }
