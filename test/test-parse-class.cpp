@@ -291,6 +291,14 @@ TEST(test_parse, class_statement_with_methods) {
   }
 
   {
+    spy_visitor v =
+        parse_and_visit_statement(u8"class C { set length(value) { } }"_sv);
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"length"}));
+  }
+
+  {
     spy_visitor v = parse_and_visit_statement(
         u8"class C {\n"
         u8"  static get length() { }\n"
