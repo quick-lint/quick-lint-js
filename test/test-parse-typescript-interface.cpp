@@ -352,6 +352,43 @@ TEST(test_parse_typescript_interface, static_properties_are_not_allowed) {
   }
 
   {
+    padded_string code(u8"interface I { static get field(); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  //
+                                      "visit_property_declaration",   // field
+                                      "visit_enter_function_scope",   // field
+                                      "visit_exit_function_scope",    // field
+                                      "visit_exit_interface_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_interface_properties_cannot_be_static,  //
+                    static_keyword, strlen(u8"interface I { "), u8"static")));
+  }
+
+  {
+    padded_string code(u8"interface I { static set field(value); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  //
+                                      "visit_property_declaration",   // field
+                                      "visit_enter_function_scope",   // field
+                                      "visit_variable_declaration",   // value
+                                      "visit_exit_function_scope",    // field
+                                      "visit_exit_interface_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_interface_properties_cannot_be_static,  //
+                    static_keyword, strlen(u8"interface I { "), u8"static")));
+  }
+
+  {
     padded_string code(u8"interface I { static field; }"_sv);
     spy_visitor v;
     parser p(&code, &v, typescript_options);
