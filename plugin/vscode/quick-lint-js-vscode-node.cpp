@@ -1053,7 +1053,7 @@ std::unique_ptr<addon_state> addon_state::create(::Napi::Env env) {
 
 // Work around a bug in MinGW's dlltool when calling certain
 // N-API functions.
-// https://lists.gnu.org/archive/html/bug-binutils/2022-05/msg00099.html
+// https://sourceware.org/bugzilla/show_bug.cgi?id=29189
 void work_around_dlltool_bug(::napi_env env) {
   // Call all napi_ functions with any double parameters.
   ::napi_value value;
