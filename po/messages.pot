@@ -1033,6 +1033,10 @@ msgid "function declared here"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "TypeScript interface fields cannot be const"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "TypeScript interface fields cannot be initalized"
 msgstr ""
 

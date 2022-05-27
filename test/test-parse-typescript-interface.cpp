@@ -801,6 +801,94 @@ TEST(test_parse_typescript_interface, field_initializers_are_not_allowed) {
                     equal, strlen(u8"interface I { 'fieldName' "), u8"=")));
   }
 }
+
+TEST(test_parse_typescript_interface, const_fields_are_not_allowed) {
+  for (string8 field_name : concat(make_array(u8"field"), keywords)) {
+    SCOPED_TRACE(out_string8(field_name));
+
+    {
+      padded_string code(u8"interface I { const " + field_name +
+                         u8" = init; }");
+      spy_visitor v;
+      parser p(&code, &v, typescript_options);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  //
+                              "visit_variable_use",           // init
+                              "visit_property_declaration",   // field_name
+                              "visit_exit_interface_scope",   //
+                              "visit_end_of_module"));
+      EXPECT_THAT(v.errors,
+                  ElementsAre(DIAG_TYPE_OFFSETS(
+                      &code, diag_interface_fields_cannot_be_const,  //
+                      const_token, strlen(u8"interface I { "), u8"const")));
+    }
+
+    {
+      padded_string code(u8"interface I { static const " + field_name +
+                         u8" = init; }");
+      spy_visitor v;
+      parser p(&code, &v, typescript_options);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(
+          v.errors,
+          ::testing::UnorderedElementsAre(
+              DIAG_TYPE(diag_interface_properties_cannot_be_static),
+              DIAG_TYPE_OFFSETS(
+                  &code, diag_interface_fields_cannot_be_const,  //
+                  const_token, strlen(u8"interface I { static "), u8"const")));
+    }
+
+    {
+      padded_string code(u8"interface I { const " + field_name + u8"; }");
+      spy_visitor v;
+      parser p(&code, &v, typescript_options);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.errors,
+                  ElementsAre(DIAG_TYPE_OFFSETS(
+                      &code, diag_interface_fields_cannot_be_const,  //
+                      const_token, strlen(u8"interface I { "), u8"const")));
+    }
+
+    {
+      padded_string code(u8"interface I { static const " + field_name +
+                         u8"; }");
+      spy_visitor v;
+      parser p(&code, &v, typescript_options);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(
+          v.errors,
+          ::testing::UnorderedElementsAre(
+              DIAG_TYPE(diag_interface_properties_cannot_be_static),
+              DIAG_TYPE_OFFSETS(
+                  &code, diag_interface_fields_cannot_be_const,  //
+                  const_token, strlen(u8"interface I { static "), u8"const")));
+    }
+  }
+
+  {
+    padded_string code(u8"interface I { const 'fieldName' = init; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_interface_fields_cannot_have_initializers,  //
+                    equal, strlen(u8"interface I { 'fieldName' "), u8"=")));
+  }
+
+  {
+    padded_string code(u8"interface I { const 'fieldName'; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_interface_fields_cannot_have_initializers,  //
+                    equal, strlen(u8"interface I { 'fieldName' "), u8"=")));
+  }
+}
 }
 }
 

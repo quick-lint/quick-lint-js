@@ -1073,6 +1073,11 @@ msgstr "funktion deklarerad här"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript interface fields cannot be const"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript interface fields cannot be initalized"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 

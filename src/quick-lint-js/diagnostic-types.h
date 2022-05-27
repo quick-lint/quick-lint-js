@@ -1641,6 +1641,13 @@
           MESSAGE(QLJS_TRANSLATABLE("function declared here"), declaration))   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_interface_fields_cannot_be_const, "E0222",                          \
+      diagnostic_severity::error, { source_code_span const_token; },         \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE("TypeScript interface fields cannot be const"),    \
+          const_token))                                                      \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_interface_fields_cannot_have_initializers, "E0221",                 \
       diagnostic_severity::error, { source_code_span equal; },                 \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

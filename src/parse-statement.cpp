@@ -1272,6 +1272,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
   std::optional<identifier> last_ident;
   function_attributes method_attributes = function_attributes::normal;
   bool async_static = false;
+  bool is_const_field = false;
   std::optional<source_code_span> static_keyword;
   std::optional<source_code_span> star_token;
 
@@ -1410,10 +1411,12 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     case token_type::equal:
       if (is_interface) {
         error_if_static_in_interface(property_name);
+        if (!is_const_field) {
         this->diag_reporter_->report(
             diag_interface_fields_cannot_have_initializers{
                 .equal = this->peek().span(),
             });
+        }
       }
       this->skip();
       this->parse_and_visit_expression(v);
@@ -1436,9 +1439,16 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         //   const field
         // }
         if (u8"const" == property_name_span.string_view()) {
-          this->diag_reporter_->report(diag_typescript_style_const_field{
-              .const_token = property_name_span,
-          });
+          if (is_interface) {
+            this->diag_reporter_->report(diag_interface_fields_cannot_be_const{
+                .const_token = property_name_span,
+                });
+            is_const_field = true;
+          } else {
+            this->diag_reporter_->report(diag_typescript_style_const_field{
+                .const_token = property_name_span,
+            });
+          }
         } else {
           this->diag_reporter_->report(diag_unexpected_token{
               .token = property_name_span,

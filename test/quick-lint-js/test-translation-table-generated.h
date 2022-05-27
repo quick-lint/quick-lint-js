@@ -381,6 +381,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript interface fields cannot be const"_translatable,
+        {
+            u8"TypeScript interface fields cannot be const",
+            u8"TypeScript interface fields cannot be const",
+            u8"TypeScript interface fields cannot be const",
+            u8"TypeScript interface fields cannot be const",
+            u8"TypeScript interface fields cannot be const",
+            u8"TypeScript interface fields cannot be const",
+        },
+    },
+    {
         "TypeScript interface fields cannot be initalized"_translatable,
         {
             u8"TypeScript interface fields cannot be initalized",
