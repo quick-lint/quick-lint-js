@@ -1083,6 +1083,11 @@ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript interface properties cannot be private"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript interface properties cannot be 'static'"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 

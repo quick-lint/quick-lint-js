@@ -1656,6 +1656,13 @@
           star))                                                               \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_interface_properties_cannot_be_private, "E0219",                    \
+      diagnostic_severity::error, { identifier property_name; },               \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "TypeScript interface properties cannot be private"),        \
+              property_name))                                                  \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_interface_properties_cannot_be_static, "E0216",                     \
       diagnostic_severity::error, { source_code_span static_keyword; },        \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

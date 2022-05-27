@@ -414,6 +414,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript interface properties cannot be private"_translatable,
+        {
+            u8"TypeScript interface properties cannot be private",
+            u8"TypeScript interface properties cannot be private",
+            u8"TypeScript interface properties cannot be private",
+            u8"TypeScript interface properties cannot be private",
+            u8"TypeScript interface properties cannot be private",
+            u8"TypeScript interface properties cannot be private",
+        },
+    },
+    {
         "TypeScript's 'enum' feature is not yet implemented by quick-lint-js"_translatable,
         {
             u8"TypeScript's 'enum' feature is not yet implemented by quick-lint-js",

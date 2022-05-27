@@ -1321,10 +1321,17 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         this->skip();
       }
       switch (this->peek().type) {
+      case token_type::private_identifier:
+        if (is_interface) {
+          this->diag_reporter_->report(
+              diag_interface_properties_cannot_be_private{
+                  .property_name = this->peek().identifier_name(),
+              });
+        }
+        [[fallthrough]];
       QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier:
-      case token_type::private_identifier:
       case token_type::reserved_keyword_with_escape_sequence: {
         // async static method() {}             // Invalid
         // async static *myAsyncGenerator() {}  // Invalid
@@ -1536,10 +1543,16 @@ next:
     // field;
     // field = initialValue;
     // #field = initialValue;
+  case token_type::private_identifier:
+    if (is_interface) {
+      this->diag_reporter_->report(diag_interface_properties_cannot_be_private{
+          .property_name = this->peek().identifier_name(),
+      });
+    }
+    [[fallthrough]];
   QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
   QLJS_CASE_CONTEXTUAL_KEYWORD:
   case token_type::identifier:
-  case token_type::private_identifier:
   case token_type::reserved_keyword_with_escape_sequence: {
     identifier property_name = this->peek().identifier_name();
     this->skip();
