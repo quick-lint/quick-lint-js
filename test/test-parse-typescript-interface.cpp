@@ -284,6 +284,45 @@ TEST(test_parse_typescript_interface, interface_with_methods) {
   }
 }
 
+TEST(test_parse_typescript_interface, interface_methods_cannot_have_bodies) {
+  {
+    padded_string code(u8"interface I { method() { x } }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // I
+                            "visit_enter_interface_scope",      //
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_enter_function_scope_body",  // method
+                            "visit_variable_use",               // x
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_interface_scope",       //
+                            "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_interface_methods_cannot_contain_bodies,  //
+                    body_start, strlen(u8"interface I { method() "), u8"{")));
+  }
+
+  {
+    padded_string code(u8"interface I { method() => { x } }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ::testing::UnorderedElementsAre(
+            // TODO(strager): Report only one diagnostic:
+            // diag_interface_methods_cannot_contain_bodies on the '=>'.
+            DIAG_TYPE(diag_functions_or_methods_should_not_have_arrow_operator),
+            DIAG_TYPE_OFFSETS(
+                &code, diag_interface_methods_cannot_contain_bodies,  //
+                body_start, strlen(u8"interface I { method() => "), u8"{")));
+  }
+}
+
 TEST(test_parse_typescript_interface, interface_with_keyword_property) {
   for (string8 keyword : keywords) {
     {

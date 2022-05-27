@@ -403,6 +403,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript interface methods cannot contain a body"_translatable,
+        {
+            u8"TypeScript interface methods cannot contain a body",
+            u8"TypeScript interface methods cannot contain a body",
+            u8"TypeScript interface methods cannot contain a body",
+            u8"TypeScript interface methods cannot contain a body",
+            u8"TypeScript interface methods cannot contain a body",
+            u8"TypeScript interface methods cannot contain a body",
+        },
+    },
+    {
         "TypeScript interface properties cannot be 'static'"_translatable,
         {
             u8"TypeScript interface properties cannot be 'static'",

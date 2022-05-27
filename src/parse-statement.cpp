@@ -1371,7 +1371,23 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         error_if_static_in_interface(property_name);
         v.visit_enter_function_scope();
         function_guard guard = this->enter_function(method_attributes);
-        this->parse_and_visit_function_parameters(v, property_name_span);
+        function_parameter_parse_result result =
+            this->parse_and_visit_function_parameters(v, property_name_span);
+        switch (result) {
+        case function_parameter_parse_result::missing_parameters_ignore_body:
+        case function_parameter_parse_result::parsed_parameters_missing_body:
+          break;
+
+        case function_parameter_parse_result::parsed_parameters:
+        case function_parameter_parse_result::missing_parameters:
+          this->diag_reporter_->report(
+              diag_interface_methods_cannot_contain_bodies{
+                  .body_start = this->peek().span(),
+              });
+          v.visit_enter_function_scope_body();
+          this->parse_and_visit_statement_block_no_scope(v);
+          break;
+        }
         v.visit_exit_function_scope();
       } else {
         this->parse_and_visit_function_parameters_and_body(

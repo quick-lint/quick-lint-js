@@ -1656,6 +1656,13 @@
           star))                                                               \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_interface_methods_cannot_contain_bodies, "E0220",                   \
+      diagnostic_severity::error, { source_code_span body_start; },            \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "TypeScript interface methods cannot contain a body"),       \
+              body_start))                                                     \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_interface_properties_cannot_be_private, "E0219",                    \
       diagnostic_severity::error, { identifier property_name; },               \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

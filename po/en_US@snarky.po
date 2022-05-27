@@ -1057,6 +1057,11 @@ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript interface methods cannot contain a body"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript interface properties cannot be private"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
