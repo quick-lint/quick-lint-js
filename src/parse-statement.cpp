@@ -1698,8 +1698,17 @@ void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
   this->skip();
 
   switch (this->peek().type) {
+  case token_type::kw_await:
+    if (this->in_async_function_) {
+      this->diag_reporter_->report(
+          diag_cannot_declare_interface_named_await_in_async_function{
+              .name = this->peek().identifier_name().span()});
+    }
+    goto interface_name;
+
   // TODO(strager): Allow contextual keywords.
   case token_type::identifier:
+  interface_name:
     v.visit_variable_declaration(this->peek().identifier_name(),
                                  variable_kind::_interface,
                                  variable_init_kind::normal);

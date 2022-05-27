@@ -801,6 +801,34 @@ TEST(test_parse_typescript_interface, field_initializers_are_not_allowed) {
                     equal, strlen(u8"interface I { 'fieldName' "), u8"=")));
   }
 }
+
+TEST(test_parse_typescript_interface, interface_named_await_in_async_function) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"interface await {}");
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"function f() {"
+        u8"interface await {}"
+        u8"}");
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string code(u8"async function g() { interface await {} }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_cannot_declare_interface_named_await_in_async_function,
+            name, strlen(u8"async function g() { interface "), u8"await")));
+  }
+}
 }
 }
 

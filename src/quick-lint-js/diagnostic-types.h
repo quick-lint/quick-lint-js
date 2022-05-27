@@ -202,6 +202,13 @@
               name))                                                           \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_cannot_declare_interface_named_await_in_async_function, "E0222",    \
+      diagnostic_severity::error, { source_code_span name; },                  \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript interfaces cannot be named "       \
+                                "'await' in async function"),                  \
+              name))                                                           \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_cannot_declare_variable_named_let_with_let, "E0008",                \
       diagnostic_severity::error, { source_code_span name; },                  \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

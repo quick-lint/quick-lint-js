@@ -174,6 +174,10 @@ msgid "classes cannot be named 'await' in async function"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "TypeScript interfaces cannot be named 'await' in async function"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "let statement cannot declare variables named 'let'"
 msgstr ""
 

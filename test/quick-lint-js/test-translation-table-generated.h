@@ -447,6 +447,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript interfaces cannot be named 'await' in async function"_translatable,
+        {
+            u8"TypeScript interfaces cannot be named 'await' in async function",
+            u8"TypeScript interfaces cannot be named 'await' in async function",
+            u8"TypeScript interfaces cannot be named 'await' in async function",
+            u8"TypeScript interfaces cannot be named 'await' in async function",
+            u8"TypeScript interfaces cannot be named 'await' in async function",
+            u8"TypeScript interfaces cannot be named 'await' in async function",
+        },
+    },
+    {
         "TypeScript's 'enum' feature is not yet implemented by quick-lint-js"_translatable,
         {
             u8"TypeScript's 'enum' feature is not yet implemented by quick-lint-js",
