@@ -978,7 +978,24 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
     parse_visitor_base &v, std::optional<source_code_span> name,
     function_attributes attributes) {
   function_guard guard = this->enter_function(attributes);
+  function_parameter_parse_result result =
+      this->parse_and_visit_function_parameters(v, name);
+  switch (result) {
+  case function_parameter_parse_result::parsed_parameters:
+  case function_parameter_parse_result::missing_parameters:
+    v.visit_enter_function_scope_body();
+    this->parse_and_visit_statement_block_no_scope(v);
+    break;
 
+  case function_parameter_parse_result::missing_parameters_ignore_body:
+  case function_parameter_parse_result::parsed_parameters_missing_body:
+    break;
+  }
+}
+
+parser::function_parameter_parse_result
+parser::parse_and_visit_function_parameters(
+    parse_visitor_base &v, std::optional<source_code_span> name) {
   if (this->peek().type == token_type::star) {
     if (!name.has_value()) {
       QLJS_PARSER_UNIMPLEMENTED();
@@ -990,7 +1007,10 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
             .function_name = *name,
             .star = this->peek().span(),
         });
-    this->in_generator_function_ = true;  // Restored by existing guard.
+    // in_generator_function_ is restored by an existing function_guard.
+    // TODO(strager): Make an explicit guard ourselves instead. We don't
+    // guarantee that the caller made a guard.
+    this->in_generator_function_ = true;
     this->skip();
   }
 
@@ -1018,11 +1038,9 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
       const char8 *expected_body = this->lexer_.end_of_previous_token();
       this->diag_reporter_->report(diag_missing_function_body{
           .expected_body = source_code_span(expected_body, expected_body)});
-
-      // Don't parse a function body.
-      return;
+      return function_parameter_parse_result::parsed_parameters_missing_body;
     }
-    break;
+    return function_parameter_parse_result::parsed_parameters;
 
     // function f {}  // Invalid.
   case token_type::left_curly:
@@ -1031,7 +1049,7 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
             source_code_span(this->lexer_.end_of_previous_token(),
                              this->lexer_.end_of_previous_token()),
     });
-    break;
+    return function_parameter_parse_result::missing_parameters;
 
     // { function f }  // Invalid.
   case token_type::comma:
@@ -1043,17 +1061,12 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
             source_code_span(this->lexer_.end_of_previous_token(),
                              this->lexer_.end_of_previous_token()),
     });
-    // Don't parse a function body.
-    return;
+    return function_parameter_parse_result::missing_parameters_ignore_body;
 
   default:
     QLJS_PARSER_UNIMPLEMENTED();
-    break;
+    return function_parameter_parse_result::parsed_parameters;
   }
-
-  v.visit_enter_function_scope_body();
-
-  this->parse_and_visit_statement_block_no_scope(v);
 }
 
 QLJS_WARNING_PUSH

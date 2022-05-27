@@ -169,6 +169,13 @@ class parser {
     required_for_statement,
   };
 
+  enum class function_parameter_parse_result {
+    parsed_parameters,
+    parsed_parameters_missing_body,
+    missing_parameters_ignore_body,
+    missing_parameters,
+  };
+
   void parse_and_visit_function_declaration(parse_visitor_base &v,
                                             function_attributes attributes,
                                             const char8 *begin,
@@ -179,6 +186,8 @@ class parser {
   void parse_and_visit_function_parameters_and_body_no_scope(
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
+  function_parameter_parse_result parse_and_visit_function_parameters(
+      parse_visitor_base &v, std::optional<source_code_span> name);
   void parse_and_visit_function_parameters(parse_visitor_base &v);
   std::optional<source_code_span> is_maybe_function_statement();
   // If the function returns nullopt, no tokens are consumed.
