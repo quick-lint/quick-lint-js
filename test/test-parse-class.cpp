@@ -160,6 +160,21 @@ TEST(test_parse, unclosed_class_statement) {
                               &code, diag_unclosed_class_block,  //
                               block_open, strlen(u8"class C "), u8"{")));
   }
+
+  {
+    spy_visitor v;
+    padded_string code(u8"class C { property "_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  // C
+                            "visit_enter_class_scope",     // C
+                            "visit_property_declaration",  // property
+                            "visit_exit_class_scope"));    // C
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code, diag_unclosed_class_block,  //
+                              block_open, strlen(u8"class C "), u8"{")));
+  }
 }
 
 TEST(test_parse, class_statement_with_odd_heritage) {

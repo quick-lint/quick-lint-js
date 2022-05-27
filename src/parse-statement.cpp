@@ -1302,6 +1302,8 @@ void parser::parse_and_visit_class_member(parse_visitor_base &v) {
 
       // field;
       // class C { field }
+      // class C { field  // Invalid.
+    case token_type::end_of_file:
     case token_type::right_curly:
     case token_type::semicolon:
       v.visit_property_declaration(property_name);
