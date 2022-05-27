@@ -1173,6 +1173,16 @@ TEST(test_parse, class_statement_as_with_statement_body_is_disallowed) {
   }
 }
 
+TEST(test_parse, class_in_async_function_is_allowed) {
+  {
+    spy_visitor v = parse_and_visit_statement(
+        u8"async function f() {"
+        u8"  class C {}"
+        u8"}");
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
 TEST(test_parse, class_named_await_in_async_function) {
   {
     spy_visitor v = parse_and_visit_statement(u8"class await {}");

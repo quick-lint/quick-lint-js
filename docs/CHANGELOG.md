@@ -15,6 +15,11 @@ Semantic Versioning.
 * New global group: `web-worker` (enabled by default)
 * The `importScripts` global function is now recognized by default.
 
+### Fixed
+
+* [E0707][] now only complains about classes named `await`, not any class inside
+  an async function.
+
 ## 2.5.0 (2022-05-23)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.5.0/)

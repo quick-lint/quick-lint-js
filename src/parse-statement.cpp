@@ -1166,19 +1166,22 @@ void parser::parse_and_visit_class_heading(
 
   std::optional<identifier> optional_class_name;
   switch (this->peek().type) {
-  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
-    // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
-    [[fallthrough]];
-  QLJS_CASE_CONTEXTUAL_KEYWORD:
-  case token_type::identifier:
   case token_type::kw_await:
-  case token_type::kw_yield:
-    // TODO(#707): Disallow classes named 'yield' in generator function.
     if (this->in_async_function_) {
       this->diag_reporter_->report(
           diag_cannot_declare_class_named_await_in_async_function{
               .name = this->peek().identifier_name().span()});
     }
+    goto class_name;
+
+  QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
+    // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
+    [[fallthrough]];
+  QLJS_CASE_CONTEXTUAL_KEYWORD:
+  case token_type::identifier:
+  case token_type::kw_yield:
+    // TODO(#707): Disallow classes named 'yield' in generator function.
+  class_name:
     if (this->peek().type == token_type::kw_let) {
       this->diag_reporter_->report(diag_cannot_declare_class_named_let{
           .name = this->peek().identifier_name().span()});
