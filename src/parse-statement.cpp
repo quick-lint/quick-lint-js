@@ -1274,15 +1274,16 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
   function_attributes method_attributes = function_attributes::normal;
   bool async_static = false;
   std::optional<source_code_span> static_keyword;
-  auto is_static =
-      [&static_keyword](const std::optional<identifier> &property_name) {
-        return static_keyword.has_value() &&
-               (!property_name.has_value() ||
-                property_name->span().begin() != static_keyword->begin());
-      };
+
+  auto is_keyword = [](const std::optional<source_code_span> &keyword,
+                       const std::optional<identifier> &property_name) -> bool {
+    return keyword.has_value() &&
+           (!property_name.has_value() ||
+            property_name->span().begin() != keyword->begin());
+  };
   auto error_if_static_in_interface =
       [&](const std::optional<identifier> &property_name) {
-        if (is_interface && is_static(property_name)) {
+        if (is_interface && is_keyword(static_keyword, property_name)) {
           this->diag_reporter_->report(
               diag_interface_properties_cannot_be_static{
                   .static_keyword = *static_keyword,
@@ -1290,15 +1291,9 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         }
       };
   std::optional<source_code_span> async_keyword;
-  auto is_async =
-      [&async_keyword](const std::optional<identifier> &property_name) {
-        return async_keyword.has_value() &&
-               (!property_name.has_value() ||
-                property_name->span().begin() != async_keyword->begin());
-      };
   auto error_if_async_in_interface =
       [&](const std::optional<identifier> &property_name) {
-        if (is_interface && is_async(property_name)) {
+        if (is_interface && is_keyword(async_keyword, property_name)) {
           this->diag_reporter_->report(diag_interface_methods_cannot_be_async{
               .async_keyword = *async_keyword,
           });
