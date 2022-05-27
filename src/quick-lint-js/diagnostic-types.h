@@ -1641,6 +1641,13 @@
           MESSAGE(QLJS_TRANSLATABLE("function declared here"), declaration))   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_interface_fields_cannot_have_initializers, "E0221",                 \
+      diagnostic_severity::error, { source_code_span equal; },                 \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "TypeScript interface fields cannot be initalized"),         \
+              equal))                                                          \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_interface_methods_cannot_be_async, "E0217",                         \
       diagnostic_severity::error, { source_code_span async_keyword; },         \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

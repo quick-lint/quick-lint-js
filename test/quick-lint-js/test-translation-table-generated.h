@@ -381,6 +381,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript interface fields cannot be initalized"_translatable,
+        {
+            u8"TypeScript interface fields cannot be initalized",
+            u8"TypeScript interface fields cannot be initalized",
+            u8"TypeScript interface fields cannot be initalized",
+            u8"TypeScript interface fields cannot be initalized",
+            u8"TypeScript interface fields cannot be initalized",
+            u8"TypeScript interface fields cannot be initalized",
+        },
+    },
+    {
         "TypeScript interface methods cannot be marked 'async'"_translatable,
         {
             u8"TypeScript interface methods cannot be marked 'async'",

@@ -1408,6 +1408,13 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
       // field = initialValue;
     case token_type::equal:
+      if (is_interface) {
+        error_if_static_in_interface(property_name);
+        this->diag_reporter_->report(
+            diag_interface_fields_cannot_have_initializers{
+                .equal = this->peek().span(),
+            });
+      }
       this->skip();
       this->parse_and_visit_expression(v);
       v.visit_property_declaration(property_name);
