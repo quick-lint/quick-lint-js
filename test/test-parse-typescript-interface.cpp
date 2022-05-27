@@ -199,6 +199,24 @@ TEST(test_parse_typescript_interface, property_without_type) {
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"interface I { [x + y]; }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",   //
+                            "visit_enter_interface_scope",  //
+                            "visit_variable_use",           // x
+                            "visit_variable_use",           // y
+                            "visit_property_declaration",   // (x + y)
+                            "visit_exit_interface_scope"));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"x"},
+                            spy_visitor::visited_variable_use{u8"y"}));
+  }
 }
 
 TEST(test_parse_typescript_interface, interface_with_methods) {
@@ -251,6 +269,16 @@ TEST(test_parse_typescript_interface, interface_with_methods) {
   {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"interface I { \"stringKey\"(); }");
+    ASSERT_EQ(v.property_declarations.size(), 1);
+    EXPECT_EQ(v.property_declarations[0].name, std::nullopt);
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"interface I { [x + y](); }"_sv);
+    ASSERT_EQ(v.variable_uses.size(), 2);
+    EXPECT_EQ(v.variable_uses[0].name, u8"x");
+    EXPECT_EQ(v.variable_uses[1].name, u8"y");
     ASSERT_EQ(v.property_declarations.size(), 1);
     EXPECT_EQ(v.property_declarations[0].name, std::nullopt);
   }
