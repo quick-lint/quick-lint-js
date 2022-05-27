@@ -1235,7 +1235,7 @@ void parser::parse_and_visit_class_body(parse_visitor_base &v) {
   this->skip();
 
   while (this->peek().type != token_type::right_curly) {
-    this->parse_and_visit_class_member(v);
+    this->parse_and_visit_class_or_interface_member(v, /*is_interface=*/false);
     if (this->peek().type == token_type::end_of_file) {
       this->diag_reporter_->report(diag_unclosed_class_block{
           .block_open = left_curly_span,
@@ -1248,7 +1248,10 @@ void parser::parse_and_visit_class_body(parse_visitor_base &v) {
   this->skip();
 }
 
-void parser::parse_and_visit_class_member(parse_visitor_base &v) {
+void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
+                                                       bool is_interface) {
+  static_cast<void>(is_interface);  // TODO(strager): Use or delete.
+
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wshadow-local")
 
@@ -1635,7 +1638,7 @@ void parser::parse_and_visit_typescript_interface_body(parse_visitor_base &v) {
   this->skip();
 
   while (this->peek().type != token_type::right_curly) {
-    this->parse_and_visit_typescript_interface_member(v);
+    this->parse_and_visit_class_or_interface_member(v, /*is_interface=*/true);
     if (this->peek().type == token_type::end_of_file) {
       this->diag_reporter_->report(diag_unclosed_interface_block{
           .block_open = left_curly_span,
@@ -1646,27 +1649,6 @@ void parser::parse_and_visit_typescript_interface_body(parse_visitor_base &v) {
 
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
   this->skip();
-}
-
-void parser::parse_and_visit_typescript_interface_member(
-    parse_visitor_base &v) {
-  switch (this->peek().type) {
-  case token_type::identifier:
-    v.visit_property_declaration(this->peek().identifier_name());
-    this->skip();
-    break;
-
-  case token_type::semicolon:
-    this->skip();
-    break;
-
-  case token_type::end_of_file:
-    break;
-
-  default:
-    QLJS_PARSER_UNIMPLEMENTED();
-    break;
-  }
 }
 
 void parser::parse_and_visit_switch(parse_visitor_base &v) {

@@ -196,12 +196,12 @@ class parser {
   void parse_and_visit_class_heading(parse_visitor_base &v,
                                      name_requirement require_name);
   void parse_and_visit_class_body(parse_visitor_base &v);
-  void parse_and_visit_class_member(parse_visitor_base &v);
+  void parse_and_visit_class_or_interface_member(parse_visitor_base &v,
+                                                 bool is_interface);
 
   void parse_and_visit_typescript_interface(parse_visitor_base &v);
   void parse_and_visit_typescript_interface_extends(parse_visitor_base &v);
   void parse_and_visit_typescript_interface_body(parse_visitor_base &v);
-  void parse_and_visit_typescript_interface_member(parse_visitor_base &v);
 
   void parse_and_visit_try_maybe_catch_maybe_finally(parse_visitor_base &v);
   [[nodiscard]] bool parse_and_visit_catch_or_finally_or_both(
