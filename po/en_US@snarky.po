@@ -1,5 +1,5 @@
-## Copyright (C) 2020  Matthew "strager" Glazar
-## See end of file for extended copyright information.
+# Copyright (C) 2020  Matthew "strager" Glazar
+# See end of file for extended copyright information.
 msgid ""
 msgstr ""
 "Project-Id-Version: lada 1\n"
