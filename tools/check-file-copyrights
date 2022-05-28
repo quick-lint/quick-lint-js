@@ -14,6 +14,7 @@ check_file_copyright_header() {
   local file="${1}"
   case "${file}" in
     benchmark/benchmark-lsp/corpus/*) ;;
+    po/en_US@snarky.po) ;;
     dist/winget/*.yaml) check_file_copyright_header_winget_manifests "${file}" ;;
     *) check_file_copyright_header_quick_lint_js "${file}" ;;
   esac
