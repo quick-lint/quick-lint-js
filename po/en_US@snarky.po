@@ -1121,5 +1121,5 @@ msgstr "expected {1:singular}"
 msgid "here"
 msgstr "there 👈"
 
-## Copyright (C) 2020  Matthew "strager" Glazar
-## See top of file for extended copyright information.
+# Copyright (C) 2020  Matthew "strager" Glazar
+# See top of file for extended copyright information.
