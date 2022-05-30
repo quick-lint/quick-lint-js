@@ -842,6 +842,10 @@ msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "TypeScript type annotations are not allowed in JavaScript code"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid ""
 "const fields within classes are only allowed in TypeScript, not JavaScript"
 msgstr ""

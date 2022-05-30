@@ -147,6 +147,9 @@ class parser {
     return this->parse_expression(v, precedence{});
   }
 
+  void parse_and_visit_typescript_colon_type_expression(parse_visitor_base &v);
+  void parse_and_visit_typescript_type_expression(parse_visitor_base &v);
+
  private:
   enum class variable_context {
     lhs,

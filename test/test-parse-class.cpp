@@ -1386,6 +1386,46 @@ TEST(test_parse, class_expression_body_is_visited_first_in_expression) {
                     spy_visitor::visited_variable_assignment{u8"after"}));
   }
 }
+
+TEST(test_parse_typescript_interface,
+     field_with_type_is_disallowed_in_javascript) {
+  {
+    padded_string code(u8"class C { fieldName: FieldType; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"FieldType"}));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code,
+            diag_typescript_type_annotations_not_allowed_in_javascript,  //
+            type_colon, strlen(u8"class C { fieldName"), u8":")));
+  }
+}
+
+TEST(test_parse_typescript_interface,
+     field_with_type_is_allowed_in_typescript) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"class C { fieldName: FieldType; }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  // C
+                            "visit_enter_class_scope",     // C
+                            "visit_variable_type_use",     // FieldType
+                            "visit_property_declaration",  // fieldName
+                            "visit_exit_class_scope"));    // C
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"FieldType"}));
+  }
+}
 }
 }
 

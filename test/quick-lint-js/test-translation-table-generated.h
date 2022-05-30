@@ -459,6 +459,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript type annotations are not allowed in JavaScript code"_translatable,
+        {
+            u8"TypeScript type annotations are not allowed in JavaScript code",
+            u8"TypeScript type annotations are not allowed in JavaScript code",
+            u8"TypeScript type annotations are not allowed in JavaScript code",
+            u8"TypeScript type annotations are not allowed in JavaScript code",
+            u8"TypeScript type annotations are not allowed in JavaScript code",
+            u8"TypeScript type annotations are not allowed in JavaScript code",
+        },
+    },
+    {
         "TypeScript's 'enum' feature is not yet implemented by quick-lint-js"_translatable,
         {
             u8"TypeScript's 'enum' feature is not yet implemented by quick-lint-js",

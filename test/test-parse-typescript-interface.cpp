@@ -219,6 +219,51 @@ TEST(test_parse_typescript_interface, property_without_type) {
   }
 }
 
+TEST(test_parse_typescript_interface, field_with_type) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"interface I { fieldName: FieldType; }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",    // I
+                            "visit_enter_interface_scope",   // I
+                            "visit_variable_type_use",       // FieldType
+                            "visit_property_declaration",    // fieldName
+                            "visit_exit_interface_scope"));  // I
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"FieldType"}));
+  }
+
+  {
+    // Semicolon is required.
+    padded_string code(u8"interface I { fieldName: FieldType otherField }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"},
+                    spy_visitor::visited_property_declaration{u8"otherField"}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_missing_semicolon_after_field,  //
+                    expected_semicolon,
+                    strlen(u8"interface I { fieldName: FieldType"), u8"")));
+  }
+
+  {
+    // ASI
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"interface I { fieldName: FieldType\notherField }"_sv);
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"},
+                    spy_visitor::visited_property_declaration{u8"otherField"}));
+  }
+}
+
 TEST(test_parse_typescript_interface, interface_with_methods) {
   {
     spy_visitor v = parse_and_visit_typescript_statement(

@@ -1340,6 +1340,13 @@
               interface_keyword))                                              \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_type_annotations_not_allowed_in_javascript, "E0224",     \
+      diagnostic_severity::error, { source_code_span type_colon; },            \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript type annotations are not "         \
+                                "allowed in JavaScript code"),                 \
+              type_colon))                                                     \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_style_const_field, "E0165", diagnostic_severity::error,  \
       { source_code_span const_token; },                                       \
       MESSAGE(QLJS_TRANSLATABLE("const fields within classes are only "        \

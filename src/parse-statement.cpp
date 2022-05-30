@@ -1466,6 +1466,12 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       }
       break;
 
+    case token_type::colon:
+      this->parse_and_visit_typescript_colon_type_expression(v);
+      v.visit_property_declaration(property_name);
+      this->consume_semicolon<diag_missing_semicolon_after_field>();
+      break;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;
@@ -3466,6 +3472,25 @@ void parser::visit_binding_element(
     });
     break;
   }
+}
+
+void parser::parse_and_visit_typescript_colon_type_expression(
+    parse_visitor_base &v) {
+  QLJS_ASSERT(this->peek().type == token_type::colon);
+  if (!this->options_.typescript) {
+    this->diag_reporter_->report(
+        diag_typescript_type_annotations_not_allowed_in_javascript{
+            .type_colon = this->peek().span(),
+        });
+  }
+  this->skip();
+  this->parse_and_visit_typescript_type_expression(v);
+}
+
+void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+  v.visit_variable_type_use(this->peek().identifier_name());
+  this->skip();
 }
 }
 
