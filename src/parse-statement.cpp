@@ -59,7 +59,7 @@ bool parser::parse_and_visit_statement(
       });
       this->skip();
     }
-    this->consume_semicolon();
+    this->consume_semicolon_after_statement();
   };
 
 parse_statement:
@@ -115,7 +115,7 @@ parse_statement:
       this->lexer_.commit_transaction(std::move(transaction));
       this->parse_and_visit_let_bindings(v, let_token,
                                          /*allow_in_operator=*/true);
-      this->consume_semicolon();
+      this->consume_semicolon_after_statement();
     }
     break;
   }
@@ -546,14 +546,14 @@ parse_statement:
       }
       break;
     }
-    this->consume_semicolon();
+    this->consume_semicolon_after_statement();
     break;
   }
 
     // debugger;
   case token_type::kw_debugger:
     this->skip();
-    this->consume_semicolon();
+    this->consume_semicolon_after_statement();
     break;
 
     // enum E { a, b, c }  // TypeScript.
@@ -641,7 +641,7 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
         expression *ast =
             this->parse_async_expression(v, async_token, precedence{});
         this->visit_expression(ast, v, variable_context::rhs);
-        this->consume_semicolon();
+        this->consume_semicolon_after_statement();
       }
       break;
     }
@@ -678,7 +678,7 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
       // export default 2 + 2;
     default:
       this->parse_and_visit_expression(v);
-      this->consume_semicolon();
+      this->consume_semicolon_after_statement();
       break;
     }
     break;
@@ -708,7 +708,7 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
     this->skip();
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);
     this->skip();
-    this->consume_semicolon();
+    this->consume_semicolon_after_statement();
     break;
 
     // export {a as default, b};
@@ -754,7 +754,7 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
     QLJS_ASSERT(&this->buffering_visitor_stack_.top() == &exports_visitor);
     this->buffering_visitor_stack_.pop();
 
-    this->consume_semicolon();
+    this->consume_semicolon_after_statement();
     break;
   }
 
@@ -810,7 +810,7 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
       break;
     }
     this->visit_expression(ast, v, variable_context::rhs);
-    this->consume_semicolon();
+    this->consume_semicolon_after_statement();
     break;
   }
 
@@ -1406,7 +1406,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     case token_type::semicolon:
       error_if_static_in_interface(property_name);
       v.visit_property_declaration(property_name);
-      this->consume_semicolon();
+      this->consume_semicolon<diag_missing_semicolon_after_field>();
       break;
 
       // field = initialValue;
@@ -1421,7 +1421,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       this->skip();
       this->parse_and_visit_expression(v);
       v.visit_property_declaration(property_name);
-      this->consume_semicolon();
+      this->consume_semicolon<diag_missing_semicolon_after_field>();
       break;
 
     case token_type::identifier:
@@ -2642,7 +2642,7 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
         v, this->make_expression<expression::import>(import_span),
         precedence{});
     this->visit_expression(ast, v, variable_context::rhs);
-    this->consume_semicolon();
+    this->consume_semicolon_after_statement();
     return;
   }
 
@@ -2654,7 +2654,7 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
     // import "foo";
   case token_type::string:
     this->skip();
-    this->consume_semicolon();
+    this->consume_semicolon_after_statement();
     return;
 
   default:
@@ -2957,7 +2957,7 @@ void parser::parse_and_visit_variable_declaration_statement(
   this->skip();
   this->parse_and_visit_let_bindings(v, declaring_token,
                                      /*allow_in_operator=*/true);
-  this->consume_semicolon();
+  this->consume_semicolon_after_statement();
 }
 
 void parser::parse_and_visit_let_bindings(parse_visitor_base &v,

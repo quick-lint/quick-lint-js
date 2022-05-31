@@ -770,6 +770,11 @@ msgid "missing semicolon after statement"
 msgstr "point-virgule manquant après l'instruction"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing semicolon after field"
+msgstr "point-virgule manquant après l'instruction"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing semicolon between condition and update parts of for loop"
 msgstr ""
 "point-virgule manquant entre la condition et l'actualisation de la boucle for"

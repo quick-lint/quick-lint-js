@@ -2109,6 +2109,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "missing semicolon after field"_translatable,
+        {
+            u8"missing semicolon after field",
+            u8"missing semicolon after field",
+            u8"missing semicolon after field",
+            u8"missing semicolon after field",
+            u8"missing semicolon after field",
+            u8"missing semicolon after field",
+        },
+    },
+    {
         "missing semicolon after statement"_translatable,
         {
             u8"missing semicolon after statement",

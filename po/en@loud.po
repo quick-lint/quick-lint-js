@@ -754,6 +754,11 @@ msgid "missing semicolon after statement"
 msgstr "MISSING SEMICOLON AFTER STATEMENT"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing semicolon after field"
+msgstr "MISSING SEMICOLON AFTER STATEMENT"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing semicolon between condition and update parts of for loop"
 msgstr "MISSING SEMICOLON BETWEEN CONDITION AND UPDATE PARTS OF FOR LOOP"
 

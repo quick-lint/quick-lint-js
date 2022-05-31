@@ -14,6 +14,9 @@ Semantic Versioning.
   recognized.
 * New global group: `web-worker` (enabled by default)
 * The `importScripts` global function is now recognized by default.
+* Forgetting a semicolon between class fields now reports "missing semicolon
+  after field" ([E0223][]) instead of "missing semicolon after statement"
+  ([E0027][]).
 
 ### Fixed
 
@@ -621,4 +624,5 @@ Beta release.
 [E0207]: https://quick-lint-js.com/errors/E0207/
 [E0211]: https://quick-lint-js.com/errors/E0211/
 [E0212]: https://quick-lint-js.com/errors/E0212/
+[E0223]: https://quick-lint-js.com/errors/E0223/
 [E0707]: https://quick-lint-js.com/errors/E0707/

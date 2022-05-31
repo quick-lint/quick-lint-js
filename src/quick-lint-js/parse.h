@@ -382,6 +382,8 @@ class parser {
   expression *maybe_wrap_erroneous_arrow_function(expression *arrow_function,
                                                   expression *lhs);
 
+  void consume_semicolon_after_statement();
+  template <class MissingSemicolonDiagnostic>
   void consume_semicolon();
 
   const token &peek() const noexcept { return this->lexer_.peek(); }
@@ -600,6 +602,11 @@ void parser::parse_and_visit_parenthesized_expression(parse_visitor_base &v) {
     });
   }
 }
+
+extern template void
+parser::consume_semicolon<diag_missing_semicolon_after_field>();
+extern template void
+parser::consume_semicolon<diag_missing_semicolon_after_statement>();
 }
 
 #endif

@@ -1170,6 +1170,12 @@
       MESSAGE(QLJS_TRANSLATABLE("missing semicolon after statement"), where))  \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_missing_semicolon_after_field, "E0223", diagnostic_severity::error, \
+      { source_code_span expected_semicolon; },                                \
+      MESSAGE(QLJS_TRANSLATABLE("missing semicolon after field"),              \
+              expected_semicolon))                                             \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_missing_semicolon_between_for_loop_condition_and_update, "E0100",   \
       diagnostic_severity::error, { source_code_span expected_semicolon; },    \
       MESSAGE(QLJS_TRANSLATABLE("missing semicolon between condition and "     \

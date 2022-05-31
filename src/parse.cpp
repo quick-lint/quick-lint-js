@@ -484,6 +484,11 @@ bool parser::is_let_token_a_variable_reference(
   }
 }
 
+void parser::consume_semicolon_after_statement() {
+  this->consume_semicolon<diag_missing_semicolon_after_statement>();
+}
+
+template <class MissingSemicolonDiagnostic>
 void parser::consume_semicolon() {
   switch (this->peek().type) {
   case token_type::semicolon:
@@ -499,12 +504,16 @@ void parser::consume_semicolon() {
     } else {
       this->lexer_.insert_semicolon();
       this->diag_reporter_->report(
-          diag_missing_semicolon_after_statement{this->peek().span()});
+          MissingSemicolonDiagnostic{this->peek().span()});
       this->skip();
     }
     break;
   }
 }
+
+template void parser::consume_semicolon<diag_missing_semicolon_after_field>();
+template void
+parser::consume_semicolon<diag_missing_semicolon_after_statement>();
 
 parser_transaction parser::begin_transaction() {
   return parser_transaction(&this->lexer_, &this->diag_reporter_,
