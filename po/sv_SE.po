@@ -739,8 +739,9 @@ msgid "function starts here"
 msgstr "funktionkallelse startar här"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "missing parentheses around left-hand side of '**'"
-msgstr ""
+msgstr "saknar namn eller paranteser för funktion"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'**' operator cannot be used after unary '{1}' without parentheses"
