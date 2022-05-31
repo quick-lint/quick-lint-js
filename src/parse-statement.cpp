@@ -1605,9 +1605,88 @@ next:
 
     // [methodNameExpression]() {}
     // [fieldNameExpression] = initialValue;
+    // [key: KeyType]: ValueType;  // TypeScript only
   case token_type::left_square: {
     const char8 *name_begin = this->peek().begin;
     this->skip();
+
+    if (this->options_.typescript) {
+      parser_transaction transaction = this->begin_transaction();
+      // TODO(strager): Allow certain contextual keywords like 'let'?
+      if (this->peek().type == token_type::identifier) {
+        identifier key_variable = this->peek().identifier_name();
+        this->skip();
+        if (this->peek().type == token_type::colon) {
+          // [key: KeyType]: ValueType;
+          v.visit_enter_index_signature_scope();
+          this->commit_transaction(std::move(transaction));
+          this->parse_and_visit_typescript_colon_type_expression(v);
+
+          QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
+          const char8 *name_end = this->peek().end;
+          this->skip();
+
+          // TODO(strager): We probably should create a new kind of variable
+          // instead of overloading 'parameter'.
+          v.visit_variable_declaration(key_variable, variable_kind::_parameter,
+                                       variable_init_kind::normal);
+
+          switch (this->peek().type) {
+          // [key: KeyType]: ValueType;
+          case token_type::colon:
+            this->parse_and_visit_typescript_colon_type_expression(v);
+            this->consume_semicolon<
+                diag_missing_semicolon_after_index_signature>();
+            break;
+
+          // [key: KeyType];  // Invalid.
+          case token_type::semicolon: {
+          missing_type_for_index_signature:
+            const char8 *expected_type = this->lexer_.end_of_previous_token();
+            this->diag_reporter_->report(
+                diag_typescript_index_signature_needs_type{
+                    .expected_type =
+                        source_code_span(expected_type, expected_type),
+                });
+            break;
+          }
+
+          // [key: KeyType]  // Invalid.
+          // ();
+          //
+          // [key: KeyType]();  // Invalid.
+          case token_type::left_paren: {
+            if (this->peek().has_leading_newline) {
+              QLJS_PARSER_UNIMPLEMENTED();
+            } else {
+              this->diag_reporter_->report(
+                  diag_typescript_index_signature_cannot_be_method{
+                      .left_paren = this->peek().span(),
+                  });
+              parse_and_visit_field_or_method_without_name(
+                  source_code_span(name_begin, name_end), method_attributes);
+            }
+            break;
+          }
+
+          // [key: KeyType]  // Invalid.
+          // method();
+          //
+          // [key: KeyType] method();  // Invalid.
+          default:
+            if (this->peek().has_leading_newline) {
+              goto missing_type_for_index_signature;
+            } else {
+              QLJS_PARSER_UNIMPLEMENTED();
+            }
+            break;
+          }
+          v.visit_exit_index_signature_scope();
+          break;
+        }
+      }
+      this->roll_back_transaction(std::move(transaction));
+    }
 
     this->parse_and_visit_expression(v);
 

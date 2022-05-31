@@ -1471,6 +1471,28 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "index signature must be a field, not a method"_translatable,
+        {
+            u8"index signature must be a field, not a method",
+            u8"index signature must be a field, not a method",
+            u8"index signature must be a field, not a method",
+            u8"index signature must be a field, not a method",
+            u8"index signature must be a field, not a method",
+            u8"index signature must be a field, not a method",
+        },
+    },
+    {
+        "index signatures require a value type"_translatable,
+        {
+            u8"index signatures require a value type",
+            u8"index signatures require a value type",
+            u8"index signatures require a value type",
+            u8"index signatures require a value type",
+            u8"index signatures require a value type",
+            u8"index signatures require a value type",
+        },
+    },
+    {
         "indexing requires an expression"_translatable,
         {
             u8"indexing requires an expression",
@@ -2128,6 +2150,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"missing semicolon after field",
             u8"missing semicolon after field",
             u8"missing semicolon after field",
+        },
+    },
+    {
+        "missing semicolon after index signature"_translatable,
+        {
+            u8"missing semicolon after index signature",
+            u8"missing semicolon after index signature",
+            u8"missing semicolon after index signature",
+            u8"missing semicolon after index signature",
+            u8"missing semicolon after index signature",
+            u8"missing semicolon after index signature",
         },
     },
     {

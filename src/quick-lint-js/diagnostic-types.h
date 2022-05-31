@@ -1176,6 +1176,12 @@
               expected_semicolon))                                             \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_missing_semicolon_after_index_signature, "E0226",                   \
+      diagnostic_severity::error, { source_code_span expected_semicolon; },    \
+      MESSAGE(QLJS_TRANSLATABLE("missing semicolon after index signature"),    \
+              expected_semicolon))                                             \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_missing_semicolon_between_for_loop_condition_and_update, "E0100",   \
       diagnostic_severity::error, { source_code_span expected_semicolon; },    \
       MESSAGE(QLJS_TRANSLATABLE("missing semicolon between condition and "     \
@@ -1331,6 +1337,19 @@
       MESSAGE(QLJS_TRANSLATABLE("TypeScript's 'enum' feature is not yet "      \
                                 "implemented by quick-lint-js"),               \
               enum_keyword))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_index_signature_cannot_be_method, "E0227",               \
+      diagnostic_severity::error, { source_code_span left_paren; },            \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE("index signature must be a field, not a method"),  \
+          left_paren))                                                         \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_index_signature_needs_type, "E0225",                     \
+      diagnostic_severity::error, { source_code_span expected_type; },         \
+      MESSAGE(QLJS_TRANSLATABLE("index signatures require a value type"),      \
+              expected_type))                                                  \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
       diag_typescript_interfaces_not_allowed_in_javascript, "E0213",           \

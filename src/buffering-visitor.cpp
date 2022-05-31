@@ -33,6 +33,9 @@ void buffering_visitor::copy_into(parse_visitor_base &target) const {
     case visit_kind::enter_function_scope_body:
       target.visit_enter_function_scope_body();
       break;
+    case visit_kind::enter_index_signature_scope:
+      target.visit_enter_index_signature_scope();
+      break;
     case visit_kind::enter_interface_scope:
       target.visit_enter_interface_scope();
       break;
@@ -53,6 +56,9 @@ void buffering_visitor::copy_into(parse_visitor_base &target) const {
       break;
     case visit_kind::exit_function_scope:
       target.visit_exit_function_scope();
+      break;
+    case visit_kind::exit_index_signature_scope:
+      target.visit_exit_index_signature_scope();
       break;
     case visit_kind::exit_interface_scope:
       target.visit_exit_interface_scope();

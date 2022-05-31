@@ -329,6 +329,133 @@ TEST(test_parse_typescript_interface, interface_with_methods) {
   }
 }
 
+TEST(test_parse_typescript_interface, interface_with_index_signature) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"interface I { [key: KeyType]: ValueType; }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",         // I
+                                      "visit_enter_interface_scope",        // I
+                                      "visit_enter_index_signature_scope",  //
+                                      "visit_variable_type_use",     // KeyType
+                                      "visit_variable_declaration",  // key
+                                      "visit_variable_type_use",  // ValueType
+                                      "visit_exit_index_signature_scope",  //
+                                      "visit_exit_interface_scope"));      // I
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"KeyType"},
+                            spy_visitor::visited_variable_use{u8"ValueType"}));
+    // TODO(strager): We probably should create a new kind of variable instead
+    // of 'parameter'.
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            spy_visitor::visited_variable_declaration{
+                u8"I", variable_kind::_interface, variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"key", variable_kind::_parameter,
+                variable_init_kind::normal}));
+  }
+}
+
+TEST(test_parse_typescript_interface, index_signature_requires_type) {
+  {
+    padded_string code(u8"interface I { [key: KeyType]; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",         // I
+                                      "visit_enter_interface_scope",        // I
+                                      "visit_enter_index_signature_scope",  //
+                                      "visit_variable_type_use",     // KeyType
+                                      "visit_variable_declaration",  // key
+                                      "visit_exit_index_signature_scope",  //
+                                      "visit_exit_interface_scope"));      // I
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_typescript_index_signature_needs_type,  //
+            expected_type, strlen(u8"interface I { [key: KeyType]"), u8"")));
+  }
+
+  {
+    // ASI
+    padded_string code(u8"interface I { [key: KeyType]\n  method(); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",         // I
+                                      "visit_enter_interface_scope",        // I
+                                      "visit_enter_index_signature_scope",  //
+                                      "visit_variable_type_use",     // KeyType
+                                      "visit_variable_declaration",  // key
+                                      "visit_exit_index_signature_scope",  //
+                                      "visit_property_declaration",    // method
+                                      "visit_enter_function_scope",    // method
+                                      "visit_exit_function_scope",     // method
+                                      "visit_exit_interface_scope"));  // I
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_typescript_index_signature_needs_type,  //
+            expected_type, strlen(u8"interface I { [key: KeyType]"), u8"")));
+  }
+}
+
+TEST(test_parse_typescript_interface, index_signature_cannot_be_a_method) {
+  {
+    padded_string code(u8"interface I { [key: KeyType](param); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.visits,
+        ElementsAre("visit_variable_declaration",         // I
+                    "visit_enter_interface_scope",        // I
+                    "visit_enter_index_signature_scope",  //
+                    "visit_variable_type_use",            // KeyType
+                    "visit_variable_declaration",         // key
+                    // TODO(strager): Don't emit visit_property_declaration.
+                    "visit_property_declaration",        //
+                    "visit_enter_function_scope",        //
+                    "visit_variable_declaration",        // param
+                    "visit_exit_function_scope",         //
+                    "visit_exit_index_signature_scope",  //
+                    "visit_exit_interface_scope"));      // I
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_typescript_index_signature_cannot_be_method,  //
+            left_paren, strlen(u8"interface I { [key: KeyType]"), u8"(")));
+  }
+}
+
+TEST(test_parse_typescript_interface, index_signature_requires_semicolon) {
+  {
+    padded_string code(
+        u8"interface I { [key: KeyType]: ValueType method(); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",         // I
+                                      "visit_enter_interface_scope",        // I
+                                      "visit_enter_index_signature_scope",  //
+                                      "visit_variable_type_use",     // KeyType
+                                      "visit_variable_declaration",  // key
+                                      "visit_variable_type_use",  // ValueType
+                                      "visit_exit_index_signature_scope",  //
+                                      "visit_property_declaration",    // method
+                                      "visit_enter_function_scope",    // method
+                                      "visit_exit_function_scope",     // method
+                                      "visit_exit_interface_scope"));  // I
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_missing_semicolon_after_index_signature,  //
+            expected_semicolon,
+            strlen(u8"interface I { [key: KeyType]: ValueType"), u8"")));
+  }
+}
+
 TEST(test_parse_typescript_interface, interface_methods_cannot_have_bodies) {
   {
     padded_string code(u8"interface I { method() { x } }"_sv);

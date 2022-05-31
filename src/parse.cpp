@@ -513,6 +513,8 @@ void parser::consume_semicolon() {
 
 template void parser::consume_semicolon<diag_missing_semicolon_after_field>();
 template void
+parser::consume_semicolon<diag_missing_semicolon_after_index_signature>();
+template void
 parser::consume_semicolon<diag_missing_semicolon_after_statement>();
 
 parser_transaction parser::begin_transaction() {

@@ -309,6 +309,11 @@ class debug_visitor final : public parse_visitor_base {
     this->output_->flush();
   }
 
+  void visit_enter_index_signature_scope() override {
+    this->output_->append_copy(u8"entered index signature scope\n"sv);
+    this->output_->flush();
+  }
+
   void visit_enter_interface_scope() override {
     this->output_->append_copy(u8"entered interface scope\n"sv);
     this->output_->flush();
@@ -341,6 +346,11 @@ class debug_visitor final : public parse_visitor_base {
 
   void visit_exit_function_scope() override {
     this->output_->append_copy(u8"exited function scope\n"sv);
+    this->output_->flush();
+  }
+
+  void visit_exit_index_signature_scope() override {
+    this->output_->append_copy(u8"exited index signature scope\n"sv);
     this->output_->flush();
   }
 
@@ -469,6 +479,11 @@ class multi_visitor final : public parse_visitor_base {
     this->visitor_2_->visit_enter_function_scope_body();
   }
 
+  void visit_enter_index_signature_scope() override {
+    this->visitor_1_->visit_enter_index_signature_scope();
+    this->visitor_2_->visit_enter_index_signature_scope();
+  }
+
   void visit_enter_interface_scope() override {
     this->visitor_1_->visit_enter_interface_scope();
     this->visitor_2_->visit_enter_interface_scope();
@@ -502,6 +517,11 @@ class multi_visitor final : public parse_visitor_base {
   void visit_exit_function_scope() override {
     this->visitor_1_->visit_exit_function_scope();
     this->visitor_2_->visit_exit_function_scope();
+  }
+
+  void visit_exit_index_signature_scope() override {
+    this->visitor_1_->visit_exit_index_signature_scope();
+    this->visitor_2_->visit_exit_index_signature_scope();
   }
 
   void visit_exit_interface_scope() override {

@@ -31,12 +31,14 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   v.visit_enter_named_function_scope(identifier_of(function_name));
   v.visit_enter_function_scope();
   v.visit_enter_function_scope_body();
+  v.visit_enter_index_signature_scope();
   v.visit_enter_interface_scope();
   v.visit_exit_block_scope();
   v.visit_exit_with_scope();
   v.visit_exit_class_scope();
   v.visit_exit_for_scope();
   v.visit_exit_function_scope();
+  v.visit_exit_index_signature_scope();
   v.visit_exit_interface_scope();
   v.visit_keyword_variable_use(identifier_of(variable_name));
   v.visit_property_declaration(std::nullopt);
@@ -55,30 +57,32 @@ TEST(test_buffering_visitor, buffers_all_visits) {
   spy_visitor spy;
   v.move_into(spy);
   EXPECT_THAT(spy.visits,
-              ElementsAre("visit_end_of_module",               //
-                          "visit_enter_block_scope",           //
-                          "visit_enter_with_scope",            //
-                          "visit_enter_class_scope",           //
-                          "visit_enter_for_scope",             //
-                          "visit_enter_named_function_scope",  //
-                          "visit_enter_function_scope",        //
-                          "visit_enter_function_scope_body",   //
-                          "visit_enter_interface_scope",       //
-                          "visit_exit_block_scope",            //
-                          "visit_exit_with_scope",             //
-                          "visit_exit_class_scope",            //
-                          "visit_exit_for_scope",              //
-                          "visit_exit_function_scope",         //
-                          "visit_exit_interface_scope",        //
-                          "visit_keyword_variable_use",        //
-                          "visit_property_declaration",        //
-                          "visit_property_declaration",        //
-                          "visit_variable_assignment",         //
-                          "visit_variable_declaration",        //
-                          "visit_variable_delete_use",         //
-                          "visit_variable_export_use",         //
-                          "visit_variable_type_use",           //
-                          "visit_variable_typeof_use",         //
+              ElementsAre("visit_end_of_module",                //
+                          "visit_enter_block_scope",            //
+                          "visit_enter_with_scope",             //
+                          "visit_enter_class_scope",            //
+                          "visit_enter_for_scope",              //
+                          "visit_enter_named_function_scope",   //
+                          "visit_enter_function_scope",         //
+                          "visit_enter_function_scope_body",    //
+                          "visit_enter_index_signature_scope",  //
+                          "visit_enter_interface_scope",        //
+                          "visit_exit_block_scope",             //
+                          "visit_exit_with_scope",              //
+                          "visit_exit_class_scope",             //
+                          "visit_exit_for_scope",               //
+                          "visit_exit_function_scope",          //
+                          "visit_exit_index_signature_scope",   //
+                          "visit_exit_interface_scope",         //
+                          "visit_keyword_variable_use",         //
+                          "visit_property_declaration",         //
+                          "visit_property_declaration",         //
+                          "visit_variable_assignment",          //
+                          "visit_variable_declaration",         //
+                          "visit_variable_delete_use",          //
+                          "visit_variable_export_use",          //
+                          "visit_variable_type_use",            //
+                          "visit_variable_typeof_use",          //
                           "visit_variable_use"));
 }
 }

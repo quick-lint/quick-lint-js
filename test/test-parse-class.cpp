@@ -1426,6 +1426,47 @@ TEST(test_parse_typescript_interface,
                 ElementsAre(spy_visitor::visited_variable_use{u8"FieldType"}));
   }
 }
+
+TEST(test_parse, class_index_signature_is_disallowed_in_javascript) {
+  {
+    padded_string code(u8"class C { [key: KeyType]: ValueType; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module_catching_fatal_parse_errors(v);
+    // TODO(strager): Improve this error message.
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code, diag_unexpected_token,  //
+                              token, strlen(u8"class C { [key"), u8":")));
+  }
+}
+
+TEST(test_parse, class_index_signature_is_allowed_in_typescript) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"class C { [key: KeyType]: ValueType; }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",         // C
+                                      "visit_enter_class_scope",            // C
+                                      "visit_enter_index_signature_scope",  //
+                                      "visit_variable_type_use",     // KeyType
+                                      "visit_variable_declaration",  // key
+                                      "visit_variable_type_use",  // ValueType
+                                      "visit_exit_index_signature_scope",  //
+                                      "visit_exit_class_scope"));          // C
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"KeyType"},
+                            spy_visitor::visited_variable_use{u8"ValueType"}));
+    // TODO(strager): We probably should create a new kind of variable instead
+    // of 'parameter'.
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            spy_visitor::visited_variable_declaration{
+                u8"C", variable_kind::_class, variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"key", variable_kind::_parameter,
+                variable_init_kind::normal}));
+  }
+}
 }
 }
 

@@ -52,6 +52,10 @@ class buffering_visitor final : public parse_visitor_base {
     this->add(visit_kind::enter_function_scope_body);
   }
 
+  void visit_enter_index_signature_scope() override {
+    this->add(visit_kind::enter_index_signature_scope);
+  }
+
   void visit_enter_interface_scope() override {
     this->add(visit_kind::enter_interface_scope);
   }
@@ -78,6 +82,10 @@ class buffering_visitor final : public parse_visitor_base {
 
   void visit_exit_function_scope() override {
     this->add(visit_kind::exit_function_scope);
+  }
+
+  void visit_exit_index_signature_scope() override {
+    this->add(visit_kind::exit_index_signature_scope);
   }
 
   void visit_exit_interface_scope() override {
@@ -141,6 +149,7 @@ class buffering_visitor final : public parse_visitor_base {
     enter_for_scope,
     enter_function_scope,
     enter_function_scope_body,
+    enter_index_signature_scope,
     enter_interface_scope,
     enter_named_function_scope,
     exit_block_scope,
@@ -148,6 +157,7 @@ class buffering_visitor final : public parse_visitor_base {
     exit_class_scope,
     exit_for_scope,
     exit_function_scope,
+    exit_index_signature_scope,
     exit_interface_scope,
     keyword_variable_use,
     property_declaration_with_name,

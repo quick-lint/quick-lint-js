@@ -198,6 +198,8 @@ void linter::visit_enter_function_scope_body() {
       /*consume_arguments=*/true);
 }
 
+void linter::visit_enter_index_signature_scope() { this->scopes_.push(); }
+
 void linter::visit_enter_interface_scope() { this->scopes_.push(); }
 
 void linter::visit_enter_named_function_scope(identifier function_name) {
@@ -258,6 +260,8 @@ void linter::visit_exit_function_scope() {
       /*consume_arguments=*/true);
   this->scopes_.pop();
 }
+
+void linter::visit_exit_index_signature_scope() { QLJS_UNIMPLEMENTED(); }
 
 void linter::visit_exit_interface_scope() { QLJS_UNIMPLEMENTED(); }
 
