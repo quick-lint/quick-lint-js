@@ -217,6 +217,11 @@ msgid "cannot import variable named keyword '{0}'"
 msgstr "Kann keine Variable namens 'let' exportieren"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing quotes around module name '{0}'"
+msgstr "Klammern fehlen um den Operanden von '{0}'"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "cannot reference private variables without object; use 'this.'"
 msgstr ""
 "Private Felder des Objekts können nicht ohne 'this.' referenziert werden"
