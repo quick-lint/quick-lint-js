@@ -797,6 +797,18 @@ TEST(test_parse, imported_variables_can_be_named_contextual_keywords) {
   }
 }
 
+TEST(test_parse, imported_modules_must_be_quoted) {
+  padded_string code(u8"import { test } from module;"sv);
+  SCOPED_TRACE(code);
+  spy_visitor v;
+  parser p(&code, &v);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
+  EXPECT_THAT(v.errors,
+              ElementsAre(DIAG_TYPE_OFFSETS(
+                  &code, diag_cannot_import_from_unquoted_module, import_name,
+                  strlen(u8"import { test } from "), u8"module")));
+}
+
 TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
   for (string8 name : strict_reserved_keywords) {
     {

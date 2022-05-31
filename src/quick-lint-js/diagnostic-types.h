@@ -260,6 +260,12 @@
               import_name))                                                    \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_cannot_import_from_unquoted_module, "E0223",                        \
+      diagnostic_severity::error, { identifier import_name; },                 \
+      MESSAGE(QLJS_TRANSLATABLE("missing quotes around module name '{0}'"),    \
+              import_name))                                                    \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_cannot_refer_to_private_variable_without_object, "E0155",           \
       diagnostic_severity::error, { identifier private_identifier; },          \
       MESSAGE(QLJS_TRANSLATABLE("cannot reference private variables without "  \

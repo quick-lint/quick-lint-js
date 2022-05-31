@@ -2076,7 +2076,13 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
   }
 
   if (this->peek().type != token_type::string) {
-    QLJS_PARSER_UNIMPLEMENTED();
+    if (this->peek().type == token_type::identifier) {
+      this->diag_reporter_->report(diag_cannot_import_from_unquoted_module{
+          .import_name = this->peek().identifier_name(),
+      });
+    } else {
+      QLJS_PARSER_UNIMPLEMENTED();
+    }
   }
   this->skip();
 
