@@ -1362,6 +1362,17 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       }
     }
 
+    bool is_optional = this->peek().type == token_type::question;
+    if (is_optional) {
+      if (!this->options_.typescript) {
+        this->diag_reporter_->report(
+            diag_typescript_optional_properties_not_allowed_in_javascript{
+                .question = this->peek().span(),
+            });
+      }
+      this->skip();
+    }
+
     switch (this->peek().type) {
       // method() { }
       // method { }    // Invalid (missing parameter list).
@@ -1435,14 +1446,24 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         error_if_static_in_interface(property_name);
         v.visit_property_declaration(property_name);
       } else {
-        // class C {
-        //   const field
-        // }
         if (u8"const" == property_name_span.string_view()) {
+          // class C {
+          //   const field
+          // }
           this->diag_reporter_->report(diag_typescript_style_const_field{
               .const_token = property_name_span,
           });
+        } else if (is_optional) {
+          // class C {
+          //   field? method() {}  // Invalid.
+          // }
+          error_if_static_in_interface(property_name);
+          v.visit_property_declaration(property_name);
+          this->consume_semicolon<diag_missing_semicolon_after_field>();
         } else {
+          // class C {
+          //   asyn method() {}  // Invalid.
+          // }
           this->diag_reporter_->report(diag_unexpected_token{
               .token = property_name_span,
           });
@@ -1706,11 +1727,13 @@ next:
     this->skip();
     switch (this->peek().type) {
       // function() {}
+      // function?() {}
       // class C { function }   // Field named 'function'.
       // class C { function; }  // Field named 'function'.
       // function = init;       // Field named 'function'.
     case token_type::equal:
     case token_type::left_paren:
+    case token_type::question:
     case token_type::right_curly:
     case token_type::semicolon:
       parse_and_visit_field_or_method(function_token.identifier_name(),
@@ -1738,11 +1761,13 @@ next:
     break;
 
     // async() {}
+    // async?() {}
     // get() {}
     // class C { get }  // Field named 'get'
     // get = init;
   case token_type::equal:
   case token_type::left_paren:
+  case token_type::question:
   case token_type::right_curly:
     if (last_ident.has_value()) {
       parse_and_visit_field_or_method(*last_ident, method_attributes);

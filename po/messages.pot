@@ -854,6 +854,10 @@ msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "TypeScript optional properties are not allowed in JavaScript code"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "TypeScript type annotations are not allowed in JavaScript code"
 msgstr ""
 

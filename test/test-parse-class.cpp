@@ -1465,6 +1465,42 @@ TEST(test_parse, class_index_signature_is_allowed_in_typescript) {
                 variable_init_kind::normal}));
   }
 }
+
+TEST(test_parse, optional_properties_are_disallowed_in_javascript) {
+  {
+    padded_string code(
+        u8"class C { field1?; field2? = init; method?() {} }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     // C
+                                      "visit_property_declaration",  // field1
+                                      "visit_variable_use",          // init
+                                      "visit_property_declaration",  // field2
+                                      "visit_property_declaration",  // method
+                                      "visit_enter_function_scope",  //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_exit_function_scope",        //
+                                      "visit_exit_class_scope"));         // C
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            DIAG_TYPE_OFFSETS(
+                &code,
+                diag_typescript_optional_properties_not_allowed_in_javascript,  //
+                question, strlen(u8"class C { field1"), u8"?"),
+            DIAG_TYPE_OFFSETS(
+                &code,
+                diag_typescript_optional_properties_not_allowed_in_javascript,  //
+                question, strlen(u8"class C { field1?; field2"), u8"?"),
+            DIAG_TYPE_OFFSETS(
+                &code,
+                diag_typescript_optional_properties_not_allowed_in_javascript,  //
+                question, strlen(u8"class C { field1?; field2? = init; method"),
+                u8"?")));
+  }
+}
 }
 }
 

@@ -1359,6 +1359,13 @@
               interface_keyword))                                              \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_optional_properties_not_allowed_in_javascript, "E0228",  \
+      diagnostic_severity::error, { source_code_span question; },              \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript optional properties are not "      \
+                                "allowed in JavaScript code"),                 \
+              question))                                                       \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_type_annotations_not_allowed_in_javascript, "E0224",     \
       diagnostic_severity::error, { source_code_span type_colon; },            \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript type annotations are not "         \

@@ -459,6 +459,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript optional properties are not allowed in JavaScript code"_translatable,
+        {
+            u8"TypeScript optional properties are not allowed in JavaScript code",
+            u8"TypeScript optional properties are not allowed in JavaScript code",
+            u8"TypeScript optional properties are not allowed in JavaScript code",
+            u8"TypeScript optional properties are not allowed in JavaScript code",
+            u8"TypeScript optional properties are not allowed in JavaScript code",
+            u8"TypeScript optional properties are not allowed in JavaScript code",
+        },
+    },
+    {
         "TypeScript type annotations are not allowed in JavaScript code"_translatable,
         {
             u8"TypeScript type annotations are not allowed in JavaScript code",

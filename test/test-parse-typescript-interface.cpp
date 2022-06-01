@@ -219,6 +219,79 @@ TEST(test_parse_typescript_interface, property_without_type) {
   }
 }
 
+TEST(test_parse_typescript_interface, optional_property) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"interface I { fieldName?; }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",    // I
+                            "visit_enter_interface_scope",   // I
+                            "visit_property_declaration",    // fieldName
+                            "visit_exit_interface_scope"));  // I
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"}));
+  }
+
+  {
+    // Semicolon is required.
+    padded_string code(u8"interface I { fieldName? otherField }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"},
+                    spy_visitor::visited_property_declaration{u8"otherField"}));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code, diag_missing_semicolon_after_field,  //
+                              expected_semicolon,
+                              strlen(u8"interface I { fieldName?"), u8"")));
+  }
+
+  {
+    // ASI
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"interface I { fieldName?\notherField }"_sv);
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"},
+                    spy_visitor::visited_property_declaration{u8"otherField"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"interface I { [2 + 2]?; }"_sv);
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"interface I { 'prop'?; }"_sv);
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"interface I { method?(param); }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",    // I
+                            "visit_enter_interface_scope",   // I
+                            "visit_property_declaration",    // method
+                            "visit_enter_function_scope",    // method
+                            "visit_variable_declaration",    // param
+                            "visit_exit_function_scope",     // method
+                            "visit_exit_interface_scope"));  // I
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
+  }
+}
+
 TEST(test_parse_typescript_interface, field_with_type) {
   {
     spy_visitor v = parse_and_visit_typescript_statement(
@@ -496,52 +569,56 @@ TEST(test_parse_typescript_interface, interface_methods_cannot_have_bodies) {
 }
 
 TEST(test_parse_typescript_interface, interface_with_keyword_property) {
-  for (string8 keyword : keywords) {
-    {
-      string8 code = u8"interface I { " + keyword + u8"(); }";
-      SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
-      ASSERT_EQ(v.property_declarations.size(), 1);
-      EXPECT_EQ(v.property_declarations[0].name, keyword);
+  for (string8 suffix : {u8"", u8"?"}) {
+    for (string8 keyword : keywords) {
+      {
+        string8 code = u8"interface I { " + keyword + suffix + u8"(); }";
+        SCOPED_TRACE(out_string8(code));
+        spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
+        ASSERT_EQ(v.property_declarations.size(), 1);
+        EXPECT_EQ(v.property_declarations[0].name, keyword);
+      }
+
+      for (string8 prefix : {u8"get", u8"set"}) {
+        string8 code =
+            u8"interface I { " + prefix + u8" " + keyword + suffix + u8"(); }";
+        SCOPED_TRACE(out_string8(code));
+        spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
+        ASSERT_EQ(v.property_declarations.size(), 1);
+        EXPECT_EQ(v.property_declarations[0].name, keyword);
+      }
+
+      {
+        string8 code = u8"interface I { " + keyword + suffix + u8" }";
+        SCOPED_TRACE(out_string8(code));
+        spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
+        EXPECT_THAT(
+            v.property_declarations,
+            ElementsAre(spy_visitor::visited_property_declaration{keyword}));
+      }
+
+      {
+        string8 code = u8"interface I { " + keyword + suffix + u8"; }";
+        SCOPED_TRACE(out_string8(code));
+        spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
+        EXPECT_THAT(
+            v.property_declarations,
+            ElementsAre(spy_visitor::visited_property_declaration{keyword}));
+      }
     }
 
-    for (string8 prefix : {u8"get", u8"set"}) {
-      string8 code = u8"interface I { " + prefix + u8" " + keyword + u8"(); }";
-      SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
-      ASSERT_EQ(v.property_declarations.size(), 1);
-      EXPECT_EQ(v.property_declarations[0].name, keyword);
-    }
-
-    {
-      string8 code = u8"interface I { " + keyword + u8" }";
-      SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
-      EXPECT_THAT(
-          v.property_declarations,
-          ElementsAre(spy_visitor::visited_property_declaration{keyword}));
-    }
-
-    {
-      string8 code = u8"interface I { " + keyword + u8"; }";
-      SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
-      EXPECT_THAT(
-          v.property_declarations,
-          ElementsAre(spy_visitor::visited_property_declaration{keyword}));
-    }
-  }
-
-  for (string8 keyword : strict_reserved_keywords) {
-    string8 property = escape_first_character_in_keyword(keyword);
-    for (string8 prefix : {u8"", u8"get", u8"set"}) {
-      padded_string code(u8"interface I { " + prefix + u8" " + property +
-                         u8"(); }");
-      SCOPED_TRACE(code);
-      spy_visitor v = parse_and_visit_typescript_statement(code.string_view());
-      EXPECT_THAT(
-          v.property_declarations,
-          ElementsAre(spy_visitor::visited_property_declaration{keyword}));
+    for (string8 keyword : strict_reserved_keywords) {
+      string8 property = escape_first_character_in_keyword(keyword);
+      for (string8 prefix : {u8"", u8"get", u8"set"}) {
+        padded_string code(u8"interface I { " + prefix + u8" " + property +
+                           suffix + u8"(); }");
+        SCOPED_TRACE(code);
+        spy_visitor v =
+            parse_and_visit_typescript_statement(code.string_view());
+        EXPECT_THAT(
+            v.property_declarations,
+            ElementsAre(spy_visitor::visited_property_declaration{keyword}));
+      }
     }
   }
 }
@@ -776,6 +853,19 @@ TEST(test_parse_typescript_interface, static_properties_are_not_allowed) {
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_interface_properties_cannot_be_static,  //
                     static_keyword, strlen(u8"interface I { "), u8"static")));
+  }
+
+  {
+    padded_string code(u8"interface I { static field? method(); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors,
+                ::testing::UnorderedElementsAre(
+                    DIAG_TYPE_OFFSETS(
+                        &code, diag_interface_properties_cannot_be_static,  //
+                        static_keyword, strlen(u8"interface I { "), u8"static"),
+                    DIAG_TYPE(diag_missing_semicolon_after_field)));
   }
 }
 
