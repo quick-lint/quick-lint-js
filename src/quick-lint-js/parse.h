@@ -564,7 +564,7 @@ class parser {
  public:
   // TODO(#735): Reduce stack usage in our parse functions and increase this
   // limit.
-  static constexpr const int stack_limit = 140;
+  static constexpr const int stack_limit = 130;
 
   // For testing and internal use only.
   [[nodiscard]] loop_guard enter_loop();
