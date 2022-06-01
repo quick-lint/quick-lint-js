@@ -1387,8 +1387,7 @@ TEST(test_parse, class_expression_body_is_visited_first_in_expression) {
   }
 }
 
-TEST(test_parse_typescript_interface,
-     field_with_type_is_disallowed_in_javascript) {
+TEST(test_parse, field_with_type_is_disallowed_in_javascript) {
   {
     padded_string code(u8"class C { fieldName: FieldType; }"_sv);
     spy_visitor v;
@@ -1408,8 +1407,7 @@ TEST(test_parse_typescript_interface,
   }
 }
 
-TEST(test_parse_typescript_interface,
-     field_with_type_is_allowed_in_typescript) {
+TEST(test_parse, field_with_type_is_allowed_in_typescript) {
   {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"class C { fieldName: FieldType; }"_sv);
