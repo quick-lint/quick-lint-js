@@ -1768,9 +1768,11 @@ next:
       parse_and_visit_field_or_method(*last_ident, method_attributes);
     } else {
       source_code_span expected_name(this->peek().begin, this->peek().begin);
-      this->diag_reporter_->report(diag_missing_class_method_name{
-          .expected_name = expected_name,
-      });
+      if (!is_interface) {
+        this->diag_reporter_->report(diag_missing_class_method_name{
+            .expected_name = expected_name,
+        });
+      }
       parse_and_visit_field_or_method_without_name(expected_name,
                                                    method_attributes);
     }

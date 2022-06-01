@@ -1091,6 +1091,23 @@ TEST(test_parse_typescript_interface, interface_named_await_in_async_function) {
             name, strlen(u8"async function g() { interface "), u8"await")));
   }
 }
+
+TEST(test_parse_typescript_interface, call_signature) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"interface I { (param); }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",   // I
+                            "visit_enter_interface_scope",  // I
+                            // TODO(strager): Emit something other than
+                            // visit_property_declaration instead?
+                            "visit_property_declaration",    // (call signature)
+                            "visit_enter_function_scope",    // (call signature)
+                            "visit_variable_declaration",    // param
+                            "visit_exit_function_scope",     // (call signature)
+                            "visit_exit_interface_scope"));  // I
+  }
+}
 }
 }
 
