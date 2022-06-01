@@ -562,7 +562,10 @@ class parser {
   using class_guard = bool_guard<&parser::in_class_>;
 
  public:
-  static constexpr const int stack_limit = 150;
+  // TODO(#735): Reduce stack usage in our parse functions and increase this
+  // limit.
+  static constexpr const int stack_limit = 140;
+
   // For testing and internal use only.
   [[nodiscard]] loop_guard enter_loop();
   [[nodiscard]] class_guard enter_class();
