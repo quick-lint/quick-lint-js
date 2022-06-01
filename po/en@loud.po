@@ -681,6 +681,11 @@ msgid "unexpected expression; missing key for object entry"
 msgstr "UNEXPECTED EXPRESSION; MISSING KEY FOR OBJECT ENTRY"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing name for class method"
+msgstr "MISSING NAME OF CLASS"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing name in function statement"
 msgstr "MISSING NAME IN FUNCTION STATEMENT"
 

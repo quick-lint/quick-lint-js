@@ -385,6 +385,28 @@ TEST(test_parse, class_statement_methods_with_arrow_operator) {
   }
 }
 
+TEST(test_parse, missing_class_method_name_fails) {
+  {
+    padded_string code(u8"class Monster { (muffinCount) { } }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // Monster
+                            "visit_enter_class_scope",          //
+                            "visit_property_declaration",       // (unnamed)
+                            "visit_enter_function_scope",       //
+                            "visit_variable_declaration",       // muffinCount
+                            "visit_enter_function_scope_body",  //
+                            "visit_exit_function_scope",        //
+                            "visit_exit_class_scope"));         // Monster
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_missing_class_method_name,  //
+                    expected_name, strlen(u8"class Monster { "), u8"")));
+  }
+}
+
 TEST(test_parse, class_statement_with_fields) {
   {
     spy_visitor v =

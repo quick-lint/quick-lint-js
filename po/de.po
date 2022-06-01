@@ -690,6 +690,11 @@ msgid "unexpected expression; missing key for object entry"
 msgstr "Ausdruck vor Zeilenumbruch erwartet"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing name for class method"
+msgstr "Klassenname fehlt"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing name in function statement"
 msgstr "Name fehlt innerhalb function-Statement"
 

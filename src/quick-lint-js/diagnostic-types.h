@@ -1062,6 +1062,12 @@
               expression))                                                     \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_missing_class_method_name, "E0229", diagnostic_severity::error,     \
+      { source_code_span expected_name; },                                     \
+      MESSAGE(QLJS_TRANSLATABLE("missing name for class method"),              \
+              expected_name))                                                  \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_missing_name_in_function_statement, "E0061",                        \
       diagnostic_severity::error, { source_code_span where; },                 \
       MESSAGE(QLJS_TRANSLATABLE("missing name in function statement"), where)) \

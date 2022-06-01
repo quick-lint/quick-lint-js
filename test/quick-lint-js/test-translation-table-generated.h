@@ -2010,6 +2010,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "missing name for class method"_translatable,
+        {
+            u8"missing name for class method",
+            u8"missing name for class method",
+            u8"missing name for class method",
+            u8"missing name for class method",
+            u8"missing name for class method",
+            u8"missing name for class method",
+        },
+    },
+    {
         "missing name in function statement"_translatable,
         {
             u8"missing name in function statement",

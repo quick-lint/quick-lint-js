@@ -1761,12 +1761,25 @@ next:
     break;
 
     // async() {}
-    // async?() {}
     // get() {}
+    // () {}       // Invalid.
+  case token_type::left_paren:
+    if (last_ident.has_value()) {
+      parse_and_visit_field_or_method(*last_ident, method_attributes);
+    } else {
+      source_code_span expected_name(this->peek().begin, this->peek().begin);
+      this->diag_reporter_->report(diag_missing_class_method_name{
+          .expected_name = expected_name,
+      });
+      parse_and_visit_field_or_method_without_name(expected_name,
+                                                   method_attributes);
+    }
+    break;
+
+    // async?() {}
     // class C { get }  // Field named 'get'
     // get = init;
   case token_type::equal:
-  case token_type::left_paren:
   case token_type::question:
   case token_type::right_curly:
     if (last_ident.has_value()) {
