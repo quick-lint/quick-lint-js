@@ -2197,6 +2197,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "missing quotes around module name '{0}'"_translatable,
+        {
+            u8"missing quotes around module name '{0}'",
+            u8"missing quotes around module name '{0}'",
+            u8"missing quotes around module name '{0}'",
+            u8"missing quotes around module name '{0}'",
+            u8"missing quotes around module name '{0}'",
+            u8"missing quotes around module name '{0}'",
+        },
+    },
+    {
         "missing semicolon after field"_translatable,
         {
             u8"missing semicolon after field",

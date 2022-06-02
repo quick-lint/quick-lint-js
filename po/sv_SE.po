@@ -218,6 +218,11 @@ msgid "cannot import variable named keyword '{0}'"
 msgstr "kan inte importera variabel med namngivet nyckelord '{0}'"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing quotes around module name '{0}'"
+msgstr "saknar namn eller paranteser för funktion"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "cannot reference private variables without object; use 'this.'"
 msgstr "kan inte referera en privat variabel utan ett objekt; använd 'this'"
 
