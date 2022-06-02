@@ -237,22 +237,33 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             break;
           }
         } else {
-          if (p->peek().type != token_type::left_paren &&
-              p->peek().type != token_type::less) {
-            method_attributes = function_attributes::async;
-          }
-          if (p->peek().type == token_type::star) {
-            // async *g() {}
+          switch (p->peek().type) {
+          // async *g() {}
+          case token_type::star:
             method_attributes = function_attributes::async_generator;
             star_token = p->peek().span();
             p->skip();
-          }
-          if (p->peek().type == token_type::kw_static) {
-            // async static method() {}  // Invalid
-            // async static() {}
+            break;
+
+          // async static method() {}  // Invalid
+          // async static() {}
+          case token_type::kw_static:
+            method_attributes = function_attributes::async;
             async_static = true;
             // TODO(strager): What about 'static async static'?
             static_keyword = p->peek().span();
+            break;
+
+          // async() {}
+          // async<T>() {}  // TypeScript only.
+          case token_type::left_paren:
+          case token_type::less:
+            break;
+
+          // async method() {}
+          default:
+            method_attributes = function_attributes::async;
+            break;
           }
         }
         break;
