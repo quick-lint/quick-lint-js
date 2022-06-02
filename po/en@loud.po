@@ -835,6 +835,11 @@ msgid "private properties are not allowed in object literals"
 msgstr "PRIVATE PROPERTIES ARE NOT ALLOWED IN OBJECT LITERALS"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "'readonly static' is not allowed; write 'static readonly' instead"
+msgstr "'ASYNC STATIC' IS NOT ALLOWED; WRITE 'STATIC ASYNC' INSTEAD"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "redeclaration of global variable"
 msgstr "REDECLARATION OF GLOBAL VARIABLE"
 
@@ -891,6 +896,15 @@ msgstr "TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS"
 #, fuzzy
 msgid "TypeScript optional properties are not allowed in JavaScript code"
 msgstr "TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript's 'readonly' feature is not allowed in JavaScript code"
+msgstr "TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS"
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "methods cannot be readonly"
+msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy

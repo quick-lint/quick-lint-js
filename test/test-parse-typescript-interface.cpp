@@ -704,6 +704,26 @@ TEST(test_parse_typescript_interface, private_properties_are_not_allowed) {
                         property_name, strlen(u8"interface I { async static "),
                         u8"#method")));
   }
+
+  {
+    padded_string code(u8"interface I { readonly static #field; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  //
+                                      "visit_property_declaration",   // #field
+                                      "visit_exit_interface_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ::testing::UnorderedElementsAre(
+            DIAG_TYPE(diag_interface_properties_cannot_be_static),
+            DIAG_TYPE_OFFSETS(
+                &code, diag_interface_properties_cannot_be_private,  //
+                property_name, strlen(u8"interface I { readonly static "),
+                u8"#field")));
+  }
 }
 
 TEST(test_parse_typescript_interface, static_properties_are_not_allowed) {
@@ -772,6 +792,25 @@ TEST(test_parse_typescript_interface, static_properties_are_not_allowed) {
 
     {
       padded_string code(u8"interface I { static " + property_name + u8"; }");
+      spy_visitor v;
+      parser p(&code, &v, typescript_options);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration",   // I
+                              "visit_enter_interface_scope",  //
+                              "visit_property_declaration",   // property
+                              "visit_exit_interface_scope",   //
+                              "visit_end_of_module"));
+      EXPECT_THAT(v.errors,
+                  ElementsAre(DIAG_TYPE_OFFSETS(
+                      &code, diag_interface_properties_cannot_be_static,  //
+                      static_keyword, strlen(u8"interface I { "), u8"static")));
+    }
+
+    // TODO(#736): Fix 'static readonly static'.
+    if (property_name != u8"static") {
+      padded_string code(u8"interface I { static readonly " + property_name +
+                         u8"; }");
       spy_visitor v;
       parser p(&code, &v, typescript_options);
       p.parse_and_visit_module(v);

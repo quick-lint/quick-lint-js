@@ -1290,6 +1290,13 @@
               private_identifier))                                             \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_readonly_static_field, "E0232", diagnostic_severity::error,         \
+      { source_code_span readonly_static; },                                   \
+      MESSAGE(QLJS_TRANSLATABLE("'readonly static' is not allowed; write "     \
+                                "'static readonly' instead"),                  \
+              readonly_static))                                                \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_redeclaration_of_global_variable, "E0033",                          \
       diagnostic_severity::error, { identifier redeclaration; },               \
       MESSAGE(QLJS_TRANSLATABLE("redeclaration of global variable"),           \
@@ -1370,6 +1377,19 @@
       MESSAGE(QLJS_TRANSLATABLE("TypeScript optional properties are not "      \
                                 "allowed in JavaScript code"),                 \
               question))                                                       \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_readonly_fields_not_allowed_in_javascript, "E0230",      \
+      diagnostic_severity::error, { source_code_span readonly_keyword; },      \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript's 'readonly' feature is not "      \
+                                "allowed in JavaScript code"),                 \
+              readonly_keyword))                                               \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_readonly_method, "E0231", diagnostic_severity::error,    \
+      { source_code_span readonly_keyword; },                                  \
+      MESSAGE(QLJS_TRANSLATABLE("methods cannot be readonly"),                 \
+              readonly_keyword))                                               \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
       diag_typescript_type_annotations_not_allowed_in_javascript, "E0224",     \

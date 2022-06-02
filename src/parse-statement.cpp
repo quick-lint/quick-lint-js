@@ -1276,6 +1276,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
   std::optional<identifier> last_ident;
   function_attributes method_attributes = function_attributes::normal;
   bool async_static = false;
+  bool readonly_static = false;
+  std::optional<source_code_span> readonly_keyword;
   std::optional<source_code_span> static_keyword;
   std::optional<source_code_span> star_token;
 
@@ -1285,6 +1287,16 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
            (!property_name.has_value() ||
             property_name->span().begin() != keyword->begin());
   };
+  auto error_if_readonly_in_not_typescript =
+      [&](const std::optional<identifier> &property_name) {
+        if (!this->options_.typescript &&
+            is_keyword(readonly_keyword, property_name)) {
+          this->diag_reporter_->report(
+              diag_typescript_readonly_fields_not_allowed_in_javascript{
+                  .readonly_keyword = *readonly_keyword,
+              });
+        }
+      };
   auto error_if_static_in_interface =
       [&](const std::optional<identifier> &property_name) {
         if (is_interface && is_keyword(static_keyword, property_name)) {
@@ -1363,6 +1375,43 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       }
     }
 
+    if (readonly_static) {
+      // TODO(strager): Do we need to handle '*' (generator)?
+      switch (this->peek().type) {
+      case token_type::private_identifier:
+        if (is_interface) {
+          this->diag_reporter_->report(
+              diag_interface_properties_cannot_be_private{
+                  .property_name = this->peek().identifier_name(),
+              });
+        }
+        [[fallthrough]];
+      QLJS_CASE_CONTEXTUAL_KEYWORD:
+      QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
+      case token_type::identifier:
+      case token_type::reserved_keyword_with_escape_sequence: {
+        // readonly static field = init;  // Invalid
+        identifier new_property_name = this->peek().identifier_name();
+        if (is_interface) {
+          // diag_interface_properties_cannot_be_static is reported later.
+          QLJS_ASSERT(static_keyword.has_value());
+        } else {
+          this->diag_reporter_->report(diag_readonly_static_field{
+              .readonly_static = source_code_span(readonly_keyword->begin(),
+                                                  property_name_span.end()),
+          });
+        }
+        property_name = new_property_name;
+        property_name_span = property_name->span();
+        this->skip();
+        break;
+      }
+      // readonly static;
+      default:
+        break;
+      }
+    }
+
     bool is_optional = this->peek().type == token_type::question;
     if (is_optional) {
       if (!this->options_.typescript) {
@@ -1380,6 +1429,12 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     case token_type::left_curly:
     case token_type::left_paren:
       v.visit_property_declaration(property_name);
+      if (is_keyword(readonly_keyword, property_name)) {
+        // readonly method() {}  // Invalid.
+        this->diag_reporter_->report(diag_typescript_readonly_method{
+            .readonly_keyword = *readonly_keyword,
+        });
+      }
       if (is_interface) {
         error_if_async_in_interface(property_name);
         error_if_generator_star_in_interface(property_name);
@@ -1416,6 +1471,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     case token_type::end_of_file:
     case token_type::right_curly:
     case token_type::semicolon:
+      error_if_readonly_in_not_typescript(property_name);
       error_if_static_in_interface(property_name);
       v.visit_property_declaration(property_name);
       this->consume_semicolon<diag_missing_semicolon_after_field>();
@@ -1423,6 +1479,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
       // field = initialValue;
     case token_type::equal:
+      error_if_readonly_in_not_typescript(property_name);
       if (is_interface) {
         error_if_static_in_interface(property_name);
         this->diag_reporter_->report(
@@ -1445,6 +1502,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         //   method() {}
         // }
         error_if_static_in_interface(property_name);
+        error_if_readonly_in_not_typescript(property_name);
         v.visit_property_declaration(property_name);
       } else {
         if (u8"const" == property_name_span.string_view()) {
@@ -1458,6 +1516,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           // class C {
           //   field? method() {}  // Invalid.
           // }
+          error_if_readonly_in_not_typescript(property_name);
           error_if_static_in_interface(property_name);
           v.visit_property_declaration(property_name);
           this->consume_semicolon<diag_missing_semicolon_after_field>();
@@ -1481,6 +1540,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         //   field        // ASI
         //   [expr]() {}
         // }
+        error_if_readonly_in_not_typescript(property_name);
         error_if_static_in_interface(property_name);
         v.visit_property_declaration(property_name);
       } else {
@@ -1526,6 +1586,26 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     break;
   }
 
+  switch (this->peek().type) {
+  // readonly field: number;
+  case token_type::kw_readonly:
+    last_ident = this->peek().identifier_name();
+    readonly_keyword = this->peek().span();
+    this->skip();
+
+    if (this->peek().type == token_type::kw_static) {
+      // readonly static field;  // Invalid
+      // readonly static;
+      readonly_static = true;
+      // TODO(#736): What about 'static readonly static'?
+      static_keyword = this->peek().span();
+    }
+    break;
+
+  default:
+    break;
+  }
+
 next:
   switch (this->peek().type) {
     // async f() {}
@@ -1547,6 +1627,7 @@ next:
       case token_type::identifier:
       case token_type::private_identifier:
       case token_type::star:
+        error_if_readonly_in_not_typescript(last_ident);
         error_if_static_in_interface(last_ident);
         v.visit_property_declaration(last_ident);
         return;
@@ -1567,6 +1648,7 @@ next:
         // async static method() {}  // Invalid
         // async static() {}
         async_static = true;
+        // TODO(strager): What about 'static async static'?
         static_keyword = this->peek().span();
       }
     }

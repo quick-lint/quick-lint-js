@@ -239,6 +239,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "'readonly static' is not allowed; write 'static readonly' instead"_translatable,
+        {
+            u8"'readonly static' is not allowed; write 'static readonly' instead",
+            u8"'readonly static' is not allowed; write 'static readonly' instead",
+            u8"'readonly static' is not allowed; write 'static readonly' instead",
+            u8"'readonly static' is not allowed; write 'static readonly' instead",
+            u8"'readonly static' is not allowed; write 'static readonly' instead",
+            u8"'readonly static' is not allowed; write 'static readonly' instead",
+        },
+    },
+    {
         "'while' loop"_translatable,
         {
             u8"'while' loop",
@@ -500,6 +511,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"TypeScript's 'interface' feature is not allowed in JavaScript code",
             u8"TypeScript's 'interface' feature is not allowed in JavaScript code",
             u8"TypeScript's 'interface' feature is not allowed in JavaScript code",
+        },
+    },
+    {
+        "TypeScript's 'readonly' feature is not allowed in JavaScript code"_translatable,
+        {
+            u8"TypeScript's 'readonly' feature is not allowed in JavaScript code",
+            u8"TypeScript's 'readonly' feature is not allowed in JavaScript code",
+            u8"TypeScript's 'readonly' feature is not allowed in JavaScript code",
+            u8"TypeScript's 'readonly' feature is not allowed in JavaScript code",
+            u8"TypeScript's 'readonly' feature is not allowed in JavaScript code",
+            u8"TypeScript's 'readonly' feature is not allowed in JavaScript code",
         },
     },
     {
@@ -1633,6 +1655,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"let statement cannot declare variables named 'let'",
             u8"une instruction let ne peut d\u00e9clarer de variables nomm\u00e9es 'let'",
             u8"let p\u00e5st\u00e5ende kan inte deklareras med namnet 'let'",
+        },
+    },
+    {
+        "methods cannot be readonly"_translatable,
+        {
+            u8"methods cannot be readonly",
+            u8"methods cannot be readonly",
+            u8"methods cannot be readonly",
+            u8"methods cannot be readonly",
+            u8"methods cannot be readonly",
+            u8"methods cannot be readonly",
         },
     },
     {
