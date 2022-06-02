@@ -2076,12 +2076,17 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
   }
 
   if (this->peek().type != token_type::string) {
-    if (this->peek().type == token_type::identifier) {
+    switch (this->peek().type) {
+    QLJS_CASE_KEYWORD:
+    case token_type::identifier:
       this->diag_reporter_->report(diag_cannot_import_from_unquoted_module{
           .import_name = this->peek().identifier_name(),
       });
-    } else {
+      break;
+
+    default:
       QLJS_PARSER_UNIMPLEMENTED();
+      break;
     }
   }
   this->skip();
