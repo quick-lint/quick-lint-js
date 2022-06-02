@@ -220,7 +220,7 @@ constexpr inline std::array contextual_keywords = make_array(
 
 // ReservedWord or contextual keyword in strict mode or non-strict mode.
 constexpr inline std::array keywords =
-    concat(reserved_keywords, contextual_keywords);
+    concat(strict_reserved_keywords, contextual_keywords);
 }
 }
 

@@ -22,6 +22,8 @@ Semantic Versioning.
 
 * [E0707][] now only complains about classes named `await`, not any class inside
   an async function.
+* [E0054][] is no longer incorrectly reported for class properties named
+  `implements`, `interface`, `package`, `private`, `protected`, or `public`.
 
 ## 2.5.0 (2022-05-23)
 

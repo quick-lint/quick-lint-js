@@ -301,6 +301,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         }
         [[fallthrough]];
       QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
+      QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier:
       case token_type::reserved_keyword_with_escape_sequence: {
