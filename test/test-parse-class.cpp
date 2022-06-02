@@ -1832,6 +1832,146 @@ TEST(test_parse, call_signatures_are_disallowed_in_typescript_classes) {
                     expected_method_name, strlen(u8"class C { "), u8"")));
   }
 }
+
+TEST(test_parse, access_specifiers_are_disallowed_in_javascript) {
+  for (string8 specifier : {u8"public", u8"protected", u8"private"}) {
+    {
+      padded_string code(u8"class C { " + specifier + u8" method() {} }");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_declaration",       // C
+                              "visit_enter_class_scope",          // C
+                              "visit_property_declaration",       // method
+                              "visit_enter_function_scope",       // method
+                              "visit_enter_function_scope_body",  // method
+                              "visit_exit_function_scope",        // method
+                              "visit_exit_class_scope"));         // C
+      EXPECT_THAT(
+          v.property_declarations,
+          ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              &code,
+              diag_typescript_access_specifiers_not_allowed_in_javascript,  //
+              specifier, strlen(u8"class C { "), specifier)));
+    }
+
+    {
+      padded_string code(u8"class C { " + specifier + u8" field }");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              &code,
+              diag_typescript_access_specifiers_not_allowed_in_javascript,  //
+              specifier, strlen(u8"class C { "), specifier)));
+    }
+
+    {
+      padded_string code(u8"class C { " + specifier + u8" field = init; }");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              &code,
+              diag_typescript_access_specifiers_not_allowed_in_javascript,  //
+              specifier, strlen(u8"class C { "), specifier)));
+    }
+
+    {
+      padded_string code(u8"class C { " + specifier +
+                         u8" field\nmethod() {} }");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              &code,
+              diag_typescript_access_specifiers_not_allowed_in_javascript,  //
+              specifier, strlen(u8"class C { "), specifier)));
+    }
+
+    {
+      padded_string code(u8"class C { " + specifier +
+                         u8" field\n[methodName]() {} }");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              &code,
+              diag_typescript_access_specifiers_not_allowed_in_javascript,  //
+              specifier, strlen(u8"class C { "), specifier)));
+    }
+
+    {
+      padded_string code(u8"class C { " + specifier +
+                         u8" field? method() {} }");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(
+          v.errors,
+          UnorderedElementsAre(
+              DIAG_TYPE(
+                  diag_typescript_optional_properties_not_allowed_in_javascript),
+              DIAG_TYPE(diag_missing_semicolon_after_field),
+              DIAG_TYPE_OFFSETS(
+                  &code,
+                  diag_typescript_access_specifiers_not_allowed_in_javascript,  //
+                  specifier, strlen(u8"class C { "), specifier)));
+    }
+
+    {
+      padded_string code(u8"class C { " + specifier +
+                         u8" async\nmethod() { const await = null; } }");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              &code,
+              diag_typescript_access_specifiers_not_allowed_in_javascript,  //
+              specifier, strlen(u8"class C { "), specifier)));
+    }
+  }
+}
+
+TEST(test_parse, access_specifiers_are_allowed_in_typescript) {
+  for (string8 specifier : {u8"public", u8"protected", u8"private"}) {
+    padded_string code(u8"class C { " + specifier + u8" method() {} }");
+    SCOPED_TRACE(code);
+    spy_visitor v = parse_and_visit_typescript_statement(code.string_view());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // C
+                            "visit_enter_class_scope",          // C
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_enter_function_scope_body",  // method
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope"));         // C
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
+  }
+}
 }
 }
 

@@ -1198,6 +1198,25 @@ TEST(test_parse_typescript_interface, generic_interface) {
                 variable_init_kind::normal}));
   }
 }
+
+TEST(test_parse_typescript_interface, access_specifiers_are_not_allowed) {
+  for (string8 specifier : {u8"public", u8"protected", u8"private"}) {
+    padded_string code(u8"interface I { " + specifier + u8" method(); }");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code,
+            diag_typescript_interfaces_cannot_contain_access_specifiers,  //
+            specifier, strlen(u8"interface I { "), specifier)));
+  }
+}
 }
 }
 

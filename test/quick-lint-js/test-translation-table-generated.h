@@ -1570,6 +1570,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "interface properties are always public and cannot be marked {0}"_translatable,
+        {
+            u8"interface properties are always public and cannot be marked {0}",
+            u8"interface properties are always public and cannot be marked {0}",
+            u8"interface properties are always public and cannot be marked {0}",
+            u8"interface properties are always public and cannot be marked {0}",
+            u8"interface properties are always public and cannot be marked {0}",
+            u8"interface properties are always public and cannot be marked {0}",
+        },
+    },
+    {
         "invalid UTF-8 sequence"_translatable,
         {
             u8"invalid UTF-8 sequence",
@@ -3096,6 +3107,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"write a name to declare a class method",
             u8"write a name to declare a class method",
             u8"write a name to declare a class method",
+        },
+    },
+    {
+        "{0} is not allowed in JavaScript"_translatable,
+        {
+            u8"{0} is not allowed in JavaScript",
+            u8"{0} is not allowed in JavaScript",
+            u8"{0} is not allowed in JavaScript",
+            u8"{0} is not allowed in JavaScript",
+            u8"{0} is not allowed in JavaScript",
+            u8"{0} is not allowed in JavaScript",
         },
     },
     {

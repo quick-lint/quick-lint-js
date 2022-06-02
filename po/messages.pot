@@ -850,6 +850,10 @@ msgid "stray comma in function parameter"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "{0} is not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "TypeScript call signatures are only allowed in classes"
 msgstr ""
 
@@ -871,6 +875,10 @@ msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "TypeScript generics are not allowed in JavaScript code"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "interface properties are always public and cannot be marked {0}"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h

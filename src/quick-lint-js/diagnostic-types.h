@@ -1351,6 +1351,12 @@
       MESSAGE(QLJS_TRANSLATABLE("stray comma in function parameter"), comma))  \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_access_specifiers_not_allowed_in_javascript, "E0236",    \
+      diagnostic_severity::error, { source_code_span specifier; },             \
+      MESSAGE(QLJS_TRANSLATABLE("{0} is not allowed in JavaScript"),           \
+              specifier))                                                      \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_call_signatures_not_allowed_in_classes, "E0234",         \
       diagnostic_severity::error, { source_code_span expected_method_name; },  \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
@@ -1385,6 +1391,13 @@
       MESSAGE(QLJS_TRANSLATABLE("TypeScript generics are not "                 \
                                 "allowed in JavaScript code"),                 \
               opening_less))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_interfaces_cannot_contain_access_specifiers, "E0237",    \
+      diagnostic_severity::error, { source_code_span specifier; },             \
+      MESSAGE(QLJS_TRANSLATABLE("interface properties are always public and "  \
+                                "cannot be marked {0}"),                       \
+              specifier))                                                      \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
       diag_typescript_interfaces_not_allowed_in_javascript, "E0213",           \

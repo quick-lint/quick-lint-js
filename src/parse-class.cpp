@@ -171,6 +171,23 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     std::optional<source_code_span> static_keyword;
     std::optional<source_code_span> star_token;
     std::optional<source_code_span> async_keyword;
+    std::optional<source_code_span> access_specifier_span;
+
+    void parse_leading_access_specifier() {
+      switch (p->peek().type) {
+      // private f() {}
+      case token_type::kw_private:
+      case token_type::kw_protected:
+      case token_type::kw_public:
+        last_ident = p->peek().identifier_name();
+        access_specifier_span = p->peek().span();
+        p->skip();
+        break;
+
+      default:
+        break;
+      }
+    }
 
     void parse_leading_static() {
       switch (p->peek().type) {
@@ -230,6 +247,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           case token_type::private_identifier:
           case token_type::star:
             error_if_readonly_in_not_typescript(last_ident);
+            error_if_invalid_access_specifier(last_ident);
             error_if_static_in_interface(last_ident);
             v.visit_property_declaration(last_ident);
             return;
@@ -688,6 +706,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
               .readonly_keyword = *readonly_keyword,
           });
         }
+        error_if_invalid_access_specifier(property_name);
         if (is_interface) {
           error_if_async_in_interface(property_name);
           error_if_generator_star_in_interface(property_name);
@@ -709,6 +728,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::right_curly:
       case token_type::semicolon:
         error_if_readonly_in_not_typescript(property_name);
+        error_if_invalid_access_specifier(property_name);
         error_if_static_in_interface(property_name);
         v.visit_property_declaration(property_name);
         p->consume_semicolon<diag_missing_semicolon_after_field>();
@@ -717,6 +737,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         // field = initialValue;
       case token_type::equal:
         error_if_readonly_in_not_typescript(property_name);
+        error_if_invalid_access_specifier(property_name);
         if (is_interface) {
           error_if_static_in_interface(property_name);
           p->diag_reporter_->report(
@@ -739,6 +760,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           //   method() {}
           // }
           error_if_static_in_interface(property_name);
+          error_if_invalid_access_specifier(property_name);
           error_if_readonly_in_not_typescript(property_name);
           v.visit_property_declaration(property_name);
         } else {
@@ -754,6 +776,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             //   field? method() {}  // Invalid.
             // }
             error_if_readonly_in_not_typescript(property_name);
+            error_if_invalid_access_specifier(property_name);
             error_if_static_in_interface(property_name);
             v.visit_property_declaration(property_name);
             p->consume_semicolon<diag_missing_semicolon_after_field>();
@@ -778,6 +801,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           //   [expr]() {}
           // }
           error_if_readonly_in_not_typescript(property_name);
+          error_if_invalid_access_specifier(property_name);
           error_if_static_in_interface(property_name);
           v.visit_property_declaration(property_name);
         } else {
@@ -805,6 +829,23 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             diag_typescript_readonly_fields_not_allowed_in_javascript{
                 .readonly_keyword = *readonly_keyword,
             });
+      }
+    }
+
+    void error_if_invalid_access_specifier(
+        const std::optional<identifier> &property_name) {
+      if (is_keyword(access_specifier_span, property_name)) {
+        if (is_interface) {
+          p->diag_reporter_->report(
+              diag_typescript_interfaces_cannot_contain_access_specifiers{
+                  .specifier = *access_specifier_span,
+              });
+        } else if (!p->options_.typescript) {
+          p->diag_reporter_->report(
+              diag_typescript_access_specifiers_not_allowed_in_javascript{
+                  .specifier = *access_specifier_span,
+              });
+        }
       }
     }
 
@@ -843,6 +884,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     }
   };
   class_parser state(this, v, is_interface);
+  state.parse_leading_access_specifier();
   state.parse_leading_static();
   state.parse_leading_readonly();
   state.parse_stuff();
