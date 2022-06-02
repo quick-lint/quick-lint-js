@@ -280,6 +280,7 @@ parse_statement:
 
     // console.log("hello");
     // label: for(;;);
+  QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD:
   parse_loop_label_or_expression_starting_with_identifier:
   case token_type::kw_as:
   case token_type::kw_from:
@@ -3180,6 +3181,7 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
 
       // let x;
       // let x = 42;
+    QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD:
     variable_name:
     case token_type::identifier:
     case token_type::kw_as:

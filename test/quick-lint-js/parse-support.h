@@ -209,9 +209,14 @@ constexpr inline std::array strict_reserved_keywords =
     concat(strict_disallowed_binding_identifier_keywords,
            make_array(u8"await", u8"yield"));
 
-constexpr inline std::array contextual_keywords =
-    make_array(u8"as", u8"async", u8"from", u8"get", u8"let", u8"meta", u8"of",
-               u8"set", u8"static", u8"target");
+constexpr inline std::array contextual_keywords = make_array(
+    u8"abstract", u8"any", u8"as", u8"assert", u8"asserts", u8"async",
+    u8"bigint", u8"boolean", u8"constructor", u8"declare", u8"from", u8"get",
+    u8"global", u8"infer", u8"intrinsic", u8"is", u8"keyof", u8"let", u8"meta",
+    u8"module", u8"namespace", u8"never", u8"number", u8"object", u8"of",
+    u8"out", u8"override", u8"readonly", u8"require", u8"set", u8"static",
+    u8"string", u8"symbol", u8"target", u8"type", u8"undefined", u8"unique",
+    u8"unknown");
 
 // ReservedWord or contextual keyword in strict mode or non-strict mode.
 constexpr inline std::array keywords =

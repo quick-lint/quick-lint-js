@@ -79,7 +79,38 @@
   case ::quick_lint_js::token_type::kw_protected:  \
   case ::quick_lint_js::token_type::kw_public
 
+#define QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD \
+  case ::quick_lint_js::token_type::kw_abstract:     \
+  case ::quick_lint_js::token_type::kw_any:          \
+  case ::quick_lint_js::token_type::kw_assert:       \
+  case ::quick_lint_js::token_type::kw_asserts:      \
+  case ::quick_lint_js::token_type::kw_bigint:       \
+  case ::quick_lint_js::token_type::kw_boolean:      \
+  case ::quick_lint_js::token_type::kw_constructor:  \
+  case ::quick_lint_js::token_type::kw_declare:      \
+  case ::quick_lint_js::token_type::kw_global:       \
+  case ::quick_lint_js::token_type::kw_infer:        \
+  case ::quick_lint_js::token_type::kw_intrinsic:    \
+  case ::quick_lint_js::token_type::kw_is:           \
+  case ::quick_lint_js::token_type::kw_keyof:        \
+  case ::quick_lint_js::token_type::kw_module:       \
+  case ::quick_lint_js::token_type::kw_namespace:    \
+  case ::quick_lint_js::token_type::kw_never:        \
+  case ::quick_lint_js::token_type::kw_number:       \
+  case ::quick_lint_js::token_type::kw_object:       \
+  case ::quick_lint_js::token_type::kw_out:          \
+  case ::quick_lint_js::token_type::kw_override:     \
+  case ::quick_lint_js::token_type::kw_readonly:     \
+  case ::quick_lint_js::token_type::kw_require:      \
+  case ::quick_lint_js::token_type::kw_string:       \
+  case ::quick_lint_js::token_type::kw_symbol:       \
+  case ::quick_lint_js::token_type::kw_type:         \
+  case ::quick_lint_js::token_type::kw_undefined:    \
+  case ::quick_lint_js::token_type::kw_unique:       \
+  case ::quick_lint_js::token_type::kw_unknown
+
 #define QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC \
+  QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD:                              \
   case ::quick_lint_js::token_type::kw_as:                                   \
   case ::quick_lint_js::token_type::kw_from:                                 \
   case ::quick_lint_js::token_type::kw_let:                                  \
@@ -256,6 +287,36 @@ enum class token_type {
   kw_while,
   kw_with,
   kw_yield,
+
+  // TypeScript-only keywords.
+  kw_abstract,
+  kw_any,
+  kw_assert,
+  kw_asserts,
+  kw_bigint,
+  kw_boolean,
+  kw_constructor,
+  kw_declare,
+  kw_global,
+  kw_infer,
+  kw_intrinsic,
+  kw_is,
+  kw_keyof,
+  kw_module,
+  kw_namespace,
+  kw_never,
+  kw_number,
+  kw_object,
+  kw_out,
+  kw_override,
+  kw_readonly,
+  kw_require,
+  kw_string,
+  kw_symbol,
+  kw_type,
+  kw_undefined,
+  kw_unique,
+  kw_unknown,
 
   // Symbols:
   ampersand_ampersand,            // &&

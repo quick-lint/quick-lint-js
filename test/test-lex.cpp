@@ -2085,6 +2085,37 @@ TEST_F(test_lex, lex_contextual_keywords) {
   this->check_tokens(u8"static"_sv, {token_type::kw_static});
 }
 
+TEST_F(test_lex, lex_typescript_contextual_keywords) {
+  this->check_tokens(u8"abstract"_sv, {token_type::kw_abstract});
+  this->check_tokens(u8"any"_sv, {token_type::kw_any});
+  this->check_tokens(u8"assert"_sv, {token_type::kw_assert});
+  this->check_tokens(u8"asserts"_sv, {token_type::kw_asserts});
+  this->check_tokens(u8"bigint"_sv, {token_type::kw_bigint});
+  this->check_tokens(u8"boolean"_sv, {token_type::kw_boolean});
+  this->check_tokens(u8"constructor"_sv, {token_type::kw_constructor});
+  this->check_tokens(u8"declare"_sv, {token_type::kw_declare});
+  this->check_tokens(u8"global"_sv, {token_type::kw_global});
+  this->check_tokens(u8"infer"_sv, {token_type::kw_infer});
+  this->check_tokens(u8"intrinsic"_sv, {token_type::kw_intrinsic});
+  this->check_tokens(u8"is"_sv, {token_type::kw_is});
+  this->check_tokens(u8"keyof"_sv, {token_type::kw_keyof});
+  this->check_tokens(u8"module"_sv, {token_type::kw_module});
+  this->check_tokens(u8"namespace"_sv, {token_type::kw_namespace});
+  this->check_tokens(u8"never"_sv, {token_type::kw_never});
+  this->check_tokens(u8"number"_sv, {token_type::kw_number});
+  this->check_tokens(u8"object"_sv, {token_type::kw_object});
+  this->check_tokens(u8"out"_sv, {token_type::kw_out});
+  this->check_tokens(u8"override"_sv, {token_type::kw_override});
+  this->check_tokens(u8"readonly"_sv, {token_type::kw_readonly});
+  this->check_tokens(u8"require"_sv, {token_type::kw_require});
+  this->check_tokens(u8"string"_sv, {token_type::kw_string});
+  this->check_tokens(u8"symbol"_sv, {token_type::kw_symbol});
+  this->check_tokens(u8"type"_sv, {token_type::kw_type});
+  this->check_tokens(u8"undefined"_sv, {token_type::kw_undefined});
+  this->check_tokens(u8"unique"_sv, {token_type::kw_unique});
+  this->check_tokens(u8"unknown"_sv, {token_type::kw_unknown});
+}
+
 TEST_F(
     test_lex,
     lex_reserved_keywords_except_await_and_yield_sometimes_cannot_contain_escape_sequences) {

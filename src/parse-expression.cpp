@@ -221,6 +221,7 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
                                              precedence prec) {
   switch (this->peek().type) {
   // f  // Variable name.
+  QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD:
   identifier:
   case token_type::identifier:
   case token_type::kw_as:
@@ -1484,6 +1485,7 @@ next:
     break;
   }
 
+  QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD:
   case token_type::bang:
   case token_type::colon:
   case token_type::end_of_file:
