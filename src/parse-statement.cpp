@@ -830,6 +830,19 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
   }
 }
 
+void parser::parse_and_visit_typescript_generic_parameters(
+    parse_visitor_base &v) {
+  QLJS_ASSERT(this->peek().type == token_type::less);
+  this->skip();
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+  v.visit_variable_declaration(this->peek().identifier_name(),
+                               variable_kind::_generic_parameter,
+                               variable_init_kind::normal);
+  this->skip();
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
+  this->skip();
+}
+
 void parser::parse_and_visit_statement_block_no_scope(parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::left_curly);
   source_code_span left_curly_span = this->peek().span();
@@ -997,6 +1010,26 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
         .expected_body = source_code_span(expected_body, expected_body)});
     break;
   }
+  }
+}
+
+void parser::parse_and_visit_interface_function_parameters_and_body_no_scope(
+    parse_visitor_base &v, std::optional<source_code_span> name) {
+  function_parameter_parse_result result =
+      this->parse_and_visit_function_parameters(v, name);
+  switch (result) {
+  case function_parameter_parse_result::missing_parameters_ignore_body:
+  case function_parameter_parse_result::parsed_parameters_missing_body:
+    break;
+
+  case function_parameter_parse_result::parsed_parameters:
+  case function_parameter_parse_result::missing_parameters:
+    this->diag_reporter_->report(diag_interface_methods_cannot_contain_bodies{
+        .body_start = this->peek().span(),
+    });
+    v.visit_enter_function_scope_body();
+    this->parse_and_visit_statement_block_no_scope(v);
+    break;
   }
 }
 
@@ -1441,23 +1474,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         error_if_static_in_interface(property_name);
         v.visit_enter_function_scope();
         function_guard guard = this->enter_function(method_attributes);
-        function_parameter_parse_result result =
-            this->parse_and_visit_function_parameters(v, property_name_span);
-        switch (result) {
-        case function_parameter_parse_result::missing_parameters_ignore_body:
-        case function_parameter_parse_result::parsed_parameters_missing_body:
-          break;
-
-        case function_parameter_parse_result::parsed_parameters:
-        case function_parameter_parse_result::missing_parameters:
-          this->diag_reporter_->report(
-              diag_interface_methods_cannot_contain_bodies{
-                  .body_start = this->peek().span(),
-              });
-          v.visit_enter_function_scope_body();
-          this->parse_and_visit_statement_block_no_scope(v);
-          break;
-        }
+        this->parse_and_visit_interface_function_parameters_and_body_no_scope(
+            v, property_name_span);
         v.visit_exit_function_scope();
       } else {
         this->parse_and_visit_function_parameters_and_body(
@@ -1873,6 +1891,22 @@ next:
       QLJS_PARSER_UNIMPLEMENTED();
     }
     break;
+
+  // <T>(param: T): void;  // TypeScript generic interface call signature.
+  case token_type::less: {
+    source_code_span property_name_span(this->peek().begin, this->peek().begin);
+
+    v.visit_property_declaration(std::nullopt);
+    v.visit_enter_function_scope();
+    {
+      function_guard guard = this->enter_function(method_attributes);
+      this->parse_and_visit_typescript_generic_parameters(v);
+      this->parse_and_visit_interface_function_parameters_and_body_no_scope(
+          v, property_name_span);
+    }
+    v.visit_exit_function_scope();
+    break;
+  }
 
   case token_type::left_curly:
     this->diag_reporter_->report(diag_unexpected_token{

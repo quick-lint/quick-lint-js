@@ -15,6 +15,7 @@ std::ostream& operator<<(std::ostream& out, variable_kind kind) {
     QLJS_CASE(_class)
     QLJS_CASE(_const)
     QLJS_CASE(_function)
+    QLJS_CASE(_generic_parameter)
     QLJS_CASE(_import)
     QLJS_CASE(_interface)
     QLJS_CASE(_let)

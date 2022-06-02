@@ -789,6 +789,9 @@ void linter::report_error_if_assignment_is_illegal(
     // Interfaces can't be assigned to.
     QLJS_UNREACHABLE();
     break;
+  case variable_kind::_generic_parameter:
+    QLJS_UNIMPLEMENTED();  // TODO(#690)
+    break;
   }
 }
 
@@ -883,6 +886,9 @@ void linter::report_error_if_variable_declaration_conflicts(
   case vk::_import:
   case vk::_interface:
     break;
+  case vk::_generic_parameter:
+    QLJS_UNIMPLEMENTED();  // TODO(#690)
+    break;
   }
 
   bool redeclaration_ok =
@@ -924,6 +930,7 @@ bool linter::declared_variable::is_runtime() const noexcept {
   case variable_kind::_parameter:
   case variable_kind::_var:
     return true;
+  case variable_kind::_generic_parameter:
   case variable_kind::_interface:
     return false;
   }
@@ -933,6 +940,7 @@ bool linter::declared_variable::is_runtime() const noexcept {
 bool linter::declared_variable::is_type() const noexcept {
   switch (this->kind) {
   case variable_kind::_class:
+  case variable_kind::_generic_parameter:
   case variable_kind::_import:
   case variable_kind::_interface:
     return true;

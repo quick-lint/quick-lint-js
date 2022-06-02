@@ -164,6 +164,8 @@ class parser {
       expression *lhs, expression *rhs, parse_visitor_base &v);
   void maybe_visit_assignment(expression *ast, parse_visitor_base &v);
 
+  void parse_and_visit_typescript_generic_parameters(parse_visitor_base &v);
+
   void parse_and_visit_statement_block_no_scope(parse_visitor_base &v);
 
   enum class name_requirement {
@@ -189,6 +191,8 @@ class parser {
   void parse_and_visit_function_parameters_and_body_no_scope(
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
+  void parse_and_visit_interface_function_parameters_and_body_no_scope(
+      parse_visitor_base &v, std::optional<source_code_span> name);
   function_parameter_parse_result parse_and_visit_function_parameters(
       parse_visitor_base &v, std::optional<source_code_span> name);
   void parse_and_visit_function_parameters(parse_visitor_base &v);
