@@ -172,51 +172,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     std::optional<source_code_span> star_token;
     std::optional<source_code_span> async_keyword;
 
-    static bool is_keyword(const std::optional<source_code_span> &keyword,
-                           const std::optional<identifier> &property_name) {
-      return keyword.has_value() &&
-             (!property_name.has_value() ||
-              property_name->span().begin() != keyword->begin());
-    }
-
-    void error_if_readonly_in_not_typescript(
-        const std::optional<identifier> &property_name) {
-      if (!p->options_.typescript &&
-          is_keyword(readonly_keyword, property_name)) {
-        p->diag_reporter_->report(
-            diag_typescript_readonly_fields_not_allowed_in_javascript{
-                .readonly_keyword = *readonly_keyword,
-            });
-      }
-    }
-
-    void error_if_static_in_interface(
-        const std::optional<identifier> &property_name) {
-      if (is_interface && is_keyword(static_keyword, property_name)) {
-        p->diag_reporter_->report(diag_interface_properties_cannot_be_static{
-            .static_keyword = *static_keyword,
-        });
-      }
-    }
-
-    void error_if_async_in_interface(
-        const std::optional<identifier> &property_name) {
-      if (is_interface && is_keyword(async_keyword, property_name)) {
-        p->diag_reporter_->report(diag_interface_methods_cannot_be_async{
-            .async_keyword = *async_keyword,
-        });
-      }
-    }
-
-    void error_if_generator_star_in_interface(
-        const std::optional<identifier> &property_name) {
-      if (is_interface && is_keyword(star_token, property_name)) {
-        p->diag_reporter_->report(diag_interface_methods_cannot_be_generators{
-            .star = *star_token,
-        });
-      }
-    }
-
     void parse_and_visit_field_or_method(
         identifier property_name, function_attributes method_attributes) {
       parse_and_visit_field_or_method_impl(property_name, property_name.span(),
@@ -447,6 +402,51 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
         break;
       }
+    }
+
+    void error_if_readonly_in_not_typescript(
+        const std::optional<identifier> &property_name) {
+      if (!p->options_.typescript &&
+          is_keyword(readonly_keyword, property_name)) {
+        p->diag_reporter_->report(
+            diag_typescript_readonly_fields_not_allowed_in_javascript{
+                .readonly_keyword = *readonly_keyword,
+            });
+      }
+    }
+
+    void error_if_static_in_interface(
+        const std::optional<identifier> &property_name) {
+      if (is_interface && is_keyword(static_keyword, property_name)) {
+        p->diag_reporter_->report(diag_interface_properties_cannot_be_static{
+            .static_keyword = *static_keyword,
+        });
+      }
+    }
+
+    void error_if_async_in_interface(
+        const std::optional<identifier> &property_name) {
+      if (is_interface && is_keyword(async_keyword, property_name)) {
+        p->diag_reporter_->report(diag_interface_methods_cannot_be_async{
+            .async_keyword = *async_keyword,
+        });
+      }
+    }
+
+    void error_if_generator_star_in_interface(
+        const std::optional<identifier> &property_name) {
+      if (is_interface && is_keyword(star_token, property_name)) {
+        p->diag_reporter_->report(diag_interface_methods_cannot_be_generators{
+            .star = *star_token,
+        });
+      }
+    }
+
+    static bool is_keyword(const std::optional<source_code_span> &keyword,
+                           const std::optional<identifier> &property_name) {
+      return keyword.has_value() &&
+             (!property_name.has_value() ||
+              property_name->span().begin() != keyword->begin());
     }
   };
   class_parser state(this, v, is_interface);
