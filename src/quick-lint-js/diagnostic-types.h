@@ -260,7 +260,7 @@
               import_name))                                                    \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_cannot_import_from_unquoted_module, "E0223",                        \
+      diag_cannot_import_from_unquoted_module, "E0233",                        \
       diagnostic_severity::error, { identifier import_name; },                 \
       MESSAGE(QLJS_TRANSLATABLE("missing quotes around module name '{0}'"),    \
               import_name))                                                    \
