@@ -209,7 +209,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     }
 
     void parse_stuff() {
-    next:
       switch (p->peek().type) {
       // async f() {}
       case token_type::kw_async:
@@ -437,7 +436,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
               diag_methods_should_not_use_function_keyword{
                   .function_token = function_token.span(),
               });
-          goto next;
+          this->parse_stuff();
+          return;
         }
         break;
       }
