@@ -439,7 +439,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           {
             if (is_interface) {
               function_guard guard = p->enter_function(method_attributes);
-              p->parse_and_visit_typescript_generic_parameters(v);
               p->parse_and_visit_interface_function_parameters_and_body_no_scope(
                   v, property_name_span);
             } else {
