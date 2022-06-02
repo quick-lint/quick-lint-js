@@ -155,9 +155,6 @@ void parser::parse_and_visit_class_body(parse_visitor_base &v) {
 
 void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
                                                        bool is_interface) {
-  QLJS_WARNING_PUSH
-  QLJS_WARNING_IGNORE_GCC("-Wshadow-local")
-
   struct class_parser {
     explicit class_parser(parser *p, parse_visitor_base &v, bool is_interface)
         : p(p), v(v), is_interface(is_interface) {}
@@ -799,8 +796,6 @@ next:
     QLJS_PARSER_UNIMPLEMENTED();
     break;
   }
-
-  QLJS_WARNING_POP
 }
 
 void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
