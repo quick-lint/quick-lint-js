@@ -172,6 +172,42 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     std::optional<source_code_span> star_token;
     std::optional<source_code_span> async_keyword;
 
+    void parse_leading_static() {
+      switch (p->peek().type) {
+      // static f() {}
+      case token_type::kw_static:
+        last_ident = p->peek().identifier_name();
+        static_keyword = p->peek().span();
+        p->skip();
+        break;
+
+      default:
+        break;
+      }
+    }
+
+    void parse_leading_readonly() {
+      switch (p->peek().type) {
+      // readonly field: number;
+      case token_type::kw_readonly:
+        last_ident = p->peek().identifier_name();
+        readonly_keyword = p->peek().span();
+        p->skip();
+
+        if (p->peek().type == token_type::kw_static) {
+          // readonly static field;  // Invalid
+          // readonly static;
+          readonly_static = true;
+          // TODO(#736): What about 'static readonly static'?
+          static_keyword = p->peek().span();
+        }
+        break;
+
+      default:
+        break;
+      }
+    }
+
     void parse_and_visit_field_or_method(
         identifier property_name, function_attributes method_attributes) {
       parse_and_visit_field_or_method_impl(property_name, property_name.span(),
@@ -450,38 +486,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     }
   };
   class_parser state(this, v, is_interface);
-
-  switch (this->peek().type) {
-    // static f() {}
-  case token_type::kw_static:
-    state.last_ident = this->peek().identifier_name();
-    state.static_keyword = this->peek().span();
-    this->skip();
-    break;
-
-  default:
-    break;
-  }
-
-  switch (this->peek().type) {
-  // readonly field: number;
-  case token_type::kw_readonly:
-    state.last_ident = this->peek().identifier_name();
-    state.readonly_keyword = this->peek().span();
-    this->skip();
-
-    if (this->peek().type == token_type::kw_static) {
-      // readonly static field;  // Invalid
-      // readonly static;
-      state.readonly_static = true;
-      // TODO(#736): What about 'static readonly static'?
-      state.static_keyword = this->peek().span();
-    }
-    break;
-
-  default:
-    break;
-  }
+  state.parse_leading_static();
+  state.parse_leading_readonly();
 
 next:
   switch (this->peek().type) {
