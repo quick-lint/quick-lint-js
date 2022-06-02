@@ -208,6 +208,322 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       }
     }
 
+    void parse_stuff() {
+    next:
+      switch (p->peek().type) {
+      // async f() {}
+      case token_type::kw_async:
+        last_ident = p->peek().identifier_name();
+        async_keyword = p->peek().span();
+        p->skip();
+        if (p->peek().has_leading_newline) {
+          switch (p->peek().type) {
+          // 'async' is a field name:
+          // class {
+          //   async
+          //   method() {}
+          // }
+          QLJS_CASE_KEYWORD:
+          case token_type::left_square:
+          case token_type::number:
+          case token_type::string:
+          case token_type::identifier:
+          case token_type::private_identifier:
+          case token_type::star:
+            error_if_readonly_in_not_typescript(last_ident);
+            error_if_static_in_interface(last_ident);
+            v.visit_property_declaration(last_ident);
+            return;
+          default:
+            break;
+          }
+        } else {
+          if (p->peek().type != token_type::left_paren) {
+            method_attributes = function_attributes::async;
+          }
+          if (p->peek().type == token_type::star) {
+            // async *g() {}
+            method_attributes = function_attributes::async_generator;
+            star_token = p->peek().span();
+            p->skip();
+          }
+          if (p->peek().type == token_type::kw_static) {
+            // async static method() {}  // Invalid
+            // async static() {}
+            async_static = true;
+            // TODO(strager): What about 'static async static'?
+            static_keyword = p->peek().span();
+          }
+        }
+        break;
+
+      // *g() {}
+      case token_type::star:
+        method_attributes = function_attributes::generator;
+        star_token = p->peek().span();
+        p->skip();
+        break;
+
+      // get prop() {}
+      case token_type::kw_get:
+      case token_type::kw_set:
+        last_ident = p->peek().identifier_name();
+        p->skip();
+        break;
+
+      default:
+        break;
+      }
+
+      switch (p->peek().type) {
+      // method() {}
+      // static() {}
+      // #method() {}
+      // field;
+      // field = initialValue;
+      // #field = initialValue;
+      case token_type::private_identifier:
+        if (is_interface) {
+          p->diag_reporter_->report(diag_interface_properties_cannot_be_private{
+              .property_name = p->peek().identifier_name(),
+          });
+        }
+        [[fallthrough]];
+      QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
+      QLJS_CASE_CONTEXTUAL_KEYWORD:
+      case token_type::identifier:
+      case token_type::reserved_keyword_with_escape_sequence: {
+        identifier property_name = p->peek().identifier_name();
+        p->skip();
+        parse_and_visit_field_or_method(property_name, method_attributes);
+        break;
+      }
+
+      // "method"() {}
+      // 9001() {}
+      // "fieldName" = init;
+      case token_type::number:
+      case token_type::string: {
+        source_code_span name_span = p->peek().span();
+        p->skip();
+        parse_and_visit_field_or_method_without_name(name_span,
+                                                     method_attributes);
+        break;
+      }
+
+      // [methodNameExpression]() {}
+      // [fieldNameExpression] = initialValue;
+      // [key: KeyType]: ValueType;  // TypeScript only
+      case token_type::left_square: {
+        const char8 *name_begin = p->peek().begin;
+        p->skip();
+
+        if (p->options_.typescript) {
+          parser_transaction transaction = p->begin_transaction();
+          // TODO(strager): Allow certain contextual keywords like 'let'?
+          if (p->peek().type == token_type::identifier) {
+            identifier key_variable = p->peek().identifier_name();
+            p->skip();
+            if (p->peek().type == token_type::colon) {
+              // [key: KeyType]: ValueType;
+              v.visit_enter_index_signature_scope();
+              p->commit_transaction(std::move(transaction));
+              p->parse_and_visit_typescript_colon_type_expression(v);
+
+              QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN_WITH_PARSER(
+                  p, token_type::right_square);
+              const char8 *name_end = p->peek().end;
+              p->skip();
+
+              // TODO(strager): We probably should create a new kind of variable
+              // instead of overloading 'parameter'.
+              v.visit_variable_declaration(key_variable,
+                                           variable_kind::_parameter,
+                                           variable_init_kind::normal);
+
+              switch (p->peek().type) {
+              // [key: KeyType]: ValueType;
+              case token_type::colon:
+                p->parse_and_visit_typescript_colon_type_expression(v);
+                p->consume_semicolon<
+                    diag_missing_semicolon_after_index_signature>();
+                break;
+
+              // [key: KeyType];  // Invalid.
+              case token_type::semicolon: {
+              missing_type_for_index_signature:
+                const char8 *expected_type = p->lexer_.end_of_previous_token();
+                p->diag_reporter_->report(
+                    diag_typescript_index_signature_needs_type{
+                        .expected_type =
+                            source_code_span(expected_type, expected_type),
+                    });
+                break;
+              }
+
+              // [key: KeyType]  // Invalid.
+              // ();
+              //
+              // [key: KeyType]();  // Invalid.
+              case token_type::left_paren: {
+                if (p->peek().has_leading_newline) {
+                  QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
+                } else {
+                  p->diag_reporter_->report(
+                      diag_typescript_index_signature_cannot_be_method{
+                          .left_paren = p->peek().span(),
+                      });
+                  parse_and_visit_field_or_method_without_name(
+                      source_code_span(name_begin, name_end),
+                      method_attributes);
+                }
+                break;
+              }
+
+              // [key: KeyType]  // Invalid.
+              // method();
+              //
+              // [key: KeyType] method();  // Invalid.
+              default:
+                if (p->peek().has_leading_newline) {
+                  goto missing_type_for_index_signature;
+                } else {
+                  QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
+                }
+                break;
+              }
+              v.visit_exit_index_signature_scope();
+              break;
+            }
+          }
+          p->roll_back_transaction(std::move(transaction));
+        }
+
+        p->parse_and_visit_expression(v);
+
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN_WITH_PARSER(
+            p, token_type::right_square);
+        const char8 *name_end = p->peek().end;
+        p->skip();
+
+        parse_and_visit_field_or_method_without_name(
+            source_code_span(name_begin, name_end), method_attributes);
+        break;
+      }
+
+      // function() {}
+      // function f() {}  // Invalid.
+      case token_type::kw_function: {
+        token function_token = p->peek();
+        p->skip();
+        switch (p->peek().type) {
+        // function() {}
+        // function?() {}
+        // class C { function }   // Field named 'function'.
+        // class C { function; }  // Field named 'function'.
+        // function = init;       // Field named 'function'.
+        case token_type::equal:
+        case token_type::left_paren:
+        case token_type::question:
+        case token_type::right_curly:
+        case token_type::semicolon:
+          parse_and_visit_field_or_method(function_token.identifier_name(),
+                                          method_attributes);
+          break;
+
+        default:
+          // function f() {}  // Invalid.
+          p->diag_reporter_->report(
+              diag_methods_should_not_use_function_keyword{
+                  .function_token = function_token.span(),
+              });
+          goto next;
+        }
+        break;
+      }
+
+      // async;  // Field named 'async'.
+      // ;       // Stray semicolon.
+      case token_type::semicolon:
+        if (last_ident.has_value()) {
+          parse_and_visit_field_or_method(*last_ident, method_attributes);
+        } else {
+          p->skip();
+        }
+        break;
+
+      // async() {}
+      // get() {}
+      // () {}       // Invalid.
+      case token_type::left_paren:
+        if (last_ident.has_value()) {
+          parse_and_visit_field_or_method(*last_ident, method_attributes);
+        } else {
+          source_code_span expected_name(p->peek().begin, p->peek().begin);
+          if (!is_interface) {
+            p->diag_reporter_->report(diag_missing_class_method_name{
+                .expected_name = expected_name,
+            });
+          }
+          parse_and_visit_field_or_method_without_name(expected_name,
+                                                       method_attributes);
+        }
+        break;
+
+      // async?() {}
+      // class C { get }  // Field named 'get'
+      // get = init;
+      case token_type::equal:
+      case token_type::question:
+      case token_type::right_curly:
+        if (last_ident.has_value()) {
+          parse_and_visit_field_or_method(*last_ident, method_attributes);
+        } else {
+          QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
+        }
+        break;
+
+      // <T>(param: T): void;  // TypeScript generic interface call signature.
+      case token_type::less: {
+        source_code_span property_name_span(p->peek().begin, p->peek().begin);
+
+        v.visit_property_declaration(std::nullopt);
+        v.visit_enter_function_scope();
+        {
+          function_guard guard = p->enter_function(method_attributes);
+          p->parse_and_visit_typescript_generic_parameters(v);
+          p->parse_and_visit_interface_function_parameters_and_body_no_scope(
+              v, property_name_span);
+        }
+        v.visit_exit_function_scope();
+        break;
+      }
+
+      case token_type::left_curly:
+        p->diag_reporter_->report(diag_unexpected_token{
+            .token = p->peek().span(),
+        });
+        p->skip();
+        break;
+
+      case token_type::comma:
+        p->diag_reporter_->report(diag_comma_not_allowed_between_class_methods{
+            .unexpected_comma = p->peek().span(),
+        });
+        p->skip();
+        break;
+
+      // class C {  // Invalid.
+      case token_type::end_of_file:
+        // An error is reported by parse_and_visit_class_body.
+        break;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
+        break;
+      }
+    }
+
     void parse_and_visit_field_or_method(
         identifier property_name, function_attributes method_attributes) {
       parse_and_visit_field_or_method_impl(property_name, property_name.span(),
@@ -488,320 +804,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
   class_parser state(this, v, is_interface);
   state.parse_leading_static();
   state.parse_leading_readonly();
-
-next:
-  switch (this->peek().type) {
-    // async f() {}
-  case token_type::kw_async:
-    state.last_ident = this->peek().identifier_name();
-    state.async_keyword = this->peek().span();
-    this->skip();
-    if (this->peek().has_leading_newline) {
-      switch (this->peek().type) {
-        // 'async' is a field name:
-        // class {
-        //   async
-        //   method() {}
-        // }
-      QLJS_CASE_KEYWORD:
-      case token_type::left_square:
-      case token_type::number:
-      case token_type::string:
-      case token_type::identifier:
-      case token_type::private_identifier:
-      case token_type::star:
-        state.error_if_readonly_in_not_typescript(state.last_ident);
-        state.error_if_static_in_interface(state.last_ident);
-        v.visit_property_declaration(state.last_ident);
-        return;
-      default:
-        break;
-      }
-    } else {
-      if (this->peek().type != token_type::left_paren) {
-        state.method_attributes = function_attributes::async;
-      }
-      if (this->peek().type == token_type::star) {
-        // async *g() {}
-        state.method_attributes = function_attributes::async_generator;
-        state.star_token = this->peek().span();
-        this->skip();
-      }
-      if (this->peek().type == token_type::kw_static) {
-        // async static method() {}  // Invalid
-        // async static() {}
-        state.async_static = true;
-        // TODO(strager): What about 'static async static'?
-        state.static_keyword = this->peek().span();
-      }
-    }
-    break;
-
-    // *g() {}
-  case token_type::star:
-    state.method_attributes = function_attributes::generator;
-    state.star_token = this->peek().span();
-    this->skip();
-    break;
-
-    // get prop() {}
-  case token_type::kw_get:
-  case token_type::kw_set:
-    state.last_ident = this->peek().identifier_name();
-    this->skip();
-    break;
-
-  default:
-    break;
-  }
-
-  switch (this->peek().type) {
-    // method() {}
-    // static() {}
-    // #method() {}
-    // field;
-    // field = initialValue;
-    // #field = initialValue;
-  case token_type::private_identifier:
-    if (is_interface) {
-      this->diag_reporter_->report(diag_interface_properties_cannot_be_private{
-          .property_name = this->peek().identifier_name(),
-      });
-    }
-    [[fallthrough]];
-  QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
-  QLJS_CASE_CONTEXTUAL_KEYWORD:
-  case token_type::identifier:
-  case token_type::reserved_keyword_with_escape_sequence: {
-    identifier property_name = this->peek().identifier_name();
-    this->skip();
-    state.parse_and_visit_field_or_method(property_name,
-                                          state.method_attributes);
-    break;
-  }
-
-    // "method"() {}
-    // 9001() {}
-    // "fieldName" = init;
-  case token_type::number:
-  case token_type::string: {
-    source_code_span name_span = this->peek().span();
-    this->skip();
-    state.parse_and_visit_field_or_method_without_name(name_span,
-                                                       state.method_attributes);
-    break;
-  }
-
-    // [methodNameExpression]() {}
-    // [fieldNameExpression] = initialValue;
-    // [key: KeyType]: ValueType;  // TypeScript only
-  case token_type::left_square: {
-    const char8 *name_begin = this->peek().begin;
-    this->skip();
-
-    if (this->options_.typescript) {
-      parser_transaction transaction = this->begin_transaction();
-      // TODO(strager): Allow certain contextual keywords like 'let'?
-      if (this->peek().type == token_type::identifier) {
-        identifier key_variable = this->peek().identifier_name();
-        this->skip();
-        if (this->peek().type == token_type::colon) {
-          // [key: KeyType]: ValueType;
-          v.visit_enter_index_signature_scope();
-          this->commit_transaction(std::move(transaction));
-          this->parse_and_visit_typescript_colon_type_expression(v);
-
-          QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
-          const char8 *name_end = this->peek().end;
-          this->skip();
-
-          // TODO(strager): We probably should create a new kind of variable
-          // instead of overloading 'parameter'.
-          v.visit_variable_declaration(key_variable, variable_kind::_parameter,
-                                       variable_init_kind::normal);
-
-          switch (this->peek().type) {
-          // [key: KeyType]: ValueType;
-          case token_type::colon:
-            this->parse_and_visit_typescript_colon_type_expression(v);
-            this->consume_semicolon<
-                diag_missing_semicolon_after_index_signature>();
-            break;
-
-          // [key: KeyType];  // Invalid.
-          case token_type::semicolon: {
-          missing_type_for_index_signature:
-            const char8 *expected_type = this->lexer_.end_of_previous_token();
-            this->diag_reporter_->report(
-                diag_typescript_index_signature_needs_type{
-                    .expected_type =
-                        source_code_span(expected_type, expected_type),
-                });
-            break;
-          }
-
-          // [key: KeyType]  // Invalid.
-          // ();
-          //
-          // [key: KeyType]();  // Invalid.
-          case token_type::left_paren: {
-            if (this->peek().has_leading_newline) {
-              QLJS_PARSER_UNIMPLEMENTED();
-            } else {
-              this->diag_reporter_->report(
-                  diag_typescript_index_signature_cannot_be_method{
-                      .left_paren = this->peek().span(),
-                  });
-              state.parse_and_visit_field_or_method_without_name(
-                  source_code_span(name_begin, name_end),
-                  state.method_attributes);
-            }
-            break;
-          }
-
-          // [key: KeyType]  // Invalid.
-          // method();
-          //
-          // [key: KeyType] method();  // Invalid.
-          default:
-            if (this->peek().has_leading_newline) {
-              goto missing_type_for_index_signature;
-            } else {
-              QLJS_PARSER_UNIMPLEMENTED();
-            }
-            break;
-          }
-          v.visit_exit_index_signature_scope();
-          break;
-        }
-      }
-      this->roll_back_transaction(std::move(transaction));
-    }
-
-    this->parse_and_visit_expression(v);
-
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
-    const char8 *name_end = this->peek().end;
-    this->skip();
-
-    state.parse_and_visit_field_or_method_without_name(
-        source_code_span(name_begin, name_end), state.method_attributes);
-    break;
-  }
-
-    // function() {}
-    // function f() {}  // Invalid.
-  case token_type::kw_function: {
-    token function_token = this->peek();
-    this->skip();
-    switch (this->peek().type) {
-      // function() {}
-      // function?() {}
-      // class C { function }   // Field named 'function'.
-      // class C { function; }  // Field named 'function'.
-      // function = init;       // Field named 'function'.
-    case token_type::equal:
-    case token_type::left_paren:
-    case token_type::question:
-    case token_type::right_curly:
-    case token_type::semicolon:
-      state.parse_and_visit_field_or_method(function_token.identifier_name(),
-                                            state.method_attributes);
-      break;
-
-    default:
-      // function f() {}  // Invalid.
-      this->diag_reporter_->report(diag_methods_should_not_use_function_keyword{
-          .function_token = function_token.span(),
-      });
-      goto next;
-    }
-    break;
-  }
-
-    // async;  // Field named 'async'.
-    // ;       // Stray semicolon.
-  case token_type::semicolon:
-    if (state.last_ident.has_value()) {
-      state.parse_and_visit_field_or_method(*state.last_ident,
-                                            state.method_attributes);
-    } else {
-      this->skip();
-    }
-    break;
-
-    // async() {}
-    // get() {}
-    // () {}       // Invalid.
-  case token_type::left_paren:
-    if (state.last_ident.has_value()) {
-      state.parse_and_visit_field_or_method(*state.last_ident,
-                                            state.method_attributes);
-    } else {
-      source_code_span expected_name(this->peek().begin, this->peek().begin);
-      if (!is_interface) {
-        this->diag_reporter_->report(diag_missing_class_method_name{
-            .expected_name = expected_name,
-        });
-      }
-      state.parse_and_visit_field_or_method_without_name(
-          expected_name, state.method_attributes);
-    }
-    break;
-
-    // async?() {}
-    // class C { get }  // Field named 'get'
-    // get = init;
-  case token_type::equal:
-  case token_type::question:
-  case token_type::right_curly:
-    if (state.last_ident.has_value()) {
-      state.parse_and_visit_field_or_method(*state.last_ident,
-                                            state.method_attributes);
-    } else {
-      QLJS_PARSER_UNIMPLEMENTED();
-    }
-    break;
-
-  // <T>(param: T): void;  // TypeScript generic interface call signature.
-  case token_type::less: {
-    source_code_span property_name_span(this->peek().begin, this->peek().begin);
-
-    v.visit_property_declaration(std::nullopt);
-    v.visit_enter_function_scope();
-    {
-      function_guard guard = this->enter_function(state.method_attributes);
-      this->parse_and_visit_typescript_generic_parameters(v);
-      this->parse_and_visit_interface_function_parameters_and_body_no_scope(
-          v, property_name_span);
-    }
-    v.visit_exit_function_scope();
-    break;
-  }
-
-  case token_type::left_curly:
-    this->diag_reporter_->report(diag_unexpected_token{
-        .token = this->peek().span(),
-    });
-    this->skip();
-    break;
-
-  case token_type::comma:
-    this->diag_reporter_->report(diag_comma_not_allowed_between_class_methods{
-        .unexpected_comma = this->peek().span(),
-    });
-    this->skip();
-    break;
-
-  // class C {  // Invalid.
-  case token_type::end_of_file:
-    // An error is reported by parse_and_visit_class_body.
-    break;
-
-  default:
-    QLJS_PARSER_UNIMPLEMENTED();
-    break;
-  }
+  state.parse_stuff();
 }
 
 void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
