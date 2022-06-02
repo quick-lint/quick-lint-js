@@ -88,6 +88,7 @@ quick_lint_js_add_library(
   options.cpp
   output-stream.cpp
   padded-string.cpp
+  parse-class.cpp
   parse-expression.cpp
   parse-statement.cpp
   parse.cpp
