@@ -158,13 +158,17 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_GCC("-Wshadow-local")
 
-  std::optional<identifier> last_ident;
-  function_attributes method_attributes = function_attributes::normal;
-  bool async_static = false;
-  bool readonly_static = false;
-  std::optional<source_code_span> readonly_keyword;
-  std::optional<source_code_span> static_keyword;
-  std::optional<source_code_span> star_token;
+  struct class_parser {
+    std::optional<identifier> last_ident;
+    function_attributes method_attributes = function_attributes::normal;
+    bool async_static = false;
+    bool readonly_static = false;
+    std::optional<source_code_span> readonly_keyword;
+    std::optional<source_code_span> static_keyword;
+    std::optional<source_code_span> star_token;
+    std::optional<source_code_span> async_keyword;
+  };
+  class_parser state;
 
   auto is_keyword = [](const std::optional<source_code_span> &keyword,
                        const std::optional<identifier> &property_name) -> bool {
@@ -175,37 +179,36 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
   auto error_if_readonly_in_not_typescript =
       [&](const std::optional<identifier> &property_name) {
         if (!this->options_.typescript &&
-            is_keyword(readonly_keyword, property_name)) {
+            is_keyword(state.readonly_keyword, property_name)) {
           this->diag_reporter_->report(
               diag_typescript_readonly_fields_not_allowed_in_javascript{
-                  .readonly_keyword = *readonly_keyword,
+                  .readonly_keyword = *state.readonly_keyword,
               });
         }
       };
   auto error_if_static_in_interface =
       [&](const std::optional<identifier> &property_name) {
-        if (is_interface && is_keyword(static_keyword, property_name)) {
+        if (is_interface && is_keyword(state.static_keyword, property_name)) {
           this->diag_reporter_->report(
               diag_interface_properties_cannot_be_static{
-                  .static_keyword = *static_keyword,
+                  .static_keyword = *state.static_keyword,
               });
         }
       };
-  std::optional<source_code_span> async_keyword;
   auto error_if_async_in_interface =
       [&](const std::optional<identifier> &property_name) {
-        if (is_interface && is_keyword(async_keyword, property_name)) {
+        if (is_interface && is_keyword(state.async_keyword, property_name)) {
           this->diag_reporter_->report(diag_interface_methods_cannot_be_async{
-              .async_keyword = *async_keyword,
+              .async_keyword = *state.async_keyword,
           });
         }
       };
   auto error_if_generator_star_in_interface =
       [&](const std::optional<identifier> &property_name) {
-        if (is_interface && is_keyword(star_token, property_name)) {
+        if (is_interface && is_keyword(state.star_token, property_name)) {
           this->diag_reporter_->report(
               diag_interface_methods_cannot_be_generators{
-                  .star = *star_token,
+                  .star = *state.star_token,
               });
         }
       };
@@ -214,11 +217,11 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       [&, this, is_interface](std::optional<identifier> property_name,
                               source_code_span property_name_span,
                               function_attributes method_attributes) -> void {
-    if (async_static) {
+    if (state.async_static) {
       if (this->peek().type == token_type::star) {
         // async static *m() {}  // Invalid.
         method_attributes = function_attributes::async_generator;
-        star_token = this->peek().span();
+        state.star_token = this->peek().span();
         this->skip();
       }
       switch (this->peek().type) {
@@ -241,11 +244,11 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           // diag_interface_methods_cannot_be_async and
           // diag_interface_properties_cannot_be_static (and maybe
           // diag_interface_methods_cannot_be_generators) are reported later.
-          QLJS_ASSERT(async_keyword.has_value());
-          QLJS_ASSERT(static_keyword.has_value());
+          QLJS_ASSERT(state.async_keyword.has_value());
+          QLJS_ASSERT(state.static_keyword.has_value());
         } else {
           this->diag_reporter_->report(diag_async_static_method{
-              .async_static = source_code_span(async_keyword->begin(),
+              .async_static = source_code_span(state.async_keyword->begin(),
                                                property_name_span.end()),
           });
         }
@@ -260,7 +263,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       }
     }
 
-    if (readonly_static) {
+    if (state.readonly_static) {
       // TODO(strager): Do we need to handle '*' (generator)?
       switch (this->peek().type) {
       case token_type::private_identifier:
@@ -279,11 +282,11 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         identifier new_property_name = this->peek().identifier_name();
         if (is_interface) {
           // diag_interface_properties_cannot_be_static is reported later.
-          QLJS_ASSERT(static_keyword.has_value());
+          QLJS_ASSERT(state.static_keyword.has_value());
         } else {
           this->diag_reporter_->report(diag_readonly_static_field{
-              .readonly_static = source_code_span(readonly_keyword->begin(),
-                                                  property_name_span.end()),
+              .readonly_static = source_code_span(
+                  state.readonly_keyword->begin(), property_name_span.end()),
           });
         }
         property_name = new_property_name;
@@ -314,10 +317,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     case token_type::left_curly:
     case token_type::left_paren:
       v.visit_property_declaration(property_name);
-      if (is_keyword(readonly_keyword, property_name)) {
+      if (is_keyword(state.readonly_keyword, property_name)) {
         // readonly method() {}  // Invalid.
         this->diag_reporter_->report(diag_typescript_readonly_method{
-            .readonly_keyword = *readonly_keyword,
+            .readonly_keyword = *state.readonly_keyword,
         });
       }
       if (is_interface) {
@@ -447,8 +450,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
   switch (this->peek().type) {
     // static f() {}
   case token_type::kw_static:
-    last_ident = this->peek().identifier_name();
-    static_keyword = this->peek().span();
+    state.last_ident = this->peek().identifier_name();
+    state.static_keyword = this->peek().span();
     this->skip();
     break;
 
@@ -459,16 +462,16 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
   switch (this->peek().type) {
   // readonly field: number;
   case token_type::kw_readonly:
-    last_ident = this->peek().identifier_name();
-    readonly_keyword = this->peek().span();
+    state.last_ident = this->peek().identifier_name();
+    state.readonly_keyword = this->peek().span();
     this->skip();
 
     if (this->peek().type == token_type::kw_static) {
       // readonly static field;  // Invalid
       // readonly static;
-      readonly_static = true;
+      state.readonly_static = true;
       // TODO(#736): What about 'static readonly static'?
-      static_keyword = this->peek().span();
+      state.static_keyword = this->peek().span();
     }
     break;
 
@@ -480,8 +483,8 @@ next:
   switch (this->peek().type) {
     // async f() {}
   case token_type::kw_async:
-    last_ident = this->peek().identifier_name();
-    async_keyword = this->peek().span();
+    state.last_ident = this->peek().identifier_name();
+    state.async_keyword = this->peek().span();
     this->skip();
     if (this->peek().has_leading_newline) {
       switch (this->peek().type) {
@@ -497,44 +500,44 @@ next:
       case token_type::identifier:
       case token_type::private_identifier:
       case token_type::star:
-        error_if_readonly_in_not_typescript(last_ident);
-        error_if_static_in_interface(last_ident);
-        v.visit_property_declaration(last_ident);
+        error_if_readonly_in_not_typescript(state.last_ident);
+        error_if_static_in_interface(state.last_ident);
+        v.visit_property_declaration(state.last_ident);
         return;
       default:
         break;
       }
     } else {
       if (this->peek().type != token_type::left_paren) {
-        method_attributes = function_attributes::async;
+        state.method_attributes = function_attributes::async;
       }
       if (this->peek().type == token_type::star) {
         // async *g() {}
-        method_attributes = function_attributes::async_generator;
-        star_token = this->peek().span();
+        state.method_attributes = function_attributes::async_generator;
+        state.star_token = this->peek().span();
         this->skip();
       }
       if (this->peek().type == token_type::kw_static) {
         // async static method() {}  // Invalid
         // async static() {}
-        async_static = true;
+        state.async_static = true;
         // TODO(strager): What about 'static async static'?
-        static_keyword = this->peek().span();
+        state.static_keyword = this->peek().span();
       }
     }
     break;
 
     // *g() {}
   case token_type::star:
-    method_attributes = function_attributes::generator;
-    star_token = this->peek().span();
+    state.method_attributes = function_attributes::generator;
+    state.star_token = this->peek().span();
     this->skip();
     break;
 
     // get prop() {}
   case token_type::kw_get:
   case token_type::kw_set:
-    last_ident = this->peek().identifier_name();
+    state.last_ident = this->peek().identifier_name();
     this->skip();
     break;
 
@@ -562,7 +565,7 @@ next:
   case token_type::reserved_keyword_with_escape_sequence: {
     identifier property_name = this->peek().identifier_name();
     this->skip();
-    parse_and_visit_field_or_method(property_name, method_attributes);
+    parse_and_visit_field_or_method(property_name, state.method_attributes);
     break;
   }
 
@@ -573,7 +576,8 @@ next:
   case token_type::string: {
     source_code_span name_span = this->peek().span();
     this->skip();
-    parse_and_visit_field_or_method_without_name(name_span, method_attributes);
+    parse_and_visit_field_or_method_without_name(name_span,
+                                                 state.method_attributes);
     break;
   }
 
@@ -638,7 +642,8 @@ next:
                       .left_paren = this->peek().span(),
                   });
               parse_and_visit_field_or_method_without_name(
-                  source_code_span(name_begin, name_end), method_attributes);
+                  source_code_span(name_begin, name_end),
+                  state.method_attributes);
             }
             break;
           }
@@ -669,7 +674,7 @@ next:
     this->skip();
 
     parse_and_visit_field_or_method_without_name(
-        source_code_span(name_begin, name_end), method_attributes);
+        source_code_span(name_begin, name_end), state.method_attributes);
     break;
   }
 
@@ -690,7 +695,7 @@ next:
     case token_type::right_curly:
     case token_type::semicolon:
       parse_and_visit_field_or_method(function_token.identifier_name(),
-                                      method_attributes);
+                                      state.method_attributes);
       break;
 
     default:
@@ -706,8 +711,9 @@ next:
     // async;  // Field named 'async'.
     // ;       // Stray semicolon.
   case token_type::semicolon:
-    if (last_ident.has_value()) {
-      parse_and_visit_field_or_method(*last_ident, method_attributes);
+    if (state.last_ident.has_value()) {
+      parse_and_visit_field_or_method(*state.last_ident,
+                                      state.method_attributes);
     } else {
       this->skip();
     }
@@ -717,8 +723,9 @@ next:
     // get() {}
     // () {}       // Invalid.
   case token_type::left_paren:
-    if (last_ident.has_value()) {
-      parse_and_visit_field_or_method(*last_ident, method_attributes);
+    if (state.last_ident.has_value()) {
+      parse_and_visit_field_or_method(*state.last_ident,
+                                      state.method_attributes);
     } else {
       source_code_span expected_name(this->peek().begin, this->peek().begin);
       if (!is_interface) {
@@ -727,7 +734,7 @@ next:
         });
       }
       parse_and_visit_field_or_method_without_name(expected_name,
-                                                   method_attributes);
+                                                   state.method_attributes);
     }
     break;
 
@@ -737,8 +744,9 @@ next:
   case token_type::equal:
   case token_type::question:
   case token_type::right_curly:
-    if (last_ident.has_value()) {
-      parse_and_visit_field_or_method(*last_ident, method_attributes);
+    if (state.last_ident.has_value()) {
+      parse_and_visit_field_or_method(*state.last_ident,
+                                      state.method_attributes);
     } else {
       QLJS_PARSER_UNIMPLEMENTED();
     }
@@ -751,7 +759,7 @@ next:
     v.visit_property_declaration(std::nullopt);
     v.visit_enter_function_scope();
     {
-      function_guard guard = this->enter_function(method_attributes);
+      function_guard guard = this->enter_function(state.method_attributes);
       this->parse_and_visit_typescript_generic_parameters(v);
       this->parse_and_visit_interface_function_parameters_and_body_no_scope(
           v, property_name_span);
