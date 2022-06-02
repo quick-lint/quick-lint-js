@@ -393,6 +393,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript call signatures are only allowed in classes"_translatable,
+        {
+            u8"TypeScript call signatures are only allowed in classes",
+            u8"TypeScript call signatures are only allowed in classes",
+            u8"TypeScript call signatures are only allowed in classes",
+            u8"TypeScript call signatures are only allowed in classes",
+            u8"TypeScript call signatures are only allowed in classes",
+            u8"TypeScript call signatures are only allowed in classes",
+        },
+    },
+    {
         "TypeScript generics are not allowed in JavaScript code"_translatable,
         {
             u8"TypeScript generics are not allowed in JavaScript code",
@@ -3063,6 +3074,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"with statement needs parentheses around expression",
             u8"une instruction with n\u00e9cessite des parenth\u00e8ses autour de l'expression",
             u8"with p\u00e5st\u00e5ende saknar paranteser runt uttryck",
+        },
+    },
+    {
+        "write a name to declare a class method"_translatable,
+        {
+            u8"write a name to declare a class method",
+            u8"write a name to declare a class method",
+            u8"write a name to declare a class method",
+            u8"write a name to declare a class method",
+            u8"write a name to declare a class method",
+            u8"write a name to declare a class method",
         },
     },
     {

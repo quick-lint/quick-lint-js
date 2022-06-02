@@ -437,10 +437,19 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           v.visit_property_declaration(std::nullopt);
           v.visit_enter_function_scope();
           {
-            function_guard guard = p->enter_function(method_attributes);
-            p->parse_and_visit_typescript_generic_parameters(v);
-            p->parse_and_visit_interface_function_parameters_and_body_no_scope(
-                v, property_name_span);
+            if (is_interface) {
+              function_guard guard = p->enter_function(method_attributes);
+              p->parse_and_visit_typescript_generic_parameters(v);
+              p->parse_and_visit_interface_function_parameters_and_body_no_scope(
+                  v, property_name_span);
+            } else {
+              p->parse_and_visit_function_parameters_and_body_no_scope(
+                  v, property_name_span, method_attributes);
+              p->diag_reporter_->report(
+                  diag_typescript_call_signatures_not_allowed_in_classes{
+                      .expected_method_name = property_name_span,
+                  });
+            }
           }
           v.visit_exit_function_scope();
         }

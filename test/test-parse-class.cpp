@@ -1782,6 +1782,56 @@ TEST(test_parse, generic_methods_are_allowed_in_typescript) {
         ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
   }
 }
+
+TEST(test_parse, call_signatures_are_disallowed_in_typescript_classes) {
+  {
+    padded_string code(u8"class C { () {} }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.visits,
+        ElementsAre("visit_variable_declaration",       // C
+                    "visit_enter_class_scope",          // C
+                    "visit_property_declaration",       // (call signature)
+                    "visit_enter_function_scope",       // (call signature)
+                    "visit_enter_function_scope_body",  // (call signature)
+                    "visit_exit_function_scope",        // (call signature)
+                    "visit_exit_class_scope"));         // C
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code,
+                              diag_missing_class_method_name,  //
+                              expected_name, strlen(u8"class C { "), u8"")));
+  }
+
+  {
+    padded_string code(u8"class C { <T>() {} }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.visits,
+        ElementsAre("visit_variable_declaration",       // C
+                    "visit_enter_class_scope",          // C
+                    "visit_property_declaration",       // (call signature)
+                    "visit_enter_function_scope",       // (call signature)
+                    "visit_variable_declaration",       // T
+                    "visit_enter_function_scope_body",  // (call signature)
+                    "visit_exit_function_scope",        // (call signature)
+                    "visit_exit_class_scope"));         // C
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code,
+                    diag_typescript_call_signatures_not_allowed_in_classes,  //
+                    expected_method_name, strlen(u8"class C { "), u8"")));
+  }
+}
 }
 }
 
