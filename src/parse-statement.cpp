@@ -1014,7 +1014,9 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
 }
 
 void parser::parse_and_visit_interface_function_parameters_and_body_no_scope(
-    parse_visitor_base &v, std::optional<source_code_span> name) {
+    parse_visitor_base &v, std::optional<source_code_span> name,
+    function_attributes attributes) {
+  function_guard guard = this->enter_function(attributes);
   function_parameter_parse_result result =
       this->parse_and_visit_function_parameters(v, name);
   switch (result) {

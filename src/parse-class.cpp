@@ -438,9 +438,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           v.visit_enter_function_scope();
           {
             if (is_interface) {
-              function_guard guard = p->enter_function(method_attributes);
               p->parse_and_visit_interface_function_parameters_and_body_no_scope(
-                  v, property_name_span);
+                  v, property_name_span, method_attributes);
             } else {
               p->parse_and_visit_function_parameters_and_body_no_scope(
                   v, property_name_span, method_attributes);
@@ -693,9 +692,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           error_if_generator_star_in_interface(property_name);
           error_if_static_in_interface(property_name);
           v.visit_enter_function_scope();
-          function_guard guard = p->enter_function(method_attributes);
           p->parse_and_visit_interface_function_parameters_and_body_no_scope(
-              v, property_name_span);
+              v, property_name_span, method_attributes);
           v.visit_exit_function_scope();
         } else {
           p->parse_and_visit_function_parameters_and_body(

@@ -197,7 +197,8 @@ class parser {
       parse_visitor_base &v, std::optional<source_code_span> name,
       function_attributes attributes);
   void parse_and_visit_interface_function_parameters_and_body_no_scope(
-      parse_visitor_base &v, std::optional<source_code_span> name);
+      parse_visitor_base &v, std::optional<source_code_span> name,
+      function_attributes attributes);
   function_parameter_parse_result parse_and_visit_function_parameters(
       parse_visitor_base &v, std::optional<source_code_span> name);
   void parse_and_visit_function_parameters(parse_visitor_base &v);
