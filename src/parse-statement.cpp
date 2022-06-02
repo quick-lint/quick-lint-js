@@ -1054,6 +1054,17 @@ parser::parse_and_visit_function_parameters(
     this->skip();
   }
 
+  if (this->peek().type == token_type::less) {
+    // function f<T>() {}  // TypeScript only.
+    if (!this->options_.typescript) {
+      this->diag_reporter_->report(
+          diag_typescript_generics_not_allowed_in_javascript{
+              .opening_less = this->peek().span(),
+          });
+    }
+    this->parse_and_visit_typescript_generic_parameters(v);
+  }
+
   switch (this->peek().type) {
     // function f(arg0, arg1) {}
   case token_type::left_paren:

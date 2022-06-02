@@ -900,6 +900,13 @@ msgstr "Indizierung erfordert einen Ausdruck"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript generics are not allowed in JavaScript code"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
 msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "

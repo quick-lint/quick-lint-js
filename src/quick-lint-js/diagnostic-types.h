@@ -1365,6 +1365,13 @@
               expected_type))                                                  \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_generics_not_allowed_in_javascript, "E0233",             \
+      diagnostic_severity::error, { source_code_span opening_less; },          \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript generics are not "                 \
+                                "allowed in JavaScript code"),                 \
+              opening_less))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_interfaces_not_allowed_in_javascript, "E0213",           \
       diagnostic_severity::error, { source_code_span interface_keyword; },     \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript's 'interface' feature is not "     \

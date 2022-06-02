@@ -870,6 +870,11 @@ msgid "index signatures require a value type"
 msgstr "indexing requires an expression"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript generics are not allowed in JavaScript code"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 

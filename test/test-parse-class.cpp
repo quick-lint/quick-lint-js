@@ -825,6 +825,37 @@ TEST(test_parse, typescript_class_statement_with_readonly_keyword_property) {
   }
 }
 
+TEST(test_parse, typescript_class_with_keyword_generic_method) {
+  for (string8 keyword : keywords) {
+    {
+      string8 code = u8"class C { " + keyword + u8"<T>(){} }";
+      SCOPED_TRACE(out_string8(code));
+      spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
+      EXPECT_THAT(
+          v.property_declarations,
+          ElementsAre(spy_visitor::visited_property_declaration{keyword}));
+    }
+  }
+
+  {
+    // A generic method named 'async' should not be async.
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"class C { async<T>() { let await; await(x); } }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // C
+                            "visit_enter_class_scope",          // C
+                            "visit_property_declaration",       // async
+                            "visit_enter_function_scope",       // async
+                            "visit_variable_declaration",       // T
+                            "visit_enter_function_scope_body",  // async
+                            "visit_variable_declaration",       // await
+                            "visit_variable_use",               // await
+                            "visit_variable_use",               // x
+                            "visit_exit_function_scope",        // async
+                            "visit_exit_class_scope"));         // C
+  }
+}
+
 TEST(test_parse, class_statement_with_number_methods) {
   {
     spy_visitor v = parse_and_visit_statement(u8"class Wat { 42.0() { } }"_sv);
@@ -1704,6 +1735,51 @@ TEST(test_parse, readonly_static_field_is_disallowed) {
                               diag_readonly_static_field,  //
                               readonly_static, strlen(u8"class C { "),
                               u8"readonly static")));
+  }
+}
+
+TEST(test_parse, generic_methods_are_disallowed_in_javascript) {
+  {
+    padded_string code(u8"class C { method<T>() {} }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // C
+                            "visit_enter_class_scope",          // C
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_variable_declaration",       // T
+                            "visit_enter_function_scope_body",  // method
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope"));         // C
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code,
+                    diag_typescript_generics_not_allowed_in_javascript,  //
+                    opening_less, strlen(u8"class C { method"), u8"<")));
+  }
+}
+
+TEST(test_parse, generic_methods_are_allowed_in_typescript) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"class C { method<T>() {} }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // C
+                            "visit_enter_class_scope",          // C
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_variable_declaration",       // T
+                            "visit_enter_function_scope_body",  // method
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope"));         // C
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
   }
 }
 }

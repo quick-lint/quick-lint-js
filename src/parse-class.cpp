@@ -237,7 +237,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             break;
           }
         } else {
-          if (p->peek().type != token_type::left_paren) {
+          if (p->peek().type != token_type::left_paren &&
+              p->peek().type != token_type::less) {
             method_attributes = function_attributes::async;
           }
           if (p->peek().type == token_type::star) {
@@ -345,11 +346,13 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         switch (p->peek().type) {
         // function() {}
         // function?() {}
+        // function<T>() {}
         // class C { function }   // Field named 'function'.
         // class C { function; }  // Field named 'function'.
         // function = init;       // Field named 'function'.
         case token_type::equal:
         case token_type::left_paren:
+        case token_type::less:
         case token_type::question:
         case token_type::right_curly:
         case token_type::semicolon:
@@ -410,21 +413,27 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         }
         break;
 
+      // async<T>(): void;     // TypeScript generic method.
       // <T>(param: T): void;  // TypeScript generic interface call signature.
-      case token_type::less: {
-        source_code_span property_name_span(p->peek().begin, p->peek().begin);
+      case token_type::less:
+        if (last_ident.has_value()) {
+          // set<T>(): void;
+          parse_and_visit_field_or_method(*last_ident, method_attributes);
+        } else {
+          // <T>(param: T): void;
+          source_code_span property_name_span(p->peek().begin, p->peek().begin);
 
-        v.visit_property_declaration(std::nullopt);
-        v.visit_enter_function_scope();
-        {
-          function_guard guard = p->enter_function(method_attributes);
-          p->parse_and_visit_typescript_generic_parameters(v);
-          p->parse_and_visit_interface_function_parameters_and_body_no_scope(
-              v, property_name_span);
+          v.visit_property_declaration(std::nullopt);
+          v.visit_enter_function_scope();
+          {
+            function_guard guard = p->enter_function(method_attributes);
+            p->parse_and_visit_typescript_generic_parameters(v);
+            p->parse_and_visit_interface_function_parameters_and_body_no_scope(
+                v, property_name_span);
+          }
+          v.visit_exit_function_scope();
         }
-        v.visit_exit_function_scope();
         break;
-      }
 
       case token_type::left_curly:
         p->diag_reporter_->report(diag_unexpected_token{
@@ -453,6 +462,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
     // Returns true if an index signature was parsed.
     // Returns false if nothing was parsed.
+    //
+    // [key: KeyType]: ValueType;  // TypeScript only
     bool try_parse_typescript_index_signature(const char8 *left_square_begin) {
       parser_transaction transaction = p->begin_transaction();
       // TODO(strager): Allow certain contextual keywords like 'let'?
@@ -646,9 +657,11 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
       switch (p->peek().type) {
         // method() { }
-        // method { }    // Invalid (missing parameter list).
+        // method<T>() { }  // TypeScript only.
+        // method { }       // Invalid (missing parameter list).
       case token_type::left_curly:
       case token_type::left_paren:
+      case token_type::less:
         v.visit_property_declaration(property_name);
         if (is_keyword(readonly_keyword, property_name)) {
           // readonly method() {}  // Invalid.

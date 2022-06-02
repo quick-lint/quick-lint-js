@@ -393,6 +393,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript generics are not allowed in JavaScript code"_translatable,
+        {
+            u8"TypeScript generics are not allowed in JavaScript code",
+            u8"TypeScript generics are not allowed in JavaScript code",
+            u8"TypeScript generics are not allowed in JavaScript code",
+            u8"TypeScript generics are not allowed in JavaScript code",
+            u8"TypeScript generics are not allowed in JavaScript code",
+            u8"TypeScript generics are not allowed in JavaScript code",
+        },
+    },
+    {
         "TypeScript interface fields cannot be initalized"_translatable,
         {
             u8"TypeScript interface fields cannot be initalized",

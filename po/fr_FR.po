@@ -911,6 +911,13 @@ msgstr "l'indexation nécessite une expression"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript generics are not allowed in JavaScript code"
+msgstr ""
+"la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
+"quick-lint-js"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
