@@ -1342,7 +1342,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         identifier new_property_name = this->peek().identifier_name();
         if (is_interface) {
           // diag_interface_methods_cannot_be_async and
-          // diag_interface_properties_cannot_be_static (And maybe
+          // diag_interface_properties_cannot_be_static (and maybe
           // diag_interface_methods_cannot_be_generators) are reported later.
           QLJS_ASSERT(async_keyword.has_value());
           QLJS_ASSERT(static_keyword.has_value());
