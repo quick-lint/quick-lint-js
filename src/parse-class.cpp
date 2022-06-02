@@ -875,6 +875,9 @@ void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
   }
 
   v.visit_enter_interface_scope();
+  if (this->peek().type == token_type::less) {
+    this->parse_and_visit_typescript_generic_parameters(v);
+  }
   if (this->peek().type == token_type::kw_extends) {
     this->parse_and_visit_typescript_interface_extends(v);
   }

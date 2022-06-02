@@ -1176,6 +1176,28 @@ TEST(test_parse_typescript_interface, generic_call_signature) {
                 variable_init_kind::normal}));
   }
 }
+
+TEST(test_parse_typescript_interface, generic_interface) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"interface I<T> { field: T; }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",    // I
+                            "visit_enter_interface_scope",   // I
+                            "visit_variable_declaration",    // T
+                            "visit_variable_type_use",       // T
+                            "visit_property_declaration",    // field
+                            "visit_exit_interface_scope"));  // I
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            spy_visitor::visited_variable_declaration{
+                u8"I", variable_kind::_interface, variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"T", variable_kind::_generic_parameter,
+                variable_init_kind::normal}));
+  }
+}
 }
 }
 
