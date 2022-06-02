@@ -874,11 +874,10 @@ void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
     break;
   }
 
+  v.visit_enter_interface_scope();
   if (this->peek().type == token_type::kw_extends) {
     this->parse_and_visit_typescript_interface_extends(v);
   }
-
-  v.visit_enter_interface_scope();
   this->parse_and_visit_typescript_interface_body(v);
   v.visit_exit_interface_scope();
 }
