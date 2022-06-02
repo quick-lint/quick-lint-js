@@ -799,7 +799,6 @@ TEST(test_parse, imported_variables_can_be_named_contextual_keywords) {
 
 TEST(test_parse, imported_modules_must_be_quoted) {
   padded_string code(u8"import { test } from module;"sv);
-  SCOPED_TRACE(code);
   spy_visitor v;
   parser p(&code, &v);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
