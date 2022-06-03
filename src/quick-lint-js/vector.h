@@ -70,6 +70,8 @@ class uninstrumented_vector : private Vector {
   using Vector::front;
   using Vector::get_allocator;
   using Vector::operator[];
+  using Vector::pop_back;
+  using Vector::push_back;
   using Vector::reserve;
   using Vector::resize;
   using Vector::size;
@@ -177,6 +179,8 @@ class raw_bump_vector {
     }
   }
 
+  T &push_back(T &&value) { return this->emplace_back(std::move(value)); }
+
   template <class... Args>
   T &emplace_back(Args &&... args) {
     if (this->capacity_end_ == this->data_end_) {
@@ -213,6 +217,11 @@ class raw_bump_vector {
   raw_bump_vector &operator+=(T value) {
     this->emplace_back(value);
     return *this;
+  }
+
+  void pop_back() {
+    QLJS_ASSERT(!this->empty());
+    this->data_end_ -= 1;
   }
 
   // Like clear(), but doesn't touch the allocated memory. Objects remain alive

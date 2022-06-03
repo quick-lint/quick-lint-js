@@ -174,6 +174,35 @@ TEST(test_bump_vector, resize_allows_growing_outside_capacity) {
                              0, 0, 0, 0, 0))
       << "growing vector should default-construct new elements";
 }
+
+TEST(test_bump_vector, pop_back_shrinks_vector) {
+  linked_bump_allocator<alignof(int)> alloc;
+  bump_vector<int, decltype(alloc)> v("test", &alloc);
+  v.push_back(100);
+  v.push_back(200);
+  v.push_back(300);
+  v.pop_back();
+
+  EXPECT_THAT(v, ElementsAre(100, 200));
+  EXPECT_GE(v.capacity(), 3);
+}
+
+TEST(test_bump_vector, pop_back_then_push_back_reuses_memory) {
+  linked_bump_allocator<alignof(int)> alloc;
+  bump_vector<int, decltype(alloc)> v("test", &alloc);
+  v.push_back(100);
+  v.push_back(200);
+  v.push_back(300);
+  v.pop_back();
+  std::uintptr_t old_v_data_pointer =
+      reinterpret_cast<std::uintptr_t>(v.data());
+  v.push_back(400);
+  std::uintptr_t v_data_pointer = reinterpret_cast<std::uintptr_t>(v.data());
+
+  EXPECT_THAT(v, ElementsAre(100, 200, 400));
+  EXPECT_EQ(v_data_pointer, old_v_data_pointer);
+  EXPECT_GE(v.capacity(), 3);
+}
 }
 }
 
