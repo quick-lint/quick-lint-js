@@ -1148,6 +1148,30 @@ TEST(test_parse_typescript_interface, call_signature) {
   }
 }
 
+TEST(test_parse_typescript_interface,
+     call_signature_cannot_have_generator_star) {
+  {
+    padded_string code(u8"interface I { *(param); }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",   // I
+                            "visit_enter_interface_scope",  // I
+                            // TODO(strager): Emit something other than
+                            // visit_property_declaration instead?
+                            "visit_property_declaration",    // (call signature)
+                            "visit_enter_function_scope",    // (call signature)
+                            "visit_variable_declaration",    // param
+                            "visit_exit_function_scope",     // (call signature)
+                            "visit_exit_interface_scope"));  // I
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_interface_methods_cannot_be_generators,  //
+                    star, strlen(u8"interface I { "), u8"*")));
+  }
+}
+
 TEST(test_parse_typescript_interface, generic_call_signature) {
   {
     spy_visitor v =
