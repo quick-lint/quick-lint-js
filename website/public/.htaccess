@@ -8,7 +8,7 @@ Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains
 Header always set X-Frame-Options "SAMEORIGIN"
 Header always set Referrer-Policy "same-origin"
 Header always set X-Content-Type-Options "nosniff"
-Header always add Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' media-src 'self' ssl.gstatic.com"
+Header always add Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src 'self' ssl.gstatic.com"
 
 Header always set X-XSS-Protection "1; mode=block"
 
