@@ -167,7 +167,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     std::optional<identifier> last_ident;
     function_attributes method_attributes = function_attributes::normal;
     bool async_static = false;
-    bool readonly_static = false;
 
     // *, async, function, get, private, protected, public, readonly, set,
     // static
@@ -235,12 +234,12 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         if (p->peek().type == token_type::kw_static) {
           // readonly static field;  // Invalid
           // readonly static;
-          readonly_static = true;
-          // TODO(#736): What about 'static readonly static'?
+          last_ident = p->peek().identifier_name();
           modifiers.push_back(modifier{
               .span = p->peek().span(),
               .type = p->peek().type,
           });
+          p->skip();
         }
         break;
 
@@ -691,44 +690,21 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         }
       }
 
-      if (readonly_static) {
-        // TODO(strager): Do we need to handle '*' (generator)?
-        switch (p->peek().type) {
-        case token_type::private_identifier:
-          if (is_interface) {
-            p->diag_reporter_->report(
-                diag_interface_properties_cannot_be_private{
-                    .property_name = p->peek().identifier_name(),
-                });
-          }
-          [[fallthrough]];
-        QLJS_CASE_CONTEXTUAL_KEYWORD:
-        QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
-        case token_type::identifier:
-        case token_type::reserved_keyword_with_escape_sequence: {
-          // readonly static field = init;  // Invalid
-          identifier new_property_name = p->peek().identifier_name();
-          if (is_interface) {
-            // diag_interface_properties_cannot_be_static is reported later.
-            QLJS_ASSERT(
-                find_modifier(token_type::kw_static, new_property_name));
-          } else {
-            const modifier *readonly_modifier =
-                find_modifier(token_type::kw_readonly, property_name);
-            QLJS_ASSERT(readonly_modifier);
-            p->diag_reporter_->report(diag_readonly_static_field{
-                .readonly_static = source_code_span(
-                    readonly_modifier->span.begin(), property_name_span.end()),
-            });
-          }
-          property_name = new_property_name;
-          property_name_span = property_name->span();
-          p->skip();
-          break;
-        }
-        // readonly static;
-        default:
-          break;
+      // FIXME(strager): This only checks the first 'readonly' modifier against
+      // the first 'static' modifier.
+      const modifier *readonly_modifier =
+          find_modifier(token_type::kw_readonly, property_name);
+      const modifier *static_modifier =
+          find_modifier(token_type::kw_static, property_name);
+      if (readonly_modifier && static_modifier &&
+          readonly_modifier < static_modifier) {
+        if (!is_interface) {
+          // FIXME(strager): This produces bad spans if there are tokens between
+          // 'readonly' and 'static'.
+          p->diag_reporter_->report(diag_readonly_static_field{
+              .readonly_static = source_code_span(
+                  readonly_modifier->span.begin(), static_modifier->span.end()),
+          });
         }
       }
 
@@ -751,8 +727,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::left_paren:
       case token_type::less:
         v.visit_property_declaration(property_name);
-        if (const modifier *readonly_modifier =
-                find_modifier(token_type::kw_readonly, property_name)) {
+        if (readonly_modifier) {
           // readonly method() {}  // Invalid.
           p->diag_reporter_->report(diag_typescript_readonly_method{
               .readonly_keyword = readonly_modifier->span,
