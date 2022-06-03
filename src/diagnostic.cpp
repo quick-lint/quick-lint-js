@@ -157,6 +157,9 @@ QLJS_X_DIAG_TYPES
 #undef QLJS_DIAG_TYPE
 }
 
+// If you see an error with the following lines, translation-table-generated.h
+// is probably out of date. Run tools/update-translator-sources to rebuild this
+// file.
 DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE const diagnostic_info
     all_diagnostic_infos[] = {
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call) \
