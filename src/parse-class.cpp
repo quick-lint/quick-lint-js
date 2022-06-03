@@ -364,6 +364,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       // ;       // Stray semicolon.
       case token_type::semicolon:
         if (last_ident.has_value()) {
+          modifiers.pop_back();
           parse_and_visit_field_or_method(*last_ident);
         } else {
           p->skip();
@@ -375,6 +376,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       // () {}       // Invalid.
       case token_type::left_paren:
         if (last_ident.has_value()) {
+          modifiers.pop_back();
           parse_and_visit_field_or_method(*last_ident);
         } else {
           source_code_span expected_name(p->peek().begin, p->peek().begin);
@@ -394,6 +396,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::question:
       case token_type::right_curly:
         if (last_ident.has_value()) {
+          modifiers.pop_back();
           parse_and_visit_field_or_method(*last_ident);
         } else {
           QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
@@ -405,6 +408,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::less:
         if (last_ident.has_value()) {
           // set<T>(): void;
+          modifiers.pop_back();
           parse_and_visit_field_or_method(*last_ident);
         } else {
           // <T>(param: T): void;
@@ -813,11 +817,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       }
     }
 
-    const modifier *find_modifier(
-        token_type modifier_type,
-        const std::optional<identifier> &property_name) const {
+    const modifier *find_modifier(token_type modifier_type,
+                                  const std::optional<identifier> &) const {
       for (const modifier &m : modifiers) {
-        if (m.type == modifier_type && is_keyword(m.span, property_name)) {
+        if (m.type == modifier_type) {
           return &m;
         }
       }
@@ -825,20 +828,13 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     }
 
     const modifier *find_access_specifier(
-        const std::optional<identifier> &property_name) const {
+        const std::optional<identifier> &) const {
       for (const modifier &m : modifiers) {
-        if (m.is_access_specifier() && is_keyword(m.span, property_name)) {
+        if (m.is_access_specifier()) {
           return &m;
         }
       }
       return nullptr;
-    }
-
-    static bool is_keyword(const std::optional<source_code_span> &keyword,
-                           const std::optional<identifier> &property_name) {
-      return keyword.has_value() &&
-             (!property_name.has_value() ||
-              property_name->span().begin() != keyword->begin());
     }
   };
   class_parser state(this, v, is_interface);
