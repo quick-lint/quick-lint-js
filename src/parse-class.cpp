@@ -247,6 +247,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     }
 
     void parse_stuff() {
+parse_modifier:
       switch (p->peek().type) {
       // async f() {}
       case token_type::kw_async:
@@ -279,38 +280,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             break;
           }
         } else {
-          switch (p->peek().type) {
-          // async *g() {}
-          case token_type::star:
-            modifiers.push_back(modifier{
-                .span = p->peek().span(),
-                .type = p->peek().type,
-            });
-            p->skip();
-            break;
-
-          // async static method() {}  // Invalid
-          // async static() {}
-          case token_type::kw_static:
-            last_ident = p->peek().identifier_name();
-            modifiers.push_back(modifier{
-                .span = p->peek().span(),
-                .type = p->peek().type,
-            });
-            p->skip();
-            parse_stuff();
-            return;
-
-          // async() {}
-          // async<T>() {}  // TypeScript only.
-          case token_type::left_paren:
-          case token_type::less:
-            break;
-
-          // async method() {}
-          default:
-            break;
-          }
+          parse_leading_static();
+          goto parse_modifier;
         }
         break;
 
