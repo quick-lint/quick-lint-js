@@ -1314,7 +1314,8 @@ TEST(test_parse, async_static_method_is_disallowed) {
 
   {
     spy_visitor v;
-    padded_string code(u8"class C { async static static() { } }"_sv);
+    padded_string code(
+        u8"class C { async static static() { await myPromise; } }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.property_declarations[0].name, u8"static");
@@ -1326,7 +1327,8 @@ TEST(test_parse, async_static_method_is_disallowed) {
 
   {
     spy_visitor v;
-    padded_string code(u8"class C { async static *m() { } }"_sv);
+    padded_string code(
+        u8"class C { async static *m() { await myPromise; yield 42; } }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_EQ(v.property_declarations[0].name, u8"m");
