@@ -1357,6 +1357,25 @@
               specifier))                                                      \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,    \
+      "E0238", diagnostic_severity::error, { source_code_span bang; },         \
+      MESSAGE(QLJS_TRANSLATABLE("assignment-asserted fields are "              \
+                                "not supported in interfaces"),                \
+              bang))                                                           \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_assignment_asserted_fields_not_allowed_in_javascript,    \
+      "E0239", diagnostic_severity::error, { source_code_span bang; },         \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript assignment-asserted fields are "   \
+                                "not supported in JavaScript"),                \
+              bang))                                                           \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_assignment_asserted_fields_not_allowed_on_methods,       \
+      "E0240", diagnostic_severity::error, { source_code_span bang; },         \
+      MESSAGE(QLJS_TRANSLATABLE("'{0}' is not allowed on methods"), bang))     \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_call_signatures_not_allowed_in_classes, "E0234",         \
       diagnostic_severity::error, { source_code_span expected_method_name; },  \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

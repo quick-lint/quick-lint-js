@@ -1570,6 +1570,68 @@ TEST(test_parse, optional_properties_are_disallowed_in_javascript) {
   }
 }
 
+TEST(test_parse, assignment_asserted_fields_are_disallowed_in_javascript) {
+  {
+    padded_string code(u8"class C { field1!; field2! = init; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     // C
+                                      "visit_property_declaration",  // field1
+                                      "visit_variable_use",          // init
+                                      "visit_property_declaration",  // field2
+                                      "visit_exit_class_scope"));    // C
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            DIAG_TYPE_OFFSETS(
+                &code,
+                diag_typescript_assignment_asserted_fields_not_allowed_in_javascript,  //
+                bang, strlen(u8"class C { field1"), u8"!"),
+            DIAG_TYPE_OFFSETS(
+                &code,
+                diag_typescript_assignment_asserted_fields_not_allowed_in_javascript,  //
+                bang, strlen(u8"class C { field1?; field2"), u8"!")));
+  }
+}
+
+TEST(test_parse, assignment_asserted_fields_are_allowed_in_typescript) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"class C { field1!; field2! = init; }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
+                                      "visit_enter_class_scope",     // C
+                                      "visit_property_declaration",  // field1
+                                      "visit_variable_use",          // init
+                                      "visit_property_declaration",  // field2
+                                      "visit_exit_class_scope"));    // C
+  }
+}
+
+TEST(test_parse, assignment_asserted_methods_are_not_allowed) {
+  {
+    padded_string code(u8"class C { method!() {} }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // C
+                            "visit_enter_class_scope",          // C
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_enter_function_scope_body",  // method
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope"));         // C
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code,
+            diag_typescript_assignment_asserted_fields_not_allowed_on_methods,  //
+            bang, strlen(u8"class C { method"), u8"!")));
+  }
+}
+
 TEST(test_parse, readonly_fields_are_disallowed_in_javascript) {
   {
     padded_string code(u8"class C { readonly field; }"_sv);

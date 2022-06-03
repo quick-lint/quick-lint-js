@@ -600,10 +600,29 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
       bool is_optional = p->peek().type == token_type::question;
       if (is_optional) {
+        // field?: Type;
         if (!p->options_.typescript) {
           p->diag_reporter_->report(
               diag_typescript_optional_properties_not_allowed_in_javascript{
                   .question = p->peek().span(),
+              });
+        }
+        p->skip();
+      }
+
+      std::optional<source_code_span> assignment_assertion_span;
+      if (p->peek().type == token_type::bang) {
+        // field!: Type;
+        assignment_assertion_span = p->peek().span();
+        if (!p->options_.typescript) {
+          p->diag_reporter_->report(
+              diag_typescript_assignment_asserted_fields_not_allowed_in_javascript{
+                  .bang = *assignment_assertion_span,
+              });
+        } else if (is_interface) {
+          p->diag_reporter_->report(
+              diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces{
+                  .bang = *assignment_assertion_span,
               });
         }
         p->skip();
@@ -622,6 +641,14 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           p->diag_reporter_->report(diag_typescript_readonly_method{
               .readonly_keyword = readonly_modifier->span,
           });
+        }
+        if (assignment_assertion_span.has_value() && !is_interface &&
+            p->options_.typescript) {
+          // method!() {}  // Invalid.
+          p->diag_reporter_->report(
+              diag_typescript_assignment_asserted_fields_not_allowed_on_methods{
+                  .bang = *assignment_assertion_span,
+              });
         }
         error_if_invalid_access_specifier();
         function_attributes attributes =

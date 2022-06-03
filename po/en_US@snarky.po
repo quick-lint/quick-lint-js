@@ -867,6 +867,21 @@ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "assignment-asserted fields are not supported in interfaces"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript assignment-asserted fields are not supported in JavaScript"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "'{0}' is not allowed on methods"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript call signatures are only allowed in classes"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 

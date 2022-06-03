@@ -294,6 +294,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "'{0}' is not allowed on methods"_translatable,
+        {
+            u8"'{0}' is not allowed on methods",
+            u8"'{0}' is not allowed on methods",
+            u8"'{0}' is not allowed on methods",
+            u8"'{0}' is not allowed on methods",
+            u8"'{0}' is not allowed on methods",
+            u8"'{0}' is not allowed on methods",
+        },
+    },
+    {
         "'{0}' operator cannot be used before '**' without parentheses"_translatable,
         {
             u8"'{0}' operator cannot be used before '**' without parentheses",
@@ -390,6 +401,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"RegExp literal flags cannot contain Unicode escapes",
             u8"un litt\u00e9ral RegExp ne peut contenir des \u00e9chappements Unicode",
             u8"RegExp literal flags cannot contain Unicode escapes",
+        },
+    },
+    {
+        "TypeScript assignment-asserted fields are not supported in JavaScript"_translatable,
+        {
+            u8"TypeScript assignment-asserted fields are not supported in JavaScript",
+            u8"TypeScript assignment-asserted fields are not supported in JavaScript",
+            u8"TypeScript assignment-asserted fields are not supported in JavaScript",
+            u8"TypeScript assignment-asserted fields are not supported in JavaScript",
+            u8"TypeScript assignment-asserted fields are not supported in JavaScript",
+            u8"TypeScript assignment-asserted fields are not supported in JavaScript",
         },
     },
     {
@@ -742,6 +764,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"assignment to undeclared variable",
             u8"affectation \u00e0 une variable non d\u00e9clar\u00e9e",
             u8"tilldelar v\u00e4rde till variabel f\u00f6re deklaration",
+        },
+    },
+    {
+        "assignment-asserted fields are not supported in interfaces"_translatable,
+        {
+            u8"assignment-asserted fields are not supported in interfaces",
+            u8"assignment-asserted fields are not supported in interfaces",
+            u8"assignment-asserted fields are not supported in interfaces",
+            u8"assignment-asserted fields are not supported in interfaces",
+            u8"assignment-asserted fields are not supported in interfaces",
+            u8"assignment-asserted fields are not supported in interfaces",
         },
     },
     {

@@ -292,6 +292,24 @@ TEST(test_parse_typescript_interface, optional_property) {
   }
 }
 
+TEST(test_parse_typescript_interface, assignment_asserted_field_is_disallowed) {
+  {
+    padded_string code(u8"interface I { fieldName!; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"}));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code,
+            diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,  //
+            bang, strlen(u8"interface I { fieldName"), u8"!")));
+  }
+}
+
 TEST(test_parse_typescript_interface, field_with_type) {
   {
     spy_visitor v = parse_and_visit_typescript_statement(
