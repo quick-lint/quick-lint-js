@@ -17,6 +17,7 @@
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/token.h>
+#include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 #include <utility>
 
@@ -167,11 +168,22 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     function_attributes method_attributes = function_attributes::normal;
     bool async_static = false;
     bool readonly_static = false;
-    std::optional<source_code_span> readonly_keyword;
-    std::optional<source_code_span> static_keyword;
-    std::optional<source_code_span> star_token;
-    std::optional<source_code_span> async_keyword;
-    std::optional<source_code_span> access_specifier_span;
+
+    // *, async, function, get, private, protected, public, readonly, set,
+    // static
+    struct modifier {
+      source_code_span span;
+      token_type type;
+
+      bool is_access_specifier() const noexcept {
+        return this->type == token_type::kw_private ||
+               this->type == token_type::kw_protected ||
+               this->type == token_type::kw_public;
+      }
+    };
+    bump_vector<modifier, monotonic_allocator> modifiers =
+        bump_vector<modifier, monotonic_allocator>("class member modifiers",
+                                                   &p->temporary_memory_);
 
     void parse_leading_access_specifier() {
       switch (p->peek().type) {
@@ -180,7 +192,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::kw_protected:
       case token_type::kw_public:
         last_ident = p->peek().identifier_name();
-        access_specifier_span = p->peek().span();
+        modifiers.push_back(modifier{
+            .span = p->peek().span(),
+            .type = p->peek().type,
+        });
         p->skip();
         break;
 
@@ -194,7 +209,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       // static f() {}
       case token_type::kw_static:
         last_ident = p->peek().identifier_name();
-        static_keyword = p->peek().span();
+        modifiers.push_back(modifier{
+            .span = p->peek().span(),
+            .type = p->peek().type,
+        });
         p->skip();
         break;
 
@@ -208,7 +226,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       // readonly field: number;
       case token_type::kw_readonly:
         last_ident = p->peek().identifier_name();
-        readonly_keyword = p->peek().span();
+        modifiers.push_back(modifier{
+            .span = p->peek().span(),
+            .type = p->peek().type,
+        });
         p->skip();
 
         if (p->peek().type == token_type::kw_static) {
@@ -216,7 +237,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           // readonly static;
           readonly_static = true;
           // TODO(#736): What about 'static readonly static'?
-          static_keyword = p->peek().span();
+          modifiers.push_back(modifier{
+              .span = p->peek().span(),
+              .type = p->peek().type,
+          });
         }
         break;
 
@@ -230,7 +254,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       // async f() {}
       case token_type::kw_async:
         last_ident = p->peek().identifier_name();
-        async_keyword = p->peek().span();
+        modifiers.push_back(modifier{
+            .span = p->peek().span(),
+            .type = p->peek().type,
+        });
         p->skip();
         if (p->peek().has_leading_newline) {
           switch (p->peek().type) {
@@ -259,7 +286,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           // async *g() {}
           case token_type::star:
             method_attributes = function_attributes::async_generator;
-            star_token = p->peek().span();
+            modifiers.push_back(modifier{
+                .span = p->peek().span(),
+                .type = p->peek().type,
+            });
             p->skip();
             break;
 
@@ -269,7 +299,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             method_attributes = function_attributes::async;
             async_static = true;
             // TODO(strager): What about 'static async static'?
-            static_keyword = p->peek().span();
+            modifiers.push_back(modifier{
+                .span = p->peek().span(),
+                .type = p->peek().type,
+            });
             break;
 
           // async() {}
@@ -289,7 +322,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       // *g() {}
       case token_type::star:
         method_attributes = function_attributes::generator;
-        star_token = p->peek().span();
+        modifiers.push_back(modifier{
+            .span = p->peek().span(),
+            .type = p->peek().type,
+        });
         p->skip();
         break;
 
@@ -297,6 +333,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::kw_get:
       case token_type::kw_set:
         last_ident = p->peek().identifier_name();
+        modifiers.push_back(modifier{
+            .span = p->peek().span(),
+            .type = p->peek().type,
+        });
         p->skip();
         break;
 
@@ -602,7 +642,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         if (p->peek().type == token_type::star) {
           // async static *m() {}  // Invalid.
           method_attributes = function_attributes::async_generator;
-          star_token = p->peek().span();
+          modifiers.push_back(modifier{
+              .span = p->peek().span(),
+              .type = p->peek().type,
+          });
           p->skip();
         }
         switch (p->peek().type) {
@@ -625,11 +668,15 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             // diag_interface_methods_cannot_be_async and
             // diag_interface_properties_cannot_be_static (and maybe
             // diag_interface_methods_cannot_be_generators) are reported later.
-            QLJS_ASSERT(async_keyword.has_value());
-            QLJS_ASSERT(static_keyword.has_value());
+            QLJS_ASSERT(find_modifier(token_type::kw_async, new_property_name));
+            QLJS_ASSERT(
+                find_modifier(token_type::kw_static, new_property_name));
           } else {
+            const modifier *async_modifier =
+                find_modifier(token_type::kw_async, new_property_name);
+            QLJS_ASSERT(async_modifier);
             p->diag_reporter_->report(diag_async_static_method{
-                .async_static = source_code_span(async_keyword->begin(),
+                .async_static = source_code_span(async_modifier->span.begin(),
                                                  property_name_span.end()),
             });
           }
@@ -663,11 +710,15 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           identifier new_property_name = p->peek().identifier_name();
           if (is_interface) {
             // diag_interface_properties_cannot_be_static is reported later.
-            QLJS_ASSERT(static_keyword.has_value());
+            QLJS_ASSERT(
+                find_modifier(token_type::kw_static, new_property_name));
           } else {
+            const modifier *readonly_modifier =
+                find_modifier(token_type::kw_readonly, property_name);
+            QLJS_ASSERT(readonly_modifier);
             p->diag_reporter_->report(diag_readonly_static_field{
-                .readonly_static = source_code_span(readonly_keyword->begin(),
-                                                    property_name_span.end()),
+                .readonly_static = source_code_span(
+                    readonly_modifier->span.begin(), property_name_span.end()),
             });
           }
           property_name = new_property_name;
@@ -700,10 +751,11 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::left_paren:
       case token_type::less:
         v.visit_property_declaration(property_name);
-        if (is_keyword(readonly_keyword, property_name)) {
+        if (const modifier *readonly_modifier =
+                find_modifier(token_type::kw_readonly, property_name)) {
           // readonly method() {}  // Invalid.
           p->diag_reporter_->report(diag_typescript_readonly_method{
-              .readonly_keyword = *readonly_keyword,
+              .readonly_keyword = readonly_modifier->span,
           });
         }
         error_if_invalid_access_specifier(property_name);
@@ -823,27 +875,30 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
     void error_if_readonly_in_not_typescript(
         const std::optional<identifier> &property_name) {
-      if (!p->options_.typescript &&
-          is_keyword(readonly_keyword, property_name)) {
-        p->diag_reporter_->report(
-            diag_typescript_readonly_fields_not_allowed_in_javascript{
-                .readonly_keyword = *readonly_keyword,
-            });
+      if (!p->options_.typescript) {
+        if (const modifier *readonly_modifier =
+                find_modifier(token_type::kw_readonly, property_name)) {
+          p->diag_reporter_->report(
+              diag_typescript_readonly_fields_not_allowed_in_javascript{
+                  .readonly_keyword = readonly_modifier->span,
+              });
+        }
       }
     }
 
     void error_if_invalid_access_specifier(
         const std::optional<identifier> &property_name) {
-      if (is_keyword(access_specifier_span, property_name)) {
+      if (const modifier *access_specifier =
+              find_access_specifier(property_name)) {
         if (is_interface) {
           p->diag_reporter_->report(
               diag_typescript_interfaces_cannot_contain_access_specifiers{
-                  .specifier = *access_specifier_span,
+                  .specifier = access_specifier->span,
               });
         } else if (!p->options_.typescript) {
           p->diag_reporter_->report(
               diag_typescript_access_specifiers_not_allowed_in_javascript{
-                  .specifier = *access_specifier_span,
+                  .specifier = access_specifier->span,
               });
         }
       }
@@ -851,29 +906,59 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
     void error_if_static_in_interface(
         const std::optional<identifier> &property_name) {
-      if (is_interface && is_keyword(static_keyword, property_name)) {
-        p->diag_reporter_->report(diag_interface_properties_cannot_be_static{
-            .static_keyword = *static_keyword,
-        });
+      if (is_interface) {
+        if (const modifier *static_modifier =
+                find_modifier(token_type::kw_static, property_name)) {
+          p->diag_reporter_->report(diag_interface_properties_cannot_be_static{
+              .static_keyword = static_modifier->span,
+          });
+        }
       }
     }
 
     void error_if_async_in_interface(
         const std::optional<identifier> &property_name) {
-      if (is_interface && is_keyword(async_keyword, property_name)) {
-        p->diag_reporter_->report(diag_interface_methods_cannot_be_async{
-            .async_keyword = *async_keyword,
-        });
+      if (is_interface) {
+        if (const modifier *async_modifier =
+                find_modifier(token_type::kw_async, property_name)) {
+          p->diag_reporter_->report(diag_interface_methods_cannot_be_async{
+              .async_keyword = async_modifier->span,
+          });
+        }
       }
     }
 
     void error_if_generator_star_in_interface(
         const std::optional<identifier> &property_name) {
-      if (is_interface && is_keyword(star_token, property_name)) {
-        p->diag_reporter_->report(diag_interface_methods_cannot_be_generators{
-            .star = *star_token,
-        });
+      if (is_interface) {
+        if (const modifier *star_modifier =
+                find_modifier(token_type::star, property_name)) {
+          p->diag_reporter_->report(diag_interface_methods_cannot_be_generators{
+              .star = star_modifier->span,
+          });
+        }
       }
+    }
+
+    const modifier *find_modifier(
+        token_type modifier_type,
+        const std::optional<identifier> &property_name) const {
+      for (const modifier &m : modifiers) {
+        if (m.type == modifier_type && is_keyword(m.span, property_name)) {
+          return &m;
+        }
+      }
+      return nullptr;
+    }
+
+    const modifier *find_access_specifier(
+        const std::optional<identifier> &property_name) const {
+      for (const modifier &m : modifiers) {
+        if (m.is_access_specifier() && is_keyword(m.span, property_name)) {
+          return &m;
+        }
+      }
+      return nullptr;
     }
 
     static bool is_keyword(const std::optional<source_code_span> &keyword,
