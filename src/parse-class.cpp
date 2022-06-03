@@ -368,7 +368,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::reserved_keyword_with_escape_sequence: {
         identifier property_name = p->peek().identifier_name();
         p->skip();
-        parse_and_visit_field_or_method(property_name, method_attributes);
+        parse_and_visit_field_or_method(property_name);
         break;
       }
 
@@ -379,8 +379,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::string: {
         source_code_span name_span = p->peek().span();
         p->skip();
-        parse_and_visit_field_or_method_without_name(name_span,
-                                                     method_attributes);
+        parse_and_visit_field_or_method_without_name(name_span);
         break;
       }
 
@@ -407,7 +406,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         p->skip();
 
         parse_and_visit_field_or_method_without_name(
-            source_code_span(name_begin, name_end), method_attributes);
+            source_code_span(name_begin, name_end));
         break;
       }
 
@@ -429,8 +428,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         case token_type::question:
         case token_type::right_curly:
         case token_type::semicolon:
-          parse_and_visit_field_or_method(function_token.identifier_name(),
-                                          method_attributes);
+          parse_and_visit_field_or_method(function_token.identifier_name());
           break;
 
         default:
@@ -449,7 +447,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       // ;       // Stray semicolon.
       case token_type::semicolon:
         if (last_ident.has_value()) {
-          parse_and_visit_field_or_method(*last_ident, method_attributes);
+          parse_and_visit_field_or_method(*last_ident);
         } else {
           p->skip();
         }
@@ -460,7 +458,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       // () {}       // Invalid.
       case token_type::left_paren:
         if (last_ident.has_value()) {
-          parse_and_visit_field_or_method(*last_ident, method_attributes);
+          parse_and_visit_field_or_method(*last_ident);
         } else {
           source_code_span expected_name(p->peek().begin, p->peek().begin);
           if (!is_interface) {
@@ -468,8 +466,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
                 .expected_name = expected_name,
             });
           }
-          parse_and_visit_field_or_method_without_name(expected_name,
-                                                       method_attributes);
+          parse_and_visit_field_or_method_without_name(expected_name);
         }
         break;
 
@@ -480,7 +477,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::question:
       case token_type::right_curly:
         if (last_ident.has_value()) {
-          parse_and_visit_field_or_method(*last_ident, method_attributes);
+          parse_and_visit_field_or_method(*last_ident);
         } else {
           QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
         }
@@ -491,7 +488,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::less:
         if (last_ident.has_value()) {
           // set<T>(): void;
-          parse_and_visit_field_or_method(*last_ident, method_attributes);
+          parse_and_visit_field_or_method(*last_ident);
         } else {
           // <T>(param: T): void;
           source_code_span property_name_span(p->peek().begin, p->peek().begin);
@@ -599,8 +596,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
                       .left_paren = p->peek().span(),
                   });
               parse_and_visit_field_or_method_without_name(
-                  source_code_span(left_square_begin, name_end),
-                  method_attributes);
+                  source_code_span(left_square_begin, name_end));
             }
             break;
           }
@@ -625,22 +621,18 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       return false;
     }
 
-    void parse_and_visit_field_or_method(
-        identifier property_name, function_attributes method_attributes) {
-      parse_and_visit_field_or_method_impl(property_name, property_name.span(),
-                                           method_attributes);
+    void parse_and_visit_field_or_method(identifier property_name) {
+      parse_and_visit_field_or_method_impl(property_name, property_name.span());
     }
 
     void parse_and_visit_field_or_method_without_name(
-        source_code_span name_span, function_attributes method_attributes) {
-      parse_and_visit_field_or_method_impl(std::nullopt, name_span,
-                                           method_attributes);
+        source_code_span name_span) {
+      parse_and_visit_field_or_method_impl(std::nullopt, name_span);
     }
 
     void parse_and_visit_field_or_method_impl(
         std::optional<identifier> property_name,
-        source_code_span property_name_span,
-        function_attributes method_attributes) {
+        source_code_span property_name_span) {
       const modifier *static_modifier =
           find_modifier(token_type::kw_static, property_name);
 
