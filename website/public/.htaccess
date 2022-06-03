@@ -1,17 +1,23 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-AddType application/wasm .wasm
-AddType text/javascript .mjs
+<IfModule mod_mime.c>
+  AddType application/wasm .wasm
+  AddType text/javascript .mjs
+</IfModule>
 
-Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains"
-Header always set X-Frame-Options "SAMEORIGIN"
-Header always set Referrer-Policy "same-origin"
-Header always set X-Content-Type-Options "nosniff"
-Header always add Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'"
+<IfModule mod_headers.c>
+  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "same-origin"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always add Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'"
+  Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
 
-Header always set X-XSS-Protection "1; mode=block"
-
+<IfModule mod_deflate.c>
+  DeflateAlterETag NoChange
+</IfModule>
 
 <IfModule http2_module>
   # Optimize loads of the main page and press release pages using HTTP/2 push.
