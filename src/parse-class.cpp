@@ -165,7 +165,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     bool is_interface;
 
     std::optional<identifier> last_ident;
-    function_attributes method_attributes = function_attributes::normal;
 
     // *, async, function, get, private, protected, public, readonly, set,
     // static
@@ -283,7 +282,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           switch (p->peek().type) {
           // async *g() {}
           case token_type::star:
-            method_attributes = function_attributes::async_generator;
             modifiers.push_back(modifier{
                 .span = p->peek().span(),
                 .type = p->peek().type,
@@ -294,7 +292,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           // async static method() {}  // Invalid
           // async static() {}
           case token_type::kw_static:
-            method_attributes = function_attributes::async;
             last_ident = p->peek().identifier_name();
             modifiers.push_back(modifier{
                 .span = p->peek().span(),
@@ -312,7 +309,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
           // async method() {}
           default:
-            method_attributes = function_attributes::async;
             break;
           }
         }
@@ -320,11 +316,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
       // *g() {}
       case token_type::star:
-        if (this->find_modifier(token_type::kw_async, std::nullopt)) {
-          method_attributes = function_attributes::async_generator;
-        } else {
-          method_attributes = function_attributes::generator;
-        }
         modifiers.push_back(modifier{
             .span = p->peek().span(),
             .type = p->peek().type,
@@ -496,12 +487,14 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           v.visit_property_declaration(std::nullopt);
           v.visit_enter_function_scope();
           {
+            function_attributes attributes =
+                function_attributes_from_modifiers(std::nullopt);
             if (is_interface) {
               p->parse_and_visit_interface_function_parameters_and_body_no_scope(
-                  v, property_name_span, method_attributes);
+                  v, property_name_span, attributes);
             } else {
               p->parse_and_visit_function_parameters_and_body_no_scope(
-                  v, property_name_span, method_attributes);
+                  v, property_name_span, attributes);
               p->diag_reporter_->report(
                   diag_typescript_call_signatures_not_allowed_in_classes{
                       .expected_method_name = property_name_span,
@@ -683,7 +676,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         // method { }       // Invalid (missing parameter list).
       case token_type::left_curly:
       case token_type::left_paren:
-      case token_type::less:
+      case token_type::less: {
         v.visit_property_declaration(property_name);
         if (readonly_modifier) {
           // readonly method() {}  // Invalid.
@@ -692,19 +685,22 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           });
         }
         error_if_invalid_access_specifier(property_name);
+        function_attributes attributes =
+            function_attributes_from_modifiers(property_name);
         if (is_interface) {
           error_if_async_in_interface(property_name);
           error_if_generator_star_in_interface(property_name);
           error_if_static_in_interface(property_name);
           v.visit_enter_function_scope();
           p->parse_and_visit_interface_function_parameters_and_body_no_scope(
-              v, property_name_span, method_attributes);
+              v, property_name_span, attributes);
           v.visit_exit_function_scope();
         } else {
           p->parse_and_visit_function_parameters_and_body(
-              v, /*name=*/property_name_span, method_attributes);
+              v, /*name=*/property_name_span, attributes);
         }
         break;
+      }
 
         // field;
         // class C { field }
@@ -804,6 +800,17 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
         break;
       }
+    }
+
+    function_attributes function_attributes_from_modifiers(
+        const std::optional<identifier> &property_name) const {
+      bool has_async = this->find_modifier(token_type::kw_async, property_name);
+      bool has_star = this->find_modifier(token_type::star, property_name);
+      if (has_async && has_star) return function_attributes::async_generator;
+      if (has_async && !has_star) return function_attributes::async;
+      if (!has_async && has_star) return function_attributes::generator;
+      if (!has_async && !has_star) return function_attributes::normal;
+      QLJS_UNREACHABLE();
     }
 
     void error_if_readonly_in_not_typescript(
