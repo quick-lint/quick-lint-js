@@ -182,78 +182,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         bump_vector<modifier, monotonic_allocator>("class member modifiers",
                                                    &p->temporary_memory_);
 
-    void parse_leading_access_specifier() {
-      switch (p->peek().type) {
-      // private f() {}
-      case token_type::kw_private:
-      case token_type::kw_protected:
-      case token_type::kw_public:
-        last_ident = p->peek().identifier_name();
-        modifiers.push_back(modifier{
-            .span = p->peek().span(),
-            .type = p->peek().type,
-        });
-        p->skip();
-        break;
-
-      default:
-        break;
-      }
-    }
-
-    void parse_leading_static() {
-      switch (p->peek().type) {
-      // static f() {}
-      case token_type::kw_static:
-        last_ident = p->peek().identifier_name();
-        modifiers.push_back(modifier{
-            .span = p->peek().span(),
-            .type = p->peek().type,
-        });
-        p->skip();
-        break;
-
-      default:
-        break;
-      }
-    }
-
-    void parse_leading_readonly() {
-      switch (p->peek().type) {
-      // readonly field: number;
-      case token_type::kw_readonly:
-        last_ident = p->peek().identifier_name();
-        modifiers.push_back(modifier{
-            .span = p->peek().span(),
-            .type = p->peek().type,
-        });
-        p->skip();
-
-        if (p->peek().type == token_type::kw_static) {
-          // readonly static field;  // Invalid
-          // readonly static;
-          last_ident = p->peek().identifier_name();
-          modifiers.push_back(modifier{
-              .span = p->peek().span(),
-              .type = p->peek().type,
-          });
-          p->skip();
-        }
-        break;
-
-      default:
-        break;
-      }
-    }
-
     // Returns true if an entire property was parsed.
     // Returns false if nothing was parsed or if only modifiers were parser.
     bool parse_modifiers() {
       for (;;) {
-        parse_leading_access_specifier();
-        parse_leading_static();
-        parse_leading_readonly();
-
         switch (p->peek().type) {
         // async f() {}
         case token_type::kw_async:
@@ -308,6 +240,50 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
               .type = p->peek().type,
           });
           p->skip();
+          continue;
+
+        // private f() {}
+        // public static field = 42;
+        case token_type::kw_private:
+        case token_type::kw_protected:
+        case token_type::kw_public:
+          last_ident = p->peek().identifier_name();
+          modifiers.push_back(modifier{
+              .span = p->peek().span(),
+              .type = p->peek().type,
+          });
+          p->skip();
+          continue;
+
+        // static f() {}
+        case token_type::kw_static:
+          last_ident = p->peek().identifier_name();
+          modifiers.push_back(modifier{
+              .span = p->peek().span(),
+              .type = p->peek().type,
+          });
+          p->skip();
+          continue;
+
+        // readonly field: number;
+        case token_type::kw_readonly:
+          last_ident = p->peek().identifier_name();
+          modifiers.push_back(modifier{
+              .span = p->peek().span(),
+              .type = p->peek().type,
+          });
+          p->skip();
+
+          if (p->peek().type == token_type::kw_static) {
+            // readonly static field;  // Invalid
+            // readonly static;
+            last_ident = p->peek().identifier_name();
+            modifiers.push_back(modifier{
+                .span = p->peek().span(),
+                .type = p->peek().type,
+            });
+            p->skip();
+          }
           continue;
 
         default:
