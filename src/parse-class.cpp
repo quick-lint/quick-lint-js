@@ -166,7 +166,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
     std::optional<identifier> last_ident;
     function_attributes method_attributes = function_attributes::normal;
-    bool async_static = false;
 
     // *, async, function, get, private, protected, public, readonly, set,
     // static
@@ -296,13 +295,14 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           // async static() {}
           case token_type::kw_static:
             method_attributes = function_attributes::async;
-            async_static = true;
-            // TODO(strager): What about 'static async static'?
+            last_ident = p->peek().identifier_name();
             modifiers.push_back(modifier{
                 .span = p->peek().span(),
                 .type = p->peek().type,
             });
-            break;
+            p->skip();
+            parse_stuff();
+            return;
 
           // async() {}
           // async<T>() {}  // TypeScript only.
@@ -320,7 +320,11 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
       // *g() {}
       case token_type::star:
-        method_attributes = function_attributes::generator;
+        if (this->find_modifier(token_type::kw_async, std::nullopt)) {
+          method_attributes = function_attributes::async_generator;
+        } else {
+          method_attributes = function_attributes::generator;
+        }
         modifiers.push_back(modifier{
             .span = p->peek().span(),
             .type = p->peek().type,
@@ -637,56 +641,20 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         std::optional<identifier> property_name,
         source_code_span property_name_span,
         function_attributes method_attributes) {
-      if (async_static) {
-        if (p->peek().type == token_type::star) {
-          // async static *m() {}  // Invalid.
-          method_attributes = function_attributes::async_generator;
-          modifiers.push_back(modifier{
-              .span = p->peek().span(),
-              .type = p->peek().type,
+      const modifier *static_modifier =
+          find_modifier(token_type::kw_static, property_name);
+
+      // FIXME(strager): This only checks the first 'readonly' modifier
+      // against the first 'static' modifier.
+      const modifier *async_modifier =
+          find_modifier(token_type::kw_async, property_name);
+      if (async_modifier && static_modifier &&
+          async_modifier < static_modifier) {
+        if (!is_interface) {
+          p->diag_reporter_->report(diag_async_static_method{
+              .async_static = source_code_span(async_modifier->span.begin(),
+                                               static_modifier->span.end()),
           });
-          p->skip();
-        }
-        switch (p->peek().type) {
-        case token_type::private_identifier:
-          if (is_interface) {
-            p->diag_reporter_->report(
-                diag_interface_properties_cannot_be_private{
-                    .property_name = p->peek().identifier_name(),
-                });
-          }
-          [[fallthrough]];
-        QLJS_CASE_RESERVED_KEYWORD_EXCEPT_FUNCTION:
-        QLJS_CASE_CONTEXTUAL_KEYWORD:
-        case token_type::identifier:
-        case token_type::reserved_keyword_with_escape_sequence: {
-          // async static method() {}             // Invalid
-          // async static *myAsyncGenerator() {}  // Invalid
-          identifier new_property_name = p->peek().identifier_name();
-          if (is_interface) {
-            // diag_interface_methods_cannot_be_async and
-            // diag_interface_properties_cannot_be_static (and maybe
-            // diag_interface_methods_cannot_be_generators) are reported later.
-            QLJS_ASSERT(find_modifier(token_type::kw_async, new_property_name));
-            QLJS_ASSERT(
-                find_modifier(token_type::kw_static, new_property_name));
-          } else {
-            const modifier *async_modifier =
-                find_modifier(token_type::kw_async, new_property_name);
-            QLJS_ASSERT(async_modifier);
-            p->diag_reporter_->report(diag_async_static_method{
-                .async_static = source_code_span(async_modifier->span.begin(),
-                                                 property_name_span.end()),
-            });
-          }
-          property_name = new_property_name;
-          property_name_span = property_name->span();
-          p->skip();
-          break;
-        }
-          // async static() {}
-        default:
-          break;
         }
       }
 
@@ -694,8 +662,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       // the first 'static' modifier.
       const modifier *readonly_modifier =
           find_modifier(token_type::kw_readonly, property_name);
-      const modifier *static_modifier =
-          find_modifier(token_type::kw_static, property_name);
       if (readonly_modifier && static_modifier &&
           readonly_modifier < static_modifier) {
         if (!is_interface) {
