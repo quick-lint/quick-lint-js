@@ -246,67 +246,79 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       }
     }
 
-    void parse_stuff() {
-parse_modifier:
-      switch (p->peek().type) {
-      // async f() {}
-      case token_type::kw_async:
-        last_ident = p->peek().identifier_name();
-        modifiers.push_back(modifier{
-            .span = p->peek().span(),
-            .type = p->peek().type,
-        });
-        p->skip();
-        if (p->peek().has_leading_newline) {
-          switch (p->peek().type) {
-          // 'async' is a field name:
-          // class {
-          //   async
-          //   method() {}
-          // }
-          QLJS_CASE_KEYWORD:
-          case token_type::left_square:
-          case token_type::number:
-          case token_type::string:
-          case token_type::identifier:
-          case token_type::private_identifier:
-          case token_type::star:
-            error_if_readonly_in_not_typescript(last_ident);
-            error_if_invalid_access_specifier(last_ident);
-            error_if_static_in_interface(last_ident);
-            v.visit_property_declaration(last_ident);
-            return;
-          default:
-            break;
+    // Returns true if an entire property was parsed.
+    // Returns false if nothing was parsed or if only modifiers were parser.
+    bool parse_modifiers() {
+      for (;;) {
+        parse_leading_access_specifier();
+        parse_leading_static();
+        parse_leading_readonly();
+
+        switch (p->peek().type) {
+        // async f() {}
+        case token_type::kw_async:
+          last_ident = p->peek().identifier_name();
+          modifiers.push_back(modifier{
+              .span = p->peek().span(),
+              .type = p->peek().type,
+          });
+          p->skip();
+          if (p->peek().has_leading_newline) {
+            switch (p->peek().type) {
+            // 'async' is a field name:
+            // class {
+            //   async
+            //   method() {}
+            // }
+            QLJS_CASE_KEYWORD:
+            case token_type::left_square:
+            case token_type::number:
+            case token_type::string:
+            case token_type::identifier:
+            case token_type::private_identifier:
+            case token_type::star:
+              error_if_readonly_in_not_typescript(last_ident);
+              error_if_invalid_access_specifier(last_ident);
+              error_if_static_in_interface(last_ident);
+              v.visit_property_declaration(last_ident);
+              return true;
+            default:
+              continue;
+            }
+          } else {
+            continue;
           }
-        } else {
-          parse_leading_static();
-          goto parse_modifier;
+          QLJS_UNREACHABLE();
+
+        // *g() {}
+        case token_type::star:
+          modifiers.push_back(modifier{
+              .span = p->peek().span(),
+              .type = p->peek().type,
+          });
+          p->skip();
+          continue;
+
+        // get prop() {}
+        case token_type::kw_get:
+        case token_type::kw_set:
+          last_ident = p->peek().identifier_name();
+          modifiers.push_back(modifier{
+              .span = p->peek().span(),
+              .type = p->peek().type,
+          });
+          p->skip();
+          continue;
+
+        default:
+          return false;
         }
-        break;
+      }
+    }
 
-      // *g() {}
-      case token_type::star:
-        modifiers.push_back(modifier{
-            .span = p->peek().span(),
-            .type = p->peek().type,
-        });
-        p->skip();
-        break;
-
-      // get prop() {}
-      case token_type::kw_get:
-      case token_type::kw_set:
-        last_ident = p->peek().identifier_name();
-        modifiers.push_back(modifier{
-            .span = p->peek().span(),
-            .type = p->peek().type,
-        });
-        p->skip();
-        break;
-
-      default:
-        break;
+    void parse_stuff() {
+      if (bool done = parse_modifiers(); done) {
+        return;
       }
 
       switch (p->peek().type) {
@@ -880,9 +892,6 @@ parse_modifier:
     }
   };
   class_parser state(this, v, is_interface);
-  state.parse_leading_access_specifier();
-  state.parse_leading_static();
-  state.parse_leading_readonly();
   state.parse_stuff();
 }
 
