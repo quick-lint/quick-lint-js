@@ -273,17 +273,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
               .type = p->peek().type,
           });
           p->skip();
-
-          if (p->peek().type == token_type::kw_static) {
-            // readonly static field;  // Invalid
-            // readonly static;
-            last_ident = p->peek().identifier_name();
-            modifiers.push_back(modifier{
-                .span = p->peek().span(),
-                .type = p->peek().type,
-            });
-            p->skip();
-          }
           continue;
 
         default:
