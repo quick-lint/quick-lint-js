@@ -209,9 +209,9 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             case token_type::identifier:
             case token_type::private_identifier:
             case token_type::star:
-              error_if_readonly_in_not_typescript(last_ident);
-              error_if_invalid_access_specifier(last_ident);
-              error_if_static_in_interface(last_ident);
+              error_if_readonly_in_not_typescript();
+              error_if_invalid_access_specifier();
+              error_if_static_in_interface();
               v.visit_property_declaration(last_ident);
               return true;
             default:
@@ -557,19 +557,17 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         std::optional<identifier> property_name,
         source_code_span property_name_span) {
       if (const modifier *function_modifier =
-              find_modifier(token_type::kw_function, property_name)) {
+              find_modifier(token_type::kw_function)) {
         p->diag_reporter_->report(diag_methods_should_not_use_function_keyword{
             .function_token = function_modifier->span,
         });
       }
 
-      const modifier *static_modifier =
-          find_modifier(token_type::kw_static, property_name);
+      const modifier *static_modifier = find_modifier(token_type::kw_static);
 
       // FIXME(strager): This only checks the first 'readonly' modifier
       // against the first 'static' modifier.
-      const modifier *async_modifier =
-          find_modifier(token_type::kw_async, property_name);
+      const modifier *async_modifier = find_modifier(token_type::kw_async);
       if (async_modifier && static_modifier &&
           async_modifier < static_modifier) {
         if (!is_interface) {
@@ -583,7 +581,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       // FIXME(strager): This only checks the first 'readonly' modifier against
       // the first 'static' modifier.
       const modifier *readonly_modifier =
-          find_modifier(token_type::kw_readonly, property_name);
+          find_modifier(token_type::kw_readonly);
       if (readonly_modifier && static_modifier &&
           readonly_modifier < static_modifier) {
         if (!is_interface) {
@@ -621,13 +619,13 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
               .readonly_keyword = readonly_modifier->span,
           });
         }
-        error_if_invalid_access_specifier(property_name);
+        error_if_invalid_access_specifier();
         function_attributes attributes =
             function_attributes_from_modifiers(property_name);
         if (is_interface) {
-          error_if_async_in_interface(property_name);
-          error_if_generator_star_in_interface(property_name);
-          error_if_static_in_interface(property_name);
+          error_if_async_in_interface();
+          error_if_generator_star_in_interface();
+          error_if_static_in_interface();
           v.visit_enter_function_scope();
           p->parse_and_visit_interface_function_parameters_and_body_no_scope(
               v, property_name_span, attributes);
@@ -645,19 +643,19 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::end_of_file:
       case token_type::right_curly:
       case token_type::semicolon:
-        error_if_readonly_in_not_typescript(property_name);
-        error_if_invalid_access_specifier(property_name);
-        error_if_static_in_interface(property_name);
+        error_if_readonly_in_not_typescript();
+        error_if_invalid_access_specifier();
+        error_if_static_in_interface();
         v.visit_property_declaration(property_name);
         p->consume_semicolon<diag_missing_semicolon_after_field>();
         break;
 
         // field = initialValue;
       case token_type::equal:
-        error_if_readonly_in_not_typescript(property_name);
-        error_if_invalid_access_specifier(property_name);
+        error_if_readonly_in_not_typescript();
+        error_if_invalid_access_specifier();
         if (is_interface) {
-          error_if_static_in_interface(property_name);
+          error_if_static_in_interface();
           p->diag_reporter_->report(
               diag_interface_fields_cannot_have_initializers{
                   .equal = p->peek().span(),
@@ -677,9 +675,9 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           //   field        // ASI
           //   method() {}
           // }
-          error_if_static_in_interface(property_name);
-          error_if_invalid_access_specifier(property_name);
-          error_if_readonly_in_not_typescript(property_name);
+          error_if_static_in_interface();
+          error_if_invalid_access_specifier();
+          error_if_readonly_in_not_typescript();
           v.visit_property_declaration(property_name);
         } else {
           if (u8"const" == property_name_span.string_view()) {
@@ -693,9 +691,9 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             // class C {
             //   field? method() {}  // Invalid.
             // }
-            error_if_readonly_in_not_typescript(property_name);
-            error_if_invalid_access_specifier(property_name);
-            error_if_static_in_interface(property_name);
+            error_if_readonly_in_not_typescript();
+            error_if_invalid_access_specifier();
+            error_if_static_in_interface();
             v.visit_property_declaration(property_name);
             p->consume_semicolon<diag_missing_semicolon_after_field>();
           } else {
@@ -718,9 +716,9 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           //   field        // ASI
           //   [expr]() {}
           // }
-          error_if_readonly_in_not_typescript(property_name);
-          error_if_invalid_access_specifier(property_name);
-          error_if_static_in_interface(property_name);
+          error_if_readonly_in_not_typescript();
+          error_if_invalid_access_specifier();
+          error_if_static_in_interface();
           v.visit_property_declaration(property_name);
         } else {
           QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
@@ -740,9 +738,9 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     }
 
     function_attributes function_attributes_from_modifiers(
-        const std::optional<identifier> &property_name) const {
-      bool has_async = this->find_modifier(token_type::kw_async, property_name);
-      bool has_star = this->find_modifier(token_type::star, property_name);
+        const std::optional<identifier> &) const {
+      bool has_async = this->find_modifier(token_type::kw_async);
+      bool has_star = this->find_modifier(token_type::star);
       if (has_async && has_star) return function_attributes::async_generator;
       if (has_async && !has_star) return function_attributes::async;
       if (!has_async && has_star) return function_attributes::generator;
@@ -750,11 +748,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       QLJS_UNREACHABLE();
     }
 
-    void error_if_readonly_in_not_typescript(
-        const std::optional<identifier> &property_name) {
+    void error_if_readonly_in_not_typescript() {
       if (!p->options_.typescript) {
         if (const modifier *readonly_modifier =
-                find_modifier(token_type::kw_readonly, property_name)) {
+                find_modifier(token_type::kw_readonly)) {
           p->diag_reporter_->report(
               diag_typescript_readonly_fields_not_allowed_in_javascript{
                   .readonly_keyword = readonly_modifier->span,
@@ -763,10 +760,8 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       }
     }
 
-    void error_if_invalid_access_specifier(
-        const std::optional<identifier> &property_name) {
-      if (const modifier *access_specifier =
-              find_access_specifier(property_name)) {
+    void error_if_invalid_access_specifier() {
+      if (const modifier *access_specifier = find_access_specifier()) {
         if (is_interface) {
           p->diag_reporter_->report(
               diag_typescript_interfaces_cannot_contain_access_specifiers{
@@ -781,11 +776,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       }
     }
 
-    void error_if_static_in_interface(
-        const std::optional<identifier> &property_name) {
+    void error_if_static_in_interface() {
       if (is_interface) {
         if (const modifier *static_modifier =
-                find_modifier(token_type::kw_static, property_name)) {
+                find_modifier(token_type::kw_static)) {
           p->diag_reporter_->report(diag_interface_properties_cannot_be_static{
               .static_keyword = static_modifier->span,
           });
@@ -793,11 +787,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       }
     }
 
-    void error_if_async_in_interface(
-        const std::optional<identifier> &property_name) {
+    void error_if_async_in_interface() {
       if (is_interface) {
         if (const modifier *async_modifier =
-                find_modifier(token_type::kw_async, property_name)) {
+                find_modifier(token_type::kw_async)) {
           p->diag_reporter_->report(diag_interface_methods_cannot_be_async{
               .async_keyword = async_modifier->span,
           });
@@ -805,11 +798,9 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       }
     }
 
-    void error_if_generator_star_in_interface(
-        const std::optional<identifier> &property_name) {
+    void error_if_generator_star_in_interface() {
       if (is_interface) {
-        if (const modifier *star_modifier =
-                find_modifier(token_type::star, property_name)) {
+        if (const modifier *star_modifier = find_modifier(token_type::star)) {
           p->diag_reporter_->report(diag_interface_methods_cannot_be_generators{
               .star = star_modifier->span,
           });
@@ -817,8 +808,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       }
     }
 
-    const modifier *find_modifier(token_type modifier_type,
-                                  const std::optional<identifier> &) const {
+    const modifier *find_modifier(token_type modifier_type) const {
       for (const modifier &m : modifiers) {
         if (m.type == modifier_type) {
           return &m;
@@ -827,8 +817,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       return nullptr;
     }
 
-    const modifier *find_access_specifier(
-        const std::optional<identifier> &) const {
+    const modifier *find_access_specifier() const {
       for (const modifier &m : modifiers) {
         if (m.is_access_specifier()) {
           return &m;
