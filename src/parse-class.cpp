@@ -275,6 +275,17 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           p->skip();
           continue;
 
+        // function() {}
+        // function f() {}  // Invalid.
+        case token_type::kw_function:
+          last_ident = p->peek().identifier_name();
+          modifiers.push_back(modifier{
+              .span = p->peek().span(),
+              .type = p->peek().type,
+          });
+          p->skip();
+          continue;
+
         default:
           return false;
         }
@@ -346,39 +357,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 
         parse_and_visit_field_or_method_without_name(
             source_code_span(name_begin, name_end));
-        break;
-      }
-
-      // function() {}
-      // function f() {}  // Invalid.
-      case token_type::kw_function: {
-        token function_token = p->peek();
-        p->skip();
-        switch (p->peek().type) {
-        // function() {}
-        // function?() {}
-        // function<T>() {}
-        // class C { function }   // Field named 'function'.
-        // class C { function; }  // Field named 'function'.
-        // function = init;       // Field named 'function'.
-        case token_type::equal:
-        case token_type::left_paren:
-        case token_type::less:
-        case token_type::question:
-        case token_type::right_curly:
-        case token_type::semicolon:
-          parse_and_visit_field_or_method(function_token.identifier_name());
-          break;
-
-        default:
-          // function f() {}  // Invalid.
-          p->diag_reporter_->report(
-              diag_methods_should_not_use_function_keyword{
-                  .function_token = function_token.span(),
-              });
-          this->parse_stuff();
-          return;
-        }
         break;
       }
 
@@ -574,6 +552,13 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     void parse_and_visit_field_or_method_impl(
         std::optional<identifier> property_name,
         source_code_span property_name_span) {
+      if (const modifier *function_modifier =
+              find_modifier(token_type::kw_function, property_name)) {
+        p->diag_reporter_->report(diag_methods_should_not_use_function_keyword{
+            .function_token = function_modifier->span,
+        });
+      }
+
       const modifier *static_modifier =
           find_modifier(token_type::kw_static, property_name);
 
