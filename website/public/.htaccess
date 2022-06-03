@@ -1,8 +1,15 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-# Optimize loads of the main page and press release pages using HTTP/2 push.
 <IfModule http2_module>
+  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "same-origin"
+  Header set X-Content-Type-Options "nosniff"
+  Header add Content-Security-Policy "default-src 'self';"
+  Header set X-XSS-Protection "1; mode=block"
+
+  # Optimize loads of the main page and press release pages using HTTP/2 push.
   <Files "index.html">
     # Whitelist to avoid pushing for all subdirectories.
     <If "%{REQUEST_URI} == '/index.html' || %{REQUEST_URI} == '/blog/version-1.0/index.html'">
