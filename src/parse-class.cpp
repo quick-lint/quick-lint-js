@@ -374,13 +374,17 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       // async() {}
       // get() {}
       // () {}       // Invalid.
+      // (): void;   // TypeScript call signature.
       case token_type::left_paren:
         if (last_ident.has_value()) {
           modifiers.pop_back();
           parse_and_visit_field_or_method(*last_ident);
         } else {
           source_code_span expected_name(p->peek().begin, p->peek().begin);
-          if (!is_interface) {
+          if (is_interface) {
+            // (): void;
+          } else {
+            // (params) {}  // Invalid.
             p->diag_reporter_->report(diag_missing_class_method_name{
                 .expected_name = expected_name,
             });
