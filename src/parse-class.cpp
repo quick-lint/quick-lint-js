@@ -801,10 +801,9 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         if (const modifier *optional_modifier =
                 find_modifier(token_type::question)) {
           // method?() {}  // Invalid.
-          p->diag_reporter_->report(
-              diag_typescript_optional_properties_not_allowed_on_methods{
-                  .question = optional_modifier->span,
-              });
+          p->diag_reporter_->report(diag_typescript_optional_class_method{
+              .question = optional_modifier->span,
+          });
         }
       }
     }
@@ -814,10 +813,9 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         if (const modifier *assignment_assertion_modifier =
                 find_modifier(token_type::bang)) {
           // method!() {}  // Invalid.
-          p->diag_reporter_->report(
-              diag_typescript_assignment_asserted_fields_not_allowed_on_methods{
-                  .bang = assignment_assertion_modifier->span,
-              });
+          p->diag_reporter_->report(diag_typescript_assignment_asserted_method{
+              .bang = assignment_assertion_modifier->span,
+          });
         }
       }
     }

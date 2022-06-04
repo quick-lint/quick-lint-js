@@ -1371,8 +1371,8 @@
               bang))                                                           \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_typescript_assignment_asserted_fields_not_allowed_on_methods,       \
-      "E0240", diagnostic_severity::error, { source_code_span bang; },         \
+      diag_typescript_assignment_asserted_method, "E0240",                     \
+      diagnostic_severity::error, { source_code_span bang; },                  \
       MESSAGE(QLJS_TRANSLATABLE("'{0}' is not allowed on methods"), bang))     \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
@@ -1433,7 +1433,7 @@
               question))                                                       \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_typescript_optional_properties_not_allowed_on_methods, "E0241",     \
+      diag_typescript_optional_class_method, "E0241",                          \
       diagnostic_severity::error, { source_code_span question; },              \
       MESSAGE(QLJS_TRANSLATABLE("class methods cannot be optional"),           \
               question))                                                       \

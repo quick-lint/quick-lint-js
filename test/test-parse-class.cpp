@@ -1567,12 +1567,10 @@ TEST(test_parse, optional_methods_are_disallowed_in_classes) {
     spy_visitor v;
     parser p(&code, &v, options);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            &code,
-            diag_typescript_optional_properties_not_allowed_on_methods,  //
-            question, strlen(u8"class C { method"), u8"?")));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code,
+                              diag_typescript_optional_class_method,  //
+                              question, strlen(u8"class C { method"), u8"?")));
   }
 }
 
@@ -1629,12 +1627,10 @@ TEST(test_parse, assignment_asserted_methods_are_not_allowed) {
                             "visit_enter_function_scope_body",  // method
                             "visit_exit_function_scope",        // method
                             "visit_exit_class_scope"));         // C
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            &code,
-            diag_typescript_assignment_asserted_fields_not_allowed_on_methods,  //
-            bang, strlen(u8"class C { method"), u8"!")));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code,
+                              diag_typescript_assignment_asserted_method,  //
+                              bang, strlen(u8"class C { method"), u8"!")));
   }
 }
 
