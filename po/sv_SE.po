@@ -935,6 +935,11 @@ msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "interfaces cannot contain static blocks"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
@@ -956,6 +961,11 @@ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "methods cannot be readonly"
 msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript static blocks arenot supported in JavaScript"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy

@@ -437,11 +437,23 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         }
         break;
 
+      // class C { {             // Invalid.
+      // class C { static { } }  // TypeScript only.
       case token_type::left_curly:
-        p->diag_reporter_->report(diag_unexpected_token{
-            .token = p->peek().span(),
-        });
-        p->skip();
+        if (modifiers.size() == 1 &&
+            modifiers[0].type == token_type::kw_static) {
+          // class C { static { } }
+          error_if_invalid_static_block(/*static_modifier=*/modifiers[0]);
+          v.visit_enter_block_scope();
+          p->parse_and_visit_statement_block_no_scope(v);
+          v.visit_exit_block_scope();
+        } else {
+          // class C { {  // Invalid.
+          p->diag_reporter_->report(diag_unexpected_token{
+              .token = p->peek().span(),
+          });
+          p->skip();
+        }
         break;
 
       case token_type::comma:
@@ -732,6 +744,20 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
                   .question = optional_modifier->span,
               });
         }
+      }
+    }
+
+    void error_if_invalid_static_block(const modifier &static_modifier) {
+      if (is_interface) {
+        p->diag_reporter_->report(
+            diag_typescript_interfaces_cannot_contain_static_blocks{
+                .static_token = static_modifier.span,
+            });
+      } else if (!p->options_.typescript) {
+        p->diag_reporter_->report(
+            diag_typescript_static_blocks_not_allowed_in_javascript{
+                .static_token = static_modifier.span,
+            });
       }
     }
 

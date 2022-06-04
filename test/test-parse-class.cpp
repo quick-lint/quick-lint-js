@@ -2038,6 +2038,52 @@ TEST(test_parse, access_specifiers_are_allowed_in_typescript) {
         ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
   }
 }
+
+TEST(test_parse, static_blocks_are_disallowed_in_javascript) {
+  {
+    padded_string code(
+        u8"class C { static #private; static { C.#private; } }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  // C
+                            "visit_enter_class_scope",     // C
+                            "visit_property_declaration",  // #private
+                            "visit_enter_block_scope",     // static
+                            "visit_variable_use",          // C
+                            "visit_exit_block_scope",      // static
+                            "visit_exit_class_scope"));    // C
+    EXPECT_THAT(
+        v.property_declarations,
+        ElementsAre(spy_visitor::visited_property_declaration{u8"#private"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code,
+                    diag_typescript_static_blocks_not_allowed_in_javascript,  //
+                    static_token, strlen(u8"class C { static #private; "),
+                    u8"static")));
+  }
+}
+
+TEST(test_parse, static_blocks_are_allowed_in_typescript) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"class C { static #private; static { C.#private; } }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",  // C
+                            "visit_enter_class_scope",     // C
+                            "visit_property_declaration",  // #private
+                            "visit_enter_block_scope",     // static
+                            "visit_variable_use",          // C
+                            "visit_exit_block_scope",      // static
+                            "visit_exit_class_scope"));    // C
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+  }
+}
 }
 }
 

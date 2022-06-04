@@ -894,6 +894,10 @@ msgid "interface properties are always public and cannot be marked {0}"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "interfaces cannot contain static blocks"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
 msgstr ""
 
@@ -911,6 +915,10 @@ msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "methods cannot be readonly"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "TypeScript static blocks arenot supported in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h

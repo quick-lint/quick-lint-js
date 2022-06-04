@@ -525,6 +525,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript static blocks arenot supported in JavaScript"_translatable,
+        {
+            u8"TypeScript static blocks arenot supported in JavaScript",
+            u8"TypeScript static blocks arenot supported in JavaScript",
+            u8"TypeScript static blocks arenot supported in JavaScript",
+            u8"TypeScript static blocks arenot supported in JavaScript",
+            u8"TypeScript static blocks arenot supported in JavaScript",
+            u8"TypeScript static blocks arenot supported in JavaScript",
+        },
+    },
+    {
         "TypeScript type annotations are not allowed in JavaScript code"_translatable,
         {
             u8"TypeScript type annotations are not allowed in JavaScript code",
@@ -1622,6 +1633,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"interface properties are always public and cannot be marked {0}",
             u8"interface properties are always public and cannot be marked {0}",
             u8"interface properties are always public and cannot be marked {0}",
+        },
+    },
+    {
+        "interfaces cannot contain static blocks"_translatable,
+        {
+            u8"interfaces cannot contain static blocks",
+            u8"interfaces cannot contain static blocks",
+            u8"interfaces cannot contain static blocks",
+            u8"interfaces cannot contain static blocks",
+            u8"interfaces cannot contain static blocks",
+            u8"interfaces cannot contain static blocks",
         },
     },
     {

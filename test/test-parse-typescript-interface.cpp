@@ -1259,6 +1259,23 @@ TEST(test_parse_typescript_interface, access_specifiers_are_not_allowed) {
             specifier, strlen(u8"interface I { "), specifier)));
   }
 }
+
+TEST(test_parse_typescript_interface, static_blocks_are_not_allowed) {
+  {
+    padded_string code(u8"interface I { static { console.log('hello'); } }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.property_declarations, IsEmpty());
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"console"}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code,
+                    diag_typescript_interfaces_cannot_contain_static_blocks,  //
+                    static_token, strlen(u8"interface I { "), u8"static")));
+  }
+}
 }
 }
 

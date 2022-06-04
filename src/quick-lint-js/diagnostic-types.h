@@ -1419,6 +1419,12 @@
               specifier))                                                      \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_interfaces_cannot_contain_static_blocks, "E0243",        \
+      diagnostic_severity::error, { source_code_span static_token; },          \
+      MESSAGE(QLJS_TRANSLATABLE("interfaces cannot contain static blocks"),    \
+              static_token))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_interfaces_not_allowed_in_javascript, "E0213",           \
       diagnostic_severity::error, { source_code_span interface_keyword; },     \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript's 'interface' feature is not "     \
@@ -1450,6 +1456,13 @@
       { source_code_span readonly_keyword; },                                  \
       MESSAGE(QLJS_TRANSLATABLE("methods cannot be readonly"),                 \
               readonly_keyword))                                               \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_static_blocks_not_allowed_in_javascript, "E0242",        \
+      diagnostic_severity::error, { source_code_span static_token; },          \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript static blocks are"                 \
+                                "not supported in JavaScript"),                \
+              static_token))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
       diag_typescript_type_annotations_not_allowed_in_javascript, "E0224",     \
