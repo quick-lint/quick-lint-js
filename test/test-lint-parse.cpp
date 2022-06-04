@@ -12,6 +12,7 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/parse-support.h>
 #include <quick-lint-js/parse.h>
 
 using ::testing::ElementsAre;
@@ -205,6 +206,78 @@ TEST(test_lint, delete_local_variable) {
       v.errors,
       ElementsAre(DIAG_TYPE(diag_redundant_delete_statement_on_variable),
                   DIAG_TYPE(diag_redundant_delete_statement_on_variable)));
+}
+
+TEST(test_lint, extends_self) {
+  {
+    padded_string input(
+        u8"function C() {}\n"_sv
+        u8"{\n"_sv
+        u8"  class C extends C {}"_sv
+        u8"}"_sv);
+    diag_collector v;
+    linter l(&v, &default_globals);
+    parser p(&input, &v);
+    p.parse_and_visit_module(l);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE(diag_variable_used_before_declaration)));
+  }
+
+  {
+    padded_string input(
+        u8"function C() {}\n"_sv
+        u8"{\n"_sv
+        u8"  class C extends (null, [C][0], Object) {}"_sv
+        u8"}"_sv);
+    diag_collector v;
+    linter l(&v, &default_globals);
+    parser p(&input, &v);
+    p.parse_and_visit_module(l);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE(diag_variable_used_before_declaration)));
+  }
+
+  {
+    padded_string input(
+        u8"function C() {}\n"_sv
+        u8"{\n"_sv
+        u8"  (class C extends C {})"_sv
+        u8"}"_sv);
+    diag_collector v;
+    linter l(&v, &default_globals);
+    parser p(&input, &v);
+    p.parse_and_visit_module(l);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE(diag_variable_used_before_declaration)));
+  }
+}
+
+TEST(test_lint, typescript_static_block_can_reference_class) {
+  {
+    padded_string input(u8"class C { static { C; } }"_sv);
+    diag_collector v;
+    linter l(&v, &default_globals);
+    parser p(&input, &v, typescript_options);
+    p.parse_and_visit_module(l);
+    l.visit_end_of_module();
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    padded_string input(u8"(class C { static { C; } });"_sv);
+    diag_collector v;
+    linter l(&v, &default_globals);
+    parser p(&input, &v, typescript_options);
+    p.parse_and_visit_module(l);
+    l.visit_end_of_module();
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 }
 }
