@@ -1,8 +1,22 @@
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
 
-# Optimize loads of the main page and press release pages using HTTP/2 push.
+<IfModule mod_mime.c>
+  AddType application/wasm .wasm
+  AddType text/javascript .mjs
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "same-origin"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always add Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'"
+  Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
 <IfModule http2_module>
+  # Optimize loads of the main page and press release pages using HTTP/2 push.
   <Files "index.html">
     # Whitelist to avoid pushing for all subdirectories.
     <If "%{REQUEST_URI} == '/index.html' || %{REQUEST_URI} == '/blog/version-1.0/index.html'">
