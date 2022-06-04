@@ -209,9 +209,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             case token_type::identifier:
             case token_type::private_identifier:
             case token_type::star:
-              error_if_readonly_in_not_typescript();
-              error_if_invalid_access_specifier();
-              error_if_static_in_interface();
+              check_modifiers_for_field();
               v.visit_property_declaration(last_ident);
               return true;
             default:
@@ -683,19 +681,15 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::end_of_file:
       case token_type::right_curly:
       case token_type::semicolon:
-        error_if_readonly_in_not_typescript();
-        error_if_invalid_access_specifier();
-        error_if_static_in_interface();
+        check_modifiers_for_field();
         v.visit_property_declaration(property_name);
         p->consume_semicolon<diag_missing_semicolon_after_field>();
         break;
 
         // field = initialValue;
       case token_type::equal:
-        error_if_readonly_in_not_typescript();
-        error_if_invalid_access_specifier();
+        check_modifiers_for_field();
         if (is_interface) {
-          error_if_static_in_interface();
           p->diag_reporter_->report(
               diag_interface_fields_cannot_have_initializers{
                   .equal = p->peek().span(),
@@ -715,9 +709,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           //   field        // ASI
           //   method() {}
           // }
-          error_if_static_in_interface();
-          error_if_invalid_access_specifier();
-          error_if_readonly_in_not_typescript();
+          check_modifiers_for_field();
           v.visit_property_declaration(property_name);
         } else {
           if (u8"const" == property_name_span.string_view()) {
@@ -731,9 +723,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             // class C {
             //   field? method() {}  // Invalid.
             // }
-            error_if_readonly_in_not_typescript();
-            error_if_invalid_access_specifier();
-            error_if_static_in_interface();
+            check_modifiers_for_field();
             v.visit_property_declaration(property_name);
             p->consume_semicolon<diag_missing_semicolon_after_field>();
           } else {
@@ -756,9 +746,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           //   field        // ASI
           //   [expr]() {}
           // }
-          error_if_readonly_in_not_typescript();
-          error_if_invalid_access_specifier();
-          error_if_static_in_interface();
+          check_modifiers_for_field();
           v.visit_property_declaration(property_name);
         } else {
           QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(p);
@@ -786,6 +774,12 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       if (!has_async && has_star) return function_attributes::generator;
       if (!has_async && !has_star) return function_attributes::normal;
       QLJS_UNREACHABLE();
+    }
+
+    void check_modifiers_for_field() {
+      error_if_invalid_access_specifier();
+      error_if_readonly_in_not_typescript();
+      error_if_static_in_interface();
     }
 
     void error_if_readonly_in_not_typescript() {
