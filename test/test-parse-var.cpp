@@ -278,9 +278,9 @@ TEST(test_parse, parse_valid_let) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_declaration",  // x
-                            "visit_variable_declaration",  // C
                             "visit_enter_class_scope",     //
                             "visit_exit_class_scope",      //
+                            "visit_variable_declaration",  // C
                             "visit_end_of_module"));
 
     EXPECT_THAT(v.errors, IsEmpty());
@@ -319,9 +319,9 @@ TEST(test_parse, parse_valid_let) {
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_declaration",  // x
-                            "visit_variable_declaration",  // C
                             "visit_enter_class_scope",     //
                             "visit_exit_class_scope",      //
+                            "visit_variable_declaration",  // C
                             "visit_variable_use",          // C
                             "visit_variable_assignment",   // x
                             "visit_end_of_module"));
@@ -1839,9 +1839,9 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       spy_visitor v = parse_and_visit_statement(u8"class " + name + u8" {}",
                                                 function_attributes::normal);
       EXPECT_THAT(v.visits,
-                  ElementsAre("visit_variable_declaration",  // (name)
-                              "visit_enter_class_scope",     //
-                              "visit_exit_class_scope"));
+                  ElementsAre("visit_enter_class_scope",  //
+                              "visit_exit_class_scope",
+                              "visit_variable_declaration"));  // (name)
       EXPECT_THAT(
           v.variable_declarations,
           ElementsAre(spy_visitor::visited_variable_declaration{

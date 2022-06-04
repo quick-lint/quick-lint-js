@@ -40,9 +40,9 @@ TEST(test_parse, parse_class_statement) {
     EXPECT_EQ(v.variable_declarations[0].name, u8"C");
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
 
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
-                                      "visit_enter_class_scope",     //
-                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
+                                      "visit_exit_class_scope",        //
+                                      "visit_variable_declaration"));  // C
   }
 
   {
@@ -56,10 +56,11 @@ TEST(test_parse, parse_class_statement) {
     ASSERT_EQ(v.variable_uses.size(), 1);
     EXPECT_EQ(v.variable_uses[0].name, u8"Base");
 
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          //
-                                      "visit_variable_declaration",  //
-                                      "visit_enter_class_scope",     //
-                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",       // Base
+                            "visit_enter_class_scope",  //
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  // Derived
   }
 
   {
@@ -135,9 +136,9 @@ TEST(test_parse, unclosed_class_statement) {
     padded_string code(u8"class C { "_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     //
-                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
+                                      "visit_exit_class_scope",        //
+                                      "visit_variable_declaration"));  // C
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_unclosed_class_block,  //
                               block_open, strlen(u8"class C "), u8"{")));
@@ -149,13 +150,13 @@ TEST(test_parse, unclosed_class_statement) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          // C
+                ElementsAre("visit_enter_class_scope",          // C
                             "visit_property_declaration",       // method
                             "visit_enter_function_scope",       // method
                             "visit_enter_function_scope_body",  // method
                             "visit_exit_function_scope",        // method
-                            "visit_exit_class_scope"));         // C
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"));     // C
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_unclosed_class_block,  //
                               block_open, strlen(u8"class C "), u8"{")));
@@ -167,10 +168,10 @@ TEST(test_parse, unclosed_class_statement) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  // C
-                            "visit_enter_class_scope",     // C
-                            "visit_property_declaration",  // property
-                            "visit_exit_class_scope"));    // C
+                ElementsAre("visit_enter_class_scope",       // C
+                            "visit_property_declaration",    // property
+                            "visit_exit_class_scope",        // C
+                            "visit_variable_declaration"));  // C
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_unclosed_class_block,  //
                               block_open, strlen(u8"class C "), u8"{")));
@@ -181,25 +182,25 @@ TEST(test_parse, class_statement_with_odd_heritage) {
   {
     // TODO(strager): Should this report errors?
     spy_visitor v = parse_and_visit_statement(u8"class C extends 0 {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     //
-                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
+                                      "visit_exit_class_scope",        //
+                                      "visit_variable_declaration"));  // C
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"class C extends null {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     //
-                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
+                                      "visit_exit_class_scope",        //
+                                      "visit_variable_declaration"));  // C
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"class C extends (A, B) {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // A
-                                      "visit_variable_use",          // B
-                                      "visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     //
-                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // A
+                                      "visit_variable_use",            // B
+                                      "visit_enter_class_scope",       //
+                                      "visit_exit_class_scope",        //
+                                      "visit_variable_declaration"));  // C
   }
 }
 
@@ -207,20 +208,22 @@ TEST(test_parse, class_statement_extending_class_expression) {
   {
     spy_visitor v = parse_and_visit_statement(
         u8"class C extends class B { x() {} } { y() {} }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          // B
-                                      "visit_variable_declaration",       // B
-                                      "visit_property_declaration",       // B.x
-                                      "visit_enter_function_scope",       // B.x
-                                      "visit_enter_function_scope_body",  // B.x
-                                      "visit_exit_function_scope",        // B.x
-                                      "visit_exit_class_scope",           // B
-                                      "visit_variable_declaration",       // C
-                                      "visit_enter_class_scope",          // C
-                                      "visit_property_declaration",       // C.y
-                                      "visit_enter_function_scope",       // C.y
-                                      "visit_enter_function_scope_body",  // C.y
-                                      "visit_exit_function_scope",        // C.y
-                                      "visit_exit_class_scope"));         // C
+    EXPECT_THAT(v.visits, ElementsAre(
+
+                              "visit_enter_class_scope",          // B
+                              "visit_variable_declaration",       // B
+                              "visit_property_declaration",       // B.x
+                              "visit_enter_function_scope",       // B.x
+                              "visit_enter_function_scope_body",  // B.x
+                              "visit_exit_function_scope",        // B.x
+                              "visit_exit_class_scope",           // B
+                              "visit_enter_class_scope",          // C
+                              "visit_property_declaration",       // C.y
+                              "visit_enter_function_scope",       // C.y
+                              "visit_enter_function_scope_body",  // C.y
+                              "visit_exit_function_scope",        // C.y
+                              "visit_exit_class_scope",           // C
+                              "visit_variable_declaration"));     // C
   }
 }
 
@@ -230,21 +233,21 @@ TEST(test_parse, class_statement_with_methods) {
         u8"class Monster { eatMuffins(muffinCount) { } }");
 
     ASSERT_EQ(v.variable_declarations.size(), 2);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"Monster");
-    EXPECT_EQ(v.variable_declarations[1].name, u8"muffinCount");
+    EXPECT_EQ(v.variable_declarations[0].name, u8"muffinCount");
+    EXPECT_EQ(v.variable_declarations[1].name, u8"Monster");
 
     ASSERT_EQ(v.property_declarations.size(), 1);
     EXPECT_EQ(v.property_declarations[0].name, u8"eatMuffins");
 
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // Monster
-                            "visit_enter_class_scope",          //
+                ElementsAre("visit_enter_class_scope",          //
                             "visit_property_declaration",       // eatMuffins
                             "visit_enter_function_scope",       //
                             "visit_variable_declaration",       // muffinCount
                             "visit_enter_function_scope_body",  //
                             "visit_exit_function_scope",        //
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",           //
+                            "visit_variable_declaration"));     // Monster
   }
 
   {
@@ -254,13 +257,13 @@ TEST(test_parse, class_statement_with_methods) {
     ASSERT_EQ(v.property_declarations.size(), 1);
     EXPECT_EQ(v.property_declarations[0].name, u8"m");
 
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // C
-                                      "visit_enter_class_scope",          //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          //
                                       "visit_property_declaration",       // m
                                       "visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
-                                      "visit_exit_class_scope"));
+                                      "visit_exit_class_scope",
+                                      "visit_variable_declaration"));  // C
   }
 
   {
@@ -369,13 +372,13 @@ TEST(test_parse, class_statement_methods_with_arrow_operator) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          //
+                ElementsAre("visit_enter_class_scope",          //
                             "visit_property_declaration",       // method
                             "visit_enter_function_scope",       //
                             "visit_enter_function_scope_body",  //
                             "visit_exit_function_scope",        //
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  // C
     EXPECT_THAT(
         v.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
@@ -392,14 +395,14 @@ TEST(test_parse, missing_class_method_name_fails) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // Monster
-                            "visit_enter_class_scope",          //
+                ElementsAre("visit_enter_class_scope",          //
                             "visit_property_declaration",       // (unnamed)
                             "visit_enter_function_scope",       //
                             "visit_variable_declaration",       // muffinCount
                             "visit_enter_function_scope_body",  //
                             "visit_exit_function_scope",        //
-                            "visit_exit_class_scope"));         // Monster
+                            "visit_exit_class_scope",           // Monster
+                            "visit_variable_declaration"));     // Monster
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_missing_class_method_name,  //
@@ -412,10 +415,10 @@ TEST(test_parse, class_statement_with_fields) {
     spy_visitor v =
         parse_and_visit_statement(u8"class FruitBasket { banana; }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  // FruitBasket
-                            "visit_enter_class_scope",     //
+                ElementsAre("visit_enter_class_scope",     //
                             "visit_property_declaration",  // banana
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  // FruitBasket
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"banana"}));
@@ -425,10 +428,10 @@ TEST(test_parse, class_statement_with_fields) {
     // ASI after field without initializer.
     spy_visitor v = parse_and_visit_statement(u8"class FruitBasket { banana }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  // FruitBasket
-                            "visit_enter_class_scope",     //
+                ElementsAre("visit_enter_class_scope",     //
                             "visit_property_declaration",  // banana
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  // FruitBasket
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"banana"}));
@@ -437,11 +440,11 @@ TEST(test_parse, class_statement_with_fields) {
   {
     spy_visitor v = parse_and_visit_statement(u8"class C { prop = init; }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  //
-                            "visit_enter_class_scope",     //
+                ElementsAre("visit_enter_class_scope",     //
                             "visit_variable_use",          // init
                             "visit_property_declaration",  // prop
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  //
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"prop"}));
@@ -453,11 +456,11 @@ TEST(test_parse, class_statement_with_fields) {
     // ASI after field with initializer.
     spy_visitor v = parse_and_visit_statement(u8"class C { prop = init }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  //
-                            "visit_enter_class_scope",     //
+                ElementsAre("visit_enter_class_scope",     //
                             "visit_variable_use",          // init
                             "visit_property_declaration",  // prop
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  //
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"prop"}));
@@ -469,11 +472,11 @@ TEST(test_parse, class_statement_with_fields) {
     spy_visitor v =
         parse_and_visit_statement(u8"class C { static prop = init }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  //
-                            "visit_enter_class_scope",     //
+                ElementsAre("visit_enter_class_scope",     //
                             "visit_variable_use",          // init
                             "visit_property_declaration",  // prop
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  //
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"prop"}));
@@ -523,10 +526,10 @@ TEST(test_parse, class_statement_with_fields) {
   {
     spy_visitor v = parse_and_visit_statement(u8"class C { 'fieldName'; }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  //
-                            "visit_enter_class_scope",     //
+                ElementsAre("visit_enter_class_scope",     //
                             "visit_property_declaration",  // 'fieldName'
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  //
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
@@ -536,10 +539,10 @@ TEST(test_parse, class_statement_with_fields) {
     // ASI after field without initializer.
     spy_visitor v = parse_and_visit_statement(u8"class C { 'fieldName' }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  //
-                            "visit_enter_class_scope",     //
+                ElementsAre("visit_enter_class_scope",     //
                             "visit_property_declaration",  // 'fieldName'
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  //
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
@@ -549,11 +552,11 @@ TEST(test_parse, class_statement_with_fields) {
     spy_visitor v =
         parse_and_visit_statement(u8"class C { 'fieldName' = init; }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  //
-                            "visit_enter_class_scope",     //
+                ElementsAre("visit_enter_class_scope",     //
                             "visit_variable_use",          // init
                             "visit_property_declaration",  // 'fieldName'
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  //
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
@@ -564,11 +567,11 @@ TEST(test_parse, class_statement_with_fields) {
   {
     spy_visitor v = parse_and_visit_statement(u8"class C { 3.14 = pi; }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  //
-                            "visit_enter_class_scope",     //
+                ElementsAre("visit_enter_class_scope",     //
                             "visit_variable_use",          // pi
                             "visit_property_declaration",  // 'fieldName'
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  //
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
@@ -579,12 +582,12 @@ TEST(test_parse, class_statement_with_fields) {
   {
     spy_visitor v = parse_and_visit_statement(u8"class C { [x + y]; }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  //
-                            "visit_enter_class_scope",     //
+                ElementsAre("visit_enter_class_scope",     //
                             "visit_variable_use",          // x
                             "visit_variable_use",          // y
                             "visit_property_declaration",  // (x + y)
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  //
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
@@ -597,12 +600,12 @@ TEST(test_parse, class_statement_with_fields) {
     // ASI after field without initializer.
     spy_visitor v = parse_and_visit_statement(u8"class C { [x + y] }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  //
-                            "visit_enter_class_scope",     //
+                ElementsAre("visit_enter_class_scope",     //
                             "visit_variable_use",          // x
                             "visit_variable_use",          // y
                             "visit_property_declaration",  // (x + y)
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  //
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
@@ -614,13 +617,13 @@ TEST(test_parse, class_statement_with_fields) {
   {
     spy_visitor v = parse_and_visit_statement(u8"class C { [x + y] = init; }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  //
-                            "visit_enter_class_scope",     //
+                ElementsAre("visit_enter_class_scope",     //
                             "visit_variable_use",          // x
                             "visit_variable_use",          // y
                             "visit_variable_use",          // init
                             "visit_property_declaration",  // (x + y)
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  //
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
@@ -641,14 +644,14 @@ TEST(test_parse, class_fields_without_initializer_allow_asi_after_name) {
   {
     spy_visitor v = parse_and_visit_statement(u8"class C { f\ng() {} }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          // C
+                ElementsAre("visit_enter_class_scope",          // C
                             "visit_property_declaration",       // f
                             "visit_property_declaration",       // g
                             "visit_enter_function_scope",       // g
                             "visit_enter_function_scope_body",  // g
                             "visit_exit_function_scope",        // g
-                            "visit_exit_class_scope"));         // C
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"));     // C
     EXPECT_THAT(v.property_declarations,
                 ElementsAre(spy_visitor::visited_property_declaration{u8"f"},
                             spy_visitor::visited_property_declaration{u8"g"}));
@@ -691,13 +694,13 @@ TEST(test_parse, class_methods_should_not_use_function_keyword) {
     padded_string code(u8"class C { function f() {} }"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // C
-                                      "visit_enter_class_scope",          //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          //
                                       "visit_property_declaration",       // f
                                       "visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
-                                      "visit_exit_class_scope"));
+                                      "visit_exit_class_scope",
+                                      "visit_variable_declaration"));  // C
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_methods_should_not_use_function_keyword,  //
@@ -842,8 +845,7 @@ TEST(test_parse, typescript_class_with_keyword_generic_method) {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"class C { async<T>() { let await; await(x); } }"_sv);
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          // C
+                ElementsAre("visit_enter_class_scope",          // C
                             "visit_property_declaration",       // async
                             "visit_enter_function_scope",       // async
                             "visit_variable_declaration",       // T
@@ -852,7 +854,8 @@ TEST(test_parse, typescript_class_with_keyword_generic_method) {
                             "visit_variable_use",               // await
                             "visit_variable_use",               // x
                             "visit_exit_function_scope",        // async
-                            "visit_exit_class_scope"));         // C
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"));     // C
   }
 }
 
@@ -864,13 +867,13 @@ TEST(test_parse, class_statement_with_number_methods) {
     EXPECT_EQ(v.variable_declarations[0].name, u8"Wat");
 
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // Wat
-                            "visit_enter_class_scope",          //
+                ElementsAre("visit_enter_class_scope",          //
                             "visit_property_declaration",       // 42.0
                             "visit_enter_function_scope",       //
                             "visit_enter_function_scope_body",  //
                             "visit_exit_function_scope",        //
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  // Wat
   }
 }
 
@@ -950,14 +953,14 @@ TEST(test_parse, class_method_without_parameter_list) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          //
+                ElementsAre("visit_enter_class_scope",          //
                             "visit_property_declaration",       // method
                             "visit_enter_function_scope",       // method
                             "visit_enter_function_scope_body",  // method
                             "visit_variable_use",               // body
                             "visit_exit_function_scope",        // method
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  // C
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_function_parameter_list,  //
                               expected_parameter_list,
@@ -994,15 +997,15 @@ TEST(test_parse, stray_identifier_before_class_method) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          //
+                ElementsAre("visit_enter_class_scope",          //
                             "visit_property_declaration",       // method
                             "visit_enter_function_scope",       // method
                             "visit_variable_declaration",       // arg
                             "visit_enter_function_scope_body",  // method
                             "visit_variable_use",               // body
                             "visit_exit_function_scope",        // method
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  // C
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
@@ -1034,15 +1037,15 @@ TEST(test_parse, stray_identifier_before_class_method) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          //
+                ElementsAre("visit_enter_class_scope",          //
                             "visit_property_declaration",       // method
                             "visit_enter_function_scope",       // method
                             "visit_variable_declaration",       // arg
                             "visit_enter_function_scope_body",  // method
                             "visit_variable_use",               // body
                             "visit_exit_function_scope",        // method
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  // C
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
@@ -1093,9 +1096,9 @@ TEST(test_parse, class_statement_as_do_while_statement_body_is_disallowed) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",     // C
                                       "visit_exit_class_scope",      // C
+                                      "visit_variable_declaration",  // C
                                       "visit_variable_use"));        // cond
     EXPECT_THAT(
         v.errors,
@@ -1115,9 +1118,9 @@ TEST(test_parse, class_statement_as_if_statement_body_is_disallowed) {
     parser p(&code, &v);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
-                                      "visit_variable_declaration",  // C
                                       "visit_enter_class_scope",     // C
                                       "visit_exit_class_scope",      // C
+                                      "visit_variable_declaration",  // C
                                       "visit_variable_use",          // after
                                       "visit_end_of_module"));
     EXPECT_THAT(
@@ -1137,9 +1140,9 @@ TEST(test_parse, class_statement_as_if_statement_body_is_disallowed) {
     parser p(&code, &v);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
-                                      "visit_variable_declaration",  // C
                                       "visit_enter_class_scope",     // C
                                       "visit_exit_class_scope",      // C
+                                      "visit_variable_declaration",  // C
                                       "visit_enter_block_scope",     // else
                                       "visit_exit_block_scope",      // else
                                       "visit_end_of_module"));
@@ -1162,9 +1165,9 @@ TEST(test_parse, class_statement_as_if_statement_body_is_disallowed) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
                                       "visit_enter_block_scope",     // if
                                       "visit_exit_block_scope",      // if
-                                      "visit_variable_declaration",  // C
                                       "visit_enter_class_scope",     // C
                                       "visit_exit_class_scope",      // C
+                                      "visit_variable_declaration",  // C
                                       "visit_end_of_module"));
     EXPECT_THAT(
         v.errors,
@@ -1185,10 +1188,10 @@ TEST(test_parse, class_statement_as_for_statement_body_is_disallowed) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
-                                      "visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     // C
-                                      "visit_exit_class_scope"));    // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // cond
+                                      "visit_enter_class_scope",       // C
+                                      "visit_exit_class_scope",        // C
+                                      "visit_variable_declaration"));  // C
     EXPECT_THAT(
         v.errors,
         ElementsAre(DIAG_TYPE_3_FIELDS(
@@ -1207,10 +1210,10 @@ TEST(test_parse, class_statement_as_while_statement_body_is_disallowed) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // cond
-                                      "visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     // C
-                                      "visit_exit_class_scope"));    // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // cond
+                                      "visit_enter_class_scope",       // C
+                                      "visit_exit_class_scope",        // C
+                                      "visit_variable_declaration"));  // C
     EXPECT_THAT(
         v.errors,
         ElementsAre(DIAG_TYPE_3_FIELDS(
@@ -1231,9 +1234,9 @@ TEST(test_parse, class_statement_as_with_statement_body_is_disallowed) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // obj
                                       "visit_enter_with_scope",      // with
-                                      "visit_variable_declaration",  // C
                                       "visit_enter_class_scope",     // C
                                       "visit_exit_class_scope",      // C
+                                      "visit_variable_declaration",  // C
                                       "visit_exit_with_scope"));
     EXPECT_THAT(
         v.errors,
@@ -1297,14 +1300,14 @@ TEST(test_parse, async_static_method_is_disallowed) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"myPromise"}));
 
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          //
+                ElementsAre("visit_enter_class_scope",          //
                             "visit_property_declaration",       // m
                             "visit_enter_function_scope",       // m
                             "visit_enter_function_scope_body",  // m
                             "visit_variable_use",               // myPromise
                             "visit_exit_function_scope",        // m
-                            "visit_exit_class_scope"));
+                            "visit_exit_class_scope",
+                            "visit_variable_declaration"));  // C
 
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1480,11 +1483,11 @@ TEST(test_parse, field_with_type_is_allowed_in_typescript) {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"class C { fieldName: FieldType; }"_sv);
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  // C
-                            "visit_enter_class_scope",     // C
-                            "visit_variable_type_use",     // FieldType
-                            "visit_property_declaration",  // fieldName
-                            "visit_exit_class_scope"));    // C
+                ElementsAre("visit_enter_class_scope",       // C
+                            "visit_variable_type_use",       // FieldType
+                            "visit_property_declaration",    // fieldName
+                            "visit_exit_class_scope",        // C
+                            "visit_variable_declaration"));  // C
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"}));
@@ -1510,14 +1513,14 @@ TEST(test_parse, class_index_signature_is_allowed_in_typescript) {
   {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"class C { [key: KeyType]: ValueType; }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",         // C
-                                      "visit_enter_class_scope",            // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",            // C
                                       "visit_enter_index_signature_scope",  //
                                       "visit_variable_type_use",     // KeyType
                                       "visit_variable_declaration",  // key
                                       "visit_variable_type_use",  // ValueType
                                       "visit_exit_index_signature_scope",  //
-                                      "visit_exit_class_scope"));          // C
+                                      "visit_exit_class_scope",            // C
+                                      "visit_variable_declaration"));      // C
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"KeyType"},
                             spy_visitor::visited_variable_use{u8"ValueType"}));
@@ -1527,10 +1530,9 @@ TEST(test_parse, class_index_signature_is_allowed_in_typescript) {
         v.variable_declarations,
         ElementsAre(
             spy_visitor::visited_variable_declaration{
-                u8"C", variable_kind::_class, variable_init_kind::normal},
+                u8"key", variable_kind::_parameter, variable_init_kind::normal},
             spy_visitor::visited_variable_declaration{
-                u8"key", variable_kind::_parameter,
-                variable_init_kind::normal}));
+                u8"C", variable_kind::_class, variable_init_kind::normal}));
   }
 }
 
@@ -1540,12 +1542,12 @@ TEST(test_parse, optional_properties_are_disallowed_in_javascript) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     // C
-                                      "visit_property_declaration",  // field1
-                                      "visit_variable_use",          // init
-                                      "visit_property_declaration",  // field2
-                                      "visit_exit_class_scope"));    // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_property_declaration",    // field1
+                                      "visit_variable_use",            // init
+                                      "visit_property_declaration",    // field2
+                                      "visit_exit_class_scope",        // C
+                                      "visit_variable_declaration"));  // C
     EXPECT_THAT(
         v.errors,
         ElementsAre(
@@ -1580,12 +1582,12 @@ TEST(test_parse, assignment_asserted_fields_are_disallowed_in_javascript) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     // C
-                                      "visit_property_declaration",  // field1
-                                      "visit_variable_use",          // init
-                                      "visit_property_declaration",  // field2
-                                      "visit_exit_class_scope"));    // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_property_declaration",    // field1
+                                      "visit_variable_use",            // init
+                                      "visit_property_declaration",    // field2
+                                      "visit_exit_class_scope",        // C
+                                      "visit_variable_declaration"));  // C
     EXPECT_THAT(
         v.errors,
         ElementsAre(
@@ -1604,12 +1606,12 @@ TEST(test_parse, assignment_asserted_fields_are_allowed_in_typescript) {
   {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"class C { field1!; field2! = init; }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     // C
-                                      "visit_property_declaration",  // field1
-                                      "visit_variable_use",          // init
-                                      "visit_property_declaration",  // field2
-                                      "visit_exit_class_scope"));    // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_property_declaration",    // field1
+                                      "visit_variable_use",            // init
+                                      "visit_property_declaration",    // field2
+                                      "visit_exit_class_scope",        // C
+                                      "visit_variable_declaration"));  // C
   }
 }
 
@@ -1620,13 +1622,13 @@ TEST(test_parse, assignment_asserted_methods_are_not_allowed) {
     parser p(&code, &v, typescript_options);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          // C
+                ElementsAre("visit_enter_class_scope",          // C
                             "visit_property_declaration",       // method
                             "visit_enter_function_scope",       // method
                             "visit_enter_function_scope_body",  // method
                             "visit_exit_function_scope",        // method
-                            "visit_exit_class_scope"));         // C
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"));     // C
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code,
                               diag_typescript_assignment_asserted_method,  //
@@ -1640,10 +1642,10 @@ TEST(test_parse, readonly_fields_are_disallowed_in_javascript) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     // C
-                                      "visit_property_declaration",  // field
-                                      "visit_exit_class_scope"));    // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_property_declaration",    // field
+                                      "visit_exit_class_scope",        // C
+                                      "visit_variable_declaration"));  // C
     EXPECT_THAT(
         v.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1697,14 +1699,14 @@ TEST(test_parse, readonly_fields_are_disallowed_in_javascript) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          // C
+                ElementsAre("visit_enter_class_scope",          // C
                             "visit_property_declaration",       // async
                             "visit_property_declaration",       // method
                             "visit_enter_function_scope",       // method
                             "visit_enter_function_scope_body",  // method
                             "visit_exit_function_scope",        // method
-                            "visit_exit_class_scope"));         // C
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"));     // C
     EXPECT_THAT(
         v.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1735,28 +1737,28 @@ TEST(test_parse, readonly_fields_are_allowed_in_typescript) {
   {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"class C { readonly field; }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     // C
-                                      "visit_property_declaration",  // field
-                                      "visit_exit_class_scope"));    // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_property_declaration",    // field
+                                      "visit_exit_class_scope",        // C
+                                      "visit_variable_declaration"));  // C
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"class C { static readonly field; }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     // C
-                                      "visit_property_declaration",  // field
-                                      "visit_exit_class_scope"));    // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_property_declaration",    // field
+                                      "visit_exit_class_scope",        // C
+                                      "visit_variable_declaration"));  // C
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"class C { readonly #field; }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     // C
-                                      "visit_property_declaration",  // #field
-                                      "visit_exit_class_scope"));    // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_property_declaration",    // #field
+                                      "visit_exit_class_scope",        // C
+                                      "visit_variable_declaration"));  // C
   }
 }
 
@@ -1767,13 +1769,13 @@ TEST(test_parse, readonly_methods_are_invalid) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          // C
+                ElementsAre("visit_enter_class_scope",          // C
                             "visit_property_declaration",       // method
                             "visit_enter_function_scope",       // method
                             "visit_enter_function_scope_body",  // method
                             "visit_exit_function_scope",        // method
-                            "visit_exit_class_scope"));         // C
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"));     // C
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code,
@@ -1789,10 +1791,10 @@ TEST(test_parse, readonly_static_field_is_disallowed) {
     parser p(&code, &v, typescript_options);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  // C
-                            "visit_enter_class_scope",     // C
-                            "visit_property_declaration",  // field
-                            "visit_exit_class_scope"));    // C
+                ElementsAre("visit_enter_class_scope",       // C
+                            "visit_property_declaration",    // field
+                            "visit_exit_class_scope",        // C
+                            "visit_variable_declaration"));  // C
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"field"}));
@@ -1811,14 +1813,14 @@ TEST(test_parse, generic_methods_are_disallowed_in_javascript) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          // C
+                ElementsAre("visit_enter_class_scope",          // C
                             "visit_property_declaration",       // method
                             "visit_enter_function_scope",       // method
                             "visit_variable_declaration",       // T
                             "visit_enter_function_scope_body",  // method
                             "visit_exit_function_scope",        // method
-                            "visit_exit_class_scope"));         // C
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"));     // C
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
@@ -1835,14 +1837,14 @@ TEST(test_parse, generic_methods_are_allowed_in_typescript) {
     spy_visitor v =
         parse_and_visit_typescript_statement(u8"class C { method<T>() {} }"_sv);
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          // C
+                ElementsAre("visit_enter_class_scope",          // C
                             "visit_property_declaration",       // method
                             "visit_enter_function_scope",       // method
                             "visit_variable_declaration",       // T
                             "visit_enter_function_scope_body",  // method
                             "visit_exit_function_scope",        // method
-                            "visit_exit_class_scope"));         // C
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"));     // C
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
@@ -1857,13 +1859,13 @@ TEST(test_parse, call_signatures_are_disallowed_in_typescript_classes) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.visits,
-        ElementsAre("visit_variable_declaration",       // C
-                    "visit_enter_class_scope",          // C
+        ElementsAre("visit_enter_class_scope",          // C
                     "visit_property_declaration",       // (call signature)
                     "visit_enter_function_scope",       // (call signature)
                     "visit_enter_function_scope_body",  // (call signature)
                     "visit_exit_function_scope",        // (call signature)
-                    "visit_exit_class_scope"));         // C
+                    "visit_exit_class_scope",           // C
+                    "visit_variable_declaration"));     // C
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
@@ -1880,14 +1882,14 @@ TEST(test_parse, call_signatures_are_disallowed_in_typescript_classes) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.visits,
-        ElementsAre("visit_variable_declaration",       // C
-                    "visit_enter_class_scope",          // C
+        ElementsAre("visit_enter_class_scope",          // C
                     "visit_property_declaration",       // (call signature)
                     "visit_enter_function_scope",       // (call signature)
                     "visit_variable_declaration",       // T
                     "visit_enter_function_scope_body",  // (call signature)
                     "visit_exit_function_scope",        // (call signature)
-                    "visit_exit_class_scope"));         // C
+                    "visit_exit_class_scope",           // C
+                    "visit_variable_declaration"));     // C
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
@@ -1908,13 +1910,13 @@ TEST(test_parse, access_specifiers_are_disallowed_in_javascript) {
       parser p(&code, &v);
       EXPECT_TRUE(p.parse_and_visit_statement(v));
       EXPECT_THAT(v.visits,
-                  ElementsAre("visit_variable_declaration",       // C
-                              "visit_enter_class_scope",          // C
+                  ElementsAre("visit_enter_class_scope",          // C
                               "visit_property_declaration",       // method
                               "visit_enter_function_scope",       // method
                               "visit_enter_function_scope_body",  // method
                               "visit_exit_function_scope",        // method
-                              "visit_exit_class_scope"));         // C
+                              "visit_exit_class_scope",           // C
+                              "visit_variable_declaration"));     // C
       EXPECT_THAT(
           v.property_declarations,
           ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
@@ -2026,13 +2028,13 @@ TEST(test_parse, access_specifiers_are_allowed_in_typescript) {
     SCOPED_TRACE(code);
     spy_visitor v = parse_and_visit_typescript_statement(code.string_view());
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",       // C
-                            "visit_enter_class_scope",          // C
+                ElementsAre("visit_enter_class_scope",          // C
                             "visit_property_declaration",       // method
                             "visit_enter_function_scope",       // method
                             "visit_enter_function_scope_body",  // method
                             "visit_exit_function_scope",        // method
-                            "visit_exit_class_scope"));         // C
+                            "visit_exit_class_scope",           // C
+                            "visit_variable_declaration"));     // C
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
@@ -2047,13 +2049,13 @@ TEST(test_parse, static_blocks_are_disallowed_in_javascript) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  // C
-                            "visit_enter_class_scope",     // C
-                            "visit_property_declaration",  // #private
-                            "visit_enter_block_scope",     // static
-                            "visit_variable_use",          // C
-                            "visit_exit_block_scope",      // static
-                            "visit_exit_class_scope"));    // C
+                ElementsAre("visit_enter_class_scope",       // C
+                            "visit_property_declaration",    // #private
+                            "visit_enter_block_scope",       // static
+                            "visit_variable_use",            // C
+                            "visit_exit_block_scope",        // static
+                            "visit_exit_class_scope",        // C
+                            "visit_variable_declaration"));  // C
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"#private"}));
@@ -2073,13 +2075,13 @@ TEST(test_parse, static_blocks_are_allowed_in_typescript) {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"class C { static #private; static { C.#private; } }");
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_declaration",  // C
-                            "visit_enter_class_scope",     // C
-                            "visit_property_declaration",  // #private
-                            "visit_enter_block_scope",     // static
-                            "visit_variable_use",          // C
-                            "visit_exit_block_scope",      // static
-                            "visit_exit_class_scope"));    // C
+                ElementsAre("visit_enter_class_scope",       // C
+                            "visit_property_declaration",    // #private
+                            "visit_enter_block_scope",       // static
+                            "visit_variable_use",            // C
+                            "visit_exit_block_scope",        // static
+                            "visit_exit_class_scope",        // C
+                            "visit_variable_declaration"));  // C
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
   }

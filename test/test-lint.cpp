@@ -2492,11 +2492,11 @@ TEST(test_lint,
                                  variable_init_kind::normal);
     l.visit_exit_class_scope();
 
+    l.visit_enter_class_scope();
+    l.visit_exit_class_scope();
     l.visit_variable_declaration(identifier_of(class_declaration_2),
                                  variable_kind::_class,
                                  variable_init_kind::normal);
-    l.visit_enter_class_scope();
-    l.visit_exit_class_scope();
 
     l.visit_enter_class_scope();
     l.visit_variable_declaration(identifier_of(class_declaration_3),

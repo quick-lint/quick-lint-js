@@ -119,9 +119,9 @@ TEST(test_parse, export_default) {
 
   {
     spy_visitor v = parse_and_visit_statement(u8"export default class C {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // C
-                                      "visit_enter_class_scope",     //
-                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
+                                      "visit_exit_class_scope",
+                                      "visit_variable_declaration"));  // C
   }
 
   {

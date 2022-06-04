@@ -29,7 +29,6 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
 
   std::optional<identifier> class_name = this->parse_class_and_optional_name();
   this->parse_and_visit_class_heading_after_name(v);
-  this->visit_class_name(v, class_name, class_keyword_span, require_name);
 
   switch (this->peek().type) {
   case token_type::left_curly:
@@ -46,6 +45,8 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
     break;
   }
   }
+
+  this->visit_class_name(v, class_name, class_keyword_span, require_name);
 }
 
 std::optional<identifier> parser::parse_class_and_optional_name() {

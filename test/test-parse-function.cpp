@@ -717,12 +717,12 @@ TEST(test_parse, named_function_statement_without_body) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
-                                      "visit_enter_class_scope",     //
-                                      "visit_property_declaration",  // m
-                                      "visit_enter_function_scope",  //
-                                      "visit_exit_function_scope",   //
-                                      "visit_exit_class_scope"));    //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
+                                      "visit_property_declaration",    // m
+                                      "visit_enter_function_scope",    //
+                                      "visit_exit_function_scope",     //
+                                      "visit_exit_class_scope",        //
+                                      "visit_variable_declaration"));  // f
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_function_body,  //
                               expected_body, strlen(u8"class f { m()"), u8"")));
@@ -733,13 +733,13 @@ TEST(test_parse, named_function_statement_without_body) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
-                                      "visit_enter_class_scope",     //
-                                      "visit_property_declaration",  // m
-                                      "visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  // x
-                                      "visit_exit_function_scope",   //
-                                      "visit_exit_class_scope"));    //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
+                                      "visit_property_declaration",    // m
+                                      "visit_enter_function_scope",    //
+                                      "visit_variable_declaration",    // x
+                                      "visit_exit_function_scope",     //
+                                      "visit_exit_class_scope",        //
+                                      "visit_variable_declaration"));  // f
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_missing_function_body,  //
