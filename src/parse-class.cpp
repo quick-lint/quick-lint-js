@@ -25,8 +25,11 @@ namespace quick_lint_js {
 void parser::parse_and_visit_class(parse_visitor_base &v,
                                    parser::name_requirement require_name) {
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
+  source_code_span class_keyword_span = this->peek().span();
 
-  this->parse_and_visit_class_heading(v, /*require_name=*/require_name);
+  std::optional<identifier> class_name = this->parse_class_and_optional_name();
+  this->parse_and_visit_class_heading_after_name(v);
+  this->visit_class_name(v, class_name, class_keyword_span, require_name);
 
   switch (this->peek().type) {
   case token_type::left_curly:
@@ -45,13 +48,10 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
   }
 }
 
-void parser::parse_and_visit_class_heading(
-    parse_visitor_base &v, parser::name_requirement require_name) {
+std::optional<identifier> parser::parse_class_and_optional_name() {
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
-  source_code_span class_keyword_span = this->peek().span();
   this->skip();
 
-  std::optional<identifier> optional_class_name;
   switch (this->peek().type) {
   case token_type::kw_await:
     if (this->in_async_function_) {
@@ -68,30 +68,33 @@ void parser::parse_and_visit_class_heading(
   case token_type::identifier:
   case token_type::kw_yield:
     // TODO(#707): Disallow classes named 'yield' in generator function.
-  class_name:
+  class_name : {
     if (this->peek().type == token_type::kw_let) {
       this->diag_reporter_->report(diag_cannot_declare_class_named_let{
           .name = this->peek().identifier_name().span()});
     }
-    optional_class_name = this->peek().identifier_name();
+    identifier name = this->peek().identifier_name();
     this->skip();
-    break;
+    return name;
+  }
 
     // class { ... }
   case token_type::left_curly:
-    break;
+    return std::nullopt;
 
     // class extends C { }
   case token_type::kw_extends:
-    break;
+    return std::nullopt;
 
     // { class }  // Invalid.
     // class;     // Invalid.
   default:
     // We'll report errors later.
-    break;
+    return std::nullopt;
   }
+}
 
+void parser::parse_and_visit_class_heading_after_name(parse_visitor_base &v) {
   switch (this->peek().type) {
   case token_type::kw_extends:
     this->skip();
@@ -112,9 +115,14 @@ void parser::parse_and_visit_class_heading(
     // parse_and_visit_class or parse_class_expression will report an error.
     break;
   }
+}
 
-  if (optional_class_name.has_value()) {
-    v.visit_variable_declaration(*optional_class_name, variable_kind::_class,
+void parser::visit_class_name(parse_visitor_base &v,
+                              std::optional<identifier> class_name,
+                              source_code_span class_keyword_span,
+                              name_requirement require_name) {
+  if (class_name.has_value()) {
+    v.visit_variable_declaration(*class_name, variable_kind::_class,
                                  variable_init_kind::normal);
   } else {
     switch (require_name) {

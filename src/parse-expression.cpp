@@ -2449,25 +2449,27 @@ done:
 
 expression* parser::parse_class_expression(parse_visitor_base& v) {
   QLJS_ASSERT(this->peek().type == token_type::kw_class);
-  const char8* span_begin = this->peek().begin;
+  source_code_span class_keyword_span = this->peek().span();
 
   v.visit_enter_class_scope();
-  this->parse_and_visit_class_heading(
-      v, /*require_name=*/name_requirement::optional);
+  std::optional<identifier> class_name = this->parse_class_and_optional_name();
+  this->parse_and_visit_class_heading_after_name(v);
+  this->visit_class_name(v, class_name, class_keyword_span,
+                         name_requirement::optional);
 
   if (this->peek().type == token_type::left_curly) {
     this->parse_and_visit_class_body(v);
   } else {
     this->diag_reporter_->report(diag_missing_body_for_class{
-        .class_keyword_and_name_and_heritage =
-            source_code_span(span_begin, this->lexer_.end_of_previous_token()),
+        .class_keyword_and_name_and_heritage = source_code_span(
+            class_keyword_span.begin(), this->lexer_.end_of_previous_token()),
     });
   }
   const char8* span_end = this->lexer_.end_of_previous_token();
 
   v.visit_exit_class_scope();
   return this->make_expression<expression::_class>(
-      source_code_span(span_begin, span_end));
+      source_code_span(class_keyword_span.begin(), span_end));
 }
 
 expression* parser::parse_jsx_expression(parse_visitor_base& v) {
