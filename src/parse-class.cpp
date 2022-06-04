@@ -762,13 +762,15 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     }
 
     void error_if_async_static() {
-      // FIXME(strager): This only checks the first 'readonly' modifier
+      // FIXME(#747): This only checks the first 'readonly' modifier
       // against the first 'static' modifier.
       const modifier *async_modifier = find_modifier(token_type::kw_async);
       const modifier *static_modifier = find_modifier(token_type::kw_static);
       if (async_modifier && static_modifier &&
           async_modifier < static_modifier) {
         if (!is_interface) {
+          // FIXME(#747): This produces bad spans if there are tokens between
+          // 'async' and 'static'.
           p->diag_reporter_->report(diag_async_static_method{
               .async_static = source_code_span(async_modifier->span.begin(),
                                                static_modifier->span.end()),
@@ -778,7 +780,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     }
 
     void error_if_readonly_static() {
-      // FIXME(strager): This only checks the first 'readonly' modifier against
+      // FIXME(#747): This only checks the first 'readonly' modifier against
       // the first 'static' modifier.
       const modifier *readonly_modifier =
           find_modifier(token_type::kw_readonly);
@@ -786,7 +788,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       if (readonly_modifier && static_modifier &&
           readonly_modifier < static_modifier) {
         if (!is_interface) {
-          // FIXME(strager): This produces bad spans if there are tokens between
+          // FIXME(#747): This produces bad spans if there are tokens between
           // 'readonly' and 'static'.
           p->diag_reporter_->report(diag_readonly_static_field{
               .readonly_static = source_code_span(
