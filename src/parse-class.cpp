@@ -635,12 +635,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       case token_type::left_paren:
       case token_type::less: {
         v.visit_property_declaration(property_name);
-        if (readonly_modifier) {
-          // readonly method() {}  // Invalid.
-          p->diag_reporter_->report(diag_typescript_readonly_method{
-              .readonly_keyword = readonly_modifier->span,
-          });
-        }
         if (optional_span.has_value() && !is_interface &&
             p->options_.typescript) {
           // method?() {}  // Invalid.
@@ -780,10 +774,20 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     }
 
     void check_modifiers_for_method() {
+      error_if_readonly_method();
       error_if_async_in_interface();
       error_if_generator_star_in_interface();
       error_if_invalid_access_specifier();
       error_if_static_in_interface();
+    }
+
+    void error_if_readonly_method() {
+      if (const modifier *readonly_modifier =
+              find_modifier(token_type::kw_readonly)) {
+        p->diag_reporter_->report(diag_typescript_readonly_method{
+            .readonly_keyword = readonly_modifier->span,
+        });
+      }
     }
 
     void error_if_readonly_in_not_typescript() {
