@@ -1433,6 +1433,12 @@
               question))                                                       \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_optional_properties_not_allowed_on_methods, "E0241",     \
+      diagnostic_severity::error, { source_code_span question; },              \
+      MESSAGE(QLJS_TRANSLATABLE("class methods cannot be optional"),           \
+              question))                                                       \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_readonly_fields_not_allowed_in_javascript, "E0230",      \
       diagnostic_severity::error, { source_code_span readonly_keyword; },      \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript's 'readonly' feature is not "      \

@@ -924,6 +924,11 @@ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "class methods cannot be optional"
+msgstr "classes cannot be named 'let'"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript's 'readonly' feature is not allowed in JavaScript code"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 

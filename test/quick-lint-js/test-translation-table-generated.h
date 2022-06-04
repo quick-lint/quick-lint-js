@@ -965,6 +965,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "class methods cannot be optional"_translatable,
+        {
+            u8"class methods cannot be optional",
+            u8"class methods cannot be optional",
+            u8"class methods cannot be optional",
+            u8"class methods cannot be optional",
+            u8"class methods cannot be optional",
+            u8"class methods cannot be optional",
+        },
+    },
+    {
         "classes cannot be named 'await' in async function"_translatable,
         {
             u8"classes cannot be named 'await' in async function",

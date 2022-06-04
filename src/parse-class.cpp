@@ -598,13 +598,14 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         }
       }
 
-      bool is_optional = p->peek().type == token_type::question;
-      if (is_optional) {
+      std::optional<source_code_span> optional_span;
+      if (p->peek().type == token_type::question) {
         // field?: Type;
+        optional_span = p->peek().span();
         if (!p->options_.typescript) {
           p->diag_reporter_->report(
               diag_typescript_optional_properties_not_allowed_in_javascript{
-                  .question = p->peek().span(),
+                  .question = *optional_span,
               });
         }
         p->skip();
@@ -641,6 +642,14 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           p->diag_reporter_->report(diag_typescript_readonly_method{
               .readonly_keyword = readonly_modifier->span,
           });
+        }
+        if (optional_span.has_value() && !is_interface &&
+            p->options_.typescript) {
+          // method?() {}  // Invalid.
+          p->diag_reporter_->report(
+              diag_typescript_optional_properties_not_allowed_on_methods{
+                  .question = *optional_span,
+              });
         }
         if (assignment_assertion_span.has_value() && !is_interface &&
             p->options_.typescript) {
@@ -718,7 +727,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             p->diag_reporter_->report(diag_typescript_style_const_field{
                 .const_token = property_name_span,
             });
-          } else if (is_optional) {
+          } else if (optional_span.has_value()) {
             // class C {
             //   field? method() {}  // Invalid.
             // }

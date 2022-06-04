@@ -981,6 +981,11 @@ msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "class methods cannot be optional"
+msgstr "une classe ne peut être nommée 'let'"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript's 'readonly' feature is not allowed in JavaScript code"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "

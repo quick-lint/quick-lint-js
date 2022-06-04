@@ -902,6 +902,10 @@ msgid "TypeScript optional properties are not allowed in JavaScript code"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "class methods cannot be optional"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "TypeScript's 'readonly' feature is not allowed in JavaScript code"
 msgstr ""
 
