@@ -17,16 +17,22 @@ jobs:
     env:
       QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
     steps:
-      - name: install build essential
+      - name: Install build essential
         run: | 
           sudo apt update 
           sudo apt-get install cmake gcc ninja-build -y
+
       - uses: quick-lint/setup-emsdk@v7
         with:
           version: 2.0.4
 
       - name: checkout
         uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.7"
 
       - name: C++ configure
         run: emcmake cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS='-Os -flto' -DCMAKE_CXX_FLAGS='-Os -flto'
@@ -62,6 +68,7 @@ jobs:
       - name: JS configure
         working-directory: website
         run: yarn
+
       - name: JS test
         working-directory: website
         run: yarn test
@@ -69,19 +76,12 @@ jobs:
       - name: Build site
         working-directory: website
         run: yarn build
-      - name: bundle site
+
+      - name: Bundle site
         working-directory: website
         run: zip -r ../website.zip www
 
-      - uses: untitaker/hyperlink@0.1.21
-        with:
-          args: "website/www"
-
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.7"
-      - name: set up check-links
+     - name: Set up check-links
         run: |
           python3.7 -m venv ENV
           ./ENV/bin/pip install bs4 requests
