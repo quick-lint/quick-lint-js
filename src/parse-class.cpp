@@ -657,13 +657,10 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
                   .bang = *assignment_assertion_span,
               });
         }
-        error_if_invalid_access_specifier();
+        check_modifiers_for_method();
         function_attributes attributes =
             function_attributes_from_modifiers(property_name);
         if (is_interface) {
-          error_if_async_in_interface();
-          error_if_generator_star_in_interface();
-          error_if_static_in_interface();
           v.visit_enter_function_scope();
           p->parse_and_visit_interface_function_parameters_and_body_no_scope(
               v, property_name_span, attributes);
@@ -779,6 +776,13 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     void check_modifiers_for_field() {
       error_if_invalid_access_specifier();
       error_if_readonly_in_not_typescript();
+      error_if_static_in_interface();
+    }
+
+    void check_modifiers_for_method() {
+      error_if_async_in_interface();
+      error_if_generator_star_in_interface();
+      error_if_invalid_access_specifier();
       error_if_static_in_interface();
     }
 
