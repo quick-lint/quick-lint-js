@@ -17,11 +17,10 @@ jobs:
     env:
       QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1
     steps:
-      - name: Install build essential
+      - name: install build essential
         run: | 
-          apt update 
-          apt-get install cmake gcc ninja-build -y
-          
+          sudo apt update 
+          sudo apt-get install cmake gcc ninja-build -y
       - uses: quick-lint/setup-emsdk@v7
         with:
           version: 2.0.4
