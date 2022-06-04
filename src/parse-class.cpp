@@ -580,7 +580,6 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       error_if_function_modifier();
       error_if_async_static();
       error_if_readonly_static();
-      error_if_invalid_optional();
       error_if_invalid_assignment_assertion();
 
       switch (p->peek().type) {
@@ -711,6 +710,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       error_if_invalid_access_specifier();
       error_if_readonly_in_not_typescript();
       error_if_static_in_interface();
+      error_if_optional_field_in_not_typescript();
     }
 
     void check_modifiers_for_method() {
@@ -723,7 +723,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       error_if_assignment_asserted_method();
     }
 
-    void error_if_invalid_optional() {
+    void error_if_optional_field_in_not_typescript() {
       if (!p->options_.typescript) {
         if (const modifier *optional_modifier =
                 find_modifier(token_type::question)) {
@@ -797,7 +797,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     }
 
     void error_if_optional_method() {
-      if (!is_interface && p->options_.typescript) {
+      if (!is_interface) {
         if (const modifier *optional_modifier =
                 find_modifier(token_type::question)) {
           // method?() {}  // Invalid.

@@ -1561,10 +1561,11 @@ TEST(test_parse, optional_properties_are_disallowed_in_javascript) {
 }
 
 TEST(test_parse, optional_methods_are_disallowed_in_classes) {
-  {
+  for (parser_options options : {parser_options(), typescript_options}) {
+    SCOPED_TRACE(options.typescript ? "typescript" : "javascript");
     padded_string code(u8"class C { method?() {} }"_sv);
     spy_visitor v;
-    parser p(&code, &v, typescript_options);
+    parser p(&code, &v, options);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(
         v.errors,
