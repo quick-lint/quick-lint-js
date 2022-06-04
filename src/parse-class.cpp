@@ -558,57 +558,12 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     void parse_and_visit_field_or_method_impl(
         std::optional<identifier> property_name,
         source_code_span property_name_span) {
-      if (const modifier *function_modifier =
-              find_modifier(token_type::kw_function)) {
-        p->diag_reporter_->report(diag_methods_should_not_use_function_keyword{
-            .function_token = function_modifier->span,
-        });
-      }
-
-      const modifier *static_modifier = find_modifier(token_type::kw_static);
-
-      // FIXME(strager): This only checks the first 'readonly' modifier
-      // against the first 'static' modifier.
-      const modifier *async_modifier = find_modifier(token_type::kw_async);
-      if (async_modifier && static_modifier &&
-          async_modifier < static_modifier) {
-        if (!is_interface) {
-          p->diag_reporter_->report(diag_async_static_method{
-              .async_static = source_code_span(async_modifier->span.begin(),
-                                               static_modifier->span.end()),
-          });
-        }
-      }
-
-      // FIXME(strager): This only checks the first 'readonly' modifier against
-      // the first 'static' modifier.
-      const modifier *readonly_modifier =
-          find_modifier(token_type::kw_readonly);
-      if (readonly_modifier && static_modifier &&
-          readonly_modifier < static_modifier) {
-        if (!is_interface) {
-          // FIXME(strager): This produces bad spans if there are tokens between
-          // 'readonly' and 'static'.
-          p->diag_reporter_->report(diag_readonly_static_field{
-              .readonly_static = source_code_span(
-                  readonly_modifier->span.begin(), static_modifier->span.end()),
-          });
-        }
-      }
-
       if (p->peek().type == token_type::question) {
         // field?: Type;
-        source_code_span span = p->peek().span();
         modifiers.push_back(modifier{
-            .span = span,
+            .span = p->peek().span(),
             .type = p->peek().type,
         });
-        if (!p->options_.typescript) {
-          p->diag_reporter_->report(
-              diag_typescript_optional_properties_not_allowed_in_javascript{
-                  .question = span,
-              });
-        }
         p->skip();
       }
 
@@ -619,19 +574,14 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             .span = span,
             .type = p->peek().type,
         });
-        if (!p->options_.typescript) {
-          p->diag_reporter_->report(
-              diag_typescript_assignment_asserted_fields_not_allowed_in_javascript{
-                  .bang = span,
-              });
-        } else if (is_interface) {
-          p->diag_reporter_->report(
-              diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces{
-                  .bang = span,
-              });
-        }
         p->skip();
       }
+
+      error_if_function_modifier();
+      error_if_async_static();
+      error_if_readonly_static();
+      error_if_invalid_optional();
+      error_if_invalid_assignment_assertion();
 
       switch (p->peek().type) {
         // method() { }
@@ -771,6 +721,79 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
       error_if_static_in_interface();
       error_if_optional_method();
       error_if_assignment_asserted_method();
+    }
+
+    void error_if_invalid_optional() {
+      if (!p->options_.typescript) {
+        if (const modifier *optional_modifier =
+                find_modifier(token_type::question)) {
+          p->diag_reporter_->report(
+              diag_typescript_optional_properties_not_allowed_in_javascript{
+                  .question = optional_modifier->span,
+              });
+        }
+      }
+    }
+
+    void error_if_invalid_assignment_assertion() {
+      if (const modifier *assignment_assertion_modifier =
+              find_modifier(token_type::bang)) {
+        if (!p->options_.typescript) {
+          p->diag_reporter_->report(
+              diag_typescript_assignment_asserted_fields_not_allowed_in_javascript{
+                  .bang = assignment_assertion_modifier->span,
+              });
+        } else if (is_interface) {
+          p->diag_reporter_->report(
+              diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces{
+                  .bang = assignment_assertion_modifier->span,
+              });
+        }
+      }
+    }
+
+    void error_if_function_modifier() {
+      if (const modifier *function_modifier =
+              find_modifier(token_type::kw_function)) {
+        p->diag_reporter_->report(diag_methods_should_not_use_function_keyword{
+            .function_token = function_modifier->span,
+        });
+      }
+    }
+
+    void error_if_async_static() {
+      // FIXME(strager): This only checks the first 'readonly' modifier
+      // against the first 'static' modifier.
+      const modifier *async_modifier = find_modifier(token_type::kw_async);
+      const modifier *static_modifier = find_modifier(token_type::kw_static);
+      if (async_modifier && static_modifier &&
+          async_modifier < static_modifier) {
+        if (!is_interface) {
+          p->diag_reporter_->report(diag_async_static_method{
+              .async_static = source_code_span(async_modifier->span.begin(),
+                                               static_modifier->span.end()),
+          });
+        }
+      }
+    }
+
+    void error_if_readonly_static() {
+      // FIXME(strager): This only checks the first 'readonly' modifier against
+      // the first 'static' modifier.
+      const modifier *readonly_modifier =
+          find_modifier(token_type::kw_readonly);
+      const modifier *static_modifier = find_modifier(token_type::kw_static);
+      if (readonly_modifier && static_modifier &&
+          readonly_modifier < static_modifier) {
+        if (!is_interface) {
+          // FIXME(strager): This produces bad spans if there are tokens between
+          // 'readonly' and 'static'.
+          p->diag_reporter_->report(diag_readonly_static_field{
+              .readonly_static = source_code_span(
+                  readonly_modifier->span.begin(), static_modifier->span.end()),
+          });
+        }
+      }
     }
 
     void error_if_optional_method() {
