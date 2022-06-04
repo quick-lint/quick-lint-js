@@ -81,7 +81,7 @@ jobs:
         working-directory: website
         run: zip -r ../website.zip www
 
-     - name: Set up check-links
+      - name: Set up check-links
         run: |
           python3.7 -m venv ENV
           ./ENV/bin/pip install bs4 requests
