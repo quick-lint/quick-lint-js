@@ -36,6 +36,7 @@ Data updated manually and by GitHub Actions.
 * Data: /mnt/blockstorage/c.quick-lint-js.com/ (Vultr block storage)
 * TLS certificates: Let's Encrypt
 * Cron: `/home/github-ci/prune-old-builds.py` run by `github-ci`
+* Docker: [`quick-lint-js-web`][]
 
 ### vhost: http://c.quick-lint-js.com/
 
@@ -61,6 +62,7 @@ Redirects to https://admin.quick-lint-js.com/
 * Deploy script: [`website/deploy.sh`](../website/deploy.sh)
 * Source: [`website`](../website)
 * TLS certificates: Let's Encrypt
+* Docker: [`quick-lint-js-web`][]
 
 ### vhost: http://quick-lint-js.com/
 
@@ -139,3 +141,4 @@ package](https://www.npmjs.com/package/quick-lint-js) on the npm registry.
 [DNS Made Easy]: https://dnsmadeeasy.com/
 [Namecheap]: https://www.namecheap.com/
 [Vultr]: https://www.vultr.com/
+[`quick-lint-js-web`]: ../infrastructure/quick-lint-js-web/README.md

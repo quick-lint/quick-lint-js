@@ -11,6 +11,8 @@ jobs:
   build:
     name: website
     runs-on: ubuntu-latest
+    # TODO(strager): Use an image based on
+    # quick-lint-js-web.
     container: ghcr.io/quick-lint/quick-lint-js-github-builder:v3
     env:
       QLJS_COLLECT_COPYRIGHT_NO_WARNINGS: 1

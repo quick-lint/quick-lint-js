@@ -1,0 +1,43 @@
+# Copyright (C) 2020  Matthew "strager" Glazar
+# See end of file for extended copyright information.
+
+[Unit]
+Description=Host HTTP server
+After=docker.service
+Require=docker.service
+
+[Service]
+Type=simple
+ExecStartPre=-/usr/bin/docker stop systemd-%n
+ExecStartPre=-/usr/bin/docker rm systemd-%n
+ExecStart=/usr/bin/docker run --name systemd-%n --rm -i -p 80:80 -p 443:443 \
+    --volume /etc/letsencrypt:/etc/letsencrypt \
+    --volume /run/mysqld/mysqld.sock:/run/mysqld/mysqld.sock \
+    --volume /var/log/apache2:/var/log/apache2 \
+    --volume /var/www/admin.quick-lint-js.com:/var/www/admin.quick-lint-js.com \
+    --volume /var/www/c.quick-lint-js.com:/var/www/c.quick-lint-js.com \
+    --volume /var/www/quick-lint-js.com/www:/var/www/quick-lint-js.com/www \
+    --env DEV_TLD= \
+    quick-lint-js-web
+ExecStop=/usr/bin/docker container exec systemd-%n apachectl stop
+
+[Install]
+WantedBy=network.target
+
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew "strager" Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
