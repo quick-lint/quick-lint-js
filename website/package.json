@@ -9,17 +9,17 @@
     "node": ">=14.14.0"
   },
   "dependencies": {
-    "@asciidoctor/core": "2.2.5",
-    "ejs": "^3.1.6",
-    "esbuild-wasm": "^0.13.2",
-    "jsdom": "17.0.0",
-    "markdown-it": "^12.2.0",
-    "mime": "^2.5.2",
+    "@asciidoctor/core": "2.2.6",
+    "ejs": "3.1.8",
+    "esbuild-wasm": "0.14.43",
+    "jsdom": "19.0.0",
+    "markdown-it": "13.0.1",
+    "mime": "3.0.0",
     "quick-lint-js-node-test-runner": "../tools/quick-lint-js-node-test-runner/"
   },
   "devDependencies": {
-    "axios": "^0.21.4",
+    "axios": "0.27.2",
     "colors": "^1.4.0",
-    "prettier": "^2.4.1"
+    "prettier": "2.6.2"
   }
 }
