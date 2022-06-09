@@ -188,6 +188,8 @@ void linter::visit_enter_with_scope() { this->scopes_.push(); }
 
 void linter::visit_enter_class_scope() { this->scopes_.push(); }
 
+void linter::visit_enter_class_scope_body(const std::optional<identifier> &) {}
+
 void linter::visit_enter_for_scope() { this->scopes_.push(); }
 
 void linter::visit_enter_function_scope() { this->scopes_.push(); }

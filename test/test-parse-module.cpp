@@ -119,14 +119,16 @@ TEST(test_parse, export_default) {
 
   {
     spy_visitor v = parse_and_visit_statement(u8"export default class C {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
+                                      "visit_enter_class_scope_body",  //
                                       "visit_exit_class_scope",
                                       "visit_variable_declaration"));  // C
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"export default class {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
+                                      "visit_enter_class_scope_body",  //
                                       "visit_exit_class_scope"));
   }
 
@@ -735,7 +737,8 @@ TEST(test_parse, export_class_requires_a_name) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
+                                      "visit_enter_class_scope_body",  //
                                       "visit_exit_class_scope"));
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_name_of_exported_class,  //

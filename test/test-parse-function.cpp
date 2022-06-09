@@ -718,6 +718,7 @@ TEST(test_parse, named_function_statement_without_body) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
+                                      "visit_enter_class_scope_body",  //
                                       "visit_property_declaration",    // m
                                       "visit_enter_function_scope",    //
                                       "visit_exit_function_scope",     //
@@ -734,6 +735,7 @@ TEST(test_parse, named_function_statement_without_body) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
+                                      "visit_enter_class_scope_body",  //
                                       "visit_property_declaration",    // m
                                       "visit_enter_function_scope",    //
                                       "visit_variable_declaration",    // x

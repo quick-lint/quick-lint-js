@@ -35,6 +35,11 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
     this->visits.emplace_back("visit_enter_class_scope");
   }
 
+  void visit_enter_class_scope_body(
+      const std::optional<identifier> &) override {
+    this->visits.emplace_back("visit_enter_class_scope_body");
+  }
+
   void visit_enter_for_scope() override {
     this->visits.emplace_back("visit_enter_for_scope");
   }

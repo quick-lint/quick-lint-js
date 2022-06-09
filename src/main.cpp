@@ -294,6 +294,17 @@ class debug_visitor final : public parse_visitor_base {
     this->output_->flush();
   }
 
+  void visit_enter_class_scope_body(
+      const std::optional<identifier> &class_name) override {
+    this->output_->append_copy(u8"entered class scope body"sv);
+    if (class_name.has_value()) {
+      this->output_->append_copy(u8": "sv);
+      this->output_->append_copy(class_name->normalized_name());
+    }
+    this->output_->append_copy(u8'\n');
+    this->output_->flush();
+  }
+
   void visit_enter_for_scope() override {
     this->output_->append_copy(u8"entered for scope\n"sv);
     this->output_->flush();
@@ -463,6 +474,12 @@ class multi_visitor final : public parse_visitor_base {
   void visit_enter_class_scope() override {
     this->visitor_1_->visit_enter_class_scope();
     this->visitor_2_->visit_enter_class_scope();
+  }
+
+  void visit_enter_class_scope_body(
+      const std::optional<identifier> &class_name) override {
+    this->visitor_1_->visit_enter_class_scope_body(class_name);
+    this->visitor_2_->visit_enter_class_scope_body(class_name);
   }
 
   void visit_enter_for_scope() override {

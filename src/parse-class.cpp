@@ -31,6 +31,7 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
 
   v.visit_enter_class_scope();
   this->parse_and_visit_class_heading_after_name(v);
+  v.visit_enter_class_scope_body(class_name);
 
   switch (this->peek().type) {
   case token_type::left_curly:

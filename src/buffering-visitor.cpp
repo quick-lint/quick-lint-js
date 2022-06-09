@@ -24,6 +24,12 @@ void buffering_visitor::copy_into(parse_visitor_base &target) const {
     case visit_kind::enter_class_scope:
       target.visit_enter_class_scope();
       break;
+    case visit_kind::enter_class_scope_body_with_name:
+      target.visit_enter_class_scope_body(v.name);
+      break;
+    case visit_kind::enter_class_scope_body_without_name:
+      target.visit_enter_class_scope_body(std::nullopt);
+      break;
     case visit_kind::enter_for_scope:
       target.visit_enter_for_scope();
       break;

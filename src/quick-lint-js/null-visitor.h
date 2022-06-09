@@ -15,6 +15,8 @@ class null_visitor final : public parse_visitor_base {
   void visit_enter_block_scope() override {}
   void visit_enter_with_scope() override {}
   void visit_enter_class_scope() override {}
+  void visit_enter_class_scope_body(const std::optional<identifier>&) override {
+  }
   void visit_enter_for_scope() override {}
   void visit_enter_function_scope() override {}
   void visit_enter_function_scope_body() override {}

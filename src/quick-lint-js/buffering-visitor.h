@@ -40,6 +40,15 @@ class buffering_visitor final : public parse_visitor_base {
     this->add(visit_kind::enter_class_scope);
   }
 
+  void visit_enter_class_scope_body(
+      const std::optional<identifier> &class_name) override {
+    if (class_name.has_value()) {
+      this->add(*class_name, visit_kind::enter_class_scope_body_with_name);
+    } else {
+      this->add(visit_kind::enter_class_scope_body_without_name);
+    }
+  }
+
   void visit_enter_for_scope() override {
     this->add(visit_kind::enter_for_scope);
   }
@@ -147,6 +156,8 @@ class buffering_visitor final : public parse_visitor_base {
     enter_block_scope,
     enter_with_scope,
     enter_class_scope,
+    enter_class_scope_body_with_name,
+    enter_class_scope_body_without_name,
     enter_for_scope,
     enter_function_scope,
     enter_function_scope_body,

@@ -2493,6 +2493,7 @@ TEST(test_lint,
     l.visit_exit_class_scope();
 
     l.visit_enter_class_scope();
+    l.visit_enter_class_scope_body(identifier_of(class_declaration_2));
     l.visit_exit_class_scope();
     l.visit_variable_declaration(identifier_of(class_declaration_2),
                                  variable_kind::_class,
@@ -2519,6 +2520,7 @@ TEST(test_lint, class_extends_cannot_use_declared_class_name) {
     linter l(&v, &default_globals);
     l.visit_enter_class_scope();
     l.visit_variable_use(identifier_of(class_use));
+    l.visit_enter_class_scope_body(identifier_of(class_declaration));
     l.visit_exit_class_scope();
     l.visit_variable_declaration(identifier_of(class_declaration),
                                  variable_kind::_class,
