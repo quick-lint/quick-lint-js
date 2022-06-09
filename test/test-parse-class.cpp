@@ -57,9 +57,9 @@ TEST(test_parse, parse_class_statement) {
     EXPECT_EQ(v.variable_uses[0].name, u8"Base");
 
     EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_use",       // Base
-                            "visit_enter_class_scope",  //
-                            "visit_exit_class_scope",
+                ElementsAre("visit_enter_class_scope",       // {
+                            "visit_variable_use",            // Base
+                            "visit_exit_class_scope",        // }
                             "visit_variable_declaration"));  // Derived
   }
 
@@ -106,7 +106,9 @@ TEST(test_parse, class_statement_requires_a_body) {
     padded_string code(u8"class C "_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_exit_class_scope",        // }
+                                      "visit_variable_declaration"));  // C
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_body_for_class,  //
                               class_keyword_and_name_and_heritage,
@@ -115,10 +117,27 @@ TEST(test_parse, class_statement_requires_a_body) {
 
   {
     spy_visitor v;
+    padded_string code(u8"class Derived extends Base "_sv);
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_class_scope",       // {
+                            "visit_variable_use",            // Base
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration"));  // Derived
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code, diag_missing_body_for_class,  //
+                              class_keyword_and_name_and_heritage,
+                              strlen(u8"class Derived extends Base"), u8"")));
+  }
+
+  {
+    spy_visitor v;
     padded_string code(u8"class ;"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",   // {
+                                      "visit_exit_class_scope"));  // }
     EXPECT_THAT(
         v.errors,
         UnorderedElementsAre(
@@ -182,24 +201,24 @@ TEST(test_parse, class_statement_with_odd_heritage) {
   {
     // TODO(strager): Should this report errors?
     spy_visitor v = parse_and_visit_statement(u8"class C extends 0 {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
-                                      "visit_exit_class_scope",        //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_exit_class_scope",        // }
                                       "visit_variable_declaration"));  // C
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"class C extends null {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
-                                      "visit_exit_class_scope",        //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_exit_class_scope",        // }
                                       "visit_variable_declaration"));  // C
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"class C extends (A, B) {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // A
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_variable_use",            // A
                                       "visit_variable_use",            // B
-                                      "visit_enter_class_scope",       //
-                                      "visit_exit_class_scope",        //
+                                      "visit_exit_class_scope",        // }
                                       "visit_variable_declaration"));  // C
   }
 }
@@ -208,22 +227,20 @@ TEST(test_parse, class_statement_extending_class_expression) {
   {
     spy_visitor v = parse_and_visit_statement(
         u8"class C extends class B { x() {} } { y() {} }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre(
-
-                              "visit_enter_class_scope",          // B
-                              "visit_variable_declaration",       // B
-                              "visit_property_declaration",       // B.x
-                              "visit_enter_function_scope",       // B.x
-                              "visit_enter_function_scope_body",  // B.x
-                              "visit_exit_function_scope",        // B.x
-                              "visit_exit_class_scope",           // B
-                              "visit_enter_class_scope",          // C
-                              "visit_property_declaration",       // C.y
-                              "visit_enter_function_scope",       // C.y
-                              "visit_enter_function_scope_body",  // C.y
-                              "visit_exit_function_scope",        // C.y
-                              "visit_exit_class_scope",           // C
-                              "visit_variable_declaration"));     // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          // C {
+                                      "visit_enter_class_scope",          // B {
+                                      "visit_variable_declaration",       // B
+                                      "visit_property_declaration",       // B.x
+                                      "visit_enter_function_scope",       // B.x
+                                      "visit_enter_function_scope_body",  // B.x
+                                      "visit_exit_function_scope",        // B.x
+                                      "visit_exit_class_scope",           // } B
+                                      "visit_property_declaration",       // C.y
+                                      "visit_enter_function_scope",       // C.y
+                                      "visit_enter_function_scope_body",  // C.y
+                                      "visit_exit_function_scope",        // C.y
+                                      "visit_exit_class_scope",           // } C
+                                      "visit_variable_declaration"));     // C
   }
 }
 
@@ -912,17 +929,17 @@ TEST(test_parse, class_expression) {
 
   {
     spy_visitor v = parse_and_visit_statement(u8"(class A extends B {})"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",     //
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",     // {
                                       "visit_variable_use",          // B
                                       "visit_variable_declaration",  // A
-                                      "visit_exit_class_scope"));
+                                      "visit_exit_class_scope"));    // }
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"(class extends C {})"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
-                                      "visit_variable_use",       // C
-                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",   // {
+                                      "visit_variable_use",        // C
+                                      "visit_exit_class_scope"));  // }
   }
 
   {

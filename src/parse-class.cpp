@@ -28,13 +28,13 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
   source_code_span class_keyword_span = this->peek().span();
 
   std::optional<identifier> class_name = this->parse_class_and_optional_name();
+
+  v.visit_enter_class_scope();
   this->parse_and_visit_class_heading_after_name(v);
 
   switch (this->peek().type) {
   case token_type::left_curly:
-    v.visit_enter_class_scope();
     this->parse_and_visit_class_body(v);
-    v.visit_exit_class_scope();
     break;
 
   default: {
@@ -45,6 +45,7 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
     break;
   }
   }
+  v.visit_exit_class_scope();
 
   this->visit_class_name(v, class_name, class_keyword_span, require_name);
 }

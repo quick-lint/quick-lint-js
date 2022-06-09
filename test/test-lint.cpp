@@ -2510,6 +2510,27 @@ TEST(test_lint,
   }
 }
 
+TEST(test_lint, class_extends_cannot_use_declared_class_name) {
+  {
+    // class C extends C {} // ERROR
+    const char8 class_declaration[] = u8"C";
+    const char8 class_use[] = u8"C";
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_enter_class_scope();
+    l.visit_variable_use(identifier_of(class_use));
+    l.visit_exit_class_scope();
+    l.visit_variable_declaration(identifier_of(class_declaration),
+                                 variable_kind::_class,
+                                 variable_init_kind::normal);
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
+                              diag_variable_used_before_declaration, use,
+                              span_matcher(class_use))));
+  }
+}
+
 TEST(
     test_lint,
     regression_assigning_to_variable_in_function_scope_does_not_interact_with_different_variable_in_parent_scope) {
