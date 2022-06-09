@@ -108,7 +108,8 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
     this->visits.emplace_back("visit_keyword_variable_use");
   }
 
-  void visit_property_declaration(std::optional<identifier> name) override {
+  void visit_property_declaration(
+      const std::optional<identifier> &name) override {
     if (name.has_value()) {
       this->property_declarations.emplace_back(
           visited_property_declaration{string8(name->normalized_name())});

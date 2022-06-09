@@ -29,7 +29,7 @@ class null_visitor final : public parse_visitor_base {
   void visit_exit_index_signature_scope() override {}
   void visit_exit_interface_scope() override {}
   void visit_keyword_variable_use(identifier) override {}
-  void visit_property_declaration(std::optional<identifier>) override {}
+  void visit_property_declaration(const std::optional<identifier>&) override {}
   void visit_variable_assignment(identifier) override {}
   void visit_variable_declaration(identifier, variable_kind,
                                   variable_init_kind) override {}

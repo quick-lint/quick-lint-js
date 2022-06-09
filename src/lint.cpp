@@ -269,7 +269,7 @@ void linter::visit_keyword_variable_use(identifier) {
   // Ignore. The parser should have already reported E0023.
 }
 
-void linter::visit_property_declaration(std::optional<identifier>) {}
+void linter::visit_property_declaration(const std::optional<identifier> &) {}
 
 void linter::visit_variable_declaration(identifier name, variable_kind kind,
                                         variable_init_kind init_kind) {

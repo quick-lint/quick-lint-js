@@ -41,7 +41,8 @@ class parse_visitor_base {
   virtual void visit_exit_index_signature_scope() = 0;
   virtual void visit_exit_interface_scope() = 0;
   virtual void visit_keyword_variable_use(identifier name) = 0;
-  virtual void visit_property_declaration(std::optional<identifier>) = 0;
+  virtual void visit_property_declaration(
+      const std::optional<identifier> &) = 0;
   virtual void visit_variable_declaration(identifier name, variable_kind kind,
                                           variable_init_kind init_kind) = 0;
   virtual void visit_variable_assignment(identifier name) = 0;

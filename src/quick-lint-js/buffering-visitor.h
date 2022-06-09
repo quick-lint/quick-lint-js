@@ -96,7 +96,8 @@ class buffering_visitor final : public parse_visitor_base {
     this->add(name, visit_kind::keyword_variable_use);
   }
 
-  void visit_property_declaration(std::optional<identifier> name) override {
+  void visit_property_declaration(
+      const std::optional<identifier> &name) override {
     if (name.has_value()) {
       this->add(*name, visit_kind::property_declaration_with_name);
     } else {

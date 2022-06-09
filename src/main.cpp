@@ -366,7 +366,8 @@ class debug_visitor final : public parse_visitor_base {
     this->output_->flush();
   }
 
-  void visit_property_declaration(std::optional<identifier> name) override {
+  void visit_property_declaration(
+      const std::optional<identifier> &name) override {
     this->output_->append_copy(u8"property declaration"sv);
     if (name.has_value()) {
       this->output_->append_copy(u8": "sv);
@@ -534,7 +535,8 @@ class multi_visitor final : public parse_visitor_base {
     this->visitor_2_->visit_keyword_variable_use(name);
   }
 
-  void visit_property_declaration(std::optional<identifier> name) override {
+  void visit_property_declaration(
+      const std::optional<identifier> &name) override {
     this->visitor_1_->visit_property_declaration(name);
     this->visitor_2_->visit_property_declaration(name);
   }

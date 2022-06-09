@@ -94,7 +94,7 @@ class linter final : public parse_visitor_base {
   void visit_exit_index_signature_scope() override;
   void visit_exit_interface_scope() override;
   void visit_keyword_variable_use(identifier name) override;
-  void visit_property_declaration(std::optional<identifier>) override;
+  void visit_property_declaration(const std::optional<identifier> &) override;
   void visit_variable_declaration(identifier name, variable_kind kind,
                                   variable_init_kind init_kind) override;
   void visit_variable_assignment(identifier name) override;
