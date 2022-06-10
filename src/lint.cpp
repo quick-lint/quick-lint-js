@@ -188,7 +188,17 @@ void linter::visit_enter_with_scope() { this->scopes_.push(); }
 
 void linter::visit_enter_class_scope() { this->scopes_.push(); }
 
-void linter::visit_enter_class_scope_body(const std::optional<identifier> &) {}
+void linter::visit_enter_class_scope_body(
+    const std::optional<identifier> &class_name) {
+  if (class_name.has_value()) {
+    this->declare_variable(
+        /*scope=*/this->current_scope(),
+        /*name=*/*class_name,
+        /*kind=*/variable_kind::_class,
+        /*declared_scope=*/declared_variable_scope::declared_in_current_scope,
+        /*declaration_possibly_looks_like_assignment=*/false);
+  }
+}
 
 void linter::visit_enter_for_scope() { this->scopes_.push(); }
 
