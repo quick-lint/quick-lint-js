@@ -943,7 +943,7 @@ msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
-msgid "TypeScript static blocks arenot supported in JavaScript"
+msgid "TypeScript static blocks are not supported in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/diagnostic-types.h

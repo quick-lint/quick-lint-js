@@ -1004,7 +1004,7 @@ msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
-msgid "TypeScript static blocks arenot supported in JavaScript"
+msgid "TypeScript static blocks are not supported in JavaScript"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "
 "quick-lint-js"

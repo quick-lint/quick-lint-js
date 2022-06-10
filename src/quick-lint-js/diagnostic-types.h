@@ -1460,7 +1460,7 @@
   QLJS_DIAG_TYPE(                                                              \
       diag_typescript_static_blocks_not_allowed_in_javascript, "E0242",        \
       diagnostic_severity::error, { source_code_span static_token; },          \
-      MESSAGE(QLJS_TRANSLATABLE("TypeScript static blocks are"                 \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript static blocks are "                \
                                 "not supported in JavaScript"),                \
               static_token))                                                   \
                                                                                \

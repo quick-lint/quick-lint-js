@@ -21,7 +21,7 @@ using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
 constexpr std::uint16_t translation_table_mapping_table_size = 290;
-constexpr std::size_t translation_table_string_table_size = 60794;
+constexpr std::size_t translation_table_string_table_size = 60795;
 constexpr std::size_t translation_table_locale_table_size = 37;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_hash_table_look_up(
@@ -176,7 +176,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_hash_table_look_up(
           {195, "missing name of class"},
           {205, "missing property name after '.' operator"},
           {0, ""},
-          {46, "TypeScript static blocks arenot supported in JavaScript"},
+          {0, ""},
           {0, ""},
           {235, "switch statement is missing '{1}' around condition"},
           {0, ""},
@@ -334,8 +334,8 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_hash_table_look_up(
           {0, ""},
           {108, "expected 'from \"name_of_module.mjs\"'"},
           {110, "expected '{{'"},
+          {46, "TypeScript static blocks are not supported in JavaScript"},
           {238, "this {1} looks fishy"},
-          {0, ""},
           {143, "index signatures require a value type"},
           {58, "a {{0} b }} c"},
           {156, "legacy octal literals may not contain underscores"},
