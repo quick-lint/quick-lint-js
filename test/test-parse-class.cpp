@@ -241,7 +241,7 @@ TEST(test_parse, class_statement_extending_class_expression) {
         u8"class C extends class B { x() {} } { y() {} }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          // C {
                                       "visit_enter_class_scope",          // B {
-                                      "visit_variable_declaration",       // B
+                                      "visit_enter_class_scope_body",     // B
                                       "visit_property_declaration",       // B.x
                                       "visit_enter_function_scope",       // B.x
                                       "visit_enter_function_scope_body",  // B.x
@@ -930,24 +930,23 @@ TEST(test_parse, class_statement_with_number_methods) {
 TEST(test_parse, class_expression) {
   {
     spy_visitor v = parse_and_visit_statement(u8"(class C { })"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",     //
-                                      "visit_variable_declaration",  // C
-                                      "visit_exit_class_scope"));
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"C");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_enter_class_scope_body",  // C
+                                      "visit_exit_class_scope"));      // }
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"(class { })"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",  //
-                                      "visit_exit_class_scope"));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_enter_class_scope_body",  //
+                                      "visit_exit_class_scope"));      // }
   }
 
   {
     spy_visitor v =
         parse_and_visit_statement(u8"(class { a() {} [b]() {} })"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          //
+                                      "visit_enter_class_scope_body",     //
                                       "visit_property_declaration",       // a
                                       "visit_enter_function_scope",       // a
                                       "visit_enter_function_scope_body",  // a
@@ -962,30 +961,31 @@ TEST(test_parse, class_expression) {
 
   {
     spy_visitor v = parse_and_visit_statement(u8"(class A extends B {})"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",     // {
-                                      "visit_variable_use",          // B
-                                      "visit_variable_declaration",  // A
-                                      "visit_exit_class_scope"));    // }
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_variable_use",            // B
+                                      "visit_enter_class_scope_body",  // A
+                                      "visit_exit_class_scope"));      // }
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"(class extends C {})"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",   // {
-                                      "visit_variable_use",        // C
-                                      "visit_exit_class_scope"));  // }
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_variable_use",            // C
+                                      "visit_enter_class_scope_body",  //
+                                      "visit_exit_class_scope"));      // }
   }
 
   {
     spy_visitor v =
         parse_and_visit_statement(u8"(class C {#x = 10; m() {this.#x;}})"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",
-                                      "visit_variable_declaration",       // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          // {
+                                      "visit_enter_class_scope_body",     // C
                                       "visit_property_declaration",       // x
                                       "visit_property_declaration",       // m
                                       "visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
-                                      "visit_exit_class_scope"));
+                                      "visit_exit_class_scope"));         // }
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
@@ -1480,14 +1480,14 @@ TEST(test_parse, class_expression_body_is_visited_first_in_expression) {
   {
     padded_string code(u8"[before, class C { m() { inside; } }, after];"sv);
     spy_visitor v = parse_and_visit_statement(&code);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          // C
-                                      "visit_variable_declaration",       // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          // C {
+                                      "visit_enter_class_scope_body",     // C
                                       "visit_property_declaration",       // m
                                       "visit_enter_function_scope",       // m
                                       "visit_enter_function_scope_body",  // m
                                       "visit_variable_use",         // inside
                                       "visit_exit_function_scope",  //
-                                      "visit_exit_class_scope",     // C
+                                      "visit_exit_class_scope",     // } C
                                       "visit_variable_use",         // before
                                       "visit_variable_use"));       // after
     EXPECT_THAT(v.variable_uses,
@@ -1500,14 +1500,14 @@ TEST(test_parse, class_expression_body_is_visited_first_in_expression) {
     padded_string code(
         u8"[before, class C { m() { inside; } }.prop, after] = [1,2,3];"sv);
     spy_visitor v = parse_and_visit_statement(&code);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          // C
-                                      "visit_variable_declaration",       // C
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          // C {
+                                      "visit_enter_class_scope_body",     // C
                                       "visit_property_declaration",       // m
                                       "visit_enter_function_scope",       // m
                                       "visit_enter_function_scope_body",  // m
                                       "visit_variable_use",           // inside
                                       "visit_exit_function_scope",    //
-                                      "visit_exit_class_scope",       // C
+                                      "visit_exit_class_scope",       // }
                                       "visit_variable_assignment",    // before
                                       "visit_variable_assignment"));  // after
     EXPECT_THAT(v.variable_uses,

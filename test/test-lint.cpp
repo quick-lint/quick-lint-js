@@ -2464,9 +2464,7 @@ TEST(test_lint,
     diag_collector v;
     linter l(&v, &default_globals);
     l.visit_enter_class_scope();
-    l.visit_variable_declaration(identifier_of(class_declaration),
-                                 variable_kind::_class,
-                                 variable_init_kind::normal);
+    l.visit_enter_class_scope_body(identifier_of(class_declaration));
     l.visit_exit_class_scope();
     l.visit_variable_use(identifier_of(class_use));
     l.visit_end_of_module();
@@ -2487,9 +2485,7 @@ TEST(test_lint,
     linter l(&v, &default_globals);
 
     l.visit_enter_class_scope();
-    l.visit_variable_declaration(identifier_of(class_declaration_1),
-                                 variable_kind::_class,
-                                 variable_init_kind::normal);
+    l.visit_enter_class_scope_body(identifier_of(class_declaration_1));
     l.visit_exit_class_scope();
 
     l.visit_enter_class_scope();
@@ -2500,9 +2496,7 @@ TEST(test_lint,
                                  variable_init_kind::normal);
 
     l.visit_enter_class_scope();
-    l.visit_variable_declaration(identifier_of(class_declaration_3),
-                                 variable_kind::_class,
-                                 variable_init_kind::normal);
+    l.visit_enter_class_scope_body(identifier_of(class_declaration_3));
     l.visit_exit_class_scope();
 
     l.visit_end_of_module();

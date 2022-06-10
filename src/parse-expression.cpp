@@ -2454,8 +2454,7 @@ expression* parser::parse_class_expression(parse_visitor_base& v) {
   v.visit_enter_class_scope();
   std::optional<identifier> class_name = this->parse_class_and_optional_name();
   this->parse_and_visit_class_heading_after_name(v);
-  this->visit_class_name(v, class_name, class_keyword_span,
-                         name_requirement::optional);
+  v.visit_enter_class_scope_body(class_name);
 
   if (this->peek().type == token_type::left_curly) {
     this->parse_and_visit_class_body(v);
