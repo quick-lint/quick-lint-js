@@ -385,6 +385,54 @@ TEST(test_parse, readonly_static_field_is_disallowed) {
   }
 }
 
+TEST(test_parse, generic_classes_are_disallowed_in_javascript) {
+  {
+    padded_string code(u8"class C<T> { }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_class_scope",       // {
+                            "visit_variable_declaration",    // T
+                            "visit_enter_class_scope_body",  // C
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration"));  // C
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            spy_visitor::visited_variable_declaration{
+                u8"T", variable_kind::_generic_parameter,
+                variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"C", variable_kind::_class, variable_init_kind::normal}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code,
+                    diag_typescript_generics_not_allowed_in_javascript,  //
+                    opening_less, strlen(u8"class C"), u8"<")));
+  }
+}
+
+TEST(test_parse, generic_classes_are_allowed_in_typescript) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(u8"class C<T> { }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_class_scope",       // {
+                            "visit_variable_declaration",    // T
+                            "visit_enter_class_scope_body",  // C
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration"));  // C
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(
+            spy_visitor::visited_variable_declaration{
+                u8"T", variable_kind::_generic_parameter,
+                variable_init_kind::normal},
+            spy_visitor::visited_variable_declaration{
+                u8"C", variable_kind::_class, variable_init_kind::normal}));
+  }
+}
+
 TEST(test_parse, generic_methods_are_disallowed_in_javascript) {
   {
     padded_string code(u8"class C { method<T>() {} }"_sv);

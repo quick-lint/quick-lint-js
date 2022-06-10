@@ -98,6 +98,16 @@ std::optional<identifier> parser::parse_class_and_optional_name() {
 }
 
 void parser::parse_and_visit_class_heading_after_name(parse_visitor_base &v) {
+  if (this->peek().type == token_type::less) {
+    if (!this->options_.typescript) {
+      this->diag_reporter_->report(
+          diag_typescript_generics_not_allowed_in_javascript{
+              .opening_less = this->peek().span(),
+          });
+    }
+    this->parse_and_visit_typescript_generic_parameters(v);
+  }
+
   switch (this->peek().type) {
   case token_type::kw_extends:
     this->skip();
