@@ -880,6 +880,11 @@ msgstr "INVALID FUNCTION PARAMETER"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "{0} classes are not allowed in JavaScript"
+msgstr "TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "{0} is not allowed in JavaScript"
 msgstr "TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS"
 

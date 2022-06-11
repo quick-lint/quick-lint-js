@@ -120,6 +120,47 @@ parse_statement:
     break;
   }
 
+    // abstract class C {}  // TypeScript only.
+    // async = 42;
+  case token_type::kw_abstract: {
+    source_code_span abstract_token = this->peek().span();
+    lexer_transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    switch (this->peek().type) {
+    // abstract class C {}
+    //
+    // abstract  // ASI
+    // class C {}
+    case token_type::kw_class:
+      if (this->peek().has_leading_newline) {
+        // abstract  // ASI
+        // class C {}
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        goto parse_loop_label_or_expression_starting_with_identifier;
+      }
+
+      // abstract class C {}
+      this->lexer_.commit_transaction(std::move(transaction));
+      if (!this->options_.typescript) {
+        this->diag_reporter_->report(
+            diag_typescript_abstract_class_not_allowed_in_javascript{
+                .abstract_keyword = abstract_token,
+            });
+      }
+      this->parse_and_visit_class(
+          v, /*require_name=*/name_requirement::required_for_statement);
+      break;
+
+    // abstract:  // Label.
+    // abstract();
+    case token_type::colon:
+    default:
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      goto parse_loop_label_or_expression_starting_with_identifier;
+    }
+    break;
+  }
+
     // async function f() {}
     // async = 42;
   case token_type::kw_async: {
@@ -280,15 +321,41 @@ parse_statement:
 
     // console.log("hello");
     // label: for(;;);
-  QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD:
   parse_loop_label_or_expression_starting_with_identifier:
+  case token_type::identifier:
+  case token_type::kw_any:
   case token_type::kw_as:
+  case token_type::kw_assert:
+  case token_type::kw_asserts:
+  case token_type::kw_bigint:
+  case token_type::kw_boolean:
+  case token_type::kw_constructor:
+  case token_type::kw_declare:
   case token_type::kw_from:
   case token_type::kw_get:
+  case token_type::kw_global:
+  case token_type::kw_infer:
+  case token_type::kw_intrinsic:
+  case token_type::kw_is:
+  case token_type::kw_keyof:
+  case token_type::kw_module:
+  case token_type::kw_namespace:
+  case token_type::kw_never:
+  case token_type::kw_number:
+  case token_type::kw_object:
   case token_type::kw_of:
+  case token_type::kw_out:
+  case token_type::kw_override:
+  case token_type::kw_readonly:
+  case token_type::kw_require:
   case token_type::kw_set:
   case token_type::kw_static:
-  case token_type::identifier: {
+  case token_type::kw_string:
+  case token_type::kw_symbol:
+  case token_type::kw_type:
+  case token_type::kw_undefined:
+  case token_type::kw_unique:
+  case token_type::kw_unknown: {
     token_type ident_token_type = this->peek().type;
     identifier ident = this->peek().identifier_name();
     this->skip();

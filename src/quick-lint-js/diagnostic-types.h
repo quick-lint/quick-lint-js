@@ -1351,6 +1351,12 @@
       MESSAGE(QLJS_TRANSLATABLE("stray comma in function parameter"), comma))  \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_abstract_class_not_allowed_in_javascript, "E0244",       \
+      diagnostic_severity::error, { source_code_span abstract_keyword; },      \
+      MESSAGE(QLJS_TRANSLATABLE("{0} classes are not allowed in JavaScript"),  \
+              abstract_keyword))                                               \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_access_specifiers_not_allowed_in_javascript, "E0236",    \
       diagnostic_severity::error, { source_code_span specifier; },             \
       MESSAGE(QLJS_TRANSLATABLE("{0} is not allowed in JavaScript"),           \

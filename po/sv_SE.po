@@ -882,6 +882,11 @@ msgstr "ogiltig funktions parameter"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "{0} classes are not allowed in JavaScript"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "{0} is not allowed in JavaScript"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 

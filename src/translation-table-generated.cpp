@@ -299,8 +299,9 @@ const translation_table translation_data =
                 {11627, 19829, 30282, 41112, 48774, 60598},
                 {0, 0, 0, 0, 0, 60649},
                 {0, 0, 0, 0, 0, 60688},
-                {11674, 19880, 30333, 41184, 48822, 60721},
-                {0, 0, 30354, 0, 0, 60742},
+                {0, 0, 0, 0, 0, 60730},
+                {11674, 19880, 30333, 41184, 48822, 60763},
+                {0, 0, 30354, 0, 0, 60784},
             },
 
         // clang-format off
@@ -1680,6 +1681,7 @@ const translation_table translation_data =
             u8"with statement is missing '{1}' around expression\0"
             u8"with statement needs parentheses around expression\0"
             u8"write a name to declare a class method\0"
+            u8"{0} classes are not allowed in JavaScript\0"
             u8"{0} is not allowed in JavaScript\0"
             u8"{0} with no bindings\0"
             u8"~~~ invalid string, do not use outside benchmark ~~~",

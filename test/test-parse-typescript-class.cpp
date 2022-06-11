@@ -767,6 +767,57 @@ TEST(test_parse, method_return_type_annotations_are_allowed_in_typescript) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"T"}));
   }
 }
+
+TEST(test_parse, abstract_classes_are_disallowed_in_javascript) {
+  {
+    padded_string code(u8"abstract class C { }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_class_scope",       // {
+                            "visit_enter_class_scope_body",  // C
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration"));  // C
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code,
+            diag_typescript_abstract_class_not_allowed_in_javascript,  //
+            abstract_keyword, strlen(u8""), u8"abstract")));
+  }
+}
+
+TEST(test_parse, abstract_classes_are_allowed_in_typescript) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"abstract class C { }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_class_scope",       // {
+                            "visit_enter_class_scope_body",  // C
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration"));  // C
+  }
+}
+
+TEST(test_parse, newline_before_class_causes_abstract_to_be_identifier) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_module(u8"abstract\nclass C { }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_use",            // abstract
+                            "visit_enter_class_scope",       // {
+                            "visit_enter_class_scope_body",  // C
+                            "visit_exit_class_scope",        // }
+                            "visit_variable_declaration",    // C
+                            "visit_end_of_module"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"abstract"}));
+  }
+}
+
+// @@@ expr
+// @@@ asi
 }
 }
 

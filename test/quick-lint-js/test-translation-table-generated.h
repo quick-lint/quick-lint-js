@@ -3176,6 +3176,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "{0} classes are not allowed in JavaScript"_translatable,
+        {
+            u8"{0} classes are not allowed in JavaScript",
+            u8"{0} classes are not allowed in JavaScript",
+            u8"{0} classes are not allowed in JavaScript",
+            u8"{0} classes are not allowed in JavaScript",
+            u8"{0} classes are not allowed in JavaScript",
+            u8"{0} classes are not allowed in JavaScript",
+        },
+    },
+    {
         "{0} is not allowed in JavaScript"_translatable,
         {
             u8"{0} is not allowed in JavaScript",
