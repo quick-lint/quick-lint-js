@@ -721,6 +721,52 @@ TEST(test_parse, static_blocks_are_allowed_in_typescript) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
   }
 }
+
+TEST(test_parse, method_return_type_annotations_are_disallowed_in_javascript) {
+  {
+    padded_string code(u8"class C { method(): T { } }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_class_scope",          // {
+                            "visit_enter_class_scope_body",     // C
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_variable_type_use",          // T
+                            "visit_enter_function_scope_body",  // method
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope",           // }
+                            "visit_variable_declaration"));     // C
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"T"}));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code,
+            diag_typescript_type_annotations_not_allowed_in_javascript,  //
+            type_colon, strlen(u8"class C { method()"), u8":")));
+  }
+}
+
+TEST(test_parse, method_return_type_annotations_are_allowed_in_typescript) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"class C { method(): T { } }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_class_scope",          // {
+                            "visit_enter_class_scope_body",     // C
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_variable_type_use",          // T
+                            "visit_enter_function_scope_body",  // method
+                            "visit_exit_function_scope",        // method
+                            "visit_exit_class_scope",           // }
+                            "visit_variable_declaration"));     // C
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"T"}));
+  }
+}
 }
 }
 

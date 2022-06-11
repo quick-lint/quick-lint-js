@@ -418,6 +418,20 @@ TEST(test_parse_typescript_interface, interface_with_methods) {
     ASSERT_EQ(v.property_declarations.size(), 1);
     EXPECT_EQ(v.property_declarations[0].name, std::nullopt);
   }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"interface Getter<T> { get(): T; }");
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",    // Getter
+                            "visit_enter_interface_scope",   // {
+                            "visit_variable_declaration",    // T
+                            "visit_property_declaration",    // get
+                            "visit_enter_function_scope",    //
+                            "visit_variable_type_use",       // T
+                            "visit_exit_function_scope",     //
+                            "visit_exit_interface_scope"));  // }
+  }
 }
 
 TEST(test_parse_typescript_interface, interface_with_index_signature) {
