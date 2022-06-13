@@ -815,9 +815,6 @@ TEST(test_parse, newline_before_class_causes_abstract_to_be_identifier) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"abstract"}));
   }
 }
-
-// @@@ expr
-// @@@ asi
 }
 }
 
