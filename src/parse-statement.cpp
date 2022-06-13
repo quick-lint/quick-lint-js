@@ -121,7 +121,7 @@ parse_statement:
   }
 
     // abstract class C {}  // TypeScript only.
-    // async = 42;
+    // abstract = 42;
   case token_type::kw_abstract: {
     source_code_span abstract_token = this->peek().span();
     lexer_transaction transaction = this->lexer_.begin_transaction();
