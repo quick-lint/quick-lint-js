@@ -17,6 +17,9 @@ Semantic Versioning.
 * Forgetting a semicolon between class fields now reports "missing semicolon
   after field" ([E0223][]) instead of "missing semicolon after statement"
   ([E0027][]).
+* Using some TypeScript features, such as class generics and interfaces, in
+  JavaScript code is now reported with a friendly error message.
+* [E0199][] ("unclosed class") is now reported in more scenarios.
 
 ### Fixed
 
