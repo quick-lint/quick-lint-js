@@ -223,6 +223,27 @@ TEST(test_parse, async_function_statement) {
   }
 }
 
+TEST(test_parse, async_function_cannot_have_newline_after_async_keyword) {
+  {
+    padded_string code(u8"async\nfunction f() { await myPromise; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // async
+                                      "visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  //
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // x
+                                      "visit_exit_function_scope",        //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"async"},
+                            spy_visitor::visited_variable_use{u8"myPromise"}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE(diag_await_operator_outside_async)));
+  }
+}
+
 TEST(test_parse, generator_function_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"function* f() {}"_sv);

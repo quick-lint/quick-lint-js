@@ -24,6 +24,10 @@ Semantic Versioning.
   an async function.
 * [E0054][] is no longer incorrectly reported for class properties named
   `implements`, `interface`, `package`, `private`, `protected`, or `public`.
+* In statement contexts, `async` followed by a newline followed by `function` is
+  no longer falsely interpreted as an async function. It is instead interpreted
+  as the use of a variable called `async` followed by a non-async function, per
+  the language standard.
 
 ## 2.5.0 (2022-05-23)
 
