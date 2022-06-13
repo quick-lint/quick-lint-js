@@ -584,6 +584,7 @@ Beta release.
 [E0019]: https://quick-lint-js.com/errors/E0019/
 [E0020]: https://quick-lint-js.com/errors/E0020/
 [E0026]: https://quick-lint-js.com/errors/E0026/
+[E0027]: https://quick-lint-js.com/errors/E0027/
 [E0036]: https://quick-lint-js.com/errors/E0036/
 [E0038]: https://quick-lint-js.com/errors/E0038/
 [E0040]: https://quick-lint-js.com/errors/E0040/
