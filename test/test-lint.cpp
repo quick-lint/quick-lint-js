@@ -2664,6 +2664,89 @@ TEST(test_lint, with_does_not_propagate_variable_uses) {
   }
 }
 
+TEST(test_lint_interface, interface_body_can_reference_types_outside) {
+  const char8 interface_declaration[] = u8"I";
+  const char8 type_declaration[] = u8"C";
+  const char8 type_use[] = u8"C";
+  const char8 method_name[] = u8"method";
+
+  {
+    // import {C} from "other-module";
+    // interface I {
+    //   method(): C;
+    // }
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(type_declaration),
+                                 variable_kind::_import,
+                                 variable_init_kind::normal);
+    l.visit_variable_declaration(identifier_of(interface_declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_enter_interface_scope();
+    l.visit_property_declaration(identifier_of(method_name));
+    l.visit_enter_function_scope();
+    l.visit_variable_type_use(identifier_of(type_use));
+    l.visit_exit_function_scope();
+    l.visit_exit_interface_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // interface I {
+    //   method(): C;  // ERROR
+    // }
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(interface_declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_enter_interface_scope();
+    l.visit_property_declaration(identifier_of(method_name));
+    l.visit_enter_function_scope();
+    l.visit_variable_type_use(identifier_of(type_use));
+    l.visit_exit_function_scope();
+    l.visit_exit_interface_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
+                                            span_matcher(type_use))));
+  }
+}
+
+TEST(test_lint_interface, generic_interface_parameters_are_usable_inside) {
+  const char8 interface_declaration[] = u8"I";
+  const char8 parameter_declaration[] = u8"T";
+  const char8 parameter_use[] = u8"T";
+  const char8 method_name[] = u8"method";
+
+  {
+    // interface I<T> {
+    //   method(): T;
+    // }
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(interface_declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_enter_interface_scope();
+    l.visit_variable_declaration(identifier_of(parameter_declaration),
+                                 variable_kind::_generic_parameter,
+                                 variable_init_kind::normal);
+    l.visit_property_declaration(identifier_of(method_name));
+    l.visit_enter_function_scope();
+    l.visit_variable_type_use(identifier_of(parameter_use));
+    l.visit_exit_function_scope();
+    l.visit_exit_interface_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
 TEST(test_lint_magic_arguments,
      arguments_magic_variable_is_usable_within_functions) {
   const char8 arguments_use[] = u8"arguments";
