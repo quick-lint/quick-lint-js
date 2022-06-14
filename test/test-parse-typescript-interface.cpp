@@ -460,6 +460,25 @@ TEST(test_parse_typescript_interface, interface_with_index_signature) {
                 u8"key", variable_kind::_parameter,
                 variable_init_kind::normal}));
   }
+
+  {
+    padded_string code(u8"interface I { [key: KeyType]: ValueType; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, javascript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",         // I
+                                      "visit_enter_interface_scope",        // I
+                                      "visit_enter_index_signature_scope",  //
+                                      "visit_variable_type_use",     // KeyType
+                                      "visit_variable_declaration",  // key
+                                      "visit_variable_type_use",  // ValueType
+                                      "visit_exit_index_signature_scope",  //
+                                      "visit_exit_interface_scope"));      // I
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE(
+                    diag_typescript_interfaces_not_allowed_in_javascript)))
+        << "should parse index signature and not complain about it";
+  }
 }
 
 TEST(test_parse_typescript_interface, index_signature_requires_type) {

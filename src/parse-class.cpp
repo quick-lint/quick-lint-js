@@ -359,7 +359,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         const char8 *name_begin = p->peek().begin;
         p->skip();
 
-        if (p->options_.typescript) {
+        if (p->options_.typescript || is_interface) {
           bool parsed = this->try_parse_typescript_index_signature(
               /*left_square_begin=*/name_begin);
           if (parsed) {
