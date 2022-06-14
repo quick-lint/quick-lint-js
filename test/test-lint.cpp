@@ -2747,6 +2747,137 @@ TEST(test_lint_interface, generic_interface_parameters_are_usable_inside) {
   }
 }
 
+TEST(test_lint_interface, interface_index_signature_can_use_outside_types) {
+  const char8 type_declaration[] = u8"C";
+  const char8 interface_declaration[] = u8"I";
+  const char8 index_declaration[] = u8"index";
+  const char8 type_use_1[] = u8"C";
+  const char8 type_use_2[] = u8"C";
+
+  {
+    // import {C} from "other-module";
+    // interface I {
+    //   [index: C]: C;
+    // }
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(type_declaration),
+                                 variable_kind::_import,
+                                 variable_init_kind::normal);
+    l.visit_variable_declaration(identifier_of(interface_declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_enter_interface_scope();
+    l.visit_enter_index_signature_scope();
+    l.visit_variable_type_use(identifier_of(type_use_1));
+    l.visit_variable_declaration(identifier_of(index_declaration),
+                                 variable_kind::_parameter,
+                                 variable_init_kind::normal);
+    l.visit_variable_type_use(identifier_of(type_use_2));
+    l.visit_exit_index_signature_scope();
+    l.visit_exit_interface_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+
+  {
+    // interface I {
+    //   [index: C]: C;  // ERROR
+    // }
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(interface_declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_enter_interface_scope();
+    l.visit_enter_index_signature_scope();
+    l.visit_variable_type_use(identifier_of(type_use_1));
+    l.visit_variable_declaration(identifier_of(index_declaration),
+                                 variable_kind::_parameter,
+                                 variable_init_kind::normal);
+    l.visit_variable_type_use(identifier_of(type_use_2));
+    l.visit_exit_index_signature_scope();
+    l.visit_exit_interface_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, UnorderedElementsAre(
+                              DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
+                                              span_matcher(type_use_1)),
+                              DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
+                                              span_matcher(type_use_2))));
+  }
+}
+
+TEST(test_lint_interface, interface_index_signature_variable_is_usable_inside) {
+  const char8 interface_declaration[] = u8"I";
+  const char8 index_declaration[] = u8"index";
+  const char8 index_use[] = u8"index";
+
+  {
+    // interface I {
+    //   [index: number]: typeof index;
+    // }
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(interface_declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_enter_interface_scope();
+    l.visit_enter_index_signature_scope();
+    l.visit_variable_declaration(identifier_of(index_declaration),
+                                 variable_kind::_parameter,
+                                 variable_init_kind::normal);
+    l.visit_variable_use(identifier_of(index_use));
+    l.visit_exit_index_signature_scope();
+    l.visit_exit_interface_scope();
+    l.visit_end_of_module();
+
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST(test_lint_interface,
+     interface_index_signature_variable_is_not_usable_outside) {
+  const char8 interface_declaration[] = u8"I";
+  const char8 index_declaration[] = u8"index";
+  const char8 property_declaration[] = u8"index";
+  const char8 index_use_inside_interface[] = u8"index";
+  const char8 index_use_outside_interface[] = u8"index";
+
+  {
+    // interface I {
+    //   [index: number]: number;
+    //   other: typeof index;  // ERROR
+    // }
+    // index;  // ERROR
+    diag_collector v;
+    linter l(&v, &default_globals);
+    l.visit_variable_declaration(identifier_of(interface_declaration),
+                                 variable_kind::_interface,
+                                 variable_init_kind::normal);
+    l.visit_enter_interface_scope();
+    l.visit_enter_index_signature_scope();
+    l.visit_variable_declaration(identifier_of(index_declaration),
+                                 variable_kind::_parameter,
+                                 variable_init_kind::normal);
+    l.visit_exit_index_signature_scope();
+    l.visit_property_declaration(identifier_of(property_declaration));
+    l.visit_variable_use(identifier_of(index_use_inside_interface));
+    l.visit_exit_interface_scope();
+    l.visit_variable_use(identifier_of(index_use_outside_interface));
+    l.visit_end_of_module();
+
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
+                            span_matcher(index_use_inside_interface)),
+            DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
+                            span_matcher(index_use_outside_interface))));
+  }
+}
+
 TEST(test_lint_magic_arguments,
      arguments_magic_variable_is_usable_within_functions) {
   const char8 arguments_use[] = u8"arguments";

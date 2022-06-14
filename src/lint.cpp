@@ -273,7 +273,13 @@ void linter::visit_exit_function_scope() {
   this->scopes_.pop();
 }
 
-void linter::visit_exit_index_signature_scope() { QLJS_UNIMPLEMENTED(); }
+void linter::visit_exit_index_signature_scope() {
+  QLJS_ASSERT(!this->scopes_.empty());
+  this->propagate_variable_uses_to_parent_scope(
+      /*allow_variable_use_before_declaration=*/true,
+      /*consume_arguments=*/true);
+  this->scopes_.pop();
+}
 
 void linter::visit_exit_interface_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
