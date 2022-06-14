@@ -961,6 +961,9 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
 }
 
 void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
+  typescript_only_construct_guard ts_guard =
+      this->enter_typescript_only_construct();
+
   QLJS_ASSERT(this->peek().type == token_type::kw_interface);
   this->skip();
 

@@ -111,6 +111,13 @@ class test_parse_expression : public ::testing::Test {
 };
 
 namespace {
+constexpr parser_options javascript_options = [] {
+  parser_options options;
+  options.jsx = false;
+  options.typescript = false;
+  return options;
+}();
+
 constexpr parser_options jsx_options = [] {
   parser_options options;
   options.jsx = true;

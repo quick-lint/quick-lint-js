@@ -94,6 +94,12 @@ parser::class_guard parser::enter_class() {
   return class_guard(this, std::exchange(this->in_class_, true));
 }
 
+parser::typescript_only_construct_guard
+parser::enter_typescript_only_construct() {
+  return typescript_only_construct_guard(
+      this, std::exchange(this->in_typescript_only_construct_, true));
+}
+
 parser::binary_expression_builder::binary_expression_builder(
     monotonic_allocator* allocator, expression* first_child)
     : children_("binary_expression_builder children", allocator),

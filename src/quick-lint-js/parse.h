@@ -547,6 +547,8 @@ class parser {
   bool in_switch_statement_ = false;
   bool in_class_ = false;
 
+  bool in_typescript_only_construct_ = false;
+
   // Cache of whether 'await' is an identifier or an operator. This cache is
   // used to avoid quadratic run-time in code like the following:
   //
@@ -575,6 +577,9 @@ class parser {
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
   using class_guard = bool_guard<&parser::in_class_>;
 
+  using typescript_only_construct_guard =
+      bool_guard<&parser::in_typescript_only_construct_>;
+
  public:
   // TODO(#735): Reduce stack usage in our parse functions and increase this
   // limit.
@@ -583,6 +588,10 @@ class parser {
   // For testing and internal use only.
   [[nodiscard]] loop_guard enter_loop();
   [[nodiscard]] class_guard enter_class();
+
+ private:
+  [[nodiscard]] typescript_only_construct_guard
+  enter_typescript_only_construct();
 };
 
 template <class ExpectedParenthesesError, class ExpectedParenthesisError,

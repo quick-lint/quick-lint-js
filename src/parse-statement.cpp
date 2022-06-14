@@ -2967,7 +2967,7 @@ void parser::visit_binding_element(
 void parser::parse_and_visit_typescript_colon_type_expression(
     parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::colon);
-  if (!this->options_.typescript) {
+  if (!this->options_.typescript && !this->in_typescript_only_construct_) {
     this->diag_reporter_->report(
         diag_typescript_type_annotations_not_allowed_in_javascript{
             .type_colon = this->peek().span(),

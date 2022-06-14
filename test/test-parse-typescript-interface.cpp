@@ -1290,6 +1290,21 @@ TEST(test_parse_typescript_interface, static_blocks_are_not_allowed) {
                     static_token, strlen(u8"interface I { "), u8"static")));
   }
 }
+
+TEST(test_parse_typescript_interface,
+     type_annotations_dont_add_extra_diagnostic_in_javascript) {
+  {
+    padded_string code(u8"interface I<T> { method(): Type; }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, javascript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE(
+                    diag_typescript_interfaces_not_allowed_in_javascript)))
+        << "diag_typescript_type_annotations_not_allowed_in_javascript should "
+           "not be reported";
+  }
+}
 }
 }
 
