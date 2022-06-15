@@ -319,8 +319,10 @@ std::size_t posix_fd_file_ref::get_pipe_buffer_size() {
   std::size_t pipe_buffer_size = 0;
   for (;;) {
     unsigned char c = 0;
-    std::optional<int> written = pipe.writer.write(&c, sizeof(c));
-    if (!written.has_value()) {
+    result<std::size_t, posix_file_io_error> written =
+        pipe.writer.write(&c, sizeof(c));
+    if (!written.ok()) {
+      QLJS_ASSERT(written.error().error == EAGAIN);
       break;
     }
     pipe_buffer_size += *written;
