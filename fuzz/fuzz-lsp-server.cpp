@@ -47,9 +47,9 @@ int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
   using namespace quick_lint_js;
 
   null_configuration_filesystem fs;
-  lsp_endpoint<linting_lsp_server_handler<lsp_javascript_linter>,
-               null_lsp_endpoint_remote>
-      server(std::forward_as_tuple(&fs), std::forward_as_tuple());
+  lsp_javascript_linter linter;
+  lsp_endpoint<linting_lsp_server_handler, null_lsp_endpoint_remote> server(
+      std::forward_as_tuple(&fs, &linter), std::forward_as_tuple());
 
   std::size_t i = 0;
   auto size_remaining = [&]() -> std::size_t { return size - i; };
