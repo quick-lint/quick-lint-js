@@ -331,7 +331,7 @@ struct lexer_transaction {
 
   // Rewinds memory allocated by 'reporter'. Must be constructed before
   // 'reporter' (thus destructed after 'reporter').
-  allocator_type::rewind_guard allocator_rewind;
+  allocator_type::conditional_rewind_guard allocator_rewind;
 
   token old_last_token;
   const char8* old_last_last_token_end;

@@ -1135,6 +1135,7 @@ void lexer::roll_back_transaction(lexer_transaction&& transaction) {
   this->last_last_token_end_ = transaction.old_last_last_token_end;
   this->input_ = transaction.old_input;
   this->diag_reporter_ = transaction.old_diag_reporter;
+  transaction.allocator_rewind.rewind_on_destruct();
 }
 
 bool lexer::transaction_has_lex_diagnostics(const lexer_transaction&) const
