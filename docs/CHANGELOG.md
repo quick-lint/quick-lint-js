@@ -31,6 +31,7 @@ Semantic Versioning.
   no longer falsely interpreted as an async function. It is instead interpreted
   as the use of a variable called `async` followed by a non-async function, per
   the language standard.
+* `((x)) => {}` no longer crashes the parser with an assertion failure.
 
 ## 2.5.0 (2022-05-23)
 

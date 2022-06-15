@@ -1573,14 +1573,15 @@ void parser::parse_arrow_function_expression_remainder(
   expression* lhs = binary_builder.last_expression();
   function_attributes attributes = function_attributes::normal;
 
+  const char8* left_paren_begin = nullptr;
   if (lhs->kind() == expression_kind::paren) {
+    left_paren_begin = lhs->span().begin();
     lhs = static_cast<expression::paren*>(lhs)->child_;
   }
 
   expression_arena::vector<expression*> parameters(
       "parse_arrow_function_expression_remainder",
       this->expressions_.allocator());
-  const char8* left_paren_begin = nullptr;
   switch (lhs->kind()) {
   case expression_kind::binary_operator:
   case expression_kind::trailing_comma:

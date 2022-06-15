@@ -2928,7 +2928,7 @@ TEST_F(test_parse_expression, arrow_function) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
-    // TODO(strager): Implement begin_offset.
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), 8);
     EXPECT_THAT(p.errors(), IsEmpty());
   }
