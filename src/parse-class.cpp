@@ -965,6 +965,7 @@ void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
       this->enter_typescript_only_construct();
 
   QLJS_ASSERT(this->peek().type == token_type::kw_interface);
+  const char8 *interface_keyword_begin = this->peek().begin;
   this->skip();
 
   switch (this->peek().type) {
@@ -997,7 +998,14 @@ void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
   if (this->peek().type == token_type::kw_extends) {
     this->parse_and_visit_typescript_interface_extends(v);
   }
-  this->parse_and_visit_typescript_interface_body(v);
+  if (this->peek().type == token_type::left_curly) {
+    this->parse_and_visit_typescript_interface_body(v);
+  } else {
+    this->diag_reporter_->report(diag_missing_body_for_typescript_interface{
+        .interface_keyword_and_name_and_heritage = source_code_span(
+            interface_keyword_begin, this->lexer_.end_of_previous_token()),
+    });
+  }
   v.visit_exit_interface_scope();
 }
 

@@ -57,6 +57,41 @@ TEST(test_parse_typescript_interface, empty_interface) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
+TEST(test_parse_typescript_interface, interface_without_body) {
+  {
+    padded_string code(u8"interface I"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  // I
+                                      "visit_exit_interface_scope",   // I
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_missing_body_for_typescript_interface,  //
+            interface_keyword_and_name_and_heritage, 0, u8"interface I")));
+  }
+
+  {
+    padded_string code(u8"interface I extends Other"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  // I
+                                      "visit_variable_type_use",      // J
+                                      "visit_exit_interface_scope",   // I
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_missing_body_for_typescript_interface,  //
+                    interface_keyword_and_name_and_heritage, 0,
+                    u8"interface I extends Other")));
+  }
+}
+
 TEST(test_parse_typescript_interface, extends) {
   padded_string code(u8"interface I extends A {}"_sv);
   spy_visitor v;

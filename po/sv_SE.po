@@ -598,6 +598,11 @@ msgid "missing body for try statement"
 msgstr "saknar stycke för 'try' påstående"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing body for TypeScript interface"
+msgstr "saknar stycke för klass"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing body for while loop"
 msgstr "saknar stycke för while loop"
 

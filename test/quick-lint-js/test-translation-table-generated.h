@@ -1911,6 +1911,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "missing body for TypeScript interface"_translatable,
+        {
+            u8"missing body for TypeScript interface",
+            u8"missing body for TypeScript interface",
+            u8"missing body for TypeScript interface",
+            u8"missing body for TypeScript interface",
+            u8"missing body for TypeScript interface",
+            u8"missing body for TypeScript interface",
+        },
+    },
+    {
         "missing body for catch clause"_translatable,
         {
             u8"missing body for catch clause",

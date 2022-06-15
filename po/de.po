@@ -605,6 +605,11 @@ msgid "missing body for try statement"
 msgstr "Körper des try-Statements fehlt"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing body for TypeScript interface"
+msgstr "Körper der Funktion fehlt"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing body for while loop"
 msgstr "Körper der while-Schleife fehlt"
 

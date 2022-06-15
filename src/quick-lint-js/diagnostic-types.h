@@ -908,6 +908,13 @@
       MESSAGE(QLJS_TRANSLATABLE("missing body for try statement"), try_token)) \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_missing_body_for_typescript_interface, "E0245",                     \
+      diagnostic_severity::error,                                              \
+      { source_code_span interface_keyword_and_name_and_heritage; },           \
+      MESSAGE(QLJS_TRANSLATABLE("missing body for TypeScript interface"),      \
+              interface_keyword_and_name_and_heritage))                        \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_missing_body_for_while_statement, "E0104",                          \
       diagnostic_severity::error, { source_code_span while_and_condition; },   \
       MESSAGE(QLJS_TRANSLATABLE("missing body for while loop"),                \
