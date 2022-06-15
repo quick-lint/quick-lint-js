@@ -33,6 +33,10 @@
 #include <type_traits>
 #include <vector>
 
+#if QLJS_HAVE_WINDOWS_H
+#include <quick-lint-js/windows.h>
+#endif
+
 #if QLJS_HAVE_MKFIFO
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -76,8 +80,13 @@ TEST_F(test_file, read_non_existing_file) {
   EXPECT_FALSE(file_content.ok());
   EXPECT_TRUE(file_content.error().is_file_not_found_error());
   EXPECT_THAT(file_content.error().to_string(), HasSubstr("does-not-exist.js"));
-  EXPECT_THAT(file_content.error().to_string(),
-              AnyOf(HasSubstr("No such file"), HasSubstr("cannot find")));
+#if QLJS_HAVE_UNISTD_H
+  EXPECT_EQ(file_content.error().io_error.error, ENOENT);
+#elif QLJS_HAVE_WINDOWS_H
+  EXPECT_EQ(file_content.error().io_error.error, ERROR_FILE_NOT_FOUND);
+#else
+#error "Unknown platform"
+#endif
 }
 
 TEST_F(test_file, read_directory) {
@@ -88,12 +97,13 @@ TEST_F(test_file, read_directory) {
   EXPECT_FALSE(file_content.ok());
   EXPECT_FALSE(file_content.error().is_file_not_found_error());
   EXPECT_THAT(file_content.error().to_string(), HasSubstr(temp_file_path));
-  EXPECT_THAT(
-      file_content.error().to_string(),
-      testing::AnyOf(
-          HasSubstr("Is a directory"),
-          HasSubstr("Access is denied")  // TODO(strager): Improve this message.
-          ));
+#if QLJS_HAVE_UNISTD_H
+  EXPECT_EQ(file_content.error().io_error.error, EISDIR);
+#elif QLJS_HAVE_WINDOWS_H
+  EXPECT_EQ(file_content.error().io_error.error, ERROR_ACCESS_DENIED);
+#else
+#error "Unknown platform"
+#endif
 }
 
 #if QLJS_HAVE_MKFIFO

@@ -32,6 +32,7 @@ Semantic Versioning.
   as the use of a variable called `async` followed by a non-async function, per
   the language standard.
 * `((x)) => {}` no longer crashes the parser with an assertion failure.
+* Tests now pass if the user's locale is Italian (`it_IT.utf8` on Linux).
 
 ## 2.5.0 (2022-05-23)
 
