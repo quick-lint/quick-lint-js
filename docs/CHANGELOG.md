@@ -33,7 +33,7 @@ Semantic Versioning.
   the language standard.
 * `((x)) => {}` no longer crashes the parser with an assertion failure.
 * Tests now pass if the user's locale is Italian (`it_IT.utf8` on Linux).
-* The FreeBSD build now succeeds.
+* The FreeBSD build now succeeds and tests pass.
 
 ## 2.5.0 (2022-05-23)
 

@@ -27,6 +27,10 @@
 #include <mach/thread_act.h>
 #endif
 
+#if QLJS_HAVE_SYS_THR_H
+#include <sys/thr.h>
+#endif
+
 #if QLJS_HAVE_GETTID
 #include <sys/types.h>
 #endif
@@ -204,6 +208,11 @@ std::uint64_t get_current_thread_id() noexcept {
   QLJS_ALWAYS_ASSERT(rc == KERN_SUCCESS);
   QLJS_ALWAYS_ASSERT(info_count == THREAD_IDENTIFIER_INFO_COUNT);
   return info.thread_id;
+#elif QLJS_HAVE_SYS_THR_H
+  long thread_id;
+  int rc = ::thr_self(&thread_id);
+  QLJS_ALWAYS_ASSERT(rc == 0);
+  return narrow_cast<std::uint64_t>(thread_id);
 #else
 #warning "Unsupported platform"
   return 0;
