@@ -1372,14 +1372,16 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v) {
   this->skip();
 }
 
-void parser::parse_and_visit_typescript_enum_members(parse_visitor_base &) {
+void parser::parse_and_visit_typescript_enum_members(parse_visitor_base &v) {
 next_member:
   switch (this->peek().type) {
   // enum E { A }
   // enum E { A, }
+  // enum E { A = 1 }
   case token_type::identifier:
     this->skip();
     switch (this->peek().type) {
+    // enum E { A, B }
     case token_type::comma:
       this->skip();
       goto next_member;
@@ -1387,6 +1389,16 @@ next_member:
     // enum E { A }
     case token_type::right_curly:
       return;
+
+    // enum E { A = 1 }
+    case token_type::equal:
+      this->skip();
+      this->parse_and_visit_expression(v, precedence{.commas = false});
+      if (this->peek().type == token_type::comma) {
+        // enum E { A = 1, }
+        this->skip();
+      }
+      goto next_member;
 
     default:
       QLJS_PARSER_UNIMPLEMENTED();

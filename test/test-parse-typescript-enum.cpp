@@ -69,6 +69,22 @@ TEST(test_parse_typescript_enum, enum_with_auto_members) {
   }
 }
 
+TEST(test_parse_typescript_enum, enum_with_initialized_members) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"enum E { A = 10, B = 20 }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // E
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"enum E { First = data[0], Second = data[1] }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_variable_use",          // data
+                                      "visit_variable_use"));        // data
+  }
+}
+
 TEST(test_parse_typescript_enum, extra_commas_are_not_allowed) {
   {
     padded_string code(u8"enum E { , }"_sv);
