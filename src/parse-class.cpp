@@ -1015,6 +1015,16 @@ void parser::parse_and_visit_typescript_interface_extends(
 
   this->skip();
 next_extends:
+  this->parse_and_visit_typescript_interface_reference(v);
+  if (this->peek().type == token_type::comma) {
+    // extends IBanana, IOrange
+    this->skip();
+    goto next_extends;
+  }
+}
+
+void parser::parse_and_visit_typescript_interface_reference(
+    parse_visitor_base &v) {
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
   identifier ident = this->peek().identifier_name();
   this->skip();
@@ -1028,12 +1038,6 @@ next_extends:
   } else {
     // extends MyInterface
     v.visit_variable_type_use(ident);
-  }
-
-  if (this->peek().type == token_type::comma) {
-    // extends IBanana, IOrange
-    this->skip();
-    goto next_extends;
   }
 }
 
