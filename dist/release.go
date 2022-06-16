@@ -288,19 +288,6 @@ var Steps []Step = []Step{
 	},
 
 	Step{
-		Title: "Update Scoop package manager",
-		Run: func() {
-			fmt.Printf("1. Clone https://github.com/ScoopInstaller/Main with Git.\n")
-			fmt.Printf("2. Copy .../signed-builds/scoop/quick-lint-js.json to bucket/quick-lint-js.json\n")
-			fmt.Printf("3. Commit all files with message \"quick-lint-js: Update to version %s\".\n", ReleaseVersion)
-			fmt.Printf("4. Push to a fork on GitHub.\n")
-			fmt.Printf("5. Create a pull request on GitHub.\n")
-			fmt.Printf("6. On the pull request, write a comment: \"/verify\"\n")
-			WaitForDone()
-		},
-	},
-
-	Step{
 		Title: "Update winget package manager",
 		Run: func() {
 			fmt.Printf("1. Clone https://github.com/microsoft/winget-pkgs with Git.\n")
@@ -320,6 +307,10 @@ var Steps []Step = []Step{
 			WaitForDone()
 		},
 	},
+
+	// NOTE(strager): No need to update Scoop manually. It's updated
+	// automatically:
+	// https://github.com/ScoopInstaller/Main/pull/3679#issuecomment-1157267798
 }
 
 var ConsoleInput *bufio.Reader
