@@ -8,6 +8,11 @@
 
 namespace quick_lint_js {
 template <class T>
+T *get(std::optional<T> &o) noexcept {
+  return o.has_value() ? &*o : nullptr;
+}
+
+template <class T>
 const T *get(const std::optional<T> &o) noexcept {
   return o.has_value() ? &*o : nullptr;
 }

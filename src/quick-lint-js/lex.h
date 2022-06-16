@@ -14,6 +14,7 @@
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/optional.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/utf-8.h>
@@ -316,13 +317,13 @@ struct lexer_transaction {
                              const char8* old_input,
                              diag_reporter** diag_reporter_pointer,
                              allocator_type* allocator)
-      : allocator_rewind(allocator),
+      : allocator_rewind(allocator->prepare_for_rewind()),
         old_last_token(old_last_token),
         old_last_last_token_end(old_last_last_token_end),
         old_input(old_input),
-        reporter(allocator),
+        reporter(std::in_place, allocator),
         old_diag_reporter(
-            std::exchange(*diag_reporter_pointer, &this->reporter)) {}
+            std::exchange(*diag_reporter_pointer, get(this->reporter))) {}
 
   // Don't allow copying a transaction. lexer::diag_reporter_ might point to
   // lexer_transaction::diag_reporter.
@@ -330,13 +331,14 @@ struct lexer_transaction {
   lexer_transaction& operator=(const lexer_transaction&) = delete;
 
   // Rewinds memory allocated by 'reporter'. Must be constructed before
-  // 'reporter' (thus destructed after 'reporter').
-  allocator_type::conditional_rewind_guard allocator_rewind;
+  // 'reporter' is constructed. 'allocator_type::rewind' must be called before
+  // 'reporter' is destructed.
+  allocator_type::rewind_state allocator_rewind;
 
   token old_last_token;
   const char8* old_last_last_token_end;
   const char8* old_input;
-  buffering_diag_reporter reporter;
+  std::optional<buffering_diag_reporter> reporter;
   diag_reporter* old_diag_reporter;
 };
 }
