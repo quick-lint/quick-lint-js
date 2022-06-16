@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<!-- Copyright (C) 2020  Matthew "strager" Glazar -->
+<!-- See end of file for extended copyright information. -->
+<html lang="en">
+  <head>
+    <%- await include("../common-head.ejs.html", { title: `quick-lint-js
+    merchandise`, description: `Buy quick-lint-js-branded stickers.` }) %>
+    <link href="../main.css" rel="stylesheet" />
+  </head>
+  <body>
+    <header>
+      <%- await include("../common-nav.ejs.html", {hideTagLine: true}) %>
+    </header>
+
+    <main>
+      <h2>Products</h2>
+      <p>
+        Wanna show off your quick-lint-js loyalty? Get yourself some sweet
+        merchandise!
+      </p>
+
+      <article>
+        <h3>Dusty sticker (2.00 USD)</h3>
+        <figure style="padding: 0 10%">
+          <img
+            src="dusty-sticker-on-laptop.jpg"
+            width="1017"
+            height="703"
+            alt="Laptop with a sticker showing Dusty, the quick-lint-js mascot"
+          />
+        </figure>
+
+        <!-- PayPal "Buy Now" button -->
+        <form
+          action="https://www.paypal.com/cgi-bin/webscr"
+          method="post"
+          style="text-align: center"
+          target="_top"
+        >
+          <input type="hidden" name="cmd" value="_s-xclick" />
+          <input type="hidden" name="hosted_button_id" value="G3WP9EN79BLJG" />
+          <input
+            type="image"
+            src="https://www.paypalobjects.com/en_US/i/btn/btn_buynowCC_LG.gif"
+            name="submit"
+            alt="Buy Now with PayPal"
+          />
+        </form>
+        <p>
+          Can't use PayPal? Send me an email at
+          <a href="mailto:strager.nds@gmail.com">strager.nds@gmail.com</a> and
+          we can work something out.
+        </p>
+      </article>
+    </main>
+
+    <footer><%- await include("../common-footer-nav.ejs.html") %></footer>
+  </body>
+</html>
+
+<!--
+quick-lint-js finds bugs in JavaScript programs.
+Copyright (C) 2020  Matthew "strager" Glazar
+
+This file is part of quick-lint-js.
+
+quick-lint-js is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+quick-lint-js is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+-->
