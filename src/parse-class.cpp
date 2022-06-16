@@ -110,13 +110,7 @@ void parser::parse_and_visit_class_heading_after_name(parse_visitor_base &v) {
 
   switch (this->peek().type) {
   case token_type::kw_extends:
-    this->skip();
-    // TODO(strager): Error when extending things like '0' or 'true'.
-    this->parse_and_visit_expression(v,
-                                     precedence{
-                                         .commas = false,
-                                         .trailing_curly_is_arrow_body = false,
-                                     });
+    this->parse_and_visit_class_extends(v);
     break;
 
   case token_type::left_curly:
@@ -128,6 +122,16 @@ void parser::parse_and_visit_class_heading_after_name(parse_visitor_base &v) {
     // parse_and_visit_class or parse_class_expression will report an error.
     break;
   }
+}
+
+void parser::parse_and_visit_class_extends(parse_visitor_base &v) {
+  QLJS_ASSERT(this->peek().type == token_type::kw_extends);
+  this->skip();
+  // TODO(strager): Error when extending things like '0' or 'true'.
+  this->parse_and_visit_expression(v, precedence{
+                                          .commas = false,
+                                          .trailing_curly_is_arrow_body = false,
+                                      });
 }
 
 void parser::visit_class_name(parse_visitor_base &v,

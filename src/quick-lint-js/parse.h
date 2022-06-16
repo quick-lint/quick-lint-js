@@ -217,6 +217,7 @@ class parser {
   std::optional<identifier> parse_class_and_optional_name();
   // Parse any extends clauses after the class's name.
   void parse_and_visit_class_heading_after_name(parse_visitor_base &v);
+  void parse_and_visit_class_extends(parse_visitor_base &v);
   void visit_class_name(parse_visitor_base &v,
                         std::optional<identifier> class_name,
                         source_code_span class_keyword_span,
