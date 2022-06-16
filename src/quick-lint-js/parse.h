@@ -236,6 +236,7 @@ class parser {
   void parse_and_visit_typescript_interface_reference(parse_visitor_base &v);
 
   void parse_and_visit_typescript_enum(parse_visitor_base &v);
+  void parse_and_visit_typescript_enum_members(parse_visitor_base &v);
 
   void parse_and_visit_try_maybe_catch_maybe_finally(parse_visitor_base &v);
   [[nodiscard]] bool parse_and_visit_catch_or_finally_or_both(

@@ -50,6 +50,24 @@ TEST(test_parse_typescript_enum, empty_enum) {
                     u8"E", variable_kind::_enum, variable_init_kind::normal}));
   }
 }
+
+TEST(test_parse_typescript_enum, enum_with_auto_members) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(u8"enum E { A }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // E
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(u8"enum E { A, }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // E
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"enum E { A, B }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // E
+  }
+}
 }
 }
 

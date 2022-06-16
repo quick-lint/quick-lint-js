@@ -1367,8 +1367,41 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v) {
 
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
   this->skip();
+  this->parse_and_visit_typescript_enum_members(v);
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
   this->skip();
+}
+
+void parser::parse_and_visit_typescript_enum_members(parse_visitor_base &) {
+next_member:
+  switch (this->peek().type) {
+  // enum E { A }
+  // enum E { A, }
+  case token_type::identifier:
+    this->skip();
+    switch (this->peek().type) {
+    case token_type::comma:
+      this->skip();
+      goto next_member;
+
+    // enum E { A }
+    case token_type::right_curly:
+      return;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+    break;
+
+  // enum E { A }
+  case token_type::right_curly:
+    return;
+
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
+  }
 }
 
 void parser::parse_and_visit_try_maybe_catch_maybe_finally(
