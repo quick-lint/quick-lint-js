@@ -343,6 +343,12 @@ msgstr ""
 "',' supplémentaire non autorisé entre les arguments d'appel d'une fonction"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "extra ',' is not allowed between enum members"
+msgstr ""
+"',' supplémentaire non autorisé entre les arguments d'appel d'une fonction"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "'as' attendu entre '{1}' and '{2}'"
 

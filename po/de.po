@@ -336,6 +336,12 @@ msgstr ""
 "Mehrere Kommata zwischen den Argumenten eines Funktionsaufruf sind ungültig"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "extra ',' is not allowed between enum members"
+msgstr ""
+"Mehrere Kommata zwischen den Argumenten eines Funktionsaufruf sind ungültig"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "'as' zwischen '{1}' und '{2}' erwartet"
 

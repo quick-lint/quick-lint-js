@@ -330,6 +330,11 @@ msgid "extra ',' is not allowed between function call arguments"
 msgstr "EXTRA ',' IS NOT ALLOWED BETWEEN FUNCTION CALL ARGUMENTS"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "extra ',' is not allowed between enum members"
+msgstr "EXTRA ',' IS NOT ALLOWED BETWEEN FUNCTION CALL ARGUMENTS"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "EXPECTED 'AS' BETWEEN '{1}' AND '{2}'"
 

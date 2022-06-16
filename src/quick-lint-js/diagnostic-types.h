@@ -439,6 +439,13 @@
               comma))                                                          \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_extra_comma_not_allowed_between_enum_members, "E0248",              \
+      diagnostic_severity::error, { source_code_span comma; },                 \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE("extra ',' is not allowed between enum members"),  \
+          comma))                                                              \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_expected_as_before_imported_namespace_alias, "E0126",               \
       diagnostic_severity::error,                                              \
       {                                                                        \

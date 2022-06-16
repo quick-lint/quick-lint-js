@@ -1394,6 +1394,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "extra ',' is not allowed between enum members"_translatable,
+        {
+            u8"extra ',' is not allowed between enum members",
+            u8"extra ',' is not allowed between enum members",
+            u8"extra ',' is not allowed between enum members",
+            u8"extra ',' is not allowed between enum members",
+            u8"extra ',' is not allowed between enum members",
+            u8"extra ',' is not allowed between enum members",
+        },
+    },
+    {
         "extra ',' is not allowed between function call arguments"_translatable,
         {
             u8"extra ',' is not allowed between function call arguments",

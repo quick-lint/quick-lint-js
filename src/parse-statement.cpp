@@ -1398,6 +1398,16 @@ next_member:
   case token_type::right_curly:
     return;
 
+  // enum E { , }    // Invalid.
+  // enum E { A,, }  // Invalid.
+  case token_type::comma:
+    this->diag_reporter_->report(
+        diag_extra_comma_not_allowed_between_enum_members{
+            .comma = this->peek().span(),
+        });
+    this->skip();
+    goto next_member;
+
   default:
     QLJS_PARSER_UNIMPLEMENTED();
     break;

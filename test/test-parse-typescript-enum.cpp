@@ -68,6 +68,36 @@ TEST(test_parse_typescript_enum, enum_with_auto_members) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // E
   }
 }
+
+TEST(test_parse_typescript_enum, extra_commas_are_not_allowed) {
+  {
+    padded_string code(u8"enum E { , }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_extra_comma_not_allowed_between_enum_members,  //
+            comma, strlen(u8"enum E { "), u8",")));
+  }
+
+  {
+    padded_string code(u8"enum E { A,, B,, }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            DIAG_TYPE_OFFSETS(
+                &code, diag_extra_comma_not_allowed_between_enum_members,  //
+                comma, strlen(u8"enum E { A,"), u8","),
+            DIAG_TYPE_OFFSETS(
+                &code, diag_extra_comma_not_allowed_between_enum_members,  //
+                comma, strlen(u8"enum E { A,, B,"), u8",")));
+  }
+}
 }
 }
 

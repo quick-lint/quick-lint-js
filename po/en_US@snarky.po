@@ -320,6 +320,11 @@ msgid "extra ',' is not allowed between function call arguments"
 msgstr "that's way too many commas 🚮"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "extra ',' is not allowed between enum members"
+msgstr "that's way too many commas 🚮"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "you forgot 'as' between '{1}' and '{2}'"
 
