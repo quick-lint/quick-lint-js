@@ -64,6 +64,9 @@
   "bugs": {
     "url": "https://github.com/quick-lint/quick-lint-js/issues"
   },
+  "sponsor": {
+    "url": "https://github.com/sponsors/quick-lint"
+  },
   "scripts": {
     "fmt": "prettier --write '*.js' 'test/*.js' '*.json' '.vscode/*.json'",
     "test": "node test/run-vscode-tests.js"
