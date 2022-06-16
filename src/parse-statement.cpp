@@ -1365,11 +1365,13 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v) {
                                variable_init_kind::normal);
   this->skip();
 
+  v.visit_enter_enum_scope();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
   this->skip();
   this->parse_and_visit_typescript_enum_members(v);
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
   this->skip();
+  v.visit_exit_enum_scope();
 }
 
 void parser::parse_and_visit_typescript_enum_members(parse_visitor_base &v) {

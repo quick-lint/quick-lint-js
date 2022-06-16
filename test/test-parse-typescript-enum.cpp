@@ -30,6 +30,8 @@ TEST(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
     parser p(&code, &v);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_exit_enum_scope",       // }
                                       "visit_variable_use",          // y
                                       "visit_variable_declaration",  // x
                                       "visit_end_of_module"));
@@ -44,7 +46,9 @@ TEST(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
 TEST(test_parse_typescript_enum, empty_enum) {
   {
     spy_visitor v = parse_and_visit_typescript_statement(u8"enum E {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // E
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_exit_enum_scope"));     // }
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"E", variable_kind::_enum, variable_init_kind::normal}));
@@ -54,18 +58,24 @@ TEST(test_parse_typescript_enum, empty_enum) {
 TEST(test_parse_typescript_enum, enum_with_auto_members) {
   {
     spy_visitor v = parse_and_visit_typescript_statement(u8"enum E { A }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // E
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_exit_enum_scope"));     // }
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_statement(u8"enum E { A, }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // E
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_exit_enum_scope"));     // }
   }
 
   {
     spy_visitor v =
         parse_and_visit_typescript_statement(u8"enum E { A, B }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // E
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_exit_enum_scope"));     // }
   }
 }
 
@@ -73,15 +83,19 @@ TEST(test_parse_typescript_enum, enum_with_initialized_members) {
   {
     spy_visitor v =
         parse_and_visit_typescript_statement(u8"enum E { A = 10, B = 20 }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // E
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_exit_enum_scope"));     // }
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"enum E { First = data[0], Second = data[1] }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
                                       "visit_variable_use",          // data
-                                      "visit_variable_use"));        // data
+                                      "visit_variable_use",          // data
+                                      "visit_exit_enum_scope"));     // }
   }
 }
 

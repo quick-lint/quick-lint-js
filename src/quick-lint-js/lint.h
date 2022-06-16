@@ -201,6 +201,7 @@ class linter final : public parse_visitor_base {
 
     void clear() noexcept;
 
+    bool empty() const noexcept;
     std::vector<declared_variable>::const_iterator begin() const noexcept;
     std::vector<declared_variable>::const_iterator end() const noexcept;
 

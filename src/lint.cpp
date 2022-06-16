@@ -200,9 +200,7 @@ void linter::visit_enter_class_scope_body(
   }
 }
 
-void linter::visit_enter_enum_scope() {
-  QLJS_UNIMPLEMENTED();  // TODO(#690);
-}
+void linter::visit_enter_enum_scope() { this->scopes_.push(); }
 
 void linter::visit_enter_for_scope() { this->scopes_.push(); }
 
@@ -261,7 +259,11 @@ void linter::visit_exit_class_scope() {
 }
 
 void linter::visit_exit_enum_scope() {
-  QLJS_UNIMPLEMENTED();  // TODO(#690);
+  QLJS_ASSERT(!this->scopes_.empty());
+  // TODO(#756): For now, we don't propagate variable uses. We should declare
+  // enum members so we can find typos in enum initializers.
+  QLJS_ASSERT(this->current_scope().declared_variables.empty());
+  this->scopes_.pop();
 }
 
 void linter::visit_exit_for_scope() {
@@ -1078,6 +1080,10 @@ linter::declared_variable *linter::declared_variable_set::find_type(
 
 void linter::declared_variable_set::clear() noexcept {
   this->variables_.clear();
+}
+
+bool linter::declared_variable_set::empty() const noexcept {
+  return this->variables_.empty();
 }
 
 std::vector<linter::declared_variable>::const_iterator

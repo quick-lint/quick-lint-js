@@ -1256,6 +1256,8 @@ TEST(test_parse, incomplete_unary_expression_with_following_statement_keyword) {
     parser p(&code, &v, typescript_options);
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_exit_enum_scope",       // }
                                       "visit_end_of_module"));
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_operand_for_operator,  //
