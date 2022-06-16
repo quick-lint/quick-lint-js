@@ -705,7 +705,11 @@ func DumpStringTable(strings []byte, linePrefix string, writer *bufio.Writer) {
 func DumpStringLiteralBody(s string, writer *bufio.Writer) {
 	for _, c := range s {
 		if c < 0x20 || c >= 0x7f {
-			fmt.Fprintf(writer, `\u%04x`, c)
+			if c >= 0x10000 {
+				fmt.Fprintf(writer, `\U%08x`, c)
+			} else {
+				fmt.Fprintf(writer, `\u%04x`, c)
+			}
 		} else if c == '\\' || c == '"' {
 			writer.WriteRune('\\')
 			writer.WriteRune(c)
