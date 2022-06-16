@@ -1287,21 +1287,6 @@ TEST(test_parse, disallow_label_named_yield_in_generator_function) {
           DIAG_TYPE_OFFSETS(&code, diag_unexpected_token,  //
                             token, strlen(u8"function *f() {yield"), u8":")));
 }
-
-TEST(test_parse, enum_statement_not_yet_implemented) {
-  {
-    spy_visitor v;
-    padded_string code(u8"enum\nlet x = y;"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
-                                      "visit_variable_declaration",  // x
-                                      "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_typescript_enum_not_implemented,  //
-                              enum_keyword, 0, u8"enum")));
-  }
-}
 }
 }
 
