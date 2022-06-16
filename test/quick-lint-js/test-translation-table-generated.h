@@ -206,6 +206,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "'extends' must be before 'implements'"_translatable,
+        {
+            u8"'extends' must be before 'implements'",
+            u8"'extends' must be before 'implements'",
+            u8"'extends' must be before 'implements'",
+            u8"'extends' must be before 'implements'",
+            u8"'extends' must be before 'implements'",
+            u8"'extends' must be before 'implements'",
+        },
+    },
+    {
         "'for' loop"_translatable,
         {
             u8"'for' loop",
@@ -401,6 +412,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"keep your RegExp flags simple, please",
             u8"un litt\u00e9ral RegExp ne peut contenir des \u00e9chappements Unicode",
             u8"RegExp literal flags cannot contain Unicode escapes",
+        },
+    },
+    {
+        "TypeScript 'implements' is not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript 'implements' is not allowed in JavaScript",
+            u8"TypeScript 'implements' is not allowed in JavaScript",
+            u8"TypeScript 'implements' is not allowed in JavaScript",
+            u8"TypeScript 'implements' is not allowed in JavaScript",
+            u8"TypeScript 'implements' is not allowed in JavaScript",
+            u8"TypeScript 'implements' is not allowed in JavaScript",
         },
     },
     {
@@ -2403,6 +2425,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"it's spelled '{1}', silly",
             u8"misspelled React attribute; write '{1}' instead",
             u8"misspelled React attribute; write '{1}' instead",
+        },
+    },
+    {
+        "move the 'extends' clause before 'implements' here"_translatable,
+        {
+            u8"move the 'extends' clause before 'implements' here",
+            u8"move the 'extends' clause before 'implements' here",
+            u8"move the 'extends' clause before 'implements' here",
+            u8"move the 'extends' clause before 'implements' here",
+            u8"move the 'extends' clause before 'implements' here",
+            u8"move the 'extends' clause before 'implements' here",
         },
     },
     {

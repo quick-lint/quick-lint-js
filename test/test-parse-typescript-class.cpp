@@ -815,6 +815,109 @@ TEST(test_parse, newline_before_class_causes_abstract_to_be_identifier) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"abstract"}));
   }
 }
+
+TEST(test_parse_typescript_class, implements_is_not_allowed_in_javascript) {
+  padded_string code(u8"class C implements Base {}"_sv);
+  spy_visitor v;
+  parser p(&code, &v, javascript_options);
+  p.parse_and_visit_module(v);
+  EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                    "visit_variable_type_use",       // Base
+                                    "visit_enter_class_scope_body",  // C
+                                    "visit_exit_class_scope",        // }
+                                    "visit_variable_declaration",    // C
+                                    "visit_end_of_module"));
+  EXPECT_THAT(
+      v.errors,
+      ElementsAre(DIAG_TYPE_OFFSETS(
+          &code,
+          diag_typescript_class_implements_not_allowed_in_javascript,  //
+          implements_keyword, strlen(u8"class C "), u8"implements")));
+}
+
+TEST(test_parse_typescript_class, implements) {
+  spy_visitor v =
+      parse_and_visit_typescript_module(u8"class C implements Base {}"_sv);
+  EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                    "visit_variable_type_use",       // Base
+                                    "visit_enter_class_scope_body",  // C
+                                    "visit_exit_class_scope",        // }
+                                    "visit_variable_declaration",    // C
+                                    "visit_end_of_module"));
+  EXPECT_THAT(v.variable_uses,
+              ElementsAre(spy_visitor::visited_variable_use{u8"Base"}));
+}
+
+TEST(test_parse_typescript_class, implements_comes_after_extends) {
+  {
+    spy_visitor v = parse_and_visit_typescript_module(
+        u8"class C extends Base implements I {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_variable_use",            // Base
+                                      "visit_variable_type_use",       // I
+                                      "visit_enter_class_scope_body",  // C
+                                      "visit_exit_class_scope",        // }
+                                      "visit_variable_declaration",    // C
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Base"},
+                            spy_visitor::visited_variable_use{u8"I"}));
+  }
+
+  {
+    padded_string code(u8"class C implements I extends Base {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                      "visit_variable_type_use",       // I
+                                      "visit_variable_use",            // Base
+                                      "visit_enter_class_scope_body",  // C
+                                      "visit_exit_class_scope",        // }
+                                      "visit_variable_declaration",    // C
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"I"},
+                            spy_visitor::visited_variable_use{u8"Base"}));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            &code,
+            diag_typescript_implements_must_be_after_extends,          //
+            implements_keyword, strlen(u8"class C "), u8"implements",  //
+            extends_keyword, strlen(u8"class C implements I "), u8"extends")));
+  }
+}
+
+TEST(test_parse_typescript_class, implements_interface_from_namespace) {
+  spy_visitor v =
+      parse_and_visit_typescript_module(u8"class C implements ns.A {}"_sv);
+  EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                    "visit_variable_namespace_use",  // ns
+                                    "visit_enter_class_scope_body",  // C
+                                    "visit_exit_class_scope",        // }
+                                    "visit_variable_declaration",    // C
+                                    "visit_end_of_module"));
+  EXPECT_THAT(v.variable_uses,
+              ElementsAre(spy_visitor::visited_variable_use{u8"ns"}));
+}
+
+TEST(test_parse_typescript_class, implement_multiple_things) {
+  spy_visitor v = parse_and_visit_typescript_module(
+      u8"class C implements Apple, Banana, Carrot {}"_sv);
+  EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+                                    "visit_variable_type_use",       // Apple
+                                    "visit_variable_type_use",       // Banana
+                                    "visit_variable_type_use",       // Carrot
+                                    "visit_enter_class_scope_body",  // C
+                                    "visit_exit_class_scope",        // }
+                                    "visit_variable_declaration",    // C
+                                    "visit_end_of_module"));
+  EXPECT_THAT(v.variable_uses,
+              ElementsAre(spy_visitor::visited_variable_use{u8"Apple"},
+                          spy_visitor::visited_variable_use{u8"Banana"},
+                          spy_visitor::visited_variable_use{u8"Carrot"}));
+}
 }
 }
 

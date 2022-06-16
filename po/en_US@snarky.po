@@ -116,8 +116,9 @@ msgstr "this is sync country. get yer await outta here."
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'await' cannot be followed by an arrow function; use 'async' instead"
-msgstr "psst. 'async'." # this is actually better than the OG one
+msgstr "psst. 'async'."
 
+# this is actually better than the OG one
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'async static' is not allowed; write 'static async' instead"
 msgstr "are you dyslexic or something?"
@@ -142,14 +143,16 @@ msgstr "what in tarnation is this assignment?"
 msgid "cannot access private identifier outside class"
 msgstr "stop peeking at my privates!"
 
-## dont name things keywords
+# # dont name things keywords
 #: src/quick-lint-js/diagnostic-types.h
 msgid "assigning to 'async' in a for-of loop requires parentheses"
 msgstr "just stop using variables called 'async'. There. Problem solved"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "cannot declare 'await' inside async function"
-msgstr "you really think calling a variable 'await' in an async function is a good idea?"
+msgstr ""
+"you really think calling a variable 'await' in an async function is a good "
+"idea?"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "classes cannot be named 'let'"
@@ -157,7 +160,8 @@ msgstr "why would you call a class 'let'?"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "classes cannot be named 'await' in async function"
-msgstr "pro-tip: never name anything a keyword. it'll save you a lot of trouble"
+msgstr ""
+"pro-tip: never name anything a keyword. it'll save you a lot of trouble"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "TypeScript interfaces cannot be named 'await' in async function"
@@ -187,8 +191,8 @@ msgstr "you should be ashamed of 'var let'"
 msgid "cannot export variable named keyword '{0}'"
 msgstr "exporting '{0}'? really?"
 
-#: src/quick-lint-js/diagnostic-types.h
 # TODO(me): suggest import aliasing
+#: src/quick-lint-js/diagnostic-types.h
 msgid "cannot import 'let'"
 msgstr "it's not even your fault. blame TC39"
 
@@ -229,8 +233,8 @@ msgstr "you can't put a class here!"
 msgid "character is not allowed in identifiers"
 msgstr "hold up! ✋ no '{0}' allowed"
 
+# TODO(you) add another diagnostic that's more explicit about not allowing parameters
 #: src/quick-lint-js/diagnostic-types.h
-#TODO(you) add another diagnostic that's more explicit about not allowing parameters
 msgid "commas are not allowed after spread parameter"
 msgstr "a comma makes sense, but TC39 says no ⛔"
 
@@ -238,8 +242,8 @@ msgstr "a comma makes sense, but TC39 says no ⛔"
 msgid "commas are not allowed between class methods"
 msgstr "get this comma out of my sight"
 
+# TODO(you): feature idea: lint string literal JSON
 #: src/quick-lint-js/diagnostic-types.h
-#TODO(you): feature idea: lint string literal JSON
 msgid "JSON syntax error"
 msgstr "yeah, JSON sucks; try quick-lint-json"
 
@@ -249,19 +253,26 @@ msgstr "\"global-groups\" contains strings, not whatever you just said"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "\"global-groups\" must be a boolean or an array"
-msgstr "\"global-groups\" must be a boolean or an array, not whatever you just said"
+msgstr ""
+"\"global-groups\" must be a boolean or an array, not whatever you just said"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "\"globals\" descriptor must be a boolean or an object"
-msgstr "\"globals\" descriptor must be a boolean or an object, not whatever you just said"
+msgstr ""
+"\"globals\" descriptor must be a boolean or an object, not whatever you just "
+"said"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "\"globals\" descriptor \"shadowable\" property must be a boolean"
-msgstr "\"globals\" descriptor \"shadowable\" property must be a boolean, not whatever you just said"
+msgstr ""
+"\"globals\" descriptor \"shadowable\" property must be a boolean, not "
+"whatever you just said"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "\"globals\" descriptor \"writable\" property must be a boolean"
-msgstr "\"globals\" descriptor \"writable\" property must be a boolean, not whatever you just said"
+msgstr ""
+"\"globals\" descriptor \"writable\" property must be a boolean, not whatever "
+"you just said"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "\"globals\" must be an object"
@@ -299,8 +310,8 @@ msgstr "it won't fit 🤰"
 msgid "code point in Unicode escape sequence must not be greater than U+10FFFF"
 msgstr "U+10FFFF is the limit. what are you trying to accomplish?"
 
+# TODO(you) msgid "you don't need to escape '-' in tag names; just write '-'"
 #: src/quick-lint-js/diagnostic-types.h
-#TODO(you) msgid "you don't need to escape '-' in tag names; just write '-'"
 msgid "escaping '-' is not allowed in tag names; write '-' instead"
 msgstr "stop being so fancy; just write '-'"
 
@@ -338,7 +349,8 @@ msgstr "be polite and say 'from'"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "expected hexadecimal digits in Unicode escape sequence"
-msgstr "what are you trying to do? This is a Unicode escape sequence, not a Wendy's 🍔"
+msgstr ""
+"what are you trying to do? This is a Unicode escape sequence, not a Wendy's 🍔"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "expected '{{'"
@@ -484,10 +496,11 @@ msgstr "if you see this message, I fucked up"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "keywords cannot contain escape sequences"
-msgstr "that sequence should escape from this keyword cuz it's not allowed here"
+msgstr ""
+"that sequence should escape from this keyword cuz it's not allowed here"
 
+# TODO(me) move to section I labelled above with ##
 #: src/quick-lint-js/diagnostic-types.h
-#TODO(me) move to section I labelled above with ##
 msgid "label named 'await' not allowed in async function"
 msgstr "'goto await;' isn't a thing"
 
@@ -519,7 +532,6 @@ msgstr "naked {0} 😊"
 #
 # You should have received a copy of the GNU General Public License
 # along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
-
 #: src/quick-lint-js/diagnostic-types.h
 msgid "a lexical declaration is not allowed as the body of {1:singular}"
 msgstr "how do you propose we use this variable?"
@@ -599,7 +611,8 @@ msgstr "why don't you write some code?"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing catch or finally clause for try statement"
-msgstr "finally, you've got to try to catch it <mit> or you're gonna have a bad time"
+msgstr ""
+"finally, you've got to try to catch it <mit> or you're gonna have a bad time"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "try statement starts here"
@@ -657,8 +670,8 @@ msgstr "for WHAT?!"
 msgid "for loop needs an iterable, or condition and update clauses"
 msgstr "finish writing your for loop"
 
+# TODO(you) add this warning to `for(;cond;)`
 #: src/quick-lint-js/diagnostic-types.h
-#TODO(you) add this warning to `for(;cond;)`
 msgid "use 'while' instead to loop until a condition is false"
 msgstr "or use 'while', you silly Gopher"
 
@@ -676,7 +689,9 @@ msgstr "for WHAT?!"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing initializer in const declaration"
-msgstr "think about it this way. If you cannot reassign it, then const '{0}' would always be undefined."
+msgstr ""
+"think about it this way. If you cannot reassign it, then const '{0}' would "
+"always be undefined."
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unexpected expression; missing key for object entry"
@@ -902,8 +917,22 @@ msgid "write a name to declare a class method"
 msgstr "missing name of class"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript 'implements' is not allowed in JavaScript"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "TypeScript's 'enum' feature is not yet implemented by quick-lint-js"
-msgstr "TypeScript's 'enum' feature is not yet implemented by quick-ligmaballs-js"
+msgstr ""
+"TypeScript's 'enum' feature is not yet implemented by quick-ligmaballs-js"
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "'extends' must be before 'implements'"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "move the 'extends' clause before 'implements' here"
+msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
@@ -1021,7 +1050,8 @@ msgstr "express your feelings, not your arrow function parameters"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "expected parameter for arrow function, but got a literal instead"
-msgstr "you stupid bastard, you can't have a literal as an arrow function parameter"
+msgstr ""
+"you stupid bastard, you can't have a literal as an arrow function parameter"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unexpected '\\' in identifier"
@@ -1066,8 +1096,8 @@ msgstr "you literally forgot to name your parameter"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'}' is not allowed directly in JSX text; write {{'}'} instead"
 msgstr "Facebook says '}' is not allowed; write {{'}'} instead"
-# that's so Meta xD
 
+# that's so Meta xD
 #: src/quick-lint-js/diagnostic-types.h
 msgid "C-style for loops have only three semicolon-separated components"
 msgstr "you went overboard with the semicolons"
@@ -1236,6 +1266,3 @@ msgstr "expected {1:singular}"
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "here"
 msgstr "there 👈"
-
-# Copyright (C) 2020  Matthew "strager" Glazar
-# See top of file for extended copyright information.

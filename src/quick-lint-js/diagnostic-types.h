@@ -1398,11 +1398,31 @@
                   expected_method_name))                                       \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_class_implements_not_allowed_in_javascript, "E0247",     \
+      diagnostic_severity::error, { source_code_span implements_keyword; },    \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "TypeScript 'implements' is not allowed in JavaScript"),     \
+              implements_keyword))                                             \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_enum_not_implemented, "E0127",                           \
       diagnostic_severity::error, { source_code_span enum_keyword; },          \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript's 'enum' feature is not yet "      \
                                 "implemented by quick-lint-js"),               \
               enum_keyword))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_implements_must_be_after_extends, "E0246",               \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span implements_keyword;                                   \
+        source_code_span extends_keyword;                                      \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("'extends' must be before 'implements'"),      \
+              extends_keyword)                                                 \
+          MESSAGE(QLJS_TRANSLATABLE(                                           \
+                      "move the 'extends' clause before 'implements' here"),   \
+                  implements_keyword))                                         \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
       diag_typescript_index_signature_cannot_be_method, "E0227",               \

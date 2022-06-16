@@ -108,8 +108,30 @@ void parser::parse_and_visit_class_heading_after_name(parse_visitor_base &v) {
     this->parse_and_visit_typescript_generic_parameters(v);
   }
 
+  std::optional<source_code_span> extends_keyword;
+  std::optional<source_code_span> implements_keyword;
+
   if (this->peek().type == token_type::kw_extends) {
     // class C extends Base {}
+    extends_keyword = this->peek().span();
+    this->parse_and_visit_class_extends(v);
+  }
+
+  if (this->peek().type == token_type::kw_implements) {
+    // class C implements Iface {}
+    implements_keyword = this->peek().span();
+    this->parse_and_visit_typescript_class_implements(v);
+  }
+
+  if (this->peek().type == token_type::kw_extends &&
+      !extends_keyword.has_value() && implements_keyword.has_value()) {
+    // class C implements Iface extends Base {}
+    extends_keyword = this->peek().span();
+    this->diag_reporter_->report(
+        diag_typescript_implements_must_be_after_extends{
+            .implements_keyword = *implements_keyword,
+            .extends_keyword = *extends_keyword,
+        });
     this->parse_and_visit_class_extends(v);
   }
 }
@@ -122,6 +144,25 @@ void parser::parse_and_visit_class_extends(parse_visitor_base &v) {
                                           .commas = false,
                                           .trailing_curly_is_arrow_body = false,
                                       });
+}
+
+void parser::parse_and_visit_typescript_class_implements(
+    parse_visitor_base &v) {
+  QLJS_ASSERT(this->peek().type == token_type::kw_implements);
+  if (!this->options_.typescript) {
+    this->diag_reporter_->report(
+        diag_typescript_class_implements_not_allowed_in_javascript{
+            .implements_keyword = this->peek().span(),
+        });
+  }
+  this->skip();
+next_implements:
+  this->parse_and_visit_typescript_interface_reference(v);
+  if (this->peek().type == token_type::comma) {
+    // implements IBanana, IOrange
+    this->skip();
+    goto next_implements;
+  }
 }
 
 void parser::visit_class_name(parse_visitor_base &v,
