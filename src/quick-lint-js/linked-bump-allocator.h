@@ -86,34 +86,6 @@ class linked_bump_allocator : public boost::container::pmr::memory_resource {
     rewind_state rewind_;
   };
 
-  // Calls allocator->rewind() when destructed iff rewind_on_destruct() was
-  // called.
-  class conditional_rewind_guard {
-   public:
-    explicit conditional_rewind_guard(linked_bump_allocator* allocator)
-        : allocator_(allocator), rewind_(allocator->prepare_for_rewind()) {}
-
-    conditional_rewind_guard(const conditional_rewind_guard&) = delete;
-    conditional_rewind_guard& operator=(const conditional_rewind_guard&) =
-        delete;
-
-    conditional_rewind_guard(conditional_rewind_guard&&) = delete;
-    conditional_rewind_guard& operator=(conditional_rewind_guard&&) = delete;
-
-    ~conditional_rewind_guard() {
-      if (this->should_rewind_) {
-        this->allocator_->rewind(std::move(this->rewind_));
-      }
-    }
-
-    void rewind_on_destruct() { this->should_rewind_ = true; }
-
-   private:
-    linked_bump_allocator* allocator_;
-    rewind_state rewind_;
-    bool should_rewind_ = false;
-  };
-
   rewind_state prepare_for_rewind() {
     return rewind_state{
         .chunk_ = this->chunk_,
