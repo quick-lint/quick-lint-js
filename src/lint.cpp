@@ -200,6 +200,10 @@ void linter::visit_enter_class_scope_body(
   }
 }
 
+void linter::visit_enter_enum_scope() {
+  QLJS_UNIMPLEMENTED();  // TODO(#690);
+}
+
 void linter::visit_enter_for_scope() { this->scopes_.push(); }
 
 void linter::visit_enter_function_scope() { this->scopes_.push(); }
@@ -254,6 +258,10 @@ void linter::visit_exit_class_scope() {
   }
 
   this->scopes_.pop();
+}
+
+void linter::visit_exit_enum_scope() {
+  QLJS_UNIMPLEMENTED();  // TODO(#690);
 }
 
 void linter::visit_exit_for_scope() {

@@ -49,6 +49,10 @@ class buffering_visitor final : public parse_visitor_base {
     }
   }
 
+  void visit_enter_enum_scope() override {
+    this->add(visit_kind::enter_enum_scope);
+  }
+
   void visit_enter_for_scope() override {
     this->add(visit_kind::enter_for_scope);
   }
@@ -83,6 +87,10 @@ class buffering_visitor final : public parse_visitor_base {
 
   void visit_exit_class_scope() override {
     this->add(visit_kind::exit_class_scope);
+  }
+
+  void visit_exit_enum_scope() override {
+    this->add(visit_kind::exit_enum_scope);
   }
 
   void visit_exit_for_scope() override {
@@ -158,6 +166,7 @@ class buffering_visitor final : public parse_visitor_base {
     enter_class_scope,
     enter_class_scope_body_with_name,
     enter_class_scope_body_without_name,
+    enter_enum_scope,
     enter_for_scope,
     enter_function_scope,
     enter_function_scope_body,
@@ -167,6 +176,7 @@ class buffering_visitor final : public parse_visitor_base {
     exit_block_scope,
     exit_with_scope,
     exit_class_scope,
+    exit_enum_scope,
     exit_for_scope,
     exit_function_scope,
     exit_index_signature_scope,
