@@ -108,19 +108,9 @@ void parser::parse_and_visit_class_heading_after_name(parse_visitor_base &v) {
     this->parse_and_visit_typescript_generic_parameters(v);
   }
 
-  switch (this->peek().type) {
-  case token_type::kw_extends:
+  if (this->peek().type == token_type::kw_extends) {
+    // class C extends Base {}
     this->parse_and_visit_class_extends(v);
-    break;
-
-  case token_type::left_curly:
-    break;
-
-    // class C;     // Invalid.
-    // { class C }  // Invalid.
-  default:
-    // parse_and_visit_class or parse_class_expression will report an error.
-    break;
   }
 }
 
