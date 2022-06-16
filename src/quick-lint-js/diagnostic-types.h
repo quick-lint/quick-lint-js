@@ -1405,10 +1405,10 @@
               implements_keyword))                                             \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_typescript_enum_not_implemented, "E0127",                           \
+      diag_typescript_enum_is_not_allowed_in_javascript, "E0127",              \
       diagnostic_severity::error, { source_code_span enum_keyword; },          \
-      MESSAGE(QLJS_TRANSLATABLE("TypeScript's 'enum' feature is not yet "      \
-                                "implemented by quick-lint-js"),               \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "TypeScript's 'enum' feature is not allowed in JavaScript"), \
               enum_keyword))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \

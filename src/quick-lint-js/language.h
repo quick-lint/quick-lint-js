@@ -19,6 +19,7 @@ enum class variable_kind {
   _catch,
   _class,
   _const,
+  _enum,  // TypeScript only
   _function,
   _generic_parameter,  // TypeScript only
   _import,

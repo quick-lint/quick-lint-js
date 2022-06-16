@@ -23,18 +23,31 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse_typescript_enum, enum_statement_not_yet_implemented) {
+TEST(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
   {
+    padded_string code(u8"enum E {}\nlet x = y;"_sv);
     spy_visitor v;
-    padded_string code(u8"enum\nlet x = y;"_sv);
     parser p(&code, &v);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_variable_use",          // y
                                       "visit_variable_declaration",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_typescript_enum_not_implemented,  //
-                              enum_keyword, 0, u8"enum")));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_typescript_enum_is_not_allowed_in_javascript,  //
+            enum_keyword, 0, u8"enum")));
+  }
+}
+
+TEST(test_parse_typescript_enum, empty_enum) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(u8"enum E {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // E
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"E", variable_kind::_enum, variable_init_kind::normal}));
   }
 }
 }

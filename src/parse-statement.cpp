@@ -632,13 +632,9 @@ parse_statement:
     break;
 
     // enum E { a, b, c }  // TypeScript.
-  case token_type::kw_enum: {
-    this->diag_reporter_->report(diag_typescript_enum_not_implemented{
-        .enum_keyword = this->peek().span(),
-    });
-    this->skip();
+  case token_type::kw_enum:
+    this->parse_and_visit_typescript_enum(v);
     break;
-  }
 
     // { statement; statement; }
   case token_type::left_curly:
@@ -1351,6 +1347,28 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
   }
 
   v.visit_exit_block_scope();
+}
+
+void parser::parse_and_visit_typescript_enum(parse_visitor_base &v) {
+  QLJS_ASSERT(this->peek().type == token_type::kw_enum);
+  if (!this->options_.typescript) {
+    this->diag_reporter_->report(
+        diag_typescript_enum_is_not_allowed_in_javascript{
+            .enum_keyword = this->peek().span(),
+        });
+  }
+  this->skip();
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+  v.visit_variable_declaration(this->peek().identifier_name(),
+                               variable_kind::_enum,
+                               variable_init_kind::normal);
+  this->skip();
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
+  this->skip();
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+  this->skip();
 }
 
 void parser::parse_and_visit_try_maybe_catch_maybe_finally(

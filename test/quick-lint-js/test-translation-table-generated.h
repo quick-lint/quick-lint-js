@@ -569,14 +569,14 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
-        "TypeScript's 'enum' feature is not yet implemented by quick-lint-js"_translatable,
+        "TypeScript's 'enum' feature is not allowed in JavaScript"_translatable,
         {
-            u8"TypeScript's 'enum' feature is not yet implemented by quick-lint-js",
-            u8"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js implementiert",
-            u8"TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS",
-            u8"TypeScript's 'enum' feature is not yet implemented by quick-ligmaballs-js",
-            u8"la fonctionnalit\u00e9 'enum' de TypeScript n'est pas encore impl\u00e9ment\u00e9e dans quick-lint-js",
-            u8"TypeScripts 'enum' \u00e4r inte \u00e4nnu implementerad av quick-lint-js",
+            u8"TypeScript's 'enum' feature is not allowed in JavaScript",
+            u8"TypeScript's 'enum' feature is not allowed in JavaScript",
+            u8"TypeScript's 'enum' feature is not allowed in JavaScript",
+            u8"TypeScript's 'enum' feature is not allowed in JavaScript",
+            u8"TypeScript's 'enum' feature is not allowed in JavaScript",
+            u8"TypeScript's 'enum' feature is not allowed in JavaScript",
         },
     },
     {
