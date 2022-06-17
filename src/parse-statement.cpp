@@ -1464,27 +1464,16 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v,
 
 void parser::parse_and_visit_typescript_enum_members(parse_visitor_base &v,
                                                      enum_kind kind) {
-next_member:
-  switch (this->peek().type) {
-  // enum E { A }
-  // enum E { A, }
-  // enum E { A = 1 }
-  // enum E { const = 69 }
-  // enum E { "member" }
-  QLJS_CASE_KEYWORD:
-  case token_type::identifier:
-  case token_type::string:
-    this->skip();
-  after_member_name:
+  auto parse_after_member_name = [&]() {
     switch (this->peek().type) {
     // enum E { A, B }
     case token_type::comma:
       this->skip();
-      goto next_member;
+      break;
 
     // enum E { A }
     case token_type::right_curly:
-      return;
+      break;
 
     // enum E { A = 1 }
     case token_type::equal: {
@@ -1512,14 +1501,29 @@ next_member:
         // enum E { A = 1, }
         this->skip();
       }
-      goto next_member;
+      break;
     }
 
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
-    break;
+  };
+
+next_member:
+  switch (this->peek().type) {
+  // enum E { A }
+  // enum E { A, }
+  // enum E { A = 1 }
+  // enum E { const = 69 }
+  // enum E { "member" }
+  QLJS_CASE_KEYWORD:
+  case token_type::identifier:
+  case token_type::string:
+    this->skip();
+  after_member_name:
+    parse_after_member_name();
+    goto next_member;
 
   // enum E { ["member"] }
   // enum E { ["member"] = 42 }
