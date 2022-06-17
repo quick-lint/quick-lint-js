@@ -1359,7 +1359,44 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v) {
   }
   this->skip();
 
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+  switch (this->peek().type) {
+  case token_type::kw_abstract:
+  case token_type::kw_as:
+  case token_type::kw_assert:
+  case token_type::kw_asserts:
+  case token_type::kw_async:
+  case token_type::kw_constructor:
+  case token_type::kw_declare:
+  case token_type::kw_from:
+  case token_type::kw_get:
+  case token_type::kw_infer:
+  case token_type::kw_intrinsic:
+  case token_type::kw_is:
+  case token_type::kw_keyof:
+  case token_type::kw_namespace:
+  case token_type::kw_of:
+  case token_type::kw_out:
+  case token_type::kw_override:
+  case token_type::kw_readonly:
+  case token_type::kw_set:
+  case token_type::kw_type:
+  case token_type::kw_unique:
+  case token_type::identifier:
+    break;
+
+  case token_type::kw_await:
+    if (this->in_async_function_) {
+      this->diag_reporter_->report(diag_cannot_declare_await_in_async_function{
+          .name = this->peek().identifier_name(),
+      });
+    }
+    break;
+
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
+  }
+
   v.visit_variable_declaration(this->peek().identifier_name(),
                                variable_kind::_enum,
                                variable_init_kind::normal);

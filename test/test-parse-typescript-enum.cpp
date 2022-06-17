@@ -55,6 +55,39 @@ TEST(test_parse_typescript_enum, empty_enum) {
   }
 }
 
+TEST(test_parse_typescript_enum,
+     enum_can_be_named_certain_contextual_keywords) {
+  for (string8 name : {
+           u8"abstract", u8"as",     u8"assert",      u8"asserts",
+           u8"async",    u8"await",  u8"constructor", u8"declare",
+           u8"from",     u8"get",    u8"infer",       u8"intrinsic",
+           u8"is",       u8"keyof",  u8"meta",        u8"namespace",
+           u8"of",       u8"out",    u8"override",    u8"readonly",
+           u8"set",      u8"target", u8"type",        u8"unique",
+       }) {
+    string8 code = u8"enum " + name + u8" {}";
+    spy_visitor v = parse_and_visit_typescript_statement(code);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // (name)
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_exit_enum_scope"));     // }
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    name, variable_kind::_enum, variable_init_kind::normal}));
+  }
+}
+
+TEST(test_parse_typescript_enum, enum_cannot_be_named_await_in_async_function) {
+  padded_string code(u8"enum await {}"_sv);
+  spy_visitor v;
+  parser p(&code, &v, typescript_options);
+  auto guard = p.enter_function(function_attributes::async);
+  EXPECT_TRUE(p.parse_and_visit_statement(v));
+  EXPECT_THAT(v.errors,
+              ElementsAre(DIAG_TYPE_OFFSETS(
+                  &code, diag_cannot_declare_await_in_async_function,  //
+                  name, strlen(u8"enum "), u8"await")));
+}
+
 TEST(test_parse_typescript_enum, enum_with_auto_members) {
   {
     spy_visitor v = parse_and_visit_typescript_statement(u8"enum E { A }"_sv);
