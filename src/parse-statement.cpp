@@ -161,6 +161,39 @@ parse_statement:
     break;
   }
 
+  // declare enum E {}  // TypeScript only.
+  // declare = 42;
+  case token_type::kw_declare: {
+    lexer_transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    switch (this->peek().type) {
+    // declare enum E {}
+    //
+    // declare  // ASI
+    // enum E {}
+    case token_type::kw_enum:
+      if (this->peek().has_leading_newline) {
+        // declare  // ASI
+        // enum E {}
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        goto parse_loop_label_or_expression_starting_with_identifier;
+      }
+
+      // declare enum E {}
+      this->lexer_.commit_transaction(std::move(transaction));
+      this->parse_and_visit_typescript_enum(v);
+      break;
+
+    // declare:  // Label.
+    // declare();
+    case token_type::colon:
+    default:
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      goto parse_loop_label_or_expression_starting_with_identifier;
+    }
+    break;
+  }
+
     // async function f() {}
     // async = 42;
   case token_type::kw_async: {
@@ -337,7 +370,6 @@ parse_statement:
   case token_type::kw_bigint:
   case token_type::kw_boolean:
   case token_type::kw_constructor:
-  case token_type::kw_declare:
   case token_type::kw_from:
   case token_type::kw_get:
   case token_type::kw_global:
