@@ -1521,7 +1521,6 @@ next_member:
   case token_type::identifier:
   case token_type::string:
     this->skip();
-  after_member_name:
     parse_after_member_name();
     goto next_member;
 
@@ -1547,7 +1546,8 @@ next_member:
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
     this->skip();
 
-    goto after_member_name;
+    parse_after_member_name();
+    goto next_member;
   }
 
   // enum E { 42 = 69 }  // Invalid.
@@ -1557,7 +1557,8 @@ next_member:
             .number = this->peek().span(),
         });
     this->skip();
-    goto after_member_name;
+    parse_after_member_name();
+    goto next_member;
 
   // enum E { A }
   case token_type::right_curly:
