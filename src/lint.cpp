@@ -925,13 +925,10 @@ void linter::report_error_if_variable_declaration_conflicts(
     QLJS_ASSERT(kind != vk::_catch);
     QLJS_ASSERT(kind != vk::_import);
     break;
+  case vk::_enum:
+  case vk::_generic_parameter:
   case vk::_import:
   case vk::_interface:
-    break;
-  case vk::_enum:
-    QLJS_UNIMPLEMENTED();  // TODO(#690)
-    break;
-  case vk::_generic_parameter:
     break;
   }
 
@@ -941,6 +938,7 @@ void linter::report_error_if_variable_declaration_conflicts(
       (other_kind == vk::_parameter && kind == vk::_function) ||
       (other_kind == vk::_var && kind == vk::_function) ||
       (other_kind == vk::_parameter && kind == vk::_parameter) ||
+      (other_kind == vk::_catch && kind == vk::_enum) ||
       (other_kind == vk::_catch && kind == vk::_var) ||
       (other_kind == vk::_function && kind == vk::_var) ||
       (other_kind == vk::_parameter && kind == vk::_var) ||
@@ -952,8 +950,13 @@ void linter::report_error_if_variable_declaration_conflicts(
        newly_declared_declaration_scope ==
            declared_variable_scope::declared_in_descendant_scope) ||
       (other_kind == vk::_interface && kind == vk::_interface) ||
-      (other_kind == vk::_interface && is_runtime(kind)) ||
-      (is_runtime(other_kind) && kind == vk::_interface);
+      (other_kind == vk::_interface && kind == vk::_class) ||
+      (other_kind == vk::_class && kind == vk::_interface) ||
+      (other_kind == vk::_interface && kind == vk::_import) ||
+      (other_kind == vk::_import && kind == vk::_interface) ||
+      (other_kind == vk::_interface && !is_type(kind)) ||
+      (!is_type(other_kind) && kind == vk::_interface) ||
+      (other_kind == vk::_enum && kind == vk::_enum);
   if (!redeclaration_ok) {
     if (already_declared_is_global_variable) {
       this->diag_reporter_->report(
