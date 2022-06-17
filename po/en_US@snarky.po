@@ -927,6 +927,14 @@ msgid "TypeScript 'implements' is not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "enum member needs initializer"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "computed value disables enum autoincrement"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "computer enum member name must be a simple string"
 msgstr ""
 

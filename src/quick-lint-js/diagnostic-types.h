@@ -1412,6 +1412,19 @@
               implements_keyword))                                             \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_enum_auto_member_needs_initializer_after_computed,       \
+      "E0252", diagnostic_severity::error,                                     \
+      {                                                                        \
+        source_code_span auto_member_name;                                     \
+        source_code_span computed_expression;                                  \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("enum member needs initializer"),              \
+              auto_member_name)                                                \
+          MESSAGE(                                                             \
+              QLJS_TRANSLATABLE("computed value disables enum autoincrement"), \
+              computed_expression))                                            \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_enum_computed_name_must_be_simple, "E0249",              \
       diagnostic_severity::error, { source_code_span expression; },            \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

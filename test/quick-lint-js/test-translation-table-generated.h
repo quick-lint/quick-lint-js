@@ -1075,6 +1075,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "computed value disables enum autoincrement"_translatable,
+        {
+            u8"computed value disables enum autoincrement",
+            u8"computed value disables enum autoincrement",
+            u8"computed value disables enum autoincrement",
+            u8"computed value disables enum autoincrement",
+            u8"computed value disables enum autoincrement",
+            u8"computed value disables enum autoincrement",
+        },
+    },
+    {
         "computer enum member name must be a simple string"_translatable,
         {
             u8"computer enum member name must be a simple string",
@@ -1171,6 +1182,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"enum member name cannot be numeric",
             u8"enum member name cannot be numeric",
             u8"enum member name cannot be numeric",
+        },
+    },
+    {
+        "enum member needs initializer"_translatable,
+        {
+            u8"enum member needs initializer",
+            u8"enum member needs initializer",
+            u8"enum member needs initializer",
+            u8"enum member needs initializer",
+            u8"enum member needs initializer",
+            u8"enum member needs initializer",
         },
     },
     {

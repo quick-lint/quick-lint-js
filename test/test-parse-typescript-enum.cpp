@@ -20,6 +20,7 @@
 
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
+using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
@@ -409,6 +410,18 @@ TEST(test_parse_typescript_enum,
     }
 
     {
+      padded_string code(decl + u8" E { A = f(), B, C, D }");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v, typescript_options);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(DIAG_TYPE(diag_typescript_enum_value_must_be_constant)))
+          << "shouldn't complain about auto member following computed member";
+    }
+
+    {
       padded_string code(decl + u8" E { A = (2 + f()) }");
       SCOPED_TRACE(code);
       spy_visitor v;
@@ -442,6 +455,74 @@ TEST(test_parse_typescript_enum, normal_enum_allows_non_constant_values) {
   parse_and_visit_typescript_module(u8"enum E { A = f() }"_sv);
   parse_and_visit_typescript_module(u8"enum E { A = someVariable }"_sv);
 }
+
+TEST(test_parse_typescript_enum,
+     normal_enum_auto_is_allowed_after_constant_value) {
+  parse_and_visit_typescript_module(u8"enum E { A = 42, B }"_sv);
+  parse_and_visit_typescript_module(u8"enum E { A = 2+2, B }"_sv);
+  parse_and_visit_typescript_module(u8"enum E { A = OtherEnum.C, B }"_sv);
+  parse_and_visit_typescript_module(u8"enum E { A, B = A, C, }"_sv);
+}
+
+TEST(test_parse_typescript_enum, normal_enum_auto_requires_constant_value) {
+  {
+    padded_string code(u8"enum E { A = f(), B, }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            &code,
+            diag_typescript_enum_auto_member_needs_initializer_after_computed,  //
+            auto_member_name, strlen(u8"enum E { A = f(), "), u8"B",  //
+            computed_expression, strlen(u8"enum E { A = "), u8"f()")));
+  }
+
+  {
+    padded_string code(u8"enum E { A, B = f(), C, D, E, }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE(
+            diag_typescript_enum_auto_member_needs_initializer_after_computed)));
+  }
+
+  {
+    padded_string code(u8"enum E { ['A'] = f(), ['B'], }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            &code,
+            diag_typescript_enum_auto_member_needs_initializer_after_computed,  //
+            auto_member_name, strlen(u8"enum E { ['A'] = f(), "), u8"['B']",  //
+            computed_expression, strlen(u8"enum E { ['A'] = "), u8"f()")));
+  }
+
+  {
+    padded_string code(u8"enum E { 42 = f(), 69, }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        UnorderedElementsAre(
+            DIAG_TYPE(diag_typescript_enum_member_name_cannot_be_number),
+            DIAG_TYPE(diag_typescript_enum_member_name_cannot_be_number),
+            DIAG_TYPE_2_OFFSETS(
+                &code,
+                diag_typescript_enum_auto_member_needs_initializer_after_computed,  //
+                auto_member_name, strlen(u8"enum E { 42 = f(), "), u8"69",  //
+                computed_expression, strlen(u8"enum E { 42 = "), u8"f()")));
+  }
+}
+
+// TODO(#758): Error on: enum E { A = "A", B }
 }
 }
 

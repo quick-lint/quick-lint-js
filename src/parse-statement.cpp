@@ -1465,15 +1465,33 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v,
 
 void parser::parse_and_visit_typescript_enum_members(parse_visitor_base &v,
                                                      enum_kind kind) {
-  auto parse_after_member_name = [&]() {
+  std::optional<enum_value_kind> last_enum_value_kind;
+  std::optional<source_code_span> last_enum_value;
+
+  auto auto_member = [&](source_code_span member_name) {
+    if (kind == enum_kind::normal &&
+        last_enum_value_kind == enum_value_kind::computed) {
+      QLJS_ASSERT(last_enum_value.has_value());
+      this->diag_reporter_->report(
+          diag_typescript_enum_auto_member_needs_initializer_after_computed{
+              .auto_member_name = member_name,
+              .computed_expression = *last_enum_value,
+          });
+    }
+    last_enum_value_kind = std::nullopt;
+  };
+
+  auto parse_after_member_name = [&](source_code_span name) {
     switch (this->peek().type) {
     // enum E { A, B }
     case token_type::comma:
+      auto_member(name);
       this->skip();
       break;
 
     // enum E { A }
     case token_type::right_curly:
+      auto_member(name);
       break;
 
     // enum E { A = 1 }
@@ -1482,15 +1500,19 @@ void parser::parse_and_visit_typescript_enum_members(parse_visitor_base &v,
 
       expression *ast = this->parse_expression(v, precedence{.commas = false});
       this->visit_expression(ast, v, variable_context::rhs);
+      source_code_span ast_span = ast->span();
+
+      enum_value_kind value_kind = this->classify_enum_value_expression(ast);
+      last_enum_value_kind = value_kind;
+      last_enum_value = ast_span;
       switch (kind) {
       case enum_kind::declare_const_enum:
       case enum_kind::const_enum:
       case enum_kind::declare_enum: {
-        enum_value_kind value_kind = this->classify_enum_value_expression(ast);
         if (value_kind == enum_value_kind::computed) {
           this->diag_reporter_->report(
               diag_typescript_enum_value_must_be_constant{
-                  .expression = ast->span(),
+                  .expression = ast_span,
                   .declared_enum_kind = kind,
               });
         }
@@ -1522,14 +1544,17 @@ next_member:
   // enum E { "member" }
   QLJS_CASE_KEYWORD:
   case token_type::identifier:
-  case token_type::string:
+  case token_type::string: {
+    source_code_span member_name = this->peek().span();
     this->skip();
-    parse_after_member_name();
+    parse_after_member_name(member_name);
     goto next_member;
+  }
 
   // enum E { ["member"] }
   // enum E { ["member"] = 42 }
   case token_type::left_square: {
+    const char8 *name_begin = this->peek().begin;
     this->skip();
 
     expression *ast = this->parse_expression(v);
@@ -1547,21 +1572,24 @@ next_member:
     this->visit_expression(ast, v, variable_context::rhs);
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
+    const char8 *name_end = this->peek().end;
     this->skip();
 
-    parse_after_member_name();
+    parse_after_member_name(source_code_span(name_begin, name_end));
     goto next_member;
   }
 
   // enum E { 42 = 69 }  // Invalid.
-  case token_type::number:
+  case token_type::number: {
+    source_code_span member_name = this->peek().span();
     this->diag_reporter_->report(
         diag_typescript_enum_member_name_cannot_be_number{
-            .number = this->peek().span(),
+            .number = member_name,
         });
     this->skip();
-    parse_after_member_name();
+    parse_after_member_name(member_name);
     goto next_member;
+  }
 
   // enum E { A }
   case token_type::right_curly:
