@@ -1418,8 +1418,10 @@ next_member:
   // enum E { A, }
   // enum E { A = 1 }
   // enum E { const = 69 }
+  // enum E { "member" }
   QLJS_CASE_KEYWORD:
   case token_type::identifier:
+  case token_type::string:
     this->skip();
     switch (this->peek().type) {
     // enum E { A, B }
