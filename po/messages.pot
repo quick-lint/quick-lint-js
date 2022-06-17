@@ -898,6 +898,10 @@ msgid "TypeScript's 'enum' feature is not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "enum member name cannot be numeric"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "'extends' must be before 'implements'"
 msgstr ""
 

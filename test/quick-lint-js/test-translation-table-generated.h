@@ -1163,6 +1163,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "enum member name cannot be numeric"_translatable,
+        {
+            u8"enum member name cannot be numeric",
+            u8"enum member name cannot be numeric",
+            u8"enum member name cannot be numeric",
+            u8"enum member name cannot be numeric",
+            u8"enum member name cannot be numeric",
+            u8"enum member name cannot be numeric",
+        },
+    },
+    {
         "escaped character is not allowed in identifiers"_translatable,
         {
             u8"escaped character is not allowed in identifiers",

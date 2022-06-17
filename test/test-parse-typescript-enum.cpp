@@ -171,6 +171,50 @@ TEST(test_parse_typescript_enum, enum_members_can_be_named_string_expressions) {
   }
 }
 
+TEST(test_parse_typescript_enum, enum_members_can_be_named_number_literals) {
+  {
+    padded_string code(u8"enum E { 42 = init, }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_variable_use",          // init
+                                      "visit_exit_enum_scope",       // }
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_typescript_enum_member_name_cannot_be_number,  //
+            number, strlen(u8"enum E { "), u8"42")));
+  }
+
+  {
+    padded_string code(u8"enum E { 42n = init, }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_typescript_enum_member_name_cannot_be_number,  //
+            number, strlen(u8"enum E { "), u8"42n")));
+  }
+
+  // TODO(#758)
+  if ((false)) {
+    padded_string code(u8"enum E { [42] = init, }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_typescript_enum_member_name_cannot_be_number,  //
+            number, strlen(u8"enum E { ["), u8"42")));
+  }
+}
+
 TEST(test_parse_typescript_enum,
      enum_members_cannot_be_named_complex_expressions) {
   {

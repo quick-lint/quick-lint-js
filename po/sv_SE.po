@@ -940,6 +940,10 @@ msgid "TypeScript's 'enum' feature is not allowed in JavaScript"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "enum member name cannot be numeric"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "'extends' must be before 'implements'"
 msgstr ""
 

@@ -1457,6 +1457,7 @@ next_member:
 
     expression *ast = this->parse_expression(v);
     switch (ast->kind()) {
+    // TODO(#758): Error on number literals.
     case expression_kind::literal:
       break;
     default:
@@ -1473,6 +1474,15 @@ next_member:
 
     goto after_member_name;
   }
+
+  // enum E { 42 = 69 }  // Invalid.
+  case token_type::number:
+    this->diag_reporter_->report(
+        diag_typescript_enum_member_name_cannot_be_number{
+            .number = this->peek().span(),
+        });
+    this->skip();
+    goto after_member_name;
 
   // enum E { A }
   case token_type::right_curly:

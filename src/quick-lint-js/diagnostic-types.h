@@ -1426,6 +1426,12 @@
               enum_keyword))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_enum_member_name_cannot_be_number, "E0250",              \
+      diagnostic_severity::error, { source_code_span number; },                \
+      MESSAGE(QLJS_TRANSLATABLE("enum member name cannot be numeric"),         \
+              number))                                                         \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_implements_must_be_after_extends, "E0246",               \
       diagnostic_severity::error,                                              \
       {                                                                        \

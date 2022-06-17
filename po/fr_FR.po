@@ -975,6 +975,10 @@ msgstr ""
 "quick-lint-js"
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "enum member name cannot be numeric"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "'extends' must be before 'implements'"
 msgstr ""
 
