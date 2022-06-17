@@ -41,11 +41,38 @@ TEST(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
             &code, diag_typescript_enum_is_not_allowed_in_javascript,  //
             enum_keyword, 0, u8"enum")));
   }
+
+  {
+    padded_string code(u8"const enum E {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_exit_enum_scope",       // }
+                                      "visit_end_of_module"));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_typescript_enum_is_not_allowed_in_javascript,  //
+            enum_keyword, strlen(u8"const "), u8"enum")));
+  }
 }
 
 TEST(test_parse_typescript_enum, empty_enum) {
   {
     spy_visitor v = parse_and_visit_typescript_statement(u8"enum E {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_exit_enum_scope"));     // }
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"E", variable_kind::_enum, variable_init_kind::normal}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"const enum E {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }

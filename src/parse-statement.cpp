@@ -2601,9 +2601,14 @@ void parser::parse_and_visit_variable_declaration_statement(
               declaring_token.type == token_type::kw_let ||
               declaring_token.type == token_type::kw_var);
   this->skip();
-  this->parse_and_visit_let_bindings(v, declaring_token,
-                                     /*allow_in_operator=*/true);
-  this->consume_semicolon_after_statement();
+  if (this->peek().type == token_type::kw_enum &&
+      declaring_token.type == token_type::kw_const) {
+    this->parse_and_visit_typescript_enum(v);
+  } else {
+    this->parse_and_visit_let_bindings(v, declaring_token,
+                                       /*allow_in_operator=*/true);
+    this->consume_semicolon_after_statement();
+  }
 }
 
 void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
