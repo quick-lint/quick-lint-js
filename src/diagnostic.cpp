@@ -101,6 +101,11 @@ get_diagnostic_message_arg_type<char8>() noexcept {
 }
 template <>
 constexpr diagnostic_arg_type
+get_diagnostic_message_arg_type<enum_kind>() noexcept {
+  return diagnostic_arg_type::enum_kind;
+}
+template <>
+constexpr diagnostic_arg_type
 get_diagnostic_message_arg_type<identifier>() noexcept {
   return diagnostic_arg_type::identifier;
 }

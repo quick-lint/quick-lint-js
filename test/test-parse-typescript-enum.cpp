@@ -391,6 +391,44 @@ TEST(test_parse_typescript_enum, declare_must_not_have_newline_before_enum) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"declare"}));
   }
 }
+
+TEST(test_parse_typescript_enum,
+     const_and_declare_enums_require_constant_values) {
+  for (string8 decl :
+       {u8"const enum", u8"declare enum", u8"declare const enum"}) {
+    {
+      padded_string code(decl + u8" E { A = f() }");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v, typescript_options);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.errors,
+                  ElementsAre(DIAG_TYPE_OFFSETS(
+                      &code, diag_typescript_enum_value_must_be_constant,  //
+                      expression, (decl + u8" E { A = ").size(), u8"f()")));
+    }
+  }
+}
+
+TEST(test_parse_typescript_enum, enums_allow_constant_values) {
+  for (string8 decl :
+       {u8"enum", u8"const enum", u8"declare enum", u8"declare const enum"}) {
+    parse_and_visit_typescript_module(decl + u8" E { A = 1, B = A }");
+    parse_and_visit_typescript_module(decl + u8" E { A = 1, B = E.A }");
+    parse_and_visit_typescript_module(decl + u8" E { A = OtherEnum.B }");
+    parse_and_visit_typescript_module(decl + u8" E { A = (((1))) }");
+    // Test all allowed binary operators:
+    parse_and_visit_typescript_module(
+        decl + u8" E { A = 2+2-2*2/2%2<<2>>2>>>2&2|2^2 }");
+    // Test all allowed unary operators:
+    parse_and_visit_typescript_module(decl + u8" E { A = +-~2 }");
+  }
+}
+
+TEST(test_parse_typescript_enum, normal_enum_allows_non_constant_values) {
+  parse_and_visit_typescript_module(u8"enum E { A = f() }"_sv);
+  parse_and_visit_typescript_module(u8"enum E { A = someVariable }"_sv);
+}
 }
 }
 

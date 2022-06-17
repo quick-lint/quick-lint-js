@@ -181,7 +181,7 @@ parse_statement:
 
       // declare enum E {}
       this->lexer_.commit_transaction(std::move(transaction));
-      this->parse_and_visit_typescript_enum(v);
+      this->parse_and_visit_typescript_enum(v, enum_kind::declare_enum);
       break;
 
     // declare const enum E {}
@@ -199,7 +199,7 @@ parse_statement:
 
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_enum);
-      this->parse_and_visit_typescript_enum(v);
+      this->parse_and_visit_typescript_enum(v, enum_kind::declare_const_enum);
       break;
 
     // declare:  // Label.
@@ -683,7 +683,7 @@ parse_statement:
 
     // enum E { a, b, c }  // TypeScript.
   case token_type::kw_enum:
-    this->parse_and_visit_typescript_enum(v);
+    this->parse_and_visit_typescript_enum(v, enum_kind::normal);
     break;
 
     // { statement; statement; }
@@ -1399,7 +1399,8 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
   v.visit_exit_block_scope();
 }
 
-void parser::parse_and_visit_typescript_enum(parse_visitor_base &v) {
+void parser::parse_and_visit_typescript_enum(parse_visitor_base &v,
+                                             enum_kind kind) {
   QLJS_ASSERT(this->peek().type == token_type::kw_enum);
   if (!this->options_.typescript) {
     this->diag_reporter_->report(
@@ -1455,13 +1456,14 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v) {
   v.visit_enter_enum_scope();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
   this->skip();
-  this->parse_and_visit_typescript_enum_members(v);
+  this->parse_and_visit_typescript_enum_members(v, kind);
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
   this->skip();
   v.visit_exit_enum_scope();
 }
 
-void parser::parse_and_visit_typescript_enum_members(parse_visitor_base &v) {
+void parser::parse_and_visit_typescript_enum_members(parse_visitor_base &v,
+                                                     enum_kind kind) {
 next_member:
   switch (this->peek().type) {
   // enum E { A }
@@ -1485,14 +1487,33 @@ next_member:
       return;
 
     // enum E { A = 1 }
-    case token_type::equal:
+    case token_type::equal: {
       this->skip();
-      this->parse_and_visit_expression(v, precedence{.commas = false});
+
+      expression *ast = this->parse_expression(v, precedence{.commas = false});
+      this->visit_expression(ast, v, variable_context::rhs);
+      switch (kind) {
+      case enum_kind::declare_const_enum:
+      case enum_kind::const_enum:
+      case enum_kind::declare_enum:
+        if (ast->kind() == expression_kind::call) {
+          this->diag_reporter_->report(
+              diag_typescript_enum_value_must_be_constant{
+                  .expression = ast->span(),
+                  .declared_enum_kind = kind,
+              });
+        }
+        break;
+      case enum_kind::normal:
+        break;
+      }
+
       if (this->peek().type == token_type::comma) {
         // enum E { A = 1, }
         this->skip();
       }
       goto next_member;
+    }
 
     default:
       QLJS_PARSER_UNIMPLEMENTED();
@@ -2653,7 +2674,7 @@ void parser::parse_and_visit_variable_declaration_statement(
   this->skip();
   if (this->peek().type == token_type::kw_enum &&
       declaring_token.type == token_type::kw_const) {
-    this->parse_and_visit_typescript_enum(v);
+    this->parse_and_visit_typescript_enum(v, enum_kind::const_enum);
   } else {
     this->parse_and_visit_let_bindings(v, declaring_token,
                                        /*allow_in_operator=*/true);

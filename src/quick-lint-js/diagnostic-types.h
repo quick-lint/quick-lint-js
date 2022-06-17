@@ -1432,6 +1432,17 @@
               number))                                                         \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_enum_value_must_be_constant, "E0251",                    \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span expression;                                           \
+        enum_kind declared_enum_kind;                                          \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "{1:headlinese} value must be a compile-time constant"),     \
+              expression, declared_enum_kind))                                 \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_implements_must_be_after_extends, "E0246",               \
       diagnostic_severity::error,                                              \
       {                                                                        \

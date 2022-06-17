@@ -34,6 +34,7 @@ enum class diagnostic_arg_type : std::uint8_t {
   invalid = 0,
 
   char8,
+  enum_kind,
   identifier,
   source_code_span,
   statement_kind,

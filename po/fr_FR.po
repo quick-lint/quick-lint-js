@@ -979,6 +979,10 @@ msgid "enum member name cannot be numeric"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "{1:headlinese} value must be a compile-time constant"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "'extends' must be before 'implements'"
 msgstr ""
 

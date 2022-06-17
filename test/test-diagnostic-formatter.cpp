@@ -233,6 +233,32 @@ TEST(test_diagnostic_formatter, message_with_escaped_curlies) {
   EXPECT_EQ(formatter.message, u8"a {0} b }} c\n");
 }
 
+TEST(test_diagnostic_formatter, enum_kind_placeholder) {
+  struct test_diag {
+    source_code_span empty_span;
+    enum_kind kind;
+  };
+  constexpr diagnostic_message_args message_args = {
+      diagnostic_message_args{{
+          {offsetof(test_diag, empty_span),
+           diagnostic_arg_type::source_code_span},
+          {offsetof(test_diag, kind), diagnostic_arg_type::enum_kind},
+      }},
+  };
+
+  {
+    test_diag diag = {
+        .empty_span = empty_span,
+        .kind = enum_kind::normal,
+    };
+    string_diagnostic_formatter formatter;
+    formatter.format_message("E9999"sv, diagnostic_severity::error,
+                             QLJS_TRANSLATABLE("expected {1:headlinese}"),
+                             message_args, &diag);
+    EXPECT_EQ(formatter.message, u8"expected enum\n");
+  }
+}
+
 TEST(test_diagnostic_formatter, statement_kind_placeholder) {
   struct test_diag {
     source_code_span empty_span;

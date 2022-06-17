@@ -15,6 +15,13 @@ enum class statement_kind {
   with_statement,
 };
 
+enum class enum_kind {
+  declare_const_enum,
+  const_enum,
+  declare_enum,
+  normal,
+};
+
 enum class variable_kind {
   _catch,
   _class,

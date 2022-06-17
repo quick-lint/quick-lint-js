@@ -3286,6 +3286,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "{1:headlinese} value must be a compile-time constant"_translatable,
+        {
+            u8"{1:headlinese} value must be a compile-time constant",
+            u8"{1:headlinese} value must be a compile-time constant",
+            u8"{1:headlinese} value must be a compile-time constant",
+            u8"{1:headlinese} value must be a compile-time constant",
+            u8"{1:headlinese} value must be a compile-time constant",
+            u8"{1:headlinese} value must be a compile-time constant",
+        },
+    },
+    {
         "~~~ invalid string, do not use outside benchmark ~~~"_translatable,
         {
             u8"~~~ invalid string, do not use outside benchmark ~~~",

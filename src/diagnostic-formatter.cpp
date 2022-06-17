@@ -7,6 +7,20 @@
 #include <quick-lint-js/unreachable.h>
 
 namespace quick_lint_js {
+string8_view headlinese_enum_kind(enum_kind ek) noexcept {
+  switch (ek) {
+  case enum_kind::const_enum:
+    return u8"const enum"sv;
+  case enum_kind::declare_const_enum:
+    return u8"declare const enum"sv;
+  case enum_kind::declare_enum:
+    return u8"declare enum"sv;
+  case enum_kind::normal:
+    return u8"enum"sv;
+  }
+  QLJS_UNREACHABLE();
+}
+
 string8_view translated_headlinese_statement_kind(statement_kind sk) noexcept {
   switch (sk) {
   case statement_kind::do_while_loop:

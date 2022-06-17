@@ -308,7 +308,8 @@ const translation_table translation_data =
                 {0, 0, 0, 0, 0, 59347},
                 {0, 0, 0, 0, 0, 59389},
                 {11594, 19732, 28853, 39608, 47181, 59422},
-                {0, 0, 28868, 0, 0, 59443},
+                {0, 0, 0, 0, 0, 59443},
+                {0, 0, 28868, 0, 0, 59496},
             },
 
         // clang-format off
@@ -1701,6 +1702,7 @@ const translation_table translation_data =
             u8"{0} classes are not allowed in JavaScript\0"
             u8"{0} is not allowed in JavaScript\0"
             u8"{0} with no bindings\0"
+            u8"{1:headlinese} value must be a compile-time constant\0"
             u8"~~~ invalid string, do not use outside benchmark ~~~",
         // clang-format on
 
