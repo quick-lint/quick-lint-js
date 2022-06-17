@@ -151,6 +151,26 @@ TEST(test_parse_typescript_enum, enum_members_can_be_named_string_literals) {
                                     "visit_exit_enum_scope"));     // }
 }
 
+TEST(test_parse_typescript_enum, enum_members_can_be_named_string_expressions) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"enum E { ['member'] = init, }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_variable_use",          // init
+                                      "visit_exit_enum_scope"));     // }
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"enum E { [`member`] = init, }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_variable_use",          // init
+                                      "visit_exit_enum_scope"));     // }
+  }
+}
+
 TEST(test_parse_typescript_enum, extra_commas_are_not_allowed) {
   {
     padded_string code(u8"enum E { , }"_sv);

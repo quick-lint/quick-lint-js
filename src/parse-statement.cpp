@@ -1423,6 +1423,7 @@ next_member:
   case token_type::identifier:
   case token_type::string:
     this->skip();
+  after_member_name:
     switch (this->peek().type) {
     // enum E { A, B }
     case token_type::comma:
@@ -1448,6 +1449,15 @@ next_member:
       break;
     }
     break;
+
+  // enum E { ["member"] }
+  // enum E { ["member"] = 42 }
+  case token_type::left_square:
+    this->skip();
+    this->parse_and_visit_expression(v);
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
+    this->skip();
+    goto after_member_name;
 
   // enum E { A }
   case token_type::right_curly:
