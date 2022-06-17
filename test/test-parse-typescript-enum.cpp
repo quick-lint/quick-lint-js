@@ -407,6 +407,19 @@ TEST(test_parse_typescript_enum,
                       &code, diag_typescript_enum_value_must_be_constant,  //
                       expression, (decl + u8" E { A = ").size(), u8"f()")));
     }
+
+    {
+      padded_string code(decl + u8" E { A = (2 + f()) }");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v, typescript_options);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              &code, diag_typescript_enum_value_must_be_constant,  //
+              expression, (decl + u8" E { A = ").size(), u8"(2 + f())")));
+    }
   }
 }
 

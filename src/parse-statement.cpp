@@ -18,6 +18,7 @@
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/token.h>
+#include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/warning.h>
 #include <utility>
 
@@ -1584,10 +1585,76 @@ next_member:
 
 parser::enum_value_kind parser::classify_enum_value_expression(
     const expression *ast) noexcept {
-  if (ast->kind() == expression_kind::call) {
+  auto visit_children = [&]() -> enum_value_kind {
+    enum_value_kind kind = enum_value_kind::constant;
+    for (expression *child : ast->children()) {
+      enum_value_kind child_kind = classify_enum_value_expression(child);
+      switch (child_kind) {
+      case enum_value_kind::computed:
+        if (kind != enum_value_kind::unknown) {
+          kind = enum_value_kind::computed;
+        }
+        break;
+      case enum_value_kind::unknown:
+        kind = enum_value_kind::unknown;
+        break;
+      case enum_value_kind::constant:
+        break;
+      }
+    }
+    return kind;
+  };
+  switch (ast->kind()) {
+  case expression_kind::call:
     return enum_value_kind::computed;
+
+  case expression_kind::literal:
+    return enum_value_kind::constant;
+
+  case expression_kind::binary_operator:
+  case expression_kind::paren:
+    return visit_children();
+
+  case expression_kind::_class:
+  case expression_kind::_delete:
+  case expression_kind::_invalid:
+  case expression_kind::_missing:
+  case expression_kind::_new:
+  case expression_kind::_template:
+  case expression_kind::_typeof:
+  case expression_kind::array:
+  case expression_kind::arrow_function:
+  case expression_kind::assignment:
+  case expression_kind::await:
+  case expression_kind::compound_assignment:
+  case expression_kind::conditional:
+  case expression_kind::conditional_assignment:
+  case expression_kind::dot:
+  case expression_kind::function:
+  case expression_kind::import:
+  case expression_kind::index:
+  case expression_kind::jsx_element:
+  case expression_kind::jsx_element_with_members:
+  case expression_kind::jsx_element_with_namespace:
+  case expression_kind::jsx_fragment:
+  case expression_kind::named_function:
+  case expression_kind::new_target:
+  case expression_kind::object:
+  case expression_kind::private_variable:
+  case expression_kind::rw_unary_prefix:
+  case expression_kind::rw_unary_suffix:
+  case expression_kind::spread:
+  case expression_kind::super:
+  case expression_kind::tagged_template_literal:
+  case expression_kind::trailing_comma:
+  case expression_kind::unary_operator:
+  case expression_kind::variable:
+  case expression_kind::yield_many:
+  case expression_kind::yield_none:
+  case expression_kind::yield_one:
+    return enum_value_kind::unknown;
   }
-  return enum_value_kind::unknown;
+  QLJS_UNREACHABLE();
 }
 
 void parser::parse_and_visit_try_maybe_catch_maybe_finally(
