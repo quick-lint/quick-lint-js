@@ -184,6 +184,24 @@ parse_statement:
       this->parse_and_visit_typescript_enum(v);
       break;
 
+    // declare const enum E {}
+    //
+    // declare  // ASI
+    // const enum E {}
+    case token_type::kw_const:
+      if (this->peek().has_leading_newline) {
+        // declare  // ASI
+        // const enum E {}
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        goto parse_loop_label_or_expression_starting_with_identifier;
+      }
+      this->lexer_.commit_transaction(std::move(transaction));
+
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_enum);
+      this->parse_and_visit_typescript_enum(v);
+      break;
+
     // declare:  // Label.
     // declare();
     case token_type::colon:
