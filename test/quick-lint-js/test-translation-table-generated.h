@@ -1075,6 +1075,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "computer enum member name must be a simple string"_translatable,
+        {
+            u8"computer enum member name must be a simple string",
+            u8"computer enum member name must be a simple string",
+            u8"computer enum member name must be a simple string",
+            u8"computer enum member name must be a simple string",
+            u8"computer enum member name must be a simple string",
+            u8"computer enum member name must be a simple string",
+        },
+    },
+    {
         "const fields within classes are only allowed in TypeScript, not JavaScript"_translatable,
         {
             u8"const fields within classes are only allowed in TypeScript, not JavaScript",

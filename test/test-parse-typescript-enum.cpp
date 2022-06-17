@@ -171,6 +171,46 @@ TEST(test_parse_typescript_enum, enum_members_can_be_named_string_expressions) {
   }
 }
 
+TEST(test_parse_typescript_enum,
+     enum_members_cannot_be_named_complex_expressions) {
+  {
+    padded_string code(u8"enum E { [ 'mem' + 'ber' ] = init, }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_typescript_enum_computed_name_must_be_simple,  //
+            expression, strlen(u8"enum E { [ "), u8"'mem' + 'ber'")));
+  }
+
+  {
+    padded_string code(u8"enum E { [('member')] = init, }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_typescript_enum_computed_name_must_be_simple,  //
+            expression, strlen(u8"enum E { ["), u8"('member')")));
+  }
+
+  {
+    padded_string code(u8"enum E { [`template${withVariable}`] = init, }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_typescript_enum_computed_name_must_be_simple,  //
+            expression, strlen(u8"enum E { ["),
+            u8"`template${withVariable}`")));
+  }
+}
+
 TEST(test_parse_typescript_enum, extra_commas_are_not_allowed) {
   {
     padded_string code(u8"enum E { , }"_sv);

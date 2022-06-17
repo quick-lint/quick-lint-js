@@ -1452,12 +1452,27 @@ next_member:
 
   // enum E { ["member"] }
   // enum E { ["member"] = 42 }
-  case token_type::left_square:
+  case token_type::left_square: {
     this->skip();
-    this->parse_and_visit_expression(v);
+
+    expression *ast = this->parse_expression(v);
+    switch (ast->kind()) {
+    case expression_kind::literal:
+      break;
+    default:
+      this->diag_reporter_->report(
+          diag_typescript_enum_computed_name_must_be_simple{
+              .expression = ast->span(),
+          });
+      break;
+    }
+    this->visit_expression(ast, v, variable_context::rhs);
+
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
     this->skip();
+
     goto after_member_name;
+  }
 
   // enum E { A }
   case token_type::right_curly:

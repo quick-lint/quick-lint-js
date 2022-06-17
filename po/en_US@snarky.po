@@ -927,6 +927,10 @@ msgid "TypeScript 'implements' is not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "computer enum member name must be a simple string"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript's 'enum' feature is not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"

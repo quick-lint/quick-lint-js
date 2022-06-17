@@ -1412,6 +1412,13 @@
               implements_keyword))                                             \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_enum_computed_name_must_be_simple, "E0249",              \
+      diagnostic_severity::error, { source_code_span expression; },            \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "computer enum member name must be a simple string"),        \
+              expression))                                                     \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_enum_is_not_allowed_in_javascript, "E0127",              \
       diagnostic_severity::error, { source_code_span enum_keyword; },          \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
