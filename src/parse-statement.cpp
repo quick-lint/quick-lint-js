@@ -1484,8 +1484,9 @@ void parser::parse_and_visit_typescript_enum_members(parse_visitor_base &v,
       switch (kind) {
       case enum_kind::declare_const_enum:
       case enum_kind::const_enum:
-      case enum_kind::declare_enum:
-        if (ast->kind() == expression_kind::call) {
+      case enum_kind::declare_enum: {
+        enum_value_kind value_kind = this->classify_enum_value_expression(ast);
+        if (value_kind == enum_value_kind::computed) {
           this->diag_reporter_->report(
               diag_typescript_enum_value_must_be_constant{
                   .expression = ast->span(),
@@ -1493,6 +1494,7 @@ void parser::parse_and_visit_typescript_enum_members(parse_visitor_base &v,
               });
         }
         break;
+      }
       case enum_kind::normal:
         break;
       }
@@ -1578,6 +1580,14 @@ next_member:
     QLJS_PARSER_UNIMPLEMENTED();
     break;
   }
+}
+
+parser::enum_value_kind parser::classify_enum_value_expression(
+    const expression *ast) noexcept {
+  if (ast->kind() == expression_kind::call) {
+    return enum_value_kind::computed;
+  }
+  return enum_value_kind::unknown;
 }
 
 void parser::parse_and_visit_try_maybe_catch_maybe_finally(
