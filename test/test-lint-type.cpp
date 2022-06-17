@@ -46,8 +46,8 @@ TEST(test_lint_type, type_use_in_block_scope_after_declaration_is_okay) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
 
-  for (variable_kind kind :
-       {variable_kind::_class, variable_kind::_interface}) {
+  for (variable_kind kind : {variable_kind::_class, variable_kind::_enum,
+                             variable_kind::_interface}) {
     SCOPED_TRACE(kind);
 
     // interface I {}
@@ -84,8 +84,8 @@ TEST(test_lint_type, type_use_after_declaration_in_block_scope_is_an_error) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
 
-  for (variable_kind kind :
-       {variable_kind::_class, variable_kind::_interface}) {
+  for (variable_kind kind : {variable_kind::_class, variable_kind::_enum,
+                             variable_kind::_interface}) {
     SCOPED_TRACE(kind);
 
     // {
@@ -111,8 +111,8 @@ TEST(test_lint_type, type_use_before_declaration_is_okay) {
   const char8 declaration[] = u8"I";
   const char8 use[] = u8"I";
 
-  for (variable_kind kind :
-       {variable_kind::_class, variable_kind::_interface}) {
+  for (variable_kind kind : {variable_kind::_class, variable_kind::_enum,
+                             variable_kind::_interface}) {
     SCOPED_TRACE(kind);
 
     {
