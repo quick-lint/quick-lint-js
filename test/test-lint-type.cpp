@@ -777,6 +777,37 @@ TEST(test_lint_type, mixing_interface_and_import_is_not_an_error) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
+
+TEST(test_lint_type, interfaces_conflict_with_generic_parameters) {
+  const char8 generic_parameter_declaration[] = u8"I";
+  const char8 interface_declaration[] = u8"I";
+
+  // function f<I>() {
+  //   interface I {}   // ERROR
+  // }
+  diag_collector v;
+  linter l(&v, &default_globals);
+  l.visit_enter_function_scope();
+  l.visit_variable_declaration(identifier_of(generic_parameter_declaration),
+                               variable_kind::_generic_parameter,
+                               variable_init_kind::normal);
+  l.visit_enter_function_scope_body();
+  l.visit_variable_declaration(identifier_of(interface_declaration),
+                               variable_kind::_interface,
+                               variable_init_kind::normal);
+  l.visit_enter_interface_scope();
+  l.visit_exit_interface_scope();
+  l.visit_exit_function_scope();
+  l.visit_end_of_module();
+
+  EXPECT_THAT(
+      v.errors,
+      ElementsAre(DIAG_TYPE_2_FIELDS(
+          diag_redeclaration_of_variable,  //
+          redeclaration,
+          span_matcher(interface_declaration),  //
+          original_declaration, span_matcher(generic_parameter_declaration))));
+}
 }
 }
 

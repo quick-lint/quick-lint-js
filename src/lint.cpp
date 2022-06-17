@@ -95,6 +95,11 @@ QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
 //     as reporting an error if a 'const'-declared variable is assigned to.
 
 namespace quick_lint_js {
+namespace {
+bool is_runtime(variable_kind) noexcept;
+bool is_type(variable_kind) noexcept;
+}
+
 variable_kind global_declared_variable::kind() const noexcept {
   if (this->is_writable) {
     return variable_kind::_let;
@@ -927,7 +932,6 @@ void linter::report_error_if_variable_declaration_conflicts(
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case vk::_generic_parameter:
-    QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   }
 
@@ -947,7 +951,9 @@ void linter::report_error_if_variable_declaration_conflicts(
       (kind == vk::_function &&
        newly_declared_declaration_scope ==
            declared_variable_scope::declared_in_descendant_scope) ||
-      (kind == vk::_interface || other_kind == vk::_interface);
+      (other_kind == vk::_interface && kind == vk::_interface) ||
+      (other_kind == vk::_interface && is_runtime(kind)) ||
+      (is_runtime(other_kind) && kind == vk::_interface);
   if (!redeclaration_ok) {
     if (already_declared_is_global_variable) {
       this->diag_reporter_->report(
@@ -960,41 +966,11 @@ void linter::report_error_if_variable_declaration_conflicts(
 }
 
 bool linter::declared_variable::is_runtime() const noexcept {
-  switch (this->kind) {
-  case variable_kind::_catch:
-  case variable_kind::_class:
-  case variable_kind::_const:
-  case variable_kind::_enum:
-  case variable_kind::_function:
-  case variable_kind::_import:
-  case variable_kind::_let:
-  case variable_kind::_parameter:
-  case variable_kind::_var:
-    return true;
-  case variable_kind::_generic_parameter:
-  case variable_kind::_interface:
-    return false;
-  }
-  QLJS_UNREACHABLE();
+  return quick_lint_js::is_runtime(kind);
 }
 
 bool linter::declared_variable::is_type() const noexcept {
-  switch (this->kind) {
-  case variable_kind::_class:
-  case variable_kind::_enum:
-  case variable_kind::_generic_parameter:
-  case variable_kind::_import:
-  case variable_kind::_interface:
-    return true;
-  case variable_kind::_catch:
-  case variable_kind::_const:
-  case variable_kind::_function:
-  case variable_kind::_let:
-  case variable_kind::_parameter:
-  case variable_kind::_var:
-    return false;
-  }
-  QLJS_UNREACHABLE();
+  return quick_lint_js::is_type(this->kind);
 }
 
 bool linter::used_variable::is_runtime() const noexcept {
@@ -1144,6 +1120,46 @@ void linter::scopes::pop() {
 bool linter::scopes::empty() const noexcept { return this->scope_count_ == 0; }
 
 int linter::scopes::size() const noexcept { return this->scope_count_; }
+
+namespace {
+bool is_runtime(variable_kind kind) noexcept {
+  switch (kind) {
+  case variable_kind::_catch:
+  case variable_kind::_class:
+  case variable_kind::_const:
+  case variable_kind::_enum:
+  case variable_kind::_function:
+  case variable_kind::_import:
+  case variable_kind::_let:
+  case variable_kind::_parameter:
+  case variable_kind::_var:
+    return true;
+  case variable_kind::_generic_parameter:
+  case variable_kind::_interface:
+    return false;
+  }
+  QLJS_UNREACHABLE();
+}
+
+bool is_type(variable_kind kind) noexcept {
+  switch (kind) {
+  case variable_kind::_class:
+  case variable_kind::_enum:
+  case variable_kind::_generic_parameter:
+  case variable_kind::_import:
+  case variable_kind::_interface:
+    return true;
+  case variable_kind::_catch:
+  case variable_kind::_const:
+  case variable_kind::_function:
+  case variable_kind::_let:
+  case variable_kind::_parameter:
+  case variable_kind::_var:
+    return false;
+  }
+  QLJS_UNREACHABLE();
+}
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
