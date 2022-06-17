@@ -1417,6 +1417,8 @@ next_member:
   // enum E { A }
   // enum E { A, }
   // enum E { A = 1 }
+  // enum E { const = 69 }
+  QLJS_CASE_KEYWORD:
   case token_type::identifier:
     this->skip();
     switch (this->peek().type) {

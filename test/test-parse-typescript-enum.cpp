@@ -132,6 +132,16 @@ TEST(test_parse_typescript_enum, enum_with_initialized_members) {
   }
 }
 
+TEST(test_parse_typescript_enum, enum_members_can_be_named_keywords) {
+  for (string8 keyword : keywords) {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"enum E { " + keyword + u8" }");
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_exit_enum_scope"));     // }
+  }
+}
+
 TEST(test_parse_typescript_enum, extra_commas_are_not_allowed) {
   {
     padded_string code(u8"enum E { , }"_sv);
