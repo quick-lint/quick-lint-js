@@ -156,7 +156,7 @@ class any_diag_reporter {
 
 void init();
 [[noreturn]] void run(int argc, char **argv);
-[[noreturn]] void run(quick_lint_js::options o);
+[[noreturn]] void run(options o);
 
 void process_file(padded_string_view input, configuration &, diag_reporter *,
                   bool print_parser_visits);
@@ -185,9 +185,9 @@ namespace quick_lint_js {
 namespace {
 void init() {
 #if QLJS_FEATURE_VECTOR_PROFILING
-  quick_lint_js::vector_instrumentation::register_dump_on_exit_if_requested();
+  vector_instrumentation::register_dump_on_exit_if_requested();
 #endif
-  quick_lint_js::initialize_translations_from_environment();
+  initialize_translations_from_environment();
 }
 
 void run(int argc, char **argv) {
@@ -195,23 +195,23 @@ void run(int argc, char **argv) {
   run(o);
 }
 
-void run(quick_lint_js::options o) {
+void run(options o) {
   if (o.snarky) {
     initialize_translations_from_locale("en_US@snarky");
   }
   if (o.help) {
-    quick_lint_js::print_help_message();
+    print_help_message();
     std::exit(EXIT_SUCCESS);
   }
   if (o.version) {
-    quick_lint_js::print_version_information();
+    print_version_information();
     std::exit(EXIT_SUCCESS);
   }
   if (o.dump_errors(*file_output_stream::get_stderr())) {
     std::exit(EXIT_FAILURE);
   }
   if (o.lsp_server) {
-    quick_lint_js::run_lsp_server();
+    run_lsp_server();
     std::exit(EXIT_SUCCESS);
   }
   if (o.files_to_lint.empty()) {
@@ -219,9 +219,8 @@ void run(quick_lint_js::options o) {
     std::exit(EXIT_FAILURE);
   }
 
-  quick_lint_js::any_diag_reporter reporter =
-      quick_lint_js::any_diag_reporter::make(
-          o.output_format, o.diagnostic_hyperlinks, &o.exit_fail_on);
+  any_diag_reporter reporter = any_diag_reporter::make(
+      o.output_format, o.diagnostic_hyperlinks, &o.exit_fail_on);
 
   configuration default_config;
   configuration_loader config_loader(
@@ -248,20 +247,18 @@ void run(quick_lint_js::options o) {
   }
 
   if (!reporter.get_error()) {
-    for (const quick_lint_js::file_to_lint &file : o.files_to_lint) {
+    for (const file_to_lint &file : o.files_to_lint) {
       auto config_result = config_loader.load_for_file(file);
       QLJS_ASSERT(config_result.ok());
       configuration *config =
           *config_result ? &(*config_result)->config : &default_config;
       result<padded_string, read_file_io_error> source =
-          file.is_stdin ? quick_lint_js::read_stdin()
-                        : quick_lint_js::read_file(file.path);
+          file.is_stdin ? read_stdin() : read_file(file.path);
       if (!source.ok()) {
         source.error().print_and_exit();
       }
       reporter.set_source(&*source, file);
-      quick_lint_js::process_file(&*source, *config, reporter.get(),
-                                  o.print_parser_visits);
+      process_file(&*source, *config, reporter.get(), o.print_parser_visits);
     }
   }
   reporter.finish();
