@@ -3203,8 +3203,11 @@ void parser::visit_binding_element(
   }
   case expression_kind::object:
     for (int i = 0; i < ast->object_entry_count(); ++i) {
-      expression *value = ast->object_entry(i).value;
-      this->visit_binding_element(value, v, declaration_kind,
+      const object_property_value_pair &entry = ast->object_entry(i);
+      if (entry.init) {
+        this->visit_expression(entry.init, v, variable_context::rhs);
+      }
+      this->visit_binding_element(entry.value, v, declaration_kind,
                                   /*declaring_token=*/declaring_token,
                                   /*init_kind=*/init_kind);
     }

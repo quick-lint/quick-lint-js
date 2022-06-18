@@ -155,6 +155,10 @@ std::string summarize(const expression& expression) {
       result += summarize(entry.property);
       result += ": ";
       result += summarize(entry.value);
+      if (entry.init) {
+        result += " = ";
+        result += summarize(entry.init);
+      }
       need_comma = true;
     }
     result += ")";

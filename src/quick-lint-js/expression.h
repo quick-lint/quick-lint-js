@@ -80,16 +80,34 @@ enum class expression_kind {
   yield_one,
 };
 
+// property is present:
+// * { property: value }
+// * { propertyAndValue }
+// * { property: value = init }
+// * { propertyAndValue = init }
+// property is omitted:
+// * { [omittedProperty]: value }
+// * { [omittedProperty]: value = init }
+//
+// init is present:
+// * { property: value = init }
+// * { propertyAndValue = init }
+// * { [omittedProperty]: value = init }
+// init is omitted:
+// * { [omittedProperty]: value }
+// * { property: value }
+// * { propertyAndValue }
 struct object_property_value_pair {
-  explicit object_property_value_pair(expression *property,
-                                      expression *value) noexcept
-      : property(property), value(value) {}
+  explicit object_property_value_pair(expression *property, expression *value,
+                                      expression *init) noexcept
+      : property(property), value(value), init(init) {}
 
   explicit object_property_value_pair(expression *value) noexcept
-      : property(nullptr), value(value) {}
+      : property(nullptr), value(value), init(nullptr) {}
 
   expression *property;  // Optional.
   expression *value;     // Required.
+  expression *init;      // Optional.
 };
 
 class expression_arena {

@@ -1869,6 +1869,7 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "var value");
+    EXPECT_FALSE(ast->object_entry(0).init);
   }
 
   {
@@ -1910,6 +1911,7 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(summarize(entry.value), "var thing");
     EXPECT_EQ(p.range(entry.value).begin_offset(), 1);
     EXPECT_EQ(p.range(entry.value).end_offset(), 6);
+    EXPECT_FALSE(entry.init);
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -1926,8 +1928,8 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
-    EXPECT_EQ(summarize(ast->object_entry(0).value),
-              "assign(var variable, var value)");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "var variable");
+    EXPECT_EQ(summarize(ast->object_entry(0).init), "var value");
   }
 
   {
@@ -1935,8 +1937,8 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
-    EXPECT_EQ(summarize(ast->object_entry(0).value),
-              "assign(var key, var value)");
+    EXPECT_EQ(summarize(ast->object_entry(0).value), "var key");
+    EXPECT_EQ(summarize(ast->object_entry(0).init), "var value");
   }
 
   {
@@ -2439,9 +2441,9 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   }
 
   for (string8 op : {
-           u8"!=", u8"!==", u8"%",   u8"&",  u8"&&", u8"*",  u8"**",  u8"+",
-           u8"-",  u8".",   u8"<<",  u8"<=", u8"=",  u8"==", u8"===", u8">",
-           u8">=", u8">>",  u8">>>", u8"?.", u8"??", u8"^",  u8"|",   u8"||",
+           u8"!=", u8"!==", u8"%",  u8"&",  u8"&&", u8"*",   u8"**", u8"+",
+           u8"-",  u8".",   u8"<<", u8"<=", u8"==", u8"===", u8">",  u8">=",
+           u8">>", u8">>>", u8"?.", u8"??", u8"^",  u8"|",   u8"||",
        }) {
     {
       string8 code = u8"{'one' " + op + u8" two}";
@@ -2451,7 +2453,8 @@ TEST_F(test_parse_expression, malformed_object_literal) {
       EXPECT_THAT(summarize(ast),
                   ::testing::AnyOf("object(literal: assign(literal, var two))",
                                    "object(literal: binary(literal, var two))",
-                                   "object(literal: dot(literal, two))"));
+                                   "object(literal: dot(literal, two))",
+                                   "object(literal: literal = var two)"));
       EXPECT_THAT(p.errors(),
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_missing_key_for_object_entry,  //
@@ -2466,7 +2469,8 @@ TEST_F(test_parse_expression, malformed_object_literal) {
       EXPECT_THAT(summarize(ast),
                   ::testing::AnyOf("object(literal: assign(literal, var two))",
                                    "object(literal: binary(literal, var two))",
-                                   "object(literal: dot(literal, two))"));
+                                   "object(literal: dot(literal, two))",
+                                   "object(literal: literal = var two)"));
       EXPECT_THAT(p.errors(),
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_missing_key_for_object_entry,  //

@@ -1164,12 +1164,16 @@ next:
         v, binary_builder.last_expression()));
     goto next;
 
-  // x += y
   // f().prop = other
+  case token_type::equal:
+    if (!prec.equals_assignment) {
+      break;
+    }
+    [[fallthrough]];
+  // x += y
   // x[y] &&= z
   QLJS_CASE_COMPOUND_ASSIGNMENT_OPERATOR:
-  QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR:
-  case token_type::equal: {
+  QLJS_CASE_CONDITIONAL_ASSIGNMENT_OPERATOR : {
     if (!prec.math_or_logical_or_assignment) {
       break;
     }
@@ -1883,8 +1887,17 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
   expression_arena::vector<object_property_value_pair> entries(
       "parse_object_literal entries", this->expressions_.allocator());
   auto parse_value_expression = [&](expression* property) -> void {
-    expression* value = this->parse_expression(v, precedence{.commas = false});
-    entries.emplace_back(property, value);
+    expression* value =
+        this->parse_expression(v, precedence{
+                                      .equals_assignment = false,
+                                      .commas = false,
+                                  });
+    expression* init = nullptr;
+    if (this->peek().type == token_type::equal) {
+      this->skip();
+      init = this->parse_expression(v, precedence{.commas = false});
+    }
+    entries.emplace_back(property, value, /*init=*/init);
   };
   auto parse_computed_property_name = [this, &v]() -> expression* {
     QLJS_ASSERT(this->peek().type == token_type::left_square);
@@ -1911,18 +1924,16 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
     }
 
     QLJS_ASSERT(this->peek().type == token_type::equal);
-    source_code_span operator_span = this->peek().span();
     this->skip();
 
     expression* rhs = this->parse_expression(v, precedence{.commas = false});
-    expression* value = this->make_expression<expression::assignment>(
-        expression_kind::assignment, lhs, rhs, operator_span);
     if (missing_key) {
       this->diag_reporter_->report(diag_missing_key_for_object_entry{
-          .expression = value->span(),
+          .expression =
+              source_code_span(lhs->span().begin(), rhs->span().end()),
       });
     }
-    entries.emplace_back(key, value);
+    entries.emplace_back(key, lhs, rhs);
   };
   auto parse_method_entry = [&](const char8* key_span_begin, expression* key,
                                 function_attributes attributes) -> void {
@@ -1948,7 +1959,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
     const char8* span_end = this->lexer_.end_of_previous_token();
     expression* func = this->make_expression<expression::function>(
         attributes, source_code_span(key_span_begin, span_end));
-    entries.emplace_back(key, func);
+    entries.emplace_back(key, func, /*init=*/nullptr);
   };
 
   bool expect_comma_or_end = false;
@@ -2058,7 +2069,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
               this->make_expression<expression::_missing>(key_token.span());
           this->diag_reporter_->report(
               diag_invalid_lone_literal_in_object_literal{key_token.span()});
-          entries.emplace_back(key, value);
+          entries.emplace_back(key, value, /*init=*/nullptr);
           break;
         }
 
@@ -2068,7 +2079,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
           this->diag_reporter_->report(
               diag_missing_value_for_object_literal_entry{
                   .key = key_token.span()});
-          entries.emplace_back(key, value);
+          entries.emplace_back(key, value, /*init=*/nullptr);
           break;
         }
 
@@ -2084,7 +2095,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
         case token_type::identifier: {
           expression* value = this->make_expression<expression::variable>(
               key_token.identifier_name(), key_token.type);
-          entries.emplace_back(key, value);
+          entries.emplace_back(key, value, /*init=*/nullptr);
           break;
         }
 
@@ -2144,7 +2155,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
         }
         expression* value = this->parse_expression_remainder(
             v, lhs, precedence{.commas = false});
-        entries.emplace_back(key, value);
+        entries.emplace_back(key, value, /*init=*/nullptr);
         this->diag_reporter_->report(diag_missing_key_for_object_entry{
             .expression = value->span(),
         });
@@ -2338,7 +2349,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
             this->make_expression<expression::literal>(keyword_span);
         expression* value = this->make_expression<expression::variable>(
             identifier(keyword_span), keyword_type);
-        entries.emplace_back(key, value);
+        entries.emplace_back(key, value, /*init=*/nullptr);
         break;
       }
 
@@ -2374,7 +2385,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
             this->make_expression<expression::_missing>(key_span);
         this->diag_reporter_->report(
             diag_missing_value_for_object_literal_entry{.key = key_span});
-        entries.emplace_back(key, value);
+        entries.emplace_back(key, value, /*init=*/nullptr);
         break;
       }
 
