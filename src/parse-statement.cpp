@@ -2901,6 +2901,12 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
       expression *variable = this->make_expression<expression::variable>(
           this->peek().identifier_name(), this->peek().type);
       this->skip();
+
+      if (this->peek().type == token_type::colon) {
+        // let x: Type;
+        this->parse_and_visit_typescript_colon_type_expression(v);
+      }
+
       switch (this->peek().type) {
         // let x = 3;
         // let x += 42;  // Invalid.
