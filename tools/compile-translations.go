@@ -452,16 +452,15 @@ func WriteTranslationTableSource(table *TranslationTable, path string) error {
 
 	writer.WriteString(
 		`
+#include <array>
 #include <quick-lint-js/translation-table.h>
 
 namespace quick_lint_js {
-const translation_table translation_data =
-    {
-        .mapping_table =
-            {
+const translation_table translation_data = {
+    .mapping_table = {{
 `)
 	for _, mappingEntry := range table.MappingTable {
-		writer.WriteString("                {")
+		writer.WriteString("        {")
 		for i, stringOffset := range mappingEntry.StringOffsets {
 			if i != 0 {
 				writer.WriteString(", ")
@@ -471,21 +470,21 @@ const translation_table translation_data =
 		writer.WriteString("},\n")
 	}
 	writer.WriteString(
-		`            },
+		`    }},
 
-        // clang-format off
-        .string_table =
+    // clang-format off
+    .string_table =
 `)
-	DumpStringTable(table.StringTable, "            u8", writer)
+	DumpStringTable(table.StringTable, "        u8", writer)
 
 	writer.WriteString(
 		`,
-        // clang-format on
+    // clang-format on
 
-        .locale_table =
+    .locale_table =
 `)
 
-	DumpStringTable(table.LocaleTable, "            ", writer)
+	DumpStringTable(table.LocaleTable, "        ", writer)
 
 	writer.WriteString(
 		`,

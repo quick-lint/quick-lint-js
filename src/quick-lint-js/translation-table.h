@@ -4,6 +4,7 @@
 #ifndef QUICK_LINT_JS_TRANSLATION_TABLE_H
 #define QUICK_LINT_JS_TRANSLATION_TABLE_H
 
+#include <array>
 #include <cstdint>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/locale.h>
@@ -16,7 +17,7 @@ struct translation_table {
     std::uint32_t string_offsets[translation_table_locale_count + 1];
   };
 
-  mapping_entry mapping_table[translation_table_mapping_table_size];
+  std::array<mapping_entry, translation_table_mapping_table_size> mapping_table;
   char8 string_table[translation_table_string_table_size];
   char locale_table[translation_table_locale_table_size];
 
