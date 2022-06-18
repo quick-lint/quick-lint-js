@@ -98,9 +98,18 @@ enum class expression_kind {
 // * { property: value }
 // * { propertyAndValue }
 struct object_property_value_pair {
+  // property is optional.
+  explicit object_property_value_pair(expression *property,
+                                      expression *value) noexcept
+      : property(property), value(value), init(nullptr) {}
+
+  // property is optional.
+  // init is required.
   explicit object_property_value_pair(expression *property, expression *value,
                                       expression *init) noexcept
-      : property(property), value(value), init(init) {}
+      : property(property), value(value), init(init) {
+    QLJS_ASSERT(init);
+  }
 
   expression *property;  // Optional.
   expression *value;     // Required.
