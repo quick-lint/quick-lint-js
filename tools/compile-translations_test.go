@@ -96,7 +96,7 @@ func TestGMO(t *testing.T) {
 
 func TestCreateTranslationTable(t *testing.T) {
 	checkTableIntegrity := func(t *testing.T, table *TranslationTable) {
-		if len(table.MappingTable) == 0 {
+		if len(table.AbsoluteMappingTable) == 0 {
 			t.Errorf("mapping table should never be empty")
 		}
 		for i, constLookupEntry := range table.ConstLookupTable {
@@ -104,15 +104,15 @@ func TestCreateTranslationTable(t *testing.T) {
 				t.Errorf("const original table entry %d has empty Untranslated", i)
 			}
 		}
-		if len(table.MappingTable) > 0 {
-			nullMapping := table.MappingTable[0]
+		if len(table.AbsoluteMappingTable) > 0 {
+			nullMapping := table.AbsoluteMappingTable[0]
 			for j, stringOffset := range nullMapping.StringOffsets {
 				if table.StringTable[stringOffset] != 0x00 {
 					t.Errorf("first mapping entry locale %d points to non-empty string", j)
 				}
 			}
 		}
-		for i, mappingEntry := range table.MappingTable {
+		for i, mappingEntry := range table.AbsoluteMappingTable {
 			if len(mappingEntry.StringOffsets) != len(table.Locales) {
 				t.Errorf("mapping table entry %d should have %d strings, but it has %d (%#v)",
 					i,
@@ -131,12 +131,47 @@ func TestCreateTranslationTable(t *testing.T) {
 				}
 			}
 		}
+
+		if len(table.AbsoluteMappingTable) != len(table.RelativeMappingTable) {
+			t.Errorf("relative mapping table has %d entries but absolute mapping table has %d entries",
+			len(table.RelativeMappingTable),
+			len(table.AbsoluteMappingTable))
+		}
+		lastPresentStringOffsets := make([]uint32, len(table.Locales))
+		for i := 1; i < len(table.AbsoluteMappingTable); i += 1 {
+			absoluteEntry := table.AbsoluteMappingTable[i]
+			relativeEntry := table.RelativeMappingTable[i]
+			for j, _ := range table.Locales {
+				var expectedRelativeOffset uint32
+				stringOffset := absoluteEntry.StringOffsets[j]
+				if stringOffset == 0 {
+					expectedRelativeOffset = 0
+				} else {
+					expectedRelativeOffset = stringOffset - lastPresentStringOffsets[j]
+				}
+				if relativeEntry.StringOffsets[j] != expectedRelativeOffset {
+					t.Errorf("relative mapping table entry %d locale %d has relative offset %d but expected %d",
+					i, j,
+					expectedRelativeOffset,
+					relativeEntry.StringOffsets[j])
+				}
+				if stringOffset != 0 {
+					lastPresentStringOffsets[j] = stringOffset
+				}
+			}
+		}
 	}
 
 	assertTableStringEquals := func(t *testing.T, table *TranslationTable, stringOffset uint32, expected string) {
 		actualBytes := table.ReadString(stringOffset)
 		if !reflect.DeepEqual(actualBytes, []byte(expected)) {
 			t.Errorf("expected %#v, but got %#v", expected, actualBytes)
+		}
+	}
+
+	assertOffsetsEqual := func(t *testing.T, actual uint32, expected uint32) {
+		if actual != expected {
+			t.Errorf("expected %#v, but got %#v", expected, actual)
 		}
 	}
 
@@ -216,7 +251,7 @@ func TestCreateTranslationTable(t *testing.T) {
 		})
 		checkTableIntegrity(t, &table)
 
-		for mappingIndex, mappingEntry := range table.MappingTable {
+		for mappingIndex, mappingEntry := range table.AbsoluteMappingTable {
 			for localeIndex, stringOffset := range mappingEntry.StringOffsets {
 				s := table.ReadString(stringOffset)
 				if bytes.Equal(s, []byte("metadata goes here")) || bytes.Equal(s, []byte("(meta data)")) {
@@ -227,6 +262,59 @@ func TestCreateTranslationTable(t *testing.T) {
 				}
 			}
 		}
+	})
+
+	t.Run("mapping entries are relative", func(t *testing.T) {
+		table := CreateTranslationTable(map[string][]TranslationEntry{
+			"fr_FR": []TranslationEntry{
+				TranslationEntry{[]byte("hello"), []byte("bonjour")},
+			},
+			"de_DE": []TranslationEntry{
+				TranslationEntry{[]byte("hello"), []byte("hallo")},
+			},
+		})
+		checkTableIntegrity(t, &table)
+
+		helloEntry := table.LookUpMappingByUntranslated([]byte("hello"))
+		assertTableStringEquals(t, &table, helloEntry.StringOffsets[0], "hallo")
+		assertTableStringEquals(t, &table, helloEntry.StringOffsets[1], "bonjour")
+	})
+
+	t.Run("relative mappings are 0 for missing strings", func(t *testing.T) {
+		table := CreateTranslationTable(map[string][]TranslationEntry{
+			"": []TranslationEntry{
+				TranslationEntry{[]byte("a"), []byte("a")},
+				TranslationEntry{[]byte("b"), []byte("b")},
+				TranslationEntry{[]byte("c"), []byte("c")},
+				TranslationEntry{[]byte("d"), []byte("d")},
+			},
+			"fr_FR": []TranslationEntry{
+				TranslationEntry{[]byte("a"), []byte("[a]")},
+				TranslationEntry{[]byte("b"), []byte("[b]")},
+				TranslationEntry{[]byte("d"), []byte("[d]")},
+			},
+		})
+		checkTableIntegrity(t, &table)
+
+		expectedStringTable := []byte{
+			0x0, // 0: ""
+			0x5b, 0x61, 0x5d, 0x0, // 1: "[a]"
+			0x5b, 0x62, 0x5d, 0x0, // 5: "[b]"
+			0x5b, 0x64, 0x5d, 0x0, // 9: "[d]"
+			0x61, 0x0, // 13: "a"
+			0x62, 0x0, // 15: "b"
+			0x63, 0x0, // 17: "c"
+			0x64, 0x0, // 19: "d"
+		}
+		if !bytes.Equal(table.StringTable, expectedStringTable) {
+			t.Errorf("unexpected string table %#v", table.StringTable)
+		}
+		fr := 0
+		r := table.RelativeMappingTable
+		assertOffsetsEqual(t, r[1].StringOffsets[fr], 1) // "a" -> "[a]" (1) relative to 0
+		assertOffsetsEqual(t, r[2].StringOffsets[fr], 4) // "b" -> "[b]" (5) relative to "[a]" (1)
+		assertOffsetsEqual(t, r[3].StringOffsets[fr], 0) // "c" -> (none)
+		assertOffsetsEqual(t, r[4].StringOffsets[fr], 4) // "d" -> "[d]" (9) relative to "[b]" (5)
 	})
 }
 

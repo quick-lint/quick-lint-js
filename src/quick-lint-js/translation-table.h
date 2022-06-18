@@ -9,6 +9,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/locale.h>
 #include <quick-lint-js/translation-table-generated.h>
+#include <quick-lint-js/warning.h>
 
 namespace quick_lint_js {
 // See tools/compile-translations.go for documentation on the format.
@@ -27,6 +28,33 @@ struct translation_table {
       std::string_view s) noexcept {
     return translation_table_const_look_up(s);
   }
+
+  QLJS_WARNING_PUSH
+  QLJS_WARNING_IGNORE_CLANG("-Wlarge-by-value-copy")
+  static QLJS_CONSTEVAL
+      std::array<mapping_entry, translation_table_mapping_table_size>
+      absolute_mapping_table_from_relative(
+          const std::array<mapping_entry, translation_table_mapping_table_size>
+              &relative) {
+    mapping_entry last_present_mapping = {};
+    std::array<mapping_entry, translation_table_mapping_table_size> result = {};
+    for (std::uint16_t i = 0; i < translation_table_mapping_table_size; ++i) {
+      for (std::uint32_t locale_index = 0;
+           locale_index < translation_table_locale_count + 1; ++locale_index) {
+        std::uint32_t relative_offset =
+            relative[i].string_offsets[locale_index];
+        std::uint32_t offset = 0;
+        if (relative_offset != 0) {
+          offset = relative_offset +
+                   last_present_mapping.string_offsets[locale_index];
+          last_present_mapping.string_offsets[locale_index] = offset;
+        }
+        result[i].string_offsets[locale_index] = offset;
+      }
+    }
+    return result;
+  }
+  QLJS_WARNING_POP
 };
 
 extern const translation_table translation_data;

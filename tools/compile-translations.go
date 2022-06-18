@@ -61,6 +61,17 @@
 // The string table contains 0-terminated UTF-8 strings. String sizes can be
 // computed by calculating the difference between the first 0 byte starting at
 // the string offset and the string offset.
+//
+// mapping_table is delta-encoded. The function decode(i, j) is implemented with
+// the following logic:
+//
+// * If mapping_table[i].string_offsets[j] == 0, then the index into the string
+//   table is 0 (i.e. the entry refers to an empty string).
+// * If mapping_table[i].string_offsets[j] != 0, then the index into the string
+//   table is computed as
+//   (mapping_table[i].string_offsets[j] + decode(last_i, j)), where last_i is
+//   the biggest value of i where
+//   (last_i < i && mapping_table[last_i].string_offsets[j] != 0).
 
 package main
 
@@ -271,7 +282,8 @@ func GetAllUntranslated(locales map[string][]TranslationEntry) [][]byte {
 
 type TranslationTable struct {
 	ConstLookupTable []TranslationTableConstLookupEntry
-	MappingTable     []TranslationTableMappingEntry
+	AbsoluteMappingTable     []TranslationTableMappingEntry
+	RelativeMappingTable     []TranslationTableMappingEntry
 	StringTable      []byte
 	Locales          []string
 	LocaleTable      []byte
@@ -323,9 +335,9 @@ func CreateTranslationTable(locales map[string][]TranslationEntry) TranslationTa
 
 	table.StringTable = []byte{0}
 	mappingTableSize := len(keys) + 1
-	table.MappingTable = make([]TranslationTableMappingEntry, mappingTableSize)
+	table.AbsoluteMappingTable = make([]TranslationTableMappingEntry, mappingTableSize)
 	for i := 0; i < mappingTableSize; i += 1 {
-		mappingEntry := &table.MappingTable[i]
+		mappingEntry := &table.AbsoluteMappingTable[i]
 		mappingEntry.StringOffsets = make([]uint32, len(table.Locales))
 	}
 	for localeIndex, localeName := range table.Locales {
@@ -333,7 +345,25 @@ func CreateTranslationTable(locales map[string][]TranslationEntry) TranslationTa
 		for _, translation := range localeTranslations {
 			if !translation.IsMetadata() {
 				index := table.FindMappingTableIndexForUntranslated(translation.Untranslated)
-				table.MappingTable[index].StringOffsets[localeIndex] = addString(translation.Translated)
+				table.AbsoluteMappingTable[index].StringOffsets[localeIndex] = addString(translation.Translated)
+			}
+		}
+	}
+
+	table.RelativeMappingTable = make([]TranslationTableMappingEntry, mappingTableSize)
+	table.RelativeMappingTable[0].StringOffsets = make([]uint32, len(table.Locales))
+	lastPresentStringOffsets := make([]uint32, len(table.Locales))
+	for i := 1; i < mappingTableSize; i += 1 {
+		relativeEntry := &table.RelativeMappingTable[i]
+		relativeEntry.StringOffsets = make([]uint32, len(table.Locales))
+
+		absoluteEntry := &table.AbsoluteMappingTable[i]
+		for localeIndex, _ := range table.Locales {
+			stringOffset := absoluteEntry.StringOffsets[localeIndex]
+			if stringOffset != 0 {
+				previousStringOffset := lastPresentStringOffsets[localeIndex]
+				relativeEntry.StringOffsets[localeIndex] = stringOffset - previousStringOffset
+				lastPresentStringOffsets[localeIndex] = stringOffset
 			}
 		}
 	}
@@ -357,7 +387,7 @@ func (table *TranslationTable) LookUpMappingByUntranslated(originalString []byte
 	if index == -1 {
 		return nil
 	}
-	return &table.MappingTable[index]
+	return &table.AbsoluteMappingTable[index]
 }
 
 func (table *TranslationTable) ReadString(stringOffset uint32) []byte {
@@ -394,7 +424,7 @@ using namespace std::literals::string_view_literals;
 
 `)
 	fmt.Fprintf(writer, "constexpr std::uint32_t translation_table_locale_count = %d;\n", len(table.Locales)-1)
-	fmt.Fprintf(writer, "constexpr std::uint16_t translation_table_mapping_table_size = %d;\n", len(table.MappingTable))
+	fmt.Fprintf(writer, "constexpr std::uint16_t translation_table_mapping_table_size = %d;\n", len(table.RelativeMappingTable))
 	fmt.Fprintf(writer, "constexpr std::size_t translation_table_string_table_size = %d;\n", len(table.StringTable))
 	fmt.Fprintf(writer, "constexpr std::size_t translation_table_locale_table_size = %d;\n", len(table.LocaleTable))
 	fmt.Fprintf(writer, "\n")
@@ -457,12 +487,12 @@ func WriteTranslationTableSource(table *TranslationTable, path string) error {
 
 namespace quick_lint_js {
 const translation_table translation_data = {
-    .mapping_table = {{
+    .mapping_table = translation_table::absolute_mapping_table_from_relative({{
 `)
 	mappingTableLines := []string{}
 	maxLineLength := 0
 	var temp bytes.Buffer
-	for _, mappingEntry := range table.MappingTable {
+	for _, mappingEntry := range table.RelativeMappingTable {
 		temp.Reset()
 		temp.WriteString("        {")
 		for i, stringOffset := range mappingEntry.StringOffsets {
@@ -482,7 +512,7 @@ const translation_table translation_data = {
 		fmt.Fprintf(writer, "%s%*s  //\n", line, maxLineLength-len(line), "")
 	}
 	writer.WriteString(
-		`    }},
+		`    }}),
 
     // clang-format off
     .string_table =
