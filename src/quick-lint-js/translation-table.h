@@ -6,7 +6,6 @@
 
 #include <cstdint>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/hash-fnv.h>
 #include <quick-lint-js/locale.h>
 #include <quick-lint-js/translation-table-generated.h>
 

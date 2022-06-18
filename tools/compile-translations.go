@@ -641,19 +641,6 @@ func DumpStringLiteralBody(s string, writer *bufio.Writer) {
 	}
 }
 
-func HashFNV1a64(data []byte) uint64 {
-	return HashFNV1a64WithOffsetBasis(data, 0xcbf29ce484222325)
-}
-
-func HashFNV1a64WithOffsetBasis(data []byte, offsetBasis uint64) uint64 {
-	var hash uint64 = offsetBasis
-	for _, b := range data {
-		hash ^= uint64(b)
-		hash *= 0x00000100_000001b3
-	}
-	return hash
-}
-
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //

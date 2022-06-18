@@ -132,7 +132,6 @@ quick_lint_js_add_library(
   quick-lint-js/file-path.h
   quick-lint-js/file.h
   quick-lint-js/global-variables.h
-  quick-lint-js/hash-fnv.h
   quick-lint-js/have.h
   quick-lint-js/integer.h
   quick-lint-js/json.h

@@ -51,7 +51,6 @@ quick_lint_js_add_executable(
   test-file-canonical.cpp
   test-file-path.cpp
   test-file.cpp
-  test-hash-fnv.cpp
   test-integer-decimal.cpp
   test-integer-hexadecimal.cpp
   test-json.cpp
