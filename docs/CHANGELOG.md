@@ -8,6 +8,12 @@ Semantic Versioning.
 
 ## Unreleased
 
+### Added
+
+* `const o = {k = v};` now reports [E0253][] ("use ':' instead of '=' in object
+  literals").
+* `--snarky` is now even snarkier.
+
 ### Fixed
 
 * Declaring a TypeScript interface with the same name as a generic parameter no
@@ -647,4 +653,5 @@ Beta release.
 [E0211]: https://quick-lint-js.com/errors/E0211/
 [E0212]: https://quick-lint-js.com/errors/E0212/
 [E0223]: https://quick-lint-js.com/errors/E0223/
+[E0253]: https://quick-lint-js.com/errors/E0253/
 [E0707]: https://quick-lint-js.com/errors/E0707/
