@@ -245,10 +245,14 @@ func ExtractGMOStrings(gmoData []byte) []TranslationEntry {
 }
 
 // Return value is sorted with no duplicates.
+//
+// The returned slice always contains an empty string at the beginning.
 func GetLocaleNames(locales map[string][]TranslationEntry) []string {
-	localeNames := []string{}
+	localeNames := []string{""}
 	for localeName := range locales {
-		localeNames = append(localeNames, localeName)
+		if localeName != "" {
+			localeNames = append(localeNames, localeName)
+		}
 	}
 	// Sort to make output deterministic.
 	sort.Strings(localeNames)
@@ -326,9 +330,7 @@ func CreateTranslationTable(locales map[string][]TranslationEntry) TranslationTa
 	//   knows the bounds of the locale table.
 	// * Untranslated strings are placed in
 	//   hash_entry::string_offsets[locale_count].
-	if len(table.Locales) > 0 && table.Locales[0] == "" {
-		table.Locales = append(table.Locales[1:], table.Locales[0])
-	}
+	table.Locales = append(table.Locales[1:], table.Locales[0])
 
 	for _, localeName := range table.Locales {
 		addStringToTable([]byte(localeName), &table.LocaleTable)
@@ -384,7 +386,7 @@ retry:
 	table.MappingTable = make([]TranslationTableMappingEntry, mappingTableSize)
 	for i := 0; i < mappingTableSize; i += 1 {
 		mappingEntry := &table.MappingTable[i]
-		mappingEntry.StringOffsets = make([]uint32, len(locales))
+		mappingEntry.StringOffsets = make([]uint32, len(table.Locales))
 	}
 	for localeIndex, localeName := range table.Locales {
 		localeTranslations := locales[localeName]

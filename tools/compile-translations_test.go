@@ -164,7 +164,8 @@ func TestCreateTranslationTable(t *testing.T) {
 	t.Run("no locales or translation strings", func(t *testing.T) {
 		table := CreateTranslationTable(map[string][]TranslationEntry{})
 		checkTableIntegrity(t, &table)
-		if len(table.Locales) != 0 {
+		expectedLocaleNames := []string{""}
+		if !reflect.DeepEqual(table.Locales, expectedLocaleNames) {
 			t.Errorf("expected no locales, but got %#v", table.Locales)
 		}
 	})
@@ -175,7 +176,7 @@ func TestCreateTranslationTable(t *testing.T) {
 			"de_DE": []TranslationEntry{},
 		})
 		checkTableIntegrity(t, &table)
-		expectedLocaleNames := []string{"de_DE", "en_US"}
+		expectedLocaleNames := []string{"de_DE", "en_US", ""}
 		if !reflect.DeepEqual(table.Locales, expectedLocaleNames) {
 			t.Errorf("expected %#v, but got %#v", expectedLocaleNames, table.Locales)
 		}
