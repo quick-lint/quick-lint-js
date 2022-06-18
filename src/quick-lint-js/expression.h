@@ -117,7 +117,7 @@ struct object_property_value_pair {
   }
 
   // Precondition: init is not null.
-  source_code_span init_equals_span() {
+  source_code_span init_equals_span() const {
     QLJS_ASSERT(this->init);
     QLJS_ASSERT(this->init_equal_begin);
     return source_code_span(this->init_equal_begin, this->init_equal_begin + 1);

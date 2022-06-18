@@ -1928,12 +1928,13 @@ TEST_F(test_parse_expression, object_literal) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
-    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
-    EXPECT_EQ(summarize(ast->object_entry(0).value), "var variable");
-    EXPECT_EQ(summarize(ast->object_entry(0).init), "var value");
-    EXPECT_EQ(p.range(ast->object_entry(0).init_equals_span()).begin_offset(),
+    const object_property_value_pair& entry = ast->object_entry(0);
+    EXPECT_EQ(summarize(entry.property), "literal");
+    EXPECT_EQ(summarize(entry.value), "var variable");
+    EXPECT_EQ(summarize(entry.init), "var value");
+    EXPECT_EQ(p.range(entry.init_equals_span()).begin_offset(),
               strlen(u8"{key: variable "));
-    EXPECT_EQ(p.range(ast->object_entry(0).init_equals_span()).end_offset(),
+    EXPECT_EQ(p.range(entry.init_equals_span()).end_offset(),
               strlen(u8"{key: variable ="));
   }
 
@@ -1942,12 +1943,13 @@ TEST_F(test_parse_expression, object_literal) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
-    EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
-    EXPECT_EQ(summarize(ast->object_entry(0).value), "var key");
-    EXPECT_EQ(summarize(ast->object_entry(0).init), "var value");
-    EXPECT_EQ(p.range(ast->object_entry(0).init_equals_span()).begin_offset(),
+    const object_property_value_pair& entry = ast->object_entry(0);
+    EXPECT_EQ(summarize(entry.property), "literal");
+    EXPECT_EQ(summarize(entry.value), "var key");
+    EXPECT_EQ(summarize(entry.init), "var value");
+    EXPECT_EQ(p.range(entry.init_equals_span()).begin_offset(),
               strlen(u8"{key "));
-    EXPECT_EQ(p.range(ast->object_entry(0).init_equals_span()).end_offset(),
+    EXPECT_EQ(p.range(entry.init_equals_span()).end_offset(),
               strlen(u8"{key ="));
   }
 
