@@ -604,32 +604,62 @@ TEST(test_parse, parse_invalid_let) {
            u8"^=",
            u8"|=",
        }) {
-    padded_string code(u8"let x " + compound_assignment_operator + u8" y, z");
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    // TODO(strager): We should signal to the linter that duplicate-definition
-    // errors should be ignored for 'x'.
-    EXPECT_THAT(v.visits,
-                ElementsAre("visit_variable_use",          // y
-                            "visit_variable_declaration",  // x
-                            "visit_variable_declaration",  // z
-                            "visit_end_of_module"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(
-            spy_visitor::visited_variable_declaration{
-                u8"x", variable_kind::_let,
-                variable_init_kind::initialized_with_equals},
-            spy_visitor::visited_variable_declaration{
-                u8"z", variable_kind::_let, variable_init_kind::normal}));
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    &code, diag_cannot_update_variable_during_declaration,  //
-                    updating_operator, strlen(u8"let x "),
-                    compound_assignment_operator,  //
-                    declaring_token, 0, u8"let")));
+    {
+      padded_string code(u8"let x " + compound_assignment_operator + u8" y, z");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      // TODO(strager): We should signal to the linter that duplicate-definition
+      // errors should be ignored for 'x'.
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_use",          // y
+                              "visit_variable_declaration",  // x
+                              "visit_variable_declaration",  // z
+                              "visit_end_of_module"));
+      EXPECT_THAT(
+          v.variable_declarations,
+          ElementsAre(
+              spy_visitor::visited_variable_declaration{
+                  u8"x", variable_kind::_let,
+                  variable_init_kind::initialized_with_equals},
+              spy_visitor::visited_variable_declaration{
+                  u8"z", variable_kind::_let, variable_init_kind::normal}));
+      EXPECT_THAT(v.errors,
+                  ElementsAre(DIAG_TYPE_2_OFFSETS(
+                      &code, diag_cannot_update_variable_during_declaration,  //
+                      updating_operator, strlen(u8"let x "),
+                      compound_assignment_operator,  //
+                      declaring_token, 0, u8"let")));
+    }
+
+    {
+      padded_string code(u8"const [x, y] " + compound_assignment_operator +
+                         u8" init;");
+      SCOPED_TRACE(code);
+      spy_visitor v;
+      parser p(&code, &v);
+      p.parse_and_visit_module(v);
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_use",          // init
+                              "visit_variable_declaration",  // x
+                              "visit_variable_declaration",  // y
+                              "visit_end_of_module"));
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(
+                      spy_visitor::visited_variable_declaration{
+                          u8"x", variable_kind::_const,
+                          variable_init_kind::initialized_with_equals},
+                      spy_visitor::visited_variable_declaration{
+                          u8"y", variable_kind::_const,
+                          variable_init_kind::initialized_with_equals}));
+      EXPECT_THAT(v.errors,
+                  ElementsAre(DIAG_TYPE_2_OFFSETS(
+                      &code, diag_cannot_update_variable_during_declaration,  //
+                      updating_operator, strlen(u8"const [x, y] "),
+                      compound_assignment_operator,  //
+                      declaring_token, 0, u8"const")));
+    }
   }
 
   {
