@@ -102,9 +102,6 @@ struct object_property_value_pair {
                                       expression *init) noexcept
       : property(property), value(value), init(init) {}
 
-  explicit object_property_value_pair(expression *value) noexcept
-      : property(nullptr), value(value), init(nullptr) {}
-
   expression *property;  // Optional.
   expression *value;     // Required.
   expression *init;      // Optional.
