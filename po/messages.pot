@@ -813,6 +813,10 @@ msgid "octal literal may not have decimal"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "use ':' instead of '=' in object literals"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"
 msgstr ""
 

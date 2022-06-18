@@ -851,6 +851,11 @@ msgid "octal literal may not have decimal"
 msgstr "Oktalliterale mit Dezimalpunkt sind nicht erlaubt"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "use ':' instead of '=' in object literals"
+msgstr "Vereinzeltes Literal in Objekt-Literal"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"
 msgstr ""
 

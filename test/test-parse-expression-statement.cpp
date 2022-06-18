@@ -1515,6 +1515,19 @@ TEST(test_parse, disallow_await_parameter_in_async_arrow_function) {
             u8"await", variable_kind::_parameter, variable_init_kind::normal}));
   }
 }
+
+TEST(test_parse_expression_statement, object_property_default_is_not_allowed) {
+  {
+    padded_string code(u8"({banana = 42})"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_object_literal_default_in_expression,  //
+                    equal, strlen(u8"({banana "), u8"=")));
+  }
+}
 }
 }
 

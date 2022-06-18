@@ -841,6 +841,11 @@ msgid "octal literal may not have decimal"
 msgstr "but you said '0o'..."
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "use ':' instead of '=' in object literals"
+msgstr "what's this literal supposed to mean in an object?"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"
 msgstr "this number's too thicc for JavaScript; '{1}' would be used instead"
 

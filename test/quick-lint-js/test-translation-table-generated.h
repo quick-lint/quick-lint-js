@@ -3132,6 +3132,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "use ':' instead of '=' in object literals"_translatable,
+        {
+            u8"use ':' instead of '=' in object literals",
+            u8"use ':' instead of '=' in object literals",
+            u8"use ':' instead of '=' in object literals",
+            u8"use ':' instead of '=' in object literals",
+            u8"use ':' instead of '=' in object literals",
+            u8"use ':' instead of '=' in object literals",
+        },
+    },
+    {
         "use 'while' instead to loop until a condition is false"_translatable,
         {
             u8"use 'while' instead to loop until a condition is false",

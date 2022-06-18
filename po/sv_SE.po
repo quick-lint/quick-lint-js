@@ -844,6 +844,11 @@ msgid "octal literal may not have decimal"
 msgstr "oktal nummerlitteräl kan inte ha decimaler"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "use ':' instead of '=' in object literals"
+msgstr "ogiltigt låneuttryck i objektliteral"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"
 msgstr ""
 

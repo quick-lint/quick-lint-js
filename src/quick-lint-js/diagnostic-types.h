@@ -1292,6 +1292,12 @@
               characters))                                                     \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_object_literal_default_in_expression, "E0253",                      \
+      diagnostic_severity::error, { source_code_span equal; },                 \
+      MESSAGE(QLJS_TRANSLATABLE("use ':' instead of '=' in object literals"),  \
+              equal))                                                          \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_integer_literal_will_lose_precision, "E0212",                       \
       diagnostic_severity::warning,                                            \
       {                                                                        \
