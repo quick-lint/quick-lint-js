@@ -86,10 +86,10 @@ struct object_property_value_pair {
       : property(property), value(value) {}
 
   explicit object_property_value_pair(expression *value) noexcept
-      : property(std::nullopt), value(value) {}
+      : property(nullptr), value(value) {}
 
-  std::optional<expression *> property;
-  expression *value;
+  expression *property;  // Optional.
+  expression *value;     // Required.
 };
 
 class expression_arena {

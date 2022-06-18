@@ -1905,8 +1905,8 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(ast->object_entry_count(), 1);
     auto entry = ast->object_entry(0);
     EXPECT_EQ(summarize(entry.property), "literal");
-    EXPECT_EQ(p.range(entry.property.value()).begin_offset(), 1);
-    EXPECT_EQ(p.range(entry.property.value()).end_offset(), 6);
+    EXPECT_EQ(p.range(entry.property).begin_offset(), 1);
+    EXPECT_EQ(p.range(entry.property).end_offset(), 6);
     EXPECT_EQ(summarize(entry.value), "var thing");
     EXPECT_EQ(p.range(entry.value).begin_offset(), 1);
     EXPECT_EQ(p.range(entry.value).end_offset(), 6);
@@ -1943,7 +1943,7 @@ TEST_F(test_parse_expression, object_literal) {
     expression* ast = this->parse_expression(u8"{...other, k: v}"_sv);
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 2);
-    EXPECT_FALSE(ast->object_entry(0).property.has_value());
+    EXPECT_FALSE(ast->object_entry(0).property);
     EXPECT_EQ(summarize(ast->object_entry(0).value), "spread(var other)");
     EXPECT_EQ(summarize(ast->object_entry(1).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(1).value), "var v");

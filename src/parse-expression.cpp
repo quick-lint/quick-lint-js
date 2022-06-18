@@ -136,8 +136,8 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
   case expression_kind::object:
     for (int i = 0; i < ast->object_entry_count(); ++i) {
       auto entry = ast->object_entry(i);
-      if (entry.property.has_value()) {
-        this->visit_expression(*entry.property, v, variable_context::rhs);
+      if (entry.property) {
+        this->visit_expression(entry.property, v, variable_context::rhs);
       }
       this->visit_expression(entry.value, v, context);
     }
