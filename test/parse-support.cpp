@@ -153,7 +153,7 @@ std::string summarize(const expression& expression) {
       }
       auto entry = expression.object_entry(i);
       result += summarize(entry.property);
-      result += ", ";
+      result += ": ";
       result += summarize(entry.value);
       need_comma = true;
     }

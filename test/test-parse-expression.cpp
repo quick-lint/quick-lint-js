@@ -1058,7 +1058,7 @@ TEST_F(test_parse_expression,
          {u8"await ||= x"_sv,         "condassign(var await, var x)",             nullptr},
          {u8"await.prop"_sv,          "dot(var await, prop)",                     nullptr},
          {u8"await?.prop"_sv,         "dot(var await, prop)",                     nullptr},
-         {u8"{key: await}"_sv,        "object(literal, var await)",               nullptr},
+         {u8"{key: await}"_sv,        "object(literal: var await)",               nullptr},
          {u8"await %= x"_sv,          "upassign(var await, var x)",               nullptr},
          {u8"await &= x"_sv,          "upassign(var await, var x)",               nullptr},
          {u8"await **= x"_sv,         "upassign(var await, var x)",               nullptr},
@@ -1917,7 +1917,7 @@ TEST_F(test_parse_expression, object_literal) {
     expression* ast =
         this->parse_expression(u8"{key1: value1, thing2, key3: value3}"_sv);
     EXPECT_EQ(summarize(ast),
-              "object(literal, var value1, literal, var thing2, literal, var "
+              "object(literal: var value1, literal: var thing2, literal: var "
               "value3)");
   }
 
@@ -2093,19 +2093,19 @@ TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
 
   {
     expression* ast = this->parse_expression(u8"{get 1234() { }}"_sv);
-    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_EQ(summarize(ast), "object(literal: function)");
   }
 
   {
     expression* ast = this->parse_expression(u8"{get 'string key'() { }}"_sv);
-    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_EQ(summarize(ast), "object(literal: function)");
   }
 
   {
     expression* ast =
         this->parse_expression(u8"{get [expression + key]() { }}"_sv);
     EXPECT_EQ(summarize(ast),
-              "object(binary(var expression, var key), function)");
+              "object(binary(var expression, var key): function)");
   }
 }
 
@@ -2117,37 +2117,37 @@ TEST_F(test_parse_expression, object_literal_with_keyword_key) {
     {
       string8 code = u8"{" + keyword + u8": null}";
       expression* ast = this->parse_expression(code.c_str());
-      EXPECT_EQ(summarize(ast), "object(literal, literal)");
+      EXPECT_EQ(summarize(ast), "object(literal: literal)");
     }
 
     {
       string8 code = u8"{" + keyword + u8"() { }}";
       expression* ast = this->parse_expression(code.c_str());
-      EXPECT_EQ(summarize(ast), "object(literal, function)");
+      EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       string8 code = u8"{get " + keyword + u8"() {}}";
       expression* ast = this->parse_expression(code.c_str());
-      EXPECT_EQ(summarize(ast), "object(literal, function)");
+      EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       string8 code = u8"{set " + keyword + u8"() {}}";
       expression* ast = this->parse_expression(code.c_str());
-      EXPECT_EQ(summarize(ast), "object(literal, function)");
+      EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       string8 code = u8"{async " + keyword + u8"() {}}";
       expression* ast = this->parse_expression(code.c_str());
-      EXPECT_EQ(summarize(ast), "object(literal, function)");
+      EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       string8 code = u8"{*" + keyword + u8"() {}}";
       expression* ast = this->parse_expression(code.c_str());
-      EXPECT_EQ(summarize(ast), "object(literal, function)");
+      EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
   }
 }
@@ -2194,7 +2194,7 @@ TEST_F(test_parse_expression,
     {
       test_parser p(u8"{" + keyword + u8"}");
       expression* ast = p.parse_expression();
-      EXPECT_EQ(summarize(ast), "object(literal, missing)");
+      EXPECT_EQ(summarize(ast), "object(literal: missing)");
       EXPECT_THAT(p.errors(),
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_missing_value_for_object_literal_entry,  //
@@ -2204,7 +2204,7 @@ TEST_F(test_parse_expression,
     {
       test_parser p(u8"{" + keyword + u8", other}");
       expression* ast = p.parse_expression();
-      EXPECT_EQ(summarize(ast), "object(literal, missing, literal, var other)");
+      EXPECT_EQ(summarize(ast), "object(literal: missing, literal: var other)");
       EXPECT_THAT(p.errors(),
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_missing_value_for_object_literal_entry,  //
@@ -2219,7 +2219,7 @@ TEST_F(
   {
     test_parser p(u8"{ \\u{69}f }");
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, var if)");
+    EXPECT_EQ(summarize(ast), "object(literal: var if)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_keywords_cannot_contain_escape_sequences,  //
@@ -2230,17 +2230,17 @@ TEST_F(
 TEST_F(test_parse_expression, object_literal_with_number_key) {
   {
     expression* ast = this->parse_expression(u8"{1234: null}"_sv);
-    EXPECT_EQ(summarize(ast), "object(literal, literal)");
+    EXPECT_EQ(summarize(ast), "object(literal: literal)");
   }
 
   {
     expression* ast = this->parse_expression(u8"{async 42() {}}"_sv);
-    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_EQ(summarize(ast), "object(literal: function)");
   }
 
   {
     expression* ast = this->parse_expression(u8"{*42() {}}"_sv);
-    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_EQ(summarize(ast), "object(literal: function)");
   }
 }
 
@@ -2248,7 +2248,7 @@ TEST_F(test_parse_expression, incomplete_object_literal) {
   {
     test_parser p(u8"{ p1 "_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, var p1)");
+    EXPECT_EQ(summarize(ast), "object(literal: var p1)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_unclosed_object_literal,  //
@@ -2259,7 +2259,7 @@ TEST_F(test_parse_expression, incomplete_object_literal) {
   {
     test_parser p(u8"{ p1, "_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, var p1)");
+    EXPECT_EQ(summarize(ast), "object(literal: var p1)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_unclosed_object_literal,  //
@@ -2270,7 +2270,7 @@ TEST_F(test_parse_expression, incomplete_object_literal) {
   {
     test_parser p(u8"({ p1, )"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "paren(object(literal, var p1))");
+    EXPECT_EQ(summarize(ast), "paren(object(literal: var p1))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_unclosed_object_literal,  //
@@ -2281,7 +2281,7 @@ TEST_F(test_parse_expression, incomplete_object_literal) {
   {
     test_parser p(u8"[{ p1, ]"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "array(object(literal, var p1))");
+    EXPECT_EQ(summarize(ast), "array(object(literal: var p1))");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_unclosed_object_literal,  //
@@ -2294,7 +2294,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{p1: v1 p2}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, var v1, literal, var p2)");
+    EXPECT_EQ(summarize(ast), "object(literal: var v1, literal: var p2)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(DIAG_TYPE_OFFSETS(
@@ -2305,7 +2305,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{1234}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, missing)");
+    EXPECT_EQ(summarize(ast), "object(literal: missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_invalid_lone_literal_in_object_literal,  //
@@ -2315,7 +2315,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{'x'}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, missing)");
+    EXPECT_EQ(summarize(ast), "object(literal: missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_invalid_lone_literal_in_object_literal,  //
@@ -2325,7 +2325,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{a b: c}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, var a, literal, var c)");
+    EXPECT_EQ(summarize(ast), "object(literal: var a, literal: var c)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(DIAG_TYPE_OFFSETS(
@@ -2336,7 +2336,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{a *generator() {}}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, var a, literal, function)");
+    EXPECT_EQ(summarize(ast), "object(literal: var a, literal: function)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(DIAG_TYPE_OFFSETS(
@@ -2347,7 +2347,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{async f}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_EQ(summarize(ast), "object(literal: function)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_function_parameter_list,  //
@@ -2357,7 +2357,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{*f}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_EQ(summarize(ast), "object(literal: function)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_function_parameter_list,  //
@@ -2367,7 +2367,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{function a(){}}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_EQ(summarize(ast), "object(literal: function)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_methods_should_not_use_function_keyword,  //
@@ -2377,7 +2377,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{async function a(){}}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_EQ(summarize(ast), "object(literal: function)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_methods_should_not_use_function_keyword,  //
@@ -2387,7 +2387,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{function *a(){}}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_EQ(summarize(ast), "object(literal: function)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_methods_should_not_use_function_keyword,  //
@@ -2397,7 +2397,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{ [x] }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var x, missing)");
+    EXPECT_EQ(summarize(ast), "object(var x: missing)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_value_for_object_literal_entry,  //
@@ -2407,7 +2407,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{ [x], other }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var x, missing, literal, var other)");
+    EXPECT_EQ(summarize(ast), "object(var x: missing, literal: var other)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_value_for_object_literal_entry,  //
@@ -2428,10 +2428,10 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     expression* ast = p.parse_expression();
     EXPECT_THAT(
         summarize(ast),
-        ::testing::AnyOf("object(literal, binary(var one, var two))",
-                         "object(literal, condassign(var one, var two))",
-                         "object(literal, dot(var one, two))",
-                         "object(literal, upassign(var one, var two))"));
+        ::testing::AnyOf("object(literal: binary(var one, var two))",
+                         "object(literal: condassign(var one, var two))",
+                         "object(literal: dot(var one, two))",
+                         "object(literal: upassign(var one, var two))"));
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_key_for_object_entry,  //
@@ -2449,9 +2449,9 @@ TEST_F(test_parse_expression, malformed_object_literal) {
       test_parser p(code);
       expression* ast = p.parse_expression();
       EXPECT_THAT(summarize(ast),
-                  ::testing::AnyOf("object(literal, assign(literal, var two))",
-                                   "object(literal, binary(literal, var two))",
-                                   "object(literal, dot(literal, two))"));
+                  ::testing::AnyOf("object(literal: assign(literal, var two))",
+                                   "object(literal: binary(literal, var two))",
+                                   "object(literal: dot(literal, two))"));
       EXPECT_THAT(p.errors(),
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_missing_key_for_object_entry,  //
@@ -2464,9 +2464,9 @@ TEST_F(test_parse_expression, malformed_object_literal) {
       test_parser p(code);
       expression* ast = p.parse_expression();
       EXPECT_THAT(summarize(ast),
-                  ::testing::AnyOf("object(literal, assign(literal, var two))",
-                                   "object(literal, binary(literal, var two))",
-                                   "object(literal, dot(literal, two))"));
+                  ::testing::AnyOf("object(literal: assign(literal, var two))",
+                                   "object(literal: binary(literal, var two))",
+                                   "object(literal: dot(literal, two))"));
       EXPECT_THAT(p.errors(),
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_missing_key_for_object_entry,  //
@@ -2480,7 +2480,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     test_parser p(code);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
-              "object(literal, rwunarysuffix(var one), literal, var two)");
+              "object(literal: rwunarysuffix(var one), literal: var two)");
     EXPECT_THAT(
         p.errors(),
         UnorderedElementsAre(
@@ -2494,7 +2494,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{#key: value}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, var value)");
+    EXPECT_EQ(summarize(ast), "object(literal: var value)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(DIAG_TYPE_OFFSETS(
@@ -2506,7 +2506,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
   {
     test_parser p(u8"{#key, [other]: value}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var other, var value)");
+    EXPECT_EQ(summarize(ast), "object(var other: var value)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(DIAG_TYPE_OFFSETS(
@@ -2521,7 +2521,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     SCOPED_TRACE(code);
     test_parser p(code.string_view());
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_EQ(summarize(ast), "object(literal: function)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(DIAG_TYPE_OFFSETS(
@@ -2539,7 +2539,7 @@ TEST_F(test_parse_expression,
     test_parser p(u8"{ key: value; other: second }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
-              "object(literal, var value, literal, var second)");
+              "object(literal: var value, literal: var second)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(),
@@ -2551,8 +2551,8 @@ TEST_F(test_parse_expression,
     test_parser p(u8"{ first; get; set; async; }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
-              "object(literal, var first, literal, var get, "
-              "literal, var set, literal, var async)");
+              "object(literal: var first, literal: var get, "
+              "literal: var set, literal: var async)");
     EXPECT_THAT(
         p.errors(),
         UnorderedElementsAre(
@@ -2578,7 +2578,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"{ [key]; other }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var key, missing, literal, var other)");
+    EXPECT_EQ(summarize(ast), "object(var key: missing, literal: var other)");
     EXPECT_THAT(
         p.errors(),
         UnorderedElementsAre(
@@ -2599,8 +2599,8 @@ TEST_F(test_parse_expression,
     test_parser p(u8"{ first< get< set< async< }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
-              "object(literal, var first, literal, var get, "
-              "literal, var set, literal, var async)");
+              "object(literal: var first, literal: var get, "
+              "literal: var set, literal: var async)");
     EXPECT_THAT(
         p.errors(),
         UnorderedElementsAre(
@@ -2626,7 +2626,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"{ [key]< other }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var key, missing, literal, var other)");
+    EXPECT_EQ(summarize(ast), "object(var key: missing, literal: var other)");
     EXPECT_THAT(
         p.errors(),
         UnorderedElementsAre(
@@ -2642,7 +2642,7 @@ TEST_F(test_parse_expression,
   {
     test_parser p(u8"{ method() {}< other }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, function, literal, var other)");
+    EXPECT_EQ(summarize(ast), "object(literal: function, literal: var other)");
     EXPECT_THAT(p.errors(),
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(),
@@ -2655,7 +2655,7 @@ TEST(test_parse, object_literal_generator_method_with_misplaced_star) {
   {
     test_parser p(u8"{method*() { yield 42; }}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(literal, function)");
+    EXPECT_EQ(summarize(ast), "object(literal: function)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(DIAG_TYPE_2_OFFSETS(
@@ -2667,7 +2667,7 @@ TEST(test_parse, object_literal_generator_method_with_misplaced_star) {
   {
     test_parser p(u8"{ [computed] *() { yield 42; }}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "object(var computed, function)");
+    EXPECT_EQ(summarize(ast), "object(var computed: function)");
     EXPECT_THAT(
         p.errors(),
         ElementsAre(DIAG_TYPE_2_OFFSETS(
@@ -3009,7 +3009,7 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)),
-              "object(literal, var a, literal, var b)");
+              "object(literal: var a, literal: var b)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 
@@ -3366,7 +3366,7 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
   {
     expression* ast = this->parse_expression(u8"{a: new A(), b: new B()}"_sv);
     EXPECT_EQ(summarize(ast),
-              "object(literal, new(var A), literal, new(var B))");
+              "object(literal: new(var A), literal: new(var B))");
   }
 
   {
@@ -3437,55 +3437,55 @@ TEST_F(test_parse_expression,
       string8 code = u8"{ " + property + u8": value }";
       SCOPED_TRACE(out_string8(code));
       expression* ast = this->parse_expression(code);
-      EXPECT_EQ(summarize(ast), "object(literal, var value)");
+      EXPECT_EQ(summarize(ast), "object(literal: var value)");
     }
 
     {
       string8 code = u8"{ " + property + u8"() {} }";
       SCOPED_TRACE(out_string8(code));
       expression* ast = this->parse_expression(code);
-      EXPECT_EQ(summarize(ast), "object(literal, function)");
+      EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       string8 code = u8"{ get " + property + u8"() {} }";
       SCOPED_TRACE(out_string8(code));
       expression* ast = this->parse_expression(code);
-      EXPECT_EQ(summarize(ast), "object(literal, function)");
+      EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       string8 code = u8"{ set " + property + u8"(v) {} }";
       SCOPED_TRACE(out_string8(code));
       expression* ast = this->parse_expression(code);
-      EXPECT_EQ(summarize(ast), "object(literal, function)");
+      EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       string8 code = u8"{ async " + property + u8"() {} }";
       SCOPED_TRACE(out_string8(code));
       expression* ast = this->parse_expression(code);
-      EXPECT_EQ(summarize(ast), "object(literal, function)");
+      EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       string8 code = u8"{ *" + property + u8"() {} }";
       SCOPED_TRACE(out_string8(code));
       expression* ast = this->parse_expression(code);
-      EXPECT_EQ(summarize(ast), "object(literal, function)");
+      EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       string8 code = u8"{ async *" + property + u8"() {} }";
       SCOPED_TRACE(out_string8(code));
       expression* ast = this->parse_expression(code);
-      EXPECT_EQ(summarize(ast), "object(literal, function)");
+      EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       test_parser p(u8"{ function *" + property + u8"() {} }");
       expression* ast = p.parse_expression();
-      EXPECT_EQ(summarize(ast), "object(literal, function)");
+      EXPECT_EQ(summarize(ast), "object(literal: function)");
       EXPECT_THAT(
           p.errors(),
           ElementsAre(DIAG_TYPE(diag_methods_should_not_use_function_keyword)));
