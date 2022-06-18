@@ -152,8 +152,10 @@ std::string summarize(const expression& expression) {
         result += ", ";
       }
       auto entry = expression.object_entry(i);
-      result += summarize(entry.property);
-      result += ": ";
+      if (entry.property) {
+        result += summarize(entry.property);
+        result += ": ";
+      }
       result += summarize(entry.value);
       if (entry.init) {
         result += " = ";

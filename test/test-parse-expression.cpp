@@ -1949,6 +1949,7 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(summarize(ast->object_entry(0).value), "spread(var other)");
     EXPECT_EQ(summarize(ast->object_entry(1).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(1).value), "var v");
+    EXPECT_EQ(summarize(ast), "object(spread(var other), literal: var v)");
   }
 }
 
