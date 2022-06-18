@@ -459,15 +459,27 @@ namespace quick_lint_js {
 const translation_table translation_data = {
     .mapping_table = {{
 `)
+	mappingTableLines := []string{}
+	maxLineLength := 0
+	var temp bytes.Buffer
 	for _, mappingEntry := range table.MappingTable {
-		writer.WriteString("        {")
+		temp.Reset()
+		temp.WriteString("        {")
 		for i, stringOffset := range mappingEntry.StringOffsets {
 			if i != 0 {
-				writer.WriteString(", ")
+				temp.WriteString(", ")
 			}
-			fmt.Fprintf(writer, "%d", stringOffset)
+			fmt.Fprintf(&temp, "%d", stringOffset)
 		}
-		writer.WriteString("},\n")
+		fmt.Fprintf(&temp, "},")
+		line := string(temp.Bytes())
+		mappingTableLines = append(mappingTableLines, line)
+		if len(line) > maxLineLength {
+			maxLineLength = len(line)
+		}
+	}
+	for _, line := range mappingTableLines {
+		fmt.Fprintf(writer, "%s%*s  //\n", line, maxLineLength-len(line), "")
 	}
 	writer.WriteString(
 		`    }},
