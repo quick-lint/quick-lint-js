@@ -1882,8 +1882,9 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
 
   expression_arena::vector<object_property_value_pair> entries(
       "parse_object_literal entries", this->expressions_.allocator());
-  auto parse_value_expression = [&]() {
-    return this->parse_expression(v, precedence{.commas = false});
+  auto parse_value_expression = [&](expression* property) -> void {
+    expression* value = this->parse_expression(v, precedence{.commas = false});
+    entries.emplace_back(property, value);
   };
   auto parse_computed_property_name = [this, &v]() -> expression* {
     QLJS_ASSERT(this->peek().type == token_type::left_square);
@@ -2111,7 +2112,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
       }
       case token_type::colon:
         this->skip();
-        entries.emplace_back(key, parse_value_expression());
+        parse_value_expression(key);
         break;
 
       case token_type::equal: {
@@ -2315,7 +2316,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
         this->skip();
         expression* key =
             this->make_expression<expression::literal>(keyword_span);
-        entries.emplace_back(key, parse_value_expression());
+        parse_value_expression(key);
         break;
       }
 
@@ -2355,7 +2356,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
       switch (this->peek().type) {
       case token_type::colon:
         this->skip();
-        entries.emplace_back(key, parse_value_expression());
+        parse_value_expression(key);
         break;
 
       case token_type::left_paren:
@@ -2433,7 +2434,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
 
     // {...other}  // Spread operator.
     case token_type::dot_dot_dot:
-      entries.emplace_back(parse_value_expression());
+      parse_value_expression(nullptr);
       break;
 
     default:
