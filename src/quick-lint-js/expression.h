@@ -106,14 +106,27 @@ struct object_property_value_pair {
   // property is optional.
   // init is required.
   explicit object_property_value_pair(expression *property, expression *value,
-                                      expression *init) noexcept
-      : property(property), value(value), init(init) {
+                                      expression *init,
+                                      const char8 *init_equal_begin) noexcept
+      : property(property),
+        value(value),
+        init(init),
+        init_equal_begin(init_equal_begin) {
     QLJS_ASSERT(init);
+    QLJS_ASSERT(init_equal_begin);
   }
 
-  expression *property;  // Optional.
-  expression *value;     // Required.
-  expression *init;      // Optional.
+  // Precondition: init is not null.
+  source_code_span init_equals_span() {
+    QLJS_ASSERT(this->init);
+    QLJS_ASSERT(this->init_equal_begin);
+    return source_code_span(this->init_equal_begin, this->init_equal_begin + 1);
+  }
+
+  expression *property;           // Optional.
+  expression *value;              // Required.
+  expression *init;               // Optional.
+  const char8 *init_equal_begin;  // Used only if init is not null.
 };
 
 class expression_arena {

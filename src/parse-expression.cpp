@@ -1893,9 +1893,11 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
                                       .commas = false,
                                   });
     if (this->peek().type == token_type::equal) {
+      const char8* equal_begin = this->peek().begin;
       this->skip();
       expression* init = this->parse_expression(v, precedence{.commas = false});
-      entries.emplace_back(property, value, /*init=*/init);
+      entries.emplace_back(property, value, /*init=*/init,
+                           /*init_equal_begin=*/equal_begin);
     } else {
       entries.emplace_back(property, value);
     }
@@ -1925,6 +1927,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
     }
 
     QLJS_ASSERT(this->peek().type == token_type::equal);
+    const char8* equal_begin = this->peek().begin;
     this->skip();
 
     expression* rhs = this->parse_expression(v, precedence{.commas = false});
@@ -1934,7 +1937,8 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
               source_code_span(lhs->span().begin(), rhs->span().end()),
       });
     }
-    entries.emplace_back(key, lhs, rhs);
+    entries.emplace_back(key, lhs, /*init=*/rhs,
+                         /*init_equal_begin=*/equal_begin);
   };
   auto parse_method_entry = [&](const char8* key_span_begin, expression* key,
                                 function_attributes attributes) -> void {
