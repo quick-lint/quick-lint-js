@@ -7,26 +7,6 @@ import "bytes"
 import "reflect"
 import "testing"
 
-func TestHashFNV(t *testing.T) {
-	assertEqual := func(actual uint64, expected uint64) {
-		if actual != expected {
-			t.Errorf("expected %#v, but got %#v", expected, actual)
-		}
-	}
-
-	t.Run("FNV1a default offset_basis", func(t *testing.T) {
-		// https://datatracker.ietf.org/doc/html/draft-eastlake-fnv-17.html#page-26
-		assertEqual(HashFNV1a64([]byte("")), 0xcbf29ce484222325)
-		assertEqual(HashFNV1a64([]byte("\x00")), 0xaf63bd4c8601b7df)
-		assertEqual(HashFNV1a64([]byte("a")), 0xaf63dc4c8601ec8c)
-		assertEqual(HashFNV1a64([]byte("a\x00")), 0x089be207b544f1e4)
-		assertEqual(HashFNV1a64([]byte("foobar")), 0x85944171f73967e8)
-		assertEqual(HashFNV1a64([]byte("foobar\x00")), 0x34531ca7168b8f38)
-		// https://docs.aws.amazon.com/redshift/latest/dg/r_FNV_HASH.html
-		assertEqual(HashFNV1a64([]byte("Amazon Redshift")), 0x6c048340799c899e)
-	})
-}
-
 func TestGMO(t *testing.T) {
 	assertEqual := func(actual []TranslationEntry, expected []TranslationEntry) {
 		if !reflect.DeepEqual(actual, expected) {
@@ -116,21 +96,20 @@ func TestGMO(t *testing.T) {
 
 func TestCreateTranslationTable(t *testing.T) {
 	checkTableIntegrity := func(t *testing.T, table *TranslationTable) {
-		if len(table.ConstHashTable) == 0 {
-			t.Errorf("hash table should never be empty")
-		}
 		if len(table.MappingTable) == 0 {
 			t.Errorf("mapping table should never be empty")
 		}
-		for i, constHashEntry := range table.ConstHashTable {
-			if int(constHashEntry.MappingTableIndex) >= len(table.MappingTable) {
-				t.Errorf("hash table entry %d's MappingTableIndex should be between 0 and %d-1, but it is %d",
-					i,
-					len(table.MappingTable),
-					constHashEntry.MappingTableIndex)
+		for i, constLookupEntry := range table.ConstLookupTable {
+			if len(constLookupEntry.Untranslated) == 0 {
+				t.Errorf("const original table entry %d has empty Untranslated", i)
 			}
-			if len(constHashEntry.Untranslated) != 0 && constHashEntry.MappingTableIndex == 0 {
-				t.Errorf("hash table entry %d has filled but MappingTableIndex is 0", i)
+		}
+		if len(table.MappingTable) > 0 {
+			nullMapping := table.MappingTable[0]
+			for j, stringOffset := range nullMapping.StringOffsets {
+				if table.StringTable[stringOffset] != 0x00 {
+					t.Errorf("first mapping entry locale %d points to non-empty string", j)
+				}
 			}
 		}
 		for i, mappingEntry := range table.MappingTable {
@@ -145,7 +124,7 @@ func TestCreateTranslationTable(t *testing.T) {
 			for j, stringOffset := range mappingEntry.StringOffsets {
 				stringData := table.StringTable[stringOffset:]
 				if !bytes.Contains(stringData, []byte{0}) {
-					t.Errorf("hash table entry %d locale %d points to string with no null terminator (%#v ...)",
+					t.Errorf("mapping table entry %d locale %d points to string with no null terminator (%#v ...)",
 						i,
 						j,
 						stringData)
