@@ -236,7 +236,7 @@ class expression {
 
   expression_arena::array_ptr<expression *> children() const noexcept;
 
-  // Remove wrapping paren expressions, if any.e
+  // Remove wrapping paren expressions, if any.
   expression *without_paren() const noexcept;
 
   int object_entry_count() const noexcept;
