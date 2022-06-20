@@ -73,12 +73,17 @@ enum class expression_kind {
   super,
   tagged_template_literal,
   trailing_comma,
+  type_annotated,  // TypeScript only.
   unary_operator,
   variable,
   yield_many,
   yield_none,
   yield_one,
 };
+
+// TODO(strager): Make a separate hierarchy for types.
+using type_expression_kind = expression_kind;
+using type_expression = expression;
 
 // property is present:
 // * { property: value }
@@ -215,6 +220,7 @@ class expression {
   class super;
   class tagged_template_literal;
   class trailing_comma;
+  class type_annotated;
   class unary_operator;
   class variable;
   class yield_many;
@@ -246,6 +252,8 @@ class expression {
   source_code_span span() const noexcept;
 
   function_attributes attributes() const noexcept;
+
+  type_expression *type_annotation() const noexcept;
 
  protected:
   explicit expression(expression_kind kind) noexcept : kind_(kind) {}
@@ -861,7 +869,30 @@ class expression::trailing_comma final : public expression {
   expression_arena::array_ptr<expression *> children_;
   const char8 *comma_end_;
 };
-static_assert(expression_arena::is_allocatable<expression::trailing_comma>);
+
+class expression::type_annotated final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::type_annotated;
+
+  explicit type_annotated(expression *child, source_code_span colon_span,
+                          type_expression *type) noexcept
+      : expression(kind),
+        child_(child),
+        colon_(colon_span.begin()),
+        type_(type) {
+    QLJS_ASSERT(*colon_span.begin() == u8':');
+    QLJS_ASSERT(colon_span.size() == 1);
+  }
+
+  source_code_span colon_span() const noexcept {
+    return source_code_span(this->colon_, this->colon_ + 1);
+  }
+
+  expression *child_;
+  const char8 *colon_;
+  type_expression *type_;
+};
+static_assert(expression_arena::is_allocatable<expression::type_annotated>);
 
 class expression::unary_operator final
     : public expression::expression_with_prefix_operator_base {
@@ -1046,6 +1077,10 @@ inline expression_arena::array_ptr<expression *> expression::children() const
         ->tag_and_template_children_;
   case expression_kind::trailing_comma:
     return static_cast<const expression::trailing_comma *>(this)->children_;
+  case expression_kind::type_annotated: {
+    auto *annotated = static_cast<const expression::type_annotated *>(this);
+    return expression_arena::array_ptr<expression *>(&annotated->child_, 1);
+  }
 
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
@@ -1194,6 +1229,11 @@ inline source_code_span expression::span() const noexcept {
     return source_code_span(comma->children_.front()->span().begin(),
                             comma->comma_end_);
   }
+  case expression_kind::type_annotated: {
+    auto *annotated = static_cast<const type_annotated *>(this);
+    return source_code_span(annotated->child_->span().begin(),
+                            annotated->type_->span().end());
+  }
   case expression_kind::variable:
     return static_cast<const variable *>(this)->variable_identifier_.span();
   case expression_kind::yield_none:
@@ -1214,6 +1254,15 @@ inline function_attributes expression::attributes() const noexcept {
     return static_cast<const expression::named_function *>(this)
         ->function_attributes_;
 
+  default:
+    QLJS_UNEXPECTED_EXPRESSION_KIND();
+  }
+}
+
+inline type_expression *expression::type_annotation() const noexcept {
+  switch (this->kind_) {
+  case expression_kind::type_annotated:
+    return static_cast<const expression::type_annotated *>(this)->type_;
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }

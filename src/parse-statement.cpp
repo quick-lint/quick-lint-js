@@ -1675,6 +1675,7 @@ parser::enum_value_kind parser::classify_enum_value_expression(
   case expression_kind::super:
   case expression_kind::tagged_template_literal:
   case expression_kind::trailing_comma:
+  case expression_kind::type_annotated:
   case expression_kind::unary_operator:
   case expression_kind::variable:
   case expression_kind::yield_many:
@@ -3306,6 +3307,10 @@ void parser::visit_binding_element(
     this->diag_reporter_->report(diag_unexpected_literal_in_parameter_list{
         .literal = ast->span(),
     });
+    break;
+
+  case expression_kind::type_annotated:
+    QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   }
 }

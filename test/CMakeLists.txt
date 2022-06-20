@@ -75,6 +75,7 @@ quick_lint_js_add_executable(
   test-parse-class.cpp
   test-parse-expression-jsx.cpp
   test-parse-expression-statement.cpp
+  test-parse-expression-typescript.cpp
   test-parse-expression.cpp
   test-parse-function.cpp
   test-parse-jsx.cpp
@@ -86,6 +87,7 @@ quick_lint_js_add_executable(
   test-parse-typescript-function.cpp
   test-parse-typescript-interface.cpp
   test-parse-typescript-var.cpp
+  test-parse-typescript.cpp
   test-parse-var.cpp
   test-parse-warning.cpp
   test-parse.cpp

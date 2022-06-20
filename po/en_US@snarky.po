@@ -1018,6 +1018,11 @@ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "unexpected ':' in expression; did you mean 'as'?"
+msgstr "this 'case' is awful lonely"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript type annotations are not allowed in JavaScript code"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 

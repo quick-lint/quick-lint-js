@@ -1021,6 +1021,11 @@ msgstr "TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "unexpected ':' in expression; did you mean 'as'?"
+msgstr "EXPECTED EXPRESSION AFTER 'CASE'"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript type annotations are not allowed in JavaScript code"
 msgstr "TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS"
 

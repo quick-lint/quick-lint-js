@@ -2868,6 +2868,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "unexpected ':' in expression; did you mean 'as'?"_translatable,
+        {
+            u8"unexpected ':' in expression; did you mean 'as'?",
+            u8"unexpected ':' in expression; did you mean 'as'?",
+            u8"unexpected ':' in expression; did you mean 'as'?",
+            u8"unexpected ':' in expression; did you mean 'as'?",
+            u8"unexpected ':' in expression; did you mean 'as'?",
+            u8"unexpected ':' in expression; did you mean 'as'?",
+        },
+    },
+    {
         "unexpected '@'"_translatable,
         {
             u8"unexpected '@'",

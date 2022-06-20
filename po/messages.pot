@@ -970,6 +970,10 @@ msgid "TypeScript static blocks are not supported in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "unexpected ':' in expression; did you mean 'as'?"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "TypeScript type annotations are not allowed in JavaScript code"
 msgstr ""
 

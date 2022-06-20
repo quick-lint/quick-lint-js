@@ -157,6 +157,15 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
     this->maybe_visit_assignment(child, v);
     break;
   }
+  case expression_kind::type_annotated: {
+    expression::type_annotated* annotated =
+        static_cast<expression::type_annotated*>(ast);
+    this->visit_expression(annotated->child_, v, context);
+    this->diag_reporter_->report(diag_typescript_type_annotation_in_expression{
+        .type_colon = annotated->colon_span(),
+    });
+    break;
+  }
   case expression_kind::variable:
     switch (context) {
     case variable_context::lhs:
@@ -1405,7 +1414,10 @@ next:
           this->make_expression<expression::_missing>(source_code_span(
               this->lexer_.end_of_previous_token(), this->peek().begin));
     } else {
-      true_expression = this->parse_expression(v);
+      true_expression =
+          this->parse_expression(v, precedence{
+                                        .colon_type_annotation = false,
+                                    });
     }
 
     if (this->peek().type != token_type::colon) {
@@ -1494,9 +1506,23 @@ next:
     break;
   }
 
+  // x: Type  // TypeScript only.
+  case token_type::colon: {
+    if (!this->options_.typescript || !prec.colon_type_annotation) {
+      break;
+    }
+    expression* child = binary_builder.last_expression();
+    source_code_span colon_span = this->peek().span();
+    this->skip();
+    type_expression* type = this->parse_type_expression(v);
+    binary_builder.replace_last(
+        this->make_expression<expression::type_annotated>(child, colon_span,
+                                                          type));
+    goto next;
+  }
+
   QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD:
   case token_type::bang:
-  case token_type::colon:
   case token_type::end_of_file:
   case token_type::kw_as:
   case token_type::kw_async:
@@ -1714,6 +1740,7 @@ void parser::parse_arrow_function_expression_remainder(
   }
 
   case expression_kind::import:
+  case expression_kind::type_annotated:
     QLJS_UNIMPLEMENTED();
     break;
   }

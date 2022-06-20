@@ -1070,6 +1070,11 @@ msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "unexpected ':' in expression; did you mean 'as'?"
+msgstr "instruction attendue après 'case'"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript type annotations are not allowed in JavaScript code"
 msgstr ""
 "la fonctionnalité 'enum' de TypeScript n'est pas encore implémentée dans "

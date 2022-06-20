@@ -269,7 +269,8 @@ const translation_table translation_data = {
         {27, 24, 25, 28, 25, 24},            //
         {23, 24, 25, 28, 26, 24},            //
         {19, 18, 19, 20, 15, 18},            //
-        {16, 15, 12, 14, 17, 15},            //
+        {0, 0, 0, 0, 0, 15},                 //
+        {16, 15, 12, 14, 17, 49},            //
         {17, 15, 11, 14, 17, 15},            //
         {31, 29, 12, 34, 33, 29},            //
         {53, 43, 46, 52, 41, 43},            //
@@ -1666,6 +1667,7 @@ const translation_table translation_data = {
         u8"unclosed string literal\0"
         u8"unclosed template\0"
         u8"unexpected '#'\0"
+        u8"unexpected ':' in expression; did you mean 'as'?\0"
         u8"unexpected '@'\0"
         u8"unexpected '\\' in identifier\0"
         u8"unexpected 'case' outside switch statement\0"

@@ -152,6 +152,10 @@ class parser {
     return this->parse_expression(v, precedence{});
   }
 
+  type_expression *parse_type_expression(parse_visitor_base &v) {
+    return this->parse_expression(v, precedence{});
+  }
+
   void parse_and_visit_typescript_colon_type_expression(parse_visitor_base &v);
   void parse_and_visit_typescript_type_expression(parse_visitor_base &v);
 
@@ -306,6 +310,7 @@ class parser {
     bool equals_assignment : 1 = true;
     bool commas : 1 = true;
     bool in_operator : 1 = true;
+    bool colon_type_annotation : 1 = true;
 
     // If true, parse unexpected trailing identifiers as part of the
     // expression (and emit an error).

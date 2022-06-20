@@ -1548,6 +1548,13 @@
               static_token))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_type_annotation_in_expression, "E0254",                  \
+      diagnostic_severity::error, { source_code_span type_colon; },            \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "unexpected ':' in expression; did you mean 'as'?"),         \
+              type_colon))                                                     \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_type_annotations_not_allowed_in_javascript, "E0224",     \
       diagnostic_severity::error, { source_code_span type_colon; },            \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript type annotations are not "         \
