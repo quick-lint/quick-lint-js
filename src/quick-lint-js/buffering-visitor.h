@@ -13,6 +13,7 @@
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/warning.h>
 #include <quick-lint-js/winkable.h>
+#include <type_traits>
 #include <utility>
 
 QLJS_WARNING_PUSH
@@ -246,6 +247,9 @@ class buffering_visitor final : public parse_visitor_base {
   std::deque<visit, boost::container::pmr::polymorphic_allocator<visit>>
       visits_;
 };
+
+template <>
+struct is_winkable<buffering_visitor> : std::true_type {};
 }
 
 QLJS_WARNING_POP

@@ -152,10 +152,6 @@ class parser {
     return this->parse_expression(v, precedence{});
   }
 
-  type_expression *parse_type_expression(parse_visitor_base &v) {
-    return this->parse_expression(v, precedence{});
-  }
-
   void parse_and_visit_typescript_colon_type_expression(parse_visitor_base &v);
   void parse_and_visit_typescript_type_expression(parse_visitor_base &v);
 
@@ -558,6 +554,10 @@ class parser {
 
   // Memory used for strings in diagnostic messages.
   monotonic_allocator diagnostic_memory_;
+
+  // Memory used for TypeScript type expressions.
+  // TODO(strager): Rewind periodically (e.g. after parsing a function body).
+  monotonic_allocator type_expression_memory_;
 
   // These are stored in a stack here (rather than on the C++ stack via local
   // variables) so that memory can be released in case we call setjmp.

@@ -184,10 +184,7 @@ std::string summarize(const expression& expression) {
   case expression_kind::trailing_comma:
     return "trailingcomma(" + children() + ")";
   case expression_kind::type_annotated:
-    return "typed(" + children() + ", " +
-           summarize(static_cast<const expression::type_annotated&>(expression)
-                         .type_) +
-           ")";
+    return "typed(" + children() + ")";
   case expression_kind::unary_operator:
     return "unary(" + summarize(expression.child_0()) + ")";
   case expression_kind::compound_assignment:

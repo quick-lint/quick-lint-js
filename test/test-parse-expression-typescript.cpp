@@ -44,26 +44,29 @@ TEST_F(test_parse_expression_typescript, type_annotation) {
   {
     test_parser& p = this->make_parser(u8"x: Type"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(ast->kind(), expression_kind::type_annotated);
+    ASSERT_EQ(ast->kind(), expression_kind::type_annotated);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
-    EXPECT_EQ(summarize(ast->type_annotation()), "var Type");
     EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"x: Type"));
+
+    spy_visitor v;
+    static_cast<expression::type_annotated*>(ast)->visit_type_annotation(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
   }
 
   {
     expression* ast = this->parse_expression(u8"{x}: Type"_sv);
     EXPECT_EQ(ast->kind(), expression_kind::type_annotated);
     EXPECT_EQ(summarize(ast->child_0()), "object(literal: var x)");
-    EXPECT_EQ(summarize(ast->type_annotation()), "var Type");
   }
 
   {
     expression* ast = this->parse_expression(u8"[x]: Type"_sv);
     EXPECT_EQ(ast->kind(), expression_kind::type_annotated);
     EXPECT_EQ(summarize(ast->child_0()), "array(var x)");
-    EXPECT_EQ(summarize(ast->type_annotation()), "var Type");
   }
 }
 

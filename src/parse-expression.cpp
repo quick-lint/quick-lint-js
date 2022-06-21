@@ -1513,11 +1513,12 @@ next:
     }
     expression* child = binary_builder.last_expression();
     source_code_span colon_span = this->peek().span();
-    this->skip();
-    type_expression* type = this->parse_type_expression(v);
+    buffering_visitor type_visitor(&this->type_expression_memory_);
+    this->parse_and_visit_typescript_colon_type_expression(type_visitor);
+    const char8* type_end = this->lexer_.end_of_previous_token();
     binary_builder.replace_last(
-        this->make_expression<expression::type_annotated>(child, colon_span,
-                                                          type));
+        this->make_expression<expression::type_annotated>(
+            child, colon_span, std::move(type_visitor), type_end));
     goto next;
   }
 

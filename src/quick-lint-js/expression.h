@@ -82,10 +82,6 @@ enum class expression_kind {
   yield_one,
 };
 
-// TODO(strager): Make a separate hierarchy for types.
-using type_expression_kind = expression_kind;
-using type_expression = expression;
-
 // property is present:
 // * { property: value }
 // * { propertyAndValue }
@@ -253,8 +249,6 @@ class expression {
   source_code_span span() const noexcept;
 
   function_attributes attributes() const noexcept;
-
-  type_expression *type_annotation() const noexcept;
 
  protected:
   explicit expression(expression_kind kind) noexcept : kind_(kind) {}
@@ -876,11 +870,13 @@ class expression::type_annotated final : public expression {
   static constexpr expression_kind kind = expression_kind::type_annotated;
 
   explicit type_annotated(expression *child, source_code_span colon_span,
-                          type_expression *type) noexcept
+                          buffering_visitor &&type_visits,
+                          const char8 *span_end) noexcept
       : expression(kind),
         child_(child),
         colon_(colon_span.begin()),
-        type_(type) {
+        type_visits_(std::move(type_visits)),
+        span_end_(span_end) {
     QLJS_ASSERT(*colon_span.begin() == u8':');
     QLJS_ASSERT(colon_span.size() == 1);
   }
@@ -889,10 +885,18 @@ class expression::type_annotated final : public expression {
     return source_code_span(this->colon_, this->colon_ + 1);
   }
 
+  void visit_type_annotation(parse_visitor_base &v) {
+    std::move(this->type_visits_).move_into(v);
+  }
+
   expression *child_;
   const char8 *colon_;
-  type_expression *type_;
+  buffering_visitor type_visits_{nullptr};
+  const char8 *span_end_;
 };
+template <>
+struct is_winkable<expression::type_annotated>
+    : is_winkable<buffering_visitor> {};
 static_assert(expression_arena::is_allocatable<expression::type_annotated>);
 
 class expression::unary_operator final
@@ -1233,7 +1237,7 @@ inline source_code_span expression::span() const noexcept {
   case expression_kind::type_annotated: {
     auto *annotated = static_cast<const type_annotated *>(this);
     return source_code_span(annotated->child_->span().begin(),
-                            annotated->type_->span().end());
+                            annotated->span_end_);
   }
   case expression_kind::variable:
     return static_cast<const variable *>(this)->variable_identifier_.span();
@@ -1255,15 +1259,6 @@ inline function_attributes expression::attributes() const noexcept {
     return static_cast<const expression::named_function *>(this)
         ->function_attributes_;
 
-  default:
-    QLJS_UNEXPECTED_EXPRESSION_KIND();
-  }
-}
-
-inline type_expression *expression::type_annotation() const noexcept {
-  switch (this->kind_) {
-  case expression_kind::type_annotated:
-    return static_cast<const expression::type_annotated *>(this)->type_;
   default:
     QLJS_UNEXPECTED_EXPRESSION_KIND();
   }
