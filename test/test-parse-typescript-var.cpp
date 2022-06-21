@@ -75,6 +75,65 @@ TEST(test_parse_typescript_var, let_can_have_type_annotation) {
                             spy_visitor::visited_variable_use{u8"y"}));
   }
 }
+
+TEST(test_parse_typescript_var, function_parameter_can_have_type_annotation) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"function f(p1: A, p2: B = init) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
+                                      "visit_enter_function_scope",  // f
+                                      "visit_variable_type_use",     // A
+                                      "visit_variable_declaration",  // p1
+                                      "visit_variable_use",          // init
+                                      "visit_variable_type_use",     // B
+                                      "visit_variable_declaration",  // p2
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"A"},
+                            spy_visitor::visited_variable_use{u8"init"},
+                            spy_visitor::visited_variable_use{u8"B"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"function f([a, b]: C) {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       // f
+                                      "visit_variable_type_use",          // C
+                                      "visit_variable_declaration",       // a
+                                      "visit_variable_declaration",       // b
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+  }
+}
+
+TEST(test_parse_typescript_var, method_parameter_can_have_type_annotation) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"class C { method(param: Type) {} }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // C
+                                      "visit_enter_class_scope_body",  // {
+                                      "visit_property_declaration",    // f
+                                      "visit_enter_function_scope",    // f
+                                      "visit_variable_type_use",       // Type
+                                      "visit_variable_declaration",    // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope",        // }
+                                      "visit_exit_class_scope",           // }
+                                      "visit_variable_declaration"));     // C
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"({ method(param: Type) {} });"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  // f
+                                      "visit_variable_type_use",     // Type
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+  }
+}
 }
 }
 
