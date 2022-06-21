@@ -1224,6 +1224,11 @@ next:
     case expression_kind::variable:
     case expression_kind::private_variable:
       break;
+    case expression_kind::type_annotated:
+      // TODO(strager): Distinguish between the following:
+      // const [x]: y = z;  // Valid TypeScript.
+      // [x]: y = z;        // Invalid TypeScript.
+      break;
     case expression_kind::paren:
       QLJS_UNREACHABLE();
     }

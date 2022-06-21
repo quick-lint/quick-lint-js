@@ -49,17 +49,30 @@ TEST(test_parse_typescript_var, let_can_have_type_annotation) {
                             spy_visitor::visited_variable_use{u8"init"}));
   }
 
-  if ((false)) {  // TODO(#690)
+  {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"let [x, y, z]: Array = init;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",       // Array
-                                      "visit_variable_use",            // init
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // init
+                                      "visit_variable_type_use",       // Array
                                       "visit_variable_declaration",    // x
                                       "visit_variable_declaration",    // y
                                       "visit_variable_declaration"));  // z
     EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Array"},
-                            spy_visitor::visited_variable_use{u8"init"}));
+                ElementsAre(spy_visitor::visited_variable_use{u8"init"},
+                            spy_visitor::visited_variable_use{u8"Array"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"let {p1, p2: x, p3 = y}: T;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",       // T
+                                      "visit_variable_declaration",    // p1
+                                      "visit_variable_declaration",    // p2
+                                      "visit_variable_use",            // y
+                                      "visit_variable_declaration"));  // p3
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"T"},
+                            spy_visitor::visited_variable_use{u8"y"}));
   }
 }
 }

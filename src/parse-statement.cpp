@@ -3309,9 +3309,16 @@ void parser::visit_binding_element(
     });
     break;
 
-  case expression_kind::type_annotated:
-    QLJS_UNIMPLEMENTED();  // TODO(#690)
+  // const [x]: []number = xs;
+  case expression_kind::type_annotated: {
+    expression::type_annotated *annotated =
+        static_cast<expression::type_annotated *>(ast);
+    annotated->visit_type_annotation(v);
+    this->visit_binding_element(annotated->child_, v, declaration_kind,
+                                /*declaring_token=*/declaring_token,
+                                /*init_kind=*/init_kind);
     break;
+  }
   }
 }
 
