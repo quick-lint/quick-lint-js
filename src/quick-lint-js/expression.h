@@ -20,6 +20,7 @@
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
+#include <quick-lint-js/winkable.h>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -146,7 +147,7 @@ class expression_arena {
 
   template <class T>
   static inline constexpr bool is_allocatable =
-      std::is_trivially_destructible_v<std::remove_reference_t<T>>;
+      is_winkable_v<std::remove_reference_t<T>>;
 
   template <class Expression, class... Args>
   expression *make_expression(Args &&... args);

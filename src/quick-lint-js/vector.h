@@ -12,6 +12,7 @@
 #include <quick-lint-js/attribute.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/winkable.h>
 #include <string_view>
 #include <type_traits>
 #include <utility>
@@ -97,7 +98,7 @@ class raw_bump_vector {
   using iterator = T *;
   using const_iterator = const T *;
 
-  static_assert(std::is_trivially_destructible_v<T>);
+  static_assert(is_winkable_v<T>);
 
   explicit raw_bump_vector(BumpAllocator *allocator) noexcept
       : allocator_(allocator) {}

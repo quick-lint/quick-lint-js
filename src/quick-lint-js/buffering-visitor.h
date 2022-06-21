@@ -12,6 +12,7 @@
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/warning.h>
+#include <quick-lint-js/winkable.h>
 #include <utility>
 
 QLJS_WARNING_PUSH
@@ -224,7 +225,7 @@ class buffering_visitor final : public parse_visitor_base {
       // enter_named_function_scope, keyword_variable_use, property_declaration,
       // variable_assignment, variable_declaration, variable_use
       identifier name;
-      static_assert(std::is_trivially_destructible_v<identifier>);
+      static_assert(is_winkable_v<identifier>);
     };
 
     struct var_decl_data {
@@ -234,11 +235,11 @@ class buffering_visitor final : public parse_visitor_base {
     union {
       // variable_declaration
       var_decl_data var_decl;
-      static_assert(std::is_trivially_destructible_v<var_decl_data>);
+      static_assert(is_winkable_v<var_decl_data>);
 
       // variable_delete_use
       source_code_span extra_span;
-      static_assert(std::is_trivially_destructible_v<source_code_span>);
+      static_assert(is_winkable_v<source_code_span>);
     };
   };
 
