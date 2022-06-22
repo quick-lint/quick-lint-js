@@ -96,6 +96,14 @@ msgid "children end here"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "missing parentheses around parameter"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "TypeScript type annotation requires parentheses"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "'=' changes variables; to compare, use '===' instead"
 msgstr ""
 

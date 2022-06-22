@@ -50,6 +50,19 @@
               begin) MESSAGE(QLJS_TRANSLATABLE("children end here"), end))     \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_arrow_parameter_with_type_annotation_requires_parentheses, "E0255", \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span parameter_and_annotation;                             \
+        source_code_span type_colon;                                           \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("missing parentheses around parameter"),       \
+              parameter_and_annotation)                                        \
+          MESSAGE(QLJS_TRANSLATABLE(                                           \
+                      "TypeScript type annotation requires parentheses"),      \
+                  type_colon))                                                 \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_assignment_before_variable_declaration, "E0001",                    \
       diagnostic_severity::error,                                              \
       {                                                                        \

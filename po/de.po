@@ -94,6 +94,18 @@ msgid "children end here"
 msgstr "Children enden hier"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing parentheses around parameter"
+msgstr "Klammern fehlen um den Operanden von '{0}'"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript type annotation requires parentheses"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "'=' changes variables; to compare, use '===' instead"
 msgstr "'=' verändert Variable. Für Vergleich '===' anstattdessen verwenden"
 

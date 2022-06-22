@@ -60,6 +60,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 0, 64},                 //
         {0, 0, 0, 0, 0, 66},                 //
         {0, 0, 0, 0, 0, 57},                 //
+        {0, 0, 0, 0, 0, 48},                 //
         {0, 0, 0, 0, 0, 63},                 //
         {0, 0, 26, 0, 0, 57},                //
         {0, 0, 0, 0, 0, 67},                 //
@@ -222,7 +223,8 @@ const translation_table translation_data = {
         {52, 55, 31, 64, 48, 55},            //
         {37, 0, 26, 0, 0, 38},               //
         {40, 0, 46, 0, 0, 50},               //
-        {43, 0, 46, 0, 0, 44},               //
+        {0, 0, 0, 0, 0, 44},                 //
+        {43, 0, 46, 0, 0, 37},               //
         {46, 38, 29, 49, 36, 49},            //
         {45, 0, 11, 52, 0, 41},              //
         {0, 0, 0, 0, 0, 42},                 //
@@ -1457,6 +1459,7 @@ const translation_table translation_data = {
         u8"TypeScript interfaces cannot be named 'await' in async function\0"
         u8"TypeScript optional properties are not allowed in JavaScript code\0"
         u8"TypeScript static blocks are not supported in JavaScript\0"
+        u8"TypeScript type annotation requires parentheses\0"
         u8"TypeScript type annotations are not allowed in JavaScript code\0"
         u8"TypeScript's 'enum' feature is not allowed in JavaScript\0"
         u8"TypeScript's 'interface' feature is not allowed in JavaScript code\0"
@@ -1620,6 +1623,7 @@ const translation_table translation_data = {
         u8"missing parameters for arrow function\0"
         u8"missing parentheses around left-hand side of '**'\0"
         u8"missing parentheses around operand of '{0}'\0"
+        u8"missing parentheses around parameter\0"
         u8"missing parentheses around self-invoked function\0"
         u8"missing property name after '.' operator\0"
         u8"missing property name between '.' and '.'\0"

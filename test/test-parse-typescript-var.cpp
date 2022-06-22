@@ -134,6 +134,55 @@ TEST(test_parse_typescript_var, method_parameter_can_have_type_annotation) {
                                       "visit_exit_function_scope"));      // }
   }
 }
+
+TEST(test_parse_typescript_var, arrow_parameter_can_have_type_annotation) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"((param: Type) => {});"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",     // Type
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"((p1: T1, {p2}: T2 = init, [p3]: T3) => {});"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",     // T1
+                                      "visit_variable_declaration",  // p1
+                                      "visit_variable_use",          // init
+                                      "visit_variable_type_use",     // T2
+                                      "visit_variable_declaration",  // p2
+                                      "visit_variable_type_use",     // T3
+                                      "visit_variable_declaration",  // p3
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+  }
+}
+
+TEST(test_parse_typescript_var,
+     arrow_parameter_without_parens_cannot_have_type_annotation) {
+  {
+    padded_string code(u8"(param: Type => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",     // Type
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            &code,
+            diag_arrow_parameter_with_type_annotation_requires_parentheses,  //
+            parameter_and_annotation, strlen(u8"("), u8"param: Type",        //
+            type_colon, strlen(u8"(param"), u8":")));
+  }
+}
 }
 }
 

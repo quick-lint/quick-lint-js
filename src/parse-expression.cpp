@@ -1664,6 +1664,9 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::yield_one:
     // The code is invalid. An error is reported elsewhere.
     [[fallthrough]];
+  // x => {}
+  // (...args) => {}
+  // ({start, end}) => {}
   case expression_kind::array:
   case expression_kind::assignment:
   case expression_kind::object:
@@ -1671,6 +1674,22 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::variable:
     parameters.emplace_back(lhs);
     break;
+
+  // x: Type => {}    // Invalid.
+  // (x: Type) => {}  // TypeScript only.
+  case expression_kind::type_annotated: {
+    if (!left_paren_begin) {
+      expression::type_annotated* param =
+          static_cast<expression::type_annotated*>(lhs);
+      this->diag_reporter_->report(
+          diag_arrow_parameter_with_type_annotation_requires_parentheses{
+              .parameter_and_annotation = param->span(),
+              .type_colon = param->colon_span(),
+          });
+    }
+    parameters.emplace_back(lhs);
+    break;
+  }
 
   // ((x)) => {}  // Invalid.
   case expression_kind::paren:
@@ -1746,8 +1765,6 @@ void parser::parse_arrow_function_expression_remainder(
   }
 
   case expression_kind::import:
-  case expression_kind::type_annotated:
-    QLJS_UNIMPLEMENTED();
     break;
   }
 

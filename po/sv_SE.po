@@ -98,6 +98,16 @@ msgid "children end here"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing parentheses around parameter"
+msgstr "saknar namn eller paranteser för funktion"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript type annotation requires parentheses"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "'=' changes variables; to compare, use '===' instead"
 msgstr ""
 

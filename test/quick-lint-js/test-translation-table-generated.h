@@ -558,6 +558,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript type annotation requires parentheses"_translatable,
+        {
+            u8"TypeScript type annotation requires parentheses",
+            u8"TypeScript type annotation requires parentheses",
+            u8"TypeScript type annotation requires parentheses",
+            u8"TypeScript type annotation requires parentheses",
+            u8"TypeScript type annotation requires parentheses",
+            u8"TypeScript type annotation requires parentheses",
+        },
+    },
+    {
         "TypeScript type annotations are not allowed in JavaScript code"_translatable,
         {
             u8"TypeScript type annotations are not allowed in JavaScript code",
@@ -2348,6 +2359,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"JavaScript is stupid, so you need parentheses",
             u8"missing parentheses around operand of '{0}'",
             u8"missing parentheses around operand of '{0}'",
+        },
+    },
+    {
+        "missing parentheses around parameter"_translatable,
+        {
+            u8"missing parentheses around parameter",
+            u8"missing parentheses around parameter",
+            u8"missing parentheses around parameter",
+            u8"missing parentheses around parameter",
+            u8"missing parentheses around parameter",
+            u8"missing parentheses around parameter",
         },
     },
     {

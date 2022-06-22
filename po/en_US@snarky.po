@@ -79,6 +79,16 @@ msgid "children end here"
 msgstr "🚸🚫⛔"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing parentheses around parameter"
+msgstr "JavaScript is stupid, so you need parentheses"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript type annotation requires parentheses"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "'=' changes variables; to compare, use '===' instead"
 msgstr "this isn't math class!"
 
