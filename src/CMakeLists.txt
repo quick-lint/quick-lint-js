@@ -85,6 +85,7 @@ quick_lint_js_add_library(
   lsp-message-parser.cpp
   lsp-pipe-writer.cpp
   lsp-server.cpp
+  null-visitor.cpp
   options.cpp
   output-stream.cpp
   padded-string.cpp

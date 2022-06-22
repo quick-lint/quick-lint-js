@@ -238,6 +238,65 @@ TEST(test_parse_typescript_var, for_in_loop_variable_can_have_type_annotation) {
                                       "visit_exit_for_scope"));
   }
 }
+
+TEST(test_parse_typescript_var,
+     catch_variable_can_have_any_or_unknown_or_star_type_annotation) {
+  for (string8 type : {u8"*", u8"any", u8"unknown"}) {
+    padded_string code(u8"try { } catch (e: " + type + u8") {} ");
+    SCOPED_TRACE(code);
+    spy_visitor v = parse_and_visit_typescript_statement(code.string_view());
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     // try {
+                                      "visit_exit_block_scope",      // } try
+                                      "visit_enter_block_scope",     // catch {
+                                      "visit_variable_declaration",  // e
+                                      "visit_exit_block_scope"));    // } catch
+  }
+}
+
+TEST(test_parse_typescript_var,
+     catch_variable_cannot_have_arbitrary_type_annotation) {
+  {
+    padded_string code(u8"try { } catch (e: SomeType) {} "_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     // try {
+                                      "visit_exit_block_scope",      // } try
+                                      "visit_enter_block_scope",     // catch {
+                                      "visit_variable_declaration",  // e
+                                      "visit_exit_block_scope"))     // } catch
+        << "SomeType should be ignored (no visit_variable_type_use)";
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code,
+            diag_typescript_catch_type_annotation_must_be_any,  //
+            type_expression, strlen(u8"try { } catch (e: "), u8"SomeType")));
+  }
+}
+
+TEST(test_parse_typescript_var,
+     catch_variable_type_annotations_are_not_allowed_in_javascript) {
+  for (string8 type : {u8"*", u8"any", u8"unknown", u8"SomeType"}) {
+    padded_string code(u8"try { } catch (e: " + type + u8") {} ");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v, javascript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     // try {
+                                      "visit_exit_block_scope",      // } try
+                                      "visit_enter_block_scope",     // catch {
+                                      "visit_variable_declaration",  // e
+                                      "visit_exit_block_scope"))     // } catch
+        << "type should be ignored (no visit_variable_type_use)";
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code,
+            diag_typescript_type_annotations_not_allowed_in_javascript,  //
+            type_colon, strlen(u8"try { } catch (e"), u8":")));
+  }
+}
 }
 }
 

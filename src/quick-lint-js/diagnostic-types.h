@@ -1424,6 +1424,14 @@
                   expected_method_name))                                       \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_catch_type_annotation_must_be_any, "E0256",              \
+      diagnostic_severity::error, { source_code_span type_expression; },       \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE(                                                   \
+              "catch variable can only be typed as '*', 'any', or 'unknown'"), \
+          type_expression))                                                    \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_class_implements_not_allowed_in_javascript, "E0247",     \
       diagnostic_severity::error, { source_code_span implements_keyword; },    \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

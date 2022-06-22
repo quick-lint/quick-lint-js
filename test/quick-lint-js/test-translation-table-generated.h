@@ -987,6 +987,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "catch variable can only be typed as '*', 'any', or 'unknown'"_translatable,
+        {
+            u8"catch variable can only be typed as '*', 'any', or 'unknown'",
+            u8"catch variable can only be typed as '*', 'any', or 'unknown'",
+            u8"catch variable can only be typed as '*', 'any', or 'unknown'",
+            u8"catch variable can only be typed as '*', 'any', or 'unknown'",
+            u8"catch variable can only be typed as '*', 'any', or 'unknown'",
+            u8"catch variable can only be typed as '*', 'any', or 'unknown'",
+        },
+    },
+    {
         "character is not allowed in identifiers"_translatable,
         {
             u8"character is not allowed in identifiers",

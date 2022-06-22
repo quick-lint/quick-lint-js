@@ -98,7 +98,8 @@ const translation_table translation_data = {
         {35, 20, 37, 28, 25, 20},            //
         {45, 43, 67, 67, 58, 43},            //
         {74, 63, 45, 80, 69, 63},            //
-        {72, 53, 31, 71, 56, 53},            //
+        {0, 0, 0, 0, 0, 53},                 //
+        {72, 53, 31, 71, 56, 61},            //
         {34, 0, 30, 0, 0, 40},               //
         {0, 0, 0, 0, 0, 18},                 //
         {0, 0, 12, 0, 0, 33},                //
@@ -1498,6 +1499,7 @@ const translation_table translation_data = {
         u8"cannot import variable named keyword '{0}'\0"
         u8"cannot reference private variables without object; use 'this.'\0"
         u8"cannot update variable with '{0}' while declaring it\0"
+        u8"catch variable can only be typed as '*', 'any', or 'unknown'\0"
         u8"character is not allowed in identifiers\0"
         u8"children end here\0"
         u8"class methods cannot be optional\0"

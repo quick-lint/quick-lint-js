@@ -43,6 +43,8 @@ class null_visitor final : public parse_visitor_base {
   void visit_variable_type_use(identifier) override {}
   void visit_variable_typeof_use(identifier) override {}
   void visit_variable_use(identifier) override {}
+
+  static null_visitor instance;
 };
 }
 

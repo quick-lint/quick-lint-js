@@ -963,6 +963,10 @@ msgid "write a name to declare a class method"
 msgstr "Klassenname fehlt"
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "catch variable can only be typed as '*', 'any', or 'unknown'"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript 'implements' is not allowed in JavaScript"
 msgstr ""

@@ -14,6 +14,7 @@
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/null-visitor.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-visitor.h>
 #include <quick-lint-js/parse.h>
@@ -1793,6 +1794,43 @@ bool parser::parse_and_visit_catch_or_finally_or_both(parse_visitor_base &v) {
 
       default:
         QLJS_PARSER_UNIMPLEMENTED();
+      }
+
+      if (this->peek().type == token_type::colon) {
+        // catch (e: Type)  // TypeScript only.
+        if (!this->options_.typescript) {
+          this->diag_reporter_->report(
+              diag_typescript_type_annotations_not_allowed_in_javascript{
+                  .type_colon = this->peek().span(),
+              });
+        }
+        this->skip();
+        switch (this->peek().type) {
+        // catch (e: *)
+        // catch (e: any)
+        // catch (e: unknown)
+        case token_type::kw_any:
+        case token_type::kw_unknown:
+        case token_type::star:
+          this->skip();
+          break;
+
+        default: {
+          const char8 *type_expression_begin = this->peek().begin;
+          this->parse_and_visit_typescript_type_expression(
+              null_visitor::instance);
+          const char8 *type_expression_end =
+              this->lexer_.end_of_previous_token();
+          if (this->options_.typescript) {
+            this->diag_reporter_->report(
+                diag_typescript_catch_type_annotation_must_be_any{
+                    .type_expression = source_code_span(type_expression_begin,
+                                                        type_expression_end),
+                });
+          }
+          break;
+        }
+        }
       }
 
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);

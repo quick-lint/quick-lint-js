@@ -939,6 +939,10 @@ msgid "write a name to declare a class method"
 msgstr "MISSING NAME OF CLASS"
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "catch variable can only be typed as '*', 'any', or 'unknown'"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript 'implements' is not allowed in JavaScript"
 msgstr "TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS"
