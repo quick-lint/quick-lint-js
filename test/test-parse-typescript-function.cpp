@@ -48,10 +48,10 @@ TEST(test_parse_typescript_function, return_type_annotation) {
         parse_and_visit_typescript_statement(u8"function f(): C { }"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_declaration",       // f
-                            "visit_enter_function_scope",       // method
+                            "visit_enter_function_scope",       // f
                             "visit_variable_type_use",          // C
-                            "visit_enter_function_scope_body",  // method
-                            "visit_exit_function_scope"));      // method
+                            "visit_enter_function_scope_body",  // {
+                            "visit_exit_function_scope"));      // }
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
   }
