@@ -183,6 +183,61 @@ TEST(test_parse_typescript_var,
             type_colon, strlen(u8"(param"), u8":")));
   }
 }
+
+TEST(test_parse_typescript_var, for_loop_init_can_have_type_annotation) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"for (let i: N = 0; ;);"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+                                      "visit_variable_type_use",     // N
+                                      "visit_variable_declaration",  // i
+                                      "visit_exit_for_scope"));
+  }
+}
+
+TEST(test_parse_typescript_var, for_of_loop_variable_can_have_type_annotation) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"for (let x: C of xs);"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+                                      "visit_variable_use",          // xs
+                                      "visit_variable_type_use",     // C
+                                      "visit_variable_declaration",  // x
+                                      "visit_exit_for_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"for (const x: C of xs);"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+                                      "visit_variable_use",          // xs
+                                      "visit_variable_type_use",     // C
+                                      "visit_variable_declaration",  // x
+                                      "visit_exit_for_scope"));
+  }
+}
+
+TEST(test_parse_typescript_var, for_in_loop_variable_can_have_type_annotation) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"for (let x: C in xs);"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+                                      "visit_variable_use",          // xs
+                                      "visit_variable_type_use",     // C
+                                      "visit_variable_declaration",  // x
+                                      "visit_exit_for_scope"));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"for (const x: C in xs);"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+                                      "visit_variable_use",          // xs
+                                      "visit_variable_type_use",     // C
+                                      "visit_variable_declaration",  // x
+                                      "visit_exit_for_scope"));
+  }
+}
 }
 }
 
