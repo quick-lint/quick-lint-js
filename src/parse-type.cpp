@@ -121,12 +121,24 @@ void parser::parse_and_visit_typescript_object_type_expression(
         QLJS_PARSER_UNIMPLEMENTED();
       }
     }
+
+    if (this->peek().type == token_type::kw_readonly) {
+      // { readonly prop: Type }
+      this->skip();
+    }
+
     switch (this->peek().type) {
     // { prop }
     // { prop: Type }
+    // { prop?: Type }
     case token_type::identifier:
       this->skip();
+      if (this->peek().type == token_type::question) {
+        // { prop? }
+        this->skip();
+      }
       if (this->peek().type == token_type::colon) {
+        // { prop: Type }
         this->parse_and_visit_typescript_colon_type_expression(v);
       }
       break;

@@ -208,6 +208,37 @@ TEST(test_parse_typescript_type, object_type_with_basic_properties) {
                             spy_visitor::visited_variable_use{u8"Type2"}));
   }
 }
+
+TEST(test_parse_typescript_type, object_type_with_readonly_properties) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"{ readonly untypedProperty }"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"{ readonly property: Type }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+  }
+}
+
+TEST(test_parse_typescript_type, object_type_with_optional_properties) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"{ untypedProperty? }"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"{ property?: Type }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+  }
+}
 }
 }
 
