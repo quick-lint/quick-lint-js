@@ -38,6 +38,7 @@ void parser::parse_and_visit_typescript_colon_type_expression(
 }
 
 void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
+  depth_guard guard(this);
   switch (this->peek().type) {
   case token_type::complete_template:
   case token_type::kw_any:

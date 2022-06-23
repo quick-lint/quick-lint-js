@@ -807,6 +807,18 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
     EXPECT_TRUE(ok);
     EXPECT_THAT(v.errors, IsEmpty());
   }
+
+  for (const string8 &type : {
+           repeated_str(u8"(", u8"T", u8")", parser::stack_limit - 2),
+       }) {
+    padded_string code(u8"let x: " + type + u8";");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+    EXPECT_TRUE(ok);
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
 }
 #endif
 
@@ -871,6 +883,18 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
     SCOPED_TRACE(code);
     spy_visitor v;
     parser p(&code, &v, jsx_options);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+    EXPECT_FALSE(ok);
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
+  }
+
+  for (const string8 &type : {
+           repeated_str(u8"(", u8"T", u8")", parser::stack_limit + 1),
+       }) {
+    padded_string code(u8"let x: " + type + u8";");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
