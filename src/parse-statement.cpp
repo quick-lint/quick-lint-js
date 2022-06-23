@@ -1272,6 +1272,7 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v) {
     case token_type::identifier:
     case token_type::kw_yield:
     case token_type::left_curly:
+    case token_type::left_paren:
     case token_type::left_square:
     case token_type::number:
     case token_type::reserved_keyword_with_escape_sequence: {

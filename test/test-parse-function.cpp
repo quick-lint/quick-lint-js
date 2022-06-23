@@ -579,6 +579,31 @@ TEST(test_parse, nested_arrow_function) {
   }
 }
 
+TEST(test_parse_function, empty_parens_parameter_is_an_error) {
+  {
+    padded_string code(u8"function f(()) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_missing_expression_between_parentheses,  //
+            left_paren_to_right_paren, strlen(u8"function f("), u8"()")));
+  }
+
+  {
+    padded_string code(u8"let f = (()) => {};"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_missing_expression_between_parentheses,  //
+                    left_paren_to_right_paren, strlen(u8"let f = ("), u8"()")));
+  }
+}
+
 TEST(test_parse, function_statements_allow_trailing_commas_in_parameter_list) {
   {
     spy_visitor v = parse_and_visit_statement(u8"function f(x,) { y; });"_sv);
