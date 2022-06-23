@@ -839,8 +839,8 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
   for (const string8 &exps : {
            u8"return " + repeated_str(u8"<div>", u8"", u8"</div>",
                                       parser::stack_limit + 1),
-           u8"return <>" + repeated_str(u8"<div>", u8"", u8"</div></>",
-                                        parser::stack_limit + 1),
+           u8"return <>" + repeated_str(u8"<div>", u8"", u8"</div>",
+                                        parser::stack_limit + 1) + u8"</>",
            u8"return " + repeated_str(u8"<div>{", u8"", u8"}</div>",
                                       parser::stack_limit + 1),
            u8"return " + repeated_str(u8"<div attr={", u8"'value'", u8"} />",
