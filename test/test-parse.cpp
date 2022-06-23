@@ -817,6 +817,28 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
                         parser::stack_limit + 1),
            repeated_str(u8"class C { m() { ", u8"", u8"} }",
                         parser::stack_limit + 1),
+       }) {
+    padded_string code(exps);
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v, javascript_options);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+    EXPECT_FALSE(ok);
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
+  }
+
+  {
+    padded_string code(
+        u8"(" + repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit + 1) +
+        u8")");
+    spy_visitor v;
+    parser p(&code, &v);
+    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
+    EXPECT_FALSE(ok);
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
+  }
+
+  for (const string8 &exps : {
            u8"return " + repeated_str(u8"<div>", u8"", u8"</div>",
                                       parser::stack_limit + 1),
            u8"return <>" + repeated_str(u8"<div>", u8"", u8"</div></>",
@@ -829,20 +851,7 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
     padded_string code(exps);
     SCOPED_TRACE(code);
     spy_visitor v;
-    parser_options p_options;
-    p_options.jsx = true;
-    parser p(&code, &v, p_options);
-    bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
-    EXPECT_FALSE(ok);
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
-  }
-
-  {
-    padded_string code(
-        u8"(" + repeated_str(u8"{x:", u8"", u8"}", parser::stack_limit + 1) +
-        u8")");
-    spy_visitor v;
-    parser p(&code, &v);
+    parser p(&code, &v, jsx_options);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_FALSE(ok);
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
