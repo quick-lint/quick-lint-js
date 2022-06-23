@@ -90,9 +90,56 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
     this->skip();
     break;
 
+  // { key: value }
+  case token_type::left_curly:
+    this->parse_and_visit_typescript_object_type_expression(v);
+    break;
+
   default:
     QLJS_PARSER_UNIMPLEMENTED();
     break;
+  }
+}
+
+void parser::parse_and_visit_typescript_object_type_expression(
+    parse_visitor_base &v) {
+  QLJS_ASSERT(this->peek().type == token_type::left_curly);
+  this->skip();
+
+  bool is_first = true;
+  for (;;) {
+    if (!is_first) {
+      switch (this->peek().type) {
+      case token_type::comma:
+        this->skip();
+        break;
+
+      case token_type::right_curly:
+        break;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
+    }
+    switch (this->peek().type) {
+    // { prop }
+    // { prop: Type }
+    case token_type::identifier:
+      this->skip();
+      if (this->peek().type == token_type::colon) {
+        this->parse_and_visit_typescript_colon_type_expression(v);
+      }
+      break;
+
+    case token_type::right_curly:
+      this->skip();
+      return;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+    is_first = false;
   }
 }
 

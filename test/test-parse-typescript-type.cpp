@@ -173,6 +173,41 @@ TEST(test_parse_typescript_type, tuple_type) {
                             spy_visitor::visited_variable_use{u8"C"}));
   }
 }
+
+TEST(test_parse_typescript_type, empty_object_type) {
+  spy_visitor v = parse_and_visit_typescript_type(u8"{}"_sv);
+  EXPECT_THAT(v.visits, IsEmpty());
+  EXPECT_THAT(v.variable_uses, IsEmpty());
+}
+
+TEST(test_parse_typescript_type, object_type_with_basic_properties) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"{ untypedProperty }"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"{ property: Type }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"{ property: Type, }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"{ p1: Type1, p2: Type2 }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
+                                      "visit_variable_type_use"));  // Type2
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
+                            spy_visitor::visited_variable_use{u8"Type2"}));
+  }
+}
 }
 }
 
