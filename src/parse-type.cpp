@@ -81,6 +81,14 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
     this->parse_and_visit_typescript_tuple_type_expression(v);
     break;
 
+  // (typeexpr)
+  case token_type::left_paren:
+    this->skip();
+    this->parse_and_visit_typescript_type_expression(v);
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+    this->skip();
+    break;
+
   default:
     QLJS_PARSER_UNIMPLEMENTED();
     break;
