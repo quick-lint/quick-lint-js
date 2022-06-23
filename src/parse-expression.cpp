@@ -437,34 +437,16 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
     this->skip();
 
     if (this->peek().type == token_type::right_paren) {
+      // ()        // Invalid.
+      // () => {}
       source_code_span right_paren_span = this->peek().span();
       this->skip();
-      bool is_arrow_function = this->peek().type == token_type::equal_greater;
-      bool is_arrow_function_without_arrow =
-          prec.trailing_curly_is_arrow_body &&
-          this->peek().type == token_type::left_curly;
-      if (is_arrow_function || is_arrow_function_without_arrow) {
-        // Arrow function: () => expression-or-block
-        // Arrow function: () { }  // Invalid.
-        if (is_arrow_function) {
-          this->skip();
-        } else {
-          this->diag_reporter_->report(
-              diag_missing_arrow_operator_in_arrow_function{
-                  .where = this->peek().span()});
-        }
-        expression* ast = this->parse_arrow_function_body(
-            v, function_attributes::normal, left_paren_span.begin(),
-            /*allow_in_operator=*/prec.in_operator,
-            expression_arena::array_ptr<expression*>());
-        return ast;
-      } else {
-        // ()  // Invalid.
-        return this->make_expression<expression::paren_empty>(
-            source_code_span(left_paren_span.begin(), right_paren_span.end()));
-      }
+      return this->make_expression<expression::paren_empty>(
+          source_code_span(left_paren_span.begin(), right_paren_span.end()));
     }
 
+    // (x) => {}
+    // (x + y * z)
     expression* child =
         this->parse_expression(v, precedence{.trailing_identifiers = true});
     switch (this->peek().type) {
@@ -1491,12 +1473,14 @@ next:
   case token_type::left_curly: {
     bool looks_like_arrow_function_body =
         prec.trailing_curly_is_arrow_body &&
-        !this->peek().has_leading_newline &&
         !binary_builder.has_multiple_children() &&
-        // TODO(strager): Check for ',' operator explicitly, not any binary
-        // operator.
-        binary_builder.last_expression()->without_paren()->kind() ==
-            expression_kind::binary_operator;
+        ((!this->peek().has_leading_newline &&
+          // TODO(strager): Check for ',' operator explicitly, not any binary
+          // operator.
+          binary_builder.last_expression()->without_paren()->kind() ==
+              expression_kind::binary_operator) ||
+         (binary_builder.last_expression()->kind() ==
+          expression_kind::paren_empty));
     if (looks_like_arrow_function_body) {
       source_code_span arrow_span = this->peek().span();
       // (a, b) { return a + b; }  // Invalid.
@@ -1696,11 +1680,18 @@ void parser::parse_arrow_function_expression_remainder(
     // TODO(strager): Report an error.
     break;
 
+  // () => {}
   // (()) => {}  // Invalid.
   case expression_kind::paren_empty: {
     expression::paren_empty* paren_empty =
         static_cast<expression::paren_empty*>(lhs);
-    paren_empty->report_missing_expression_error(this->diag_reporter_);
+    if (left_paren_begin) {
+      // (()) => {}  // Invalid.
+      paren_empty->report_missing_expression_error(this->diag_reporter_);
+    } else {
+      // () => {}
+      left_paren_begin = paren_empty->span_.begin();
+    }
     break;
   }
 
