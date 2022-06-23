@@ -182,6 +182,25 @@ TEST(test_parse_typescript_var,
             parameter_and_annotation, strlen(u8"("), u8"param: Type",        //
             type_colon, strlen(u8"(param"), u8":")));
   }
+
+  {
+    padded_string code(u8"(async param: Type => {});"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",     // Type
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            &code,
+            diag_arrow_parameter_with_type_annotation_requires_parentheses,  //
+            parameter_and_annotation, strlen(u8"(async "), u8"param: Type",  //
+            type_colon, strlen(u8"(async param"), u8":")));
+  }
 }
 
 TEST(test_parse_typescript_var, for_loop_init_can_have_type_annotation) {

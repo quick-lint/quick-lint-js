@@ -837,10 +837,29 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
           .name = this->peek().identifier_name(),
       });
     }
+    const char8* parameter_begin = this->peek().begin;
     std::array<expression*, 1> parameters = {
         this->make_expression<expression::variable>(
             identifier(this->peek().span()), this->peek().type)};
     this->skip();
+
+    if (this->peek().type == token_type::colon && this->options_.typescript) {
+      // async param: Type => {}  // Invalid.
+      source_code_span colon_span = this->peek().span();
+      buffering_visitor type_visits(&this->type_expression_memory_);
+      this->parse_and_visit_typescript_colon_type_expression(type_visits);
+      const char8* type_end = this->lexer_.end_of_previous_token();
+
+      parameters[0] = this->make_expression<expression::type_annotated>(
+          parameters[0], colon_span, std::move(type_visits), type_end);
+      this->diag_reporter_->report(
+          diag_arrow_parameter_with_type_annotation_requires_parentheses{
+              .parameter_and_annotation =
+                  source_code_span(parameter_begin, type_end),
+              .type_colon = colon_span,
+          });
+    }
+
     return parse_arrow_function_arrow_and_body(std::move(parameters),
                                                /*return_type_visits=*/nullptr);
   }
