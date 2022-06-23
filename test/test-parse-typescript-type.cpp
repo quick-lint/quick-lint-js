@@ -103,6 +103,30 @@ TEST(test_parse_typescript_type, literal_type) {
   }
 }
 
+TEST(test_parse_typescript_type, template_literal_type) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"`hello`"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"`hello${other}`"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // other
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"other"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"`hello${other}${another}`"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // other
+                                      "visit_variable_type_use"));  // another
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"other"},
+                            spy_visitor::visited_variable_use{u8"another"}));
+  }
+}
+
 TEST(test_parse_typescript_type, tuple_type) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"[]"_sv);

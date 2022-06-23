@@ -39,6 +39,7 @@ void parser::parse_and_visit_typescript_colon_type_expression(
 
 void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
   switch (this->peek().type) {
+  case token_type::complete_template:
   case token_type::kw_any:
   case token_type::kw_bigint:
   case token_type::kw_boolean:
@@ -54,6 +55,11 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
   case token_type::kw_void:
   case token_type::number:
   case token_type::string:
+    break;
+
+  // `template ${sometype}`
+  case token_type::incomplete_template:
+    this->parse_and_visit_typescript_template_type_expression(v);
     break;
 
   case token_type::identifier: {
@@ -78,6 +84,39 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
   default:
     QLJS_PARSER_UNIMPLEMENTED();
     break;
+  }
+}
+
+void parser::parse_and_visit_typescript_template_type_expression(
+    parse_visitor_base &v) {
+  const char8 *template_begin = this->peek().begin;
+  for (;;) {
+    QLJS_ASSERT(this->peek().type == token_type::incomplete_template);
+    // TODO(strager): report_errors_for_escape_sequences_in_template
+    this->skip();
+    this->parse_and_visit_typescript_type_expression(v);
+    switch (this->peek().type) {
+    case token_type::right_curly:
+      this->lexer_.skip_in_template(template_begin);
+      switch (this->peek().type) {
+      case token_type::complete_template:
+        // TODO(strager): report_errors_for_escape_sequences_in_template
+        this->skip();
+        return;
+
+      case token_type::incomplete_template:
+        continue;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
+      break;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
   }
 }
 
