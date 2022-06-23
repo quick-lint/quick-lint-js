@@ -63,6 +63,31 @@ TEST(test_parse_typescript_type, builtin_types) {
         << "builtin type should not be treated as a variable";
   }
 }
+
+TEST(test_parse_typescript_type, special_types) {
+  for (string8 type : {
+           u8"any",
+           u8"never",
+           u8"unknown",
+       }) {
+    SCOPED_TRACE(out_string8(type));
+    spy_visitor v = parse_and_visit_typescript_type(type);
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.variable_uses, IsEmpty())
+        << "special type should not be treated as a variable";
+  }
+}
+
+TEST(test_parse_typescript_type, this_type) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"this"_sv);
+    // TODO(strager): Report an error if the 'this' type is used where 'this'
+    // isn't allowed. Should we visit so the linter can report errors? Or should
+    // the parser keep track of whether 'this' is permitted?
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.variable_uses, IsEmpty());
+  }
+}
 }
 }
 

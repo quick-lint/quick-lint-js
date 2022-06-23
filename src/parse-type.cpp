@@ -39,14 +39,18 @@ void parser::parse_and_visit_typescript_colon_type_expression(
 
 void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
   switch (this->peek().type) {
+  case token_type::kw_any:
   case token_type::kw_bigint:
   case token_type::kw_boolean:
+  case token_type::kw_never:
   case token_type::kw_null:
   case token_type::kw_number:
   case token_type::kw_object:
   case token_type::kw_string:
   case token_type::kw_symbol:
+  case token_type::kw_this:
   case token_type::kw_undefined:
+  case token_type::kw_unknown:
   case token_type::kw_void:
     break;
 
