@@ -38,17 +38,35 @@ void parser::parse_and_visit_typescript_colon_type_expression(
 }
 
 void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+  switch (this->peek().type) {
+  case token_type::kw_bigint:
+  case token_type::kw_boolean:
+  case token_type::kw_null:
+  case token_type::kw_number:
+  case token_type::kw_object:
+  case token_type::kw_string:
+  case token_type::kw_symbol:
+  case token_type::kw_undefined:
+  case token_type::kw_void:
+    break;
 
-  identifier name = this->peek().identifier_name();
-  this->skip();
-  if (this->peek().type == token_type::dot) {
+  case token_type::identifier: {
+    identifier name = this->peek().identifier_name();
     this->skip();
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-    this->skip();
-    v.visit_variable_namespace_use(name);
-  } else {
-    v.visit_variable_type_use(name);
+    if (this->peek().type == token_type::dot) {
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      this->skip();
+      v.visit_variable_namespace_use(name);
+    } else {
+      v.visit_variable_type_use(name);
+    }
+    break;
+  }
+
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
   }
 }
 }

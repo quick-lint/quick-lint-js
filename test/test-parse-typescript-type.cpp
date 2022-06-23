@@ -43,6 +43,26 @@ TEST(test_parse_typescript_type, namespaced_type_reference) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"ns"}));
   }
 }
+
+TEST(test_parse_typescript_type, builtin_types) {
+  for (string8 type : {
+           u8"bigint",
+           u8"boolean",
+           u8"null",
+           u8"number",
+           u8"object",
+           u8"string",
+           u8"symbol",
+           u8"undefined",
+           u8"void",
+       }) {
+    SCOPED_TRACE(out_string8(type));
+    spy_visitor v = parse_and_visit_typescript_type(type);
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.variable_uses, IsEmpty())
+        << "builtin type should not be treated as a variable";
+  }
+}
 }
 }
 
