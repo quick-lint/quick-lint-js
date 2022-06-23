@@ -155,6 +155,8 @@ class parser {
   void parse_and_visit_typescript_colon_type_expression(parse_visitor_base &v);
   void parse_and_visit_typescript_type_expression(parse_visitor_base &v);
 
+  void parse_and_visit_typescript_tuple_type_expression(parse_visitor_base &v);
+
  private:
   enum class variable_context {
     lhs,

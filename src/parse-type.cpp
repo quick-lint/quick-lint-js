@@ -68,9 +68,50 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
     break;
   }
 
+  // [A, B, C]
+  case token_type::left_square:
+    this->parse_and_visit_typescript_tuple_type_expression(v);
+    break;
+
   default:
     QLJS_PARSER_UNIMPLEMENTED();
     break;
+  }
+}
+
+void parser::parse_and_visit_typescript_tuple_type_expression(
+    parse_visitor_base &v) {
+  QLJS_ASSERT(this->peek().type == token_type::left_square);
+  this->skip();
+  bool is_first = true;
+  for (;;) {
+    if (!is_first) {
+      switch (this->peek().type) {
+      case token_type::comma:
+        this->skip();
+        break;
+
+      case token_type::right_square:
+        break;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+      }
+    }
+    switch (this->peek().type) {
+    case token_type::right_square:
+      this->skip();
+      return;
+
+    case token_type::identifier:
+      this->parse_and_visit_typescript_type_expression(v);
+      break;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+    is_first = false;
   }
 }
 }
