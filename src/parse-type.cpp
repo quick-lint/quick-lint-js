@@ -172,16 +172,60 @@ void parser::parse_and_visit_typescript_object_type_expression(
     // { [expr] }
     // { [expr]: Type }
     // { [expr](): Type }
-    case token_type::left_square:
+    case token_type::left_square: {
       this->skip();
 
-      this->parse_and_visit_expression(v);
+      bool is_index_signature = false;
+
+      switch (this->peek().type) {
+      // { [varname]: Type }
+      // { [key: Type]: Type }
+      case token_type::identifier: {
+        token_type ident_token_type = this->peek().type;
+        identifier ident = this->peek().identifier_name();
+        this->skip();
+        switch (this->peek().type) {
+        // { [key: Type]: Type }
+        case token_type::colon:
+          is_index_signature = true;
+          v.visit_enter_index_signature_scope();
+          this->parse_and_visit_typescript_colon_type_expression(v);
+          v.visit_variable_declaration(ident, variable_kind::_parameter,
+                                       variable_init_kind::normal);
+          break;
+        // { [varname]: Type }
+        case token_type::right_square:
+        default: {
+          expression *property_name =
+              this->make_expression<expression::variable>(ident,
+                                                          ident_token_type);
+          property_name =
+              this->parse_expression_remainder(v, property_name, precedence{});
+          this->visit_expression(property_name, v, variable_context::rhs);
+          break;
+        }
+        }
+        break;
+      }
+
+      // { [(expr)]: Type }
+      // { ['literal']: Type }
+      default:
+        expression *property_name = this->parse_expression(v);
+        this->visit_expression(property_name, v, variable_context::rhs);
+        break;
+      }
 
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
       this->skip();
 
       parse_after_property_name(std::nullopt);
+
+      if (is_index_signature) {
+        v.visit_exit_index_signature_scope();
+      }
       break;
+    }
 
     case token_type::right_curly:
       this->skip();
