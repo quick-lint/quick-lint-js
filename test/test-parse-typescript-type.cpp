@@ -264,6 +264,44 @@ TEST(test_parse_typescript_type, object_type_with_method) {
                                       "visit_exit_function_scope"));  // method
   }
 }
+
+TEST(test_parse_typescript_type, object_type_with_computed_property) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"{ ['prop'] }"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"{ ['prop']: Type }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"{ ['method']() }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",   // method
+                                      "visit_exit_function_scope"));  // method
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"{ [varName]: Type }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // varName
+                                      "visit_variable_type_use"));  // Type
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"varName"},
+                            spy_visitor::visited_variable_use{u8"Type"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"{ [ns.varName]: Type }"_sv);
+    // TODO(strager): Should this be a namespace use instead of a runtime use?
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // ns
+                                      "visit_variable_type_use"));  // Type
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"ns"},
+                            spy_visitor::visited_variable_use{u8"Type"}));
+  }
+}
 }
 }
 

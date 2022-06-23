@@ -106,6 +106,36 @@ void parser::parse_and_visit_typescript_object_type_expression(
   QLJS_ASSERT(this->peek().type == token_type::left_curly);
   this->skip();
 
+  auto parse_after_property_name =
+      [&](const std::optional<source_code_span> &name) -> void {
+    if (this->peek().type == token_type::question) {
+      // { prop? }
+      this->skip();
+    }
+    switch (this->peek().type) {
+    // { prop: Type }
+    case token_type::colon:
+      this->parse_and_visit_typescript_colon_type_expression(v);
+      break;
+
+    // { method() }
+    case token_type::left_paren:
+      v.visit_enter_function_scope();
+      this->parse_and_visit_interface_function_parameters_and_body_no_scope(
+          v, name, function_attributes::normal);
+      v.visit_exit_function_scope();
+      break;
+
+    case token_type::comma:
+    case token_type::right_curly:
+      break;
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+  };
+
   bool is_first = true;
   for (;;) {
     if (!is_first) {
@@ -135,34 +165,23 @@ void parser::parse_and_visit_typescript_object_type_expression(
     case token_type::identifier: {
       source_code_span name = this->peek().span();
       this->skip();
-      if (this->peek().type == token_type::question) {
-        // { prop? }
-        this->skip();
-      }
-      switch (this->peek().type) {
-      // { prop: Type }
-      case token_type::colon:
-        this->parse_and_visit_typescript_colon_type_expression(v);
-        break;
-
-      // { method() }
-      case token_type::left_paren:
-        v.visit_enter_function_scope();
-        this->parse_and_visit_interface_function_parameters_and_body_no_scope(
-            v, name, function_attributes::normal);
-        v.visit_exit_function_scope();
-        break;
-
-      case token_type::comma:
-      case token_type::right_curly:
-        break;
-
-      default:
-        QLJS_PARSER_UNIMPLEMENTED();
-        break;
-      }
+      parse_after_property_name(name);
       break;
     }
+
+    // { [expr] }
+    // { [expr]: Type }
+    // { [expr](): Type }
+    case token_type::left_square:
+      this->skip();
+
+      this->parse_and_visit_expression(v);
+
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
+      this->skip();
+
+      parse_after_property_name(std::nullopt);
+      break;
 
     case token_type::right_curly:
       this->skip();
