@@ -630,7 +630,8 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
         v, function_attributes::normal,
         /*parameter_list_begin=*/arrow_span.begin(),
         /*allow_in_operator=*/prec.in_operator,
-        expression_arena::array_ptr<expression*>());
+        expression_arena::array_ptr<expression*>(),
+        /*return_type_visits=*/nullptr);
     return arrow_function;
   }
 
@@ -704,7 +705,8 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
   const char8* async_begin = async_token.begin;
 
   auto parse_arrow_function_arrow_and_body =
-      [this, allow_in_operator, async_begin, &v](auto&& parameters) {
+      [this, allow_in_operator, async_begin, &v](
+          auto&& parameters, buffering_visitor* return_type_visits) {
         if (this->peek().type == token_type::equal_greater) {
           this->skip();
         } else {
@@ -717,7 +719,8 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
         expression* ast = this->parse_arrow_function_body(
             v, function_attributes::async, async_begin,
             /*allow_in_operator=*/allow_in_operator,
-            this->expressions_.make_array(std::move(parameters)));
+            this->expressions_.make_array(std::move(parameters)),
+            /*return_type_visits=*/return_type_visits);
         return ast;
       };
 
@@ -757,6 +760,13 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
     source_code_span right_paren_span = this->peek().span();
     this->skip();
 
+    buffering_visitor return_type_visits(&this->type_expression_memory_);
+    if (this->peek().type == token_type::colon && this->options_.typescript) {
+      // async (params): ReturnType => {}  // TypeScript only.
+      this->parse_and_visit_typescript_colon_type_expression(
+          return_type_visits);
+    }
+
     bool is_arrow_function = this->peek().type == token_type::equal_greater;
     bool is_arrow_function_without_arrow =
         !this->peek().has_leading_newline &&
@@ -781,7 +791,8 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
         }
       }
       // TODO(strager): Should we call maybe_wrap_erroneous_arrow_function?
-      return parse_arrow_function_arrow_and_body(std::move(parameters));
+      return parse_arrow_function_arrow_and_body(std::move(parameters),
+                                                 &return_type_visits);
     } else {
       // async as an identifier (variable reference)
       // Function call: async(arg)
@@ -830,7 +841,8 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
         this->make_expression<expression::variable>(
             identifier(this->peek().span()), this->peek().type)};
     this->skip();
-    return parse_arrow_function_arrow_and_body(std::move(parameters));
+    return parse_arrow_function_arrow_and_body(std::move(parameters),
+                                               /*return_type_visits=*/nullptr);
   }
 
   // async function f(parameters) { statements; }
@@ -1598,7 +1610,19 @@ void parser::parse_arrow_function_expression_remainder(
   expression* lhs = binary_builder.last_expression();
   function_attributes attributes = function_attributes::normal;
 
+  buffering_visitor* return_type_visits = nullptr;
   const char8* left_paren_begin = nullptr;
+  if (lhs->kind() == expression_kind::type_annotated) {
+    expression::type_annotated* annotated =
+        static_cast<expression::type_annotated*>(lhs);
+    if (annotated->child_->kind() == expression_kind::paren ||
+        annotated->child_->kind() == expression_kind::paren_empty) {
+      // (): ReturnType => {}  // TypeScript only.
+      // (param): ReturnType => {}  // TypeScript only.
+      return_type_visits = &annotated->type_visits_;
+      lhs = annotated->child_;
+    }
+  }
   if (lhs->kind() == expression_kind::paren) {
     left_paren_begin = lhs->span().begin();
     lhs = static_cast<expression::paren*>(lhs)->child_;
@@ -1659,9 +1683,10 @@ void parser::parse_arrow_function_expression_remainder(
     parameters.emplace_back(lhs);
     break;
 
-  // x: Type => {}    // Invalid.
-  // (x: Type) => {}  // TypeScript only.
+  // param: Type => {}    // Invalid.
+  // (param: Type) => {}  // TypeScript only.
   case expression_kind::type_annotated: {
+    // NOTE(strager): '(param): ReturnType => {}' is handled above.
     if (!left_paren_begin) {
       expression::type_annotated* param =
           static_cast<expression::type_annotated*>(lhs);
@@ -1771,7 +1796,8 @@ void parser::parse_arrow_function_expression_remainder(
       v, /*attributes=*/attributes,
       /*parameter_list_begin=*/left_paren_begin,
       /*allow_in_operator=*/allow_in_operator,
-      this->expressions_.make_array(std::move(parameters)));
+      this->expressions_.make_array(std::move(parameters)),
+      /*return_type_visits=*/return_type_visits);
   binary_builder.replace_last(
       this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs));
 }
@@ -1854,7 +1880,8 @@ expression* parser::parse_index_expression_remainder(parse_visitor_base& v,
 expression* parser::parse_arrow_function_body(
     parse_visitor_base& v, function_attributes attributes,
     const char8* parameter_list_begin, bool allow_in_operator,
-    expression_arena::array_ptr<expression*>&& parameters) {
+    expression_arena::array_ptr<expression*>&& parameters,
+    buffering_visitor* return_type_visits) {
   function_guard guard = this->enter_function(attributes);
 
   v.visit_enter_function_scope();
@@ -1863,6 +1890,9 @@ expression* parser::parse_arrow_function_body(
     this->visit_binding_element(parameter, v, variable_kind::_parameter,
                                 /*declaring_token=*/std::nullopt,
                                 /*init_kind=*/variable_init_kind::normal);
+  }
+  if (return_type_visits) {
+    std::move(*return_type_visits).move_into(v);
   }
   v.visit_enter_function_scope_body();
 

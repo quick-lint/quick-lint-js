@@ -392,7 +392,8 @@ class parser {
   expression *parse_arrow_function_body(
       parse_visitor_base &, function_attributes,
       const char8 *parameter_list_begin, bool allow_in_operator,
-      expression_arena::array_ptr<expression *> &&parameters);
+      expression_arena::array_ptr<expression *> &&parameters,
+      buffering_visitor *return_type_visits);
   expression *parse_function_expression(parse_visitor_base &,
                                         function_attributes,
                                         const char8 *span_begin);
