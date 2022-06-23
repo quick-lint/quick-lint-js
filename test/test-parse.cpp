@@ -788,19 +788,18 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
-  for (const string8 &exps : {
-           u8"return " + repeated_str(u8"<div>", u8"", u8"</div>",
-                                      parser::stack_limit - 2),
-           u8"return <>" +
+  for (const string8 &jsx : {
+           repeated_str(u8"<div>", u8"", u8"</div>", parser::stack_limit - 2),
+           u8"<>" +
                repeated_str(u8"<div>", u8"", u8"</div>",
                             parser::stack_limit - 3) +
                u8"</>",
-           u8"return " + repeated_str(u8"<div>{", u8"", u8"}</div>",
-                                      (parser::stack_limit / 2) - 1),
-           u8"return " + repeated_str(u8"<div attr={", u8"'value'", u8"} />",
-                                      (parser::stack_limit / 2) - 1),
+           repeated_str(u8"<div>{", u8"", u8"}</div>",
+                        (parser::stack_limit / 2) - 1),
+           repeated_str(u8"<div attr={", u8"'value'", u8"} />",
+                        (parser::stack_limit / 2) - 1),
        }) {
-    padded_string code(exps);
+    padded_string code(u8"return " + jsx);
     SCOPED_TRACE(code);
     spy_visitor v;
     parser p(&code, &v, jsx_options);
@@ -857,19 +856,18 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
   }
 
-  for (const string8 &exps : {
-           u8"return " + repeated_str(u8"<div>", u8"", u8"</div>",
-                                      parser::stack_limit + 1),
-           u8"return <>" +
+  for (const string8 &jsx : {
+           repeated_str(u8"<div>", u8"", u8"</div>", parser::stack_limit + 1),
+           u8"<>" +
                repeated_str(u8"<div>", u8"", u8"</div>",
                             parser::stack_limit + 1) +
                u8"</>",
-           u8"return " + repeated_str(u8"<div>{", u8"", u8"}</div>",
-                                      (parser::stack_limit / 2) + 1),
-           u8"return " + repeated_str(u8"<div attr={", u8"'value'", u8"} />",
-                                      (parser::stack_limit / 2) + 1),
+           repeated_str(u8"<div>{", u8"", u8"}</div>",
+                        (parser::stack_limit / 2) + 1),
+           repeated_str(u8"<div attr={", u8"'value'", u8"} />",
+                        (parser::stack_limit / 2) + 1),
        }) {
-    padded_string code(exps);
+    padded_string code(u8"return " + jsx);
     SCOPED_TRACE(code);
     spy_visitor v;
     parser p(&code, &v, jsx_options);
