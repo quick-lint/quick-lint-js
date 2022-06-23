@@ -52,6 +52,8 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
   case token_type::kw_undefined:
   case token_type::kw_unknown:
   case token_type::kw_void:
+  case token_type::number:
+  case token_type::string:
     break;
 
   case token_type::identifier: {

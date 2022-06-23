@@ -89,6 +89,20 @@ TEST(test_parse_typescript_type, this_type) {
   }
 }
 
+TEST(test_parse_typescript_type, literal_type) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"42"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.variable_uses, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"'hello'"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.variable_uses, IsEmpty());
+  }
+}
+
 TEST(test_parse_typescript_type, tuple_type) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"[]"_sv);
