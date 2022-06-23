@@ -3369,34 +3369,6 @@ void parser::visit_binding_element(
   }
   }
 }
-
-void parser::parse_and_visit_typescript_colon_type_expression(
-    parse_visitor_base &v) {
-  QLJS_ASSERT(this->peek().type == token_type::colon);
-  if (!this->options_.typescript && !this->in_typescript_only_construct_) {
-    this->diag_reporter_->report(
-        diag_typescript_type_annotations_not_allowed_in_javascript{
-            .type_colon = this->peek().span(),
-        });
-  }
-  this->skip();
-  this->parse_and_visit_typescript_type_expression(v);
-}
-
-void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-
-  identifier name = this->peek().identifier_name();
-  this->skip();
-  if (this->peek().type == token_type::dot) {
-    this->skip();
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-    this->skip();
-    v.visit_variable_namespace_use(name);
-  } else {
-    v.visit_variable_type_use(name);
-  }
-}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

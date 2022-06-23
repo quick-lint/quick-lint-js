@@ -92,6 +92,7 @@ quick_lint_js_add_library(
   parse-class.cpp
   parse-expression.cpp
   parse-statement.cpp
+  parse-type.cpp
   parse.cpp
   pipe-writer.cpp
   pipe.cpp
