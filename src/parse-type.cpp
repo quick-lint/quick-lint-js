@@ -131,17 +131,38 @@ void parser::parse_and_visit_typescript_object_type_expression(
     // { prop }
     // { prop: Type }
     // { prop?: Type }
-    case token_type::identifier:
+    // { method(): Type }
+    case token_type::identifier: {
+      source_code_span name = this->peek().span();
       this->skip();
       if (this->peek().type == token_type::question) {
         // { prop? }
         this->skip();
       }
-      if (this->peek().type == token_type::colon) {
-        // { prop: Type }
+      switch (this->peek().type) {
+      // { prop: Type }
+      case token_type::colon:
         this->parse_and_visit_typescript_colon_type_expression(v);
+        break;
+
+      // { method() }
+      case token_type::left_paren:
+        v.visit_enter_function_scope();
+        this->parse_and_visit_interface_function_parameters_and_body_no_scope(
+            v, name, function_attributes::normal);
+        v.visit_exit_function_scope();
+        break;
+
+      case token_type::comma:
+      case token_type::right_curly:
+        break;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
       }
       break;
+    }
 
     case token_type::right_curly:
       this->skip();
