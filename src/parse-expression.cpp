@@ -150,6 +150,12 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
   case expression_kind::paren:
     this->visit_expression(ast->child_0(), v, context);
     break;
+  case expression_kind::paren_empty: {
+    expression::paren_empty* paren_empty =
+        static_cast<expression::paren_empty*>(ast);
+    paren_empty->report_missing_expression_error(this->diag_reporter_);
+    break;
+  }
   case expression_kind::rw_unary_prefix:
   case expression_kind::rw_unary_suffix: {
     expression* child = ast->child_0();
@@ -454,14 +460,7 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
         return ast;
       } else {
         // ()  // Invalid.
-        this->diag_reporter_->report(
-            diag_missing_expression_between_parentheses{
-                .left_paren_to_right_paren = source_code_span(
-                    left_paren_span.begin(), right_paren_span.end()),
-                .left_paren = left_paren_span,
-                .right_paren = right_paren_span,
-            });
-        return this->make_expression<expression::_invalid>(
+        return this->make_expression<expression::paren_empty>(
             source_code_span(left_paren_span.begin(), right_paren_span.end()));
       }
     }
@@ -1215,6 +1214,7 @@ next:
       break;
     case expression_kind::_invalid:
     case expression_kind::_missing:
+    case expression_kind::paren_empty:
       // An error should have been reported elsewhere.
       break;
     case expression_kind::array:
@@ -1695,6 +1695,14 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::paren:
     // TODO(strager): Report an error.
     break;
+
+  // (()) => {}  // Invalid.
+  case expression_kind::paren_empty: {
+    expression::paren_empty* paren_empty =
+        static_cast<expression::paren_empty*>(lhs);
+    paren_empty->report_missing_expression_error(this->diag_reporter_);
+    break;
+  }
 
   // f(x, y) => {}
   case expression_kind::call: {

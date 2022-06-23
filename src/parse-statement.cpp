@@ -1670,6 +1670,7 @@ parser::enum_value_kind parser::classify_enum_value_expression(
   case expression_kind::named_function:
   case expression_kind::new_target:
   case expression_kind::object:
+  case expression_kind::paren_empty:
   case expression_kind::private_variable:
   case expression_kind::rw_unary_prefix:
   case expression_kind::rw_unary_suffix:
@@ -3341,6 +3342,14 @@ void parser::visit_binding_element(
                                 /*declaring_token=*/declaring_token,
                                 /*init_kind=*/init_kind);
     break;
+
+  // function f(()) {}  // Invalid.
+  case expression_kind::paren_empty: {
+    expression::paren_empty *paren_empty =
+        static_cast<expression::paren_empty *>(ast);
+    paren_empty->report_missing_expression_error(this->diag_reporter_);
+    break;
+  }
 
   case expression_kind::literal:
     this->diag_reporter_->report(diag_unexpected_literal_in_parameter_list{

@@ -67,6 +67,7 @@ enum class expression_kind {
   new_target,
   object,
   paren,
+  paren_empty,
   private_variable,
   rw_unary_prefix,
   rw_unary_suffix,
@@ -210,6 +211,7 @@ class expression {
   class new_target;
   class object;
   class paren;
+  class paren_empty;
   class private_variable;
   class rw_unary_prefix;
   class rw_unary_suffix;
@@ -770,6 +772,33 @@ class expression::paren final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::paren>);
 
+class expression::paren_empty final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::paren_empty;
+
+  explicit paren_empty(source_code_span span) noexcept
+      : expression(kind), span_(span) {}
+
+  source_code_span left_paren_span() const noexcept {
+    return source_code_span(this->span_.begin(), this->span_.begin() + 1);
+  }
+
+  source_code_span right_paren_span() const noexcept {
+    return source_code_span(this->span_.end() - 1, this->span_.end());
+  }
+
+  void report_missing_expression_error(diag_reporter *reporter) {
+    reporter->report(diag_missing_expression_between_parentheses{
+        .left_paren_to_right_paren = this->span_,
+        .left_paren = this->left_paren_span(),
+        .right_paren = this->right_paren_span(),
+    });
+  }
+
+  source_code_span span_;
+};
+static_assert(expression_arena::is_allocatable<expression::paren_empty>);
+
 class expression::private_variable final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::private_variable;
@@ -1213,6 +1242,8 @@ inline source_code_span expression::span() const noexcept {
     return static_cast<const object *>(this)->span_;
   case expression_kind::paren:
     return static_cast<const paren *>(this)->span_;
+  case expression_kind::paren_empty:
+    return static_cast<const paren_empty *>(this)->span_;
   case expression_kind::private_variable:
     return static_cast<const private_variable *>(this)
         ->variable_identifier_.span();

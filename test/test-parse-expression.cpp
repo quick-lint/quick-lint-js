@@ -3273,37 +3273,25 @@ TEST_F(test_parse_expression, invalid_parentheses) {
   {
     test_parser p(u8"()"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "invalid");
-    EXPECT_THAT(p.errors(),
-                ElementsAre(DIAG_TYPE_3_OFFSETS(
-                    p.code(), diag_missing_expression_between_parentheses,  //
-                    left_paren_to_right_paren, 0, u8"()",                   //
-                    left_paren, 0, u8"(",                                   //
-                    right_paren, strlen(u8"("), u8")")));
+    EXPECT_EQ(summarize(ast), "parenempty");
+    EXPECT_THAT(p.errors(), IsEmpty())
+        << "errors should be reported during visitation";
   }
 
   {
     test_parser p(u8"x = ()"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "assign(var x, invalid)");
-    EXPECT_THAT(p.errors(),
-                ElementsAre(DIAG_TYPE_3_OFFSETS(
-                    p.code(), diag_missing_expression_between_parentheses,  //
-                    left_paren_to_right_paren, strlen(u8"x = "), u8"()",    //
-                    left_paren, strlen(u8"x = "), u8"(",                    //
-                    right_paren, strlen(u8"x = ("), u8")")));
+    EXPECT_EQ(summarize(ast), "assign(var x, parenempty)");
+    EXPECT_THAT(p.errors(), IsEmpty())
+        << "errors should be reported during visitation";
   }
 
   {
     test_parser p(u8"() = x"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), "assign(invalid, var x)");
-    EXPECT_THAT(p.errors(),
-                ElementsAre(DIAG_TYPE_3_OFFSETS(
-                    p.code(), diag_missing_expression_between_parentheses,  //
-                    left_paren_to_right_paren, 0, u8"()",                   //
-                    left_paren, 0, u8"(",                                   //
-                    right_paren, strlen(u8"("), u8")")));
+    EXPECT_EQ(summarize(ast), "assign(parenempty, var x)");
+    EXPECT_THAT(p.errors(), IsEmpty())
+        << "errors should be reported during visitation";
   }
 }
 

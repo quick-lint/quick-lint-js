@@ -1528,6 +1528,47 @@ TEST(test_parse_expression_statement, object_property_default_is_not_allowed) {
                     equal, strlen(u8"({banana "), u8"=")));
   }
 }
+
+TEST(test_parse_expression_statement, invalid_parentheses) {
+  {
+    padded_string code(u8"()"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_3_OFFSETS(
+                    &code, diag_missing_expression_between_parentheses,  //
+                    left_paren_to_right_paren, 0, u8"()",                //
+                    left_paren, 0, u8"(",                                //
+                    right_paren, strlen(u8"("), u8")")));
+  }
+
+  {
+    padded_string code(u8"x = ()"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_3_OFFSETS(
+                    &code, diag_missing_expression_between_parentheses,   //
+                    left_paren_to_right_paren, strlen(u8"x = "), u8"()",  //
+                    left_paren, strlen(u8"x = "), u8"(",                  //
+                    right_paren, strlen(u8"x = ("), u8")")));
+  }
+
+  {
+    padded_string code(u8"() = x"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_expression(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_3_OFFSETS(
+                    &code, diag_missing_expression_between_parentheses,  //
+                    left_paren_to_right_paren, 0, u8"()",                //
+                    left_paren, 0, u8"(",                                //
+                    right_paren, strlen(u8"("), u8")")));
+  }
+}
 }
 }
 
