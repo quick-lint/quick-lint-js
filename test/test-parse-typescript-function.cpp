@@ -107,6 +107,59 @@ TEST(test_parse_typescript_function, arrow_return_type_annotation) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
   }
 }
+
+TEST(test_parse_typescript_function, object_method_return_type_annotation) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"({ method(param): C {} })"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_function_scope",       // method
+                            "visit_variable_declaration",       // param
+                            "visit_variable_type_use",          // C
+                            "visit_enter_function_scope_body",  // {
+                            "visit_exit_function_scope"));      // }
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+  }
+}
+
+TEST(test_parse_typescript_function, class_method_return_type_annotation) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"class C { method(param): C {} }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_class_scope",          // C
+                            "visit_enter_class_scope_body",     // {
+                            "visit_property_declaration",       // method
+                            "visit_enter_function_scope",       // method
+                            "visit_variable_declaration",       // param
+                            "visit_variable_type_use",          // C
+                            "visit_enter_function_scope_body",  // {
+                            "visit_exit_function_scope",        // }
+                            "visit_exit_class_scope",           // }
+                            "visit_variable_declaration"));     // C
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+  }
+}
+
+TEST(test_parse_typescript_function, interface_method_return_type_annotation) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(
+        u8"interface I { method(param): C; }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",    // I
+                            "visit_enter_interface_scope",   // I
+                            "visit_property_declaration",    // method
+                            "visit_enter_function_scope",    // method
+                            "visit_variable_declaration",    // param
+                            "visit_variable_type_use",       // C
+                            "visit_exit_function_scope",     // method
+                            "visit_exit_interface_scope"));  // }
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+  }
+}
 }
 }
 
