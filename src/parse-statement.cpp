@@ -3385,8 +3385,17 @@ void parser::parse_and_visit_typescript_colon_type_expression(
 
 void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-  v.visit_variable_type_use(this->peek().identifier_name());
+
+  identifier name = this->peek().identifier_name();
   this->skip();
+  if (this->peek().type == token_type::dot) {
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+    this->skip();
+    v.visit_variable_namespace_use(name);
+  } else {
+    v.visit_variable_type_use(name);
+  }
 }
 }
 
