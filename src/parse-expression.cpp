@@ -2596,14 +2596,15 @@ expression* parser::parse_jsx_expression(parse_visitor_base& v) {
   QLJS_ASSERT(this->peek().type == token_type::less);
 
   if (!this->options_.jsx) {
-    this->diag_reporter_->report(
-        diag_jsx_not_yet_implemented{.jsx_start = this->peek().span()});
+    diag_jsx_not_yet_implemented diag = {.jsx_start = this->peek().span()};
 #if QLJS_HAVE_SETJMP
     if (this->have_fatal_parse_error_jmp_buf_) {
+      this->original_diag_reporter_->report(diag);
       std::longjmp(this->fatal_parse_error_jmp_buf_, 1);
       QLJS_UNREACHABLE();
     }
 #endif
+    this->diag_reporter_->report(diag);
     return this->make_expression<expression::_missing>(this->peek().span());
   }
 

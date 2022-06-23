@@ -551,6 +551,7 @@ class parser {
 
   quick_lint_js::lexer lexer_;
   diag_reporter *diag_reporter_;
+  diag_reporter *original_diag_reporter_;
   parser_options options_;
   quick_lint_js::expression_arena expressions_;
 

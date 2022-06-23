@@ -52,6 +52,7 @@ parser::parser(padded_string_view input, diag_reporter* diag_reporter,
                parser_options options)
     : lexer_(input, diag_reporter),
       diag_reporter_(diag_reporter),
+      original_diag_reporter_(diag_reporter),
       options_(options) {}
 
 parser::function_guard parser::enter_function(function_attributes attributes) {
@@ -547,7 +548,7 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
                                           const char* qljs_function_name) {
 #if QLJS_HAVE_SETJMP
   if (this->have_fatal_parse_error_jmp_buf_) {
-    this->diag_reporter_->report(diag_unexpected_token{
+    this->original_diag_reporter_->report(diag_unexpected_token{
         .token = this->peek().span(),
     });
     std::longjmp(this->fatal_parse_error_jmp_buf_, 1);
@@ -571,7 +572,7 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
 void parser::crash_on_depth_limit_exceeded() {
 #if QLJS_HAVE_SETJMP
   if (this->have_fatal_parse_error_jmp_buf_) {
-    this->diag_reporter_->report(diag_depth_limit_exceeded{
+    this->original_diag_reporter_->report(diag_depth_limit_exceeded{
         .token = this->peek().span(),
     });
     std::longjmp(this->fatal_parse_error_jmp_buf_, 1);
