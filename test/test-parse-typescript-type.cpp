@@ -281,6 +281,15 @@ TEST(test_parse_typescript_type, object_type_with_optional_properties) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
   }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"{ method?(): Type }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",   // method
+                                      "visit_variable_type_use",      // Type
+                                      "visit_exit_function_scope"));  // method
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+  }
 }
 
 TEST(test_parse_typescript_type, object_type_with_method) {
