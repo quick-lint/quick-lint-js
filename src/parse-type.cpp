@@ -83,17 +83,75 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
     break;
 
   // (typeexpr)
+  // (param, param) => ReturnType
   case token_type::left_paren:
-    this->skip();
-    this->parse_and_visit_typescript_type_expression(v);
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
-    this->skip();
+    this->parse_and_visit_typescript_arrow_or_paren_type_expression(v);
     break;
 
   // { key: value }
   case token_type::left_curly:
     this->parse_and_visit_typescript_object_type_expression(v);
     break;
+
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
+  }
+}
+
+void parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
+    parse_visitor_base &v) {
+  QLJS_ASSERT(this->peek().type == token_type::left_paren);
+  this->skip();
+
+  auto parse_as_arrow_function = [&]() {
+    v.visit_enter_function_scope();
+    this->parse_and_visit_function_parameters(v);
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
+    this->skip();
+    this->parse_and_visit_typescript_type_expression(v);
+    v.visit_exit_function_scope();
+  };
+
+  if (this->peek().type == token_type::right_paren) {
+    // () => ReturnType
+    parse_as_arrow_function();
+    return;
+  }
+
+  // TODO(strager): Performance of this code probably sucks. I suspect arrow
+  // types are more common than parenthesized types, so we should assume arrow
+  // and fall back to parenthesized.
+  parser_transaction transaction = this->begin_transaction();
+  buffering_visitor &params_visitor = this->buffering_visitor_stack_.emplace(
+      boost::container::pmr::new_delete_resource());
+  this->parse_and_visit_typescript_type_expression(params_visitor);
+  switch (this->peek().type) {
+  // (typeexpr)
+  // (param) => ReturnType
+  case token_type::right_paren:
+    this->skip();
+
+    if (this->peek().type == token_type::equal_greater) {
+      // (param, param) => ReturnType
+      this->roll_back_transaction(std::move(transaction));
+      parse_as_arrow_function();
+    } else {
+      // (typeexpr)
+      this->commit_transaction(std::move(transaction));
+      params_visitor.move_into(v);
+    }
+    break;
+
+  // (param, param) => ReturnType
+  // (param: Type) => ReturnType
+  case token_type::colon:
+  case token_type::comma:
+    this->roll_back_transaction(std::move(transaction));
+    parse_as_arrow_function();
+    return;
 
   default:
     QLJS_PARSER_UNIMPLEMENTED();
