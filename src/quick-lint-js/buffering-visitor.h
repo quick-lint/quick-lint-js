@@ -25,6 +25,13 @@ class buffering_visitor final : public parse_visitor_base {
   explicit buffering_visitor(boost::container::pmr::memory_resource *memory)
       : visits_(memory) {}
 
+  // Copying is usually a bug, so disable copying.
+  buffering_visitor(const buffering_visitor &) = delete;
+  buffering_visitor &operator=(const buffering_visitor &) = delete;
+
+  buffering_visitor(buffering_visitor &&) = default;
+  buffering_visitor &operator=(buffering_visitor &&) = default;
+
   void move_into(parse_visitor_base &target);
   void copy_into(parse_visitor_base &target) const;
 
