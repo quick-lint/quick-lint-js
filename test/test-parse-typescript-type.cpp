@@ -583,6 +583,36 @@ TEST(test_parse_typescript_type, object_type_with_keyword_named_properties) {
     }
   }
 }
+
+TEST(test_parse_typescript_type,
+     object_type_with_contextual_keyword_named_index_key) {
+  for (string8 keyword : contextual_keywords) {
+    if (keyword == u8"let" || keyword == u8"static") {
+      // 'let' and 'static' aren't allowed.
+      continue;
+    }
+
+    {
+      padded_string code(u8"{ [" + keyword + u8": T]: T }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(
+          v.variable_declarations,
+          ElementsAre(spy_visitor::visited_variable_declaration{
+              keyword, variable_kind::_parameter, variable_init_kind::normal}));
+    }
+
+    {
+      padded_string code(u8"{ [" + keyword + u8" in T]: T }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(spy_visitor::visited_variable_declaration{
+                      keyword, variable_kind::_generic_parameter,
+                      variable_init_kind::normal}));
+    }
+  }
+}
 }
 }
 
