@@ -199,10 +199,24 @@ void parser::parse_and_visit_typescript_object_type_expression(
     // { prop: Type }
     // { prop?: Type }
     // { method(): Type }
+    QLJS_CASE_KEYWORD:
     case token_type::identifier: {
       source_code_span name = this->peek().span();
       this->skip();
       parse_after_property_name(name);
+      break;
+    }
+
+    // { readonly: Type }
+    // { readonly?: Type }
+    // { : }  // Invalid.
+    // { ? }  // Invalid.
+    case token_type::colon:
+    case token_type::question: {
+      // TODO(strager): Error if the previous token wasn't a modifier like
+      // 'readonly'.
+      std::optional<source_code_span> readonly_span;  // TODO(strager)
+      parse_after_property_name(readonly_span);
       break;
     }
 

@@ -505,6 +505,46 @@ TEST(test_parse_typescript_type, object_type_with_call_signature) {
                             spy_visitor::visited_variable_use{u8"ReturnType"}));
   }
 }
+
+TEST(test_parse_typescript_type, object_type_with_keyword_named_properties) {
+  for (string8 keyword : keywords) {
+    {
+      padded_string code(u8"{ " + keyword + u8" }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits, IsEmpty());
+    }
+
+    {
+      padded_string code(u8"{ " + keyword + u8"() }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                        "visit_exit_function_scope"));
+    }
+
+    {
+      padded_string code(u8"{ " + keyword + u8": Type }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+    }
+
+    {
+      padded_string code(u8"{ readonly " + keyword + u8": Type }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+    }
+
+    {
+      padded_string code(u8"{ " + keyword + u8"?: Type }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+    }
+  }
+}
 }
 }
 
