@@ -239,7 +239,7 @@ void parser::parse_and_visit_typescript_object_type_expression(
       // { [varname]: Type }
       // { [key: Type]: Type }
       // { [Key in Type]: Type }
-      // TODO(strager): QLJS_CASE_CONTEXTUAL_KEYWORD overmatches. 'let' and
+      // TODO(#765): QLJS_CASE_CONTEXTUAL_KEYWORD overmatches. 'let' and
       // 'static' should error instead.
       QLJS_CASE_CONTEXTUAL_KEYWORD:
       case token_type::identifier: {
