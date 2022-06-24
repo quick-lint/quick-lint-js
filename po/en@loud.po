@@ -735,6 +735,11 @@ msgid "missing operand for operator"
 msgstr "MISSING OPERAND FOR OPERATOR"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing ',', ';', or newline between object type entries"
+msgstr "MISSING COMMA BETWEEN OBJECT LITERAL ENTRIES"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "redundant delete statement on variable"
 msgstr "REDUNDANT DELETE STATEMENT ON VARIABLE"
 

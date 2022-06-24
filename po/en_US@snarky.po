@@ -742,6 +742,11 @@ msgid "missing operand for operator"
 msgstr "who taught you math? a gym teacher? 👩‍🏫"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing ',', ';', or newline between object type entries"
+msgstr "separate these fellas with a comma"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "redundant delete statement on variable"
 msgstr "you really hate variables, huh? too bad; this doesn't work"
 

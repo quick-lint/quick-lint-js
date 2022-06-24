@@ -1900,6 +1900,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "missing ',', ';', or newline between object type entries"_translatable,
+        {
+            u8"missing ',', ';', or newline between object type entries",
+            u8"missing ',', ';', or newline between object type entries",
+            u8"missing ',', ';', or newline between object type entries",
+            u8"missing ',', ';', or newline between object type entries",
+            u8"missing ',', ';', or newline between object type entries",
+            u8"missing ',', ';', or newline between object type entries",
+        },
+    },
+    {
         "missing '...' in JSX attribute spread"_translatable,
         {
             u8"missing '...' in JSX attribute spread",

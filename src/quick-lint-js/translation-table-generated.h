@@ -19,8 +19,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 306;
-constexpr std::size_t translation_table_string_table_size = 59859;
+constexpr std::uint16_t translation_table_mapping_table_size = 307;
+constexpr std::size_t translation_table_string_table_size = 59916;
 constexpr std::size_t translation_table_locale_table_size = 37;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -197,6 +197,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "methods should not use the 'function' keyword"sv,
           "mismatched JSX tags; expected '</{1}>'"sv,
           "missing ',' between variable declarations"sv,
+          "missing ',', ';', or newline between object type entries"sv,
           "missing '...' in JSX attribute spread"sv,
           "missing ':' in conditional expression"sv,
           "missing '<>' and '</>' to enclose multiple children"sv,

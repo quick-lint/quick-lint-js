@@ -199,6 +199,11 @@ TEST(test_parse_typescript_type, object_type_with_basic_properties) {
   }
 
   {
+    spy_visitor v = parse_and_visit_typescript_type(u8"{ property: Type; }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+  }
+
+  {
     spy_visitor v =
         parse_and_visit_typescript_type(u8"{ p1: Type1, p2: Type2 }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
@@ -206,6 +211,44 @@ TEST(test_parse_typescript_type, object_type_with_basic_properties) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
                             spy_visitor::visited_variable_use{u8"Type2"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"{ p1: Type1; p2: Type2 }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
+                                      "visit_variable_type_use"));  // Type2
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
+                            spy_visitor::visited_variable_use{u8"Type2"}));
+  }
+}
+
+TEST(test_parse_typescript_type, object_type_allows_asi_between_properties) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"{\n  p1: Type1\n  p2: Type2\n}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
+                                      "visit_variable_type_use"));  // Type2
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
+                            spy_visitor::visited_variable_use{u8"Type2"}));
+  }
+}
+
+TEST(test_parse_typescript_type,
+     object_type_requires_separator_between_properties) {
+  {
+    padded_string code(u8"{ p1: Type1 p2: Type2 }"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_typescript_type_expression(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
+                                      "visit_variable_type_use"));  // Type2
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_missing_separator_between_object_type_entries,
+                    expected_separator, strlen(u8"{ p1: Type1"), u8"")));
   }
 }
 

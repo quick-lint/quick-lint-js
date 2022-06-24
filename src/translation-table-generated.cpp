@@ -181,7 +181,8 @@ const translation_table translation_data = {
         {50, 51, 22, 66, 53, 27},            //
         {68, 0, 21, 0, 0, 46},               //
         {59, 0, 43, 61, 50, 39},             //
-        {44, 0, 2, 0, 0, 42},                //
+        {0, 0, 0, 0, 0, 42},                 //
+        {44, 0, 2, 0, 0, 57},                //
         {35, 46, 20, 49, 39, 38},            //
         {34, 0, 44, 0, 0, 38},               //
         {58, 38, 48, 46, 28, 52},            //
@@ -1582,6 +1583,7 @@ const translation_table translation_data = {
         u8"methods should not use the 'function' keyword\0"
         u8"mismatched JSX tags; expected '</{1}>'\0"
         u8"missing ',' between variable declarations\0"
+        u8"missing ',', ';', or newline between object type entries\0"
         u8"missing '...' in JSX attribute spread\0"
         u8"missing ':' in conditional expression\0"
         u8"missing '<>' and '</>' to enclose multiple children\0"

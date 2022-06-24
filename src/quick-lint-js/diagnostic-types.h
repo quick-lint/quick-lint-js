@@ -1138,6 +1138,13 @@
       MESSAGE(QLJS_TRANSLATABLE("missing operand for operator"), where))       \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_missing_separator_between_object_type_entries, "E0257",             \
+      diagnostic_severity::error, { source_code_span expected_separator; },    \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "missing ',', ';', or newline between object type entries"), \
+              expected_separator))                                             \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_redundant_delete_statement_on_variable, "E0086",                    \
       diagnostic_severity::warning, { source_code_span delete_expression; },   \
       MESSAGE(QLJS_TRANSLATABLE("redundant delete statement on variable"),     \
