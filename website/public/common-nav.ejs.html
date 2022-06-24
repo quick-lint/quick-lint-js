@@ -303,9 +303,9 @@
 <h1>quick-lint-js</h1>
 <% } else { %>
 <h1><a href="<%= makeRelativeURI('/') %>">quick-lint-js</a></h1>
-<% } %> <% if (!locals.hideTagLine) { %>
+<% } %>
 <p class="tag-line">Find bugs in JavaScript programs.</p>
-<% } %> <% if (currentURI !== "/") { %><a
+<% if (currentURI !== "/") { %><a
   href="<%= makeRelativeURI('/') %>"
   class="mascot"
   ><% } %><img
