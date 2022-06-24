@@ -726,6 +726,38 @@ TEST(test_parse_typescript_type, arrow_function) {
             u8"param", variable_kind::_parameter, variable_init_kind::normal}));
   }
 }
+
+TEST(test_parse_typescript_type, constructor_function) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"new () => ReturnType"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_type_use",  // ReturnType
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"ReturnType"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(
+        u8"new (param1, param2) => ReturnType"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // param1
+                                      "visit_variable_declaration",  // param2
+                                      "visit_variable_type_use",  // ReturnType
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"ReturnType"}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(
+                    spy_visitor::visited_variable_declaration{
+                        u8"param1", variable_kind::_parameter,
+                        variable_init_kind::normal},
+                    spy_visitor::visited_variable_declaration{
+                        u8"param2", variable_kind::_parameter,
+                        variable_init_kind::normal}));
+  }
+}
 }
 }
 

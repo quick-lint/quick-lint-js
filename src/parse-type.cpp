@@ -88,6 +88,12 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
     this->parse_and_visit_typescript_arrow_or_paren_type_expression(v);
     break;
 
+  // new (param, param) => ReturnType
+  case token_type::kw_new:
+    this->skip();
+    this->parse_and_visit_typescript_arrow_type_expression(v);
+    break;
+
   // { key: value }
   case token_type::left_curly:
     this->parse_and_visit_typescript_object_type_expression(v);
@@ -99,25 +105,33 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
   }
 }
 
+void parser::parse_and_visit_typescript_arrow_type_expression(
+    parse_visitor_base &v) {
+  QLJS_ASSERT(this->peek().type == token_type::left_paren);
+  this->skip();
+  this->parse_and_visit_typescript_arrow_type_expression_after_left_paren(v);
+}
+
+void parser::parse_and_visit_typescript_arrow_type_expression_after_left_paren(
+    parse_visitor_base &v) {
+  v.visit_enter_function_scope();
+  this->parse_and_visit_function_parameters(v);
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+  this->skip();
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
+  this->skip();
+  this->parse_and_visit_typescript_type_expression(v);
+  v.visit_exit_function_scope();
+}
+
 void parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
     parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::left_paren);
   this->skip();
 
-  auto parse_as_arrow_function = [&]() {
-    v.visit_enter_function_scope();
-    this->parse_and_visit_function_parameters(v);
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
-    this->skip();
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
-    this->skip();
-    this->parse_and_visit_typescript_type_expression(v);
-    v.visit_exit_function_scope();
-  };
-
   if (this->peek().type == token_type::right_paren) {
     // () => ReturnType
-    parse_as_arrow_function();
+    this->parse_and_visit_typescript_arrow_type_expression_after_left_paren(v);
     return;
   }
 
@@ -137,7 +151,8 @@ void parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
     if (this->peek().type == token_type::equal_greater) {
       // (param, param) => ReturnType
       this->roll_back_transaction(std::move(transaction));
-      parse_as_arrow_function();
+      this->parse_and_visit_typescript_arrow_type_expression_after_left_paren(
+          v);
     } else {
       // (typeexpr)
       this->commit_transaction(std::move(transaction));
@@ -150,7 +165,7 @@ void parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
   case token_type::colon:
   case token_type::comma:
     this->roll_back_transaction(std::move(transaction));
-    parse_as_arrow_function();
+    this->parse_and_visit_typescript_arrow_type_expression_after_left_paren(v);
     return;
 
   default:
