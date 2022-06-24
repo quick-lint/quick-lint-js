@@ -321,6 +321,44 @@ TEST(test_parse_typescript_type, object_type_with_index_signature) {
                             spy_visitor::visited_variable_use{u8"PropType"}));
   }
 }
+
+TEST(test_parse_typescript_type, object_type_with_mapped_types) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"{ [Key in Keys]: PropType }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_index_signature_scope",  //
+                                      "visit_variable_type_use",     // Keys
+                                      "visit_variable_declaration",  // Key
+                                      "visit_variable_type_use",     // PropType
+                                      "visit_exit_index_signature_scope"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"Key", variable_kind::_generic_parameter,
+                    variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Keys"},
+                            spy_visitor::visited_variable_use{u8"PropType"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(
+        u8"{ [Key in Keys as KeyType]: PropType }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_index_signature_scope",  //
+                                      "visit_variable_type_use",     // Keys
+                                      "visit_variable_declaration",  // Key
+                                      "visit_variable_type_use",     // KeyType
+                                      "visit_variable_type_use",     // PropType
+                                      "visit_exit_index_signature_scope"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"Key", variable_kind::_generic_parameter,
+                    variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Keys"},
+                            spy_visitor::visited_variable_use{u8"KeyType"},
+                            spy_visitor::visited_variable_use{u8"PropType"}));
+  }
+}
 }
 }
 

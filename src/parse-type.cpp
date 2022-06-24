@@ -180,6 +180,7 @@ void parser::parse_and_visit_typescript_object_type_expression(
       switch (this->peek().type) {
       // { [varname]: Type }
       // { [key: Type]: Type }
+      // { [Key in Type]: Type }
       case token_type::identifier: {
         token_type ident_token_type = this->peek().type;
         identifier ident = this->peek().identifier_name();
@@ -193,6 +194,21 @@ void parser::parse_and_visit_typescript_object_type_expression(
           v.visit_variable_declaration(ident, variable_kind::_parameter,
                                        variable_init_kind::normal);
           break;
+
+        // { [key in Type]: Type }
+        case token_type::kw_in:
+          this->skip();
+          is_index_signature = true;
+          v.visit_enter_index_signature_scope();
+          this->parse_and_visit_typescript_type_expression(v);
+          v.visit_variable_declaration(ident, variable_kind::_generic_parameter,
+                                       variable_init_kind::normal);
+          if (this->peek().type == token_type::kw_as) {
+            this->skip();
+            this->parse_and_visit_typescript_type_expression(v);
+          }
+          break;
+
         // { [varname]: Type }
         case token_type::right_square:
         default: {
