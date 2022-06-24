@@ -108,10 +108,25 @@ void parser::parse_and_visit_typescript_object_type_expression(
 
   auto parse_after_property_name =
       [&](const std::optional<source_code_span> &name) -> void {
-    if (this->peek().type == token_type::question) {
-      // { prop? }
+    switch (this->peek().type) {
+    // { prop? }
+    case token_type::question:
       this->skip();
+      break;
+
+    // { [k: T]+? }
+    // { [k: T]-? }
+    case token_type::minus:
+    case token_type::plus:
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::question);
+      this->skip();
+      break;
+
+    default:
+      break;
     }
+
     switch (this->peek().type) {
     // { prop: Type }
     case token_type::colon:

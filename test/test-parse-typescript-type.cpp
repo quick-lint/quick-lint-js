@@ -359,6 +359,45 @@ TEST(test_parse_typescript_type, object_type_with_mapped_types) {
                             spy_visitor::visited_variable_use{u8"PropType"}));
   }
 }
+
+TEST(test_parse_typescript_type, object_type_with_modified_optional) {
+  for (string8 modifier : {u8"-?", u8"+?", u8"?"}) {
+    {
+      padded_string code(u8"{ [key: KeyType]" + modifier + u8": PropType }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits, ElementsAre("visit_enter_index_signature_scope",  //
+                                        "visit_variable_type_use",  // KeyType
+                                        "visit_variable_declaration",  // key
+                                        "visit_variable_type_use",  // PropType
+                                        "visit_exit_index_signature_scope"));
+    }
+
+    {
+      padded_string code(u8"{ [Key in Keys]" + modifier + u8": PropType }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits, ElementsAre("visit_enter_index_signature_scope",  //
+                                        "visit_variable_type_use",     // Keys
+                                        "visit_variable_declaration",  // Key
+                                        "visit_variable_type_use",  // PropType
+                                        "visit_exit_index_signature_scope"));
+    }
+
+    {
+      padded_string code(u8"{ [Key in Keys as KeyType]" + modifier +
+                         u8": PropType }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits, ElementsAre("visit_enter_index_signature_scope",  //
+                                        "visit_variable_type_use",     // Keys
+                                        "visit_variable_declaration",  // Key
+                                        "visit_variable_type_use",  // KeyType
+                                        "visit_variable_type_use",  // PropType
+                                        "visit_exit_index_signature_scope"));
+    }
+  }
+}
 }
 }
 
