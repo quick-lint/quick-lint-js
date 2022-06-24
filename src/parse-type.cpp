@@ -167,9 +167,23 @@ void parser::parse_and_visit_typescript_object_type_expression(
       }
     }
 
-    if (this->peek().type == token_type::kw_readonly) {
-      // { readonly prop: Type }
+    switch (this->peek().type) {
+    // { readonly prop: Type }
+    case token_type::kw_readonly:
       this->skip();
+      break;
+
+    // { -readonly [key: Type]: Type }
+    // { +readonly [key: Type]: Type }
+    case token_type::minus:
+    case token_type::plus:
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_readonly);
+      this->skip();
+      break;
+
+    default:
+      break;
     }
 
     switch (this->peek().type) {

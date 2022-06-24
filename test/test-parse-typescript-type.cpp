@@ -398,6 +398,45 @@ TEST(test_parse_typescript_type, object_type_with_modified_optional) {
     }
   }
 }
+
+TEST(test_parse_typescript_type, object_type_with_modified_readonly) {
+  for (string8 modifier : {u8"-readonly", u8"+readonly", u8"readonly"}) {
+    {
+      padded_string code(u8"{ " + modifier + u8" [key: KeyType]: PropType }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits, ElementsAre("visit_enter_index_signature_scope",  //
+                                        "visit_variable_type_use",  // KeyType
+                                        "visit_variable_declaration",  // key
+                                        "visit_variable_type_use",  // PropType
+                                        "visit_exit_index_signature_scope"));
+    }
+
+    {
+      padded_string code(u8"{ " + modifier + u8" [Key in Keys]: PropType }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits, ElementsAre("visit_enter_index_signature_scope",  //
+                                        "visit_variable_type_use",     // Keys
+                                        "visit_variable_declaration",  // Key
+                                        "visit_variable_type_use",  // PropType
+                                        "visit_exit_index_signature_scope"));
+    }
+
+    {
+      padded_string code(u8"{ " + modifier +
+                         u8" [Key in Keys as KeyType]: PropType }");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits, ElementsAre("visit_enter_index_signature_scope",  //
+                                        "visit_variable_type_use",     // Keys
+                                        "visit_variable_declaration",  // Key
+                                        "visit_variable_type_use",  // KeyType
+                                        "visit_variable_type_use",  // PropType
+                                        "visit_exit_index_signature_scope"));
+    }
+  }
+}
 }
 }
 
