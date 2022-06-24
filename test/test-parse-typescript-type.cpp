@@ -308,6 +308,44 @@ TEST(test_parse_typescript_type, object_type_with_method) {
   }
 }
 
+TEST(test_parse_typescript_type, object_type_with_getter) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"{ get prop() }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_function_scope",   // get prop
+                            "visit_exit_function_scope"));  // get prop
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"{ get prop(): ReturnType }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_function_scope",   // get prop
+                            "visit_variable_type_use",      // ReturnType
+                            "visit_exit_function_scope"));  // get prop
+  }
+}
+
+TEST(test_parse_typescript_type, object_type_with_setter) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"{ set prop(v) }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_function_scope",   // set prop
+                            "visit_variable_declaration",   // v
+                            "visit_exit_function_scope"));  // set prop
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"{ set prop(value: Type) }"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_function_scope",   // set prop
+                            "visit_variable_type_use",      // Type
+                            "visit_variable_declaration",   // value
+                            "visit_exit_function_scope"));  // set prop
+  }
+}
+
 TEST(test_parse_typescript_type, object_type_with_computed_property) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"{ ['prop'] }"_sv);
