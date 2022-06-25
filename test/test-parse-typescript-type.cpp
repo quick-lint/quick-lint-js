@@ -732,6 +732,37 @@ TEST(test_parse_typescript_type, arrow_function) {
   }
 }
 
+TEST(test_parse_typescript_type, generic_arrow_function) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"<T>() => ReturnType"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // T
+                                      "visit_variable_type_use",  // ReturnType
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"T", variable_kind::_generic_parameter,
+                    variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"ReturnType"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"new <T>() => ReturnType"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // T
+                                      "visit_variable_type_use",  // ReturnType
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"T", variable_kind::_generic_parameter,
+                    variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"ReturnType"}));
+  }
+}
+
 TEST(test_parse_typescript_type, constructor_function) {
   {
     spy_visitor v =

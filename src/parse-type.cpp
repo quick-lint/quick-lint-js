@@ -95,6 +95,11 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
     this->parse_and_visit_typescript_arrow_type_expression(v);
     break;
 
+  // <T>(param, param) => ReturnType
+  case token_type::less:
+    this->parse_and_visit_typescript_arrow_type_expression(v);
+    break;
+
   // { key: value }
   case token_type::left_curly:
     this->parse_and_visit_typescript_object_type_expression(v);
@@ -121,8 +126,11 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
 
 void parser::parse_and_visit_typescript_arrow_type_expression(
     parse_visitor_base &v) {
-  QLJS_ASSERT(this->peek().type == token_type::left_paren);
   v.visit_enter_function_scope();
+  if (this->peek().type == token_type::less) {
+    this->parse_and_visit_typescript_generic_parameters(v);
+  }
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
   this->skip();
   this->parse_and_visit_typescript_arrow_type_expression_after_left_paren_no_scope(
       v);
