@@ -141,6 +141,11 @@ TEST(test_parse_typescript_type, parenthesized_type) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
   }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"(number)"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
 }
 
 TEST(test_parse_typescript_type, tuple_type) {
