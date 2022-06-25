@@ -758,6 +758,25 @@ TEST(test_parse_typescript_type, constructor_function) {
                         variable_init_kind::normal}));
   }
 }
+
+TEST(test_parse_typescript_type, array) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"T[]"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // T
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"T"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"T[][][][][][]"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // T
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"(((T)[])[])"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // T
+  }
+}
 }
 }
 
