@@ -122,20 +122,30 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
 void parser::parse_and_visit_typescript_arrow_type_expression(
     parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::left_paren);
+  v.visit_enter_function_scope();
   this->skip();
-  this->parse_and_visit_typescript_arrow_type_expression_after_left_paren(v);
+  this->parse_and_visit_typescript_arrow_type_expression_after_left_paren_no_scope(
+      v);
+  v.visit_exit_function_scope();
 }
 
 void parser::parse_and_visit_typescript_arrow_type_expression_after_left_paren(
     parse_visitor_base &v) {
   v.visit_enter_function_scope();
+  this->parse_and_visit_typescript_arrow_type_expression_after_left_paren_no_scope(
+      v);
+  v.visit_exit_function_scope();
+}
+
+void parser::
+    parse_and_visit_typescript_arrow_type_expression_after_left_paren_no_scope(
+        parse_visitor_base &v) {
   this->parse_and_visit_function_parameters(v);
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
   this->skip();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
   this->skip();
   this->parse_and_visit_typescript_type_expression(v);
-  v.visit_exit_function_scope();
 }
 
 void parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
