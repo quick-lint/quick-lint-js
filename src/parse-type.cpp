@@ -106,12 +106,15 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
   }
 
   if (this->peek().type == token_type::left_square) {
-    // typexpr[]
+    // typeexpr[]
+    // typeexpr[Key]
     this->skip();
     if (this->peek().type == token_type::right_square) {
       this->skip();
     } else {
-      QLJS_PARSER_UNIMPLEMENTED();
+      this->parse_and_visit_typescript_type_expression(v);
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
+      this->skip();
     }
   }
 }
