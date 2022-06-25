@@ -35,6 +35,36 @@ TEST(test_parse_typescript_type, direct_type_reference) {
   }
 }
 
+TEST(test_parse_typescript_type, direct_generic_type_reference) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"Type<T>"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type
+                                      "visit_variable_type_use"));  // T
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type"},
+                            spy_visitor::visited_variable_use{u8"T"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"C<'hello', number, Banana>"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // C
+                                      "visit_variable_type_use"));  // Banana
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"C"},
+                            spy_visitor::visited_variable_use{u8"Banana"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"ns.C<T>"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_namespace_use",  // ns
+                                      "visit_variable_type_use"));     // T
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"ns"},
+                            spy_visitor::visited_variable_use{u8"T"}));
+  }
+}
+
 TEST(test_parse_typescript_type, namespaced_type_reference) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"ns.Type"_sv);

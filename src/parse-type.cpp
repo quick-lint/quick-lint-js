@@ -64,6 +64,8 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
     this->parse_and_visit_typescript_template_type_expression(v);
     break;
 
+  // Type
+  // ns.Type<T>
   case token_type::identifier: {
     identifier name = this->peek().identifier_name();
     this->skip();
@@ -74,6 +76,9 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
       v.visit_variable_namespace_use(name);
     } else {
       v.visit_variable_type_use(name);
+    }
+    if (this->peek().type == token_type::less) {
+      this->parse_and_visit_typescript_generic_arguments(v);
     }
     break;
   }
@@ -497,6 +502,21 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
     }
     is_first = false;
   }
+}
+
+void parser::parse_and_visit_typescript_generic_arguments(
+    parse_visitor_base &v) {
+  QLJS_ASSERT(this->peek().type == token_type::less);
+  this->skip();
+
+  this->parse_and_visit_typescript_type_expression(v);
+  while (this->peek().type == token_type::comma) {
+    this->skip();
+    this->parse_and_visit_typescript_type_expression(v);
+  }
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
+  this->skip();
 }
 }
 
