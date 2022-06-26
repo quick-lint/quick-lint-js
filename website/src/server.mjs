@@ -181,10 +181,7 @@ export function makeServer({
         try {
           let bundlePath = path.join(temporaryDirectory, "bundle.js");
           try {
-            await router.runESBuildAsync(
-              route.esbuildConfig,
-              bundlePath
-            );
+            await router.runESBuildAsync(route.esbuildConfig, bundlePath);
           } catch (error) {
             response.writeHeader(500, { "content-type": "text/plain" });
             response.end(error.stack);
@@ -202,9 +199,7 @@ export function makeServer({
       }
 
       default:
-        throw new Error(
-          `Unexpected route type: ${route.type}`
-        );
+        throw new Error(`Unexpected route type: ${route.type}`);
     }
   }
 }

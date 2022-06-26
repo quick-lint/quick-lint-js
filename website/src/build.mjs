@@ -119,48 +119,64 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
   for (let file of files) {
     let relativePath = path.join(basePath, file.name);
     let classification = await router.classifyFileAsync(relativePath);
-    if (classification.type === "missing") {
-      if (classification.why === "broken-symlink") {
-        instructions.push({
-          type: "warning",
-          message: `/${relativePath} is a broken symlink; ignoring`,
-        });
-      }
-    } else if (classification.type === "index-script") {
-      let { routes } = await import(
-        url.pathToFileURL(path.join(router.wwwRootPath, relativePath))
-      );
-      for (let routeURI in routes) {
-        if (!Object.prototype.hasOwnProperty.call(routes, routeURI)) {
-          continue;
+    switch (classification.type) {
+      case "missing":
+        if (classification.why === "broken-symlink") {
+          instructions.push({
+            type: "warning",
+            message: `/${relativePath} is a broken symlink; ignoring`,
+          });
         }
-        let newRoute = routes[routeURI];
-        if (newRoute.type !== "build-ejs") {
-          throw new Error(`Unsupported route type: ${newRoute.type}`);
+        break;
+
+      case "index-script":
+        let { routes } = await import(
+          url.pathToFileURL(path.join(router.wwwRootPath, relativePath))
+        );
+        for (let routeURI in routes) {
+          if (!Object.prototype.hasOwnProperty.call(routes, routeURI)) {
+            continue;
+          }
+          let newRoute = routes[routeURI];
+          if (newRoute.type !== "build-ejs") {
+            throw new Error(`Unsupported route type: ${newRoute.type}`);
+          }
+          instructions.push({
+            type: "build-ejs",
+            sourcePath: path.join(basePath, routes[routeURI].path),
+            destinationPath: path.join(
+              relativeURIToRelativePath(routeURI),
+              "index.html"
+            ),
+            ejsVariables: {
+              currentURI: routeURI,
+            },
+          });
         }
-        instructions.push({
-          type: "build-ejs",
-          sourcePath: path.join(basePath, routes[routeURI].path),
-          destinationPath: path.join(
-            relativeURIToRelativePath(routeURI),
-            "index.html"
-          ),
-          ejsVariables: {
-            currentURI: routeURI,
-          },
-        });
-      }
-    } else if (file.isFile()) {
-      instructions.push({ type: "copy", path: relativePath });
-    } else if (file.isSymbolicLink()) {
-      let target = await fs.promises.realpath(
-        path.join(router.wwwRootPath, basePath, file.name)
-      );
-      instructions.push({
-        type: "copy-to",
-        sourcePath: target,
-        destinationPath: relativePath,
-      });
+        break;
+
+      case "forbidden": // HACK(strager): .htaccess
+      case "static":
+        if (file.isFile()) {
+          instructions.push({ type: "copy", path: relativePath });
+        } else if (file.isSymbolicLink()) {
+          let target = await fs.promises.realpath(
+            path.join(router.wwwRootPath, basePath, file.name)
+          );
+          instructions.push({
+            type: "copy-to",
+            sourcePath: target,
+            destinationPath: relativePath,
+          });
+        } else {
+          throw new Error(`Don't know how to copy file: ${file.name}`);
+        }
+        break;
+
+      default:
+        throw new Error(
+          `Unexpected type from classifyFileAsync: ${classification.type}`
+        );
     }
   }
 }
