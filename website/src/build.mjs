@@ -81,90 +81,105 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
   }
 
   let classifiedDirectory = await router.classifyDirectoryAsync(basePath);
-  await makeInstructionsForRouteAsync(classifiedDirectory, basePath);
+  await makeInstructionsForRouteAsync(
+    router,
+    classifiedDirectory,
+    basePath,
+    instructions
+  );
 
   for (let file of files) {
     let relativePath = path.join(basePath, file.name);
     let classification = await router.classifyFileAsync(relativePath);
-    await makeInstructionsForRouteAsync(classification, relativePath);
+    await makeInstructionsForRouteAsync(
+      router,
+      classification,
+      relativePath,
+      instructions
+    );
   }
+}
 
-  async function makeInstructionsForRouteAsync(route, relativePath) {
-    switch (route.type) {
-      case "ambiguous":
+async function makeInstructionsForRouteAsync(
+  router,
+  route,
+  relativePath,
+  instructions
+) {
+  switch (route.type) {
+    case "ambiguous":
+      instructions.push({
+        type: "warning",
+        message: `/${relativePath} has both index.ejs.html and index.html; using neither`,
+      });
+      break;
+
+    case "build-ejs":
+      instructions.push({
+        type: "build-ejs",
+        sourcePath: route.path,
+        destinationPath: path.join(relativePath, "index.html"),
+        ejsVariables: {
+          currentURI: relativePath === "" ? "/" : `/${relativePath}/`,
+        },
+      });
+      break;
+
+    case "copy":
+      instructions.push({
+        type: "copy",
+        path: route.path,
+      });
+      break;
+
+    case "does-not-exist":
+      break;
+
+    case "missing":
+      if (route.why === "broken-symlink") {
         instructions.push({
           type: "warning",
-          message: `/${relativePath} has both index.ejs.html and index.html; using neither`,
+          message: `/${relativePath} is a broken symlink; ignoring`,
         });
-        break;
+      }
+      break;
 
-      case "build-ejs":
+    case "index-script":
+      let { routes } = await import(
+        url.pathToFileURL(path.join(router.wwwRootPath, relativePath))
+      );
+      for (let routeURI in routes) {
+        if (!Object.prototype.hasOwnProperty.call(routes, routeURI)) {
+          continue;
+        }
+        let newRoute = routes[routeURI];
+        if (newRoute.type !== "build-ejs") {
+          throw new Error(`Unsupported route type: ${newRoute.type}`);
+        }
         instructions.push({
           type: "build-ejs",
-          sourcePath: route.path,
-          destinationPath: path.join(relativePath, "index.html"),
+          sourcePath: path.join(
+            path.dirname(relativePath),
+            routes[routeURI].path
+          ),
+          destinationPath: path.join(
+            relativeURIToRelativePath(routeURI),
+            "index.html"
+          ),
           ejsVariables: {
-            currentURI: relativePath === "" ? "/" : `/${relativePath}/`,
+            currentURI: routeURI,
           },
         });
-        break;
+      }
+      break;
 
-      case "copy":
-        instructions.push({
-          type: "copy",
-          path: route.path,
-        });
-        break;
+    case "forbidden": // HACK(strager): .htaccess
+    case "static":
+      instructions.push({ type: "copy", path: relativePath });
+      break;
 
-      case "does-not-exist":
-        break;
-
-      case "missing":
-        if (route.why === "broken-symlink") {
-          instructions.push({
-            type: "warning",
-            message: `/${relativePath} is a broken symlink; ignoring`,
-          });
-        }
-        break;
-
-      case "index-script":
-        let { routes } = await import(
-          url.pathToFileURL(path.join(router.wwwRootPath, relativePath))
-        );
-        for (let routeURI in routes) {
-          if (!Object.prototype.hasOwnProperty.call(routes, routeURI)) {
-            continue;
-          }
-          let newRoute = routes[routeURI];
-          if (newRoute.type !== "build-ejs") {
-            throw new Error(`Unsupported route type: ${newRoute.type}`);
-          }
-          instructions.push({
-            type: "build-ejs",
-            sourcePath: path.join(
-              path.dirname(relativePath),
-              routes[routeURI].path
-            ),
-            destinationPath: path.join(
-              relativeURIToRelativePath(routeURI),
-              "index.html"
-            ),
-            ejsVariables: {
-              currentURI: routeURI,
-            },
-          });
-        }
-        break;
-
-      case "forbidden": // HACK(strager): .htaccess
-      case "static":
-        instructions.push({ type: "copy", path: relativePath });
-        break;
-
-      default:
-        throw new Error(`Unexpected route type: ${route.type}`);
-    }
+    default:
+      throw new Error(`Unexpected route type: ${route.type}`);
   }
 }
 
