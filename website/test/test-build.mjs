@@ -195,7 +195,7 @@ describe("build", () => {
     });
   });
 
-  describe("static asset symlink causes copy-to", () => {
+  describe("static asset symlink causes copy", () => {
     it("/image.webp -> ../symlink-target.webp", async () => {
       wwwRootPath = path.join(temporaryDirectory, "root");
       fs.mkdirSync(wwwRootPath);
@@ -209,11 +209,12 @@ describe("build", () => {
       );
 
       let buildInstructions = await makeBuildInstructionsAsync({ wwwRootPath });
+      // It's the responsibility of the follower of the instructions to copy the
+      // target of the symlink.
       expect(buildInstructions).toEqual([
         {
-          type: "copy-to",
-          sourcePath: path.join(temporaryDirectory, "symlink-target.webp"),
-          destinationPath: "image.webp",
+          type: "copy",
+          path: "image.webp",
         },
       ]);
     });

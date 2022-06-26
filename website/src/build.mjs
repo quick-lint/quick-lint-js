@@ -162,20 +162,7 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
       case "forbidden": // HACK(strager): .htaccess
       case "static": {
         let relativePath = path.join(basePath, file.name);
-        if (file.isFile()) {
-          instructions.push({ type: "copy", path: relativePath });
-        } else if (file.isSymbolicLink()) {
-          let target = await fs.promises.realpath(
-            path.join(router.wwwRootPath, basePath, file.name)
-          );
-          instructions.push({
-            type: "copy-to",
-            sourcePath: target,
-            destinationPath: relativePath,
-          });
-        } else {
-          throw new Error(`Don't know how to copy file: ${file.name}`);
-        }
+        instructions.push({ type: "copy", path: relativePath });
         break;
       }
 

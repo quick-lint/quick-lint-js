@@ -33,13 +33,6 @@ async function mainAsync() {
         await copyFileAsync(instruction.path, instruction.path);
         break;
 
-      case "copy-to":
-        await copyFileAsync(
-          instruction.sourcePath,
-          instruction.destinationPath
-        );
-        break;
-
       case "build-ejs":
         let ejsPath = path.join(wwwRootPath, instruction.sourcePath);
         let outPath = path.join(targetDirectory, instruction.destinationPath);
