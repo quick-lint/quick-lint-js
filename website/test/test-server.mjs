@@ -196,7 +196,7 @@ describe("server", () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.mjs"),
-        "export let routes = { '/generated/subdir/': 'page.ejs.html' };"
+        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.ejs.html"),
@@ -212,7 +212,7 @@ describe("server", () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.mjs"),
-        "export let routes = { '/generated/subdir/': 'page.ejs.html' };"
+        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.ejs.html"),
@@ -227,7 +227,7 @@ describe("server", () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.mjs"),
-        "export let routes = { '/generated/subdir/': 'page.ejs.html' };"
+        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "page.ejs.html"),
@@ -249,7 +249,7 @@ describe("server", () => {
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.mjs"),
-        "export let routes = { '/generated/subdir/': 'page.ejs.html' };"
+        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "page.ejs.html"),
@@ -264,7 +264,7 @@ describe("server", () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.mjs"),
-        "export let routes = { '/generated/other/': 'page.ejs.html' };"
+        "export let routes = { '/generated/other/': { type: 'build-ejs', path: 'page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "page.ejs.html"),
@@ -595,7 +595,7 @@ describe("server", () => {
     it("does not run page.ejs.html routed by index.mjs", async () => {
       fs.writeFileSync(
         path.join(wwwRootPath, "index.mjs"),
-        "export let routes = { '/generated-page/': 'page.ejs.html' };"
+        "export let routes = { '/generated-page/': { type: 'build-ejs', path: 'page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "page.ejs.html"),
@@ -610,7 +610,7 @@ describe("server", () => {
     it("returns 404 for URI not routed by index.mjs", async () => {
       fs.writeFileSync(
         path.join(wwwRootPath, "index.mjs"),
-        "export let routes = { '/generated-page/': 'page.ejs.html' };"
+        "export let routes = { '/generated-page/': { type: 'build-ejs', path: 'page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "page.ejs.html"),

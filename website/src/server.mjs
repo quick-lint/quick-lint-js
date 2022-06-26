@@ -99,14 +99,17 @@ export function makeServer({
           response.end();
           return;
         }
-        let routeDestination = routes[request.path];
+        let newRoute = routes[request.path];
+        if (newRoute.type !== "build-ejs") {
+          throw new Error(`Unsupported route type: ${newRoute.type}`);
+        }
         let out = null;
         try {
           out = await router.renderEJSFileAsync(
             path.join(
               router.wwwRootPath,
               classifiedDirectory.routerDirectory,
-              routeDestination
+              newRoute.path
             ),
             { currentURI: request.path }
           );

@@ -12,7 +12,10 @@ async function makeRoutesAsync() {
   );
   let routes = {};
   for (let path of paths) {
-    routes[`/errors/${path.replace(".md", "")}/`] = "error.ejs.html";
+    routes[`/errors/${path.replace(".md", "")}/`] = {
+      type: "build-ejs",
+      path: "error.ejs.html",
+    };
   }
   return routes;
 }

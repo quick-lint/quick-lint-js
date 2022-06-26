@@ -134,9 +134,13 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
         if (!Object.prototype.hasOwnProperty.call(routes, routeURI)) {
           continue;
         }
+        let newRoute = routes[routeURI];
+        if (newRoute.type !== "build-ejs") {
+          throw new Error(`Unsupported route type: ${newRoute.type}`);
+        }
         instructions.push({
           type: "build-ejs",
-          sourcePath: path.join(basePath, routes[routeURI]),
+          sourcePath: path.join(basePath, routes[routeURI].path),
           destinationPath: path.join(
             relativeURIToRelativePath(routeURI),
             "index.html"

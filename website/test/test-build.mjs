@@ -143,7 +143,7 @@ describe("build", () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.mjs"),
-        "export let routes = { '/generated/subdir/': 'page.ejs.html' };"
+        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "page.ejs.html"),
