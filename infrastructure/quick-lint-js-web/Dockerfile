@@ -6,9 +6,10 @@ FROM ubuntu:22.04
 RUN apt-get update && \
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
           apache2 \
-          libapache2-mod-php \
-          php-fpm \
-          php-mysql && \
+          libapache2-mod-fcgid \
+          php8.1-fpm \
+          php8.1-mysql && \
+    rm -rf /var/lib/apt/lists/* && \
     rm /etc/apache2/sites-available/*.conf /etc/apache2/sites-enabled/*.conf
 
 COPY apache2/apache2.conf apache2/envvars apache2/ports.conf /etc/apache2/
@@ -16,22 +17,26 @@ COPY apache2/mods-available/*.conf /etc/apache2/mods-available/
 COPY apache2/sites-available/*.conf /etc/apache2/sites-available/
 COPY run-apache2.sh /tmp/run-apache2.sh
 
-RUN a2ensite \
-        001-quicklintjs \
-        002-admin.quick-lint-js.com \
-        003-c.quick-lint-js \
-        003-quick-lint-js.com && \
-    a2enconf \
-        php8.1-fpm && \
-    a2dismod \
-        mpm_event && \
+RUN a2dismod \
+        mpm_worker \
+        mpm_prefork && \
+    a2enconf php8.1-fpm && \
     a2enmod \
         expires \
         headers \
         http2 \
-        mpm_prefork \
+        mpm_event \
         rewrite \
-        ssl
+        proxy \
+        proxy_fcgi \
+        setenvif \
+        ssl && \
+    a2ensite \
+        001-quicklintjs \
+        002-admin.quick-lint-js.com \
+        003-c.quick-lint-js \
+        003-quick-lint-js.com 
+
 
 EXPOSE 80/tcp 443/tcp
 # Keep in sync with create-dev-certificates.sh.
