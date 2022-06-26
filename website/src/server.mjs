@@ -50,7 +50,16 @@ export function makeServer({
     let classifiedDirectory = await router.classifyDirectoryRouteAsync(
       request.path
     );
-    switch (classifiedDirectory.type) {
+    await serveRouteAsync(request, response, classifiedDirectory);
+  }
+
+  async function serveFileAsync(request, response) {
+    let classification = await router.classifyFileRouteAsync(request.path);
+    await serveRouteAsync(request, response, classification);
+  }
+
+  async function serveRouteAsync(request, response, route) {
+    switch (route.type) {
       case "ambiguous":
         response.writeHeader(409);
         response.end();
@@ -68,7 +77,7 @@ export function makeServer({
         let out = null;
         try {
           out = await router.renderEJSFileAsync(
-            path.join(router.wwwRootPath, classifiedDirectory.path),
+            path.join(router.wwwRootPath, route.path),
             { currentURI: request.path }
           );
         } catch (error) {
@@ -84,7 +93,7 @@ export function makeServer({
       case "routed": {
         let routerScriptPath = path.join(
           router.wwwRootPath,
-          classifiedDirectory.routerScript
+          route.routerScript
         );
         let { routes } = await import(url.pathToFileURL(routerScriptPath));
         if (!Object.prototype.hasOwnProperty.call(routes, request.path)) {
@@ -106,11 +115,7 @@ export function makeServer({
         let out = null;
         try {
           out = await router.renderEJSFileAsync(
-            path.join(
-              router.wwwRootPath,
-              classifiedDirectory.routerDirectory,
-              newRoute.path
-            ),
+            path.join(router.wwwRootPath, route.routerDirectory, newRoute.path),
             { currentURI: request.path }
           );
         } catch (error) {
@@ -125,7 +130,7 @@ export function makeServer({
 
       case "copy":
         let html = await readFileAsync(
-          path.join(router.wwwRootPath, classifiedDirectory.path)
+          path.join(router.wwwRootPath, route.path)
         );
         response.writeHeader(200, { "content-type": "text/html" });
         response.end(html);
@@ -136,16 +141,6 @@ export function makeServer({
         response.end();
         return;
 
-      default:
-        throw new Error(
-          `Unexpected type from classifyDirectoryAsync: ${classifiedDirectory.type}`
-        );
-    }
-  }
-
-  async function serveFileAsync(request, response) {
-    let classification = await router.classifyFileRouteAsync(request.path);
-    switch (classification.type) {
       case "index-script": // Don't expose index.mjs to users.
       case "missing":
         response.writeHeader(404);
@@ -158,7 +153,7 @@ export function makeServer({
         return;
 
       case "static": {
-        let headers = { "content-type": classification.contentType };
+        let headers = { "content-type": route.contentType };
         if (request.method === "HEAD") {
           // For HEAD requests, don't waste time reading the file.
           response.writeHeader(200, headers);
@@ -174,7 +169,7 @@ export function makeServer({
       }
 
       case "redirect":
-        let redirectTo = classification.redirectTargetURL;
+        let redirectTo = route.redirectTargetURL;
         response.writeHeader(200, { "content-type": "text/html" });
         response.end(makeHTMLRedirect(request.path, redirectTo));
         return;
@@ -187,7 +182,7 @@ export function makeServer({
           let bundlePath = path.join(temporaryDirectory, "bundle.js");
           try {
             await router.runESBuildAsync(
-              classification.esbuildConfig,
+              route.esbuildConfig,
               bundlePath
             );
           } catch (error) {
@@ -208,7 +203,7 @@ export function makeServer({
 
       default:
         throw new Error(
-          `Unexpected type from classifyFileRouteAsync: ${classification.type}`
+          `Unexpected route type: ${route.type}`
         );
     }
   }
