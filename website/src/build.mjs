@@ -94,7 +94,7 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
       case "ambiguous":
         instructions.push({
           type: "warning",
-          message: `/${basePath} has both index.ejs.html and index.html; using neither`,
+          message: `/${relativePath} has both index.ejs.html and index.html; using neither`,
         });
         break;
 
@@ -102,9 +102,9 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
         instructions.push({
           type: "build-ejs",
           sourcePath: route.path,
-          destinationPath: path.join(basePath, "index.html"),
+          destinationPath: path.join(relativePath, "index.html"),
           ejsVariables: {
-            currentURI: basePath === "" ? "/" : `/${basePath}/`,
+            currentURI: relativePath === "" ? "/" : `/${relativePath}/`,
           },
         });
         break;
@@ -142,7 +142,10 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
           }
           instructions.push({
             type: "build-ejs",
-            sourcePath: path.join(basePath, routes[routeURI].path),
+            sourcePath: path.join(
+              path.dirname(relativePath),
+              routes[routeURI].path
+            ),
             destinationPath: path.join(
               relativeURIToRelativePath(routeURI),
               "index.html"
