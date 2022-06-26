@@ -81,18 +81,15 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
   }
 
   let classifiedDirectory = await router.classifyDirectoryAsync(basePath);
-  await makeInstructionsForRouteAsync(
-    classifiedDirectory,
-    /*file=*/ null
-  );
+  await makeInstructionsForRouteAsync(classifiedDirectory, basePath);
 
   for (let file of files) {
     let relativePath = path.join(basePath, file.name);
     let classification = await router.classifyFileAsync(relativePath);
-    await makeInstructionsForRouteAsync(classification, file);
+    await makeInstructionsForRouteAsync(classification, relativePath);
   }
 
-  async function makeInstructionsForRouteAsync(route, file = null) {
+  async function makeInstructionsForRouteAsync(route, relativePath) {
     switch (route.type) {
       case "ambiguous":
         instructions.push({
@@ -122,8 +119,7 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
       case "does-not-exist":
         break;
 
-      case "missing": {
-        let relativePath = path.join(basePath, file.name);
+      case "missing":
         if (route.why === "broken-symlink") {
           instructions.push({
             type: "warning",
@@ -131,11 +127,10 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
           });
         }
         break;
-      }
 
       case "index-script":
         let { routes } = await import(
-          url.pathToFileURL(path.join(router.wwwRootPath, basePath, file.name))
+          url.pathToFileURL(path.join(router.wwwRootPath, relativePath))
         );
         for (let routeURI in routes) {
           if (!Object.prototype.hasOwnProperty.call(routes, routeURI)) {
@@ -160,11 +155,9 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
         break;
 
       case "forbidden": // HACK(strager): .htaccess
-      case "static": {
-        let relativePath = path.join(basePath, file.name);
+      case "static":
         instructions.push({ type: "copy", path: relativePath });
         break;
-      }
 
       default:
         throw new Error(`Unexpected route type: ${route.type}`);
