@@ -81,57 +81,61 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
   }
 
   let classifiedDirectory = await router.classifyDirectoryAsync(basePath);
-  switch (classifiedDirectory.type) {
-    case "ambiguous":
-      instructions.push({
-        type: "warning",
-        message: `/${basePath} has both index.ejs.html and index.html; using neither`,
-      });
-      break;
-
-    case "build-ejs":
-      instructions.push({
-        type: "build-ejs",
-        sourcePath: classifiedDirectory.path,
-        destinationPath: path.join(basePath, "index.html"),
-        ejsVariables: {
-          currentURI: basePath === "" ? "/" : `/${basePath}/`,
-        },
-      });
-      break;
-
-    case "copy":
-      instructions.push({
-        type: "copy",
-        path: classifiedDirectory.path,
-      });
-      break;
-
-    case "does-not-exist":
-      break;
-
-    default:
-      throw new Error(
-        `Unexpected type from classifyDirectoryAsync: ${classifiedDirectory.type}`
-      );
-  }
+  await makeInstructionsForRouteAsync(
+    classifiedDirectory,
+    /*file=*/ null
+  );
 
   for (let file of files) {
     let relativePath = path.join(basePath, file.name);
     let classification = await router.classifyFileAsync(relativePath);
-    switch (classification.type) {
-      case "missing":
-        if (classification.why === "broken-symlink") {
+    await makeInstructionsForRouteAsync(classification, file);
+  }
+
+  async function makeInstructionsForRouteAsync(route, file = null) {
+    switch (route.type) {
+      case "ambiguous":
+        instructions.push({
+          type: "warning",
+          message: `/${basePath} has both index.ejs.html and index.html; using neither`,
+        });
+        break;
+
+      case "build-ejs":
+        instructions.push({
+          type: "build-ejs",
+          sourcePath: route.path,
+          destinationPath: path.join(basePath, "index.html"),
+          ejsVariables: {
+            currentURI: basePath === "" ? "/" : `/${basePath}/`,
+          },
+        });
+        break;
+
+      case "copy":
+        instructions.push({
+          type: "copy",
+          path: route.path,
+        });
+        break;
+
+      case "does-not-exist":
+        break;
+
+      case "missing": {
+        let relativePath = path.join(basePath, file.name);
+        if (route.why === "broken-symlink") {
           instructions.push({
             type: "warning",
             message: `/${relativePath} is a broken symlink; ignoring`,
           });
         }
         break;
+      }
 
       case "index-script":
         let { routes } = await import(
-          url.pathToFileURL(path.join(router.wwwRootPath, relativePath))
+          url.pathToFileURL(path.join(router.wwwRootPath, basePath, file.name))
         );
         for (let routeURI in routes) {
           if (!Object.prototype.hasOwnProperty.call(routes, routeURI)) {
@@ -156,7 +160,8 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
         break;
 
       case "forbidden": // HACK(strager): .htaccess
-      case "static":
+      case "static": {
+        let relativePath = path.join(basePath, file.name);
         if (file.isFile()) {
           instructions.push({ type: "copy", path: relativePath });
         } else if (file.isSymbolicLink()) {
@@ -172,11 +177,10 @@ async function makeBuildInstructionsImplAsync(router, instructions, basePath) {
           throw new Error(`Don't know how to copy file: ${file.name}`);
         }
         break;
+      }
 
       default:
-        throw new Error(
-          `Unexpected type from classifyFileAsync: ${classification.type}`
-        );
+        throw new Error(`Unexpected route type: ${route.type}`);
     }
   }
 }
