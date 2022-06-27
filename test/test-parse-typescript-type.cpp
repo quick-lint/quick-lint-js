@@ -352,6 +352,19 @@ TEST(test_parse_typescript_type, object_type_with_method) {
   }
 }
 
+TEST(test_parse_typescript_type, object_type_with_generic_method) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"{ method<T>() }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",   // method
+                                      "visit_variable_declaration",   // T
+                                      "visit_exit_function_scope"));  // method
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(spy_visitor::visited_variable_declaration{
+                    u8"T", variable_kind::_generic_parameter,
+                    variable_init_kind::normal}));
+  }
+}
+
 TEST(test_parse_typescript_type, object_type_with_getter) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"{ get prop() }"_sv);
