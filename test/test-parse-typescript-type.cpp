@@ -894,6 +894,119 @@ TEST(test_parse_typescript_type, indexed) {
                             spy_visitor::visited_variable_use{u8"Key"}));
   }
 }
+
+TEST(test_parse_typescript_type, union_of_types) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"Type1 | Type2"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
+                                      "visit_variable_type_use"));  // Type2
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
+                            spy_visitor::visited_variable_use{u8"Type2"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"Type1 | Type2 | Type3 | Type4"_sv);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
+                            spy_visitor::visited_variable_use{u8"Type2"},
+                            spy_visitor::visited_variable_use{u8"Type3"},
+                            spy_visitor::visited_variable_use{u8"Type4"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"| Type1"_sv);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"}));
+  }
+}
+
+TEST(test_parse_typescript_type, union_disallows_consecutive_pipes) {
+  {
+    padded_string code(u8"| | Type"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_typescript_type_expression(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    &code, diag_missing_type_between_intersection_or_union,
+                    left_operator, strlen(u8""), u8"|",  //
+                    right_operator, strlen(u8"| "), u8"|")));
+  }
+
+  {
+    padded_string code(u8"Type1 | | Type2"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_typescript_type_expression(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
+                                      "visit_variable_type_use"));  // Type2
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    &code, diag_missing_type_between_intersection_or_union,
+                    left_operator, strlen(u8"Type1 "), u8"|",  //
+                    right_operator, strlen(u8"Type1 | "), u8"|")));
+  }
+}
+
+TEST(test_parse_typescript_type, intersection) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"Type1 & Type2"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
+                                      "visit_variable_type_use"));  // Type2
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
+                            spy_visitor::visited_variable_use{u8"Type2"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"Type1 & Type2 & Type3 & Type4"_sv);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
+                            spy_visitor::visited_variable_use{u8"Type2"},
+                            spy_visitor::visited_variable_use{u8"Type3"},
+                            spy_visitor::visited_variable_use{u8"Type4"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"& Type1"_sv);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"}));
+  }
+}
+
+TEST(test_parse_typescript_type,
+     intersection_disallows_consecutive_ampersands) {
+  {
+    padded_string code(u8"& & Type"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_typescript_type_expression(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    &code, diag_missing_type_between_intersection_or_union,
+                    left_operator, strlen(u8""), u8"&",  //
+                    right_operator, strlen(u8"& "), u8"&")));
+  }
+
+  {
+    padded_string code(u8"Type1 & & Type2"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_typescript_type_expression(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
+                                      "visit_variable_type_use"));  // Type2
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    &code, diag_missing_type_between_intersection_or_union,
+                    left_operator, strlen(u8"Type1 "), u8"&",  //
+                    right_operator, strlen(u8"Type1 & "), u8"&")));
+  }
+}
 }
 }
 

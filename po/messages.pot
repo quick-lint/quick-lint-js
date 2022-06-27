@@ -784,6 +784,10 @@ msgid ""
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "missing type between '{1}' and '{0}'"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing value for object property"
 msgstr ""
 

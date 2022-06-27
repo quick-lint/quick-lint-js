@@ -827,6 +827,11 @@ msgstr ""
 "function' oder 'export let'"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing type between '{1}' and '{0}'"
+msgstr "Eigenschaftsname fehlt zwischen '.' und '.'"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing value for object property"
 msgstr "Wert der Objekteigenschaft fehlt"
 

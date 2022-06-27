@@ -818,6 +818,11 @@ msgstr ""
 "function' eller 'export let'"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing type between '{1}' and '{0}'"
+msgstr "saknar egenskaps namn efter '.' operatör"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing value for object property"
 msgstr "saknar värde för objektegenskap"
 

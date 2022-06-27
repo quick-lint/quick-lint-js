@@ -1252,6 +1252,16 @@
               export_token))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_missing_type_between_intersection_or_union, "E0258",                \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span left_operator;                                        \
+        source_code_span right_operator;                                       \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("missing type between '{1}' and '{0}'"),       \
+              right_operator, left_operator))                                  \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_missing_value_for_object_literal_entry, "E0083",                    \
       diagnostic_severity::error, { source_code_span key; },                   \
       MESSAGE(QLJS_TRANSLATABLE("missing value for object property"), key))    \

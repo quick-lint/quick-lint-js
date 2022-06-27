@@ -815,6 +815,11 @@ msgid ""
 msgstr "export WHAT!?"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing type between '{1}' and '{0}'"
+msgstr "._."
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing value for object property"
 msgstr "follow this up with a value or something"
 

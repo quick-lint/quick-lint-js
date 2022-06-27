@@ -39,6 +39,17 @@ void parser::parse_and_visit_typescript_colon_type_expression(
 
 void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
   depth_guard guard(this);
+
+  std::optional<source_code_span> leading_binary_operator;  // '|' or '&'
+  if (this->peek().type == token_type::ampersand ||
+      this->peek().type == token_type::pipe) {
+    // | Type
+    // & Type
+    leading_binary_operator = this->peek().span();
+    this->skip();
+  }
+
+again:
   switch (this->peek().type) {
   case token_type::complete_template:
   case token_type::kw_any:
@@ -110,6 +121,17 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
     this->parse_and_visit_typescript_object_type_expression(v);
     break;
 
+  // & & Type  // Invalid.
+  // | | Type  // Invalid.
+  case token_type::ampersand:
+  case token_type::pipe:
+    this->diag_reporter_->report(
+        diag_missing_type_between_intersection_or_union{
+            .left_operator = leading_binary_operator.value(),
+            .right_operator = this->peek().span(),
+        });
+    break;
+
   default:
     QLJS_PARSER_UNIMPLEMENTED();
     break;
@@ -126,6 +148,14 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
       this->skip();
     }
+  }
+
+  if (this->peek().type == token_type::ampersand ||
+      this->peek().type == token_type::pipe) {
+    // Type1 | Type2
+    leading_binary_operator = this->peek().span();
+    this->skip();
+    goto again;
   }
 }
 

@@ -815,6 +815,11 @@ msgstr ""
 "'EXPORT * FROM ...' OR 'EXPORT CLASS' OR 'EXPORT FUNCTION' OR 'EXPORT LET'"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing type between '{1}' and '{0}'"
+msgstr "MISSING PROPERTY NAME AFTER '.' OPERATOR"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing value for object property"
 msgstr "MISSING VALUE FOR OBJECT PROPERTY"
 

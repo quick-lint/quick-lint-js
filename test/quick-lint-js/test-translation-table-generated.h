@@ -2494,6 +2494,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "missing type between '{1}' and '{0}'"_translatable,
+        {
+            u8"missing type between '{1}' and '{0}'",
+            u8"missing type between '{1}' and '{0}'",
+            u8"missing type between '{1}' and '{0}'",
+            u8"missing type between '{1}' and '{0}'",
+            u8"missing type between '{1}' and '{0}'",
+            u8"missing type between '{1}' and '{0}'",
+        },
+    },
+    {
         "missing value for object property"_translatable,
         {
             u8"missing value for object property",

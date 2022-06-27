@@ -235,7 +235,8 @@ const translation_table translation_data = {
         {44, 41, 4, 46, 42, 40},             //
         {31, 34, 50, 44, 35, 34},            //
         {73, 65, 55, 78, 66, 65},            //
-        {72, 63, 55, 79, 61, 63},            //
+        {0, 0, 0, 0, 0, 63},                 //
+        {72, 63, 55, 79, 61, 37},            //
         {33, 34, 41, 45, 34, 34},            //
         {20, 0, 29, 0, 0, 22},               //
         {0, 0, 0, 0, 0, 48},                 //
@@ -1637,6 +1638,7 @@ const translation_table translation_data = {
         u8"missing semicolon after statement\0"
         u8"missing semicolon between condition and update parts of for loop\0"
         u8"missing semicolon between init and condition parts of for loop\0"
+        u8"missing type between '{1}' and '{0}'\0"
         u8"missing value for object property\0"
         u8"missing variable name\0"
         u8"misspelled React attribute; write '{1}' instead\0"
