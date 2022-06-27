@@ -156,20 +156,15 @@ async function makeInstructionsForRouteAsync(
         if (newRoute.type !== "build-ejs") {
           throw new Error(`Unsupported route type: ${newRoute.type}`);
         }
-        instructions.push({
-          type: "build-ejs",
-          sourcePath: path.join(
-            path.dirname(relativePath),
-            routes[routeURI].path
-          ),
-          destinationPath: path.join(
-            relativeURIToRelativePath(routeURI),
-            "index.html"
-          ),
-          ejsVariables: {
-            currentURI: routeURI,
+        await makeInstructionsForRouteAsync(
+          router,
+          {
+            type: "build-ejs",
+            path: path.join(path.dirname(relativePath), routes[routeURI].path),
           },
-        });
+          relativeURIToRelativePath(routeURI),
+          instructions
+        );
       }
       break;
 
@@ -184,7 +179,7 @@ async function makeInstructionsForRouteAsync(
 }
 
 function relativeURIToRelativePath(uri) {
-  return uri.replace(/^\//, "").replace(/\//g, path.sep);
+  return uri.replace(/^\//, "").replace(/\/$/, "").replace(/\//g, path.sep);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
