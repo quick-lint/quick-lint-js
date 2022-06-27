@@ -895,6 +895,16 @@ TEST(test_parse_typescript_type, indexed) {
   }
 }
 
+TEST(test_parse_typescript_type, mixed_array_and_indexed) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"Type[][K1][][K2]"_sv);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type"},
+                            spy_visitor::visited_variable_use{u8"K1"},
+                            spy_visitor::visited_variable_use{u8"K2"}));
+  }
+}
+
 TEST(test_parse_typescript_type, union_of_types) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"Type1 | Type2"_sv);

@@ -137,7 +137,7 @@ again:
     break;
   }
 
-  if (this->peek().type == token_type::left_square) {
+  while (this->peek().type == token_type::left_square) {
     // typeexpr[]
     // typeexpr[Key]
     this->skip();
