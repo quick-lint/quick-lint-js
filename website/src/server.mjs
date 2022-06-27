@@ -25,6 +25,18 @@ export function makeServer({
   return serve;
 
   function serve(request, response) {
+    serveAsync(request, response).catch((error) => {
+      console.error(`error processing request: ${error.stack}`);
+      if (response.headersSent) {
+        response.end();
+      } else {
+        response.writeHead(500);
+        response.end(error.stack);
+      }
+    });
+  }
+
+  async function serveAsync(request, response) {
     logRequestResponse(request, response);
     if (request.method !== "GET" && request.method !== "HEAD") {
       response.writeHead(405);
@@ -40,9 +52,9 @@ export function makeServer({
     request.path = request.url.match(/^[^?]+/)[0];
 
     if (/^\/(?:[^/]+\/)*$/.test(request.path)) {
-      serveDirectoryAsync(request, response);
+      await serveDirectoryAsync(request, response);
     } else {
-      serveFileAsync(request, response);
+      await serveFileAsync(request, response);
     }
   }
 
