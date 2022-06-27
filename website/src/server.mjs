@@ -108,14 +108,7 @@ export function makeServer({
           response.end();
           return;
         }
-        let newRoute = routes[request.path];
-        if (newRoute.type !== "build-ejs") {
-          throw new Error(`Unsupported route type: ${newRoute.type}`);
-        }
-        await serveRouteAsync(request, response, {
-          type: "build-ejs",
-          path: newRoute.path,
-        });
+        await serveRouteAsync(request, response, routes[request.path]);
         return;
       }
 

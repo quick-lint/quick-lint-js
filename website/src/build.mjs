@@ -152,16 +152,9 @@ async function makeInstructionsForRouteAsync(
         if (!Object.prototype.hasOwnProperty.call(routes, routeURI)) {
           continue;
         }
-        let newRoute = routes[routeURI];
-        if (newRoute.type !== "build-ejs") {
-          throw new Error(`Unsupported route type: ${newRoute.type}`);
-        }
         await makeInstructionsForRouteAsync(
           router,
-          {
-            type: "build-ejs",
-            path: routes[routeURI].path,
-          },
+          routes[routeURI],
           relativeURIToRelativePath(routeURI),
           instructions
         );
