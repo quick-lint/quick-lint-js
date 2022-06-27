@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Copyright (C) 2020  Matthew "strager" Glazar
 # See end of file for extended copyright information.
@@ -11,9 +11,12 @@ printf '\nrunning web server: http://quick-lint-js.com%s/\n' "${DEV_TLD}"
 printf '\n============================================================\n'
 
 php-fpm8.1 -c /etc/php/8.1/fpm/php-fpm.conf -F &
-apache2ctl -D FOREGROUND &
+PHP_PID=$!
 
-wait 
+apache2ctl -D FOREGROUND &
+APACHE_PID=$!
+
+wait -n $PHP_PID $APACHE_PID
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
