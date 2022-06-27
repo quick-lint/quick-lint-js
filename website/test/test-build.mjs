@@ -173,6 +173,36 @@ describe("build", () => {
     });
   });
 
+  describe("/generated/app.bundle.js ESBuild bundle", () => {
+    it("creates a file", async () => {
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        `export let routes = {
+          '/generated/app.bundle.js': {
+            type: 'esbuild',
+            esbuildConfig: {
+              entryPoints: ["/my-app.js"],
+            },
+          }
+        };`
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "page.ejs.html"),
+        "current URI is <%- currentURI %>"
+      );
+
+      let buildInstructions = await makeBuildInstructionsAsync({ wwwRootPath });
+      expect(buildInstructions).toContain({
+        type: "esbuild",
+        bundlePath: "generated/app.bundle.js",
+        esbuildConfig: {
+          entryPoints: ["/my-app.js"],
+        },
+      });
+    });
+  });
+
   describe("static asset causes copy", () => {
     it("/test.js", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.js"), "hello();");

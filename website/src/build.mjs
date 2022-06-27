@@ -161,6 +161,14 @@ async function makeInstructionsForRouteAsync(
       }
       break;
 
+    case "esbuild":
+      instructions.push({
+        type: "esbuild",
+        bundlePath: relativePath,
+        esbuildConfig: route.esbuildConfig,
+      });
+      break;
+
     case "forbidden": // HACK(strager): .htaccess
     case "static":
       instructions.push({ type: "copy", path: relativePath });

@@ -276,6 +276,88 @@ describe("server", () => {
     });
   });
 
+  describe("/generated/app.bundle.js ESBuild bundle", () => {
+    it("should preserve simple script", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "app.js"),
+        'console.log("hello world")'
+      );
+
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        `export let routes = {
+          '/generated/app.bundle.js': {
+            type: 'esbuild',
+            esbuildConfig: {
+              entryPoints: ["/app.js"],
+            },
+          },
+        };`
+      );
+
+      let response = await request.get("/generated/app.bundle.js");
+      expect(response.status).toBe(200);
+      expect(response.headers["content-type"]).toBe("application/javascript");
+      expect(response.data).toContain('console.log("hello world")');
+    });
+
+    it("should bundle imported files", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "app.js"),
+        'import { greet } from "./lib.js"; greet();'
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "lib.js"),
+        'export function greet() { console.log("hello world"); }'
+      );
+
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        `export let routes = {
+          '/generated/app.bundle.js': {
+            type: 'esbuild',
+            esbuildConfig: {
+              entryPoints: ["/app.js"],
+            },
+          },
+        };`
+      );
+
+      let response = await request.get("/generated/app.bundle.js");
+      expect(response.status).toBe(200);
+      expect(response.headers["content-type"]).toBe("application/javascript");
+      expect(response.data).toContain('console.log("hello world")');
+      expect(response.data).toContain("greet");
+      expect(response.data).not.toContain("import");
+    });
+
+    it("syntax error causes 500 error", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "bad-app.js"),
+        "syntax error goes here !@#%$^"
+      );
+
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        `export let routes = {
+          '/generated/app.bundle.js': {
+            type: 'esbuild',
+            esbuildConfig: {
+              entryPoints: ["/bad-app.js"],
+            },
+          },
+        };`
+      );
+
+      let response = await request.get("/generated/app.bundle.js");
+      expect(response.status).toBe(500);
+      expect(response.data).toContain("Build failed with 1 error");
+    });
+  });
+
   describe("regular files", () => {
     it("/test.png", async () => {
       fs.writeFileSync(path.join(wwwRootPath, "test.png"), "hello PNG");

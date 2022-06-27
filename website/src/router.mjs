@@ -129,10 +129,25 @@ export class Router {
     if (isHiddenPath(urlPath)) {
       return { type: "missing", why: "ignored" };
     }
-    let readabilityError = await checkFileReadabilityAsync(
-      path.join(this._wwwRootPath, urlPath)
-    );
+
+    let fullPath = path.join(this._wwwRootPath, urlPath);
+    let readabilityError = await checkFileReadabilityAsync(fullPath);
     if (readabilityError !== null) {
+      if (readabilityError === "does-not-exist") {
+        let routerScriptPath = path.join(path.dirname(fullPath), "index.mjs");
+        let haveParentIndexMJS = await isFileReadableAsync(routerScriptPath);
+        if (haveParentIndexMJS) {
+          let routerScriptRelativePath = path.relative(
+            this._wwwRootPath,
+            routerScriptPath
+          );
+          return {
+            type: "routed",
+            routerScript: routerScriptRelativePath,
+            routerDirectory: path.dirname(routerScriptRelativePath),
+          };
+        }
+      }
       return { type: "missing", why: readabilityError };
     }
 
