@@ -114,7 +114,7 @@ export function makeServer({
         }
         await serveRouteAsync(request, response, {
           type: "build-ejs",
-          path: path.join(route.routerDirectory, newRoute.path),
+          path: newRoute.path,
         });
         return;
       }

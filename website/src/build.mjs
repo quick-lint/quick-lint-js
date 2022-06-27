@@ -160,7 +160,7 @@ async function makeInstructionsForRouteAsync(
           router,
           {
             type: "build-ejs",
-            path: path.join(path.dirname(relativePath), routes[routeURI].path),
+            path: routes[routeURI].path,
           },
           relativeURIToRelativePath(routeURI),
           instructions
