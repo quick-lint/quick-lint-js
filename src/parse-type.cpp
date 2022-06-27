@@ -418,7 +418,9 @@ void parser::parse_and_visit_typescript_object_type_expression(
 
     // { () }
     // { (param: Type): Type }
+    // { <T>(param: Type): Type }
     case token_type::left_paren:
+    case token_type::less:
       v.visit_enter_function_scope();
       this->parse_and_visit_interface_function_parameters_and_body_no_scope(
           v, std::nullopt, function_attributes::normal);
