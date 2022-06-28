@@ -25,7 +25,7 @@ This directory contains sources for quick-lint-js.com's web server.
 5. Run the Docker container:
 
     $ cd infrastructure/quick-lint-js-web/
-    $ docker run --name quick-lint-js-web -it -p 80:80 -p 443:443 \
+    $ docker run --rm --name quick-lint-js-web -it -p 80:80 -p 443:443 \
         --volume "${PWD}/../../website/www:/var/www/quick-lint-js.com/www" \
         --volume "${PWD}/apache2/options-ssl-apache.conf:/etc/letsencrypt/options-ssl-apache.conf" \
         --volume "${PWD}/dev-certificates:/etc/letsencrypt/live" \
