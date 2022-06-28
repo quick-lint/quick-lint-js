@@ -302,6 +302,10 @@ msgid "depth limit exceeded"
 msgstr "djup begränsning överskriden"
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
 msgid "missing property name between '.' and '.'"
 msgstr "saknar egenskaps namn efter '.' operatör"

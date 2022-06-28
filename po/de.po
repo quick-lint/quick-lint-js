@@ -307,6 +307,11 @@ msgid "depth limit exceeded"
 msgstr "Maximale Verschachtelungstiefe überschritten"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
+msgstr "'{0}' ist für Strings nicht erlaubt. '{1}' anstattdessen verwenden."
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing property name between '.' and '.'"
 msgstr "Eigenschaftsname fehlt zwischen '.' und '.'"
 

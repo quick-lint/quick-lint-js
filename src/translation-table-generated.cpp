@@ -18,7 +18,8 @@ const translation_table translation_data = {
         {74, 59, 87, 79, 0, 59},             //
         {71, 52, 80, 60, 0, 52},             //
         {31, 0, 56, 0, 0, 28},               //
-        {79, 28, 25, 30, 39626, 67},         //
+        {0, 0, 0, 0, 0, 67},                 //
+        {79, 28, 25, 30, 39626, 66},         //
         {143, 0, 15, 0, 0, 97},              //
         {70, 0, 23, 0, 0, 53},               //
         {93, 97, 63, 151, 130, 70},          //
@@ -1421,6 +1422,7 @@ const translation_table translation_data = {
         u8"\"globals\" descriptor must be a boolean or an object\0"
         u8"\"globals\" must be an object\0"
         u8"'**' operator cannot be used after unary '{1}' without parentheses\0"
+        u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead\0"
         u8"'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key\0"
         u8"'=' changes variables; to compare, use '===' instead\0"
         u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead\0"

@@ -302,6 +302,11 @@ msgstr "DEPTH LIMIT EXCEEDED"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
+msgstr "'ASYNC STATIC' IS NOT ALLOWED; WRITE 'STATIC ASYNC' INSTEAD"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "missing property name between '.' and '.'"
 msgstr "MISSING PROPERTY NAME AFTER '.' OPERATOR"
 

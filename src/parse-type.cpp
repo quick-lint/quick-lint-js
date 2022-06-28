@@ -132,6 +132,36 @@ again:
         });
     break;
 
+  // typeof varname
+  // typeof ns.varname[KeyType]
+  // typeof varname[]
+  // typeof MyClass<T>
+  case token_type::kw_typeof:
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+    v.visit_variable_use(this->peek().identifier_name());
+    this->skip();
+    while (this->peek().type == token_type::dot) {
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      this->skip();
+    }
+    if (this->peek().type == token_type::less) {
+      this->parse_and_visit_typescript_generic_arguments(v);
+    }
+    while (this->peek().type == token_type::dot) {
+      source_code_span dot_span = this->peek().span();
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      this->diag_reporter_->report(
+          diag_dot_not_allowed_after_generic_arguments_in_type{
+              .dot = dot_span,
+              .property_name = this->peek().span(),
+          });
+      this->skip();
+    }
+    break;
+
   default:
     QLJS_PARSER_UNIMPLEMENTED();
     break;

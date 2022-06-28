@@ -1017,6 +1017,87 @@ TEST(test_parse_typescript_type,
                     right_operator, strlen(u8"Type1 & "), u8"&")));
   }
 }
+
+TEST(test_parse_typescript_type, typeof) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"typeof thing"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // thing
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"thing"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"typeof Class.staticProperty"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // Class
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Class"}));
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"typeof ns.Class.staticProperty"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // ns
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"ns"}));
+  }
+}
+
+TEST(test_parse_typescript_type, typeof_generic) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"typeof Class<T>"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // Class
+                                      "visit_variable_type_use"));  // T
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Class"},
+                            spy_visitor::visited_variable_use{u8"T"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"typeof ns.Class<T>"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // ns
+                                      "visit_variable_type_use"));  // T
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"ns"},
+                            spy_visitor::visited_variable_use{u8"T"}));
+  }
+}
+
+TEST(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
+  {
+    padded_string code(u8"typeof Class<T>.member"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_typescript_type_expression(v);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Class"},
+                            spy_visitor::visited_variable_use{u8"T"}));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    &code, diag_dot_not_allowed_after_generic_arguments_in_type,
+                    dot, strlen(u8"typeof Class<T>"), u8".",  //
+                    property_name, strlen(u8"typeof Class<T>."), u8"member")));
+  }
+}
+
+TEST(test_parse_typescript_type, typeof_allows_array_and_indexed) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"typeof ns.subns.thingy[KeyType]"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // ns
+                                      "visit_variable_type_use"));  // KeyType
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"ns"},
+                            spy_visitor::visited_variable_use{u8"KeyType"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"typeof somevar[]"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // somevar
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"somevar"}));
+  }
+}
 }
 }
 

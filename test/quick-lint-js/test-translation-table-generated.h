@@ -107,6 +107,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "'.' is not allowed after generic arguments; write [\"{1}\"] instead"_translatable,
+        {
+            u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead",
+            u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead",
+            u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead",
+            u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead",
+            u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead",
+            u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead",
+        },
+    },
+    {
         "'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key"_translatable,
         {
             u8"'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key",

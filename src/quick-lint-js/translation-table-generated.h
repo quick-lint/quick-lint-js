@@ -19,8 +19,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 308;
-constexpr std::size_t translation_table_string_table_size = 59953;
+constexpr std::uint16_t translation_table_mapping_table_size = 309;
+constexpr std::size_t translation_table_string_table_size = 60019;
 constexpr std::size_t translation_table_locale_table_size = 37;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -34,6 +34,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "\"globals\" descriptor must be a boolean or an object"sv,
           "\"globals\" must be an object"sv,
           "'**' operator cannot be used after unary '{1}' without parentheses"sv,
+          "'.' is not allowed after generic arguments; write [\"{1}\"] instead"sv,
           "'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key"sv,
           "'=' changes variables; to compare, use '===' instead"sv,
           "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"sv,
