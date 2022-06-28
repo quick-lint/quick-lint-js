@@ -240,6 +240,27 @@ describe("server", () => {
       expect(response.headers["content-type"]).toBe("text/html");
     });
 
+    it("serves /generated/subdir/ if index.ejs.html exists and not routed by /generated/index.mjs", async () => {
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.mkdirSync(path.join(wwwRootPath, "generated", "subdir"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "subdir", "index.ejs.html"),
+        "filesystem page should load"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        "export let routes = { '/generated/otherdir/': { type: 'build-ejs', path: 'generated/page.ejs.html' } };"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "page.ejs.html"),
+        "routed page should not load"
+      );
+
+      let response = await request.get("/generated/subdir/");
+      expect(response.status).toBe(200);
+      expect(response.data).toBe("filesystem page should load");
+    });
+
     it("fails if both /generated/subdir/index.ejs.html exists, and /generated/subdir/ is routed by /generated/index.mjs", async () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.mkdirSync(path.join(wwwRootPath, "generated", "subdir"));

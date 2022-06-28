@@ -36,21 +36,22 @@ export class Router {
       return { type: "does-not-exist" };
     }
 
-    let routerDirectoryRelativePath = path.dirname(directoryPath);
-    let routerScriptRelativePath = path.join(
-      routerDirectoryRelativePath,
-      "index.mjs"
-    );
     let haveIndexEJSHTML = await isFileReadableAsync(
       path.join(this._wwwRootPath, directoryPath, "index.ejs.html")
     );
-    let haveParentIndexMJS = await isFileReadableAsync(
-      path.join(this._wwwRootPath, routerScriptRelativePath)
-    );
+    let ancestorScripts = await this._loadAncestorScriptsAsync(directoryPath);
+    let scriptForRoute = null;
+    for (let script of ancestorScripts) {
+      if (script.module.routes.hasOwnProperty(`/${directoryPath}`)) {
+        scriptForRoute = script;
+        break;
+      }
+    }
+    let haveScriptForRoute = scriptForRoute !== null;
     let haveIndexHTML = await isFileReadableAsync(
       path.join(this._wwwRootPath, directoryPath, "index.html")
     );
-    if (haveIndexEJSHTML + haveIndexHTML + haveParentIndexMJS > 1) {
+    if (haveIndexEJSHTML + haveIndexHTML + haveScriptForRoute > 1) {
       return { type: "ambiguous" };
     } else if (haveIndexHTML) {
       return {
@@ -62,15 +63,37 @@ export class Router {
         type: "build-ejs",
         path: path.join(directoryPath, "index.ejs.html"),
       };
-    } else if (haveParentIndexMJS) {
+    } else if (haveScriptForRoute) {
       return {
         type: "routed",
-        routerScript: routerScriptRelativePath,
-        routerDirectory: routerDirectoryRelativePath,
+        routerScript: scriptForRoute.script,
+        routerDirectory: path.dirname(scriptForRoute.script),
       };
     } else {
       return { type: "does-not-exist" };
     }
+  }
+
+  async _loadAncestorScriptsAsync(directory) {
+    let scripts = [];
+    for (let d of ancestorHierarchy(directory)) {
+      let scriptRelativePath = path.join(d, "index.mjs");
+      let scriptPath = path.join(this._wwwRootPath, scriptRelativePath);
+      try {
+        let module = await import(url.pathToFileURL(scriptPath));
+        scripts.push({
+          script: scriptRelativePath,
+          module: module,
+        });
+      } catch (e) {
+        if (e.code === "ERR_MODULE_NOT_FOUND") {
+          // Ignore.
+        } else {
+          throw e;
+        }
+      }
+    }
+    return scripts;
   }
 
   async classifyDirectoryRouteAsync(urlPath) {
@@ -368,6 +391,19 @@ async function checkFileReadabilityAsync(path) {
   }
 
   return "unreadable";
+}
+
+// "a/b/c" -> ["a/b/c", "a/b", "a", "."]
+function ancestorHierarchy(p) {
+  let result = [];
+  for (;;) {
+    result.push(p);
+    if (p === ".") {
+      break;
+    }
+    p = path.dirname(p);
+  }
+  return result;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
