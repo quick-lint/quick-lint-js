@@ -1,26 +1,30 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+import assert from "assert";
 import colors from "colors/safe.js";
-import ejs from "ejs";
-import fs from "fs";
-import mime from "mime";
-import os from "os";
-import path from "path";
-import url from "url";
-import { Router } from "./router.mjs";
+import {
+  IndexConflictVFSError,
+  MalformedDirectoryURIError,
+  ServerConfigVFSFile,
+  VFS,
+  VFSDirectory,
+} from "./vfs.mjs";
 import { performance } from "perf_hooks";
-import { readFileAsync } from "./fs.mjs";
 
 export function makeServer({ wwwRootPath }) {
-  let router = new Router({
-    wwwRootPath: wwwRootPath,
-  });
+  let vfs = new VFS(wwwRootPath);
   return serve;
 
   function serve(request, response) {
     serveAsync(request, response).catch((error) => {
       console.error(`error processing request: ${error.stack}`);
+      if (error instanceof MalformedDirectoryURIError) {
+        response.writeHead(404); // TODO(strager): Should this be 400 instead?
+        response.end();
+        return;
+      }
+
       if (response.headersSent) {
         response.end();
       } else {
@@ -42,148 +46,32 @@ export function makeServer({ wwwRootPath }) {
       response.end(`bad URL ${request.url}`);
       return;
     }
-    // TODO(strager): Don't modify request. Use a parameter instead.
-    request.path = request.url.match(/^[^?]+/)[0];
 
-    if (/^\/(?:[^/]+\/)*$/.test(request.path)) {
-      await serveDirectoryAsync(request, response);
+    let requestPath = request.url.match(/^[^?]+/)[0];
+    let pathLastSlashIndex = requestPath.lastIndexOf("/");
+    assert.notStrictEqual(pathLastSlashIndex, -1);
+    let childName = requestPath.slice(pathLastSlashIndex + 1);
+    let directoryURI = requestPath.slice(0, pathLastSlashIndex + 1);
+
+    let listing = await vfs.listDirectoryAsync(directoryURI);
+    let entry = listing.get(childName);
+    if (entry === null || entry instanceof VFSDirectory) {
+      response.writeHeader(404);
+      response.end();
+    } else if (entry instanceof ServerConfigVFSFile) {
+      response.writeHeader(403);
+      response.end();
+    } else if (entry instanceof IndexConflictVFSError) {
+      response.writeHeader(409);
+      response.end();
     } else {
-      await serveFileAsync(request, response);
-    }
-  }
-
-  async function serveDirectoryAsync(request, response) {
-    let classifiedDirectory = await router.classifyDirectoryRouteAsync(
-      request.path
-    );
-    await serveRouteAsync(request, response, classifiedDirectory);
-  }
-
-  async function serveFileAsync(request, response) {
-    let classification = await router.classifyFileRouteAsync(request.path);
-    await serveRouteAsync(request, response, classification);
-  }
-
-  async function serveRouteAsync(request, response, route) {
-    switch (route.type) {
-      case "ambiguous":
-        response.writeHeader(409);
-        response.end();
-        return;
-
-      case "build-ejs": {
-        let headers = { "content-type": "text/html" };
-        if (request.method === "HEAD") {
-          // For HEAD requests, don't run the EJS because it might be slow.
-          response.writeHeader(200, headers);
-          response.end();
-          return;
-        }
-
-        let out = null;
-        try {
-          out = await router.renderEJSFileAsync(
-            path.join(router.wwwRootPath, route.path),
-            { currentURI: request.path }
-          );
-        } catch (error) {
-          response.writeHeader(500, { "content-type": "text/plain" });
-          response.end(error.stack);
-          return;
-        }
-        response.writeHeader(200, headers);
-        response.end(out);
-        return;
+      let headers = { "content-type": entry.getContentType() };
+      let data = undefined;
+      if (request.method === "GET") {
+        data = await entry.getContentsAsync();
       }
-
-      case "routed": {
-        let routerScriptPath = path.join(
-          router.wwwRootPath,
-          route.routerScript
-        );
-        let { routes } = await import(url.pathToFileURL(routerScriptPath));
-        if (!Object.prototype.hasOwnProperty.call(routes, request.path)) {
-          response.writeHeader(404);
-          response.end(`${request.path} is not routed by ${routerScriptPath}`);
-          break;
-        }
-        let headers = { "content-type": "text/html" };
-        if (request.method === "HEAD") {
-          // For HEAD requests, don't run the EJS because it might be slow.
-          response.writeHeader(200, headers);
-          response.end();
-          return;
-        }
-        await serveRouteAsync(request, response, routes[request.path]);
-        return;
-      }
-
-      case "copy":
-        let html = await readFileAsync(
-          path.join(router.wwwRootPath, route.path)
-        );
-        response.writeHeader(200, { "content-type": "text/html" });
-        response.end(html);
-        return;
-
-      case "does-not-exist":
-        response.writeHeader(404);
-        response.end();
-        return;
-
-      case "index-script": // Don't expose index.mjs to users.
-      case "missing":
-        response.writeHeader(404);
-        response.end();
-        return;
-
-      case "forbidden":
-        response.writeHeader(403);
-        response.end();
-        return;
-
-      case "static": {
-        let headers = { "content-type": route.contentType };
-        if (request.method === "HEAD") {
-          // For HEAD requests, don't waste time reading the file.
-          response.writeHeader(200, headers);
-          response.end();
-          return;
-        }
-
-        let filePath = path.join(router.wwwRootPath, request.path);
-        let content = await readFileAsync(filePath);
-        response.writeHeader(200, headers);
-        response.end(content);
-        return;
-      }
-
-      case "esbuild": {
-        let temporaryDirectory = await fs.promises.mkdtemp(
-          os.tmpdir() + path.sep
-        );
-        try {
-          let bundlePath = path.join(temporaryDirectory, "bundle.js");
-          try {
-            await router.runESBuildAsync(route.esbuildConfig, bundlePath);
-          } catch (error) {
-            response.writeHeader(500, { "content-type": "text/plain" });
-            response.end(error.stack);
-            return;
-          }
-          let content = await readFileAsync(bundlePath);
-          response.writeHeader(200, {
-            "content-type": "application/javascript",
-          });
-          response.end(content);
-        } finally {
-          fs.promises.rmdir(temporaryDirectory, { recursive: true });
-        }
-        break;
-      }
-
-      default:
-        throw new Error(`Unexpected route type: ${route.type}`);
+      response.writeHeader(200, headers);
+      response.end(data);
     }
   }
 }
