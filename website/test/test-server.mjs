@@ -208,7 +208,7 @@ describe("server", () => {
       expect(response.headers["content-type"]).toBe("text/html");
     });
 
-    it("doesn't serves index.mjs", async () => {
+    it("doesn't serve index.mjs", async () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.mjs"),
@@ -240,7 +240,7 @@ describe("server", () => {
       expect(response.headers["content-type"]).toBe("text/html");
     });
 
-    it("fails if both /generated/subdir/index.ejs/html exists, and /generated/subdir/ is routed by /generated/index.js", async () => {
+    it("fails if both /generated/subdir/index.ejs.html exists, and /generated/subdir/ is routed by /generated/index.mjs", async () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.mkdirSync(path.join(wwwRootPath, "generated", "subdir"));
       fs.writeFileSync(
