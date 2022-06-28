@@ -8,8 +8,6 @@ let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
 
 export let websiteConfig = {
-  esbuildBundles: {},
-  htmlRedirects: {},
   wwwRootPath: path.join(__dirname, "..", "public"),
 };
 

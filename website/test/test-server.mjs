@@ -19,14 +19,6 @@ describe("server", () => {
 
     server = http.createServer(
       makeServer({
-        esbuildBundles: {
-          "/app.bundle.js": {
-            entryPoints: ["/app.js"],
-          },
-        },
-        htmlRedirects: {
-          "/redirect-from.html": "redirect-to/",
-        },
         wwwRootPath: wwwRootPath,
       })
     );
@@ -541,60 +533,6 @@ describe("server", () => {
 
       let response = await request.get("/node_modules/test.js");
       expect(response.status).toBe(404);
-    });
-  });
-
-  describe("HTML redirects", () => {
-    it("should send 200 with refreshing HTML", async () => {
-      let response = await request.get("/redirect-from.html");
-      expect(response.status).toBe(200);
-      expect(response.headers["content-type"]).toBe("text/html");
-      expect(response.data).toContain(
-        '<meta http-equiv="refresh" content="0; url=redirect-to/" />'
-      );
-    });
-  });
-
-  describe("esbuild bundle", () => {
-    it("should preserve simple script", async () => {
-      fs.writeFileSync(
-        path.join(wwwRootPath, "app.js"),
-        'console.log("hello world")'
-      );
-
-      let response = await request.get("/app.bundle.js");
-      expect(response.status).toBe(200);
-      expect(response.headers["content-type"]).toBe("application/javascript");
-      expect(response.data).toContain('console.log("hello world")');
-    });
-
-    it("should bundle imported files", async () => {
-      fs.writeFileSync(
-        path.join(wwwRootPath, "app.js"),
-        'import { greet } from "./lib.js"; greet();'
-      );
-      fs.writeFileSync(
-        path.join(wwwRootPath, "lib.js"),
-        'export function greet() { console.log("hello world"); }'
-      );
-
-      let response = await request.get("/app.bundle.js");
-      expect(response.status).toBe(200);
-      expect(response.headers["content-type"]).toBe("application/javascript");
-      expect(response.data).toContain('console.log("hello world")');
-      expect(response.data).toContain("greet");
-      expect(response.data).not.toContain("import");
-    });
-
-    it("syntax error causes 500 error", async () => {
-      fs.writeFileSync(
-        path.join(wwwRootPath, "app.js"),
-        "syntax error goes here !@#%$^"
-      );
-
-      let response = await request.get("/app.bundle.js");
-      expect(response.status).toBe(500);
-      expect(response.data).toContain("Build failed with 1 error");
     });
   });
 

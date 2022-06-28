@@ -323,62 +323,6 @@ describe("build", () => {
     let buildInstructions = await makeBuildInstructionsAsync({ wwwRootPath });
     expect(buildInstructions).toEqual([]);
   });
-
-  it("htmlRedirects creates files", async () => {
-    let buildInstructions = await makeBuildInstructionsAsync({
-      wwwRootPath,
-      htmlRedirects: {
-        "/redirect-from.html": "redirect-to/",
-      },
-    });
-    expect(buildInstructions).toEqual([
-      {
-        type: "html-redirect",
-        htmlPath: "redirect-from.html",
-        redirectTargetURL: "redirect-to/",
-      },
-    ]);
-  });
-
-  it("htmlRedirects creates files in subdirectories", async () => {
-    fs.mkdirSync(path.join(wwwRootPath, "subdir"));
-
-    let buildInstructions = await makeBuildInstructionsAsync({
-      wwwRootPath,
-      htmlRedirects: {
-        "/subdir/from.html": "to/",
-      },
-    });
-    expect(buildInstructions).toEqual([
-      {
-        type: "html-redirect",
-        htmlPath: path.join("subdir", "from.html"),
-        redirectTargetURL: "to/",
-      },
-    ]);
-  });
-
-  describe("esbuildBundles", () => {
-    it("creates a file", async () => {
-      let buildInstructions = await makeBuildInstructionsAsync({
-        wwwRootPath,
-        esbuildBundles: {
-          "/app.bundled.js": {
-            entryPoints: ["/app.js"],
-          },
-        },
-      });
-      expect(buildInstructions).toEqual([
-        {
-          type: "esbuild",
-          bundlePath: "app.bundled.js",
-          esbuildConfig: {
-            entryPoints: ["/app.js"],
-          },
-        },
-      ]);
-    });
-  });
 });
 
 // quick-lint-js finds bugs in JavaScript programs.

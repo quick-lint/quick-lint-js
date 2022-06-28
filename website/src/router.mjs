@@ -13,18 +13,8 @@ let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
 
 export class Router {
-  constructor({ esbuildBundles, htmlRedirects, wwwRootPath }) {
-    this._esbuildBundles = esbuildBundles;
-    this._htmlRedirects = htmlRedirects;
+  constructor({ wwwRootPath }) {
     this._wwwRootPath = wwwRootPath;
-  }
-
-  get esbuildBundles() {
-    return this._esbuildBundles;
-  }
-
-  get htmlRedirects() {
-    return this._htmlRedirects;
   }
 
   get wwwRootPath() {
@@ -129,19 +119,6 @@ export class Router {
   // .type === "redirect": 200 OK
   // * .redirectTargetURL: String relative URL
   async classifyFileRouteAsync(urlPath) {
-    if (Object.prototype.hasOwnProperty.call(this._htmlRedirects, urlPath)) {
-      return {
-        type: "redirect",
-        redirectTargetURL: this._htmlRedirects[urlPath],
-      };
-    }
-    if (Object.prototype.hasOwnProperty.call(this._esbuildBundles, urlPath)) {
-      return {
-        type: "esbuild",
-        esbuildConfig: this._esbuildBundles[urlPath],
-      };
-    }
-
     if (path.basename(urlPath) === ".htaccess") {
       return { type: "forbidden", why: "server-config" };
     }
@@ -313,25 +290,6 @@ class RenderEJSChildProcessPool {
 }
 
 let renderEJSChildProcessPool = new RenderEJSChildProcessPool();
-
-export function makeHTMLRedirect(redirectFrom, redirectTo) {
-  return `<!DOCTYPE html>
-<html>
-  <head>
-    <!-- ${redirectFrom} is an old link. Redirect users to ${redirectTo} instead. -->
-    <meta charset="utf-8" />
-    <link rel="canonical" href="${redirectTo}" />
-    <meta http-equiv="refresh" content="0; url=${redirectTo}" />
-  </head>
-  <body>
-    <p>
-      This page has moved.
-      <a href="${redirectTo}">Click here to go to the new location.</a>
-    </p>
-  </body>
-</html>
-`;
-}
 
 export function isHiddenPath(p) {
   return pathParts(p).some(

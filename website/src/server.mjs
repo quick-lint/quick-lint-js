@@ -8,19 +8,13 @@ import mime from "mime";
 import os from "os";
 import path from "path";
 import url from "url";
-import { Router, makeHTMLRedirect } from "./router.mjs";
+import { Router } from "./router.mjs";
 import { performance } from "perf_hooks";
 import { readFileAsync } from "./fs.mjs";
 
-export function makeServer({
-  esbuildBundles = {},
-  htmlRedirects = {},
-  wwwRootPath,
-}) {
+export function makeServer({ wwwRootPath }) {
   let router = new Router({
     wwwRootPath: wwwRootPath,
-    esbuildBundles: esbuildBundles,
-    htmlRedirects: htmlRedirects,
   });
   return serve;
 
@@ -163,12 +157,6 @@ export function makeServer({
         response.end(content);
         return;
       }
-
-      case "redirect":
-        let redirectTo = route.redirectTargetURL;
-        response.writeHeader(200, { "content-type": "text/html" });
-        response.end(makeHTMLRedirect(request.path, redirectTo));
-        return;
 
       case "esbuild": {
         let temporaryDirectory = await fs.promises.mkdtemp(
