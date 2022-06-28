@@ -9,12 +9,7 @@ let __dirname = path.dirname(__filename);
 
 export let websiteConfig = {
   esbuildBundles: {},
-  htmlRedirects: {
-    "/cli.html": "cli/",
-    "/hiring.html": "hiring/",
-    "/install.html": "install/",
-    "/license.html": "license/",
-  },
+  htmlRedirects: {},
   wwwRootPath: path.join(__dirname, "..", "public"),
 };
 
