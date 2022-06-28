@@ -179,14 +179,19 @@ export class Router {
       return { type: "missing", why: "unknown-extension" };
     }
     let ignoredContentTypes = [
-      // Don't serve index.html directly. Caller must request the containing
-      // directory instead.
-      "text/html",
-
       // Don't serve README files.
       "text/markdown",
     ];
     if (ignoredContentTypes.includes(contentType)) {
+      return { type: "missing", why: "ignored" };
+    }
+    if (/\.ejs\.html$/.test(urlPath)) {
+      // Don't serve EJS-built HTML files directly.
+      return { type: "missing", why: "ignored" };
+    }
+    if (path.basename(urlPath) === "index.html") {
+      // Don't serve index.html directly. Caller must request the containing
+      // directory instead.
       return { type: "missing", why: "ignored" };
     }
     return { type: "static", contentType: contentType };

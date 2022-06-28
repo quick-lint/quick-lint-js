@@ -191,6 +191,17 @@ describe("server", () => {
     });
   }
 
+  describe("/test.ejs.html", () => {
+    it("should not load from /test.ejs.html", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "test.ejs.html"),
+        "hello <%= 2+2 %>"
+      );
+      let response = await request.get("/test.ejs.html");
+      expect(response.status).toBe(404);
+    });
+  });
+
   describe("/generated/<subdir>/", () => {
     it("serves index.ejs.html for /generated/, ignoring index.mjs", async () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
@@ -399,6 +410,15 @@ describe("server", () => {
       expect(response.status).toBe(200);
       expect(response.data).toBe("console.log('hello')");
       expect(response.headers["content-type"]).toBe("application/javascript");
+    });
+
+    it("/test.html", async () => {
+      fs.writeFileSync(path.join(wwwRootPath, "test.html"), "<h1>hello</h1>");
+
+      let response = await request.get("/test.html");
+      expect(response.status).toBe(200);
+      expect(response.data).toBe("<h1>hello</h1>");
+      expect(response.headers["content-type"]).toBe("text/html");
     });
 
     it("/test.tar.bz2 (multiple file extensions)", async () => {
