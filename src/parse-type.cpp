@@ -193,6 +193,18 @@ again:
     this->skip();
     goto again;
   }
+
+  if (this->peek().type == token_type::kw_extends) {
+    // T extends T ? T : T
+    this->skip();
+    this->parse_and_visit_typescript_type_expression(v);
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::question);
+    this->skip();
+    this->parse_and_visit_typescript_type_expression(v);
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
+    this->skip();
+    this->parse_and_visit_typescript_type_expression(v);
+  }
 }
 
 void parser::parse_and_visit_typescript_arrow_type_expression(

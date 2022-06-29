@@ -1107,6 +1107,36 @@ TEST(test_parse_typescript_type, keyof) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
   }
 }
+
+TEST(test_parse_typescript_type, extends_condition) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(
+        u8"Derived extends Base ? TrueType : FalseType"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Derived
+                                      "visit_variable_type_use",    // Base
+                                      "visit_variable_type_use",    // TrueType
+                                      "visit_variable_type_use"));  // FalseType
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Derived"},
+                            spy_visitor::visited_variable_use{u8"Base"},
+                            spy_visitor::visited_variable_use{u8"TrueType"},
+                            spy_visitor::visited_variable_use{u8"FalseType"}));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(
+        u8"Derived[DK] extends Base[BK] ? TrueType[TK] : FalseType[FK]"_sv);
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Derived"},
+                            spy_visitor::visited_variable_use{u8"DK"},
+                            spy_visitor::visited_variable_use{u8"Base"},
+                            spy_visitor::visited_variable_use{u8"BK"},
+                            spy_visitor::visited_variable_use{u8"TrueType"},
+                            spy_visitor::visited_variable_use{u8"TK"},
+                            spy_visitor::visited_variable_use{u8"FalseType"},
+                            spy_visitor::visited_variable_use{u8"FK"}));
+  }
+}
 }
 }
 
