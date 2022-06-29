@@ -77,6 +77,29 @@ again:
 
   // Type
   // ns.Type<T>
+  case token_type::kw_abstract:
+  case token_type::kw_as:
+  case token_type::kw_assert:
+  case token_type::kw_asserts:
+  case token_type::kw_async:
+  case token_type::kw_constructor:
+  case token_type::kw_declare:
+  case token_type::kw_from:
+  case token_type::kw_get:
+  case token_type::kw_global:
+  case token_type::kw_infer:
+  case token_type::kw_intrinsic:
+  case token_type::kw_is:
+  case token_type::kw_module:
+  case token_type::kw_namespace:
+  case token_type::kw_of:
+  case token_type::kw_out:
+  case token_type::kw_override:
+  case token_type::kw_readonly:
+  case token_type::kw_require:
+  case token_type::kw_set:
+  case token_type::kw_type:
+  case token_type::kw_unique:
   case token_type::identifier: {
     identifier name = this->peek().identifier_name();
     bool had_dot = false;

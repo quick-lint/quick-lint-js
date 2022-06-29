@@ -33,6 +33,25 @@ TEST(test_parse_typescript_type, direct_type_reference) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
   }
+
+  // NOTE(strager): keyof is omitted on purpose because of ambiguities in the
+  // grammar: https://github.com/microsoft/TypeScript/issues/49724
+  for (string8 keyword : {
+           u8"abstract", u8"as",          u8"assert",   u8"asserts",
+           u8"async",    u8"constructor", u8"declare",  u8"from",
+           u8"get",      u8"global",      u8"infer",    u8"intrinsic",
+           u8"is",       u8"meta",        u8"module",   u8"namespace",
+           u8"of",       u8"out",         u8"override", u8"readonly",
+           u8"require",  u8"set",         u8"target",   u8"type",
+           u8"unique",
+       }) {
+    padded_string code(keyword);
+    SCOPED_TRACE(code);
+    spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // (keyword)
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{keyword}));
+  }
 }
 
 TEST(test_parse_typescript_type, direct_generic_type_reference) {
