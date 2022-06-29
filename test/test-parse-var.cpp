@@ -1777,16 +1777,12 @@ TEST(test_parse, declare_yield_in_generator_function) {
 }
 
 TEST(test_parse, variables_can_be_named_contextual_keywords) {
-  std::vector<string8> variable_names;
-  std::copy_if(contextual_keywords.begin(), contextual_keywords.end(),
-               std::back_inserter(variable_names),
-               [](const string8& keyword) { return keyword != u8"let"_sv; });
-  variable_names.push_back(u8"await");
-  variable_names.push_back(u8"yield");
-  // TODO(#73): Disallow these ('protected', 'implements', etc.) in strict mode.
-  for (const string8& keyword : strict_only_reserved_keywords) {
-    variable_names.push_back(keyword);
-  }
+  dirty_set<string8> variable_names =
+      (contextual_keywords - dirty_set<string8>{u8"let"}) |
+      dirty_set<string8>{u8"await", u8"yield"} |
+      // TODO(#73): Disallow these ('protected', 'implements', etc.) in strict
+      // mode.
+      strict_only_reserved_keywords;
 
   for (string8 name : variable_names) {
     SCOPED_TRACE(out_string8(name));

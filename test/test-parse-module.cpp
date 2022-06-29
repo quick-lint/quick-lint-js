@@ -756,11 +756,7 @@ TEST(test_parse, parse_empty_module) {
 }
 
 TEST(test_parse, imported_variables_can_be_named_contextual_keywords) {
-  for (string8 name : contextual_keywords) {
-    if (name == u8"let") {
-      continue;
-    }
-
+  for (string8 name : contextual_keywords - dirty_set<string8>{u8"let"}) {
     SCOPED_TRACE(out_string8(name));
 
     {

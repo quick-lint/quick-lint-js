@@ -694,12 +694,8 @@ TEST(test_parse_typescript_type, object_type_with_keyword_named_properties) {
 
 TEST(test_parse_typescript_type,
      object_type_with_contextual_keyword_named_index_key) {
-  for (string8 keyword : contextual_keywords) {
-    if (keyword == u8"let" || keyword == u8"static") {
-      // 'let' and 'static' aren't allowed.
-      continue;
-    }
-
+  for (string8 keyword :
+       contextual_keywords - dirty_set<string8>{u8"let", u8"static"}) {
     {
       padded_string code(u8"{ [" + keyword + u8": T]: T }");
       SCOPED_TRACE(code);
