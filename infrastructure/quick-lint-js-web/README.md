@@ -33,6 +33,27 @@ This directory contains sources for quick-lint-js.com's web server.
 
 6. Visit <http://quick-lint-js.com.developer.app/> in your web browser.
 
+### Matomo
+
+If you want to check that Matomo works, follow these steps:
+
+1. Install and run MySQL on your Linux host.
+2. Run the following commands on your MySQL instance:
+
+    CREATE DATABASE matomo;
+    CREATE USER 'matomo'@'localhost' IDENTIFIED WITH mysql_native_password BY 'hello';
+    GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, INDEX, DROP, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES ON matomo.* TO 'matomo'@'localhost';
+
+3. Start a quick-lint-js-web container per the instructions above, but also with
+   the `--volume /run/mysqld/mysqld.sock:/run/mysqld/mysqld.sock` option.
+4. Visit <https://admin.quick-lint-js.com.developer.app/matomo/>.
+5. Follow the instructions on the page to set up Matomo. Use the following
+   database settings:
+   * host: `/run/mysqld/mysqld.sock`
+   * user: `matomo`
+   * password: `hello`
+   * database: `matomo`
+
 ## Deploying
 
 After changing the Dockerfile or any script, build then push the new image:
