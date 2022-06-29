@@ -1098,6 +1098,15 @@ TEST(test_parse_typescript_type, typeof_allows_array_and_indexed) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"somevar"}));
   }
 }
+
+TEST(test_parse_typescript_type, keyof) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"keyof Type"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+  }
+}
 }
 }
 

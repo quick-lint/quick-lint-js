@@ -162,6 +162,12 @@ again:
     }
     break;
 
+  // keyof Type
+  case token_type::kw_keyof:
+    this->skip();
+    this->parse_and_visit_typescript_type_expression(v);
+    break;
+
   default:
     QLJS_PARSER_UNIMPLEMENTED();
     break;
