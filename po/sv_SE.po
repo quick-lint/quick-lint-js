@@ -302,6 +302,10 @@ msgid "depth limit exceeded"
 msgstr "djup begränsning överskriden"
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
 msgid "missing property name between '.' and '.'"
 msgstr "saknar egenskaps namn efter '.' operatör"
@@ -816,6 +820,11 @@ msgstr ""
 "ofullständig exportering; förväntades 'export default ...' eller 'export "
 "{{name}' eller 'export * from ...' eller 'export class' eller 'export "
 "function' eller 'export let'"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing type between '{1}' and '{0}'"
+msgstr "saknar egenskaps namn efter '.' operatör"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing value for object property"

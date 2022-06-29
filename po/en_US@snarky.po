@@ -293,6 +293,11 @@ msgid "depth limit exceeded"
 msgstr "ow! my cervix! 🤰"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
+msgstr "smart quotes 🧠 require the SmartyPantsJS DLC"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing property name between '.' and '.'"
 msgstr "._."
 
@@ -813,6 +818,11 @@ msgid ""
 "incomplete export; expected 'export default ...' or 'export {{name}' or "
 "'export * from ...' or 'export class' or 'export function' or 'export let'"
 msgstr "export WHAT!?"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing type between '{1}' and '{0}'"
+msgstr "._."
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing value for object property"

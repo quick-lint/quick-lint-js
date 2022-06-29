@@ -8,23 +8,29 @@ import mime from "mime";
 import os from "os";
 import path from "path";
 import url from "url";
-import { Router, makeHTMLRedirect } from "./router.mjs";
+import { Router } from "./router.mjs";
 import { performance } from "perf_hooks";
 import { readFileAsync } from "./fs.mjs";
 
-export function makeServer({
-  esbuildBundles = {},
-  htmlRedirects = {},
-  wwwRootPath,
-}) {
+export function makeServer({ wwwRootPath }) {
   let router = new Router({
     wwwRootPath: wwwRootPath,
-    esbuildBundles: esbuildBundles,
-    htmlRedirects: htmlRedirects,
   });
   return serve;
 
   function serve(request, response) {
+    serveAsync(request, response).catch((error) => {
+      console.error(`error processing request: ${error.stack}`);
+      if (response.headersSent) {
+        response.end();
+      } else {
+        response.writeHead(500);
+        response.end(error.stack);
+      }
+    });
+  }
+
+  async function serveAsync(request, response) {
     logRequestResponse(request, response);
     if (request.method !== "GET" && request.method !== "HEAD") {
       response.writeHead(405);
@@ -40,9 +46,9 @@ export function makeServer({
     request.path = request.url.match(/^[^?]+/)[0];
 
     if (/^\/(?:[^/]+\/)*$/.test(request.path)) {
-      serveDirectoryAsync(request, response);
+      await serveDirectoryAsync(request, response);
     } else {
-      serveFileAsync(request, response);
+      await serveFileAsync(request, response);
     }
   }
 
@@ -108,23 +114,7 @@ export function makeServer({
           response.end();
           return;
         }
-        let newRoute = routes[request.path];
-        if (newRoute.type !== "build-ejs") {
-          throw new Error(`Unsupported route type: ${newRoute.type}`);
-        }
-        let out = null;
-        try {
-          out = await router.renderEJSFileAsync(
-            path.join(router.wwwRootPath, route.routerDirectory, newRoute.path),
-            { currentURI: request.path }
-          );
-        } catch (error) {
-          response.writeHeader(500, { "content-type": "text/plain" });
-          response.end(error.stack);
-          return;
-        }
-        response.writeHeader(200, headers);
-        response.end(out);
+        await serveRouteAsync(request, response, routes[request.path]);
         return;
       }
 
@@ -167,12 +157,6 @@ export function makeServer({
         response.end(content);
         return;
       }
-
-      case "redirect":
-        let redirectTo = route.redirectTargetURL;
-        response.writeHeader(200, { "content-type": "text/html" });
-        response.end(makeHTMLRedirect(request.path, redirectTo));
-        return;
 
       case "esbuild": {
         let temporaryDirectory = await fs.promises.mkdtemp(

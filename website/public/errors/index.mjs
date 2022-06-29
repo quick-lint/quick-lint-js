@@ -14,7 +14,7 @@ async function makeRoutesAsync() {
   for (let path of paths) {
     routes[`/errors/${path.replace(".md", "")}/`] = {
       type: "build-ejs",
-      path: "error.ejs.html",
+      path: "errors/error.ejs.html",
     };
   }
   return routes;

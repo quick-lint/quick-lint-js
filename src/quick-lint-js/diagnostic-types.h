@@ -394,6 +394,17 @@
       MESSAGE(QLJS_TRANSLATABLE("depth limit exceeded"), token))               \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_dot_not_allowed_after_generic_arguments_in_type, "E0259",           \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span dot;                                                  \
+        source_code_span property_name;                                        \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("'.' is not allowed after generic arguments; " \
+                                "write [\"{1}\"] instead"),                    \
+              dot, property_name))                                             \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_dot_dot_is_not_an_operator, "E0053", diagnostic_severity::error,    \
       { source_code_span dots; },                                              \
       MESSAGE(QLJS_TRANSLATABLE("missing property name between '.' and '.'"),  \
@@ -1250,6 +1261,16 @@
                   "'export {{name}' or 'export * from ...' or 'export class' " \
                   "or 'export function' or 'export let'"),                     \
               export_token))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_missing_type_between_intersection_or_union, "E0258",                \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span left_operator;                                        \
+        source_code_span right_operator;                                       \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("missing type between '{1}' and '{0}'"),       \
+              right_operator, left_operator))                                  \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
       diag_missing_value_for_object_literal_entry, "E0083",                    \

@@ -19,14 +19,6 @@ describe("server", () => {
 
     server = http.createServer(
       makeServer({
-        esbuildBundles: {
-          "/app.bundle.js": {
-            entryPoints: ["/app.js"],
-          },
-        },
-        htmlRedirects: {
-          "/redirect-from.html": "redirect-to/",
-        },
         wwwRootPath: wwwRootPath,
       })
     );
@@ -191,12 +183,23 @@ describe("server", () => {
     });
   }
 
+  describe("/test.ejs.html", () => {
+    it("should not load from /test.ejs.html", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "test.ejs.html"),
+        "hello <%= 2+2 %>"
+      );
+      let response = await request.get("/test.ejs.html");
+      expect(response.status).toBe(404);
+    });
+  });
+
   describe("/generated/<subdir>/", () => {
     it("serves index.ejs.html for /generated/, ignoring index.mjs", async () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.mjs"),
-        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'page.ejs.html' } };"
+        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'generated/page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.ejs.html"),
@@ -208,11 +211,11 @@ describe("server", () => {
       expect(response.headers["content-type"]).toBe("text/html");
     });
 
-    it("doesn't serves index.mjs", async () => {
+    it("doesn't serve index.mjs", async () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.mjs"),
-        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'page.ejs.html' } };"
+        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'generated/page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.ejs.html"),
@@ -227,7 +230,7 @@ describe("server", () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.mjs"),
-        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'page.ejs.html' } };"
+        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'generated/page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "page.ejs.html"),
@@ -240,7 +243,28 @@ describe("server", () => {
       expect(response.headers["content-type"]).toBe("text/html");
     });
 
-    it("fails if both /generated/subdir/index.ejs/html exists, and /generated/subdir/ is routed by /generated/index.js", async () => {
+    it("serves /generated/subdir/ if index.ejs.html exists and not routed by /generated/index.mjs", async () => {
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.mkdirSync(path.join(wwwRootPath, "generated", "subdir"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "subdir", "index.ejs.html"),
+        "filesystem page should load"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        "export let routes = { '/generated/otherdir/': { type: 'build-ejs', path: 'generated/page.ejs.html' } };"
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "page.ejs.html"),
+        "routed page should not load"
+      );
+
+      let response = await request.get("/generated/subdir/");
+      expect(response.status).toBe(200);
+      expect(response.data).toBe("filesystem page should load");
+    });
+
+    it("fails if both /generated/subdir/index.ejs.html exists, and /generated/subdir/ is routed by /generated/index.mjs", async () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.mkdirSync(path.join(wwwRootPath, "generated", "subdir"));
       fs.writeFileSync(
@@ -249,7 +273,7 @@ describe("server", () => {
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.mjs"),
-        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'page.ejs.html' } };"
+        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'generated/page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "page.ejs.html"),
@@ -264,7 +288,7 @@ describe("server", () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.mjs"),
-        "export let routes = { '/generated/other/': { type: 'build-ejs', path: 'page.ejs.html' } };"
+        "export let routes = { '/generated/other/': { type: 'build-ejs', path: 'generated/page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "page.ejs.html"),
@@ -273,6 +297,88 @@ describe("server", () => {
 
       let response = await request.get("/generated/subdir/");
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe("/generated/app.bundle.js ESBuild bundle", () => {
+    it("should preserve simple script", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "app.js"),
+        'console.log("hello world")'
+      );
+
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        `export let routes = {
+          '/generated/app.bundle.js': {
+            type: 'esbuild',
+            esbuildConfig: {
+              entryPoints: ["/app.js"],
+            },
+          },
+        };`
+      );
+
+      let response = await request.get("/generated/app.bundle.js");
+      expect(response.status).toBe(200);
+      expect(response.headers["content-type"]).toBe("application/javascript");
+      expect(response.data).toContain('console.log("hello world")');
+    });
+
+    it("should bundle imported files", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "app.js"),
+        'import { greet } from "./lib.js"; greet();'
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "lib.js"),
+        'export function greet() { console.log("hello world"); }'
+      );
+
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        `export let routes = {
+          '/generated/app.bundle.js': {
+            type: 'esbuild',
+            esbuildConfig: {
+              entryPoints: ["/app.js"],
+            },
+          },
+        };`
+      );
+
+      let response = await request.get("/generated/app.bundle.js");
+      expect(response.status).toBe(200);
+      expect(response.headers["content-type"]).toBe("application/javascript");
+      expect(response.data).toContain('console.log("hello world")');
+      expect(response.data).toContain("greet");
+      expect(response.data).not.toContain("import");
+    });
+
+    it("syntax error causes 500 error", async () => {
+      fs.writeFileSync(
+        path.join(wwwRootPath, "bad-app.js"),
+        "syntax error goes here !@#%$^"
+      );
+
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        `export let routes = {
+          '/generated/app.bundle.js': {
+            type: 'esbuild',
+            esbuildConfig: {
+              entryPoints: ["/bad-app.js"],
+            },
+          },
+        };`
+      );
+
+      let response = await request.get("/generated/app.bundle.js");
+      expect(response.status).toBe(500);
+      expect(response.data).toContain("Build failed with 1 error");
     });
   });
 
@@ -296,6 +402,15 @@ describe("server", () => {
       expect(response.status).toBe(200);
       expect(response.data).toBe("console.log('hello')");
       expect(response.headers["content-type"]).toBe("application/javascript");
+    });
+
+    it("/test.html", async () => {
+      fs.writeFileSync(path.join(wwwRootPath, "test.html"), "<h1>hello</h1>");
+
+      let response = await request.get("/test.html");
+      expect(response.status).toBe(200);
+      expect(response.data).toBe("<h1>hello</h1>");
+      expect(response.headers["content-type"]).toBe("text/html");
     });
 
     it("/test.tar.bz2 (multiple file extensions)", async () => {
@@ -421,60 +536,6 @@ describe("server", () => {
     });
   });
 
-  describe("HTML redirects", () => {
-    it("should send 200 with refreshing HTML", async () => {
-      let response = await request.get("/redirect-from.html");
-      expect(response.status).toBe(200);
-      expect(response.headers["content-type"]).toBe("text/html");
-      expect(response.data).toContain(
-        '<meta http-equiv="refresh" content="0; url=redirect-to/" />'
-      );
-    });
-  });
-
-  describe("esbuild bundle", () => {
-    it("should preserve simple script", async () => {
-      fs.writeFileSync(
-        path.join(wwwRootPath, "app.js"),
-        'console.log("hello world")'
-      );
-
-      let response = await request.get("/app.bundle.js");
-      expect(response.status).toBe(200);
-      expect(response.headers["content-type"]).toBe("application/javascript");
-      expect(response.data).toContain('console.log("hello world")');
-    });
-
-    it("should bundle imported files", async () => {
-      fs.writeFileSync(
-        path.join(wwwRootPath, "app.js"),
-        'import { greet } from "./lib.js"; greet();'
-      );
-      fs.writeFileSync(
-        path.join(wwwRootPath, "lib.js"),
-        'export function greet() { console.log("hello world"); }'
-      );
-
-      let response = await request.get("/app.bundle.js");
-      expect(response.status).toBe(200);
-      expect(response.headers["content-type"]).toBe("application/javascript");
-      expect(response.data).toContain('console.log("hello world")');
-      expect(response.data).toContain("greet");
-      expect(response.data).not.toContain("import");
-    });
-
-    it("syntax error causes 500 error", async () => {
-      fs.writeFileSync(
-        path.join(wwwRootPath, "app.js"),
-        "syntax error goes here !@#%$^"
-      );
-
-      let response = await request.get("/app.bundle.js");
-      expect(response.status).toBe(500);
-      expect(response.data).toContain("Build failed with 1 error");
-    });
-  });
-
   describe("EJS", () => {
     it("exception causes 500 error", async () => {
       fs.writeFileSync(
@@ -595,7 +656,7 @@ describe("server", () => {
     it("does not run page.ejs.html routed by index.mjs", async () => {
       fs.writeFileSync(
         path.join(wwwRootPath, "index.mjs"),
-        "export let routes = { '/generated-page/': { type: 'build-ejs', path: 'page.ejs.html' } };"
+        "export let routes = { '/generated-page/': { type: 'build-ejs', path: 'generated/page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "page.ejs.html"),
@@ -610,7 +671,7 @@ describe("server", () => {
     it("returns 404 for URI not routed by index.mjs", async () => {
       fs.writeFileSync(
         path.join(wwwRootPath, "index.mjs"),
-        "export let routes = { '/generated-page/': { type: 'build-ejs', path: 'page.ejs.html' } };"
+        "export let routes = { '/generated-page/': { type: 'build-ejs', path: 'generated/page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "page.ejs.html"),

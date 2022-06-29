@@ -4,7 +4,7 @@
 import fs from "fs";
 import path from "path";
 import url from "url";
-import { Router, makeHTMLRedirect } from "./src/router.mjs";
+import { Router } from "./src/router.mjs";
 import { makeBuildInstructionsAsync } from "./src/build.mjs";
 import { readFileAsync } from "./src/fs.mjs";
 import { websiteConfig } from "./src/config.mjs";
@@ -58,18 +58,6 @@ async function mainAsync() {
         );
         await fs.promises.mkdir(path.dirname(bundlePath), { recursive: true });
         await router.runESBuildAsync(instruction.esbuildConfig, bundlePath);
-        break;
-
-      case "html-redirect":
-        let htmlPath = path.join(targetDirectory, instruction.htmlPath);
-        await fs.promises.mkdir(path.dirname(htmlPath), { recursive: true });
-        console.log(
-          `redirect: ${htmlPath} -> ${instruction.redirectTargetURL}`
-        );
-        await fs.promises.writeFile(
-          htmlPath,
-          makeHTMLRedirect(instruction.htmlPath, instruction.redirectTargetURL)
-        );
         break;
 
       case "warning":

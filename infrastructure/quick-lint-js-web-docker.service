@@ -14,7 +14,7 @@ ExecStart=/usr/bin/docker run --name systemd-%n --rm -i -p 80:80 -p 443:443 \
     --volume /etc/letsencrypt:/etc/letsencrypt \
     --volume /run/mysqld/mysqld.sock:/run/mysqld/mysqld.sock \
     --volume /var/log/apache2:/var/log/apache2 \
-    --volume /var/www/admin.quick-lint-js.com:/var/www/admin.quick-lint-js.com \
+    --volume /var/www/admin.quick-lint-js.com/matomo/config/config.ini.php:/var/www/admin.quick-lint-js.com/matomo/config/config.ini.php \
     --volume /var/www/c.quick-lint-js.com:/var/www/c.quick-lint-js.com \
     --volume /var/www/quick-lint-js.com:/var/www/quick-lint-js.com \
     --env DEV_TLD= \

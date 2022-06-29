@@ -13,18 +13,8 @@ let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
 
 export class Router {
-  constructor({ esbuildBundles, htmlRedirects, wwwRootPath }) {
-    this._esbuildBundles = esbuildBundles;
-    this._htmlRedirects = htmlRedirects;
+  constructor({ wwwRootPath }) {
     this._wwwRootPath = wwwRootPath;
-  }
-
-  get esbuildBundles() {
-    return this._esbuildBundles;
-  }
-
-  get htmlRedirects() {
-    return this._htmlRedirects;
   }
 
   get wwwRootPath() {
@@ -36,21 +26,22 @@ export class Router {
       return { type: "does-not-exist" };
     }
 
-    let routerDirectoryRelativePath = path.dirname(directoryPath);
-    let routerScriptRelativePath = path.join(
-      routerDirectoryRelativePath,
-      "index.mjs"
-    );
     let haveIndexEJSHTML = await isFileReadableAsync(
       path.join(this._wwwRootPath, directoryPath, "index.ejs.html")
     );
-    let haveParentIndexMJS = await isFileReadableAsync(
-      path.join(this._wwwRootPath, routerScriptRelativePath)
-    );
+    let ancestorScripts = await this._loadAncestorScriptsAsync(directoryPath);
+    let scriptForRoute = null;
+    for (let script of ancestorScripts) {
+      if (script.module.routes.hasOwnProperty(`/${directoryPath}`)) {
+        scriptForRoute = script;
+        break;
+      }
+    }
+    let haveScriptForRoute = scriptForRoute !== null;
     let haveIndexHTML = await isFileReadableAsync(
       path.join(this._wwwRootPath, directoryPath, "index.html")
     );
-    if (haveIndexEJSHTML + haveIndexHTML + haveParentIndexMJS > 1) {
+    if (haveIndexEJSHTML + haveIndexHTML + haveScriptForRoute > 1) {
       return { type: "ambiguous" };
     } else if (haveIndexHTML) {
       return {
@@ -62,15 +53,37 @@ export class Router {
         type: "build-ejs",
         path: path.join(directoryPath, "index.ejs.html"),
       };
-    } else if (haveParentIndexMJS) {
+    } else if (haveScriptForRoute) {
       return {
         type: "routed",
-        routerScript: routerScriptRelativePath,
-        routerDirectory: routerDirectoryRelativePath,
+        routerScript: scriptForRoute.script,
+        routerDirectory: path.dirname(scriptForRoute.script),
       };
     } else {
       return { type: "does-not-exist" };
     }
+  }
+
+  async _loadAncestorScriptsAsync(directory) {
+    let scripts = [];
+    for (let d of ancestorHierarchy(directory)) {
+      let scriptRelativePath = path.join(d, "index.mjs");
+      let scriptPath = path.join(this._wwwRootPath, scriptRelativePath);
+      try {
+        let module = await import(url.pathToFileURL(scriptPath));
+        scripts.push({
+          script: scriptRelativePath,
+          module: module,
+        });
+      } catch (e) {
+        if (e.code === "ERR_MODULE_NOT_FOUND") {
+          // Ignore.
+        } else {
+          throw e;
+        }
+      }
+    }
+    return scripts;
   }
 
   async classifyDirectoryRouteAsync(urlPath) {
@@ -106,19 +119,6 @@ export class Router {
   // .type === "redirect": 200 OK
   // * .redirectTargetURL: String relative URL
   async classifyFileRouteAsync(urlPath) {
-    if (Object.prototype.hasOwnProperty.call(this._htmlRedirects, urlPath)) {
-      return {
-        type: "redirect",
-        redirectTargetURL: this._htmlRedirects[urlPath],
-      };
-    }
-    if (Object.prototype.hasOwnProperty.call(this._esbuildBundles, urlPath)) {
-      return {
-        type: "esbuild",
-        esbuildConfig: this._esbuildBundles[urlPath],
-      };
-    }
-
     if (path.basename(urlPath) === ".htaccess") {
       return { type: "forbidden", why: "server-config" };
     }
@@ -129,10 +129,25 @@ export class Router {
     if (isHiddenPath(urlPath)) {
       return { type: "missing", why: "ignored" };
     }
-    let readabilityError = await checkFileReadabilityAsync(
-      path.join(this._wwwRootPath, urlPath)
-    );
+
+    let fullPath = path.join(this._wwwRootPath, urlPath);
+    let readabilityError = await checkFileReadabilityAsync(fullPath);
     if (readabilityError !== null) {
+      if (readabilityError === "does-not-exist") {
+        let routerScriptPath = path.join(path.dirname(fullPath), "index.mjs");
+        let haveParentIndexMJS = await isFileReadableAsync(routerScriptPath);
+        if (haveParentIndexMJS) {
+          let routerScriptRelativePath = path.relative(
+            this._wwwRootPath,
+            routerScriptPath
+          );
+          return {
+            type: "routed",
+            routerScript: routerScriptRelativePath,
+            routerDirectory: path.dirname(routerScriptRelativePath),
+          };
+        }
+      }
       return { type: "missing", why: readabilityError };
     }
 
@@ -141,14 +156,19 @@ export class Router {
       return { type: "missing", why: "unknown-extension" };
     }
     let ignoredContentTypes = [
-      // Don't serve index.html directly. Caller must request the containing
-      // directory instead.
-      "text/html",
-
       // Don't serve README files.
       "text/markdown",
     ];
     if (ignoredContentTypes.includes(contentType)) {
+      return { type: "missing", why: "ignored" };
+    }
+    if (/\.ejs\.html$/.test(urlPath)) {
+      // Don't serve EJS-built HTML files directly.
+      return { type: "missing", why: "ignored" };
+    }
+    if (path.basename(urlPath) === "index.html") {
+      // Don't serve index.html directly. Caller must request the containing
+      // directory instead.
       return { type: "missing", why: "ignored" };
     }
     return { type: "static", contentType: contentType };
@@ -271,25 +291,6 @@ class RenderEJSChildProcessPool {
 
 let renderEJSChildProcessPool = new RenderEJSChildProcessPool();
 
-export function makeHTMLRedirect(redirectFrom, redirectTo) {
-  return `<!DOCTYPE html>
-<html>
-  <head>
-    <!-- ${redirectFrom} is an old link. Redirect users to ${redirectTo} instead. -->
-    <meta charset="utf-8" />
-    <link rel="canonical" href="${redirectTo}" />
-    <meta http-equiv="refresh" content="0; url=${redirectTo}" />
-  </head>
-  <body>
-    <p>
-      This page has moved.
-      <a href="${redirectTo}">Click here to go to the new location.</a>
-    </p>
-  </body>
-</html>
-`;
-}
-
 export function isHiddenPath(p) {
   return pathParts(p).some(
     (part) => part === "node_modules" || part.startsWith(".")
@@ -353,6 +354,19 @@ async function checkFileReadabilityAsync(path) {
   }
 
   return "unreadable";
+}
+
+// "a/b/c" -> ["a/b/c", "a/b", "a", "."]
+function ancestorHierarchy(p) {
+  let result = [];
+  for (;;) {
+    result.push(p);
+    if (p === ".") {
+      break;
+    }
+    p = path.dirname(p);
+  }
+  return result;
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

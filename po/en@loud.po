@@ -302,6 +302,11 @@ msgstr "DEPTH LIMIT EXCEEDED"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
+msgstr "'ASYNC STATIC' IS NOT ALLOWED; WRITE 'STATIC ASYNC' INSTEAD"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "missing property name between '.' and '.'"
 msgstr "MISSING PROPERTY NAME AFTER '.' OPERATOR"
 
@@ -813,6 +818,11 @@ msgid ""
 msgstr ""
 "INCOMPLETE EXPORT; EXPECTED 'EXPORT DEFAULT ...' OR 'EXPORT {{NAME}' OR "
 "'EXPORT * FROM ...' OR 'EXPORT CLASS' OR 'EXPORT FUNCTION' OR 'EXPORT LET'"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing type between '{1}' and '{0}'"
+msgstr "MISSING PROPERTY NAME AFTER '.' OPERATOR"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing value for object property"

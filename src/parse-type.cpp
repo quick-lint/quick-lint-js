@@ -39,6 +39,17 @@ void parser::parse_and_visit_typescript_colon_type_expression(
 
 void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
   depth_guard guard(this);
+
+  std::optional<source_code_span> leading_binary_operator;  // '|' or '&'
+  if (this->peek().type == token_type::ampersand ||
+      this->peek().type == token_type::pipe) {
+    // | Type
+    // & Type
+    leading_binary_operator = this->peek().span();
+    this->skip();
+  }
+
+again:
   switch (this->peek().type) {
   case token_type::complete_template:
   case token_type::kw_any:
@@ -110,12 +121,53 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
     this->parse_and_visit_typescript_object_type_expression(v);
     break;
 
+  // & & Type  // Invalid.
+  // | | Type  // Invalid.
+  case token_type::ampersand:
+  case token_type::pipe:
+    this->diag_reporter_->report(
+        diag_missing_type_between_intersection_or_union{
+            .left_operator = leading_binary_operator.value(),
+            .right_operator = this->peek().span(),
+        });
+    break;
+
+  // typeof varname
+  // typeof ns.varname[KeyType]
+  // typeof varname[]
+  // typeof MyClass<T>
+  case token_type::kw_typeof:
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+    v.visit_variable_use(this->peek().identifier_name());
+    this->skip();
+    while (this->peek().type == token_type::dot) {
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      this->skip();
+    }
+    if (this->peek().type == token_type::less) {
+      this->parse_and_visit_typescript_generic_arguments(v);
+    }
+    while (this->peek().type == token_type::dot) {
+      source_code_span dot_span = this->peek().span();
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+      this->diag_reporter_->report(
+          diag_dot_not_allowed_after_generic_arguments_in_type{
+              .dot = dot_span,
+              .property_name = this->peek().span(),
+          });
+      this->skip();
+    }
+    break;
+
   default:
     QLJS_PARSER_UNIMPLEMENTED();
     break;
   }
 
-  if (this->peek().type == token_type::left_square) {
+  while (this->peek().type == token_type::left_square) {
     // typeexpr[]
     // typeexpr[Key]
     this->skip();
@@ -126,6 +178,14 @@ void parser::parse_and_visit_typescript_type_expression(parse_visitor_base &v) {
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_square);
       this->skip();
     }
+  }
+
+  if (this->peek().type == token_type::ampersand ||
+      this->peek().type == token_type::pipe) {
+    // Type1 | Type2
+    leading_binary_operator = this->peek().span();
+    this->skip();
+    goto again;
   }
 }
 
@@ -244,7 +304,9 @@ void parser::parse_and_visit_typescript_object_type_expression(
       break;
 
     // { method() }
+    // { method<T>() }
     case token_type::left_paren:
+    case token_type::less:
       v.visit_enter_function_scope();
       this->parse_and_visit_interface_function_parameters_and_body_no_scope(
           v, name, function_attributes::normal);
@@ -416,7 +478,9 @@ void parser::parse_and_visit_typescript_object_type_expression(
 
     // { () }
     // { (param: Type): Type }
+    // { <T>(param: Type): Type }
     case token_type::left_paren:
+    case token_type::less:
       v.visit_enter_function_scope();
       this->parse_and_visit_interface_function_parameters_and_body_no_scope(
           v, std::nullopt, function_attributes::normal);

@@ -1,14 +1,14 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-import path from "path";
-import url from "url";
-
-let __filename = url.fileURLToPath(import.meta.url);
-let __dirname = path.dirname(__filename);
-
-export let websiteConfig = {
-  wwwRootPath: path.join(__dirname, "..", "public"),
+export let routes = {
+  "/demo/demo.bundled.js": {
+    type: "esbuild",
+    esbuildConfig: {
+      entryPoints: ["/demo/demo.mjs"],
+      external: ["fs", "path"],
+    },
+  },
 };
 
 // quick-lint-js finds bugs in JavaScript programs.

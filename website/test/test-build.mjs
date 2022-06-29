@@ -143,7 +143,7 @@ describe("build", () => {
       fs.mkdirSync(path.join(wwwRootPath, "generated"));
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "index.mjs"),
-        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'page.ejs.html' } };"
+        "export let routes = { '/generated/subdir/': { type: 'build-ejs', path: 'generated/page.ejs.html' } };"
       );
       fs.writeFileSync(
         path.join(wwwRootPath, "generated", "page.ejs.html"),
@@ -170,6 +170,36 @@ describe("build", () => {
 
       let buildInstructions = await makeBuildInstructionsAsync({ wwwRootPath });
       expect(buildInstructions).toEqual([]);
+    });
+  });
+
+  describe("/generated/app.bundle.js ESBuild bundle", () => {
+    it("creates a file", async () => {
+      fs.mkdirSync(path.join(wwwRootPath, "generated"));
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "index.mjs"),
+        `export let routes = {
+          '/generated/app.bundle.js': {
+            type: 'esbuild',
+            esbuildConfig: {
+              entryPoints: ["/my-app.js"],
+            },
+          }
+        };`
+      );
+      fs.writeFileSync(
+        path.join(wwwRootPath, "generated", "page.ejs.html"),
+        "current URI is <%- currentURI %>"
+      );
+
+      let buildInstructions = await makeBuildInstructionsAsync({ wwwRootPath });
+      expect(buildInstructions).toContain({
+        type: "esbuild",
+        bundlePath: "generated/app.bundle.js",
+        esbuildConfig: {
+          entryPoints: ["/my-app.js"],
+        },
+      });
     });
   });
 
@@ -292,62 +322,6 @@ describe("build", () => {
 
     let buildInstructions = await makeBuildInstructionsAsync({ wwwRootPath });
     expect(buildInstructions).toEqual([]);
-  });
-
-  it("htmlRedirects creates files", async () => {
-    let buildInstructions = await makeBuildInstructionsAsync({
-      wwwRootPath,
-      htmlRedirects: {
-        "/redirect-from.html": "redirect-to/",
-      },
-    });
-    expect(buildInstructions).toEqual([
-      {
-        type: "html-redirect",
-        htmlPath: "redirect-from.html",
-        redirectTargetURL: "redirect-to/",
-      },
-    ]);
-  });
-
-  it("htmlRedirects creates files in subdirectories", async () => {
-    fs.mkdirSync(path.join(wwwRootPath, "subdir"));
-
-    let buildInstructions = await makeBuildInstructionsAsync({
-      wwwRootPath,
-      htmlRedirects: {
-        "/subdir/from.html": "to/",
-      },
-    });
-    expect(buildInstructions).toEqual([
-      {
-        type: "html-redirect",
-        htmlPath: path.join("subdir", "from.html"),
-        redirectTargetURL: "to/",
-      },
-    ]);
-  });
-
-  describe("esbuildBundles", () => {
-    it("creates a file", async () => {
-      let buildInstructions = await makeBuildInstructionsAsync({
-        wwwRootPath,
-        esbuildBundles: {
-          "/app.bundled.js": {
-            entryPoints: ["/app.js"],
-          },
-        },
-      });
-      expect(buildInstructions).toEqual([
-        {
-          type: "esbuild",
-          bundlePath: "app.bundled.js",
-          esbuildConfig: {
-            entryPoints: ["/app.js"],
-          },
-        },
-      ]);
-    });
   });
 });
 

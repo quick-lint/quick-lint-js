@@ -292,6 +292,10 @@ msgid "depth limit exceeded"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "missing property name between '.' and '.'"
 msgstr ""
 
@@ -781,6 +785,10 @@ msgstr ""
 msgid ""
 "incomplete export; expected 'export default ...' or 'export {{name}' or "
 "'export * from ...' or 'export class' or 'export function' or 'export let'"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "missing type between '{1}' and '{0}'"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h

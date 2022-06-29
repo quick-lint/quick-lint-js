@@ -18,7 +18,8 @@ const translation_table translation_data = {
         {74, 59, 87, 79, 0, 59},             //
         {71, 52, 80, 60, 0, 52},             //
         {31, 0, 56, 0, 0, 28},               //
-        {79, 28, 25, 30, 39626, 67},         //
+        {0, 0, 0, 0, 0, 67},                 //
+        {79, 28, 25, 30, 39626, 66},         //
         {143, 0, 15, 0, 0, 97},              //
         {70, 0, 23, 0, 0, 53},               //
         {93, 97, 63, 151, 130, 70},          //
@@ -235,7 +236,8 @@ const translation_table translation_data = {
         {44, 41, 4, 46, 42, 40},             //
         {31, 34, 50, 44, 35, 34},            //
         {73, 65, 55, 78, 66, 65},            //
-        {72, 63, 55, 79, 61, 63},            //
+        {0, 0, 0, 0, 0, 63},                 //
+        {72, 63, 55, 79, 61, 37},            //
         {33, 34, 41, 45, 34, 34},            //
         {20, 0, 29, 0, 0, 22},               //
         {0, 0, 0, 0, 0, 48},                 //
@@ -1420,6 +1422,7 @@ const translation_table translation_data = {
         u8"\"globals\" descriptor must be a boolean or an object\0"
         u8"\"globals\" must be an object\0"
         u8"'**' operator cannot be used after unary '{1}' without parentheses\0"
+        u8"'.' is not allowed after generic arguments; write [\"{1}\"] instead\0"
         u8"'.' operator needs a key name; use + to concatenate strings; use [] to access with a dynamic key\0"
         u8"'=' changes variables; to compare, use '===' instead\0"
         u8"'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead\0"
@@ -1637,6 +1640,7 @@ const translation_table translation_data = {
         u8"missing semicolon after statement\0"
         u8"missing semicolon between condition and update parts of for loop\0"
         u8"missing semicolon between init and condition parts of for loop\0"
+        u8"missing type between '{1}' and '{0}'\0"
         u8"missing value for object property\0"
         u8"missing variable name\0"
         u8"misspelled React attribute; write '{1}' instead\0"
