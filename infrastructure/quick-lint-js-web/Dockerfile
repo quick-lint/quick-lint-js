@@ -51,11 +51,12 @@ RUN a2dismod \
         setenvif \
         ssl && \
     a2ensite \
-        001-quicklintjs \
-        002-admin.quick-lint-js.com \
-        003-c.quick-lint-js \
-        003-quick-lint-js.com 
-
+        000-default.conf \
+        001-quicklintjs.com.conf \
+        001-www.quick-lint-js.com.conf \
+        002-admin.quick-lint-js.com.conf \
+        003-c.quick-lint-js.com.conf \
+        003-quick-lint-js.com.conf
 
 EXPOSE 80/tcp 443/tcp
 # Keep in sync with create-dev-certificates.sh.
