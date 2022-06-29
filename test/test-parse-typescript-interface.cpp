@@ -9,6 +9,7 @@
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/diagnostic-types.h>
+#include <quick-lint-js/dirty-set.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-support.h>
@@ -813,7 +814,7 @@ TEST(test_parse_typescript_interface, private_properties_are_not_allowed) {
 }
 
 TEST(test_parse_typescript_interface, static_properties_are_not_allowed) {
-  for (string8 property_name : concat(make_array(u8"myProperty"), keywords)) {
+  for (string8 property_name : dirty_set<string8>{u8"myProperty"} | keywords) {
     SCOPED_TRACE(out_string8(property_name));
 
     {
@@ -995,7 +996,7 @@ TEST(test_parse_typescript_interface, static_properties_are_not_allowed) {
 }
 
 TEST(test_parse_typescript_interface, async_methods_are_not_allowed) {
-  for (string8 method_name : concat(make_array(u8"method"), keywords)) {
+  for (string8 method_name : dirty_set<string8>{u8"method"} | keywords) {
     SCOPED_TRACE(out_string8(method_name));
 
     {
@@ -1032,7 +1033,7 @@ TEST(test_parse_typescript_interface, async_methods_are_not_allowed) {
 }
 
 TEST(test_parse_typescript_interface, generator_methods_are_not_allowed) {
-  for (string8 method_name : concat(make_array(u8"method"), keywords)) {
+  for (string8 method_name : dirty_set<string8>{u8"method"} | keywords) {
     SCOPED_TRACE(out_string8(method_name));
 
     {
@@ -1138,7 +1139,7 @@ TEST(test_parse_typescript_interface,
 }
 
 TEST(test_parse_typescript_interface, field_initializers_are_not_allowed) {
-  for (string8 field_name : concat(make_array(u8"field"), keywords)) {
+  for (string8 field_name : dirty_set<string8>{u8"field"} | keywords) {
     SCOPED_TRACE(out_string8(field_name));
 
     {

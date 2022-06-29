@@ -13,6 +13,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/diag-collector.h>
+#include <quick-lint-js/dirty-set.h>
 #include <quick-lint-js/null-visitor.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
@@ -206,46 +207,52 @@ inline spy_visitor parse_and_visit_expression(string8_view raw_code) {
 
 // Identifiers which are ReservedWord-s only in strict mode.
 // https://262.ecma-international.org/11.0/#sec-keywords-and-reserved-words
-constexpr inline std::array strict_only_reserved_keywords =
-    make_array(u8"implements", u8"interface", u8"package", u8"private",
-               u8"protected", u8"public");
+const inline dirty_set<string8> strict_only_reserved_keywords = {
+    u8"implements", u8"interface", u8"package",
+    u8"private",    u8"protected", u8"public",
+};
 
 // Exclusions from BindingIdentifier (ReservedWord except 'await' and 'yield')
 // https://262.ecma-international.org/11.0/#prod-ReservedWord
 // https://262.ecma-international.org/11.0/#prod-BindingIdentifier
-constexpr inline std::array disallowed_binding_identifier_keywords = make_array(
-    u8"break", u8"case", u8"catch", u8"class", u8"const", u8"continue",
-    u8"debugger", u8"default", u8"delete", u8"do", u8"else", u8"enum",
-    u8"export", u8"extends", u8"false", u8"finally", u8"for", u8"function",
-    u8"if", u8"import", u8"in", u8"instanceof", u8"new", u8"null", u8"return",
-    u8"super", u8"switch", u8"this", u8"throw", u8"true", u8"try", u8"typeof",
-    u8"var", u8"void", u8"while", u8"with");
-constexpr inline std::array strict_disallowed_binding_identifier_keywords =
-    concat(disallowed_binding_identifier_keywords,
-           strict_only_reserved_keywords);
+const inline dirty_set<string8> disallowed_binding_identifier_keywords = {
+    u8"break",    u8"case",       u8"catch",    u8"class",   u8"const",
+    u8"continue", u8"debugger",   u8"default",  u8"delete",  u8"do",
+    u8"else",     u8"enum",       u8"export",   u8"extends", u8"false",
+    u8"finally",  u8"for",        u8"function", u8"if",      u8"import",
+    u8"in",       u8"instanceof", u8"new",      u8"null",    u8"return",
+    u8"super",    u8"switch",     u8"this",     u8"throw",   u8"true",
+    u8"try",      u8"typeof",     u8"var",      u8"void",    u8"while",
+    u8"with",
+};
+const inline dirty_set<string8> strict_disallowed_binding_identifier_keywords =
+    disallowed_binding_identifier_keywords | strict_only_reserved_keywords;
 
 // ReservedWord in non-strict mode.
 // https://262.ecma-international.org/11.0/#prod-ReservedWord
-constexpr inline std::array reserved_keywords = concat(
-    disallowed_binding_identifier_keywords, make_array(u8"await", u8"yield"));
+const inline dirty_set<string8> reserved_keywords =
+    disallowed_binding_identifier_keywords |
+    dirty_set<string8>{u8"await", u8"yield"};
 // ReservedWord in strict mode. Includes all of reserved_keywords.
 // https://262.ecma-international.org/11.0/#sec-keywords-and-reserved-words
-constexpr inline std::array strict_reserved_keywords =
-    concat(strict_disallowed_binding_identifier_keywords,
-           make_array(u8"await", u8"yield"));
+const inline dirty_set<string8> strict_reserved_keywords =
+    strict_disallowed_binding_identifier_keywords |
+    dirty_set<string8>{u8"await", u8"yield"};
 
-constexpr inline std::array contextual_keywords = make_array(
-    u8"abstract", u8"any", u8"as", u8"assert", u8"asserts", u8"async",
-    u8"bigint", u8"boolean", u8"constructor", u8"declare", u8"from", u8"get",
-    u8"global", u8"infer", u8"intrinsic", u8"is", u8"keyof", u8"let", u8"meta",
-    u8"module", u8"namespace", u8"never", u8"number", u8"object", u8"of",
-    u8"out", u8"override", u8"readonly", u8"require", u8"set", u8"static",
-    u8"string", u8"symbol", u8"target", u8"type", u8"undefined", u8"unique",
-    u8"unknown");
+const inline dirty_set<string8> contextual_keywords = {
+    u8"abstract",  u8"any",      u8"as",       u8"assert",      u8"asserts",
+    u8"async",     u8"bigint",   u8"boolean",  u8"constructor", u8"declare",
+    u8"from",      u8"get",      u8"global",   u8"infer",       u8"intrinsic",
+    u8"is",        u8"keyof",    u8"let",      u8"meta",        u8"module",
+    u8"namespace", u8"never",    u8"number",   u8"object",      u8"of",
+    u8"out",       u8"override", u8"readonly", u8"require",     u8"set",
+    u8"static",    u8"string",   u8"symbol",   u8"target",      u8"type",
+    u8"undefined", u8"unique",   u8"unknown",
+};
 
 // ReservedWord or contextual keyword in strict mode or non-strict mode.
-constexpr inline std::array keywords =
-    concat(strict_reserved_keywords, contextual_keywords);
+const inline dirty_set<string8> keywords =
+    strict_reserved_keywords | contextual_keywords;
 }
 }
 

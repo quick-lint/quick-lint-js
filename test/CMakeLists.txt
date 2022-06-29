@@ -15,6 +15,7 @@ quick_lint_js_add_executable(
   quick-lint-js/characters.h
   quick-lint-js/diag-collector.h
   quick-lint-js/diag-matcher.h
+  quick-lint-js/dirty-set.h
   quick-lint-js/file-matcher.h
   quick-lint-js/gtest.h
   quick-lint-js/mock-inotify.h
@@ -44,6 +45,7 @@ quick_lint_js_add_executable(
   test-diag-matcher.cpp
   test-diagnostic-formatter.cpp
   test-diagnostic.cpp
+  test-dirty-set.cpp
   test-document.cpp
   test-emacs-lisp-diag-reporter.cpp
   test-emacs-location.cpp
