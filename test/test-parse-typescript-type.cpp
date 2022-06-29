@@ -72,6 +72,16 @@ TEST(test_parse_typescript_type, namespaced_type_reference) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"ns"}));
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"ns.subns.subsubns.Type[ns2.K]"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_namespace_use",    // ns
+                                      "visit_variable_namespace_use"));  // ns2
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"ns"},
+                            spy_visitor::visited_variable_use{u8"ns2"}));
+  }
 }
 
 TEST(test_parse_typescript_type, builtin_types) {

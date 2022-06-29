@@ -79,11 +79,15 @@ again:
   // ns.Type<T>
   case token_type::identifier: {
     identifier name = this->peek().identifier_name();
+    bool had_dot = false;
     this->skip();
-    if (this->peek().type == token_type::dot) {
+    while (this->peek().type == token_type::dot) {
+      had_dot = true;
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
       this->skip();
+    }
+    if (had_dot) {
       v.visit_variable_namespace_use(name);
     } else {
       v.visit_variable_type_use(name);
