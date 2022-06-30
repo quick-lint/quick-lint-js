@@ -25,7 +25,8 @@ class lsp_diag_formatter;
 
 class lsp_diag_reporter final : public diag_reporter {
  public:
-  explicit lsp_diag_reporter(byte_buffer &output, padded_string_view input);
+  explicit lsp_diag_reporter(translator, byte_buffer &output,
+                             padded_string_view input);
 
   void finish();
 
@@ -34,12 +35,13 @@ class lsp_diag_reporter final : public diag_reporter {
  private:
   byte_buffer &output_;
   lsp_locator locator_;
+  translator translator_;
   bool need_comma_ = false;
 };
 
 class lsp_diag_formatter : public diagnostic_formatter<lsp_diag_formatter> {
  public:
-  explicit lsp_diag_formatter(byte_buffer &output, lsp_locator &);
+  explicit lsp_diag_formatter(byte_buffer &output, lsp_locator &, translator);
   void write_before_message(std::string_view code, diagnostic_severity,
                             const source_code_span &origin);
   void write_message_part(std::string_view code, diagnostic_severity,

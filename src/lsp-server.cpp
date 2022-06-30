@@ -446,7 +446,7 @@ void linting_lsp_server_handler::get_config_file_diagnostics_notification(
   notification_json.append_copy(version_json);
 
   notification_json.append_copy(u8R"--(,"diagnostics":)--"sv);
-  lsp_diag_reporter diag_reporter(notification_json,
+  lsp_diag_reporter diag_reporter(qljs_messages, notification_json,
                                   &config_file->file_content);
   config_file->errors.copy_into(&diag_reporter);
   diag_reporter.finish();
@@ -591,7 +591,7 @@ void lsp_javascript_linter::lint_and_get_diagnostics_notification(
 void lsp_javascript_linter::lint_and_get_diagnostics(
     configuration& config, padded_string_view code,
     byte_buffer& diagnostics_json) {
-  lsp_diag_reporter diag_reporter(diagnostics_json, code);
+  lsp_diag_reporter diag_reporter(qljs_messages, diagnostics_json, code);
 
   parser_options p_options;
   p_options.jsx = true;

@@ -24,7 +24,7 @@ constexpr int lsp_warning_severity = 2;
 class test_lsp_diag_reporter : public ::testing::Test {
  protected:
   lsp_diag_reporter make_reporter(padded_string_view input) {
-    return lsp_diag_reporter(this->buffer_, input);
+    return lsp_diag_reporter(translator(), this->buffer_, input);
   }
 
   ::boost::json::value parse_json() {
@@ -133,6 +133,24 @@ TEST_F(test_lsp_diag_reporter, multiple_errors) {
 
   ::boost::json::value diagnostics = this->parse_json();
   EXPECT_EQ(diagnostics.as_array().size(), 3);
+}
+
+TEST_F(test_lsp_diag_reporter, messages_use_translator) {
+  translator t;
+  t.use_messages_from_locale("en_US@loud");
+
+  padded_string input(u8"0e1n"_sv);
+
+  lsp_diag_reporter reporter(t, this->buffer_, &input);
+  reporter.report(diag_big_int_literal_contains_exponent{
+      .where = source_code_span(&input[1], &input[2]),
+  });
+  reporter.finish();
+
+  ::boost::json::value diagnostics = this->parse_json();
+  ASSERT_EQ(diagnostics.as_array().size(), 1);
+  EXPECT_EQ(look_up(diagnostics, 0, "message"),
+            "BIGINT LITERAL CONTAINS EXPONENT");
 }
 }
 }

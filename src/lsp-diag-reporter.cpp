@@ -20,9 +20,9 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-lsp_diag_reporter::lsp_diag_reporter(byte_buffer &output,
+lsp_diag_reporter::lsp_diag_reporter(translator t, byte_buffer &output,
                                      padded_string_view input)
-    : output_(output), locator_(input) {
+    : output_(output), locator_(input), translator_(t) {
   this->output_.append_copy(u8"["sv);
 }
 
@@ -34,13 +34,13 @@ void lsp_diag_reporter::report_impl(diag_type type, void *diag) {
   }
   this->need_comma_ = true;
   lsp_diag_formatter formatter(/*output=*/this->output_,
-                               /*locator=*/this->locator_);
+                               /*locator=*/this->locator_, this->translator_);
   formatter.format(get_diagnostic_info(type), diag);
 }
 
 lsp_diag_formatter::lsp_diag_formatter(byte_buffer &output,
-                                       lsp_locator &locator)
-    : diagnostic_formatter(qljs_messages), output_(output), locator_(locator) {}
+                                       lsp_locator &locator, translator t)
+    : diagnostic_formatter(t), output_(output), locator_(locator) {}
 
 void lsp_diag_formatter::write_before_message(std::string_view code,
                                               diagnostic_severity sev,
