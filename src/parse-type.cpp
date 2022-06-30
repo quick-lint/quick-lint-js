@@ -172,9 +172,80 @@ again:
   // typeof MyClass<T>
   case token_type::kw_typeof:
     this->skip();
-    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-    v.visit_variable_use(this->peek().identifier_name());
-    this->skip();
+    switch (this->peek().type) {
+    case token_type::identifier:
+    case token_type::kw_abstract:
+    case token_type::kw_as:
+    case token_type::kw_assert:
+    case token_type::kw_asserts:
+    case token_type::kw_async:
+    case token_type::kw_await:
+    case token_type::kw_bigint:
+    case token_type::kw_break:
+    case token_type::kw_case:
+    case token_type::kw_catch:
+    case token_type::kw_class:
+    case token_type::kw_const:
+    case token_type::kw_constructor:
+    case token_type::kw_continue:
+    case token_type::kw_debugger:
+    case token_type::kw_declare:
+    case token_type::kw_default:
+    case token_type::kw_delete:
+    case token_type::kw_do:
+    case token_type::kw_else:
+    case token_type::kw_enum:
+    case token_type::kw_export:
+    case token_type::kw_extends:
+    case token_type::kw_false:
+    case token_type::kw_finally:
+    case token_type::kw_for:
+    case token_type::kw_from:
+    case token_type::kw_function:
+    case token_type::kw_get:
+    case token_type::kw_global:
+    case token_type::kw_if:
+    case token_type::kw_in:
+    case token_type::kw_infer:
+    case token_type::kw_instanceof:
+    case token_type::kw_intrinsic:
+    case token_type::kw_is:
+    case token_type::kw_keyof:
+    case token_type::kw_module:
+    case token_type::kw_namespace:
+    case token_type::kw_new:
+    case token_type::kw_null:
+    case token_type::kw_object:
+    case token_type::kw_of:
+    case token_type::kw_out:
+    case token_type::kw_override:
+    case token_type::kw_readonly:
+    case token_type::kw_require:
+    case token_type::kw_return:
+    case token_type::kw_set:
+    case token_type::kw_super:
+    case token_type::kw_switch:
+    case token_type::kw_symbol:
+    case token_type::kw_this:
+    case token_type::kw_throw:
+    case token_type::kw_true:
+    case token_type::kw_try:
+    case token_type::kw_type:
+    case token_type::kw_typeof:
+    case token_type::kw_undefined:
+    case token_type::kw_unique:
+    case token_type::kw_var:
+    case token_type::kw_void:
+    case token_type::kw_while:
+    case token_type::kw_with:
+      v.visit_variable_use(this->peek().identifier_name());
+      this->skip();
+      break;
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+
     while (this->peek().type == token_type::dot) {
       this->skip();
       QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);

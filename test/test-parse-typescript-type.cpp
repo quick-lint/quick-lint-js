@@ -1062,6 +1062,30 @@ TEST(test_parse_typescript_type, typeof) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"ns"}));
   }
+
+  for (string8 keyword :
+       keywords - typescript_special_type_keywords -
+           strict_only_reserved_keywords -
+           dirty_set<string8>{
+               // This list is derived experimentally from TypeScript version
+               // 4.7.4. Some of these seem arbitrary. *shrug*
+               u8"boolean",
+               u8"import",
+               u8"let",
+               u8"number",
+               u8"static",
+               u8"string",
+               u8"yield",
+           }) {
+    {
+      padded_string code(u8"typeof " + keyword);
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // (keyword)
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{keyword}));
+    }
+  }
 }
 
 TEST(test_parse_typescript_type, typeof_generic) {
