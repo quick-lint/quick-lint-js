@@ -21,7 +21,7 @@ class emacs_lisp_diag_formatter;
 
 class emacs_lisp_diag_reporter final : public diag_reporter {
  public:
-  explicit emacs_lisp_diag_reporter(output_stream *output);
+  explicit emacs_lisp_diag_reporter(translator, output_stream *output);
 
   void set_source(padded_string_view input);
   void finish();
@@ -30,13 +30,14 @@ class emacs_lisp_diag_reporter final : public diag_reporter {
 
  private:
   output_stream &output_;
+  translator translator_;
   std::optional<emacs_locator> locator_;
 };
 
 class emacs_lisp_diag_formatter
     : public diagnostic_formatter<emacs_lisp_diag_formatter> {
  public:
-  explicit emacs_lisp_diag_formatter(output_stream *output,
+  explicit emacs_lisp_diag_formatter(translator, output_stream *output,
                                      emacs_locator &locator);
 
   void write_before_message(std::string_view code, diagnostic_severity,

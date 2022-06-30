@@ -82,18 +82,20 @@ class any_diag_reporter {
     case output_format::gnu_like:
       return any_diag_reporter(reported_diag_statistics<text_diag_reporter>(
           text_diag_reporter(
-              file_output_stream::get_stderr(),
+              qljs_messages, file_output_stream::get_stderr(),
               /*escape_errors=*/get_escape_errors(escape_errors)),
           exit_fail_on));
     case output_format::vim_qflist_json:
       return any_diag_reporter(
           reported_diag_statistics<vim_qflist_json_diag_reporter>(
-              vim_qflist_json_diag_reporter(file_output_stream::get_stdout()),
+              vim_qflist_json_diag_reporter(qljs_messages,
+                                            file_output_stream::get_stdout()),
               exit_fail_on));
     case output_format::emacs_lisp:
       return any_diag_reporter(
           reported_diag_statistics<emacs_lisp_diag_reporter>(
-              emacs_lisp_diag_reporter(file_output_stream::get_stdout()),
+              emacs_lisp_diag_reporter(qljs_messages,
+                                       file_output_stream::get_stdout()),
               exit_fail_on));
     }
     QLJS_UNREACHABLE();

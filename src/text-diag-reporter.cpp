@@ -18,9 +18,9 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-text_diag_reporter::text_diag_reporter(output_stream *output,
+text_diag_reporter::text_diag_reporter(translator t, output_stream *output,
                                        bool escape_errors)
-    : output_(*output), format_escape_errors_(escape_errors) {}
+    : output_(*output), translator_(t), format_escape_errors_(escape_errors) {}
 
 void text_diag_reporter::set_source(padded_string_view input,
                                     const char *file_path) {
@@ -32,6 +32,7 @@ void text_diag_reporter::report_impl(diag_type type, void *diag) {
   QLJS_ASSERT(this->file_path_);
   QLJS_ASSERT(this->locator_.has_value());
   text_diag_formatter formatter(
+      this->translator_,
       /*output=*/&this->output_,
       /*file_path=*/this->file_path_,
       /*locator=*/*this->locator_,
@@ -39,11 +40,11 @@ void text_diag_reporter::report_impl(diag_type type, void *diag) {
   formatter.format(get_diagnostic_info(type), diag);
 }
 
-text_diag_formatter::text_diag_formatter(output_stream *output,
+text_diag_formatter::text_diag_formatter(translator t, output_stream *output,
                                          const char *file_path,
                                          cli_locator &locator,
                                          bool format_escape_errors)
-    : diagnostic_formatter(qljs_messages),
+    : diagnostic_formatter(t),
       output_(*output),
       file_path_(file_path),
       locator_(locator),

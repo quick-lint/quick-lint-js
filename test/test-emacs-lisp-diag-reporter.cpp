@@ -15,7 +15,7 @@ namespace {
 class test_emacs_lisp_diag_reporter : public ::testing::Test {
  protected:
   emacs_lisp_diag_reporter make_reporter(padded_string_view input) {
-    emacs_lisp_diag_reporter reporter(&this->stream_);
+    emacs_lisp_diag_reporter reporter(translator(), &this->stream_);
     reporter.set_source(input);
     return reporter;
   }

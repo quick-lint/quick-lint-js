@@ -23,6 +23,9 @@ void initialize_translations_from_locale(const char* locale_name);
 
 class translator {
  public:
+  // Creates a translator which uses messages from the source code (i.e. no-op).
+  explicit translator() = default;
+
   void use_messages_from_source_code();
   bool use_messages_from_locale(const char* locale_name);
   bool use_messages_from_locales(const std::vector<std::string>& locale_names);

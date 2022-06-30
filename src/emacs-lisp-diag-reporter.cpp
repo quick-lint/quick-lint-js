@@ -11,8 +11,9 @@
 #include <quick-lint-js/token.h>
 
 namespace quick_lint_js {
-emacs_lisp_diag_reporter::emacs_lisp_diag_reporter(output_stream *output)
-    : output_(*output) {
+emacs_lisp_diag_reporter::emacs_lisp_diag_reporter(translator t,
+                                                   output_stream *output)
+    : output_(*output), translator_(t) {
   this->output_.append_copy(u8'(');
 }
 
@@ -24,16 +25,16 @@ void emacs_lisp_diag_reporter::set_source(padded_string_view input) {
 
 void emacs_lisp_diag_reporter::report_impl(diag_type type, void *diag) {
   QLJS_ASSERT(this->locator_.has_value());
-  emacs_lisp_diag_formatter formatter(/*output=*/&this->output_,
+  emacs_lisp_diag_formatter formatter(this->translator_,
+                                      /*output=*/&this->output_,
                                       /*locator=*/*this->locator_);
   formatter.format(get_diagnostic_info(type), diag);
 }
 
-emacs_lisp_diag_formatter::emacs_lisp_diag_formatter(output_stream *output,
+emacs_lisp_diag_formatter::emacs_lisp_diag_formatter(translator t,
+                                                     output_stream *output,
                                                      emacs_locator &locator)
-    : diagnostic_formatter(qljs_messages),
-      output_(*output),
-      locator_(locator) {}
+    : diagnostic_formatter(t), output_(*output), locator_(locator) {}
 
 void emacs_lisp_diag_formatter::write_before_message(
     std::string_view code, diagnostic_severity sev,

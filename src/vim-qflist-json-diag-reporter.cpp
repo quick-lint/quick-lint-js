@@ -16,8 +16,8 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 vim_qflist_json_diag_reporter::vim_qflist_json_diag_reporter(
-    output_stream *output)
-    : output_(*output) {
+    translator t, output_stream *output)
+    : output_(*output), translator_(t) {
   this->output_.append_literal(u8"{\"qflist\": ["sv);
 }
 
@@ -58,7 +58,8 @@ void vim_qflist_json_diag_reporter::report_impl(diag_type type, void *diag) {
   }
   this->need_comma_ = true;
   QLJS_ASSERT(this->locator_.has_value());
-  vim_qflist_json_diag_formatter formatter(/*output=*/&this->output_,
+  vim_qflist_json_diag_formatter formatter(this->translator_,
+                                           /*output=*/&this->output_,
                                            /*locator=*/*this->locator_,
                                            /*file_name=*/this->file_name_,
                                            /*bufnr=*/this->bufnr_);
@@ -66,9 +67,9 @@ void vim_qflist_json_diag_reporter::report_impl(diag_type type, void *diag) {
 }
 
 vim_qflist_json_diag_formatter::vim_qflist_json_diag_formatter(
-    output_stream *output, quick_lint_js::vim_locator &locator,
+    translator t, output_stream *output, quick_lint_js::vim_locator &locator,
     std::string_view file_name, std::string_view bufnr)
-    : diagnostic_formatter(qljs_messages),
+    : diagnostic_formatter(t),
       output_(*output),
       locator_(locator),
       file_name_(file_name),

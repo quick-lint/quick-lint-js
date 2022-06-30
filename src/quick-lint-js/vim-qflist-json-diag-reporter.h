@@ -20,7 +20,7 @@ class vim_qflist_json_diag_formatter;
 
 class vim_qflist_json_diag_reporter final : public diag_reporter {
  public:
-  explicit vim_qflist_json_diag_reporter(output_stream *output);
+  explicit vim_qflist_json_diag_reporter(translator, output_stream *output);
 
   void set_source(padded_string_view input, const char *file_name,
                   int vim_bufnr);
@@ -35,6 +35,7 @@ class vim_qflist_json_diag_reporter final : public diag_reporter {
 
  private:
   output_stream &output_;
+  translator translator_;
   std::optional<vim_locator> locator_;
   std::string bufnr_;
   std::string file_name_;
@@ -44,7 +45,7 @@ class vim_qflist_json_diag_reporter final : public diag_reporter {
 class vim_qflist_json_diag_formatter
     : public diagnostic_formatter<vim_qflist_json_diag_formatter> {
  public:
-  explicit vim_qflist_json_diag_formatter(output_stream *output,
+  explicit vim_qflist_json_diag_formatter(translator, output_stream *output,
                                           quick_lint_js::vim_locator &locator,
                                           std::string_view file_name,
                                           std::string_view bufnr);

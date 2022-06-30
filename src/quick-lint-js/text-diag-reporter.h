@@ -22,7 +22,8 @@ class text_diag_formatter;
 
 class text_diag_reporter final : public diag_reporter {
  public:
-  explicit text_diag_reporter(output_stream *output, bool escape_errors);
+  explicit text_diag_reporter(translator, output_stream *output,
+                              bool escape_errors);
 
   void set_source(padded_string_view input, const char *file_name);
 
@@ -30,6 +31,7 @@ class text_diag_reporter final : public diag_reporter {
 
  private:
   output_stream &output_;
+  translator translator_;
   std::optional<cli_locator> locator_;
   const char *file_path_;
   bool format_escape_errors_;
@@ -37,8 +39,9 @@ class text_diag_reporter final : public diag_reporter {
 
 class text_diag_formatter : public diagnostic_formatter<text_diag_formatter> {
  public:
-  explicit text_diag_formatter(output_stream *output, const char *file_path,
-                               cli_locator &locator, bool format_escape_errors);
+  explicit text_diag_formatter(translator, output_stream *output,
+                               const char *file_path, cli_locator &locator,
+                               bool format_escape_errors);
 
   void write_before_message(std::string_view code, diagnostic_severity,
                             const source_code_span &origin);

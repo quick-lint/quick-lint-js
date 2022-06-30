@@ -19,7 +19,8 @@ namespace {
 class test_text_diag_reporter : public ::testing::Test {
  protected:
   text_diag_reporter make_reporter() {
-    return text_diag_reporter(&this->stream_, /*escape_errors=*/false);
+    return text_diag_reporter(translator(), &this->stream_,
+                              /*escape_errors=*/false);
   }
 
   text_diag_reporter make_reporter(padded_string_view input) {
@@ -28,7 +29,7 @@ class test_text_diag_reporter : public ::testing::Test {
 
   text_diag_reporter make_reporter(padded_string_view input,
                                    bool escape_errors) {
-    text_diag_reporter reporter(&this->stream_,
+    text_diag_reporter reporter(translator(), &this->stream_,
                                 /*escape_errors=*/escape_errors);
     reporter.set_source(input, this->file_path_);
     return reporter;

@@ -15,19 +15,19 @@ namespace {
 class test_vim_qflist_json_diag_reporter : public ::testing::Test {
  protected:
   vim_qflist_json_diag_reporter make_reporter() {
-    return vim_qflist_json_diag_reporter(&this->stream_);
+    return vim_qflist_json_diag_reporter(translator(), &this->stream_);
   }
 
   vim_qflist_json_diag_reporter make_reporter(padded_string_view input,
                                               int vim_bufnr) {
-    vim_qflist_json_diag_reporter reporter(&this->stream_);
+    vim_qflist_json_diag_reporter reporter(translator(), &this->stream_);
     reporter.set_source(input, /*vim_bufnr=*/vim_bufnr);
     return reporter;
   }
 
   vim_qflist_json_diag_reporter make_reporter(padded_string_view input,
                                               const char *file_name) {
-    vim_qflist_json_diag_reporter reporter(&this->stream_);
+    vim_qflist_json_diag_reporter reporter(translator(), &this->stream_);
     reporter.set_source(input, /*file_name=*/file_name);
     return reporter;
   }
@@ -293,7 +293,8 @@ TEST(test_vim_qflist_json_diag_formatter, single_span_simple_message) {
   vim_locator locator(&code);
 
   memory_output_stream stream;
-  vim_qflist_json_diag_formatter formatter(&stream, locator, "FILE",
+  vim_qflist_json_diag_formatter formatter(translator(), &stream, locator,
+                                           "FILE",
                                            /*bufnr=*/std::string_view());
   formatter.format(diag_info, &hello_span);
   stream.flush();
@@ -338,7 +339,8 @@ TEST(test_vim_qflist_json_diag_formatter, message_with_note_ignores_note) {
       .hello_span = source_code_span(&code[0], &code[5]),
       .world_span = source_code_span(&code[6], &code[11]),
   };
-  vim_qflist_json_diag_formatter formatter(&stream, locator, "FILE",
+  vim_qflist_json_diag_formatter formatter(translator(), &stream, locator,
+                                           "FILE",
                                            /*bufnr=*/std::string_view());
   formatter.format(diag_info, &diag);
   stream.flush();
