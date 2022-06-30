@@ -269,6 +269,7 @@ again:
       switch (this->peek().type) {
       QLJS_CASE_KEYWORD:
       case token_type::identifier:
+      case token_type::private_identifier:
         this->skip();
         break;
       default:

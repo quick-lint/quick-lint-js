@@ -1147,6 +1147,32 @@ TEST(test_parse_typescript_type, typeof_this) {
   }
 }
 
+// As of 2022-06-29, this feature has been rolled back in TypeScript:
+//
+// https://github.com/microsoft/TypeScript/pull/48959
+// https://github.com/microsoft/TypeScript/issues/47595
+//
+// We support it anyway.
+TEST(test_parse_typescript_type, typeof_allows_private_properties) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"typeof Class.#myProperty"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // Class
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"typeof this.#myProperty"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(
+        u8"typeof import('mod').Class.#myProperty"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+}
+
 TEST(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
   {
     padded_string code(u8"typeof Class<T>.member"_sv);
