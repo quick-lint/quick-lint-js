@@ -167,6 +167,7 @@ again:
     break;
 
   // typeof varname
+  // typeof import("modulename")
   // typeof ns.varname[KeyType]
   // typeof varname[]
   // typeof MyClass<T>
@@ -241,6 +242,18 @@ again:
       v.visit_variable_use(this->peek().identifier_name());
       this->skip();
       break;
+
+    // typeof import("modulename")
+    case token_type::kw_import:
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);
+      this->skip();
+      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+      this->skip();
+      break;
+
     default:
       QLJS_PARSER_UNIMPLEMENTED();
       break;

@@ -1119,6 +1119,20 @@ TEST(test_parse_typescript_type, typeof_generic) {
   }
 }
 
+TEST(test_parse_typescript_type, typeof_import) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"typeof import('some-module')"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(
+        u8"typeof import('some-module').exportedThing"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+}
+
 TEST(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
   {
     padded_string code(u8"typeof Class<T>.member"_sv);
