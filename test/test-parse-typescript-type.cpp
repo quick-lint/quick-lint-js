@@ -46,6 +46,9 @@ TEST(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
                u8"keyof",
                u8"let",
                u8"static",
+               // NOTE(strager): unique is omitted on purpose because of
+               // ambiguities in the grammar.
+               u8"unique",
            }) {
     {
       padded_string code(keyword);
@@ -145,6 +148,22 @@ TEST(test_parse_typescript_type, special_types) {
     EXPECT_THAT(v.visits, IsEmpty());
     EXPECT_THAT(v.variable_uses, IsEmpty())
         << "special type should not be treated as a variable";
+  }
+}
+
+TEST(test_parse_typescript_type, unique_symbol_type) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"unique symbol");
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.variable_uses, IsEmpty())
+        << "'unique symbol' should not be treated as a variable";
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"(unique symbol)");
+    EXPECT_THAT(v.visits, IsEmpty());
+    EXPECT_THAT(v.variable_uses, IsEmpty())
+        << "'unique symbol' should not be treated as a variable";
   }
 }
 

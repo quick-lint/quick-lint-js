@@ -99,7 +99,6 @@ again:
   case token_type::kw_require:
   case token_type::kw_set:
   case token_type::kw_type:
-  case token_type::kw_unique:
   case token_type::identifier: {
     identifier name = this->peek().identifier_name();
     bool had_dot = false;
@@ -127,6 +126,15 @@ again:
     }
     break;
   }
+
+  // unique
+  // unique.prop
+  // unique symbol
+  case token_type::kw_unique:
+    this->skip();
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::kw_symbol);
+    this->skip();
+    break;
 
   // [A, B, C]
   case token_type::left_square:
