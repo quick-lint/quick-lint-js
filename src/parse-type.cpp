@@ -713,11 +713,8 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
       return;
 
     case token_type::identifier:
-      this->parse_and_visit_typescript_type_expression(v);
-      break;
-
     default:
-      QLJS_PARSER_UNIMPLEMENTED();
+      this->parse_and_visit_typescript_type_expression(v);
       break;
     }
     is_first = false;

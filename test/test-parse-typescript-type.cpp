@@ -33,7 +33,9 @@ TEST(test_parse_typescript_type, direct_type_reference) {
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
   }
+}
 
+TEST(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
   for (string8 keyword :
        contextual_keywords - typescript_builtin_type_keywords -
            typescript_special_type_keywords -
@@ -45,12 +47,25 @@ TEST(test_parse_typescript_type, direct_type_reference) {
                u8"let",
                u8"static",
            }) {
-    padded_string code(keyword);
-    SCOPED_TRACE(code);
-    spy_visitor v = parse_and_visit_typescript_type(code.string_view());
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // (keyword)
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{keyword}));
+    {
+      padded_string code(keyword);
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_type_use"));  // (keyword)
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{keyword}));
+    }
+
+    {
+      padded_string code(u8"[" + keyword + u8"]");
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits,
+                  ElementsAre("visit_variable_type_use"));  // (keyword)
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{keyword}));
+    }
   }
 }
 
