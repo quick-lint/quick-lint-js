@@ -477,8 +477,9 @@ class Homebrew:
         files_from_unknown_formula = set()
         formulae = set()
         for file in files:
-            if self._is_llvm_file(file):
-                formulae.add("llvm")
+            formula_name = self._get_formula_name_from_path(file)
+            if formula_name is not None:
+                formulae.add(formula_name)
             else:
                 files_from_unknown_formula.add(file)
         if files_from_unknown_formula:
@@ -487,8 +488,19 @@ class Homebrew:
             )
         return [self._make_installed_package(f) for f in formulae]
 
+    def _get_formula_name_from_path(self, path: str) -> typing.Optional[str]:
+        try:
+            # path_in_brew will look like:
+            # Cellar/llvm@13/13.0.1/lib/libc++.a
+            path_in_brew = pathlib.Path(os.path.realpath(path)).relative_to(self.__brew_prefix)
+            if len(path_in_brew.parts) >= 2 and path_in_brew.parts[0] == "Cellar":
+                return path_in_brew.parts[1]
+        except ValueError:
+            # Path isn't in the brew prefix.
+            return None
+
     def get_copyright(self, package: InstalledPackage) -> str:
-        if package.name == "llvm":
+        if re.search(r"^llvm(@\d+)?$", package.name):
             return """\
 Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 See https://llvm.org/LICENSE.txt for license information.
