@@ -107,8 +107,15 @@ again:
     while (this->peek().type == token_type::dot) {
       had_dot = true;
       this->skip();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-      this->skip();
+      switch (this->peek().type) {
+      QLJS_CASE_KEYWORD:
+      case token_type::identifier:
+        this->skip();
+        break;
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
     }
     if (had_dot) {
       v.visit_variable_namespace_use(name);

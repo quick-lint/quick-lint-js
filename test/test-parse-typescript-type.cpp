@@ -101,6 +101,16 @@ TEST(test_parse_typescript_type, namespaced_type_reference) {
                 ElementsAre(spy_visitor::visited_variable_use{u8"ns"},
                             spy_visitor::visited_variable_use{u8"ns2"}));
   }
+
+  for (string8 keyword : keywords) {
+    padded_string code(u8"mymodule." + keyword);
+    SCOPED_TRACE(code);
+    spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_namespace_use"));  // mymodule
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(spy_visitor::visited_variable_use{u8"mymodule"}));
+  }
 }
 
 TEST(test_parse_typescript_type, builtin_types) {
