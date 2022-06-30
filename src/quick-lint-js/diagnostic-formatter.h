@@ -145,11 +145,13 @@ class diagnostic_formatter : private diagnostic_formatter_base {
   explicit diagnostic_formatter() : diagnostic_formatter_base(qljs_messages) {}
 
   // Assumed member functions in Derived:
-  // void write_before_message(std::string_view code, diagnostic_severity, const
-  // source_code_span &origin); void write_message_part(std::string_view code,
-  // diagnostic_severity, string8_view); void
-  // write_after_message(std::string_view code, diagnostic_severity, const
-  // source_code_span &origin);
+  //
+  // void write_before_message(std::string_view code, diagnostic_severity,
+  //                           const source_code_span &origin);
+  // void write_message_part(std::string_view code,
+  //                         diagnostic_severity, string8_view);
+  // void write_after_message(std::string_view code, diagnostic_severity,
+  //                          const source_code_span &origin);
 
   void format(const diagnostic_info& info, const void* diagnostic);
 
