@@ -26,7 +26,9 @@ translatable_message singular_statement_kind(statement_kind) noexcept;
 
 class diagnostic_formatter_base {
  public:
-  static source_code_span get_argument_source_code_span(
+  explicit diagnostic_formatter_base(translator t) : translator_(t) {}
+
+  source_code_span get_argument_source_code_span(
       const diagnostic_message_args& args, const void* diagnostic,
       int arg_index) {
     auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
@@ -48,8 +50,8 @@ class diagnostic_formatter_base {
     QLJS_UNREACHABLE();
   }
 
-  static string8_view expand_argument(const diagnostic_message_args& args,
-                                      const void* diagnostic, int arg_index) {
+  string8_view expand_argument(const diagnostic_message_args& args,
+                               const void* diagnostic, int arg_index) {
     auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
     switch (arg_type) {
     case diagnostic_arg_type::char8:
@@ -75,9 +77,9 @@ class diagnostic_formatter_base {
     QLJS_UNREACHABLE();
   }
 
-  static string8_view expand_argument_headlinese(
-      const diagnostic_message_args& args, const void* diagnostic,
-      int arg_index) {
+  string8_view expand_argument_headlinese(const diagnostic_message_args& args,
+                                          const void* diagnostic,
+                                          int arg_index) {
     auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
     switch (arg_type) {
     case diagnostic_arg_type::enum_kind:
@@ -85,7 +87,7 @@ class diagnostic_formatter_base {
           *reinterpret_cast<const enum_kind*>(arg_data));
 
     case diagnostic_arg_type::statement_kind:
-      return qljs_messages.translate(headlinese_statement_kind(
+      return this->translator_.translate(headlinese_statement_kind(
           *reinterpret_cast<const statement_kind*>(arg_data)));
 
     case diagnostic_arg_type::char8:
@@ -99,13 +101,12 @@ class diagnostic_formatter_base {
     QLJS_UNREACHABLE();
   }
 
-  static string8_view expand_argument_singular(
-      const diagnostic_message_args& args, const void* diagnostic,
-      int arg_index) {
+  string8_view expand_argument_singular(const diagnostic_message_args& args,
+                                        const void* diagnostic, int arg_index) {
     auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
     switch (arg_type) {
     case diagnostic_arg_type::statement_kind:
-      return qljs_messages.translate(singular_statement_kind(
+      return this->translator_.translate(singular_statement_kind(
           *reinterpret_cast<const statement_kind*>(arg_data)));
 
     case diagnostic_arg_type::enum_kind:
@@ -123,8 +124,11 @@ class diagnostic_formatter_base {
     QLJS_UNREACHABLE();
   }
 
+ protected:
+  translator translator_;
+
  private:
-  static std::pair<const void*, diagnostic_arg_type> get_arg(
+  std::pair<const void*, diagnostic_arg_type> get_arg(
       const diagnostic_message_args& args, const void* diagnostic,
       int arg_index) noexcept {
     const diagnostic_message_arg_info& arg_info =
@@ -138,6 +142,8 @@ class diagnostic_formatter_base {
 template <class Derived>
 class diagnostic_formatter : private diagnostic_formatter_base {
  public:
+  explicit diagnostic_formatter() : diagnostic_formatter_base(qljs_messages) {}
+
   // Assumed member functions in Derived:
   // void write_before_message(std::string_view code, diagnostic_severity, const
   // source_code_span &origin); void write_message_part(std::string_view code,
@@ -182,7 +188,7 @@ inline void diagnostic_formatter<Derived>::format_message(
       get_argument_source_code_span(args, diagnostic, 0);
   self->write_before_message(code, severity, origin_span);
 
-  string8_view remaining_message(qljs_messages.translate(message_format));
+  string8_view remaining_message(this->translator_.translate(message_format));
   string8_pos left_curly_index;
   while ((left_curly_index = remaining_message.find(u8'{')) != npos) {
     QLJS_ASSERT(left_curly_index != remaining_message.size() &&
