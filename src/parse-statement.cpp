@@ -1423,15 +1423,18 @@ void parser::parse_and_visit_typescript_enum(parse_visitor_base &v,
   case token_type::kw_declare:
   case token_type::kw_from:
   case token_type::kw_get:
+  case token_type::kw_global:
   case token_type::kw_infer:
   case token_type::kw_intrinsic:
   case token_type::kw_is:
   case token_type::kw_keyof:
+  case token_type::kw_module:
   case token_type::kw_namespace:
   case token_type::kw_of:
   case token_type::kw_out:
   case token_type::kw_override:
   case token_type::kw_readonly:
+  case token_type::kw_require:
   case token_type::kw_set:
   case token_type::kw_type:
   case token_type::kw_unique:
