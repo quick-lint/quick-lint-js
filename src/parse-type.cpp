@@ -227,7 +227,6 @@ again:
     case token_type::kw_super:
     case token_type::kw_switch:
     case token_type::kw_symbol:
-    case token_type::kw_this:
     case token_type::kw_throw:
     case token_type::kw_true:
     case token_type::kw_try:
@@ -240,6 +239,12 @@ again:
     case token_type::kw_while:
     case token_type::kw_with:
       v.visit_variable_use(this->peek().identifier_name());
+      this->skip();
+      break;
+
+    // typeof this
+    // typeof this.prop
+    case token_type::kw_this:
       this->skip();
       break;
 

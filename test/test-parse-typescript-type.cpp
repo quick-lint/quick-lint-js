@@ -1067,6 +1067,7 @@ TEST(test_parse_typescript_type, typeof) {
        keywords - typescript_special_type_keywords -
            strict_only_reserved_keywords -
            dirty_set<string8>{
+               u8"this",
                // This list is derived experimentally from TypeScript version
                // 4.7.4. Some of these seem arbitrary. *shrug*
                u8"boolean",
@@ -1129,6 +1130,19 @@ TEST(test_parse_typescript_type, typeof_import) {
   {
     spy_visitor v = parse_and_visit_typescript_type(
         u8"typeof import('some-module').exportedThing"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+}
+
+TEST(test_parse_typescript_type, typeof_this) {
+  {
+    spy_visitor v = parse_and_visit_typescript_type(u8"typeof this"_sv);
+    EXPECT_THAT(v.visits, IsEmpty());
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"typeof this.myProperty"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
 }
