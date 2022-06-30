@@ -34,6 +34,11 @@ void c_api_diag_reporter<Diagnostic, Locator>::reset() {
 }
 
 template <class Diagnostic, class Locator>
+void c_api_diag_reporter<Diagnostic, Locator>::set_translator(translator t) {
+  this->translator_ = t;
+}
+
+template <class Diagnostic, class Locator>
 void c_api_diag_reporter<Diagnostic, Locator>::report_impl(diag_type type,
                                                            void *diag) {
   c_api_diag_formatter formatter(this);
@@ -63,7 +68,7 @@ template <class Diagnostic, class Locator>
 c_api_diag_formatter<Diagnostic, Locator>::c_api_diag_formatter(
     c_api_diag_reporter<Diagnostic, Locator> *reporter)
     : diagnostic_formatter<c_api_diag_formatter<Diagnostic, Locator>>(
-          qljs_messages),
+          reporter->translator_),
       reporter_(reporter) {}
 
 template <class Diagnostic, class Locator>

@@ -31,7 +31,10 @@ class c_api_diag_reporter final : public diag_reporter {
   explicit c_api_diag_reporter();
 
   void set_input(padded_string_view input, const Locator *);
+  // Does not reset translator.
   void reset();
+
+  void set_translator(translator);
 
   const Diagnostic *get_diagnostics();
 
@@ -40,6 +43,7 @@ class c_api_diag_reporter final : public diag_reporter {
  private:
   char8 *allocate_c_string(string8_view);
 
+  translator translator_;
   std::vector<Diagnostic> diagnostics_;
   const Locator *locator_;
   const char8 *input_;

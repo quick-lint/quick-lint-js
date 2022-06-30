@@ -55,6 +55,24 @@ TEST(test_c_api_web_demo, lint_new_error_after_second_text_insertion) {
   qljs_web_demo_destroy_document(p);
 }
 
+TEST(test_c_api_web_demo, setting_locale_changes_messages_forever) {
+  qljs_web_demo_document* p = qljs_web_demo_create_document();
+
+  qljs_web_demo_set_locale(p, "en_US@loud");
+
+  const char8* document_text_1 = u8"let x;let x;";
+  qljs_web_demo_set_text(p, document_text_1, strlen(document_text_1));
+  const qljs_web_demo_diagnostic* diagnostics = qljs_web_demo_lint(p);
+  EXPECT_STREQ(diagnostics[0].message, "REDECLARATION OF VARIABLE: x");
+
+  const char8* document_text_2 = u8"let y;let y;";
+  qljs_web_demo_set_text(p, document_text_2, strlen(document_text_2));
+  diagnostics = qljs_web_demo_lint(p);
+  EXPECT_STREQ(diagnostics[0].message, "REDECLARATION OF VARIABLE: y");
+
+  qljs_web_demo_destroy_document(p);
+}
+
 TEST(test_c_api_web_demo, linting_uses_config) {
   qljs_web_demo_document* p = qljs_web_demo_create_document();
 
