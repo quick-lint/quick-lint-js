@@ -83,15 +83,17 @@ class test_translation : public ::testing::Test {
 };
 
 TEST_F(test_translation, c_language_does_not_translate_diagnostics) {
-  initialize_translations_from_locale("C");
-  basic_text_diag_reporter reporter(qljs_messages);
+  translator t;
+  t.use_messages_from_locale("C");
+  basic_text_diag_reporter reporter(t);
   reporter.report(diag_unexpected_hash_character{this->dummy_span()});
   EXPECT_THAT(reporter.messages(), ElementsAre(u8"unexpected '#'"));
 }
 
 TEST_F(test_translation, english_loud_language_upper_cases_base) {
-  initialize_translations_from_locale("en.utf8@loud");
-  basic_text_diag_reporter reporter(qljs_messages);
+  translator t;
+  t.use_messages_from_locale("en.utf8@loud");
+  basic_text_diag_reporter reporter(t);
   reporter.report(diag_unexpected_hash_character{this->dummy_span()});
   EXPECT_THAT(reporter.messages(), ElementsAre(u8"UNEXPECTED '#'"));
 }
