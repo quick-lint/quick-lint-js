@@ -139,14 +139,24 @@ TEST(test_parse_typescript_enum, empty_enum) {
 
 TEST(test_parse_typescript_enum,
      enum_can_be_named_certain_contextual_keywords) {
-  for (string8 name : {
-           u8"abstract", u8"as",     u8"assert",      u8"asserts",
-           u8"async",    u8"await",  u8"constructor", u8"declare",
-           u8"from",     u8"get",    u8"infer",       u8"intrinsic",
-           u8"is",       u8"keyof",  u8"meta",        u8"namespace",
-           u8"of",       u8"out",    u8"override",    u8"readonly",
-           u8"set",      u8"target", u8"type",        u8"unique",
-       }) {
+  for (string8 name : contextual_keywords - dirty_set<string8>{
+                                                u8"any",
+                                                u8"bigint",
+                                                u8"boolean",
+                                                u8"global",
+                                                u8"let",
+                                                u8"module",
+                                                u8"never",
+                                                u8"number",
+                                                u8"object",
+                                                u8"require",
+                                                u8"static",
+                                                u8"string",
+                                                u8"symbol",
+                                                u8"undefined",
+                                                u8"unknown",
+                                                u8"yield",
+                                            }) {
     string8 code = u8"enum " + name + u8" {}";
     spy_visitor v = parse_and_visit_typescript_statement(code);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // (name)
