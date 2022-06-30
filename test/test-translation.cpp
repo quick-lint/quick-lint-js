@@ -96,7 +96,7 @@ TEST_F(test_translation, full_translation_table) {
        locale_index < std::size(test_locale_names); ++locale_index) {
     const char *locale_name = test_locale_names[locale_index];
     SCOPED_TRACE(locale_name);
-    translatable_messages messages;
+    translator messages;
     if (*locale_name == '\0') {
       messages.use_messages_from_source_code();
     } else {

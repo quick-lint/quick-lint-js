@@ -30,7 +30,7 @@ const char8* translate(const translatable_message&);
 void initialize_translations_from_environment();
 void initialize_translations_from_locale(const char* locale_name);
 
-class translatable_messages {
+class translator {
  public:
   void use_messages_from_source_code();
   bool use_messages_from_locale(const char* locale_name);
