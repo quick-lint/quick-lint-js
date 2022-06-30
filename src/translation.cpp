@@ -71,9 +71,7 @@ void initialize_locale() {
 }
 
 const char8* translate(const translatable_message& message) {
-  const char* translated_message = qljs_messages.translate(message);
-  // HACK(strager): Assume message encoding is UTF-8.
-  return reinterpret_cast<const char8*>(translated_message);
+  return qljs_messages.translate(message);
 }
 
 void initialize_translations_from_environment() {
@@ -119,7 +117,7 @@ bool translatable_messages::use_messages_from_locales(
   return false;
 }
 
-const char* translatable_messages::translate(
+const char8* translatable_messages::translate(
     const translatable_message& message) {
   // If the following assertion fails, it's likely that
   // translation-table-generated.h is out of date. Run
@@ -135,8 +133,7 @@ const char* translatable_messages::translate(
     string_offset = mapping.string_offsets[translation_table_locale_count];
     QLJS_ASSERT(string_offset != 0);
   }
-  return reinterpret_cast<const char*>(translation_data.string_table +
-                                       string_offset);
+  return translation_data.string_table + string_offset;
 }
 }
 

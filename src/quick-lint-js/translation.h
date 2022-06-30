@@ -36,7 +36,7 @@ class translatable_messages {
   bool use_messages_from_locale(const char* locale_name);
   bool use_messages_from_locales(const std::vector<std::string>& locale_names);
 
-  const char* translate(const translatable_message& message);
+  const char8* translate(const translatable_message& message);
 
  private:
   int locale_index_ = translation_table_locale_count;
