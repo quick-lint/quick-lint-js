@@ -139,21 +139,13 @@ TEST(test_parse_typescript_enum, empty_enum) {
 
 TEST(test_parse_typescript_enum,
      enum_can_be_named_certain_contextual_keywords) {
-  for (string8 name : contextual_keywords - dirty_set<string8>{
-                                                u8"any",
-                                                u8"bigint",
-                                                u8"boolean",
-                                                u8"let",
-                                                u8"never",
-                                                u8"number",
-                                                u8"object",
-                                                u8"static",
-                                                u8"string",
-                                                u8"symbol",
-                                                u8"undefined",
-                                                u8"unknown",
-                                                u8"yield",
-                                            }) {
+  for (string8 name : contextual_keywords - typescript_builtin_type_keywords -
+                          typescript_special_type_keywords -
+                          dirty_set<string8>{
+                              u8"let",
+                              u8"static",
+                              u8"yield",
+                          }) {
     string8 code = u8"enum " + name + u8" {}";
     spy_visitor v = parse_and_visit_typescript_statement(code);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // (name)

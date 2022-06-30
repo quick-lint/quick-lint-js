@@ -253,6 +253,17 @@ const inline dirty_set<string8> contextual_keywords = {
 // ReservedWord or contextual keyword in strict mode or non-strict mode.
 const inline dirty_set<string8> keywords =
     strict_reserved_keywords | contextual_keywords;
+
+const inline dirty_set<string8> typescript_builtin_type_keywords = {
+    u8"bigint", u8"boolean", u8"null",      u8"number", u8"object",
+    u8"string", u8"symbol",  u8"undefined", u8"void",
+};
+
+const inline dirty_set<string8> typescript_special_type_keywords = {
+    u8"any",
+    u8"never",
+    u8"unknown",
+};
 }
 }
 

@@ -104,17 +104,7 @@ TEST(test_parse_typescript_type, namespaced_type_reference) {
 }
 
 TEST(test_parse_typescript_type, builtin_types) {
-  for (string8 type : {
-           u8"bigint",
-           u8"boolean",
-           u8"null",
-           u8"number",
-           u8"object",
-           u8"string",
-           u8"symbol",
-           u8"undefined",
-           u8"void",
-       }) {
+  for (string8 type : typescript_builtin_type_keywords) {
     SCOPED_TRACE(out_string8(type));
     spy_visitor v = parse_and_visit_typescript_type(type);
     EXPECT_THAT(v.visits, IsEmpty());
@@ -124,11 +114,7 @@ TEST(test_parse_typescript_type, builtin_types) {
 }
 
 TEST(test_parse_typescript_type, special_types) {
-  for (string8 type : {
-           u8"any",
-           u8"never",
-           u8"unknown",
-       }) {
+  for (string8 type : typescript_special_type_keywords) {
     SCOPED_TRACE(out_string8(type));
     spy_visitor v = parse_and_visit_typescript_type(type);
     EXPECT_THAT(v.visits, IsEmpty());
