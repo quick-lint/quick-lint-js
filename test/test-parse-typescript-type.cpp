@@ -1086,6 +1086,17 @@ TEST(test_parse_typescript_type, typeof) {
                   ElementsAre(spy_visitor::visited_variable_use{keyword}));
     }
   }
+
+  for (string8 keyword : keywords) {
+    {
+      padded_string code(u8"typeof ns." + keyword);
+      SCOPED_TRACE(code);
+      spy_visitor v = parse_and_visit_typescript_type(code.string_view());
+      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // ns
+      EXPECT_THAT(v.variable_uses,
+                  ElementsAre(spy_visitor::visited_variable_use{u8"ns"}));
+    }
+  }
 }
 
 TEST(test_parse_typescript_type, typeof_generic) {
@@ -1122,6 +1133,17 @@ TEST(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
                     &code, diag_dot_not_allowed_after_generic_arguments_in_type,
                     dot, strlen(u8"typeof Class<T>"), u8".",  //
                     property_name, strlen(u8"typeof Class<T>."), u8"member")));
+  }
+
+  for (string8 keyword : keywords) {
+    padded_string code(u8"typeof Class<T>." + keyword);
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_typescript_type_expression(v);
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE(
+                    diag_dot_not_allowed_after_generic_arguments_in_type)));
   }
 }
 

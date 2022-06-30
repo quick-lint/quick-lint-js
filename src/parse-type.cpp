@@ -248,8 +248,15 @@ again:
 
     while (this->peek().type == token_type::dot) {
       this->skip();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-      this->skip();
+      switch (this->peek().type) {
+      QLJS_CASE_KEYWORD:
+      case token_type::identifier:
+        this->skip();
+        break;
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
     }
     if (this->peek().type == token_type::less) {
       this->parse_and_visit_typescript_generic_arguments(v);
@@ -257,13 +264,20 @@ again:
     while (this->peek().type == token_type::dot) {
       source_code_span dot_span = this->peek().span();
       this->skip();
-      QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-      this->diag_reporter_->report(
-          diag_dot_not_allowed_after_generic_arguments_in_type{
-              .dot = dot_span,
-              .property_name = this->peek().span(),
-          });
-      this->skip();
+      switch (this->peek().type) {
+      QLJS_CASE_KEYWORD:
+      case token_type::identifier:
+        this->diag_reporter_->report(
+            diag_dot_not_allowed_after_generic_arguments_in_type{
+                .dot = dot_span,
+                .property_name = this->peek().span(),
+            });
+        this->skip();
+        break;
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
     }
     break;
 
