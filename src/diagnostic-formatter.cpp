@@ -21,34 +21,34 @@ string8_view headlinese_enum_kind(enum_kind ek) noexcept {
   QLJS_UNREACHABLE();
 }
 
-string8_view translated_headlinese_statement_kind(statement_kind sk) noexcept {
+translatable_message headlinese_statement_kind(statement_kind sk) noexcept {
   switch (sk) {
   case statement_kind::do_while_loop:
-    return QLJS_TRANSLATE("'do-while' loop");
+    return QLJS_TRANSLATABLE("'do-while' loop");
   case statement_kind::for_loop:
-    return QLJS_TRANSLATE("'for' loop");
+    return QLJS_TRANSLATABLE("'for' loop");
   case statement_kind::if_statement:
-    return QLJS_TRANSLATE("'if' statement");
+    return QLJS_TRANSLATABLE("'if' statement");
   case statement_kind::while_loop:
-    return QLJS_TRANSLATE("'while' loop");
+    return QLJS_TRANSLATABLE("'while' loop");
   case statement_kind::with_statement:
-    return QLJS_TRANSLATE("'with' statement");
+    return QLJS_TRANSLATABLE("'with' statement");
   }
   QLJS_UNREACHABLE();
 }
 
-string8_view translated_singular_statement_kind(statement_kind sk) noexcept {
+translatable_message singular_statement_kind(statement_kind sk) noexcept {
   switch (sk) {
   case statement_kind::do_while_loop:
-    return QLJS_TRANSLATE("a 'do-while' loop");
+    return QLJS_TRANSLATABLE("a 'do-while' loop");
   case statement_kind::for_loop:
-    return QLJS_TRANSLATE("a 'for' loop");
+    return QLJS_TRANSLATABLE("a 'for' loop");
   case statement_kind::if_statement:
-    return QLJS_TRANSLATE("an 'if' statement");
+    return QLJS_TRANSLATABLE("an 'if' statement");
   case statement_kind::while_loop:
-    return QLJS_TRANSLATE("a 'while' loop");
+    return QLJS_TRANSLATABLE("a 'while' loop");
   case statement_kind::with_statement:
-    return QLJS_TRANSLATE("a 'with' statement");
+    return QLJS_TRANSLATABLE("a 'with' statement");
   }
   QLJS_UNREACHABLE();
 }

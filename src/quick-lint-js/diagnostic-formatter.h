@@ -21,8 +21,8 @@
 
 namespace quick_lint_js {
 string8_view headlinese_enum_kind(enum_kind) noexcept;
-string8_view translated_headlinese_statement_kind(statement_kind) noexcept;
-string8_view translated_singular_statement_kind(statement_kind) noexcept;
+translatable_message headlinese_statement_kind(statement_kind) noexcept;
+translatable_message singular_statement_kind(statement_kind) noexcept;
 
 class diagnostic_formatter_base {
  public:
@@ -85,8 +85,8 @@ class diagnostic_formatter_base {
           *reinterpret_cast<const enum_kind*>(arg_data));
 
     case diagnostic_arg_type::statement_kind:
-      return translated_headlinese_statement_kind(
-          *reinterpret_cast<const statement_kind*>(arg_data));
+      return qljs_messages.translate(headlinese_statement_kind(
+          *reinterpret_cast<const statement_kind*>(arg_data)));
 
     case diagnostic_arg_type::char8:
     case diagnostic_arg_type::identifier:
@@ -105,8 +105,8 @@ class diagnostic_formatter_base {
     auto [arg_data, arg_type] = get_arg(args, diagnostic, arg_index);
     switch (arg_type) {
     case diagnostic_arg_type::statement_kind:
-      return translated_singular_statement_kind(
-          *reinterpret_cast<const statement_kind*>(arg_data));
+      return qljs_messages.translate(singular_statement_kind(
+          *reinterpret_cast<const statement_kind*>(arg_data)));
 
     case diagnostic_arg_type::enum_kind:
       QLJS_UNIMPLEMENTED();
