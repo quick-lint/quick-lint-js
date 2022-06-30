@@ -18,9 +18,9 @@ using namespace std::literals::string_view_literals;
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 namespace quick_lint_js {
-namespace {
 translator qljs_messages;
 
+namespace {
 std::vector<std::string> split_on(const char* s, char separator) {
   std::vector<std::string> locales;
   for (;;) {
@@ -68,10 +68,6 @@ void initialize_locale() {
                  std::strerror(errno));
   }
 }
-}
-
-const char8* translate(const translatable_message& message) {
-  return qljs_messages.translate(message);
 }
 
 void initialize_translations_from_environment() {

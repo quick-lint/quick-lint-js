@@ -13,19 +13,17 @@
 #include <string_view>
 #include <vector>
 
-#define QLJS_TRANSLATE(...)                          \
-  ([] {                                              \
-    static constexpr translatable_message _message = \
-        __VA_ARGS__##_translatable;                  \
-    return ::quick_lint_js::translate(_message);     \
+#define QLJS_TRANSLATE(...)                                    \
+  ([] {                                                        \
+    static constexpr translatable_message _message =           \
+        __VA_ARGS__##_translatable;                            \
+    return ::quick_lint_js::qljs_messages.translate(_message); \
   }())
 
 #define QLJS_TRANSLATABLE(...) (__VA_ARGS__##_translatable)
 
 namespace quick_lint_js {
 class translatable_message;
-
-const char8* translate(const translatable_message&);
 
 void initialize_translations_from_environment();
 void initialize_translations_from_locale(const char* locale_name);
@@ -41,6 +39,9 @@ class translator {
  private:
   int locale_index_ = translation_table_locale_count;
 };
+
+// Global instance.
+extern translator qljs_messages;
 
 // An un-translated message.
 class translatable_message {
