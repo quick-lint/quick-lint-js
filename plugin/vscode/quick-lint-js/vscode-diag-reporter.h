@@ -8,6 +8,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/diagnostic-formatter.h>
 #include <quick-lint-js/lsp-location.h>
+#include <quick-lint-js/translation.h>
 #include <quick-lint-js/vscode.h>
 #include <string_view>
 
@@ -19,7 +20,8 @@ class vscode_diag_formatter
                                  ::Napi::Array diagnostics,
                                  const lsp_locator* locator,
                                  ::Napi::Value document_uri)
-      : vscode_(vscode),
+      : diagnostic_formatter(qljs_messages),
+        vscode_(vscode),
         env_(env),
         diagnostics_(diagnostics),
         locator_(locator),

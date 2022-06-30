@@ -43,7 +43,8 @@ text_diag_formatter::text_diag_formatter(output_stream *output,
                                          const char *file_path,
                                          cli_locator &locator,
                                          bool format_escape_errors)
-    : output_(*output),
+    : diagnostic_formatter(qljs_messages),
+      output_(*output),
       file_path_(file_path),
       locator_(locator),
       format_escape_errors_(format_escape_errors) {}

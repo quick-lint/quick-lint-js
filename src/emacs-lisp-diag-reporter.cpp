@@ -31,7 +31,9 @@ void emacs_lisp_diag_reporter::report_impl(diag_type type, void *diag) {
 
 emacs_lisp_diag_formatter::emacs_lisp_diag_formatter(output_stream *output,
                                                      emacs_locator &locator)
-    : output_(*output), locator_(locator) {}
+    : diagnostic_formatter(qljs_messages),
+      output_(*output),
+      locator_(locator) {}
 
 void emacs_lisp_diag_formatter::write_before_message(
     std::string_view code, diagnostic_severity sev,

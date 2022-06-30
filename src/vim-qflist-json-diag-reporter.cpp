@@ -68,7 +68,8 @@ void vim_qflist_json_diag_reporter::report_impl(diag_type type, void *diag) {
 vim_qflist_json_diag_formatter::vim_qflist_json_diag_formatter(
     output_stream *output, quick_lint_js::vim_locator &locator,
     std::string_view file_name, std::string_view bufnr)
-    : output_(*output),
+    : diagnostic_formatter(qljs_messages),
+      output_(*output),
       locator_(locator),
       file_name_(file_name),
       bufnr_(bufnr) {}

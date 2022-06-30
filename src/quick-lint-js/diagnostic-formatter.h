@@ -142,7 +142,7 @@ class diagnostic_formatter_base {
 template <class Derived>
 class diagnostic_formatter : private diagnostic_formatter_base {
  public:
-  explicit diagnostic_formatter() : diagnostic_formatter_base(qljs_messages) {}
+  using diagnostic_formatter_base::diagnostic_formatter_base;
 
   // Assumed member functions in Derived:
   //

@@ -20,6 +20,9 @@ source_code_span empty_span(nullptr, nullptr);
 class string_diagnostic_formatter
     : public diagnostic_formatter<string_diagnostic_formatter> {
  public:
+  explicit string_diagnostic_formatter()
+      : diagnostic_formatter<string_diagnostic_formatter>(translator()) {}
+
   void write_before_message(std::string_view, diagnostic_severity,
                             const source_code_span&) {}
 
@@ -42,6 +45,8 @@ TEST(test_diagnostic_formatter, origin_span) {
 
   struct test_diagnostic_formatter
       : public diagnostic_formatter<test_diagnostic_formatter> {
+    using diagnostic_formatter<test_diagnostic_formatter>::diagnostic_formatter;
+
     void write_before_message(std::string_view, diagnostic_severity,
                               const source_code_span& origin_span) {
       EXPECT_EQ(origin_span, span);
@@ -61,7 +66,10 @@ TEST(test_diagnostic_formatter, origin_span) {
     int write_after_message_call_count = 0;
   };
 
-  test_diagnostic_formatter formatter;
+  translator t;
+  t.use_messages_from_source_code();
+
+  test_diagnostic_formatter formatter(t);
   formatter.format_message("E9999"sv, diagnostic_severity::error,
                            QLJS_TRANSLATABLE("something happened"),
                            diagnostic_message_args{{

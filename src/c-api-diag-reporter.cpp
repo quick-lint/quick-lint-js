@@ -62,7 +62,9 @@ char8 *c_api_diag_reporter<Diagnostic, Locator>::allocate_c_string(
 template <class Diagnostic, class Locator>
 c_api_diag_formatter<Diagnostic, Locator>::c_api_diag_formatter(
     c_api_diag_reporter<Diagnostic, Locator> *reporter)
-    : reporter_(reporter) {}
+    : diagnostic_formatter<c_api_diag_formatter<Diagnostic, Locator>>(
+          qljs_messages),
+      reporter_(reporter) {}
 
 template <class Diagnostic, class Locator>
 void c_api_diag_formatter<Diagnostic, Locator>::write_before_message(

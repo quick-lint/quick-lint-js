@@ -24,8 +24,7 @@ class basic_text_diag_formatter;
 class basic_text_diag_formatter
     : public diagnostic_formatter<basic_text_diag_formatter> {
  public:
-  explicit basic_text_diag_formatter(basic_text_diag_reporter *reporter)
-      : reporter_(reporter) {}
+  explicit basic_text_diag_formatter(basic_text_diag_reporter *reporter);
 
   void write_before_message([[maybe_unused]] std::string_view code,
                             diagnostic_severity, const source_code_span &) {}
@@ -45,7 +44,7 @@ class basic_text_diag_formatter
 
 class basic_text_diag_reporter final : public diag_reporter {
  public:
-  explicit basic_text_diag_reporter() = default;
+  explicit basic_text_diag_reporter(translator t) : translator_(t) {}
 
   std::vector<string8> messages() { return this->messages_; }
 
@@ -56,9 +55,15 @@ class basic_text_diag_reporter final : public diag_reporter {
 
  private:
   std::vector<string8> messages_;
+  translator translator_;
 
   friend basic_text_diag_formatter;
 };
+
+basic_text_diag_formatter::basic_text_diag_formatter(
+    basic_text_diag_reporter *reporter)
+    : diagnostic_formatter<basic_text_diag_formatter>(reporter->translator_),
+      reporter_(reporter) {}
 
 void basic_text_diag_formatter::write_after_message(
     [[maybe_unused]] std::string_view code, diagnostic_severity,
@@ -71,8 +76,6 @@ class test_translation : public ::testing::Test {
   void TearDown() override { initialize_translations_from_locale("C"); }
 
  protected:
-  basic_text_diag_reporter reporter;
-
   source_code_span dummy_span() {
     static const char8 hello[] = u8"hello";
     return source_code_span(&hello[0], &hello[5]);
@@ -81,14 +84,16 @@ class test_translation : public ::testing::Test {
 
 TEST_F(test_translation, c_language_does_not_translate_diagnostics) {
   initialize_translations_from_locale("C");
-  this->reporter.report(diag_unexpected_hash_character{this->dummy_span()});
-  EXPECT_THAT(this->reporter.messages(), ElementsAre(u8"unexpected '#'"));
+  basic_text_diag_reporter reporter(qljs_messages);
+  reporter.report(diag_unexpected_hash_character{this->dummy_span()});
+  EXPECT_THAT(reporter.messages(), ElementsAre(u8"unexpected '#'"));
 }
 
 TEST_F(test_translation, english_loud_language_upper_cases_base) {
   initialize_translations_from_locale("en.utf8@loud");
-  this->reporter.report(diag_unexpected_hash_character{this->dummy_span()});
-  EXPECT_THAT(this->reporter.messages(), ElementsAre(u8"UNEXPECTED '#'"));
+  basic_text_diag_reporter reporter(qljs_messages);
+  reporter.report(diag_unexpected_hash_character{this->dummy_span()});
+  EXPECT_THAT(reporter.messages(), ElementsAre(u8"UNEXPECTED '#'"));
 }
 
 TEST_F(test_translation, full_translation_table) {
