@@ -6,7 +6,10 @@ import assert from "assert";
 import fs from "fs";
 import path from "path";
 import url from "url";
-import { createProcessFactoryAsync } from "../wasm/quick-lint-js.js";
+import {
+  DiagnosticSeverity,
+  createProcessFactoryAsync,
+} from "../wasm/quick-lint-js.js";
 import { sanitizeMarks } from "../public/demo/editor.mjs";
 
 let __filename = url.fileURLToPath(import.meta.url);
@@ -64,7 +67,7 @@ markdownParser.renderer.rules = {
           : env.doc.diagnostics[env.codeBlockIndex],
     });
     env.codeBlockIndex += 1;
-    return `<figure><pre><code>${codeHTML}</code></pre></figure>`;
+    return `<figure><pre><code class="javascript">${codeHTML}</code></pre></figure>`;
   },
 
   fence(tokens, tokenIndex, options, env, self) {
@@ -78,7 +81,22 @@ export function errorDocumentationExampleToHTML({ code, diagnostics }) {
   let lastDiagnosticEnd = 0;
   for (let diagnostic of diagnostics) {
     codeHTML += textToHTML(code.slice(lastDiagnosticEnd, diagnostic.begin));
-    codeHTML += "<mark>";
+    codeHTML += "<mark";
+    if (typeof diagnostic.code !== "undefined") {
+      codeHTML += ` data-code="${textToHTML(diagnostic.code)}"`;
+    }
+    if (typeof diagnostic.message !== "undefined") {
+      codeHTML += ` data-message="${textToHTML(diagnostic.message)}"`;
+    }
+    if (typeof diagnostic.severity !== "undefined") {
+      codeHTML += ` data-severity="${
+        {
+          [DiagnosticSeverity.ERROR]: "error",
+          [DiagnosticSeverity.WARNING]: "warning",
+        }[diagnostic.severity]
+      }"`;
+    }
+    codeHTML += ">";
     codeHTML += textToHTML(code.slice(diagnostic.begin, diagnostic.end));
     codeHTML += "</mark>";
     lastDiagnosticEnd = diagnostic.end;

@@ -8,6 +8,7 @@ import {
   ErrorDocumentation,
   errorDocumentationExampleToHTML,
 } from "../src/error-documentation.mjs";
+import { DiagnosticSeverity } from "../wasm/quick-lint-js.js";
 
 describe("error documentation", () => {
   it("error code from file path", () => {
@@ -185,7 +186,7 @@ wasn't that neat?
       "code:\n\n    \ufeff--BOM\n"
     );
     expect(doc.toHTML()).toContain(
-      "<code><span class='unicode-bom'>\u{feff}</span>--BOM"
+      "<span class='unicode-bom'>\u{feff}</span>--BOM"
     );
   });
 
@@ -194,7 +195,7 @@ wasn't that neat?
       "file.md",
       "code:\n\n    &#xfeff;--BOM\n"
     );
-    expect(doc.toHTML()).toContain("<code>&amp;#xfeff;--BOM");
+    expect(doc.toHTML()).toContain("&amp;#xfeff;--BOM");
   });
 
   it("html wraps <mark>-d byte order mark", () => {
@@ -204,7 +205,7 @@ wasn't that neat?
     );
     doc.diagnostics = [[{ begin: 0, end: 1 }]];
     expect(doc.toHTML()).toContain(
-      "<code><mark><span class='unicode-bom'>\u{feff}</span></mark>--BOM"
+      "<mark><span class='unicode-bom'>\u{feff}</span></mark>--BOM"
     );
   });
 
@@ -225,6 +226,11 @@ wasn't that neat?
     expect(html).toContain("BEL:<span class='unicode-bel'>\u0007</span>");
     expect(html).toContain("BS:<span class='unicode-bs'>\u0008</span>");
     expect(html).toContain("DEL:<span class='unicode-del'>\u007f</span>");
+  });
+
+  it("html has javascript class", () => {
+    let doc = ErrorDocumentation.parseString("file.md", "code:\n\n    hello\n");
+    expect(doc.toHTML()).toContain('<code class="javascript">');
   });
 
   it("lint JavaScript", async () => {
@@ -457,6 +463,38 @@ describe("errorDocumentationExampleToHTML", () => {
     expect(html).toContain("BEL:<span class='unicode-bel'>\u0007</span>");
     expect(html).toContain("BS:<span class='unicode-bs'>\u0008</span>");
     expect(html).toContain("DEL:<span class='unicode-del'>\u007f</span>");
+  });
+
+  it("mark includes diagnostic code, message, and severity", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "NaN = 0",
+      diagnostics: [
+        {
+          begin: 0,
+          end: 3,
+          code: "E0002",
+          message: "assignment to const global variable",
+          severity: DiagnosticSeverity.ERROR,
+        },
+      ],
+    });
+    expect(html).toBe(
+      '<mark data-code="E0002" data-message="assignment to const global variable" data-severity="error">NaN</mark> = 0'
+    );
+  });
+
+  it("warning mark", () => {
+    let html = errorDocumentationExampleToHTML({
+      code: "hi",
+      diagnostics: [
+        {
+          begin: 0,
+          end: 2,
+          severity: DiagnosticSeverity.WARNING,
+        },
+      ],
+    });
+    expect(html).toBe('<mark data-severity="warning">hi</mark>');
   });
 });
 
