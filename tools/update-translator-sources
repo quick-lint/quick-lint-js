@@ -21,7 +21,6 @@ update_template_file() {
   pot_temp_file="$(mktemp)"
   xgettext \
     --keyword=QLJS_TRANSLATABLE \
-    --keyword=QLJS_TRANSLATE \
     --output="${pot_temp_file}" \
     --force-po \
     --add-location=file \
