@@ -1801,6 +1801,7 @@ QLJS_WARNING_POP
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_CLANG("-Wunknown-attributes")
+QLJS_WARNING_IGNORE_CLANG("-Wunreachable-code")
 QLJS_WARNING_IGNORE_GCC("-Wattributes")
 void lexer::skip_whitespace() {
   const char8* input = this->input_;

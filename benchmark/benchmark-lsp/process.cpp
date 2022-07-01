@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/process.h>
 #include <sys/wait.h>
 #include <unistd.h>
 

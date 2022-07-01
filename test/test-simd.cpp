@@ -8,6 +8,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/simd.h>
+#include <quick-lint-js/warning.h>
 
 #if QLJS_HAVE_ARM_NEON
 #include <arm_neon.h>
@@ -16,6 +17,8 @@
 #if QLJS_HAVE_X86_SSE2
 #include <emmintrin.h>
 #endif
+
+QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
 
 namespace quick_lint_js {
 namespace {

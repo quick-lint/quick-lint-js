@@ -134,7 +134,8 @@ class vscode_tracer {
       std::vector<trace_vscode_document_change> traced_changes(
           changes.Length());
       for (std::size_t i = 0; i < traced_changes.size(); ++i) {
-        ::Napi::Object change = changes.Get(i).As<::Napi::Object>();
+        ::Napi::Object change =
+            changes.Get(narrow_cast<std::uint32_t>(i)).As<::Napi::Object>();
         ::Napi::Object range = change.Get("range").As<::Napi::Object>();
         ::Napi::Object start = range.Get("start").As<::Napi::Object>();
         ::Napi::Object end = range.Get("end").As<::Napi::Object>();

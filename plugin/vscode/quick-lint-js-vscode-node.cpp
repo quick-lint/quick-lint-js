@@ -901,7 +901,7 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
       return this->stop_pipe_.reader.ref();
     }
 
-    void append(string8_view) { QLJS_UNREACHABLE(); }
+    [[noreturn]] void append(string8_view) { QLJS_UNREACHABLE(); }
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
     std::optional<posix_fd_file_ref> get_pipe_write_fd() {
@@ -910,9 +910,13 @@ class qljs_workspace : public ::Napi::ObjectWrap<qljs_workspace> {
 #endif
 
 #if QLJS_HAVE_KQUEUE
-    void on_pipe_write_event(const struct ::kevent&) { QLJS_UNREACHABLE(); }
+    [[noreturn]] void on_pipe_write_event(const struct ::kevent&) {
+      QLJS_UNREACHABLE();
+    }
 #elif QLJS_HAVE_POLL
-    void on_pipe_write_event(const ::pollfd&) { QLJS_UNREACHABLE(); }
+    [[noreturn]] void on_pipe_write_event(const ::pollfd&) {
+      QLJS_UNREACHABLE();
+    }
 #endif
 
     void filesystem_changed() {
