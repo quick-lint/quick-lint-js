@@ -335,18 +335,6 @@ export class ErrorDocumentation {
   }
 }
 
-export async function reportProblemsInDocumentsAsync(documents) {
-  let foundProblems = [];
-  for (let doc of documents) {
-    foundProblems.push(...(await doc.findProblemsAsync()));
-  }
-  if (foundProblems.length !== 0) {
-    throw new ProblemsError(
-      `found problems in error documents:\n${foundProblems.join("\n")}`
-    );
-  }
-}
-
 export async function findErrorDocumentationFilesAsync(rootPath) {
   let files = await fs.promises.readdir(rootPath);
   return files.filter((fileName) => fileName.endsWith(".md"));

@@ -3,9 +3,9 @@
 
 import {
   ErrorDocumentation,
+  ProblemsError,
   documentationDirectoryPath,
   loadErrorDocumentationFilesAsync,
-  reportProblemsInDocumentsAsync,
 } from "./src/error-documentation.mjs";
 
 async function mainAsync() {
@@ -23,6 +23,18 @@ async function mainAsync() {
     );
   }
   await reportProblemsInDocumentsAsync(documents);
+}
+
+async function reportProblemsInDocumentsAsync(documents) {
+  let foundProblems = [];
+  for (let doc of documents) {
+    foundProblems.push(...(await doc.findProblemsAsync()));
+  }
+  if (foundProblems.length !== 0) {
+    throw new ProblemsError(
+      `found problems in error documents:\n${foundProblems.join("\n")}`
+    );
+  }
 }
 
 mainAsync().catch((error) => {
