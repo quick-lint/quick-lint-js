@@ -15,6 +15,7 @@
 
       let errorCode = path.basename(currentURI);
       let errorDocument = await ErrorDocumentation.parseFileAsync(path.join(documentationDirectoryPath, `${errorCode}.md`));
+      await errorDocument.findDiagnosticsAsync();
       //%>
     </script>
     <%- await include("../common-head.ejs.html", { title: `${errorCode}

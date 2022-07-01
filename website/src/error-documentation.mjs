@@ -268,6 +268,8 @@ export class ErrorDocumentation {
     });
   }
 
+  // If findDiagnosticsAsync was previously called, then the HTML will include
+  // <mark> elements for diagnostics.
   toHTML() {
     this._markdownEnv.doc = this;
     return markdownParser.renderer.render(
