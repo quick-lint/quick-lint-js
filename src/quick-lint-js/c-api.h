@@ -36,6 +36,9 @@ const qljs_web_demo_diagnostic* qljs_web_demo_lint(qljs_web_demo_document*);
 const qljs_web_demo_diagnostic* qljs_web_demo_lint_as_config_file(
     qljs_web_demo_document*);
 
+// Returns a null-terminated array of null-terminated strings.
+const char* const* qljs_list_locales();
+
 #if defined(__cplusplus)
 }
 #endif

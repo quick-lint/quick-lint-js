@@ -30,7 +30,7 @@ async function makeQLJSProcessAsync() {
   let process = await factory.createProcessAsync();
   return process;
 }
-let qljsProcessPromise = makeQLJSProcessAsync();
+export let qljsProcessPromise = makeQLJSProcessAsync();
 
 markdownParser.renderer.rules = {
   ...markdownParser.renderer.rules,

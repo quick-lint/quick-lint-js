@@ -7,6 +7,7 @@ import {
   ProblemsError,
   documentationDirectoryPath,
   loadErrorDocumentationFilesAsync,
+  qljsProcessPromise,
 } from "./src/error-documentation.mjs";
 
 async function mainAsync() {
@@ -24,7 +25,8 @@ async function mainAsync() {
     );
   }
 
-  let locales = ["", "de", "en@loud", "en_US@snarky", "fr_FR", "sv_SE"];
+  let locales = (await qljsProcessPromise).listLocales();
+  console.log(locales); // @@@
   let maxLocaleLength = Math.max(...locales.map((l) => l.length));
 
   let cwd = process.cwd();

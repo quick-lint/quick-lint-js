@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/translation-table.h>
 
 namespace quick_lint_js {
 namespace {
@@ -87,6 +88,25 @@ TEST(test_c_api_web_demo, linting_uses_config) {
   EXPECT_STREQ(diagnostics[0].code, "");
 
   qljs_web_demo_destroy_document(p);
+}
+
+TEST(test_c_api, locale_list) {
+  std::vector<std::string> locale_strings;
+  const char* const* locales = qljs_list_locales();
+  for (const char* const* l = locales; *l; ++l) {
+    locale_strings.push_back(*l);
+  }
+  std::sort(locale_strings.begin(), locale_strings.end());
+
+  std::vector<std::string> expected_locale_strings;
+  for (const char* l = translation_data.locale_table; *l != '\0';
+       l += std::strlen(l) + 1) {
+    expected_locale_strings.push_back(l);
+  }
+  expected_locale_strings.push_back("");
+  std::sort(expected_locale_strings.begin(), expected_locale_strings.end());
+
+  EXPECT_EQ(locale_strings, expected_locale_strings);
 }
 }
 }

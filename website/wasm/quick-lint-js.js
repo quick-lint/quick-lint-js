@@ -202,6 +202,7 @@ class Process {
 
     this._malloc = wrap("malloc");
     this._free = wrap("free");
+    this._listLocales = wrap("qljs_list_locales");
     this._webDemoCreateDocument = wrap("qljs_web_demo_create_document");
     this._webDemoDestroyDocument = wrap("qljs_web_demo_destroy_document");
     this._webDemoLint = wrap("qljs_web_demo_lint");
@@ -229,6 +230,7 @@ class Process {
     // Make future calls crash and also reduce memory usage.
     this._malloc = tainted;
     this._free = tainted;
+    this._listLocales = tainted;
     this._webDemoCreateDocument = tainted;
     this._webDemoDestroyDocument = tainted;
     this._webDemoLint = tainted;
@@ -242,6 +244,17 @@ class Process {
 
   async createDocumentForWebDemoAsync() {
     return new DocumentForWebDemo(this);
+  }
+
+  listLocales() {
+    let localePointerList = new Uint32Array(this._heap, this._listLocales());
+    let locales = [];
+    for (let i = 0; localePointerList[i] != 0; ++i) {
+      locales.push(
+        decodeUTF8CString(new Uint8Array(this._heap, localePointerList[i]))
+      );
+    }
+    return locales;
   }
 }
 

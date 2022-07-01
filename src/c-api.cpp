@@ -111,6 +111,28 @@ const qljs_web_demo_diagnostic* qljs_web_demo_lint_as_config_file(
   return p->lint_as_config_file();
 }
 
+const char* const* qljs_list_locales() {
+  static const char* const* locale_list = [] {
+    std::size_t locale_count =
+        quick_lint_js::translation_table_locale_count + 1;
+    const char** locales = new const char*[locale_count + 1];
+
+    std::size_t i = 0;
+    const char* l;
+    for (l = quick_lint_js::translation_data.locale_table; *l != '\0';
+         l += std::strlen(l) + 1, ++i) {
+      locales[i] = l;
+    }
+    locales[i] = l;  // Default locale (empty string).
+    ++i;
+    QLJS_ASSERT(i == locale_count);
+    locales[i] = nullptr;  // Terminator.
+
+    return locales;
+  }();
+  return locale_list;
+}
+
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
 //
