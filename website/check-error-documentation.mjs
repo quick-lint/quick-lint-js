@@ -29,7 +29,7 @@ async function reportProblemsInDocumentsAsync(documents) {
   let foundProblems = [];
   for (let doc of documents) {
     await doc.findDiagnosticsAsync();
-    foundProblems.push(...(await doc.findProblemsAsync()));
+    foundProblems.push(...doc.findProblems());
   }
   if (foundProblems.length !== 0) {
     throw new ProblemsError(

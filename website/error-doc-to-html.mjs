@@ -9,7 +9,7 @@ async function mainAsync() {
 
   let doc = await ErrorDocumentation.parseFileAsync(docFilePath);
   await doc.findDiagnosticsAsync();
-  let problems = await doc.findProblemsAsync();
+  let problems = doc.findProblems();
   if (problems.length !== 0) {
     console.error(`${problems.length} problems found:`);
     for (let problem of problems) {

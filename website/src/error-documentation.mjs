@@ -280,7 +280,7 @@ export class ErrorDocumentation {
   }
 
   // Precondition: findDiagnosticsAsync was previously called.
-  async findProblemsAsync() {
+  findProblems() {
     let foundProblems = [];
     if (this.titleErrorCode !== this.filePathErrorCode) {
       foundProblems.push(
@@ -293,7 +293,7 @@ export class ErrorDocumentation {
       }
       if (this.diagnostics === null) {
         throw new Error(
-          "findDiagnosticsAsync should have been called before calling findProblemsAsync"
+          "findDiagnosticsAsync should have been called before calling findProblems"
         );
       }
       for (let i = 0; i < this.codeBlocks.length; ++i) {
