@@ -24,19 +24,42 @@ async function mainAsync() {
     );
   }
 
+  let locales = ["", "de", "en@loud", "en_US@snarky", "fr_FR", "sv_SE"];
+  let maxLocaleLength = Math.max(...locales.map((l) => l.length));
+
   let cwd = process.cwd();
   for (let doc of documents) {
-    await doc.findDiagnosticsAsync();
-    for (let i = 0; i < doc.diagnostics.length; ++i) {
-      console.log(`${path.relative(cwd, doc.filePath)} snippet ${i + 1}:`);
-      for (let diag of doc.diagnostics[i]) {
-        let begin = diag.begin.toString().padStart(3);
-        let end = diag.end.toString().padStart(3);
-        console.log(
-          `  ${begin}-${end}: ${diag.severity}(${diag.code}): ${diag.message}`
-        );
+    let diagnosticsByLocale = {};
+    for (let locale of locales) {
+      await doc.findDiagnosticsAsync(locale);
+      diagnosticsByLocale[locale] = doc.diagnostics;
+    }
+
+    for (
+      let snippetIndex = 0;
+      snippetIndex < diagnosticsByLocale[locales[0]].length;
+      ++snippetIndex
+    ) {
+      console.log(
+        `${path.relative(cwd, doc.filePath)} snippet ${snippetIndex + 1}:`
+      );
+      for (
+        let diagIndex = 0;
+        diagIndex < diagnosticsByLocale[locales[0]][snippetIndex].length;
+        ++diagIndex
+      ) {
+        for (let locale of locales) {
+          let diag = diagnosticsByLocale[locale][snippetIndex][diagIndex];
+          let begin = diag.begin.toString().padStart(3);
+          let end = diag.end.toString().padStart(3);
+          console.log(
+            `  [${locale.padEnd(maxLocaleLength)}] ${begin}-${end}: ${
+              diag.severity
+            }(${diag.code}): ${diag.message}`
+          );
+        }
       }
-      if (doc.diagnostics[i].length === 0) {
+      if (doc.diagnostics[snippetIndex].length === 0) {
         console.log("  (none)");
       }
     }

@@ -206,6 +206,7 @@ class Process {
     this._webDemoDestroyDocument = wrap("qljs_web_demo_destroy_document");
     this._webDemoLint = wrap("qljs_web_demo_lint");
     this._webDemoLintAsConfigFile = wrap("qljs_web_demo_lint_as_config_file");
+    this._webDemoSetLocale = wrap("qljs_web_demo_set_locale");
     this._webDemoSetText = wrap("qljs_web_demo_set_text");
     this._webDemoSetConfigText = wrap("qljs_web_demo_set_config_text");
   }
@@ -231,6 +232,7 @@ class Process {
     this._webDemoCreateDocument = tainted;
     this._webDemoDestroyDocument = tainted;
     this._webDemoLint = tainted;
+    this._webDemoSetLocale = tainted;
     this._webDemoSetText = tainted;
   }
 
@@ -247,6 +249,15 @@ class DocumentForWebDemo {
   constructor(process) {
     this._process = process;
     this._wasmDoc = this._process._webDemoCreateDocument();
+  }
+
+  setLocale(locale) {
+    let utf8Locale = encodeUTF8String(locale, this._process);
+    try {
+      this._process._webDemoSetLocale(this._wasmDoc, utf8Locale.pointer);
+    } finally {
+      utf8Locale.dispose();
+    }
   }
 
   setText(text) {
@@ -351,6 +362,7 @@ let DiagnosticSeverity = {
 };
 exports.DiagnosticSeverity = DiagnosticSeverity;
 
+// Writes a null-terminated string into the process's heap.
 function encodeUTF8String(string, process) {
   let maxUTF8BytesPerUTF16CodeUnit = Math.ceil(
     Math.max(
@@ -358,16 +370,14 @@ function encodeUTF8String(string, process) {
       5 / 2 // U+10000..: 5 UTF-8 bytes, 2 UTF-16 code units
     )
   );
-  let maxSize = string.length * maxUTF8BytesPerUTF16CodeUnit;
+  let maxSize = string.length * maxUTF8BytesPerUTF16CodeUnit + 1;
   let textUTF8Pointer = process._malloc(maxSize);
   try {
     let encoder = new TextEncoder();
     let textUTF8Size;
+    let u8Array = new Uint8Array(process._heap, textUTF8Pointer, maxSize);
     if (typeof encoder.encodeInto === "function") {
-      let encodeResult = encoder.encodeInto(
-        string,
-        new Uint8Array(process._heap, textUTF8Pointer, maxSize)
-      );
+      let encodeResult = encoder.encodeInto(string, u8Array);
       if (encodeResult.read !== string.length) {
         throw new Error(
           `Assertion failure: expected encodeResult.read (${encodeResult.read}) to equal string.length (${string.length})`
@@ -376,9 +386,10 @@ function encodeUTF8String(string, process) {
       textUTF8Size = encodeResult.written;
     } else {
       let encoded = encoder.encode(string);
-      new Uint8Array(process._heap, textUTF8Pointer, maxSize).set(encoded);
+      u8Array.set(encoded);
       textUTF8Size = encoded.length;
     }
+    u8Array[textUTF8Size] = 0; // Null terminator.
     return {
       pointer: textUTF8Pointer,
       byteSize: textUTF8Size,

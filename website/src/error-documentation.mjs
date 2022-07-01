@@ -150,14 +150,15 @@ export class ErrorDocumentation {
     this.titleErrorCode = titleErrorCode;
     this.titleErrorDescriptionHTML = titleErrorDescriptionHTML;
     this.diagnostics = null;
+    this._diagnosticsLocale = null;
   }
 
   get filePathErrorCode() {
     return path.basename(this.filePath, ".md");
   }
 
-  async findDiagnosticsAsync() {
-    if (this.diagnostics !== null) {
+  async findDiagnosticsAsync(locale = "") {
+    if (this.diagnostics !== null && this._diagnosticsLocale === locale) {
       // Already found.
       return;
     }
@@ -167,6 +168,7 @@ export class ErrorDocumentation {
     for (let i = 0; i < this.codeBlocks.length; ++i) {
       let doc = await process.createDocumentForWebDemoAsync();
       try {
+        doc.setLocale(locale);
         let { text, language } = this.codeBlocks[i];
         if (this.configForExamples !== null) {
           doc.setConfigText(this.configForExamples);
