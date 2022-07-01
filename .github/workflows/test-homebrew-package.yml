@@ -15,6 +15,7 @@ jobs:
       matrix:
         toolchain:
           - {runs_on: macos-10.15, name: "macOS 10.15"}
+          - {runs_on: macos-12, name: "macOS 12"}
     runs-on: ${{ matrix.toolchain.runs_on }}
     env:
       HOMEBREW_NO_ANALYTICS: 1
