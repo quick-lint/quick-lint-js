@@ -1,0 +1,5 @@
+# User-generated secret token used by github_api.go.
+/token
+
+# Output of load_github_actions.go.
+/analytics.sqlite3
