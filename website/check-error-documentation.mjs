@@ -18,8 +18,7 @@ async function mainAsync() {
   } else {
     documents = await Promise.all(
       files.map(
-        async (fileName) =>
-          await await ErrorDocumentation.parseFileAsync(fileName)
+        async (fileName) => await ErrorDocumentation.parseFileAsync(fileName)
       )
     );
   }
