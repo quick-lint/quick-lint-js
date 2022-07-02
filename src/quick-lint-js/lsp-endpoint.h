@@ -59,30 +59,25 @@ class lsp_endpoint
   using message_parser = lsp_message_parser<lsp_endpoint<Handler, Remote> >;
 
  public:
-  explicit lsp_endpoint() {}
-
-  template <class... HandlerArgs, class... RemoteArgs>
-  explicit lsp_endpoint(const std::tuple<HandlerArgs...>& handler_args,
+  template <class... RemoteArgs>
+  explicit lsp_endpoint(Handler* handler,
                         const std::tuple<RemoteArgs...>& remote_args)
-      : lsp_endpoint(handler_args, std::index_sequence_for<HandlerArgs...>(),
-                     remote_args, std::index_sequence_for<RemoteArgs...>()) {}
+      : lsp_endpoint(handler, remote_args,
+                     std::index_sequence_for<RemoteArgs...>()) {}
 
-  template <class... HandlerArgs, std::size_t... HandlerArgsI,
-            class... RemoteArgs, std::size_t... RemoteArgsI>
-  explicit lsp_endpoint(const std::tuple<HandlerArgs...>& handler_args,
-                        std::index_sequence<HandlerArgsI...>,
+  template <class... RemoteArgs, std::size_t... RemoteArgsI>
+  explicit lsp_endpoint(Handler* handler,
                         const std::tuple<RemoteArgs...>& remote_args,
                         std::index_sequence<RemoteArgsI...>)
-      : remote_(std::get<RemoteArgsI>(remote_args)...),
-        handler_(std::get<HandlerArgsI>(handler_args)...) {}
+      : remote_(std::get<RemoteArgsI>(remote_args)...), handler_(handler) {}
 
   using message_parser::append;
 
-  Handler& handler() noexcept { return this->handler_; }
+  Handler& handler() noexcept { return *this->handler_; }
   Remote& remote() noexcept { return this->remote_; }
 
   void flush_pending_notifications() {
-    this->handler_.take_pending_notification_jsons(
+    this->handler_->take_pending_notification_jsons(
         [](byte_buffer&& notification_json, void* endpoint) {
           lsp_endpoint* self = static_cast<lsp_endpoint*>(endpoint);
           if (notification_json.empty()) {
@@ -192,8 +187,8 @@ class lsp_endpoint
         return;
       }
 
-      this->handler_.handle_request(request, method, get_raw_json(id),
-                                    response_json);
+      this->handler_->handle_request(request, method, get_raw_json(id),
+                                     response_json);
       break;
     }
 
@@ -203,7 +198,7 @@ class lsp_endpoint
         this->write_invalid_request_error_response(response_json);
         break;
       }
-      this->handler_.handle_notification(request, method);
+      this->handler_->handle_notification(request, method);
       break;
     }
 
@@ -246,7 +241,7 @@ class lsp_endpoint
   }
 
   Remote remote_;
-  Handler handler_;
+  Handler* handler_;
   ::simdjson::ondemand::parser json_parser_;
 
   friend message_parser;
