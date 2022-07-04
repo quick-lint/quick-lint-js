@@ -81,6 +81,7 @@ quick_lint_js_add_library(
   location.cpp
   logger.cpp
   lsp-diag-reporter.cpp
+  lsp-endpoint.cpp
   lsp-location.cpp
   lsp-message-parser.cpp
   lsp-pipe-writer.cpp
@@ -326,6 +327,18 @@ target_compile_definitions(
   PRIVATE
   QLJS_BUILDING_QLJS_BOOST_JSON
 )
+
+# HACK(strager): Work around a crash with GCC 8:
+#
+# lto1: internal compiler error: in add_symbol_to_partition_1, at lto/lto-partition.c:155
+option(QUICK_LINT_JS_DISABLE_LTO_FOR_LSP_SERVER_TO_WORK_AROUND_GCC_LTO_CRASH "" OFF)
+if (QUICK_LINT_JS_DISABLE_LTO_FOR_LSP_SERVER_TO_WORK_AROUND_GCC_LTO_CRASH)
+  set_property(
+    SOURCE lsp-server.cpp
+    APPEND
+    PROPERTY COMPILE_OPTIONS -fno-lto
+  )
+endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar

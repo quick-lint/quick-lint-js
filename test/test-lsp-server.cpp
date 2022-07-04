@@ -53,8 +53,7 @@ string8 make_message(string8_view content) {
          string8(content);
 }
 
-using endpoint =
-    lsp_endpoint<linting_lsp_server_handler, spy_lsp_endpoint_remote>;
+using endpoint = lsp_endpoint<spy_lsp_endpoint_remote>;
 
 class mock_lsp_linter final : public lsp_linter {
  public:
@@ -1276,7 +1275,7 @@ TEST_F(test_linting_lsp_server,
 
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"after": true}})");
-  this->server->handler().filesystem_changed();
+  this->handler->filesystem_changed();
   this->server->flush_pending_notifications();
 
   EXPECT_TRUE(after_config_was_loaded);
@@ -1582,7 +1581,7 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
         })");
   };
   this->client->messages.clear();
-  this->server->handler().filesystem_changed();
+  this->handler->filesystem_changed();
   this->server->flush_pending_notifications();
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs", u8"testjs"))
@@ -1894,7 +1893,7 @@ TEST_F(test_linting_lsp_server,
 }
 
 TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first) {
-  this->server->handler().add_watch_io_errors(std::vector<watch_io_error>{
+  this->handler->add_watch_io_errors(std::vector<watch_io_error>{
       watch_io_error{
           .path = "/banana",
           .io_error = generic_file_io_error,
@@ -1918,7 +1917,7 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first) {
 }
 
 TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first_ever) {
-  this->server->handler().add_watch_io_errors(std::vector<watch_io_error>{
+  this->handler->add_watch_io_errors(std::vector<watch_io_error>{
       watch_io_error{
           .path = "/banana",
           .io_error = generic_file_io_error,
@@ -1926,7 +1925,7 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first_ever) {
   });
   this->server->flush_pending_notifications();
   // Separate call to add_watch_io_errors:
-  this->server->handler().add_watch_io_errors(std::vector<watch_io_error>{
+  this->handler->add_watch_io_errors(std::vector<watch_io_error>{
       watch_io_error{
           .path = "/orange",
           .io_error = generic_file_io_error,
@@ -2127,8 +2126,8 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
   fake_configuration_filesystem fs;
   lsp_javascript_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
-  lsp_endpoint<linting_lsp_server_handler, spy_lsp_endpoint_remote> server(
-      &handler, std::forward_as_tuple());
+  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler,
+                                               std::forward_as_tuple());
   server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",

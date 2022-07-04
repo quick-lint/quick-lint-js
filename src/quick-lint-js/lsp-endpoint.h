@@ -23,10 +23,8 @@
 #include <vector>
 
 #if QLJS_HAVE_CXX_CONCEPTS
-#define QLJS_LSP_ENDPOINT_HANDLER ::quick_lint_js::lsp_endpoint_handler
 #define QLJS_LSP_ENDPOINT_REMOTE ::quick_lint_js::lsp_endpoint_remote
 #else
-#define QLJS_LSP_ENDPOINT_HANDLER class
 #define QLJS_LSP_ENDPOINT_REMOTE class
 #endif
 
@@ -36,44 +34,47 @@ template <class Remote>
 concept lsp_endpoint_remote = requires(Remote r, byte_buffer message) {
   {r.send_message(std::move(message))};
 };
-
-template <class Handler>
-concept lsp_endpoint_handler = requires(
-    Handler h, ::simdjson::ondemand::object request, std::string_view method,
-    string8_view id_json, byte_buffer reply,
-    void (*write_notification_json)(byte_buffer&&, void*), void* endpoint) {
-  {h.handle_request(request, method, id_json, reply)};
-  {h.handle_notification(request, method)};
-  {h.take_pending_notification_jsons(write_notification_json, endpoint)};
-};
 #endif
+
+class lsp_endpoint_handler {
+ public:
+  virtual ~lsp_endpoint_handler();
+
+  virtual void handle_request(::simdjson::ondemand::object& request,
+                              std::string_view method, string8_view id_json,
+                              byte_buffer& reply) = 0;
+  virtual void handle_notification(::simdjson::ondemand::object& request,
+                                   std::string_view method) = 0;
+  virtual void take_pending_notification_jsons(
+      void (*write_notification_json)(byte_buffer&&, void*),
+      void* endpoint) = 0;
+};
 
 // An lsp_endpoint parses Language Server Protocol messages, dispatches them to
 // Handler, and sends responses to Remote.
 //
 // lsp_endpoint implements JSON-RPC.
-template <QLJS_LSP_ENDPOINT_HANDLER Handler, QLJS_LSP_ENDPOINT_REMOTE Remote>
-class lsp_endpoint
-    : private lsp_message_parser<lsp_endpoint<Handler, Remote> > {
+template <QLJS_LSP_ENDPOINT_REMOTE Remote>
+class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Remote> > {
  private:
-  using message_parser = lsp_message_parser<lsp_endpoint<Handler, Remote> >;
+  using message_parser = lsp_message_parser<lsp_endpoint<Remote> >;
 
  public:
   template <class... RemoteArgs>
-  explicit lsp_endpoint(Handler* handler,
+  explicit lsp_endpoint(lsp_endpoint_handler* handler,
                         const std::tuple<RemoteArgs...>& remote_args)
       : lsp_endpoint(handler, remote_args,
                      std::index_sequence_for<RemoteArgs...>()) {}
 
   template <class... RemoteArgs, std::size_t... RemoteArgsI>
-  explicit lsp_endpoint(Handler* handler,
+  explicit lsp_endpoint(lsp_endpoint_handler* handler,
                         const std::tuple<RemoteArgs...>& remote_args,
                         std::index_sequence<RemoteArgsI...>)
       : remote_(std::get<RemoteArgsI>(remote_args)...), handler_(handler) {}
 
   using message_parser::append;
 
-  Handler& handler() noexcept { return *this->handler_; }
+  lsp_endpoint_handler& handler() noexcept { return *this->handler_; }
   Remote& remote() noexcept { return this->remote_; }
 
   void flush_pending_notifications() {
@@ -241,7 +242,7 @@ class lsp_endpoint
   }
 
   Remote remote_;
-  Handler* handler_;
+  lsp_endpoint_handler* handler_;
   ::simdjson::ondemand::parser json_parser_;
 
   friend message_parser;

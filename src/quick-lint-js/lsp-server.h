@@ -15,6 +15,7 @@
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/json.h>
+#include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/lsp-message-parser.h>
 #include <quick-lint-js/narrow-cast.h>
@@ -65,7 +66,7 @@ class lsp_overlay_configuration_filesystem : public configuration_filesystem {
 
 // A linting_lsp_server_handler listens for JavaScript code changes and notifies
 // the client of diagnostics.
-class linting_lsp_server_handler {
+class linting_lsp_server_handler final : public lsp_endpoint_handler {
  public:
   explicit linting_lsp_server_handler(configuration_filesystem* fs,
                                       lsp_linter* linter)
@@ -73,14 +74,14 @@ class linting_lsp_server_handler {
 
   void handle_request(::simdjson::ondemand::object& request,
                       std::string_view method, string8_view id_json,
-                      byte_buffer& response_json);
+                      byte_buffer& response_json) override;
   void handle_notification(::simdjson::ondemand::object& request,
-                           std::string_view method);
+                           std::string_view method) override;
 
   void filesystem_changed();
 
   void take_pending_notification_jsons(void (*callback)(byte_buffer&&, void*),
-                                       void* endpoint) noexcept {
+                                       void* endpoint) override {
     for (byte_buffer& notification_json : this->pending_notification_jsons_) {
       callback(std::move(notification_json), endpoint);
     }

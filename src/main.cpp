@@ -385,13 +385,12 @@ void run_lsp_server() {
 #endif
 
     void filesystem_changed() {
-      this->endpoint_.handler().filesystem_changed();
+      this->handler_.filesystem_changed();
       this->endpoint_.flush_pending_notifications();
     }
 
     void report_pending_watch_io_errors() {
-      this->endpoint_.handler().add_watch_io_errors(
-          this->fs_.take_watch_errors());
+      this->handler_.add_watch_io_errors(this->fs_.take_watch_errors());
       this->endpoint_.flush_pending_notifications();
     }
 
@@ -409,7 +408,7 @@ void run_lsp_server() {
     platform_file_ref input_pipe_;
     lsp_javascript_linter linter_;
     linting_lsp_server_handler handler_;
-    lsp_endpoint<linting_lsp_server_handler, lsp_pipe_writer> endpoint_;
+    lsp_endpoint<lsp_pipe_writer> endpoint_;
   };
 
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING
