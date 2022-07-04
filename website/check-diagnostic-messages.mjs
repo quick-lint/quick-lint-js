@@ -26,7 +26,6 @@ async function mainAsync() {
   }
 
   let locales = (await qljsProcessPromise).listLocales();
-  console.log(locales); // @@@
   let maxLocaleLength = Math.max(...locales.map((l) => l.length));
 
   let cwd = process.cwd();
