@@ -80,10 +80,10 @@ class linting_lsp_server_handler {
 
   void filesystem_changed();
 
-  template <class Func>
-  void take_pending_notification_jsons(Func&& callback) noexcept {
+  void take_pending_notification_jsons(void (*callback)(byte_buffer&&, void*),
+                                       void* endpoint) noexcept {
     for (byte_buffer& notification_json : this->pending_notification_jsons_) {
-      callback(std::move(notification_json));
+      callback(std::move(notification_json), endpoint);
     }
     this->pending_notification_jsons_.clear();
   }

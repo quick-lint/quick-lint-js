@@ -38,13 +38,13 @@ concept lsp_endpoint_remote = requires(Remote r, byte_buffer message) {
 };
 
 template <class Handler>
-concept lsp_endpoint_handler =
-    requires(Handler h, ::simdjson::ondemand::object request,
-             std::string_view method, string8_view id_json, byte_buffer reply,
-             void (*write_notification_json)(byte_buffer&&)) {
+concept lsp_endpoint_handler = requires(
+    Handler h, ::simdjson::ondemand::object request, std::string_view method,
+    string8_view id_json, byte_buffer reply,
+    void (*write_notification_json)(byte_buffer&&, void*), void* endpoint) {
   {h.handle_request(request, method, id_json, reply)};
   {h.handle_notification(request, method)};
-  {h.take_pending_notification_jsons(write_notification_json)};
+  {h.take_pending_notification_jsons(write_notification_json, endpoint)};
 };
 #endif
 
@@ -83,14 +83,16 @@ class lsp_endpoint
 
   void flush_pending_notifications() {
     this->handler_.take_pending_notification_jsons(
-        [&](byte_buffer&& notification_json) {
+        [](byte_buffer&& notification_json, void* endpoint) {
+          lsp_endpoint* self = static_cast<lsp_endpoint*>(endpoint);
           if (notification_json.empty()) {
             // TODO(strager): Fix our tests so they don't make empty
             // byte_buffer-s.
             return;
           }
-          this->remote_.send_message(std::move(notification_json));
-        });
+          self->remote_.send_message(std::move(notification_json));
+        },
+        this);
   }
 
   void message_parsed(string8_view message) {
