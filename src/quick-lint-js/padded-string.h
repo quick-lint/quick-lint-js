@@ -18,7 +18,7 @@ class padded_string {
  public:
   using size_type = int;
 
-  static constexpr size_type padding_size = 32;
+  static constexpr size_type padding_size = 64;
 
   explicit padded_string();
   explicit padded_string(string8 &&);
