@@ -9,7 +9,6 @@ import "errors"
 import "flag"
 import "fmt"
 import "io"
-import "io/ioutil"
 import "log"
 import "os"
 import "path/filepath"
@@ -102,7 +101,7 @@ func Main() error {
 }
 
 func TransformTemplateFile(templatePath string, outputPath string, variables TemplateVariables) error {
-	templateSource, err := ioutil.ReadFile(templatePath)
+	templateSource, err := os.ReadFile(templatePath)
 	if err != nil {
 		return err
 	}

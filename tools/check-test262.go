@@ -11,7 +11,6 @@ import "bytes"
 import "flag"
 import "fmt"
 import "io"
-import "io/ioutil"
 import "log"
 import "os"
 import "os/exec"
@@ -252,7 +251,7 @@ type TestExpectations struct {
 }
 
 func ReadTestExpectations(testTodo TestTodo, path string) TestExpectations {
-	source, err := ioutil.ReadFile(path)
+	source, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}

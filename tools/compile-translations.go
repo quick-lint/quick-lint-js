@@ -80,7 +80,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -132,7 +131,7 @@ func writeFileHeader(writer *bufio.Writer) {
 }
 
 func ListPOFiles() ([]string, error) {
-	filesInPODirectory, err := ioutil.ReadDir(poDirectory)
+	filesInPODirectory, err := os.ReadDir(poDirectory)
 	if err != nil {
 		return nil, err
 	}

@@ -13,7 +13,6 @@ import "flag"
 import "fmt"
 import "io"
 import "io/fs"
-import "io/ioutil"
 import "log"
 import "os"
 import "os/exec"
@@ -702,7 +701,7 @@ func NoOpTransform() FileTransformResult {
 }
 
 func RelicTransform(exe io.Reader, signingType RelicSigningType) (FileTransformResult, error) {
-	tempDir, err := ioutil.TempDir("", "quick-lint-js-sign-release")
+	tempDir, err := os.MkdirTemp("", "quick-lint-js-sign-release")
 	if err != nil {
 		return FileTransformResult{}, err
 	}
@@ -924,7 +923,7 @@ func VerifySHA256SUMSFile(hashesPath string) error {
 }
 
 func MakeTempFileWithContent(content []byte) (string, error) {
-	tempFile, err := ioutil.TempFile("", "quick-lint-js-sign-release")
+	tempFile, err := os.CreateTemp("", "quick-lint-js-sign-release")
 	if err != nil {
 		return "", err
 	}

@@ -7,7 +7,6 @@ package main
 
 import "flag"
 import "fmt"
-import "io/ioutil"
 import "log"
 import "os"
 import "os/exec"
@@ -50,7 +49,7 @@ func Main() error {
 		return err
 	}
 
-	tempDir, err := ioutil.TempDir("", "quick-lint-js-build-unsigned-msix")
+	tempDir, err := os.MkdirTemp("", "quick-lint-js-build-unsigned-msix")
 	if err != nil {
 		return err
 	}
@@ -106,7 +105,7 @@ func MakeMapping(msixSourcePath string, mappingFilePath string) error {
 	}
 
 	mappingTemplatePath := filepath.Join(msixSourcePath, "mapping.template.txt")
-	mappingTemplateSource, err := ioutil.ReadFile(mappingTemplatePath)
+	mappingTemplateSource, err := os.ReadFile(mappingTemplatePath)
 	if err != nil {
 		return err
 	}
