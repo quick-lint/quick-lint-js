@@ -11,6 +11,7 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
+#include <quick-lint-js/file.h>
 #include <quick-lint-js/result.h>
 #include <quick-lint-js/thread.h>
 #include <string>

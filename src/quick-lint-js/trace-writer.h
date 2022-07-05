@@ -77,6 +77,13 @@ struct trace_event_vscode_document_sync {
   void* content;
 };
 
+struct trace_event_lsp_client_to_server_message {
+  static constexpr std::uint8_t id = 0x06;
+
+  std::uint64_t timestamp;
+  string8_view body;
+};
+
 class trace_writer {
  public:
   explicit trace_writer(async_byte_queue*);
@@ -103,6 +110,9 @@ class trace_writer {
   template <class StringWriter>
   void write_event_vscode_document_sync(const trace_event_vscode_document_sync&,
                                         StringWriter&&);
+
+  void write_event_lsp_client_to_server_message(
+      const trace_event_lsp_client_to_server_message&);
 
  private:
   template <class Func>

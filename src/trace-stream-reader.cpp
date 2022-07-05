@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <iterator>
 #include <quick-lint-js/binary-reader.h>
+#include <quick-lint-js/char8.h>
 #include <quick-lint-js/trace-stream-reader.h>
 #include <string_view>
 #include <vector>
@@ -23,6 +24,12 @@ void read_trace_stream(const void* data, std::size_t data_size,
     // TODO(strager): This assumes the native endian is little endian.
     return std::u16string_view(reinterpret_cast<const char16_t*>(bytes),
                                length);
+  };
+  auto read_utf8_string = [&r]() -> string8_view {
+    std::uint64_t length = r.u64_le();
+    const std::uint8_t* bytes = r.advance(length);
+    static_assert(sizeof(char8) == sizeof(std::uint8_t));
+    return string8_view(reinterpret_cast<const char8*>(bytes), length);
   };
 
   std::uint32_t magic = r.u32_le();
@@ -126,6 +133,14 @@ void read_trace_stream(const void* data, std::size_t data_size,
               .uri = read_utf16le_string(),
               .language_id = read_utf16le_string(),
               .content = read_utf16le_string(),
+          });
+      break;
+
+    case 0x06:
+      v.visit_lsp_client_to_server_message_event(
+          trace_stream_event_visitor::lsp_client_to_server_message_event{
+              .timestamp = timestamp,
+              .body = read_utf8_string(),
           });
       break;
 

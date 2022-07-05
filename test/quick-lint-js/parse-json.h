@@ -24,6 +24,8 @@ class byte_buffer;
 ::boost::json::value simdjson_to_boost_json(::simdjson::ondemand::value &);
 ::boost::json::value simdjson_to_boost_json(
     ::simdjson::simdjson_result<::simdjson::ondemand::value> &&);
+
+string8 json_to_string8(const ::boost::json::value &);
 }
 
 #endif

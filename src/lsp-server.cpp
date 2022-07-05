@@ -16,6 +16,7 @@
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/lint.h>
+#include <quick-lint-js/log.h>
 #include <quick-lint-js/lsp-diag-reporter.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/lsp-server.h>
@@ -24,6 +25,7 @@
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/simdjson.h>
 #include <quick-lint-js/string-view.h>
+#include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/uri.h>
 #include <quick-lint-js/version.h>
@@ -36,6 +38,9 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
+constexpr lsp_endpoint_handler::request_id_type
+    initial_configuration_request_id = 1;
+
 // Returns std::nullopt on failure (e.g. missing key or not a string).
 std::optional<string8_view> maybe_make_string_view(
     ::simdjson::ondemand::value& string);
@@ -94,6 +99,21 @@ void lsp_overlay_configuration_filesystem::close_document(
   QLJS_ASSERT(erased);
 }
 
+linting_lsp_server_handler::linting_lsp_server_handler(
+    configuration_filesystem* fs, lsp_linter* linter)
+    : linting_lsp_server_handler(fs, linter, nullptr) {}
+
+linting_lsp_server_handler::linting_lsp_server_handler(
+    configuration_filesystem* fs, lsp_linter* linter, trace_flusher* tracer)
+    : config_fs_(fs),
+      config_loader_(&this->config_fs_),
+      linter_(*linter),
+      tracer_(tracer) {
+  this->workspace_configuration_.add_item(
+      u8"quick-lint-js.tracing-directory"sv,
+      &this->server_config_.tracing_directory);
+}
+
 void linting_lsp_server_handler::handle_request(
     ::simdjson::ondemand::object& request, std::string_view method,
     string8_view id_json, byte_buffer& response_json) {
@@ -109,16 +129,25 @@ void linting_lsp_server_handler::handle_request(
 void linting_lsp_server_handler::handle_response(
     lsp_endpoint_handler::request_id_type request_id,
     ::simdjson::ondemand::value& result) {
-  static_cast<void>(request_id);
-  static_cast<void>(result);
+  if (request_id == initial_configuration_request_id) {
+    this->handle_workspace_configuration_response(result);
+  } else {
+    QLJS_DEBUG_LOG("received response for unknown request\n");
+    // TODO(strager): Report an error.
+  }
 }
 
 void linting_lsp_server_handler::handle_error_response(
     lsp_endpoint_handler::request_id_type request_id, std::int64_t code,
     std::string_view message) {
-  static_cast<void>(request_id);
   static_cast<void>(code);
   static_cast<void>(message);
+  if (request_id == initial_configuration_request_id) {
+    // Do nothing.
+  } else {
+    QLJS_DEBUG_LOG("received error response for unknown request\n");
+    // TODO(strager): Report an error.
+  }
 }
 
 void linting_lsp_server_handler::handle_notification(
@@ -130,7 +159,7 @@ void linting_lsp_server_handler::handle_notification(
   } else if (method == "textDocument/didClose") {
     this->handle_text_document_did_close_notification(request);
   } else if (method == "initialized") {
-    // Do nothing.
+    this->handle_initialized_notification();
   } else if (method == "exit") {
     std::exit(this->shutdown_requested_ ? 0 : 1);
   } else if (starts_with(method, "$/"sv)) {
@@ -198,6 +227,27 @@ void linting_lsp_server_handler::handle_shutdown_request(
   response_json.append_copy(u8R"--({"jsonrpc":"2.0","id":)--"sv);
   response_json.append_copy(id_json);
   response_json.append_copy(u8R"--(,"result":null})--"sv);
+}
+
+void linting_lsp_server_handler::handle_workspace_configuration_response(
+    ::simdjson::ondemand::value& result) {
+  bool ok = this->workspace_configuration_.process_response(result);
+  if (!ok) {
+    QLJS_DEBUG_LOG("failed to process configuration response\n");
+    // TODO(strager): Report an error.
+    return;
+  }
+
+  if (this->tracer_ && !this->server_config_.tracing_directory.empty()) {
+    this->tracer_->create_and_enable_in_child_directory(
+        this->server_config_.tracing_directory);
+  }
+}
+
+void linting_lsp_server_handler::handle_initialized_notification() {
+  byte_buffer& request_json = this->pending_notification_jsons_.emplace_back();
+  this->workspace_configuration_.build_request(initial_configuration_request_id,
+                                               request_json);
 }
 
 void linting_lsp_server_handler::handle_text_document_did_change_notification(

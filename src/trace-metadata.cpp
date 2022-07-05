@@ -24,6 +24,11 @@ typealias struct {
   u16 code_units[code_unit_count];
 } := utf16le_string;
 
+typealias struct {
+  u64 byte_count;
+  u8 bytes[byte_count];
+} := utf8_string;
+
 // 0 is a sentinal value meaning no document ID.
 typealias u64 := document_id;
 
@@ -131,6 +136,16 @@ event {
     utf16le_string uri;
     utf16le_string language_id;
     utf16le_string content;
+  };
+};
+
+// An LSP message received by quick-lint-js.
+event {
+  id = 6;
+  name = "lsp_client_to_server_message";
+  fields := struct {
+    // body is the JSON content only, excluding the header.
+    utf8_string body;
   };
 };
 

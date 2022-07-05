@@ -20,6 +20,21 @@ wstring read_utf16le_string(utf16le_string &s) {
     }
 }
 
+typedef struct {
+    uquad length;
+    if (length > 0) {
+        char data[length];
+    }
+} utf8_string <read=read_utf8_string>;
+
+wstring read_utf8_string(utf8_string &s) {
+    if (s.length == 0) {
+        return "(empty string)";
+    } else {
+        return s.data;
+    }
+}
+
 struct Header {
     uint magic; // 0xc1 0x1f 0xfc 0xc1
     byte uuid[16];
@@ -33,6 +48,7 @@ enum <ubyte> EventType {
     vscode_document_closed = 0x03,
     vscode_document_changed = 0x04,
     vscode_document_sync = 0x05,
+    lsp_client_to_server_message = 0x06,
 };
 
 struct InitEvent {
@@ -75,6 +91,10 @@ struct VSCodeDocumentSyncEvent {
     utf16le_string content;
 };
 
+struct LSPClientToServerMessageEvent {
+    utf8_string body;
+};
+
 typedef struct {
     uquad timestamp;
     EventType event_id;
@@ -92,6 +112,9 @@ typedef struct {
     }
     if (event_id == vscode_document_sync) {
         VSCodeDocumentSyncEvent event <open=true, name="VSCodeDocumentChangedSync">;
+    }
+    if (event_id == lsp_client_to_server_message) {
+        LSPClientToServerMessageEvent event <open=true, name="LSPClientToServerMessageEvent">;
     }
 } Event <read=ReadEvent>;
 

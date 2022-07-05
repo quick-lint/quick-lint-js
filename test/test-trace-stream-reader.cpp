@@ -12,6 +12,7 @@
 #include <quick-lint-js/trace-stream-reader.h>
 
 using ::testing::ElementsAre;
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -314,6 +315,31 @@ TEST(test_trace_stream_reader, vscode_document_sync_event) {
           ::testing::Field(
               &trace_stream_event_visitor::vscode_document_sync_event::content,
               u"hi"))));
+  read_trace_stream(stream.data(), stream.size(), v);
+}
+
+TEST(test_trace_stream_reader, lsp_client_to_server_message_event) {
+  auto stream = concat(example_packet_header,
+                       make_array_explicit<std::uint8_t>(
+                           // Timestamp
+                           0x78, 0x56, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+
+                           // Event ID
+                           0x06,
+
+                           // Body
+                           2, 0, 0, 0, 0, 0, 0, 0,  // Size
+                           '{', '}'));
+
+  nice_mock_trace_stream_event_visitor v;
+  EXPECT_CALL(
+      v, visit_lsp_client_to_server_message_event(::testing::AllOf(
+             ::testing::Field(&trace_stream_event_visitor::
+                                  lsp_client_to_server_message_event::timestamp,
+                              0x5678),
+             ::testing::Field(&trace_stream_event_visitor::
+                                  lsp_client_to_server_message_event::body,
+                              u8"{}"sv))));
   read_trace_stream(stream.data(), stream.size(), v);
 }
 }

@@ -55,6 +55,7 @@ quick-lint-js sends the following LSP requests and notifications:
 
 * `textDocument/publishDiagnostics`
 * `window/showMessage`
+* `workspace/configuration`
 
 quick-lint-js interprets documents with the following document language IDs as
 if they were JavaScript files:
@@ -67,6 +68,16 @@ if they were JavaScript files:
 quick-lint-js interprets documents with a base name of `quick-lint-js.config` as a JSON config file.
 The document's language ID is ignored.
 See *quick-lint-js.config*(5) for more details.
+
+== Configuration
+
+The quick-lint-js LSP server accepts the following configuration settings,
+communicated through `workspace/configuration`:
+
+`quick-lint-js.tracing-directory`::
+  Log raw LSP messages between the editor and quick-lint-js.
+  A timestamped subdirectory is created inside the tracing directory containing binary log files.
+  If null or an empty string, tracing is disabled.
 
 ifdef::backend-manpage[]
 

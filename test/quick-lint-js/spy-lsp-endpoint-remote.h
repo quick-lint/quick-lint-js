@@ -38,6 +38,10 @@ class spy_lsp_endpoint_remote final : public lsp_endpoint_remote {
     this->messages.push_back(parsed_message);
   }
 
+  std::vector<::boost::json::object> requests() const {
+    return this->collect_message_objects(is_request);
+  }
+
   std::vector<::boost::json::object> responses() const {
     return this->collect_message_objects(is_response);
   }
@@ -58,6 +62,10 @@ class spy_lsp_endpoint_remote final : public lsp_endpoint_remote {
       }
     }
     return result;
+  }
+
+  static bool is_request(const ::boost::json::object& message) {
+    return message.contains("id") && message.contains("method");
   }
 
   static bool is_response(const ::boost::json::object& message) {

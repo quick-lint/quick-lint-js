@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <quick-lint-js/char8.h>
 #include <string_view>
 #include <vector>
 
@@ -76,6 +77,11 @@ class trace_stream_event_visitor {
     std::u16string_view content;
   };
 
+  struct lsp_client_to_server_message_event {
+    std::uint64_t timestamp;
+    string8_view body;
+  };
+
   virtual ~trace_stream_event_visitor() = 0;
 
   virtual void visit_error_invalid_magic() = 0;
@@ -93,6 +99,8 @@ class trace_stream_event_visitor {
       const vscode_document_changed_event&) = 0;
   virtual void visit_vscode_document_sync_event(
       const vscode_document_sync_event&) = 0;
+  virtual void visit_lsp_client_to_server_message_event(
+      const lsp_client_to_server_message_event&) = 0;
 };
 }
 

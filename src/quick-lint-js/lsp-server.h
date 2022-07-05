@@ -18,14 +18,17 @@
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/lsp-message-parser.h>
+#include <quick-lint-js/lsp-workspace-configuration.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <simdjson.h>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
 namespace quick_lint_js {
 class byte_buffer;
+class trace_flusher;
 struct watch_io_error;
 
 class lsp_linter {
@@ -64,13 +67,23 @@ class lsp_overlay_configuration_filesystem : public configuration_filesystem {
   std::unordered_map<std::string, document<lsp_locator>*> overlaid_documents_;
 };
 
+struct linting_lsp_server_config {
+  std::string tracing_directory;
+};
+
 // A linting_lsp_server_handler listens for JavaScript code changes and notifies
 // the client of diagnostics.
 class linting_lsp_server_handler final : public lsp_endpoint_handler {
  public:
   explicit linting_lsp_server_handler(configuration_filesystem* fs,
-                                      lsp_linter* linter)
-      : config_fs_(fs), config_loader_(&this->config_fs_), linter_(*linter) {}
+                                      lsp_linter* linter);
+  explicit linting_lsp_server_handler(configuration_filesystem* fs,
+                                      lsp_linter* linter,
+                                      trace_flusher* tracer);
+
+  linting_lsp_server_config& server_config() noexcept {
+    return this->server_config_;
+  }
 
   void handle_request(::simdjson::ondemand::object& request,
                       std::string_view method, string8_view id_json,
@@ -85,6 +98,8 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
 
   void filesystem_changed();
 
+  // Sends notifications and requests to the client.
+  // TODO(strager): Rename.
   void flush_pending_notifications(lsp_endpoint_remote& remote) {
     for (byte_buffer& notification_json : this->pending_notification_jsons_) {
       if (notification_json.empty()) {
@@ -122,6 +137,10 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
                                string8_view id_json,
                                byte_buffer& response_json);
 
+  void handle_workspace_configuration_response(
+      ::simdjson::ondemand::value& result);
+
+  void handle_initialized_notification();
   void handle_text_document_did_change_notification(
       ::simdjson::ondemand::object& request);
   void handle_text_document_did_close_notification(
@@ -156,7 +175,12 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   configuration default_config_;
   lsp_linter& linter_;
   std::unordered_map<string8, document> documents_;
+  // Stores notifications and requests destined for the client.
+  // TODO(strager): Rename.
   std::vector<byte_buffer> pending_notification_jsons_;
+  linting_lsp_server_config server_config_;
+  lsp_workspace_configuration workspace_configuration_;
+  trace_flusher* tracer_;
   bool did_report_watch_io_error_ = false;
   bool shutdown_requested_ = false;
 };

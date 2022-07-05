@@ -2,6 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <boost/json/parse.hpp>
+#include <boost/json/serialize.hpp>
 #include <boost/json/value.hpp>
 #include <cstdint>
 #include <gtest/gtest.h>
@@ -55,6 +56,10 @@ namespace quick_lint_js {
     QLJS_UNIMPLEMENTED();
   }
   return simdjson_to_boost_json(unwrapped_value);
+}
+
+string8 json_to_string8(const ::boost::json::value &v) {
+  return to_string8(::boost::json::serialize(v));
 }
 }
 

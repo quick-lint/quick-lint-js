@@ -98,6 +98,9 @@ class document_content_dumper : public trace_stream_event_visitor {
   void visit_vscode_document_sync_event(
       const vscode_document_sync_event&) override {}
 
+  void visit_lsp_client_to_server_message_event(
+      const lsp_client_to_server_message_event&) override {}
+
   void print_document_content() {
     padded_string_view s = this->doc_.string();
     std::fwrite(s.data(), 1, narrow_cast<std::size_t>(s.size()), stdout);
@@ -196,6 +199,9 @@ class document_content_checker : public trace_stream_event_visitor {
     }
   }
 
+  void visit_lsp_client_to_server_message_event(
+      const lsp_client_to_server_message_event&) override {}
+
  private:
   std::unordered_map<std::uint64_t, document<lsp_locator>> documents_;
 };
@@ -271,6 +277,14 @@ class event_dumper : public trace_stream_event_visitor {
     std::printf("\n");
   }
 
+  void visit_lsp_client_to_server_message_event(
+      const lsp_client_to_server_message_event& event) override {
+    this->print_event_header(event);
+    std::printf("client->server LSP message: ");
+    this->print_utf8(event.body);
+    std::printf("\n");
+  }
+
  private:
   template <class Event>
   void print_event_header(const Event& event) {
@@ -285,8 +299,11 @@ class event_dumper : public trace_stream_event_visitor {
   }
 
   void print_utf16(std::u16string_view s) {
-    string8 utf_8 = utf_16_to_utf_8(s);
-    std::fwrite(utf_8.data(), 1, utf_8.size(), stdout);
+    this->print_utf8(utf_16_to_utf_8(s));
+  }
+
+  void print_utf8(string8_view s) {
+    std::fwrite(s.data(), 1, s.size(), stdout);
   }
 };
 

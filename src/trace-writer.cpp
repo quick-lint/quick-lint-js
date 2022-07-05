@@ -42,6 +42,16 @@ void trace_writer::write_event_init(const trace_event_init& event) {
   this->out_->append_copy(event.version.data(), event.version.size());
   this->out_->append_copy(u8'\0');
 }
+
+void trace_writer::write_event_lsp_client_to_server_message(
+    const trace_event_lsp_client_to_server_message& event) {
+  this->append_binary(8 + 1 + 8, [&](binary_writer& w) {
+    w.u64_le(event.timestamp);
+    w.u8(event.id);
+    w.u64_le(event.body.size());
+  });
+  this->out_->append_copy(event.body.data(), event.body.size());
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

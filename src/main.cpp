@@ -31,6 +31,7 @@
 #include <quick-lint-js/pipe-writer.h>
 #include <quick-lint-js/reported-diag-statistics.h>
 #include <quick-lint-js/text-diag-reporter.h>
+#include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
@@ -323,10 +324,14 @@ void run_lsp_server() {
 #error "Unsupported platform"
 #endif
           input_pipe_(input_pipe),
-          handler_(&this->fs_, &this->linter_),
+          handler_(&this->fs_, &this->linter_, &this->tracer_),
           writer_(output_pipe),
-          endpoint_(&this->handler_, &this->writer_) {
+          endpoint_(&this->handler_, &this->writer_, &this->tracer_) {
       this->report_pending_watch_io_errors();
+
+      this->tracer_.register_current_thread();
+      this->tracer_.flush_sync();
+      this->tracer_.start_flushing_thread();
     }
 
     platform_file_ref get_readable_pipe() const { return this->input_pipe_; }
@@ -337,6 +342,8 @@ void run_lsp_server() {
       // TODO(strager): Only call report_pending_watch_io_errors after
       // processing a full message.
       this->report_pending_watch_io_errors();
+
+      this->tracer_.flush_async();
     }
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
@@ -389,6 +396,8 @@ void run_lsp_server() {
     void filesystem_changed() {
       this->handler_.filesystem_changed();
       this->handler_.flush_pending_notifications(this->writer_);
+
+      this->tracer_.flush_async();
     }
 
     void report_pending_watch_io_errors() {
@@ -407,6 +416,7 @@ void run_lsp_server() {
 #error "Unsupported platform"
 #endif
 
+    trace_flusher tracer_;
     platform_file_ref input_pipe_;
     lsp_javascript_linter linter_;
     linting_lsp_server_handler handler_;

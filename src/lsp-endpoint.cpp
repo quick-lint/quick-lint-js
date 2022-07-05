@@ -14,6 +14,8 @@
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-message-parser.h>
 #include <quick-lint-js/simdjson.h>
+#include <quick-lint-js/trace-flusher.h>
+#include <quick-lint-js/trace-writer.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>
@@ -32,7 +34,23 @@ lsp_endpoint::lsp_endpoint(lsp_endpoint_handler* handler,
                            lsp_endpoint_remote* remote)
     : remote_(remote), handler_(handler) {}
 
+lsp_endpoint::lsp_endpoint(lsp_endpoint_handler* handler,
+                           lsp_endpoint_remote* remote, trace_flusher* tracer)
+    : remote_(remote), handler_(handler), tracer_(tracer) {}
+
 void lsp_endpoint::message_parsed(string8_view message) {
+  if (this->tracer_) {
+    trace_writer* tw = this->tracer_->trace_writer_for_current_thread();
+    if (tw) {
+      tw->write_event_lsp_client_to_server_message(
+          trace_event_lsp_client_to_server_message{
+              .timestamp = 0,  // TODO(strager)
+              .body = message,
+          });
+      tw->commit();
+    }
+  }
+
   using namespace std::literals::string_view_literals;
 
   // TODO(strager): Avoid copying the message.

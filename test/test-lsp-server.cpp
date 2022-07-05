@@ -5,6 +5,7 @@
 // No LSP on the web.
 #else
 
+#include <boost/json.hpp>
 #include <boost/json/value.hpp>
 #include <functional>
 #include <gmock/gmock.h>
@@ -159,6 +160,13 @@ TEST_F(test_linting_lsp_server, initialize) {
   EXPECT_EQ(look_up(response, "result", "serverInfo", "name"), "quick-lint-js");
   EXPECT_EQ(look_up(response, "result", "serverInfo", "version"),
             QUICK_LINT_JS_VERSION_STRING);
+
+  EXPECT_THAT(this->client->requests(), IsEmpty())
+      << "VS Code and other clients do not support server-to-client requests "
+         "before the initialized notification";
+  EXPECT_THAT(this->client->notifications(), IsEmpty())
+      << "VS Code and other clients do not support server-to-client "
+         "notifications before the initialized notification";
 }
 
 // For the "id" field of a request, JSON-RPC allows numbers, strings, and null.
@@ -213,6 +221,71 @@ TEST_F(test_linting_lsp_server, server_ignores_initialized_notification) {
       })"));
 
   EXPECT_THAT(this->client->messages, IsEmpty());
+}
+
+TEST_F(test_linting_lsp_server, loads_config_after_client_initialization) {
+  this->server->append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "initialized",
+        "params": {}
+      })"));
+  this->handler->flush_pending_notifications(*this->client);
+
+  std::vector< ::boost::json::object> requests = this->client->requests();
+  ASSERT_EQ(requests.size(), 1);
+  ::boost::json::object request = requests[0];
+  EXPECT_EQ(look_up(request, "method"), "workspace/configuration");
+
+  std::vector<std::string> requested_sections;
+  ::boost::json::array items = look_up(request, "params", "items").as_array();
+  for (const ::boost::json::value& item : items) {
+    std::string section(to_string_view(look_up(item, "section").get_string()));
+    requested_sections.push_back(std::move(section));
+  }
+  EXPECT_THAT(requested_sections,
+              ::testing::Contains("quick-lint-js.tracing-directory"));
+}
+
+TEST_F(test_linting_lsp_server, stores_config_values_after_config_response) {
+  // Trigger a config request.
+  this->server->append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "initialized",
+        "params": {}
+      })"));
+  this->handler->flush_pending_notifications(*this->client);
+
+  std::vector< ::boost::json::object> requests = this->client->requests();
+  ASSERT_EQ(requests.size(), 1);
+  ::boost::json::object config_request = requests[0];
+  ::boost::json::value config_request_id = look_up(config_request, "id");
+  EXPECT_EQ(look_up(config_request, "method"), "workspace/configuration");
+
+  ::boost::json::array config_response_params;
+  ::boost::json::array items =
+      look_up(config_request, "params", "items").as_array();
+  for (const ::boost::json::value& item : items) {
+    std::string section(to_string_view(look_up(item, "section").get_string()));
+    if (section == "quick-lint-js.tracing-directory") {
+      config_response_params.push_back("/test/tracing/dir");
+    } else {
+      config_response_params.push_back(nullptr);
+    }
+  }
+
+  this->server->append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "id": )" + json_to_string8(config_request_id) +
+                   u8R"(,
+        "result": )" +
+                   json_to_string8(config_response_params) + u8R"(
+      })"));
+
+  linting_lsp_server_config& config = this->handler->server_config();
+  EXPECT_EQ(config.tracing_directory, "/test/tracing/dir");
 }
 
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#shutdown

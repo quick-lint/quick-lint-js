@@ -32,6 +32,12 @@
           ],
           "default": "off",
           "description": "Log messages between VS Code and quick-lint-js."
+        },
+        "quick-lint-js-lsp.tracing-directory": {
+          "scope": "window",
+          "type": "string",
+          "default": "",
+          "description": "Log raw LSP between VS Code and quick-lint-js to a binary log file in this directory. Tracing is disabled if empty."
         }
       }
     },
