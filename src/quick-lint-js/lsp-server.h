@@ -67,7 +67,6 @@ class lsp_overlay_configuration_filesystem : public configuration_filesystem {
 // the client of diagnostics.
 class linting_lsp_server_handler {
  public:
-  template <class... LinterArgs>
   explicit linting_lsp_server_handler(configuration_filesystem* fs,
                                       lsp_linter* linter)
       : config_fs_(fs), config_loader_(&this->config_fs_), linter_(*linter) {}
