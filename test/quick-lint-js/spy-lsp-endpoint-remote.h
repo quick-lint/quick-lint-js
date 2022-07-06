@@ -8,13 +8,14 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/parse-json.h>
 #include <vector>
 
 namespace quick_lint_js {
-class spy_lsp_endpoint_remote {
+class spy_lsp_endpoint_remote final : public lsp_endpoint_remote {
  public:
-  void send_message(const byte_buffer& message) {
+  void send_message(byte_buffer&& message) override {
     string8 message_json;
     message_json.resize(message.size());
     message.copy_to(message_json.data());

@@ -17,24 +17,22 @@
 #include <quick-lint-js/lsp-message-parser.h>
 #include <quick-lint-js/simdjson.h>
 #include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/warning.h>
 #include <simdjson.h>
 #include <tuple>
 #include <utility>
 #include <vector>
 
-#if QLJS_HAVE_CXX_CONCEPTS
-#define QLJS_LSP_ENDPOINT_REMOTE ::quick_lint_js::lsp_endpoint_remote
-#else
-#define QLJS_LSP_ENDPOINT_REMOTE class
-#endif
+QLJS_WARNING_PUSH
+QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 namespace quick_lint_js {
-#if QLJS_HAVE_CXX_CONCEPTS
-template <class Remote>
-concept lsp_endpoint_remote = requires(Remote r, byte_buffer message) {
-  {r.send_message(std::move(message))};
+class lsp_endpoint_remote {
+ public:
+  virtual ~lsp_endpoint_remote();
+
+  virtual void send_message(byte_buffer&& message) = 0;
 };
-#endif
 
 class lsp_endpoint_handler {
  public:
@@ -54,19 +52,19 @@ class lsp_endpoint_handler {
 // Handler, and sends responses to Remote.
 //
 // lsp_endpoint implements JSON-RPC.
-template <QLJS_LSP_ENDPOINT_REMOTE Remote>
-class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Remote> > {
+class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
  private:
-  using message_parser = lsp_message_parser<lsp_endpoint<Remote> >;
+  using message_parser = lsp_message_parser<lsp_endpoint>;
 
  public:
-  explicit lsp_endpoint(lsp_endpoint_handler* handler, Remote* remote)
+  explicit lsp_endpoint(lsp_endpoint_handler* handler,
+                        lsp_endpoint_remote* remote)
       : remote_(remote), handler_(handler) {}
 
   using message_parser::append;
 
   lsp_endpoint_handler& handler() noexcept { return *this->handler_; }
-  Remote& remote() noexcept { return *this->remote_; }
+  lsp_endpoint_remote& remote() noexcept { return *this->remote_; }
 
   void flush_pending_notifications() {
     this->handler_->take_pending_notification_jsons(
@@ -232,13 +230,15 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Remote> > {
     // clang-format on
   }
 
-  Remote* remote_;
+  lsp_endpoint_remote* remote_;
   lsp_endpoint_handler* handler_;
   ::simdjson::ondemand::parser json_parser_;
 
   friend message_parser;
 };
 }
+
+QLJS_WARNING_POP
 
 #endif
 

@@ -340,17 +340,17 @@ void run_lsp_server() {
 
 #if QLJS_HAVE_KQUEUE || QLJS_HAVE_POLL
     std::optional<posix_fd_file_ref> get_pipe_write_fd() {
-      return this->endpoint_.remote().get_event_fd();
+      return this->writer_.get_event_fd();
     }
 #endif
 
 #if QLJS_HAVE_KQUEUE
     void on_pipe_write_event(const struct ::kevent &event) {
-      this->endpoint_.remote().on_poll_event(event);
+      this->writer_.on_poll_event(event);
     }
 #elif QLJS_HAVE_POLL
     void on_pipe_write_event(const ::pollfd &event) {
-      this->endpoint_.remote().on_poll_event(event);
+      this->writer_.on_poll_event(event);
     }
 #endif
 
@@ -410,7 +410,7 @@ void run_lsp_server() {
     lsp_javascript_linter linter_;
     linting_lsp_server_handler handler_;
     lsp_pipe_writer writer_;
-    lsp_endpoint<lsp_pipe_writer> endpoint_;
+    lsp_endpoint endpoint_;
   };
 
 #if QLJS_EVENT_LOOP_READ_PIPE_NON_BLOCKING

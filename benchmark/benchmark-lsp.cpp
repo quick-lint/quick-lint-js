@@ -20,9 +20,9 @@ namespace quick_lint_js {
 class byte_buffer;
 
 namespace {
-class null_lsp_writer {
+class null_lsp_writer final : public lsp_endpoint_remote {
  public:
-  void send_message(const byte_buffer& message) {
+  void send_message(byte_buffer&& message) override {
     ::benchmark::ClobberMemory();
     ::benchmark::DoNotOptimize(message);
   }
@@ -42,7 +42,7 @@ void benchmark_lsp_full_text_change_on_tiny_document(
   lsp_javascript_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
   null_lsp_writer remote;
-  lsp_endpoint<null_lsp_writer> lsp_server(&handler, &remote);
+  lsp_endpoint lsp_server(&handler, &remote);
   lsp_server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -119,7 +119,7 @@ void benchmark_lsp_full_text_change_on_large_document(
   lsp_javascript_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
   null_lsp_writer remote;
-  lsp_endpoint<null_lsp_writer> lsp_server(&handler, &remote);
+  lsp_endpoint lsp_server(&handler, &remote);
 
   lsp_server.append(
       make_message(u8R"({
@@ -255,7 +255,7 @@ void benchmark_lsp_tiny_change_on_large_document(::benchmark::State& state) {
   lsp_javascript_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
   null_lsp_writer remote;
-  lsp_endpoint<null_lsp_writer> lsp_server(&handler, &remote);
+  lsp_endpoint lsp_server(&handler, &remote);
   lsp_server.append(make_message(did_open_message_json.get_flushed_string8()));
 
   for (auto _ : state) {

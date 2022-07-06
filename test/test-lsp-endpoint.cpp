@@ -68,7 +68,7 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
+  lsp_endpoint server(&handler, &remote);
 
   server.append(
       make_message(u8R"({
@@ -112,7 +112,7 @@ TEST(test_lsp_endpoint, batched_request) {
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
   remote.allow_batch_messages = true;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
+  lsp_endpoint server(&handler, &remote);
 
   server.append(
       make_message(u8R"([
@@ -157,7 +157,7 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
+  lsp_endpoint server(&handler, &remote);
 
   server.append(
       make_message(u8R"({
@@ -204,7 +204,7 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
+  lsp_endpoint server(&handler, &remote);
 
   server.append(
       make_message(u8R"({
@@ -241,7 +241,7 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
   remote.allow_batch_messages = true;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
+  lsp_endpoint server(&handler, &remote);
 
   server.append(
       make_message(u8R"([{
@@ -290,7 +290,7 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
   remote.allow_batch_messages = true;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
+  lsp_endpoint server(&handler, &remote);
 
   server.append(
       make_message(u8R"([{
@@ -323,7 +323,7 @@ TEST(test_lsp_endpoint, malformed_json) {
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
+  lsp_endpoint server(&handler, &remote);
 
   server.append(make_message(u8"{ malformed json! }"));
 

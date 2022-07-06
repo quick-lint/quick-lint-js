@@ -53,7 +53,7 @@ string8 make_message(string8_view content) {
          string8(content);
 }
 
-using endpoint = lsp_endpoint<spy_lsp_endpoint_remote>;
+using endpoint = lsp_endpoint;
 
 class mock_lsp_linter final : public lsp_linter {
  public:
@@ -105,7 +105,7 @@ class test_linting_lsp_server : public ::testing::Test {
     this->remote = std::make_unique<spy_lsp_endpoint_remote>();
     this->server =
         std::make_unique<endpoint>(this->handler.get(), this->remote.get());
-    this->client = &server->remote();
+    this->client = this->remote.get();
   }
 
   std::function<void(configuration&, padded_string_view code,
@@ -2128,7 +2128,7 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
   lsp_javascript_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
   spy_lsp_endpoint_remote remote;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
+  lsp_endpoint server(&handler, &remote);
   server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",
@@ -2144,8 +2144,8 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
       })"));
 
   {
-    ASSERT_EQ(server.remote().messages.size(), 1);
-    ::boost::json::object response = server.remote().messages[0].as_object();
+    ASSERT_EQ(remote.messages.size(), 1);
+    ::boost::json::object response = remote.messages[0].as_object();
     EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
     // LSP PublishDiagnosticsParams:
     ::boost::json::array diagnostics =
@@ -2153,7 +2153,7 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
     EXPECT_EQ(diagnostics.size(), 1) << "'x' should be undeclared";
   }
 
-  server.remote().messages.clear();
+  remote.messages.clear();
 
   // Change "\u{79}" ("y") to "\u{78}" ("x").
   server.append(
@@ -2178,8 +2178,8 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
       })"));
 
   {
-    ASSERT_EQ(server.remote().messages.size(), 1);
-    ::boost::json::object response = server.remote().messages[0].as_object();
+    ASSERT_EQ(remote.messages.size(), 1);
+    ::boost::json::object response = remote.messages[0].as_object();
     EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
     // LSP PublishDiagnosticsParams:
     ::boost::json::array diagnostics =

@@ -11,6 +11,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/pipe-writer.h>
 
 namespace quick_lint_js {
@@ -19,14 +20,12 @@ class byte_buffer;
 // An lsp_pipe_writer sends server->client Language Server Protocol messages via
 // a pipe or socket.
 //
-// lsp_pipe_writer satisfies lsp_endpoint_remote.
-//
 // lsp_pipe_writer is not thread-safe.
-class lsp_pipe_writer : private pipe_writer {
+class lsp_pipe_writer : public lsp_endpoint_remote, private pipe_writer {
  public:
   explicit lsp_pipe_writer(platform_file_ref pipe);
 
-  void send_message(byte_buffer &&);
+  void send_message(byte_buffer &&) override;
 
   using pipe_writer::flush;
 #if !QLJS_PIPE_WRITER_SEPARATE_THREAD && QLJS_HAVE_POLL

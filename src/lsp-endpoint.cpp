@@ -8,6 +8,8 @@
 #include <quick-lint-js/lsp-endpoint.h>
 
 namespace quick_lint_js {
+lsp_endpoint_remote::~lsp_endpoint_remote() = default;
+
 lsp_endpoint_handler::~lsp_endpoint_handler() = default;
 }
 
