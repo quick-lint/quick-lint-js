@@ -16,6 +16,7 @@ Semantic Versioning.
 
 ### Fixed
 
+* quick-lint-js no longer fails to build with simdjson version 2.2.0.
 * Declaring a TypeScript interface with the same name as a generic parameter no
   longer crashes quick-lint-js.
 
