@@ -193,16 +193,9 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
       this->pending_notifications.push_back(reply);
     }
 
-    void take_pending_notification_jsons(void (*callback)(byte_buffer&&,
-                                                          lsp_endpoint_remote*),
-                                         lsp_endpoint_remote* remote) override {
-      for (::boost::json::value& reply : this->pending_notifications) {
-        byte_buffer notification_json;
-        notification_json.append_copy(json_to_string(reply));
-        callback(std::move(notification_json), remote);
-      }
-      this->pending_notifications.clear();
-    }
+    void take_pending_notification_jsons(void (*)(byte_buffer&&,
+                                                  lsp_endpoint_remote*),
+                                         lsp_endpoint_remote*) override {}
 
     std::vector< ::boost::json::value> pending_notifications;
   };
@@ -216,11 +209,11 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
         "method": "testmethod",
         "params": {}
       })"));
-  handler.flush_pending_notifications(remote);
 
-  ASSERT_EQ(remote.messages.size(), 1);
-  EXPECT_EQ(look_up(remote.messages[0], "method"), "testreply");
-  EXPECT_EQ(look_up(remote.messages[0], "params"), "testparams");
+  EXPECT_THAT(remote.messages, IsEmpty());
+  ASSERT_EQ(handler.pending_notifications.size(), 1);
+  EXPECT_EQ(look_up(handler.pending_notifications[0], "method"), "testreply");
+  EXPECT_EQ(look_up(handler.pending_notifications[0], "params"), "testparams");
 }
 
 TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
@@ -281,16 +274,9 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
       this->pending_notifications.push_back(reply);
     }
 
-    void take_pending_notification_jsons(void (*callback)(byte_buffer&&,
-                                                          lsp_endpoint_remote*),
-                                         lsp_endpoint_remote* remote) override {
-      for (::boost::json::value& reply : this->pending_notifications) {
-        byte_buffer notification_json;
-        notification_json.append_copy(json_to_string(reply));
-        callback(std::move(notification_json), remote);
-      }
-      this->pending_notifications.clear();
-    }
+    void take_pending_notification_jsons(void (*)(byte_buffer&&,
+                                                  lsp_endpoint_remote*),
+                                         lsp_endpoint_remote*) override {}
 
     std::vector< ::boost::json::value> pending_notifications;
   };
@@ -305,12 +291,13 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
         "method": "testmethod",
         "params": {}
       }])"));
-  handler.flush_pending_notifications(remote);
 
-  ASSERT_EQ(remote.messages.size(), 2);
+  ASSERT_EQ(remote.messages.size(), 1);
   EXPECT_THAT(remote.messages[0].as_array(), IsEmpty());
-  EXPECT_EQ(look_up(remote.messages[1], "method"), "testreply");
-  EXPECT_EQ(look_up(remote.messages[1], "params"), "testparams");
+
+  ASSERT_EQ(handler.pending_notifications.size(), 1);
+  EXPECT_EQ(look_up(handler.pending_notifications[0], "method"), "testreply");
+  EXPECT_EQ(look_up(handler.pending_notifications[0], "params"), "testparams");
 }
 
 // https://www.jsonrpc.org/specification#error_object
