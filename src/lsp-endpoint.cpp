@@ -34,15 +34,15 @@ lsp_endpoint::lsp_endpoint(lsp_endpoint_handler* handler,
 
 void lsp_endpoint::flush_pending_notifications() {
   this->handler_->take_pending_notification_jsons(
-      [](byte_buffer&& notification_json, lsp_endpoint* endpoint) {
+      [](byte_buffer&& notification_json, lsp_endpoint_remote* remote) {
         if (notification_json.empty()) {
           // TODO(strager): Fix our tests so they don't make empty
           // byte_buffer-s.
           return;
         }
-        endpoint->remote_->send_message(std::move(notification_json));
+        remote->send_message(std::move(notification_json));
       },
-      this);
+      this->remote_);
 }
 
 void lsp_endpoint::message_parsed(string8_view message) {
