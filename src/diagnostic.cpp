@@ -58,7 +58,6 @@ std::array<char, 5> diag_code_to_string(std::uint16_t diag_code) noexcept {
 }
 
 // Convert a QLJS_DIAG_TYPE user into a diagnostic_info.
-template <class Diag>
 class diagnostic_info_builder {
  public:
   QLJS_WARNING_PUSH
@@ -154,8 +153,7 @@ struct info_for_diagnostic;
     using diag_class = name;                                                 \
                                                                              \
     static DIAGNOSTIC_CONSTEXPR_IF_POSSIBLE diagnostic_info get() noexcept { \
-      return diagnostic_info_builder<name>(code, severity)                   \
-          format_call.build();                                               \
+      return diagnostic_info_builder(code, severity) format_call.build();    \
     }                                                                        \
   };
 QLJS_X_DIAG_TYPES
