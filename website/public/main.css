@@ -166,7 +166,7 @@ header {
   --tag-line-height: calc(0.5rem + 2rem * 1.2); /* Assumes two lines. */
   --title-height: calc(2rem * 1.2); /* Assumes no word-wrapping. */
   --mascot-height: calc(var(--title-height) + var(--tag-line-height));
-  --mascot-width: var(--mascot-height) / 874.176 * 1126.752;
+  --mascot-width: var(--mascot-height);
   display: grid;
   grid-template-areas:
     "mascot title main-nav"
