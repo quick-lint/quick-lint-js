@@ -53,8 +53,6 @@ string8 make_message(string8_view content) {
          string8(content);
 }
 
-using endpoint = lsp_endpoint;
-
 class mock_lsp_linter final : public lsp_linter {
  public:
   using lint_and_get_diagnostics_notification_type =
@@ -104,7 +102,7 @@ class test_linting_lsp_server : public ::testing::Test {
         std::make_unique<linting_lsp_server_handler>(&this->fs, &this->linter);
     this->remote = std::make_unique<spy_lsp_endpoint_remote>();
     this->server =
-        std::make_unique<endpoint>(this->handler.get(), this->remote.get());
+        std::make_unique<lsp_endpoint>(this->handler.get(), this->remote.get());
     this->client = this->remote.get();
   }
 
@@ -119,7 +117,7 @@ class test_linting_lsp_server : public ::testing::Test {
   mock_lsp_linter linter;
   std::unique_ptr<linting_lsp_server_handler> handler;
   std::unique_ptr<spy_lsp_endpoint_remote> remote;
-  std::unique_ptr<endpoint> server;
+  std::unique_ptr<lsp_endpoint> server;
   spy_lsp_endpoint_remote* client;
 
   std::string config_file_load_error_message(const char* js_path,
