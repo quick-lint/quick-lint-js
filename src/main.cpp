@@ -333,7 +333,7 @@ void run_lsp_server() {
 
     void append(string8_view data) {
       this->endpoint_.append(data);
-      this->endpoint_.flush_pending_notifications();
+      this->handler_.flush_pending_notifications(this->writer_);
       // TODO(strager): Only call report_pending_watch_io_errors after
       // processing a full message.
       this->report_pending_watch_io_errors();
@@ -388,12 +388,12 @@ void run_lsp_server() {
 
     void filesystem_changed() {
       this->handler_.filesystem_changed();
-      this->endpoint_.flush_pending_notifications();
+      this->handler_.flush_pending_notifications(this->writer_);
     }
 
     void report_pending_watch_io_errors() {
       this->handler_.add_watch_io_errors(this->fs_.take_watch_errors());
-      this->endpoint_.flush_pending_notifications();
+      this->handler_.flush_pending_notifications(this->writer_);
     }
 
    private:

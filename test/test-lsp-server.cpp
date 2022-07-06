@@ -327,7 +327,7 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
             }
           }
         })"));
-    this->server->flush_pending_notifications();
+    this->handler->flush_pending_notifications(*this->client);
 
     ASSERT_EQ(this->client->messages.size(), 1);
     ::boost::json::object response = this->client->messages[0].as_object();
@@ -931,7 +931,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
         })"));
   }
 
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
   this->lint_calls.clear();
   this->client->messages.clear();
   // Change 'before' to 'after'.
@@ -956,7 +956,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
           ]
         }
       })"));
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls,
               ::testing::UnorderedElementsAre(u8"/* a.js */", u8"/* b.js */",
@@ -1053,7 +1053,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
         })"));
   }
 
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
   this->lint_calls.clear();
   this->client->messages.clear();
   // Change 'a' to 'A' in dir-a/quick-lint-js.config (but leave
@@ -1080,7 +1080,7 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
           ]
         }
       })"));
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"/* dir-a/test.js */"));
 
@@ -1278,7 +1278,7 @@ TEST_F(test_linting_lsp_server,
   this->fs.create_file(this->fs.rooted("quick-lint-js.config"),
                        u8R"({"globals": {"after": true}})");
   this->handler->filesystem_changed();
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_TRUE(after_config_was_loaded);
 
@@ -1455,7 +1455,7 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
           }
         }
       })"));
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs"))
       << "should have linted despite config file being unloadable";
@@ -1515,7 +1515,7 @@ TEST_F(test_linting_lsp_server,
           }
         }
       })"));
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs"))
       << "should have linted despite config file being unloadable";
@@ -1586,7 +1586,7 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
   };
   this->client->messages.clear();
   this->handler->filesystem_changed();
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
 
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs", u8"testjs"))
       << "should have linted twice: once on open, and once after config file "
@@ -1621,7 +1621,7 @@ TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
           }
         }
       })"));
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
 
   ASSERT_EQ(this->client->messages.size(), 1);
   ::boost::json::object response = this->client->messages[0].as_object();
@@ -1662,7 +1662,7 @@ TEST_F(test_linting_lsp_server,
         }
       })"));
 
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
   this->client->messages.clear();
   this->server->append(
       make_message(u8R"({
@@ -1681,7 +1681,7 @@ TEST_F(test_linting_lsp_server,
           ]
         }
       })"));
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
 
   ASSERT_EQ(this->client->messages.size(), 1);
   ::boost::json::object response = this->client->messages[0].as_object();
@@ -1910,7 +1910,7 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first) {
           .io_error = generic_file_io_error,
       },
   });
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
 
   ASSERT_EQ(this->client->messages.size(), 1);
   ::boost::json::value show_message_message = this->client->messages[0];
@@ -1930,7 +1930,7 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first_ever) {
           .io_error = generic_file_io_error,
       },
   });
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
   // Separate call to add_watch_io_errors:
   this->handler->add_watch_io_errors(std::vector<watch_io_error>{
       watch_io_error{
@@ -1938,7 +1938,7 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first_ever) {
           .io_error = generic_file_io_error,
       },
   });
-  this->server->flush_pending_notifications();
+  this->handler->flush_pending_notifications(*this->client);
 
   ASSERT_EQ(this->client->messages.size(), 1);
   ::boost::json::value show_message_message = this->client->messages[0];
@@ -2148,7 +2148,7 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
           }
         }
       })"));
-  server.flush_pending_notifications();
+  handler.flush_pending_notifications(remote);
 
   {
     ASSERT_EQ(remote.messages.size(), 1);
@@ -2160,7 +2160,7 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
     EXPECT_EQ(diagnostics.size(), 1) << "'x' should be undeclared";
   }
 
-  server.flush_pending_notifications();
+  handler.flush_pending_notifications(remote);
   remote.messages.clear();
 
   // Change "\u{79}" ("y") to "\u{78}" ("x").
@@ -2184,7 +2184,7 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
           ]
         }
       })"));
-  server.flush_pending_notifications();
+  handler.flush_pending_notifications(remote);
 
   {
     ASSERT_EQ(remote.messages.size(), 1);
