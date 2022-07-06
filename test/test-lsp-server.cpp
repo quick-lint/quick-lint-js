@@ -102,9 +102,9 @@ class test_linting_lsp_server : public ::testing::Test {
         });
     this->handler =
         std::make_unique<linting_lsp_server_handler>(&this->fs, &this->linter);
-    this->server = std::make_unique<endpoint>(
-        /*handler=*/handler.get(),
-        /*remote_args=*/std::forward_as_tuple());
+    this->remote = std::make_unique<spy_lsp_endpoint_remote>();
+    this->server =
+        std::make_unique<endpoint>(this->handler.get(), this->remote.get());
     this->client = &server->remote();
   }
 
@@ -118,6 +118,7 @@ class test_linting_lsp_server : public ::testing::Test {
 
   mock_lsp_linter linter;
   std::unique_ptr<linting_lsp_server_handler> handler;
+  std::unique_ptr<spy_lsp_endpoint_remote> remote;
   std::unique_ptr<endpoint> server;
   spy_lsp_endpoint_remote* client;
 
@@ -2126,8 +2127,8 @@ TEST(test_lsp_javascript_linter, linting_does_not_desync) {
   fake_configuration_filesystem fs;
   lsp_javascript_linter linter;
   linting_lsp_server_handler handler(&fs, &linter);
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler,
-                                               std::forward_as_tuple());
+  spy_lsp_endpoint_remote remote;
+  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
   server.append(
       make_message(u8R"({
         "jsonrpc": "2.0",

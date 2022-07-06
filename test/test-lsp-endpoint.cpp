@@ -67,9 +67,8 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
                                          void*) override {}
   };
   mock_lsp_server_handler handler;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler,
-                                               std::forward_as_tuple());
-  spy_lsp_endpoint_remote& remote = server.remote();
+  spy_lsp_endpoint_remote remote;
+  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
 
   server.append(
       make_message(u8R"({
@@ -111,10 +110,9 @@ TEST(test_lsp_endpoint, batched_request) {
                                          void*) override {}
   };
   mock_lsp_server_handler handler;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler,
-                                               std::forward_as_tuple());
-  spy_lsp_endpoint_remote& remote = server.remote();
+  spy_lsp_endpoint_remote remote;
   remote.allow_batch_messages = true;
+  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
 
   server.append(
       make_message(u8R"([
@@ -158,9 +156,8 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
                                          void*) override {}
   };
   mock_lsp_server_handler handler;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler,
-                                               std::forward_as_tuple());
-  spy_lsp_endpoint_remote& remote = server.remote();
+  spy_lsp_endpoint_remote remote;
+  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
 
   server.append(
       make_message(u8R"({
@@ -206,9 +203,8 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
     std::vector< ::boost::json::value> pending_notifications;
   };
   mock_lsp_server_handler handler;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler,
-                                               std::forward_as_tuple());
-  spy_lsp_endpoint_remote& remote = server.remote();
+  spy_lsp_endpoint_remote remote;
+  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
 
   server.append(
       make_message(u8R"({
@@ -243,10 +239,9 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
                                          void*) override {}
   };
   mock_lsp_server_handler handler;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler,
-                                               std::forward_as_tuple());
-  spy_lsp_endpoint_remote& remote = server.remote();
+  spy_lsp_endpoint_remote remote;
   remote.allow_batch_messages = true;
+  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
 
   server.append(
       make_message(u8R"([{
@@ -293,10 +288,9 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
     std::vector< ::boost::json::value> pending_notifications;
   };
   mock_lsp_server_handler handler;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler,
-                                               std::forward_as_tuple());
-  spy_lsp_endpoint_remote& remote = server.remote();
+  spy_lsp_endpoint_remote remote;
   remote.allow_batch_messages = true;
+  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
 
   server.append(
       make_message(u8R"([{
@@ -328,9 +322,8 @@ TEST(test_lsp_endpoint, malformed_json) {
                                          void*) override {}
   };
   mock_lsp_server_handler handler;
-  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler,
-                                               std::forward_as_tuple());
-  spy_lsp_endpoint_remote& remote = server.remote();
+  spy_lsp_endpoint_remote remote;
+  lsp_endpoint<spy_lsp_endpoint_remote> server(&handler, &remote);
 
   server.append(make_message(u8"{ malformed json! }"));
 

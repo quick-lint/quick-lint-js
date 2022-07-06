@@ -60,22 +60,13 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Remote> > {
   using message_parser = lsp_message_parser<lsp_endpoint<Remote> >;
 
  public:
-  template <class... RemoteArgs>
-  explicit lsp_endpoint(lsp_endpoint_handler* handler,
-                        const std::tuple<RemoteArgs...>& remote_args)
-      : lsp_endpoint(handler, remote_args,
-                     std::index_sequence_for<RemoteArgs...>()) {}
-
-  template <class... RemoteArgs, std::size_t... RemoteArgsI>
-  explicit lsp_endpoint(lsp_endpoint_handler* handler,
-                        const std::tuple<RemoteArgs...>& remote_args,
-                        std::index_sequence<RemoteArgsI...>)
-      : remote_(std::get<RemoteArgsI>(remote_args)...), handler_(handler) {}
+  explicit lsp_endpoint(lsp_endpoint_handler* handler, Remote* remote)
+      : remote_(remote), handler_(handler) {}
 
   using message_parser::append;
 
   lsp_endpoint_handler& handler() noexcept { return *this->handler_; }
-  Remote& remote() noexcept { return this->remote_; }
+  Remote& remote() noexcept { return *this->remote_; }
 
   void flush_pending_notifications() {
     this->handler_->take_pending_notification_jsons(
@@ -86,7 +77,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Remote> > {
             // byte_buffer-s.
             return;
           }
-          self->remote_.send_message(std::move(notification_json));
+          self->remote_->send_message(std::move(notification_json));
         },
         this);
   }
@@ -104,7 +95,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Remote> > {
     if (parse_error != ::simdjson::error_code::SUCCESS) {
       byte_buffer error_json;
       this->write_json_parse_error_response(error_json);
-      this->remote_.send_message(std::move(error_json));
+      this->remote_->send_message(std::move(error_json));
       return;
     }
 
@@ -149,7 +140,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Remote> > {
     }
 
     if (!response_json.empty()) {
-      this->remote_.send_message(std::move(response_json));
+      this->remote_->send_message(std::move(response_json));
     }
     this->flush_pending_notifications();
   }
@@ -241,7 +232,7 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint<Remote> > {
     // clang-format on
   }
 
-  Remote remote_;
+  Remote* remote_;
   lsp_endpoint_handler* handler_;
   ::simdjson::ondemand::parser json_parser_;
 

@@ -324,7 +324,8 @@ void run_lsp_server() {
 #endif
           input_pipe_(input_pipe),
           handler_(&this->fs_, &this->linter_),
-          endpoint_(&this->handler_, std::forward_as_tuple(output_pipe)) {
+          writer_(output_pipe),
+          endpoint_(&this->handler_, &this->writer_) {
       this->report_pending_watch_io_errors();
     }
 
@@ -408,6 +409,7 @@ void run_lsp_server() {
     platform_file_ref input_pipe_;
     lsp_javascript_linter linter_;
     linting_lsp_server_handler handler_;
+    lsp_pipe_writer writer_;
     lsp_endpoint<lsp_pipe_writer> endpoint_;
   };
 
