@@ -23,9 +23,6 @@
 #include <utility>
 #include <vector>
 
-QLJS_WARNING_PUSH
-QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-
 namespace quick_lint_js {
 class lsp_endpoint_remote {
  public:
@@ -58,174 +55,22 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
 
  public:
   explicit lsp_endpoint(lsp_endpoint_handler* handler,
-                        lsp_endpoint_remote* remote)
-      : remote_(remote), handler_(handler) {}
+                        lsp_endpoint_remote* remote);
 
   using message_parser::append;
 
-  void flush_pending_notifications() {
-    this->handler_->take_pending_notification_jsons(
-        [](byte_buffer&& notification_json, void* endpoint) {
-          lsp_endpoint* self = static_cast<lsp_endpoint*>(endpoint);
-          if (notification_json.empty()) {
-            // TODO(strager): Fix our tests so they don't make empty
-            // byte_buffer-s.
-            return;
-          }
-          self->remote_->send_message(std::move(notification_json));
-        },
-        this);
-  }
+  void flush_pending_notifications();
 
-  void message_parsed(string8_view message) {
-    using namespace std::literals::string_view_literals;
-
-    // TODO(strager): Avoid copying the message.
-    ::simdjson::padded_string padded_message(
-        reinterpret_cast<const char*>(message.data()), message.size());
-    ::simdjson::ondemand::document request_document;
-    ::simdjson::error_code parse_error;
-    this->json_parser_.iterate(padded_message)
-        .tie(request_document, parse_error);
-    if (parse_error != ::simdjson::error_code::SUCCESS) {
-      byte_buffer error_json;
-      this->write_json_parse_error_response(error_json);
-      this->remote_->send_message(std::move(error_json));
-      return;
-    }
-
-    byte_buffer response_json;
-
-    ::simdjson::ondemand::array batched_requests;
-    bool is_batch_request = request_document.get(batched_requests) ==
-                            ::simdjson::error_code::SUCCESS;
-    if (is_batch_request) {
-      response_json.append_copy(u8"["sv);
-      std::size_t empty_response_json_size = response_json.size();
-      for (::simdjson::simdjson_result< ::simdjson::ondemand::value>
-               sub_request_or_error : batched_requests) {
-        ::simdjson::ondemand::object sub_request;
-        if (sub_request_or_error.get(sub_request) ==
-            ::simdjson::error_code::SUCCESS) {
-          this->handle_message(
-              sub_request, response_json,
-              /*add_comma_before_response=*/response_json.size() !=
-                  empty_response_json_size);
-        } else {
-          if (response_json.size() != empty_response_json_size) {
-            response_json.append_copy(u8","sv);
-          }
-          this->write_json_parse_error_response(response_json);
-        }
-      }
-      response_json.append_copy(u8"]"sv);
-    } else {
-      ::simdjson::ondemand::object request;
-      if (request_document.get(request) == ::simdjson::error_code::SUCCESS) {
-        this->handle_message(request, response_json,
-                             /*add_comma_before_response=*/false);
-      } else {
-        this->write_json_parse_error_response(response_json);
-      }
-    }
-
-    if (is_batch_request) {
-      // Batch requests require batch responses.
-      QLJS_ASSERT(!response_json.empty());
-    }
-
-    if (!response_json.empty()) {
-      this->remote_->send_message(std::move(response_json));
-    }
-    this->flush_pending_notifications();
-  }
+  void message_parsed(string8_view message);
 
  private:
   void handle_message(::simdjson::ondemand::object& request,
                       byte_buffer& response_json,
-                      bool add_comma_before_response) {
-    using namespace std::literals::string_view_literals;
+                      bool add_comma_before_response);
 
-    ::simdjson::ondemand::value id;
-    switch (request["id"].get(id)) {
-    case ::simdjson::error_code::SUCCESS: {
-      if (add_comma_before_response) {
-        response_json.append_copy(u8","sv);
-      }
-      std::string_view method;
-      if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
-        this->write_invalid_request_error_response(response_json);
-        return;
-      }
+  void write_json_parse_error_response(byte_buffer& response_json);
 
-      ::simdjson::ondemand::json_type id_type;
-      if (id.type().get(id_type) != ::simdjson::error_code::SUCCESS) {
-        this->write_json_parse_error_response(response_json);
-        return;
-      }
-      switch (id_type) {
-      case ::simdjson::ondemand::json_type::null:
-      case ::simdjson::ondemand::json_type::number:
-      case ::simdjson::ondemand::json_type::string:
-        break;
-
-      default:
-        this->write_invalid_request_error_response(response_json);
-        return;
-      }
-
-      this->handler_->handle_request(request, method, get_raw_json(id),
-                                     response_json);
-      break;
-    }
-
-    case ::simdjson::error_code::NO_SUCH_FIELD: {
-      std::string_view method;
-      if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
-        this->write_invalid_request_error_response(response_json);
-        break;
-      }
-      this->handler_->handle_notification(request, method);
-      break;
-    }
-
-    case ::simdjson::error_code::TAPE_ERROR:
-      this->write_json_parse_error_response(response_json);
-      break;
-
-    default:
-      QLJS_UNIMPLEMENTED();
-      break;
-    }
-  }
-
-  void write_json_parse_error_response(byte_buffer& response_json) {
-    using namespace std::literals::string_view_literals;
-    // clang-format off
-    response_json.append_copy(u8R"({)"
-      u8R"("jsonrpc":"2.0",)"
-      u8R"("id":null,)"
-      u8R"("error":{)"
-        u8R"("code":-32700,)"
-        u8R"("message":"Parse error")"
-      u8R"(})"
-    u8R"(})"sv);
-    // clang-format on
-  }
-
-  static void write_invalid_request_error_response(byte_buffer& response_json) {
-    using namespace std::literals::string_view_literals;
-    // clang-format off
-    response_json.append_copy(u8R"({)"
-      u8R"("jsonrpc":"2.0",)"
-      u8R"("id":null,)"
-      u8R"("error":{)"
-        u8R"("code":-32600,)"
-        u8R"("message":"Invalid Request")"
-      u8R"(})"
-    u8R"(})"sv);
-    // clang-format on
-  }
+  static void write_invalid_request_error_response(byte_buffer& response_json);
 
   lsp_endpoint_remote* remote_;
   lsp_endpoint_handler* handler_;
@@ -234,8 +79,6 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
   friend message_parser;
 };
 }
-
-QLJS_WARNING_POP
 
 #endif
 
