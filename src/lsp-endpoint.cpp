@@ -169,14 +169,14 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& request,
 void lsp_endpoint::write_json_parse_error_response(byte_buffer& response_json) {
   using namespace std::literals::string_view_literals;
   // clang-format off
-    response_json.append_copy(u8R"({)"
-      u8R"("jsonrpc":"2.0",)"
-      u8R"("id":null,)"
-      u8R"("error":{)"
-        u8R"("code":-32700,)"
-        u8R"("message":"Parse error")"
-      u8R"(})"
-    u8R"(})"sv);
+  response_json.append_copy(u8R"({)"
+    u8R"("jsonrpc":"2.0",)"
+    u8R"("id":null,)"
+    u8R"("error":{)"
+      u8R"("code":-32700,)"
+      u8R"("message":"Parse error")"
+    u8R"(})"
+  u8R"(})"sv);
   // clang-format on
 }
 
@@ -184,14 +184,14 @@ void lsp_endpoint::write_invalid_request_error_response(
     byte_buffer& response_json) {
   using namespace std::literals::string_view_literals;
   // clang-format off
-    response_json.append_copy(u8R"({)"
-      u8R"("jsonrpc":"2.0",)"
-      u8R"("id":null,)"
-      u8R"("error":{)"
-        u8R"("code":-32600,)"
-        u8R"("message":"Invalid Request")"
-      u8R"(})"
-    u8R"(})"sv);
+  response_json.append_copy(u8R"({)"
+    u8R"("jsonrpc":"2.0",)"
+    u8R"("id":null,)"
+    u8R"("error":{)"
+      u8R"("code":-32600,)"
+      u8R"("message":"Invalid Request")"
+    u8R"(})"
+  u8R"(})"sv);
   // clang-format on
 }
 }
