@@ -124,13 +124,6 @@ get_diagnostic_message_arg_type<string8_view>() noexcept {
   return diagnostic_arg_type::string8_view;
 }
 
-template <class ArgType>
-constexpr diagnostic_message_arg_info make_diagnostic_message_arg_info(
-    std::uint8_t offset) noexcept {
-  return diagnostic_message_arg_info(
-      offset, get_diagnostic_message_arg_type<ArgType>());
-}
-
 template <class Diag>
 struct info_for_diagnostic;
 
@@ -138,9 +131,10 @@ struct info_for_diagnostic;
 #define MAKE_ARGS_N(...) MAKE_ARGS_N_(__VA_ARGS__)
 #define MAKE_ARGS_N_(count, ...) MAKE_ARGS_##count(__VA_ARGS__)
 
-#define MAKE_ARGS_1(arg0)                                       \
-  make_diagnostic_message_arg_info<decltype(diag_class::arg0)>( \
-      offsetof(diag_class, arg0))
+#define MAKE_ARGS_1(arg0)         \
+  diagnostic_message_arg_info(    \
+      offsetof(diag_class, arg0), \
+      get_diagnostic_message_arg_type<decltype(diag_class::arg0)>())
 #define MAKE_ARGS_2(arg0, arg1) MAKE_ARGS_1(arg0), MAKE_ARGS_1(arg1)
 #define MAKE_ARGS_3(arg0, arg1, arg2) MAKE_ARGS_2(arg0, arg1), MAKE_ARGS_1(arg2)
 
