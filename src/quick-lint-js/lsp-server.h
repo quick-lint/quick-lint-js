@@ -80,8 +80,9 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
 
   void filesystem_changed();
 
-  void take_pending_notification_jsons(void (*callback)(byte_buffer&&, void*),
-                                       void* endpoint) override {
+  void take_pending_notification_jsons(void (*callback)(byte_buffer&&,
+                                                        lsp_endpoint*),
+                                       lsp_endpoint* endpoint) override {
     for (byte_buffer& notification_json : this->pending_notification_jsons_) {
       callback(std::move(notification_json), endpoint);
     }

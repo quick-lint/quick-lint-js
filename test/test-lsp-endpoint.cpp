@@ -63,8 +63,8 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
 
-    void take_pending_notification_jsons(void (*)(byte_buffer&&, void*),
-                                         void*) override {}
+    void take_pending_notification_jsons(void (*)(byte_buffer&&, lsp_endpoint*),
+                                         lsp_endpoint*) override {}
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
@@ -106,8 +106,8 @@ TEST(test_lsp_endpoint, batched_request) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
 
-    void take_pending_notification_jsons(void (*)(byte_buffer&&, void*),
-                                         void*) override {}
+    void take_pending_notification_jsons(void (*)(byte_buffer&&, lsp_endpoint*),
+                                         lsp_endpoint*) override {}
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
@@ -152,8 +152,8 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
       handle_notification_count += 1;
     }
 
-    void take_pending_notification_jsons(void (*)(byte_buffer&&, void*),
-                                         void*) override {}
+    void take_pending_notification_jsons(void (*)(byte_buffer&&, lsp_endpoint*),
+                                         lsp_endpoint*) override {}
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
@@ -190,8 +190,9 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
       this->pending_notifications.push_back(reply);
     }
 
-    void take_pending_notification_jsons(void (*callback)(byte_buffer&&, void*),
-                                         void* endpoint) override {
+    void take_pending_notification_jsons(void (*callback)(byte_buffer&&,
+                                                          lsp_endpoint*),
+                                         lsp_endpoint* endpoint) override {
       for (::boost::json::value& reply : this->pending_notifications) {
         byte_buffer notification_json;
         notification_json.append_copy(json_to_string(reply));
@@ -235,8 +236,8 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
       handle_notification_count += 1;
     }
 
-    void take_pending_notification_jsons(void (*)(byte_buffer&&, void*),
-                                         void*) override {}
+    void take_pending_notification_jsons(void (*)(byte_buffer&&, lsp_endpoint*),
+                                         lsp_endpoint*) override {}
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
@@ -275,8 +276,9 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
       this->pending_notifications.push_back(reply);
     }
 
-    void take_pending_notification_jsons(void (*callback)(byte_buffer&&, void*),
-                                         void* endpoint) override {
+    void take_pending_notification_jsons(void (*callback)(byte_buffer&&,
+                                                          lsp_endpoint*),
+                                         lsp_endpoint* endpoint) override {
       for (::boost::json::value& reply : this->pending_notifications) {
         byte_buffer notification_json;
         notification_json.append_copy(json_to_string(reply));
@@ -318,8 +320,8 @@ TEST(test_lsp_endpoint, malformed_json) {
       ADD_FAILURE() << "handle_notification should not be called";
     }
 
-    void take_pending_notification_jsons(void (*)(byte_buffer&&, void*),
-                                         void*) override {}
+    void take_pending_notification_jsons(void (*)(byte_buffer&&, lsp_endpoint*),
+                                         lsp_endpoint*) override {}
   };
   mock_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;

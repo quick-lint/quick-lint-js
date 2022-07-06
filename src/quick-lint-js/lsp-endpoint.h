@@ -24,6 +24,8 @@
 #include <vector>
 
 namespace quick_lint_js {
+class lsp_endpoint;
+
 class lsp_endpoint_remote {
  public:
   virtual ~lsp_endpoint_remote();
@@ -41,8 +43,8 @@ class lsp_endpoint_handler {
   virtual void handle_notification(::simdjson::ondemand::object& request,
                                    std::string_view method) = 0;
   virtual void take_pending_notification_jsons(
-      void (*write_notification_json)(byte_buffer&&, void*),
-      void* endpoint) = 0;
+      void (*write_notification_json)(byte_buffer&&, lsp_endpoint*),
+      lsp_endpoint* endpoint) = 0;
 };
 
 // An lsp_endpoint parses Language Server Protocol messages, dispatches them to
