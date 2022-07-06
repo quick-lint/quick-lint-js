@@ -213,6 +213,7 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
         "method": "testmethod",
         "params": {}
       })"));
+  server.flush_pending_notifications();
 
   ASSERT_EQ(remote.messages.size(), 1);
   EXPECT_EQ(look_up(remote.messages[0], "method"), "testreply");
@@ -300,6 +301,7 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
         "method": "testmethod",
         "params": {}
       }])"));
+  server.flush_pending_notifications();
 
   ASSERT_EQ(remote.messages.size(), 2);
   EXPECT_THAT(remote.messages[0].as_array(), IsEmpty());

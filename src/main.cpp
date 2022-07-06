@@ -333,6 +333,7 @@ void run_lsp_server() {
 
     void append(string8_view data) {
       this->endpoint_.append(data);
+      this->endpoint_.flush_pending_notifications();
       // TODO(strager): Only call report_pending_watch_io_errors after
       // processing a full message.
       this->report_pending_watch_io_errors();

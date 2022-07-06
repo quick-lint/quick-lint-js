@@ -104,7 +104,6 @@ void lsp_endpoint::message_parsed(string8_view message) {
   if (!response_json.empty()) {
     this->remote_->send_message(std::move(response_json));
   }
-  this->flush_pending_notifications();
 }
 
 void lsp_endpoint::handle_message(::simdjson::ondemand::object& request,
