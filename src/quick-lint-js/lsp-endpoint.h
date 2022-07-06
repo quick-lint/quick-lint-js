@@ -40,9 +40,6 @@ class lsp_endpoint_handler {
                               byte_buffer& reply) = 0;
   virtual void handle_notification(::simdjson::ondemand::object& request,
                                    std::string_view method) = 0;
-  virtual void take_pending_notification_jsons(
-      void (*write_notification_json)(byte_buffer&&, lsp_endpoint_remote*),
-      lsp_endpoint_remote* remote) = 0;
 };
 
 // An lsp_endpoint parses Language Server Protocol messages, dispatches them to
