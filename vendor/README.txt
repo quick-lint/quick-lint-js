@@ -160,6 +160,7 @@ consumption:
 
 The following patches have been manually applied:
 
+* simdjson-asan-build-perf.patch
 * simdjson-cmake-version.patch
 * simdjson-smaller-number-parsing.patch
 * simdjson-warnings.patch

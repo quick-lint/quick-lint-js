@@ -1,0 +1,22 @@
+Improve GCC 8 ASAN build times.
+
+Upstream discussion:
+https://github.com/simdjson/simdjson/issues/1857
+
+--- a/include/simdjson/common_defs.h
++++ b/include/simdjson/common_defs.h
+@@ -107,7 +107,14 @@ constexpr size_t DEFAULT_MAX_DEPTH = 1024;
+
+ #else // SIMDJSON_REGULAR_VISUAL_STUDIO
+
++  #if defined(__SANITIZE_ADDRESS__)
++  // HACK(strager): Compilation takes a long time with GCC 8 and
++  // -fsanitize=address,undefined when forcing inlining. Reduce compile times for
++  // ASAN builds by not forcing inlining for nearly every simdjson function.
++  #define simdjson_really_inline inline
++  #else
+   #define simdjson_really_inline inline __attribute__((always_inline))
++  #endif
+   #define simdjson_never_inline inline __attribute__((noinline))
+
+   #define simdjson_unused __attribute__((unused))
