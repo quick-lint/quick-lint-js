@@ -208,7 +208,7 @@
         { uri: "/releases/", title: "Releases" },
       ],
     },
-    { uri: "/demo/", title: "Try online" },
+    { uri: "/demo/", title: "Try online", sideBarOnly: true},
     {
       uri: "/docs/",
       title: "Docs",
@@ -266,11 +266,15 @@
 
   function pageLinkHTML(page) {
     if (typeof page.uri === "string") {
+      let classes = "";
+      if (page.sideBarOnly) {
+        classes += " side-bar-only";
+      }
       let titleHTML = ejs.escapeXML(page.title);
       if (page.uri === currentURI) {
-        return html`<li><span class="current-page">${titleHTML}</span></li>`;
+        return html`<li class="${classes}"><span class="current-page">${titleHTML}</span></li>`;
       } else {
-        return html`<li>
+        return html`<li class="${classes}">
           <a href="${ejs.escapeXML(makeRelativeURI(page.uri))}">${titleHTML}</a>
         </li>`;
       }
