@@ -97,6 +97,7 @@ quick_lint_js_add_executable(
   test-pipe-writer.cpp
   test-result.cpp
   test-simd.cpp
+  test-sorted-search.cpp
   test-string-view.cpp
   test-temporary-directory.cpp
   test-text-diag-reporter.cpp

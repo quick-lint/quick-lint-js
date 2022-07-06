@@ -415,6 +415,7 @@ func WriteTranslationTableHeader(table *TranslationTable, path string) error {
 #include <iterator>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/consteval.h>
+#include <quick-lint-js/sorted-search.h>
 #include <quick-lint-js/translation-table.h>
 #include <string_view>
 
@@ -443,11 +444,10 @@ using namespace std::literals::string_view_literals;
 		`  };
   // clang-format on
 
-  std::uint16_t table_size = std::uint16_t(std::size(const_lookup_table));
-  for (std::uint16_t i = 0; i < table_size; ++i) {
-    if (const_lookup_table[i] == untranslated) {
-      return std::uint16_t(i + 1);
-    }
+  auto it = sorted_search(std::begin(const_lookup_table),
+                          std::end(const_lookup_table), untranslated);
+  if (it != std::end(const_lookup_table)) {
+    return std::uint16_t((it - std::begin(const_lookup_table)) + 1);
   }
 
   // If you see an error with the following line, translation-table-generated.h
