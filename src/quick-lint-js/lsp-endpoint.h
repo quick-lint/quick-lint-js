@@ -46,7 +46,7 @@ class lsp_endpoint_handler {
 };
 
 // An lsp_endpoint parses Language Server Protocol messages, dispatches them to
-// Handler, and sends responses to Remote.
+// lsp_endpoint_handler, and sends responses to lsp_endpoint_remote.
 //
 // lsp_endpoint implements JSON-RPC.
 class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
