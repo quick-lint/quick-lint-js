@@ -63,9 +63,6 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
 
   using message_parser::append;
 
-  lsp_endpoint_handler& handler() noexcept { return *this->handler_; }
-  lsp_endpoint_remote& remote() noexcept { return *this->remote_; }
-
   void flush_pending_notifications() {
     this->handler_->take_pending_notification_jsons(
         [](byte_buffer&& notification_json, void* endpoint) {
