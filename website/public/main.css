@@ -201,17 +201,16 @@ header .mascot {
   height: var(--mascot-height);
 }
 
-/* On smaller screens, put the mascot under the title. */
+/* On smaller screens, hide the tag line. */
 @media only screen and (max-width: 32em) {
   header {
-    --mascot-height: var(--tag-line-height);
     grid-template-areas:
-      "title title main-nav"
-      "mascot tag-line main-nav"
+      "mascot title main-nav"
+      "mascot mascot main-nav"
       "breadcrumbs breadcrumbs main-nav";
   }
-  header > .mascot {
-    margin-top: 0.5rem;
+  header > .tag-line {
+    display: none;
   }
 }
 
