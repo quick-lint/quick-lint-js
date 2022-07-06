@@ -43,19 +43,6 @@ class lsp_endpoint_handler {
   virtual void take_pending_notification_jsons(
       void (*write_notification_json)(byte_buffer&&, lsp_endpoint_remote*),
       lsp_endpoint_remote* remote) = 0;
-
-  void flush_pending_notifications(lsp_endpoint_remote& remote) {
-    this->take_pending_notification_jsons(
-        [](byte_buffer&& notification_json, lsp_endpoint_remote* r) {
-          if (notification_json.empty()) {
-            // TODO(strager): Fix our tests so they don't make empty
-            // byte_buffer-s.
-            return;
-          }
-          r->send_message(std::move(notification_json));
-        },
-        &remote);
-  }
 };
 
 // An lsp_endpoint parses Language Server Protocol messages, dispatches them to

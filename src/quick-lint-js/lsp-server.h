@@ -89,6 +89,19 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
     this->pending_notification_jsons_.clear();
   }
 
+  void flush_pending_notifications(lsp_endpoint_remote& remote) {
+    this->take_pending_notification_jsons(
+        [](byte_buffer&& notification_json, lsp_endpoint_remote* r) {
+          if (notification_json.empty()) {
+            // TODO(strager): Fix our tests so they don't make empty
+            // byte_buffer-s.
+            return;
+          }
+          r->send_message(std::move(notification_json));
+        },
+        &remote);
+  }
+
   void add_watch_io_errors(const std::vector<watch_io_error>&);
 
  private:
