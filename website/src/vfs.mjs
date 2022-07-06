@@ -112,7 +112,7 @@ export class VFS {
       let indexModule = await import(url.pathToFileURL(indexScriptPath));
       routes = indexModule.routes;
     } catch (e) {
-      if (e.code === "ERR_MODULE_NOT_FOUND" || e.code == "ENOTDIR") {
+      if (e.code === "ERR_MODULE_NOT_FOUND" || e.code === "ENOTDIR") {
         return;
       } else {
         throw e;
