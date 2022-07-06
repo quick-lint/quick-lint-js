@@ -100,10 +100,9 @@ class test_linting_lsp_server : public ::testing::Test {
         });
     this->handler =
         std::make_unique<linting_lsp_server_handler>(&this->fs, &this->linter);
-    this->remote = std::make_unique<spy_lsp_endpoint_remote>();
+    this->client = std::make_unique<spy_lsp_endpoint_remote>();
     this->server =
-        std::make_unique<lsp_endpoint>(this->handler.get(), this->remote.get());
-    this->client = this->remote.get();
+        std::make_unique<lsp_endpoint>(this->handler.get(), this->client.get());
   }
 
   std::function<void(configuration&, padded_string_view code,
@@ -116,9 +115,8 @@ class test_linting_lsp_server : public ::testing::Test {
 
   mock_lsp_linter linter;
   std::unique_ptr<linting_lsp_server_handler> handler;
-  std::unique_ptr<spy_lsp_endpoint_remote> remote;
+  std::unique_ptr<spy_lsp_endpoint_remote> client;
   std::unique_ptr<lsp_endpoint> server;
-  spy_lsp_endpoint_remote* client;
 
   std::string config_file_load_error_message(const char* js_path,
                                              const char* error_path) {
