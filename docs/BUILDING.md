@@ -35,7 +35,7 @@ development environment and build tool:
 
 Before building quick-lint-js, install the following third-party dependencies:
 
-* GCC version 8.3 or newer
+* [GCC][] version 8.3 or newer
 * [CMake][] version 3.10 or newer
 * [Ninja][]
 
@@ -105,9 +105,9 @@ If you want to run the quick-lint-js program:
 
 Before building quick-lint-js, install the following third-party dependencies:
 
-* GCC version 8.3 or newer
+* [GCC][] version 8.3 or newer
 * [CMake][] version 3.10 or newer
-* GNU Make
+* [GNU Make][]
 
 #### 1. Configure with CMake
 
@@ -283,7 +283,10 @@ To run the tests, execute the test binary in the build directory:
 
     $ ./test/quick-lint-js-test
 
+[GCC]: https://gcc.gnu.org/
 [CMake]: https://cmake.org/
 [Ninja]: https://ninja-build.org/
+[GNU Make]: https://www.gnu.org/software/make/
+[Homebrew]: https://brew.sh/
 [Visual Studio]: https://visualstudio.microsoft.com/vs/
 [Nix]: https://nixos.org/manual/nix/stable/
