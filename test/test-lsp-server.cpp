@@ -144,8 +144,9 @@ TEST_F(test_linting_lsp_server, initialize) {
         }
       })"));
 
-  ASSERT_EQ(this->client->messages.size(), 1);
-  ::boost::json::object response = this->client->messages[0].as_object();
+  std::vector< ::boost::json::object> responses = this->client->responses();
+  ASSERT_EQ(responses.size(), 1);
+  ::boost::json::object response = responses[0];
   EXPECT_EQ(response["id"], 1);
   EXPECT_FALSE(response.contains("error"));
   // LSP InitializeResult:
@@ -195,8 +196,9 @@ TEST_F(test_linting_lsp_server, initialize_with_different_request_ids) {
           }
         })"));
 
-    ASSERT_EQ(this->client->messages.size(), 1);
-    EXPECT_EQ(this->client->messages[0].as_object()["id"], test.id);
+    std::vector< ::boost::json::object> responses = this->client->responses();
+    ASSERT_EQ(responses.size(), 1);
+    EXPECT_EQ(responses[0]["id"], test.id);
   }
 }
 
@@ -220,8 +222,9 @@ TEST_F(test_linting_lsp_server, shutdown) {
         "method": "shutdown"
       })"));
 
-  ASSERT_EQ(this->client->messages.size(), 1);
-  ::boost::json::object response = this->client->messages[0].as_object();
+  std::vector< ::boost::json::object> responses = this->client->responses();
+  ASSERT_EQ(responses.size(), 1);
+  ::boost::json::object response = responses[0];
   EXPECT_EQ(response["id"], 10);
   EXPECT_FALSE(response.contains("error"));
   EXPECT_EQ(response["result"], ::boost::json::value());
@@ -329,8 +332,10 @@ TEST_F(test_linting_lsp_server, opening_document_lints) {
         })"));
     this->handler->flush_pending_notifications(*this->client);
 
-    ASSERT_EQ(this->client->messages.size(), 1);
-    ::boost::json::object response = this->client->messages[0].as_object();
+    std::vector< ::boost::json::object> notifications =
+        this->client->notifications();
+    ASSERT_EQ(notifications.size(), 1);
+    ::boost::json::object response = notifications[0];
     EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
     EXPECT_FALSE(response.contains("error"));
     // LSP PublishDiagnosticsParams:
@@ -963,7 +968,8 @@ TEST_F(test_linting_lsp_server, editing_config_relints_many_open_js_files) {
                                               u8"/* c.js */"));
 
   std::vector<std::string> linted_uris;
-  for (::boost::json::value notification : this->client->messages) {
+  for (const ::boost::json::object& notification :
+       this->client->notifications()) {
     EXPECT_EQ(look_up(notification, "method"),
               "textDocument/publishDiagnostics");
     std::string uri(
@@ -1085,7 +1091,8 @@ TEST_F(test_linting_lsp_server, editing_config_relints_only_affected_js_files) {
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"/* dir-a/test.js */"));
 
   std::vector<std::string> linted_uris;
-  for (::boost::json::value notification : this->client->messages) {
+  for (const ::boost::json::object& notification :
+       this->client->notifications()) {
     EXPECT_EQ(look_up(notification, "method"),
               "textDocument/publishDiagnostics");
     std::string uri(
@@ -1282,8 +1289,10 @@ TEST_F(test_linting_lsp_server,
 
   EXPECT_TRUE(after_config_was_loaded);
 
-  ASSERT_THAT(this->client->messages, ElementsAre(::testing::_));
-  ::boost::json::object notification = this->client->messages[0].as_object();
+  std::vector< ::boost::json::object> notifications =
+      this->client->notifications();
+  ASSERT_THAT(notifications, ElementsAre(::testing::_));
+  ::boost::json::object notification = notifications[0];
   EXPECT_EQ(notification["method"], "textDocument/publishDiagnostics");
 }
 
@@ -1460,12 +1469,12 @@ TEST_F(test_linting_lsp_server, opening_js_file_with_unreadable_config_lints) {
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs"))
       << "should have linted despite config file being unloadable";
 
-  ASSERT_EQ(this->client->messages.size(), 2);
+  std::vector< ::boost::json::object> notifications =
+      this->client->notifications();
+  ASSERT_EQ(notifications.size(), 2);
   std::size_t showMessageIndex =
-      look_up(this->client->messages[0], "method") == "window/showMessage" ? 0
-                                                                           : 1;
-  ::boost::json::object showMessageMessage =
-      this->client->messages[showMessageIndex].as_object();
+      look_up(notifications[0], "method") == "window/showMessage" ? 0 : 1;
+  ::boost::json::object showMessageMessage = notifications[showMessageIndex];
   EXPECT_EQ(look_up(showMessageMessage, "method"), "window/showMessage");
   EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
             lsp_warning_message_type);
@@ -1520,12 +1529,12 @@ TEST_F(test_linting_lsp_server,
   EXPECT_THAT(this->lint_calls, ElementsAre(u8"testjs"))
       << "should have linted despite config file being unloadable";
 
-  ASSERT_EQ(this->client->messages.size(), 2);
+  std::vector< ::boost::json::object> notifications =
+      this->client->notifications();
+  ASSERT_EQ(notifications.size(), 2);
   std::size_t showMessageIndex =
-      look_up(this->client->messages[0], "method") == "window/showMessage" ? 0
-                                                                           : 1;
-  ::boost::json::object showMessageMessage =
-      this->client->messages[showMessageIndex].as_object();
+      look_up(notifications[0], "method") == "window/showMessage" ? 0 : 1;
+  ::boost::json::object showMessageMessage = notifications[showMessageIndex];
   EXPECT_EQ(look_up(showMessageMessage, "method"), "window/showMessage");
   EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
             lsp_warning_message_type);
@@ -1592,12 +1601,12 @@ TEST_F(test_linting_lsp_server, making_config_file_unreadable_relints) {
       << "should have linted twice: once on open, and once after config file "
          "changed";
 
-  ASSERT_EQ(this->client->messages.size(), 2);
+  std::vector< ::boost::json::object> notifications =
+      this->client->notifications();
+  ASSERT_EQ(notifications.size(), 2);
   std::size_t showMessageIndex =
-      look_up(this->client->messages[0], "method") == "window/showMessage" ? 0
-                                                                           : 1;
-  ::boost::json::object showMessageMessage =
-      this->client->messages[showMessageIndex].as_object();
+      look_up(notifications[0], "method") == "window/showMessage" ? 0 : 1;
+  ::boost::json::object showMessageMessage = notifications[showMessageIndex];
   EXPECT_EQ(look_up(showMessageMessage, "method"), "window/showMessage");
   EXPECT_EQ(look_up(showMessageMessage, "params", "type"),
             lsp_warning_message_type);
@@ -1623,8 +1632,10 @@ TEST_F(test_linting_lsp_server, opening_broken_config_file_shows_diagnostics) {
       })"));
   this->handler->flush_pending_notifications(*this->client);
 
-  ASSERT_EQ(this->client->messages.size(), 1);
-  ::boost::json::object response = this->client->messages[0].as_object();
+  std::vector< ::boost::json::object> notifications =
+      this->client->notifications();
+  ASSERT_EQ(notifications.size(), 1);
+  ::boost::json::object response = notifications[0];
   EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
   EXPECT_FALSE(response.contains("error"));
   // LSP PublishDiagnosticsParams:
@@ -1683,8 +1694,10 @@ TEST_F(test_linting_lsp_server,
       })"));
   this->handler->flush_pending_notifications(*this->client);
 
-  ASSERT_EQ(this->client->messages.size(), 1);
-  ::boost::json::object response = this->client->messages[0].as_object();
+  std::vector< ::boost::json::object> notifications =
+      this->client->notifications();
+  ASSERT_EQ(notifications.size(), 1);
+  ::boost::json::object response = notifications[0];
   EXPECT_EQ(response["method"], "textDocument/publishDiagnostics");
   EXPECT_FALSE(response.contains("error"));
   // LSP PublishDiagnosticsParams:
@@ -1912,8 +1925,10 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first) {
   });
   this->handler->flush_pending_notifications(*this->client);
 
-  ASSERT_EQ(this->client->messages.size(), 1);
-  ::boost::json::value show_message_message = this->client->messages[0];
+  std::vector< ::boost::json::object> notifications =
+      this->client->notifications();
+  ASSERT_EQ(notifications.size(), 1);
+  ::boost::json::object show_message_message = notifications[0];
   EXPECT_EQ(look_up(show_message_message, "method"), "window/showMessage");
   EXPECT_EQ(look_up(show_message_message, "params", "type"),
             lsp_warning_message_type);
@@ -1940,21 +1955,28 @@ TEST_F(test_linting_lsp_server, showing_io_errors_shows_only_first_ever) {
   });
   this->handler->flush_pending_notifications(*this->client);
 
-  ASSERT_EQ(this->client->messages.size(), 1);
-  ::boost::json::value show_message_message = this->client->messages[0];
+  std::vector< ::boost::json::object> notifications =
+      this->client->notifications();
+  ASSERT_EQ(notifications.size(), 1);
+  ::boost::json::object show_message_message = notifications[0];
   std::string message(to_string_view(
       look_up(show_message_message, "params", "message").as_string()));
   EXPECT_THAT(message, ::testing::HasSubstr("/banana"));
   EXPECT_THAT(message, ::testing::Not(::testing::HasSubstr("orange")));
 }
 
-void expect_error(::boost::json::value& response, int error_code,
+void expect_error(::boost::json::object& response, int error_code,
                   std::string_view error_message) {
-  EXPECT_FALSE(response.as_object().contains("method"));
+  EXPECT_FALSE(response.contains("method"));
   EXPECT_EQ(look_up(response, "jsonrpc"), "2.0");
   EXPECT_EQ(look_up(response, "error", "code"), error_code);
   EXPECT_EQ(look_up(response, "error", "message"),
             to_boost_string_view(error_message));
+}
+
+void expect_error(::boost::json::value& response, int error_code,
+                  std::string_view error_message) {
+  expect_error(response.as_object(), error_code, error_message);
 }
 
 TEST_F(test_linting_lsp_server, invalid_json_in_request) {
@@ -2010,8 +2032,9 @@ TEST_F(test_linting_lsp_server, unimplemented_method_in_request_returns_error) {
         "params": {}
       })"));
 
-  ASSERT_EQ(this->client->messages.size(), 1);
-  ::boost::json::value response = this->client->messages[0];
+  std::vector< ::boost::json::object> responses = this->client->responses();
+  ASSERT_EQ(responses.size(), 1);
+  ::boost::json::object response = responses[0];
   EXPECT_EQ(look_up(response, "id"), 10);
   expect_error(response, -32601, "Method not found");
 }

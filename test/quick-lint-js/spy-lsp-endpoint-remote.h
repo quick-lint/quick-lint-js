@@ -42,6 +42,36 @@ class spy_lsp_endpoint_remote final : public lsp_endpoint_remote {
     this->messages.push_back(parsed_message);
   }
 
+  std::vector<::boost::json::object> responses() const {
+    return this->collect_message_objects(is_response);
+  }
+
+  std::vector<::boost::json::object> notifications() const {
+    return this->collect_message_objects(is_notification);
+  }
+
+  template <class Predicate>
+  std::vector<::boost::json::object> collect_message_objects(
+      Predicate&& include) const {
+    std::vector<::boost::json::object> result;
+    for (const ::boost::json::value& message_value : this->messages) {
+      if (const ::boost::json::object* message = message_value.if_object()) {
+        if (include(*message)) {
+          result.push_back(*message);
+        }
+      }
+    }
+    return result;
+  }
+
+  static bool is_response(const ::boost::json::object& message) {
+    return message.contains("id") && !message.contains("method");
+  }
+
+  static bool is_notification(const ::boost::json::object& message) {
+    return !message.contains("id") && message.contains("method");
+  }
+
   std::vector<::boost::json::value> messages;
   bool allow_batch_messages = false;
 };
