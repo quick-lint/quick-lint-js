@@ -7,8 +7,8 @@ let fs = require("fs");
 let os = require("os");
 let path = require("path");
 let process = require("process");
-let vscodeTest = require("vscode-test");
-let vscodeTestDownload = require("vscode-test/out/download.js");
+let vscodeTest = require("@vscode/test-electron");
+let vscodeTestDownload = require("@vscode/test-electron/out/download.js");
 let { testFilterEnvironmentVariable } = require("./test-support.js");
 
 async function mainAsync() {

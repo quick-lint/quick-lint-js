@@ -75,6 +75,6 @@
     "colors": "1.4.0",
     "prettier": "2.6.2",
     "vsce": "2.9.1",
-    "vscode-test": "1.6.1"
+    "@vscode/test-electron": "2.1.4"
   }
 }
