@@ -34,8 +34,7 @@ TEST(test_parse_typescript, type_annotation_in_expression_is_an_error) {
                                       "visit_variable_assignment"))  // x
         << "visit_variable_type_use for Type should not happen because it "
            "might produce spurious warnings about undeclared types";
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"myVar"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"myVar"));
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code,
                               diag_typescript_type_annotation_in_expression,  //

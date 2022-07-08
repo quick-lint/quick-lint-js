@@ -375,8 +375,7 @@ TEST(test_parse_typescript_enum, declare_must_not_have_newline_before_enum) {
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope",       // }
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"declare"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"declare"));
   }
 
   {
@@ -387,8 +386,7 @@ TEST(test_parse_typescript_enum, declare_must_not_have_newline_before_enum) {
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope",       // }
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"declare"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"declare"));
   }
 }
 

@@ -258,15 +258,12 @@ TEST(test_parse, export_list) {
         parse_and_visit_statement(u8"export {one as two, three as four};"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_export_use",    // one
                                       "visit_variable_export_use"));  // three
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"one"},
-                            spy_visitor::visited_variable_use{u8"three"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"one", u8"three"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"export {myVar as 'name'};"_sv);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"myVar"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"myVar"));
   }
 }
 
@@ -989,9 +986,7 @@ TEST(test_parse, exported_names_can_be_named_keywords) {
       spy_visitor v = parse_and_visit_statement(code.c_str());
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_export_use"));  // someFunction
-      EXPECT_THAT(
-          v.variable_uses,
-          ElementsAre(spy_visitor::visited_variable_use{u8"someFunction"}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(u8"someFunction"));
     }
 
     {

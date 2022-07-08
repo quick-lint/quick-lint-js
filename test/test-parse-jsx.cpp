@@ -72,8 +72,7 @@ TEST(test_parse_jsx, empty_user_element) {
   EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // MyComponent
                                     "visit_variable_assignment",  // c
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.variable_uses,
-              ElementsAre(spy_visitor::visited_variable_use{u8"MyComponent"}));
+  EXPECT_THAT(v.variable_uses, ElementsAre(u8"MyComponent"));
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
@@ -86,8 +85,7 @@ TEST(test_parse_jsx, member_component) {
   EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // module
                                     "visit_variable_assignment",  // c
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.variable_uses,
-              ElementsAre(spy_visitor::visited_variable_use{u8"module"}));
+  EXPECT_THAT(v.variable_uses, ElementsAre(u8"module"));
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
@@ -97,8 +95,7 @@ TEST(test_parse_jsx, element_child_element) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"INNER"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
@@ -107,9 +104,7 @@ TEST(test_parse_jsx, element_child_element) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"OUTER"},
-                            spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"OUTER", u8"INNER"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
@@ -118,8 +113,7 @@ TEST(test_parse_jsx, element_child_element) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"INNER"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
@@ -129,9 +123,7 @@ TEST(test_parse_jsx, element_child_element) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"outer"},
-                            spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"outer", u8"INNER"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
@@ -140,8 +132,7 @@ TEST(test_parse_jsx, element_child_element) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"INNER"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
@@ -152,8 +143,7 @@ TEST(test_parse_jsx, element_child_expression) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"INNER"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
@@ -162,9 +152,7 @@ TEST(test_parse_jsx, element_child_expression) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"OUTER"},
-                            spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"OUTER", u8"INNER"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
@@ -173,8 +161,7 @@ TEST(test_parse_jsx, element_child_expression) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"INNER"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
@@ -183,9 +170,7 @@ TEST(test_parse_jsx, element_child_expression) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"outer"},
-                            spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"outer", u8"INNER"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
@@ -194,8 +179,7 @@ TEST(test_parse_jsx, element_child_expression) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"INNER"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"INNER"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
@@ -206,8 +190,7 @@ TEST(test_parse_jsx, element_attribute_expression) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"attrValue"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"attrValue"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
@@ -216,9 +199,7 @@ TEST(test_parse_jsx, element_attribute_expression) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"OUTER"},
-                            spy_visitor::visited_variable_use{u8"attrValue"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"OUTER", u8"attrValue"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
@@ -227,8 +208,7 @@ TEST(test_parse_jsx, element_attribute_expression) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"attrValue"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"attrValue"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
@@ -238,9 +218,7 @@ TEST(test_parse_jsx, element_attribute_expression) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"outer"},
-                            spy_visitor::visited_variable_use{u8"attrValue"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"outer", u8"attrValue"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
@@ -251,8 +229,7 @@ TEST(test_parse_jsx, attribute_without_name_must_be_spread) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"attr"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"attr"));
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_dots_for_attribute_spread,  //
                               expected_dots, strlen(u8"c = <div {"), u8"")));
@@ -572,11 +549,8 @@ TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(
-        v.variable_uses,
-        ElementsAre(spy_visitor::visited_variable_use{u8"FirstComponent"},
-                    spy_visitor::visited_variable_use{u8"SecondComponent"},
-                    spy_visitor::visited_variable_use{u8"child"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"FirstComponent",
+                                             u8"SecondComponent", u8"child"));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE(diag_adjacent_jsx_without_parent)));
   }
@@ -591,10 +565,8 @@ TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(
-        v.variable_uses,
-        ElementsAre(spy_visitor::visited_variable_use{u8"FirstComponent"},
-                    spy_visitor::visited_variable_use{u8"SecondComponent"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(u8"FirstComponent", u8"SecondComponent"));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE(diag_adjacent_jsx_without_parent)));
   }
@@ -611,9 +583,7 @@ TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"child"},
-                            spy_visitor::visited_variable_use{u8"done"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"child", u8"done"));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE(diag_adjacent_jsx_without_parent)));
   }
@@ -624,9 +594,7 @@ TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
     spy_visitor v;
     parser p(&code, &v, jsx_options);
     p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"First"},
-                            spy_visitor::visited_variable_use{u8"Second"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"First", u8"Second"));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE(diag_adjacent_jsx_without_parent)));
   }

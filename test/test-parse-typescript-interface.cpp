@@ -103,8 +103,7 @@ TEST(test_parse_typescript_interface, extends) {
                                     "visit_variable_type_use",      // A
                                     "visit_exit_interface_scope",   // I
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.variable_uses,
-              ElementsAre(spy_visitor::visited_variable_use{u8"A"}));
+  EXPECT_THAT(v.variable_uses, ElementsAre(u8"A"));
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
@@ -118,8 +117,7 @@ TEST(test_parse_typescript_interface, extends_interface_from_namespace) {
                                     "visit_variable_namespace_use",  // ns
                                     "visit_exit_interface_scope",    // I
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.variable_uses,
-              ElementsAre(spy_visitor::visited_variable_use{u8"ns"}));
+  EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns"));
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
@@ -135,10 +133,7 @@ TEST(test_parse_typescript_interface, extends_multiple_things) {
                                     "visit_variable_type_use",      // C
                                     "visit_exit_interface_scope",   // I
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.variable_uses,
-              ElementsAre(spy_visitor::visited_variable_use{u8"A"},
-                          spy_visitor::visited_variable_use{u8"B"},
-                          spy_visitor::visited_variable_use{u8"C"}));
+  EXPECT_THAT(v.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
@@ -249,9 +244,7 @@ TEST(test_parse_typescript_interface, property_without_type) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"x"},
-                            spy_visitor::visited_variable_use{u8"y"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x", u8"y"));
   }
 }
 
@@ -359,8 +352,7 @@ TEST(test_parse_typescript_interface, field_with_type) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"FieldType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"FieldType"));
   }
 
   {
@@ -449,8 +441,8 @@ TEST(test_parse_typescript_interface, interface_with_methods) {
     spy_visitor v =
         parse_and_visit_typescript_statement(u8"interface I { [x + y](); }"_sv);
     ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[0].name, u8"x");
-    EXPECT_EQ(v.variable_uses[1].name, u8"y");
+    EXPECT_EQ(v.variable_uses[0], u8"x");
+    EXPECT_EQ(v.variable_uses[1], u8"y");
     ASSERT_EQ(v.property_declarations.size(), 1);
     EXPECT_EQ(v.property_declarations[0].name, std::nullopt);
   }
@@ -482,9 +474,7 @@ TEST(test_parse_typescript_interface, interface_with_index_signature) {
                                       "visit_variable_type_use",  // ValueType
                                       "visit_exit_index_signature_scope",  //
                                       "visit_exit_interface_scope"));      // I
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"KeyType"},
-                            spy_visitor::visited_variable_use{u8"ValueType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"KeyType", u8"ValueType"));
     // TODO(strager): We probably should create a new kind of variable instead
     // of 'parameter'.
     EXPECT_THAT(
@@ -1336,8 +1326,7 @@ TEST(test_parse_typescript_interface, static_blocks_are_not_allowed) {
     parser p(&code, &v, typescript_options);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.property_declarations, IsEmpty());
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"console"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"console"));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code,

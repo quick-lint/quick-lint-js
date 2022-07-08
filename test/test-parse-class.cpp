@@ -55,7 +55,7 @@ TEST(test_parse, parse_class_statement) {
     EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
 
     ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0].name, u8"Base");
+    EXPECT_EQ(v.variable_uses[0], u8"Base");
 
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       // {
@@ -69,7 +69,7 @@ TEST(test_parse, parse_class_statement) {
     spy_visitor v = parse_and_visit_statement(
         u8"class FileStream extends fs.ReadStream {}");
     ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0].name, u8"fs");
+    EXPECT_EQ(v.variable_uses[0], u8"fs");
   }
 
   {
@@ -364,8 +364,8 @@ TEST(test_parse, class_statement_with_methods) {
   {
     spy_visitor v = parse_and_visit_statement(u8"class C { [x + y]() {} }"_sv);
     ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[0].name, u8"x");
-    EXPECT_EQ(v.variable_uses[1].name, u8"y");
+    EXPECT_EQ(v.variable_uses[0], u8"x");
+    EXPECT_EQ(v.variable_uses[1], u8"y");
     ASSERT_EQ(v.property_declarations.size(), 1);
     EXPECT_EQ(v.property_declarations[0].name, std::nullopt);
   }
@@ -485,8 +485,7 @@ TEST(test_parse, class_statement_with_fields) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"prop"}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"init"));
   }
 
   {
@@ -502,8 +501,7 @@ TEST(test_parse, class_statement_with_fields) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"prop"}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"init"));
   }
 
   {
@@ -519,8 +517,7 @@ TEST(test_parse, class_statement_with_fields) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"prop"}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"init"));
   }
 
   {
@@ -528,8 +525,7 @@ TEST(test_parse, class_statement_with_fields) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"#prop"}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"init"));
   }
 
   {
@@ -539,8 +535,7 @@ TEST(test_parse, class_statement_with_fields) {
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"#prop"},
                     spy_visitor::visited_property_declaration{u8"f"}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"init"));
   }
 
   {
@@ -602,8 +597,7 @@ TEST(test_parse, class_statement_with_fields) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"init"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"init"));
   }
 
   {
@@ -618,8 +612,7 @@ TEST(test_parse, class_statement_with_fields) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"pi"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"pi"));
   }
 
   {
@@ -635,9 +628,7 @@ TEST(test_parse, class_statement_with_fields) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"x"},
-                            spy_visitor::visited_variable_use{u8"y"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x", u8"y"));
   }
 
   {
@@ -654,9 +645,7 @@ TEST(test_parse, class_statement_with_fields) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"x"},
-                            spy_visitor::visited_variable_use{u8"y"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x", u8"y"));
   }
 
   {
@@ -674,10 +663,7 @@ TEST(test_parse, class_statement_with_fields) {
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
     // TODO(strager): Is this order correct?
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"x"},
-                            spy_visitor::visited_variable_use{u8"y"},
-                            spy_visitor::visited_variable_use{u8"init"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x", u8"y", u8"init"));
   }
 
   // TODO(strager): '*field=init' is an error.
@@ -1356,8 +1342,7 @@ TEST(test_parse, async_static_method_is_disallowed) {
     EXPECT_TRUE(p.parse_and_visit_statement(v));
 
     EXPECT_EQ(v.property_declarations[0].name, u8"m");
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"myPromise"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"myPromise"));
 
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",          //
@@ -1491,9 +1476,7 @@ TEST(test_parse, class_expression_body_is_visited_first_in_expression) {
                                       "visit_variable_use",         // before
                                       "visit_variable_use"));       // after
     EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"inside"},
-                            spy_visitor::visited_variable_use{u8"before"},
-                            spy_visitor::visited_variable_use{u8"after"}));
+                ElementsAre(u8"inside", u8"before", u8"after"));
   }
 
   {
@@ -1510,8 +1493,7 @@ TEST(test_parse, class_expression_body_is_visited_first_in_expression) {
                                       "visit_exit_class_scope",       // }
                                       "visit_variable_assignment",    // before
                                       "visit_variable_assignment"));  // after
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"inside"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"inside"));
     EXPECT_THAT(
         v.variable_assignments,
         ElementsAre(spy_visitor::visited_variable_assignment{u8"before"},

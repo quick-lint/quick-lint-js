@@ -53,8 +53,7 @@ TEST_F(test_parse_expression_typescript, type_annotation) {
     spy_visitor v;
     static_cast<expression::type_annotated*>(ast)->visit_type_annotation(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type"));
   }
 
   {

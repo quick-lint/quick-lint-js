@@ -30,8 +30,7 @@ TEST(test_parse_typescript_type, direct_type_reference) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"Type"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type"));
   }
 }
 
@@ -56,8 +55,7 @@ TEST(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
       spy_visitor v = parse_and_visit_typescript_type(code.string_view());
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_type_use"));  // (keyword)
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{keyword}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(keyword));
     }
 
     {
@@ -66,8 +64,7 @@ TEST(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
       spy_visitor v = parse_and_visit_typescript_type(code.string_view());
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_type_use"));  // (keyword)
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{keyword}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(keyword));
     }
   }
 }
@@ -77,9 +74,7 @@ TEST(test_parse_typescript_type, direct_generic_type_reference) {
     spy_visitor v = parse_and_visit_typescript_type(u8"Type<T>"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type
                                       "visit_variable_type_use"));  // T
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type"},
-                            spy_visitor::visited_variable_use{u8"T"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type", u8"T"));
   }
 
   {
@@ -87,18 +82,14 @@ TEST(test_parse_typescript_type, direct_generic_type_reference) {
         parse_and_visit_typescript_type(u8"C<'hello', number, Banana>"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // C
                                       "visit_variable_type_use"));  // Banana
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"},
-                            spy_visitor::visited_variable_use{u8"Banana"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C", u8"Banana"));
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"ns.C<T>"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_namespace_use",  // ns
                                       "visit_variable_type_use"));     // T
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ns"},
-                            spy_visitor::visited_variable_use{u8"T"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns", u8"T"));
   }
 }
 
@@ -106,8 +97,7 @@ TEST(test_parse_typescript_type, namespaced_type_reference) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"ns.Type"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_namespace_use"));  // ns
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ns"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns"));
   }
 
   {
@@ -115,9 +105,7 @@ TEST(test_parse_typescript_type, namespaced_type_reference) {
         parse_and_visit_typescript_type(u8"ns.subns.subsubns.Type[ns2.K]"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_namespace_use",    // ns
                                       "visit_variable_namespace_use"));  // ns2
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ns"},
-                            spy_visitor::visited_variable_use{u8"ns2"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns", u8"ns2"));
   }
 
   for (string8 keyword : keywords) {
@@ -126,8 +114,7 @@ TEST(test_parse_typescript_type, namespaced_type_reference) {
     spy_visitor v = parse_and_visit_typescript_type(code.string_view());
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_namespace_use"));  // mymodule
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"mymodule"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"mymodule"));
   }
 }
 
@@ -201,8 +188,7 @@ TEST(test_parse_typescript_type, template_literal_type) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"`hello${other}`"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // other
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"other"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"other"));
   }
 
   {
@@ -210,9 +196,7 @@ TEST(test_parse_typescript_type, template_literal_type) {
         parse_and_visit_typescript_type(u8"`hello${other}${another}`"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // other
                                       "visit_variable_type_use"));  // another
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"other"},
-                            spy_visitor::visited_variable_use{u8"another"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"other", u8"another"));
   }
 }
 
@@ -220,15 +204,13 @@ TEST(test_parse_typescript_type, parenthesized_type) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"(Type)"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type"));
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"(((((Type)))))"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type"));
   }
 
   {
@@ -247,24 +229,17 @@ TEST(test_parse_typescript_type, tuple_type) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"[A]"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // A
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"A"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"A"));
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"[A, B, C]"_sv);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"A"},
-                            spy_visitor::visited_variable_use{u8"B"},
-                            spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"[A, B, C, ]"_sv);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"A"},
-                            spy_visitor::visited_variable_use{u8"B"},
-                            spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
   }
 }
 
@@ -283,8 +258,7 @@ TEST(test_parse_typescript_type, object_type_with_basic_properties) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"{ property: Type }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type"));
   }
 
   {
@@ -302,9 +276,7 @@ TEST(test_parse_typescript_type, object_type_with_basic_properties) {
         parse_and_visit_typescript_type(u8"{ p1: Type1, p2: Type2 }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
                                       "visit_variable_type_use"));  // Type2
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
-                            spy_visitor::visited_variable_use{u8"Type2"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type1", u8"Type2"));
   }
 
   {
@@ -312,9 +284,7 @@ TEST(test_parse_typescript_type, object_type_with_basic_properties) {
         parse_and_visit_typescript_type(u8"{ p1: Type1; p2: Type2 }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
                                       "visit_variable_type_use"));  // Type2
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
-                            spy_visitor::visited_variable_use{u8"Type2"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type1", u8"Type2"));
   }
 }
 
@@ -324,9 +294,7 @@ TEST(test_parse_typescript_type, object_type_allows_asi_between_properties) {
         parse_and_visit_typescript_type(u8"{\n  p1: Type1\n  p2: Type2\n}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
                                       "visit_variable_type_use"));  // Type2
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
-                            spy_visitor::visited_variable_use{u8"Type2"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type1", u8"Type2"));
   }
 }
 
@@ -357,8 +325,7 @@ TEST(test_parse_typescript_type, object_type_with_readonly_properties) {
     spy_visitor v =
         parse_and_visit_typescript_type(u8"{ readonly property: Type }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type"));
   }
 }
 
@@ -372,8 +339,7 @@ TEST(test_parse_typescript_type, object_type_with_optional_properties) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"{ property?: Type }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type"));
   }
 
   {
@@ -381,8 +347,7 @@ TEST(test_parse_typescript_type, object_type_with_optional_properties) {
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",   // method
                                       "visit_variable_type_use",      // Type
                                       "visit_exit_function_scope"));  // method
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type"));
   }
 }
 
@@ -483,9 +448,7 @@ TEST(test_parse_typescript_type, object_type_with_computed_property) {
     spy_visitor v = parse_and_visit_typescript_type(u8"{ [varName]: Type }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // varName
                                       "visit_variable_type_use"));  // Type
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"varName"},
-                            spy_visitor::visited_variable_use{u8"Type"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"varName", u8"Type"));
   }
 
   {
@@ -494,9 +457,7 @@ TEST(test_parse_typescript_type, object_type_with_computed_property) {
     // TODO(strager): Should this be a namespace use instead of a runtime use?
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // ns
                                       "visit_variable_type_use"));  // Type
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ns"},
-                            spy_visitor::visited_variable_use{u8"Type"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns", u8"Type"));
   }
 }
 
@@ -513,9 +474,7 @@ TEST(test_parse_typescript_type, object_type_with_index_signature) {
         v.variable_declarations,
         ElementsAre(spy_visitor::visited_variable_declaration{
             u8"key", variable_kind::_parameter, variable_init_kind::normal}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"KeyType"},
-                            spy_visitor::visited_variable_use{u8"PropType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"KeyType", u8"PropType"));
   }
 }
 
@@ -532,9 +491,7 @@ TEST(test_parse_typescript_type, object_type_with_mapped_types) {
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"Key", variable_kind::_generic_parameter,
                     variable_init_kind::normal}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Keys"},
-                            spy_visitor::visited_variable_use{u8"PropType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Keys", u8"PropType"));
   }
 
   {
@@ -551,9 +508,7 @@ TEST(test_parse_typescript_type, object_type_with_mapped_types) {
                     u8"Key", variable_kind::_generic_parameter,
                     variable_init_kind::normal}));
     EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Keys"},
-                            spy_visitor::visited_variable_use{u8"KeyType"},
-                            spy_visitor::visited_variable_use{u8"PropType"}));
+                ElementsAre(u8"Keys", u8"KeyType", u8"PropType"));
   }
 }
 
@@ -654,9 +609,7 @@ TEST(test_parse_typescript_type, object_type_with_call_signature) {
         v.variable_declarations,
         ElementsAre(spy_visitor::visited_variable_declaration{
             u8"param", variable_kind::_parameter, variable_init_kind::normal}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ParamType"},
-                            spy_visitor::visited_variable_use{u8"ReturnType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ParamType", u8"ReturnType"));
   }
 }
 
@@ -677,8 +630,7 @@ TEST(test_parse_typescript_type, object_type_with_generic_call_signature) {
                     spy_visitor::visited_variable_declaration{
                         u8"param", variable_kind::_parameter,
                         variable_init_kind::normal}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ReturnType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
   }
 }
 
@@ -754,8 +706,7 @@ TEST(test_parse_typescript_type, arrow_function) {
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ReturnType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
   }
 
   {
@@ -765,8 +716,7 @@ TEST(test_parse_typescript_type, arrow_function) {
                                       "visit_variable_declaration",  // param
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ReturnType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
     EXPECT_THAT(
         v.variable_declarations,
         ElementsAre(spy_visitor::visited_variable_declaration{
@@ -782,8 +732,7 @@ TEST(test_parse_typescript_type, arrow_function) {
                                       "visit_variable_declaration",  // c
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ReturnType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
     EXPECT_THAT(
         v.variable_declarations,
         ElementsAre(
@@ -803,9 +752,7 @@ TEST(test_parse_typescript_type, arrow_function) {
                                       "visit_variable_declaration",  // param
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ParamType"},
-                            spy_visitor::visited_variable_use{u8"ReturnType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ParamType", u8"ReturnType"));
     EXPECT_THAT(
         v.variable_declarations,
         ElementsAre(spy_visitor::visited_variable_declaration{
@@ -821,8 +768,7 @@ TEST(test_parse_typescript_type, arrow_function) {
                                       "visit_variable_declaration",  // c
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ReturnType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
     EXPECT_THAT(
         v.variable_declarations,
         ElementsAre(
@@ -842,9 +788,7 @@ TEST(test_parse_typescript_type, arrow_function) {
                                       "visit_variable_declaration",  // param
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ParamType"},
-                            spy_visitor::visited_variable_use{u8"ReturnType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ParamType", u8"ReturnType"));
     EXPECT_THAT(
         v.variable_declarations,
         ElementsAre(spy_visitor::visited_variable_declaration{
@@ -863,8 +807,7 @@ TEST(test_parse_typescript_type, generic_arrow_function) {
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"T", variable_kind::_generic_parameter,
                     variable_init_kind::normal}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ReturnType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
   }
 
   {
@@ -878,8 +821,7 @@ TEST(test_parse_typescript_type, generic_arrow_function) {
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"T", variable_kind::_generic_parameter,
                     variable_init_kind::normal}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ReturnType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
   }
 }
 
@@ -890,8 +832,7 @@ TEST(test_parse_typescript_type, constructor_function) {
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ReturnType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
   }
 
   {
@@ -902,8 +843,7 @@ TEST(test_parse_typescript_type, constructor_function) {
                                       "visit_variable_declaration",  // param2
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ReturnType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(
                     spy_visitor::visited_variable_declaration{
@@ -919,8 +859,7 @@ TEST(test_parse_typescript_type, array) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"T[]"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // T
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"T"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"T"));
   }
 
   {
@@ -944,19 +883,14 @@ TEST(test_parse_typescript_type, indexed) {
     spy_visitor v = parse_and_visit_typescript_type(u8"Type[Key]"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type
                                       "visit_variable_type_use"));  // Key
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type"},
-                            spy_visitor::visited_variable_use{u8"Key"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type", u8"Key"));
   }
 }
 
 TEST(test_parse_typescript_type, mixed_array_and_indexed) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"Type[][K1][][K2]"_sv);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type"},
-                            spy_visitor::visited_variable_use{u8"K1"},
-                            spy_visitor::visited_variable_use{u8"K2"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type", u8"K1", u8"K2"));
   }
 }
 
@@ -965,25 +899,19 @@ TEST(test_parse_typescript_type, union_of_types) {
     spy_visitor v = parse_and_visit_typescript_type(u8"Type1 | Type2"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
                                       "visit_variable_type_use"));  // Type2
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
-                            spy_visitor::visited_variable_use{u8"Type2"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type1", u8"Type2"));
   }
 
   {
     spy_visitor v =
         parse_and_visit_typescript_type(u8"Type1 | Type2 | Type3 | Type4"_sv);
     EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
-                            spy_visitor::visited_variable_use{u8"Type2"},
-                            spy_visitor::visited_variable_use{u8"Type3"},
-                            spy_visitor::visited_variable_use{u8"Type4"}));
+                ElementsAre(u8"Type1", u8"Type2", u8"Type3", u8"Type4"));
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"| Type1"_sv);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type1"));
   }
 }
 
@@ -1021,25 +949,19 @@ TEST(test_parse_typescript_type, intersection) {
     spy_visitor v = parse_and_visit_typescript_type(u8"Type1 & Type2"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
                                       "visit_variable_type_use"));  // Type2
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
-                            spy_visitor::visited_variable_use{u8"Type2"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type1", u8"Type2"));
   }
 
   {
     spy_visitor v =
         parse_and_visit_typescript_type(u8"Type1 & Type2 & Type3 & Type4"_sv);
     EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"},
-                            spy_visitor::visited_variable_use{u8"Type2"},
-                            spy_visitor::visited_variable_use{u8"Type3"},
-                            spy_visitor::visited_variable_use{u8"Type4"}));
+                ElementsAre(u8"Type1", u8"Type2", u8"Type3", u8"Type4"));
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"& Type1"_sv);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type1"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type1"));
   }
 }
 
@@ -1077,24 +999,21 @@ TEST(test_parse_typescript_type, typeof) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"typeof thing"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // thing
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"thing"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"thing"));
   }
 
   {
     spy_visitor v =
         parse_and_visit_typescript_type(u8"typeof Class.staticProperty"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // Class
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Class"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Class"));
   }
 
   {
     spy_visitor v =
         parse_and_visit_typescript_type(u8"typeof ns.Class.staticProperty"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // ns
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ns"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns"));
   }
 
   for (string8 keyword :
@@ -1117,8 +1036,7 @@ TEST(test_parse_typescript_type, typeof) {
       SCOPED_TRACE(code);
       spy_visitor v = parse_and_visit_typescript_type(code.string_view());
       EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // (keyword)
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{keyword}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(keyword));
     }
   }
 
@@ -1128,8 +1046,7 @@ TEST(test_parse_typescript_type, typeof) {
       SCOPED_TRACE(code);
       spy_visitor v = parse_and_visit_typescript_type(code.string_view());
       EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // ns
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{u8"ns"}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns"));
     }
   }
 }
@@ -1139,18 +1056,14 @@ TEST(test_parse_typescript_type, typeof_generic) {
     spy_visitor v = parse_and_visit_typescript_type(u8"typeof Class<T>"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // Class
                                       "visit_variable_type_use"));  // T
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Class"},
-                            spy_visitor::visited_variable_use{u8"T"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Class", u8"T"));
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"typeof ns.Class<T>"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // ns
                                       "visit_variable_type_use"));  // T
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ns"},
-                            spy_visitor::visited_variable_use{u8"T"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns", u8"T"));
   }
 }
 
@@ -1213,9 +1126,7 @@ TEST(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
     spy_visitor v;
     parser p(&code, &v, typescript_options);
     p.parse_and_visit_typescript_type_expression(v);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Class"},
-                            spy_visitor::visited_variable_use{u8"T"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Class", u8"T"));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     &code, diag_dot_not_allowed_after_generic_arguments_in_type,
@@ -1241,16 +1152,13 @@ TEST(test_parse_typescript_type, typeof_allows_array_and_indexed) {
         parse_and_visit_typescript_type(u8"typeof ns.subns.thingy[KeyType]"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // ns
                                       "visit_variable_type_use"));  // KeyType
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"ns"},
-                            spy_visitor::visited_variable_use{u8"KeyType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns", u8"KeyType"));
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"typeof somevar[]"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // somevar
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"somevar"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"somevar"));
   }
 }
 
@@ -1258,8 +1166,7 @@ TEST(test_parse_typescript_type, keyof) {
   {
     spy_visitor v = parse_and_visit_typescript_type(u8"keyof Type"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Type"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type"));
   }
 }
 
@@ -1271,25 +1178,16 @@ TEST(test_parse_typescript_type, extends_condition) {
                                       "visit_variable_type_use",    // Base
                                       "visit_variable_type_use",    // TrueType
                                       "visit_variable_type_use"));  // FalseType
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Derived"},
-                            spy_visitor::visited_variable_use{u8"Base"},
-                            spy_visitor::visited_variable_use{u8"TrueType"},
-                            spy_visitor::visited_variable_use{u8"FalseType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Derived", u8"Base",
+                                             u8"TrueType", u8"FalseType"));
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_type(
         u8"Derived[DK] extends Base[BK] ? TrueType[TK] : FalseType[FK]"_sv);
     EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Derived"},
-                            spy_visitor::visited_variable_use{u8"DK"},
-                            spy_visitor::visited_variable_use{u8"Base"},
-                            spy_visitor::visited_variable_use{u8"BK"},
-                            spy_visitor::visited_variable_use{u8"TrueType"},
-                            spy_visitor::visited_variable_use{u8"TK"},
-                            spy_visitor::visited_variable_use{u8"FalseType"},
-                            spy_visitor::visited_variable_use{u8"FK"}));
+                ElementsAre(u8"Derived", u8"DK", u8"Base", u8"BK", u8"TrueType",
+                            u8"TK", u8"FalseType", u8"FK"));
   }
 }
 }

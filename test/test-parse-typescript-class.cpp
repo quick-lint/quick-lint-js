@@ -33,8 +33,7 @@ TEST(test_parse, field_with_type_is_disallowed_in_javascript) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"FieldType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"FieldType"));
     EXPECT_THAT(
         v.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
@@ -58,8 +57,7 @@ TEST(test_parse, field_with_type_is_allowed_in_typescript) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"FieldType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"FieldType"));
   }
 }
 
@@ -89,9 +87,7 @@ TEST(test_parse, class_index_signature_is_allowed_in_typescript) {
                                       "visit_exit_index_signature_scope",  //
                                       "visit_exit_class_scope",            // C
                                       "visit_variable_declaration"));      // C
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"KeyType"},
-                            spy_visitor::visited_variable_use{u8"ValueType"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"KeyType", u8"ValueType"));
     // TODO(strager): We probably should create a new kind of variable instead
     // of 'parameter'.
     EXPECT_THAT(
@@ -693,8 +689,7 @@ TEST(test_parse, static_blocks_are_disallowed_in_javascript) {
     EXPECT_THAT(
         v.property_declarations,
         ElementsAre(spy_visitor::visited_property_declaration{u8"#private"}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code,
@@ -717,8 +712,7 @@ TEST(test_parse, static_blocks_are_allowed_in_typescript) {
                             "visit_exit_block_scope",        // static
                             "visit_exit_class_scope",        // C
                             "visit_variable_declaration"));  // C
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
   }
 }
 
@@ -738,8 +732,7 @@ TEST(test_parse, method_return_type_annotations_are_disallowed_in_javascript) {
                             "visit_exit_function_scope",        // method
                             "visit_exit_class_scope",           // }
                             "visit_variable_declaration"));     // C
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"T"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"T"));
     EXPECT_THAT(
         v.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
@@ -763,8 +756,7 @@ TEST(test_parse, method_return_type_annotations_are_allowed_in_typescript) {
                             "visit_exit_function_scope",        // method
                             "visit_exit_class_scope",           // }
                             "visit_variable_declaration"));     // C
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"T"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"T"));
   }
 }
 
@@ -811,8 +803,7 @@ TEST(test_parse, newline_before_class_causes_abstract_to_be_identifier) {
                             "visit_exit_class_scope",        // }
                             "visit_variable_declaration",    // C
                             "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"abstract"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"abstract"));
   }
 }
 
@@ -844,8 +835,7 @@ TEST(test_parse_typescript_class, implements) {
                                     "visit_exit_class_scope",        // }
                                     "visit_variable_declaration",    // C
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.variable_uses,
-              ElementsAre(spy_visitor::visited_variable_use{u8"Base"}));
+  EXPECT_THAT(v.variable_uses, ElementsAre(u8"Base"));
 }
 
 TEST(test_parse_typescript_class, implements_comes_after_extends) {
@@ -859,9 +849,7 @@ TEST(test_parse_typescript_class, implements_comes_after_extends) {
                                       "visit_exit_class_scope",        // }
                                       "visit_variable_declaration",    // C
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"Base"},
-                            spy_visitor::visited_variable_use{u8"I"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Base", u8"I"));
   }
 
   {
@@ -876,9 +864,7 @@ TEST(test_parse_typescript_class, implements_comes_after_extends) {
                                       "visit_exit_class_scope",        // }
                                       "visit_variable_declaration",    // C
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"I"},
-                            spy_visitor::visited_variable_use{u8"Base"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"I", u8"Base"));
     EXPECT_THAT(
         v.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
@@ -898,8 +884,7 @@ TEST(test_parse_typescript_class, implements_interface_from_namespace) {
                                     "visit_exit_class_scope",        // }
                                     "visit_variable_declaration",    // C
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.variable_uses,
-              ElementsAre(spy_visitor::visited_variable_use{u8"ns"}));
+  EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns"));
 }
 
 TEST(test_parse_typescript_class, implement_multiple_things) {
@@ -913,10 +898,7 @@ TEST(test_parse_typescript_class, implement_multiple_things) {
                                     "visit_exit_class_scope",        // }
                                     "visit_variable_declaration",    // C
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.variable_uses,
-              ElementsAre(spy_visitor::visited_variable_use{u8"Apple"},
-                          spy_visitor::visited_variable_use{u8"Banana"},
-                          spy_visitor::visited_variable_use{u8"Carrot"}));
+  EXPECT_THAT(v.variable_uses, ElementsAre(u8"Apple", u8"Banana", u8"Carrot"));
 }
 }
 }

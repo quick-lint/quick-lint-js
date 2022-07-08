@@ -124,8 +124,7 @@ TEST(test_error_equals_does_not_distribute_over_or, examples) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"x"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x"));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     &code, diag_equals_does_not_distribute_over_or,   //

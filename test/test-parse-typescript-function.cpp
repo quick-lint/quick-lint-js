@@ -31,8 +31,7 @@ TEST(test_parse_typescript_function,
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
     EXPECT_THAT(
         v.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
@@ -52,8 +51,7 @@ TEST(test_parse_typescript_function, function_return_type_annotation) {
                             "visit_variable_type_use",          // C
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
   }
 }
 
@@ -67,8 +65,7 @@ TEST(test_parse_typescript_function, arrow_return_type_annotation) {
                             "visit_variable_type_use",          // C
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
   }
 
   {
@@ -78,8 +75,7 @@ TEST(test_parse_typescript_function, arrow_return_type_annotation) {
                             "visit_variable_type_use",          // C
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
   }
 
   {
@@ -91,8 +87,7 @@ TEST(test_parse_typescript_function, arrow_return_type_annotation) {
                             "visit_variable_type_use",          // C
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
   }
 
   {
@@ -103,8 +98,7 @@ TEST(test_parse_typescript_function, arrow_return_type_annotation) {
                             "visit_variable_type_use",          // C
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
   }
 }
 
@@ -118,8 +112,7 @@ TEST(test_parse_typescript_function, object_method_return_type_annotation) {
                             "visit_variable_type_use",          // C
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
   }
 }
 
@@ -138,8 +131,7 @@ TEST(test_parse_typescript_function, class_method_return_type_annotation) {
                             "visit_exit_function_scope",        // }
                             "visit_exit_class_scope",           // }
                             "visit_variable_declaration"));     // C
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
   }
 }
 
@@ -156,8 +148,7 @@ TEST(test_parse_typescript_function, interface_method_return_type_annotation) {
                             "visit_variable_type_use",       // C
                             "visit_exit_function_scope",     // method
                             "visit_exit_interface_scope"));  // }
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
   }
 }
 }

@@ -116,8 +116,7 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
   }
 
   void visit_keyword_variable_use(identifier name) override {
-    this->variable_uses.emplace_back(
-        visited_variable_use{string8(name.normalized_name())});
+    this->variable_uses.emplace_back(name.normalized_name());
     this->visits.emplace_back("visit_keyword_variable_use");
   }
 
@@ -190,59 +189,41 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
   void visit_variable_delete_use(
       identifier name,
       [[maybe_unused]] source_code_span delete_keyword) override {
-    this->variable_uses.emplace_back(
-        visited_variable_use{string8(name.normalized_name())});
+    this->variable_uses.emplace_back(name.normalized_name());
     this->visits.emplace_back("visit_variable_delete_use");
   }
 
   void visit_variable_export_use(identifier name) override {
-    this->variable_uses.emplace_back(
-        visited_variable_use{string8(name.normalized_name())});
+    this->variable_uses.emplace_back(name.normalized_name());
     this->visits.emplace_back("visit_variable_export_use");
   }
 
   void visit_variable_namespace_use(identifier name) override {
-    this->variable_uses.emplace_back(
-        visited_variable_use{string8(name.normalized_name())});
+    this->variable_uses.emplace_back(name.normalized_name());
     this->visits.emplace_back("visit_variable_namespace_use");
   }
 
   void visit_variable_type_use(identifier name) override {
-    this->variable_uses.emplace_back(
-        visited_variable_use{string8(name.normalized_name())});
+    this->variable_uses.emplace_back(name.normalized_name());
     this->visits.emplace_back("visit_variable_type_use");
   }
 
   void visit_variable_typeof_use(identifier name) override {
-    this->variable_uses.emplace_back(
-        visited_variable_use{string8(name.normalized_name())});
+    this->variable_uses.emplace_back(name.normalized_name());
     this->visits.emplace_back("visit_variable_typeof_use");
   }
 
   void visit_variable_use(identifier name) override {
-    this->variable_uses.emplace_back(
-        visited_variable_use{string8(name.normalized_name())});
+    this->variable_uses.emplace_back(name.normalized_name());
     this->visits.emplace_back("visit_variable_use");
   }
 
-  struct visited_variable_use {
-    string8 name;
-
-    bool operator==(const visited_variable_use &other) const {
-      return this->name == other.name;
-    }
-
-    bool operator!=(const visited_variable_use &other) const {
-      return !(*this == other);
-    }
-  };
-  std::vector<visited_variable_use> variable_uses;
+  std::vector<string8> variable_uses;
 };
 
 void PrintTo(const spy_visitor::visited_property_declaration &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_assignment &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_declaration &, std::ostream *);
-void PrintTo(const spy_visitor::visited_variable_use &, std::ostream *);
 }
 
 #endif

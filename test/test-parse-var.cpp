@@ -157,8 +157,8 @@ TEST(test_parse, parse_let_with_initializers) {
     EXPECT_EQ(v.variable_declarations[0].name, u8"x");
     EXPECT_EQ(v.variable_declarations[1].name, u8"y");
     ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[0].name, u8"other");
-    EXPECT_EQ(v.variable_uses[1].name, u8"x");
+    EXPECT_EQ(v.variable_uses[0], u8"other");
+    EXPECT_EQ(v.variable_uses[1], u8"x");
   }
 
   {
@@ -166,8 +166,8 @@ TEST(test_parse, parse_let_with_initializers) {
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"x");
     ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[0].name, u8"y");
-    EXPECT_EQ(v.variable_uses[1].name, u8"z");
+    EXPECT_EQ(v.variable_uses[0], u8"y");
+    EXPECT_EQ(v.variable_uses[1], u8"z");
   }
 }
 
@@ -213,10 +213,9 @@ TEST(test_parse, parse_let_with_object_destructuring) {
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"key", variable_kind::_let,
                     variable_init_kind::initialized_with_equals}));
-    EXPECT_THAT(
-        v.variable_uses,
-        ElementsAre(spy_visitor::visited_variable_use{u8"x"},  //
-                    spy_visitor::visited_variable_use{u8"defaultValue"}));
+    EXPECT_THAT(v.variable_uses,
+                ElementsAre(u8"x",  //
+                            u8"defaultValue"));
   }
 }
 
@@ -234,8 +233,7 @@ TEST(test_parse, parse_let_with_array_destructuring) {
                     spy_visitor::visited_variable_declaration{
                         u8"second", variable_kind::_let,
                         variable_init_kind::initialized_with_equals}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"xs"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
   }
 }
 
@@ -266,7 +264,7 @@ TEST(test_parse,
   ASSERT_EQ(v.variable_declarations.size(), 1);
   EXPECT_EQ(v.variable_declarations[0].name, u8"x");
   ASSERT_EQ(v.variable_uses.size(), 1);
-  EXPECT_EQ(v.variable_uses[0].name, u8"x");
+  EXPECT_EQ(v.variable_uses[0], u8"x");
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
@@ -498,8 +496,7 @@ TEST(test_parse, parse_invalid_let) {
                 ElementsAre("visit_variable_use",          // y
                             "visit_variable_declaration",  // x
                             "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"y"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"y"));
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"x", variable_kind::_let, variable_init_kind::normal}));
@@ -944,8 +941,7 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"x", variable_kind::_let,
                     variable_init_kind::initialized_with_equals}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"console"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"console"));
     cli_source_position::offset_type end_of_let_statement =
         strlen(u8"let x = 2");
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1024,7 +1020,7 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
                                       "visit_variable_use",            // let
                                       "visit_variable_declaration"));  // x
     ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[1].name, u8"let");
+    EXPECT_EQ(v.variable_uses[1], u8"let");
   }
 
   {
@@ -1032,15 +1028,14 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // console
                                       "visit_variable_use"));  // let
     ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[1].name, u8"let");
+    EXPECT_EQ(v.variable_uses[1], u8"let");
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"let.method();");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_use"));  // let
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"let"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"let"));
   }
 
   for (string8 code : {
@@ -1075,35 +1070,27 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
 
   {
     spy_visitor v = parse_and_visit_statement(u8"for (let.prop in xs) ;");
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"xs"},  //
-                            spy_visitor::visited_variable_use{u8"let"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs", u8"let"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"let");
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"let"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"let"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"let;");
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"let"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"let"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"let in other;");
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"let"},
-                            spy_visitor::visited_variable_use{u8"other"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"let", u8"other"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"let instanceof MyClass;");
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"let"},
-                            spy_visitor::visited_variable_use{u8"MyClass"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"let", u8"MyClass"));
   }
 }
 
@@ -1248,8 +1235,8 @@ TEST(test_parse, use_await_in_non_async_function) {
     spy_visitor v = parse_and_visit_statement(u8"await(x);"_sv,
                                               function_attributes::normal);
     EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"await"},  //
-                            spy_visitor::visited_variable_use{u8"x"}));
+                ElementsAre(u8"await",  //
+                            u8"x"));
   }
 
   {
@@ -1258,8 +1245,8 @@ TEST(test_parse, use_await_in_non_async_function) {
         u8"  function g() { await(x); }\n"
         u8"}");
     EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"await"},  //
-                            spy_visitor::visited_variable_use{u8"x"}));
+                ElementsAre(u8"await",  //
+                            u8"x"));
   }
 
   {
@@ -1268,8 +1255,7 @@ TEST(test_parse, use_await_in_non_async_function) {
         u8"  async function g() {}\n"
         u8"  await();\n"
         u8"}");
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"await"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"await"));
   }
 
   {
@@ -1278,28 +1264,24 @@ TEST(test_parse, use_await_in_non_async_function) {
         u8"  async () => {};\n"
         u8"  await();\n"
         u8"})");
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"await"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"await"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"(async => { await(); })"_sv);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"await"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"await"));
   }
 
   {
     spy_visitor v =
         parse_and_visit_statement(u8"({ async() { await(); } })"_sv);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"await"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"await"));
   }
 
   {
     spy_visitor v =
         parse_and_visit_statement(u8"class C { async() { await(); } }"_sv);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"await"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"await"));
   }
 }
 
@@ -1511,16 +1493,14 @@ TEST(test_parse, use_await_at_top_level_as_variable) {
     spy_visitor v = parse_and_visit_module(u8"await.prop"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"await"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"await"));
   }
 
   {
     spy_visitor v = parse_and_visit_module(u8"await?.prop"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"await"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"await"));
   }
 
   {
@@ -1639,9 +1619,7 @@ TEST(
 TEST(test_parse, use_yield_in_non_generator_function) {
   {
     spy_visitor v = parse_and_visit_statement(u8"yield(x);"_sv);
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"yield"},  //
-                            spy_visitor::visited_variable_use{u8"x"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"yield", u8"x"));
   }
 
   {
@@ -1649,9 +1627,7 @@ TEST(test_parse, use_yield_in_non_generator_function) {
         u8"function* f() {\n"
         u8"  function g() { yield(x); }\n"
         u8"}");
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"yield"},  //
-                            spy_visitor::visited_variable_use{u8"x"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"yield", u8"x"));
   }
 
   {
@@ -1660,8 +1636,7 @@ TEST(test_parse, use_yield_in_non_generator_function) {
         u8"  function* g() {}\n"
         u8"  yield();\n"
         u8"}");
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"yield"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"yield"));
   }
 }
 
@@ -1906,7 +1881,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
                                         "visit_variable_use",  // (name)
                                         "visit_variable_declaration"));  // x
       ASSERT_EQ(v.variable_uses.size(), 2);
-      EXPECT_EQ(v.variable_uses[1].name, name);
+      EXPECT_EQ(v.variable_uses[1], name);
     }
 
     {
@@ -1915,7 +1890,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // console
                                         "visit_variable_use"));  // (name)
       ASSERT_EQ(v.variable_uses.size(), 2);
-      EXPECT_EQ(v.variable_uses[1].name, name);
+      EXPECT_EQ(v.variable_uses[1], name);
     }
 
     {
@@ -1924,8 +1899,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       spy_visitor v =
           parse_and_visit_statement(code.c_str(), function_attributes::normal);
       EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // (name)
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{name}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(name));
     }
 
     {
@@ -1935,7 +1909,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
           parse_and_visit_statement(code.c_str(), function_attributes::normal);
       EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // (name)
       ASSERT_EQ(v.variable_uses.size(), 1);
-      EXPECT_EQ(v.variable_uses[0].name, name);
+      EXPECT_EQ(v.variable_uses[0], name);
     }
 
     {
@@ -1943,8 +1917,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
                                                 function_attributes::normal);
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_use"));  // (name)
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{name}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(name));
     }
 
     for (string8 code : {
@@ -1985,8 +1958,8 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       spy_visitor v = parse_and_visit_statement(
           u8"for (" + name + u8".prop in xs) ;", function_attributes::normal);
       EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{name},  //
-                              spy_visitor::visited_variable_use{u8"xs"}));
+                  ElementsAre(name,  //
+                              u8"xs"));
     }
 
     if (name != u8"async") {
@@ -1996,8 +1969,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
           u8"for (" + name + u8" of xs) ;", function_attributes::normal);
       EXPECT_THAT(v.variable_assignments,
                   ElementsAre(spy_visitor::visited_variable_assignment{name}));
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{u8"xs"}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
     }
 
     {
@@ -2005,17 +1977,14 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
           u8"for ((" + name + u8") of xs) ;", function_attributes::normal);
       EXPECT_THAT(v.variable_assignments,
                   ElementsAre(spy_visitor::visited_variable_assignment{name}));
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{u8"xs"}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
     }
 
     {
       spy_visitor v = parse_and_visit_statement(
           u8"for (" + name + u8".prop of xs) ;", function_attributes::normal);
       EXPECT_THAT(v.variable_assignments, IsEmpty());
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{name},
-                              spy_visitor::visited_variable_use{u8"xs"}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(name, u8"xs"));
     }
 
     {
@@ -2024,8 +1993,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       EXPECT_THAT(v.variable_declarations,
                   ElementsAre(spy_visitor::visited_variable_declaration{
                       name, variable_kind::_let, variable_init_kind::normal}));
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{u8"xs"}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
     }
 
     {
@@ -2034,26 +2002,21 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       EXPECT_THAT(v.variable_declarations,
                   ElementsAre(spy_visitor::visited_variable_declaration{
                       name, variable_kind::_var, variable_init_kind::normal}));
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{u8"xs"}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
     }
 
     {
       spy_visitor v = parse_and_visit_statement(
           u8"for (" + name + u8"; cond;) ;", function_attributes::normal);
       EXPECT_THAT(v.variable_assignments, IsEmpty());
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{name},
-                              spy_visitor::visited_variable_use{u8"cond"}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(name, u8"cond"));
     }
 
     {
       spy_visitor v = parse_and_visit_statement(
           u8"for (" + name + u8".prop; cond;) ;", function_attributes::normal);
       EXPECT_THAT(v.variable_assignments, IsEmpty());
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(spy_visitor::visited_variable_use{name},
-                              spy_visitor::visited_variable_use{u8"cond"}));
+      EXPECT_THAT(v.variable_uses, ElementsAre(name, u8"cond"));
     }
   }
 }

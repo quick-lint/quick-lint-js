@@ -34,8 +34,7 @@ TEST(test_parse_typescript_var, let_can_have_type_annotation) {
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(spy_visitor::visited_variable_declaration{
                     u8"x", variable_kind::_let, variable_init_kind::normal}));
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
   }
 
   {
@@ -44,9 +43,7 @@ TEST(test_parse_typescript_var, let_can_have_type_annotation) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",       // C
                                       "visit_variable_use",            // init
                                       "visit_variable_declaration"));  // x
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"C"},
-                            spy_visitor::visited_variable_use{u8"init"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C", u8"init"));
   }
 
   {
@@ -57,9 +54,7 @@ TEST(test_parse_typescript_var, let_can_have_type_annotation) {
                                       "visit_variable_declaration",    // x
                                       "visit_variable_declaration",    // y
                                       "visit_variable_declaration"));  // z
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"init"},
-                            spy_visitor::visited_variable_use{u8"Array"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"init", u8"Array"));
   }
 
   {
@@ -70,9 +65,7 @@ TEST(test_parse_typescript_var, let_can_have_type_annotation) {
                                       "visit_variable_declaration",    // p2
                                       "visit_variable_use",            // y
                                       "visit_variable_declaration"));  // p3
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"T"},
-                            spy_visitor::visited_variable_use{u8"y"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"T", u8"y"));
   }
 }
 
@@ -89,10 +82,7 @@ TEST(test_parse_typescript_var, function_parameter_can_have_type_annotation) {
                                       "visit_variable_declaration",  // p2
                                       "visit_enter_function_scope_body",  // {
                                       "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses,
-                ElementsAre(spy_visitor::visited_variable_use{u8"A"},
-                            spy_visitor::visited_variable_use{u8"init"},
-                            spy_visitor::visited_variable_use{u8"B"}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"A", u8"init", u8"B"));
   }
 
   {

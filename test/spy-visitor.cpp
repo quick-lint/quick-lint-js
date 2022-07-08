@@ -31,10 +31,6 @@ void PrintTo(const spy_visitor::visited_variable_declaration &x,
     break;
   }
 }
-
-void PrintTo(const spy_visitor::visited_variable_use &x, std::ostream *out) {
-  *out << out_string8(x.name);
-}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
