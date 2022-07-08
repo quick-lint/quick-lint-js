@@ -25,6 +25,19 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
+// Fails the test if any not-overridden method is called.
+struct test_lsp_server_handler : public lsp_endpoint_handler {
+  void handle_request(::simdjson::ondemand::object&, std::string_view,
+                      string8_view, byte_buffer&) override {
+    ADD_FAILURE() << "handle_request should not be called";
+  }
+
+  void handle_notification(::simdjson::ondemand::object&,
+                           std::string_view) override {
+    ADD_FAILURE() << "handle_notification should not be called";
+  }
+};
+
 string8 make_message(string8_view content) {
   return string8(u8"Content-Length: ") +
          to_string8(std::to_string(content.size())) + u8"\r\n\r\n" +
@@ -43,7 +56,7 @@ std::string json_get_string(
 }
 
 TEST(test_lsp_endpoint, single_unbatched_request) {
-  struct mock_lsp_server_handler : public lsp_endpoint_handler {
+  struct mock_lsp_server_handler : public test_lsp_server_handler {
     void handle_request(::simdjson::ondemand::object& request,
                         std::string_view method, string8_view id_json,
                         byte_buffer& response_json) override {
@@ -57,11 +70,6 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
           {"params", "testresponse"},
       };
       response_json.append_copy(json_to_string(response));
-    }
-
-    void handle_notification(::simdjson::ondemand::object&,
-                             std::string_view) override {
-      ADD_FAILURE() << "handle_notification should not be called";
     }
   };
   mock_lsp_server_handler handler;
@@ -82,7 +90,7 @@ TEST(test_lsp_endpoint, single_unbatched_request) {
 }
 
 TEST(test_lsp_endpoint, batched_request) {
-  struct mock_lsp_server_handler : public lsp_endpoint_handler {
+  struct mock_lsp_server_handler : public test_lsp_server_handler {
     void handle_request(::simdjson::ondemand::object& request,
                         std::string_view method, string8_view id_json,
                         byte_buffer& response_json) override {
@@ -97,11 +105,6 @@ TEST(test_lsp_endpoint, batched_request) {
           {"params", "testresponse"},
       };
       response_json.append_copy(json_to_string(response));
-    }
-
-    void handle_notification(::simdjson::ondemand::object&,
-                             std::string_view) override {
-      ADD_FAILURE() << "handle_notification should not be called";
     }
   };
   mock_lsp_server_handler handler;
@@ -134,12 +137,7 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
   static int handle_notification_count;
   handle_notification_count = 0;
 
-  struct mock_lsp_server_handler : public lsp_endpoint_handler {
-    void handle_request(::simdjson::ondemand::object&, std::string_view,
-                        string8_view, byte_buffer&) override {
-      ADD_FAILURE() << "handle_request should not be called";
-    }
-
+  struct mock_lsp_server_handler : public test_lsp_server_handler {
     void handle_notification(::simdjson::ondemand::object& notification,
                              std::string_view method) override {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
@@ -163,12 +161,7 @@ TEST(test_lsp_endpoint, single_unbatched_notification_with_no_reply) {
 }
 
 TEST(test_lsp_endpoint, single_unbatched_notification_with_reply) {
-  struct mock_lsp_server_handler : public lsp_endpoint_handler {
-    void handle_request(::simdjson::ondemand::object&, std::string_view,
-                        string8_view, byte_buffer&) override {
-      ADD_FAILURE() << "handle_request should not be called";
-    }
-
+  struct mock_lsp_server_handler : public test_lsp_server_handler {
     void handle_notification(::simdjson::ondemand::object& notification,
                              std::string_view method) override {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
@@ -205,12 +198,7 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
   static int handle_notification_count;
   handle_notification_count = 0;
 
-  struct mock_lsp_server_handler : public lsp_endpoint_handler {
-    void handle_request(::simdjson::ondemand::object&, std::string_view,
-                        string8_view, byte_buffer&) override {
-      ADD_FAILURE() << "handle_request should not be called";
-    }
-
+  struct mock_lsp_server_handler : public test_lsp_server_handler {
     void handle_notification(::simdjson::ondemand::object& notification,
                              std::string_view method) override {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
@@ -236,12 +224,7 @@ TEST(test_lsp_endpoint, batched_notification_with_no_reply) {
 }
 
 TEST(test_lsp_endpoint, batched_notification_with_reply) {
-  struct mock_lsp_server_handler : public lsp_endpoint_handler {
-    void handle_request(::simdjson::ondemand::object&, std::string_view,
-                        string8_view, byte_buffer&) override {
-      ADD_FAILURE() << "handle_request should not be called";
-    }
-
+  struct mock_lsp_server_handler : public test_lsp_server_handler {
     void handle_notification(::simdjson::ondemand::object& notification,
                              std::string_view method) override {
       EXPECT_EQ(json_get_string(notification["method"]), "testmethod");
@@ -279,18 +262,7 @@ TEST(test_lsp_endpoint, batched_notification_with_reply) {
 
 // https://www.jsonrpc.org/specification#error_object
 TEST(test_lsp_endpoint, malformed_json) {
-  struct mock_lsp_server_handler : public lsp_endpoint_handler {
-    void handle_request(::simdjson::ondemand::object&, std::string_view,
-                        string8_view, byte_buffer&) override {
-      ADD_FAILURE() << "handle_request should not be called";
-    }
-
-    void handle_notification(::simdjson::ondemand::object&,
-                             std::string_view) override {
-      ADD_FAILURE() << "handle_notification should not be called";
-    }
-  };
-  mock_lsp_server_handler handler;
+  test_lsp_server_handler handler;
   spy_lsp_endpoint_remote remote;
   lsp_endpoint server(&handler, &remote);
 
@@ -306,18 +278,6 @@ TEST(test_lsp_endpoint, malformed_json) {
 }
 
 TEST(test_lsp_endpoint, invalid_message) {
-  struct mock_lsp_server_handler : public lsp_endpoint_handler {
-    void handle_request(::simdjson::ondemand::object&, std::string_view,
-                        string8_view, byte_buffer&) override {
-      ADD_FAILURE() << "handle_request should not be called";
-    }
-
-    void handle_notification(::simdjson::ondemand::object&,
-                             std::string_view) override {
-      ADD_FAILURE() << "handle_notification should not be called";
-    }
-  };
-
   for (
       string8_view message : {
           // request with missing method
@@ -332,7 +292,7 @@ TEST(test_lsp_endpoint, invalid_message) {
       }) {
     SCOPED_TRACE(out_string8(message));
 
-    mock_lsp_server_handler handler;
+    test_lsp_server_handler handler;
     spy_lsp_endpoint_remote remote;
     lsp_endpoint server(&handler, &remote);
 
