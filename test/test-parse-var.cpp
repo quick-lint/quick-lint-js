@@ -997,9 +997,7 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
         ElementsAre("visit_enter_named_function_scope",  // let (function)
                     "visit_enter_function_scope_body",
                     "visit_exit_function_scope"));
-    EXPECT_THAT(
-        v.enter_named_function_scopes,
-        ElementsAre(spy_visitor::visited_enter_named_function_scope{u8"let"}));
+    EXPECT_THAT(v.enter_named_function_scopes, ElementsAre(u8"let"));
   }
 
   {
@@ -1609,9 +1607,7 @@ TEST(
                             "visit_variable_use",                // await
                             "visit_exit_function_scope",         //
                             "visit_exit_function_scope"));
-    EXPECT_THAT(v.enter_named_function_scopes,
-                ElementsAre(spy_visitor::visited_enter_named_function_scope{
-                    u8"await"}));
+    EXPECT_THAT(v.enter_named_function_scopes, ElementsAre(u8"await"));
   }
 }
 
@@ -1832,9 +1828,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
           ElementsAre("visit_enter_named_function_scope",  // (name) (function)
                       "visit_enter_function_scope_body",   //
                       "visit_exit_function_scope"));
-      EXPECT_THAT(
-          v.enter_named_function_scopes,
-          ElementsAre(spy_visitor::visited_enter_named_function_scope{name}));
+      EXPECT_THAT(v.enter_named_function_scopes, ElementsAre(name));
     }
 
     {

@@ -408,9 +408,7 @@ TEST(test_parse, parse_function_expression) {
                             "visit_enter_function_scope_body",   //
                             "visit_variable_use",                // recur
                             "visit_exit_function_scope"));
-    EXPECT_THAT(v.enter_named_function_scopes,
-                ElementsAre(spy_visitor::visited_enter_named_function_scope{
-                    u8"recur"}));
+    EXPECT_THAT(v.enter_named_function_scopes, ElementsAre(u8"recur"));
   }
 }
 

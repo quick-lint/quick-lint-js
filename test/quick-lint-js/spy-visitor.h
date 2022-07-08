@@ -65,23 +65,11 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
   }
 
   void visit_enter_named_function_scope(identifier name) override {
-    this->enter_named_function_scopes.emplace_back(
-        visited_enter_named_function_scope{string8(name.normalized_name())});
+    this->enter_named_function_scopes.emplace_back(name.normalized_name());
     this->visits.emplace_back("visit_enter_named_function_scope");
   }
 
-  struct visited_enter_named_function_scope {
-    string8 name;
-
-    bool operator==(const visited_enter_named_function_scope &other) const {
-      return this->name == other.name;
-    }
-
-    bool operator!=(const visited_enter_named_function_scope &other) const {
-      return !(*this == other);
-    }
-  };
-  std::vector<visited_enter_named_function_scope> enter_named_function_scopes;
+  std::vector<string8> enter_named_function_scopes;
 
   void visit_exit_block_scope() override {
     this->visits.emplace_back("visit_exit_block_scope");
