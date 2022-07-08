@@ -16,6 +16,21 @@
 #include <vector>
 
 namespace quick_lint_js {
+struct visited_variable_declaration {
+  string8 name;
+  variable_kind kind;
+  variable_init_kind init_kind;
+
+  bool operator==(const visited_variable_declaration &other) const {
+    return this->name == other.name && this->kind == other.kind &&
+           this->init_kind == other.init_kind;
+  }
+
+  bool operator!=(const visited_variable_declaration &other) const {
+    return !(*this == other);
+  }
+};
+
 struct spy_visitor final : public diag_collector, public parse_visitor_base {
   std::vector<std::string_view> visits;
 
@@ -134,20 +149,6 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
     this->visits.emplace_back("visit_variable_declaration");
   }
 
-  struct visited_variable_declaration {
-    string8 name;
-    variable_kind kind;
-    variable_init_kind init_kind;
-
-    bool operator==(const visited_variable_declaration &other) const {
-      return this->name == other.name && this->kind == other.kind &&
-             this->init_kind == other.init_kind;
-    }
-
-    bool operator!=(const visited_variable_declaration &other) const {
-      return !(*this == other);
-    }
-  };
   std::vector<visited_variable_declaration> variable_declarations;
 
   void visit_variable_delete_use(
@@ -185,7 +186,7 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
   std::vector<string8> variable_uses;
 };
 
-void PrintTo(const spy_visitor::visited_variable_declaration &, std::ostream *);
+void PrintTo(const visited_variable_declaration &, std::ostream *);
 }
 
 #endif

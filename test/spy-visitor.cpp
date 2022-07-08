@@ -6,8 +6,7 @@
 #include <quick-lint-js/spy-visitor.h>
 
 namespace quick_lint_js {
-void PrintTo(const spy_visitor::visited_variable_declaration &x,
-             std::ostream *out) {
+void PrintTo(const visited_variable_declaration &x, std::ostream *out) {
   *out << x.kind << ' ' << out_string8(x.name);
   switch (x.init_kind) {
   case variable_init_kind::normal:

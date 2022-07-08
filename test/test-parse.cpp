@@ -152,10 +152,10 @@ TEST(test_parse, asi_for_statement_at_right_curly) {
     EXPECT_THAT(
         v.variable_declarations,
         ElementsAre(
-            spy_visitor::visited_variable_declaration{
-                u8"f", variable_kind::_function, variable_init_kind::normal},
-            spy_visitor::visited_variable_declaration{
-                u8"g", variable_kind::_function, variable_init_kind::normal}));
+            visited_variable_declaration{u8"f", variable_kind::_function,
+                                         variable_init_kind::normal},
+            visited_variable_declaration{u8"g", variable_kind::_function,
+                                         variable_init_kind::normal}));
   }
 }
 
@@ -186,7 +186,7 @@ TEST(test_parse, asi_for_statement_at_newline) {
     auto loop_guard = p.enter_loop();  // Allow 'break' and 'continue'.
     p.parse_and_visit_module(v);
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
+                ElementsAre(visited_variable_declaration{
                     u8"x", variable_kind::_let,
                     variable_init_kind::initialized_with_equals}));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"cond"));
@@ -474,7 +474,7 @@ TEST(
         ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
+                ElementsAre(visited_variable_declaration{
                     u8"if", variable_kind::_const,
                     variable_init_kind::initialized_with_equals}));
   }
@@ -489,7 +489,7 @@ TEST(
         ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
+                ElementsAre(visited_variable_declaration{
                     u8"if", variable_kind::_let, variable_init_kind::normal}));
   }
 
@@ -503,7 +503,7 @@ TEST(
         ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
+                ElementsAre(visited_variable_declaration{
                     u8"if", variable_kind::_var, variable_init_kind::normal}));
   }
 
@@ -523,11 +523,10 @@ TEST(
     EXPECT_THAT(
         v.variable_declarations,
         ElementsAre(
-            spy_visitor::visited_variable_declaration{
-                u8"g", variable_kind::_function, variable_init_kind::normal},
-            spy_visitor::visited_variable_declaration{
-                u8"if", variable_kind::_parameter,
-                variable_init_kind::normal}));
+            visited_variable_declaration{u8"g", variable_kind::_function,
+                                         variable_init_kind::normal},
+            visited_variable_declaration{u8"if", variable_kind::_parameter,
+                                         variable_init_kind::normal}));
   }
 
   {
@@ -544,7 +543,7 @@ TEST(
                                       "visit_exit_function_scope"));
     EXPECT_THAT(
         v.variable_declarations,
-        ElementsAre(spy_visitor::visited_variable_declaration{
+        ElementsAre(visited_variable_declaration{
             u8"if", variable_kind::_parameter, variable_init_kind::normal}));
   }
 }
@@ -611,7 +610,7 @@ TEST(test_parse,
       EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
                                         "visit_end_of_module"));
       EXPECT_THAT(v.variable_declarations,
-                  ElementsAre(spy_visitor::visited_variable_declaration{
+                  ElementsAre(visited_variable_declaration{
                       keyword, variable_kind::_var,
                       variable_init_kind::initialized_with_equals}));
       EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
@@ -628,7 +627,7 @@ TEST(test_parse,
                                         "visit_variable_declaration",  //
                                         "visit_end_of_module"));
       EXPECT_THAT(v.variable_declarations,
-                  ElementsAre(spy_visitor::visited_variable_declaration{
+                  ElementsAre(visited_variable_declaration{
                       keyword, variable_kind::_var,
                       variable_init_kind::initialized_with_equals}));
       EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";

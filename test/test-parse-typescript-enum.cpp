@@ -99,7 +99,7 @@ TEST(test_parse_typescript_enum, empty_enum) {
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
+                ElementsAre(visited_variable_declaration{
                     u8"E", variable_kind::_enum, variable_init_kind::normal}));
   }
 
@@ -110,7 +110,7 @@ TEST(test_parse_typescript_enum, empty_enum) {
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
+                ElementsAre(visited_variable_declaration{
                     u8"E", variable_kind::_enum, variable_init_kind::normal}));
   }
 
@@ -121,7 +121,7 @@ TEST(test_parse_typescript_enum, empty_enum) {
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
+                ElementsAre(visited_variable_declaration{
                     u8"E", variable_kind::_enum, variable_init_kind::normal}));
   }
 
@@ -132,7 +132,7 @@ TEST(test_parse_typescript_enum, empty_enum) {
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
+                ElementsAre(visited_variable_declaration{
                     u8"E", variable_kind::_enum, variable_init_kind::normal}));
   }
 }
@@ -152,7 +152,7 @@ TEST(test_parse_typescript_enum,
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(spy_visitor::visited_variable_declaration{
+                ElementsAre(visited_variable_declaration{
                     name, variable_kind::_enum, variable_init_kind::normal}));
   }
 }

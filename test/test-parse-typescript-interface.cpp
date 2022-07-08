@@ -51,10 +51,9 @@ TEST(test_parse_typescript_interface, empty_interface) {
                                     "visit_enter_interface_scope",  // I
                                     "visit_exit_interface_scope",   // I
                                     "visit_end_of_module"));
-  EXPECT_THAT(
-      v.variable_declarations,
-      ElementsAre(spy_visitor::visited_variable_declaration{
-          u8"I", variable_kind::_interface, variable_init_kind::normal}));
+  EXPECT_THAT(v.variable_declarations, ElementsAre(visited_variable_declaration{
+                                           u8"I", variable_kind::_interface,
+                                           variable_init_kind::normal}));
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
@@ -447,11 +446,10 @@ TEST(test_parse_typescript_interface, interface_with_index_signature) {
     EXPECT_THAT(
         v.variable_declarations,
         ElementsAre(
-            spy_visitor::visited_variable_declaration{
-                u8"I", variable_kind::_interface, variable_init_kind::normal},
-            spy_visitor::visited_variable_declaration{
-                u8"key", variable_kind::_parameter,
-                variable_init_kind::normal}));
+            visited_variable_declaration{u8"I", variable_kind::_interface,
+                                         variable_init_kind::normal},
+            visited_variable_declaration{u8"key", variable_kind::_parameter,
+                                         variable_init_kind::normal}));
   }
 
   {
@@ -1221,14 +1219,13 @@ TEST(test_parse_typescript_interface, generic_call_signature) {
     EXPECT_THAT(
         v.variable_declarations,
         ElementsAre(
-            spy_visitor::visited_variable_declaration{
-                u8"I", variable_kind::_interface, variable_init_kind::normal},
-            spy_visitor::visited_variable_declaration{
-                u8"T", variable_kind::_generic_parameter,
-                variable_init_kind::normal},
-            spy_visitor::visited_variable_declaration{
-                u8"param", variable_kind::_parameter,
-                variable_init_kind::normal}));
+            visited_variable_declaration{u8"I", variable_kind::_interface,
+                                         variable_init_kind::normal},
+            visited_variable_declaration{u8"T",
+                                         variable_kind::_generic_parameter,
+                                         variable_init_kind::normal},
+            visited_variable_declaration{u8"param", variable_kind::_parameter,
+                                         variable_init_kind::normal}));
   }
 }
 
@@ -1246,11 +1243,11 @@ TEST(test_parse_typescript_interface, generic_interface) {
     EXPECT_THAT(
         v.variable_declarations,
         ElementsAre(
-            spy_visitor::visited_variable_declaration{
-                u8"I", variable_kind::_interface, variable_init_kind::normal},
-            spy_visitor::visited_variable_declaration{
-                u8"T", variable_kind::_generic_parameter,
-                variable_init_kind::normal}));
+            visited_variable_declaration{u8"I", variable_kind::_interface,
+                                         variable_init_kind::normal},
+            visited_variable_declaration{u8"T",
+                                         variable_kind::_generic_parameter,
+                                         variable_init_kind::normal}));
   }
 }
 
