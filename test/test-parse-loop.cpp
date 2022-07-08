@@ -522,8 +522,7 @@ TEST(test_parse, for_in_loop) {
                                       "visit_enter_block_scope",    //
                                       "visit_variable_use",         //
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.variable_assignments,
-                ElementsAre(spy_visitor::visited_variable_assignment{u8"x"}));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"x"));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs", u8"body"));
   }
 
@@ -575,14 +574,12 @@ TEST(test_parse, for_in_loop) {
 TEST(test_parse, for_in_loop_with_destructuring) {
   {
     spy_visitor v = parse_and_visit_statement(u8"for ([x] in xs) {}"_sv);
-    EXPECT_THAT(v.variable_assignments,
-                ElementsAre(spy_visitor::visited_variable_assignment{u8"x"}));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"x"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"for ({x} in xs) {}"_sv);
-    EXPECT_THAT(v.variable_assignments,
-                ElementsAre(spy_visitor::visited_variable_assignment{u8"x"}));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"x"));
   }
 
   {
@@ -822,8 +819,7 @@ TEST(test_parse, for_of_loop) {
                                       "visit_enter_block_scope",    //
                                       "visit_variable_use",         //
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.variable_assignments,
-                ElementsAre(spy_visitor::visited_variable_assignment{u8"x"}));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"x"));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs", u8"body"));
   }
 
@@ -902,14 +898,12 @@ TEST(test_parse, for_of_loop) {
 TEST(test_parse, for_of_loop_with_destructuring) {
   {
     spy_visitor v = parse_and_visit_statement(u8"for ([x] of xs) {}"_sv);
-    EXPECT_THAT(v.variable_assignments,
-                ElementsAre(spy_visitor::visited_variable_assignment{u8"x"}));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"x"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"for ({x} of xs) {}"_sv);
-    EXPECT_THAT(v.variable_assignments,
-                ElementsAre(spy_visitor::visited_variable_assignment{u8"x"}));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"x"));
   }
 
   {
@@ -1417,8 +1411,7 @@ TEST(test_parse,
   spy_visitor v;
   parser p(&code, &v);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
-  EXPECT_THAT(v.variable_assignments,
-              ElementsAre(spy_visitor::visited_variable_assignment{u8"async"}));
+  EXPECT_THAT(v.variable_assignments, ElementsAre(u8"async"));
   EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
   EXPECT_THAT(
       v.errors,

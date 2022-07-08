@@ -1064,8 +1064,7 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
                             "visit_variable_use",         // xs
                             "visit_variable_assignment",  // let
                             "visit_exit_for_scope"));
-    EXPECT_THAT(v.variable_assignments,
-                ElementsAre(spy_visitor::visited_variable_assignment{u8"let"}));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"let"));
   }
 
   {
@@ -1950,8 +1949,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_use",           // xs
                               "visit_variable_assignment"));  // (name)
-      EXPECT_THAT(v.variable_assignments,
-                  ElementsAre(spy_visitor::visited_variable_assignment{name}));
+      EXPECT_THAT(v.variable_assignments, ElementsAre(name));
     }
 
     {
@@ -1967,16 +1965,14 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       // test_parse.cannot_assign_to_variable_named_async_in_for_of.
       spy_visitor v = parse_and_visit_statement(
           u8"for (" + name + u8" of xs) ;", function_attributes::normal);
-      EXPECT_THAT(v.variable_assignments,
-                  ElementsAre(spy_visitor::visited_variable_assignment{name}));
+      EXPECT_THAT(v.variable_assignments, ElementsAre(name));
       EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
     }
 
     {
       spy_visitor v = parse_and_visit_statement(
           u8"for ((" + name + u8") of xs) ;", function_attributes::normal);
-      EXPECT_THAT(v.variable_assignments,
-                  ElementsAre(spy_visitor::visited_variable_assignment{name}));
+      EXPECT_THAT(v.variable_assignments, ElementsAre(name));
       EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
     }
 

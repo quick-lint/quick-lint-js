@@ -15,11 +15,6 @@ void PrintTo(const spy_visitor::visited_property_declaration &d,
   }
 }
 
-void PrintTo(const spy_visitor::visited_variable_assignment &x,
-             std::ostream *out) {
-  *out << out_string8(x.name);
-}
-
 void PrintTo(const spy_visitor::visited_variable_declaration &x,
              std::ostream *out) {
   *out << x.kind << ' ' << out_string8(x.name);

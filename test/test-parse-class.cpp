@@ -1494,10 +1494,7 @@ TEST(test_parse, class_expression_body_is_visited_first_in_expression) {
                                       "visit_variable_assignment",    // before
                                       "visit_variable_assignment"));  // after
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"inside"));
-    EXPECT_THAT(
-        v.variable_assignments,
-        ElementsAre(spy_visitor::visited_variable_assignment{u8"before"},
-                    spy_visitor::visited_variable_assignment{u8"after"}));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"before", u8"after"));
   }
 }
 }

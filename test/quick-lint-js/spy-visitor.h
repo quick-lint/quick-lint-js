@@ -145,23 +145,11 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
   std::vector<visited_property_declaration> property_declarations;
 
   void visit_variable_assignment(identifier name) override {
-    this->variable_assignments.emplace_back(
-        visited_variable_assignment{string8(name.normalized_name())});
+    this->variable_assignments.emplace_back(name.normalized_name());
     this->visits.emplace_back("visit_variable_assignment");
   }
 
-  struct visited_variable_assignment {
-    string8 name;
-
-    bool operator==(const visited_variable_assignment &other) const {
-      return this->name == other.name;
-    }
-
-    bool operator!=(const visited_variable_assignment &other) const {
-      return !(*this == other);
-    }
-  };
-  std::vector<visited_variable_assignment> variable_assignments;
+  std::vector<string8> variable_assignments;
 
   void visit_variable_declaration(identifier name, variable_kind kind,
                                   variable_init_kind init_kind) override {
@@ -222,7 +210,6 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
 };
 
 void PrintTo(const spy_visitor::visited_property_declaration &, std::ostream *);
-void PrintTo(const spy_visitor::visited_variable_assignment &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_declaration &, std::ostream *);
 }
 

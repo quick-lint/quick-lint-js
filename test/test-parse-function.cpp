@@ -1847,9 +1847,7 @@ TEST(test_parse, function_body_is_visited_first_in_expression) {
                                       "visit_variable_assignment",        // a
                                       "visit_variable_assignment"));      // c
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"b"));
-    EXPECT_THAT(v.variable_assignments,
-                ElementsAre(spy_visitor::visited_variable_assignment{u8"a"},
-                            spy_visitor::visited_variable_assignment{u8"c"}));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"a", u8"c"));
   }
 }
 }

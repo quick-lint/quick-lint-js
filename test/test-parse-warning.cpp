@@ -31,8 +31,7 @@ TEST(test_parse, condition_with_assignment_from_literal) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_assignments,
-                ElementsAre(spy_visitor::visited_variable_assignment{u8"x"}));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"x"));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_assignment_makes_condition_constant,  //
@@ -88,8 +87,7 @@ TEST(test_parse, condition_with_assignment_from_literal_with_parentheses) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_assignments,
-                ElementsAre(spy_visitor::visited_variable_assignment{u8"x"}));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"x"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
@@ -100,8 +98,7 @@ TEST(test_parse, condition_with_updating_assignment_from_literal) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_assignments,
-                ElementsAre(spy_visitor::visited_variable_assignment{u8"x"}));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"x"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
@@ -112,8 +109,7 @@ TEST(test_parse, condition_with_assignment_from_non_literal) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_assignments,
-                ElementsAre(spy_visitor::visited_variable_assignment{u8"x"}));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"x"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
