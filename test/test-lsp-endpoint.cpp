@@ -21,6 +21,7 @@
 QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
 
 using ::testing::IsEmpty;
+using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
@@ -302,6 +303,50 @@ TEST(test_lsp_endpoint, malformed_json) {
   ASSERT_TRUE(look_up(remote.messages[0]).as_object().contains("error"));
   EXPECT_EQ(look_up(remote.messages[0], "error", "code"), -32700);
   EXPECT_EQ(look_up(remote.messages[0], "error", "message"), "Parse error");
+}
+
+TEST(test_lsp_endpoint, invalid_message) {
+  struct mock_lsp_server_handler : public lsp_endpoint_handler {
+    void handle_request(::simdjson::ondemand::object&, std::string_view,
+                        string8_view, byte_buffer&) override {
+      ADD_FAILURE() << "handle_request should not be called";
+    }
+
+    void handle_notification(::simdjson::ondemand::object&,
+                             std::string_view) override {
+      ADD_FAILURE() << "handle_notification should not be called";
+    }
+  };
+
+  for (
+      string8_view message : {
+          // request with missing method
+          u8R"({ "jsonrpc": "2.0", "id": 10, "params": {} })"sv,
+          // request with method type mismatch
+          u8R"({ "jsonrpc": "2.0", "method": 10, "id": 10 })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": 10, "id": 10, "params": {} })"sv,
+          // request with id type mismatch
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": true, "params": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": [], "params": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "mymethod", "id": {}, "params": {} })"sv,
+      }) {
+    SCOPED_TRACE(out_string8(message));
+
+    mock_lsp_server_handler handler;
+    spy_lsp_endpoint_remote remote;
+    lsp_endpoint server(&handler, &remote);
+
+    server.append(make_message(message));
+
+    ASSERT_EQ(remote.messages.size(), 1);
+    EXPECT_EQ(look_up(remote.messages[0], "jsonrpc"), "2.0");
+    // TODO(strager): Check "id".
+    EXPECT_FALSE(look_up(remote.messages[0]).as_object().contains("result"));
+    ASSERT_TRUE(look_up(remote.messages[0]).as_object().contains("error"));
+    EXPECT_EQ(look_up(remote.messages[0], "error", "code"), -32600);
+    EXPECT_EQ(look_up(remote.messages[0], "error", "message"),
+              "Invalid Request");
+  }
 }
 }
 }
