@@ -33,11 +33,20 @@ class lsp_endpoint_remote {
 
 class lsp_endpoint_handler {
  public:
+  // The type of IDs used for requests sent by this handler (thus responses
+  // handled by this handler).
+  using request_id_type = std::uint64_t;
+
   virtual ~lsp_endpoint_handler();
 
   virtual void handle_request(::simdjson::ondemand::object& request,
                               std::string_view method, string8_view id_json,
                               byte_buffer& reply) = 0;
+  virtual void handle_response(request_id_type request_id,
+                               ::simdjson::ondemand::value& result) = 0;
+  virtual void handle_error_response(request_id_type request_id,
+                                     std::int64_t code,
+                                     std::string_view message) = 0;
   virtual void handle_notification(::simdjson::ondemand::object& request,
                                    std::string_view method) = 0;
 };

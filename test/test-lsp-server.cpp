@@ -181,6 +181,8 @@ TEST_F(test_linting_lsp_server, initialize_with_different_request_ids) {
            test_case{u8R"("id value goes \"here\"")",
                      ::boost::json::value("id value goes \"here\"")},
        }) {
+    SCOPED_TRACE(out_string8(test.id_json));
+
     this->reset();
 
     this->server->append(

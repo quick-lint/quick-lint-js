@@ -101,15 +101,6 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& request,
   ::simdjson::ondemand::value id;
   switch (request["id"].get(id)) {
   case ::simdjson::error_code::SUCCESS: {
-    if (add_comma_before_response) {
-      response_json.append_copy(u8","sv);
-    }
-    std::string_view method;
-    if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
-      this->write_invalid_request_error_response(response_json);
-      return;
-    }
-
     ::simdjson::ondemand::json_type id_type;
     if (id.type().get(id_type) != ::simdjson::error_code::SUCCESS) {
       this->write_json_parse_error_response(response_json);
@@ -125,9 +116,76 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& request,
       this->write_invalid_request_error_response(response_json);
       return;
     }
+    string8_view id_json = get_raw_json(id);
 
-    this->handler_->handle_request(request, method, get_raw_json(id),
-                                   response_json);
+    lsp_endpoint_handler::request_id_type int_id;
+    ::simdjson::error_code int_id_rc = id.get(int_id);
+
+    std::string_view method;
+    switch (request["method"].get(method)) {
+    case ::simdjson::error_code::SUCCESS:
+      if (add_comma_before_response) {
+        response_json.append_copy(u8","sv);
+      }
+      this->handler_->handle_request(request, method, id_json, response_json);
+      break;
+
+    case ::simdjson::error_code::NO_SUCH_FIELD: {
+      ::simdjson::ondemand::object error;
+      ::simdjson::error_code error_rc = request["error"].get(error);
+      bool have_error = error_rc != ::simdjson::NO_SUCH_FIELD;
+      std::int64_t error_code = 0;
+      std::string_view error_message;
+      switch (error_rc) {
+      case ::simdjson::SUCCESS:
+        if (error["code"].get(error_code) != ::simdjson::SUCCESS) {
+          this->write_invalid_request_error_response(response_json);
+          return;
+        }
+        if (error["message"].get(error_message) != ::simdjson::SUCCESS) {
+          this->write_invalid_request_error_response(response_json);
+          return;
+        }
+        break;
+      case ::simdjson::NO_SUCH_FIELD:
+        break;
+      default:
+        this->write_invalid_request_error_response(response_json);
+        return;
+      }
+
+      ::simdjson::ondemand::value result;
+      ::simdjson::error_code result_rc = request["result"].get(result);
+      bool have_result = result_rc != ::simdjson::NO_SUCH_FIELD;
+
+      if (have_result == have_error) {
+        // Ambiguous message.
+        this->write_invalid_request_error_response(response_json);
+        return;
+      }
+
+      if (int_id_rc != ::simdjson::SUCCESS) {
+        this->write_invalid_request_error_response(response_json);
+        return;
+      }
+
+      if (have_result) {
+        if (result_rc != ::simdjson::SUCCESS) {
+          this->write_invalid_request_error_response(response_json);
+          return;
+        }
+        this->handler_->handle_response(int_id, result);
+      } else {
+        this->handler_->handle_error_response(int_id, error_code,
+                                              error_message);
+      }
+      break;
+    }
+
+    default:
+      this->write_invalid_request_error_response(response_json);
+      break;
+    }
     break;
   }
 

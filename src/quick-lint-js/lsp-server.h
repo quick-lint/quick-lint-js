@@ -75,6 +75,11 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   void handle_request(::simdjson::ondemand::object& request,
                       std::string_view method, string8_view id_json,
                       byte_buffer& response_json) override;
+  void handle_response(lsp_endpoint_handler::request_id_type request_id,
+                       ::simdjson::ondemand::value& result) override;
+  void handle_error_response(lsp_endpoint_handler::request_id_type request_id,
+                             std::int64_t code,
+                             std::string_view message) override;
   void handle_notification(::simdjson::ondemand::object& request,
                            std::string_view method) override;
 

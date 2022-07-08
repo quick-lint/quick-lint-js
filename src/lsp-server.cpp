@@ -106,6 +106,21 @@ void linting_lsp_server_handler::handle_request(
   }
 }
 
+void linting_lsp_server_handler::handle_response(
+    lsp_endpoint_handler::request_id_type request_id,
+    ::simdjson::ondemand::value& result) {
+  static_cast<void>(request_id);
+  static_cast<void>(result);
+}
+
+void linting_lsp_server_handler::handle_error_response(
+    lsp_endpoint_handler::request_id_type request_id, std::int64_t code,
+    std::string_view message) {
+  static_cast<void>(request_id);
+  static_cast<void>(code);
+  static_cast<void>(message);
+}
+
 void linting_lsp_server_handler::handle_notification(
     ::simdjson::ondemand::object& request, std::string_view method) {
   if (method == "textDocument/didChange") {
