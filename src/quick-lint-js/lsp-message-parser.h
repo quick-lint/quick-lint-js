@@ -13,6 +13,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/string-view.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -91,8 +92,7 @@ class lsp_message_parser : private lsp_message_parser_base {
           break;
         }
         parsed_message_headers headers = this->parse_message_headers(
-            string8_view(headers_begin, narrow_cast<std::size_t>(
-                                            content_begin - headers_begin)));
+            make_string_view(headers_begin, content_begin));
         // If headers.content_length.has_value(), then switch to parsing the
         // body. Otherwise, we received invalid headers, so recover by parsing
         // headers again.

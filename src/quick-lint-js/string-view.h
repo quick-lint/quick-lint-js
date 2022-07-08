@@ -4,9 +4,19 @@
 #ifndef QUICK_LINT_JS_STRING_VIEW_H
 #define QUICK_LINT_JS_STRING_VIEW_H
 
+#include <cstddef>
+#include <quick-lint-js/narrow-cast.h>
 #include <string_view>
 
 namespace quick_lint_js {
+// C++20 std::string_view constructor
+template <class Char>
+inline std::basic_string_view<Char> make_string_view(const Char* begin,
+                                                     const Char* end) {
+  return std::basic_string_view<Char>(begin,
+                                      narrow_cast<std::size_t>(end - begin));
+}
+
 template <class Char>
 inline bool starts_with(std::basic_string_view<Char> haystack,
                         std::basic_string_view<Char> needle) noexcept {

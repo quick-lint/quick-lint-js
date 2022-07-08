@@ -118,9 +118,8 @@ lsp_message_parser_base::parsed_header lsp_message_parser_base::parse_header(
       std::search(data.begin(), data.end(), crlf, crlf + strlen(crlf));
   QLJS_ASSERT(header_terminator_begin != data.end());
   const char8* header_value_end = &*header_terminator_begin;
-  string8_view header_value(
-      header_value_begin,
-      narrow_cast<std::size_t>(header_value_end - header_value_begin));
+  string8_view header_value =
+      make_string_view(header_value_begin, header_value_end);
   // TODO(strager): Trim trailing whitespace.
   data = data.substr(header_value.size() + strlen(crlf));
 

@@ -9,6 +9,7 @@
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/output-stream.h>
+#include <quick-lint-js/string-view.h>
 #include <quick-lint-js/warning.h>
 
 namespace quick_lint_js {
@@ -55,9 +56,7 @@ void output_stream::append_copy(char8 data) {
 QLJS_WARNING_POP
 
 void output_stream::flush() {
-  this->flush_impl(string8_view(
-      this->buffer_.get(),
-      narrow_cast<std::size_t>(this->cursor_ - this->buffer_.get())));
+  this->flush_impl(make_string_view(this->buffer_.get(), this->cursor_));
   this->cursor_ = this->buffer_.get();
 }
 

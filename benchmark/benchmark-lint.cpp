@@ -11,6 +11,7 @@
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/parse.h>
+#include <quick-lint-js/string-view.h>
 #include <quick-lint-js/warning.h>
 #include <string>
 
@@ -91,9 +92,8 @@ void benchmark_undeclared_variable_references(benchmark::State &state) {
   for (auto [begin_index, end_index] : variable_use_ranges) {
     const char8 *begin = &variable_uses[begin_index];
     const char8 *end = &variable_uses[end_index];
-    variable_use_identifiers.emplace_back(
-        source_code_span(begin, end),
-        string8_view(begin, end_index - begin_index));
+    variable_use_identifiers.emplace_back(source_code_span(begin, end),
+                                          make_string_view(begin, end));
   }
 
   for (auto _ : state) {

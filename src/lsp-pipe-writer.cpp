@@ -10,6 +10,7 @@
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/lsp-pipe-writer.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/string-view.h>
 
 namespace quick_lint_js {
 namespace {
@@ -32,8 +33,7 @@ lsp_pipe_writer::lsp_pipe_writer(platform_file_ref pipe) : pipe_writer(pipe) {}
 void lsp_pipe_writer::send_message(byte_buffer&& message) {
   std::array<char8, max_header_size> header;
   char8* header_end = make_header(message.size(), header.data());
-  message.prepend_copy(string8_view(
-      header.data(), narrow_cast<std::size_t>(header_end - header.data())));
+  message.prepend_copy(make_string_view(header.data(), header_end));
   this->write(std::move(message));
 }
 }

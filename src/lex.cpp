@@ -17,6 +17,7 @@
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/simd.h>
+#include <quick-lint-js/string-view.h>
 #include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-8.h>
@@ -1409,8 +1410,7 @@ void lexer::parse_number() {
         !(number_begin[0] == u8'0' && this->is_digit(number_begin[1])));
   }
   if (!has_decimal_point && !has_exponent && !is_bigint) {
-    check_integer_precision_loss(
-        string8_view(number_begin, narrow_cast<size_t>(input - number_begin)));
+    check_integer_precision_loss(make_string_view(number_begin, input));
   }
 
   switch (*input) {
@@ -1585,8 +1585,7 @@ lexer::parsed_identifier lexer::parse_identifier(const char8* input,
   } else {
     return parsed_identifier{
         .after = end,
-        .normalized =
-            string8_view(begin, narrow_cast<std::size_t>(end - begin)),
+        .normalized = make_string_view(begin, end),
         .escape_sequences = {},
     };
   }
