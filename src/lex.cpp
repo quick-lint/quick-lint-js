@@ -1558,11 +1558,9 @@ lexer::parsed_unicode_escape lexer::parse_unicode_escape(
     code_point_hex_end = input;
   }
   char32_t code_point;
-  from_chars_result parse_result = from_chars_hex(
-      reinterpret_cast<const char*>(code_point_hex_begin),
-      reinterpret_cast<const char*>(code_point_hex_end), code_point);
-  QLJS_ALWAYS_ASSERT(parse_result.ptr ==
-                     reinterpret_cast<const char*>(code_point_hex_end));
+  from_char8s_result parse_result =
+      from_char8s_hex(code_point_hex_begin, code_point_hex_end, code_point);
+  QLJS_ALWAYS_ASSERT(parse_result.ptr == code_point_hex_end);
   if (parse_result.ec == std::errc::result_out_of_range) {
     code_point = 0x110000;
   }

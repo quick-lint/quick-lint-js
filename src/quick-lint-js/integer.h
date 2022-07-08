@@ -15,13 +15,26 @@ struct from_chars_result {
   std::errc ec;
 };
 
+struct from_char8s_result {
+  const char8 *ptr;
+  std::errc ec;
+};
+
 from_chars_result from_chars(const char *begin, const char *end, int &value);
 from_chars_result from_chars(const char *begin, const char *end,
                              std::size_t &value);
+from_char8s_result from_char8s(const char8 *begin, const char8 *end,
+                               std::size_t &value);
+
 from_chars_result from_chars_hex(const char *begin, const char *end,
                                  char32_t &value);
 from_chars_result from_chars_hex(const char *begin, const char *end,
                                  unsigned char &value);
+
+from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
+                                   char32_t &value);
+from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
+                                   unsigned char &value);
 
 template <class T>
 inline constexpr int integer_string_length =

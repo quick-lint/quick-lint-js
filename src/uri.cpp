@@ -53,10 +53,10 @@ std::string parse_file_from_lsp_uri_posix(string8_view uri) {
     if (uri.size() < 2) {
       return "";
     }
-    std::string_view digits = to_string_view(uri.substr(0, 2));
+    string8_view digits = uri.substr(0, 2);
     unsigned char c;
-    from_chars_result parse_result =
-        from_chars_hex(digits.data(), digits.data() + 2, c);
+    from_char8s_result parse_result =
+        from_char8s_hex(digits.data(), digits.data() + 2, c);
     if (parse_result.ptr != digits.data() + 2) {
       return "";
     }

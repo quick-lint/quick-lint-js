@@ -41,12 +41,9 @@ lsp_message_parser_base::parse_message_headers(string8_view headers) {
     if (header_is(header.name, u8"content-length")) {
       const char8* header_value_end = &header.value.data()[header.value.size()];
       content_length.emplace();
-      from_chars_result result = from_chars(
-          reinterpret_cast<const char*>(header.value.data()),
-          reinterpret_cast<const char*>(header_value_end), *content_length);
-      bool ok =
-          reinterpret_cast<const char8*>(result.ptr) == header_value_end &&
-          result.ec == std::errc{};
+      from_char8s_result result =
+          from_char8s(header.value.data(), header_value_end, *content_length);
+      bool ok = result.ptr == header_value_end && result.ec == std::errc{};
       if (ok) {
         // We found the content-type header. No need to look at other headers;
         // we'd ignore them anyway.

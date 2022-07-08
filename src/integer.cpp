@@ -187,6 +187,39 @@ char8 *write_integer(T value, char8 *out) {
 }
 #endif
 
+from_char8s_result from_char8s(const char8 *begin, const char8 *end,
+                               std::size_t &value) {
+  from_chars_result result =
+      from_chars(reinterpret_cast<const char *>(begin),
+                 reinterpret_cast<const char *>(end), value);
+  return from_char8s_result{
+      .ptr = reinterpret_cast<const char8 *>(result.ptr),
+      .ec = result.ec,
+  };
+}
+
+from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
+                                   char32_t &value) {
+  from_chars_result result =
+      from_chars_hex(reinterpret_cast<const char *>(begin),
+                     reinterpret_cast<const char *>(end), value);
+  return from_char8s_result{
+      .ptr = reinterpret_cast<const char8 *>(result.ptr),
+      .ec = result.ec,
+  };
+}
+
+from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
+                                   unsigned char &value) {
+  from_chars_result result =
+      from_chars_hex(reinterpret_cast<const char *>(begin),
+                     reinterpret_cast<const char *>(end), value);
+  return from_char8s_result{
+      .ptr = reinterpret_cast<const char8 *>(result.ptr),
+      .ec = result.ec,
+  };
+}
+
 template char8 *write_integer<int>(int, char8 *out);
 template char8 *write_integer<long>(long, char8 *out);
 template char8 *write_integer<long long>(long long, char8 *out);
