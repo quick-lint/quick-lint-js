@@ -30,9 +30,7 @@ TEST(test_parse, field_with_type_is_disallowed_in_javascript) {
     spy_visitor v;
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.property_declarations,
-        ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"}));
+    EXPECT_THAT(v.property_declarations, ElementsAre(u8"fieldName"));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"FieldType"));
     EXPECT_THAT(
         v.errors,
@@ -54,9 +52,7 @@ TEST(test_parse, field_with_type_is_allowed_in_typescript) {
                             "visit_property_declaration",    // fieldName
                             "visit_exit_class_scope",        // C
                             "visit_variable_declaration"));  // C
-    EXPECT_THAT(
-        v.property_declarations,
-        ElementsAre(spy_visitor::visited_property_declaration{u8"fieldName"}));
+    EXPECT_THAT(v.property_declarations, ElementsAre(u8"fieldName"));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"FieldType"));
   }
 }
@@ -370,9 +366,7 @@ TEST(test_parse, readonly_static_field_is_disallowed) {
                             "visit_property_declaration",    // field
                             "visit_exit_class_scope",        // C
                             "visit_variable_declaration"));  // C
-    EXPECT_THAT(
-        v.property_declarations,
-        ElementsAre(spy_visitor::visited_property_declaration{u8"field"}));
+    EXPECT_THAT(v.property_declarations, ElementsAre(u8"field"));
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code,
                               diag_readonly_static_field,  //
@@ -445,9 +439,7 @@ TEST(test_parse, generic_methods_are_disallowed_in_javascript) {
                             "visit_exit_function_scope",        // method
                             "visit_exit_class_scope",           // C
                             "visit_variable_declaration"));     // C
-    EXPECT_THAT(
-        v.property_declarations,
-        ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
+    EXPECT_THAT(v.property_declarations, ElementsAre(u8"method"));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code,
@@ -470,9 +462,7 @@ TEST(test_parse, generic_methods_are_allowed_in_typescript) {
                             "visit_exit_function_scope",        // method
                             "visit_exit_class_scope",           // C
                             "visit_variable_declaration"));     // C
-    EXPECT_THAT(
-        v.property_declarations,
-        ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
+    EXPECT_THAT(v.property_declarations, ElementsAre(u8"method"));
   }
 }
 
@@ -492,9 +482,7 @@ TEST(test_parse, call_signatures_are_disallowed_in_typescript_classes) {
                     "visit_exit_function_scope",        // (call signature)
                     "visit_exit_class_scope",           // C
                     "visit_variable_declaration"));     // C
-    EXPECT_THAT(
-        v.property_declarations,
-        ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
+    EXPECT_THAT(v.property_declarations, ElementsAre(std::nullopt));
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code,
                               diag_missing_class_method_name,  //
@@ -517,9 +505,7 @@ TEST(test_parse, call_signatures_are_disallowed_in_typescript_classes) {
                     "visit_exit_function_scope",        // (call signature)
                     "visit_exit_class_scope",           // C
                     "visit_variable_declaration"));     // C
-    EXPECT_THAT(
-        v.property_declarations,
-        ElementsAre(spy_visitor::visited_property_declaration{std::nullopt}));
+    EXPECT_THAT(v.property_declarations, ElementsAre(std::nullopt));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code,
@@ -545,9 +531,7 @@ TEST(test_parse, access_specifiers_are_disallowed_in_javascript) {
                               "visit_exit_function_scope",        // method
                               "visit_exit_class_scope",           // C
                               "visit_variable_declaration"));     // C
-      EXPECT_THAT(
-          v.property_declarations,
-          ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
+      EXPECT_THAT(v.property_declarations, ElementsAre(u8"method"));
       EXPECT_THAT(
           v.errors,
           ElementsAre(DIAG_TYPE_OFFSETS(
@@ -664,9 +648,7 @@ TEST(test_parse, access_specifiers_are_allowed_in_typescript) {
                             "visit_exit_function_scope",        // method
                             "visit_exit_class_scope",           // C
                             "visit_variable_declaration"));     // C
-    EXPECT_THAT(
-        v.property_declarations,
-        ElementsAre(spy_visitor::visited_property_declaration{u8"method"}));
+    EXPECT_THAT(v.property_declarations, ElementsAre(u8"method"));
   }
 }
 
@@ -686,9 +668,7 @@ TEST(test_parse, static_blocks_are_disallowed_in_javascript) {
                             "visit_exit_block_scope",        // static
                             "visit_exit_class_scope",        // C
                             "visit_variable_declaration"));  // C
-    EXPECT_THAT(
-        v.property_declarations,
-        ElementsAre(spy_visitor::visited_property_declaration{u8"#private"}));
+    EXPECT_THAT(v.property_declarations, ElementsAre(u8"#private"));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(

@@ -111,26 +111,14 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
   void visit_property_declaration(
       const std::optional<identifier> &name) override {
     if (name.has_value()) {
-      this->property_declarations.emplace_back(
-          visited_property_declaration{string8(name->normalized_name())});
+      this->property_declarations.emplace_back(name->normalized_name());
     } else {
-      this->property_declarations.emplace_back(visited_property_declaration());
+      this->property_declarations.emplace_back(std::nullopt);
     }
     this->visits.emplace_back("visit_property_declaration");
   }
 
-  struct visited_property_declaration {
-    std::optional<string8> name;
-
-    bool operator==(const visited_property_declaration &other) const {
-      return this->name == other.name;
-    }
-
-    bool operator!=(const visited_property_declaration &other) const {
-      return !(*this == other);
-    }
-  };
-  std::vector<visited_property_declaration> property_declarations;
+  std::vector<std::optional<string8>> property_declarations;
 
   void visit_variable_assignment(identifier name) override {
     this->variable_assignments.emplace_back(name.normalized_name());
@@ -197,7 +185,6 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
   std::vector<string8> variable_uses;
 };
 
-void PrintTo(const spy_visitor::visited_property_declaration &, std::ostream *);
 void PrintTo(const spy_visitor::visited_variable_declaration &, std::ostream *);
 }
 

@@ -649,9 +649,7 @@ TEST(test_parse,
                                         "visit_exit_class_scope",           //
                                         "visit_variable_declaration",       // C
                                         "visit_end_of_module"));
-      EXPECT_THAT(
-          v.property_declarations,
-          ElementsAre(spy_visitor::visited_property_declaration{keyword}));
+      EXPECT_THAT(v.property_declarations, ElementsAre(keyword));
       EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
     }
   }
