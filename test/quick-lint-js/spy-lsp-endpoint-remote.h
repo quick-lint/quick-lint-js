@@ -16,12 +16,8 @@ namespace quick_lint_js {
 class spy_lsp_endpoint_remote final : public lsp_endpoint_remote {
  public:
   void send_message(byte_buffer&& message) override {
-    string8 message_json;
-    message_json.resize(message.size());
-    message.copy_to(message_json.data());
-    SCOPED_TRACE(out_string8(message_json));
-
-    ::boost::json::value parsed_message = parse_boost_json(message_json);
+    // TODO(strager): SCOPED_TRACE(message);
+    ::boost::json::value parsed_message = parse_boost_json(message);
     if (auto object = parsed_message.if_object()) {
       EXPECT_EQ((*object)["jsonrpc"], "2.0");
     } else if (auto array = parsed_message.if_array()) {

@@ -13,10 +13,13 @@
 #include <utility>
 
 namespace quick_lint_js {
+class byte_buffer;
+
 ::boost::json::value parse_boost_json(std::string_view);
 #if QLJS_HAVE_CHAR8_T
 ::boost::json::value parse_boost_json(string8_view);
 #endif
+::boost::json::value parse_boost_json(const byte_buffer &);
 
 ::boost::json::value simdjson_to_boost_json(::simdjson::ondemand::value &);
 ::boost::json::value simdjson_to_boost_json(

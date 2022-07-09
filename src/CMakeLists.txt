@@ -86,6 +86,7 @@ quick_lint_js_add_library(
   lsp-message-parser.cpp
   lsp-pipe-writer.cpp
   lsp-server.cpp
+  lsp-workspace-configuration.cpp
   null-visitor.cpp
   options.cpp
   output-stream.cpp
@@ -153,6 +154,7 @@ quick_lint_js_add_library(
   quick-lint-js/lsp-message-parser.h
   quick-lint-js/lsp-pipe-writer.h
   quick-lint-js/lsp-server.h
+  quick-lint-js/lsp-workspace-configuration.h
   quick-lint-js/math-overflow.h
   quick-lint-js/narrow-cast.h
   quick-lint-js/null-visitor.h
