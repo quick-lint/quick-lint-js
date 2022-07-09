@@ -538,6 +538,11 @@ TEST(test_lsp_endpoint, invalid_message) {
           // ambiguous successful or error response with error type mismatch
           u8R"({ "jsonrpc": "2.0", "id": 10, "result": {}, "error": 42 })"sv,
           u8R"({ "jsonrpc": "2.0", "id": 10, "result": {}, "error": null })"sv,
+          // ambiguous response or notification
+          u8R"({ "jsonrpc": "2.0", "method": "test", "result": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "method": "test", "error": {"code": 0, "message": ""} })"sv,
+          u8R"({ "jsonrpc": "2.0", "id": 10, "method": "test", "result": {} })"sv,
+          u8R"({ "jsonrpc": "2.0", "id": 10, "method": "test", "error": {"code": 0, "message": ""} })"sv,
           // response with missing result or error
           u8R"({ "jsonrpc": "2.0", "id": 10 })"sv,
       }) {

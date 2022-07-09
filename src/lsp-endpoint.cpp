@@ -157,13 +157,6 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
     return;
   }
 
-  if (have_id) {
-    if (have_method) {
-      if (add_comma_before_response) {
-        response_json.append_copy(u8","sv);
-      }
-      this->handler_->handle_request(message, method, id_json, response_json);
-    } else {
       ::simdjson::ondemand::object error;
       ::simdjson::error_code error_rc = message["error"].get(error);
       bool have_error = error_rc != ::simdjson::NO_SUCH_FIELD;
@@ -191,6 +184,17 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
       ::simdjson::error_code result_rc = message["result"].get(result);
       bool have_result = result_rc != ::simdjson::NO_SUCH_FIELD;
 
+  if (have_id) {
+    if (have_method) {
+      if (have_error || have_result) {
+        this->write_invalid_request_error_response(response_json);
+        return;
+      }
+      if (add_comma_before_response) {
+        response_json.append_copy(u8","sv);
+      }
+      this->handler_->handle_request(message, method, id_json, response_json);
+    } else {
       if (have_result == have_error) {
         // Ambiguous message.
         this->write_invalid_request_error_response(response_json);
@@ -214,7 +218,7 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
       }
     }
   } else {
-    if (!have_method) {
+    if (!have_method || have_error || have_result) {
       this->write_invalid_request_error_response(response_json);
       return;
     }
