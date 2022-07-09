@@ -285,7 +285,7 @@ ifdef::backend-manpage[]
 == See also
 
 *eslint*(1)
-*quick-lint-js.config*(1)
+*quick-lint-js.config*(5)
 
 endif::backend-manpage[]
 
