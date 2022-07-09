@@ -99,6 +99,11 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
                                   bool add_comma_before_response) {
   using namespace std::literals::string_view_literals;
 
+  bool have_id;
+  string8_view id_json;
+  lsp_endpoint_handler::request_id_type int_id = 0;
+  ::simdjson::error_code int_id_rc = ::simdjson::NO_SUCH_FIELD;
+
   ::simdjson::ondemand::value id;
   switch (message["id"].get(id)) {
   case ::simdjson::error_code::SUCCESS: {
@@ -117,11 +122,28 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
       this->write_invalid_request_error_response(response_json);
       return;
     }
-    string8_view id_json = get_raw_json(id);
 
-    lsp_endpoint_handler::request_id_type int_id;
-    ::simdjson::error_code int_id_rc = id.get(int_id);
+    id_json = get_raw_json(id);
+    int_id_rc = id.get(int_id);
 
+    have_id = true;
+    break;
+  }
+
+  case ::simdjson::error_code::NO_SUCH_FIELD:
+    have_id = false;
+    break;
+
+  case ::simdjson::error_code::TAPE_ERROR:
+    this->write_json_parse_error_response(response_json);
+    return;
+
+  default:
+    QLJS_UNIMPLEMENTED();
+    return;
+  }
+
+  if (have_id) {
     std::string_view method;
     switch (message["method"].get(method)) {
     case ::simdjson::error_code::SUCCESS:
@@ -187,26 +209,13 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
       this->write_invalid_request_error_response(response_json);
       break;
     }
-    break;
-  }
-
-  case ::simdjson::error_code::NO_SUCH_FIELD: {
+  } else {
     std::string_view method;
     if (message["method"].get(method) != ::simdjson::error_code::SUCCESS) {
       this->write_invalid_request_error_response(response_json);
-      break;
+      return;
     }
     this->handler_->handle_notification(message, method);
-    break;
-  }
-
-  case ::simdjson::error_code::TAPE_ERROR:
-    this->write_json_parse_error_response(response_json);
-    break;
-
-  default:
-    QLJS_UNIMPLEMENTED();
-    break;
   }
 }
 
