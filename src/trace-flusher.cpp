@@ -18,6 +18,7 @@
 #include <quick-lint-js/log.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/result.h>
+#include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/thread.h>
 #include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/trace-metadata.h>
@@ -84,6 +85,34 @@ void trace_flusher::disable() {
   for (auto& t : this->registered_threads_) {
     t->thread_writer->store(nullptr);
   }
+}
+
+void trace_flusher::create_and_enable_in_child_directory(
+    const std::string& directory) {
+  auto dir_result = create_directory(directory);
+  if (!dir_result.ok()) {
+    if (!dir_result.error().is_directory_already_exists_error) {
+      QLJS_DEBUG_LOG("failed to create log directory %s: %s\n",
+                     directory.c_str(), dir_result.error_to_string().c_str());
+      return;
+    }
+  }
+  result<std::string, platform_file_io_error> trace_directory =
+      make_timestamped_directory(directory, "trace_%Y-%m-%d-%H-%M-%S");
+  if (!trace_directory.ok()) {
+    QLJS_DEBUG_LOG("failed to create tracing directory in %s: %s\n",
+                   directory.c_str(),
+                   trace_directory.error_to_string().c_str());
+    return;
+  }
+  auto result = this->enable_for_directory(*trace_directory);
+  if (!result.ok()) {
+    QLJS_DEBUG_LOG("failed to enable tracing: %s\n",
+                   result.error_to_string().c_str());
+    return;
+  }
+
+  QLJS_DEBUG_LOG("enable tracing in directory %s\n", trace_directory->c_str());
 }
 
 bool trace_flusher::is_enabled() const {

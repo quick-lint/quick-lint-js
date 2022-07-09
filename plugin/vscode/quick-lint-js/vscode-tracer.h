@@ -75,34 +75,7 @@ class vscode_tracer {
       // tracing.
       return;
     }
-
-    auto log_dir_result = create_directory(this->log_directory_);
-    if (!log_dir_result.ok()) {
-      if (!log_dir_result.error().is_directory_already_exists_error) {
-        QLJS_DEBUG_LOG("failed to create log directory %s: %s\n",
-                       this->log_directory_.c_str(),
-                       log_dir_result.error_to_string().c_str());
-        return;
-      }
-    }
-    result<std::string, platform_file_io_error> trace_directory =
-        make_timestamped_directory(this->log_directory_,
-                                   "trace_%Y-%m-%d-%H-%M-%S");
-    if (!trace_directory.ok()) {
-      QLJS_DEBUG_LOG("failed to create tracing directory in %s: %s\n",
-                     this->log_directory_.c_str(),
-                     trace_directory.error_to_string().c_str());
-      return;
-    }
-    auto result = this->tracer_->enable_for_directory(*trace_directory);
-    if (!result.ok()) {
-      QLJS_DEBUG_LOG("failed to enable tracing: %s\n",
-                     result.error_to_string().c_str());
-      return;
-    }
-
-    QLJS_DEBUG_LOG("enable tracing in directory %s\n",
-                   trace_directory->c_str());
+    this->tracer_->create_and_enable_in_child_directory(this->log_directory_);
   }
 
   void disable() { this->tracer_->disable(); }
