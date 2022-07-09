@@ -32,8 +32,14 @@ This command has two modes:
 
 *quick-lint-js* --lsp-server::
   LSP server mode.
-  Start a Language Server Protocol server, communicating using standard input and standard output.
   Use this mode to integrate with code editors supporting LSP.
+  For more information, see
+ifdef::backend-html5[]
+  the link:../docs/lsp/[LSP server documentation].
+endif::[]
+ifndef::backend-html5[]
+  *quick-lint-js-lsp*(8).
+endif::[]
 
 == Options
 
@@ -135,7 +141,13 @@ Incompatible with *--lsp-server*.
 *--lsp-server*::
   Run *quick-lint-js* in LSP server mode.
   Use this mode to integrate with code editors supporting LSP.
-  An editor can send LSP requests and notifications to *quick-lint-js* via standard input, and receive LSP responses and notifications from standard output.
+  For more information, see
+ifdef::backend-html5[]
+  the link:../docs/lsp/[LSP server documentation].
+endif::[]
+ifndef::backend-html5[]
+  *quick-lint-js-lsp*(8).
+endif::[]
 +
 Incompatible with *--output-format*.
 

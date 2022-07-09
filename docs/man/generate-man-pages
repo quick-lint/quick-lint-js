@@ -73,9 +73,23 @@ def main():
         ],
         env=env,
     )
+    subprocess.check_output(
+        [
+            asciidoctor_path,
+            "-b",
+            "manpage",
+            "-D",
+            "man/",
+            "-o",
+            "quick-lint-js-lsp.8",
+            "lsp.adoc",
+        ],
+        env=env,
+    )
 
     process_man(pathlib.Path("man/quick-lint-js.1"))
     process_man(pathlib.Path("man/quick-lint-js.config.5"))
+    process_man(pathlib.Path("man/quick-lint-js-lsp.8"))
 
 
 def process_man(file_path):
