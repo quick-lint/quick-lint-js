@@ -71,10 +71,10 @@ Therefore, if multiple input files are given, *--vim-file-bufnr* can be specifie
 *--path-for-config-search*=_path_::
   For the following input file or *--stdin*, use _path_ as the file's path when
 ifdef::backend-manpage[]
-searching for a configuration file (see *quick-lint-js.config*(5)).
+  searching for a configuration file (see *quick-lint-js.config*(5)).
 endif::[]
 ifdef::backend-html5[]
-link:../config/[searching for a configuration file].
+  link:../config/[searching for a configuration file].
 endif::[]
 +
 _path_ must be a syntactically-valid path.
