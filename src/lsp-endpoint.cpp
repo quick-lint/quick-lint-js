@@ -157,72 +157,58 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
     return;
   }
 
-      ::simdjson::ondemand::object error;
-      ::simdjson::error_code error_rc = message["error"].get(error);
-      bool have_error = error_rc != ::simdjson::NO_SUCH_FIELD;
-      std::int64_t error_code = 0;
-      std::string_view error_message;
-      switch (error_rc) {
-      case ::simdjson::SUCCESS:
-        if (error["code"].get(error_code) != ::simdjson::SUCCESS) {
-          this->write_invalid_request_error_response(response_json);
-          return;
-        }
-        if (error["message"].get(error_message) != ::simdjson::SUCCESS) {
-          this->write_invalid_request_error_response(response_json);
-          return;
-        }
-        break;
-      case ::simdjson::NO_SUCH_FIELD:
-        break;
-      default:
-        this->write_invalid_request_error_response(response_json);
-        return;
-      }
-
-      ::simdjson::ondemand::value result;
-      ::simdjson::error_code result_rc = message["result"].get(result);
-      bool have_result = result_rc != ::simdjson::NO_SUCH_FIELD;
-
-  if (have_id) {
-    if (have_method) {
-      if (have_error || have_result) {
-        this->write_invalid_request_error_response(response_json);
-        return;
-      }
-      if (add_comma_before_response) {
-        response_json.append_copy(u8","sv);
-      }
-      this->handler_->handle_request(message, method, id_json, response_json);
-    } else {
-      if (have_result == have_error) {
-        // Ambiguous message.
-        this->write_invalid_request_error_response(response_json);
-        return;
-      }
-
-      if (int_id_rc != ::simdjson::SUCCESS) {
-        this->write_invalid_request_error_response(response_json);
-        return;
-      }
-
-      if (have_result) {
-        if (result_rc != ::simdjson::SUCCESS) {
-          this->write_invalid_request_error_response(response_json);
-          return;
-        }
-        this->handler_->handle_response(int_id, result);
-      } else {
-        this->handler_->handle_error_response(int_id, error_code,
-                                              error_message);
-      }
-    }
-  } else {
-    if (!have_method || have_error || have_result) {
+  ::simdjson::ondemand::object error;
+  ::simdjson::error_code error_rc = message["error"].get(error);
+  bool have_error = error_rc != ::simdjson::NO_SUCH_FIELD;
+  std::int64_t error_code = 0;
+  std::string_view error_message;
+  switch (error_rc) {
+  case ::simdjson::SUCCESS:
+    if (error["code"].get(error_code) != ::simdjson::SUCCESS) {
       this->write_invalid_request_error_response(response_json);
       return;
     }
+    if (error["message"].get(error_message) != ::simdjson::SUCCESS) {
+      this->write_invalid_request_error_response(response_json);
+      return;
+    }
+    break;
+  case ::simdjson::NO_SUCH_FIELD:
+    break;
+  default:
+    this->write_invalid_request_error_response(response_json);
+    return;
+  }
+
+  ::simdjson::ondemand::value result;
+  ::simdjson::error_code result_rc = message["result"].get(result);
+  bool have_result = result_rc != ::simdjson::NO_SUCH_FIELD;
+
+  if (have_id && have_method && !have_error && !have_result) {
+    if (add_comma_before_response) {
+      response_json.append_copy(u8","sv);
+    }
+    this->handler_->handle_request(message, method, id_json, response_json);
+  } else if (have_id && !have_method && have_error && !have_result) {
+    if (int_id_rc != ::simdjson::SUCCESS) {
+      this->write_invalid_request_error_response(response_json);
+      return;
+    }
+    this->handler_->handle_error_response(int_id, error_code, error_message);
+  } else if (have_id && !have_method && !have_error && have_result) {
+    if (int_id_rc != ::simdjson::SUCCESS) {
+      this->write_invalid_request_error_response(response_json);
+      return;
+    }
+    if (result_rc != ::simdjson::SUCCESS) {
+      this->write_invalid_request_error_response(response_json);
+      return;
+    }
+    this->handler_->handle_response(int_id, result);
+  } else if (!have_id && have_method && !have_error && !have_result) {
     this->handler_->handle_notification(message, method);
+  } else {
+    this->write_invalid_request_error_response(response_json);
   }
 }
 
