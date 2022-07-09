@@ -143,17 +143,27 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
     return;
   }
 
+  bool have_method;
+  std::string_view method;
+  switch (message["method"].get(method)) {
+  case ::simdjson::error_code::SUCCESS:
+    have_method = true;
+    break;
+  case ::simdjson::error_code::NO_SUCH_FIELD:
+    have_method = false;
+    break;
+  default:
+    this->write_invalid_request_error_response(response_json);
+    return;
+  }
+
   if (have_id) {
-    std::string_view method;
-    switch (message["method"].get(method)) {
-    case ::simdjson::error_code::SUCCESS:
+    if (have_method) {
       if (add_comma_before_response) {
         response_json.append_copy(u8","sv);
       }
       this->handler_->handle_request(message, method, id_json, response_json);
-      break;
-
-    case ::simdjson::error_code::NO_SUCH_FIELD: {
+    } else {
       ::simdjson::ondemand::object error;
       ::simdjson::error_code error_rc = message["error"].get(error);
       bool have_error = error_rc != ::simdjson::NO_SUCH_FIELD;
@@ -202,16 +212,9 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
         this->handler_->handle_error_response(int_id, error_code,
                                               error_message);
       }
-      break;
-    }
-
-    default:
-      this->write_invalid_request_error_response(response_json);
-      break;
     }
   } else {
-    std::string_view method;
-    if (message["method"].get(method) != ::simdjson::error_code::SUCCESS) {
+    if (!have_method) {
       this->write_invalid_request_error_response(response_json);
       return;
     }
