@@ -38,9 +38,9 @@ void lsp_endpoint::message_parsed(string8_view message) {
   // TODO(strager): Avoid copying the message.
   ::simdjson::padded_string padded_message(
       reinterpret_cast<const char*>(message.data()), message.size());
-  ::simdjson::ondemand::document request_document;
+  ::simdjson::ondemand::document message_document;
   ::simdjson::error_code parse_error;
-  this->json_parser_.iterate(padded_message).tie(request_document, parse_error);
+  this->json_parser_.iterate(padded_message).tie(message_document, parse_error);
   if (parse_error != ::simdjson::error_code::SUCCESS) {
     byte_buffer error_json;
     this->write_json_parse_error_response(error_json);
@@ -50,19 +50,19 @@ void lsp_endpoint::message_parsed(string8_view message) {
 
   byte_buffer response_json;
 
-  ::simdjson::ondemand::array batched_requests;
-  bool is_batch_request =
-      request_document.get(batched_requests) == ::simdjson::error_code::SUCCESS;
-  if (is_batch_request) {
+  ::simdjson::ondemand::array batched_messages;
+  bool is_batch_message =
+      message_document.get(batched_messages) == ::simdjson::error_code::SUCCESS;
+  if (is_batch_message) {
     response_json.append_copy(u8"["sv);
     std::size_t empty_response_json_size = response_json.size();
     for (::simdjson::simdjson_result< ::simdjson::ondemand::value>
-             sub_request_or_error : batched_requests) {
-      ::simdjson::ondemand::object sub_request;
-      if (sub_request_or_error.get(sub_request) ==
+             sub_message_or_error : batched_messages) {
+      ::simdjson::ondemand::object sub_message;
+      if (sub_message_or_error.get(sub_message) ==
           ::simdjson::error_code::SUCCESS) {
         this->handle_message(
-            sub_request, response_json,
+            sub_message, response_json,
             /*add_comma_before_response=*/response_json.size() !=
                 empty_response_json_size);
       } else {
@@ -74,17 +74,18 @@ void lsp_endpoint::message_parsed(string8_view message) {
     }
     response_json.append_copy(u8"]"sv);
   } else {
-    ::simdjson::ondemand::object request;
-    if (request_document.get(request) == ::simdjson::error_code::SUCCESS) {
-      this->handle_message(request, response_json,
+    ::simdjson::ondemand::object message_object;
+    if (message_document.get(message_object) ==
+        ::simdjson::error_code::SUCCESS) {
+      this->handle_message(message_object, response_json,
                            /*add_comma_before_response=*/false);
     } else {
       this->write_json_parse_error_response(response_json);
     }
   }
 
-  if (is_batch_request) {
-    // Batch requests require batch responses.
+  if (is_batch_message) {
+    // Batch messages require batch responses.
     QLJS_ASSERT(!response_json.empty());
   }
 
@@ -93,13 +94,13 @@ void lsp_endpoint::message_parsed(string8_view message) {
   }
 }
 
-void lsp_endpoint::handle_message(::simdjson::ondemand::object& request,
+void lsp_endpoint::handle_message(::simdjson::ondemand::object& message,
                                   byte_buffer& response_json,
                                   bool add_comma_before_response) {
   using namespace std::literals::string_view_literals;
 
   ::simdjson::ondemand::value id;
-  switch (request["id"].get(id)) {
+  switch (message["id"].get(id)) {
   case ::simdjson::error_code::SUCCESS: {
     ::simdjson::ondemand::json_type id_type;
     if (id.type().get(id_type) != ::simdjson::error_code::SUCCESS) {
@@ -122,17 +123,17 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& request,
     ::simdjson::error_code int_id_rc = id.get(int_id);
 
     std::string_view method;
-    switch (request["method"].get(method)) {
+    switch (message["method"].get(method)) {
     case ::simdjson::error_code::SUCCESS:
       if (add_comma_before_response) {
         response_json.append_copy(u8","sv);
       }
-      this->handler_->handle_request(request, method, id_json, response_json);
+      this->handler_->handle_request(message, method, id_json, response_json);
       break;
 
     case ::simdjson::error_code::NO_SUCH_FIELD: {
       ::simdjson::ondemand::object error;
-      ::simdjson::error_code error_rc = request["error"].get(error);
+      ::simdjson::error_code error_rc = message["error"].get(error);
       bool have_error = error_rc != ::simdjson::NO_SUCH_FIELD;
       std::int64_t error_code = 0;
       std::string_view error_message;
@@ -155,7 +156,7 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& request,
       }
 
       ::simdjson::ondemand::value result;
-      ::simdjson::error_code result_rc = request["result"].get(result);
+      ::simdjson::error_code result_rc = message["result"].get(result);
       bool have_result = result_rc != ::simdjson::NO_SUCH_FIELD;
 
       if (have_result == have_error) {
@@ -191,11 +192,11 @@ void lsp_endpoint::handle_message(::simdjson::ondemand::object& request,
 
   case ::simdjson::error_code::NO_SUCH_FIELD: {
     std::string_view method;
-    if (request["method"].get(method) != ::simdjson::error_code::SUCCESS) {
+    if (message["method"].get(method) != ::simdjson::error_code::SUCCESS) {
       this->write_invalid_request_error_response(response_json);
       break;
     }
-    this->handler_->handle_notification(request, method);
+    this->handler_->handle_notification(message, method);
     break;
   }
 
