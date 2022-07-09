@@ -47,7 +47,7 @@ class byte_buffer {
 
   ~byte_buffer();
 
-  void* append(size_type byte_count);
+  [[nodiscard]] void* append(size_type byte_count);
 
   template <class Func>
   void append(size_type max_byte_count, Func&& f) {
