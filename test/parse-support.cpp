@@ -144,6 +144,8 @@ std::string summarize(const expression& expression) {
            to_string(expression.variable_identifier().normalized_name());
   case expression_kind::new_target:
     return "newtarget";
+  case expression_kind::non_null_assertion:
+    return "nonnull(" + summarize(expression.child_0()) + ")";
   case expression_kind::object: {
     std::string result = "object(";
     bool need_comma = false;

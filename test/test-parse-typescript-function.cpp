@@ -151,6 +151,44 @@ TEST(test_parse_typescript_function, interface_method_return_type_annotation) {
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
   }
 }
+
+TEST(test_parse_typescript_function,
+     non_null_assertion_in_parameter_list_is_an_error) {
+  {
+    padded_string code(u8"function f(param!) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",       // f
+                            "visit_enter_function_scope",       // f
+                            "visit_variable_declaration",       // param
+                            "visit_enter_function_scope_body",  // {
+                            "visit_exit_function_scope"));      // }
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code,
+                    diag_non_null_assertion_not_allowed_in_parameter,  //
+                    bang, strlen(u8"function f(param"), u8"!")));
+  }
+
+  {
+    padded_string code(u8"(param!) => {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_function_scope",       // f
+                            "visit_variable_declaration",       // param
+                            "visit_enter_function_scope_body",  // {
+                            "visit_exit_function_scope"));      // }
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code,
+                    diag_non_null_assertion_not_allowed_in_parameter,  //
+                    bang, strlen(u8"(param"), u8"!")));
+  }
+}
 }
 }
 

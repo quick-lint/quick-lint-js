@@ -1060,6 +1060,13 @@ msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript non-null assertions are not allowed in JavaScript"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript optional properties are not allowed in JavaScript code"
 msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
@@ -1248,6 +1255,13 @@ msgstr "Hexadezimales Zahlenliteral ohne Ziffern"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "octal number literal has no digits"
 msgstr "Oktales Zahlenliteral ohne Ziffern"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript non-null assertion is not allowed on parameters"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unexpected '#'"

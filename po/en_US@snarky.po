@@ -1023,6 +1023,11 @@ msgstr "this isn't TypeScript"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript non-null assertions are not allowed in JavaScript"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript optional properties are not allowed in JavaScript code"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
@@ -1197,6 +1202,11 @@ msgstr "hex number literal has no digits"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "octal number literal has no digits"
 msgstr "<octupus-with-no-legs> has no digits"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript non-null assertion is not allowed on parameters"
+msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unexpected '#'"

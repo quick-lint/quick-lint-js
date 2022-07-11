@@ -1672,6 +1672,7 @@ parser::enum_value_kind parser::classify_enum_value_expression(
   case expression_kind::jsx_fragment:
   case expression_kind::named_function:
   case expression_kind::new_target:
+  case expression_kind::non_null_assertion:
   case expression_kind::object:
   case expression_kind::paren_empty:
   case expression_kind::private_variable:
@@ -3312,6 +3313,19 @@ void parser::visit_binding_element(
         .parameter = ast->span(),
     });
     break;
+
+  // function f(x!) {}  // Invalid.
+  case expression_kind::non_null_assertion: {
+    auto *assertion = static_cast<const expression::non_null_assertion *>(ast);
+    this->diag_reporter_->report(
+        diag_non_null_assertion_not_allowed_in_parameter{
+            .bang = assertion->bang_span(),
+        });
+    this->visit_binding_element(assertion->child_, v, declaration_kind,
+                                /*declaring_token=*/declaring_token,
+                                /*init_kind=*/init_kind);
+    break;
+  }
 
     // function f([(p,)]) {}  // Invalid.
   case expression_kind::trailing_comma:

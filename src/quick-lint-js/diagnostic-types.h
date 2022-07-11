@@ -1564,6 +1564,14 @@
               interface_keyword))                                              \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_non_null_assertion_not_allowed_in_javascript, "E0261",   \
+      diagnostic_severity::error, { source_code_span bang; },                  \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE(                                                   \
+              "TypeScript non-null assertions are not allowed in JavaScript"), \
+          bang))                                                               \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_optional_properties_not_allowed_in_javascript, "E0228",  \
       diagnostic_severity::error, { source_code_span question; },              \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript optional properties are not "      \
@@ -1832,6 +1840,14 @@
       { source_code_span characters; },                                        \
       MESSAGE(QLJS_TRANSLATABLE("octal number literal has no digits"),         \
               characters))                                                     \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_non_null_assertion_not_allowed_in_parameter, "E0260",               \
+      diagnostic_severity::error, { source_code_span bang; },                  \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE(                                                   \
+              "TypeScript non-null assertion is not allowed on parameters"),   \
+          bang))                                                               \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
       diag_unexpected_hash_character, "E0052", diagnostic_severity::error,     \

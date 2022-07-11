@@ -430,6 +430,8 @@ class parser {
 
   function_attributes parse_generator_star(function_attributes);
 
+  void check_assignment_lhs(expression *);
+
   expression *maybe_wrap_erroneous_arrow_function(expression *arrow_function,
                                                   expression *lhs);
 

@@ -1026,6 +1026,11 @@ msgstr "TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript non-null assertions are not allowed in JavaScript"
+msgstr "TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript optional properties are not allowed in JavaScript code"
 msgstr "TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS"
 
@@ -1205,6 +1210,11 @@ msgstr "HEX NUMBER LITERAL HAS NO DIGITS"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "octal number literal has no digits"
 msgstr "OCTAL NUMBER LITERAL HAS NO DIGITS"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript non-null assertion is not allowed on parameters"
+msgstr "TYPESCRIPT'S 'ENUM' FEATURE IS NOT YET IMPLEMENTED BY QUICK-LINT-JS"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "unexpected '#'"

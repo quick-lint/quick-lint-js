@@ -971,7 +971,7 @@ TEST_F(test_parse_expression,
     const char* expected_normal_function;
     const char* expected_async_function;
 
-    parser_options& options = default_parser_options;
+    const parser_options& options = default_parser_options;
   };
 
   for (const test_case& test : {
@@ -979,6 +979,7 @@ TEST_F(test_parse_expression,
          test_case
 
          // 'await' is either an identifier or a unary operator:
+         {u8"await!+x"_sv,         "binary(nonnull(var await), var x)",          "await(unary(unary(var x)))", typescript_options},
          {u8"await/re/g"_sv,       "binary(var await, var re, var g)",           "await(literal)"},
          {u8"await+x"_sv,          "binary(var await, var x)",                   "await(unary(var x))"},
          {u8"await-x"_sv,          "binary(var await, var x)",                   "await(unary(var x))"},
@@ -1022,11 +1023,19 @@ TEST_F(test_parse_expression,
          {u8"await static"_sv,         nullptr, "await(var static)"},
          {u8"await x"_sv,              nullptr, "await(var x)"},
          {u8"await yield"_sv,          nullptr, "await(var yield)"},
+         // TODO(strager): Fix these test cases:
+#if 0
+         {u8"await! x"_sv,             nullptr, "await(unary(var x))", typescript_options},
+#endif
 
          // 'await' must be an identifier:
+         {u8"[await!]"_sv,            "array(nonnull(var await))",                nullptr, typescript_options},
          {u8"[await]"_sv,             "array(var await)",                         nullptr},
          {u8"await => x"_sv,          "arrowfunc(var await)",                     nullptr},
+         {u8"await! = x"_sv,          "assign(nonnull(var await), var x)",        nullptr, typescript_options},
          {u8"await = x"_sv,           "assign(var await, var x)",                 nullptr},
+         {u8"await! * x"_sv,          "binary(nonnull(var await), var x)",        nullptr, typescript_options},
+         {u8"await!, x"_sv,           "binary(nonnull(var await), var x)",        nullptr, typescript_options},
          {u8"await != x"_sv,          "binary(var await, var x)",                 nullptr},
          {u8"await !== x"_sv,         "binary(var await, var x)",                 nullptr},
          {u8"await % x"_sv,           "binary(var await, var x)",                 nullptr},
@@ -1482,6 +1491,18 @@ TEST_F(test_parse_expression, parse_invalid_assignment) {
        }) {
     SCOPED_TRACE(out_string8(code));
     test_parser p(code);
+    p.parse_expression();
+
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(DIAG_TYPE(diag_invalid_expression_left_of_assignment)));
+  }
+
+  for (const char8* code : {
+           u8"f()! = x",
+       }) {
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code, typescript_options);
     p.parse_expression();
 
     EXPECT_THAT(

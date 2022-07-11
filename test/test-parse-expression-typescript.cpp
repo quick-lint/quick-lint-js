@@ -76,6 +76,65 @@ TEST_F(test_parse_expression_typescript,
     EXPECT_EQ(summarize(ast), "cond(var cond, var x, var Type)");
   }
 }
+
+TEST_F(test_parse_expression_typescript, non_null_assertion) {
+  {
+    expression* ast = this->parse_expression(u8"x!"_sv);
+    EXPECT_EQ(summarize(ast), "nonnull(var x)");
+  }
+
+  {
+    expression* ast = this->parse_expression(u8"f()!.someprop"_sv);
+    EXPECT_EQ(summarize(ast), "dot(nonnull(call(var f)), someprop)");
+  }
+
+  {
+    expression* ast = this->parse_expression(u8"x! = y"_sv);
+    EXPECT_EQ(summarize(ast), "assign(nonnull(var x), var y)");
+  }
+
+  {
+    expression* ast = this->parse_expression(u8"async!"_sv);
+    EXPECT_EQ(summarize(ast), "nonnull(var async)");
+  }
+}
+
+TEST_F(test_parse_expression_typescript,
+       non_null_assertion_does_not_allow_newline) {
+  {
+    // HACK(strager): We rely on the fact that parse_expression stops parsing at
+    // the end of the line. "!+y" part is unparsed.
+    expression* ast = this->parse_expression(u8"x\n!+y"_sv);
+    EXPECT_EQ(summarize(ast), "var x");
+  }
+}
+
+TEST_F(test_parse_expression_typescript,
+       non_null_assertion_not_allowed_in_javascript) {
+  test_parser p(u8"x!"_sv, javascript_options);
+  expression* ast = p.parse_expression();
+  EXPECT_EQ(summarize(ast), "nonnull(var x)");
+  EXPECT_THAT(
+      p.errors(),
+      ElementsAre(DIAG_TYPE_OFFSETS(
+          p.code(),
+          diag_typescript_non_null_assertion_not_allowed_in_javascript,  //
+          bang, strlen(u8"x"), u8"!")));
+}
+
+TEST(test_parse_expression_typescript_statement, non_null_assertion) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(u8"f(x!);"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // f
+                                      "visit_variable_use"));  // x
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"f", u8"x"));
+  }
+
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(u8"x! = null;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_assignment"));  // x
+  }
+}
 }
 }
 

@@ -163,6 +163,9 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
     this->maybe_visit_assignment(child, v);
     break;
   }
+  case expression_kind::non_null_assertion:
+    this->visit_expression(ast->child_0(), v, context);
+    break;
   case expression_kind::type_annotated: {
     expression::type_annotated* annotated =
         static_cast<expression::type_annotated*>(ast);
@@ -216,6 +219,7 @@ void parser::maybe_visit_assignment(expression* ast, parse_visitor_base& v) {
       this->maybe_visit_assignment(value, v);
     }
     break;
+  case expression_kind::non_null_assertion:
   case expression_kind::paren:
     this->maybe_visit_assignment(ast->child_0(), v);
     break;
@@ -917,6 +921,9 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
       // await < other;     // identifier
       // await /regexp/;    // operator
       // await / rhs;       // identifier
+      // await !x;          // operator
+      // await!.prop;       // identifier (TypeScript)
+      case token_type::bang:
       case token_type::less:
       case token_type::slash:
       case token_type::slash_equal: {
@@ -983,7 +990,6 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
       case token_type::plus:
         return !this->in_top_level_;
 
-      case token_type::bang:
       case token_type::dot_dot_dot:
       case token_type::identifier:
       case token_type::kw_as:
@@ -1220,31 +1226,7 @@ next:
     source_code_span operator_span = this->peek().span();
     this->skip();
     expression* lhs = build_expression();
-    switch (lhs->without_paren()->kind()) {
-    default:
-      this->diag_reporter_->report(
-          diag_invalid_expression_left_of_assignment{lhs->span()});
-      break;
-    case expression_kind::_invalid:
-    case expression_kind::_missing:
-    case expression_kind::paren_empty:
-      // An error should have been reported elsewhere.
-      break;
-    case expression_kind::array:
-    case expression_kind::dot:
-    case expression_kind::index:
-    case expression_kind::object:
-    case expression_kind::variable:
-    case expression_kind::private_variable:
-      break;
-    case expression_kind::type_annotated:
-      // TODO(strager): Distinguish between the following:
-      // const [x]: y = z;  // Valid TypeScript.
-      // [x]: y = z;        // Invalid TypeScript.
-      break;
-    case expression_kind::paren:
-      QLJS_UNREACHABLE();
-    }
+    this->check_assignment_lhs(lhs);
     expression* rhs = this->parse_expression(
         v, precedence{.commas = false, .in_operator = prec.in_operator});
     if (rhs->kind() == expression_kind::_missing) {
@@ -1402,6 +1384,28 @@ next:
     }
     goto next;
 
+  // x!  // TypeScript only
+  case token_type::bang: {
+    if (this->peek().has_leading_newline) {
+      // Newline is not allowed before suffix !. Let parse_and_visit_statement
+      // insert a semicolon for us.
+      break;
+    } else {
+      source_code_span bang_span = this->peek().span();
+      if (!this->options_.typescript) {
+        this->diag_reporter_->report(
+            diag_typescript_non_null_assertion_not_allowed_in_javascript{
+                .bang = bang_span,
+            });
+      }
+      this->skip();
+      binary_builder.replace_last(
+          this->make_expression<expression::non_null_assertion>(
+              binary_builder.last_expression(), bang_span));
+      goto next;
+    }
+  }
+
   // key in o
   case token_type::kw_in: {
     if (!prec.in_operator) {
@@ -1543,7 +1547,6 @@ next:
   }
 
   QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD:
-  case token_type::bang:
   case token_type::end_of_file:
   case token_type::kw_as:
   case token_type::kw_async:
@@ -1680,6 +1683,7 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::jsx_fragment:
   case expression_kind::named_function:
   case expression_kind::new_target:
+  case expression_kind::non_null_assertion:
   case expression_kind::private_variable:
   case expression_kind::rw_unary_prefix:
   case expression_kind::rw_unary_suffix:
@@ -3080,6 +3084,39 @@ expression* parser::parse_untagged_template(parse_visitor_base& v) {
       QLJS_PARSER_UNIMPLEMENTED();
       break;
     }
+  }
+}
+
+void parser::check_assignment_lhs(expression* ast) {
+try_again:
+  switch (ast->kind()) {
+  default:
+    this->diag_reporter_->report(
+        diag_invalid_expression_left_of_assignment{ast->span()});
+    break;
+  case expression_kind::paren:
+    ast = static_cast<expression::paren*>(ast)->child_;
+    goto try_again;
+  case expression_kind::non_null_assertion:
+    ast = static_cast<expression::non_null_assertion*>(ast)->child_;
+    goto try_again;
+  case expression_kind::_invalid:
+  case expression_kind::_missing:
+  case expression_kind::paren_empty:
+    // An error should have been reported elsewhere.
+    break;
+  case expression_kind::array:
+  case expression_kind::dot:
+  case expression_kind::index:
+  case expression_kind::object:
+  case expression_kind::variable:
+  case expression_kind::private_variable:
+    break;
+  case expression_kind::type_annotated:
+    // TODO(strager): Distinguish between the following:
+    // const [x]: y = z;  // Valid TypeScript.
+    // [x]: y = z;        // Invalid TypeScript.
+    break;
   }
 }
 }

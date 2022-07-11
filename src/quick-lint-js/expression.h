@@ -65,6 +65,7 @@ enum class expression_kind {
   literal,
   named_function,
   new_target,
+  non_null_assertion,  // TypeScript only.
   object,
   paren,
   paren_empty,
@@ -209,6 +210,7 @@ class expression {
   class literal;
   class named_function;
   class new_target;
+  class non_null_assertion;
   class object;
   class paren;
   class paren_empty;
@@ -746,6 +748,25 @@ class expression::new_target final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::new_target>);
 
+class expression::non_null_assertion final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::non_null_assertion;
+
+  explicit non_null_assertion(expression *child,
+                              source_code_span bang_span) noexcept
+      : expression(kind), bang_end_(bang_span.end()), child_(child) {
+    QLJS_ASSERT(this->bang_span() == bang_span);
+  }
+
+  source_code_span bang_span() const noexcept {
+    return source_code_span(this->bang_end_ - 1, this->bang_end_);
+  }
+
+  const char8 *bang_end_;
+  expression *child_;
+};
+static_assert(expression_arena::is_allocatable<expression::non_null_assertion>);
+
 class expression::object final : public expression {
  public:
   static constexpr expression_kind kind = expression_kind::object;
@@ -1096,6 +1117,10 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     return expression_arena::array_ptr<expression *>(
         index->children_.data(), narrow_cast<int>(index->children_.size()));
   }
+  case expression_kind::non_null_assertion: {
+    auto *assertion = static_cast<const expression::non_null_assertion *>(this);
+    return expression_arena::array_ptr<expression *>(&assertion->child_, 1);
+  }
   case expression_kind::paren: {
     auto *paren = static_cast<const expression::paren *>(this);
     return expression_arena::array_ptr<expression *>(&paren->child_, 1);
@@ -1238,6 +1263,11 @@ inline source_code_span expression::span() const noexcept {
     return static_cast<const named_function *>(this)->span_;
   case expression_kind::new_target:
     return static_cast<const new_target *>(this)->span_;
+  case expression_kind::non_null_assertion: {
+    auto *assertion = static_cast<const non_null_assertion *>(this);
+    return source_code_span(assertion->child_->span().begin(),
+                            assertion->bang_end_);
+  }
   case expression_kind::object:
     return static_cast<const object *>(this)->span_;
   case expression_kind::paren:

@@ -547,6 +547,28 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript non-null assertion is not allowed on parameters"_translatable,
+        {
+            u8"TypeScript non-null assertion is not allowed on parameters",
+            u8"TypeScript non-null assertion is not allowed on parameters",
+            u8"TypeScript non-null assertion is not allowed on parameters",
+            u8"TypeScript non-null assertion is not allowed on parameters",
+            u8"TypeScript non-null assertion is not allowed on parameters",
+            u8"TypeScript non-null assertion is not allowed on parameters",
+        },
+    },
+    {
+        "TypeScript non-null assertions are not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript non-null assertions are not allowed in JavaScript",
+            u8"TypeScript non-null assertions are not allowed in JavaScript",
+            u8"TypeScript non-null assertions are not allowed in JavaScript",
+            u8"TypeScript non-null assertions are not allowed in JavaScript",
+            u8"TypeScript non-null assertions are not allowed in JavaScript",
+            u8"TypeScript non-null assertions are not allowed in JavaScript",
+        },
+    },
+    {
         "TypeScript optional properties are not allowed in JavaScript code"_translatable,
         {
             u8"TypeScript optional properties are not allowed in JavaScript code",
