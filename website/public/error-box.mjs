@@ -75,9 +75,9 @@ function blessErrorMarksWithTooltip(hoveredElement, markedElement) {
 
 document.addEventListener("DOMContentLoaded", () => {
   const codeInput = document.querySelector("#code-input");
-  const shadowInput = document.querySelector("#shadow-code-input");
-  if (codeInput !== null && shadowInput !== null) {
-    blessErrorMarksWithTooltip(codeInput, shadowInput);
+  const codeInputMarks = document.querySelector("#code-input-marks");
+  if (codeInput !== null && codeInputMarks !== null) {
+    blessErrorMarksWithTooltip(codeInput, codeInputMarks);
   }
 
   for (let codeBlock of document.querySelectorAll("pre > code.javascript")) {

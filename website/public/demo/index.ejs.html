@@ -11,15 +11,14 @@
       main {
         position: relative;
       }
-      #code-input,
-      #shadow-code-input {
+      .code-view {
         width: 100%;
         height: 20em;
       }
 
-      /* Normalize #code-input and #shadow-code-input to have the internal layout. */
-      #code-input,
-      #shadow-code-input {
+      /* Normalize #code-input, #code-input-marks, and #shadow-code-input to
+         have the internal layout. */
+      .code-view {
         border: 0;
         font-family: monospace;
         font-size: 1rem;
@@ -30,13 +29,13 @@
         white-space: pre;
       }
 
-      #code-input,
-      #shadow-code-input {
+      .code-view {
         overflow: scroll;
         padding: 3px;
       }
 
-      /* Show #shadow-code-input visually behind #code-input. */
+      /* Show #code-input-marks and #shadow-code-input visually behind
+         #code-input. */
       #code-input {
         background: transparent;
         position: relative;
@@ -44,18 +43,24 @@
         outline: none;
       }
       #shadow-code-input,
-      #shadow-code-input mark {
+      #code-input-marks,
+      #code-input-marks mark {
         color: transparent;
       }
-      #shadow-code-input {
+      #shadow-code-input,
+      #code-input-marks {
         z-index: 1;
         /* !important is required because codegrepper extension adds position:relative
         the html tag and breaks the demo */
         position: absolute !important;
       }
 
-      #shadow-code-input {
+      #code-input-marks {
         background-color: rgba(0, 0, 0, 0.05);
+      }
+
+      .floating-mark {
+        position: absolute;
       }
 
       footer {
@@ -67,7 +72,7 @@
           color: white;
         }
 
-        #shadow-code-input {
+        #code-input-marks {
           background-color: rgba(0, 0, 0, 0.2);
         }
       }
@@ -98,8 +103,9 @@
         favorite buggy JavaScript code below:
       </p>
 
-      <pre id="shadow-code-input"></pre>
-      <textarea id="code-input" spellcheck="false">
+      <pre class="code-view" id="shadow-code-input"></pre>
+      <pre class="code-view" id="code-input-marks"></pre>
+      <textarea class="code-view" id="code-input" spellcheck="false">
 const occupation = language + " coder";
 const language = "JavaScript";
 occupation = "Senior " + occupation;

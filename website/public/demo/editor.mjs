@@ -1,9 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+let docmarks = [];
 export function markEditorText(editor, window, marks) {
-  let marker = new EditorMarker(editor, window, sanitizeMarks(marks));
-  marker.markNodes();
+  //let marker = new EditorMarker(editor, window, sanitizeMarks(marks));
+  //marker.markNodes();
 }
 
 export function sanitizeMarks(marks) {
