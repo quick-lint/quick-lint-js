@@ -25,7 +25,11 @@ namespace quick_lint_js {
 options parse_options(int argc, char** argv) {
   options o;
 
-  std::optional<int> next_vim_file_bufnr;
+  struct {
+    std::optional<int> number;
+    const char* arg_var;
+  } next_vim_file_bufnr;
+
   const char* next_path_for_config_search = nullptr;
   const char* active_config_file = nullptr;
   bool has_stdin = false;
@@ -42,7 +46,7 @@ options parse_options(int argc, char** argv) {
                           .config_file = active_config_file,
                           .path_for_config_search = next_path_for_config_search,
                           .is_stdin = true,
-                          .vim_bufnr = next_vim_file_bufnr};
+                          .vim_bufnr = next_vim_file_bufnr.number};
         has_stdin = true;
         o.files_to_lint.emplace_back(file);
       } else {
@@ -50,12 +54,12 @@ options parse_options(int argc, char** argv) {
                           .config_file = active_config_file,
                           .path_for_config_search = next_path_for_config_search,
                           .is_stdin = false,
-                          .vim_bufnr = next_vim_file_bufnr};
+                          .vim_bufnr = next_vim_file_bufnr.number};
         o.files_to_lint.emplace_back(file);
       }
 
       next_path_for_config_search = nullptr;
-      next_vim_file_bufnr = std::nullopt;
+      next_vim_file_bufnr.number = std::nullopt;
     } else if (parser.match_flag_option("--debug-parser-visits"sv,
                                         "--debug-p"sv)) {
       o.print_parser_visits = true;
@@ -90,6 +94,7 @@ options parse_options(int argc, char** argv) {
       next_path_for_config_search = arg_value;
     } else if (const char* arg_value =
                    parser.match_option_with_value("--vim-file-bufnr"sv)) {
+      o.has_vim_file_bufnr = true;
       int bufnr;
       from_chars_result result =
           from_chars(&arg_value[0], &arg_value[std::strlen(arg_value)], bufnr);
@@ -97,7 +102,12 @@ options parse_options(int argc, char** argv) {
         o.error_unrecognized_options.emplace_back(arg_value);
         continue;
       }
-      next_vim_file_bufnr = bufnr;
+      if (next_vim_file_bufnr.number != std::nullopt) {
+        o.warning_vim_bufnr_without_file.emplace_back(
+            next_vim_file_bufnr.arg_var);
+      }
+      next_vim_file_bufnr.number = bufnr;
+      next_vim_file_bufnr.arg_var = arg_value;
     } else if (const char* arg_value =
                    parser.match_option_with_value("--exit-fail-on"sv)) {
       o.exit_fail_on.add(parse_diag_code_list(arg_value));
@@ -120,11 +130,11 @@ options parse_options(int argc, char** argv) {
                         .config_file = active_config_file,
                         .path_for_config_search = next_path_for_config_search,
                         .is_stdin = true,
-                        .vim_bufnr = next_vim_file_bufnr};
+                        .vim_bufnr = next_vim_file_bufnr.number};
       o.files_to_lint.emplace_back(file);
       has_stdin = true;
       next_path_for_config_search = nullptr;
-      next_vim_file_bufnr = std::nullopt;
+      next_vim_file_bufnr.number = std::nullopt;
     } else {
       const char* unrecognized = parser.match_anything();
       o.error_unrecognized_options.emplace_back(unrecognized);
@@ -132,6 +142,10 @@ options parse_options(int argc, char** argv) {
     }
   }
 done_parsing_options:
+
+  if (next_vim_file_bufnr.number != std::nullopt) {
+    o.warning_vim_bufnr_without_file.emplace_back(next_vim_file_bufnr.arg_var);
+  }
 
   return o;
 }
@@ -160,6 +174,24 @@ bool options::dump_errors(output_stream& out) const {
     out.append_copy(
         u8"warning: multiple standard input given on command line\n"sv);
   }
+
+  if (this->has_vim_file_bufnr && this->lsp_server) {
+    out.append_copy(
+        u8"warning: ignoring --vim-file-bufnr in --lsp-server mode\n"sv);
+  } else if (this->has_vim_file_bufnr &&
+             this->output_format != output_format::vim_qflist_json) {
+    out.append_copy(
+        u8"warning: --output-format selected which doesn't use --vim-file-bufnr\n"sv);
+  } else {
+    for (const auto& argument : this->warning_vim_bufnr_without_file) {
+      QLJS_ASSERT(argument != nullptr);
+      out.append_copy(u8"warning: flag: '--vim-file-bufnr="sv);
+      out.append_copy(to_string8_view(argument));
+      out.append_copy(
+          u8"' should be followed by an input file name or --stdin\n"sv);
+    }
+  }
+
   for (const auto& option : this->error_unrecognized_options) {
     out.append_copy(u8"error: unrecognized option: "sv);
     out.append_copy(to_string8_view(option));
@@ -178,6 +210,11 @@ bool options::dump_errors(output_stream& out) const {
     out.append_copy(to_string8_view(warning));
     out.append_copy(u8'\n');
   }
+
+  // Make sure the errors and warnings get displayed before anything else
+  // happens.
+  out.flush();
+
   return have_errors;
 }
 }

@@ -42,8 +42,10 @@ struct options {
   compiled_diag_code_list exit_fail_on;
 
   std::vector<const char *> error_unrecognized_options;
+  std::vector<const char *> warning_vim_bufnr_without_file;
   bool has_multiple_stdin = false;
   bool has_config_file = false;
+  bool has_vim_file_bufnr = false;
 
   bool dump_errors(output_stream &) const;
 };
