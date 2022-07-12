@@ -97,6 +97,10 @@ options parse_options(int argc, char** argv) {
         o.error_unrecognized_options.emplace_back(arg_value);
         continue;
       }
+      if (next_vim_file_bufnr != std::nullopt) {
+        o.warning_vim_bufnr_without_file.emplace_back(
+            next_vim_file_bufnr.value());
+      }
       next_vim_file_bufnr = bufnr;
     } else if (const char* arg_value =
                    parser.match_option_with_value("--exit-fail-on"sv)) {
@@ -132,6 +136,10 @@ options parse_options(int argc, char** argv) {
     }
   }
 done_parsing_options:
+
+  if (next_vim_file_bufnr != std::nullopt) {
+    o.warning_vim_bufnr_without_file.emplace_back(next_vim_file_bufnr.value());
+  }
 
   return o;
 }
@@ -177,6 +185,14 @@ bool options::dump_errors(output_stream& out) const {
     out.append_copy(u8"warning: "sv);
     out.append_copy(to_string8_view(warning));
     out.append_copy(u8'\n');
+  }
+  for (const auto& bufnr : this->warning_vim_bufnr_without_file) {
+    out.append_copy(u8"warning: flag: '--vim-file-bufnr="sv);
+    string8_view number{to_string8(std::to_string(bufnr))};
+    out.append_copy(number);
+    out.append_copy(
+        u8"' should be followed by an input file name or --stdin\n"sv);
+    have_errors = true;
   }
   return have_errors;
 }

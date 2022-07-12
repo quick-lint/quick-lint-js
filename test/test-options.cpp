@@ -443,6 +443,70 @@ TEST(test_options, invalid_vim_file_bufnr) {
 
 // TODO(#201): Report warning for trailing (ununsed) --vim-file-bufnr.
 
+TEST(test_options, no_following_filename_vim_file_bufnr) {
+  {
+    options o = parse_options({"--vim-file-bufnr=1"});
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_TRUE(have_errors);
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: flag: '--vim-file-bufnr=1' should be followed by an "
+              u8"input file name or --stdin\n");
+  }
+
+  {
+    options o =
+        parse_options({"--vim-file-bufnr=1", "--vim-file-bufnr=2", "a.js"});
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_TRUE(have_errors);
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: flag: '--vim-file-bufnr=1' should be followed by an "
+              u8"input file name or --stdin\n");
+  }
+  {
+    options o =
+        parse_options({"--vim-file-bufnr=1", "a.js", "--vim-file-bufnr=2"});
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_TRUE(have_errors);
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: flag: '--vim-file-bufnr=2' should be followed by an "
+              u8"input file name or --stdin\n");
+  }
+  {
+    options o = parse_options({"--vim-file-bufnr=1", "--vim-file-bufnr=2"});
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_TRUE(have_errors);
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: flag: '--vim-file-bufnr=1' should be followed by an "
+              u8"input file name or --stdin\n"
+              u8"warning: flag: '--vim-file-bufnr=2' should be followed by an "
+              u8"input file name or --stdin\n");
+  }
+  {
+    options o = parse_options({"--vim-file-bufnr=1",
+                               "a.js"
+                               "--vim-file-bufnr=2",
+                               "--stdin"});
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(), u8"");
+  }
+}
+
 // TODO(#201): Report warning for using --vim-file-bufnr without
 // --output-format.
 
