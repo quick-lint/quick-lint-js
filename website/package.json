@@ -15,6 +15,7 @@
     "jsdom": "19.0.0",
     "markdown-it": "13.0.1",
     "mime": "3.0.0",
+    "promise-limit": "^2.7.0",
     "quick-lint-js-node-test-runner": "../tools/quick-lint-js-node-test-runner/"
   },
   "devDependencies": {
