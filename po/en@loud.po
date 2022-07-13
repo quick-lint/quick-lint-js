@@ -265,6 +265,11 @@ msgid "commas are not allowed after spread parameter"
 msgstr "COMMAS ARE NOT ALLOWED AFTER SPREAD PARAMETER"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "leading commas are not allowed in generic parameter lists"
+msgstr "COMMAS ARE NOT ALLOWED AFTER SPREAD PARAMETER"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "commas are not allowed between class methods"
 msgstr "COMMAS ARE NOT ALLOWED BETWEEN CLASS METHODS"
 
@@ -471,6 +476,11 @@ msgid "generator function '*' belongs before function name"
 msgstr "GENERATOR FUNCTION '*' BELONGS BEFORE FUNCTION NAME"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "only one comma is allowed between or after generic parameters"
+msgstr "COMMAS ARE NOT ALLOWED AFTER SPREAD PARAMETER"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "'in' disallowed in C-style for loop initializer"
 msgstr "'IN' DISALLOWED IN C-STYLE FOR LOOP INITIALIZER"
 
@@ -639,6 +649,11 @@ msgstr "MISSING CATCH VARIABLE NAME BETWEEN PARENTHESES"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing comma between object literal entries"
+msgstr "MISSING COMMA BETWEEN OBJECT LITERAL ENTRIES"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing comma between generic parameters"
 msgstr "MISSING COMMA BETWEEN OBJECT LITERAL ENTRIES"
 
 #: src/quick-lint-js/diagnostic-types.h
@@ -1004,6 +1019,11 @@ msgstr "INDEXING REQUIRES AN EXPRESSION"
 #, fuzzy
 msgid "index signatures require a value type"
 msgstr "INDEXING REQUIRES AN EXPRESSION"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "expected at least one parameter in generic parameter list"
+msgstr "UNEXPECTED LITERAL IN PARAMETER LIST; EXPECTED PARAMETER NAME"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy

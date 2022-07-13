@@ -955,13 +955,80 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
 void parser::parse_and_visit_typescript_generic_parameters(
     parse_visitor_base &v) {
   QLJS_ASSERT(this->peek().type == token_type::less);
+  const char8 *less_end = this->peek().end;
   this->skip();
+
+  bump_vector<source_code_span, monotonic_allocator> leading_commas(
+      "parse_and_visit_typescript_generic_parameters leading_commas",
+      &this->temporary_memory_);
+  while (this->peek().type == token_type::comma) {
+    // <, T>   // Invalid.
+    // <,>     // Invalid.
+    leading_commas.emplace_back(this->peek().span());
+    this->skip();
+  }
+  if (this->peek().type == token_type::greater) {
+    // <,>    // Invalid.
+    this->diag_reporter_->report(
+        diag_typescript_generic_parameter_list_is_empty{
+            .expected_parameter = source_code_span(less_end, less_end),
+        });
+    for (std::size_t i = 1; i < leading_commas.size(); ++i) {
+      this->diag_reporter_->report(
+          diag_multiple_commas_in_generic_parameter_list{
+              .unexpected_comma = leading_commas[i],
+          });
+    }
+    this->skip();
+    return;
+  }
+  for (const source_code_span &comma : leading_commas) {
+    // <, T>
+    this->diag_reporter_->report(
+        diag_comma_not_allowed_before_first_generic_parameter{
+            .unexpected_comma = comma,
+        });
+  }
+
+next_parameter:
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
   v.visit_variable_declaration(this->peek().identifier_name(),
                                variable_kind::_generic_parameter,
                                variable_init_kind::normal);
   this->skip();
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
+
+  switch (this->peek().type) {
+  case token_type::greater:
+    break;
+
+  case token_type::comma:
+    this->skip();
+    while (this->peek().type == token_type::comma) {
+      this->diag_reporter_->report(
+          diag_multiple_commas_in_generic_parameter_list{
+              .unexpected_comma = this->peek().span(),
+          });
+      this->skip();
+    }
+    break;
+
+  // <T U>  // Invalid.
+  case token_type::identifier:
+    this->diag_reporter_->report(diag_missing_comma_between_generic_parameters{
+        .expected_comma =
+            source_code_span(this->lexer_.end_of_previous_token(),
+                             this->lexer_.end_of_previous_token()),
+    });
+    goto next_parameter;
+
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
+  }
+
+  if (this->peek().type != token_type::greater) {
+    goto next_parameter;
+  }
   this->skip();
 }
 

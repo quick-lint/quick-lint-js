@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 311;
-constexpr std::size_t translation_table_string_table_size = 60139;
+constexpr std::uint16_t translation_table_mapping_table_size = 315;
+constexpr std::size_t translation_table_string_table_size = 60358;
 constexpr std::size_t translation_table_locale_table_size = 37;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -149,6 +149,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "expected 'from \"name_of_module.mjs\"'"sv,
           "expected 'from' before module specifier"sv,
           "expected '{{'"sv,
+          "expected at least one parameter in generic parameter list"sv,
           "expected expression after 'case'"sv,
           "expected expression before newline"sv,
           "expected expression before semicolon"sv,
@@ -194,6 +195,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "invalid lone literal in object literal"sv,
           "keywords cannot contain escape sequences"sv,
           "label named 'await' not allowed in async function"sv,
+          "leading commas are not allowed in generic parameter lists"sv,
           "legacy octal literal may not be BigInt"sv,
           "legacy octal literals may not contain underscores"sv,
           "let statement cannot declare variables named 'let'"sv,
@@ -223,6 +225,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing body for {1:headlinese}"sv,
           "missing catch or finally clause for try statement"sv,
           "missing catch variable name between parentheses"sv,
+          "missing comma between generic parameters"sv,
           "missing comma between object literal entries"sv,
           "missing comparison; '{1}' does not extend to the right side of '{0}'"sv,
           "missing condition for if statement"sv,
@@ -268,6 +271,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "octal literal may not have decimal"sv,
           "octal literal may not have exponent"sv,
           "octal number literal has no digits"sv,
+          "only one comma is allowed between or after generic parameters"sv,
           "opening '<{1}>' tag here"sv,
           "private properties are not allowed in object literals"sv,
           "redeclaration of global variable"sv,

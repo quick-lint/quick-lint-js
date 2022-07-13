@@ -1361,6 +1361,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "expected at least one parameter in generic parameter list"_translatable,
+        {
+            u8"expected at least one parameter in generic parameter list",
+            u8"expected at least one parameter in generic parameter list",
+            u8"expected at least one parameter in generic parameter list",
+            u8"expected at least one parameter in generic parameter list",
+            u8"expected at least one parameter in generic parameter list",
+            u8"expected at least one parameter in generic parameter list",
+        },
+    },
+    {
         "expected expression after 'case'"_translatable,
         {
             u8"expected expression after 'case'",
@@ -1856,6 +1867,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "leading commas are not allowed in generic parameter lists"_translatable,
+        {
+            u8"leading commas are not allowed in generic parameter lists",
+            u8"leading commas are not allowed in generic parameter lists",
+            u8"leading commas are not allowed in generic parameter lists",
+            u8"leading commas are not allowed in generic parameter lists",
+            u8"leading commas are not allowed in generic parameter lists",
+            u8"leading commas are not allowed in generic parameter lists",
+        },
+    },
+    {
         "legacy octal literal may not be BigInt"_translatable,
         {
             u8"legacy octal literal may not be BigInt",
@@ -2172,6 +2194,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"who's on second? \u26be",
             u8"nom de variable de capture manquante entre les parenth\u00e8ses",
             u8"saknar catch variabelnamn mellan paranteser",
+        },
+    },
+    {
+        "missing comma between generic parameters"_translatable,
+        {
+            u8"missing comma between generic parameters",
+            u8"missing comma between generic parameters",
+            u8"missing comma between generic parameters",
+            u8"missing comma between generic parameters",
+            u8"missing comma between generic parameters",
+            u8"missing comma between generic parameters",
         },
     },
     {
@@ -2667,6 +2700,17 @@ inline constexpr translated_string test_translation_table[] = {
             u8"<octupus-with-no-legs> has no digits",
             u8"le litt\u00e9ral num\u00e9rique octal n'a pas de chiffres",
             u8"oktal nummerlitteral har inga siffror",
+        },
+    },
+    {
+        "only one comma is allowed between or after generic parameters"_translatable,
+        {
+            u8"only one comma is allowed between or after generic parameters",
+            u8"only one comma is allowed between or after generic parameters",
+            u8"only one comma is allowed between or after generic parameters",
+            u8"only one comma is allowed between or after generic parameters",
+            u8"only one comma is allowed between or after generic parameters",
+            u8"only one comma is allowed between or after generic parameters",
         },
     },
     {

@@ -88,6 +88,7 @@ quick_lint_js_add_executable(
   test-parse-typescript-class.cpp
   test-parse-typescript-enum.cpp
   test-parse-typescript-function.cpp
+  test-parse-typescript-generic.cpp
   test-parse-typescript-interface.cpp
   test-parse-typescript-type.cpp
   test-parse-typescript-var.cpp

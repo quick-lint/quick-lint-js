@@ -337,6 +337,14 @@
           comma))                                                              \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_comma_not_allowed_before_first_generic_parameter, "E0262",          \
+      diagnostic_severity::error, { source_code_span unexpected_comma; },      \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE(                                                   \
+              "leading commas are not allowed in generic parameter lists"),    \
+          unexpected_comma))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_comma_not_allowed_between_class_methods, "E0209",                   \
       diagnostic_severity::error, { source_code_span unexpected_comma; },      \
       MESSAGE(                                                                 \
@@ -699,6 +707,13 @@
               star))                                                           \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_multiple_commas_in_generic_parameter_list, "E0263",                 \
+      diagnostic_severity::error, { source_code_span unexpected_comma; },      \
+      MESSAGE(QLJS_TRANSLATABLE("only one comma is allowed between or after "  \
+                                "generic parameters"),                         \
+              unexpected_comma))                                               \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_in_disallowed_in_c_style_for_loop, "E0108",                         \
       diagnostic_severity::error, { source_code_span in_token; },              \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
@@ -981,6 +996,12 @@
       MESSAGE(                                                                 \
           QLJS_TRANSLATABLE("missing comma between object literal entries"),   \
           where))                                                              \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_missing_comma_between_generic_parameters, "E0265",                  \
+      diagnostic_severity::error, { source_code_span expected_comma; },        \
+      MESSAGE(QLJS_TRANSLATABLE("missing comma between generic parameters"),   \
+              expected_comma))                                                 \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
       diag_missing_comma_between_variable_declarations, "E0132",               \
@@ -1535,6 +1556,14 @@
       diagnostic_severity::error, { source_code_span expected_type; },         \
       MESSAGE(QLJS_TRANSLATABLE("index signatures require a value type"),      \
               expected_type))                                                  \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_generic_parameter_list_is_empty, "E0264",                \
+      diagnostic_severity::error, { source_code_span expected_parameter; },    \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE(                                                   \
+              "expected at least one parameter in generic parameter list"),    \
+          expected_parameter))                                                 \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
       diag_typescript_generics_not_allowed_in_javascript, "E0233",             \

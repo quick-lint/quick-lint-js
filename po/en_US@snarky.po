@@ -248,6 +248,12 @@ msgstr "hold up! ✋ no '{0}' allowed"
 msgid "commas are not allowed after spread parameter"
 msgstr "a comma makes sense, but TC39 says no ⛔"
 
+# TODO(you) add another diagnostic that's more explicit about not allowing parameters
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "leading commas are not allowed in generic parameter lists"
+msgstr "a comma makes sense, but TC39 says no ⛔"
+
 #: src/quick-lint-js/diagnostic-types.h
 msgid "commas are not allowed between class methods"
 msgstr "get this comma out of my sight"
@@ -460,6 +466,12 @@ msgstr "slide this '*' to the right"
 msgid "generator function '*' belongs before function name"
 msgstr "slide this '*' to the left"
 
+# TODO(you) add another diagnostic that's more explicit about not allowing parameters
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "only one comma is allowed between or after generic parameters"
+msgstr "a comma makes sense, but TC39 says no ⛔"
+
 #: src/quick-lint-js/diagnostic-types.h
 msgid "'in' disallowed in C-style for loop initializer"
 msgstr "is this a for-in loop or what?"
@@ -644,6 +656,11 @@ msgstr "who's on second? ⚾"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing comma between object literal entries"
+msgstr "separate these fellas with a comma"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing comma between generic parameters"
 msgstr "separate these fellas with a comma"
 
 #: src/quick-lint-js/diagnostic-types.h
@@ -1002,6 +1019,11 @@ msgstr "indexing requires an expression"
 #, fuzzy
 msgid "index signatures require a value type"
 msgstr "indexing requires an expression"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "expected at least one parameter in generic parameter list"
+msgstr "you literally forgot to name your parameter"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy

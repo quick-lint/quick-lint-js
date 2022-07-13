@@ -266,6 +266,11 @@ msgstr "kommatecken är inte tillåtet efter sprid parameter"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
+msgid "leading commas are not allowed in generic parameter lists"
+msgstr "kommatecken är inte tillåtet efter sprid parameter"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
 msgid "commas are not allowed between class methods"
 msgstr "kommatecken är inte tillåtet efter sprid parameter"
 
@@ -470,6 +475,11 @@ msgid "generator function '*' belongs before function name"
 msgstr "generatorfunktion '*' tillhör före funktionens namn"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "only one comma is allowed between or after generic parameters"
+msgstr "kommatecken är inte tillåtet efter sprid parameter"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "'in' disallowed in C-style for loop initializer"
 msgstr "'in' är otillåtet i C-stil for loop initierare"
 
@@ -639,6 +649,11 @@ msgstr "saknar catch variabelnamn mellan paranteser"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing comma between object literal entries"
+msgstr "saknar comma mellan förekommande objektliteral"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing comma between generic parameters"
 msgstr "saknar comma mellan förekommande objektliteral"
 
 #: src/quick-lint-js/diagnostic-types.h
@@ -1005,6 +1020,11 @@ msgstr "indexering kräver ett uttryck"
 #, fuzzy
 msgid "index signatures require a value type"
 msgstr "indexering kräver ett uttryck"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "expected at least one parameter in generic parameter list"
+msgstr "oförväntad litteral i parameter lista; förväntade parameter namn"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy

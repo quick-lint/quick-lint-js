@@ -132,7 +132,8 @@ const translation_table translation_data = {
         {39, 38, 40, 35, 41, 38},            //
         {37, 37, 29, 36, 41, 37},            //
         {39, 0, 25, 49, 44, 40},             //
-        {14, 40, 24, 13, 18, 14},            //
+        {0, 0, 0, 0, 0, 14},                 //
+        {14, 40, 24, 13, 18, 58},            //
         {30, 33, 28, 35, 38, 33},            //
         {36, 35, 18, 44, 37, 35},            //
         {32, 37, 39, 44, 41, 37},            //
@@ -177,7 +178,8 @@ const translation_table translation_data = {
         {34, 33, 15, 43, 37, 33},            //
         {39, 39, 51, 50, 38, 39},            //
         {57, 41, 72, 67, 0, 41},             //
-        {63, 50, 28, 67, 46, 50},            //
+        {0, 0, 0, 0, 0, 50},                 //
+        {63, 50, 28, 67, 46, 58},            //
         {54, 39, 5, 62, 52, 39},             //
         {61, 50, 50, 75, 64, 50},            //
         {0, 0, 0, 0, 0, 51},                 //
@@ -206,7 +208,8 @@ const translation_table translation_data = {
         {33, 28, 31, 36, 30, 28},            //
         {34, 32, 47, 35, 34, 32},            //
         {53, 50, 77, 57, 46, 50},            //
-        {44, 48, 21, 60, 44, 48},            //
+        {0, 0, 0, 0, 0, 48},                 //
+        {44, 48, 21, 60, 44, 41},            //
         {49, 0, 35, 0, 0, 45},               //
         {76, 45, 28, 56, 48, 69},            //
         {33, 35, 10, 42, 31, 35},            //
@@ -251,7 +254,8 @@ const translation_table translation_data = {
         {27, 28, 36, 29, 30, 28},            //
         {50, 35, 21, 53, 44, 35},            //
         {48, 36, 27, 44, 43, 36},            //
-        {35, 0, 37, 0, 0, 35},               //
+        {0, 0, 0, 0, 0, 35},                 //
+        {35, 0, 37, 0, 0, 62},               //
         {32, 35, 13, 50, 38, 25},            //
         {66, 54, 33, 76, 58, 54},            //
         {40, 33, 29, 35, 33, 33},            //
@@ -1538,6 +1542,7 @@ const translation_table translation_data = {
         u8"expected 'from \"name_of_module.mjs\"'\0"
         u8"expected 'from' before module specifier\0"
         u8"expected '{{'\0"
+        u8"expected at least one parameter in generic parameter list\0"
         u8"expected expression after 'case'\0"
         u8"expected expression before newline\0"
         u8"expected expression before semicolon\0"
@@ -1583,6 +1588,7 @@ const translation_table translation_data = {
         u8"invalid lone literal in object literal\0"
         u8"keywords cannot contain escape sequences\0"
         u8"label named 'await' not allowed in async function\0"
+        u8"leading commas are not allowed in generic parameter lists\0"
         u8"legacy octal literal may not be BigInt\0"
         u8"legacy octal literals may not contain underscores\0"
         u8"let statement cannot declare variables named 'let'\0"
@@ -1612,6 +1618,7 @@ const translation_table translation_data = {
         u8"missing body for {1:headlinese}\0"
         u8"missing catch or finally clause for try statement\0"
         u8"missing catch variable name between parentheses\0"
+        u8"missing comma between generic parameters\0"
         u8"missing comma between object literal entries\0"
         u8"missing comparison; '{1}' does not extend to the right side of '{0}'\0"
         u8"missing condition for if statement\0"
@@ -1657,6 +1664,7 @@ const translation_table translation_data = {
         u8"octal literal may not have decimal\0"
         u8"octal literal may not have exponent\0"
         u8"octal number literal has no digits\0"
+        u8"only one comma is allowed between or after generic parameters\0"
         u8"opening '<{1}>' tag here\0"
         u8"private properties are not allowed in object literals\0"
         u8"redeclaration of global variable\0"

@@ -183,8 +183,11 @@ class parser {
   void maybe_visit_assignment(expression *ast, parse_visitor_base &v);
 
   void parse_and_visit_typescript_generic_arguments(parse_visitor_base &v);
+
+ public:  // For testing only.
   void parse_and_visit_typescript_generic_parameters(parse_visitor_base &v);
 
+ private:
   void parse_and_visit_statement_block_no_scope(parse_visitor_base &v);
 
   enum class name_requirement {

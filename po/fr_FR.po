@@ -274,6 +274,11 @@ msgid "commas are not allowed after spread parameter"
 msgstr "les virgules ne sont pas autorisées après un paramètre d'expansion"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "leading commas are not allowed in generic parameter lists"
+msgstr "les virgules ne sont pas autorisées après un paramètre d'expansion"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "commas are not allowed between class methods"
 msgstr "les virgules ne sont pas autorisées entre les méthodes de classe"
 
@@ -488,6 +493,11 @@ msgid "generator function '*' belongs before function name"
 msgstr "une fonction génératrice '*' figure avant le nom de la fonction"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "only one comma is allowed between or after generic parameters"
+msgstr "les virgules ne sont pas autorisées après un paramètre d'expansion"
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "'in' disallowed in C-style for loop initializer"
 msgstr "'in' désactivé dans l'initialisation des boucles for de style C"
 
@@ -656,6 +666,11 @@ msgstr "nom de variable de capture manquante entre les parenthèses"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid "missing comma between object literal entries"
+msgstr "virgule manquante entre les entrées du littéral objet"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "missing comma between generic parameters"
 msgstr "virgule manquante entre les entrées du littéral objet"
 
 #: src/quick-lint-js/diagnostic-types.h
@@ -1043,6 +1058,12 @@ msgstr "l'indexation nécessite une expression"
 #, fuzzy
 msgid "index signatures require a value type"
 msgstr "l'indexation nécessite une expression"
+
+#: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "expected at least one parameter in generic parameter list"
+msgstr ""
+"littéral inattendu dans une liste de paramètres ; nom de paramètre attendu"
 
 #: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
