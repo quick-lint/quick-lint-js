@@ -86,6 +86,14 @@ TEST_F(test_trace_flusher, enabling_creates_metadata_file) {
       << "TSDL specification: https://diamon.org/ctf/#spec7.1";
 }
 
+TEST_F(test_trace_flusher, enabling_enables) {
+  trace_flusher flusher;
+  EXPECT_FALSE(flusher.is_enabled());
+  auto result = flusher.enable_for_directory(this->trace_dir);
+  ASSERT_TRUE(result.ok()) << result.error_to_string();
+  EXPECT_TRUE(flusher.is_enabled());
+}
+
 TEST_F(test_trace_flusher, enabling_fails_if_directory_is_missing) {
   trace_flusher flusher;
   auto result =
@@ -223,6 +231,16 @@ TEST_F(test_trace_flusher, cannot_write_events_after_enabling_then_disabling) {
 
   trace_writer* writer = flusher.trace_writer_for_current_thread();
   EXPECT_FALSE(writer);
+}
+
+TEST_F(test_trace_flusher, disabling_disables) {
+  trace_flusher flusher;
+  auto result = flusher.enable_for_directory(this->trace_dir);
+  ASSERT_TRUE(result.ok()) << result.error_to_string();
+  ASSERT_TRUE(flusher.is_enabled());
+
+  flusher.disable();
+  EXPECT_FALSE(flusher.is_enabled());
 }
 
 TEST_F(test_trace_flusher,

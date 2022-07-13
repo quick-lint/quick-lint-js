@@ -85,6 +85,7 @@ void trace_flusher::disable() {
   for (auto& t : this->registered_threads_) {
     t->thread_writer->store(nullptr);
   }
+  this->trace_directory_.clear();
 }
 
 void trace_flusher::create_and_enable_in_child_directory(
