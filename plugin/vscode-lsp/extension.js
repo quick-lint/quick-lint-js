@@ -14,7 +14,6 @@ let toDispose = [];
 async function startOrRestartServerAsync() {
   await stopServerIfStartedAsync();
 
-  let config = vscode.workspace.getConfiguration(clientID);
   client = new LanguageClient(
     clientID,
     "quick-lint-js-lsp",
@@ -31,7 +30,10 @@ async function startOrRestartServerAsync() {
       middleware: {
         workspace: {
           async configuration(params, _token, _next) {
-            return params.items.map((item) => getLSPWorkspaceConfig(item));
+            let vscodeConfig = getLatestWorkspaceConfig();
+            return params.items.map((item) =>
+              getLSPWorkspaceConfig(vscodeConfig, item)
+            );
           },
         },
       },
@@ -40,15 +42,16 @@ async function startOrRestartServerAsync() {
   client.start();
 
   function getQuickLintJSExecutablePath() {
+    let config = getLatestWorkspaceConfig();
     let path = config["executablePath"];
     let pathIsEmpty = /^\s*$/.test(path);
     return pathIsEmpty ? "quick-lint-js" : path;
   }
 
-  function getLSPWorkspaceConfig(lspConfigItem) {
+  function getLSPWorkspaceConfig(vscodeConfig, lspConfigItem) {
     switch (lspConfigItem.section) {
       case "quick-lint-js.tracing-directory":
-        return config.get("tracing-directory");
+        return vscodeConfig.get("tracing-directory");
 
       default:
         return null;
@@ -93,6 +96,10 @@ async function deactivateAsync() {
   }
 }
 exports.deactivate = deactivateAsync;
+
+function getLatestWorkspaceConfig() {
+  return vscode.workspace.getConfiguration(clientID);
+}
 
 function logAsyncErrors(promise) {
   if (typeof promise === "function") {
