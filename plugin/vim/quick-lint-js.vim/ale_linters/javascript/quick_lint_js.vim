@@ -7,6 +7,8 @@
 call ale#Set('javascript_quick_lint_js_executable', 'quick-lint-js')
 call ale#Set('javascript_quick_lint_js_use_global', get(g:, 'ale_use_global_executables', v:true))
 
+call ale#Set('javascript_quick_lint_js_tracing_directory', '')
+
 let s:enable_lsp_linter = v:true
 
 if ale#Has('ale-2.4.0')
@@ -30,6 +32,7 @@ if s:enable_lsp_linter
     \ s:linter_command_callback_key: function('quick_lint_js_ale#get_lsp_command'),
     \ s:linter_executable_callback_key: function('quick_lint_js_ale#get_executable'),
     \ s:linter_project_root_callback_key: function('quick_lint_js_ale#get_lsp_project_root'),
+    \ 'lsp_config': function('quick_lint_js_ale#get_lsp_config'),
   \ })
 else
   call ale#linter#Define('javascript', {

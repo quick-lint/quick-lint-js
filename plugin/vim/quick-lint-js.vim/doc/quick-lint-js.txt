@@ -114,6 +114,20 @@ For security reasons, we recommend leaving this variable at its default value
 could run arbitrary code on your computer through `node_modules` if you open a
 JavaScript file.
 
+g:ale_javascript_quick_lint_js_tracing_directory
+			*g:ale_javascript_quick_lint_js_tracing_directory*
+  Type: |String|
+  Default: `''`
+
+Set this variable to the path to a directory. quick-lint-js will store binary
+logs in the directory containing verbose debugging information for
+quick-lint-js contributors.
+
+For security reasons, we recommend leaving this variable at its default value
+(`''`). Because this option logs LSP activity, it will include every change
+you make to your JavaScript source files. Do not distribute the generated log
+files.
+
 ==============================================================================
 3.2. Configuring for coc.nvim		*quick-lint-js-configure-coc-nvim*
 

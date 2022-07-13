@@ -40,6 +40,12 @@ function! quick_lint_js_ale#get_lsp_project_root(_buffer_number) abort
   return '/'
 endfunction
 
+function! quick_lint_js_ale#get_lsp_config(_buffer_number) abort
+  return {
+    \ 'quick-lint-js.tracing-directory': g:ale_javascript_quick_lint_js_tracing_directory,
+  \ }
+endfunction
+
 function! quick_lint_js_ale#is_buffer_associated_with_file(buffer_number) abort
   return bufname(a:buffer_number) !=# ''
     \ && getbufvar(a:buffer_number, '&buftype') ==# ''
