@@ -27,6 +27,9 @@ async function startOrRestartServerAsync() {
         { language: "javascriptreact" },
         { language: "json" },
       ],
+      synchronize: {
+        configurationSection: "quick-lint-js-lsp",
+      },
       middleware: {
         workspace: {
           async configuration(params, _token, _next) {
@@ -34,6 +37,11 @@ async function startOrRestartServerAsync() {
             return params.items.map((item) =>
               getLSPWorkspaceConfig(vscodeConfig, item)
             );
+          },
+          async didChangeConfiguration(sections) {
+            return client.sendNotification("workspace/didChangeConfiguration", {
+              settings: getLSPWorkspaceFullConfig(),
+            });
           },
         },
       },
@@ -56,6 +64,13 @@ async function startOrRestartServerAsync() {
       default:
         return null;
     }
+  }
+
+  function getLSPWorkspaceFullConfig() {
+    let config = getLatestWorkspaceConfig();
+    return {
+      "quick-lint-js.tracing-directory": config.get("tracing-directory"),
+    };
   }
 }
 

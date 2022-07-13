@@ -18,10 +18,12 @@
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/fake-configuration-filesystem.h>
 #include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-server.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/spy-lsp-endpoint-remote.h>
+#include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>
@@ -81,7 +83,7 @@ class mock_lsp_linter final : public lsp_linter {
   std::function<lint_and_get_diagnostics_notification_type> callback_;
 };
 
-class test_linting_lsp_server : public ::testing::Test {
+class test_linting_lsp_server : public ::testing::Test, public filesystem_test {
  public:
   explicit test_linting_lsp_server() { this->reset(); }
 
@@ -286,6 +288,149 @@ TEST_F(test_linting_lsp_server, stores_config_values_after_config_response) {
 
   linting_lsp_server_config& config = this->handler->server_config();
   EXPECT_EQ(config.tracing_directory, "/test/tracing/dir");
+}
+
+TEST_F(test_linting_lsp_server, did_change_configuration_notification) {
+  this->server->append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "workspace/didChangeConfiguration",
+        "params": {
+          "settings": {
+            "quick-lint-js.tracing-directory": "/test/tracing/dir"
+          }
+        }
+      })"));
+  this->handler->flush_pending_notifications(*this->client);
+
+  EXPECT_THAT(this->client->messages, IsEmpty());
+  linting_lsp_server_config& config = this->handler->server_config();
+  EXPECT_EQ(config.tracing_directory, "/test/tracing/dir");
+}
+
+TEST_F(test_linting_lsp_server,
+       changing_config_to_same_tracing_dir_does_not_reset_tracing) {
+  std::string temp_dir = this->make_temporary_directory();
+  trace_flusher tracer;
+  fake_configuration_filesystem fs;
+  mock_lsp_linter linter;
+  linting_lsp_server_handler handler(&fs, &linter, &tracer);
+  spy_lsp_endpoint_remote client;
+  lsp_endpoint server(&handler, &client);
+
+  server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "workspace/didChangeConfiguration",
+        "params": {
+          "settings": {
+            "quick-lint-js.tracing-directory": )" +
+                   json_to_string8(::boost::json::string(temp_dir)) + u8R"(
+          }
+        }
+      })"));
+
+  std::vector<std::string> original_children =
+      list_files_in_directory(temp_dir);
+  EXPECT_THAT(original_children, ElementsAre(::testing::_))
+      << "enabling tracing in " << temp_dir
+      << " should create a trace subdirectory";
+
+  server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "workspace/didChangeConfiguration",
+        "params": {
+          "settings": {
+            "quick-lint-js.tracing-directory": )" +
+                   json_to_string8(::boost::json::string(temp_dir)) + u8R"(
+          }
+        }
+      })"));
+
+  std::vector<std::string> new_children = list_files_in_directory(temp_dir);
+  EXPECT_THAT(new_children, original_children)
+      << "enabling tracing in " << temp_dir
+      << " should not create another trace subdirectory";
+}
+
+TEST_F(test_linting_lsp_server,
+       changing_config_to_different_tracing_dir_resets_tracing) {
+  trace_flusher tracer;
+  fake_configuration_filesystem fs;
+  mock_lsp_linter linter;
+  linting_lsp_server_handler handler(&fs, &linter, &tracer);
+  spy_lsp_endpoint_remote client;
+  lsp_endpoint server(&handler, &client);
+
+  std::string original_tracing_dir = this->make_temporary_directory();
+  std::string new_tracing_dir = this->make_temporary_directory();
+
+  server.append(make_message(
+      u8R"({
+        "jsonrpc": "2.0",
+        "method": "workspace/didChangeConfiguration",
+        "params": {
+          "settings": {
+            "quick-lint-js.tracing-directory": )" +
+      json_to_string8(::boost::json::string(original_tracing_dir)) +
+      u8R"(
+          }
+        }
+      })"));
+  server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "workspace/didChangeConfiguration",
+        "params": {
+          "settings": {
+            "quick-lint-js.tracing-directory": )" +
+                   json_to_string8(::boost::json::string(new_tracing_dir)) +
+                   u8R"(
+          }
+        }
+      })"));
+
+  std::vector<std::string> new_children =
+      list_files_in_directory(new_tracing_dir);
+  EXPECT_THAT(new_children, ElementsAre(::testing::_))
+      << "changing tracing dir from " << original_tracing_dir << " to "
+      << new_tracing_dir << " should create a new trace subdirectory";
+}
+
+TEST_F(test_linting_lsp_server,
+       changing_tracing_dir_config_to_empty_disables_tracing) {
+  std::string temp_dir = this->make_temporary_directory();
+  trace_flusher tracer;
+  fake_configuration_filesystem fs;
+  mock_lsp_linter linter;
+  linting_lsp_server_handler handler(&fs, &linter, &tracer);
+  spy_lsp_endpoint_remote client;
+  lsp_endpoint server(&handler, &client);
+
+  server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "workspace/didChangeConfiguration",
+        "params": {
+          "settings": {
+            "quick-lint-js.tracing-directory": )" +
+                   json_to_string8(::boost::json::string(temp_dir)) + u8R"(
+          }
+        }
+      })"));
+  EXPECT_TRUE(tracer.is_enabled());
+  server.append(
+      make_message(u8R"({
+        "jsonrpc": "2.0",
+        "method": "workspace/didChangeConfiguration",
+        "params": {
+          "settings": {
+            "quick-lint-js.tracing-directory": ""
+          }
+        }
+      })"));
+  EXPECT_FALSE(tracer.is_enabled());
 }
 
 // https://microsoft.github.io/language-server-protocol/specifications/specification-current/#shutdown

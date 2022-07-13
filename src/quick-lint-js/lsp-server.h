@@ -147,6 +147,8 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
       ::simdjson::ondemand::object& request);
   void handle_text_document_did_open_notification(
       ::simdjson::ondemand::object& request);
+  void handle_workspace_did_change_configuration_notification(
+      ::simdjson::ondemand::object& request);
 
   void handle_config_file_changes(
       const std::vector<configuration_change>& config_changes);

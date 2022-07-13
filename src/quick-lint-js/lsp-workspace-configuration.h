@@ -24,7 +24,7 @@ class lsp_workspace_configuration {
  public:
   // Register a configuration setting.
   //
-  // callback is later called by process_response.
+  // callback is later called by process_response or process_notification.
   //
   // name must be have global lifetime (e.g. be a compile-time string).
   // name must be a JSON-encoded string (without surrounding quotation marks).
@@ -39,11 +39,19 @@ class lsp_workspace_configuration {
   // Handle a workspace/configuration JSON-RPC response sent by the LSP client.
   bool process_response(::simdjson::ondemand::value result);
 
+  // Handle a workspace/didChangeConfiguration JSON-RPC notification sent by the
+  // LSP client.
+  bool process_notification(::simdjson::ondemand::object settings);
+
  private:
   struct item {
     string8_view name;
     std::function<void(std::string_view)> callback;
   };
+
+  item* find_item(string8_view name);
+  bool set_item(const item&, ::simdjson::ondemand::value);
+
   std::vector<item> items_;
 };
 }

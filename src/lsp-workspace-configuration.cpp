@@ -72,30 +72,70 @@ bool lsp_workspace_configuration::process_response(
     if ((*result_it).get(value) != ::simdjson::SUCCESS) {
       return false;
     }
-
-    ::simdjson::ondemand::json_type type;
-    if (value.type().get(type) != ::simdjson::SUCCESS) {
-      return false;
-    }
-    switch (type) {
-    case ::simdjson::ondemand::json_type::string: {
-      std::string_view string_value;
-      if (value.get(string_value) != ::simdjson::SUCCESS) {
-        return false;
-      }
-      spec_it->callback(string_value);
-      break;
-    }
-
-    case ::simdjson::ondemand::json_type::null:
-      spec_it->callback(std::string_view());
-      break;
-
-    default:
+    if (!this->set_item(*spec_it, value)) {
       return false;
     }
   }
   return spec_it == spec_end && result_it == result_end;
+}
+
+bool lsp_workspace_configuration::process_notification(
+    ::simdjson::ondemand::object settings) {
+  for (simdjson::simdjson_result< ::simdjson::ondemand::field> setting_field :
+       settings) {
+    std::string_view name;
+    if (setting_field.unescaped_key().get(name) != ::simdjson::SUCCESS) {
+      return false;
+    }
+    ::simdjson::ondemand::value value;
+    if (setting_field.value().get(value) != ::simdjson::SUCCESS) {
+      return false;
+    }
+    item* i = this->find_item(to_string8_view(name));
+    if (!i) {
+      // Ignore unknown settings.
+      continue;
+    }
+    if (!this->set_item(*i, value)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+lsp_workspace_configuration::item* lsp_workspace_configuration::find_item(
+    string8_view name) {
+  for (item& i : this->items_) {
+    if (i.name == name) {
+      return &i;
+    }
+  }
+  return nullptr;
+}
+
+bool lsp_workspace_configuration::set_item(const item& i,
+                                           ::simdjson::ondemand::value value) {
+  ::simdjson::ondemand::json_type type;
+  if (value.type().get(type) != ::simdjson::SUCCESS) {
+    return false;
+  }
+  switch (type) {
+  case ::simdjson::ondemand::json_type::string: {
+    std::string_view string_value;
+    if (value.get(string_value) != ::simdjson::SUCCESS) {
+      return false;
+    }
+    i.callback(string_value);
+    return true;
+  }
+
+  case ::simdjson::ondemand::json_type::null:
+    i.callback(std::string_view());
+    return true;
+
+  default:
+    return false;
+  }
 }
 }
 

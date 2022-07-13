@@ -112,7 +112,18 @@ linting_lsp_server_handler::linting_lsp_server_handler(
   this->workspace_configuration_.add_item(
       u8"quick-lint-js.tracing-directory"sv,
       [this](std::string_view new_value) {
-        this->server_config_.tracing_directory = new_value;
+        bool changed = this->server_config_.tracing_directory != new_value;
+        if (changed) {
+          this->server_config_.tracing_directory = new_value;
+          if (this->tracer_) {
+            if (this->server_config_.tracing_directory.empty()) {
+              this->tracer_->disable();
+            } else {
+              this->tracer_->create_and_enable_in_child_directory(
+                  this->server_config_.tracing_directory);
+            }
+          }
+        }
       });
 }
 
@@ -160,6 +171,8 @@ void linting_lsp_server_handler::handle_notification(
     this->handle_text_document_did_open_notification(request);
   } else if (method == "textDocument/didClose") {
     this->handle_text_document_did_close_notification(request);
+  } else if (method == "workspace/didChangeConfiguration") {
+    this->handle_workspace_did_change_configuration_notification(request);
   } else if (method == "initialized") {
     this->handle_initialized_notification();
   } else if (method == "exit") {
@@ -238,11 +251,6 @@ void linting_lsp_server_handler::handle_workspace_configuration_response(
     QLJS_DEBUG_LOG("failed to process configuration response\n");
     // TODO(strager): Report an error.
     return;
-  }
-
-  if (this->tracer_ && !this->server_config_.tracing_directory.empty()) {
-    this->tracer_->create_and_enable_in_child_directory(
-        this->server_config_.tracing_directory);
   }
 }
 
@@ -432,6 +440,24 @@ void linting_lsp_server_handler::handle_text_document_did_open_notification(
     std::vector<configuration_change> config_changes =
         this->config_loader_.refresh();
     this->handle_config_file_changes(config_changes);
+  }
+}
+
+void linting_lsp_server_handler::
+    handle_workspace_did_change_configuration_notification(
+        ::simdjson::ondemand::object& request) {
+  ::simdjson::ondemand::object settings;
+  if (request["params"]["settings"].get(settings) != ::simdjson::SUCCESS) {
+    QLJS_DEBUG_LOG("failed to extract configuration notification settings\n");
+    // TODO(strager): Report an error.
+    return;
+  }
+
+  bool ok = this->workspace_configuration_.process_notification(settings);
+  if (!ok) {
+    QLJS_DEBUG_LOG("failed to process configuration notification\n");
+    // TODO(strager): Report an error.
+    return;
   }
 }
 
