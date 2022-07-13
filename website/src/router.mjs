@@ -9,16 +9,14 @@ import url from "url";
 let __filename = url.fileURLToPath(import.meta.url);
 let __dirname = path.dirname(__filename);
 
-export class Router {
-  async renderEJSFileAsync(ejsFilePath, { currentURI }) {
-    let childProcess = await renderEJSChildProcessPool.takeAsync();
-    try {
-      let page = await childProcess.renderAsync({ currentURI, ejsFilePath });
-      let pagePostProcess = page.replace(/<script>\s*\/\/\s*<\/script>/g, "");
-      return pagePostProcess;
-    } finally {
-      renderEJSChildProcessPool.recycle(childProcess);
-    }
+export async function renderEJSFileAsync(ejsFilePath, { currentURI }) {
+  let childProcess = await renderEJSChildProcessPool.takeAsync();
+  try {
+    let page = await childProcess.renderAsync({ currentURI, ejsFilePath });
+    let pagePostProcess = page.replace(/<script>\s*\/\/\s*<\/script>/g, "");
+    return pagePostProcess;
+  } finally {
+    renderEJSChildProcessPool.recycle(childProcess);
   }
 }
 

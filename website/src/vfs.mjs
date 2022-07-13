@@ -8,8 +8,8 @@ import mime from "mime";
 import os from "os";
 import path from "path";
 import url from "url";
-import { Router } from "./router.mjs";
 import { readFileAsync } from "./fs.mjs";
+import { renderEJSFileAsync } from "./router.mjs";
 
 export class VFS {
   constructor(rootPath) {
@@ -250,7 +250,7 @@ export class EJSVFSFile extends VFSEntry {
   }
 
   async getContentsAsync() {
-    let data = await new Router().renderEJSFileAsync(this._path, {
+    let data = await renderEJSFileAsync(this._path, {
       currentURI: this._uri,
     });
     return Buffer.from(data);
