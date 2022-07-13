@@ -8,6 +8,7 @@
 // No LSP on the web.
 #else
 
+#include <functional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <simdjson.h>
@@ -23,11 +24,12 @@ class lsp_workspace_configuration {
  public:
   // Register a configuration setting.
   //
-  // out_value is stored; *out_value will be modified by process_response.
+  // callback is later called by process_response.
   //
   // name must be have global lifetime (e.g. be a compile-time string).
   // name must be a JSON-encoded string (without surrounding quotation marks).
-  void add_item(string8_view name, std::string* out_value);
+  void add_item(string8_view name,
+                std::function<void(std::string_view)>&& callback);
 
   // Create a workspace/configuration JSON-RPC request to send to the LSP
   // client.
@@ -40,7 +42,7 @@ class lsp_workspace_configuration {
  private:
   struct item {
     string8_view name;
-    std::string* value;
+    std::function<void(std::string_view)> callback;
   };
   std::vector<item> items_;
 };

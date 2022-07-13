@@ -55,11 +55,10 @@ TEST(test_lsp_workspace_configuration, empty_config_request) {
 }
 
 TEST(test_lsp_workspace_configuration, config_request_with_three_items) {
-  std::string items[3];
   lsp_workspace_configuration config;
-  config.add_item(u8"first"sv, &items[0]);
-  config.add_item(u8"second"sv, &items[1]);
-  config.add_item(u8"third"sv, &items[2]);
+  config.add_item(u8"first"sv, [](std::string_view) {});
+  config.add_item(u8"second"sv, [](std::string_view) {});
+  config.add_item(u8"third"sv, [](std::string_view) {});
 
   byte_buffer request_json;
   config.build_request(77, request_json);
@@ -85,9 +84,15 @@ TEST(test_lsp_workspace_configuration, empty_config_response) {
 TEST(test_lsp_workspace_configuration, config_response_with_strings) {
   std::string items[3];
   lsp_workspace_configuration config;
-  config.add_item(u8"first"sv, &items[0]);
-  config.add_item(u8"second"sv, &items[1]);
-  config.add_item(u8"third"sv, &items[2]);
+  config.add_item(u8"first"sv, [&items](std::string_view new_value) {
+    items[0] = new_value;
+  });
+  config.add_item(u8"second"sv, [&items](std::string_view new_value) {
+    items[1] = new_value;
+  });
+  config.add_item(u8"third"sv, [&items](std::string_view new_value) {
+    items[2] = new_value;
+  });
 
   easy_simdjson_parser result(
       R"(["firstval", "secondval", "thirdval"])"_padded);
@@ -102,43 +107,56 @@ TEST(test_lsp_workspace_configuration, config_response_with_strings) {
 
 TEST(test_lsp_workspace_configuration,
      empty_config_response_with_added_items_fails) {
-  std::string myitem = "originalvalue";
   lsp_workspace_configuration config;
-  config.add_item(u8"myitem"sv, &myitem);
+  bool myitem_callback_called = false;
+  config.add_item(u8"myitem"sv, [&myitem_callback_called](
+                                    std::string_view new_value) {
+    myitem_callback_called = true;
+    ADD_FAILURE() << "myitem callback should not have been called; new_value="
+                  << new_value;
+  });
 
   easy_simdjson_parser result("[]"_padded);
   ASSERT_EQ(result.error, ::simdjson::SUCCESS);
   bool ok = config.process_response(result.value);
   ASSERT_FALSE(ok);
 
-  EXPECT_EQ(myitem, "originalvalue") << "item should not change value";
+  EXPECT_FALSE(myitem_callback_called);
 }
 
 TEST(test_lsp_workspace_configuration,
-     more_values_than_config_fails_but_sets_values_anyway) {
-  std::string myitem;
+     more_values_than_config_fails_but_calls_callback_anyway) {
   lsp_workspace_configuration config;
-  config.add_item(u8"myitem"sv, &myitem);
+  bool myitem_callback_called = false;
+  config.add_item(u8"myitem"sv,
+                  [&myitem_callback_called](std::string_view new_value) {
+                    myitem_callback_called = true;
+                    EXPECT_EQ(new_value, "val");
+                  });
 
   easy_simdjson_parser result(R"(["val", "otherval"])"_padded);
   ASSERT_EQ(result.error, ::simdjson::SUCCESS);
   bool ok = config.process_response(result.value);
   ASSERT_FALSE(ok);
 
-  EXPECT_EQ(myitem, "val");
+  EXPECT_TRUE(myitem_callback_called);
 }
 
-TEST(test_lsp_workspace_configuration, null_clears_string) {
-  std::string myitem = "hello";
+TEST(test_lsp_workspace_configuration, null_is_coerced_to_empty_string) {
   lsp_workspace_configuration config;
-  config.add_item(u8"myitem"sv, &myitem);
+  bool myitem_callback_called = false;
+  config.add_item(u8"myitem"sv,
+                  [&myitem_callback_called](std::string_view new_value) {
+                    myitem_callback_called = true;
+                    EXPECT_EQ(new_value, "");
+                  });
 
   easy_simdjson_parser result(R"([null])"_padded);
   ASSERT_EQ(result.error, ::simdjson::SUCCESS);
   bool ok = config.process_response(result.value);
   EXPECT_TRUE(ok);
 
-  EXPECT_EQ(myitem, "");
+  EXPECT_TRUE(myitem_callback_called);
 }
 
 TEST(test_lsp_workspace_configuration, non_array_config_response_fails) {

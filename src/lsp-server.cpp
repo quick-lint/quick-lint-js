@@ -111,7 +111,9 @@ linting_lsp_server_handler::linting_lsp_server_handler(
       tracer_(tracer) {
   this->workspace_configuration_.add_item(
       u8"quick-lint-js.tracing-directory"sv,
-      &this->server_config_.tracing_directory);
+      [this](std::string_view new_value) {
+        this->server_config_.tracing_directory = new_value;
+      });
 }
 
 void linting_lsp_server_handler::handle_request(

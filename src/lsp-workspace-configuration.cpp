@@ -16,11 +16,11 @@
 using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
-void lsp_workspace_configuration::add_item(string8_view name,
-                                           std::string* out_value) {
+void lsp_workspace_configuration::add_item(
+    string8_view name, std::function<void(std::string_view)>&& callback) {
   this->items_.push_back(item{
       .name = name,
-      .value = out_value,
+      .callback = std::move(callback),
   });
 }
 
@@ -83,12 +83,12 @@ bool lsp_workspace_configuration::process_response(
       if (value.get(string_value) != ::simdjson::SUCCESS) {
         return false;
       }
-      *spec_it->value = string_value;
+      spec_it->callback(string_value);
       break;
     }
 
     case ::simdjson::ondemand::json_type::null:
-      spec_it->value->clear();
+      spec_it->callback(std::string_view());
       break;
 
     default:
