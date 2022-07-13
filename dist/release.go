@@ -308,6 +308,27 @@ var Steps []Step = []Step{
 		},
 	},
 
+	Step{
+		Title: "Update Homebrew package manager",
+		Run: func() {
+			// TODO(strager): Would it be better to use the
+			// 'brew bump-formula-pr' command?
+			// https://github.com/Homebrew/homebrew-core/blob/b617c112ea50e4943de6b4ed9f218a4d805ed2eb/CONTRIBUTING.md#to-submit-a-version-upgrade-for-the-foo-formula
+			fmt.Printf("1. Run: brew update\n")
+			fmt.Printf("2. Copy Formula/quick-lint-js.rb to $(brew --prefix)/Library/Taps/homebrew/homebrew-core/Formula/quick-lint-js.rb\n")
+			fmt.Printf("3. Remove the copyright header from the formula file\n")
+			fmt.Printf("4. Run: brew install --build-from-source quick-lint-js\n")
+			fmt.Printf("5. Add a sha256 line to the formula file\n")
+			fmt.Printf("6. Run: brew audit --strict quick-lint-js\n")
+			fmt.Printf("7. Run: brew style quick-lint-js\n")
+			fmt.Printf("8. Run: brew test quick-lint-js\n")
+			fmt.Printf("9. Commit all files with message \"quick-lint-js %s\".\n", ReleaseVersion)
+			fmt.Printf("10. Push to a fork on GitHub.\n")
+			fmt.Printf("11. Create a pull request on GitHub.\n")
+			WaitForDone()
+		},
+	},
+
 	// NOTE(strager): No need to update Scoop manually. It's updated
 	// automatically:
 	// https://github.com/ScoopInstaller/Main/pull/3679#issuecomment-1157267798
