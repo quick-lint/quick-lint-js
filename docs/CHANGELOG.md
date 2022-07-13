@@ -13,6 +13,10 @@ Semantic Versioning.
 * `const o = {k = v};` now reports [E0253][] ("use ':' instead of '=' in object
   literals").
 * `--snarky` is now even snarkier.
+* LSP server: The new `quick-lint-js.tracing-directory` LSP configuration item
+  can be set to a path where quick-lint-js will log LSP protocol traffic. This
+  keylogger option can be used by quick-lint-js contributors to investigate
+  bugs. This new option is disabled by default.
 
 ### Fixed
 
