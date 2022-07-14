@@ -239,6 +239,33 @@ TEST(test_parse_typescript_generic, parameter_list_extends) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
+
+TEST(test_parse_typescript_generic,
+     parameters_can_be_named_contextual_keywords) {
+  for (string8 name :
+       dirty_set<string8>{
+           u8"await",
+           u8"undefined",
+       } | (contextual_keywords - typescript_builtin_type_keywords -
+            typescript_special_type_keywords -
+            dirty_set<string8>{
+                u8"let",
+                u8"static",
+                u8"yield",
+            })) {
+    padded_string code(u8"<" + name + u8">");
+    SCOPED_TRACE(code);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // (name)
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(visited_variable_declaration{
+                    name, variable_kind::_generic_parameter,
+                    variable_init_kind::normal}));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
 }
 }
 
