@@ -1382,6 +1382,10 @@ msgstr ""
 msgid "continue can only be used inside of a loop"
 msgstr "continue ist nur innerhalb von Schleifen gültig"
 
+#: src/quick-lint-js/diagnostic-types.h
+msgid "redundant 'await'"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

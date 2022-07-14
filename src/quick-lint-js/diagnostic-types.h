@@ -1381,6 +1381,11 @@
                   original_declaration))                                       \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_redundant_await, "E0262", diagnostic_severity::warning,             \
+      { source_code_span await_operator; },                                    \
+      MESSAGE(QLJS_TRANSLATABLE("redundant 'await'"), await_operator))         \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_regexp_literal_flags_cannot_contain_unicode_escapes, "E0035",       \
       diagnostic_severity::error, { source_code_span escape_sequence; },       \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

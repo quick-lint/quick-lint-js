@@ -11,7 +11,7 @@ namespace quick_lint_js {
 const translation_table translation_data = {
     .mapping_table = translation_table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0, 0},                  //
-        {1, 11611, 19753, 28921, 0, 47201},  //
+        {1, 11611, 19771, 28939, 0, 47219},  //
         {50, 40, 61, 79, 0, 40},             //
         {62, 46, 74, 53, 0, 46},             //
         {76, 61, 89, 80, 0, 61},             //
@@ -19,7 +19,7 @@ const translation_table translation_data = {
         {71, 52, 80, 60, 0, 52},             //
         {31, 0, 56, 0, 0, 28},               //
         {0, 0, 0, 0, 0, 67},                 //
-        {79, 28, 25, 30, 39626, 66},         //
+        {79, 28, 25, 30, 39644, 66},         //
         {143, 0, 15, 0, 0, 97},              //
         {70, 0, 23, 0, 0, 53},               //
         {93, 97, 63, 151, 130, 70},          //
@@ -255,7 +255,8 @@ const translation_table translation_data = {
         {32, 35, 13, 50, 38, 25},            //
         {66, 54, 33, 76, 58, 54},            //
         {40, 33, 29, 35, 33, 33},            //
-        {38, 31, 61, 32, 31, 31},            //
+        {0, 31, 0, 0, 0, 31},                //
+        {38, 18, 61, 32, 31, 18},            //
         {42, 39, 59, 47, 43, 39},            //
         {53, 0, 14, 55, 0, 44},              //
         {49, 0, 31, 0, 0, 45},               //
@@ -725,6 +726,7 @@ const translation_table translation_data = {
         u8"PRIVATE PROPERTIES ARE NOT ALLOWED IN OBJECT LITERALS\0"
         u8"REDECLARATION OF GLOBAL VARIABLE\0"
         u8"REDECLARATION OF VARIABLE: {0}\0"
+        u8"REDUNDANT 'AWAIT'\0"
         u8"REDUNDANT DELETE STATEMENT ON VARIABLE\0"
         u8"REMOVE '{0}' TO UPDATE AN EXISTING VARIABLE\0"
         u8"STRAY COMMA IN LET STATEMENT\0"
@@ -1661,6 +1663,7 @@ const translation_table translation_data = {
         u8"private properties are not allowed in object literals\0"
         u8"redeclaration of global variable\0"
         u8"redeclaration of variable: {0}\0"
+        u8"redundant 'await'\0"
         u8"redundant delete statement on variable\0"
         u8"remove '{0}' to update an existing variable\0"
         u8"return statement returns nothing (undefined)\0"

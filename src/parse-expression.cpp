@@ -1044,6 +1044,11 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
       this->diag_reporter_->report(diag_await_operator_outside_async{
           .await_operator = operator_span,
       });
+    } else if (child->kind() == expression_kind::await) {
+      // await await
+      this->diag_reporter_->report(diag_redundant_await{
+          .await_operator = operator_span,
+      });
     }
 
     this->commit_transaction(std::move(transaction));

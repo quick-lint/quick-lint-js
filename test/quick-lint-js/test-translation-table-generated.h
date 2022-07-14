@@ -2714,6 +2714,17 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "redundant 'await'"_translatable,
+        {
+            u8"redundant 'await'",
+            u8"redundant 'await'",
+            u8"REDUNDANT 'AWAIT'",
+            u8"redundant 'await'",
+            u8"redundant 'await'",
+            u8"redundant 'await'",
+        },
+    },
+    {
         "redundant delete statement on variable"_translatable,
         {
             u8"redundant delete statement on variable",

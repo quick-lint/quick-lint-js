@@ -1319,6 +1319,10 @@ msgstr "break kan enbart vara inuti en loop eller switch"
 msgid "continue can only be used inside of a loop"
 msgstr "continue kan enbart vara inuti en loop"
 
+#: src/quick-lint-js/diagnostic-types.h
+msgid "redundant 'await'"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

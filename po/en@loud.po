@@ -1322,6 +1322,10 @@ msgstr "BREAK CAN ONLY BE USED INSIDE OF A LOOP OR SWITCH"
 msgid "continue can only be used inside of a loop"
 msgstr "CONTINUE CAN ONLY BE USED INSIDE OF A LOOP"
 
+#: src/quick-lint-js/diagnostic-types.h
+msgid "redundant 'await'"
+msgstr "REDUNDANT 'AWAIT'"
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"
