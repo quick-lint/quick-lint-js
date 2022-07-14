@@ -315,6 +315,82 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
 }
 
 TEST_F(test_parse_typescript_generic,
+       variable_reference_with_generic_arguments) {
+  struct test_case {
+    string8_view code;
+    const char* expected_ast;
+    const char8* variable_type_use;
+  };
+
+  for (const test_case& tc : {
+           // clang-format off
+           test_case
+           {u8"foo<T> /*EOF*/"_sv,     "var foo", u8"T"},
+           {u8"foo<T>;"_sv,            "var foo", u8"T"},
+           {u8"[foo<T>]"_sv,           "array(var foo)", u8"T"},
+           {u8"(foo<T>)"_sv,           "paren(var foo)", u8"T"},
+           {u8"{k: foo<T>}"_sv,        "object(literal: var foo)", u8"T"},
+           {u8"foo<T>.prop"_sv,        "dot(var foo, prop)", u8"T"},
+           {u8"foo<T>, other"_sv,      "binary(var foo, var other)", u8"T"},
+           {u8"f(foo<T>)"_sv,          "call(var f, var foo)", u8"T"},
+           {u8"f(foo<T>, other)"_sv,   "call(var f, var foo, var other)", u8"T"},
+           {u8"foo<T> ? t : f"_sv,     "cond(var foo, var t, var f)", u8"T"},
+           {u8"cond ? foo<T> : f"_sv,  "cond(var cond, var foo, var f)", u8"T"},
+           {u8"foo<T> = rhs"_sv,       "assign(var foo, var rhs)", u8"T"},
+
+           {u8"foo<T> ||= rhs"_sv,     "condassign(var foo, var rhs)", u8"T"},
+           {u8"foo<T> &&= rhs"_sv,     "condassign(var foo, var rhs)", u8"T"},
+           {u8"foo<T> ?\x3f= rhs"_sv,  "condassign(var foo, var rhs)", u8"T"},
+
+           {u8"foo<T> %= rhs"_sv,      "upassign(var foo, var rhs)", u8"T"},
+           {u8"foo<T> &= rhs"_sv,      "upassign(var foo, var rhs)", u8"T"},
+           {u8"foo<T> **= rhs"_sv,     "upassign(var foo, var rhs)", u8"T"},
+           {u8"foo<T> *= rhs"_sv,      "upassign(var foo, var rhs)", u8"T"},
+           {u8"foo<T> += rhs"_sv,      "upassign(var foo, var rhs)", u8"T"},
+           {u8"foo<T> -= rhs"_sv,      "upassign(var foo, var rhs)", u8"T"},
+           {u8"foo<T> /= rhs"_sv,      "upassign(var foo, var rhs)", u8"T"},
+           {u8"foo<T> <<= rhs"_sv,     "upassign(var foo, var rhs)", u8"T"},
+           {u8"foo<T> >>= rhs"_sv,     "upassign(var foo, var rhs)", u8"T"},
+           {u8"foo<T> >>>= rhs"_sv,    "upassign(var foo, var rhs)", u8"T"},
+           {u8"foo<T> ^= rhs"_sv,      "upassign(var foo, var rhs)", u8"T"},
+           {u8"foo<T> |= rhs"_sv,      "upassign(var foo, var rhs)", u8"T"},
+
+           // In the following examples, the final keyword is part of the next
+           // statement. We're only parsing the expression, and expression
+           // parsing stops before the keyword.
+           {u8"foo<T> break"_sv,     "var foo", u8"T"},
+           {u8"foo<T> case"_sv,      "var foo", u8"T"},
+           {u8"foo<T> const"_sv,     "var foo", u8"T"},
+           {u8"foo<T> continue"_sv,  "var foo", u8"T"},
+           {u8"foo<T> debugger"_sv,  "var foo", u8"T"},
+           {u8"foo<T> default"_sv,   "var foo", u8"T"},
+           {u8"foo<T> do"_sv,        "var foo", u8"T"},
+           {u8"foo<T> else"_sv,      "var foo", u8"T"},
+           {u8"foo<T> enum"_sv,      "var foo", u8"T"},
+           {u8"foo<T> export"_sv,    "var foo", u8"T"},
+           {u8"foo<T> for"_sv,       "var foo", u8"T"},
+           {u8"foo<T> if"_sv,        "var foo", u8"T"},
+           {u8"foo<T> import"_sv,    "var foo", u8"T"},
+           {u8"foo<T> return"_sv,    "var foo", u8"T"},
+           {u8"foo<T> switch"_sv,    "var foo", u8"T"},
+           {u8"foo<T> throw"_sv,     "var foo", u8"T"},
+           {u8"foo<T> try"_sv,       "var foo", u8"T"},
+           {u8"foo<T> var"_sv,       "var foo", u8"T"},
+           {u8"foo<T> while"_sv,     "var foo", u8"T"},
+           {u8"foo<T> with"_sv,      "var foo", u8"T"},
+           // clang-format on
+       }) {
+    SCOPED_TRACE(out_string8(tc.code));
+    test_parser& p = this->make_typescript_parser(tc.code);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), tc.expected_ast);
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));
+    EXPECT_THAT(p.v().variable_uses, ElementsAre(tc.variable_type_use));
+  }
+}
+
+TEST_F(test_parse_typescript_generic,
        generic_arguments_less_and_greater_are_operators_in_javascript) {
   {
     test_parser& p = this->make_javascript_parser(u8"foo<T>(p)"_sv);
