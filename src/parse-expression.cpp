@@ -1205,11 +1205,17 @@ next:
                 this->catch_fatal_parse_errors([this, &v] {
                   this->parse_and_visit_typescript_generic_arguments(v);
                 });
-            if (parsed_without_fatal_error &&
-                this->peek().type == token_type::left_paren) {
+            if (!parsed_without_fatal_error) {
+              return false;
+            }
+            switch (this->peek().type) {
+            case token_type::complete_template:
+            case token_type::incomplete_template:
+            case token_type::left_paren:
               parsed_as_generic_arguments = true;
               return true;
-            } else {
+
+            default:
               return false;
             }
           },

@@ -294,6 +294,24 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
+
+  {
+    test_parser& p = this->make_typescript_parser(u8"foo<T>`bar`"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var foo)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
+    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+  }
+
+  {
+    test_parser& p = this->make_typescript_parser(u8"foo<T>`bar${baz}`"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "taggedtemplate(var foo, var baz)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
+    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+  }
 }
 
 TEST_F(test_parse_typescript_generic,
@@ -311,6 +329,28 @@ TEST_F(test_parse_typescript_generic,
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "binary(var foo, var T, arrowfunc(), paren(var p))");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser& p = this->make_javascript_parser(u8"foo<T>`bar`"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var foo, var T, literal)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser& p = this->make_javascript_parser(u8"foo<T>`bar${baz}`"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var foo, var T, template(var baz))");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser& p =
+        this->make_javascript_parser(u8"foo<<T>() => number>`bar${baz}`"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var foo, var T, arrowfunc())");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
