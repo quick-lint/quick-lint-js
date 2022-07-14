@@ -24,7 +24,12 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse_typescript_generic, single_basic_generic_parameter) {
+class test_parse_typescript_generic : public test_parse_expression {
+ public:
+  using test_parse_expression::make_typescript_parser;
+};
+
+TEST_F(test_parse_typescript_generic, single_basic_generic_parameter) {
   {
     padded_string code(u8"<T>"_sv);
     spy_visitor v;
@@ -39,7 +44,7 @@ TEST(test_parse_typescript_generic, single_basic_generic_parameter) {
   }
 }
 
-TEST(test_parse_typescript_generic, multiple_basic_generic_parameter) {
+TEST_F(test_parse_typescript_generic, multiple_basic_generic_parameter) {
   {
     padded_string code(u8"<T1, T2, T3>"_sv);
     spy_visitor v;
@@ -74,7 +79,7 @@ TEST(test_parse_typescript_generic, multiple_basic_generic_parameter) {
   }
 }
 
-TEST(test_parse_typescript_generic, parameters_require_commas_between) {
+TEST_F(test_parse_typescript_generic, parameters_require_commas_between) {
   {
     padded_string code(u8"<T1 T2>"_sv);
     spy_visitor v;
@@ -97,8 +102,8 @@ TEST(test_parse_typescript_generic, parameters_require_commas_between) {
   }
 }
 
-TEST(test_parse_typescript_generic,
-     parameter_list_does_not_allow_leading_comma) {
+TEST_F(test_parse_typescript_generic,
+       parameter_list_does_not_allow_leading_comma) {
   {
     padded_string code(u8"<, T>"_sv);
     spy_visitor v;
@@ -133,8 +138,8 @@ TEST(test_parse_typescript_generic,
   }
 }
 
-TEST(test_parse_typescript_generic,
-     parameter_list_must_contain_at_least_one_parameter) {
+TEST_F(test_parse_typescript_generic,
+       parameter_list_must_contain_at_least_one_parameter) {
   {
     padded_string code(u8"<>"_sv);
     spy_visitor v;
@@ -176,8 +181,8 @@ TEST(test_parse_typescript_generic,
   }
 }
 
-TEST(test_parse_typescript_generic,
-     parameter_list_does_not_allow_multiple_trailing_commas) {
+TEST_F(test_parse_typescript_generic,
+       parameter_list_does_not_allow_multiple_trailing_commas) {
   {
     padded_string code(u8"<T,,>"_sv);
     spy_visitor v;
@@ -207,8 +212,8 @@ TEST(test_parse_typescript_generic,
   }
 }
 
-TEST(test_parse_typescript_generic,
-     parameter_list_does_not_allow_consecutive_interior_commas) {
+TEST_F(test_parse_typescript_generic,
+       parameter_list_does_not_allow_consecutive_interior_commas) {
   {
     padded_string code(u8"<T,,U>"_sv);
     spy_visitor v;
@@ -223,7 +228,7 @@ TEST(test_parse_typescript_generic,
   }
 }
 
-TEST(test_parse_typescript_generic, parameter_list_extends) {
+TEST_F(test_parse_typescript_generic, parameter_list_extends) {
   {
     padded_string code(u8"<T extends U>"_sv);
     spy_visitor v;
@@ -240,8 +245,8 @@ TEST(test_parse_typescript_generic, parameter_list_extends) {
   }
 }
 
-TEST(test_parse_typescript_generic,
-     parameters_can_be_named_contextual_keywords) {
+TEST_F(test_parse_typescript_generic,
+       parameters_can_be_named_contextual_keywords) {
   for (string8 name :
        dirty_set<string8>{
            u8"await",
@@ -264,6 +269,28 @@ TEST(test_parse_typescript_generic,
                     name, variable_kind::_generic_parameter,
                     variable_init_kind::normal}));
     EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
+
+TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
+  {
+    test_parser& p = this->make_typescript_parser(u8"foo<T>(p)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(var foo, var p)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use")); // T
+    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+  }
+}
+
+TEST_F(test_parse_typescript_generic,
+       generic_arguments_less_and_greater_are_operators_in_javascript) {
+  {
+    test_parser& p = this->make_javascript_parser(u8"foo<T>(p)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(var foo, var T, paren(var p))");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.v().visits, IsEmpty());
   }
 }
 }

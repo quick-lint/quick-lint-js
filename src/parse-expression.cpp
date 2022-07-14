@@ -1096,9 +1096,9 @@ next:
     goto next;
   }
 
-  // x + y
+    // x + y
+  binary_operator:
   QLJS_CASE_BINARY_ONLY_OPERATOR:
-  case token_type::less:
   case token_type::minus:
   case token_type::plus:
   case token_type::slash: {
@@ -1178,6 +1178,23 @@ next:
     }
     goto next;
   }
+
+  // x < y
+  // f<x>()  // TypeScript only.
+  case token_type::less:
+    if (this->options_.typescript) {
+      parser_transaction transaction = this->begin_transaction();
+      this->parse_and_visit_typescript_generic_arguments(v);
+      if (this->peek().type == token_type::left_paren) {
+        this->commit_transaction(std::move(transaction));
+        goto next;
+      } else {
+        this->roll_back_transaction(std::move(transaction));
+        goto binary_operator;
+      }
+    } else {
+      goto binary_operator;
+    }
 
   // f(x, y, z)  // Function call.
   case token_type::left_paren:

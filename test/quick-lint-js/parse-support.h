@@ -38,6 +38,25 @@ std::string summarize(const expression&);
 std::string summarize(expression*);
 std::string summarize(std::optional<expression*>);
 
+inline constexpr parser_options javascript_options = [] {
+  parser_options options;
+  options.jsx = false;
+  options.typescript = false;
+  return options;
+}();
+
+inline constexpr parser_options jsx_options = [] {
+  parser_options options;
+  options.jsx = true;
+  return options;
+}();
+
+inline constexpr parser_options typescript_options = [] {
+  parser_options options;
+  options.typescript = true;
+  return options;
+}();
+
 class test_parser {
  public:
   explicit test_parser(padded_string_view input)
@@ -52,8 +71,7 @@ class test_parser {
         parser_(&this->code_, &this->errors_, options) {}
 
   expression* parse_expression() {
-    null_visitor v;
-    expression* ast = this->parser_.parse_expression(v);
+    expression* ast = this->parser_.parse_expression(this->errors_);
     this->expressions_needing_cleanup_.push_back(ast);
     return ast;
   }
@@ -61,6 +79,8 @@ class test_parser {
   const std::vector<diag_collector::diag>& errors() const noexcept {
     return this->errors_.errors;
   }
+
+  spy_visitor& v() noexcept { return this->errors_; }
 
   cli_source_range range(expression* ast) { return this->range(ast->span()); }
 
@@ -79,7 +99,7 @@ class test_parser {
   cli_locator locator;
 
  private:
-  diag_collector errors_;
+  spy_visitor errors_;
   quick_lint_js::parser parser_;
   std::vector<expression*> expressions_needing_cleanup_;
 };
@@ -103,6 +123,14 @@ class test_parse_expression : public ::testing::Test {
     return this->parsers_.emplace_back(input);
   }
 
+  test_parser& make_javascript_parser(string8_view input) {
+    return this->make_parser(input, javascript_options);
+  }
+
+  test_parser& make_typescript_parser(string8_view input) {
+    return this->make_parser(input, typescript_options);
+  }
+
   test_parser& make_parser(string8_view input, const parser_options& options) {
     return this->parsers_.emplace_back(input, options);
   }
@@ -112,25 +140,6 @@ class test_parse_expression : public ::testing::Test {
 };
 
 namespace {
-constexpr parser_options javascript_options = [] {
-  parser_options options;
-  options.jsx = false;
-  options.typescript = false;
-  return options;
-}();
-
-constexpr parser_options jsx_options = [] {
-  parser_options options;
-  options.jsx = true;
-  return options;
-}();
-
-constexpr parser_options typescript_options = [] {
-  parser_options options;
-  options.typescript = true;
-  return options;
-}();
-
 inline spy_visitor parse_and_visit_module(string8_view raw_code) {
   padded_string code(raw_code);
   spy_visitor v;
