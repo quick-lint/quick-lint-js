@@ -535,7 +535,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
     //
     // [key: KeyType]: ValueType;  // TypeScript only
     bool try_parse_typescript_index_signature(const char8 *left_square_begin) {
-      parser_transaction transaction = p->begin_transaction();
+      lexer_transaction transaction = p->lexer_.begin_transaction();
       // TODO(strager): Allow certain contextual keywords like 'let'?
       if (p->peek().type == token_type::identifier) {
         identifier key_variable = p->peek().identifier_name();
@@ -543,7 +543,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
         if (p->peek().type == token_type::colon) {
           // [key: KeyType]: ValueType;
           v.visit_enter_index_signature_scope();
-          p->commit_transaction(std::move(transaction));
+          p->lexer_.commit_transaction(std::move(transaction));
           p->parse_and_visit_typescript_colon_type_expression(v);
 
           QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN_WITH_PARSER(
@@ -610,7 +610,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
           return true;
         }
       }
-      p->roll_back_transaction(std::move(transaction));
+      p->lexer_.roll_back_transaction(std::move(transaction));
       return false;
     }
 
