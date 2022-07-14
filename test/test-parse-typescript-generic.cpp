@@ -278,8 +278,22 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(p.errors(), IsEmpty());
-    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use")); // T
+    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
     EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+  }
+
+  {
+    SCOPED_TRACE("'<<' should be split into two tokens");
+    test_parser& p =
+        this->make_typescript_parser(u8"foo<<Param>() => ReturnType>(p)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "call(var foo, var p)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.v().visits,
+                ElementsAre("visit_enter_function_scope",  //
+                            "visit_variable_declaration",  // Param
+                            "visit_variable_type_use",     // ReturnType
+                            "visit_exit_function_scope"));
   }
 }
 
@@ -291,6 +305,14 @@ TEST_F(test_parse_typescript_generic,
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, paren(var p))");
     EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().visits, IsEmpty());
+  }
+
+  {
+    test_parser& p = this->make_javascript_parser(u8"foo<<T>()=>{}>(p)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast),
+              "binary(var foo, var T, arrowfunc(), paren(var p))");
+    EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
 }

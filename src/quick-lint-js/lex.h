@@ -100,6 +100,13 @@ class lexer {
   //               this->peek().type == token_type::greater
   void skip_in_jsx_children();
 
+  // After parsing a '<<' (less_less) token, call this function to reinterpret
+  // the token as two '<' (less) tokens, then skip the first token.
+  //
+  // Precondition:  this->peek().type == token_type::less_less
+  // Postcondition: this->peek().type == token_type::less
+  void skip_less_less_as_less();
+
   // Reparse a '/' or '/=' token as a regular expression literal.
   //
   // Precondition: this->peek().type == token_type::slash or

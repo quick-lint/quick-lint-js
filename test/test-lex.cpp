@@ -1550,6 +1550,31 @@ TEST_F(test_lex, lex_regular_expression_literal_with_ascii_control_characters) {
   }
 }
 
+TEST_F(test_lex, split_less_less_into_two_tokens) {
+  padded_string input(u8"<<T>() => T>"_sv);
+
+  lexer l(&input, &null_diag_reporter::instance);
+  EXPECT_EQ(l.peek().type, token_type::less_less);
+  l.skip_less_less_as_less();
+  EXPECT_EQ(l.peek().type, token_type::less);
+  EXPECT_EQ(l.peek().begin, &input[1]);
+  EXPECT_EQ(l.peek().end, &input[2]);
+  EXPECT_EQ(l.end_of_previous_token(), &input[1]);
+  l.skip();
+  EXPECT_EQ(l.peek().type, token_type::identifier) << "T";
+}
+
+TEST_F(test_lex, split_less_less_has_no_leading_newline) {
+  padded_string input(u8"\n<<"_sv);
+
+  lexer l(&input, &null_diag_reporter::instance);
+  EXPECT_EQ(l.peek().type, token_type::less_less);
+  EXPECT_TRUE(l.peek().has_leading_newline);
+  l.skip_less_less_as_less();
+  EXPECT_EQ(l.peek().type, token_type::less);
+  EXPECT_FALSE(l.peek().has_leading_newline);
+}
+
 TEST_F(test_lex, lex_identifiers) {
   this->check_tokens(u8"i"_sv, {token_type::identifier});
   this->check_tokens(u8"_"_sv, {token_type::identifier});

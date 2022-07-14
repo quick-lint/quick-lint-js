@@ -1098,10 +1098,12 @@ next:
 
     // x + y
   binary_operator:
-  QLJS_CASE_BINARY_ONLY_OPERATOR:
+  QLJS_CASE_BINARY_ONLY_OPERATOR_SYMBOL_EXCEPT_LESS_LESS_AND_STAR:
+  case token_type::kw_instanceof:
   case token_type::minus:
   case token_type::plus:
-  case token_type::slash: {
+  case token_type::slash:
+  case token_type::star: {
     if (!prec.math_or_logical_or_assignment) {
       break;
     }
@@ -1180,12 +1182,18 @@ next:
   }
 
   // x < y
-  // f<x>()  // TypeScript only.
+  // f<x>()              // TypeScript only.
+  // f<<T>() => void>()  // TypeScript only.
   case token_type::less:
+  case token_type::less_less:
     if (this->options_.typescript) {
       parser_transaction transaction = this->begin_transaction();
-      this->parse_and_visit_typescript_generic_arguments(v);
-      if (this->peek().type == token_type::left_paren) {
+      bool parsed_without_fatal_error =
+          this->catch_fatal_parse_errors([this, &v] {
+            this->parse_and_visit_typescript_generic_arguments(v);
+          });
+      if (parsed_without_fatal_error &&
+          this->peek().type == token_type::left_paren) {
         this->commit_transaction(std::move(transaction));
         goto next;
       } else {

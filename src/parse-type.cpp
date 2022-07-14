@@ -731,8 +731,16 @@ void parser::parse_and_visit_typescript_tuple_type_expression(
 
 void parser::parse_and_visit_typescript_generic_arguments(
     parse_visitor_base &v) {
-  QLJS_ASSERT(this->peek().type == token_type::less);
-  this->skip();
+  QLJS_ASSERT(this->peek().type == token_type::less ||
+              this->peek().type == token_type::less_less);
+  if (this->peek().type == token_type::less_less) {
+    // <<T>() => void>
+    this->lexer_.skip_less_less_as_less();
+  } else {
+    // <T>
+    QLJS_ASSERT(this->peek().type == token_type::less);
+    this->skip();
+  }
 
   this->parse_and_visit_typescript_type_expression(v);
   while (this->peek().type == token_type::comma) {

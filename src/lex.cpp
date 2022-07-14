@@ -1010,6 +1010,14 @@ void lexer::skip_in_jsx_children() {
   this->skip_in_jsx();
 }
 
+void lexer::skip_less_less_as_less() {
+  QLJS_ASSERT(this->peek().type == token_type::less_less);
+  this->last_token_.has_leading_newline = false;
+  this->last_token_.type = token_type::less;
+  this->last_token_.begin += 1;
+  this->last_last_token_end_ = this->last_token_.begin;
+}
+
 void lexer::reparse_as_regexp() {
   QLJS_ASSERT(this->last_token_.type == token_type::slash ||
               this->last_token_.type == token_type::slash_equal);
