@@ -10,321 +10,321 @@
 namespace quick_lint_js {
 const translation_table translation_data = {
     .mapping_table = translation_table::absolute_mapping_table_from_relative({{
-        {0, 0, 0, 0, 0, 0},                  //
-        {1, 11611, 19753, 28921, 0, 47201},  //
-        {50, 40, 61, 79, 0, 40},             //
-        {62, 46, 74, 53, 0, 46},             //
-        {76, 61, 89, 80, 0, 61},             //
-        {74, 59, 87, 79, 0, 59},             //
-        {71, 52, 80, 60, 0, 52},             //
-        {31, 0, 56, 0, 0, 28},               //
-        {0, 0, 0, 0, 0, 67},                 //
-        {79, 28, 25, 30, 39626, 66},         //
-        {143, 0, 15, 0, 0, 97},              //
-        {70, 0, 23, 0, 0, 53},               //
-        {93, 97, 63, 151, 130, 70},          //
-        {50, 37, 77, 41, 0, 37},             //
-        {70, 60, 31, 69, 0, 60},             //
-        {93, 69, 15, 80, 26, 69},            //
-        {71, 0, 48, 0, 0, 43},               //
-        {18, 43, 13, 53, 51, 16},            //
-        {0, 0, 0, 0, 0, 33},                 //
-        {30, 0, 39, 0, 0, 38},               //
-        {13, 0, 16, 0, 0, 11},               //
-        {13, 33, 24, 37, 31, 15},            //
-        {0, 0, 0, 0, 0, 48},                 //
-        {73, 0, 31, 0, 0, 66},               //
-        {15, 0, 14, 0, 0, 13},               //
-        {15, 0, 38, 0, 0, 17},               //
-        {15, 0, 17, 0, 0, 17},               //
-        {0, 0, 0, 0, 0, 50},                 //
-        {69, 0, 48, 0, 0, 32},               //
-        {68, 0, 25, 0, 0, 62},               //
-        {83, 48, 55, 66, 49, 62},            //
-        {32, 38, 32, 57, 45, 38},            //
-        {30, 33, 33, 40, 44, 33},            //
-        {48, 48, 16, 55, 45, 48},            //
-        {79, 65, 39, 98, 0, 65},             //
-        {21, 18, 38, 23, 0, 18},             //
-        {39, 33, 37, 40, 0, 33},             //
-        {0, 0, 0, 0, 0, 52},                 //
-        {0, 0, 0, 0, 0, 53},                 //
-        {0, 0, 0, 0, 0, 70},                 //
-        {0, 0, 0, 0, 0, 55},                 //
-        {0, 0, 38, 0, 0, 55},                //
-        {0, 0, 64, 0, 0, 49},                //
-        {0, 0, 41, 0, 0, 54},                //
-        {0, 0, 45, 0, 0, 61},                //
-        {0, 0, 44, 0, 0, 51},                //
-        {0, 0, 36, 0, 0, 51},                //
-        {0, 0, 40, 0, 0, 50},                //
-        {0, 0, 0, 0, 0, 64},                 //
-        {0, 0, 0, 0, 0, 59},                 //
-        {0, 0, 0, 0, 0, 61},                 //
-        {0, 0, 0, 0, 0, 66},                 //
-        {0, 0, 0, 0, 0, 57},                 //
-        {0, 0, 0, 0, 0, 48},                 //
-        {0, 0, 0, 0, 0, 63},                 //
-        {0, 0, 26, 0, 0, 57},                //
-        {0, 0, 0, 0, 0, 67},                 //
-        {56, 0, 22, 0, 0, 66},               //
-        {23, 0, 15, 0, 0, 18},               //
-        {18, 0, 18, 0, 0, 13},               //
-        {20, 0, 16, 0, 0, 15},               //
-        {20, 52, 40, 63, 66, 19},            //
-        {67, 61, 28, 78, 61, 61},            //
-        {66, 64, 50, 74, 65, 64},            //
-        {77, 0, 41, 0, 0, 65},               //
-        {14, 0, 14, 0, 0, 14},               //
-        {0, 0, 26, 0, 0, 18},                //
-        {18, 0, 53, 70, 76, 53},             //
-        {19, 65, 30, 21, 19, 19},            //
-        {15, 14, 13, 19, 15, 14},            //
-        {80, 59, 64, 90, 56, 59},            //
-        {40, 36, 33, 46, 40, 36},            //
-        {32, 29, 45, 38, 33, 29},            //
-        {48, 0, 49, 0, 0, 52},               //
-        {34, 38, 32, 60, 51, 32},            //
-        {0, 0, 0, 0, 0, 34},                 //
-        {40, 0, 35, 0, 0, 59},               //
-        {80, 34, 38, 43, 49, 56},            //
-        {36, 36, 32, 52, 42, 36},            //
-        {73, 50, 51, 90, 0, 50},             //
-        {54, 47, 29, 70, 0, 47},             //
-        {66, 49, 38, 70, 49, 49},            //
-        {62, 45, 81, 69, 48, 45},            //
-        {65, 49, 37, 77, 54, 49},            //
-        {61, 57, 28, 73, 63, 57},            //
-        {45, 44, 26, 69, 48, 44},            //
-        {45, 35, 35, 49, 43, 35},            //
-        {76, 43, 25, 67, 48, 43},            //
-        {35, 20, 37, 28, 25, 20},            //
-        {45, 43, 67, 67, 58, 43},            //
-        {74, 63, 45, 80, 69, 63},            //
-        {0, 0, 0, 0, 0, 53},                 //
-        {72, 53, 31, 71, 56, 61},            //
-        {34, 0, 30, 0, 0, 40},               //
-        {0, 0, 0, 0, 0, 18},                 //
-        {0, 0, 12, 0, 0, 33},                //
-        {20, 40, 72, 47, 44, 50},            //
-        {47, 30, 34, 39, 0, 30},             //
-        {84, 72, 58, 96, 31, 72},            //
-        {46, 24, 18, 26, 18, 24},            //
-        {40, 46, 42, 70, 0, 46},             //
-        {0, 0, 0, 0, 0, 45},                 //
-        {0, 0, 0, 0, 0, 43},                 //
-        {58, 45, 31, 67, 0, 50},             //
-        {90, 75, 38, 91, 53, 75},            //
-        {41, 23, 16, 34, 34, 29},            //
-        {49, 43, 11, 64, 39, 43},            //
-        {46, 21, 20, 32, 31, 21},            //
-        {47, 48, 58, 59, 39, 48},            //
-        {51, 49, 26, 71, 46, 49},            //
-        {0, 0, 0, 0, 0, 31},                 //
-        {0, 0, 0, 0, 0, 35},                 //
-        {31, 31, 20, 35, 34, 30},            //
-        {64, 0, 53, 0, 0, 48},               //
-        {74, 0, 36, 0, 0, 60},               //
-        {63, 0, 41, 0, 0, 42},               //
-        {52, 48, 22, 54, 48, 32},            //
-        {31, 36, 19, 44, 53, 36},            //
-        {49, 44, 20, 54, 53, 44},            //
-        {39, 38, 40, 35, 41, 38},            //
-        {37, 37, 29, 36, 41, 37},            //
-        {39, 0, 25, 49, 44, 40},             //
-        {0, 0, 0, 0, 0, 14},                 //
-        {14, 40, 24, 13, 18, 58},            //
-        {30, 33, 28, 35, 38, 33},            //
-        {36, 35, 18, 44, 37, 35},            //
-        {32, 37, 39, 44, 41, 37},            //
-        {55, 55, 81, 72, 57, 55},            //
-        {64, 65, 76, 69, 73, 65},            //
-        {63, 69, 58, 71, 71, 69},            //
-        {33, 35, 27, 36, 0, 35},             //
-        {39, 0, 42, 0, 0, 41},               //
-        {24, 0, 24, 0, 0, 24},               //
-        {22, 41, 22, 42, 40, 22},            //
-        {32, 29, 30, 35, 30, 29},            //
-        {0, 0, 0, 0, 0, 32},                 //
-        {35, 32, 45, 38, 33, 46},            //
-        {77, 57, 32, 77, 63, 57},            //
-        {85, 60, 29, 86, 70, 60},            //
-        {61, 46, 59, 69, 41, 46},            //
-        {61, 46, 26, 69, 41, 46},            //
-        {53, 0, 51, 0, 0, 51},               //
-        {27, 51, 25, 64, 59, 25},            //
-        {29, 0, 17, 31, 0, 27},              //
-        {68, 0, 28, 70, 30, 55},             //
-        {30, 0, 18, 0, 0, 23},               //
-        {29, 27, 18, 24, 0, 21},             //
-        {44, 39, 18, 49, 0, 39},             //
-        {84, 54, 28, 66, 25, 54},            //
-        {70, 0, 27, 0, 0, 52},               //
-        {5, 52, 11, 66, 54, 5},              //
-        {41, 33, 33, 48, 36, 33},            //
-        {42, 47, 24, 59, 33, 47},            //
-        {46, 0, 52, 0, 0, 48},               //
-        {43, 48, 18, 70, 40, 32},            //
-        {0, 0, 0, 0, 0, 147},                //
-        {0, 0, 0, 0, 0, 46},                 //
-        {175, 147, 14, 144, 175, 38},        //
-        {0, 0, 30, 0, 0, 32},                //
-        {0, 0, 0, 0, 0, 59},                 //
-        {0, 0, 0, 0, 0, 64},                 //
-        {37, 32, 68, 39, 31, 40},            //
-        {25, 23, 46, 25, 22, 23},            //
-        {47, 38, 43, 47, 35, 38},            //
-        {31, 27, 39, 32, 28, 27},            //
-        {34, 33, 15, 43, 37, 33},            //
-        {39, 39, 51, 50, 38, 39},            //
-        {57, 41, 72, 67, 0, 41},             //
-        {0, 0, 0, 0, 0, 50},                 //
-        {63, 50, 28, 67, 46, 58},            //
-        {54, 39, 5, 62, 52, 39},             //
-        {61, 50, 50, 75, 64, 50},            //
-        {0, 0, 0, 0, 0, 51},                 //
-        {50, 51, 22, 66, 53, 27},            //
-        {68, 0, 21, 0, 0, 46},               //
-        {59, 0, 43, 61, 50, 39},             //
-        {0, 0, 0, 0, 0, 42},                 //
-        {44, 0, 2, 0, 0, 57},                //
-        {35, 46, 20, 49, 39, 38},            //
-        {34, 0, 44, 0, 0, 38},               //
-        {58, 38, 48, 46, 28, 52},            //
-        {0, 0, 40, 0, 0, 27},                //
-        {29, 27, 22, 33, 26, 26},            //
-        {48, 51, 27, 63, 0, 51},             //
-        {40, 42, 4, 58, 50, 42},             //
-        {31, 28, 22, 36, 30, 28},            //
-        {31, 32, 11, 39, 36, 32},            //
-        {0, 0, 0, 0, 0, 36},                 //
-        {36, 36, 31, 43, 40, 38},            //
-        {33, 30, 29, 36, 31, 30},            //
-        {21, 23, 47, 30, 25, 23},            //
-        {36, 31, 50, 39, 33, 31},            //
-        {35, 32, 33, 38, 0, 32},             //
-        {27, 26, 37, 32, 32, 26},            //
-        {33, 31, 23, 38, 37, 31},            //
-        {33, 28, 31, 36, 30, 28},            //
-        {34, 32, 47, 35, 34, 32},            //
-        {53, 50, 77, 57, 46, 50},            //
-        {0, 0, 0, 0, 0, 48},                 //
-        {44, 48, 21, 60, 44, 41},            //
-        {49, 0, 35, 0, 0, 45},               //
-        {76, 45, 28, 56, 48, 69},            //
-        {33, 35, 10, 42, 31, 35},            //
-        {38, 39, 14, 46, 38, 39},            //
-        {35, 38, 13, 45, 37, 38},            //
-        {36, 35, 34, 39, 40, 35},            //
-        {33, 39, 7, 40, 33, 39},             //
-        {24, 24, 11, 33, 23, 24},            //
-        {34, 32, 63, 43, 33, 32},            //
-        {41, 39, 11, 49, 0, 39},             //
-        {0, 0, 0, 0, 0, 41},                 //
-        {44, 41, 96, 51, 41, 30},            //
-        {40, 35, 29, 44, 39, 35},            //
-        {18, 22, 26, 23, 23, 22},            //
-        {35, 31, 50, 33, 34, 31},            //
-        {37, 34, 53, 35, 37, 34},            //
-        {44, 41, 29, 47, 43, 41},            //
-        {28, 29, 48, 38, 30, 29},            //
-        {52, 55, 31, 64, 48, 55},            //
-        {37, 0, 26, 0, 0, 38},               //
-        {40, 0, 46, 0, 0, 50},               //
-        {0, 0, 0, 0, 0, 44},                 //
-        {43, 0, 46, 0, 0, 37},               //
-        {46, 38, 29, 49, 36, 49},            //
-        {45, 0, 11, 52, 0, 41},              //
-        {0, 0, 0, 0, 0, 42},                 //
-        {0, 0, 0, 0, 0, 40},                 //
-        {0, 0, 0, 0, 0, 30},                 //
-        {44, 41, 4, 46, 42, 40},             //
-        {31, 34, 50, 44, 35, 34},            //
-        {73, 65, 55, 78, 66, 65},            //
-        {0, 0, 0, 0, 0, 63},                 //
-        {72, 63, 55, 79, 61, 37},            //
-        {33, 34, 41, 45, 34, 34},            //
-        {20, 0, 29, 0, 0, 22},               //
-        {0, 0, 0, 0, 0, 48},                 //
-        {69, 0, 26, 0, 0, 51},               //
-        {52, 22, 31, 25, 21, 39},            //
-        {63, 73, 34, 103, 73, 73},           //
-        {69, 48, 23, 79, 51, 48},            //
-        {40, 47, 26, 61, 56, 47},            //
-        {27, 28, 36, 29, 30, 28},            //
-        {50, 35, 21, 53, 44, 35},            //
-        {48, 36, 27, 44, 43, 36},            //
-        {0, 0, 0, 0, 0, 35},                 //
-        {35, 0, 37, 0, 0, 62},               //
-        {32, 35, 13, 50, 38, 25},            //
-        {66, 54, 33, 76, 58, 54},            //
-        {40, 33, 29, 35, 33, 33},            //
-        {38, 31, 61, 32, 31, 31},            //
-        {42, 39, 59, 47, 43, 39},            //
-        {53, 0, 14, 55, 0, 44},              //
-        {49, 0, 31, 0, 0, 45},               //
-        {11, 0, 9, 0, 0, 9},                 //
-        {14, 0, 26, 53, 0, 19},              //
-        {41, 44, 63, 47, 57, 34},            //
-        {36, 29, 33, 41, 31, 29},            //
-        {46, 51, 25, 63, 39, 51},            //
-        {50, 0, 25, 0, 0, 52},               //
-        {33, 0, 21, 0, 0, 21},               //
-        {33, 52, 21, 74, 44, 21},            //
-        {27, 26, 19, 30, 22, 26},            //
-        {25, 0, 50, 0, 0, 23},               //
-        {66, 23, 43, 31, 30, 44},            //
-        {70, 49, 22, 62, 61, 49},            //
-        {0, 0, 12, 0, 0, 36},                //
-        {36, 36, 22, 51, 37, 48},            //
-        {41, 38, 49, 41, 44, 38},            //
-        {27, 24, 25, 28, 25, 24},            //
-        {23, 24, 25, 28, 26, 24},            //
-        {19, 18, 19, 20, 15, 18},            //
-        {0, 0, 0, 0, 0, 15},                 //
-        {16, 15, 12, 14, 17, 49},            //
-        {17, 15, 11, 14, 17, 15},            //
-        {31, 29, 12, 34, 33, 29},            //
-        {53, 43, 46, 52, 41, 43},            //
-        {45, 33, 43, 53, 39, 33},            //
-        {56, 46, 49, 55, 44, 46},            //
-        {34, 0, 29, 34, 34, 35},             //
-        {19, 35, 24, 16, 19, 17},            //
-        {46, 40, 40, 49, 37, 40},            //
-        {51, 37, 37, 45, 34, 37},            //
-        {37, 40, 22, 52, 37, 40},            //
-        {45, 39, 26, 47, 36, 39},            //
-        {27, 29, 30, 34, 28, 29},            //
-        {36, 52, 24, 62, 62, 52},            //
-        {59, 61, 61, 72, 61, 61},            //
-        {63, 0, 44, 0, 0, 62},               //
-        {91, 0, 38, 78, 69, 76},             //
-        {19, 62, 34, 17, 19, 17},            //
-        {180, 156, 42, 159, 171, 156},       //
-        {92, 65, 45, 78, 70, 65},            //
-        {98, 77, 37, 86, 83, 77},            //
-        {38, 14, 35, 17, 13, 14},            //
-        {38, 27, 27, 34, 33, 27},            //
-        {26, 22, 41, 26, 0, 22},             //
-        {0, 0, 0, 0, 0, 23},                 //
-        {27, 23, 3, 31, 18, 42},             //
-        {0, 0, 33, 0, 0, 55},                //
-        {64, 55, 31, 79, 68, 28},            //
-        {57, 32, 29, 48, 41, 32},            //
-        {37, 23, 26, 31, 35, 31},            //
-        {38, 38, 49, 41, 37, 41},            //
-        {30, 23, 29, 24, 27, 23},            //
-        {48, 0, 45, 0, 0, 38},               //
-        {30, 38, 29, 47, 28, 29},            //
-        {44, 45, 44, 57, 38, 45},            //
-        {48, 46, 44, 68, 45, 46},            //
-        {43, 50, 55, 61, 43, 50},            //
-        {0, 0, 0, 0, 0, 51},                 //
-        {0, 0, 0, 0, 0, 39},                 //
-        {0, 0, 0, 0, 0, 42},                 //
-        {47, 51, 55, 72, 48, 33},            //
-        {0, 0, 0, 0, 0, 21},                 //
-        {0, 0, 15, 0, 0, 53},                //
+        {0, 0, 0, 0, 0},              //
+        {1, 11611, 20779, 0, 39059},  //
+        {50, 61, 79, 0, 40},          //
+        {62, 74, 53, 0, 46},          //
+        {76, 89, 80, 0, 61},          //
+        {74, 87, 79, 0, 59},          //
+        {71, 80, 60, 0, 52},          //
+        {31, 56, 0, 0, 28},           //
+        {0, 0, 0, 0, 67},             //
+        {79, 25, 30, 31484, 66},      //
+        {143, 15, 0, 0, 97},          //
+        {70, 23, 0, 0, 53},           //
+        {93, 63, 151, 130, 70},       //
+        {50, 77, 41, 0, 37},          //
+        {70, 31, 69, 0, 60},          //
+        {93, 15, 80, 26, 69},         //
+        {71, 48, 0, 0, 43},           //
+        {18, 13, 53, 51, 16},         //
+        {0, 0, 0, 0, 33},             //
+        {30, 39, 0, 0, 38},           //
+        {13, 16, 0, 0, 11},           //
+        {13, 24, 37, 31, 15},         //
+        {0, 0, 0, 0, 48},             //
+        {73, 31, 0, 0, 66},           //
+        {15, 14, 0, 0, 13},           //
+        {15, 38, 0, 0, 17},           //
+        {15, 17, 0, 0, 17},           //
+        {0, 0, 0, 0, 50},             //
+        {69, 48, 0, 0, 32},           //
+        {68, 25, 0, 0, 62},           //
+        {83, 55, 66, 49, 62},         //
+        {32, 32, 57, 45, 38},         //
+        {30, 33, 40, 44, 33},         //
+        {48, 16, 55, 45, 48},         //
+        {79, 39, 98, 0, 65},          //
+        {21, 38, 23, 0, 18},          //
+        {39, 37, 40, 0, 33},          //
+        {0, 0, 0, 0, 52},             //
+        {0, 0, 0, 0, 53},             //
+        {0, 0, 0, 0, 70},             //
+        {0, 0, 0, 0, 55},             //
+        {0, 38, 0, 0, 55},            //
+        {0, 64, 0, 0, 49},            //
+        {0, 41, 0, 0, 54},            //
+        {0, 45, 0, 0, 61},            //
+        {0, 44, 0, 0, 51},            //
+        {0, 36, 0, 0, 51},            //
+        {0, 40, 0, 0, 50},            //
+        {0, 0, 0, 0, 64},             //
+        {0, 0, 0, 0, 59},             //
+        {0, 0, 0, 0, 61},             //
+        {0, 0, 0, 0, 66},             //
+        {0, 0, 0, 0, 57},             //
+        {0, 0, 0, 0, 48},             //
+        {0, 0, 0, 0, 63},             //
+        {0, 26, 0, 0, 57},            //
+        {0, 0, 0, 0, 67},             //
+        {56, 22, 0, 0, 66},           //
+        {23, 15, 0, 0, 18},           //
+        {18, 18, 0, 0, 13},           //
+        {20, 16, 0, 0, 15},           //
+        {20, 40, 63, 66, 19},         //
+        {67, 28, 78, 61, 61},         //
+        {66, 50, 74, 65, 64},         //
+        {77, 41, 0, 0, 65},           //
+        {14, 14, 0, 0, 14},           //
+        {0, 26, 0, 0, 18},            //
+        {18, 53, 70, 76, 53},         //
+        {19, 30, 21, 19, 19},         //
+        {15, 13, 19, 15, 14},         //
+        {80, 64, 90, 56, 59},         //
+        {40, 33, 46, 40, 36},         //
+        {32, 45, 38, 33, 29},         //
+        {48, 49, 0, 0, 52},           //
+        {34, 32, 60, 51, 32},         //
+        {0, 0, 0, 0, 34},             //
+        {40, 35, 0, 0, 59},           //
+        {80, 38, 43, 49, 56},         //
+        {36, 32, 52, 42, 36},         //
+        {73, 51, 90, 0, 50},          //
+        {54, 29, 70, 0, 47},          //
+        {66, 38, 70, 49, 49},         //
+        {62, 81, 69, 48, 45},         //
+        {65, 37, 77, 54, 49},         //
+        {61, 28, 73, 63, 57},         //
+        {45, 26, 69, 48, 44},         //
+        {45, 35, 49, 43, 35},         //
+        {76, 25, 67, 48, 43},         //
+        {35, 37, 28, 25, 20},         //
+        {45, 67, 67, 58, 43},         //
+        {74, 45, 80, 69, 63},         //
+        {0, 0, 0, 0, 53},             //
+        {72, 31, 71, 56, 61},         //
+        {34, 30, 0, 0, 40},           //
+        {0, 0, 0, 0, 18},             //
+        {0, 12, 0, 0, 33},            //
+        {20, 72, 47, 44, 50},         //
+        {47, 34, 39, 0, 30},          //
+        {84, 58, 96, 31, 72},         //
+        {46, 18, 26, 18, 24},         //
+        {40, 42, 70, 0, 46},          //
+        {0, 0, 0, 0, 45},             //
+        {0, 0, 0, 0, 43},             //
+        {58, 31, 67, 0, 50},          //
+        {90, 38, 91, 53, 75},         //
+        {41, 16, 34, 34, 29},         //
+        {49, 11, 64, 39, 43},         //
+        {46, 20, 32, 31, 21},         //
+        {47, 58, 59, 39, 48},         //
+        {51, 26, 71, 46, 49},         //
+        {0, 0, 0, 0, 31},             //
+        {0, 0, 0, 0, 35},             //
+        {31, 20, 35, 34, 30},         //
+        {64, 53, 0, 0, 48},           //
+        {74, 36, 0, 0, 60},           //
+        {63, 41, 0, 0, 42},           //
+        {52, 22, 54, 48, 32},         //
+        {31, 19, 44, 53, 36},         //
+        {49, 20, 54, 53, 44},         //
+        {39, 40, 35, 41, 38},         //
+        {37, 29, 36, 41, 37},         //
+        {39, 25, 49, 44, 40},         //
+        {0, 0, 0, 0, 14},             //
+        {14, 24, 13, 18, 58},         //
+        {30, 28, 35, 38, 33},         //
+        {36, 18, 44, 37, 35},         //
+        {32, 39, 44, 41, 37},         //
+        {55, 81, 72, 57, 55},         //
+        {64, 76, 69, 73, 65},         //
+        {63, 58, 71, 71, 69},         //
+        {33, 27, 36, 0, 35},          //
+        {39, 42, 0, 0, 41},           //
+        {24, 24, 0, 0, 24},           //
+        {22, 22, 42, 40, 22},         //
+        {32, 30, 35, 30, 29},         //
+        {0, 0, 0, 0, 32},             //
+        {35, 45, 38, 33, 46},         //
+        {77, 32, 77, 63, 57},         //
+        {85, 29, 86, 70, 60},         //
+        {61, 59, 69, 41, 46},         //
+        {61, 26, 69, 41, 46},         //
+        {53, 51, 0, 0, 51},           //
+        {27, 25, 64, 59, 25},         //
+        {29, 17, 31, 0, 27},          //
+        {68, 28, 70, 30, 55},         //
+        {30, 18, 0, 0, 23},           //
+        {29, 18, 24, 0, 21},          //
+        {44, 18, 49, 0, 39},          //
+        {84, 28, 66, 25, 54},         //
+        {70, 27, 0, 0, 52},           //
+        {5, 11, 66, 54, 5},           //
+        {41, 33, 48, 36, 33},         //
+        {42, 24, 59, 33, 47},         //
+        {46, 52, 0, 0, 48},           //
+        {43, 18, 70, 40, 32},         //
+        {0, 0, 0, 0, 147},            //
+        {0, 0, 0, 0, 46},             //
+        {175, 14, 144, 175, 38},      //
+        {0, 30, 0, 0, 32},            //
+        {0, 0, 0, 0, 59},             //
+        {0, 0, 0, 0, 64},             //
+        {37, 68, 39, 31, 40},         //
+        {25, 46, 25, 22, 23},         //
+        {47, 43, 47, 35, 38},         //
+        {31, 39, 32, 28, 27},         //
+        {34, 15, 43, 37, 33},         //
+        {39, 51, 50, 38, 39},         //
+        {57, 72, 67, 0, 41},          //
+        {0, 0, 0, 0, 50},             //
+        {63, 28, 67, 46, 58},         //
+        {54, 5, 62, 52, 39},          //
+        {61, 50, 75, 64, 50},         //
+        {0, 0, 0, 0, 51},             //
+        {50, 22, 66, 53, 27},         //
+        {68, 21, 0, 0, 46},           //
+        {59, 43, 61, 50, 39},         //
+        {0, 0, 0, 0, 42},             //
+        {44, 2, 0, 0, 57},            //
+        {35, 20, 49, 39, 38},         //
+        {34, 44, 0, 0, 38},           //
+        {58, 48, 46, 28, 52},         //
+        {0, 40, 0, 0, 27},            //
+        {29, 22, 33, 26, 26},         //
+        {48, 27, 63, 0, 51},          //
+        {40, 4, 58, 50, 42},          //
+        {31, 22, 36, 30, 28},         //
+        {31, 11, 39, 36, 32},         //
+        {0, 0, 0, 0, 36},             //
+        {36, 31, 43, 40, 38},         //
+        {33, 29, 36, 31, 30},         //
+        {21, 47, 30, 25, 23},         //
+        {36, 50, 39, 33, 31},         //
+        {35, 33, 38, 0, 32},          //
+        {27, 37, 32, 32, 26},         //
+        {33, 23, 38, 37, 31},         //
+        {33, 31, 36, 30, 28},         //
+        {34, 47, 35, 34, 32},         //
+        {53, 77, 57, 46, 50},         //
+        {0, 0, 0, 0, 48},             //
+        {44, 21, 60, 44, 41},         //
+        {49, 35, 0, 0, 45},           //
+        {76, 28, 56, 48, 69},         //
+        {33, 10, 42, 31, 35},         //
+        {38, 14, 46, 38, 39},         //
+        {35, 13, 45, 37, 38},         //
+        {36, 34, 39, 40, 35},         //
+        {33, 7, 40, 33, 39},          //
+        {24, 11, 33, 23, 24},         //
+        {34, 63, 43, 33, 32},         //
+        {41, 11, 49, 0, 39},          //
+        {0, 0, 0, 0, 41},             //
+        {44, 96, 51, 41, 30},         //
+        {40, 29, 44, 39, 35},         //
+        {18, 26, 23, 23, 22},         //
+        {35, 50, 33, 34, 31},         //
+        {37, 53, 35, 37, 34},         //
+        {44, 29, 47, 43, 41},         //
+        {28, 48, 38, 30, 29},         //
+        {52, 31, 64, 48, 55},         //
+        {37, 26, 0, 0, 38},           //
+        {40, 46, 0, 0, 50},           //
+        {0, 0, 0, 0, 44},             //
+        {43, 46, 0, 0, 37},           //
+        {46, 29, 49, 36, 49},         //
+        {45, 11, 52, 0, 41},          //
+        {0, 0, 0, 0, 42},             //
+        {0, 0, 0, 0, 40},             //
+        {0, 0, 0, 0, 30},             //
+        {44, 4, 46, 42, 40},          //
+        {31, 50, 44, 35, 34},         //
+        {73, 55, 78, 66, 65},         //
+        {0, 0, 0, 0, 63},             //
+        {72, 55, 79, 61, 37},         //
+        {33, 41, 45, 34, 34},         //
+        {20, 29, 0, 0, 22},           //
+        {0, 0, 0, 0, 48},             //
+        {69, 26, 0, 0, 51},           //
+        {52, 31, 25, 21, 39},         //
+        {63, 34, 103, 73, 73},        //
+        {69, 23, 79, 51, 48},         //
+        {40, 26, 61, 56, 47},         //
+        {27, 36, 29, 30, 28},         //
+        {50, 21, 53, 44, 35},         //
+        {48, 27, 44, 43, 36},         //
+        {0, 0, 0, 0, 35},             //
+        {35, 37, 0, 0, 62},           //
+        {32, 13, 50, 38, 25},         //
+        {66, 33, 76, 58, 54},         //
+        {40, 29, 35, 33, 33},         //
+        {38, 61, 32, 31, 31},         //
+        {42, 59, 47, 43, 39},         //
+        {53, 14, 55, 0, 44},          //
+        {49, 31, 0, 0, 45},           //
+        {11, 9, 0, 0, 9},             //
+        {14, 26, 53, 0, 19},          //
+        {41, 63, 47, 57, 34},         //
+        {36, 33, 41, 31, 29},         //
+        {46, 25, 63, 39, 51},         //
+        {50, 25, 0, 0, 52},           //
+        {33, 21, 0, 0, 21},           //
+        {33, 21, 74, 44, 21},         //
+        {27, 19, 30, 22, 26},         //
+        {25, 50, 0, 0, 23},           //
+        {66, 43, 31, 30, 44},         //
+        {70, 22, 62, 61, 49},         //
+        {0, 12, 0, 0, 36},            //
+        {36, 22, 51, 37, 48},         //
+        {41, 49, 41, 44, 38},         //
+        {27, 25, 28, 25, 24},         //
+        {23, 25, 28, 26, 24},         //
+        {19, 19, 20, 15, 18},         //
+        {0, 0, 0, 0, 15},             //
+        {16, 12, 14, 17, 49},         //
+        {17, 11, 14, 17, 15},         //
+        {31, 12, 34, 33, 29},         //
+        {53, 46, 52, 41, 43},         //
+        {45, 43, 53, 39, 33},         //
+        {56, 49, 55, 44, 46},         //
+        {34, 29, 34, 34, 35},         //
+        {19, 24, 16, 19, 17},         //
+        {46, 40, 49, 37, 40},         //
+        {51, 37, 45, 34, 37},         //
+        {37, 22, 52, 37, 40},         //
+        {45, 26, 47, 36, 39},         //
+        {27, 30, 34, 28, 29},         //
+        {36, 24, 62, 62, 52},         //
+        {59, 61, 72, 61, 61},         //
+        {63, 44, 0, 0, 62},           //
+        {91, 38, 78, 69, 76},         //
+        {19, 34, 17, 19, 17},         //
+        {180, 42, 159, 171, 156},     //
+        {92, 45, 78, 70, 65},         //
+        {98, 37, 86, 83, 77},         //
+        {38, 35, 17, 13, 14},         //
+        {38, 27, 34, 33, 27},         //
+        {26, 41, 26, 0, 22},          //
+        {0, 0, 0, 0, 23},             //
+        {27, 3, 31, 18, 42},          //
+        {0, 33, 0, 0, 55},            //
+        {64, 31, 79, 68, 28},         //
+        {57, 29, 48, 41, 32},         //
+        {37, 26, 31, 35, 31},         //
+        {38, 49, 41, 37, 41},         //
+        {30, 29, 24, 27, 23},         //
+        {48, 45, 0, 0, 38},           //
+        {30, 29, 47, 28, 29},         //
+        {44, 44, 57, 38, 45},         //
+        {48, 44, 68, 45, 46},         //
+        {43, 55, 61, 43, 50},         //
+        {0, 0, 0, 0, 51},             //
+        {0, 0, 0, 0, 39},             //
+        {0, 0, 0, 0, 42},             //
+        {47, 55, 72, 48, 33},         //
+        {0, 0, 0, 0, 21},             //
+        {0, 15, 0, 0, 53},            //
     }}),
 
     // clang-format off
@@ -581,200 +581,6 @@ const translation_table translation_data = {
         u8"'{1}' fehlt um Ausdruck der with-Anweisung\0"
         u8"Klammern fehlen um Ausdruck der with-Anweisung\0"
         u8"{0} ohne Binding\0"
-        u8"\"GLOBAL-GROUPS\" ENTRIES MUST BE STRINGS\0"
-        u8"\"GLOBAL-GROUPS\" MUST BE A BOOLEAN OR AN ARRAY\0"
-        u8"\"GLOBALS\" DESCRIPTOR \"SHADOWABLE\" PROPERTY MUST BE A BOOLEAN\0"
-        u8"\"GLOBALS\" DESCRIPTOR \"WRITABLE\" PROPERTY MUST BE A BOOLEAN\0"
-        u8"\"GLOBALS\" DESCRIPTOR MUST BE A BOOLEAN OR AN OBJECT\0"
-        u8"\"GLOBALS\" MUST BE AN OBJECT\0"
-        u8"'.' OPERATOR NEEDS A KEY NAME; USE + TO CONCATENATE STRINGS; USE [] TO ACCESS WITH A DYNAMIC KEY\0"
-        u8"'?' CREATES A CONDITIONAL EXPRESSION\0"
-        u8"'ASYNC STATIC' IS NOT ALLOWED; WRITE 'STATIC ASYNC' INSTEAD\0"
-        u8"'AWAIT' CANNOT BE FOLLOWED BY AN ARROW FUNCTION; USE 'ASYNC' INSTEAD\0"
-        u8"'AWAIT' IS ONLY ALLOWED IN ASYNC FUNCTIONS\0"
-        u8"'ELSE' HAS NO CORRESPONDING 'IF'\0"
-        u8"'IN' DISALLOWED IN C-STYLE FOR LOOP INITIALIZER\0"
-        u8"BIGINT LITERAL CONTAINS DECIMAL POINT\0"
-        u8"BIGINT LITERAL CONTAINS EXPONENT\0"
-        u8"C-STYLE FOR LOOP IS MISSING ITS THIRD COMPONENT\0"
-        u8"C-STYLE FOR LOOPS HAVE ONLY THREE SEMICOLON-SEPARATED COMPONENTS\0"
-        u8"JSON SYNTAX ERROR\0"
-        u8"REACT/JSX IS NOT YET IMPLEMENTED\0"
-        u8"REGEXP LITERAL FLAGS CANNOT CONTAIN UNICODE ESCAPES\0"
-        u8"A CLASS STATEMENT IS NOT ALLOWED AS THE BODY OF {1:singular}\0"
-        u8"A FUNCTION STATEMENT IS NOT ALLOWED AS THE BODY OF {1:singular}\0"
-        u8"A LEXICAL DECLARATION IS NOT ALLOWED AS THE BODY OF {1:singular}\0"
-        u8"ARROW IS HERE\0"
-        u8"ASSIGNING TO 'ASYNC' IN A FOR-OF LOOP REQUIRES PARENTHESES\0"
-        u8"ASSIGNMENT TO CONST GLOBAL VARIABLE\0"
-        u8"ASSIGNMENT TO CONST VARIABLE\0"
-        u8"VARIABLE USED BEFORE DECLARATION: {0}\0"
-        u8"ASSIGNMENT TO UNDECLARED VARIABLE\0"
-        u8"BINARY NUMBER LITERAL HAS NO DIGITS\0"
-        u8"BREAK CAN ONLY BE USED INSIDE OF A LOOP OR SWITCH\0"
-        u8"CANNOT ACCESS PRIVATE IDENTIFIER OUTSIDE CLASS\0"
-        u8"CANNOT ASSIGN TO LOOP VARIABLE IN FOR OF/IN LOOP\0"
-        u8"CANNOT DECLARE 'AWAIT' INSIDE ASYNC FUNCTION\0"
-        u8"CANNOT DECLARE 'YIELD' INSIDE GENERATOR FUNCTION\0"
-        u8"CANNOT DECLARE AND EXPORT VARIABLE WITH 'EXPORT DEFAULT'\0"
-        u8"CANNOT DECLARE VARIABLE NAMED KEYWORD '{0}'\0"
-        u8"CANNOT EXPORT VARIABLE NAMED 'let'\0"
-        u8"CANNOT EXPORT VARIABLE NAMED KEYWORD '{0}'\0"
-        u8"CANNOT IMPORT 'LET'\0"
-        u8"CANNOT IMPORT VARIABLE NAMED KEYWORD '{0}'\0"
-        u8"CANNOT REFERENCE PRIVATE VARIABLES WITHOUT OBJECT; USE 'THIS.'\0"
-        u8"CANNOT UPDATE VARIABLE WITH '{0}' WHILE DECLARING IT\0"
-        u8"CHARACTER IS NOT ALLOWED IN IDENTIFIERS\0"
-        u8"CLASSES CANNOT BE NAMED 'LET'\0"
-        u8"CODE POINT IN UNICODE ESCAPE SEQUENCE MUST NOT BE GREATER THAN U+10FFFF\0"
-        u8"CODE POINT OUT OF RANGE\0"
-        u8"COMMAS ARE NOT ALLOWED AFTER SPREAD PARAMETER\0"
-        u8"COMMAS ARE NOT ALLOWED BETWEEN CLASS METHODS\0"
-        u8"CONST FIELDS WITHIN CLASSES ARE ONLY ALLOWED IN TYPESCRIPT, NOT JAVASCRIPT\0"
-        u8"VARIABLE DECLARED HERE\0"
-        u8"CONTINUE CAN ONLY BE USED INSIDE OF A LOOP\0"
-        u8"DEPTH LIMIT EXCEEDED\0"
-        u8"DO-WHILE LOOP IS MISSING '{1}' AROUND CONDITION\0"
-        u8"DO-WHILE LOOP NEEDS PARENTHESES AROUND CONDITION\0"
-        u8"DO-WHILE STATEMENT STARTS HERE\0"
-        u8"ESCAPED CHARACTER IS NOT ALLOWED IN IDENTIFIERS\0"
-        u8"EXPECTED ')' TO CLOSE FUNCTION CALL\0"
-        u8"EXPECTED ',' BETWEEN OBJECT LITERAL ENTRIES\0"
-        u8"EXPECTED 'AS' BETWEEN '{1}' AND '{2}'\0"
-        u8"EXPECTED 'FROM \"NAME_OF_MODULE.MJS\"'\0"
-        u8"EXPECTED 'FROM' BEFORE MODULE SPECIFIER\0"
-        u8"EXPECTED EXPRESSION AFTER 'CASE'\0"
-        u8"EXPECTED EXPRESSION BEFORE NEWLINE\0"
-        u8"EXPECTED EXPRESSION BEFORE SEMICOLON\0"
-        u8"EXPECTED HEXADECIMAL DIGITS IN UNICODE ESCAPE SEQUENCE\0"
-        u8"EXPECTED PARAMETER FOR ARROW FUNCTION, BUT GOT A LITERAL INSTEAD\0"
-        u8"EXPECTED PARAMETER FOR ARROW FUNCTION, BUT GOT AN EXPRESSION INSTEAD\0"
-        u8"EXPECTED VARIABLE NAME FOR 'CATCH'\0"
-        u8"EXPECTED VARIABLE NAME FOR 'IMPORT'-'AS'\0"
-        u8"EXPORTING REQUIRES 'DEFAULT'\0"
-        u8"EXPORTING REQUIRES '{{' AND '}'\0"
-        u8"EXTRA ',' IS NOT ALLOWED BETWEEN FUNCTION CALL ARGUMENTS\0"
-        u8"FOR LOOP NEEDS AN ITERABLE, OR CONDITION AND UPDATE CLAUSES\0"
-        u8"FOR-IN LOOP EXPRESSION CANNOT HAVE SEMICOLONS\0"
-        u8"FOR-OF LOOP EXPRESSION CANNOT HAVE SEMICOLONS\0"
-        u8"FORWARDING EXPORTS ARE ONLY ALLOWED IN EXPORT-FROM\0"
-        u8"FUNCTION CALL STARTED HERE\0"
-        u8"FUNCTIONS/METHODS SHOULD NOT HAVE '=>'\0"
-        u8"GENERATOR FUNCTION '*' BELONGS AFTER KEYWORD FUNCTION\0"
-        u8"GENERATOR FUNCTION '*' BELONGS BEFORE FUNCTION NAME\0"
-        u8"HEX NUMBER LITERAL HAS NO DIGITS\0"
-        u8"IF STATEMENT IS MISSING '{1}' AROUND CONDITION\0"
-        u8"IF STATEMENT NEEDS PARENTHESES AROUND CONDITION\0"
-        u8"INCOMPLETE EXPORT; EXPECTED 'EXPORT DEFAULT ...' OR 'EXPORT {{NAME}' OR 'EXPORT * FROM ...' OR 'EXPORT CLASS' OR 'EXPORT FUNCTION' OR 'EXPORT LET'\0"
-        u8"INDEXING REQUIRES AN EXPRESSION\0"
-        u8"INVALID UTF-8 SEQUENCE\0"
-        u8"INVALID EXPRESSION LEFT OF ASSIGNMENT\0"
-        u8"INVALID FUNCTION PARAMETER\0"
-        u8"INVALID HEX ESCAPE SEQUENCE: {0}\0"
-        u8"INVALID LONE LITERAL IN OBJECT LITERAL\0"
-        u8"KEYWORDS CANNOT CONTAIN ESCAPE SEQUENCES\0"
-        u8"LABEL NAMED 'AWAIT' NOT ALLOWED IN ASYNC FUNCTION\0"
-        u8"LEGACY OCTAL LITERAL MAY NOT BE BIGINT\0"
-        u8"LEGACY OCTAL LITERALS MAY NOT CONTAIN UNDERSCORES\0"
-        u8"LET STATEMENT CANNOT DECLARE VARIABLES NAMED 'LET'\0"
-        u8"METHODS SHOULD NOT USE THE 'FUNCTION' KEYWORD\0"
-        u8"MISSING ':' IN CONDITIONAL EXPRESSION\0"
-        u8"MISSING '=' AFTER VARIABLE\0"
-        u8"MISSING 'WHILE (CONDITION)' FOR DO-WHILE STATEMENT\0"
-        u8"MISSING ARROW OPERATOR FOR ARROW FUNCTION\0"
-        u8"MISSING BODY FOR 'FOR' LOOP\0"
-        u8"MISSING BODY FOR 'IF' STATEMENT\0"
-        u8"MISSING BODY FOR 'SWITCH' STATEMENT\0"
-        u8"MISSING BODY FOR CATCH CLAUSE\0"
-        u8"MISSING BODY FOR CLASS\0"
-        u8"MISSING BODY FOR DO-WHILE LOOP\0"
-        u8"MISSING BODY FOR FINALLY CLAUSE\0"
-        u8"MISSING BODY FOR FUNCTION\0"
-        u8"MISSING BODY FOR TRY STATEMENT\0"
-        u8"MISSING BODY FOR WHILE LOOP\0"
-        u8"MISSING BODY FOR {1:headlinese}\0"
-        u8"MISSING CATCH OR FINALLY CLAUSE FOR TRY STATEMENT\0"
-        u8"MISSING CATCH VARIABLE NAME BETWEEN PARENTHESES\0"
-        u8"MISSING COMMA BETWEEN OBJECT LITERAL ENTRIES\0"
-        u8"MISSING CONDITION FOR IF STATEMENT\0"
-        u8"MISSING CONDITION FOR SWITCH STATEMENT\0"
-        u8"MISSING CONDITION FOR WHILE STATEMENT\0"
-        u8"MISSING END OF ARRAY; EXPECTED ']'\0"
-        u8"MISSING EXPRESSION BETWEEN PARENTHESES\0"
-        u8"MISSING FOR LOOP HEADER\0"
-        u8"MISSING FUNCTION PARAMETER LIST\0"
-        u8"MISSING HEADER AND BODY FOR 'FOR' LOOP\0"
-        u8"MISSING INITIALIZER IN CONST DECLARATION\0"
-        u8"MISSING NAME IN FUNCTION STATEMENT\0"
-        u8"MISSING NAME OF CLASS\0"
-        u8"MISSING NAME OF EXPORTED CLASS\0"
-        u8"MISSING NAME OF EXPORTED FUNCTION\0"
-        u8"MISSING NAME OR PARENTHESES FOR FUNCTION\0"
-        u8"MISSING OPERAND FOR OPERATOR\0"
-        u8"MISSING OPERATOR BETWEEN EXPRESSION AND ARROW FUNCTION\0"
-        u8"MISSING PARAMETERS FOR ARROW FUNCTION\0"
-        u8"MISSING PROPERTY NAME AFTER '.' OPERATOR\0"
-        u8"MISSING SEMICOLON AFTER STATEMENT\0"
-        u8"MISSING SEMICOLON BETWEEN CONDITION AND UPDATE PARTS OF FOR LOOP\0"
-        u8"MISSING SEMICOLON BETWEEN INIT AND CONDITION PARTS OF FOR LOOP\0"
-        u8"MISSING VALUE FOR OBJECT PROPERTY\0"
-        u8"MISSING VARIABLE NAME\0"
-        u8"NEWLINE IS NOT ALLOWED BETWEEN 'ASYNC' AND ARROW FUNCTION PARAMETER LIST\0"
-        u8"NUMBER LITERAL CONTAINS CONSECUTIVE UNDERSCORES\0"
-        u8"NUMBER LITERAL CONTAINS TRAILING UNDERSCORE(S)\0"
-        u8"OBJECT LITERAL STARTED HERE\0"
-        u8"OCTAL LITERAL MAY NOT HAVE DECIMAL\0"
-        u8"OCTAL LITERAL MAY NOT HAVE EXPONENT\0"
-        u8"OCTAL NUMBER LITERAL HAS NO DIGITS\0"
-        u8"PRIVATE PROPERTIES ARE NOT ALLOWED IN OBJECT LITERALS\0"
-        u8"REDECLARATION OF GLOBAL VARIABLE\0"
-        u8"REDECLARATION OF VARIABLE: {0}\0"
-        u8"REDUNDANT DELETE STATEMENT ON VARIABLE\0"
-        u8"REMOVE '{0}' TO UPDATE AN EXISTING VARIABLE\0"
-        u8"STRAY COMMA IN LET STATEMENT\0"
-        u8"SWITCH STATEMENT IS MISSING '{1}' AROUND CONDITION\0"
-        u8"SWITCH STATEMENT NEEDS PARENTHESES AROUND CONDITION\0"
-        u8"TRY STATEMENT STARTS HERE\0"
-        u8"UNCLOSED BLOCK COMMENT\0"
-        u8"UNCLOSED CODE BLOCK; EXPECTED '}' BY END OF FILE\0"
-        u8"UNCLOSED IDENTIFIER ESCAPE SEQUENCE\0"
-        u8"UNCLOSED OBJECT LITERAL; EXPECTED '}'\0"
-        u8"UNCLOSED REGEXP LITERAL\0"
-        u8"UNCLOSED STRING LITERAL\0"
-        u8"UNCLOSED TEMPLATE\0"
-        u8"UNEXPECTED '#'\0"
-        u8"UNEXPECTED '@'\0"
-        u8"UNEXPECTED '\\' IN IDENTIFIER\0"
-        u8"UNEXPECTED 'CASE' OUTSIDE SWITCH STATEMENT\0"
-        u8"UNEXPECTED 'CATCH' WITHOUT 'TRY'\0"
-        u8"UNEXPECTED 'DEFAULT' OUTSIDE SWITCH STATEMENT\0"
-        u8"UNEXPECTED 'FINALLY' WITHOUT 'TRY'\0"
-        u8"UNEXPECTED CHARACTERS IN BINARY LITERAL\0"
-        u8"UNEXPECTED CHARACTERS IN HEX LITERAL\0"
-        u8"UNEXPECTED CHARACTERS IN NUMBER LITERAL\0"
-        u8"UNEXPECTED CHARACTERS IN OCTAL LITERAL\0"
-        u8"UNEXPECTED CONTROL CHARACTER\0"
-        u8"UNEXPECTED EXPRESSION; MISSING KEY FOR OBJECT ENTRY\0"
-        u8"UNEXPECTED IDENTIFIER IN EXPRESSION; MISSING OPERATOR BEFORE\0"
-        u8"UNEXPECTED LITERAL IN PARAMETER LIST; EXPECTED PARAMETER NAME\0"
-        u8"UNEXPECTED TOKEN IN EXPORT; EXPECTED 'EXPORT DEFAULT ...' OR 'EXPORT {{NAME}' OR 'EXPORT * FROM ...' OR 'EXPORT CLASS' OR 'EXPORT FUNCTION' OR 'EXPORT LET'\0"
-        u8"UNEXPECTED TOKEN IN VARIABLE DECLARATION; EXPECTED VARIABLE NAME\0"
-        u8"UNICODE BYTE ORDER MARK (BOM) CANNOT APPEAR BEFORE #! AT BEGINNING OF SCRIPT\0"
-        u8"UNMATCHED '}'\0"
-        u8"UNMATCHED INDEXING BRACKET\0"
-        u8"UNMATCHED PARENTHESIS\0"
-        u8"UNOPENED BLOCK COMMENT\0"
-        u8"USE 'WHILE' INSTEAD TO LOOP UNTIL A CONDITION IS FALSE\0"
-        u8"USE OF UNDECLARED VARIABLE: {0}\0"
-        u8"VARIABLE DECLARED HERE\0"
-        u8"VARIABLE USED BEFORE DECLARATION: {0}\0"
-        u8"VARIABLE DECLARED HERE\0"
-        u8"VARIABLE USED BEFORE DECLARATION: {0}\0"
-        u8"WHILE LOOP IS MISSING '{1}' AROUND CONDITION\0"
-        u8"WHILE LOOP NEEDS PARENTHESES AROUND CONDITION\0"
-        u8"WITH STATEMENT IS MISSING '{1}' AROUND EXPRESSION\0"
-        u8"WITH STATEMENT NEEDS PARENTHESES AROUND EXPRESSION\0"
-        u8"{0} WITH NO BINDINGS\0"
         u8"\"global-groups\" contains strings, not whatever you just said\0"
         u8"\"global-groups\" must be a boolean or an array, not whatever you just said\0"
         u8"\"globals\" descriptor \"shadowable\" property must be a boolean, not whatever you just said\0"
@@ -1739,7 +1545,6 @@ const translation_table translation_data = {
 
     .locale_table =
         "de\0"
-        "en@loud\0"
         "en_US@snarky\0"
         "fr_FR\0"
         "sv_SE\0"
