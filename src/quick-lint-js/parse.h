@@ -92,9 +92,9 @@ class parser {
 
   class function_guard;
 
+ public:
   class depth_guard;
 
- public:
   explicit parser(padded_string_view input, diag_reporter *diag_reporter);
   explicit parser(padded_string_view input, diag_reporter *diag_reporter,
                   parser_options options);
@@ -111,17 +111,72 @@ class parser {
   // Returns false if QLJS_PARSER_UNIMPLEMENTED was called.
   bool parse_and_visit_module_catching_fatal_parse_errors(
       parse_visitor_base &v) {
-    this->have_fatal_parse_error_jmp_buf_ = true;
+    return this->catch_fatal_parse_errors(
+        [this, &v] { this->parse_and_visit_module(v); });
+  }
+
+  // Returns true if parsing succeeded without QLJS_PARSER_UNIMPLEMENTED being
+  // called.
+  //
+  // Returns false if QLJS_PARSER_UNIMPLEMENTED was called.
+  //
+  // func's return value is ignored.
+  template <class Func>
+  bool catch_fatal_parse_errors(Func &&func) {
+    int old_depth = this->depth_;
+    diag_reporter *old_diag_reporter = this->diag_reporter_;
+
+    this->fatal_parse_error_jmp_buf_stack_.emplace_back();
     bool ok;
-    if (setjmp(this->fatal_parse_error_jmp_buf_) == 0) {
-      this->parse_and_visit_module(v);
+    if (setjmp(this->fatal_parse_error_jmp_buf_stack_.back().buf) == 0) {
+      std::move(func)();
       ok = true;
     } else {
       // QLJS_PARSER_UNIMPLEMENTED was called.
       ok = false;
+
+      this->diag_reporter_ = old_diag_reporter;
+      QLJS_ASSERT(this->depth_ >= old_depth);
+      this->depth_ = old_depth;
+
+      catch_entry &c = this->fatal_parse_error_jmp_buf_stack_.back();
+      switch (c.kind) {
+      case fatal_parse_error_kind::depth_limit_exceeded:
+        this->diag_reporter_->report(diag_depth_limit_exceeded{
+            .token = c.error_span,
+        });
+        break;
+      case fatal_parse_error_kind::jsx_not_yet_implemented:
+        this->diag_reporter_->report(diag_jsx_not_yet_implemented{
+            .jsx_start = c.error_span,
+        });
+        break;
+      case fatal_parse_error_kind::unexpected_token:
+        this->diag_reporter_->report(diag_unexpected_token{
+            .token = c.error_span,
+        });
+        break;
+      }
     }
-    this->have_fatal_parse_error_jmp_buf_ = false;
+    this->fatal_parse_error_jmp_buf_stack_.pop_back();
+
+    QLJS_ASSERT(this->depth_ == old_depth);
+    QLJS_ASSERT(this->diag_reporter_ == old_diag_reporter);
     return ok;
+  }
+#endif
+
+#if !QLJS_HAVE_SETJMP
+  // Returns true always. This function exists for source compatibility if
+  // setjmp/longjmp is not supported.
+  //
+  // Crashes if QLJS_PARSER_UNIMPLEMENTED was called.
+  //
+  // func's return value is ignored.
+  template <class Func>
+  bool catch_fatal_parse_errors(Func &&func) {
+    std::move(func)();
+    return true;
   }
 #endif
 
@@ -445,6 +500,7 @@ class parser {
   const token &peek() const noexcept { return this->lexer_.peek(); }
   void skip() noexcept { this->lexer_.skip(); }
 
+ public:
   // Save lexer and parser state.
   //
   // After calling begin_transaction, you must call either commit_transaction or
@@ -489,6 +545,7 @@ class parser {
 
   [[noreturn]] void crash_on_depth_limit_exceeded();
 
+ private:
   template <class Expression, class... Args>
   expression *make_expression(Args &&... args) {
     return this->expressions_.make_expression<Expression>(
@@ -533,6 +590,7 @@ class parser {
     bool old_value_;
   };
 
+ public:
   class depth_guard {
    public:
     explicit depth_guard(parser *p) noexcept;
@@ -547,6 +605,7 @@ class parser {
     int old_depth_;
   };
 
+ private:
   struct parse_expression_cache_key {
     const char8 *begin;
     bool in_top_level;
@@ -611,11 +670,23 @@ class parser {
       await_is_identifier_cache_;
 
 #if QLJS_HAVE_SETJMP
-  bool have_fatal_parse_error_jmp_buf_ = false;
-  std::jmp_buf fatal_parse_error_jmp_buf_;
-#endif
+  enum class fatal_parse_error_kind {
+    depth_limit_exceeded,
+    jsx_not_yet_implemented,
+    unexpected_token,
+  };
+  struct catch_entry {
+    std::jmp_buf buf;
 
-  int depth_ = 0;
+    // The following variables are initialized on failure:
+    source_code_span error_span = source_code_span(nullptr, nullptr);
+    fatal_parse_error_kind kind;
+  };
+  std::vector<catch_entry> fatal_parse_error_jmp_buf_stack_;
+
+  [[noreturn]] void fatal_parse_error(source_code_span error_span,
+                                      fatal_parse_error_kind kind);
+#endif
 
   using loop_guard = bool_guard<&parser::in_loop_statement_>;
   using switch_guard = bool_guard<&parser::in_switch_statement_>;
@@ -625,6 +696,8 @@ class parser {
       bool_guard<&parser::in_typescript_only_construct_>;
 
  public:
+  int depth_ = 0;
+
   // TODO(#735): Reduce stack usage in our parse functions and increase this
   // limit.
   static constexpr const int stack_limit = 130;

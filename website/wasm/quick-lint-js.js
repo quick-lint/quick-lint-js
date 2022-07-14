@@ -72,36 +72,44 @@ class ProcessFactory {
       throw LONG_JUMP_TOKEN;
     }
 
+    function invoke(functionIndex, ...args) {
+      // Accessing __indirect_function_table can be slow (a few
+      // microseconds). Cache the result. At the time of writing, we expect
+      // only one functionIndex to be used over and over for the web demo.
+      let func;
+      if (functionIndex === cachedIndirectFunctionIndex) {
+        func = cachedIndirectFunction;
+      } else {
+        func =
+          wasmInstance.exports.__indirect_function_table.get(functionIndex);
+        cachedIndirectFunction = func;
+        cachedIndirectFunctionIndex = functionIndex;
+      }
+
+      let oldStackPointer = wasmInstance.exports.stackSave();
+      try {
+        return func(...args);
+      } catch (e) {
+        wasmInstance.exports.stackRestore(oldStackPointer);
+        if (e === LONG_JUMP_TOKEN) {
+          let env = 1; // TODO(strager): Why this particular value?
+          wasmInstance.exports.setThrew(env, /*value=*/ 0);
+          return 0; // FIXME(strager): What should we return for invoke_ii?
+        } else {
+          throw e;
+        }
+      }
+    }
+
     let wasmInstance = await WebAssembly.instantiate(this._wasmModule, {
       env: {
         // Called by setjmp.
-        invoke_vii: (functionIndex, arg0, arg1) => {
-          // Accessing __indirect_function_table can be slow (a few
-          // microseconds). Cache the result. At the time of writing, we expect
-          // only one functionIndex to be used over and over for the web demo.
-          let func;
-          if (functionIndex === cachedIndirectFunctionIndex) {
-            func = cachedIndirectFunction;
-          } else {
-            func =
-              wasmInstance.exports.__indirect_function_table.get(functionIndex);
-            cachedIndirectFunction = func;
-            cachedIndirectFunctionIndex = functionIndex;
-          }
-
-          let oldStackPointer = wasmInstance.exports.stackSave();
-          try {
-            func(arg0, arg1);
-          } catch (e) {
-            wasmInstance.exports.stackRestore(oldStackPointer);
-            if (e === LONG_JUMP_TOKEN) {
-              let env = 1; // TODO(strager): Why this particular value?
-              wasmInstance.exports.setThrew(env, /*value=*/ 0);
-            } else {
-              throw e;
-            }
-          }
-        },
+        invoke_ii: invoke,
+        invoke_v: invoke,
+        invoke_vi: invoke,
+        invoke_vii: invoke,
+        invoke_viii: invoke,
+        invoke_viiii: invoke,
 
         // Called by longjmp. Different names are for different Emscripten
         // versions and configurations.

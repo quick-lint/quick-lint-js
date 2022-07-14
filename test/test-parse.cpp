@@ -686,6 +686,90 @@ TEST(test_parse, unimplemented_token_doesnt_crash_if_caught) {
 }
 #endif
 
+#if QLJS_HAVE_SETJMP
+TEST(test_parse, unimplemented_token_returns_to_innermost_handler) {
+  {
+    padded_string code(u8"hello world"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    volatile bool inner_catch_returned = false;
+    bool outer_ok = p.catch_fatal_parse_errors([&] {
+      bool inner_ok = p.catch_fatal_parse_errors(
+          [&] { QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(&p); });
+      inner_catch_returned = true;
+      EXPECT_FALSE(inner_ok);
+    });
+    EXPECT_TRUE(outer_ok);
+    EXPECT_TRUE(inner_catch_returned);
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_unexpected_token)));
+  }
+}
+
+TEST(test_parse,
+     unimplemented_token_after_handler_ends_returns_to_outer_handler) {
+  {
+    padded_string code(u8"hello world"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    volatile bool inner_catch_returned = false;
+    bool outer_ok = p.catch_fatal_parse_errors([&] {
+      bool inner_ok = p.catch_fatal_parse_errors([] {
+        // Do nothing.
+      });
+      inner_catch_returned = true;
+      EXPECT_TRUE(inner_ok);
+      QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(&p);
+    });
+    EXPECT_FALSE(outer_ok);
+    EXPECT_TRUE(inner_catch_returned);
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_unexpected_token)));
+  }
+}
+
+TEST(test_parse, unimplemented_token_rolls_back_parser_depth) {
+  {
+    padded_string code(u8"hello world"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    volatile bool inner_catch_returned = false;
+    bool outer_ok = p.catch_fatal_parse_errors([&] {
+      parser::depth_guard outer_g(&p);
+      int depth_before_inner = p.depth_;
+      bool inner_ok = p.catch_fatal_parse_errors([&p] {
+        parser::depth_guard inner_g(&p);
+        QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(&p);
+      });
+      inner_catch_returned = true;
+      int depth_after_inner = p.depth_;
+      EXPECT_FALSE(inner_ok);
+      EXPECT_EQ(depth_after_inner, depth_before_inner);
+    });
+    EXPECT_TRUE(outer_ok);
+    EXPECT_TRUE(inner_catch_returned);
+  }
+}
+
+TEST(test_parse, unimplemented_token_is_reported_on_outer_diag_reporter) {
+  {
+    padded_string code(u8"hello world"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+
+    parser_transaction transaction = p.begin_transaction();
+    bool ok = p.catch_fatal_parse_errors(
+        [&] { QLJS_PARSER_UNIMPLEMENTED_WITH_PARSER(&p); });
+    EXPECT_FALSE(ok);
+
+    EXPECT_THAT(v.errors, IsEmpty())
+        << "diag_unexpected_token should be buffered in the transaction";
+    p.commit_transaction(std::move(transaction));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_unexpected_token)))
+        << "diag_unexpected_token should be reported when committing the "
+           "transaction";
+  }
+}
+#endif
+
 TEST(test_escape_first_character_in_keyword,
      escaping_escapes_single_character) {
   EXPECT_EQ(escape_first_character_in_keyword(u8"a"_sv), u8"\\u{61}");
