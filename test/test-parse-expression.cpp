@@ -888,6 +888,30 @@ TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
   }
 }
 
+TEST_F(test_parse_expression, redundant_await) {
+  {
+    test_parser p(u8"await await p"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "await(await(var p))");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(DIAG_TYPE_OFFSETS(p.code(), diag_redundant_await,
+                                              await_operator, 0, u8"await")));
+  }
+
+  {
+    test_parser p(u8"await await await p"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "await(await(await(var p)))");
+    EXPECT_THAT(
+        p.errors(),
+        UnorderedElementsAre(
+            DIAG_TYPE_OFFSETS(p.code(), diag_redundant_await, await_operator, 0,
+                              u8"await"),
+            DIAG_TYPE_OFFSETS(p.code(), diag_redundant_await, await_operator,
+                              strlen(u8"await "), u8"await")));
+  }
+}
+
 TEST_F(test_parse_expression, await_followed_by_arrow_function) {
   auto test = [](auto&& make_guard) -> void {
     {
@@ -1111,14 +1135,15 @@ TEST_F(test_parse_expression,
         // and recover as if 'await' was an operator.
         EXPECT_EQ(summarize(ast), test.expected_async_function);
         if (test.code == u8"await await x") {
-          EXPECT_THAT(p.errors(),
-                      UnorderedElementsAre(
-                          DIAG_TYPE_OFFSETS(
-                              p.code(), diag_await_operator_outside_async,  //
-                              await_operator, 0, u8"await"),                //
-                          DIAG_TYPE_OFFSETS(
-                              p.code(), diag_await_operator_outside_async,  //
-                              await_operator, strlen(u8"await "), u8"await")));
+          EXPECT_THAT(
+              p.errors(),
+              ::testing::IsSupersetOf(
+                  {DIAG_TYPE_OFFSETS(p.code(),
+                                     diag_await_operator_outside_async,
+                                     await_operator, 0, u8"await"),
+                   DIAG_TYPE_OFFSETS(
+                       p.code(), diag_await_operator_outside_async,
+                       await_operator, strlen(u8"await "), u8"await")}));
         } else {
           std::size_t await_offset = test.code.find(u8"await");
           EXPECT_THAT(p.errors(),
@@ -1135,7 +1160,13 @@ TEST_F(test_parse_expression,
       auto guard = p.parser().enter_function(function_attributes::async);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), test.expected_async_function);
-      EXPECT_THAT(p.errors(), IsEmpty());
+      if (test.code == u8"await await x") {
+        EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
+                                    p.code(), diag_redundant_await,
+                                    await_operator, 0, u8"await")));
+      } else {
+        EXPECT_THAT(p.errors(), IsEmpty());
+      }
     }
 
     {
@@ -1145,7 +1176,13 @@ TEST_F(test_parse_expression,
       EXPECT_EQ(summarize(ast), test.expected_async_function
                                     ? test.expected_async_function
                                     : test.expected_normal_function);
-      EXPECT_THAT(p.errors(), IsEmpty());
+      if (test.code == u8"await await x") {
+        EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
+                                    p.code(), diag_redundant_await,
+                                    await_operator, 0, u8"await")));
+      } else {
+        EXPECT_THAT(p.errors(), IsEmpty());
+      }
     }
   }
 }

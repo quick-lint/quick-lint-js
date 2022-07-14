@@ -912,6 +912,10 @@ msgid "variable already declared here"
 msgstr "variabel är redan deklarerad här"
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "redundant 'await'"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 #, fuzzy
 msgid "RegExp literal flags cannot contain Unicode escapes"
 msgstr "RegExplitterär kan inte innehålla Unicode flykttecken"

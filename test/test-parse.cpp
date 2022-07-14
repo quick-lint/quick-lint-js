@@ -834,7 +834,8 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
     parser p(&code, &v);
     bool ok = p.parse_and_visit_module_catching_fatal_parse_errors(v);
     EXPECT_TRUE(ok);
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(v.errors, ::testing::Not(::testing::Contains(
+                              DIAG_TYPE(diag_depth_limit_exceeded))));
   }
 
   {

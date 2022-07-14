@@ -873,6 +873,10 @@ msgid "variable already declared here"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "redundant 'await'"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "RegExp literal flags cannot contain Unicode escapes"
 msgstr ""
 

@@ -913,6 +913,10 @@ msgid "variable already declared here"
 msgstr "here's your first attempt"
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "redundant 'await'"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "RegExp literal flags cannot contain Unicode escapes"
 msgstr "keep your RegExp flags simple, please"
 

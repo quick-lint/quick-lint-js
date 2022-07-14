@@ -259,7 +259,8 @@ const translation_table translation_data = {
         {32, 13, 50, 38, 25},         //
         {66, 33, 76, 58, 54},         //
         {40, 29, 35, 33, 33},         //
-        {38, 61, 32, 31, 31},         //
+        {0, 0, 0, 0, 31},             //
+        {38, 61, 32, 31, 18},         //
         {42, 59, 47, 43, 39},         //
         {53, 14, 55, 0, 44},          //
         {49, 31, 0, 0, 45},           //
@@ -1475,6 +1476,7 @@ const translation_table translation_data = {
         u8"private properties are not allowed in object literals\0"
         u8"redeclaration of global variable\0"
         u8"redeclaration of variable: {0}\0"
+        u8"redundant 'await'\0"
         u8"redundant delete statement on variable\0"
         u8"remove '{0}' to update an existing variable\0"
         u8"return statement returns nothing (undefined)\0"
