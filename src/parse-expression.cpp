@@ -1021,33 +1021,39 @@ expression* parser::parse_await_expression(parse_visitor_base& v,
   } else {
     source_code_span operator_span = await_token.span();
 
-    parser_transaction transaction = this->begin_transaction();
+    expression* result;
+    this->try_parse(
+        [&] {
+          expression* child = this->parse_expression(v, prec);
 
-    expression* child = this->parse_expression(v, prec);
+          if (child->kind() == expression_kind::_missing) {
+            this->diag_reporter_->report(diag_missing_operand_for_operator{
+                .where = operator_span,
+            });
+          } else if (child->kind() == expression_kind::arrow_function &&
+                     child->attributes() != function_attributes::async) {
+            // await (param) => { }  // Invalid.
+            return false;
+          }
 
-    if (child->kind() == expression_kind::_missing) {
-      this->diag_reporter_->report(diag_missing_operand_for_operator{
-          .where = operator_span,
-      });
-    } else if (child->kind() == expression_kind::arrow_function &&
-               child->attributes() != function_attributes::async) {
-      // await (param) => { }  // Invalid.
-      this->roll_back_transaction(std::move(transaction));
-      this->diag_reporter_->report(diag_await_followed_by_arrow_function{
-          .await_operator = operator_span,
-      });
-      // Re-parse as if the user wrote 'async' instead of 'await'.
-      return this->parse_async_expression(v, await_token, prec);
-    }
+          if (!(this->in_async_function_ || this->in_top_level_)) {
+            this->diag_reporter_->report(diag_await_operator_outside_async{
+                .await_operator = operator_span,
+            });
+          }
 
-    if (!(this->in_async_function_ || this->in_top_level_)) {
-      this->diag_reporter_->report(diag_await_operator_outside_async{
-          .await_operator = operator_span,
-      });
-    }
-
-    this->commit_transaction(std::move(transaction));
-    return this->make_expression<expression::await>(child, operator_span);
+          result =
+              this->make_expression<expression::await>(child, operator_span);
+          return true;
+        },
+        [&] {
+          this->diag_reporter_->report(diag_await_followed_by_arrow_function{
+              .await_operator = operator_span,
+          });
+          // Re-parse as if the user wrote 'async' instead of 'await'.
+          result = this->parse_async_expression(v, await_token, prec);
+        });
+    return result;
   }
 }
 
@@ -1187,17 +1193,25 @@ next:
   case token_type::less:
   case token_type::less_less:
     if (this->options_.typescript) {
-      parser_transaction transaction = this->begin_transaction();
-      bool parsed_without_fatal_error =
-          this->catch_fatal_parse_errors([this, &v] {
-            this->parse_and_visit_typescript_generic_arguments(v);
-          });
-      if (parsed_without_fatal_error &&
-          this->peek().type == token_type::left_paren) {
-        this->commit_transaction(std::move(transaction));
+      bool parsed_as_generic_arguments;
+      this->try_parse(
+          [&] {
+            bool parsed_without_fatal_error =
+                this->catch_fatal_parse_errors([this, &v] {
+                  this->parse_and_visit_typescript_generic_arguments(v);
+                });
+            if (parsed_without_fatal_error &&
+                this->peek().type == token_type::left_paren) {
+              parsed_as_generic_arguments = true;
+              return true;
+            } else {
+              return false;
+            }
+          },
+          [&] { parsed_as_generic_arguments = false; });
+      if (parsed_as_generic_arguments) {
         goto next;
       } else {
-        this->roll_back_transaction(std::move(transaction));
         goto binary_operator;
       }
     } else {

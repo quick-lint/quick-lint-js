@@ -539,6 +539,27 @@ class parser {
   // which might have been reported if it weren't for begin_transaction.
   void roll_back_transaction(parser_transaction &&);
 
+  // Speculatively parse something. If parsing turned out to be a bad idea, roll
+  // back and do something else.
+  //
+  // try_func is always called. It should return a boolean.
+  //
+  // catch_func is called if try_func returns false.
+  //
+  // When try_func and catch_func are called, they start with the same lexer
+  // state.
+  template <class TryFunc, class CatchFunc>
+  void try_parse(TryFunc &&try_func, CatchFunc &&catch_func) {
+    parser_transaction transaction = this->begin_transaction();
+    bool should_commit = std::move(try_func)();
+    if (should_commit) {
+      this->commit_transaction(std::move(transaction));
+    } else {
+      this->roll_back_transaction(std::move(transaction));
+      std::move(catch_func)();
+    }
+  }
+
   [[noreturn]] void crash_on_unimplemented_token(
       const char *qljs_file_name, int qljs_line,
       const char *qljs_function_name);

@@ -399,40 +399,44 @@ void parser::parse_and_visit_typescript_arrow_or_paren_type_expression(
   // TODO(strager): Performance of this code probably sucks. I suspect arrow
   // types are more common than parenthesized types, so we should assume arrow
   // and fall back to parenthesized.
-  parser_transaction transaction = this->begin_transaction();
-  buffering_visitor &params_visitor = this->buffering_visitor_stack_.emplace(
-      boost::container::pmr::new_delete_resource());
-  this->parse_and_visit_typescript_type_expression(params_visitor);
-  switch (this->peek().type) {
-  // (typeexpr)
-  // (param) => ReturnType
-  case token_type::right_paren:
-    this->skip();
 
-    if (this->peek().type == token_type::equal_greater) {
-      // (param, param) => ReturnType
-      this->roll_back_transaction(std::move(transaction));
-      this->parse_and_visit_typescript_arrow_type_expression_after_left_paren(
-          v);
-    } else {
-      // (typeexpr)
-      this->commit_transaction(std::move(transaction));
-      params_visitor.move_into(v);
-    }
-    break;
+  this->try_parse(
+      [&] {
+        buffering_visitor &params_visitor =
+            this->buffering_visitor_stack_.emplace(
+                boost::container::pmr::new_delete_resource());
+        this->parse_and_visit_typescript_type_expression(params_visitor);
+        switch (this->peek().type) {
+        // (typeexpr)
+        // (param) => ReturnType
+        case token_type::right_paren:
+          this->skip();
 
-  // (param, param) => ReturnType
-  // (param: Type) => ReturnType
-  case token_type::colon:
-  case token_type::comma:
-    this->roll_back_transaction(std::move(transaction));
-    this->parse_and_visit_typescript_arrow_type_expression_after_left_paren(v);
-    return;
+          if (this->peek().type == token_type::equal_greater) {
+            // (param, param) => ReturnType
+            return false;
+          } else {
+            // (typeexpr)
+            params_visitor.move_into(v);
+            return true;
+          }
+          break;
 
-  default:
-    QLJS_PARSER_UNIMPLEMENTED();
-    break;
-  }
+        // (param, param) => ReturnType
+        // (param: Type) => ReturnType
+        case token_type::colon:
+        case token_type::comma:
+          return false;
+
+        default:
+          QLJS_PARSER_UNIMPLEMENTED();
+          break;
+        }
+      },
+      [&] {
+        this->parse_and_visit_typescript_arrow_type_expression_after_left_paren(
+            v);
+      });
 }
 
 void parser::parse_and_visit_typescript_object_type_expression(

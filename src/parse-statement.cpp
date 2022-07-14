@@ -3076,27 +3076,31 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
           source_code_span in_token_span = this->peek().span();
           QLJS_ASSERT(!allow_in_operator);
 
-          parser_transaction transaction = this->begin_transaction();
-          expression *in_ast = this->parse_expression_remainder(
-              v, assignment_ast->child_1(), precedence{.commas = false});
-          if (this->peek().type == token_type::semicolon) {
-            // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
-            this->commit_transaction(std::move(transaction));
-            assignment_ast->children_[1] = in_ast;
-            this->diag_reporter_->report(diag_in_disallowed_in_c_style_for_loop{
-                .in_token = in_token_span,
-            });
-          } else {
-            this->roll_back_transaction(std::move(transaction));
-            if (declaration_kind == variable_kind::_var) {
-              // for (var x = "initial" in obj)
-            } else {
-              // for (let x = "prop" in obj)  // Invalid.
-              this->diag_reporter_->report(
-                  diag_cannot_assign_to_loop_variable_in_for_of_or_in_loop{
-                      .equal_token = equal_token.span()});
-            }
-          }
+          this->try_parse(
+              [&] {
+                expression *in_ast = this->parse_expression_remainder(
+                    v, assignment_ast->child_1(), precedence{.commas = false});
+                if (this->peek().type != token_type::semicolon) {
+                  return false;
+                }
+                // for (let x = "prop" in obj; i < 10; ++i)  // Invalid.
+                assignment_ast->children_[1] = in_ast;
+                this->diag_reporter_->report(
+                    diag_in_disallowed_in_c_style_for_loop{
+                        .in_token = in_token_span,
+                    });
+                return true;
+              },
+              [&] {
+                if (declaration_kind == variable_kind::_var) {
+                  // for (var x = "initial" in obj)
+                } else {
+                  // for (let x = "prop" in obj)  // Invalid.
+                  this->diag_reporter_->report(
+                      diag_cannot_assign_to_loop_variable_in_for_of_or_in_loop{
+                          .equal_token = equal_token.span()});
+                }
+              });
         } else if (is_in_for_initializer &&
                    this->peek().type == token_type::kw_of) {
           // for (var x = "initial" of obj)  // Invalid.
