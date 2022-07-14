@@ -997,6 +997,12 @@ next_parameter:
                                variable_init_kind::normal);
   this->skip();
 
+  if (this->peek().type == token_type::kw_extends) {
+    // <T extends U>
+    this->skip();
+    this->parse_and_visit_typescript_type_expression(v);
+  }
+
   switch (this->peek().type) {
   case token_type::greater:
     break;

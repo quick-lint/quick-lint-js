@@ -222,6 +222,23 @@ TEST(test_parse_typescript_generic,
                     unexpected_comma, strlen(u8"<T,"), u8",")));
   }
 }
+
+TEST(test_parse_typescript_generic, parameter_list_extends) {
+  {
+    padded_string code(u8"<T extends U>"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // T
+                                      "visit_variable_type_use"));   // U
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(visited_variable_declaration{
+                    u8"T", variable_kind::_generic_parameter,
+                    variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"U"));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+}
 }
 }
 
