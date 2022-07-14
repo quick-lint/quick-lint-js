@@ -6,6 +6,17 @@ based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 quick-lint-js' version numbers are arbitrary. quick-lint-js does *not* adhere to
 Semantic Versioning.
 
+## Unreleased
+
+### Added
+
+* `await await f()` now reports [E0266][] ("redundant await") (implemented by
+  [clegoz][]).
+
+### Removed
+
+* The `en@loud` translation has been removed. It was only used for testing.
+
 ## 2.7.0 (2022-07-13)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.7.0/)
@@ -594,6 +605,7 @@ Beta release.
 [Sarah Schulte]: https://github.com/cgsdev0
 [Shivam Mehta]: https://github.com/maniac-en
 [Tony Sathre]: https://github.com/tonysathre
+[clegoz]: https://github.com/clegoz
 [coc.nvim]: https://github.com/neoclide/coc.nvim
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
 [david doroz]: https://github.com/DaviddHub
@@ -661,4 +673,5 @@ Beta release.
 [E0212]: https://quick-lint-js.com/errors/E0212/
 [E0223]: https://quick-lint-js.com/errors/E0223/
 [E0253]: https://quick-lint-js.com/errors/E0253/
+[E0266]: https://quick-lint-js.com/errors/E0266/
 [E0707]: https://quick-lint-js.com/errors/E0707/
