@@ -137,7 +137,7 @@ TEST_F(test_lsp_diag_reporter, multiple_errors) {
 
 TEST_F(test_lsp_diag_reporter, messages_use_translator) {
   translator t;
-  t.use_messages_from_locale("en_US@loud");
+  t.use_messages_from_locale("en_US@snarky");
 
   padded_string input(u8"0e1n"_sv);
 
@@ -150,7 +150,7 @@ TEST_F(test_lsp_diag_reporter, messages_use_translator) {
   ::boost::json::value diagnostics = this->parse_json();
   ASSERT_EQ(diagnostics.as_array().size(), 1);
   EXPECT_EQ(look_up(diagnostics, 0, "message"),
-            "BIGINT LITERAL CONTAINS EXPONENT");
+            "BigExponInt is an ES2069 feature");
 }
 }
 }

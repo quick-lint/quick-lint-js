@@ -40,7 +40,7 @@ void benchmark_translate_from_translation_hit(benchmark::State &state) {
       };
 
   translator t;
-  bool have_translation = t.use_messages_from_locale("en@loud");
+  bool have_translation = t.use_messages_from_locale("en_US@snarky");
   QLJS_ALWAYS_ASSERT(have_translation);
   for (const translatable_message_with_original &message :
        messages_to_translate) {
@@ -69,7 +69,7 @@ void benchmark_translate_from_translation_miss(benchmark::State &state) {
       };
 
   translator t;
-  bool have_translation = t.use_messages_from_locale("en@loud");
+  bool have_translation = t.use_messages_from_locale("en_US@snarky");
   QLJS_ALWAYS_ASSERT(have_translation);
   for (const translatable_message_with_original &message :
        messages_to_translate) {
@@ -96,12 +96,12 @@ void benchmark_load_translations(benchmark::State &state, const char *locale) {
 }
 BENCHMARK_CAPTURE(benchmark_load_translations, c, "C");
 BENCHMARK_CAPTURE(benchmark_load_translations, en, "en");
-BENCHMARK_CAPTURE(benchmark_load_translations, en_loud, "en@loud");
+BENCHMARK_CAPTURE(benchmark_load_translations, en_snarky, "en_US@snarky");
 BENCHMARK_CAPTURE(benchmark_load_translations, en_us, "en_US");
-BENCHMARK_CAPTURE(benchmark_load_translations, en_us_loud, "en_US@loud");
+BENCHMARK_CAPTURE(benchmark_load_translations, en_us_snarky, "en_US@snarky");
 BENCHMARK_CAPTURE(benchmark_load_translations, en_us_utf8, "en_US.utf8");
-BENCHMARK_CAPTURE(benchmark_load_translations, en_us_utf8_loud,
-                  "en_US.utf8@loud");
+BENCHMARK_CAPTURE(benchmark_load_translations, en_us_utf8_snarky,
+                  "en_US.utf8@snarky");
 BENCHMARK_CAPTURE(benchmark_load_translations, posix, "POSIX");
 
 void benchmark_load_translations_and_find_hit(benchmark::State &state) {
@@ -110,7 +110,7 @@ void benchmark_load_translations_and_find_hit(benchmark::State &state) {
   static constexpr string8_view untranslated_message =
       u8"variable assigned before its declaration"_sv;
 
-  const char *locale = "en@loud";
+  const char *locale = "en_US@snarky";
   {
     // Message should be translated.
     translator t;
@@ -135,7 +135,7 @@ void benchmark_load_translations_and_find_miss(benchmark::State &state) {
   static constexpr string8_view untranslated_message =
       u8"~~~ invalid string, do not use outside benchmark ~~~"_sv;
 
-  const char *locale = "en@loud";
+  const char *locale = "en_US@snarky";
   {
     // Message should not be translated.
     translator t;
