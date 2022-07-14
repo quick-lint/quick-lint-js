@@ -124,15 +124,9 @@ TEST(test_parse, parse_function_statement) {
   {
     spy_visitor v =
         parse_and_visit_statement(u8"function g(first, ...args) {}"_sv);
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(
-            visited_variable_declaration{u8"g", variable_kind::_function,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"first", variable_kind::_parameter,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"args", variable_kind::_parameter,
-                                         variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(function_decl(u8"g"), param_decl(u8"first"),
+                            param_decl(u8"args")));
   }
 }
 
@@ -241,10 +235,7 @@ TEST(test_parse, async_function_cannot_have_newline_after_async_keyword) {
 TEST(test_parse, generator_function_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"function* f() {}"_sv);
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"f", variable_kind::_function, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"f")));
   }
 }
 
@@ -391,10 +382,7 @@ TEST(test_parse, parse_function_expression) {
                             "visit_exit_function_scope",        //
                             "visit_variable_use",               // a
                             "visit_variable_use"));             // d
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"b", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"b")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"c", u8"a", u8"d"));
   }
 
@@ -427,10 +415,7 @@ TEST(test_parse, arrow_function_expression) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // y
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"x", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"x")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"y"));
   }
 
@@ -442,10 +427,7 @@ TEST(test_parse, arrow_function_expression) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // z
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"x", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"x")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"y", u8"z"));
   }
 
@@ -495,10 +477,7 @@ TEST(test_parse, arrow_function_expression_with_statements) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // y
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"x", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"x")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"y"));
   }
 }
@@ -522,13 +501,8 @@ TEST(test_parse, nested_arrow_function) {
                                       "visit_variable_use",               // y
                                       "visit_exit_function_scope",        //
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(
-            visited_variable_declaration{u8"x", variable_kind::_parameter,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"y", variable_kind::_parameter,
-                                         variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(param_decl(u8"x"), param_decl(u8"y")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"x", u8"y"));
   }
 
@@ -1763,13 +1737,8 @@ TEST(test_parse, invalid_function_parameter) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
                                       "visit_end_of_module"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(
-            visited_variable_declaration{u8"f", variable_kind::_function,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"p", variable_kind::_parameter,
-                                         variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(function_decl(u8"f"), param_decl(u8"p")));
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_invalid_parameter,  //
                               parameter, strlen(u8"function f("), u8"g()")));
@@ -1785,10 +1754,7 @@ TEST(test_parse, invalid_function_parameter) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
                                       "visit_end_of_module"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"p", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"p")));
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_invalid_parameter,  //
                               parameter, strlen(u8"("), u8"g()")));

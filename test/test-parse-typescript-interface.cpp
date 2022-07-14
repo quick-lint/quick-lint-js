@@ -51,9 +51,7 @@ TEST(test_parse_typescript_interface, empty_interface) {
                                     "visit_enter_interface_scope",  // I
                                     "visit_exit_interface_scope",   // I
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.variable_declarations, ElementsAre(visited_variable_declaration{
-                                           u8"I", variable_kind::_interface,
-                                           variable_init_kind::normal}));
+  EXPECT_THAT(v.variable_declarations, ElementsAre(interface_decl(u8"I")));
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
@@ -443,13 +441,8 @@ TEST(test_parse_typescript_interface, interface_with_index_signature) {
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"KeyType", u8"ValueType"));
     // TODO(strager): We probably should create a new kind of variable instead
     // of 'parameter'.
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(
-            visited_variable_declaration{u8"I", variable_kind::_interface,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"key", variable_kind::_parameter,
-                                         variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(interface_decl(u8"I"), param_decl(u8"key")));
   }
 
   {
@@ -1216,16 +1209,9 @@ TEST(test_parse_typescript_interface, generic_call_signature) {
                             "visit_variable_declaration",    // param
                             "visit_exit_function_scope",     // (call signature)
                             "visit_exit_interface_scope"));  // I
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(
-            visited_variable_declaration{u8"I", variable_kind::_interface,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"T",
-                                         variable_kind::_generic_parameter,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"param", variable_kind::_parameter,
-                                         variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(interface_decl(u8"I"), generic_param_decl(u8"T"),
+                            param_decl(u8"param")));
   }
 }
 
@@ -1240,14 +1226,8 @@ TEST(test_parse_typescript_interface, generic_interface) {
                             "visit_variable_type_use",       // T
                             "visit_property_declaration",    // field
                             "visit_exit_interface_scope"));  // I
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(
-            visited_variable_declaration{u8"I", variable_kind::_interface,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"T",
-                                         variable_kind::_generic_parameter,
-                                         variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(interface_decl(u8"I"), generic_param_decl(u8"T")));
   }
 }
 

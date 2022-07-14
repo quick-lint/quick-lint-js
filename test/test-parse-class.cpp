@@ -78,12 +78,8 @@ TEST(test_parse, parse_class_statement) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{u8"A", variable_kind::_class,
-                                                 variable_init_kind::normal},
-                    visited_variable_declaration{u8"B", variable_kind::_class,
-                                                 variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(class_decl(u8"A"), class_decl(u8"B")));
   }
 }
 

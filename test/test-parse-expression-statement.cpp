@@ -1400,10 +1400,7 @@ TEST(test_parse, disallow_await_parameter_in_async_arrow_function) {
                     &code, diag_cannot_declare_await_in_async_function,  //
                     name, strlen(u8"(async ("), u8"await")));
     // TODO(strager): We're ignoring 'p'. Should we treat it as a parameter?
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"await", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"await")));
   }
 }
 

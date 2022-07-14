@@ -31,9 +31,7 @@ TEST(test_parse_typescript_var, let_can_have_type_annotation) {
     spy_visitor v = parse_and_visit_typescript_statement(u8"let x: C;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",       // C
                                       "visit_variable_declaration"));  // x
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"x", variable_kind::_let, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
   }
 

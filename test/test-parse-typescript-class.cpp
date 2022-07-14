@@ -86,13 +86,8 @@ TEST(test_parse, class_index_signature_is_allowed_in_typescript) {
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"KeyType", u8"ValueType"));
     // TODO(strager): We probably should create a new kind of variable instead
     // of 'parameter'.
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(
-            visited_variable_declaration{u8"key", variable_kind::_parameter,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"C", variable_kind::_class,
-                                         variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(param_decl(u8"key"), class_decl(u8"C")));
   }
 }
 
@@ -388,12 +383,7 @@ TEST(test_parse, generic_classes_are_disallowed_in_javascript) {
                             "visit_exit_class_scope",        // }
                             "visit_variable_declaration"));  // C
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(
-                    visited_variable_declaration{
-                        u8"T", variable_kind::_generic_parameter,
-                        variable_init_kind::normal},
-                    visited_variable_declaration{u8"C", variable_kind::_class,
-                                                 variable_init_kind::normal}));
+                ElementsAre(generic_param_decl(u8"T"), class_decl(u8"C")));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code,
@@ -412,12 +402,7 @@ TEST(test_parse, generic_classes_are_allowed_in_typescript) {
                             "visit_exit_class_scope",        // }
                             "visit_variable_declaration"));  // C
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(
-                    visited_variable_declaration{
-                        u8"T", variable_kind::_generic_parameter,
-                        variable_init_kind::normal},
-                    visited_variable_declaration{u8"C", variable_kind::_class,
-                                                 variable_init_kind::normal}));
+                ElementsAre(generic_param_decl(u8"T"), class_decl(u8"C")));
   }
 }
 

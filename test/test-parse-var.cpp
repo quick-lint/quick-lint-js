@@ -125,9 +125,7 @@ TEST(test_parse, let_asi) {
                 ElementsAre("visit_variable_declaration",  // x
                             "visit_variable_use",          // y
                             "visit_end_of_module"));
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"x", variable_kind::_let, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
   }
 }
 
@@ -192,9 +190,7 @@ TEST(test_parse, parse_let_with_object_destructuring) {
     spy_visitor v = parse_and_visit_statement(u8"let {key: variable} = 2"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"variable", variable_kind::_let,
-                    variable_init_kind::initialized_with_equals}));
+                ElementsAre(let_init_decl(u8"variable")));
   }
 
   {
@@ -209,10 +205,7 @@ TEST(test_parse, parse_let_with_object_destructuring) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_variable_use",  // defaultValue
                                       "visit_variable_declaration"));  // key
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"key", variable_kind::_let,
-                    variable_init_kind::initialized_with_equals}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"key")));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(u8"x",  //
                             u8"defaultValue"));
@@ -225,14 +218,9 @@ TEST(test_parse, parse_let_with_array_destructuring) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // x
                                       "visit_variable_declaration",    // first
                                       "visit_variable_declaration"));  // second
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(
-                    visited_variable_declaration{
-                        u8"first", variable_kind::_let,
-                        variable_init_kind::initialized_with_equals},
-                    visited_variable_declaration{
-                        u8"second", variable_kind::_let,
-                        variable_init_kind::initialized_with_equals}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(let_init_decl(u8"first"), let_init_decl(u8"second")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
   }
 }
@@ -242,10 +230,7 @@ TEST(test_parse, let_does_not_insert_semicolon_after_let_keyword) {
     spy_visitor v = parse_and_visit_statement(u8"let\nx = y;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // y
                                       "visit_variable_declaration"));  // x
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"x", variable_kind::_let,
-                    variable_init_kind::initialized_with_equals}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"x")));
   }
 }
 
@@ -497,9 +482,7 @@ TEST(test_parse, parse_invalid_let) {
                             "visit_variable_declaration",  // x
                             "visit_end_of_module"));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"y"));
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"x", variable_kind::_let, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_unexpected_token_in_variable_declaration,  //
@@ -614,14 +597,8 @@ TEST(test_parse, parse_invalid_let) {
                               "visit_variable_declaration",  // x
                               "visit_variable_declaration",  // z
                               "visit_end_of_module"));
-      EXPECT_THAT(
-          v.variable_declarations,
-          ElementsAre(
-              visited_variable_declaration{
-                  u8"x", variable_kind::_let,
-                  variable_init_kind::initialized_with_equals},
-              visited_variable_declaration{u8"z", variable_kind::_let,
-                                           variable_init_kind::normal}));
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(let_init_decl(u8"x"), let_noinit_decl(u8"z")));
       EXPECT_THAT(v.errors,
                   ElementsAre(DIAG_TYPE_2_OFFSETS(
                       &code, diag_cannot_update_variable_during_declaration,  //
@@ -643,13 +620,7 @@ TEST(test_parse, parse_invalid_let) {
                               "visit_variable_declaration",  // y
                               "visit_end_of_module"));
       EXPECT_THAT(v.variable_declarations,
-                  ElementsAre(
-                      visited_variable_declaration{
-                          u8"x", variable_kind::_const,
-                          variable_init_kind::initialized_with_equals},
-                      visited_variable_declaration{
-                          u8"y", variable_kind::_const,
-                          variable_init_kind::initialized_with_equals}));
+                  ElementsAre(const_init_decl(u8"x"), const_init_decl(u8"y")));
       EXPECT_THAT(v.errors,
                   ElementsAre(DIAG_TYPE_2_OFFSETS(
                       &code, diag_cannot_update_variable_during_declaration,  //
@@ -937,10 +908,7 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"x", variable_kind::_let,
-                    variable_init_kind::initialized_with_equals}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"x")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"console"));
     cli_source_position::offset_type end_of_let_statement =
         strlen(u8"let x = 2");
@@ -954,9 +922,7 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"x", variable_kind::_let, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
     cli_source_position::offset_type end_of_let_statement = strlen(u8"let x");
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_semicolon_after_statement,  //
@@ -1174,10 +1140,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_import_let,  //
                     import_name, strlen(u8"import { someName as "), u8"let")));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"let", variable_kind::_import, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"let")));
   }
 
   // import implies strict mode (because modules imply strict mode).
@@ -1190,10 +1153,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
                               &code, diag_cannot_import_let,  //
                               import_name, strlen(u8"import { 'someName' as "),
                               u8"let")));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"let", variable_kind::_import, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"let")));
   }
 
   {
@@ -1286,19 +1246,13 @@ TEST(test_parse, declare_await_in_non_async_function) {
   {
     spy_visitor v = parse_and_visit_statement(u8"function await() { }"_sv,
                                               function_attributes::normal);
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"await", variable_kind::_function, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"await")));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"let await = 42;"_sv,
                                               function_attributes::normal);
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"await", variable_kind::_let,
-                    variable_init_kind::initialized_with_equals}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"await")));
   }
 
   {
@@ -1306,10 +1260,7 @@ TEST(test_parse, declare_await_in_non_async_function) {
         u8"(async function() {\n"
         u8"  (function(await) { })\n"
         u8"})");
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"await", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"await")));
   }
 
   {
@@ -1317,10 +1268,7 @@ TEST(test_parse, declare_await_in_non_async_function) {
         u8"(function() {\n"
         u8"  async function await() { }\n"
         u8"})");
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"await", variable_kind::_function, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"await")));
   }
 }
 
@@ -1331,10 +1279,7 @@ TEST(test_parse, declare_await_in_async_function) {
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::async);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"await", variable_kind::_function, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"await")));
     // TODO(strager): Include a note referencing the origin of the async
     // function.
     EXPECT_THAT(v.errors,
@@ -1349,10 +1294,8 @@ TEST(test_parse, declare_await_in_async_function) {
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::async);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{u8"await", variable_kind::_var,
-                                                 variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(var_noinit_decl(u8"await")));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_await_in_async_function,  //
@@ -1365,10 +1308,7 @@ TEST(test_parse, declare_await_in_async_function) {
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::async);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"await", variable_kind::_catch, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(catch_decl(u8"await")));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_await_in_async_function,  //
@@ -1380,13 +1320,9 @@ TEST(test_parse, declare_await_in_async_function) {
     padded_string code(u8"async function f(await) {}"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(
-            visited_variable_declaration{u8"f", variable_kind::_function,
-                                         variable_init_kind::normal},  //
-            visited_variable_declaration{u8"await", variable_kind::_parameter,
-                                         variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(function_decl(u8"f"),  //
+                            param_decl(u8"await")));
     EXPECT_THAT(v.errors,
                 UnorderedElementsAre(
                     DIAG_TYPE_OFFSETS(
@@ -1401,18 +1337,12 @@ TEST(test_parse, declare_await_in_async_function) {
 TEST(test_parse, declare_await_at_top_level) {
   {
     spy_visitor v = parse_and_visit_statement(u8"function await() { }"_sv);
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"await", variable_kind::_function, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"await")));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"let await = 42;"_sv);
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"await", variable_kind::_let,
-                    variable_init_kind::initialized_with_equals}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"await")));
   }
 }
 
@@ -1637,18 +1567,12 @@ TEST(test_parse, use_yield_in_non_generator_function) {
 TEST(test_parse, declare_yield_in_non_generator_function) {
   {
     spy_visitor v = parse_and_visit_statement(u8"function yield() { }"_sv);
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"yield", variable_kind::_function, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"yield")));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"let yield = 42;"_sv);
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"yield", variable_kind::_let,
-                    variable_init_kind::initialized_with_equals}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"yield")));
   }
 
   {
@@ -1656,10 +1580,7 @@ TEST(test_parse, declare_yield_in_non_generator_function) {
         u8"(async function() {\n"
         u8"  (function(yield) { })\n"
         u8"})");
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"yield", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"yield")));
   }
 
   {
@@ -1667,10 +1588,7 @@ TEST(test_parse, declare_yield_in_non_generator_function) {
         u8"(function() {\n"
         u8"  function* yield() { }\n"
         u8"})");
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"yield", variable_kind::_function, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"yield")));
   }
 }
 
@@ -1681,10 +1599,7 @@ TEST(test_parse, declare_yield_in_generator_function) {
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::generator);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"yield", variable_kind::_function, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"yield")));
     // TODO(strager): Include a note referencing the origin of the generator
     // function.
     EXPECT_THAT(v.errors,
@@ -1699,10 +1614,8 @@ TEST(test_parse, declare_yield_in_generator_function) {
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::generator);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{u8"yield", variable_kind::_var,
-                                                 variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(var_noinit_decl(u8"yield")));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_yield_in_generator_function,  //
@@ -1715,10 +1628,7 @@ TEST(test_parse, declare_yield_in_generator_function) {
     parser p(&code, &v);
     auto guard = p.enter_function(function_attributes::generator);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"yield", variable_kind::_catch, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(catch_decl(u8"yield")));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_yield_in_generator_function,  //
@@ -1730,13 +1640,9 @@ TEST(test_parse, declare_yield_in_generator_function) {
     padded_string code(u8"function* f(yield) {}"_sv);
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(
-            visited_variable_declaration{u8"f", variable_kind::_function,
-                                         variable_init_kind::normal},  //
-            visited_variable_declaration{u8"yield", variable_kind::_parameter,
-                                         variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(function_decl(u8"f"),  //
+                            param_decl(u8"yield")));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_declare_yield_in_generator_function,  //
@@ -1837,10 +1743,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
                               "visit_enter_class_scope_body",  //
                               "visit_exit_class_scope",
                               "visit_variable_declaration"));  // (name)
-      EXPECT_THAT(
-          v.variable_declarations,
-          ElementsAre(visited_variable_declaration{
-              name, variable_kind::_class, variable_init_kind::normal}));
+      EXPECT_THAT(v.variable_declarations, ElementsAre(class_decl(name)));
     }
 
     {
@@ -1978,18 +1881,14 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
     {
       spy_visitor v = parse_and_visit_statement(
           u8"for (let " + name + u8" of xs) ;", function_attributes::normal);
-      EXPECT_THAT(v.variable_declarations,
-                  ElementsAre(visited_variable_declaration{
-                      name, variable_kind::_let, variable_init_kind::normal}));
+      EXPECT_THAT(v.variable_declarations, ElementsAre(let_noinit_decl(name)));
       EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
     }
 
     {
       spy_visitor v = parse_and_visit_statement(
           u8"for (var " + name + u8" of xs) ;", function_attributes::normal);
-      EXPECT_THAT(v.variable_declarations,
-                  ElementsAre(visited_variable_declaration{
-                      name, variable_kind::_var, variable_init_kind::normal}));
+      EXPECT_THAT(v.variable_declarations, ElementsAre(var_noinit_decl(name)));
       EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
     }
 

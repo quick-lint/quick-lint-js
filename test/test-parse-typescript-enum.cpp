@@ -98,9 +98,7 @@ TEST(test_parse_typescript_enum, empty_enum) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"E", variable_kind::_enum, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(enum_decl(u8"E")));
   }
 
   {
@@ -109,9 +107,7 @@ TEST(test_parse_typescript_enum, empty_enum) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"E", variable_kind::_enum, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(enum_decl(u8"E")));
   }
 
   {
@@ -120,9 +116,7 @@ TEST(test_parse_typescript_enum, empty_enum) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"E", variable_kind::_enum, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(enum_decl(u8"E")));
   }
 
   {
@@ -131,9 +125,7 @@ TEST(test_parse_typescript_enum, empty_enum) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"E", variable_kind::_enum, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(enum_decl(u8"E")));
   }
 }
 
@@ -151,9 +143,7 @@ TEST(test_parse_typescript_enum,
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // (name)
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    name, variable_kind::_enum, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(enum_decl(name)));
   }
 }
 

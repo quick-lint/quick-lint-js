@@ -37,9 +37,7 @@ TEST_F(test_parse_typescript_generic, single_basic_generic_parameter) {
     p.parse_and_visit_typescript_generic_parameters(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // T
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"T", variable_kind::_generic_parameter,
-                    variable_init_kind::normal}));
+                ElementsAre(generic_param_decl(u8"T")));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
@@ -53,17 +51,10 @@ TEST_F(test_parse_typescript_generic, multiple_basic_generic_parameter) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // T1
                                       "visit_variable_declaration",    // T2
                                       "visit_variable_declaration"));  // T3
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(
-                    visited_variable_declaration{
-                        u8"T1", variable_kind::_generic_parameter,
-                        variable_init_kind::normal},
-                    visited_variable_declaration{
-                        u8"T2", variable_kind::_generic_parameter,
-                        variable_init_kind::normal},
-                    visited_variable_declaration{
-                        u8"T3", variable_kind::_generic_parameter,
-                        variable_init_kind::normal}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(generic_param_decl(u8"T1"), generic_param_decl(u8"T2"),
+                    generic_param_decl(u8"T3")));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
@@ -87,14 +78,9 @@ TEST_F(test_parse_typescript_generic, parameters_require_commas_between) {
     p.parse_and_visit_typescript_generic_parameters(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // T1
                                       "visit_variable_declaration"));  // T2
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(
-                    visited_variable_declaration{
-                        u8"T1", variable_kind::_generic_parameter,
-                        variable_init_kind::normal},
-                    visited_variable_declaration{
-                        u8"T2", variable_kind::_generic_parameter,
-                        variable_init_kind::normal}));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(generic_param_decl(u8"T1"), generic_param_decl(u8"T2")));
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_missing_comma_between_generic_parameters,
@@ -237,9 +223,7 @@ TEST_F(test_parse_typescript_generic, parameter_list_extends) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // T
                                       "visit_variable_type_use"));   // U
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"T", variable_kind::_generic_parameter,
-                    variable_init_kind::normal}));
+                ElementsAre(generic_param_decl(u8"T")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"U"));
     EXPECT_THAT(v.errors, IsEmpty());
   }
@@ -264,10 +248,7 @@ TEST_F(test_parse_typescript_generic,
     parser p(&code, &v, typescript_options);
     p.parse_and_visit_typescript_generic_parameters(v);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // (name)
-    EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    name, variable_kind::_generic_parameter,
-                    variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(generic_param_decl(name)));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }

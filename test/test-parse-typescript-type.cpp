@@ -383,9 +383,7 @@ TEST(test_parse_typescript_type, object_type_with_generic_method) {
                                       "visit_variable_declaration",   // T
                                       "visit_exit_function_scope"));  // method
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"T", variable_kind::_generic_parameter,
-                    variable_init_kind::normal}));
+                ElementsAre(generic_param_decl(u8"T")));
   }
 }
 
@@ -470,10 +468,7 @@ TEST(test_parse_typescript_type, object_type_with_index_signature) {
                                       "visit_variable_declaration",  // key
                                       "visit_variable_type_use",     // PropType
                                       "visit_exit_index_signature_scope"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"key", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"key")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"KeyType", u8"PropType"));
   }
 }
@@ -488,9 +483,7 @@ TEST(test_parse_typescript_type, object_type_with_mapped_types) {
                                       "visit_variable_type_use",     // PropType
                                       "visit_exit_index_signature_scope"));
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"Key", variable_kind::_generic_parameter,
-                    variable_init_kind::normal}));
+                ElementsAre(generic_param_decl(u8"Key")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"Keys", u8"PropType"));
   }
 
@@ -504,9 +497,7 @@ TEST(test_parse_typescript_type, object_type_with_mapped_types) {
                                       "visit_variable_type_use",     // PropType
                                       "visit_exit_index_signature_scope"));
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"Key", variable_kind::_generic_parameter,
-                    variable_init_kind::normal}));
+                ElementsAre(generic_param_decl(u8"Key")));
     EXPECT_THAT(v.variable_uses,
                 ElementsAre(u8"Keys", u8"KeyType", u8"PropType"));
   }
@@ -605,10 +596,7 @@ TEST(test_parse_typescript_type, object_type_with_call_signature) {
                                       "visit_variable_declaration",  // param
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"param", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"param")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"ParamType", u8"ReturnType"));
   }
 }
@@ -622,14 +610,8 @@ TEST(test_parse_typescript_type, object_type_with_generic_call_signature) {
                                       "visit_variable_declaration",  // param
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(
-            visited_variable_declaration{u8"T",
-                                         variable_kind::_generic_parameter,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"param", variable_kind::_parameter,
-                                         variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(generic_param_decl(u8"T"), param_decl(u8"param")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
   }
 }
@@ -682,10 +664,7 @@ TEST(test_parse_typescript_type,
       padded_string code(u8"{ [" + keyword + u8": T]: T }");
       SCOPED_TRACE(code);
       spy_visitor v = parse_and_visit_typescript_type(code.string_view());
-      EXPECT_THAT(
-          v.variable_declarations,
-          ElementsAre(visited_variable_declaration{
-              keyword, variable_kind::_parameter, variable_init_kind::normal}));
+      EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(keyword)));
     }
 
     {
@@ -693,9 +672,7 @@ TEST(test_parse_typescript_type,
       SCOPED_TRACE(code);
       spy_visitor v = parse_and_visit_typescript_type(code.string_view());
       EXPECT_THAT(v.variable_declarations,
-                  ElementsAre(visited_variable_declaration{
-                      keyword, variable_kind::_generic_parameter,
-                      variable_init_kind::normal}));
+                  ElementsAre(generic_param_decl(keyword)));
     }
   }
 }
@@ -717,10 +694,7 @@ TEST(test_parse_typescript_type, arrow_function) {
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"param", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"param")));
   }
 
   {
@@ -735,13 +709,7 @@ TEST(test_parse_typescript_type, arrow_function) {
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
     EXPECT_THAT(
         v.variable_declarations,
-        ElementsAre(
-            visited_variable_declaration{u8"a", variable_kind::_parameter,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"b", variable_kind::_parameter,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"c", variable_kind::_parameter,
-                                         variable_init_kind::normal}));
+        ElementsAre(param_decl(u8"a"), param_decl(u8"b"), param_decl(u8"c")));
   }
 
   {
@@ -753,10 +721,7 @@ TEST(test_parse_typescript_type, arrow_function) {
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"ParamType", u8"ReturnType"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"param", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"param")));
   }
 
   {
@@ -771,13 +736,7 @@ TEST(test_parse_typescript_type, arrow_function) {
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
     EXPECT_THAT(
         v.variable_declarations,
-        ElementsAre(
-            visited_variable_declaration{u8"a", variable_kind::_parameter,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"b", variable_kind::_parameter,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"c", variable_kind::_parameter,
-                                         variable_init_kind::normal}));
+        ElementsAre(param_decl(u8"a"), param_decl(u8"b"), param_decl(u8"c")));
   }
 
   {
@@ -789,10 +748,7 @@ TEST(test_parse_typescript_type, arrow_function) {
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"ParamType", u8"ReturnType"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(visited_variable_declaration{
-            u8"param", variable_kind::_parameter, variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"param")));
   }
 }
 
@@ -804,9 +760,7 @@ TEST(test_parse_typescript_type, generic_arrow_function) {
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"T", variable_kind::_generic_parameter,
-                    variable_init_kind::normal}));
+                ElementsAre(generic_param_decl(u8"T")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
   }
 
@@ -818,9 +772,7 @@ TEST(test_parse_typescript_type, generic_arrow_function) {
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.variable_declarations,
-                ElementsAre(visited_variable_declaration{
-                    u8"T", variable_kind::_generic_parameter,
-                    variable_init_kind::normal}));
+                ElementsAre(generic_param_decl(u8"T")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
   }
 }
@@ -844,13 +796,8 @@ TEST(test_parse_typescript_type, constructor_function) {
                                       "visit_variable_type_use",  // ReturnType
                                       "visit_exit_function_scope"));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
-    EXPECT_THAT(
-        v.variable_declarations,
-        ElementsAre(
-            visited_variable_declaration{u8"param1", variable_kind::_parameter,
-                                         variable_init_kind::normal},
-            visited_variable_declaration{u8"param2", variable_kind::_parameter,
-                                         variable_init_kind::normal}));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(param_decl(u8"param1"), param_decl(u8"param2")));
   }
 }
 

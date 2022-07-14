@@ -31,6 +31,90 @@ struct visited_variable_declaration {
   }
 };
 
+inline visited_variable_declaration catch_decl(string8_view name) {
+  return visited_variable_declaration{string8(name), variable_kind::_catch,
+                                      variable_init_kind::normal};
+}
+
+inline visited_variable_declaration class_decl(string8_view name) {
+  return visited_variable_declaration{string8(name), variable_kind::_class,
+                                      variable_init_kind::normal};
+}
+
+// A variable declared with 'const' with an initializer. Example: const x =
+// null;
+inline visited_variable_declaration const_init_decl(string8_view name) {
+  return visited_variable_declaration{
+      string8(name), variable_kind::_const,
+      variable_init_kind::initialized_with_equals};
+}
+
+// A variable declared with 'const' without an initializer.
+// Example: for (const x of []) {}
+inline visited_variable_declaration const_noinit_decl(string8_view name) {
+  return visited_variable_declaration{string8(name), variable_kind::_const,
+                                      variable_init_kind::normal};
+}
+
+inline visited_variable_declaration enum_decl(string8_view name) {
+  return visited_variable_declaration{string8(name), variable_kind::_enum,
+                                      variable_init_kind::normal};
+}
+
+inline visited_variable_declaration function_decl(string8_view name) {
+  return visited_variable_declaration{string8(name), variable_kind::_function,
+                                      variable_init_kind::normal};
+}
+
+inline visited_variable_declaration import_decl(string8_view name) {
+  return visited_variable_declaration{string8(name), variable_kind::_import,
+                                      variable_init_kind::normal};
+}
+
+inline visited_variable_declaration interface_decl(string8_view name) {
+  return visited_variable_declaration{string8(name), variable_kind::_interface,
+                                      variable_init_kind::normal};
+}
+
+// A variable declared with 'let' with an initializer. Example: let x = null;
+inline visited_variable_declaration let_init_decl(string8_view name) {
+  return visited_variable_declaration{
+      string8(name), variable_kind::_let,
+      variable_init_kind::initialized_with_equals};
+}
+
+// A variable declared with 'let' without an initializer. Example: let x;
+inline visited_variable_declaration let_noinit_decl(string8_view name) {
+  return visited_variable_declaration{string8(name), variable_kind::_let,
+                                      variable_init_kind::normal};
+}
+
+// An arrow/function/method parameter.
+inline visited_variable_declaration param_decl(string8_view name) {
+  return visited_variable_declaration{string8(name), variable_kind::_parameter,
+                                      variable_init_kind::normal};
+}
+
+// A TypeScript generic function parameter.
+inline visited_variable_declaration generic_param_decl(string8_view name) {
+  return visited_variable_declaration{string8(name),
+                                      variable_kind::_generic_parameter,
+                                      variable_init_kind::normal};
+}
+
+// A variable declared with 'var' with an initializer. Example: var x = null;
+inline visited_variable_declaration var_init_decl(string8_view name) {
+  return visited_variable_declaration{
+      string8(name), variable_kind::_var,
+      variable_init_kind::initialized_with_equals};
+}
+
+// A variable declared with 'var' without an initializer. Example: var x;
+inline visited_variable_declaration var_noinit_decl(string8_view name) {
+  return visited_variable_declaration{string8(name), variable_kind::_var,
+                                      variable_init_kind::normal};
+}
+
 struct spy_visitor final : public diag_collector, public parse_visitor_base {
   std::vector<std::string_view> visits;
 
