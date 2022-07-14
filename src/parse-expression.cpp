@@ -1392,6 +1392,22 @@ next:
           v, binary_builder.last_expression()));
       goto next;
 
+    // f?.<T>(x, y)                      // TypeScript only
+    // foo?.<<Param>() => ReturnType>()  // TypeScript only
+    case token_type::less:
+    case token_type::less_less:
+      if (!this->options_.typescript) {
+        const char8* less_begin = this->peek().begin;
+        this->diag_reporter_->report(
+            diag_typescript_generics_not_allowed_in_javascript{
+                .opening_less = source_code_span(less_begin, less_begin + 1),
+            });
+      }
+      this->parse_and_visit_typescript_generic_arguments(v);
+      binary_builder.replace_last(this->parse_call_expression_remainder(
+          v, binary_builder.last_expression()));
+      goto next;
+
     // array?.[index]
     case token_type::left_square:
       binary_builder.replace_last(this->parse_index_expression_remainder(
