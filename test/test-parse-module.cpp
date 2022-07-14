@@ -507,16 +507,12 @@ TEST(test_parse, parse_and_visit_import) {
 
   {
     spy_visitor v = parse_and_visit_statement(u8"import fs from 'fs'"_sv);
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"fs");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"fs")));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"import * as fs from 'fs'"_sv);
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"fs");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"fs")));
   }
 
   {
@@ -525,30 +521,24 @@ TEST(test_parse, parse_and_visit_import) {
     parser p(&code, &v);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    ASSERT_EQ(v.variable_declarations.size(), 2);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"fs");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
-    EXPECT_EQ(v.variable_declarations[1].name, u8"net");
-    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_import);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(import_decl(u8"fs"), import_decl(u8"net")));
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
   {
     spy_visitor v = parse_and_visit_statement(
         u8"import { readFile, writeFile } from 'fs';");
-    ASSERT_EQ(v.variable_declarations.size(), 2);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"readFile");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
-    EXPECT_EQ(v.variable_declarations[1].name, u8"writeFile");
-    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_import);
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(import_decl(u8"readFile"), import_decl(u8"writeFile")));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(
         u8"import {readFileSync as rf} from 'fs';"_sv);
     ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"rf");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"rf")));
   }
 
   {
@@ -649,17 +639,13 @@ TEST(test_parse, import_as_invalid_token) {
 TEST(test_parse, export_function) {
   {
     spy_visitor v = parse_and_visit_statement(u8"export function foo() {}"_sv);
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"foo");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"foo")));
   }
 
   {
     spy_visitor v =
         parse_and_visit_statement(u8"export async function foo() {}"_sv);
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"foo");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"foo")));
   }
 }
 
@@ -696,10 +682,7 @@ TEST(test_parse, export_function_requires_a_name) {
 TEST(test_parse, export_class) {
   {
     spy_visitor v = parse_and_visit_statement(u8"export class C {}"_sv);
-
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"C");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(class_decl(u8"C")));
   }
 }
 

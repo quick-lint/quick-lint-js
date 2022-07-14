@@ -288,16 +288,12 @@ TEST(test_parse, parse_and_visit_try) {
 
   {
     spy_visitor v = parse_and_visit_statement(u8"try {} catch (e) {}"_sv);
-
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_exit_block_scope",      //
                                       "visit_enter_block_scope",     //
                                       "visit_variable_declaration",  //
                                       "visit_exit_block_scope"));
-
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"e");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_catch);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(catch_decl(u8"e")));
   }
 
   {
@@ -312,7 +308,6 @@ TEST(test_parse, parse_and_visit_try) {
   {
     spy_visitor v =
         parse_and_visit_statement(u8"try {} catch (e) {} finally {}"_sv);
-
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_exit_block_scope",      //
                                       "visit_enter_block_scope",     //
@@ -320,16 +315,12 @@ TEST(test_parse, parse_and_visit_try) {
                                       "visit_exit_block_scope",      //
                                       "visit_enter_block_scope",     //
                                       "visit_exit_block_scope"));
-
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"e");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_catch);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(catch_decl(u8"e")));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(
         u8"try {f();} catch (e) {g();} finally {h();}");
-
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_variable_use",          //
                                       "visit_exit_block_scope",      //
@@ -340,11 +331,7 @@ TEST(test_parse, parse_and_visit_try) {
                                       "visit_enter_block_scope",     //
                                       "visit_variable_use",          //
                                       "visit_exit_block_scope"));
-
-    ASSERT_EQ(v.variable_uses.size(), 3);
-    EXPECT_EQ(v.variable_uses[0], u8"f");
-    EXPECT_EQ(v.variable_uses[1], u8"g");
-    EXPECT_EQ(v.variable_uses[2], u8"h");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"f", u8"g", u8"h"));
   }
 
   {
@@ -356,11 +343,8 @@ TEST(test_parse, parse_and_visit_try) {
                                       "visit_variable_declaration",  // message
                                       "visit_variable_declaration",  // code
                                       "visit_exit_block_scope"));
-    ASSERT_EQ(v.variable_declarations.size(), 2);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"message");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_catch);
-    EXPECT_EQ(v.variable_declarations[1].name, u8"code");
-    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_catch);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(catch_decl(u8"message"), catch_decl(u8"code")));
   }
 
   {
@@ -372,11 +356,8 @@ TEST(test_parse, parse_and_visit_try) {
                                       "visit_variable_declaration",  // message
                                       "visit_variable_declaration",  // code
                                       "visit_exit_block_scope"));
-    ASSERT_EQ(v.variable_declarations.size(), 2);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"message");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_catch);
-    EXPECT_EQ(v.variable_declarations[1].name, u8"code");
-    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_catch);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(catch_decl(u8"message"), catch_decl(u8"code")));
   }
 }
 

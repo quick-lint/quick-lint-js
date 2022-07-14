@@ -34,22 +34,18 @@ TEST(test_parse, parse_math_expression) {
 
   {
     spy_visitor v = parse_and_visit_expression(u8"some_var"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0], u8"some_var");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"some_var"));
   }
 
   {
     spy_visitor v =
         parse_and_visit_expression(u8"some_var + some_other_var"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[0], u8"some_var");
-    EXPECT_EQ(v.variable_uses[1], u8"some_other_var");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"some_var", u8"some_other_var"));
   }
 
   {
     spy_visitor v = parse_and_visit_expression(u8"+ v"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0], u8"v");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"v"));
   }
 }
 
@@ -385,11 +381,9 @@ TEST(test_parse, parse_assignment) {
   {
     spy_visitor v = parse_and_visit_expression(u8"x = y"_sv);
 
-    ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0], u8"y");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"y"));
 
-    ASSERT_EQ(v.variable_assignments.size(), 1);
-    EXPECT_EQ(v.variable_assignments[0], u8"x");
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"x"));
 
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
                                       "visit_variable_assignment"));
@@ -398,11 +392,9 @@ TEST(test_parse, parse_assignment) {
   {
     spy_visitor v = parse_and_visit_expression(u8"(x) = y"_sv);
 
-    ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0], u8"y");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"y"));
 
-    ASSERT_EQ(v.variable_assignments.size(), 1);
-    EXPECT_EQ(v.variable_assignments[0], u8"x");
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"x"));
 
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
                                       "visit_variable_assignment"));
@@ -411,22 +403,15 @@ TEST(test_parse, parse_assignment) {
   {
     spy_visitor v = parse_and_visit_expression(u8"x.p = y"_sv);
 
-    ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[0], u8"x");
-    EXPECT_EQ(v.variable_uses[1], u8"y");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x", u8"y"));
 
     EXPECT_EQ(v.variable_assignments.size(), 0);
   }
 
   {
     spy_visitor v = parse_and_visit_expression(u8"x = y = z"_sv);
-
-    ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0], u8"z");
-
-    EXPECT_EQ(v.variable_assignments.size(), 2);
-    EXPECT_EQ(v.variable_assignments[0], u8"y");
-    EXPECT_EQ(v.variable_assignments[1], u8"x");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"z"));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"y", u8"x"));
   }
 
   {
@@ -830,31 +815,22 @@ TEST(test_parse, asi_between_identifiers) {
 TEST(test_parse, parse_function_calls) {
   {
     spy_visitor v = parse_and_visit_expression(u8"f(x)"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[0], u8"f");
-    EXPECT_EQ(v.variable_uses[1], u8"x");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"f", u8"x"));
   }
 
   {
     spy_visitor v = parse_and_visit_expression(u8"f(x, y)"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 3);
-    EXPECT_EQ(v.variable_uses[0], u8"f");
-    EXPECT_EQ(v.variable_uses[1], u8"x");
-    EXPECT_EQ(v.variable_uses[2], u8"y");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"f", u8"x", u8"y"));
   }
 
   {
     spy_visitor v = parse_and_visit_expression(u8"o.f(x, y)"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 3);
-    EXPECT_EQ(v.variable_uses[0], u8"o");
-    EXPECT_EQ(v.variable_uses[1], u8"x");
-    EXPECT_EQ(v.variable_uses[2], u8"y");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"o", u8"x", u8"y"));
   }
 
   {
     spy_visitor v = parse_and_visit_expression(u8"console.log('hello', 42)"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0], u8"console");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"console"));
   }
 }
 
@@ -866,29 +842,22 @@ TEST(test_parse, parse_templates_in_expressions) {
 
   {
     spy_visitor v = parse_and_visit_expression(u8"`hello${world}`"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0], u8"world");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"world"));
   }
 
   {
     spy_visitor v = parse_and_visit_expression(u8"`${one}${two}${three}`"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 3);
-    EXPECT_EQ(v.variable_uses[0], u8"one");
-    EXPECT_EQ(v.variable_uses[1], u8"two");
-    EXPECT_EQ(v.variable_uses[2], u8"three");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"one", u8"two", u8"three"));
   }
 
   {
     spy_visitor v = parse_and_visit_expression(u8"`${2+2, four}`"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0], u8"four");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"four"));
   }
 
   {
     spy_visitor v = parse_and_visit_expression(u8"tag`${inside}`"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[0], u8"tag");
-    EXPECT_EQ(v.variable_uses[1], u8"inside");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"tag", u8"inside"));
   }
 }
 
@@ -898,14 +867,10 @@ TEST(test_parse, parse_invalid_function_calls) {
     padded_string code(u8"(x)f"_sv);
     parser p(&code, &v);
     p.parse_and_visit_module(v);
-
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_missing_semicolon_after_statement,  //
                               where, strlen(u8"(x)"), u8"")));
-
-    ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[0], u8"x");
-    EXPECT_EQ(v.variable_uses[1], u8"f");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x", u8"f"));
   }
 }
 
@@ -916,14 +881,10 @@ TEST(test_parse, parse_function_call_as_statement) {
     parser p(&code, &v);
 
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[0], u8"f");
-    EXPECT_EQ(v.variable_uses[1], u8"x");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"f", u8"x"));
 
     EXPECT_TRUE(p.parse_and_visit_statement(v));
-    ASSERT_EQ(v.variable_uses.size(), 4);
-    EXPECT_EQ(v.variable_uses[2], u8"g");
-    EXPECT_EQ(v.variable_uses[3], u8"y");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"f", u8"x", u8"g", u8"y"));
 
     EXPECT_THAT(v.errors, IsEmpty());
   }
@@ -932,16 +893,14 @@ TEST(test_parse, parse_function_call_as_statement) {
 TEST(test_parse, parse_property_lookup) {
   {
     spy_visitor v = parse_and_visit_expression(u8"some_var.some_property"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0], u8"some_var");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"some_var"));
   }
 }
 
 TEST(test_parse, parse_new_expression) {
   {
     spy_visitor v = parse_and_visit_expression(u8"new Foo()"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0], u8"Foo");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Foo"));
   }
 }
 

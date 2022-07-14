@@ -360,8 +360,7 @@ TEST(test_parse_typescript_interface, interface_with_methods) {
     EXPECT_EQ(v.variable_declarations[0].name, u8"Monster");
     EXPECT_EQ(v.variable_declarations[1].name, u8"muffinCount");
 
-    ASSERT_EQ(v.property_declarations.size(), 1);
-    EXPECT_EQ(v.property_declarations[0], u8"eatMuffins");
+    EXPECT_THAT(v.property_declarations, ElementsAre(u8"eatMuffins"));
 
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_declaration",   // Monster
@@ -388,27 +387,20 @@ TEST(test_parse_typescript_interface, interface_with_methods) {
   {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"interface I { a(); b(); c(); }"_sv);
-    ASSERT_EQ(v.property_declarations.size(), 3);
-    EXPECT_EQ(v.property_declarations[0], u8"a");
-    EXPECT_EQ(v.property_declarations[1], u8"b");
-    EXPECT_EQ(v.property_declarations[2], u8"c");
+    EXPECT_THAT(v.property_declarations, ElementsAre(u8"a", u8"b", u8"c"));
   }
 
   {
     spy_visitor v = parse_and_visit_typescript_statement(
         u8"interface I { \"stringKey\"(); }");
-    ASSERT_EQ(v.property_declarations.size(), 1);
-    EXPECT_EQ(v.property_declarations[0], std::nullopt);
+    EXPECT_THAT(v.property_declarations, ElementsAre(std::nullopt));
   }
 
   {
     spy_visitor v =
         parse_and_visit_typescript_statement(u8"interface I { [x + y](); }"_sv);
-    ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[0], u8"x");
-    EXPECT_EQ(v.variable_uses[1], u8"y");
-    ASSERT_EQ(v.property_declarations.size(), 1);
-    EXPECT_EQ(v.property_declarations[0], std::nullopt);
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x", u8"y"));
+    EXPECT_THAT(v.property_declarations, ElementsAre(std::nullopt));
   }
 
   {
@@ -610,8 +602,7 @@ TEST(test_parse_typescript_interface, interface_with_keyword_property) {
         string8 code = u8"interface I { " + keyword + suffix + u8"(); }";
         SCOPED_TRACE(out_string8(code));
         spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
-        ASSERT_EQ(v.property_declarations.size(), 1);
-        EXPECT_EQ(v.property_declarations[0], keyword);
+        EXPECT_THAT(v.property_declarations, ElementsAre(keyword));
       }
 
       for (string8 prefix : {u8"get", u8"set"}) {
@@ -619,8 +610,7 @@ TEST(test_parse_typescript_interface, interface_with_keyword_property) {
             u8"interface I { " + prefix + u8" " + keyword + suffix + u8"(); }";
         SCOPED_TRACE(out_string8(code));
         spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
-        ASSERT_EQ(v.property_declarations.size(), 1);
-        EXPECT_EQ(v.property_declarations[0], keyword);
+        EXPECT_THAT(v.property_declarations, ElementsAre(keyword));
       }
 
       {
@@ -673,8 +663,7 @@ TEST(test_parse_typescript_interface, interface_with_number_methods) {
 TEST(test_parse_typescript_interface, interface_allows_stray_semicolons) {
   spy_visitor v =
       parse_and_visit_typescript_statement(u8"interface I{ ; f() ; ; }"_sv);
-  ASSERT_EQ(v.property_declarations.size(), 1);
-  EXPECT_EQ(v.property_declarations[0], u8"f");
+  EXPECT_THAT(v.property_declarations, ElementsAre(u8"f"));
 }
 
 TEST(test_parse_typescript_interface, private_properties_are_not_allowed) {

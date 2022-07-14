@@ -47,19 +47,13 @@ TEST(test_parse, parse_function_statement) {
   {
     spy_visitor v = parse_and_visit_statement(u8"function foo() {}"_sv);
     ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"foo");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"foo")));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"function sin(theta) {}"_sv);
-
-    ASSERT_EQ(v.variable_declarations.size(), 2);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"sin");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
-    EXPECT_EQ(v.variable_declarations[1].name, u8"theta");
-    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_parameter);
-
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(function_decl(u8"sin"), param_decl(u8"theta")));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // sin
                                       "visit_enter_function_scope",  //
                                       "visit_variable_declaration",  // theta
@@ -92,8 +86,7 @@ TEST(test_parse, parse_function_statement) {
     EXPECT_EQ(v.variable_declarations[1].name, u8"x");
     EXPECT_EQ(v.variable_declarations[2].name, u8"y");
 
-    ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0], u8"x");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x"));
 
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       //
@@ -111,8 +104,7 @@ TEST(test_parse, parse_function_statement) {
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"f");
 
-    ASSERT_EQ(v.variable_uses.size(), 1);
-    EXPECT_EQ(v.variable_uses[0], u8"x");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x"));
 
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       //

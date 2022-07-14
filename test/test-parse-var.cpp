@@ -31,21 +31,13 @@ namespace {
 TEST(test_parse, parse_simple_let) {
   {
     spy_visitor v = parse_and_visit_statement(u8"let x"_sv);
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"x");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_let);
-    EXPECT_EQ(v.variable_declarations[0].init_kind, variable_init_kind::normal);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"let a, b"_sv);
-    ASSERT_EQ(v.variable_declarations.size(), 2);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"a");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_let);
-    EXPECT_EQ(v.variable_declarations[0].init_kind, variable_init_kind::normal);
-    EXPECT_EQ(v.variable_declarations[1].name, u8"b");
-    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_let);
-    EXPECT_EQ(v.variable_declarations[1].init_kind, variable_init_kind::normal);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(let_noinit_decl(u8"a"), let_noinit_decl(u8"b")));
   }
 
   {
@@ -83,10 +75,7 @@ TEST(test_parse, parse_simple_var) {
   padded_string code(u8"var x"_sv);
   parser p(&code, &v);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
-  ASSERT_EQ(v.variable_declarations.size(), 1);
-  EXPECT_EQ(v.variable_declarations[0].name, u8"x");
-  EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_var);
-  EXPECT_EQ(v.variable_declarations[0].init_kind, variable_init_kind::normal);
+  EXPECT_THAT(v.variable_declarations, ElementsAre(var_noinit_decl(u8"x")));
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
@@ -95,11 +84,7 @@ TEST(test_parse, parse_simple_const) {
   padded_string code(u8"const x = null"_sv);
   parser p(&code, &v);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
-  ASSERT_EQ(v.variable_declarations.size(), 1);
-  EXPECT_EQ(v.variable_declarations[0].name, u8"x");
-  EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_const);
-  EXPECT_EQ(v.variable_declarations[0].init_kind,
-            variable_init_kind::initialized_with_equals);
+  EXPECT_THAT(v.variable_declarations, ElementsAre(const_init_decl(u8"x")));
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
@@ -109,9 +94,7 @@ TEST(test_parse, parse_const_with_no_initializers) {
   parser p(&code, &v);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
   ASSERT_EQ(v.variable_declarations.size(), 1);
-  EXPECT_EQ(v.variable_declarations[0].name, u8"x");
-  EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_const);
-  EXPECT_EQ(v.variable_declarations[0].init_kind, variable_init_kind::normal);
+  EXPECT_THAT(v.variable_declarations, ElementsAre(const_noinit_decl(u8"x")));
   EXPECT_THAT(v.errors,
               ElementsAre(DIAG_TYPE_OFFSETS(
                   &code, diag_missing_initializer_in_const_declaration,  //
@@ -132,21 +115,13 @@ TEST(test_parse, let_asi) {
 TEST(test_parse, parse_let_with_initializers) {
   {
     spy_visitor v = parse_and_visit_statement(u8"let x = 2"_sv);
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"x");
-    EXPECT_EQ(v.variable_declarations[0].init_kind,
-              variable_init_kind::initialized_with_equals);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"x")));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"let x = 2, y = 3"_sv);
-    ASSERT_EQ(v.variable_declarations.size(), 2);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"x");
-    EXPECT_EQ(v.variable_declarations[0].init_kind,
-              variable_init_kind::initialized_with_equals);
-    EXPECT_EQ(v.variable_declarations[1].name, u8"y");
-    EXPECT_EQ(v.variable_declarations[1].init_kind,
-              variable_init_kind::initialized_with_equals);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(let_init_decl(u8"x"), let_init_decl(u8"y")));
   }
 
   {
@@ -154,28 +129,21 @@ TEST(test_parse, parse_let_with_initializers) {
     ASSERT_EQ(v.variable_declarations.size(), 2);
     EXPECT_EQ(v.variable_declarations[0].name, u8"x");
     EXPECT_EQ(v.variable_declarations[1].name, u8"y");
-    ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[0], u8"other");
-    EXPECT_EQ(v.variable_uses[1], u8"x");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"other", u8"x"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"let x = y in z;"_sv);
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"x");
-    ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[0], u8"y");
-    EXPECT_EQ(v.variable_uses[1], u8"z");
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"y", u8"z"));
   }
 }
 
 TEST(test_parse, parse_let_with_object_destructuring) {
   {
     spy_visitor v = parse_and_visit_statement(u8"let {x} = 2"_sv);
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"x");
-    EXPECT_EQ(v.variable_declarations[0].init_kind,
-              variable_init_kind::initialized_with_equals);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"x")));
   }
 
   {
@@ -196,7 +164,7 @@ TEST(test_parse, parse_let_with_object_destructuring) {
   {
     spy_visitor v = parse_and_visit_statement(u8"let {} = x;"_sv);
     EXPECT_THAT(v.variable_declarations, IsEmpty());
-    ASSERT_EQ(v.variable_uses.size(), 1);
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x"));
   }
 
   {
@@ -248,8 +216,7 @@ TEST(test_parse,
 
   ASSERT_EQ(v.variable_declarations.size(), 1);
   EXPECT_EQ(v.variable_declarations[0].name, u8"x");
-  ASSERT_EQ(v.variable_uses.size(), 1);
-  EXPECT_EQ(v.variable_uses[0], u8"x");
+  EXPECT_THAT(v.variable_uses, ElementsAre(u8"x"));
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
@@ -936,9 +903,7 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_use",            // initial
                             "visit_variable_declaration"));  // let
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_var);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(var_init_decl(u8"let")));
   }
 
   {
@@ -949,11 +914,8 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
                             "visit_variable_declaration",  // let (parameter)
                             "visit_enter_function_scope_body",
                             "visit_exit_function_scope"));
-    ASSERT_EQ(v.variable_declarations.size(), 2);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
-    EXPECT_EQ(v.variable_declarations[1].name, u8"let");
-    EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_parameter);
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(function_decl(u8"let"), param_decl(u8"let")));
   }
 
   {
@@ -973,9 +935,7 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
                                       "visit_enter_block_scope",     //
                                       "visit_variable_declaration",  // let
                                       "visit_exit_block_scope"));
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_catch);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(catch_decl(u8"let")));
   }
 
   {
@@ -983,16 +943,14 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // o
                                       "visit_variable_use",            // let
                                       "visit_variable_declaration"));  // x
-    ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[1], u8"let");
+    EXPECT_THAT(v.variable_uses, ::testing::Contains(u8"let"));
   }
 
   {
     spy_visitor v = parse_and_visit_statement(u8"console.log(let);");
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // console
                                       "visit_variable_use"));  // let
-    ASSERT_EQ(v.variable_uses.size(), 2);
-    EXPECT_EQ(v.variable_uses[1], u8"let");
+    EXPECT_THAT(v.variable_uses, ::testing::Contains(u8"let"));
   }
 
   {
@@ -1014,9 +972,7 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
                                       "visit_variable_declaration",       // let
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_parameter);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"let")));
   }
 
   {
@@ -1094,10 +1050,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_cannot_import_let,  //
                               import_name, strlen(u8"import "), u8"let")));
-
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"let")));
   }
 
   // import implies strict mode (because modules imply strict mode).
@@ -1109,10 +1062,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_cannot_import_let,  //
                               import_name, strlen(u8"import * as "), u8"let")));
-
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"let")));
   }
 
   // import implies strict mode (because modules imply strict mode).
@@ -1124,10 +1074,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_cannot_import_let,  //
                               import_name, strlen(u8"import { "), u8"let")));
-
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_import);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"let")));
   }
 
   // import implies strict mode (because modules imply strict mode).
@@ -1165,10 +1112,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     &code, diag_cannot_export_let,  //
                     export_name, strlen(u8"export function "), u8"let")));
-
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"let")));
   }
 
   // class implies strict mode.
@@ -1180,10 +1124,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               &code, diag_cannot_declare_class_named_let,  //
                               name, strlen(u8"class "), u8"let")));
-
-    ASSERT_EQ(v.variable_declarations.size(), 1);
-    EXPECT_EQ(v.variable_declarations[0].name, u8"let");
-    EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_class);
+    EXPECT_THAT(v.variable_declarations, ElementsAre(class_decl(u8"let")));
   }
 }
 
@@ -1667,9 +1608,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_use",            // initial
                               "visit_variable_declaration"));  // (name)
-      ASSERT_EQ(v.variable_declarations.size(), 1);
-      EXPECT_EQ(v.variable_declarations[0].name, name);
-      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_var);
+      EXPECT_THAT(v.variable_declarations, ElementsAre(var_init_decl(name)));
     }
 
     {
@@ -1678,9 +1617,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_use",            // initial
                               "visit_variable_declaration"));  // (name)
-      ASSERT_EQ(v.variable_declarations.size(), 1);
-      EXPECT_EQ(v.variable_declarations[0].name, name);
-      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_let);
+      EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(name)));
     }
 
     {
@@ -1690,9 +1627,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_use",            // initial
                               "visit_variable_declaration"));  // (name)
-      ASSERT_EQ(v.variable_declarations.size(), 1);
-      EXPECT_EQ(v.variable_declarations[0].name, name);
-      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_let);
+      EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(name)));
     }
 
     {
@@ -1701,9 +1636,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_use",            // initial
                               "visit_variable_declaration"));  // (name)
-      ASSERT_EQ(v.variable_declarations.size(), 1);
-      EXPECT_EQ(v.variable_declarations[0].name, name);
-      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_const);
+      EXPECT_THAT(v.variable_declarations, ElementsAre(const_init_decl(name)));
     }
 
     {
@@ -1717,11 +1650,8 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
                       "visit_variable_declaration",       // (name) (parameter)
                       "visit_enter_function_scope_body",  //
                       "visit_exit_function_scope"));
-      ASSERT_EQ(v.variable_declarations.size(), 2);
-      EXPECT_EQ(v.variable_declarations[0].name, name);
-      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_function);
-      EXPECT_EQ(v.variable_declarations[1].name, name);
-      EXPECT_EQ(v.variable_declarations[1].kind, variable_kind::_parameter);
+      EXPECT_THAT(v.variable_declarations,
+                  ElementsAre(function_decl(name), param_decl(name)));
     }
 
     {
@@ -1763,9 +1693,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
                                         "visit_enter_block_scope",     //
                                         "visit_variable_declaration",  // (name)
                                         "visit_exit_block_scope"));
-      ASSERT_EQ(v.variable_declarations.size(), 1);
-      EXPECT_EQ(v.variable_declarations[0].name, name);
-      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_catch);
+      EXPECT_THAT(v.variable_declarations, ElementsAre(catch_decl(name)));
     }
 
     {
@@ -1774,8 +1702,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // o
                                         "visit_variable_use",  // (name)
                                         "visit_variable_declaration"));  // x
-      ASSERT_EQ(v.variable_uses.size(), 2);
-      EXPECT_EQ(v.variable_uses[1], name);
+      EXPECT_THAT(v.variable_uses, ::testing::Contains(name));
     }
 
     {
@@ -1783,8 +1710,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
           u8"console.log(" + name + u8");", function_attributes::normal);
       EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // console
                                         "visit_variable_use"));  // (name)
-      ASSERT_EQ(v.variable_uses.size(), 2);
-      EXPECT_EQ(v.variable_uses[1], name);
+      EXPECT_THAT(v.variable_uses, ::testing::Contains(name));
     }
 
     {
@@ -1802,8 +1728,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
       spy_visitor v =
           parse_and_visit_statement(code.c_str(), function_attributes::normal);
       EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // (name)
-      ASSERT_EQ(v.variable_uses.size(), 1);
-      EXPECT_EQ(v.variable_uses[0], name);
+      EXPECT_THAT(v.variable_uses, ElementsAre(name));
     }
 
     {
@@ -1833,9 +1758,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
                                         "visit_variable_declaration",  // (name)
                                         "visit_enter_function_scope_body",  //
                                         "visit_exit_function_scope"));
-      ASSERT_EQ(v.variable_declarations.size(), 1);
-      EXPECT_EQ(v.variable_declarations[0].name, name);
-      EXPECT_EQ(v.variable_declarations[0].kind, variable_kind::_parameter);
+      EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(name)));
     }
 
     {
@@ -1850,9 +1773,7 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
     {
       spy_visitor v = parse_and_visit_statement(
           u8"for (" + name + u8".prop in xs) ;", function_attributes::normal);
-      EXPECT_THAT(v.variable_uses,
-                  ElementsAre(name,  //
-                              u8"xs"));
+      EXPECT_THAT(v.variable_uses, ElementsAre(name, u8"xs"));
     }
 
     if (name != u8"async") {
