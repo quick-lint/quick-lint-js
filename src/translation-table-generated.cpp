@@ -33,7 +33,8 @@ const translation_table translation_data = {
         {13, 16, 0, 0, 11},           //
         {13, 24, 37, 31, 15},         //
         {0, 0, 0, 0, 48},             //
-        {73, 31, 0, 0, 66},           //
+        {0, 0, 0, 0, 66},             //
+        {73, 31, 0, 0, 28},           //
         {15, 14, 0, 0, 13},           //
         {15, 38, 0, 0, 17},           //
         {15, 17, 0, 0, 17},           //
@@ -265,7 +266,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 31},             //
         {38, 61, 32, 31, 18},         //
         {42, 59, 47, 43, 39},         //
-        {53, 14, 55, 0, 44},          //
+        {0, 0, 0, 0, 44},             //
+        {53, 14, 55, 0, 19},          //
         {49, 31, 0, 0, 45},           //
         {11, 9, 0, 0, 9},             //
         {14, 26, 53, 0, 19},          //
@@ -1253,6 +1255,7 @@ const translation_table translation_data = {
         u8"'if' statement\0"
         u8"'in' disallowed in C-style for loop initializer\0"
         u8"'readonly static' is not allowed; write 'static readonly' instead\0"
+        u8"'type' cannot be used twice\0"
         u8"'while' loop\0"
         u8"'with' statement\0"
         u8"'{0}' found here\0"
@@ -1485,6 +1488,7 @@ const translation_table translation_data = {
         u8"redundant 'await'\0"
         u8"redundant delete statement on variable\0"
         u8"remove '{0}' to update an existing variable\0"
+        u8"remove this 'type'\0"
         u8"return statement returns nothing (undefined)\0"
         u8"see here\0"
         u8"something happened\0"

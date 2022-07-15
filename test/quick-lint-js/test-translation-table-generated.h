@@ -249,6 +249,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "'type' cannot be used twice"_translatable,
+        {
+            u8"'type' cannot be used twice",
+            u8"'type' cannot be used twice",
+            u8"'type' cannot be used twice",
+            u8"'type' cannot be used twice",
+            u8"'type' cannot be used twice",
+        },
+    },
+    {
         "'while' loop"_translatable,
         {
             u8"'while' loop",
@@ -2566,6 +2576,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"or yeet '{0}'",
             u8"supprimer '{0}' pour actualiser une variable existante",
             u8"ta bort '{0}' f\u00f6r att uppdatera en existerande variabel",
+        },
+    },
+    {
+        "remove this 'type'"_translatable,
+        {
+            u8"remove this 'type'",
+            u8"remove this 'type'",
+            u8"remove this 'type'",
+            u8"remove this 'type'",
+            u8"remove this 'type'",
         },
     },
     {

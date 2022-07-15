@@ -1036,6 +1036,19 @@ msgid "TypeScript generics are not allowed in JavaScript code"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript type imports are not allowed in JavaScript"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "'type' cannot be used twice"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "remove this 'type'"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid "interface properties are always public and cannot be marked {0}"
 msgstr ""
 
@@ -1096,11 +1109,6 @@ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 #: src/quick-lint-js/diagnostic-types.h
 msgid "TypeScript type imports cannot import both default and named exports"
 msgstr ""
-
-#: src/quick-lint-js/diagnostic-types.h
-#, fuzzy
-msgid "TypeScript type imports are not allowed in JavaScript"
-msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/diagnostic-types.h
 msgid ""

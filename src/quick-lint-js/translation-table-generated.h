@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 319;
-constexpr std::size_t translation_table_string_table_size = 52404;
+constexpr std::uint16_t translation_table_mapping_table_size = 321;
+constexpr std::size_t translation_table_string_table_size = 52451;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -50,6 +50,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "'if' statement"sv,
           "'in' disallowed in C-style for loop initializer"sv,
           "'readonly static' is not allowed; write 'static readonly' instead"sv,
+          "'type' cannot be used twice"sv,
           "'while' loop"sv,
           "'with' statement"sv,
           "'{0}' found here"sv,
@@ -282,6 +283,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "redundant 'await'"sv,
           "redundant delete statement on variable"sv,
           "remove '{0}' to update an existing variable"sv,
+          "remove this 'type'"sv,
           "return statement returns nothing (undefined)"sv,
           "see here"sv,
           "something happened"sv,

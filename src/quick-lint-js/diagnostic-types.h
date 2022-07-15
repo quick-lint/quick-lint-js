@@ -1578,6 +1578,24 @@
               opening_less))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_inline_type_import_not_allowed_in_javascript, "E0271",   \
+      diagnostic_severity::error, { source_code_span type_keyword; },          \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript type imports are not "             \
+                                "allowed in JavaScript"),                      \
+              type_keyword))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_inline_type_import_not_allowed_in_type_only_import,      \
+      "E0272", diagnostic_severity::error,                                     \
+      {                                                                        \
+        source_code_span inline_type_keyword;                                  \
+        source_code_span type_only_keyword;                                    \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("'type' cannot be used twice"),                \
+              inline_type_keyword)                                             \
+          MESSAGE(QLJS_TRANSLATABLE("remove this 'type'"), type_only_keyword)) \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_interfaces_cannot_contain_access_specifiers, "E0237",    \
       diagnostic_severity::error, { source_code_span specifier; },             \
       MESSAGE(QLJS_TRANSLATABLE("interface properties are always public and "  \
