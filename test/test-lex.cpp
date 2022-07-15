@@ -4,7 +4,6 @@
 #include <array>
 #include <cstring>
 #include <deque>
-#include <functional>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <initializer_list>
@@ -54,6 +53,8 @@ namespace quick_lint_js {
 namespace {
 class test_lex : public ::testing::Test {
  protected:
+  // NOTE(strager): These functions take callbacks as function pointers to
+  // reduce build times. Templates and std::function are slow to compile.
   void check_single_token(string8_view input,
                           string8_view expected_identifier_name,
                           source_location = source_location::current());
@@ -71,16 +72,14 @@ class test_lex : public ::testing::Test {
   void check_tokens_with_errors(
       string8_view input,
       std::initializer_list<token_type> expected_token_types,
-      std::function<void(padded_string_view input,
-                         const std::vector<diag_collector::diag>&)>
-          check_errors,
+      void (*check_errors)(padded_string_view input,
+                           const std::vector<diag_collector::diag>&),
       source_location = source_location::current());
   void check_tokens_with_errors(
       padded_string_view input,
       std::initializer_list<token_type> expected_token_types,
-      std::function<void(padded_string_view input,
-                         const std::vector<diag_collector::diag>&)>
-          check_errors,
+      void (*check_errors)(padded_string_view input,
+                           const std::vector<diag_collector::diag>&),
       source_location = source_location::current());
   std::vector<token> lex_to_eof(padded_string_view, diag_collector&);
   std::vector<token> lex_to_eof(padded_string_view,
@@ -1121,30 +1120,34 @@ TEST_F(test_lex, string_with_curly_quotes) {
 
   // Unclosed string:
   for (string8 opening_quote : {u8"\u2018", u8"\u201c"}) {
+    // HACK(strager): Use a static variable to avoid a closure in the lambda.
+    static string8 opening_quote_static;
+    opening_quote_static = opening_quote;
+
     this->check_tokens_with_errors(
         opening_quote + u8"string here", {token_type::string},
-        [&](padded_string_view input, const auto& errors) {
+        [](padded_string_view input, const auto& errors) {
           EXPECT_THAT(
               errors,
               UnorderedElementsAre(
                   DIAG_TYPE(diag_invalid_quotes_around_string_literal),
                   DIAG_TYPE_OFFSETS(input, diag_unclosed_string_literal,  //
                                     string_literal, 0,
-                                    opening_quote + u8"string here")));
+                                    opening_quote_static + u8"string here")));
         });
     for (string8_view line_terminator : line_terminators) {
       this->check_tokens_with_errors(
           opening_quote + u8"string here" + string8(line_terminator) +
               u8"next_line",
           {token_type::string, token_type::identifier},
-          [&](padded_string_view input, const auto& errors) {
+          [](padded_string_view input, const auto& errors) {
             EXPECT_THAT(
                 errors,
                 UnorderedElementsAre(
                     DIAG_TYPE(diag_invalid_quotes_around_string_literal),
                     DIAG_TYPE_OFFSETS(input, diag_unclosed_string_literal,  //
                                       string_literal, 0,
-                                      opening_quote + u8"string here")));
+                                      opening_quote_static + u8"string here")));
           });
     }
   }
@@ -3270,9 +3273,8 @@ void test_lex::check_tokens(
 
 void test_lex::check_tokens_with_errors(
     string8_view input, std::initializer_list<token_type> expected_token_types,
-    std::function<void(padded_string_view input,
-                       const std::vector<diag_collector::diag>&)>
-        check_errors,
+    void (*check_errors)(padded_string_view input,
+                         const std::vector<diag_collector::diag>&),
     source_location caller) {
   padded_string code(input);
   return this->check_tokens_with_errors(&code, expected_token_types,
@@ -3282,9 +3284,8 @@ void test_lex::check_tokens_with_errors(
 void test_lex::check_tokens_with_errors(
     padded_string_view input,
     std::initializer_list<token_type> expected_token_types,
-    std::function<void(padded_string_view input,
-                       const std::vector<diag_collector::diag>&)>
-        check_errors,
+    void (*check_errors)(padded_string_view input,
+                         const std::vector<diag_collector::diag>&),
     source_location caller) {
   diag_collector errors;
   std::vector<token> lexed_tokens = this->lex_to_eof(input, errors);
