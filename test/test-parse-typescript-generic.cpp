@@ -501,7 +501,17 @@ TEST_F(test_parse_typescript_generic,
   for (const test_case& tc : {
            // clang-format off
            test_case
-           {u8"foo<T> rhs"_sv, "binary(var foo, var T, var rhs)"},
+           {u8"foo<T> rhs"_sv,           "binary(var foo, var T, var rhs)"},
+           {u8"foo<T> delete x"_sv,      "binary(var foo, var T, delete(var x))"},
+           {u8"foo<T> class {}"_sv,      "binary(var foo, var T, class)"},
+           {u8"foo<T> function(){}"_sv,  "binary(var foo, var T, function)"},
+           {u8"foo<T> {}"_sv,            "binary(var foo, var T, object())"},
+           {u8"foo<T> []"_sv,            "binary(var foo, var T, array())"},
+           {u8"foo<T> /regexp/"_sv,      "binary(var foo, var T, literal)"},
+
+           // The 'x' is part of the next statement.
+           {u8"foo<T>\n let\n x"_sv,             "binary(var foo, var T, var let)"},
+           {u8"foo<T>\n interface\n x\n {}"_sv,  "binary(var foo, var T, var interface)"},
            // clang-format on
        }) {
     SCOPED_TRACE(out_string8(tc.code));
@@ -510,7 +520,15 @@ TEST_F(test_parse_typescript_generic,
     EXPECT_EQ(summarize(ast), tc.expected_ast);
     EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().variable_uses, IsEmpty());
-    EXPECT_THAT(p.v().visits, IsEmpty())
+    EXPECT_THAT(
+        p.v().visits,
+        ::testing::AnyOf(IsEmpty(),
+                         ElementsAre("visit_enter_class_scope",          //
+                                     "visit_enter_class_scope_body",     //
+                                     "visit_exit_class_scope"),          //
+                         ElementsAre("visit_enter_function_scope",       //
+                                     "visit_enter_function_scope_body",  //
+                                     "visit_exit_function_scope")))
         << "there should be no generic arguments (visit_variable_type_use)";
   }
 }
