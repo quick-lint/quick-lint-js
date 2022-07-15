@@ -121,7 +121,8 @@ again:
     } else {
       v.visit_variable_type_use(name);
     }
-    if (this->peek().type == token_type::less) {
+    if (this->peek().type == token_type::less ||
+        this->peek().type == token_type::less_less) {
       this->parse_and_visit_typescript_generic_arguments(v);
     }
     break;

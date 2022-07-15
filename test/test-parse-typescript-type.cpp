@@ -91,6 +91,20 @@ TEST(test_parse_typescript_type, direct_generic_type_reference) {
                                       "visit_variable_type_use"));     // T
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns", u8"T"));
   }
+
+  {
+    SCOPED_TRACE("'<<' should be split into two tokens");
+    spy_visitor v =
+        parse_and_visit_typescript_type(u8"C<<T>() => ReturnType>"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",     // C
+                                      "visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // T
+                                      "visit_variable_type_use",  // ReturnType
+                                      "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C", u8"ReturnType"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(generic_param_decl(u8"T")));
+  }
 }
 
 TEST(test_parse_typescript_type, namespaced_type_reference) {
