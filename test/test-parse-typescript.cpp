@@ -52,6 +52,21 @@ TEST(test_parse_typescript, type_alias) {
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"U"));
     EXPECT_THAT(v.variable_declarations, ElementsAre(type_alias_decl(u8"T")));
   }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_statement(u8"type MyAlias<T> = U;"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_variable_declaration",     // MyAlias
+                            "visit_enter_type_alias_scope",   // MyAlias
+                            "visit_variable_declaration",     // T
+                            "visit_variable_type_use",        // U
+                            "visit_exit_type_alias_scope"));  // MyAlias
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"U"));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(type_alias_decl(u8"MyAlias"), generic_param_decl(u8"T")));
+  }
 }
 
 TEST(test_parse_typescript, type_alias_requires_semicolon_or_asi) {

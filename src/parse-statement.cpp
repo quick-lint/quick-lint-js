@@ -1583,6 +1583,9 @@ void parser::parse_and_visit_typescript_type_alias(
   this->skip();
 
   v.visit_enter_type_alias_scope();
+  if (this->peek().type == token_type::less) {
+    this->parse_and_visit_typescript_generic_parameters(v);
+  }
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal);
   this->skip();
   this->parse_and_visit_typescript_type_expression(v);
