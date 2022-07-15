@@ -314,6 +314,49 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
   }
 }
 
+TEST_F(test_parse_typescript_generic, new_with_generic_arguments) {
+  {
+    test_parser& p = this->make_typescript_parser(u8"new Foo<T>;"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "new(var Foo)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
+    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+  }
+
+  {
+    test_parser& p = this->make_typescript_parser(u8"new Foo<T>"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "new(var Foo)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
+    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+  }
+
+  {
+    test_parser& p = this->make_typescript_parser(u8"new Foo<T>(p)"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "new(var Foo, var p)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
+    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+  }
+
+  {
+    SCOPED_TRACE("'<<' should be split into two tokens");
+    test_parser& p =
+        this->make_typescript_parser(u8"new Foo<<Param>() => ReturnType>()"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "new(var Foo)");
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.v().visits,
+                ElementsAre("visit_enter_function_scope",  //
+                            "visit_variable_declaration",  // Param
+                            "visit_variable_type_use",     // ReturnType
+                            "visit_exit_function_scope"));
+  }
+}
+
 TEST_F(test_parse_typescript_generic,
        variable_reference_with_generic_arguments) {
   struct test_case {
@@ -427,6 +470,23 @@ TEST_F(test_parse_typescript_generic,
         this->make_javascript_parser(u8"foo<<T>() => number>`bar${baz}`"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, arrowfunc())");
+    EXPECT_THAT(p.errors(), IsEmpty());
+  }
+
+  {
+    test_parser& p = this->make_javascript_parser(u8"new Foo<T>;"_sv);
+    expression* ast = p.parse_expression();
+    // FIXME(#557): Precedence is incorrect.
+    EXPECT_EQ(summarize(ast), "new(binary(var Foo, var T, missing))");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(DIAG_TYPE(diag_missing_operand_for_operator)));
+  }
+
+  {
+    test_parser& p = this->make_javascript_parser(u8"new Foo<T>(p);"_sv);
+    expression* ast = p.parse_expression();
+    // FIXME(#557): Precedence is incorrect.
+    EXPECT_EQ(summarize(ast), "new(binary(var Foo, var T, paren(var p)))");
     EXPECT_THAT(p.errors(), IsEmpty());
   }
 }
