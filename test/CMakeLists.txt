@@ -9,6 +9,7 @@ quick_lint_js_add_executable(
   quick-lint-js-test
   diag-collector.cpp
   diag-matcher.cpp
+  fake-configuration-filesystem.cpp
   parse-json.cpp
   parse-support.cpp
   quick-lint-js/array.h
