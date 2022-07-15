@@ -442,7 +442,7 @@ parse_statement:
         this->diag_reporter_);
     goto parse_loop_label_or_expression_starting_with_identifier;
 
-  case ::quick_lint_js::token_type::kw_interface:
+  case token_type::kw_interface:
     if (this->options_.typescript) {
       this->parse_and_visit_typescript_interface(v);
     } else {
@@ -466,11 +466,11 @@ parse_statement:
     }
     break;
 
-  case ::quick_lint_js::token_type::kw_implements:
-  case ::quick_lint_js::token_type::kw_package:
-  case ::quick_lint_js::token_type::kw_private:
-  case ::quick_lint_js::token_type::kw_protected:
-  case ::quick_lint_js::token_type::kw_public:
+  case token_type::kw_implements:
+  case token_type::kw_package:
+  case token_type::kw_private:
+  case token_type::kw_protected:
+  case token_type::kw_public:
     // TODO(#73): Disallow 'protected', 'implements', etc. in strict mode.
     goto parse_loop_label_or_expression_starting_with_identifier;
 
