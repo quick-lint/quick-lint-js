@@ -1199,11 +1199,15 @@ next:
   case token_type::less_less:
     if (this->options_.typescript) {
       bool parsed_as_generic_arguments;
+      buffering_visitor& generic_arguments_visits =
+          this->buffering_visitor_stack_.emplace(
+              boost::container::pmr::new_delete_resource());
       this->try_parse(
           [&] {
-            bool parsed_without_fatal_error =
-                this->catch_fatal_parse_errors([this, &v] {
-                  this->parse_and_visit_typescript_generic_arguments(v);
+            bool parsed_without_fatal_error = this->catch_fatal_parse_errors(
+                [this, &generic_arguments_visits] {
+                  this->parse_and_visit_typescript_generic_arguments(
+                      generic_arguments_visits);
                 });
             if (!parsed_without_fatal_error) {
               return false;
@@ -1253,6 +1257,7 @@ next:
           },
           [&] { parsed_as_generic_arguments = false; });
       if (parsed_as_generic_arguments) {
+        generic_arguments_visits.move_into(v);
         goto next;
       } else {
         goto binary_operator;

@@ -492,6 +492,30 @@ TEST_F(test_parse_typescript_generic,
 }
 
 TEST_F(test_parse_typescript_generic,
+       less_and_greater_are_operators_by_default) {
+  struct test_case {
+    string8_view code;
+    const char* expected_ast;
+  };
+
+  for (const test_case& tc : {
+           // clang-format off
+           test_case
+           {u8"foo<T> rhs"_sv, "binary(var foo, var T, var rhs)"},
+           // clang-format on
+       }) {
+    SCOPED_TRACE(out_string8(tc.code));
+    test_parser& p = this->make_typescript_parser(tc.code);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), tc.expected_ast);
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.v().variable_uses, IsEmpty());
+    EXPECT_THAT(p.v().visits, IsEmpty())
+        << "there should be no generic arguments (visit_variable_type_use)";
+  }
+}
+
+TEST_F(test_parse_typescript_generic,
        unambiguous_generic_arguments_are_parsed_in_javascript) {
   {
     test_parser& p = this->make_javascript_parser(u8"foo?.<T>(p)"_sv);
