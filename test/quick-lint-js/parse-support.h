@@ -248,6 +248,7 @@ const inline dirty_set<string8> strict_reserved_keywords =
     strict_disallowed_binding_identifier_keywords |
     dirty_set<string8>{u8"await", u8"yield"};
 
+// TODO(strager): Add 'await' and 'yield'.
 const inline dirty_set<string8> contextual_keywords = {
     u8"abstract",  u8"any",      u8"as",       u8"assert",      u8"asserts",
     u8"async",     u8"bigint",   u8"boolean",  u8"constructor", u8"declare",

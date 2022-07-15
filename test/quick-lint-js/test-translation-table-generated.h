@@ -559,6 +559,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript types are not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript types are not allowed in JavaScript",
+            u8"TypeScript types are not allowed in JavaScript",
+            u8"TypeScript types are not allowed in JavaScript",
+            u8"TypeScript types are not allowed in JavaScript",
+            u8"TypeScript types are not allowed in JavaScript",
+        },
+    },
+    {
         "TypeScript's 'enum' feature is not allowed in JavaScript"_translatable,
         {
             u8"TypeScript's 'enum' feature is not allowed in JavaScript",

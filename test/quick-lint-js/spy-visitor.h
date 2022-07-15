@@ -102,6 +102,12 @@ inline visited_variable_declaration generic_param_decl(string8_view name) {
                                       variable_init_kind::normal};
 }
 
+// A TypeScript alias. Example: type T = number;
+inline visited_variable_declaration type_alias_decl(string8_view name) {
+  return visited_variable_declaration{string8(name), variable_kind::_type_alias,
+                                      variable_init_kind::normal};
+}
+
 // A variable declared with 'var' with an initializer. Example: var x = null;
 inline visited_variable_declaration var_init_decl(string8_view name) {
   return visited_variable_declaration{

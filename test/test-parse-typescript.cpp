@@ -41,6 +41,97 @@ TEST(test_parse_typescript, type_annotation_in_expression_is_an_error) {
                               type_colon, strlen(u8"x = myVar"), u8":")));
   }
 }
+
+TEST(test_parse_typescript, type_alias) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(u8"type T = U;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // T
+                                      "visit_variable_type_use"));   // U
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"U"));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(type_alias_decl(u8"T")));
+  }
+}
+
+TEST(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
+  {
+    spy_visitor v = parse_and_visit_typescript_statement(u8"type T = U"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // T
+                                      "visit_variable_type_use"));   // U
+  }
+
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_module(u8"type T = U\ntype V = W;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // T
+                                      "visit_variable_type_use",     // U
+                                      "visit_variable_declaration",  // V
+                                      "visit_variable_type_use",     // W
+                                      "visit_end_of_module"));
+  }
+
+  {
+    padded_string code(u8"type T = U type V = W;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // T
+                                      "visit_variable_type_use",     // U
+                                      "visit_variable_declaration",  // V
+                                      "visit_variable_type_use",     // W
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code,
+                              diag_missing_semicolon_after_statement,  //
+                              where, strlen(u8"type T = U"), u8"")));
+  }
+}
+
+TEST(test_parse_typescript,
+     type_alias_can_be_named_certain_contextual_keywords) {
+  for (string8 name :
+       dirty_set<string8>{u8"await"} |
+           (contextual_keywords - typescript_builtin_type_keywords -
+            typescript_special_type_keywords -
+            dirty_set<string8>{
+                u8"let",
+                u8"static",
+                u8"yield",
+            })) {
+    string8 code = u8"type " + name + u8" = T;";
+    SCOPED_TRACE(out_string8(code));
+    spy_visitor v = parse_and_visit_typescript_statement(code);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // (name)
+                                      "visit_variable_type_use"));   // T
+    EXPECT_THAT(v.variable_declarations, ElementsAre(type_alias_decl(name)));
+  }
+}
+
+TEST(test_parse_typescript, type_alias_cannot_have_newline_after_type_keyword) {
+  {
+    spy_visitor v = parse_and_visit_typescript_module(u8"type\nT = U;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // type
+                                      "visit_variable_use",         // U
+                                      "visit_variable_assignment",  // T
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"type", u8"U"));
+  }
+}
+
+TEST(test_parse_typescript, type_alias_not_allowed_in_javascript) {
+  {
+    padded_string code(u8"type T = U;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, javascript_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // T
+                                      "visit_variable_type_use"));   // U
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code,
+                    diag_typescript_type_alias_not_allowed_in_javascript,  //
+                    type_keyword, 0, u8"type")));
+  }
+}
 }
 }
 

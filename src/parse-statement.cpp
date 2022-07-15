@@ -411,7 +411,6 @@ parse_statement:
   case token_type::kw_static:
   case token_type::kw_string:
   case token_type::kw_symbol:
-  case token_type::kw_type:
   case token_type::kw_undefined:
   case token_type::kw_unique:
   case token_type::kw_unknown: {
@@ -465,6 +464,66 @@ parse_statement:
       }
     }
     break;
+
+  // type++;
+  // type T = number;  // TypeScript only.
+  case token_type::kw_type: {
+    source_code_span type_span = this->peek().span();
+    lexer_transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    switch (this->peek().type) {
+    // type:  // Labelled statement.
+    case token_type::colon:
+      this->lexer_.commit_transaction(std::move(transaction));
+      this->skip();
+      goto parse_statement;
+
+    // type T = number;  // TypeScript only.
+    //
+    // type  // ASI
+    // f();
+    case token_type::identifier:
+    case token_type::kw_abstract:
+    case token_type::kw_as:
+    case token_type::kw_assert:
+    case token_type::kw_asserts:
+    case token_type::kw_async:
+    case token_type::kw_await:
+    case token_type::kw_constructor:
+    case token_type::kw_declare:
+    case token_type::kw_from:
+    case token_type::kw_get:
+    case token_type::kw_global:
+    case token_type::kw_infer:
+    case token_type::kw_intrinsic:
+    case token_type::kw_is:
+    case token_type::kw_keyof:
+    case token_type::kw_module:
+    case token_type::kw_namespace:
+    case token_type::kw_of:
+    case token_type::kw_out:
+    case token_type::kw_override:
+    case token_type::kw_readonly:
+    case token_type::kw_require:
+    case token_type::kw_set:
+    case token_type::kw_type:
+    case token_type::kw_unique:
+      if (this->peek().has_leading_newline) {
+        goto type_keyword_is_expression;
+      }
+      this->parse_and_visit_typescript_type_alias(v, type_span);
+      break;
+
+    // type++;  // Expression.
+    type_keyword_is_expression:
+    default:
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      this->parse_and_visit_expression(v);
+      parse_expression_end();
+      break;
+    }
+    break;
+  }
 
   case token_type::kw_implements:
   case token_type::kw_package:
@@ -1506,6 +1565,26 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
   }
 
   v.visit_exit_block_scope();
+}
+
+void parser::parse_and_visit_typescript_type_alias(
+    parse_visitor_base &v, source_code_span type_token) {
+  QLJS_ASSERT(!this->peek().has_leading_newline);
+
+  if (!this->options_.typescript) {
+    this->diag_reporter_->report(
+        diag_typescript_type_alias_not_allowed_in_javascript{
+            .type_keyword = type_token,
+        });
+  }
+  v.visit_variable_declaration(this->peek().identifier_name(),
+                               variable_kind::_type_alias,
+                               variable_init_kind::normal);
+  this->skip();
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal);
+  this->skip();
+  this->parse_and_visit_typescript_type_expression(v);
+  this->consume_semicolon_after_statement();
 }
 
 void parser::parse_and_visit_typescript_enum(parse_visitor_base &v,

@@ -65,6 +65,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 57},             //
         {0, 0, 0, 0, 48},             //
         {0, 0, 0, 0, 63},             //
+        {0, 0, 0, 0, 47},             //
         {0, 26, 0, 0, 57},            //
         {0, 0, 0, 0, 67},             //
         {56, 22, 0, 0, 66},           //
@@ -1281,6 +1282,7 @@ const translation_table translation_data = {
         u8"TypeScript static blocks are not supported in JavaScript\0"
         u8"TypeScript type annotation requires parentheses\0"
         u8"TypeScript type annotations are not allowed in JavaScript code\0"
+        u8"TypeScript types are not allowed in JavaScript\0"
         u8"TypeScript's 'enum' feature is not allowed in JavaScript\0"
         u8"TypeScript's 'interface' feature is not allowed in JavaScript code\0"
         u8"TypeScript's 'readonly' feature is not allowed in JavaScript code\0"

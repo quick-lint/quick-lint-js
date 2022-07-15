@@ -307,6 +307,9 @@ class parser {
   // 'extends' clause.
   void parse_and_visit_typescript_interface_reference(parse_visitor_base &v);
 
+  void parse_and_visit_typescript_type_alias(parse_visitor_base &v,
+                                             source_code_span type_token);
+
   enum class enum_value_kind {
     constant,
     computed,

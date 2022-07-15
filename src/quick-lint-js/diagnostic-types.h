@@ -1653,6 +1653,13 @@
               type_colon))                                                     \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_type_alias_not_allowed_in_javascript, "E0267",           \
+      diagnostic_severity::error, { source_code_span type_keyword; },          \
+      MESSAGE(                                                                 \
+          QLJS_TRANSLATABLE("TypeScript types are not allowed in JavaScript"), \
+          type_keyword))                                                       \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_style_const_field, "E0165", diagnostic_severity::error,  \
       { source_code_span const_token; },                                       \
       MESSAGE(QLJS_TRANSLATABLE("const fields within classes are only "        \
