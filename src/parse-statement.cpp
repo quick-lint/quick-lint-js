@@ -1581,9 +1581,13 @@ void parser::parse_and_visit_typescript_type_alias(
                                variable_kind::_type_alias,
                                variable_init_kind::normal);
   this->skip();
+
+  v.visit_enter_type_alias_scope();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal);
   this->skip();
   this->parse_and_visit_typescript_type_expression(v);
+  v.visit_exit_type_alias_scope();
+
   this->consume_semicolon_after_statement();
 }
 

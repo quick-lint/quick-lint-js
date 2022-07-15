@@ -174,6 +174,10 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
     this->visits.emplace_back("visit_enter_named_function_scope");
   }
 
+  void visit_enter_type_alias_scope() override {
+    this->visits.emplace_back("visit_enter_type_alias_scope");
+  }
+
   std::vector<string8> enter_named_function_scopes;
 
   void visit_exit_block_scope() override {
@@ -206,6 +210,10 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
 
   void visit_exit_interface_scope() override {
     this->visits.emplace_back("visit_exit_interface_scope");
+  }
+
+  void visit_exit_type_alias_scope() override {
+    this->visits.emplace_back("visit_exit_type_alias_scope");
   }
 
   void visit_keyword_variable_use(identifier name) override {

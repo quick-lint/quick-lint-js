@@ -232,6 +232,10 @@ void linter::visit_enter_named_function_scope(identifier function_name) {
   };
 }
 
+void linter::visit_enter_type_alias_scope() {
+  QLJS_UNIMPLEMENTED();  // TODO(#690)
+}
+
 void linter::visit_exit_block_scope() {
   QLJS_ASSERT(!this->scopes_.empty());
   this->propagate_variable_uses_to_parent_scope(
@@ -302,6 +306,10 @@ void linter::visit_exit_interface_scope() {
       /*allow_variable_use_before_declaration=*/false,
       /*consume_arguments=*/false);
   this->scopes_.pop();
+}
+
+void linter::visit_exit_type_alias_scope() {
+  QLJS_UNIMPLEMENTED();  // TODO(#690)
 }
 
 void linter::visit_keyword_variable_use(identifier) {

@@ -75,6 +75,11 @@ class multi_parse_visitor final : public parse_visitor_base {
     this->visitor_2_->visit_enter_named_function_scope(name);
   }
 
+  void visit_enter_type_alias_scope() override {
+    this->visitor_1_->visit_enter_type_alias_scope();
+    this->visitor_2_->visit_enter_type_alias_scope();
+  }
+
   void visit_exit_block_scope() override {
     this->visitor_1_->visit_exit_block_scope();
     this->visitor_2_->visit_exit_block_scope();
@@ -113,6 +118,11 @@ class multi_parse_visitor final : public parse_visitor_base {
   void visit_exit_interface_scope() override {
     this->visitor_1_->visit_exit_interface_scope();
     this->visitor_2_->visit_exit_interface_scope();
+  }
+
+  void visit_exit_type_alias_scope() override {
+    this->visitor_1_->visit_exit_type_alias_scope();
+    this->visitor_2_->visit_exit_type_alias_scope();
   }
 
   void visit_keyword_variable_use(identifier name) override {
