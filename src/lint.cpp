@@ -6,6 +6,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/diag-reporter.h>
+#include <quick-lint-js/global-declared-variable-set.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>

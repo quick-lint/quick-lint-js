@@ -8,6 +8,7 @@
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
+#include <quick-lint-js/global-declared-variable-set.h>
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>

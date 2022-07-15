@@ -9,6 +9,7 @@
 #include <quick-lint-js/configuration.h>
 #include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/global-declared-variable-set.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/string-view.h>
