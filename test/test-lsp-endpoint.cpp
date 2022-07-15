@@ -7,7 +7,6 @@
 
 #include <boost/json/serialize.hpp>
 #include <boost/json/value.hpp>
-#include <functional>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>

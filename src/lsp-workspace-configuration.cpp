@@ -7,6 +7,7 @@
 
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/heap-function.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-workspace-configuration.h>
 #include <simdjson.h>
@@ -17,7 +18,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 void lsp_workspace_configuration::add_item(
-    string8_view name, std::function<void(std::string_view)>&& callback) {
+    string8_view name, heap_function<void(std::string_view)>&& callback) {
   this->items_.push_back(item{
       .name = name,
       .callback = std::move(callback),
@@ -113,7 +114,7 @@ lsp_workspace_configuration::item* lsp_workspace_configuration::find_item(
   return nullptr;
 }
 
-bool lsp_workspace_configuration::set_item(const item& i,
+bool lsp_workspace_configuration::set_item(item& i,
                                            ::simdjson::ondemand::value value) {
   ::simdjson::ondemand::json_type type;
   if (value.type().get(type) != ::simdjson::SUCCESS) {

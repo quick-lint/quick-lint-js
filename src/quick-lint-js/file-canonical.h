@@ -9,7 +9,6 @@
 #else
 
 #include <cstddef>
-#include <functional>
 #include <optional>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/result.h>

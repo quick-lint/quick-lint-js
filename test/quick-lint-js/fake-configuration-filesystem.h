@@ -8,12 +8,12 @@
 // No filesystem on the web.
 #else
 
-#include <functional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration-loader.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
+#include <quick-lint-js/heap-function.h>
 #include <quick-lint-js/padded-string.h>
 #include <string>
 #include <unordered_map>
@@ -29,7 +29,7 @@ class fake_configuration_filesystem : public configuration_filesystem {
   // Create a new file, or modify an existing file.
   void create_file(const canonical_path& path, string8_view content);
   void create_file(const canonical_path& path,
-                   std::function<read_file_result()> callback);
+                   heap_function<read_file_result()> callback);
 
   canonical_path rooted(const char* path) const;
 
@@ -44,7 +44,7 @@ class fake_configuration_filesystem : public configuration_filesystem {
   void clear();
 
  private:
-  std::unordered_map<canonical_path, std::function<read_file_result()> > files_;
+  std::unordered_map<canonical_path, heap_function<read_file_result()> > files_;
 };
 }
 

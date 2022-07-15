@@ -7,7 +7,6 @@
 
 #include <boost/json.hpp>
 #include <boost/json/value.hpp>
-#include <functional>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <memory>
@@ -19,6 +18,7 @@
 #include <quick-lint-js/fake-configuration-filesystem.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/filesystem-test.h>
+#include <quick-lint-js/heap-function.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-server.h>
 #include <quick-lint-js/padded-string.h>
@@ -31,6 +31,7 @@
 #include <utility>
 
 QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
+QLJS_WARNING_IGNORE_CLANG("-Wunused-member-function")
 
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
@@ -65,11 +66,11 @@ class mock_lsp_linter final : public lsp_linter {
   explicit mock_lsp_linter() = default;
 
   explicit mock_lsp_linter(
-      std::function<lint_and_get_diagnostics_notification_type> callback)
+      heap_function<lint_and_get_diagnostics_notification_type> callback)
       : callback_(std::move(callback)) {}
 
-  mock_lsp_linter(const mock_lsp_linter&) = default;
-  mock_lsp_linter& operator=(const mock_lsp_linter&) = default;
+  mock_lsp_linter(mock_lsp_linter&&) = default;
+  mock_lsp_linter& operator=(mock_lsp_linter&&) = default;
 
   ~mock_lsp_linter() override = default;
 
@@ -80,7 +81,7 @@ class mock_lsp_linter final : public lsp_linter {
   }
 
  private:
-  std::function<lint_and_get_diagnostics_notification_type> callback_;
+  heap_function<lint_and_get_diagnostics_notification_type> callback_;
 };
 
 class test_linting_lsp_server : public ::testing::Test, public filesystem_test {
@@ -108,7 +109,7 @@ class test_linting_lsp_server : public ::testing::Test, public filesystem_test {
         std::make_unique<lsp_endpoint>(this->handler.get(), this->client.get());
   }
 
-  std::function<void(configuration&, padded_string_view code,
+  heap_function<void(configuration&, padded_string_view code,
                      string8_view uri_json, string8_view version,
                      byte_buffer& notification_json)>
       lint_callback;

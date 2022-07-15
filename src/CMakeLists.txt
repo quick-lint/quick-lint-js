@@ -137,6 +137,7 @@ quick_lint_js_add_library(
   quick-lint-js/file.h
   quick-lint-js/global-variables.h
   quick-lint-js/have.h
+  quick-lint-js/heap-function.h
   quick-lint-js/integer.h
   quick-lint-js/json.h
   quick-lint-js/jsx.h

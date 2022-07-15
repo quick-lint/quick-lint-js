@@ -7,7 +7,6 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#include <functional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/change-detecting-filesystem.h>

@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/event-loop.h>
+#include <quick-lint-js/heap-function.h>
 #include <quick-lint-js/pipe.h>
 #include <quick-lint-js/spy-lsp-message-parser.h>
 #include <quick-lint-js/thread.h>
@@ -60,7 +61,7 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
   template <class Func>
   void set_pipe_write(posix_fd_file_ref fd, Func on_event) {
     this->pipe_write_fd_ = fd;
-    this->pipe_write_event_callback_ = on_event;
+    this->pipe_write_event_callback_ = std::move(on_event);
   }
 #endif
 
@@ -97,9 +98,9 @@ struct spy_event_loop : public event_loop<spy_event_loop> {
 #endif
 
 #if QLJS_HAVE_KQUEUE
-  std::function<void(const struct ::kevent&)> pipe_write_event_callback_;
+  heap_function<void(const struct ::kevent&)> pipe_write_event_callback_;
 #elif QLJS_HAVE_POLL
-  std::function<void(const ::pollfd&)> pipe_write_event_callback_;
+  heap_function<void(const ::pollfd&)> pipe_write_event_callback_;
 #endif
 };
 
