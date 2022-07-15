@@ -559,6 +559,26 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript type imports are not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript type imports are not allowed in JavaScript",
+            u8"TypeScript type imports are not allowed in JavaScript",
+            u8"TypeScript type imports are not allowed in JavaScript",
+            u8"TypeScript type imports are not allowed in JavaScript",
+            u8"TypeScript type imports are not allowed in JavaScript",
+        },
+    },
+    {
+        "TypeScript type imports cannot import both default and named exports"_translatable,
+        {
+            u8"TypeScript type imports cannot import both default and named exports",
+            u8"TypeScript type imports cannot import both default and named exports",
+            u8"TypeScript type imports cannot import both default and named exports",
+            u8"TypeScript type imports cannot import both default and named exports",
+            u8"TypeScript type imports cannot import both default and named exports",
+        },
+    },
+    {
         "TypeScript types are not allowed in JavaScript"_translatable,
         {
             u8"TypeScript types are not allowed in JavaScript",

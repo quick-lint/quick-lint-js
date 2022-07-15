@@ -2650,8 +2650,12 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
     // import let from "module";
     // import fs from "fs";
   identifier:
-  QLJS_CASE_CONTEXTUAL_KEYWORD:
+  QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC_AND_TYPE:
   case token_type::identifier:
+  case token_type::kw_async:
+  case token_type::kw_get:
+  case token_type::kw_set:
+  case token_type::kw_static:
     if (this->peek().type == token_type::kw_let) {
       this->diag_reporter_->report(
           diag_cannot_import_let{.import_name = this->peek().span()});
@@ -2709,6 +2713,93 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
     this->skip();
     this->consume_semicolon_after_statement();
     return;
+
+  // import type T from "module";       // TypeScript only
+  // import type {T} from "module";     // TypeScript only
+  // import type * as M from "module";  // TypeScript only
+  // import type from "module";
+  case token_type::kw_type: {
+    source_code_span type_span = this->peek().span();
+    auto report_type_only_import_in_javascript_if_needed = [&] {
+      if (!this->options_.typescript) {
+        this->diag_reporter_->report(
+            diag_typescript_type_only_import_not_allowed_in_javascript{
+                .type_keyword = type_span,
+            });
+      }
+    };
+    lexer_transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    switch (this->peek().type) {
+    // import type T from "module";       // TypeScript only
+    // import type T, {U} from "module";  // Invalid.
+    QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD_EXCEPT_TYPE:
+    case token_type::identifier:
+    case token_type::kw_as:
+    case token_type::kw_async:
+    case token_type::kw_get:
+    case token_type::kw_let:
+    case token_type::kw_of:
+    case token_type::kw_set:
+    case token_type::kw_static:
+    case token_type::kw_type:
+      this->lexer_.commit_transaction(std::move(transaction));
+      report_type_only_import_in_javascript_if_needed();
+      v.visit_variable_declaration(this->peek().identifier_name(),
+                                   variable_kind::_import_type,
+                                   variable_init_kind::normal);
+      this->skip();
+      if (this->peek().type == token_type::comma) {
+        this->skip();
+        switch (this->peek().type) {
+        // import type T, {U} from "module";  // Invalid.
+        case token_type::left_curly:
+          this->diag_reporter_->report(
+              diag_typescript_type_only_import_cannot_import_default_and_named{
+                  .type_keyword = type_span,
+              });
+          // Parse the named exports as if 'type' didn't exist. The user might
+          // be thinking that 'type' only applies to 'T' and not '{U}'.
+          this->parse_and_visit_named_exports_for_import(v);
+          break;
+
+        // import type T, * as U from "module";  // Invalid.
+        case token_type::star:
+          this->diag_reporter_->report(
+              diag_typescript_type_only_import_cannot_import_default_and_named{
+                  .type_keyword = type_span,
+              });
+          this->parse_and_visit_name_space_import(v);
+          break;
+
+        default:
+          QLJS_PARSER_UNIMPLEMENTED();
+          break;
+        }
+      }
+      break;
+
+    // import type {T} from "module";  // TypeScript only
+    case token_type::left_curly:
+      this->lexer_.commit_transaction(std::move(transaction));
+      report_type_only_import_in_javascript_if_needed();
+      this->parse_and_visit_named_exports_for_typescript_type_import(v);
+      break;
+
+    // import type * as M from "module";  // TypeScript only
+    case token_type::star:
+      this->lexer_.commit_transaction(std::move(transaction));
+      report_type_only_import_in_javascript_if_needed();
+      this->parse_and_visit_name_space_import(v);
+      break;
+
+    // import type from "module";
+    default:
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      goto identifier;
+    }
+    break;
+  }
 
   default:
     QLJS_PARSER_UNIMPLEMENTED();
@@ -2818,19 +2909,38 @@ void parser::parse_and_visit_named_exports_for_export(
     parse_visitor_base &v,
     bump_vector<token, monotonic_allocator> &out_exported_bad_tokens) {
   this->parse_and_visit_named_exports(
-      v, /*out_exported_bad_tokens=*/&out_exported_bad_tokens);
+      v,
+      /*is_typescript_type_import=*/false,
+      /*out_exported_bad_tokens=*/&out_exported_bad_tokens);
 }
 
 void parser::parse_and_visit_named_exports_for_import(parse_visitor_base &v) {
-  this->parse_and_visit_named_exports(v, /*out_exported_bad_tokens=*/nullptr);
+  this->parse_and_visit_named_exports(v,
+                                      /*is_typescript_type_import=*/false,
+                                      /*out_exported_bad_tokens=*/nullptr);
+}
+
+void parser::parse_and_visit_named_exports_for_typescript_type_import(
+    parse_visitor_base &v) {
+  this->parse_and_visit_named_exports(v,
+                                      /*is_typescript_type_import=*/true,
+                                      /*out_exported_bad_tokens=*/nullptr);
 }
 
 void parser::parse_and_visit_named_exports(
-    parse_visitor_base &v,
+    parse_visitor_base &v, bool is_typescript_type_import,
     bump_vector<token, monotonic_allocator> *out_exported_bad_tokens) {
-  bool is_export = out_exported_bad_tokens != nullptr;
   QLJS_ASSERT(this->peek().type == token_type::left_curly);
   this->skip();
+
+  bool is_export = out_exported_bad_tokens != nullptr;
+  if (is_export) {
+    QLJS_ASSERT(!is_typescript_type_import);
+  }
+  variable_kind imported_variable_kind = is_typescript_type_import
+                                             ? variable_kind::_import_type
+                                             : variable_kind::_import;
+
   for (;;) {
     bool left_is_keyword = false;
     switch (this->peek().type) {
@@ -2884,7 +2994,7 @@ void parser::parse_and_visit_named_exports(
                 diag_cannot_import_let{.import_name = right_token.span()});
           }
           v.visit_variable_declaration(right_token.identifier_name(),
-                                       variable_kind::_import,
+                                       imported_variable_kind,
                                        variable_init_kind::normal);
           break;
 

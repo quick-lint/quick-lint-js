@@ -1660,6 +1660,20 @@
           type_keyword))                                                       \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_type_only_import_cannot_import_default_and_named,        \
+      "E0268", diagnostic_severity::error, { source_code_span type_keyword; }, \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript type imports cannot import both "  \
+                                "default and named exports"),                  \
+              type_keyword))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_type_only_import_not_allowed_in_javascript, "E0270",     \
+      diagnostic_severity::error, { source_code_span type_keyword; },          \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript type imports are not "             \
+                                "allowed in JavaScript"),                      \
+              type_keyword))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_style_const_field, "E0165", diagnostic_severity::error,  \
       { source_code_span const_token; },                                       \
       MESSAGE(QLJS_TRANSLATABLE("const fields within classes are only "        \

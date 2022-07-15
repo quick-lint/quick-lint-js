@@ -1030,6 +1030,14 @@ msgid "TypeScript types are not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/diagnostic-types.h
+msgid "TypeScript type imports cannot import both default and named exports"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
+msgid "TypeScript type imports are not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/diagnostic-types.h
 msgid ""
 "const fields within classes are only allowed in TypeScript, not JavaScript"
 msgstr ""

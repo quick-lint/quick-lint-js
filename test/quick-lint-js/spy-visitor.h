@@ -71,6 +71,11 @@ inline visited_variable_declaration import_decl(string8_view name) {
                                       variable_init_kind::normal};
 }
 
+inline visited_variable_declaration import_type_decl(string8_view name) {
+  return visited_variable_declaration{
+      string8(name), variable_kind::_import_type, variable_init_kind::normal};
+}
+
 inline visited_variable_declaration interface_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_interface,
                                       variable_init_kind::normal};

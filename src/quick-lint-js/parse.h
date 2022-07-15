@@ -347,13 +347,15 @@ class parser {
   void parse_and_visit_import(parse_visitor_base &v);
   void parse_and_visit_name_space_import(parse_visitor_base &v);
   void parse_and_visit_named_exports_for_import(parse_visitor_base &v);
+  void parse_and_visit_named_exports_for_typescript_type_import(
+      parse_visitor_base &v);
 
   void parse_and_visit_export(parse_visitor_base &v);
   void parse_and_visit_named_exports_for_export(
       parse_visitor_base &v,
       bump_vector<token, monotonic_allocator> &out_exported_bad_tokens);
   void parse_and_visit_named_exports(
-      parse_visitor_base &v,
+      parse_visitor_base &v, bool is_typescript_type_import,
       bump_vector<token, monotonic_allocator> *out_exported_bad_tokens);
 
   void parse_and_visit_variable_declaration_statement(parse_visitor_base &v);
