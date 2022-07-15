@@ -2972,7 +2972,7 @@ void parser::parse_and_visit_named_exports(
           this->skip();
           break;
 
-          // import {\u{76}ar} from 'other';  // Invalid.
+          // import {'name' as \u{76}ar} from 'other';  // Invalid.
         case token_type::reserved_keyword_with_escape_sequence:
           this->peek().report_errors_for_escape_sequences_in_keyword(
               this->diag_reporter_);
