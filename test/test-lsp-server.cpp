@@ -20,10 +20,10 @@
 #include <quick-lint-js/fake-configuration-filesystem.h>
 #include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/spy-lsp-endpoint-remote.h>
-#include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>

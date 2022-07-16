@@ -5,7 +5,7 @@
 #define QUICK_LINT_JS_TRACE_STREAM_READER_MOCK_H
 
 #include <gmock/gmock.h>
-#include <quick-lint-js/trace-stream-reader.h>
+#include <quick-lint-js/logging/trace-stream-reader.h>
 
 namespace quick_lint_js {
 class mock_trace_stream_event_visitor : public trace_stream_event_visitor {

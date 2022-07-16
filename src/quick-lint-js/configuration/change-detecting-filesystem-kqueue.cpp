@@ -17,7 +17,7 @@
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
-#include <quick-lint-js/log.h>
+#include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>

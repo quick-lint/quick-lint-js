@@ -8,7 +8,7 @@
 #include <quick-lint-js/binary-writer.h>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/container/string-view.h>
-#include <quick-lint-js/trace-writer.h>
+#include <quick-lint-js/logging/trace-writer.h>
 
 using ::testing::ElementsAre;
 using namespace std::literals::string_view_literals;

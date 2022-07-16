@@ -11,11 +11,11 @@
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/json.h>
+#include <quick-lint-js/logging/trace-flusher.h>
+#include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
 #include <quick-lint-js/simdjson.h>
-#include <quick-lint-js/trace-flusher.h>
-#include <quick-lint-js/trace-writer.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>

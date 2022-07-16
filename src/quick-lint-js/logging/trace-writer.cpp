@@ -7,7 +7,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/container/string-view.h>
-#include <quick-lint-js/trace-writer.h>
+#include <quick-lint-js/logging/trace-writer.h>
 
 namespace quick_lint_js {
 trace_writer::trace_writer(async_byte_queue* out) : out_(out) {}

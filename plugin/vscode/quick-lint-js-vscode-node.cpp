@@ -20,13 +20,13 @@
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/io/pipe.h>
-#include <quick-lint-js/log.h>
-#include <quick-lint-js/logger.h>
+#include <quick-lint-js/logging/log.h>
+#include <quick-lint-js/logging/logger.h>
+#include <quick-lint-js/logging/trace-flusher.h>
+#include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/napi-support.h>
 #include <quick-lint-js/thread.h>
-#include <quick-lint-js/trace-flusher.h>
-#include <quick-lint-js/trace-writer.h>
 #include <quick-lint-js/vscode-diag-reporter.h>
 #include <quick-lint-js/vscode-tracer.h>
 #include <quick-lint-js/vscode.h>

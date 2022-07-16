@@ -167,9 +167,16 @@ quick_lint_js_add_library(
   quick-lint-js/jsx.h
   quick-lint-js/location.cpp
   quick-lint-js/location.h
-  quick-lint-js/log.h
-  quick-lint-js/logger.cpp
-  quick-lint-js/logger.h
+  quick-lint-js/logging/log.h
+  quick-lint-js/logging/logger.cpp
+  quick-lint-js/logging/logger.h
+  quick-lint-js/logging/trace-flusher.cpp
+  quick-lint-js/logging/trace-flusher.h
+  quick-lint-js/logging/trace-metadata.cpp
+  quick-lint-js/logging/trace-metadata.h
+  quick-lint-js/logging/trace-stream-reader.cpp
+  quick-lint-js/logging/trace-writer.cpp
+  quick-lint-js/logging/trace-writer.h
   quick-lint-js/lsp/lsp-diag-reporter.cpp
   quick-lint-js/lsp/lsp-diag-reporter.h
   quick-lint-js/lsp/lsp-endpoint.cpp
@@ -192,13 +199,6 @@ quick_lint_js_add_library(
   quick-lint-js/simdjson.h
   quick-lint-js/thread.cpp
   quick-lint-js/thread.h
-  quick-lint-js/trace-flusher.cpp
-  quick-lint-js/trace-flusher.h
-  quick-lint-js/trace-metadata.cpp
-  quick-lint-js/trace-metadata.h
-  quick-lint-js/trace-stream-reader.cpp
-  quick-lint-js/trace-writer.cpp
-  quick-lint-js/trace-writer.h
   quick-lint-js/unreachable.h
   quick-lint-js/uri.cpp
   quick-lint-js/uri.h

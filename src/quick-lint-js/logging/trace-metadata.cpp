@@ -1,4 +1,4 @@
-#include <quick-lint-js/trace-metadata.h>
+#include <quick-lint-js/logging/trace-metadata.h>
 
 namespace quick_lint_js {
 const char8 trace_metadata[] =

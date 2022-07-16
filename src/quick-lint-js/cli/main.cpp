@@ -33,10 +33,10 @@
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/pipe-writer.h>
+#include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/lsp/lsp-pipe-writer.h>
 #include <quick-lint-js/lsp/lsp-server.h>
-#include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
 #include <quick-lint-js/version.h>

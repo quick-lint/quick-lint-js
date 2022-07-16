@@ -11,12 +11,12 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
-#include <quick-lint-js/log.h>
+#include <quick-lint-js/logging/log.h>
+#include <quick-lint-js/logging/trace-flusher.h>
+#include <quick-lint-js/logging/trace-metadata.h>
+#include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/thread.h>
-#include <quick-lint-js/trace-flusher.h>
-#include <quick-lint-js/trace-metadata.h>
 #include <quick-lint-js/trace-stream-reader-mock.h>
-#include <quick-lint-js/trace-writer.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/warning.h>
 #include <string>

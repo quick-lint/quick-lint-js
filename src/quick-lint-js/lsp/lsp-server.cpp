@@ -18,13 +18,13 @@
 #include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/have.h>
-#include <quick-lint-js/log.h>
+#include <quick-lint-js/logging/log.h>
+#include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/lsp/lsp-diag-reporter.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/simdjson.h>
-#include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/uri.h>
 #include <quick-lint-js/version.h>
