@@ -27,9 +27,9 @@
 #include <quick-lint-js/mock-kqueue.h>
 #include <quick-lint-js/mock-win32.h>
 #include <quick-lint-js/permissions.h>
-#include <quick-lint-js/thread.h>
-#include <quick-lint-js/warning.h>
-#include <quick-lint-js/windows-error.h>
+#include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/port/windows-error.h>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -53,7 +53,7 @@
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #endif
 
 QLJS_WARNING_IGNORE_GCC("-Wmissing-field-initializers")

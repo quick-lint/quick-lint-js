@@ -6,7 +6,7 @@
 
 #include <limits>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/have.h>
+#include <quick-lint-js/port/have.h>
 #include <quick-lint-js/source-location.h>
 #include <type_traits>
 

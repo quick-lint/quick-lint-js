@@ -12,11 +12,11 @@
 #include <exception>
 #include <limits.h>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/io/temporary-directory.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/utf-16.h>
 #include <random>
 #include <string>

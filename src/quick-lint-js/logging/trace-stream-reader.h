@@ -6,7 +6,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <quick-lint-js/char8.h>
+#include <quick-lint-js/port/char8.h>
 #include <string_view>
 #include <vector>
 

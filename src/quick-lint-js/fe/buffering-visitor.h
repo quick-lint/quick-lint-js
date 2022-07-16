@@ -12,7 +12,7 @@
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/parse-visitor.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/warning.h>
 #include <type_traits>
 #include <utility>
 

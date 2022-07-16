@@ -4,10 +4,10 @@
 #include <cstdint>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/binary-writer.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/logging/trace-writer.h>
+#include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 trace_writer::trace_writer(async_byte_queue* out) : out_(out) {}

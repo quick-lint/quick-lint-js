@@ -7,7 +7,7 @@
 #include <boost/json/value.hpp>
 #include <iosfwd>
 #include <quick-lint-js/boost-json.h>
-#include <quick-lint-js/char8.h>
+#include <quick-lint-js/port/char8.h>
 #include <simdjson.h>
 #include <string>
 #include <utility>

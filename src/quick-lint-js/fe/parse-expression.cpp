@@ -6,7 +6,6 @@
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/vector.h>
@@ -20,10 +19,11 @@
 #include <quick-lint-js/fe/parse-visitor.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/fe/token.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/unreachable.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/port/warning.h>
 #include <utility>
 
 namespace quick_lint_js {

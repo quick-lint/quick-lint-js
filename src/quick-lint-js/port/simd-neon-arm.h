@@ -2,13 +2,13 @@
 // Copyright (c) 2014-2020, Arm Limited.
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_SIMD_NEON_ARM_H
-#define QUICK_LINT_JS_SIMD_NEON_ARM_H
+#ifndef QUICK_LINT_JS_PORT_SIMD_NEON_ARM_H
+#define QUICK_LINT_JS_PORT_SIMD_NEON_ARM_H
 
 #include <cstdint>
-#include <quick-lint-js/attribute.h>
-#include <quick-lint-js/bit.h>
-#include <quick-lint-js/simd.h>
+#include <quick-lint-js/port/attribute.h>
+#include <quick-lint-js/port/bit.h>
+#include <quick-lint-js/port/simd.h>
 
 #if QLJS_HAVE_ARM_NEON
 #include <arm_neon.h>

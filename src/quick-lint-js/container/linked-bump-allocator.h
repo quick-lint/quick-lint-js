@@ -9,10 +9,10 @@
 #include <cstdint>
 #include <new>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/have.h>
-#include <quick-lint-js/math.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/pointer.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/math.h>
 
 #if QLJS_HAVE_SANITIZER_ASAN_INTERFACE_H
 #include <sanitizer/asan_interface.h>

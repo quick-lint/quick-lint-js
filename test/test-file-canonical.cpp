@@ -16,14 +16,14 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <optional>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/file-matcher.h>
 #include <quick-lint-js/filesystem-test.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-path.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
 #include <string>
 
 #if defined(_WIN32)

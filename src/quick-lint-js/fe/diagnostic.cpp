@@ -5,13 +5,13 @@
 #include <cstdint>
 #include <cstring>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/cpp.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/diagnostic.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/warning.h>
 #include <string_view>
 #include <utility>
 

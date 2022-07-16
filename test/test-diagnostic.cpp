@@ -3,9 +3,9 @@
 
 #include <cstddef>
 #include <gtest/gtest.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/diagnostic.h>
+#include <quick-lint-js/port/char8.h>
 #include <string_view>
 
 using namespace std::literals::string_view_literals;

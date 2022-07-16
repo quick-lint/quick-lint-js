@@ -2,10 +2,10 @@
 // See end of file for extended copyright information.
 
 #include <benchmark/benchmark.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/diag-reporter.h>
 #include <quick-lint-js/fe/lex.h>
+#include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 namespace {

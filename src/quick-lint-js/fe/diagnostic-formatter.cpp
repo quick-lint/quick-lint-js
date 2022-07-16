@@ -4,7 +4,7 @@
 #include <quick-lint-js/fe/diagnostic-formatter.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/i18n/translation.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/port/unreachable.h>
 
 namespace quick_lint_js {
 string8_view headlinese_enum_kind(enum_kind ek) noexcept {

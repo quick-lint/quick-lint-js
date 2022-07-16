@@ -2,9 +2,9 @@
 // See end of file for extended copyright information.
 
 #include <gtest/gtest.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/warning.h>
 #include <string>
 #include <string_view>
 

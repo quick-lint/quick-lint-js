@@ -4,7 +4,7 @@
 #ifndef QUICK_LINT_JS_PERMISSIONS_H
 #define QUICK_LINT_JS_PERMISSIONS_H
 
-#include <quick-lint-js/have.h>
+#include <quick-lint-js/port/have.h>
 
 #if QLJS_HAVE_UNISTD_H
 #include <unistd.h>

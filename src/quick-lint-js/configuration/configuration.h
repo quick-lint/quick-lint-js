@@ -7,12 +7,12 @@
 #include <array>
 #include <cstddef>
 #include <optional>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/global-declared-variable-set.h>
 #include <quick-lint-js/global-variables.h>
 #include <quick-lint-js/io/file-canonical.h>
+#include <quick-lint-js/port/char8.h>
 #include <simdjson.h>
 #include <vector>
 

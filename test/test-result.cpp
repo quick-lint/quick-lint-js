@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <quick-lint-js/container/result.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/warning.h>
 
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-override")
 

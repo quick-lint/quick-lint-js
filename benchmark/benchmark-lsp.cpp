@@ -5,13 +5,13 @@
 #include <benchmark/benchmark.h>
 #include <cstddef>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration/basic-configuration-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/lsp/lsp-server.h>
+#include <quick-lint-js/port/char8.h>
 #include <string>
 
 using namespace std::literals::string_view_literals;

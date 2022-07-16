@@ -12,7 +12,7 @@
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp/lsp-location.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/web-demo-location.h>
 #include <string>
 

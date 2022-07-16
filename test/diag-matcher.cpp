@@ -11,7 +11,7 @@
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/port/unreachable.h>
 #include <vector>
 
 namespace quick_lint_js {

@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_WARNING_H
-#define QUICK_LINT_JS_WARNING_H
+#ifndef QUICK_LINT_JS_PORT_WARNING_H
+#define QUICK_LINT_JS_PORT_WARNING_H
 
 #if defined(__clang__)
 #define QLJS_WARNING_PUSH _Pragma("clang diagnostic push")

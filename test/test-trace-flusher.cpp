@@ -5,20 +5,20 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <optional>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/filesystem-test.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-metadata.h>
 #include <quick-lint-js/logging/trace-writer.h>
-#include <quick-lint-js/thread.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/trace-stream-reader-mock.h>
 #include <quick-lint-js/version.h>
-#include <quick-lint-js/warning.h>
 #include <string>
 #include <thread>
 

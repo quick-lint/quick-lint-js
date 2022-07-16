@@ -10,11 +10,11 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/string-view.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/windows-error.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/windows-error.h>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -32,7 +32,7 @@
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #endif
 
 namespace quick_lint_js {

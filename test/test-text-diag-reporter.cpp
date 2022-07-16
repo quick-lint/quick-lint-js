@@ -3,13 +3,13 @@
 
 #include <cstring>
 #include <gtest/gtest.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/cli/options.h>
 #include <quick-lint-js/cli/text-diag-reporter.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/port/char8.h>
 #include <string>
 
 using namespace std::literals::string_literals;

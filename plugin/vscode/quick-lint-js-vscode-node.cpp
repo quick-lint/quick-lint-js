@@ -17,7 +17,6 @@
 #include <quick-lint-js/fe/diagnostic.h>
 #include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/fe/parse.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/logging/log.h>
@@ -26,7 +25,8 @@
 #include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/napi-support.h>
-#include <quick-lint-js/thread.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/vscode-diag-reporter.h>
 #include <quick-lint-js/vscode-tracer.h>
 #include <quick-lint-js/vscode.h>

@@ -4,9 +4,9 @@
 #ifndef QUICK_LINT_JS_DOCUMENT_H
 #define QUICK_LINT_JS_DOCUMENT_H
 
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/lsp/lsp-location.h>
+#include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/web-demo-location.h>
 
 namespace quick_lint_js {

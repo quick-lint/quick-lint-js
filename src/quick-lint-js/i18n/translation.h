@@ -5,10 +5,10 @@
 #define QUICK_LINT_JS_I18N_TRANSLATION_H
 
 #include <cstdint>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/consteval.h>
 #include <quick-lint-js/i18n/locale.h>
 #include <quick-lint-js/i18n/translation-table.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/consteval.h>
 #include <string>
 #include <string_view>
 #include <vector>

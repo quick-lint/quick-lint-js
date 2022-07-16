@@ -11,7 +11,7 @@
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/io/file.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/warning.h>
 #include <string_view>
 #include <unordered_map>
 #include <utility>

@@ -8,9 +8,9 @@
 // No LSP on the web.
 #else
 
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/heap-function.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
+#include <quick-lint-js/port/char8.h>
 #include <simdjson.h>
 #include <string>
 #include <vector>

@@ -5,13 +5,13 @@
 #define QUICK_LINT_JS_FE_DIAGNOSTIC_TYPES_H
 
 #include <iosfwd>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/port/char8.h>
 
 // QLJS_DIAG_TYPE should have the following signature:
 //

@@ -16,9 +16,9 @@
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/port/windows.h>
 #include <quick-lint-js/utf-16.h>
-#include <quick-lint-js/windows.h>
 #include <string>
 #include <string_view>
 #include <unordered_map>

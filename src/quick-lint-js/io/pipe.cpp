@@ -9,9 +9,9 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/pipe.h>
-#include <quick-lint-js/windows-error.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/windows-error.h>
 
 #if QLJS_HAVE_PIPE
 #include <fcntl.h>
@@ -19,7 +19,7 @@
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #endif
 
 namespace quick_lint_js {

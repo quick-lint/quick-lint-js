@@ -6,14 +6,14 @@
 // GCC+MinGW's threading implementation on Windows is heavy-weight, increasing
 // binary size. Our classes use Win32 APIs directly, avoiding bloat.
 
-#ifndef QUICK_LINT_JS_THREAD_H
-#define QUICK_LINT_JS_THREAD_H
+#ifndef QUICK_LINT_JS_PORT_THREAD_H
+#define QUICK_LINT_JS_PORT_THREAD_H
 
 #include <cstdint>
 #include <memory>
 #include <mutex>
-#include <quick-lint-js/have.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/warning.h>
 #include <utility>
 
 #if QLJS_HAVE_WINDOWS_H

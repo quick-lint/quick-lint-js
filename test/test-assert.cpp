@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/warning.h>
 
 QLJS_WARNING_IGNORE_CLANG("-Wcovered-switch-default")
 

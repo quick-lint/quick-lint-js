@@ -8,14 +8,14 @@
 #include <initializer_list>
 #include <iterator>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/fe/diagnostic.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/unreachable.h>
 #include <type_traits>
 #include <utility>
 

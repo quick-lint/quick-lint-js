@@ -4,10 +4,10 @@
 #include <cstdint>
 #include <cstring>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/thread.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/thread.h>
 #include <utility>
 
 #if defined(QLJS_THREADS_WINDOWS)
@@ -15,7 +15,7 @@
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #endif
 
 #if defined(QLJS_THREADS_POSIX)

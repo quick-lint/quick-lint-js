@@ -3,7 +3,7 @@
 
 #include <ostream>
 #include <quick-lint-js/fe/diagnostic-types.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/port/unreachable.h>
 
 namespace quick_lint_js {
 std::ostream& operator<<(std::ostream& out, diag_type type) {

@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <quick-lint-js/have.h>
+#include <quick-lint-js/port/have.h>
 
 #if QLJS_HAVE_INOTIFY
 
@@ -18,8 +18,8 @@
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/unreachable.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/port/warning.h>
 #include <string>
 #include <string_view>
 #include <sys/inotify.h>

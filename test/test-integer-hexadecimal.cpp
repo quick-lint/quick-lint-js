@@ -4,8 +4,8 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <quick-lint-js/gtest.h>
-#include <quick-lint-js/integer.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/integer.h>
+#include <quick-lint-js/port/warning.h>
 #include <system_error>
 
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-override")

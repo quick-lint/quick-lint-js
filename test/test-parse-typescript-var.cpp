@@ -6,7 +6,6 @@
 #include <gtest/gtest.h>
 #include <iterator>
 #include <quick-lint-js/array.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
@@ -16,6 +15,7 @@
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/parse-support.h>
+#include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/spy-visitor.h>
 #include <string>
 #include <string_view>

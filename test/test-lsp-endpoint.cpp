@@ -9,12 +9,12 @@
 #include <boost/json/value.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/spy-lsp-endpoint-remote.h>
-#include <quick-lint-js/unreachable.h>
-#include <quick-lint-js/warning.h>
 #include <simdjson.h>
 
 QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")

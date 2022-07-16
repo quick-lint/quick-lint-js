@@ -5,7 +5,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/warning.h>
 
 using ::testing::ElementsAre;
 

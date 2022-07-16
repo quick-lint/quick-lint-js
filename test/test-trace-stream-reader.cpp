@@ -7,8 +7,8 @@
 #include <iterator>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/binary-reader.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/logging/trace-stream-reader.h>
+#include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/trace-stream-reader-mock.h>
 
 using ::testing::ElementsAre;

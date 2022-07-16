@@ -10,16 +10,16 @@
 
 #include <cstring>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/result.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
 #include <string>
 #include <vector>
 
 #if QLJS_HAVE_WINDOWS_H
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #endif
 
 namespace quick_lint_js {

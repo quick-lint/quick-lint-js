@@ -5,17 +5,17 @@
 #include <cstdio>
 #include <cstdlib>
 #include <optional>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/windows-error.h>
 #include <quick-lint-js/utf-16.h>
-#include <quick-lint-js/windows-error.h>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #if defined(_WIN32)
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #endif
 
 namespace quick_lint_js {

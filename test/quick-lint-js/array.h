@@ -6,7 +6,7 @@
 
 #include <array>
 #include <cstddef>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/warning.h>
 #include <type_traits>
 #include <utility>
 

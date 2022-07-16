@@ -5,9 +5,9 @@
 #define QUICK_LINT_JS_GLOBAL_DECLARED_VARIABLE_SET_H
 
 #include <optional>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/language.h>
+#include <quick-lint-js/port/char8.h>
 #include <unordered_set>
 #include <vector>
 

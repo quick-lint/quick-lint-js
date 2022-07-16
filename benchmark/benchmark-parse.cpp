@@ -9,7 +9,7 @@
 #include <quick-lint-js/fe/null-visitor.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/io/file.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/warning.h>
 #include <string>
 
 QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.

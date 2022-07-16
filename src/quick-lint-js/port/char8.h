@@ -1,12 +1,12 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CHAR8_H
-#define QUICK_LINT_JS_CHAR8_H
+#ifndef QUICK_LINT_JS_PORT_CHAR8_H
+#define QUICK_LINT_JS_PORT_CHAR8_H
 
 #include <cstddef>
 #include <iosfwd>
-#include <quick-lint-js/have.h>
+#include <quick-lint-js/port/have.h>
 #include <string>
 #include <string_view>
 

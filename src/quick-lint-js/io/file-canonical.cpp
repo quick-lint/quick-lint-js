@@ -11,14 +11,14 @@
 #include <cstdlib>
 #include <cstring>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/result.h>
 #include <quick-lint-js/container/string-view.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
 #include <quick-lint-js/utf-16.h>
 #include <string>
 
@@ -27,7 +27,7 @@
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #include <pathcch.h>
 #endif
 

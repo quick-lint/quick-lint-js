@@ -3,10 +3,10 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/fe/diag-reporter.h>
 #include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/fe/parse.h>
+#include <quick-lint-js/port/char8.h>
 
 extern "C" {
 int LLVMFuzzerTestOneInput(const std::uint8_t *data, std::size_t size) {

@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <gtest/gtest.h>
-#include <quick-lint-js/bit.h>
+#include <quick-lint-js/port/bit.h>
 
 namespace quick_lint_js {
 namespace {

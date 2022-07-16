@@ -8,11 +8,11 @@
 #include <boost/json/parse.hpp>
 #include <boost/json/value.hpp>
 #include <gtest/gtest.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/lsp/lsp-diag-reporter.h>
 #include <quick-lint-js/parse-json.h>
+#include <quick-lint-js/port/char8.h>
 #include <sstream>
 #include <system_error>
 

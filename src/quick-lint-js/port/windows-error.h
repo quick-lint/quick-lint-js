@@ -1,14 +1,14 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_WINDOWS_ERROR_H
-#define QUICK_LINT_JS_WINDOWS_ERROR_H
+#ifndef QUICK_LINT_JS_PORT_WINDOWS_ERROR_H
+#define QUICK_LINT_JS_PORT_WINDOWS_ERROR_H
 
-#include <quick-lint-js/have.h>
+#include <quick-lint-js/port/have.h>
 
 #if QLJS_HAVE_WINDOWS_H
 
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #include <string>
 
 namespace quick_lint_js {

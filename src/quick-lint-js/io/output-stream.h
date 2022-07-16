@@ -7,10 +7,10 @@
 #include <cstddef>
 #include <memory>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/integer.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/integer.h>
 
 namespace quick_lint_js {
 // output_stream is similar to std::basic_ostream<char8>.

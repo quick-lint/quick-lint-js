@@ -8,9 +8,9 @@
 // No LSP on the web.
 #else
 
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
-#include <quick-lint-js/thread.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/thread.h>
 #include <vector>
 
 namespace quick_lint_js {

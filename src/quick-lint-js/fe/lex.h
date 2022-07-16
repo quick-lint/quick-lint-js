@@ -7,7 +7,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/linked-bump-allocator.h>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/optional.h>
@@ -17,6 +16,7 @@
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/utf-8.h>
 #include <vector>
 

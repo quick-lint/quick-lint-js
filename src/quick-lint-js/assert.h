@@ -5,8 +5,8 @@
 #define QUICK_LINT_JS_ASSERT_H
 
 #include <cstdlib>
-#include <quick-lint-js/crash.h>
-#include <quick-lint-js/have.h>
+#include <quick-lint-js/port/crash.h>
+#include <quick-lint-js/port/have.h>
 
 #if QLJS_HAVE_DEBUGBREAK
 #include <intrin.h>

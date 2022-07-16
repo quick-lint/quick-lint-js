@@ -12,10 +12,10 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <optional>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file.h>
-#include <quick-lint-js/windows-error.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/windows-error.h>
 
 #if QLJS_HAVE_STD_FILESYSTEM
 #include <filesystem>
@@ -26,7 +26,7 @@
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #endif
 
 #define EXPECT_SAME_FILE(path_a, path_b) \

@@ -4,7 +4,7 @@
 #ifndef QUICK_LINT_JS_IO_FILE_PATH_H
 #define QUICK_LINT_JS_IO_FILE_PATH_H
 
-#include <quick-lint-js/have.h>
+#include <quick-lint-js/port/have.h>
 #include <string>
 
 #if defined(_WIN32)

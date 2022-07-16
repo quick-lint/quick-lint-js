@@ -7,7 +7,7 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/result.h>
-#include <quick-lint-js/have.h>
+#include <quick-lint-js/port/have.h>
 #include <string>
 
 #if QLJS_HAVE_UNISTD_H
@@ -15,7 +15,7 @@
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #endif
 
 namespace quick_lint_js {

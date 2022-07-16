@@ -11,7 +11,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/i18n/translation.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/warning.h>
 #include <string_view>
 
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105191

@@ -1,16 +1,56 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONSTEVAL_H
-#define QUICK_LINT_JS_CONSTEVAL_H
+#ifndef QUICK_LINT_JS_PORT_WINDOWS_H
+#define QUICK_LINT_JS_PORT_WINDOWS_H
 
-#include <quick-lint-js/have.h>
-
-#if QLJS_HAVE_CONSTEVAL
-#define QLJS_CONSTEVAL consteval
-#else
-#define QLJS_CONSTEVAL constexpr
+#ifndef QUICK_LINT_JS_PORT_WINDOWS_H
+#define WIN32_LEAN_AND_MEAN
 #endif
+
+#define NOATOM
+#define NOCLIPBOARD
+#define NOCOLOR
+#define NOCOMM
+#define NOCRYPT
+#define NOCTLMGR
+#define NODEFERWINDOWPOS
+#define NODRAWTEXT
+#define NOGDI
+#define NOGDICAPMASKS
+#define NOHELP
+#define NOICONS
+#define NOKANJI
+#define NOKERNEL
+#define NOKEYSTATES
+#define NOMB
+#define NOMCX
+#define NOMEMMGR
+#define NOMENUS
+#define NOMETAFILE
+#if !defined(NOMINMAX)
+#define NOMINMAX
+#endif
+#define NOMSG
+#define NOOPENFILE
+#define NOPROFILER
+#define NORASTEROPS
+#define NOSCROLL
+#define NOSERVICE
+#define NOSHOWWINDOW
+#define NOSOUND
+#define NOSYSCOMMANDS
+#define NOSYSMETRICS
+#define NOTEXTMETRIC
+#define NOUSER
+#define NOVIRTUALKEYCODES
+#define NOWH
+#define NOWINMESSAGES
+#define NOWINOFFSETS
+#define NOWINSTYLES
+#define OEMRESOURCE
+
+#include <windows.h>
 
 #endif
 

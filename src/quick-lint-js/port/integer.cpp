@@ -6,12 +6,12 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/have.h>
-#include <quick-lint-js/integer.h>
 #include <quick-lint-js/math-overflow.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/integer.h>
+#include <quick-lint-js/port/warning.h>
 #include <string>
 #include <type_traits>
 

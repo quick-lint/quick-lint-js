@@ -1,17 +1,23 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_MATH_H
-#define QUICK_LINT_JS_MATH_H
+#ifndef QUICK_LINT_JS_PORT_CRASH_H
+#define QUICK_LINT_JS_PORT_CRASH_H
 
-namespace quick_lint_js {
-// On some compilers, std::max is not constexpr. Define our own which is
-// constexpr.
-template <class T, class U>
-constexpr auto maximum(T x, U y) noexcept {
-  return x < y ? y : x;
-}
-}
+#include <cstdlib>
+#include <quick-lint-js/port/have.h>
+
+#if QLJS_HAVE_DEBUGBREAK
+#include <intrin.h>
+#endif
+
+#if QLJS_HAVE_DEBUGBREAK
+#define QLJS_CRASH_ALLOWING_CORE_DUMP() ::__debugbreak()
+#elif QLJS_HAVE_BUILTIN_TRAP
+#define QLJS_CRASH_ALLOWING_CORE_DUMP() __builtin_trap()
+#else
+#define QLJS_CRASH_ALLOWING_CORE_DUMP() ::std::abort()
+#endif
 
 #endif
 

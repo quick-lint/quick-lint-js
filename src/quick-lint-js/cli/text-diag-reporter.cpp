@@ -1,7 +1,6 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/cli/text-diag-reporter.h>
 #include <quick-lint-js/container/optional.h>
@@ -9,6 +8,7 @@
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/port/char8.h>
 #include <string_view>
 
 #if !defined(_WIN32)

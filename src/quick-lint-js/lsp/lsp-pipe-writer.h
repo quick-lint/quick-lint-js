@@ -8,11 +8,11 @@
 // No LSP on the web.
 #else
 
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/pipe-writer.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
 
 namespace quick_lint_js {
 class byte_buffer;

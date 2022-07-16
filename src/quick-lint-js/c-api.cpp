@@ -7,7 +7,6 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/c-api-diag-reporter.h>
 #include <quick-lint-js/c-api.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/document.h>
@@ -15,6 +14,7 @@
 #include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/lsp/lsp-location.h>
+#include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/web-demo-location.h>
 #include <vector>
 

@@ -5,7 +5,7 @@
 #define QUICK_LINT_JS_SOURCE_LOCATION_H
 
 #include <cstdint>
-#include <quick-lint-js/have.h>
+#include <quick-lint-js/port/have.h>
 
 namespace quick_lint_js {
 // TODO(strager): Use std::source_location if available.

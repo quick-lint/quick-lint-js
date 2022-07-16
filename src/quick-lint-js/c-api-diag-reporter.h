@@ -5,7 +5,6 @@
 #define QUICK_LINT_JS_C_API_DIAG_REPORTER_H
 
 #include <cstdint>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/monotonic-allocator.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/diag-reporter.h>
@@ -13,7 +12,8 @@
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/diagnostic.h>
 #include <quick-lint-js/fe/token.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/warning.h>
 #include <vector>
 
 struct qljs_web_demo_diagnostic;

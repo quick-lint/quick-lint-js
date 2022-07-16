@@ -3,9 +3,9 @@
 
 #include <gtest/gtest.h>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/crash.h>
-#include <quick-lint-js/have.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/crash.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/warning.h>
 
 #if QLJS_HAVE_SYS_WAIT_H
 #include <sys/wait.h>

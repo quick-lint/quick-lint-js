@@ -1,12 +1,12 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_INTEGER_H
-#define QUICK_LINT_JS_INTEGER_H
+#ifndef QUICK_LINT_JS_PORT_INTEGER_H
+#define QUICK_LINT_JS_PORT_INTEGER_H
 
 #include <cstddef>
 #include <limits>
-#include <quick-lint-js/char8.h>
+#include <quick-lint-js/port/char8.h>
 #include <system_error>
 
 namespace quick_lint_js {

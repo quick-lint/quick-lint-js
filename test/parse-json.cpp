@@ -8,11 +8,11 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/parse-json.h>
-#include <quick-lint-js/unreachable.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/port/warning.h>
 #include <simdjson.h>
 #include <sstream>
 

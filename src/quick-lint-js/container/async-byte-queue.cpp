@@ -8,7 +8,7 @@
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/pointer.h>
-#include <quick-lint-js/thread.h>
+#include <quick-lint-js/port/thread.h>
 #include <utility>
 
 namespace quick_lint_js {

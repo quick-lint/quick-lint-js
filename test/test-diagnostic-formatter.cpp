@@ -4,11 +4,11 @@
 #include <cstddef>
 #include <cstring>
 #include <gtest/gtest.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/fe/diagnostic-formatter.h>
 #include <quick-lint-js/fe/diagnostic.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/port/char8.h>
 #include <string_view>
 
 using namespace std::literals::string_view_literals;

@@ -11,14 +11,14 @@
 #include <filesystem>
 #include <optional>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/byte-buffer.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
 #include <quick-lint-js/lsp/lsp-pipe-writer.h>
 #include <quick-lint-js/lsp/lsp-server.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
 #include <type_traits>
 #include <unistd.h>
 #include <utility>
@@ -28,7 +28,7 @@
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #endif
 
 #if QLJS_HAVE_POLL

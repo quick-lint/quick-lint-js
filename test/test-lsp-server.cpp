@@ -11,7 +11,6 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <quick-lint-js/boost-json.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/byte-buffer.h>
@@ -23,9 +22,10 @@
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/lsp/lsp-server.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/spy-lsp-endpoint-remote.h>
 #include <quick-lint-js/version.h>
-#include <quick-lint-js/warning.h>
 #include <simdjson.h>
 #include <tuple>
 #include <utility>

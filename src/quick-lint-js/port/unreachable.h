@@ -1,15 +1,17 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_ATTRIBUTE_H
-#define QUICK_LINT_JS_ATTRIBUTE_H
+#ifndef QUICK_LINT_JS_PORT_UNREACHABLE_H
+#define QUICK_LINT_JS_PORT_UNREACHABLE_H
 
-#if defined(__clang__) || defined(__GNUC__)
-#define QLJS_FORCE_INLINE [[gnu::always_inline]]
+#if defined(__GNUC__) || defined(__clang__)
+#define QLJS_UNREACHABLE() __builtin_unreachable()
 #elif defined(_MSC_VER)
-#define QLJS_FORCE_INLINE __forceinline
+#define QLJS_UNREACHABLE() __assume(false)
 #else
-#define QLJS_FORCE_INLINE /* empty */
+#define QLJS_UNREACHABLE() \
+  do {                     \
+  } while (false)
 #endif
 
 #endif

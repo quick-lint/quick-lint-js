@@ -6,7 +6,6 @@
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/fe/buffering-diag-reporter.h>
 #include <quick-lint-js/fe/diag-reporter.h>
@@ -14,9 +13,10 @@
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/fe/token.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/jsx.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/unreachable.h>
 #include <utility>
 
 #if QLJS_HAVE_SETJMP

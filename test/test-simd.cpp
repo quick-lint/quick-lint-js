@@ -5,10 +5,10 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <iterator>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/have.h>
-#include <quick-lint-js/simd.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/simd.h>
+#include <quick-lint-js/port/warning.h>
 
 #if QLJS_HAVE_ARM_NEON
 #include <arm_neon.h>

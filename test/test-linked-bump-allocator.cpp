@@ -9,8 +9,8 @@
 #include <new>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/linked-bump-allocator.h>
-#include <quick-lint-js/have.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/warning.h>
 
 namespace quick_lint_js {
 namespace {

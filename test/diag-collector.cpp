@@ -4,7 +4,7 @@
 #include <ostream>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/fe/token.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/port/unreachable.h>
 
 namespace quick_lint_js {
 void diag_collector::report_impl(diag_type type, void *diag) {

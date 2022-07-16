@@ -1,18 +1,17 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UNREACHABLE_H
-#define QUICK_LINT_JS_UNREACHABLE_H
+#ifndef QUICK_LINT_JS_PORT_MATH_H
+#define QUICK_LINT_JS_PORT_MATH_H
 
-#if defined(__GNUC__) || defined(__clang__)
-#define QLJS_UNREACHABLE() __builtin_unreachable()
-#elif defined(_MSC_VER)
-#define QLJS_UNREACHABLE() __assume(false)
-#else
-#define QLJS_UNREACHABLE() \
-  do {                     \
-  } while (false)
-#endif
+namespace quick_lint_js {
+// On some compilers, std::max is not constexpr. Define our own which is
+// constexpr.
+template <class T, class U>
+constexpr auto maximum(T x, U y) noexcept {
+  return x < y ? y : x;
+}
+}
 
 #endif
 

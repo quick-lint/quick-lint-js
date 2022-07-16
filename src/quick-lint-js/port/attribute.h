@@ -1,22 +1,15 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CRASH_H
-#define QUICK_LINT_JS_CRASH_H
+#ifndef QUICK_LINT_JS_PORT_ATTRIBUTE_H
+#define QUICK_LINT_JS_PORT_ATTRIBUTE_H
 
-#include <cstdlib>
-#include <quick-lint-js/have.h>
-
-#if QLJS_HAVE_DEBUGBREAK
-#include <intrin.h>
-#endif
-
-#if QLJS_HAVE_DEBUGBREAK
-#define QLJS_CRASH_ALLOWING_CORE_DUMP() ::__debugbreak()
-#elif QLJS_HAVE_BUILTIN_TRAP
-#define QLJS_CRASH_ALLOWING_CORE_DUMP() __builtin_trap()
+#if defined(__clang__) || defined(__GNUC__)
+#define QLJS_FORCE_INLINE [[gnu::always_inline]]
+#elif defined(_MSC_VER)
+#define QLJS_FORCE_INLINE __forceinline
 #else
-#define QLJS_CRASH_ALLOWING_CORE_DUMP() ::std::abort()
+#define QLJS_FORCE_INLINE /* empty */
 #endif
 
 #endif

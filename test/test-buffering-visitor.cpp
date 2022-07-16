@@ -4,11 +4,11 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <optional>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/identifier-support.h>
+#include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/spy-visitor.h>
 
 using boost::container::pmr::new_delete_resource;

@@ -1,16 +1,16 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_SIMD_H
-#define QUICK_LINT_JS_SIMD_H
+#ifndef QUICK_LINT_JS_PORT_SIMD_H
+#define QUICK_LINT_JS_PORT_SIMD_H
 
 #include <cstdint>
-#include <quick-lint-js/attribute.h>
-#include <quick-lint-js/bit.h>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/port/attribute.h>
+#include <quick-lint-js/port/bit.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/unreachable.h>
 
 #if QLJS_HAVE_ARM_NEON
 #include <arm_neon.h>
@@ -240,7 +240,7 @@ class char_vector_1 {
 }
 
 // Some routines have a different copyright, thus are in a separate file.
-#include <quick-lint-js/simd-neon-arm.h>
+#include <quick-lint-js/port/simd-neon-arm.h>
 
 #endif
 

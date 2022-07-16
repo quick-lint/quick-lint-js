@@ -4,7 +4,7 @@
 #ifndef QUICK_LINT_JS_LSP_LSP_URI_H
 #define QUICK_LINT_JS_LSP_LSP_URI_H
 
-#include <quick-lint-js/char8.h>
+#include <quick-lint-js/port/char8.h>
 #include <string>
 
 namespace quick_lint_js {

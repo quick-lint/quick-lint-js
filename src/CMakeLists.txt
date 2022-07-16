@@ -42,17 +42,13 @@ quick_lint_js_add_library(
   quick-lint-js-lib
   quick-lint-js/assert.cpp
   quick-lint-js/assert.h
-  quick-lint-js/attribute.h
   quick-lint-js/binary-reader.h
   quick-lint-js/binary-writer.h
-  quick-lint-js/bit.h
   quick-lint-js/boost.cpp
   quick-lint-js/c-api-diag-reporter.cpp
   quick-lint-js/c-api-diag-reporter.h
   quick-lint-js/c-api.cpp
   quick-lint-js/c-api.h
-  quick-lint-js/char8.cpp
-  quick-lint-js/char8.h
   quick-lint-js/cli/arg-parser.cpp
   quick-lint-js/cli/arg-parser.h
   quick-lint-js/cli/cli-location.cpp
@@ -80,7 +76,6 @@ quick_lint_js_add_library(
   quick-lint-js/configuration/configuration-loader.h
   quick-lint-js/configuration/configuration.cpp
   quick-lint-js/configuration/configuration.h
-  quick-lint-js/consteval.h
   quick-lint-js/container/allocator.h
   quick-lint-js/container/async-byte-queue.cpp
   quick-lint-js/container/async-byte-queue.h
@@ -94,7 +89,6 @@ quick_lint_js_add_library(
   quick-lint-js/container/result.h
   quick-lint-js/container/vector.h
   quick-lint-js/cpp.h
-  quick-lint-js/crash.h
   quick-lint-js/document.cpp
   quick-lint-js/document.h
   quick-lint-js/fe/buffering-diag-reporter.cpp
@@ -134,7 +128,6 @@ quick_lint_js_add_library(
   quick-lint-js/global-variables-browser-generated.cpp
   quick-lint-js/global-variables.cpp
   quick-lint-js/global-variables.h
-  quick-lint-js/have.h
   quick-lint-js/i18n/locale.cpp
   quick-lint-js/i18n/locale.h
   quick-lint-js/i18n/translation-table-generated.cpp
@@ -142,8 +135,6 @@ quick_lint_js_add_library(
   quick-lint-js/i18n/translation-table.h
   quick-lint-js/i18n/translation.cpp
   quick-lint-js/i18n/translation.h
-  quick-lint-js/integer.cpp
-  quick-lint-js/integer.h
   quick-lint-js/io/event-loop.h
   quick-lint-js/io/file-canonical.cpp
   quick-lint-js/io/file-canonical.h
@@ -196,23 +187,32 @@ quick_lint_js_add_library(
   quick-lint-js/math-overflow.h
   quick-lint-js/narrow-cast.h
   quick-lint-js/pointer.h
-  quick-lint-js/simd.h
+  quick-lint-js/port/attribute.h
+  quick-lint-js/port/bit.h
+  quick-lint-js/port/char8.cpp
+  quick-lint-js/port/char8.h
+  quick-lint-js/port/consteval.h
+  quick-lint-js/port/crash.h
+  quick-lint-js/port/have.h
+  quick-lint-js/port/integer.cpp
+  quick-lint-js/port/integer.h
+  quick-lint-js/port/simd.h
+  quick-lint-js/port/thread.cpp
+  quick-lint-js/port/thread.h
+  quick-lint-js/port/unreachable.h
+  quick-lint-js/port/warning.h
+  quick-lint-js/port/windows-error.cpp
+  quick-lint-js/port/windows-error.h
+  quick-lint-js/port/windows.h
   quick-lint-js/simdjson.cpp
   quick-lint-js/simdjson.h
-  quick-lint-js/thread.cpp
-  quick-lint-js/thread.h
-  quick-lint-js/unreachable.h
   quick-lint-js/utf-16.cpp
   quick-lint-js/utf-16.h
   quick-lint-js/utf-8.cpp
   quick-lint-js/utf-8.h
   quick-lint-js/version.h
-  quick-lint-js/warning.h
   quick-lint-js/web-demo-location.cpp
   quick-lint-js/web-demo-location.h
-  quick-lint-js/windows-error.cpp
-  quick-lint-js/windows-error.h
-  quick-lint-js/windows.h
 )
 target_compile_definitions(
   quick-lint-js-lib
@@ -273,7 +273,6 @@ endif ()
 # in production code.
 quick_lint_js_add_library(
   quick-lint-js-lib-debug
-  quick-lint-js/char8-debug.cpp
   quick-lint-js/cli/cli-location-debug.cpp
   quick-lint-js/cli/emacs-location-debug.cpp
   quick-lint-js/cli/vim-location-debug.cpp
@@ -283,6 +282,7 @@ quick_lint_js_add_library(
   quick-lint-js/fe/language-debug.cpp
   quick-lint-js/fe/lex-debug.cpp
   quick-lint-js/lsp/lsp-location-debug.cpp
+  quick-lint-js/port/char8-debug.cpp
 )
 target_link_libraries(quick-lint-js-lib-debug PUBLIC boost quick-lint-js-lib)
 

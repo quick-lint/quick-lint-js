@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 bool operator==(source_code_span x, string8_view y) noexcept {

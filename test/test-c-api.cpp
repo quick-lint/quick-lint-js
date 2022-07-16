@@ -3,8 +3,8 @@
 
 #include <gtest/gtest.h>
 #include <quick-lint-js/c-api.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/i18n/translation-table.h>
+#include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 namespace {

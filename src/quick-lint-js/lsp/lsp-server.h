@@ -10,7 +10,6 @@
 
 #include <cstddef>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/document.h>
@@ -21,6 +20,7 @@
 #include <quick-lint-js/lsp/lsp-message-parser.h>
 #include <quick-lint-js/lsp/lsp-workspace-configuration.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/port/char8.h>
 #include <simdjson.h>
 #include <string>
 #include <unordered_map>

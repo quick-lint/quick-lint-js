@@ -11,8 +11,8 @@
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp/lsp-diag-reporter.h>
-#include <quick-lint-js/unreachable.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/port/warning.h>
 #include <string>
 
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")

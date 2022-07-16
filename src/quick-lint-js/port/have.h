@@ -4,8 +4,8 @@
 // See ADR001-Feature-testing-with-have-h.md for usage of and rationale for this
 // file.
 
-#ifndef QUICK_LINT_JS_HAVE_H
-#define QUICK_LINT_JS_HAVE_H
+#ifndef QUICK_LINT_JS_PORT_HAVE_H
+#define QUICK_LINT_JS_PORT_HAVE_H
 
 #if defined(QLJS_HAVE_VERSION_HEADER) && QLJS_HAVE_VERSION_HEADER
 #elif defined(__has_include)

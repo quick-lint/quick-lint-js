@@ -6,8 +6,8 @@
 
 #include <cstddef>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
-#include <quick-lint-js/thread.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/thread.h>
 #include <utility>
 
 namespace quick_lint_js {

@@ -4,7 +4,7 @@
 #ifndef QUICK_LINT_JS_JSX_H
 #define QUICK_LINT_JS_JSX_H
 
-#include <quick-lint-js/char8.h>
+#include <quick-lint-js/port/char8.h>
 #include <unordered_map>
 
 namespace quick_lint_js {

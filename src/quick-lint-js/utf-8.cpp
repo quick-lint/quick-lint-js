@@ -3,8 +3,8 @@
 
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/utf-8.h>
-#include <quick-lint-js/warning.h>
 
 namespace quick_lint_js {
 // See: https://www.unicode.org/versions/Unicode11.0.0/ch03.pdf

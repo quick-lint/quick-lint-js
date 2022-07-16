@@ -6,9 +6,9 @@
 #include <cstring>
 #include <optional>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/i18n/translation.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/warning.h>
 #include <string>
 #include <string_view>
 #include <vector>

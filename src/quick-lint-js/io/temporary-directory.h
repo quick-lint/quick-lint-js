@@ -9,8 +9,8 @@
 #else
 
 #include <quick-lint-js/container/result.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/port/have.h>
 #include <string>
 #include <string_view>
 

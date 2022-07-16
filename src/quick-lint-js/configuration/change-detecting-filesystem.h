@@ -11,11 +11,11 @@
 #include <memory>
 #include <optional>
 #include <quick-lint-js/configuration/configuration-loader.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/warning.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -33,7 +33,7 @@ struct kevent;
 #endif
 
 #if QLJS_HAVE_WINDOWS_H
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #include <winioctl.h>
 #endif
 

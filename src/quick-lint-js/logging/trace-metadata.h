@@ -4,7 +4,7 @@
 #ifndef QUICK_LINT_JS_LOGGING_TRACE_METADATA_H
 #define QUICK_LINT_JS_LOGGING_TRACE_METADATA_H
 
-#include <quick-lint-js/char8.h>
+#include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 extern const char8 trace_metadata[];

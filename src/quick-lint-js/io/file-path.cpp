@@ -2,13 +2,13 @@
 // See end of file for extended copyright information.
 
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/port/have.h>
 #include <quick-lint-js/utf-16.h>
 
 #if QLJS_HAVE_WINDOWS_H
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #include <pathcch.h>
 #endif
 

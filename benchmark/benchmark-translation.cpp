@@ -3,9 +3,9 @@
 
 #include <benchmark/benchmark.h>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/i18n/translation.h>
+#include <quick-lint-js/port/char8.h>
 
 using namespace std::literals::string_view_literals;
 

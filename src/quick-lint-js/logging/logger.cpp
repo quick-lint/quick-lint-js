@@ -8,12 +8,12 @@
 #include <cstdio>
 #include <memory>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/logger.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/thread.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/port/warning.h>
 #include <string.h>
 #include <vector>
 

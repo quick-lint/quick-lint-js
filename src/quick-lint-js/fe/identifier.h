@@ -5,9 +5,9 @@
 #define QUICK_LINT_JS_FE_IDENTIFIER_H
 
 #include <cstddef>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 class identifier {

@@ -5,7 +5,7 @@
 #define QUICK_LINT_JS_UTF_16_H
 
 #include <optional>
-#include <quick-lint-js/char8.h>
+#include <quick-lint-js/port/char8.h>
 #include <string>
 #include <string_view>
 #include <vector>

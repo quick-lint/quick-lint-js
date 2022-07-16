@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <iostream>
-#include <quick-lint-js/thread.h>
+#include <quick-lint-js/port/thread.h>
 
 namespace quick_lint_js {
 namespace {

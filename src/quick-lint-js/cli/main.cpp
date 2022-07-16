@@ -6,7 +6,6 @@
 #include <cstring>
 #include <iomanip>
 #include <optional>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli/emacs-lisp-diag-reporter.h>
 #include <quick-lint-js/cli/emacs-location.h>
 #include <quick-lint-js/cli/options.h>
@@ -37,7 +36,8 @@
 #include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/lsp/lsp-pipe-writer.h>
 #include <quick-lint-js/lsp/lsp-server.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/utf-16.h>
 #include <quick-lint-js/version.h>
 #include <string>

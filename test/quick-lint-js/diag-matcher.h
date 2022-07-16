@@ -7,13 +7,13 @@
 #include <cstddef>
 #include <gmock/gmock.h>
 #include <optional>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/port/char8.h>
 #include <vector>
 
 #define DIAG_TYPE_FIELD(diag_type, member, matcher) \

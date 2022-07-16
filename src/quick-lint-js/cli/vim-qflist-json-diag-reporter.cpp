@@ -9,7 +9,7 @@
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/port/unreachable.h>
 #include <string>
 
 using namespace std::literals::string_view_literals;

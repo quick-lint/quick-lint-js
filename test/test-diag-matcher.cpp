@@ -9,7 +9,7 @@
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
-#include <quick-lint-js/unreachable.h>
+#include <quick-lint-js/port/unreachable.h>
 #include <string_view>
 
 using namespace std::literals::string_view_literals;

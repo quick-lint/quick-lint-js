@@ -10,7 +10,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/char8.h>
+#include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/spy-lsp-message-parser.h>
 #include <vector>
 

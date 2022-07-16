@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <quick-lint-js/container/heap-function.h>
-#include <quick-lint-js/warning.h>
+#include <quick-lint-js/port/warning.h>
 
 QLJS_WARNING_IGNORE_CLANG("-Wunused-member-function")
 

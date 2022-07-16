@@ -5,7 +5,6 @@
 #define QUICK_LINT_JS_CLI_TEXT_DIAG_REPORTER_H
 
 #include <optional>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/cli/options.h>
 #include <quick-lint-js/container/padded-string.h>
@@ -16,6 +15,7 @@
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/location.h>
+#include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 class text_diag_formatter;

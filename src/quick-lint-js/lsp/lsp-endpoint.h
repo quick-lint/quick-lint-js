@@ -10,14 +10,14 @@
 
 #include <cstddef>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/container/byte-buffer.h>
-#include <quick-lint-js/have.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
+#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
+#include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/simdjson.h>
-#include <quick-lint-js/unreachable.h>
-#include <quick-lint-js/warning.h>
 #include <simdjson.h>
 #include <tuple>
 #include <utility>

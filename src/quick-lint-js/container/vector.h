@@ -10,10 +10,10 @@
 #include <cstdint>
 #include <memory>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/attribute.h>
 #include <quick-lint-js/container/winkable.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/port/attribute.h>
 #include <string_view>
 #include <type_traits>
 #include <utility>

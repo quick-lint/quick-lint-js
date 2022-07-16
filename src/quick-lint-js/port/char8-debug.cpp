@@ -1,58 +1,38 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_WINDOWS_H
-#define QUICK_LINT_JS_WINDOWS_H
+#include <ostream>
+#include <quick-lint-js/port/char8.h>
+#include <string_view>
 
-#ifndef QUICK_LINT_JS_WINDOWS_H
-#define WIN32_LEAN_AND_MEAN
+namespace quick_lint_js {
+#if QLJS_HAVE_CHAR8_T
+std::ostream &operator<<(std::ostream &out, streamable_string8_view sv) {
+  out << std::string_view(reinterpret_cast<const char *>(sv.sv_.data()),
+                          sv.sv_.size());
+  return out;
+}
 #endif
+}
 
-#define NOATOM
-#define NOCLIPBOARD
-#define NOCOLOR
-#define NOCOMM
-#define NOCRYPT
-#define NOCTLMGR
-#define NODEFERWINDOWPOS
-#define NODRAWTEXT
-#define NOGDI
-#define NOGDICAPMASKS
-#define NOHELP
-#define NOICONS
-#define NOKANJI
-#define NOKERNEL
-#define NOKEYSTATES
-#define NOMB
-#define NOMCX
-#define NOMEMMGR
-#define NOMENUS
-#define NOMETAFILE
-#if !defined(NOMINMAX)
-#define NOMINMAX
+namespace testing::internal {
+#if QLJS_HAVE_CHAR8_T
+template <>
+void PrintTo(const char8_t &c, std::ostream *out) {
+  *out << static_cast<char>(c);
+}
+
+template <>
+void PrintTo(const char8_t *const &s, std::ostream *out) {
+  *out << reinterpret_cast<const char *>(s);
+}
+
+template <>
+void PrintTo(char8_t *const &s, std::ostream *out) {
+  PrintTo(const_cast<const char8_t *>(s), out);
+}
 #endif
-#define NOMSG
-#define NOOPENFILE
-#define NOPROFILER
-#define NORASTEROPS
-#define NOSCROLL
-#define NOSERVICE
-#define NOSHOWWINDOW
-#define NOSOUND
-#define NOSYSCOMMANDS
-#define NOSYSMETRICS
-#define NOTEXTMETRIC
-#define NOUSER
-#define NOVIRTUALKEYCODES
-#define NOWH
-#define NOWINMESSAGES
-#define NOWINOFFSETS
-#define NOWINSTYLES
-#define OEMRESOURCE
-
-#include <windows.h>
-
-#endif
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

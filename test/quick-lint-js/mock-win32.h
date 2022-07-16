@@ -5,10 +5,10 @@
 #define QUICK_LINT_JS_MOCK_WIN32_H
 
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
-#include <quick-lint-js/have.h>
+#include <quick-lint-js/port/have.h>
 
 #if QLJS_HAVE_WINDOWS_H
-#include <quick-lint-js/windows.h>
+#include <quick-lint-js/port/windows.h>
 #endif
 
 namespace quick_lint_js {
