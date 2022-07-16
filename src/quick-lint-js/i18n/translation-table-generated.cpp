@@ -5,7 +5,7 @@
 // See end of file for extended copyright information.
 
 #include <array>
-#include <quick-lint-js/translation-table.h>
+#include <quick-lint-js/i18n/translation-table.h>
 
 namespace quick_lint_js {
 const translation_table translation_data = {

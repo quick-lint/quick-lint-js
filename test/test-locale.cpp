@@ -2,7 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <gmock/gmock.h>
-#include <quick-lint-js/locale.h>
+#include <quick-lint-js/i18n/locale.h>
 
 using ::testing::ElementsAre;
 

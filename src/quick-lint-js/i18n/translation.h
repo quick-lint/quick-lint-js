@@ -7,8 +7,8 @@
 #include <cstdint>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/consteval.h>
-#include <quick-lint-js/locale.h>
-#include <quick-lint-js/translation-table.h>
+#include <quick-lint-js/i18n/locale.h>
+#include <quick-lint-js/i18n/translation-table.h>
 #include <string>
 #include <string_view>
 #include <vector>

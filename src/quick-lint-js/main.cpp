@@ -16,6 +16,7 @@
 #include <quick-lint-js/emacs-lisp-diag-reporter.h>
 #include <quick-lint-js/emacs-location.h>
 #include <quick-lint-js/event-loop.h>
+#include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/pipe-writer.h>
 #include <quick-lint-js/language.h>
@@ -32,7 +33,6 @@
 #include <quick-lint-js/reported-diag-statistics.h>
 #include <quick-lint-js/text-diag-reporter.h>
 #include <quick-lint-js/trace-flusher.h>
-#include <quick-lint-js/translation.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
 #include <quick-lint-js/variant.h>

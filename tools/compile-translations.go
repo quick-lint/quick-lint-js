@@ -112,10 +112,10 @@ func main() {
 	locales[""] = ExtractGMOStrings(sourceGMO)
 
 	table := CreateTranslationTable(locales)
-	if err := WriteTranslationTableHeader(&table, "src/quick-lint-js/translation-table-generated.h"); err != nil {
+	if err := WriteTranslationTableHeader(&table, "src/quick-lint-js/i18n/translation-table-generated.h"); err != nil {
 		log.Fatal(err)
 	}
-	if err := WriteTranslationTableSource(&table, "src/quick-lint-js/translation-table-generated.cpp"); err != nil {
+	if err := WriteTranslationTableSource(&table, "src/quick-lint-js/i18n/translation-table-generated.cpp"); err != nil {
 		log.Fatal(err)
 	}
 	if err := WriteTranslationTest(locales, "test/quick-lint-js/test-translation-table-generated.h"); err != nil {
@@ -415,8 +415,8 @@ func WriteTranslationTableHeader(table *TranslationTable, path string) error {
 #include <iterator>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/consteval.h>
+#include <quick-lint-js/i18n/translation-table.h>
 #include <quick-lint-js/sorted-search.h>
-#include <quick-lint-js/translation-table.h>
 #include <string_view>
 
 namespace quick_lint_js {
@@ -482,7 +482,7 @@ func WriteTranslationTableSource(table *TranslationTable, path string) error {
 	writer.WriteString(
 		`
 #include <array>
-#include <quick-lint-js/translation-table.h>
+#include <quick-lint-js/i18n/translation-table.h>
 
 namespace quick_lint_js {
 const translation_table translation_data = {
@@ -570,7 +570,7 @@ func WriteTranslationTest(locales map[string][]TranslationEntry, path string) er
 #define QUICK_LINT_JS_TEST_TRANSLATION_TABLE_GENERATED_H
 
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/translation.h>
+#include <quick-lint-js/i18n/translation.h>
 
 namespace quick_lint_js {
 // clang-format off

@@ -7,7 +7,7 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/have.h>
-#include <quick-lint-js/translation.h>
+#include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/warning.h>
 #include <string>
 #include <string_view>

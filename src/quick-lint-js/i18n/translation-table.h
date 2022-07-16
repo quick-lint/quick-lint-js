@@ -7,8 +7,8 @@
 #include <array>
 #include <cstdint>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/locale.h>
-#include <quick-lint-js/translation-table-generated.h>
+#include <quick-lint-js/i18n/locale.h>
+#include <quick-lint-js/i18n/translation-table-generated.h>
 #include <quick-lint-js/warning.h>
 
 namespace quick_lint_js {

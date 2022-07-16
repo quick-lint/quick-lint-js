@@ -8,7 +8,7 @@
 #define QUICK_LINT_JS_TEST_TRANSLATION_TABLE_GENERATED_H
 
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/translation.h>
+#include <quick-lint-js/i18n/translation.h>
 
 namespace quick_lint_js {
 // clang-format off

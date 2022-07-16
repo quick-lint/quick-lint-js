@@ -103,6 +103,13 @@ quick_lint_js_add_library(
   quick-lint-js/global-variables.h
   quick-lint-js/have.h
   quick-lint-js/heap-function.h
+  quick-lint-js/i18n/locale.cpp
+  quick-lint-js/i18n/locale.h
+  quick-lint-js/i18n/translation-table-generated.cpp
+  quick-lint-js/i18n/translation-table-generated.h
+  quick-lint-js/i18n/translation-table.h
+  quick-lint-js/i18n/translation.cpp
+  quick-lint-js/i18n/translation.h
   quick-lint-js/integer.cpp
   quick-lint-js/integer.h
   quick-lint-js/io/file-canonical.cpp
@@ -133,8 +140,6 @@ quick_lint_js_add_library(
   quick-lint-js/linked-bump-allocator.h
   quick-lint-js/lint.cpp
   quick-lint-js/lint.h
-  quick-lint-js/locale.cpp
-  quick-lint-js/locale.h
   quick-lint-js/location.cpp
   quick-lint-js/location.h
   quick-lint-js/log.h
@@ -187,11 +192,6 @@ quick_lint_js_add_library(
   quick-lint-js/trace-stream-reader.cpp
   quick-lint-js/trace-writer.cpp
   quick-lint-js/trace-writer.h
-  quick-lint-js/translation-table-generated.cpp
-  quick-lint-js/translation-table-generated.h
-  quick-lint-js/translation-table.h
-  quick-lint-js/translation.cpp
-  quick-lint-js/translation.h
   quick-lint-js/unreachable.h
   quick-lint-js/uri.cpp
   quick-lint-js/uri.h

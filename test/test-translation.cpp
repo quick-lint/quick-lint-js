@@ -8,9 +8,9 @@
 #include <quick-lint-js/diagnostic-formatter.h>
 #include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/diagnostic.h>
+#include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/test-translation-table-generated.h>
 #include <quick-lint-js/token.h>
-#include <quick-lint-js/translation.h>
 #include <string>
 #include <vector>
 

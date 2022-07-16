@@ -9,8 +9,8 @@
 #include <cstdint>
 #include <optional>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/language.h>
-#include <quick-lint-js/translation.h>
 #include <quick-lint-js/warning.h>
 #include <string_view>
 
