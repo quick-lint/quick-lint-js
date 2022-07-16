@@ -45,6 +45,7 @@ struct options {
   std::vector<int> warning_vim_bufnr_without_file;
   bool has_multiple_stdin = false;
   bool has_config_file = false;
+  bool has_vim_file_bufnr = false;
 
   bool dump_errors(output_stream &) const;
 };

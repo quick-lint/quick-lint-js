@@ -445,24 +445,12 @@ TEST(test_options, invalid_vim_file_bufnr) {
 
 TEST(test_options, no_following_filename_vim_file_bufnr) {
   {
-    options o = parse_options({"--vim-file-bufnr=1"});
+    options o = parse_options({"foo.js", "--vim-file-bufnr=1"});
+    o.output_format = output_format::vim_qflist_json;
 
     memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_TRUE(have_errors);
-    dumped_errors.flush();
-    EXPECT_EQ(dumped_errors.get_flushed_string8(),
-              u8"warning: flag: '--vim-file-bufnr=1' should be followed by an "
-              u8"input file name or --stdin\n");
-  }
-
-  {
-    options o =
-        parse_options({"--vim-file-bufnr=1", "--vim-file-bufnr=2", "a.js"});
-
-    memory_output_stream dumped_errors;
-    bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_TRUE(have_errors);
+    EXPECT_FALSE(have_errors);
     dumped_errors.flush();
     EXPECT_EQ(dumped_errors.get_flushed_string8(),
               u8"warning: flag: '--vim-file-bufnr=1' should be followed by an "
@@ -470,11 +458,25 @@ TEST(test_options, no_following_filename_vim_file_bufnr) {
   }
   {
     options o =
-        parse_options({"--vim-file-bufnr=1", "a.js", "--vim-file-bufnr=2"});
+        parse_options({"--vim-file-bufnr=1", "--vim-file-bufnr=2", "foo.js"});
+    o.output_format = output_format::vim_qflist_json;
 
     memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_TRUE(have_errors);
+    EXPECT_FALSE(have_errors);
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: flag: '--vim-file-bufnr=1' should be followed by an "
+              u8"input file name or --stdin\n");
+  }
+  {
+    options o =
+        parse_options({"--vim-file-bufnr=1", "foo.js", "--vim-file-bufnr=2"});
+    o.output_format = output_format::vim_qflist_json;
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
     dumped_errors.flush();
     EXPECT_EQ(dumped_errors.get_flushed_string8(),
               u8"warning: flag: '--vim-file-bufnr=2' should be followed by an "
@@ -482,10 +484,11 @@ TEST(test_options, no_following_filename_vim_file_bufnr) {
   }
   {
     options o = parse_options({"--vim-file-bufnr=1", "--vim-file-bufnr=2"});
+    o.output_format = output_format::vim_qflist_json;
 
     memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
-    EXPECT_TRUE(have_errors);
+    EXPECT_FALSE(have_errors);
     dumped_errors.flush();
     EXPECT_EQ(dumped_errors.get_flushed_string8(),
               u8"warning: flag: '--vim-file-bufnr=1' should be followed by an "
@@ -495,9 +498,10 @@ TEST(test_options, no_following_filename_vim_file_bufnr) {
   }
   {
     options o = parse_options({"--vim-file-bufnr=1",
-                               "a.js"
+                               "foo.js"
                                "--vim-file-bufnr=2",
                                "--stdin"});
+    o.output_format = output_format::vim_qflist_json;
 
     memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
@@ -509,6 +513,63 @@ TEST(test_options, no_following_filename_vim_file_bufnr) {
 
 // TODO(#201): Report warning for using --vim-file-bufnr without
 // --output-format.
+TEST(test_options, using_vim_file_bufnr_without_format) {
+  for (const auto &format : {
+           output_format::default_format,
+           output_format::gnu_like,
+           output_format::vim_qflist_json,
+           output_format::emacs_lisp,
+       }) {
+    options o = parse_options({"--vim-file-bufnr=1", "file.js"});
+    o.output_format = format;
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    dumped_errors.flush();
+
+    string8 expected;
+    switch (format) {
+    case output_format::default_format:
+    case output_format::gnu_like:
+    case output_format::emacs_lisp:
+      expected =
+          u8"warning: --output-format selected which doesn't use "
+          u8"--vim-file-bufnr\n";
+      break;
+    case output_format::vim_qflist_json:
+      expected = u8"";
+      break;
+    }
+
+    EXPECT_EQ(dumped_errors.get_flushed_string8(), expected);
+  }
+}
+
+TEST(test_options, using_vim_file_bufnr_in_lsp_mode) {
+  {
+    options o = parse_options({"--lsp-server", "--vim-file-bufnr=1"});
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: ignoring --vim-file-bufnr in --lsp-server mode\n");
+  }
+  {
+    options o = parse_options({"--lsp-server", "--vim-file-bufnr=1", "foo.js"});
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: ignoring files given on command line in --lsp-server "
+              u8"mode\n"
+              u8"warning: ignoring --vim-file-bufnr in --lsp-server mode\n");
+  }
+}
 
 TEST(test_options, invalid_option) {
   {

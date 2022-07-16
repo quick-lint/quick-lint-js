@@ -90,6 +90,7 @@ options parse_options(int argc, char** argv) {
       next_path_for_config_search = arg_value;
     } else if (const char* arg_value =
                    parser.match_option_with_value("--vim-file-bufnr"sv)) {
+      o.has_vim_file_bufnr = true;
       int bufnr;
       from_chars_result result =
           from_chars(&arg_value[0], &arg_value[std::strlen(arg_value)], bufnr);
@@ -168,6 +169,24 @@ bool options::dump_errors(output_stream& out) const {
     out.append_copy(
         u8"warning: multiple standard input given on command line\n"sv);
   }
+
+  if (this->has_vim_file_bufnr && this->lsp_server) {
+    out.append_copy(
+        u8"warning: ignoring --vim-file-bufnr in --lsp-server mode\n"sv);
+  } else if (this->has_vim_file_bufnr &&
+             this->output_format != output_format::vim_qflist_json) {
+    out.append_copy(
+        u8"warning: --output-format selected which doesn't use --vim-file-bufnr\n"sv);
+  } else {
+    for (const auto& bufnr : this->warning_vim_bufnr_without_file) {
+      out.append_copy(u8"warning: flag: '--vim-file-bufnr="sv);
+      string8_view number{to_string8(std::to_string(bufnr))};
+      out.append_copy(number);
+      out.append_copy(
+          u8"' should be followed by an input file name or --stdin\n"sv);
+    }
+  }
+
   for (const auto& option : this->error_unrecognized_options) {
     out.append_copy(u8"error: unrecognized option: "sv);
     out.append_copy(to_string8_view(option));
@@ -186,14 +205,11 @@ bool options::dump_errors(output_stream& out) const {
     out.append_copy(to_string8_view(warning));
     out.append_copy(u8'\n');
   }
-  for (const auto& bufnr : this->warning_vim_bufnr_without_file) {
-    out.append_copy(u8"warning: flag: '--vim-file-bufnr="sv);
-    string8_view number{to_string8(std::to_string(bufnr))};
-    out.append_copy(number);
-    out.append_copy(
-        u8"' should be followed by an input file name or --stdin\n"sv);
-    have_errors = true;
-  }
+
+  // Make sure the errors and warnings get displayed before anything else
+  // happens.
+  out.flush();
+
   return have_errors;
 }
 }
