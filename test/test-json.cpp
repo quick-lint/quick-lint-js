@@ -6,9 +6,9 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/output-stream.h>
 
 namespace quick_lint_js {
 namespace {

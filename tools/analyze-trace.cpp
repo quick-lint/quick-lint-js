@@ -7,12 +7,12 @@
 #include <quick-lint-js/arg-parser.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/document.h>
-#include <quick-lint-js/file-path.h>
-#include <quick-lint-js/file.h>
+#include <quick-lint-js/io/file-path.h>
+#include <quick-lint-js/io/file.h>
+#include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/lsp-location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/trace-stream-reader.h>
 #include <quick-lint-js/utf-16.h>
 #include <string>

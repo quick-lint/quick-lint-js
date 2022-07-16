@@ -10,7 +10,7 @@
 #include <cstdio>
 #include <cstring>
 #include <quick-lint-js/have.h>
-#include <quick-lint-js/pipe.h>
+#include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/windows-error.h>
 
 #if QLJS_HAVE_PIPE

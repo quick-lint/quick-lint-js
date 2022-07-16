@@ -5,9 +5,9 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/options.h>
-#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/text-diag-reporter.h>
 #include <string>

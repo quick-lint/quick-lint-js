@@ -8,8 +8,8 @@
 #include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/integer.h>
+#include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/narrow-cast.h>
 
 namespace quick_lint_js {

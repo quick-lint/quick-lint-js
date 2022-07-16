@@ -4,10 +4,10 @@
 #include <benchmark/benchmark.h>
 #include <quick-lint-js/configuration/basic-configuration-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
-#include <quick-lint-js/file.h>
+#include <quick-lint-js/io/file.h>
+#include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/options.h>
-#include <quick-lint-js/temporary-directory.h>
 #include <string>
 
 namespace quick_lint_js {

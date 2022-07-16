@@ -25,7 +25,7 @@
 #endif
 
 #if defined(QLJS_THREADS_WINDOWS)
-#include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/io/file-handle.h>
 #endif
 
 #if defined(QLJS_THREADS_POSIX)

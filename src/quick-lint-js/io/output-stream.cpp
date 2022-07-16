@@ -6,9 +6,9 @@
 #include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/warning.h>
 

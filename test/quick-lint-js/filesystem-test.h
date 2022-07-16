@@ -5,7 +5,7 @@
 #define QUICK_LINT_JS_FILESYSTEM_TEST_H
 
 #include <optional>
-#include <quick-lint-js/temporary-directory.h>
+#include <quick-lint-js/io/temporary-directory.h>
 #include <string>
 #include <vector>
 

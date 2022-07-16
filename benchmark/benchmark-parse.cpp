@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/file.h>
+#include <quick-lint-js/io/file.h>
 #include <quick-lint-js/null-visitor.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>

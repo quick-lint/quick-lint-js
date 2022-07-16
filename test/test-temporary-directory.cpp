@@ -6,10 +6,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/file-matcher.h>
-#include <quick-lint-js/file-path.h>
-#include <quick-lint-js/file.h>
+#include <quick-lint-js/io/file-path.h>
+#include <quick-lint-js/io/file.h>
+#include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/permissions.h>
-#include <quick-lint-js/temporary-directory.h>
 #include <string>
 
 #if QLJS_HAVE_UNISTD_H

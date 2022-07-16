@@ -16,6 +16,7 @@
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/log.h>
 #include <quick-lint-js/logger.h>
@@ -23,7 +24,6 @@
 #include <quick-lint-js/napi-support.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
-#include <quick-lint-js/pipe.h>
 #include <quick-lint-js/thread.h>
 #include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/trace-writer.h>

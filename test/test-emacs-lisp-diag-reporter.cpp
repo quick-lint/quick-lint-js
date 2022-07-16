@@ -6,8 +6,8 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/emacs-lisp-diag-reporter.h>
 #include <quick-lint-js/emacs-location.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {

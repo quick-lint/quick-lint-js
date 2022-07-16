@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <optional>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/utf-16.h>
 #include <quick-lint-js/windows-error.h>

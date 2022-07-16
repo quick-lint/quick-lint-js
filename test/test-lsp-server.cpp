@@ -16,9 +16,9 @@
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/fake-configuration-filesystem.h>
-#include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/heap-function.h>
+#include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-server.h>
 #include <quick-lint-js/padded-string.h>

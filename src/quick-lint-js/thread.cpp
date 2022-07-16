@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <cstring>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/thread.h>
 #include <utility>

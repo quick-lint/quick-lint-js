@@ -6,7 +6,7 @@
 #else
 
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
-#include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/io/file-handle.h>
 #include <string>
 
 using namespace std::literals::string_literals;

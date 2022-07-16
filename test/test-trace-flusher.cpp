@@ -7,10 +7,10 @@
 #include <optional>
 #include <quick-lint-js/async-byte-queue.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/file-handle.h>
-#include <quick-lint-js/file.h>
 #include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/io/file.h>
 #include <quick-lint-js/log.h>
 #include <quick-lint-js/thread.h>
 #include <quick-lint-js/trace-flusher.h>

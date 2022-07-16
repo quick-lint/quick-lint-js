@@ -8,9 +8,9 @@
 #include <quick-lint-js/benchmark-config.h>
 #include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
-#include <quick-lint-js/pipe.h>
+#include <quick-lint-js/io/file.h>
+#include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/process.h>
 #include <spawn.h>
 #include <string>

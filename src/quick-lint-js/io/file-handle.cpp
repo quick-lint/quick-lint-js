@@ -9,10 +9,10 @@
 #include <limits>
 #include <optional>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/pipe.h>
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/windows-error.h>
 #include <string>

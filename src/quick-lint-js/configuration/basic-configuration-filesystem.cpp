@@ -5,8 +5,8 @@
 
 #include <quick-lint-js/configuration/basic-configuration-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
-#include <quick-lint-js/file-canonical.h>
-#include <quick-lint-js/file.h>
+#include <quick-lint-js/io/file-canonical.h>
+#include <quick-lint-js/io/file.h>
 #include <quick-lint-js/result.h>
 #include <string>
 

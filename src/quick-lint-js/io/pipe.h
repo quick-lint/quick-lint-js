@@ -8,7 +8,7 @@
 // No pipes on the web.
 #else
 
-#include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/io/file-handle.h>
 
 namespace quick_lint_js {
 struct pipe_fds {

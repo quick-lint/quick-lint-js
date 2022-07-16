@@ -10,7 +10,7 @@
 
 #include <cstddef>
 #include <optional>
-#include <quick-lint-js/file-handle.h>
+#include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/result.h>
 #include <string>
 #include <string_view>

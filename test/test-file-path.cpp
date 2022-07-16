@@ -3,8 +3,8 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/file-path.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/io/file-path.h>
 
 #if QLJS_HAVE_UNISTD_H
 #include <unistd.h>

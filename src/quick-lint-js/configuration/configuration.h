@@ -8,9 +8,9 @@
 #include <cstddef>
 #include <optional>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/global-declared-variable-set.h>
 #include <quick-lint-js/global-variables.h>
+#include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/padded-string.h>
 #include <simdjson.h>

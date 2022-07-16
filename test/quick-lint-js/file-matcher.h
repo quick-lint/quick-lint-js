@@ -12,9 +12,9 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <optional>
-#include <quick-lint-js/file-canonical.h>
-#include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/io/file-canonical.h>
+#include <quick-lint-js/io/file.h>
 #include <quick-lint-js/windows-error.h>
 
 #if QLJS_HAVE_STD_FILESYSTEM

@@ -7,9 +7,9 @@
 #include <iostream>
 #include <quick-lint-js/diag-code-list.h>
 #include <quick-lint-js/diagnostic-types.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/options.h>
-#include <quick-lint-js/output-stream.h>
 #include <string_view>
 #include <vector>
 

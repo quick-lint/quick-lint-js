@@ -3,8 +3,8 @@
 
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/json.h>
-#include <quick-lint-js/output-stream.h>
 #include <quick-lint-js/unreachable.h>
 #include <string>
 #include <string_view>

@@ -13,7 +13,7 @@
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/document.h>
-#include <quick-lint-js/file-canonical.h>
+#include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/lsp-endpoint.h>
 #include <quick-lint-js/lsp-location.h>

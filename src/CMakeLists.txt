@@ -98,14 +98,6 @@ quick_lint_js_add_library(
   quick-lint-js/event-loop.h
   quick-lint-js/expression.h
   quick-lint-js/feature.h
-  quick-lint-js/file-canonical.cpp
-  quick-lint-js/file-canonical.h
-  quick-lint-js/file-handle.cpp
-  quick-lint-js/file-handle.h
-  quick-lint-js/file-path.cpp
-  quick-lint-js/file-path.h
-  quick-lint-js/file.cpp
-  quick-lint-js/file.h
   quick-lint-js/global-variables-browser-generated.cpp
   quick-lint-js/global-variables.cpp
   quick-lint-js/global-variables.h
@@ -113,6 +105,22 @@ quick_lint_js_add_library(
   quick-lint-js/heap-function.h
   quick-lint-js/integer.cpp
   quick-lint-js/integer.h
+  quick-lint-js/io/file-canonical.cpp
+  quick-lint-js/io/file-canonical.h
+  quick-lint-js/io/file-handle.cpp
+  quick-lint-js/io/file-handle.h
+  quick-lint-js/io/file-path.cpp
+  quick-lint-js/io/file-path.h
+  quick-lint-js/io/file.cpp
+  quick-lint-js/io/file.h
+  quick-lint-js/io/output-stream.cpp
+  quick-lint-js/io/output-stream.h
+  quick-lint-js/io/pipe-writer.cpp
+  quick-lint-js/io/pipe-writer.h
+  quick-lint-js/io/pipe.cpp
+  quick-lint-js/io/pipe.h
+  quick-lint-js/io/temporary-directory.cpp
+  quick-lint-js/io/temporary-directory.h
   quick-lint-js/json.cpp
   quick-lint-js/json.h
   quick-lint-js/jsx.cpp
@@ -153,8 +161,6 @@ quick_lint_js_add_library(
   quick-lint-js/optional.h
   quick-lint-js/options.cpp
   quick-lint-js/options.h
-  quick-lint-js/output-stream.cpp
-  quick-lint-js/output-stream.h
   quick-lint-js/padded-string.cpp
   quick-lint-js/padded-string.h
   quick-lint-js/parse-class.cpp
@@ -164,18 +170,12 @@ quick_lint_js_add_library(
   quick-lint-js/parse-visitor.h
   quick-lint-js/parse.cpp
   quick-lint-js/parse.h
-  quick-lint-js/pipe-writer.cpp
-  quick-lint-js/pipe-writer.h
-  quick-lint-js/pipe.cpp
-  quick-lint-js/pipe.h
   quick-lint-js/pointer.h
   quick-lint-js/reported-diag-statistics.h
   quick-lint-js/result.h
   quick-lint-js/simd.h
   quick-lint-js/simdjson.cpp
   quick-lint-js/simdjson.h
-  quick-lint-js/temporary-directory.cpp
-  quick-lint-js/temporary-directory.h
   quick-lint-js/text-diag-reporter.cpp
   quick-lint-js/text-diag-reporter.h
   quick-lint-js/thread.cpp

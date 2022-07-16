@@ -7,8 +7,8 @@
 #include <cstddef>
 #include <napi.h>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/napi-support.h>
-#include <quick-lint-js/temporary-directory.h>
 #include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/trace-writer.h>
 

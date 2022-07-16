@@ -14,10 +14,10 @@
 #include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/lsp-logging.h>
 #include <quick-lint-js/lsp-server-process.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/pipe.h>
 #include <quick-lint-js/process.h>
 #include <signal.h>
 #include <spawn.h>

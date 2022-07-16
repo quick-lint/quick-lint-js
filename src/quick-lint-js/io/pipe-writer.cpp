@@ -10,12 +10,12 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/file-handle.h>
-#include <quick-lint-js/file.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/integer.h>
+#include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/io/file.h>
+#include <quick-lint-js/io/pipe-writer.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/pipe-writer.h>
 #include <quick-lint-js/thread.h>
 
 #if QLJS_HAVE_WRITEV

@@ -4,7 +4,7 @@
 #ifndef QUICK_LINT_JS_DEBUG_PARSE_VISITOR_H
 #define QUICK_LINT_JS_DEBUG_PARSE_VISITOR_H
 
-#include <quick-lint-js/output-stream.h>
+#include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/parse-visitor.h>
 
 namespace quick_lint_js {
