@@ -4,8 +4,8 @@
 #include <cerrno>
 #include <cstdint>
 #include <cstdio>
-#include <quick-lint-js/arg-parser.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/cli/arg-parser.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/io/file.h>

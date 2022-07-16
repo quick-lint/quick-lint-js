@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <quick-lint-js/cli/vim-qflist-json-diag-reporter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/io/output-stream.h>
@@ -9,7 +10,6 @@
 #include <quick-lint-js/optional.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/unreachable.h>
-#include <quick-lint-js/vim-qflist-json-diag-reporter.h>
 #include <string>
 
 using namespace std::literals::string_view_literals;

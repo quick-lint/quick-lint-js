@@ -10,9 +10,9 @@
 #include <filesystem>
 #include <map>
 #include <memory>
-#include <quick-lint-js/arg-parser.h>
 #include <quick-lint-js/benchmark-config.h>
 #include <quick-lint-js/boost-json.h>
+#include <quick-lint-js/cli/arg-parser.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/lsp-benchmarks.h>
 #include <quick-lint-js/lsp-logging.h>

@@ -27,7 +27,7 @@ if (WIN32)
 endif ()
 quick_lint_js_add_executable(
   quick-lint-js
-  quick-lint-js/main.cpp
+  quick-lint-js/cli/main.cpp
   ${EXTRA_SOURCES}
 )
 set_target_properties(quick-lint-js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
@@ -41,8 +41,6 @@ install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 quick_lint_js_add_library(
   quick-lint-js-lib
   quick-lint-js/allocator.h
-  quick-lint-js/arg-parser.cpp
-  quick-lint-js/arg-parser.h
   quick-lint-js/assert.cpp
   quick-lint-js/assert.h
   quick-lint-js/async-byte-queue.cpp
@@ -60,8 +58,22 @@ quick_lint_js_add_library(
   quick-lint-js/c-api.h
   quick-lint-js/char8.cpp
   quick-lint-js/char8.h
-  quick-lint-js/cli-location.cpp
-  quick-lint-js/cli-location.h
+  quick-lint-js/cli/arg-parser.cpp
+  quick-lint-js/cli/arg-parser.h
+  quick-lint-js/cli/cli-location.cpp
+  quick-lint-js/cli/cli-location.h
+  quick-lint-js/cli/emacs-lisp-diag-reporter.cpp
+  quick-lint-js/cli/emacs-lisp-diag-reporter.h
+  quick-lint-js/cli/emacs-location.cpp
+  quick-lint-js/cli/emacs-location.h
+  quick-lint-js/cli/options.cpp
+  quick-lint-js/cli/options.h
+  quick-lint-js/cli/text-diag-reporter.cpp
+  quick-lint-js/cli/text-diag-reporter.h
+  quick-lint-js/cli/vim-location.cpp
+  quick-lint-js/cli/vim-location.h
+  quick-lint-js/cli/vim-qflist-json-diag-reporter.cpp
+  quick-lint-js/cli/vim-qflist-json-diag-reporter.h
   quick-lint-js/configuration/basic-configuration-filesystem.cpp
   quick-lint-js/configuration/basic-configuration-filesystem.h
   quick-lint-js/configuration/change-detecting-filesystem-inotify.cpp
@@ -78,10 +90,6 @@ quick_lint_js_add_library(
   quick-lint-js/crash.h
   quick-lint-js/document.cpp
   quick-lint-js/document.h
-  quick-lint-js/emacs-lisp-diag-reporter.cpp
-  quick-lint-js/emacs-lisp-diag-reporter.h
-  quick-lint-js/emacs-location.cpp
-  quick-lint-js/emacs-location.h
   quick-lint-js/event-loop.h
   quick-lint-js/fe/buffering-diag-reporter.cpp
   quick-lint-js/fe/buffering-diag-reporter.h
@@ -174,8 +182,6 @@ quick_lint_js_add_library(
   quick-lint-js/math-overflow.h
   quick-lint-js/narrow-cast.h
   quick-lint-js/optional.h
-  quick-lint-js/options.cpp
-  quick-lint-js/options.h
   quick-lint-js/padded-string.cpp
   quick-lint-js/padded-string.h
   quick-lint-js/pointer.h
@@ -183,8 +189,6 @@ quick_lint_js_add_library(
   quick-lint-js/simd.h
   quick-lint-js/simdjson.cpp
   quick-lint-js/simdjson.h
-  quick-lint-js/text-diag-reporter.cpp
-  quick-lint-js/text-diag-reporter.h
   quick-lint-js/thread.cpp
   quick-lint-js/thread.h
   quick-lint-js/trace-flusher.cpp
@@ -203,10 +207,6 @@ quick_lint_js_add_library(
   quick-lint-js/utf-8.h
   quick-lint-js/vector.h
   quick-lint-js/version.h
-  quick-lint-js/vim-location.cpp
-  quick-lint-js/vim-location.h
-  quick-lint-js/vim-qflist-json-diag-reporter.cpp
-  quick-lint-js/vim-qflist-json-diag-reporter.h
   quick-lint-js/warning.h
   quick-lint-js/web-demo-location.cpp
   quick-lint-js/web-demo-location.h
@@ -274,15 +274,15 @@ endif ()
 quick_lint_js_add_library(
   quick-lint-js-lib-debug
   quick-lint-js/char8-debug.cpp
-  quick-lint-js/cli-location-debug.cpp
-  quick-lint-js/emacs-location-debug.cpp
+  quick-lint-js/cli/cli-location-debug.cpp
+  quick-lint-js/cli/emacs-location-debug.cpp
+  quick-lint-js/cli/vim-location-debug.cpp
   quick-lint-js/fe/diag-debug.cpp
   quick-lint-js/fe/lex-debug.cpp
   quick-lint-js/language-debug.cpp
   quick-lint-js/lsp/lsp-location-debug.cpp
   quick-lint-js/padded-string-debug.cpp
   quick-lint-js/vector-profiler-debug.cpp
-  quick-lint-js/vim-location-debug.cpp
 )
 target_link_libraries(quick-lint-js-lib-debug PUBLIC boost quick-lint-js-lib)
 

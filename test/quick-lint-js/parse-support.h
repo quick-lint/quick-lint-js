@@ -11,7 +11,7 @@
 #include <optional>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/dirty-set.h>
 #include <quick-lint-js/fe/null-visitor.h>

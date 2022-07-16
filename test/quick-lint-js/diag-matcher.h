@@ -8,7 +8,7 @@
 #include <gmock/gmock.h>
 #include <optional>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/lex.h>

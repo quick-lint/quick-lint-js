@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <quick-lint-js/cli/options.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/options.h>
 #include <vector>
 
 extern "C" {

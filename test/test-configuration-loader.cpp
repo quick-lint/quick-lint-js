@@ -11,6 +11,7 @@
 #include <cstring>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <quick-lint-js/cli/options.h>
 #include <quick-lint-js/configuration/basic-configuration-filesystem.h>
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
@@ -25,7 +26,6 @@
 #include <quick-lint-js/mock-inotify.h>
 #include <quick-lint-js/mock-kqueue.h>
 #include <quick-lint-js/mock-win32.h>
-#include <quick-lint-js/options.h>
 #include <quick-lint-js/permissions.h>
 #include <quick-lint-js/thread.h>
 #include <quick-lint-js/warning.h>

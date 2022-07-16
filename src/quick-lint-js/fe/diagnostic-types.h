@@ -6,7 +6,7 @@
 
 #include <iosfwd>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/token.h>

@@ -2,12 +2,11 @@
 // See end of file for extended copyright information.
 
 #include <ostream>
-#include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/cli/vim-location.h>
 
 namespace quick_lint_js {
-std::ostream &operator<<(std::ostream &out, const cli_source_position &p) {
-  out << "cli_source_position{" << p.line_number << ',' << p.column_number
-      << ',' << p.offset << '}';
+std::ostream &operator<<(std::ostream &out, const vim_source_position &p) {
+  out << "vim_source_position{" << p.lnum << ',' << p.col << '}';
   return out;
 }
 }

@@ -2,7 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <ostream>
-#include <quick-lint-js/emacs-location.h>
+#include <quick-lint-js/cli/emacs-location.h>
 
 namespace quick_lint_js {
 std::ostream &operator<<(std::ostream &out, const emacs_source_position &p) {

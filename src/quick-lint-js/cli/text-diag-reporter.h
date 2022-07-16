@@ -1,12 +1,13 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_EMACS_DIAG_REPORTER_H
-#define QUICK_LINT_JS_EMACS_DIAG_REPORTER_H
+#ifndef QUICK_LINT_JS_TEXT_DIAG_REPORTER_H
+#define QUICK_LINT_JS_TEXT_DIAG_REPORTER_H
 
 #include <optional>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/emacs-location.h>
+#include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/cli/options.h>
 #include <quick-lint-js/fe/diag-reporter.h>
 #include <quick-lint-js/fe/diagnostic-formatter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
@@ -17,28 +18,30 @@
 #include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
-class emacs_lisp_diag_formatter;
+class text_diag_formatter;
 
-class emacs_lisp_diag_reporter final : public diag_reporter {
+class text_diag_reporter final : public diag_reporter {
  public:
-  explicit emacs_lisp_diag_reporter(translator, output_stream *output);
+  explicit text_diag_reporter(translator, output_stream *output,
+                              bool escape_errors);
 
-  void set_source(padded_string_view input);
-  void finish();
+  void set_source(padded_string_view input, const char *file_name);
 
   void report_impl(diag_type type, void *diag) override;
 
  private:
   output_stream &output_;
   translator translator_;
-  std::optional<emacs_locator> locator_;
+  std::optional<cli_locator> locator_;
+  const char *file_path_;
+  bool format_escape_errors_;
 };
 
-class emacs_lisp_diag_formatter
-    : public diagnostic_formatter<emacs_lisp_diag_formatter> {
+class text_diag_formatter : public diagnostic_formatter<text_diag_formatter> {
  public:
-  explicit emacs_lisp_diag_formatter(translator, output_stream *output,
-                                     emacs_locator &locator);
+  explicit text_diag_formatter(translator, output_stream *output,
+                               const char *file_path, cli_locator &locator,
+                               bool format_escape_errors);
 
   void write_before_message(std::string_view code, diagnostic_severity,
                             const source_code_span &origin);
@@ -49,7 +52,9 @@ class emacs_lisp_diag_formatter
 
  private:
   output_stream &output_;
-  emacs_locator &locator_;
+  const char *file_path_;
+  cli_locator &locator_;
+  bool format_escape_errors_;
 };
 }
 

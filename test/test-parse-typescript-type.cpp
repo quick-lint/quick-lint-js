@@ -7,7 +7,7 @@
 #include <iterator>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/cli-location.h>
+#include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/fe/diagnostic-types.h>

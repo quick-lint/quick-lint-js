@@ -7,12 +7,15 @@
 #include <iomanip>
 #include <optional>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/cli/emacs-lisp-diag-reporter.h>
+#include <quick-lint-js/cli/emacs-location.h>
+#include <quick-lint-js/cli/options.h>
+#include <quick-lint-js/cli/text-diag-reporter.h>
+#include <quick-lint-js/cli/vim-qflist-json-diag-reporter.h>
 #include <quick-lint-js/configuration/basic-configuration-filesystem.h>
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
-#include <quick-lint-js/emacs-lisp-diag-reporter.h>
-#include <quick-lint-js/emacs-location.h>
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/fe/debug-parse-visitor.h>
 #include <quick-lint-js/fe/diag-code-list.h>
@@ -29,9 +32,7 @@
 #include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/lsp/lsp-pipe-writer.h>
 #include <quick-lint-js/lsp/lsp-server.h>
-#include <quick-lint-js/options.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/text-diag-reporter.h>
 #include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
@@ -39,7 +40,6 @@
 #include <quick-lint-js/vector-profiler.h>
 #include <quick-lint-js/vector.h>
 #include <quick-lint-js/version.h>
-#include <quick-lint-js/vim-qflist-json-diag-reporter.h>
 #include <string>
 #include <tuple>
 #include <unordered_map>

@@ -4,12 +4,12 @@
 #ifndef QUICK_LINT_JS_REPORTED_DIAG_STATISTICS_H
 #define QUICK_LINT_JS_REPORTED_DIAG_STATISTICS_H
 
+#include <quick-lint-js/cli/text-diag-reporter.h>
+#include <quick-lint-js/cli/vim-qflist-json-diag-reporter.h>
 #include <quick-lint-js/fe/diag-code-list.h>
 #include <quick-lint-js/fe/diag-reporter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/token.h>
-#include <quick-lint-js/text-diag-reporter.h>
-#include <quick-lint-js/vim-qflist-json-diag-reporter.h>
 
 namespace quick_lint_js {
 template <typename T>

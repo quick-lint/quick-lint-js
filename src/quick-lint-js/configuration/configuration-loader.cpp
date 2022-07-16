@@ -4,12 +4,12 @@
 #if !defined(__EMSCRIPTEN__)
 
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/cli/options.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/io/file.h>
-#include <quick-lint-js/options.h>
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/warning.h>
 #include <string_view>
