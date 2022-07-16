@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/utf-8.h>
 #include <quick-lint-js/warning.h>
 

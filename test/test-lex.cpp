@@ -11,13 +11,13 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/characters.h>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-support.h>
 #include <quick-lint-js/source-location.h>
 #include <quick-lint-js/utf-8.h>

@@ -6,8 +6,8 @@
 
 #include <new>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/variant.h>
 #include <quick-lint-js/unreachable.h>
-#include <quick-lint-js/variant.h>
 #include <string>
 #include <type_traits>
 #include <utility>

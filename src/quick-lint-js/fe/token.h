@@ -6,8 +6,8 @@
 
 #include <iosfwd>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/monotonic-allocator.h>
-#include <quick-lint-js/vector.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
+#include <quick-lint-js/container/vector.h>
 #include <vector>
 
 #define QLJS_CASE_RESERVED_KEYWORD_EXCEPT_AWAIT_AND_FUNCTION_AND_YIELD \

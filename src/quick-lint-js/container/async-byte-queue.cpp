@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#include <quick-lint-js/async-byte-queue.h>
+#include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/pointer.h>
 #include <quick-lint-js/thread.h>

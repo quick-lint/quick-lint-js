@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/linked-bump-allocator.h>
 #include <quick-lint-js/jsx.h>
-#include <quick-lint-js/linked-bump-allocator.h>
 #include <string>
 #include <string_view>
 #include <unordered_map>

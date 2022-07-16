@@ -5,9 +5,9 @@
 // No LSP on the web.
 #else
 
-#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/heap-function.h>
+#include <quick-lint-js/container/byte-buffer.h>
+#include <quick-lint-js/container/heap-function.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/lsp/lsp-workspace-configuration.h>
 #include <simdjson.h>

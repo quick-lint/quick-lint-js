@@ -6,8 +6,8 @@
 #include <cstddef>
 #include <cstdlib>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/padded-string.h>
 #include <simdjson.h>
 #include <string>
 #include <utility>

@@ -9,7 +9,8 @@
 #else
 
 #include <optional>
-#include <quick-lint-js/byte-buffer.h>
+#include <quick-lint-js/container/byte-buffer.h>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/diag-reporter.h>
 #include <quick-lint-js/fe/diagnostic-formatter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
@@ -17,7 +18,6 @@
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp/lsp-location.h>
-#include <quick-lint-js/padded-string.h>
 #include <string>
 
 namespace quick_lint_js {

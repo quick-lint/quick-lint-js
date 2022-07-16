@@ -9,6 +9,7 @@
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/fe/diag-reporter.h>
@@ -23,7 +24,6 @@
 #include <quick-lint-js/logger.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/napi-support.h>
-#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/thread.h>
 #include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/trace-writer.h>

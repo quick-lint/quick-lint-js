@@ -12,9 +12,9 @@
 #include <map>
 #include <ostream>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/vector-profiler.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/vector-profiler.h>
-#include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 #include <string>
 

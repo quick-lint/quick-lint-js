@@ -4,10 +4,10 @@
 #include <benchmark/benchmark.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/generate-code.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/padded-string.h>
 
 namespace quick_lint_js {
 namespace {

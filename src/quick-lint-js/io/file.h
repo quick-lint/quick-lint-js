@@ -11,10 +11,10 @@
 #include <cstring>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/container/result.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-handle.h>
-#include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/result.h>
 #include <string>
 #include <vector>
 

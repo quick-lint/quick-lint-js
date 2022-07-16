@@ -12,8 +12,8 @@
 #include <iterator>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/consteval.h>
+#include <quick-lint-js/container/sorted-search.h>
 #include <quick-lint-js/i18n/translation-table.h>
-#include <quick-lint-js/sorted-search.h>
 #include <string_view>
 
 namespace quick_lint_js {

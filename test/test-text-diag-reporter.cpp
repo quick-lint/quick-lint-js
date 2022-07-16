@@ -7,9 +7,9 @@
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/cli/options.h>
 #include <quick-lint-js/cli/text-diag-reporter.h>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/padded-string.h>
 #include <string>
 
 using namespace std::literals::string_literals;

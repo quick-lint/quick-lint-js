@@ -4,11 +4,11 @@
 #include <benchmark/benchmark.h>
 #include <cstdio>
 #include <cstdlib>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/null-visitor.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/io/file.h>
-#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/warning.h>
 #include <string>
 

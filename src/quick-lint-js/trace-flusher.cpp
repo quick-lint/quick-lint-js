@@ -12,13 +12,13 @@
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/async-byte-queue.h>
+#include <quick-lint-js/container/async-byte-queue.h>
+#include <quick-lint-js/container/result.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/log.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/result.h>
 #include <quick-lint-js/thread.h>
 #include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/trace-metadata.h>

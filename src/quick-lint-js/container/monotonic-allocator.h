@@ -4,7 +4,7 @@
 #ifndef QUICK_LINT_JS_MONOTONIC_ALLOCATOR_H
 #define QUICK_LINT_JS_MONOTONIC_ALLOCATOR_H
 
-#include <quick-lint-js/linked-bump-allocator.h>
+#include <quick-lint-js/container/linked-bump-allocator.h>
 
 namespace quick_lint_js {
 using monotonic_allocator = linked_bump_allocator<alignof(void*)>;

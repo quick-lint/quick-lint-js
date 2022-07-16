@@ -40,18 +40,13 @@ install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
 quick_lint_js_add_library(
   quick-lint-js-lib
-  quick-lint-js/allocator.h
   quick-lint-js/assert.cpp
   quick-lint-js/assert.h
-  quick-lint-js/async-byte-queue.cpp
-  quick-lint-js/async-byte-queue.h
   quick-lint-js/attribute.h
   quick-lint-js/binary-reader.h
   quick-lint-js/binary-writer.h
   quick-lint-js/bit.h
   quick-lint-js/boost.cpp
-  quick-lint-js/byte-buffer.cpp
-  quick-lint-js/byte-buffer.h
   quick-lint-js/c-api-diag-reporter.cpp
   quick-lint-js/c-api-diag-reporter.h
   quick-lint-js/c-api.cpp
@@ -86,6 +81,18 @@ quick_lint_js_add_library(
   quick-lint-js/configuration/configuration.cpp
   quick-lint-js/configuration/configuration.h
   quick-lint-js/consteval.h
+  quick-lint-js/container/allocator.h
+  quick-lint-js/container/async-byte-queue.cpp
+  quick-lint-js/container/async-byte-queue.h
+  quick-lint-js/container/byte-buffer.cpp
+  quick-lint-js/container/byte-buffer.h
+  quick-lint-js/container/heap-function.h
+  quick-lint-js/container/linked-bump-allocator.h
+  quick-lint-js/container/optional.h
+  quick-lint-js/container/padded-string.cpp
+  quick-lint-js/container/padded-string.h
+  quick-lint-js/container/result.h
+  quick-lint-js/container/vector.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
   quick-lint-js/document.cpp
@@ -129,7 +136,6 @@ quick_lint_js_add_library(
   quick-lint-js/global-variables.cpp
   quick-lint-js/global-variables.h
   quick-lint-js/have.h
-  quick-lint-js/heap-function.h
   quick-lint-js/i18n/locale.cpp
   quick-lint-js/i18n/locale.h
   quick-lint-js/i18n/translation-table-generated.cpp
@@ -159,7 +165,6 @@ quick_lint_js_add_library(
   quick-lint-js/json.h
   quick-lint-js/jsx.cpp
   quick-lint-js/jsx.h
-  quick-lint-js/linked-bump-allocator.h
   quick-lint-js/location.cpp
   quick-lint-js/location.h
   quick-lint-js/log.h
@@ -181,11 +186,7 @@ quick_lint_js_add_library(
   quick-lint-js/lsp/lsp-workspace-configuration.h
   quick-lint-js/math-overflow.h
   quick-lint-js/narrow-cast.h
-  quick-lint-js/optional.h
-  quick-lint-js/padded-string.cpp
-  quick-lint-js/padded-string.h
   quick-lint-js/pointer.h
-  quick-lint-js/result.h
   quick-lint-js/simd.h
   quick-lint-js/simdjson.cpp
   quick-lint-js/simdjson.h
@@ -205,7 +206,6 @@ quick_lint_js_add_library(
   quick-lint-js/utf-16.h
   quick-lint-js/utf-8.cpp
   quick-lint-js/utf-8.h
-  quick-lint-js/vector.h
   quick-lint-js/version.h
   quick-lint-js/warning.h
   quick-lint-js/web-demo-location.cpp
@@ -277,12 +277,12 @@ quick_lint_js_add_library(
   quick-lint-js/cli/cli-location-debug.cpp
   quick-lint-js/cli/emacs-location-debug.cpp
   quick-lint-js/cli/vim-location-debug.cpp
+  quick-lint-js/container/padded-string-debug.cpp
+  quick-lint-js/container/vector-profiler-debug.cpp
   quick-lint-js/fe/diag-debug.cpp
   quick-lint-js/fe/lex-debug.cpp
   quick-lint-js/language-debug.cpp
   quick-lint-js/lsp/lsp-location-debug.cpp
-  quick-lint-js/padded-string-debug.cpp
-  quick-lint-js/vector-profiler-debug.cpp
 )
 target_link_libraries(quick-lint-js-lib-debug PUBLIC boost quick-lint-js-lib)
 

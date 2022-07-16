@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <cstring>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/integer.h>
-#include <quick-lint-js/string-view.h>
 #include <quick-lint-js/uri.h>
 #include <string>
 #include <string_view>

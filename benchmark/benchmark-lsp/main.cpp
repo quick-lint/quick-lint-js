@@ -13,12 +13,12 @@
 #include <quick-lint-js/benchmark-config.h>
 #include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/cli/arg-parser.h>
+#include <quick-lint-js/container/result.h>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/lsp-benchmarks.h>
 #include <quick-lint-js/lsp-logging.h>
 #include <quick-lint-js/lsp-server-process.h>
-#include <quick-lint-js/result.h>
-#include <quick-lint-js/string-view.h>
 #include <unistd.h>
 
 using namespace quick_lint_js;

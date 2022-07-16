@@ -6,13 +6,13 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/padded-string.h>
 #include <string_view>
 
 #if QLJS_HAVE_FCNTL_H

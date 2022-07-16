@@ -9,7 +9,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/boost-json.h>
-#include <quick-lint-js/byte-buffer.h>
+#include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/lsp/lsp-workspace-configuration.h>
 #include <quick-lint-js/parse-json.h>
 #include <simdjson.h>

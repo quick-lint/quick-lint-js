@@ -8,11 +8,12 @@
 #include <cstdlib>
 #include <cstring>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/cli/options.h>
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/byte-buffer.h>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/fe/parse.h>
@@ -23,7 +24,6 @@
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/simdjson.h>
-#include <quick-lint-js/string-view.h>
 #include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/uri.h>

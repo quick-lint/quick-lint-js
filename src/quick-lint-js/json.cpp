@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/unreachable.h>

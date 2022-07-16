@@ -8,11 +8,11 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
+#include <quick-lint-js/container/heap-function.h>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fake-configuration-filesystem.h>
-#include <quick-lint-js/heap-function.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file.h>
-#include <quick-lint-js/padded-string.h>
 #include <string>
 #include <unordered_map>
 #include <utility>

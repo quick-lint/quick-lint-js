@@ -5,12 +5,12 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/optional.h>
 #include <quick-lint-js/fe/diag-reporter.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/global-declared-variable-set.h>
-#include <quick-lint-js/optional.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/warning.h>
 #include <vector>

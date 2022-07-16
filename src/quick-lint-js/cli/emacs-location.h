@@ -7,8 +7,8 @@
 #include <cstddef>
 #include <iosfwd>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/padded-string.h>
 #include <vector>
 
 namespace quick_lint_js {

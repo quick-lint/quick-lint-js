@@ -8,8 +8,9 @@
 #include <future>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/byte-buffer.h>
+#include <quick-lint-js/container/result.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
@@ -17,7 +18,6 @@
 #include <quick-lint-js/lsp/lsp-message-parser.h>
 #include <quick-lint-js/lsp/lsp-pipe-writer.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/result.h>
 #include <thread>
 
 #if QLJS_HAVE_FCNTL_H

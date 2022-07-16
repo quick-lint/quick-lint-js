@@ -16,6 +16,10 @@
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/container/variant.h>
+#include <quick-lint-js/container/vector-profiler.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/fe/debug-parse-visitor.h>
 #include <quick-lint-js/fe/diag-code-list.h>
@@ -32,13 +36,9 @@
 #include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/lsp/lsp-pipe-writer.h>
 #include <quick-lint-js/lsp/lsp-server.h>
-#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/trace-flusher.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-16.h>
-#include <quick-lint-js/variant.h>
-#include <quick-lint-js/vector-profiler.h>
-#include <quick-lint-js/vector.h>
 #include <quick-lint-js/version.h>
 #include <string>
 #include <tuple>

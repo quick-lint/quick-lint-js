@@ -9,6 +9,9 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/bit.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/container/string-view.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/fe/buffering-diag-reporter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/lex.h>
@@ -16,12 +19,9 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/simd.h>
-#include <quick-lint-js/string-view.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/utf-8.h>
-#include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 #include <string>
 #include <type_traits>

@@ -12,8 +12,8 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/benchmark-config.h>
 #include <quick-lint-js/boost-json.h>
-#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/lsp-logging.h>
 #include <quick-lint-js/lsp-server-process.h>

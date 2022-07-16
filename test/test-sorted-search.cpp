@@ -4,7 +4,7 @@
 #include <array>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/sorted-search.h>
+#include <quick-lint-js/container/sorted-search.h>
 #include <string_view>
 
 using namespace std::literals::string_view_literals;

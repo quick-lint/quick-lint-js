@@ -8,17 +8,18 @@
 #include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/attribute.h>
+#include <quick-lint-js/container/winkable.h>
 #include <quick-lint-js/feature.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/winkable.h>
 #include <string_view>
 #include <type_traits>
 #include <utility>
 
 #if QLJS_FEATURE_VECTOR_PROFILING
-#include <quick-lint-js/vector-profiler.h>
+#include <quick-lint-js/container/vector-profiler.h>
 #endif
 
 namespace quick_lint_js {

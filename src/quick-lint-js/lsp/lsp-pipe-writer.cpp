@@ -5,12 +5,12 @@
 
 #include <algorithm>
 #include <array>
-#include <quick-lint-js/byte-buffer.h>
+#include <quick-lint-js/container/byte-buffer.h>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/lsp/lsp-pipe-writer.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/string-view.h>
 
 namespace quick_lint_js {
 namespace {

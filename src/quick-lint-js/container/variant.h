@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <new>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/unreachable.h>
 #include <type_traits>
 #include <utility>
 

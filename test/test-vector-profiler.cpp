@@ -6,10 +6,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <map>
+#include <quick-lint-js/container/linked-bump-allocator.h>
+#include <quick-lint-js/container/vector-profiler.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/feature.h>
-#include <quick-lint-js/linked-bump-allocator.h>
-#include <quick-lint-js/vector-profiler.h>
-#include <quick-lint-js/vector.h>
 #include <sstream>
 
 #if QLJS_FEATURE_VECTOR_PROFILING

@@ -5,9 +5,9 @@
 #include <cstdint>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/async-byte-queue.h>
 #include <quick-lint-js/binary-writer.h>
-#include <quick-lint-js/string-view.h>
+#include <quick-lint-js/container/async-byte-queue.h>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/trace-writer.h>
 
 using ::testing::ElementsAre;

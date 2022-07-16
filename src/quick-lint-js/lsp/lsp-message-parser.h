@@ -11,9 +11,9 @@
 #include <cstddef>
 #include <optional>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/integer.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/string-view.h>
 #include <vector>
 
 namespace quick_lint_js {

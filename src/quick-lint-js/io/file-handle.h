@@ -6,8 +6,8 @@
 
 #include <optional>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/result.h>
 #include <quick-lint-js/have.h>
-#include <quick-lint-js/result.h>
 #include <string>
 
 #if QLJS_HAVE_UNISTD_H

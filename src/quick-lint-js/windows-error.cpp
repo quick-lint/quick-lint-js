@@ -6,8 +6,8 @@
 #if QLJS_HAVE_WINDOWS_H
 
 #include <cstddef>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/string-view.h>
 #include <quick-lint-js/windows.h>
 #include <string>
 

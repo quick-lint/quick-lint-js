@@ -8,8 +8,8 @@
 #include <gtest/gtest.h>
 #include <new>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/container/linked-bump-allocator.h>
 #include <quick-lint-js/have.h>
-#include <quick-lint-js/linked-bump-allocator.h>
 #include <quick-lint-js/warning.h>
 
 namespace quick_lint_js {

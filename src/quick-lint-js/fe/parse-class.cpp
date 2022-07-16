@@ -5,6 +5,8 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/container/vector.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
 #include <quick-lint-js/fe/diag-reporter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
@@ -16,8 +18,6 @@
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/vector.h>
 #include <quick-lint-js/warning.h>
 #include <utility>
 

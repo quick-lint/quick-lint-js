@@ -6,7 +6,7 @@
 
 #include <cstddef>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/padded-string.h>
+#include <quick-lint-js/container/padded-string.h>
 
 namespace quick_lint_js {
 char8* encode_utf_8(char32_t code_point, char8* out);

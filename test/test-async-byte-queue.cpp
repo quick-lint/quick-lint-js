@@ -9,8 +9,8 @@
 #include <cstring>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/async-byte-queue.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/thread.h>
 #include <vector>
 

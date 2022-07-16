@@ -19,13 +19,13 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/result.h>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/pipe.h>
-#include <quick-lint-js/result.h>
-#include <quick-lint-js/string-view.h>
 #include <quick-lint-js/unreachable.h>
 #include <stdlib.h>
 #include <string>

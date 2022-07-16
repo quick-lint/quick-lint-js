@@ -6,8 +6,8 @@
 #include <cstring>
 #include <iterator>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/byte-buffer.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <utility>

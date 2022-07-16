@@ -8,15 +8,15 @@
 #include <cstdint>
 #include <optional>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/linked-bump-allocator.h>
+#include <quick-lint-js/container/monotonic-allocator.h>
+#include <quick-lint-js/container/optional.h>
+#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/buffering-diag-reporter.h>
 #include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/token.h>
-#include <quick-lint-js/linked-bump-allocator.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/narrow-cast.h>
-#include <quick-lint-js/optional.h>
-#include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/utf-8.h>
 #include <vector>
 

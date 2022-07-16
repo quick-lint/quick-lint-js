@@ -5,8 +5,8 @@
 #include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <deque>
 #include <memory>
-#include <quick-lint-js/allocator.h>
 #include <quick-lint-js/char8.h>
+#include <quick-lint-js/container/allocator.h>
 #include <quick-lint-js/fe/buffering-diag-reporter.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/unreachable.h>
