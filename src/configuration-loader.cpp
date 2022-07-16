@@ -28,6 +28,8 @@ loaded_config_file::loaded_config_file()
 configuration_loader::configuration_loader(configuration_filesystem* fs)
     : fs_(fs) {}
 
+configuration_loader::~configuration_loader() = default;
+
 result<loaded_config_file*, canonicalize_path_io_error, read_file_io_error>
 configuration_loader::watch_and_load_for_file(const std::string& file_path,
                                               const void* token) {

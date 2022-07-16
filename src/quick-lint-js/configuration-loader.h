@@ -80,6 +80,7 @@ struct configuration_change {
 class configuration_loader {
  public:
   explicit configuration_loader(configuration_filesystem*);
+  ~configuration_loader();
 
   configuration_filesystem* fs() noexcept { return this->fs_; }
 

@@ -25,6 +25,7 @@ class fake_configuration_filesystem : public configuration_filesystem {
   using read_file_result = result<padded_string, read_file_io_error>;
 
   explicit fake_configuration_filesystem();
+  ~fake_configuration_filesystem() override;
 
   // Create a new file, or modify an existing file.
   void create_file(const canonical_path& path, string8_view content);

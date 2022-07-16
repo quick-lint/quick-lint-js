@@ -72,6 +72,8 @@ lsp_overlay_configuration_filesystem::canonicalize_path(
   return this->underlying_fs_->canonicalize_path(path);
 }
 
+linting_lsp_server_handler::~linting_lsp_server_handler() = default;
+
 result<padded_string, read_file_io_error>
 lsp_overlay_configuration_filesystem::read_file(const canonical_path& path) {
 #if QLJS_HAVE_STD_TRANSPARENT_KEYS

@@ -87,6 +87,8 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
 
   friend message_parser;
 };
+
+extern template void lsp_message_parser<lsp_endpoint>::append(string8_view);
 }
 
 #endif

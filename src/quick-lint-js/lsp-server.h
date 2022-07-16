@@ -80,6 +80,7 @@ class linting_lsp_server_handler final : public lsp_endpoint_handler {
   explicit linting_lsp_server_handler(configuration_filesystem* fs,
                                       lsp_linter* linter,
                                       trace_flusher* tracer);
+  ~linting_lsp_server_handler() override;
 
   linting_lsp_server_config& server_config() noexcept {
     return this->server_config_;

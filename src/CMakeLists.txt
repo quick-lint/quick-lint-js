@@ -59,6 +59,7 @@ quick_lint_js_add_library(
   configuration-loader.cpp
   configuration.cpp
   diag-code-list.cpp
+  diag-reporter.cpp
   diagnostic-formatter.cpp
   diagnostic.cpp
   document.cpp

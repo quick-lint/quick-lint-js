@@ -258,6 +258,8 @@ void lsp_endpoint::write_invalid_request_error_response(
   u8R"(})"sv);
   // clang-format on
 }
+
+template void lsp_message_parser<lsp_endpoint>::append(string8_view);
 }
 
 #endif

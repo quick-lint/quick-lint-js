@@ -20,6 +20,8 @@
 namespace quick_lint_js {
 fake_configuration_filesystem::fake_configuration_filesystem() = default;
 
+fake_configuration_filesystem::~fake_configuration_filesystem() = default;
+
 void fake_configuration_filesystem::create_file(const canonical_path& path,
                                                 string8_view content) {
   this->files_.insert_or_assign(
