@@ -23,7 +23,13 @@ function main() {
   let chunkIndexType = "std::uint8_t";
   let maxChunkIndex = (1 << 8) - 1;
 
-  let outputPath = path.join(__dirname, "..", "..", "src", "lex-unicode.cpp");
+  let outputPath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "src",
+    "lex-unicode-generated.cpp"
+  );
   console.log(`Creating ${outputPath} ...`);
   let output = fs.createWriteStream(outputPath);
   output.write(

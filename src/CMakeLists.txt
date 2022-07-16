@@ -69,13 +69,13 @@ quick_lint_js_add_library(
   file-handle.cpp
   file-path.cpp
   file.cpp
-  global-variables-browser.cpp
+  global-variables-browser-generated.cpp
   global-variables.cpp
   integer.cpp
   json.cpp
   jsx.cpp
-  lex-keyword.cpp
-  lex-unicode.cpp
+  lex-keyword-generated.cpp
+  lex-unicode-generated.cpp
   lex.cpp
   lint.cpp
   locale.cpp
