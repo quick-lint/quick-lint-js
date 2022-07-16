@@ -3,11 +3,11 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/buffering-diag-reporter.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/lex.h>
+#include <quick-lint-js/fe/buffering-diag-reporter.h>
+#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/linked-bump-allocator.h>
 #include <quick-lint-js/padded-string.h>
 #include <type_traits>

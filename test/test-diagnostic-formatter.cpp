@@ -5,9 +5,9 @@
 #include <cstring>
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/diagnostic-formatter.h>
-#include <quick-lint-js/diagnostic.h>
-#include <quick-lint-js/language.h>
+#include <quick-lint-js/fe/diagnostic-formatter.h>
+#include <quick-lint-js/fe/diagnostic.h>
+#include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/location.h>
 #include <string_view>
 

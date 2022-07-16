@@ -5,9 +5,9 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/expression.h>
+#include <quick-lint-js/fe/expression.h>
+#include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/parse-support.h>
-#include <quick-lint-js/parse.h>
 #include <string>
 
 namespace quick_lint_js {

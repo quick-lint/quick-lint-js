@@ -5,10 +5,10 @@
 #include <array>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration/configuration.h>
-#include <quick-lint-js/diag-reporter.h>
+#include <quick-lint-js/fe/diag-reporter.h>
+#include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/global-declared-variable-set.h>
 #include <quick-lint-js/global-variables.h>
-#include <quick-lint-js/lint.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/warning.h>

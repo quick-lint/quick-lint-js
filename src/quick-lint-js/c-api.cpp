@@ -9,12 +9,12 @@
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/configuration/configuration.h>
-#include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/document.h>
-#include <quick-lint-js/lint.h>
+#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/fe/lint.h>
+#include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/parse.h>
 #include <quick-lint-js/web-demo-location.h>
 #include <vector>
 

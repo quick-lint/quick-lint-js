@@ -4,13 +4,13 @@
 #if !defined(__EMSCRIPTEN__)
 
 #include <quick-lint-js/byte-buffer.h>
-#include <quick-lint-js/diagnostic-types.h>
+#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/json.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp/lsp-diag-reporter.h>
 #include <quick-lint-js/optional.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/warning.h>
 #include <string>

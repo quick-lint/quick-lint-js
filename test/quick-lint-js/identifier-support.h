@@ -5,7 +5,7 @@
 #define QUICK_LINT_JS_IDENTIFIER_SUPPORT_H
 
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/identifier.h>
+#include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/location.h>
 
 namespace quick_lint_js {

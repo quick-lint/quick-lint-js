@@ -5,7 +5,7 @@
 #define QUICK_LINT_JS_OPTIONS_H
 
 #include <optional>
-#include <quick-lint-js/diag-code-list.h>
+#include <quick-lint-js/fe/diag-code-list.h>
 #include <vector>
 
 namespace quick_lint_js {

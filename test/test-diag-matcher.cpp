@@ -7,7 +7,7 @@
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/diagnostic-types.h>
+#include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/unreachable.h>
 #include <string_view>

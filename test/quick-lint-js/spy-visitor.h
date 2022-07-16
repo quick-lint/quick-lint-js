@@ -8,10 +8,10 @@
 #include <optional>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/diag-collector.h>
+#include <quick-lint-js/fe/language.h>
+#include <quick-lint-js/fe/lex.h>
+#include <quick-lint-js/fe/parse-visitor.h>
 #include <quick-lint-js/gtest.h>
-#include <quick-lint-js/language.h>
-#include <quick-lint-js/lex.h>
-#include <quick-lint-js/parse-visitor.h>
 #include <string_view>
 #include <vector>
 

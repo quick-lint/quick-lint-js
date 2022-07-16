@@ -9,11 +9,11 @@
 #include <quick-lint-js/cli-location.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/language.h>
+#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/fe/language.h>
+#include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse-support.h>
-#include <quick-lint-js/parse.h>
 #include <quick-lint-js/spy-visitor.h>
 #include <string>
 #include <string_view>

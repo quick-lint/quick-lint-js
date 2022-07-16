@@ -6,13 +6,13 @@
 
 #include <cstdint>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/diag-reporter.h>
-#include <quick-lint-js/diagnostic-formatter.h>
-#include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/diagnostic.h>
+#include <quick-lint-js/fe/diag-reporter.h>
+#include <quick-lint-js/fe/diagnostic-formatter.h>
+#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/fe/diagnostic.h>
+#include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/token.h>
 #include <quick-lint-js/warning.h>
 #include <vector>
 

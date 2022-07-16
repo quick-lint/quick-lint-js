@@ -5,8 +5,8 @@
 #include <gtest/gtest.h>
 #include <initializer_list>
 #include <iostream>
-#include <quick-lint-js/diag-code-list.h>
-#include <quick-lint-js/diagnostic-types.h>
+#include <quick-lint-js/fe/diag-code-list.h>
+#include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/options.h>

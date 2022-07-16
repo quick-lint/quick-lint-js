@@ -9,8 +9,8 @@
 #else
 
 #include <optional>
-#include <quick-lint-js/buffering-diag-reporter.h>
 #include <quick-lint-js/configuration/configuration.h>
+#include <quick-lint-js/fe/buffering-diag-reporter.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/result.h>

@@ -52,10 +52,6 @@ quick_lint_js_add_library(
   quick-lint-js/binary-writer.h
   quick-lint-js/bit.h
   quick-lint-js/boost.cpp
-  quick-lint-js/buffering-diag-reporter.cpp
-  quick-lint-js/buffering-diag-reporter.h
-  quick-lint-js/buffering-visitor.cpp
-  quick-lint-js/buffering-visitor.h
   quick-lint-js/byte-buffer.cpp
   quick-lint-js/byte-buffer.h
   quick-lint-js/c-api-diag-reporter.cpp
@@ -80,15 +76,6 @@ quick_lint_js_add_library(
   quick-lint-js/consteval.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
-  quick-lint-js/diag-code-list.cpp
-  quick-lint-js/diag-code-list.h
-  quick-lint-js/diag-reporter.cpp
-  quick-lint-js/diag-reporter.h
-  quick-lint-js/diagnostic-formatter.cpp
-  quick-lint-js/diagnostic-formatter.h
-  quick-lint-js/diagnostic-types.h
-  quick-lint-js/diagnostic.cpp
-  quick-lint-js/diagnostic.h
   quick-lint-js/document.cpp
   quick-lint-js/document.h
   quick-lint-js/emacs-lisp-diag-reporter.cpp
@@ -96,7 +83,39 @@ quick_lint_js_add_library(
   quick-lint-js/emacs-location.cpp
   quick-lint-js/emacs-location.h
   quick-lint-js/event-loop.h
-  quick-lint-js/expression.h
+  quick-lint-js/fe/buffering-diag-reporter.cpp
+  quick-lint-js/fe/buffering-diag-reporter.h
+  quick-lint-js/fe/buffering-visitor.cpp
+  quick-lint-js/fe/buffering-visitor.h
+  quick-lint-js/fe/diag-code-list.cpp
+  quick-lint-js/fe/diag-code-list.h
+  quick-lint-js/fe/diag-reporter.cpp
+  quick-lint-js/fe/diag-reporter.h
+  quick-lint-js/fe/diagnostic-formatter.cpp
+  quick-lint-js/fe/diagnostic-formatter.h
+  quick-lint-js/fe/diagnostic-types.h
+  quick-lint-js/fe/diagnostic.cpp
+  quick-lint-js/fe/diagnostic.h
+  quick-lint-js/fe/expression.h
+  quick-lint-js/fe/identifier.h
+  quick-lint-js/fe/language.h
+  quick-lint-js/fe/lex-keyword-generated.cpp
+  quick-lint-js/fe/lex-unicode-generated.cpp
+  quick-lint-js/fe/lex.cpp
+  quick-lint-js/fe/lex.h
+  quick-lint-js/fe/lint.cpp
+  quick-lint-js/fe/lint.h
+  quick-lint-js/fe/multi-parse-visitor.h
+  quick-lint-js/fe/null-visitor.cpp
+  quick-lint-js/fe/null-visitor.h
+  quick-lint-js/fe/parse-class.cpp
+  quick-lint-js/fe/parse-expression.cpp
+  quick-lint-js/fe/parse-statement.cpp
+  quick-lint-js/fe/parse-type.cpp
+  quick-lint-js/fe/parse-visitor.h
+  quick-lint-js/fe/parse.cpp
+  quick-lint-js/fe/parse.h
+  quick-lint-js/fe/reported-diag-statistics.h
   quick-lint-js/feature.h
   quick-lint-js/global-variables-browser-generated.cpp
   quick-lint-js/global-variables.cpp
@@ -132,14 +151,7 @@ quick_lint_js_add_library(
   quick-lint-js/json.h
   quick-lint-js/jsx.cpp
   quick-lint-js/jsx.h
-  quick-lint-js/language.h
-  quick-lint-js/lex-keyword-generated.cpp
-  quick-lint-js/lex-unicode-generated.cpp
-  quick-lint-js/lex.cpp
-  quick-lint-js/lex.h
   quick-lint-js/linked-bump-allocator.h
-  quick-lint-js/lint.cpp
-  quick-lint-js/lint.h
   quick-lint-js/location.cpp
   quick-lint-js/location.h
   quick-lint-js/log.h
@@ -161,22 +173,12 @@ quick_lint_js_add_library(
   quick-lint-js/lsp/lsp-workspace-configuration.h
   quick-lint-js/math-overflow.h
   quick-lint-js/narrow-cast.h
-  quick-lint-js/null-visitor.cpp
-  quick-lint-js/null-visitor.h
   quick-lint-js/optional.h
   quick-lint-js/options.cpp
   quick-lint-js/options.h
   quick-lint-js/padded-string.cpp
   quick-lint-js/padded-string.h
-  quick-lint-js/parse-class.cpp
-  quick-lint-js/parse-expression.cpp
-  quick-lint-js/parse-statement.cpp
-  quick-lint-js/parse-type.cpp
-  quick-lint-js/parse-visitor.h
-  quick-lint-js/parse.cpp
-  quick-lint-js/parse.h
   quick-lint-js/pointer.h
-  quick-lint-js/reported-diag-statistics.h
   quick-lint-js/result.h
   quick-lint-js/simd.h
   quick-lint-js/simdjson.cpp
@@ -273,10 +275,10 @@ quick_lint_js_add_library(
   quick-lint-js-lib-debug
   quick-lint-js/char8-debug.cpp
   quick-lint-js/cli-location-debug.cpp
-  quick-lint-js/diag-debug.cpp
   quick-lint-js/emacs-location-debug.cpp
+  quick-lint-js/fe/diag-debug.cpp
+  quick-lint-js/fe/lex-debug.cpp
   quick-lint-js/language-debug.cpp
-  quick-lint-js/lex-debug.cpp
   quick-lint-js/lsp/lsp-location-debug.cpp
   quick-lint-js/padded-string-debug.cpp
   quick-lint-js/vector-profiler-debug.cpp

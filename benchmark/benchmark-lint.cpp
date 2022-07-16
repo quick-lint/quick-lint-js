@@ -5,13 +5,13 @@
 #include <boost/container/pmr/global_resource.hpp>
 #include <cstdio>
 #include <cstdlib>
-#include <quick-lint-js/buffering-visitor.h>
 #include <quick-lint-js/configuration/configuration.h>
-#include <quick-lint-js/diagnostic-types.h>
+#include <quick-lint-js/fe/buffering-visitor.h>
+#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/fe/lint.h>
+#include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/global-declared-variable-set.h>
 #include <quick-lint-js/io/file.h>
-#include <quick-lint-js/lint.h>
-#include <quick-lint-js/parse.h>
 #include <quick-lint-js/string-view.h>
 #include <quick-lint-js/warning.h>
 #include <string>

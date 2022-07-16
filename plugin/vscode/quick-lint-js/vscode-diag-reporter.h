@@ -6,7 +6,7 @@
 
 #include <napi.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/diagnostic-formatter.h>
+#include <quick-lint-js/fe/diagnostic-formatter.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/vscode.h>

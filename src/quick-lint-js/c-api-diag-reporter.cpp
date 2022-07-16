@@ -5,13 +5,13 @@
 #include <memory>
 #include <quick-lint-js/c-api-diag-reporter.h>
 #include <quick-lint-js/c-api.h>
-#include <quick-lint-js/diagnostic-types.h>
+#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/optional.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/token.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/web-demo-location.h>
 #include <string>

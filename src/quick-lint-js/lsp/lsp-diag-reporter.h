@@ -10,14 +10,14 @@
 
 #include <optional>
 #include <quick-lint-js/byte-buffer.h>
-#include <quick-lint-js/diag-reporter.h>
-#include <quick-lint-js/diagnostic-formatter.h>
-#include <quick-lint-js/diagnostic-types.h>
-#include <quick-lint-js/diagnostic.h>
+#include <quick-lint-js/fe/diag-reporter.h>
+#include <quick-lint-js/fe/diagnostic-formatter.h>
+#include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/fe/diagnostic.h>
+#include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
-#include <quick-lint-js/token.h>
 #include <string>
 
 namespace quick_lint_js {

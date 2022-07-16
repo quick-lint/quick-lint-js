@@ -3,7 +3,7 @@
 
 #include <ostream>
 #include <quick-lint-js/diag-collector.h>
-#include <quick-lint-js/token.h>
+#include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/unreachable.h>
 
 namespace quick_lint_js {

@@ -6,8 +6,8 @@
 
 #include <optional>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/identifier.h>
-#include <quick-lint-js/language.h>
+#include <quick-lint-js/fe/identifier.h>
+#include <quick-lint-js/fe/language.h>
 #include <unordered_set>
 #include <vector>
 
