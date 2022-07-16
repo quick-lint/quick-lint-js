@@ -7,8 +7,8 @@
 #include <quick-lint-js/cli/vim-location.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
 vim_locator::vim_locator(padded_string_view input) noexcept : input_(input) {}

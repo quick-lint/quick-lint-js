@@ -8,9 +8,9 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/lsp/lsp-location.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/web-demo-location.h>
 
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")

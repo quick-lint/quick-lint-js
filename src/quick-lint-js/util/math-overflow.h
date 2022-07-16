@@ -1,16 +1,34 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_POINTER_H
-#define QUICK_LINT_JS_POINTER_H
+#ifndef QUICK_LINT_JS_UTIL_MATH_OVERFLOW_H
+#define QUICK_LINT_JS_UTIL_MATH_OVERFLOW_H
 
-#include <cstddef>
-#include <cstdint>
+#include <limits>
+#include <optional>
+#include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
-inline bool is_aligned(void* p, std::size_t alignment) noexcept {
-  std::size_t alignment_mask = alignment - 1;
-  return (reinterpret_cast<std::uintptr_t>(p) & alignment_mask) == 0;
+// Only permit tested specializations, and disallow implicit conversions (e.g.
+// long -> int).
+template <class T>
+std::optional<T> checked_add(T x, T y) noexcept = delete;
+
+template <>
+inline std::optional<int> checked_add(int x, int y) noexcept {
+  using out = int;
+  using wider_int = long long;
+  constexpr out out_max = (std::numeric_limits<out>::max)();
+  constexpr out out_min = std::numeric_limits<out>::lowest();
+  static_assert(std::numeric_limits<wider_int>::lowest() / 2 <= out_min);
+  static_assert(out_max <= (std::numeric_limits<wider_int>::max)() / 2);
+
+  wider_int sum = static_cast<wider_int>(x) + static_cast<wider_int>(y);
+  if (in_range<out>(sum)) {
+    return static_cast<out>(sum);
+  } else {
+    return std::nullopt;
+  }
 }
 }
 

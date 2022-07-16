@@ -3,9 +3,9 @@
 
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/io/file-path.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/have.h>
-#include <quick-lint-js/utf-16.h>
+#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/utf-16.h>
 
 #if QLJS_HAVE_WINDOWS_H
 #include <quick-lint-js/port/windows.h>

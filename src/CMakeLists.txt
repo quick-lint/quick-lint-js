@@ -42,8 +42,6 @@ quick_lint_js_add_library(
   quick-lint-js-lib
   quick-lint-js/assert.cpp
   quick-lint-js/assert.h
-  quick-lint-js/binary-reader.h
-  quick-lint-js/binary-writer.h
   quick-lint-js/boost.cpp
   quick-lint-js/c-api-diag-reporter.cpp
   quick-lint-js/c-api-diag-reporter.h
@@ -88,7 +86,6 @@ quick_lint_js_add_library(
   quick-lint-js/container/padded-string.h
   quick-lint-js/container/result.h
   quick-lint-js/container/vector.h
-  quick-lint-js/cpp.h
   quick-lint-js/document.cpp
   quick-lint-js/document.h
   quick-lint-js/fe/buffering-diag-reporter.cpp
@@ -184,9 +181,6 @@ quick_lint_js_add_library(
   quick-lint-js/lsp/lsp-uri.h
   quick-lint-js/lsp/lsp-workspace-configuration.cpp
   quick-lint-js/lsp/lsp-workspace-configuration.h
-  quick-lint-js/math-overflow.h
-  quick-lint-js/narrow-cast.h
-  quick-lint-js/pointer.h
   quick-lint-js/port/attribute.h
   quick-lint-js/port/bit.h
   quick-lint-js/port/char8.cpp
@@ -206,10 +200,16 @@ quick_lint_js_add_library(
   quick-lint-js/port/windows.h
   quick-lint-js/simdjson.cpp
   quick-lint-js/simdjson.h
-  quick-lint-js/utf-16.cpp
-  quick-lint-js/utf-16.h
-  quick-lint-js/utf-8.cpp
-  quick-lint-js/utf-8.h
+  quick-lint-js/util/binary-reader.h
+  quick-lint-js/util/binary-writer.h
+  quick-lint-js/util/cpp.h
+  quick-lint-js/util/math-overflow.h
+  quick-lint-js/util/narrow-cast.h
+  quick-lint-js/util/pointer.h
+  quick-lint-js/util/utf-16.cpp
+  quick-lint-js/util/utf-16.h
+  quick-lint-js/util/utf-8.cpp
+  quick-lint-js/util/utf-8.h
   quick-lint-js/version.h
   quick-lint-js/web-demo-location.cpp
   quick-lint-js/web-demo-location.h

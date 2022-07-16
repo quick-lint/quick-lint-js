@@ -4,9 +4,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
-#include <quick-lint-js/binary-reader.h>
 #include <quick-lint-js/logging/trace-stream-reader.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/binary-reader.h>
 #include <string_view>
 #include <vector>
 

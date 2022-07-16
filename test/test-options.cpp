@@ -9,7 +9,7 @@
 #include <quick-lint-js/fe/diag-code-list.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/io/output-stream.h>
-#include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 #include <vector>
 

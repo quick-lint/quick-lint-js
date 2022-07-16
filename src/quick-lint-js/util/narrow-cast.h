@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_NARROW_CAST_H
-#define QUICK_LINT_JS_NARROW_CAST_H
+#ifndef QUICK_LINT_JS_UTIL_NARROW_CAST_H
+#define QUICK_LINT_JS_UTIL_NARROW_CAST_H
 
 #include <limits>
 #include <quick-lint-js/assert.h>

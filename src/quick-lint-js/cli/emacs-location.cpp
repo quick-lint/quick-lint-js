@@ -7,9 +7,9 @@
 #include <quick-lint-js/cli/emacs-location.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/utf-8.h>
 
 namespace quick_lint_js {
 emacs_source_position emacs_source_range::begin() const noexcept {

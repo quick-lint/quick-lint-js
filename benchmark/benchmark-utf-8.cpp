@@ -4,7 +4,7 @@
 #include <benchmark/benchmark.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/util/utf-8.h>
 
 namespace quick_lint_js {
 namespace {

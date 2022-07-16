@@ -22,12 +22,12 @@
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/lsp/lsp-uri.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/simdjson.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/version.h>
 #include <simdjson.h>
 #include <string>

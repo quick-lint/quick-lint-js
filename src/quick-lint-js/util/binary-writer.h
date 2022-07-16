@@ -1,12 +1,12 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_BINARY_WRITER_H
-#define QUICK_LINT_JS_BINARY_WRITER_H
+#ifndef QUICK_LINT_JS_UTIL_BINARY_WRITER_H
+#define QUICK_LINT_JS_UTIL_BINARY_WRITER_H
 
 #include <cstddef>
 #include <cstdint>
-#include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
 // binary_writer does no bounds checking.

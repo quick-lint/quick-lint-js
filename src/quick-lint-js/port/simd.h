@@ -5,12 +5,12 @@
 #define QUICK_LINT_JS_PORT_SIMD_H
 
 #include <cstdint>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/attribute.h>
 #include <quick-lint-js/port/bit.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/util/narrow-cast.h>
 
 #if QLJS_HAVE_ARM_NEON
 #include <arm_neon.h>

@@ -38,7 +38,7 @@
 #include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
-#include <quick-lint-js/utf-16.h>
+#include <quick-lint-js/util/utf-16.h>
 #include <quick-lint-js/version.h>
 #include <string>
 #include <tuple>

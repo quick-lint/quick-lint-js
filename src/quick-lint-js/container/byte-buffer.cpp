@@ -7,9 +7,9 @@
 #include <iterator>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/byte-buffer.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <utility>
 #include <vector>
 

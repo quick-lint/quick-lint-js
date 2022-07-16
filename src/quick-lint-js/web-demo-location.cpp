@@ -2,9 +2,9 @@
 // See end of file for extended copyright information.
 
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/utf-8.h>
 #include <quick-lint-js/web-demo-location.h>
 
 namespace quick_lint_js {

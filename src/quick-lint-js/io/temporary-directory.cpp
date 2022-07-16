@@ -17,7 +17,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
-#include <quick-lint-js/utf-16.h>
+#include <quick-lint-js/util/utf-16.h>
 #include <random>
 #include <string>
 #include <string_view>

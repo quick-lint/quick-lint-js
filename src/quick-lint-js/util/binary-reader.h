@@ -1,14 +1,14 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_BINARY_READER_H
-#define QUICK_LINT_JS_BINARY_READER_H
+#ifndef QUICK_LINT_JS_UTIL_BINARY_READER_H
+#define QUICK_LINT_JS_UTIL_BINARY_READER_H
 
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <utility>
 
 namespace quick_lint_js {

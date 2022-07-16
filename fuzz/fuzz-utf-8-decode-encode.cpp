@@ -7,7 +7,7 @@
 #include <cstdlib>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/util/utf-8.h>
 
 extern "C" {
 int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {

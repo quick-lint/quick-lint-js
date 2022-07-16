@@ -19,8 +19,8 @@
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
 #include <quick-lint-js/lsp/lsp-workspace-configuration.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <simdjson.h>
 #include <string>
 #include <unordered_map>

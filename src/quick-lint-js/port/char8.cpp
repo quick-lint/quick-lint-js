@@ -3,9 +3,9 @@
 
 #include <cstddef>
 #include <cstring>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")

@@ -16,8 +16,8 @@
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/lsp-benchmarks.h>
 #include <quick-lint-js/lsp-server-process.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <string>
 #include <string_view>
 #include <unordered_map>

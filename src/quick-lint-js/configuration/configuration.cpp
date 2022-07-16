@@ -8,10 +8,10 @@
 #include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/global-declared-variable-set.h>
 #include <quick-lint-js/global-variables.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <simdjson.h>
 #include <vector>
 

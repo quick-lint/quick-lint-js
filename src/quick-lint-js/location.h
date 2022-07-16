@@ -8,8 +8,8 @@
 #include <iosfwd>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
 class source_code_span {

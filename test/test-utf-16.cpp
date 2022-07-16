@@ -2,9 +2,9 @@
 // See end of file for extended copyright information.
 
 #include <gtest/gtest.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/utf-16.h>
+#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/utf-16.h>
 #include <string_view>
 
 using namespace std::literals::string_view_literals;

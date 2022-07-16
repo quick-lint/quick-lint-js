@@ -14,8 +14,8 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/container/vector.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <string>
 
 #if QLJS_FEATURE_VECTOR_PROFILING

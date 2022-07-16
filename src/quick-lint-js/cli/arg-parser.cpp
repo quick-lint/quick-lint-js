@@ -6,7 +6,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/cli/arg-parser.h>
 #include <quick-lint-js/container/string-view.h>
-#include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 
 using namespace std::literals::string_view_literals;

@@ -1,17 +1,30 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CPP_H
-#define QUICK_LINT_JS_CPP_H
+#ifndef QUICK_LINT_JS_UTIL_UTF_8_H
+#define QUICK_LINT_JS_UTIL_UTF_8_H
 
-#define QLJS_CPP_CONCAT(x, y) QLJS_CPP_CONCAT_(x, y)
-#define QLJS_CPP_CONCAT_(x, y) x##y
+#include <cstddef>
+#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/port/char8.h>
 
-#define QLJS_CPP_QUOTE(x) QLJS_CPP_QUOTE_(x)
-#define QLJS_CPP_QUOTE_(x) #x
+namespace quick_lint_js {
+char8* encode_utf_8(char32_t code_point, char8* out);
 
-#define QLJS_COUNT_ARGS(...) QLJS_COUNT_ARGS_(__VA_ARGS__, 5, 4, 3, 2, 1, 0)
-#define QLJS_COUNT_ARGS_(_0, _1, _2, _3, _4, count, ...) count
+struct decode_utf_8_result {
+  std::ptrdiff_t size;
+  char32_t code_point;
+  bool ok;
+};
+
+decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
+std::size_t count_utf_8_characters(padded_string_view, std::size_t) noexcept;
+
+const char8* advance_lsp_characters_in_utf_8(string8_view,
+                                             int character_count) noexcept;
+std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view,
+                                             int offset) noexcept;
+}
 
 #endif
 

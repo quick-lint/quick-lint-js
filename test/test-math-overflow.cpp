@@ -4,8 +4,8 @@
 #include <gtest/gtest.h>
 #include <limits>
 #include <optional>
-#include <quick-lint-js/math-overflow.h>
-#include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/util/math-overflow.h>
+#include <quick-lint-js/util/narrow-cast.h>
 
 using int_limits = std::numeric_limits<int>;
 

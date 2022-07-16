@@ -16,10 +16,10 @@
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file-path.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
-#include <quick-lint-js/utf-16.h>
+#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/utf-16.h>
 #include <string>
 
 #if QLJS_HAVE_SYS_STAT_H

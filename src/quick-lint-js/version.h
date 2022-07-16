@@ -4,7 +4,7 @@
 #ifndef QUICK_LINT_JS_VERSION_H
 #define QUICK_LINT_JS_VERSION_H
 
-#include <quick-lint-js/cpp.h>
+#include <quick-lint-js/util/cpp.h>
 
 // QUICK_LINT_JS_VERSION is normally defined by the build system (CMake).
 #if !defined(QUICK_LINT_JS_VERSION)

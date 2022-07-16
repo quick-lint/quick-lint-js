@@ -10,11 +10,11 @@
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/fe/token.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/parse-support.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <string>
 #include <string_view>
 

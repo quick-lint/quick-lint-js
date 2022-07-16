@@ -10,9 +10,9 @@
 #include <quick-lint-js/cli/options.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/io/output-stream.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/integer.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 #include <vector>
 

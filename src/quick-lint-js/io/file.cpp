@@ -13,12 +13,12 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
-#include <quick-lint-js/math-overflow.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
-#include <quick-lint-js/utf-16.h>
+#include <quick-lint-js/util/math-overflow.h>
+#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/utf-16.h>
 #include <stdlib.h>
 #include <string>
 

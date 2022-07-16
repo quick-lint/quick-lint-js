@@ -14,7 +14,6 @@
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/token.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/bit.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
@@ -22,7 +21,8 @@
 #include <quick-lint-js/port/simd.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/utf-8.h>
 #include <string>
 #include <type_traits>
 #include <utility>

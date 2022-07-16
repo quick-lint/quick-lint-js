@@ -12,9 +12,9 @@
 #include <quick-lint-js/io/temporary-directory.h>
 #include <quick-lint-js/logging/trace-stream-reader.h>
 #include <quick-lint-js/lsp/lsp-location.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/utf-16.h>
+#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/utf-16.h>
 #include <string>
 #include <string_view>
 #include <unordered_map>

@@ -21,8 +21,8 @@
 #include <quick-lint-js/logging/trace-flusher.h>
 #include <quick-lint-js/logging/trace-metadata.h>
 #include <quick-lint-js/logging/trace-writer.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/version.h>
 #include <string>
 #include <vector>

@@ -5,7 +5,7 @@
 #define QUICK_LINT_JS_CONTAINER_STRING_VIEW_H
 
 #include <cstddef>
-#include <quick-lint-js/narrow-cast.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 
 namespace quick_lint_js {

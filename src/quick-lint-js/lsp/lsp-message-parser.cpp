@@ -8,10 +8,10 @@
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/lsp/lsp-message-parser.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/integer.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/narrow-cast.h>
 #include <vector>
 
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")

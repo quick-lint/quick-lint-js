@@ -5,11 +5,11 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/gtest.h>
-#include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/utf-8.h>
+#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/utf-8.h>
 
 #define EXPECT_ENCODE_UTF_8(code_point, expected)        \
   do {                                                   \
