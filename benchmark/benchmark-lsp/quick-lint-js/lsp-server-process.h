@@ -16,9 +16,9 @@
 #include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/io/file-handle.h>
-#include <quick-lint-js/lsp-message-parser.h>
-#include <quick-lint-js/lsp-pipe-writer.h>
-#include <quick-lint-js/lsp-server.h>
+#include <quick-lint-js/lsp/lsp-message-parser.h>
+#include <quick-lint-js/lsp/lsp-pipe-writer.h>
+#include <quick-lint-js/lsp/lsp-server.h>
 #include <type_traits>
 #include <unistd.h>
 #include <utility>

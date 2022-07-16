@@ -20,7 +20,7 @@
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/log.h>
 #include <quick-lint-js/logger.h>
-#include <quick-lint-js/lsp-location.h>
+#include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/napi-support.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>

@@ -5,7 +5,7 @@
 #define QUICK_LINT_JS_DOCUMENT_H
 
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/lsp-location.h>
+#include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/web-demo-location.h>
 

@@ -10,7 +10,7 @@
 
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/heap-function.h>
-#include <quick-lint-js/lsp-endpoint.h>
+#include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <simdjson.h>
 #include <string>
 #include <vector>

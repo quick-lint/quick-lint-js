@@ -145,20 +145,20 @@ quick_lint_js_add_library(
   quick-lint-js/log.h
   quick-lint-js/logger.cpp
   quick-lint-js/logger.h
-  quick-lint-js/lsp-diag-reporter.cpp
-  quick-lint-js/lsp-diag-reporter.h
-  quick-lint-js/lsp-endpoint.cpp
-  quick-lint-js/lsp-endpoint.h
-  quick-lint-js/lsp-location.cpp
-  quick-lint-js/lsp-location.h
-  quick-lint-js/lsp-message-parser.cpp
-  quick-lint-js/lsp-message-parser.h
-  quick-lint-js/lsp-pipe-writer.cpp
-  quick-lint-js/lsp-pipe-writer.h
-  quick-lint-js/lsp-server.cpp
-  quick-lint-js/lsp-server.h
-  quick-lint-js/lsp-workspace-configuration.cpp
-  quick-lint-js/lsp-workspace-configuration.h
+  quick-lint-js/lsp/lsp-diag-reporter.cpp
+  quick-lint-js/lsp/lsp-diag-reporter.h
+  quick-lint-js/lsp/lsp-endpoint.cpp
+  quick-lint-js/lsp/lsp-endpoint.h
+  quick-lint-js/lsp/lsp-location.cpp
+  quick-lint-js/lsp/lsp-location.h
+  quick-lint-js/lsp/lsp-message-parser.cpp
+  quick-lint-js/lsp/lsp-message-parser.h
+  quick-lint-js/lsp/lsp-pipe-writer.cpp
+  quick-lint-js/lsp/lsp-pipe-writer.h
+  quick-lint-js/lsp/lsp-server.cpp
+  quick-lint-js/lsp/lsp-server.h
+  quick-lint-js/lsp/lsp-workspace-configuration.cpp
+  quick-lint-js/lsp/lsp-workspace-configuration.h
   quick-lint-js/math-overflow.h
   quick-lint-js/narrow-cast.h
   quick-lint-js/null-visitor.cpp
@@ -277,7 +277,7 @@ quick_lint_js_add_library(
   quick-lint-js/emacs-location-debug.cpp
   quick-lint-js/language-debug.cpp
   quick-lint-js/lex-debug.cpp
-  quick-lint-js/lsp-location-debug.cpp
+  quick-lint-js/lsp/lsp-location-debug.cpp
   quick-lint-js/padded-string-debug.cpp
   quick-lint-js/vector-profiler-debug.cpp
   quick-lint-js/vim-location-debug.cpp

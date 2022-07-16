@@ -7,7 +7,7 @@
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/lsp-location.h>
+#include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/monotonic-allocator.h>
 #include <quick-lint-js/optional.h>
 #include <quick-lint-js/padded-string.h>

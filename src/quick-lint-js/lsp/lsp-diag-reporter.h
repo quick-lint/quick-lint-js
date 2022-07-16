@@ -15,7 +15,7 @@
 #include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/diagnostic.h>
 #include <quick-lint-js/location.h>
-#include <quick-lint-js/lsp-location.h>
+#include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/token.h>
 #include <string>

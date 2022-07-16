@@ -12,7 +12,7 @@
 #include <quick-lint-js/diagnostic-types.h>
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/lint.h>
-#include <quick-lint-js/lsp-location.h>
+#include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/parse.h>
 #include <quick-lint-js/web-demo-location.h>

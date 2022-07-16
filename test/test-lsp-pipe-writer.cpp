@@ -14,8 +14,8 @@
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/pipe.h>
-#include <quick-lint-js/lsp-message-parser.h>
-#include <quick-lint-js/lsp-pipe-writer.h>
+#include <quick-lint-js/lsp/lsp-message-parser.h>
+#include <quick-lint-js/lsp/lsp-pipe-writer.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/result.h>
 #include <thread>

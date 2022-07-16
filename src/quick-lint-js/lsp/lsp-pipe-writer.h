@@ -1,15 +1,43 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <ostream>
-#include <quick-lint-js/lsp-location.h>
+#ifndef QUICK_LINT_JS_LSP_PIPE_WRITER_H
+#define QUICK_LINT_JS_LSP_PIPE_WRITER_H
+
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
+#include <quick-lint-js/char8.h>
+#include <quick-lint-js/have.h>
+#include <quick-lint-js/io/file-handle.h>
+#include <quick-lint-js/io/pipe-writer.h>
+#include <quick-lint-js/lsp/lsp-endpoint.h>
 
 namespace quick_lint_js {
-std::ostream &operator<<(std::ostream &stream, const lsp_position &position) {
-  stream << "line " << position.line << " character " << position.character;
-  return stream;
+class byte_buffer;
+
+// An lsp_pipe_writer sends server->client Language Server Protocol messages via
+// a pipe or socket.
+//
+// lsp_pipe_writer is not thread-safe.
+class lsp_pipe_writer : public lsp_endpoint_remote, private pipe_writer {
+ public:
+  explicit lsp_pipe_writer(platform_file_ref pipe);
+
+  void send_message(byte_buffer &&) override;
+
+  using pipe_writer::flush;
+#if !QLJS_PIPE_WRITER_SEPARATE_THREAD && QLJS_HAVE_POLL
+  using pipe_writer::get_event_fd;
+  using pipe_writer::on_poll_event;
+#endif
+};
 }
-}
+
+#endif
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

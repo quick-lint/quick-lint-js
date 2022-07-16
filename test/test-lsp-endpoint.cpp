@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/char8.h>
 #include <quick-lint-js/json.h>
-#include <quick-lint-js/lsp-endpoint.h>
+#include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/spy-lsp-endpoint-remote.h>
 #include <quick-lint-js/unreachable.h>
 #include <quick-lint-js/warning.h>

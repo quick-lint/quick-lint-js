@@ -16,9 +16,9 @@
 #include <quick-lint-js/have.h>
 #include <quick-lint-js/lint.h>
 #include <quick-lint-js/log.h>
-#include <quick-lint-js/lsp-diag-reporter.h>
-#include <quick-lint-js/lsp-location.h>
-#include <quick-lint-js/lsp-server.h>
+#include <quick-lint-js/lsp/lsp-diag-reporter.h>
+#include <quick-lint-js/lsp/lsp-location.h>
+#include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/parse.h>

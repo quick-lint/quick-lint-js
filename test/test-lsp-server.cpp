@@ -19,8 +19,8 @@
 #include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/heap-function.h>
 #include <quick-lint-js/io/file-handle.h>
-#include <quick-lint-js/lsp-endpoint.h>
-#include <quick-lint-js/lsp-server.h>
+#include <quick-lint-js/lsp/lsp-endpoint.h>
+#include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/padded-string.h>
 #include <quick-lint-js/spy-lsp-endpoint-remote.h>
 #include <quick-lint-js/trace-flusher.h>

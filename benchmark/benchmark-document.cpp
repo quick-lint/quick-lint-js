@@ -8,7 +8,7 @@
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/generate-code.h>
 #include <quick-lint-js/lex.h>
-#include <quick-lint-js/lsp-location.h>
+#include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <random>

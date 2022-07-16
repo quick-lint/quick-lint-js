@@ -15,10 +15,10 @@
 #include <quick-lint-js/document.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/json.h>
-#include <quick-lint-js/lsp-endpoint.h>
-#include <quick-lint-js/lsp-location.h>
-#include <quick-lint-js/lsp-message-parser.h>
-#include <quick-lint-js/lsp-workspace-configuration.h>
+#include <quick-lint-js/lsp/lsp-endpoint.h>
+#include <quick-lint-js/lsp/lsp-location.h>
+#include <quick-lint-js/lsp/lsp-message-parser.h>
+#include <quick-lint-js/lsp/lsp-workspace-configuration.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/padded-string.h>
 #include <simdjson.h>

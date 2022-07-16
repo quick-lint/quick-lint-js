@@ -10,8 +10,8 @@
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/json.h>
-#include <quick-lint-js/lsp-endpoint.h>
-#include <quick-lint-js/lsp-server.h>
+#include <quick-lint-js/lsp/lsp-endpoint.h>
+#include <quick-lint-js/lsp/lsp-server.h>
 #include <string>
 
 using namespace std::literals::string_view_literals;

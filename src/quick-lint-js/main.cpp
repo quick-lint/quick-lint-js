@@ -22,9 +22,9 @@
 #include <quick-lint-js/language.h>
 #include <quick-lint-js/lex.h>
 #include <quick-lint-js/lint.h>
-#include <quick-lint-js/lsp-endpoint.h>
-#include <quick-lint-js/lsp-pipe-writer.h>
-#include <quick-lint-js/lsp-server.h>
+#include <quick-lint-js/lsp/lsp-endpoint.h>
+#include <quick-lint-js/lsp/lsp-pipe-writer.h>
+#include <quick-lint-js/lsp/lsp-server.h>
 #include <quick-lint-js/multi-parse-visitor.h>
 #include <quick-lint-js/options.h>
 #include <quick-lint-js/padded-string.h>
