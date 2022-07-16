@@ -28,6 +28,7 @@ function main() {
     "..",
     "..",
     "src",
+    "quick-lint-js",
     "lex-unicode-generated.cpp"
   );
   console.log(`Creating ${outputPath} ...`);

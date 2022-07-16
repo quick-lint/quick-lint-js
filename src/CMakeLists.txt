@@ -27,7 +27,7 @@ if (WIN32)
 endif ()
 quick_lint_js_add_executable(
   quick-lint-js
-  main.cpp
+  quick-lint-js/main.cpp
   ${EXTRA_SOURCES}
 )
 set_target_properties(quick-lint-js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
@@ -40,177 +40,177 @@ install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
 quick_lint_js_add_library(
   quick-lint-js-lib
-  arg-parser.cpp
-  assert.cpp
-  async-byte-queue.cpp
-  basic-configuration-filesystem.cpp
-  boost.cpp
-  buffering-diag-reporter.cpp
-  buffering-visitor.cpp
-  byte-buffer.cpp
-  c-api-diag-reporter.cpp
-  c-api.cpp
-  change-detecting-filesystem-inotify.cpp
-  change-detecting-filesystem-kqueue.cpp
-  change-detecting-filesystem-win32.cpp
-  change-detecting-filesystem.cpp
-  char8.cpp
-  cli-location.cpp
-  configuration-loader.cpp
-  configuration.cpp
-  diag-code-list.cpp
-  diag-reporter.cpp
-  diagnostic-formatter.cpp
-  diagnostic.cpp
-  document.cpp
-  emacs-lisp-diag-reporter.cpp
-  emacs-location.cpp
-  file-canonical.cpp
-  file-handle.cpp
-  file-path.cpp
-  file.cpp
-  global-variables-browser-generated.cpp
-  global-variables.cpp
-  integer.cpp
-  json.cpp
-  jsx.cpp
-  lex-keyword-generated.cpp
-  lex-unicode-generated.cpp
-  lex.cpp
-  lint.cpp
-  locale.cpp
-  location.cpp
-  logger.cpp
-  lsp-diag-reporter.cpp
-  lsp-endpoint.cpp
-  lsp-location.cpp
-  lsp-message-parser.cpp
-  lsp-pipe-writer.cpp
-  lsp-server.cpp
-  lsp-workspace-configuration.cpp
-  null-visitor.cpp
-  options.cpp
-  output-stream.cpp
-  padded-string.cpp
-  parse-class.cpp
-  parse-expression.cpp
-  parse-statement.cpp
-  parse-type.cpp
-  parse.cpp
-  pipe-writer.cpp
-  pipe.cpp
   quick-lint-js/allocator.h
+  quick-lint-js/arg-parser.cpp
   quick-lint-js/arg-parser.h
+  quick-lint-js/assert.cpp
   quick-lint-js/assert.h
+  quick-lint-js/async-byte-queue.cpp
   quick-lint-js/async-byte-queue.h
   quick-lint-js/attribute.h
+  quick-lint-js/basic-configuration-filesystem.cpp
   quick-lint-js/basic-configuration-filesystem.h
   quick-lint-js/binary-reader.h
   quick-lint-js/binary-writer.h
   quick-lint-js/bit.h
+  quick-lint-js/boost.cpp
+  quick-lint-js/buffering-diag-reporter.cpp
   quick-lint-js/buffering-diag-reporter.h
+  quick-lint-js/buffering-visitor.cpp
   quick-lint-js/buffering-visitor.h
+  quick-lint-js/byte-buffer.cpp
   quick-lint-js/byte-buffer.h
+  quick-lint-js/c-api-diag-reporter.cpp
   quick-lint-js/c-api-diag-reporter.h
+  quick-lint-js/c-api.cpp
   quick-lint-js/c-api.h
+  quick-lint-js/change-detecting-filesystem-inotify.cpp
+  quick-lint-js/change-detecting-filesystem-kqueue.cpp
+  quick-lint-js/change-detecting-filesystem-win32.cpp
+  quick-lint-js/change-detecting-filesystem.cpp
   quick-lint-js/change-detecting-filesystem.h
+  quick-lint-js/char8.cpp
   quick-lint-js/char8.h
+  quick-lint-js/cli-location.cpp
   quick-lint-js/cli-location.h
+  quick-lint-js/configuration-loader.cpp
   quick-lint-js/configuration-loader.h
+  quick-lint-js/configuration.cpp
   quick-lint-js/configuration.h
   quick-lint-js/consteval.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h
+  quick-lint-js/diag-code-list.cpp
   quick-lint-js/diag-code-list.h
+  quick-lint-js/diag-reporter.cpp
   quick-lint-js/diag-reporter.h
+  quick-lint-js/diagnostic-formatter.cpp
   quick-lint-js/diagnostic-formatter.h
   quick-lint-js/diagnostic-types.h
+  quick-lint-js/diagnostic.cpp
   quick-lint-js/diagnostic.h
+  quick-lint-js/document.cpp
   quick-lint-js/document.h
+  quick-lint-js/emacs-lisp-diag-reporter.cpp
   quick-lint-js/emacs-lisp-diag-reporter.h
+  quick-lint-js/emacs-location.cpp
   quick-lint-js/emacs-location.h
   quick-lint-js/event-loop.h
   quick-lint-js/expression.h
   quick-lint-js/feature.h
+  quick-lint-js/file-canonical.cpp
   quick-lint-js/file-canonical.h
+  quick-lint-js/file-handle.cpp
   quick-lint-js/file-handle.h
+  quick-lint-js/file-path.cpp
   quick-lint-js/file-path.h
+  quick-lint-js/file.cpp
   quick-lint-js/file.h
+  quick-lint-js/global-variables-browser-generated.cpp
+  quick-lint-js/global-variables.cpp
   quick-lint-js/global-variables.h
   quick-lint-js/have.h
   quick-lint-js/heap-function.h
+  quick-lint-js/integer.cpp
   quick-lint-js/integer.h
+  quick-lint-js/json.cpp
   quick-lint-js/json.h
+  quick-lint-js/jsx.cpp
   quick-lint-js/jsx.h
   quick-lint-js/language.h
+  quick-lint-js/lex-keyword-generated.cpp
+  quick-lint-js/lex-unicode-generated.cpp
+  quick-lint-js/lex.cpp
   quick-lint-js/lex.h
   quick-lint-js/linked-bump-allocator.h
+  quick-lint-js/lint.cpp
   quick-lint-js/lint.h
+  quick-lint-js/locale.cpp
   quick-lint-js/locale.h
+  quick-lint-js/location.cpp
   quick-lint-js/location.h
   quick-lint-js/log.h
+  quick-lint-js/logger.cpp
   quick-lint-js/logger.h
+  quick-lint-js/lsp-diag-reporter.cpp
   quick-lint-js/lsp-diag-reporter.h
+  quick-lint-js/lsp-endpoint.cpp
   quick-lint-js/lsp-endpoint.h
+  quick-lint-js/lsp-location.cpp
   quick-lint-js/lsp-location.h
+  quick-lint-js/lsp-message-parser.cpp
   quick-lint-js/lsp-message-parser.h
+  quick-lint-js/lsp-pipe-writer.cpp
   quick-lint-js/lsp-pipe-writer.h
+  quick-lint-js/lsp-server.cpp
   quick-lint-js/lsp-server.h
+  quick-lint-js/lsp-workspace-configuration.cpp
   quick-lint-js/lsp-workspace-configuration.h
   quick-lint-js/math-overflow.h
   quick-lint-js/narrow-cast.h
+  quick-lint-js/null-visitor.cpp
   quick-lint-js/null-visitor.h
   quick-lint-js/optional.h
+  quick-lint-js/options.cpp
   quick-lint-js/options.h
+  quick-lint-js/output-stream.cpp
   quick-lint-js/output-stream.h
+  quick-lint-js/padded-string.cpp
   quick-lint-js/padded-string.h
+  quick-lint-js/parse-class.cpp
+  quick-lint-js/parse-expression.cpp
+  quick-lint-js/parse-statement.cpp
+  quick-lint-js/parse-type.cpp
   quick-lint-js/parse-visitor.h
+  quick-lint-js/parse.cpp
   quick-lint-js/parse.h
+  quick-lint-js/pipe-writer.cpp
   quick-lint-js/pipe-writer.h
+  quick-lint-js/pipe.cpp
   quick-lint-js/pipe.h
   quick-lint-js/pointer.h
   quick-lint-js/reported-diag-statistics.h
   quick-lint-js/result.h
   quick-lint-js/simd.h
+  quick-lint-js/simdjson.cpp
   quick-lint-js/simdjson.h
+  quick-lint-js/temporary-directory.cpp
   quick-lint-js/temporary-directory.h
+  quick-lint-js/text-diag-reporter.cpp
   quick-lint-js/text-diag-reporter.h
+  quick-lint-js/thread.cpp
   quick-lint-js/thread.h
+  quick-lint-js/trace-flusher.cpp
   quick-lint-js/trace-flusher.h
+  quick-lint-js/trace-metadata.cpp
   quick-lint-js/trace-metadata.h
+  quick-lint-js/trace-stream-reader.cpp
+  quick-lint-js/trace-writer.cpp
   quick-lint-js/trace-writer.h
+  quick-lint-js/translation-table-generated.cpp
   quick-lint-js/translation-table-generated.h
   quick-lint-js/translation-table.h
+  quick-lint-js/translation.cpp
   quick-lint-js/translation.h
   quick-lint-js/unreachable.h
+  quick-lint-js/uri.cpp
   quick-lint-js/uri.h
+  quick-lint-js/utf-16.cpp
   quick-lint-js/utf-16.h
+  quick-lint-js/utf-8.cpp
   quick-lint-js/utf-8.h
   quick-lint-js/vector.h
   quick-lint-js/version.h
+  quick-lint-js/vim-location.cpp
   quick-lint-js/vim-location.h
+  quick-lint-js/vim-qflist-json-diag-reporter.cpp
   quick-lint-js/vim-qflist-json-diag-reporter.h
   quick-lint-js/warning.h
+  quick-lint-js/web-demo-location.cpp
   quick-lint-js/web-demo-location.h
+  quick-lint-js/windows-error.cpp
   quick-lint-js/windows-error.h
   quick-lint-js/windows.h
-  simdjson.cpp
-  temporary-directory.cpp
-  text-diag-reporter.cpp
-  thread.cpp
-  trace-flusher.cpp
-  trace-metadata.cpp
-  trace-stream-reader.cpp
-  trace-writer.cpp
-  translation-table-generated.cpp
-  translation.cpp
-  uri.cpp
-  utf-16.cpp
-  utf-8.cpp
-  vim-location.cpp
-  vim-qflist-json-diag-reporter.cpp
-  web-demo-location.cpp
-  windows-error.cpp
 )
 target_compile_definitions(
   quick-lint-js-lib
@@ -271,16 +271,16 @@ endif ()
 # in production code.
 quick_lint_js_add_library(
   quick-lint-js-lib-debug
-  char8-debug.cpp
-  cli-location-debug.cpp
-  diag-debug.cpp
-  emacs-location-debug.cpp
-  language-debug.cpp
-  lex-debug.cpp
-  lsp-location-debug.cpp
-  padded-string-debug.cpp
-  vector-profiler-debug.cpp
-  vim-location-debug.cpp
+  quick-lint-js/char8-debug.cpp
+  quick-lint-js/cli-location-debug.cpp
+  quick-lint-js/diag-debug.cpp
+  quick-lint-js/emacs-location-debug.cpp
+  quick-lint-js/language-debug.cpp
+  quick-lint-js/lex-debug.cpp
+  quick-lint-js/lsp-location-debug.cpp
+  quick-lint-js/padded-string-debug.cpp
+  quick-lint-js/vector-profiler-debug.cpp
+  quick-lint-js/vim-location-debug.cpp
 )
 target_link_libraries(quick-lint-js-lib-debug PUBLIC boost quick-lint-js-lib)
 
@@ -316,7 +316,7 @@ endif ()
 
 quick_lint_js_add_library(
   quick-lint-js-boost-json
-  boost-json.cpp
+  quick-lint-js/boost-json.cpp
   quick-lint-js/boost-json.h
 )
 target_include_directories(quick-lint-js-boost-json PUBLIC .)

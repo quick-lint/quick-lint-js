@@ -10,7 +10,7 @@ rationale.
 
 quick-lint-js' binary log is compatible with the [Common Trace Format][]. The
 format of each stream is described by a [CTF metadata
-file](../src/trace-metadata.cpp).
+file](../src/quick-lint-js/trace-metadata.cpp).
 
 A trace is a directory containing a *metadata file* and one or more *stream
 files*.

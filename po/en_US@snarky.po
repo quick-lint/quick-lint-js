@@ -30,43 +30,43 @@ msgstr "~~~ invalid string, do not use outside benchmark ~~~"
 msgid "another invalid string, do not use outside benchmark"
 msgstr "another invalid string, do not use outside benchmark"
 
-#: src/diagnostic-formatter.cpp
+#: src/quick-lint-js/diagnostic-formatter.cpp
 msgid "'do-while' loop"
 msgstr "do-whiley do"
 
-#: src/diagnostic-formatter.cpp
+#: src/quick-lint-js/diagnostic-formatter.cpp
 msgid "'for' loop"
 msgstr "'for' loop 🔃"
 
-#: src/diagnostic-formatter.cpp
+#: src/quick-lint-js/diagnostic-formatter.cpp
 msgid "'if' statement"
 msgstr "when (not if) statement"
 
-#: src/diagnostic-formatter.cpp
+#: src/quick-lint-js/diagnostic-formatter.cpp
 msgid "'while' loop"
 msgstr "whenever loop"
 
-#: src/diagnostic-formatter.cpp
+#: src/quick-lint-js/diagnostic-formatter.cpp
 msgid "'with' statement"
 msgstr "what-the-heck-is-wrong-with statement"
 
-#: src/diagnostic-formatter.cpp
+#: src/quick-lint-js/diagnostic-formatter.cpp
 msgid "a 'do-while' loop"
 msgstr "a do-whiley do"
 
-#: src/diagnostic-formatter.cpp
+#: src/quick-lint-js/diagnostic-formatter.cpp
 msgid "a 'for' loop"
 msgstr "a 'for' loop 🔃"
 
-#: src/diagnostic-formatter.cpp
+#: src/quick-lint-js/diagnostic-formatter.cpp
 msgid "an 'if' statement"
 msgstr "a when (not if) statement"
 
-#: src/diagnostic-formatter.cpp
+#: src/quick-lint-js/diagnostic-formatter.cpp
 msgid "a 'while' loop"
 msgstr "a whenever loop"
 
-#: src/diagnostic-formatter.cpp
+#: src/quick-lint-js/diagnostic-formatter.cpp
 msgid "a 'with' statement"
 msgstr "a what-the-heck-is-wrong-with statement"
 

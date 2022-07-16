@@ -30,8 +30,8 @@ that path. To write messages, call the `QLJS_DEBUG_LOG` macro.
 
 quick-lint-js can write a binary log. The format is compatible with the [Common
 Trace Format][] and is described by a [CTF metadata
-file](../../src/trace-metadata.cpp). See the [documentation on our tracing
-format](../TRACING.md).
+file](../../src/quick-lint-js/trace-metadata.cpp). See the [documentation on our
+tracing format](../TRACING.md).
 
 ## Consequences
 

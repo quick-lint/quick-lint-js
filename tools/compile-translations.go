@@ -115,7 +115,7 @@ func main() {
 	if err := WriteTranslationTableHeader(&table, "src/quick-lint-js/translation-table-generated.h"); err != nil {
 		log.Fatal(err)
 	}
-	if err := WriteTranslationTableSource(&table, "src/translation-table-generated.cpp"); err != nil {
+	if err := WriteTranslationTableSource(&table, "src/quick-lint-js/translation-table-generated.cpp"); err != nil {
 		log.Fatal(err)
 	}
 	if err := WriteTranslationTest(locales, "test/quick-lint-js/test-translation-table-generated.h"); err != nil {
