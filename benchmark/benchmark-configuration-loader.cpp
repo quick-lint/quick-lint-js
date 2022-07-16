@@ -2,8 +2,8 @@
 // See end of file for extended copyright information.
 
 #include <benchmark/benchmark.h>
-#include <quick-lint-js/basic-configuration-filesystem.h>
-#include <quick-lint-js/configuration-loader.h>
+#include <quick-lint-js/configuration/basic-configuration-filesystem.h>
+#include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/options.h>

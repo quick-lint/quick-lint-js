@@ -2,7 +2,7 @@
 // See end of file for extended copyright information.
 
 #include <benchmark/benchmark.h>
-#include <quick-lint-js/configuration.h>
+#include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/padded-string.h>
 

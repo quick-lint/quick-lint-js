@@ -1,32 +1,32 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_BASIC_CONFIGURATION_LOADER_H
-#define QUICK_LINT_JS_BASIC_CONFIGURATION_LOADER_H
+#if !defined(__EMSCRIPTEN__)
 
-#if defined(__EMSCRIPTEN__)
-// No filesystem on the web.
-#else
-
-#include <quick-lint-js/configuration-loader.h>
+#include <quick-lint-js/configuration/basic-configuration-filesystem.h>
+#include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/result.h>
 #include <string>
 
 namespace quick_lint_js {
-class basic_configuration_filesystem : public configuration_filesystem {
- public:
-  static basic_configuration_filesystem* instance() noexcept;
-
-  result<canonical_path_result, canonicalize_path_io_error> canonicalize_path(
-      const std::string&) override;
-  result<padded_string, read_file_io_error> read_file(
-      const canonical_path&) override;
-};
+basic_configuration_filesystem*
+basic_configuration_filesystem::instance() noexcept {
+  static basic_configuration_filesystem fs;
+  return &fs;
 }
 
-#endif
+result<canonical_path_result, canonicalize_path_io_error>
+basic_configuration_filesystem::canonicalize_path(const std::string& path) {
+  return quick_lint_js::canonicalize_path(path);
+}
+
+result<padded_string, read_file_io_error>
+basic_configuration_filesystem::read_file(const canonical_path& path) {
+  return quick_lint_js::read_file(path.c_str());
+}
+}
 
 #endif
 

@@ -48,8 +48,6 @@ quick_lint_js_add_library(
   quick-lint-js/async-byte-queue.cpp
   quick-lint-js/async-byte-queue.h
   quick-lint-js/attribute.h
-  quick-lint-js/basic-configuration-filesystem.cpp
-  quick-lint-js/basic-configuration-filesystem.h
   quick-lint-js/binary-reader.h
   quick-lint-js/binary-writer.h
   quick-lint-js/bit.h
@@ -64,19 +62,21 @@ quick_lint_js_add_library(
   quick-lint-js/c-api-diag-reporter.h
   quick-lint-js/c-api.cpp
   quick-lint-js/c-api.h
-  quick-lint-js/change-detecting-filesystem-inotify.cpp
-  quick-lint-js/change-detecting-filesystem-kqueue.cpp
-  quick-lint-js/change-detecting-filesystem-win32.cpp
-  quick-lint-js/change-detecting-filesystem.cpp
-  quick-lint-js/change-detecting-filesystem.h
   quick-lint-js/char8.cpp
   quick-lint-js/char8.h
   quick-lint-js/cli-location.cpp
   quick-lint-js/cli-location.h
-  quick-lint-js/configuration-loader.cpp
-  quick-lint-js/configuration-loader.h
-  quick-lint-js/configuration.cpp
-  quick-lint-js/configuration.h
+  quick-lint-js/configuration/basic-configuration-filesystem.cpp
+  quick-lint-js/configuration/basic-configuration-filesystem.h
+  quick-lint-js/configuration/change-detecting-filesystem-inotify.cpp
+  quick-lint-js/configuration/change-detecting-filesystem-kqueue.cpp
+  quick-lint-js/configuration/change-detecting-filesystem-win32.cpp
+  quick-lint-js/configuration/change-detecting-filesystem.cpp
+  quick-lint-js/configuration/change-detecting-filesystem.h
+  quick-lint-js/configuration/configuration-loader.cpp
+  quick-lint-js/configuration/configuration-loader.h
+  quick-lint-js/configuration/configuration.cpp
+  quick-lint-js/configuration/configuration.h
   quick-lint-js/consteval.h
   quick-lint-js/cpp.h
   quick-lint-js/crash.h

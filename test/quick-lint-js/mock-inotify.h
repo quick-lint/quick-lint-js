@@ -4,7 +4,7 @@
 #ifndef QUICK_LINT_JS_MOCK_INOTIFY_H
 #define QUICK_LINT_JS_MOCK_INOTIFY_H
 
-#include <quick-lint-js/change-detecting-filesystem.h>
+#include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/have.h>
 
 namespace quick_lint_js {

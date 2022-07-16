@@ -10,7 +10,7 @@
 
 #include <memory>
 #include <optional>
-#include <quick-lint-js/configuration-loader.h>
+#include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/file.h>

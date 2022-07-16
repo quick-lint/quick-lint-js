@@ -5,7 +5,7 @@
 // No filesystem on web.
 #else
 
-#include <quick-lint-js/change-detecting-filesystem.h>
+#include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/file-handle.h>
 #include <string>
 

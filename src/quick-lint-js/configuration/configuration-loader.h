@@ -10,7 +10,7 @@
 
 #include <optional>
 #include <quick-lint-js/buffering-diag-reporter.h>
-#include <quick-lint-js/configuration.h>
+#include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/file-canonical.h>
 #include <quick-lint-js/file.h>
 #include <quick-lint-js/result.h>

@@ -12,9 +12,9 @@
 #include <memory>
 #include <quick-lint-js/boost-json.h>
 #include <quick-lint-js/byte-buffer.h>
-#include <quick-lint-js/change-detecting-filesystem.h>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/configuration.h>
+#include <quick-lint-js/configuration/change-detecting-filesystem.h>
+#include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/fake-configuration-filesystem.h>
 #include <quick-lint-js/file-handle.h>
 #include <quick-lint-js/filesystem-test.h>

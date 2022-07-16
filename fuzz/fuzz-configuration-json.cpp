@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/char8.h>
-#include <quick-lint-js/configuration.h>
+#include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/padded-string.h>
 

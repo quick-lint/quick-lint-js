@@ -5,10 +5,10 @@
 #include <memory>
 #include <napi.h>
 #include <optional>
-#include <quick-lint-js/basic-configuration-filesystem.h>
-#include <quick-lint-js/change-detecting-filesystem.h>
-#include <quick-lint-js/configuration-loader.h>
-#include <quick-lint-js/configuration.h>
+#include <quick-lint-js/configuration/basic-configuration-filesystem.h>
+#include <quick-lint-js/configuration/change-detecting-filesystem.h>
+#include <quick-lint-js/configuration/configuration-loader.h>
+#include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/diag-reporter.h>
 #include <quick-lint-js/diagnostic-formatter.h>
 #include <quick-lint-js/diagnostic-types.h>
