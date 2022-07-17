@@ -14,11 +14,11 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #
-#: benchmark/benchmark-translation.cpp src/quick-lint-js/diagnostic-types.h
+#: benchmark/benchmark-translation.cpp src/quick-lint-js/fe/diagnostic-types.h
 msgid "variable assigned before its declaration"
 msgstr "why are you assignin' before you be makin'? 🤏"
 
-#: benchmark/benchmark-translation.cpp src/quick-lint-js/diagnostic-types.h
+#: benchmark/benchmark-translation.cpp src/quick-lint-js/fe/diagnostic-types.h
 msgid "variable declared here"
 msgstr "👆 it's right here, doofus"
 
@@ -30,521 +30,521 @@ msgstr "~~~ invalid string, do not use outside benchmark ~~~"
 msgid "another invalid string, do not use outside benchmark"
 msgstr "another invalid string, do not use outside benchmark"
 
-#: src/quick-lint-js/diagnostic-formatter.cpp
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "'do-while' loop"
 msgstr "do-whiley do"
 
-#: src/quick-lint-js/diagnostic-formatter.cpp
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "'for' loop"
 msgstr "'for' loop 🔃"
 
-#: src/quick-lint-js/diagnostic-formatter.cpp
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "'if' statement"
 msgstr "when (not if) statement"
 
-#: src/quick-lint-js/diagnostic-formatter.cpp
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "'while' loop"
 msgstr "whenever loop"
 
-#: src/quick-lint-js/diagnostic-formatter.cpp
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "'with' statement"
 msgstr "what-the-heck-is-wrong-with statement"
 
-#: src/quick-lint-js/diagnostic-formatter.cpp
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "a 'do-while' loop"
 msgstr "a do-whiley do"
 
-#: src/quick-lint-js/diagnostic-formatter.cpp
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "a 'for' loop"
 msgstr "a 'for' loop 🔃"
 
-#: src/quick-lint-js/diagnostic-formatter.cpp
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "an 'if' statement"
 msgstr "a when (not if) statement"
 
-#: src/quick-lint-js/diagnostic-formatter.cpp
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "a 'while' loop"
 msgstr "a whenever loop"
 
-#: src/quick-lint-js/diagnostic-formatter.cpp
+#: src/quick-lint-js/fe/diagnostic-formatter.cpp
 msgid "a 'with' statement"
 msgstr "a what-the-heck-is-wrong-with statement"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing '<>' and '</>' to enclose multiple children"
 msgstr "give 'em a big ol' hug 🫂 with '<>' and '</>'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "children end here"
 msgstr "🚸🚫⛔"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "missing parentheses around parameter"
 msgstr "JavaScript is stupid, so you need parentheses"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript type annotation requires parentheses"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'=' changes variables; to compare, use '===' instead"
 msgstr "this isn't math class!"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "assignment to const global variable"
 msgstr "the global's CONSTant, you dweeb"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "assignment to const variable"
 msgstr "what part of CONSTant do you not understand?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "const variable declared here"
 msgstr "see? C O N S T!"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "assignment to imported variable"
 msgstr "you said 'import', not 'extort'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "imported variable declared here"
 msgstr "right here, buddy"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "assignment to const variable before its declaration"
 msgstr "why are you assignin' before you be makin'? 🤏"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "assignment to undeclared variable"
 msgstr "you're putting that where exactly?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'await' is only allowed in async functions"
 msgstr "this is sync country. get yer await outta here."
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'await' cannot be followed by an arrow function; use 'async' instead"
 msgstr "psst. 'async'."
 
 # this is actually better than the OG one
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'async static' is not allowed; write 'static async' instead"
 msgstr "are you dyslexic or something?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "BigInt literal contains decimal point"
 msgstr "it's Big*Int*, not Big*Decimal*"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "BigInt literal contains exponent"
 msgstr "BigExponInt is an ES2069 feature"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "C-style for loop is missing its third component"
 msgstr "you forgot ;i++"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "cannot assign to loop variable in for of/in loop"
 msgstr "what in tarnation is this assignment?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "cannot access private identifier outside class"
 msgstr "stop peeking at my privates!"
 
 # # dont name things keywords
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "assigning to 'async' in a for-of loop requires parentheses"
 msgstr "just stop using variables called 'async'. There. Problem solved"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "cannot declare 'await' inside async function"
 msgstr ""
 "you really think calling a variable 'await' in an async function is a good "
 "idea?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "classes cannot be named 'let'"
 msgstr "why would you call a class 'let'?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "classes cannot be named 'await' in async function"
 msgstr ""
 "pro-tip: never name anything a keyword. it'll save you a lot of trouble"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript interfaces cannot be named 'await' in async function"
 msgstr "I await your swift demise"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "let statement cannot declare variables named 'let'"
 msgstr "st-stop st-stuttering"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "cannot declare variable named keyword '{0}'"
 msgstr "'{0}' is a keyword, silly"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "cannot declare 'yield' inside generator function"
 msgstr "'yield' is a terrible variable name'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "cannot declare and export variable with 'export default'"
 msgstr "variables don't belong here"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "cannot export variable named 'let'"
 msgstr "you should be ashamed of 'var let'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "cannot export variable named keyword '{0}'"
 msgstr "exporting '{0}'? really?"
 
 # TODO(me): suggest import aliasing
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "cannot import 'let'"
 msgstr "it's not even your fault. blame TC39"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "cannot import variable named keyword '{0}'"
 msgstr "whoever wrote this module should feel back for exporting a keyword"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "missing quotes around module name '{0}'"
 msgstr "missing parentheses around operand of '{0}'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "cannot reference private variables without object; use 'this.'"
 msgstr "you're missing 'self.'; or 'this.'; I forget"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "cannot update variable with '{0}' while declaring it"
 msgstr "'{0}' makes no sense; try '='?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "remove '{0}' to update an existing variable"
 msgstr "or yeet '{0}'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected 'catch' without 'try'"
 msgstr "you'll never catch anything without trying"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing body for {1:headlinese}"
 msgstr "what's the point of {1:singular} with no body?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "a class statement is not allowed as the body of {1:singular}"
 msgstr "you can't put a class here!"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "character is not allowed in identifiers"
 msgstr "hold up! ✋ no '{0}' allowed"
 
 # TODO(you) add another diagnostic that's more explicit about not allowing parameters
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "commas are not allowed after spread parameter"
 msgstr "a comma makes sense, but TC39 says no ⛔"
 
 # TODO(you) add another diagnostic that's more explicit about not allowing parameters
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "leading commas are not allowed in generic parameter lists"
 msgstr "a comma makes sense, but TC39 says no ⛔"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "commas are not allowed between class methods"
 msgstr "get this comma out of my sight"
 
 # TODO(you): feature idea: lint string literal JSON
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "JSON syntax error"
 msgstr "yeah, JSON sucks; try quick-lint-json"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "\"global-groups\" entries must be strings"
 msgstr "\"global-groups\" contains strings, not whatever you just said"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "\"global-groups\" must be a boolean or an array"
 msgstr ""
 "\"global-groups\" must be a boolean or an array, not whatever you just said"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "\"globals\" descriptor must be a boolean or an object"
 msgstr ""
 "\"globals\" descriptor must be a boolean or an object, not whatever you just "
 "said"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "\"globals\" descriptor \"shadowable\" property must be a boolean"
 msgstr ""
 "\"globals\" descriptor \"shadowable\" property must be a boolean, not "
 "whatever you just said"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "\"globals\" descriptor \"writable\" property must be a boolean"
 msgstr ""
 "\"globals\" descriptor \"writable\" property must be a boolean, not whatever "
 "you just said"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "\"globals\" must be an object"
 msgstr "\"globals\" must be an object, not whatever you just said"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "depth limit exceeded"
 msgstr "ow! my cervix! 🤰"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
 msgstr "smart quotes 🧠 require the SmartyPantsJS DLC"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing property name between '.' and '.'"
 msgstr "._."
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'else' has no corresponding 'if'"
 msgstr "you're violating the laws of causality"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing comparison; '{1}' does not extend to the right side of '{0}'"
 msgstr "'{1}' and '{0}' don't tango"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'{0}' found here"
 msgstr "here's the '{0}'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "escaped character is not allowed in identifiers"
 msgstr "fugitive 🦹‍♂️ is not allowed in identifiers"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "code point out of range"
 msgstr "it won't fit 🤰"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "code point in Unicode escape sequence must not be greater than U+10FFFF"
 msgstr "U+10FFFF is the limit. what are you trying to accomplish?"
 
 # TODO(you) msgid "you don't need to escape '-' in tag names; just write '-'"
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "escaping '-' is not allowed in tag names; write '-' instead"
 msgstr "stop being so fancy; just write '-'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "extra ',' is not allowed between function call arguments"
 msgstr "that's way too many commas 🚮"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "extra ',' is not allowed between enum members"
 msgstr "that's way too many commas 🚮"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected 'as' between '{1}' and '{2}'"
 msgstr "you forgot 'as' between '{1}' and '{2}'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected ',' between object literal entries"
 msgstr "you dropped this: ,"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected expression before newline"
 msgstr "premature newline"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected expression after 'case'"
 msgstr "this 'case' is awful lonely"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected expression before semicolon"
 msgstr "I need something before that semicolon"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected 'from \"name_of_module.mjs\"'"
 msgstr "where are we importing from?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected 'from' before module specifier"
 msgstr "be polite and say 'from'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected hexadecimal digits in Unicode escape sequence"
 msgstr ""
 "what are you trying to do? This is a Unicode escape sequence, not a Wendy's 🍔"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected '{{'"
 msgstr "I was hoping for a '{{'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected ')' to close function call"
 msgstr "where's my ')' at?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "function call started here"
 msgstr "lookie here 👇"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "do-while loop needs parentheses around condition"
 msgstr "just write a regular loop"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "do-while loop is missing '{1}' around condition"
 msgstr "okay mister \"I'm very smart because I use do-while loops\""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "if statement needs parentheses around condition"
 msgstr "sorry. I wish I was programming in Go right now too"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "if statement is missing '{1}' around condition"
 msgstr "you dropped this: '{1}'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "switch statement needs parentheses around condition"
 msgstr "give the condition a hug"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "switch statement is missing '{1}' around condition"
 msgstr "give the condition a hug"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "while loop needs parentheses around condition"
 msgstr "surround the condition so it can't run away"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "while loop is missing '{1}' around condition"
 msgstr "surround the condition so it can't run away"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "with statement needs parentheses around expression"
 msgstr "with statement needs you to stop programming right now"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "with statement is missing '{1}' around expression"
 msgstr "with statement needs you to stop programming right now"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected variable name for 'catch'"
 msgstr "name your variable, please"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected variable name for 'import'-'as'"
 msgstr "you said 'as', so give me a variable name"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "exporting requires 'default'"
 msgstr "exporting with no name? c'mon"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "exporting requires '{{' and '}'"
 msgstr "can I get a side of curly fries please? 🍟"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "forwarding exports are only allowed in export-from"
 msgstr "forwarding exports are only allowed in export-from"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected 'finally' without 'try'"
 msgstr "you're not even gonna 'try'?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "a function statement is not allowed as the body of {1:singular}"
 msgstr "{1:singular} isn't the right place for a function"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "generator function '*' belongs after keyword function"
 msgstr "slide this '*' to the right"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "generator function '*' belongs before function name"
 msgstr "slide this '*' to the left"
 
 # TODO(you) add another diagnostic that's more explicit about not allowing parameters
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "only one comma is allowed between or after generic parameters"
 msgstr "a comma makes sense, but TC39 says no ⛔"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'in' disallowed in C-style for loop initializer"
 msgstr "is this a for-in loop or what?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "indexing requires an expression"
 msgstr "put something in the box 📦"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "invalid expression left of assignment"
 msgstr "what the heck are you trying to assign to?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "invalid hex escape sequence: {0}"
 msgstr "this ain't hex"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "invalid lone literal in object literal"
 msgstr "what's this literal supposed to mean in an object?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "invalid function parameter"
 msgstr "that's not what a parameter looks like"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'{0}' is not allowed for strings; use {1} instead"
 msgstr "smart quotes 🧠 require the SmartyPantsJS DLC"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
 "'.' operator needs a key name; use + to concatenate strings; use [] to "
 "access with a dynamic key"
 msgstr "this isn't PHP"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "invalid UTF-8 sequence"
 msgstr "quick-lint-js only works with nonbinary files"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "attribute has wrong capitalization; write '{1}' instead"
 msgstr "did you leave CAPSLOCK on? it's '{1}'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "misspelled React attribute; write '{1}' instead"
 msgstr "it's spelled '{1}', silly"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "event attributes must be camelCase: '{1}'"
 msgstr "event attributes must be 🐪Case: '{1}'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "React/JSX is not yet implemented"
 msgstr "if you see this message, I fucked up"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "keywords cannot contain escape sequences"
 msgstr ""
 "that sequence should escape from this keyword cuz it's not allowed here"
 
 # TODO(me) move to section I labelled above with ##
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "label named 'await' not allowed in async function"
 msgstr "'goto await;' isn't a thing"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "legacy octal literal may not be BigInt"
 msgstr "0Ops"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "legacy octal literals may not contain underscores"
 msgstr "legacy_octal_literals_may_not_contain_underscores"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "{0} with no bindings"
 msgstr "naked {0} 😊"
 
@@ -564,787 +564,787 @@ msgstr "naked {0} 😊"
 #
 # You should have received a copy of the GNU General Public License
 # along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "a lexical declaration is not allowed as the body of {1:singular}"
 msgstr "how do you propose we use this variable?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "functions/methods should not have '=>'"
 msgstr "no arrows allowed"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "methods should not use the 'function' keyword"
 msgstr "'function' is boomer"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "mismatched JSX tags; expected '</{1}>'"
 msgstr "can't you count? I wanted a '</{1}>'! 🤐"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "opening '<{1}>' tag here"
 msgstr "😱 '<{1}>'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing end of array; expected ']'"
 msgstr "you forgot to close Pandora's Box"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "array started here"
 msgstr "you opened Pandora's Box here"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing arrow operator for arrow function"
 msgstr "➡"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing parameters for arrow function"
 msgstr "you forgot the parameters"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing body for catch clause"
 msgstr "did you dispose of the body?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing body for class"
 msgstr "this class has been decapitated! 🧟‍♀️"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing body for do-while loop"
 msgstr "I should decapitate you for using a do-while loop"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing body for finally clause"
 msgstr "what do you wanna do at the end?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing body for 'for' loop"
 msgstr "missing body 4 4 loop"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing body for 'if' statement"
 msgstr "then what?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing body for 'switch' statement"
 msgstr "no switch cases? not even one?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing body for try statement"
 msgstr "you're trying too hard"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "missing body for TypeScript interface"
 msgstr "missing body for function"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing body for while loop"
 msgstr "why don't you write some code?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing catch or finally clause for try statement"
 msgstr ""
 "finally, you've got to try to catch it <mit> or you're gonna have a bad time"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "try statement starts here"
 msgstr "at least you tried"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing catch variable name between parentheses"
 msgstr "who's on second? ⚾"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing comma between object literal entries"
 msgstr "separate these fellas with a comma"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "missing comma between generic parameters"
 msgstr "separate these fellas with a comma"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing ',' between variable declarations"
 msgstr ","
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing ':' in conditional expression"
 msgstr "how did the grammar Nazi die? colon cancer."
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'?' creates a conditional expression"
 msgstr "do you know what a conditional expression even is ? liar 🤥 : Kagi it 🔍"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing condition for if statement"
 msgstr "if WHAT?!"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing condition for while statement"
 msgstr "while WHAT?!"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing condition for switch statement"
 msgstr "switch WHAT?!"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing '...' in JSX attribute spread"
 msgstr "the solution is …"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing '=' after variable"
 msgstr "= should be used like: 'let you = dumb'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing expression between parentheses"
 msgstr "(😶)"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing header and body for 'for' loop"
 msgstr "for WHAT?!"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "for loop needs an iterable, or condition and update clauses"
 msgstr "finish writing your for loop"
 
 # TODO(you) add this warning to `for(;cond;)`
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "use 'while' instead to loop until a condition is false"
 msgstr "or use 'while', you silly Gopher"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing function parameter list"
 msgstr "how are you gonna call this function without a parameter list?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing body for function"
 msgstr "what's this function supposed to do?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing for loop header"
 msgstr "for WHAT?!"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing initializer in const declaration"
 msgstr ""
 "think about it this way. If you cannot reassign it, then const '{0}' would "
 "always be undefined."
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected expression; missing key for object entry"
 msgstr "you forgot the key 🗝"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "missing name for class method"
 msgstr "missing name of class"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing name in function statement"
 msgstr "what's this function called?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing name of class"
 msgstr "what's this class called?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing name of exported class"
 msgstr "what's this class called? and why is it exported?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing name of exported function"
 msgstr "what's this function called? and why is it exported?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing name or parentheses for function"
 msgstr "IIFEs are uglier. try again."
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing operand for operator"
 msgstr "who taught you math? a gym teacher? 👩‍🏫"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "missing ',', ';', or newline between object type entries"
 msgstr "separate these fellas with a comma"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "redundant delete statement on variable"
 msgstr "you really hate variables, huh? too bad; this doesn't work"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing 'if' after 'else'"
 msgstr "it's 'else if', silly"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing operator between expression and arrow function"
 msgstr "did you forget something here?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing parentheses around operand of '{0}'"
 msgstr "JavaScript is stupid, so you need parentheses"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'{0}' operator cannot be used before '**' without parentheses"
 msgstr "'{0}' and '**' don't mix"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing parentheses around self-invoked function"
 msgstr "IIFEs are uglier. try again."
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "function starts here"
 msgstr "IIFE started here"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing parentheses around left-hand side of '**'"
 msgstr "JavaScript is stupid, so you need parentheses"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'**' operator cannot be used after unary '{1}' without parentheses"
 msgstr "'**' and '{1}' don't mix"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing property name after '.' operator"
 msgstr "dot WHAT?!"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing semicolon after statement"
 msgstr "I know you hate semicolons, but you need one here"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "missing semicolon after field"
 msgstr "missing semicolon after statement"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "missing semicolon after index signature"
 msgstr "missing semicolon after statement"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing semicolon between condition and update parts of for loop"
 msgstr "automatic semicolon insertion doesn't work here, buddy"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing semicolon between init and condition parts of for loop"
 msgstr "automatic semicolon insertion doesn't work here, buddy"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
 "incomplete export; expected 'export default ...' or 'export {{name}' or "
 "'export * from ...' or 'export class' or 'export function' or 'export let'"
 msgstr "export WHAT!?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "missing type between '{1}' and '{0}'"
 msgstr "._."
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing value for object property"
 msgstr "follow this up with a value or something"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing variable name"
 msgstr "you forgot the variable name"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing 'while (condition)' for do-while statement"
 msgstr "you left your 'do' hanging"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "do-while statement starts here"
 msgstr "lonely 'do' is here"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
 "newline is not allowed between 'async' and arrow function parameter list"
 msgstr "put this on a single line, please"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "arrow is here"
 msgstr "move this up"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "number literal contains consecutive underscores"
 msgstr "too__many__underscores"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "number literal contains trailing underscore(s)"
 msgstr "too_many_underscores_____"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "octal literal may not have exponent"
 msgstr "scientists don't use octal"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "octal literal may not have decimal"
 msgstr "but you said '0o'..."
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "use ':' instead of '=' in object literals"
 msgstr "what's this literal supposed to mean in an object?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "integer cannot be represented and will be rounded to '{1}'"
 msgstr "this number's too thicc for JavaScript; '{1}' would be used instead"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "private properties are not allowed in object literals"
 msgstr "objects can't have privates 🤫"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "'readonly static' is not allowed; write 'static readonly' instead"
 msgstr "'async static' is not allowed; write 'static async' instead"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "redeclaration of global variable"
 msgstr "you already have this global"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "redeclaration of variable: {0}"
 msgstr "you couldn't get enough of {0}, so you had to make two, huh?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "variable already declared here"
 msgstr "here's your first attempt"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "redundant 'await'"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "RegExp literal flags cannot contain Unicode escapes"
 msgstr "keep your RegExp flags simple, please"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "return statement returns nothing (undefined)"
 msgstr "you forgot to return something"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
 "unexpected statement before first switch case, expected 'case' or 'default'"
 msgstr "you got too excited and forgot 'case'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "stray comma in let statement"
 msgstr "throw that comma in the bin 🚮"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "stray comma in function parameter"
 msgstr "take that stray comma out back and have it meet its maker 🔫"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "{0} classes are not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "{0} is not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "assignment-asserted fields are not supported in interfaces"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript assignment-asserted fields are not supported in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "'{0}' is not allowed on methods"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript call signatures are only allowed in classes"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "write a name to declare a class method"
 msgstr "missing name of class"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "catch variable can only be typed as '*', 'any', or 'unknown'"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript 'implements' is not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "enum member needs initializer"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "computed value disables enum autoincrement"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "computer enum member name must be a simple string"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript's 'enum' feature is not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "enum member name cannot be numeric"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "{1:headlinese} value must be a compile-time constant"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'extends' must be before 'implements'"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "move the 'extends' clause before 'implements' here"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "index signature must be a field, not a method"
 msgstr "indexing requires an expression"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "index signatures require a value type"
 msgstr "indexing requires an expression"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "expected at least one parameter in generic parameter list"
 msgstr "you literally forgot to name your parameter"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript generics are not allowed in JavaScript code"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript type imports are not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'type' cannot be used twice"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "remove this 'type'"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "interface properties are always public and cannot be marked {0}"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "interfaces cannot contain static blocks"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
 msgstr "this isn't TypeScript"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript non-null assertions are not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript optional properties are not allowed in JavaScript code"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "class methods cannot be optional"
 msgstr "classes cannot be named 'let'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript's 'readonly' feature is not allowed in JavaScript code"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "methods cannot be readonly"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript static blocks are not supported in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "unexpected ':' in expression; did you mean 'as'?"
 msgstr "this 'case' is awful lonely"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript type annotations are not allowed in JavaScript code"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript types are not allowed in JavaScript"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript type imports cannot import both default and named exports"
 msgstr ""
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
 "const fields within classes are only allowed in TypeScript, not JavaScript"
 msgstr "this field is a bit CONSTipated 🤢 "
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unclosed block comment"
 msgstr "you accidentally commented out your whole program"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unclosed class; expected '}' by end of file"
 msgstr "forgetting to close your class is unclassy"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unclosed code block; expected '}' by end of file"
 msgstr "c'mon, you forgot '}'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unclosed interface; expected '}' by end of file"
 msgstr "c'mon, you forgot '}'"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unclosed identifier escape sequence"
 msgstr "runaway \\u!"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unclosed object literal; expected '}'"
 msgstr "you objectively didn't close your object literal"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "object literal started here"
 msgstr "runaway object literal started here"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unclosed regexp literal"
 msgstr "/unclosed regexp literal"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unclosed string literal"
 msgstr "\"unclosed string literal"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unclosed template"
 msgstr "`unclosed template"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected '@'"
 msgstr "unexp@cted"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected '{0}'"
 msgstr "what the heck is '{0}'?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected parameter for arrow function, but got an expression instead"
 msgstr "express your feelings, not your arrow function parameters"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "expected parameter for arrow function, but got a literal instead"
 msgstr ""
 "you stupid bastard, you can't have a literal as an arrow function parameter"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected '\\' in identifier"
 msgstr "unex\\pected"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected 'case' outside switch statement"
 msgstr "your 'case' fell out of your switch statement"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected characters in number literal"
 msgstr "does not compute 🤖"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected control character"
 msgstr "you lost control of your code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected characters in binary literal"
 msgstr "this number does not identify as binary"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected characters in octal literal"
 msgstr "Cthulhu 🐙 is not happy"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected characters in hex literal"
 msgstr "unexpected characters in hex literal"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected 'default' outside switch statement"
 msgstr "your 'default' fell out of your switch statement"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"
 msgstr "Facebook says '>' is not allowed; write {{'>'} or &gt; instead"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected literal in parameter list; expected parameter name"
 msgstr "you literally forgot to name your parameter"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "'}' is not allowed directly in JSX text; write {{'}'} instead"
 msgstr "Facebook says '}' is not allowed; write {{'}'} instead"
 
 # that's so Meta xD
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "C-style for loops have only three semicolon-separated components"
 msgstr "you went overboard with the semicolons"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "for-in loop expression cannot have semicolons"
 msgstr "you are forin a rude awakening if you think that's allowed"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "for-of loop expression cannot have semicolons"
 msgstr "forof syntax inforof loop"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unopened block comment"
 msgstr "/*"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "new variable shadows existing variable"
 msgstr "I think you meant to assign..."
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "existing variable declared here"
 msgstr "to this variable here"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "binary number literal has no digits"
 msgstr "binary number lost its genitals"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "hex number literal has no digits"
 msgstr "hex number literal has no digits"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "octal number literal has no digits"
 msgstr "<octupus-with-no-legs> has no digits"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
 msgid "TypeScript non-null assertion is not allowed on parameters"
 msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected '#'"
 msgstr "#unexpected"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
 "unicode byte order mark (BOM) cannot appear before #! at beginning of script"
 msgstr "your editor BOMd 💣 your s#!t 💩"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected identifier in expression; missing operator before"
 msgstr "you're need to take me out to dinner before you show me this"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected token"
 msgstr "I don't know what to do with this"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid ""
 "unexpected token in export; expected 'export default ...' or 'export "
 "{{name}' or 'export * from ...' or 'export class' or 'export function' or "
 "'export let'"
 msgstr "I don't know what you're trying to export"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unexpected token in variable declaration; expected variable name"
 msgstr "just name your variable like a normal person"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unmatched indexing bracket"
 msgstr "unmatched indexing[bracket"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unmatched parenthesis"
 msgstr "I have some extra: ) ) ) ) ) ) ) ) ) ) )"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "unmatched '}'"
 msgstr "what are you trying to close here?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "use of undeclared type: {0}"
 msgstr "I don't know what this type is"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "use of undeclared variable: {0}"
 msgstr "did you fail spelling class?"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "variable used before declaration: {0}"
 msgstr "why are you usin' before you be makin'? 🤏"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "function called before declaration in block scope: {0}"
 msgstr "this code freaks Safari out"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "function declared here"
 msgstr "Safari hates this"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript interface fields cannot be initalized"
 msgstr "why are you trying to initialize this field? it's an interface!"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript interface methods cannot be marked 'async'"
 msgstr "interfaces are allergic to async methods"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript interface methods cannot be marked as a generator"
 msgstr "interfaces are allergic to generator methods"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript interface methods cannot contain a body"
 msgstr "you probably want a class, not an interface"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript interface properties cannot be private"
 msgstr "interface properties deserve no privacy"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript interface properties cannot be 'static'"
 msgstr "static makes no sense in interfaces"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "break can only be used inside of a loop or switch"
 msgstr "I'm going to break the loop, but I'm not in a loop"
 
-#: src/quick-lint-js/diagnostic-types.h
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "continue can only be used inside of a loop"
 msgstr "Just stop."
 
