@@ -340,7 +340,7 @@ target_compile_definitions(
 option(QUICK_LINT_JS_DISABLE_LTO_FOR_LSP_SERVER_TO_WORK_AROUND_GCC_LTO_CRASH "" OFF)
 if (QUICK_LINT_JS_DISABLE_LTO_FOR_LSP_SERVER_TO_WORK_AROUND_GCC_LTO_CRASH)
   set_property(
-    SOURCE lsp-server.cpp
+    SOURCE lsp/lsp-server.cpp
     APPEND
     PROPERTY COMPILE_OPTIONS -fno-lto
   )
