@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_ASYNC_BYTE_QUEUE_H
-#define QUICK_LINT_JS_ASYNC_BYTE_QUEUE_H
+#ifndef QUICK_LINT_JS_CONTAINER_ASYNC_BYTE_QUEUE_H
+#define QUICK_LINT_JS_CONTAINER_ASYNC_BYTE_QUEUE_H
 
 #include <cstddef>
 #include <quick-lint-js/assert.h>

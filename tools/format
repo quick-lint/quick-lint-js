@@ -21,6 +21,12 @@ chunk_size=$(((${#files_to_parse[@]} + ${parallelism} - 1) / ${parallelism}))
 printf '%s\n' "${files_to_parse[@]}" \
   | xargs "-P${parallelism}" "-n${chunk_size}" clang-format -i
 
+if [ "$(go version 2>/dev/null)" = '' ]; then
+  printf 'warning: go not installed; not fixing include guards\n' >&2
+else
+  go run tools/fix-include-guards.go "${files_to_parse[@]}"
+fi
+
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
 #

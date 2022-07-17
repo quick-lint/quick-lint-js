@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_PARSE_H
-#define QUICK_LINT_JS_PARSE_H
+#ifndef QUICK_LINT_JS_FE_PARSE_H
+#define QUICK_LINT_JS_FE_PARSE_H
 
 #include <cstdlib>
 #include <optional>

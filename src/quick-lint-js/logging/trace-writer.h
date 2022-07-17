@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_TRACE_WRITER_H
-#define QUICK_LINT_JS_TRACE_WRITER_H
+#ifndef QUICK_LINT_JS_LOGGING_TRACE_WRITER_H
+#define QUICK_LINT_JS_LOGGING_TRACE_WRITER_H
 
 #include <cstdint>
 #include <quick-lint-js/assert.h>

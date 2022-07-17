@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_URI_H
-#define QUICK_LINT_JS_URI_H
+#ifndef QUICK_LINT_JS_LSP_LSP_URI_H
+#define QUICK_LINT_JS_LSP_LSP_URI_H
 
 #include <quick-lint-js/char8.h>
 #include <string>

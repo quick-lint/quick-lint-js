@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LOG_H
-#define QUICK_LINT_JS_LOG_H
+#ifndef QUICK_LINT_JS_LOGGING_LOG_H
+#define QUICK_LINT_JS_LOGGING_LOG_H
 
 // This file is separate from logger.h to reduce #include bloat.
 

@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_NULL_VISITOR_H
-#define QUICK_LINT_JS_NULL_VISITOR_H
+#ifndef QUICK_LINT_JS_FE_NULL_VISITOR_H
+#define QUICK_LINT_JS_FE_NULL_VISITOR_H
 
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>

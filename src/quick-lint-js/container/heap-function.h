@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_HEAP_FUNCTION_H
-#define QUICK_LINT_JS_HEAP_FUNCTION_H
+#ifndef QUICK_LINT_JS_CONTAINER_HEAP_FUNCTION_H
+#define QUICK_LINT_JS_CONTAINER_HEAP_FUNCTION_H
 
 #include <type_traits>
 #include <utility>

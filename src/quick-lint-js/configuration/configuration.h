@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_CONFIGURATION_H
-#define QUICK_LINT_JS_CONFIGURATION_H
+#ifndef QUICK_LINT_JS_CONFIGURATION_CONFIGURATION_H
+#define QUICK_LINT_JS_CONFIGURATION_CONFIGURATION_H
 
 #include <array>
 #include <cstddef>

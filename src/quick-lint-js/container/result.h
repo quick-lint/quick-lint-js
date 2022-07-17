@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_RESULT_H
-#define QUICK_LINT_JS_RESULT_H
+#ifndef QUICK_LINT_JS_CONTAINER_RESULT_H
+#define QUICK_LINT_JS_CONTAINER_RESULT_H
 
 #include <new>
 #include <quick-lint-js/assert.h>

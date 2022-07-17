@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_DEBUG_PARSE_VISITOR_H
-#define QUICK_LINT_JS_DEBUG_PARSE_VISITOR_H
+#ifndef QUICK_LINT_JS_FE_DEBUG_PARSE_VISITOR_H
+#define QUICK_LINT_JS_FE_DEBUG_PARSE_VISITOR_H
 
 #include <quick-lint-js/fe/parse-visitor.h>
 #include <quick-lint-js/io/output-stream.h>

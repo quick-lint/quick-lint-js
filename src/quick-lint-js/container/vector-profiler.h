@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_VECTOR_PROFILER_H
-#define QUICK_LINT_JS_VECTOR_PROFILER_H
+#ifndef QUICK_LINT_JS_CONTAINER_VECTOR_PROFILER_H
+#define QUICK_LINT_JS_CONTAINER_VECTOR_PROFILER_H
 
 #include <algorithm>
 #include <boost/container/pmr/polymorphic_allocator.hpp>

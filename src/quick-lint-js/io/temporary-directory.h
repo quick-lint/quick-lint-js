@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_TEMPORARY_DIRECTORY_H
-#define QUICK_LINT_JS_TEMPORARY_DIRECTORY_H
+#ifndef QUICK_LINT_JS_IO_TEMPORARY_DIRECTORY_H
+#define QUICK_LINT_JS_IO_TEMPORARY_DIRECTORY_H
 
 #if defined(__EMSCRIPTEN__)
 // No filesystem on web.

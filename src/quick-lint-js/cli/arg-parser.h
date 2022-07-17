@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_ARG_PARSER_H
-#define QUICK_LINT_JS_ARG_PARSER_H
+#ifndef QUICK_LINT_JS_CLI_ARG_PARSER_H
+#define QUICK_LINT_JS_CLI_ARG_PARSER_H
 
 #include <optional>
 #include <string_view>
