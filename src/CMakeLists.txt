@@ -280,8 +280,8 @@ quick_lint_js_add_library(
   quick-lint-js/container/padded-string-debug.cpp
   quick-lint-js/container/vector-profiler-debug.cpp
   quick-lint-js/fe/diag-debug.cpp
+  quick-lint-js/fe/language-debug.cpp
   quick-lint-js/fe/lex-debug.cpp
-  quick-lint-js/language-debug.cpp
   quick-lint-js/lsp/lsp-location-debug.cpp
 )
 target_link_libraries(quick-lint-js-lib-debug PUBLIC boost quick-lint-js-lib)
