@@ -102,7 +102,12 @@ quick_lint_js_add_library(
   quick-lint-js/fe/diagnostic.cpp
   quick-lint-js/fe/diagnostic.h
   quick-lint-js/fe/expression.h
+  quick-lint-js/fe/global-variables-browser-generated.cpp
+  quick-lint-js/fe/global-variables.cpp
+  quick-lint-js/fe/global-variables.h
   quick-lint-js/fe/identifier.h
+  quick-lint-js/fe/jsx.cpp
+  quick-lint-js/fe/jsx.h
   quick-lint-js/fe/language.h
   quick-lint-js/fe/lex-keyword-generated.cpp
   quick-lint-js/fe/lex-unicode-generated.cpp
@@ -110,6 +115,8 @@ quick_lint_js_add_library(
   quick-lint-js/fe/lex.h
   quick-lint-js/fe/lint.cpp
   quick-lint-js/fe/lint.h
+  quick-lint-js/fe/location.cpp
+  quick-lint-js/fe/location.h
   quick-lint-js/fe/multi-parse-visitor.h
   quick-lint-js/fe/null-visitor.cpp
   quick-lint-js/fe/null-visitor.h
@@ -122,9 +129,6 @@ quick_lint_js_add_library(
   quick-lint-js/fe/parse.h
   quick-lint-js/fe/reported-diag-statistics.h
   quick-lint-js/feature.h
-  quick-lint-js/global-variables-browser-generated.cpp
-  quick-lint-js/global-variables.cpp
-  quick-lint-js/global-variables.h
   quick-lint-js/i18n/locale.cpp
   quick-lint-js/i18n/locale.h
   quick-lint-js/i18n/translation-table-generated.cpp
@@ -151,10 +155,6 @@ quick_lint_js_add_library(
   quick-lint-js/io/temporary-directory.h
   quick-lint-js/json.cpp
   quick-lint-js/json.h
-  quick-lint-js/jsx.cpp
-  quick-lint-js/jsx.h
-  quick-lint-js/location.cpp
-  quick-lint-js/location.h
   quick-lint-js/logging/log.h
   quick-lint-js/logging/logger.cpp
   quick-lint-js/logging/logger.h

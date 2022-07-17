@@ -1,34 +1,44 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_GENERATE_CODE_H
-#define QUICK_LINT_JS_GENERATE_CODE_H
+#ifndef QUICK_LINT_JS_FE_LOCATION_H
+#define QUICK_LINT_JS_FE_LOCATION_H
 
-#include <memory>
+#include <cstddef>
+#include <iosfwd>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/fe/location.h>
+#include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/port/char8.h>
-#include <random>
-#include <vector>
+#include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
-std::vector<int> random_line_lengths(std::mt19937_64 &, int line_count);
-padded_string make_source_code(const std::vector<int> &line_lengths,
-                               const string8 &newline);
+class source_code_span {
+ public:
+  explicit source_code_span(const char8* begin, const char8* end) noexcept
+      : begin_(begin), end_(end) {}
 
-struct source_code_with_spans {
-  explicit source_code_with_spans(std::unique_ptr<padded_string> &&source,
-                                  std::vector<source_code_span> &&spans)
-      : source(std::move(source)), spans(std::move(spans)) {}
+  const char8* begin() const noexcept { return this->begin_; }
 
-  source_code_with_spans(const source_code_with_spans &) = delete;
-  source_code_with_spans &operator=(const source_code_with_spans &) = delete;
+  const char8* end() const noexcept { return this->end_; }
 
-  std::unique_ptr<padded_string> source;
-  std::vector<source_code_span> spans;
+  string8_view string_view() const noexcept {
+    return make_string_view(this->begin(), this->end());
+  }
+
+  int size() const noexcept {
+    return narrow_cast<int>(this->end() - this->begin());
+  }
+
+ private:
+  const char8* begin_;
+  const char8* end_;
 };
 
-source_code_with_spans make_realisticish_code(int line_count, int span_count);
+bool operator==(source_code_span, string8_view) noexcept;
+bool operator!=(source_code_span, string8_view) noexcept;
+
+bool operator==(source_code_span, source_code_span) noexcept;
+bool operator!=(source_code_span, source_code_span) noexcept;
 }
 
 #endif

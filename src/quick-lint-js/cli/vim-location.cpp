@@ -6,7 +6,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/cli/vim-location.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/location.h>
+#include <quick-lint-js/fe/location.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/narrow-cast.h>
 

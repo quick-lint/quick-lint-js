@@ -14,9 +14,9 @@
 #include <quick-lint-js/container/winkable.h>
 #include <quick-lint-js/fe/buffering-visitor.h>
 #include <quick-lint-js/fe/lex.h>
+#include <quick-lint-js/fe/location.h>
 #include <quick-lint-js/fe/parse-visitor.h>
 #include <quick-lint-js/fe/token.h>
-#include <quick-lint-js/location.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>

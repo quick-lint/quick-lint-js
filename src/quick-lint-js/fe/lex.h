@@ -13,8 +13,8 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/buffering-diag-reporter.h>
 #include <quick-lint-js/fe/identifier.h>
+#include <quick-lint-js/fe/location.h>
 #include <quick-lint-js/fe/token.h>
-#include <quick-lint-js/location.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-8.h>

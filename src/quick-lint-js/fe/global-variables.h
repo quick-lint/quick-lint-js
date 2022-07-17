@@ -1,44 +1,29 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_LOCATION_H
-#define QUICK_LINT_JS_LOCATION_H
+#ifndef QUICK_LINT_JS_FE_GLOBAL_VARIABLES_H
+#define QUICK_LINT_JS_FE_GLOBAL_VARIABLES_H
 
 #include <cstddef>
-#include <iosfwd>
-#include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/container/string-view.h>
+#include <cstdint>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/util/narrow-cast.h>
 
 namespace quick_lint_js {
-class source_code_span {
- public:
-  explicit source_code_span(const char8* begin, const char8* end) noexcept
-      : begin_(begin), end_(end) {}
+inline constexpr std::size_t global_group_count = 8;
 
-  const char8* begin() const noexcept { return this->begin_; }
-
-  const char8* end() const noexcept { return this->end_; }
-
-  string8_view string_view() const noexcept {
-    return make_string_view(this->begin(), this->end());
-  }
-
-  int size() const noexcept {
-    return narrow_cast<int>(this->end() - this->begin());
-  }
-
- private:
-  const char8* begin_;
-  const char8* end_;
+struct global_group {
+  const char8 *name;
+  const char8 *globals;
+  const char8 *non_writable_globals;
+  const char8 *non_shadowable_globals;
+  std::int16_t globals_count;
+  std::int16_t non_writable_globals_count;
+  std::int16_t non_shadowable_globals_count;
 };
+extern const global_group global_groups[];
 
-bool operator==(source_code_span, string8_view) noexcept;
-bool operator!=(source_code_span, string8_view) noexcept;
-
-bool operator==(source_code_span, source_code_span) noexcept;
-bool operator!=(source_code_span, source_code_span) noexcept;
+extern const char8 global_variables_browser[];
+extern const char8 global_variables_web_worker[];
 }
 
 #endif

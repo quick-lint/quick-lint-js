@@ -12,7 +12,7 @@
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/lex.h>
-#include <quick-lint-js/location.h>
+#include <quick-lint-js/fe/location.h>
 #include <quick-lint-js/port/char8.h>
 #include <vector>
 

@@ -6,10 +6,10 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/optional.h>
 #include <quick-lint-js/fe/diag-reporter.h>
+#include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/lint.h>
-#include <quick-lint-js/global-declared-variable-set.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>

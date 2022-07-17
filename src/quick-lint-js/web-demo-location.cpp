@@ -1,7 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <quick-lint-js/location.h>
+#include <quick-lint-js/fe/location.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-8.h>

@@ -1,32 +1,26 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_GLOBAL_VARIABLES_H
-#define QUICK_LINT_JS_GLOBAL_VARIABLES_H
-
-#include <cstddef>
-#include <cstdint>
+#include <quick-lint-js/fe/location.h>
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-inline constexpr std::size_t global_group_count = 8;
-
-struct global_group {
-  const char8 *name;
-  const char8 *globals;
-  const char8 *non_writable_globals;
-  const char8 *non_shadowable_globals;
-  std::int16_t globals_count;
-  std::int16_t non_writable_globals_count;
-  std::int16_t non_shadowable_globals_count;
-};
-extern const global_group global_groups[];
-
-extern const char8 global_variables_browser[];
-extern const char8 global_variables_web_worker[];
+bool operator==(source_code_span x, string8_view y) noexcept {
+  return x.string_view() == y;
 }
 
-#endif
+bool operator!=(source_code_span x, string8_view y) noexcept {
+  return !(x == y);
+}
+
+bool operator==(source_code_span x, source_code_span y) noexcept {
+  return x.begin() == y.begin() && x.end() == y.end();
+}
+
+bool operator!=(source_code_span x, source_code_span y) noexcept {
+  return !(x == y);
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

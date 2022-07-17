@@ -15,8 +15,8 @@
 #include <quick-lint-js/fe/diagnostic-formatter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/diagnostic.h>
+#include <quick-lint-js/fe/location.h>
 #include <quick-lint-js/fe/token.h>
-#include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <string>
 

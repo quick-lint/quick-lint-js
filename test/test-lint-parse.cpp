@@ -8,11 +8,11 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
+#include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/fe/parse.h>
-#include <quick-lint-js/global-declared-variable-set.h>
 #include <quick-lint-js/parse-support.h>
 #include <quick-lint-js/port/char8.h>
 

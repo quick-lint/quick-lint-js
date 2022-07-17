@@ -433,7 +433,7 @@ function writeCPPFile({ browserGlobals, webWorkerGlobals, outputStream }) {
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <quick-lint-js/global-variables.h>
+#include <quick-lint-js/fe/global-variables.h>
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {

@@ -7,9 +7,9 @@
 #include <quick-lint-js/container/optional.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/fe/location.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/json.h>
-#include <quick-lint-js/location.h>
 #include <quick-lint-js/lsp/lsp-diag-reporter.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
