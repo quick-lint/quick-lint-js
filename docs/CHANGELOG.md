@@ -13,6 +13,12 @@ Semantic Versioning.
 * `await await f()` now reports [E0266][] ("redundant await") (implemented by
   [clegoz][]).
 
+### Fixed
+
+* quick-lint-js now recognizes [Bun][]'s global variables, including `Bun` and
+  `bunJSX`. This suppresses undesired [E0057][] ("use of undeclared variable")
+  warnings.
+
 ### Removed
 
 * The `en@loud` translation has been removed. It was only used for testing.
@@ -585,6 +591,8 @@ Beta release.
 Beta release.
 
 [Downloads](https://c.quick-lint-js.com/releases/0.2.0/)
+
+[Bun]: https://bun.sh/
 
 [AidenThing]: https://github.com/AidenThing
 [Amir]: https://github.com/ahmafi

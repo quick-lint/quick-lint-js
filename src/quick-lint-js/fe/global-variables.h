@@ -9,7 +9,7 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-inline constexpr std::size_t global_group_count = 8;
+inline constexpr std::size_t global_group_count = 9;
 
 struct global_group {
   const char8 *name;

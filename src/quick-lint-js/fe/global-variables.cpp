@@ -5,6 +5,70 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
+// Last updated: Bun v0.1.4
+constexpr const char8 global_variables_bun[] =
+    u8"AbortController\0"
+    u8"AbortSignal\0"
+    u8"Blob\0"
+    u8"Buffer\0"
+    u8"BuildError\0"
+    u8"Bun\0"
+    u8"ByteLengthQueuingStrategy\0"
+    u8"CloseEvent\0"
+    u8"CountQueuingStrategy\0"
+    u8"Crypto\0"
+    u8"CustomEvent\0"
+    u8"DOMException\0"
+    u8"ErrorEvent\0"
+    u8"Event\0"
+    u8"EventTarget\0"
+    u8"HTMLRewriter\0"
+    u8"Headers\0"
+    u8"Intl\0"
+    u8"Loader\0"
+    u8"MessageEvent\0"
+    u8"ReadableByteStreamController\0"
+    u8"ReadableStream\0"
+    u8"ReadableStreamBYOBReader\0"
+    u8"ReadableStreamBYOBRequest\0"
+    u8"ReadableStreamDefaultController\0"
+    u8"ReadableStreamDefaultReader\0"
+    u8"Request\0"
+    u8"ResolveError\0"
+    u8"Response\0"
+    u8"ShadowRealm\0"
+    u8"TextDecoder\0"
+    u8"TextEncoder\0"
+    u8"TransformStream\0"
+    u8"TransformStreamDefaultController\0"
+    u8"URL\0"
+    u8"URLSearchParams\0"
+    u8"WebAssembly\0"
+    u8"WebSocket\0"
+    u8"WritableStream\0"
+    u8"WritableStreamDefaultController\0"
+    u8"WritableStreamDefaultWriter\0"
+    u8"addEventListener\0"
+    u8"alert\0"
+    u8"atob\0"
+    u8"btoa\0"
+    u8"bunJSX\0"
+    u8"clearInterval\0"
+    u8"clearTimeout\0"
+    u8"confirm\0"
+    u8"console\0"
+    u8"crypto\0"
+    u8"escape\0"
+    u8"fetch\0"
+    u8"performance\0"
+    u8"process\0"
+    u8"prompt\0"
+    u8"queueMicrotask\0"
+    u8"reportError\0"
+    u8"setInterval\0"
+    u8"setTimeout\0"
+    u8"unescape\0";
+
 constexpr const char8 global_variables_ecmascript[] =
     // ECMA-262 18.1 Value Properties of the Global Object
     u8"globalThis\0"
@@ -174,6 +238,15 @@ const global_group global_groups[] = {
         .non_writable_globals = nullptr,
         .non_shadowable_globals = nullptr,
         .globals_count = 990,
+        .non_writable_globals_count = 0,
+        .non_shadowable_globals_count = 0,
+    },
+    {
+        .name = u8"bun",
+        .globals = global_variables_bun,
+        .non_writable_globals = nullptr,
+        .non_shadowable_globals = nullptr,
+        .globals_count = 61,
         .non_writable_globals_count = 0,
         .non_shadowable_globals_count = 0,
     },

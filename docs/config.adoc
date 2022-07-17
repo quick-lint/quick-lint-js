@@ -152,6 +152,8 @@ This in effect suppresses E0002, E0033, E0057, or E0059 entirely (except if vari
 This group is not enabled by default.
 *browser*:: globals defined in HTML and DOM standards, including *window*, *alert*, and *console*.
 This group is enabled by default.
+*bun*:: globals defined by the Bun JavaScript runtime, including *Bun*, *fetch*, and *console*.
+This group is enabled by default.
 *ecmascript*:: globals defined by the latest ECMAScript (JavaScript) standard, including *Object* and *NaN*.
 This group is enabled by default.
 *jasmine*:: globals defined by the Jasmine test framework, including *describe*, *it*, and *expect*.
