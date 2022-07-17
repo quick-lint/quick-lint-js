@@ -3,7 +3,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/uri.h>
+#include <quick-lint-js/lsp/lsp-uri.h>
 #include <string>
 #include <string_view>
 
@@ -11,7 +11,7 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_uri, file_from_lsp_uri_posix) {
+TEST(test_lsp_uri, file_from_lsp_uri_posix) {
   auto parse = parse_file_from_lsp_uri_posix;
 
   EXPECT_EQ(parse(u8"file:///"sv), "/");
@@ -37,7 +37,7 @@ TEST(test_uri, file_from_lsp_uri_posix) {
   EXPECT_EQ(parse(u8"file://server/x"sv), "//server/x");
 }
 
-TEST(test_uri, file_from_lsp_uri_win32) {
+TEST(test_lsp_uri, file_from_lsp_uri_win32) {
   auto parse = parse_file_from_lsp_uri_win32;
 
   EXPECT_EQ(parse(u8"file:///c:"sv), R"(c:)");
@@ -80,7 +80,7 @@ TEST(test_uri, file_from_lsp_uri_win32) {
   EXPECT_EQ(parse(u8"file://c:/x"sv), R"(\\c:\x)");
 }
 
-TEST(test_uri, file_from_lsp_uri_invalid_file_uri) {
+TEST(test_lsp_uri, file_from_lsp_uri_invalid_file_uri) {
   for (auto parse :
        {parse_file_from_lsp_uri_posix, parse_file_from_lsp_uri_win32}) {
     EXPECT_EQ(parse(u8"http://example.com/path"sv), "");

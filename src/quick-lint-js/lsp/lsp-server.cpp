@@ -23,10 +23,10 @@
 #include <quick-lint-js/lsp/lsp-diag-reporter.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/lsp/lsp-server.h>
+#include <quick-lint-js/lsp/lsp-uri.h>
 #include <quick-lint-js/narrow-cast.h>
 #include <quick-lint-js/simdjson.h>
 #include <quick-lint-js/unreachable.h>
-#include <quick-lint-js/uri.h>
 #include <quick-lint-js/version.h>
 #include <quick-lint-js/warning.h>
 #include <simdjson.h>

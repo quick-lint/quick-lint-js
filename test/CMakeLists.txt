@@ -71,6 +71,7 @@ quick_lint_js_add_executable(
   test-lsp-message-parser.cpp
   test-lsp-pipe-writer.cpp
   test-lsp-server.cpp
+  test-lsp-uri.cpp
   test-lsp-workspace-configuration.cpp
   test-math-overflow.cpp
   test-narrow-cast.cpp
@@ -111,7 +112,6 @@ quick_lint_js_add_executable(
   test-trace-stream-reader.cpp
   test-trace-writer.cpp
   test-translation.cpp
-  test-uri.cpp
   test-utf-16.cpp
   test-utf-8.cpp
   test-vector-profiler.cpp

@@ -189,6 +189,8 @@ quick_lint_js_add_library(
   quick-lint-js/lsp/lsp-pipe-writer.h
   quick-lint-js/lsp/lsp-server.cpp
   quick-lint-js/lsp/lsp-server.h
+  quick-lint-js/lsp/lsp-uri.cpp
+  quick-lint-js/lsp/lsp-uri.h
   quick-lint-js/lsp/lsp-workspace-configuration.cpp
   quick-lint-js/lsp/lsp-workspace-configuration.h
   quick-lint-js/math-overflow.h
@@ -200,8 +202,6 @@ quick_lint_js_add_library(
   quick-lint-js/thread.cpp
   quick-lint-js/thread.h
   quick-lint-js/unreachable.h
-  quick-lint-js/uri.cpp
-  quick-lint-js/uri.h
   quick-lint-js/utf-16.cpp
   quick-lint-js/utf-16.h
   quick-lint-js/utf-8.cpp
