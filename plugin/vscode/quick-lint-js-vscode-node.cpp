@@ -11,7 +11,6 @@
 #include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/document.h>
-#include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/fe/diag-reporter.h>
 #include <quick-lint-js/fe/diagnostic-formatter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
@@ -19,6 +18,7 @@
 #include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/have.h>
+#include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/pipe.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/logging/logger.h>

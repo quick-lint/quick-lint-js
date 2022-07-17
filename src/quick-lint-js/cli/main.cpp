@@ -20,7 +20,6 @@
 #include <quick-lint-js/container/variant.h>
 #include <quick-lint-js/container/vector-profiler.h>
 #include <quick-lint-js/container/vector.h>
-#include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/fe/debug-parse-visitor.h>
 #include <quick-lint-js/fe/diag-code-list.h>
 #include <quick-lint-js/fe/language.h>
@@ -31,6 +30,7 @@
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/fe/reported-diag-statistics.h>
 #include <quick-lint-js/i18n/translation.h>
+#include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/pipe-writer.h>
 #include <quick-lint-js/logging/trace-flusher.h>

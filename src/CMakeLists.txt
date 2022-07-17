@@ -97,7 +97,6 @@ quick_lint_js_add_library(
   quick-lint-js/crash.h
   quick-lint-js/document.cpp
   quick-lint-js/document.h
-  quick-lint-js/event-loop.h
   quick-lint-js/fe/buffering-diag-reporter.cpp
   quick-lint-js/fe/buffering-diag-reporter.h
   quick-lint-js/fe/buffering-visitor.cpp
@@ -145,6 +144,7 @@ quick_lint_js_add_library(
   quick-lint-js/i18n/translation.h
   quick-lint-js/integer.cpp
   quick-lint-js/integer.h
+  quick-lint-js/io/event-loop.h
   quick-lint-js/io/file-canonical.cpp
   quick-lint-js/io/file-canonical.h
   quick-lint-js/io/file-handle.cpp

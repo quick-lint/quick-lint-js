@@ -16,10 +16,10 @@
 #include <quick-lint-js/configuration/change-detecting-filesystem.h>
 #include <quick-lint-js/configuration/configuration-loader.h>
 #include <quick-lint-js/configuration/configuration.h>
-#include <quick-lint-js/event-loop.h>
 #include <quick-lint-js/fake-configuration-filesystem.h>
 #include <quick-lint-js/file-matcher.h>
 #include <quick-lint-js/filesystem-test.h>
+#include <quick-lint-js/io/event-loop.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/io/file.h>
