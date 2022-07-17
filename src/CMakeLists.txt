@@ -21,7 +21,7 @@ endif ()
 
 set(EXTRA_SOURCES)
 if (WIN32)
-  list(APPEND EXTRA_SOURCES quick-lint-js.rc)
+  list(APPEND EXTRA_SOURCES quick-lint-js/cli/quick-lint-js.rc)
   # TODO(strager): Add a dependency on dusty-icon.ico which is referenced by
   # quick-lint-js.rc.
 endif ()
