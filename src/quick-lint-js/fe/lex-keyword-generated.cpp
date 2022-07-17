@@ -32,7 +32,7 @@
     "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gperf@gnu.org>."
 #endif
 
-// #line 12 "src/quick-lint-js/lex-keyword.gperf"
+// #line 12 "src/quick-lint-js/fe/lex-keyword.gperf"
 
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.

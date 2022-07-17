@@ -407,16 +407,16 @@ func WriteTranslationTableHeader(table *TranslationTable, path string) error {
 
 	writer.WriteString(
 		`
-#ifndef QUICK_LINT_JS_TRANSLATION_TABLE_GENERATED_H
-#define QUICK_LINT_JS_TRANSLATION_TABLE_GENERATED_H
+#ifndef QUICK_LINT_JS_I18N_TRANSLATION_TABLE_GENERATED_H
+#define QUICK_LINT_JS_I18N_TRANSLATION_TABLE_GENERATED_H
 
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/consteval.h>
+#include <quick-lint-js/container/sorted-search.h>
 #include <quick-lint-js/i18n/translation-table.h>
-#include <quick-lint-js/sorted-search.h>
+#include <quick-lint-js/port/consteval.h>
 #include <string_view>
 
 namespace quick_lint_js {
@@ -569,8 +569,8 @@ func WriteTranslationTest(locales map[string][]TranslationEntry, path string) er
 #ifndef QUICK_LINT_JS_TEST_TRANSLATION_TABLE_GENERATED_H
 #define QUICK_LINT_JS_TEST_TRANSLATION_TABLE_GENERATED_H
 
-#include <quick-lint-js/char8.h>
 #include <quick-lint-js/i18n/translation.h>
+#include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
 // clang-format off
