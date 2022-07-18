@@ -36,12 +36,12 @@ TEST(test_buffering_diag_reporter, buffers_all_visits) {
   diag_reporter.move_into(&collector);
   EXPECT_THAT(
       collector.errors,
-      ElementsAre(
-          DIAG_TYPE_FIELD(diag_let_with_no_bindings, where, span_of(let_code)),
-          DIAG_TYPE_2_FIELDS(diag_expected_parenthesis_around_if_condition,
-                             where,
-                             span_of(expression_code),  //
-                             token, u8'(')));
+      ElementsAre(DIAG_TYPE_FIELD(diag_let_with_no_bindings, where,
+                                  source_code_span_matcher(span_of(let_code))),
+                  DIAG_TYPE_2_FIELDS(
+                      diag_expected_parenthesis_around_if_condition, where,
+                      source_code_span_matcher(span_of(expression_code)),  //
+                      token, u8'(')));
 }
 
 TEST(test_buffering_diag_reporter, not_destructing_does_not_leak) {

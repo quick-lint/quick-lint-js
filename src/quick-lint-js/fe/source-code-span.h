@@ -37,8 +37,9 @@ class source_code_span {
 bool operator==(source_code_span, string8_view) noexcept;
 bool operator!=(source_code_span, string8_view) noexcept;
 
-bool operator==(source_code_span, source_code_span) noexcept;
-bool operator!=(source_code_span, source_code_span) noexcept;
+// Returns true of the given source_code_span-s refer to the same span of code
+// (i.e. are completely identical).
+bool same_pointers(source_code_span, source_code_span) noexcept;
 }
 
 #endif

@@ -755,7 +755,7 @@ class expression::non_null_assertion final : public expression {
   explicit non_null_assertion(expression *child,
                               source_code_span bang_span) noexcept
       : expression(kind), bang_end_(bang_span.end()), child_(child) {
-    QLJS_ASSERT(this->bang_span() == bang_span);
+    QLJS_ASSERT(same_pointers(this->bang_span(), bang_span));
   }
 
   source_code_span bang_span() const noexcept {

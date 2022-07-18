@@ -165,6 +165,74 @@ span_matcher::operator testing::Matcher<const source_code_span &>() const {
       new span_impl(this->expected_));
 }
 
+class source_code_span_matcher::span_impl
+    : public testing::MatcherInterface<const source_code_span &> {
+ public:
+  explicit span_impl(source_code_span expected) : expected_(expected) {}
+
+  void DescribeTo(std::ostream *out) const override {
+    *out << "begins at " << static_cast<const void *>(this->expected_.begin())
+         << " and ends at " << static_cast<const void *>(this->expected_.end());
+  }
+
+  void DescribeNegationTo(std::ostream *out) const override {
+    *out << "doesn't begin at "
+         << static_cast<const void *>(this->expected_.begin()) << " and end at "
+         << static_cast<const void *>(this->expected_.end());
+  }
+
+  bool MatchAndExplain(const source_code_span &span,
+                       testing::MatchResultListener *listener) const override {
+    bool result = same_pointers(span, this->expected_);
+    *listener << "whose span (from " << static_cast<const void *>(span.begin())
+              << " to " << static_cast<const void *>(span.end()) << ") "
+              << (result ? "equals" : "doesn't equal") << " expected (from "
+              << static_cast<const void *>(this->expected_.begin()) << " to "
+              << static_cast<const void *>(this->expected_.begin()) << ")";
+    return result;
+  }
+
+ private:
+  source_code_span expected_;
+};
+
+class source_code_span_matcher::identifier_impl
+    : public testing::MatcherInterface<const identifier &> {
+ public:
+  explicit identifier_impl(source_code_span expected) : impl_(expected) {}
+
+  void DescribeTo(std::ostream *out) const override {
+    this->impl_.DescribeTo(out);
+  }
+
+  void DescribeNegationTo(std::ostream *out) const override {
+    this->impl_.DescribeNegationTo(out);
+  }
+
+  bool MatchAndExplain(const identifier &ident,
+                       testing::MatchResultListener *listener) const override {
+    return this->impl_.MatchAndExplain(ident.span(), listener);
+  }
+
+ private:
+  span_impl impl_;
+};
+
+source_code_span_matcher::source_code_span_matcher(source_code_span expected)
+    : expected_(expected) {}
+
+source_code_span_matcher::operator testing::Matcher<const identifier &>()
+    const {
+  return testing::Matcher<const identifier &>(
+      new identifier_impl(this->expected_));
+}
+
+source_code_span_matcher::operator testing::Matcher<const source_code_span &>()
+    const {
+  return testing::Matcher<const source_code_span &>(
+      new span_impl(this->expected_));
+}
+
 source_code_span diag_matcher::field::get_span(const void *error_object) const
     noexcept {
   const void *member_data =

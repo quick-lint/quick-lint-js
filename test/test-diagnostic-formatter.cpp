@@ -49,7 +49,7 @@ TEST(test_diagnostic_formatter, origin_span) {
 
     void write_before_message(std::string_view, diagnostic_severity,
                               const source_code_span& origin_span) {
-      EXPECT_EQ(origin_span, span);
+      EXPECT_TRUE(same_pointers(origin_span, span));
       this->write_before_message_call_count += 1;
     }
 
@@ -58,7 +58,7 @@ TEST(test_diagnostic_formatter, origin_span) {
 
     void write_after_message(std::string_view, diagnostic_severity,
                              const source_code_span& origin_span) {
-      EXPECT_EQ(origin_span, span);
+      EXPECT_TRUE(same_pointers(origin_span, span));
       this->write_after_message_call_count += 1;
     }
 

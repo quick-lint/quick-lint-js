@@ -153,6 +153,9 @@ class offsets_matcher {
   cli_source_position::offset_type end_offset_;
 };
 
+// Like source_code_span_matcher, but only check the begin pointer.
+//
+// TODO(strager): Delete in favor of source_code_span_matcher.
 class span_matcher {
  public:
   explicit span_matcher(const char8 *expected);
@@ -165,6 +168,20 @@ class span_matcher {
   class span_impl;
 
   const char8 *expected_;
+};
+
+class source_code_span_matcher {
+ public:
+  explicit source_code_span_matcher(source_code_span expected);
+
+  /*implicit*/ operator testing::Matcher<const identifier &>() const;
+  /*implicit*/ operator testing::Matcher<const source_code_span &>() const;
+
+ private:
+  class identifier_impl;
+  class span_impl;
+
+  source_code_span expected_;
 };
 
 // A mix of ::testing::VariantWith, ::testing::Field, and offsets_matcher. These
