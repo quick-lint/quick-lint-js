@@ -399,6 +399,25 @@ pre mark.unmark:empty::before {
   content: unset;
 }
 
+/* Make the details summaries (which are clickable) look more like links. */
+summary {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Make details summaries act like unobtrusive section headings. */
+summary {
+  margin-top: 1em;
+  font-weight: bold;
+}
+summary h3 {
+  display: inline;
+  font-size: inherit;
+}
+summary + h4 {
+  margin-top: 0.75em;
+}
+
 .install-logo,
 .os-logo {
   height: 1.2em;

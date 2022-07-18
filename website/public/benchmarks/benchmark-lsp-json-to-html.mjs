@@ -78,43 +78,50 @@ unchecked: linear X axis (emphasizing time)."
       >
     </div>
 
-    <table class="benchmark-table">
-      <thead>
-        <tr>
-          <th rowspan="2">linter</th>
-          <th colspan="4">response time (milliseconds)</th>
-        </tr>
-        <tr>
-          <th class="numbers unimportant"><abbr title="minimum">min</abbr></th>
-          <th class="numbers"><abbr title="average">avg</abbr></th>
-          <th class="numbers unimportant"><abbr title="maximum">max</abbr></th>
-          <th class="numbers">
-            <abbr title="slowdown compared to">÷</abbr>
+    <details class="benchmark-table">
+      <summary>Results data table</summary>
+      <table>
+        <thead>
+          <tr>
+            <th rowspan="2">linter</th>
+            <th colspan="4">response time (milliseconds)</th>
+          </tr>
+          <tr>
+            <th class="numbers unimportant">
+              <abbr title="minimum">min</abbr>
+            </th>
+            <th class="numbers"><abbr title="average">avg</abbr></th>
+            <th class="numbers unimportant">
+              <abbr title="maximum">max</abbr>
+            </th>
+            <th class="numbers">
+              <abbr title="slowdown compared to">÷</abbr>
 
-            <span style="--hue: 0;" class="linter-name"
-              ><abbr title="quick-lint-js" style="display: none;">qljs</abbr
-              ><span class="unabbreviated">quick-lint-js</span></span
-            >
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        ${seriess.map(
-          (series) => html`
-            <tr
-              style="--hue: ${series.hue.toFixed(1)};"
-              data-series="${ejs.escapeXML(series.name)}"
-            >
-              <th>${ejs.escapeXML(series.name)}</th>
-              <td class="unimportant">${series.minMS.toFixed(2)}</td>
-              <td>${series.avgMS.toFixed(2)}</td>
-              <td class="unimportant">${series.maxMS.toFixed(2)}</td>
-              <td>${(series.avgMS / qljsSeries.avgMS).toFixed(1)}×</td>
-            </tr>
-          `
-        )}
-      </tbody>
-    </table>
+              <span style="--hue: 0;" class="linter-name"
+                ><abbr title="quick-lint-js" style="display: none;">qljs</abbr
+                ><span class="unabbreviated">quick-lint-js</span></span
+              >
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          ${seriess.map(
+            (series) => html`
+              <tr
+                style="--hue: ${series.hue.toFixed(1)};"
+                data-series="${ejs.escapeXML(series.name)}"
+              >
+                <th>${ejs.escapeXML(series.name)}</th>
+                <td class="unimportant">${series.minMS.toFixed(2)}</td>
+                <td>${series.avgMS.toFixed(2)}</td>
+                <td class="unimportant">${series.maxMS.toFixed(2)}</td>
+                <td>${(series.avgMS / qljsSeries.avgMS).toFixed(1)}×</td>
+              </tr>
+            `
+          )}
+        </tbody>
+      </table>
+    </details>
   `;
 }
 

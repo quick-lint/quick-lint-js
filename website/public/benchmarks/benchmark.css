@@ -297,9 +297,12 @@ body.javascript .javascript-only {
   z-index: 7;
 }
 
-.benchmark-table {
+.benchmark-table table {
   border-collapse: collapse;
-  margin: 1em auto;
+  margin-bottom: 1em;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 0;
 }
 .benchmark-table td,
 .benchmark-table th {
@@ -352,6 +355,12 @@ body.javascript .javascript-only {
   .benchmark-table .linter-name abbr {
     display: inline !important;
   }
+}
+
+/* Make the chart and table more compact. */
+.chart,
+.benchmark-table table {
+  font-size: 90%;
 }
 
 /*
