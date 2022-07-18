@@ -5,10 +5,11 @@ cmake_minimum_required(VERSION 3.10)
 include(GNUInstallDirs)
 
 install(
-  FILES flycheck-quicklintjs.el
-  FILES lsp-quicklintjs.el
-  FILES eglot-quicklintjs.el
-  FILES flymake-quicklintjs.el
+  FILES
+    flycheck-quicklintjs.el
+    lsp-quicklintjs.el
+    eglot-quicklintjs.el
+    flymake-quicklintjs.el
   DESTINATION "${QUICK_LINT_JS_INSTALL_EMACS_DIR}"
 )
 
