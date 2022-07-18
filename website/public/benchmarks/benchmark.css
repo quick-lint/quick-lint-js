@@ -320,6 +320,10 @@ body.javascript .javascript-only {
   text-align: right;
 }
 
+.benchmark-table thead th {
+  white-space: nowrap;
+}
+
 .benchmark-table tbody tr {
   background-color: hsla(var(--hue), 70%, 80%);
 }
