@@ -27,7 +27,7 @@ jobs:
         run: git config --global --add safe.directory /__w/quick-lint-js/quick-lint-js
 
       - name: build
-        run: CC=gcc-9 CXX=g++-9 ./dist/debian/build.sh --xenial
+        run: CC=gcc-9 CXX=g++-9 ./dist/debian/build.sh --bionic
 
       - name: upload build to workflow
         uses: actions/upload-artifact@v2

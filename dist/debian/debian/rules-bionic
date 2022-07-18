@@ -1,5 +1,5 @@
 #!/usr/bin/make -f
-# This rules file is for older Debian distributions such as Ubuntu 16.04 Xenial.
+# This rules file is for older Debian distributions such as Ubuntu 18.04 Bionic.
 
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 

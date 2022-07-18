@@ -15,7 +15,7 @@ have_orig_signature=
 sign=
 while [ "${#}" -gt 0 ]; do
   case "${1}" in
-    --xenial) variant=xenial ;;
+    --bionic) variant=bionic ;;
     --orig) orig_file="${2}" ; shift ;;
     --output-directory) output_directory="${2}" ; shift ;;
     --sign) sign=1 ;;

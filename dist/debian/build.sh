@@ -11,7 +11,7 @@ cd "$(dirname "${0}")/../.."
 package_options=()
 while [ "${#}" -gt 0 ]; do
   case "${1}" in
-    --xenial) package_options+=(--xenial) ;;
+    --bionic) package_options+=(--bionic) ;;
     *)
       printf 'error: unrecognized option: %s\n' >&2
       exit 2

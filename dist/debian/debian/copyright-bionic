@@ -1,5 +1,5 @@
-# This control file is for older Debian distributions such as Ubuntu 16.04
-# Xenial.
+# This control file is for older Debian distributions such as Ubuntu 18.04
+# Bionic.
 # vi: ft=debcopyright
 
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
