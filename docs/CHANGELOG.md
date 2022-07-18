@@ -23,6 +23,21 @@ Semantic Versioning.
 
 * The `en@loud` translation has been removed. It was only used for testing.
 
+### Changed
+
+* Debian/Ubuntu: Our Debian/Ubuntu package now might not work on Ubuntu 16.04 or
+  Debian 9. The following Debian-based Linux distributions are tested:
+  * Debian 10 Bullseye and 11 Buster
+  * PureOS Amber
+  * Ubuntu 18.04 Bionic and 20.04 Focal
+* Manual: Our Linux x86_64/amd64 pre-built binaries now might not work on Ubuntu
+  16.04 or similarly old distributions. The following Linux distributions are
+  tested:
+  * Arch Linux
+  * Debian 10 Bullseye and 11 Buster
+  * Fedora 35 and 36
+  * Ubuntu 18.04 Bionic and 20.04 Focal
+
 ## 2.7.0 (2022-07-13)
 
 [Downloads](https://c.quick-lint-js.com/releases/2.7.0/)

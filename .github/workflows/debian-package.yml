@@ -12,10 +12,19 @@ jobs:
   build-deb:
     name: build .deb
     runs-on: ubuntu-latest
-    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v1
+    container: ghcr.io/quick-lint/quick-lint-js-github-builder:v5
     steps:
       - name: checkout
         uses: actions/checkout@v2
+
+      # HACK(strager): Work around the following error from
+      # build.sh:
+      #
+      #     fatal: detected dubious ownership in repository at '/__w/quick-lint-js/quick-lint-js'
+      #
+      # See also: https://github.com/actions/checkout/issues/760
+      - name: work around permission issue
+        run: git config --global --add safe.directory /__w/quick-lint-js/quick-lint-js
 
       - name: build
         run: CC=gcc-9 CXX=g++-9 ./dist/debian/build.sh --xenial

@@ -1,20 +1,16 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 RUN \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      apt-transport-https \
       curl \
+      gnupg \
       software-properties-common && \
     curl --insecure 'https://apt.kitware.com/keys/kitware-archive-latest.asc' | apt-key add - && \
-    curl 'https://apt.llvm.org/llvm-snapshot.gpg.key' | apt-key add - && \
     curl --insecure 'https://deb.nodesource.com/gpgkey/nodesource.gpg.key' | apt-key add - && \
-    apt-add-repository 'deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main' && \
     apt-add-repository 'deb http://apt.kitware.com/ubuntu/ xenial main' && \
-    apt-add-repository 'deb http://deb.nodesource.com/node_14.x xenial main' && \
-    add-apt-repository -y ppa:deadsnakes/ppa && \
+    apt-add-repository 'deb http://deb.nodesource.com/node_14.x bionic main' && \
     add-apt-repository -y ppa:git-core/ppa && \
-    add-apt-repository -y ppa:neovim-ppa/unstable && \
     add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
     sed -n -e 's/^deb /deb-src /p' /etc/apt/sources.list /etc/apt/sources.list.d/*.list >/etc/apt/sources.list.d/quick-lint-js-sources.list
 
