@@ -48,12 +48,6 @@ class configuration {
 
   [[gnu::noinline]] void build_globals_from_groups();
 
-  // Returns false on parse error, and true otherwise.
-  template <class Error>
-  bool get_bool_or_default(
-      ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value,
-      bool* out, bool default_value, diag_reporter*);
-
   void report_json_error(padded_string_view json, diag_reporter*);
 
   global_declared_variable_set globals_;

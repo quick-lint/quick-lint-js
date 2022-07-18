@@ -22,6 +22,12 @@ using namespace std::literals::string_view_literals;
 namespace quick_lint_js {
 namespace {
 source_code_span span_of_json_value(::simdjson::ondemand::value&);
+
+// Returns false on parse error, and true otherwise.
+template <class Error>
+static bool get_bool_or_default(
+    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value, bool* out,
+    bool default_value, diag_reporter*);
 }
 
 configuration::configuration() { this->reset(); }
@@ -264,13 +270,13 @@ bool configuration::load_globals_from_json(
       bool is_shadowable;
       bool is_writable;
       bool ok = true;
-      if (!this->get_bool_or_default<
+      if (!get_bool_or_default<
               diag_config_globals_descriptor_shadowable_type_mismatch>(
               descriptor_object["shadowable"], &is_shadowable, true,
               reporter)) {
         ok = false;
       }
-      if (!this->get_bool_or_default<
+      if (!get_bool_or_default<
               diag_config_globals_descriptor_writable_type_mismatch>(
               descriptor_object["writable"], &is_writable, true, reporter)) {
         ok = false;
@@ -390,30 +396,6 @@ bool configuration::should_remove_global_variable(string8_view name) {
   this->did_add_globals_from_groups_ = true;
 }
 
-template <class Error>
-bool configuration::get_bool_or_default(
-    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value, bool* out,
-    bool default_value, diag_reporter* reporter) {
-  ::simdjson::ondemand::value v;
-  ::simdjson::error_code error = value.get(v);
-  switch (error) {
-  case ::simdjson::SUCCESS:
-    if (v.get(*out) != ::simdjson::SUCCESS) {
-      reporter->report(Error{span_of_json_value(v)});
-      *out = default_value;
-    }
-    return true;
-
-  default:
-    *out = default_value;
-    return false;
-
-  case ::simdjson::NO_SUCH_FIELD:
-    *out = default_value;
-    return true;
-  }
-}
-
 void configuration::report_json_error(padded_string_view json,
                                       diag_reporter* reporter) {
   // TODO(strager): Produce better error messages. simdjson provides no location
@@ -439,6 +421,30 @@ source_code_span span_of_json_value(::simdjson::ondemand::value& value) {
   string8_view sv = to_string8_view(value.raw_json_token());
   sv = remove_trailing_json_whitespace(sv);
   return source_code_span(sv.data(), sv.data() + sv.size());
+}
+
+template <class Error>
+bool get_bool_or_default(
+    ::simdjson::simdjson_result<::simdjson::ondemand::value>&& value, bool* out,
+    bool default_value, diag_reporter* reporter) {
+  ::simdjson::ondemand::value v;
+  ::simdjson::error_code error = value.get(v);
+  switch (error) {
+  case ::simdjson::SUCCESS:
+    if (v.get(*out) != ::simdjson::SUCCESS) {
+      reporter->report(Error{span_of_json_value(v)});
+      *out = default_value;
+    }
+    return true;
+
+  default:
+    *out = default_value;
+    return false;
+
+  case ::simdjson::NO_SUCH_FIELD:
+    *out = default_value;
+    return true;
+  }
 }
 }
 }
