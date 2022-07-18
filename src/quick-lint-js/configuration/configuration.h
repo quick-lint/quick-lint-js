@@ -13,7 +13,7 @@
 #include <quick-lint-js/fe/global-variables.h>
 #include <quick-lint-js/io/file-canonical.h>
 #include <quick-lint-js/port/char8.h>
-#include <simdjson.h>
+#include <quick-lint-js/simdjson-fwd.h>
 #include <vector>
 
 namespace quick_lint_js {

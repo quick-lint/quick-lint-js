@@ -1,15 +1,36 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_SIMDJSON_H
-#define QUICK_LINT_JS_SIMDJSON_H
+#ifndef QUICK_LINT_JS_SIMDJSON_FWD_H
+#define QUICK_LINT_JS_SIMDJSON_FWD_H
 
-#include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/simdjson-fwd.h>
+// These forward declarations let us avoid #include-ing <simdjson.h> in our
+// headers. This reduces compile times.
 
-namespace quick_lint_js {
-string8_view get_raw_json(::simdjson::ondemand::value&);
+#if defined(SIMDJSON_BUILTIN_IMPLEMENTATION)
+#define QUICK_LINT_JS_SIMDJSON_IMPLEMENTATION_NAMESPACE \
+  SIMDJSON_BUILTIN_IMPLEMENTATION
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#define QUICK_LINT_JS_SIMDJSON_IMPLEMENTATION_NAMESPACE arm64
+// TODO(strager): Check x86 too.
+#endif
+
+#if defined(QUICK_LINT_JS_SIMDJSON_IMPLEMENTATION_NAMESPACE)
+namespace simdjson {
+namespace QUICK_LINT_JS_SIMDJSON_IMPLEMENTATION_NAMESPACE {
+namespace ondemand {
+class object;
+class value;
 }
+}
+
+namespace ondemand = QUICK_LINT_JS_SIMDJSON_IMPLEMENTATION_NAMESPACE::ondemand;
+}
+#else
+// We don't know which namespace simdjson will select. Don't try to guess; just
+// use simdjson's declarations.
+#include <simdjson.h>
+#endif
 
 #endif
 

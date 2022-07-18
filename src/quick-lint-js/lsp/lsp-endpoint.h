@@ -83,6 +83,8 @@ class lsp_endpoint : private lsp_message_parser<lsp_endpoint> {
   lsp_endpoint_remote* remote_;
   lsp_endpoint_handler* handler_;
   trace_flusher* tracer_ = nullptr;
+  // TODO(strager): Make this a pointer so we can avoid #include-ing
+  // <simdjson.h>.
   ::simdjson::ondemand::parser json_parser_;
 
   friend message_parser;

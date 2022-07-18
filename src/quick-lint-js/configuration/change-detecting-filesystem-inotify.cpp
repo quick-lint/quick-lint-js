@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <fcntl.h>
+#include <limits.h>
 #include <optional>
 #include <poll.h>
 #include <quick-lint-js/assert.h>

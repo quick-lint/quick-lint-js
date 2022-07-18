@@ -11,7 +11,7 @@
 #include <quick-lint-js/container/heap-function.h>
 #include <quick-lint-js/lsp/lsp-endpoint.h>
 #include <quick-lint-js/port/char8.h>
-#include <simdjson.h>
+#include <quick-lint-js/simdjson-fwd.h>
 #include <string>
 #include <vector>
 
