@@ -506,10 +506,10 @@ void parser::parse_and_visit_typescript_object_type_expression(
 
       default:
         if (!this->peek().has_leading_newline) {
-          const char8 *where = this->lexer_.end_of_previous_token();
           this->diag_reporter_->report(
               diag_missing_separator_between_object_type_entries{
-                  .expected_separator = source_code_span::unit(where),
+                  .expected_separator = source_code_span::unit(
+                      this->lexer_.end_of_previous_token()),
               });
         }
         break;

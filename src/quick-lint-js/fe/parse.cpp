@@ -322,10 +322,10 @@ void parser::error_on_sketchy_condition(expression* ast) {
 
 void parser::error_on_class_statement(statement_kind statement_kind) {
   if (this->peek().type == token_type::kw_class) {
-    const char8* expected_body = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_class_statement_not_allowed_in_body{
         .kind_of_statement = statement_kind,
-        .expected_body = source_code_span::unit(expected_body),
+        .expected_body =
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
         .class_keyword = this->peek().span(),
     });
   }
@@ -352,10 +352,10 @@ void parser::error_on_lexical_declaration(statement_kind statement_kind) {
     break;
   }
   if (is_lexical_declaration) {
-    const char8* expected_body = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_lexical_declaration_not_allowed_in_body{
         .kind_of_statement = statement_kind,
-        .expected_body = source_code_span::unit(expected_body),
+        .expected_body =
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
         .declaring_keyword = this->peek().span(),
     });
   }
@@ -365,10 +365,10 @@ void parser::error_on_function_statement(statement_kind statement_kind) {
   std::optional<source_code_span> function_keywords =
       this->is_maybe_function_statement();
   if (function_keywords.has_value()) {
-    const char8* expected_body = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_function_statement_not_allowed_in_body{
         .kind_of_statement = statement_kind,
-        .expected_body = source_code_span::unit(expected_body),
+        .expected_body =
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
         .function_keywords = *function_keywords,
     });
   }

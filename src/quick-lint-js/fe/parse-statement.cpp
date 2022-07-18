@@ -1290,12 +1290,11 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
   case function_parameter_parse_result::missing_parameters_ignore_body:
     break;
 
-  case function_parameter_parse_result::parsed_parameters_missing_body: {
-    const char8 *expected_body = this->lexer_.end_of_previous_token();
+  case function_parameter_parse_result::parsed_parameters_missing_body:
     this->diag_reporter_->report(diag_missing_function_body{
-        .expected_body = source_code_span::unit(expected_body)});
+        .expected_body =
+            source_code_span::unit(this->lexer_.end_of_previous_token())});
     break;
-  }
   }
 }
 
@@ -1494,21 +1493,19 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
     break;
 
   case token_type::kw_case:
-  case token_type::kw_default: {
-    const char8 *here = this->lexer_.end_of_previous_token();
+  case token_type::kw_default:
     this->diag_reporter_->report(diag_expected_left_curly{
-        .expected_left_curly = source_code_span::unit(here),
+        .expected_left_curly =
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
     });
     break;
-  }
 
-  default: {
-    const char8 *here = this->lexer_.end_of_previous_token();
+  default:
     this->diag_reporter_->report(diag_missing_body_for_switch_statement{
-        .switch_and_condition = source_code_span::unit(here),
+        .switch_and_condition =
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
     });
     return;
-  }
   }
   v.visit_enter_block_scope();
 
@@ -2035,9 +2032,9 @@ bool parser::parse_and_visit_catch_or_finally_or_both(parse_visitor_base &v) {
     if (this->peek().type == token_type::left_curly) {
       this->parse_and_visit_statement_block_no_scope(v);
     } else {
-      const char8 *here = this->lexer_.end_of_previous_token();
       this->diag_reporter_->report(diag_missing_body_for_catch_clause{
-          .catch_token = source_code_span::unit(here),
+          .catch_token =
+              source_code_span::unit(this->lexer_.end_of_previous_token()),
       });
     }
     v.visit_exit_block_scope();
@@ -2086,11 +2083,11 @@ void parser::parse_and_visit_do_while(parse_visitor_base &v) {
   }
 
   if (this->peek().type != token_type::kw_while) {
-    const char8 *here = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(
         diag_missing_while_and_condition_for_do_while_statement{
             .do_token = do_token_span,
-            .expected_while = source_code_span::unit(here),
+            .expected_while =
+                source_code_span::unit(this->lexer_.end_of_previous_token()),
         });
     return;
   }
@@ -2480,9 +2477,9 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
   bool parsed_body =
       this->parse_and_visit_statement(v, parse_statement_type::no_declarations);
   if (!parsed_body) {
-    const char8 *here = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_missing_body_for_for_statement{
-        .for_and_header = source_code_span::unit(here),
+        .for_and_header =
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
     });
   }
 
@@ -2517,9 +2514,9 @@ void parser::parse_and_visit_while(parse_visitor_base &v) {
   bool parsed_body =
       this->parse_and_visit_statement(v, parse_statement_type::no_declarations);
   if (!parsed_body) {
-    const char8 *here = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_missing_body_for_while_statement{
-        .while_and_condition = source_code_span::unit(here),
+        .while_and_condition =
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
     });
   }
 }
@@ -2592,9 +2589,9 @@ void parser::parse_and_visit_if(parse_visitor_base &v) {
   case token_type::end_of_file:
   case token_type::kw_else:
   case token_type::right_curly:
-    const char8 *end_of_if_condition = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_missing_body_for_if_statement{
-        .expected_body = source_code_span::unit(end_of_if_condition),
+        .expected_body =
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
     });
     break;
   }
@@ -2814,13 +2811,11 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
     });
     break;
 
-  default: {
-    const char8 *where = this->lexer_.end_of_previous_token();
+  default:
     this->diag_reporter_->report(diag_expected_from_and_module_specifier{
-        .where = source_code_span::unit(where),
+        .where = source_code_span::unit(this->lexer_.end_of_previous_token()),
     });
     return;
-  }
   }
 
   if (this->peek().type != token_type::string) {
@@ -3273,10 +3268,10 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
           return;
         } else {
           // let x y
-          const char8 *here = this->lexer_.end_of_previous_token();
           this->diag_reporter_->report(
               diag_missing_comma_between_variable_declarations{
-                  .expected_comma = source_code_span::unit(here),
+                  .expected_comma = source_code_span::unit(
+                      this->lexer_.end_of_previous_token()),
               });
         }
         break;
@@ -3409,9 +3404,9 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
           return;
         }
         // let x null;  // ERROR
-        const char8 *here = this->lexer_.end_of_previous_token();
         this->diag_reporter_->report(diag_missing_equal_after_variable{
-            .expected_equal = source_code_span::unit(here),
+            .expected_equal =
+                source_code_span::unit(this->lexer_.end_of_previous_token()),
         });
         this->parse_and_visit_expression(
             v, precedence{.commas = false, .in_operator = allow_in_operator});

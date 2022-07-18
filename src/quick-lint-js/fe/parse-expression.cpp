@@ -2215,10 +2215,11 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
       break;
     }
     if (expect_comma_or_end) {
-      const char8* comma_location = this->lexer_.end_of_previous_token();
       this->diag_reporter_->report(
           diag_missing_comma_between_object_literal_entries{
-              source_code_span::unit(comma_location)});
+              .where =
+                  source_code_span::unit(this->lexer_.end_of_previous_token()),
+          });
     }
 
   parse_entry:
@@ -2901,9 +2902,8 @@ next_attribute:
     this->lexer_.skip();
     expression* ast = this->parse_expression(v);
     if (ast->kind() != expression_kind::spread) {
-      const char8* ast_begin = ast->span().begin();
       this->diag_reporter_->report(diag_missing_dots_for_attribute_spread{
-          .expected_dots = source_code_span::unit(ast_begin),
+          .expected_dots = source_code_span::unit(ast->span().begin()),
       });
     }
     children.emplace_back(ast);

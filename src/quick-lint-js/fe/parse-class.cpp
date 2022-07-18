@@ -38,13 +38,12 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
     this->parse_and_visit_class_body(v);
     break;
 
-  default: {
-    const char8 *here = this->lexer_.end_of_previous_token();
+  default:
     this->diag_reporter_->report(diag_missing_body_for_class{
-        .class_keyword_and_name_and_heritage = source_code_span::unit(here),
+        .class_keyword_and_name_and_heritage =
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
     });
     break;
-  }
   }
   v.visit_exit_class_scope();
 
@@ -565,15 +564,14 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             break;
 
           // [key: KeyType];  // Invalid.
-          case token_type::semicolon: {
+          case token_type::semicolon:
           missing_type_for_index_signature:
-            const char8 *expected_type = p->lexer_.end_of_previous_token();
             p->diag_reporter_->report(
                 diag_typescript_index_signature_needs_type{
-                    .expected_type = source_code_span::unit(expected_type),
+                    .expected_type = source_code_span::unit(
+                        p->lexer_.end_of_previous_token()),
                 });
             break;
-          }
 
           // [key: KeyType]  // Invalid.
           // ();
