@@ -420,7 +420,7 @@ void configuration::report_json_error(padded_string_view json,
   // information for errors:
   // https://github.com/simdjson/simdjson/issues/237
   reporter->report(diag_config_json_syntax_error{
-      .where = source_code_span(json.data(), json.data()),
+      .where = source_code_span::unit(json.data()),
   });
 }
 

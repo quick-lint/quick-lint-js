@@ -150,17 +150,17 @@ TEST_F(test_vim_qflist_json_diag_reporter, change_source) {
   padded_string input_1(u8"aaaaaaaa"_sv);
   reporter.set_source(&input_1, /*file_name=*/"hello.js", /*vim_bufnr=*/1);
   reporter.report(diag_assignment_to_const_global_variable{
-      identifier(source_code_span(&input_1[4 - 1], &input_1[4 - 1]))});
+      identifier(source_code_span::unit(&input_1[4 - 1]))});
 
   padded_string input_2(u8"bbbbbbbb"_sv);
   reporter.set_source(&input_2, /*file_name=*/"world.js");
   reporter.report(diag_assignment_to_const_global_variable{
-      identifier(source_code_span(&input_2[5 - 1], &input_2[5 - 1]))});
+      identifier(source_code_span::unit(&input_2[5 - 1]))});
 
   padded_string input_3(u8"cccccccc"_sv);
   reporter.set_source(&input_3, /*vim_bufnr=*/2);
   reporter.report(diag_assignment_to_const_global_variable{
-      identifier(source_code_span(&input_3[6 - 1], &input_3[6 - 1]))});
+      identifier(source_code_span::unit(&input_3[6 - 1]))});
 
   reporter.finish();
 

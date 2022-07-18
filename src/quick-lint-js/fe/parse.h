@@ -706,7 +706,7 @@ class parser {
     std::jmp_buf buf;
 
     // The following variables are initialized on failure:
-    source_code_span error_span = source_code_span(nullptr, nullptr);
+    source_code_span error_span = source_code_span::unit(nullptr);
     fatal_parse_error_kind kind;
   };
   std::vector<catch_entry> fatal_parse_error_jmp_buf_stack_;
@@ -765,12 +765,12 @@ void parser::parse_and_visit_parenthesized_expression(parse_visitor_base &v) {
         source_code_span(expression_begin, expression_end)});
   } else if (!have_expression_right_paren) {
     this->diag_reporter_->report(ExpectedParenthesisError{
-        .where = source_code_span(expression_end, expression_end),
+        .where = source_code_span::unit(expression_end),
         .token = ')',
     });
   } else if (!have_expression_left_paren) {
     this->diag_reporter_->report(ExpectedParenthesisError{
-        .where = source_code_span(expression_begin, expression_begin),
+        .where = source_code_span::unit(expression_begin),
         .token = '(',
     });
   }

@@ -325,7 +325,7 @@ void parser::error_on_class_statement(statement_kind statement_kind) {
     const char8* expected_body = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_class_statement_not_allowed_in_body{
         .kind_of_statement = statement_kind,
-        .expected_body = source_code_span(expected_body, expected_body),
+        .expected_body = source_code_span::unit(expected_body),
         .class_keyword = this->peek().span(),
     });
   }
@@ -355,7 +355,7 @@ void parser::error_on_lexical_declaration(statement_kind statement_kind) {
     const char8* expected_body = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_lexical_declaration_not_allowed_in_body{
         .kind_of_statement = statement_kind,
-        .expected_body = source_code_span(expected_body, expected_body),
+        .expected_body = source_code_span::unit(expected_body),
         .declaring_keyword = this->peek().span(),
     });
   }
@@ -368,7 +368,7 @@ void parser::error_on_function_statement(statement_kind statement_kind) {
     const char8* expected_body = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_function_statement_not_allowed_in_body{
         .kind_of_statement = statement_kind,
-        .expected_body = source_code_span(expected_body, expected_body),
+        .expected_body = source_code_span::unit(expected_body),
         .function_keywords = *function_keywords,
     });
   }

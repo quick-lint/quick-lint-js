@@ -1030,7 +1030,7 @@ void parser::parse_and_visit_typescript_generic_parameters(
     // <,>    // Invalid.
     this->diag_reporter_->report(
         diag_typescript_generic_parameter_list_is_empty{
-            .expected_parameter = source_code_span(less_end, less_end),
+            .expected_parameter = source_code_span::unit(less_end),
         });
     for (std::size_t i = 1; i < leading_commas.size(); ++i) {
       this->diag_reporter_->report(
@@ -1114,8 +1114,7 @@ next_parameter:
   case token_type::identifier:
     this->diag_reporter_->report(diag_missing_comma_between_generic_parameters{
         .expected_comma =
-            source_code_span(this->lexer_.end_of_previous_token(),
-                             this->lexer_.end_of_previous_token()),
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
     });
     goto next_parameter;
 
@@ -1294,7 +1293,7 @@ void parser::parse_and_visit_function_parameters_and_body_no_scope(
   case function_parameter_parse_result::parsed_parameters_missing_body: {
     const char8 *expected_body = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_missing_function_body{
-        .expected_body = source_code_span(expected_body, expected_body)});
+        .expected_body = source_code_span::unit(expected_body)});
     break;
   }
   }
@@ -1387,8 +1386,7 @@ parser::parse_and_visit_function_parameters(
   case token_type::left_curly:
     this->diag_reporter_->report(diag_missing_function_parameter_list{
         .expected_parameter_list =
-            source_code_span(this->lexer_.end_of_previous_token(),
-                             this->lexer_.end_of_previous_token()),
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
     });
     return function_parameter_parse_result::missing_parameters;
 
@@ -1399,8 +1397,7 @@ parser::parse_and_visit_function_parameters(
   case token_type::right_curly:
     this->diag_reporter_->report(diag_missing_function_parameter_list{
         .expected_parameter_list =
-            source_code_span(this->lexer_.end_of_previous_token(),
-                             this->lexer_.end_of_previous_token()),
+            source_code_span::unit(this->lexer_.end_of_previous_token()),
     });
     return function_parameter_parse_result::missing_parameters_ignore_body;
 
@@ -1500,7 +1497,7 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
   case token_type::kw_default: {
     const char8 *here = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_expected_left_curly{
-        .expected_left_curly = source_code_span(here, here),
+        .expected_left_curly = source_code_span::unit(here),
     });
     break;
   }
@@ -1508,7 +1505,7 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
   default: {
     const char8 *here = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_missing_body_for_switch_statement{
-        .switch_and_condition = source_code_span(here, here),
+        .switch_and_condition = source_code_span::unit(here),
     });
     return;
   }
@@ -2040,7 +2037,7 @@ bool parser::parse_and_visit_catch_or_finally_or_both(parse_visitor_base &v) {
     } else {
       const char8 *here = this->lexer_.end_of_previous_token();
       this->diag_reporter_->report(diag_missing_body_for_catch_clause{
-          .catch_token = source_code_span(here, here),
+          .catch_token = source_code_span::unit(here),
       });
     }
     v.visit_exit_block_scope();
@@ -2093,7 +2090,7 @@ void parser::parse_and_visit_do_while(parse_visitor_base &v) {
     this->diag_reporter_->report(
         diag_missing_while_and_condition_for_do_while_statement{
             .do_token = do_token_span,
-            .expected_while = source_code_span(here, here),
+            .expected_while = source_code_span::unit(here),
         });
     return;
   }
@@ -2485,7 +2482,7 @@ void parser::parse_and_visit_for(parse_visitor_base &v) {
   if (!parsed_body) {
     const char8 *here = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_missing_body_for_for_statement{
-        .for_and_header = source_code_span(here, here),
+        .for_and_header = source_code_span::unit(here),
     });
   }
 
@@ -2522,7 +2519,7 @@ void parser::parse_and_visit_while(parse_visitor_base &v) {
   if (!parsed_body) {
     const char8 *here = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_missing_body_for_while_statement{
-        .while_and_condition = source_code_span(here, here),
+        .while_and_condition = source_code_span::unit(here),
     });
   }
 }
@@ -2597,8 +2594,7 @@ void parser::parse_and_visit_if(parse_visitor_base &v) {
   case token_type::right_curly:
     const char8 *end_of_if_condition = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_missing_body_for_if_statement{
-        .expected_body =
-            source_code_span(end_of_if_condition, end_of_if_condition),
+        .expected_body = source_code_span::unit(end_of_if_condition),
     });
     break;
   }
@@ -2620,7 +2616,7 @@ parse_maybe_else:
     if (!this->peek().has_leading_newline && has_left_paren && has_left_curly) {
       // if (cond) {} else (cond) {} // Invalid
       this->diag_reporter_->report(diag_missing_if_after_else{
-          .expected_if = source_code_span(end_of_else, end_of_else),
+          .expected_if = source_code_span::unit(end_of_else),
       });
       parse_and_visit_body();
       goto parse_maybe_else;
@@ -2821,7 +2817,7 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
   default: {
     const char8 *where = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_expected_from_and_module_specifier{
-        .where = source_code_span(where, where),
+        .where = source_code_span::unit(where),
     });
     return;
   }
@@ -3280,7 +3276,7 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
           const char8 *here = this->lexer_.end_of_previous_token();
           this->diag_reporter_->report(
               diag_missing_comma_between_variable_declarations{
-                  .expected_comma = source_code_span(here, here),
+                  .expected_comma = source_code_span::unit(here),
               });
         }
         break;
@@ -3415,7 +3411,7 @@ void parser::parse_and_visit_let_bindings(parse_visitor_base &v,
         // let x null;  // ERROR
         const char8 *here = this->lexer_.end_of_previous_token();
         this->diag_reporter_->report(diag_missing_equal_after_variable{
-            .expected_equal = source_code_span(here, here),
+            .expected_equal = source_code_span::unit(here),
         });
         this->parse_and_visit_expression(
             v, precedence{.commas = false, .in_operator = allow_in_operator});

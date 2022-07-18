@@ -508,7 +508,7 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
             .left_square =
                 source_code_span(left_square_begin, left_square_begin + 1),
             .expected_right_square =
-                source_code_span(expected_right_square, expected_right_square),
+                source_code_span::unit(expected_right_square),
         });
         right_square_end = expected_right_square;
         break;
@@ -1272,8 +1272,7 @@ next:
         expression_kind::arrow_function) {
       // () => {}() // Invalid.
       auto func_span = binary_builder.last_expression()->span();
-      auto func_start_span =
-          source_code_span(func_span.begin(), func_span.begin());
+      auto func_start_span = source_code_span::unit(func_span.begin());
       this->diag_reporter_->report(
           diag_missing_parentheses_around_self_invoked_function{
               .invocation = this->peek().span(),
@@ -1600,7 +1599,7 @@ next:
 
       // Behave as if a comma appeared before the identifier.
       expression* rhs = binary_builder.add_child(
-          source_code_span(expected_operator, expected_operator),
+          source_code_span::unit(expected_operator),
           this->parse_expression(
               v, precedence{.binary_operators = false, .commas = false}));
       QLJS_ASSERT(rhs->kind() != expression_kind::_invalid);
@@ -1962,7 +1961,7 @@ expression* parser::parse_call_expression_remainder(parse_visitor_base& v,
     // f(x;     // Invalid.
     call_span_end = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_expected_right_paren_for_function_call{
-        .expected_right_paren = source_code_span(call_span_end, call_span_end),
+        .expected_right_paren = source_code_span::unit(call_span_end),
         .left_paren = left_paren_span,
     });
   }
@@ -2165,8 +2164,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
     case token_type::right_curly:
       this->diag_reporter_->report(diag_missing_function_parameter_list{
           .expected_parameter_list =
-              source_code_span(this->lexer_.end_of_previous_token(),
-                               this->lexer_.end_of_previous_token()),
+              source_code_span::unit(this->lexer_.end_of_previous_token()),
       });
       break;
     }
@@ -2209,8 +2207,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
       this->diag_reporter_->report(diag_unclosed_object_literal{
           .object_open =
               source_code_span(left_curly_begin, left_curly_begin + 1),
-          .expected_object_close =
-              source_code_span(right_curly_end, right_curly_end),
+          .expected_object_close = source_code_span::unit(right_curly_end),
       });
       goto done;
 
@@ -2221,7 +2218,7 @@ expression* parser::parse_object_literal(parse_visitor_base& v) {
       const char8* comma_location = this->lexer_.end_of_previous_token();
       this->diag_reporter_->report(
           diag_missing_comma_between_object_literal_entries{
-              source_code_span(comma_location, comma_location)});
+              source_code_span::unit(comma_location)});
     }
 
   parse_entry:
@@ -2730,10 +2727,10 @@ expression* parser::parse_jsx_expression(parse_visitor_base& v) {
     } while (this->peek().type == token_type::less);
     const char8* end = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_adjacent_jsx_without_parent{
-        .begin = source_code_span(jsx_begin, jsx_begin),
+        .begin = source_code_span::unit(jsx_begin),
         .begin_of_second_element =
-            source_code_span(begin_of_second_element, begin_of_second_element),
-        .end = source_code_span(end, end),
+            source_code_span::unit(begin_of_second_element),
+        .end = source_code_span::unit(end),
     });
     ast = this->make_expression<expression::jsx_fragment>(
         /*span=*/source_code_span(jsx_begin, end),
@@ -2906,7 +2903,7 @@ next_attribute:
     if (ast->kind() != expression_kind::spread) {
       const char8* ast_begin = ast->span().begin();
       this->diag_reporter_->report(diag_missing_dots_for_attribute_spread{
-          .expected_dots = source_code_span(ast_begin, ast_begin),
+          .expected_dots = source_code_span::unit(ast_begin),
       });
     }
     children.emplace_back(ast);
@@ -3031,14 +3028,13 @@ next:
                     : !tag_members.empty()
                           ? source_code_span(tag_members.front().span().begin(),
                                              tag_end)
-                          : tag ? tag->span()
-                                : source_code_span(tag_end, tag_end),
+                          : tag ? tag->span() : source_code_span::unit(tag_end),
             .closing_tag_name =
                 closing_tag_begin <= closing_tag_end
                     ? source_code_span(closing_tag_begin, closing_tag_end)
                     :
                     // This happens for </> (fragment close).
-                    source_code_span(closing_tag_begin, closing_tag_begin),
+                    source_code_span::unit(closing_tag_begin),
             .opening_tag_name_pretty = opening_tag_name_pretty_view,
         });
       }

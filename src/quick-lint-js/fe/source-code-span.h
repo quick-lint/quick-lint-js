@@ -14,6 +14,11 @@
 namespace quick_lint_js {
 class source_code_span {
  public:
+  // A source_code_span with no contained characters.
+  static source_code_span unit(const char8* c) noexcept {
+    return source_code_span(c, c);
+  }
+
   explicit source_code_span(const char8* begin, const char8* end) noexcept
       : begin_(begin), end_(end) {}
 

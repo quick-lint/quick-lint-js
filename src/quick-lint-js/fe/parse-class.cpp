@@ -41,7 +41,7 @@ void parser::parse_and_visit_class(parse_visitor_base &v,
   default: {
     const char8 *here = this->lexer_.end_of_previous_token();
     this->diag_reporter_->report(diag_missing_body_for_class{
-        .class_keyword_and_name_and_heritage = source_code_span(here, here),
+        .class_keyword_and_name_and_heritage = source_code_span::unit(here),
     });
     break;
   }
@@ -570,8 +570,7 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
             const char8 *expected_type = p->lexer_.end_of_previous_token();
             p->diag_reporter_->report(
                 diag_typescript_index_signature_needs_type{
-                    .expected_type =
-                        source_code_span(expected_type, expected_type),
+                    .expected_type = source_code_span::unit(expected_type),
                 });
             break;
           }

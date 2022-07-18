@@ -56,12 +56,12 @@ TEST_F(test_text_diag_reporter, change_source) {
   padded_string input_1(u8"aaaaaaaa"_sv);
   reporter.set_source(&input_1, /*file_name=*/"hello.js");
   reporter.report(diag_assignment_to_const_global_variable{
-      identifier(source_code_span(&input_1[4 - 1], &input_1[4 - 1]))});
+      identifier(source_code_span::unit(&input_1[4 - 1]))});
 
   padded_string input_2(u8"bbbbbbbb"_sv);
   reporter.set_source(&input_2, /*file_name=*/"world.js");
   reporter.report(diag_assignment_to_const_global_variable{
-      identifier(source_code_span(&input_2[5 - 1], &input_2[5 - 1]))});
+      identifier(source_code_span::unit(&input_2[5 - 1]))});
 
   EXPECT_EQ(
       this->get_output(),
