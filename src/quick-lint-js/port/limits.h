@@ -1,37 +1,34 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_NARROW_CAST_H
-#define QUICK_LINT_JS_UTIL_NARROW_CAST_H
+#ifndef QUICK_LINT_JS_PORT_LIMITS_H
+#define QUICK_LINT_JS_PORT_LIMITS_H
 
-#include <quick-lint-js/assert.h>
+#include <limits>
 #include <quick-lint-js/port/have.h>
-#include <quick-lint-js/port/in-range.h>
-#include <quick-lint-js/port/source-location.h>
 
 namespace quick_lint_js {
-template <class Out, class In>
-Out narrow_cast(In x
-#if !(defined(NDEBUG) && NDEBUG)
-                ,
-                source_location caller = source_location::current()
-#endif
-                    ) noexcept {
-#if !(defined(NDEBUG) && NDEBUG)
-  if (!in_range<Out>(x)) {
-    if constexpr (source_location::valid()) {
-      report_assertion_failure(caller.file_name(),
-                               static_cast<int>(caller.line()),
-                               caller.function_name(), "number not in range");
-    } else {
-      report_assertion_failure(__FILE__, __LINE__, __func__,
-                               "number not in range");
-    }
-    QLJS_ASSERT_TRAP();
+template <class T>
+struct numeric_limits : public std::numeric_limits<T> {};
+
+#if QLJS_HAVE_CHAR8_T
+// HACK(strager): Work around older versions of libc++ not supporting
+// std::numeric_limits<char8_t> despite the corresponding versions of Clang
+// supporting char8_t.
+template <>
+struct numeric_limits<char8_t> {
+  static constexpr char8_t lowest() noexcept {
+    return static_cast<char8_t>(uchar_limits::lowest());
   }
+
+  static constexpr char8_t(max)() noexcept {
+    return static_cast<char8_t>((uchar_limits::max)());
+  }
+
+ private:
+  using uchar_limits = numeric_limits<unsigned char>;
+};
 #endif
-  return static_cast<Out>(x);
-}
 }
 
 #endif

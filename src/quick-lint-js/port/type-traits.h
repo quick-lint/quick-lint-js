@@ -1,37 +1,28 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_NARROW_CAST_H
-#define QUICK_LINT_JS_UTIL_NARROW_CAST_H
+#ifndef QUICK_LINT_JS_PORT_TYPE_TRAITS_H
+#define QUICK_LINT_JS_PORT_TYPE_TRAITS_H
 
-#include <quick-lint-js/assert.h>
 #include <quick-lint-js/port/have.h>
-#include <quick-lint-js/port/in-range.h>
-#include <quick-lint-js/port/source-location.h>
+#include <type_traits>
 
 namespace quick_lint_js {
-template <class Out, class In>
-Out narrow_cast(In x
-#if !(defined(NDEBUG) && NDEBUG)
-                ,
-                source_location caller = source_location::current()
+template <class T>
+struct make_unsigned : public std::make_unsigned<T> {};
+
+#if QLJS_HAVE_CHAR8_T
+// HACK(strager): Work around older versions of libc++ not supporting
+// std::make_unsigned<char8_t> despite the corresponding versions of Clang
+// supporting char8_t.
+template <>
+struct make_unsigned<char8_t> {
+  using type = char8_t;
+};
 #endif
-                    ) noexcept {
-#if !(defined(NDEBUG) && NDEBUG)
-  if (!in_range<Out>(x)) {
-    if constexpr (source_location::valid()) {
-      report_assertion_failure(caller.file_name(),
-                               static_cast<int>(caller.line()),
-                               caller.function_name(), "number not in range");
-    } else {
-      report_assertion_failure(__FILE__, __LINE__, __func__,
-                               "number not in range");
-    }
-    QLJS_ASSERT_TRAP();
-  }
-#endif
-  return static_cast<Out>(x);
-}
+
+template <class T>
+using make_unsigned_t = typename make_unsigned<T>::type;
 }
 
 #endif

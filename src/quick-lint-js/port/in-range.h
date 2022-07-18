@@ -1,36 +1,30 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_NARROW_CAST_H
-#define QUICK_LINT_JS_UTIL_NARROW_CAST_H
+#ifndef QUICK_LINT_JS_PORT_IN_RANGE_H
+#define QUICK_LINT_JS_PORT_IN_RANGE_H
 
-#include <quick-lint-js/assert.h>
-#include <quick-lint-js/port/have.h>
-#include <quick-lint-js/port/in-range.h>
-#include <quick-lint-js/port/source-location.h>
+#include <quick-lint-js/port/limits.h>
+#include <quick-lint-js/port/type-traits.h>
+#include <type_traits>
 
 namespace quick_lint_js {
+// TODO(strager): Use std::in_range if supported.
 template <class Out, class In>
-Out narrow_cast(In x
-#if !(defined(NDEBUG) && NDEBUG)
-                ,
-                source_location caller = source_location::current()
-#endif
-                    ) noexcept {
-#if !(defined(NDEBUG) && NDEBUG)
-  if (!in_range<Out>(x)) {
-    if constexpr (source_location::valid()) {
-      report_assertion_failure(caller.file_name(),
-                               static_cast<int>(caller.line()),
-                               caller.function_name(), "number not in range");
-    } else {
-      report_assertion_failure(__FILE__, __LINE__, __func__,
-                               "number not in range");
-    }
-    QLJS_ASSERT_TRAP();
+constexpr bool in_range([[maybe_unused]] In x) noexcept {
+  [[maybe_unused]] constexpr Out min_out = numeric_limits<Out>::lowest();
+  [[maybe_unused]] constexpr Out max_out = (numeric_limits<Out>::max)();
+  using unsigned_in = make_unsigned_t<In>;
+  using unsigned_out = make_unsigned_t<Out>;
+  if constexpr (std::is_same_v<In, Out>) {
+    return true;
+  } else if constexpr (std::is_signed_v<In> == std::is_signed_v<Out>) {
+    return min_out <= x && x <= max_out;
+  } else if constexpr (std::is_signed_v<In> && !std::is_signed_v<Out>) {
+    return 0 <= x && static_cast<unsigned_in>(x) <= max_out;
+  } else if constexpr (!std::is_signed_v<In> && std::is_signed_v<Out>) {
+    return x <= unsigned_out{max_out};
   }
-#endif
-  return static_cast<Out>(x);
 }
 }
 
