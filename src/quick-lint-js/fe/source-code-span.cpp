@@ -5,14 +5,6 @@
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-bool operator==(source_code_span x, string8_view y) noexcept {
-  return x.string_view() == y;
-}
-
-bool operator!=(source_code_span x, string8_view y) noexcept {
-  return !(x == y);
-}
-
 bool same_pointers(source_code_span x, source_code_span y) noexcept {
   return x.begin() == y.begin() && x.end() == y.end();
 }
