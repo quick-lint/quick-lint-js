@@ -49,7 +49,8 @@ TEST(test_buffering_diag_reporter, not_destructing_does_not_leak) {
   // Clang's LeakSanitizer.
 
   linked_bump_allocator<alignof(void*)> memory;
-  std::aligned_union_t<0, buffering_diag_reporter> diag_reporter_storage;
+  alignas(buffering_diag_reporter)
+      std::byte diag_reporter_storage[sizeof(buffering_diag_reporter)];
   buffering_diag_reporter* diag_reporter =
       new (&diag_reporter_storage) buffering_diag_reporter(&memory);
 
