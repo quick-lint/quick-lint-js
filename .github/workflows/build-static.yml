@@ -112,8 +112,8 @@ jobs:
           - {runs_on: ubuntu-latest, docker_container: "archlinux:base", name: "Arch Linux", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "debian:bullseye", name: "Debian 11 Bullseye", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "debian:buster", name: "Debian 10 Buster", archive_name: "linux", exe_file: "bin/quick-lint-js"}
-          - {runs_on: ubuntu-latest, docker_container: "fedora:31", name: "Fedora 31", archive_name: "linux", exe_file: "bin/quick-lint-js"}
-          - {runs_on: ubuntu-latest, docker_container: "fedora:32", name: "Fedora 32", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "fedora:35", name: "Fedora 35", archive_name: "linux", exe_file: "bin/quick-lint-js"}
+          - {runs_on: ubuntu-latest, docker_container: "fedora:36", name: "Fedora 36", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "ubuntu:16.04", name: "Ubuntu 16.04 LTS Xenial", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "ubuntu:18.04", name: "Ubuntu 18.04 LTS Bionic", archive_name: "linux", exe_file: "bin/quick-lint-js"}
           - {runs_on: ubuntu-latest, docker_container: "ubuntu:20.04", name: "Ubuntu 20.04 LTS Focal", archive_name: "linux", exe_file: "bin/quick-lint-js"}
