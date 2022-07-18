@@ -90,7 +90,7 @@ rm -r "${temp_dir}"
 
 suppressed_tags=newer-standards-version
 lintian_version="$(lintian --version | grep -o '[0-9].*')"
-if [ -z "${have_orig_signature}" ] && dpkg --compare-versions "${lintian_version}" ge 2.62.0; then
+if [ -z "${have_orig_signature}" ] && dpkg --compare-versions "${lintian_version}" ge 2.5.81; then
   # We built the orig tarball from Git, so it is not signed. Don't complain
   # about a missing signature.
   suppressed_tags="${suppressed_tags},orig-tarball-missing-upstream-signature"
