@@ -5,7 +5,6 @@
 #define QUICK_LINT_JS_CONTAINER_VECTOR_H
 
 #include <algorithm>
-#include <boost/container/pmr/polymorphic_allocator.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <memory>

@@ -4,13 +4,8 @@
 #ifndef QUICK_LINT_JS_ASSERT_H
 #define QUICK_LINT_JS_ASSERT_H
 
-#include <cstdlib>
 #include <quick-lint-js/port/crash.h>
 #include <quick-lint-js/port/have.h>
-
-#if QLJS_HAVE_DEBUGBREAK
-#include <intrin.h>
-#endif
 
 // See ADR012 for rationale on the design of this module.
 
