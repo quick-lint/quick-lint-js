@@ -12,7 +12,7 @@
 #include <quick-lint-js/fe/diagnostic-formatter.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/language.h>
-#include <quick-lint-js/fe/location.h>
+#include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/char8.h>

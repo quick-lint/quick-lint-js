@@ -1,8 +1,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_FE_LOCATION_H
-#define QUICK_LINT_JS_FE_LOCATION_H
+#ifndef QUICK_LINT_JS_FE_SOURCE_CODE_SPAN_H
+#define QUICK_LINT_JS_FE_SOURCE_CODE_SPAN_H
 
 #include <cstddef>
 #include <iosfwd>

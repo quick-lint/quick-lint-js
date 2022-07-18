@@ -6,7 +6,7 @@
 #include <quick-lint-js/cli/emacs-lisp-diag-reporter.h>
 #include <quick-lint-js/cli/emacs-location.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/fe/location.h>
+#include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/io/output-stream.h>
 #include <quick-lint-js/port/char8.h>
 

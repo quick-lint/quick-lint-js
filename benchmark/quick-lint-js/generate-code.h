@@ -6,7 +6,7 @@
 
 #include <memory>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/fe/location.h>
+#include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/char8.h>
 #include <random>
 #include <vector>

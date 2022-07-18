@@ -115,8 +115,6 @@ quick_lint_js_add_library(
   quick-lint-js/fe/lex.h
   quick-lint-js/fe/lint.cpp
   quick-lint-js/fe/lint.h
-  quick-lint-js/fe/location.cpp
-  quick-lint-js/fe/location.h
   quick-lint-js/fe/multi-parse-visitor.h
   quick-lint-js/fe/null-visitor.cpp
   quick-lint-js/fe/null-visitor.h
@@ -128,6 +126,8 @@ quick_lint_js_add_library(
   quick-lint-js/fe/parse.cpp
   quick-lint-js/fe/parse.h
   quick-lint-js/fe/reported-diag-statistics.h
+  quick-lint-js/fe/source-code-span.cpp
+  quick-lint-js/fe/source-code-span.h
   quick-lint-js/feature.h
   quick-lint-js/i18n/locale.cpp
   quick-lint-js/i18n/locale.h

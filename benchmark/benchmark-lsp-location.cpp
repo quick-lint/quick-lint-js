@@ -3,7 +3,7 @@
 
 #include <benchmark/benchmark.h>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/fe/location.h>
+#include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/generate-code.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>

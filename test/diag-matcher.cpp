@@ -10,7 +10,7 @@
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/lex.h>
-#include <quick-lint-js/fe/location.h>
+#include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <vector>
 

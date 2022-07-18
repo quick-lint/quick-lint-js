@@ -8,7 +8,7 @@
 #include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/language.h>
-#include <quick-lint-js/fe/location.h>
+#include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/i18n/translation.h>
 #include <quick-lint-js/port/char8.h>

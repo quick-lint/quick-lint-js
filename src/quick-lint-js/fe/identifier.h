@@ -5,7 +5,7 @@
 #define QUICK_LINT_JS_FE_IDENTIFIER_H
 
 #include <cstddef>
-#include <quick-lint-js/fe/location.h>
+#include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/narrow-cast.h>
 

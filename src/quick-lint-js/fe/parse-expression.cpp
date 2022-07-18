@@ -16,9 +16,9 @@
 #include <quick-lint-js/fe/expression.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
-#include <quick-lint-js/fe/location.h>
 #include <quick-lint-js/fe/parse-visitor.h>
 #include <quick-lint-js/fe/parse.h>
+#include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
