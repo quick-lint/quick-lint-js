@@ -45,7 +45,7 @@ if dpkg --compare-versions "${lintian_version}" ge 2.114.0; then
 fi
 
 ./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js_${debian_package_version}_amd64.deb"
-./dist/debian/strict-lintian.sh "${dbgsym_lintian_options[@]:+${dbgsym_lintian_options[@]}}" "dist/debian/build/quick-lint-js-dbgsym_${debian_package_version}_amd64.deb"
+./dist/debian/strict-lintian.sh "${dbgsym_lintian_options[@]:+${dbgsym_lintian_options[@]}}" "dist/debian/build/quick-lint-js-dbgsym_${debian_package_version}_amd64.ddeb"
 ./dist/debian/strict-lintian.sh "dist/debian/build/quick-lint-js-vim_${debian_package_version}_all.deb"
 
 # quick-lint-js finds bugs in JavaScript programs.
