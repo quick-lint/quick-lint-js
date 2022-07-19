@@ -18,6 +18,8 @@
 #include <quick-lint-js/web-demo-location.h>
 #include <vector>
 
+using namespace quick_lint_js;
+
 namespace quick_lint_js {
 namespace {
 template <class Locator, class ErrorReporter>
@@ -53,25 +55,21 @@ class qljs_document_base {
 }
 
 struct qljs_web_demo_document final
-    : public quick_lint_js::qljs_document_base<
-          quick_lint_js::web_demo_locator,
-          quick_lint_js::c_api_diag_reporter<qljs_web_demo_diagnostic,
-                                             quick_lint_js::web_demo_locator>> {
+    : public qljs_document_base<
+          web_demo_locator,
+          c_api_diag_reporter<qljs_web_demo_diagnostic, web_demo_locator>> {
  public:
-  void set_text(quick_lint_js::string8_view replacement) {
+  void set_text(string8_view replacement) {
     this->document_.set_text(replacement);
   }
 
-  void set_config_text(quick_lint_js::string8_view text) {
-    quick_lint_js::padded_string padded_text(text);
+  void set_config_text(string8_view text) {
+    padded_string padded_text(text);
     this->config_.reset();
-    this->config_.load_from_json(&padded_text,
-                                 &quick_lint_js::null_diag_reporter::instance);
+    this->config_.load_from_json(&padded_text, &null_diag_reporter::instance);
   }
 
-  void set_translator(quick_lint_js::translator t) {
-    this->diag_reporter_.set_translator(t);
-  }
+  void set_translator(translator t) { this->diag_reporter_.set_translator(t); }
 };
 
 qljs_web_demo_document* qljs_web_demo_create_document(void) {
@@ -83,21 +81,19 @@ void qljs_web_demo_destroy_document(qljs_web_demo_document* p) { delete p; }
 
 void qljs_web_demo_set_text(qljs_web_demo_document* p, const void* text_utf_8,
                             size_t text_byte_count) {
-  p->set_text(quick_lint_js::string8_view(
-      reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
-      text_byte_count));
+  p->set_text(string8_view(reinterpret_cast<const char8*>(text_utf_8),
+                           text_byte_count));
 }
 
 void qljs_web_demo_set_config_text(qljs_web_demo_document* p,
                                    const void* text_utf_8,
                                    size_t text_byte_count) {
-  p->set_config_text(quick_lint_js::string8_view(
-      reinterpret_cast<const quick_lint_js::char8*>(text_utf_8),
-      text_byte_count));
+  p->set_config_text(string8_view(reinterpret_cast<const char8*>(text_utf_8),
+                                  text_byte_count));
 }
 
 void qljs_web_demo_set_locale(qljs_web_demo_document* p, const char* locale) {
-  quick_lint_js::translator t;
+  translator t;
   t.use_messages_from_locale(locale);
   p->set_translator(t);
 }
@@ -113,13 +109,12 @@ const qljs_web_demo_diagnostic* qljs_web_demo_lint_as_config_file(
 
 const char* const* qljs_list_locales() {
   static const char* const* locale_list = [] {
-    std::size_t locale_count =
-        quick_lint_js::translation_table_locale_count + 1;
+    std::size_t locale_count = translation_table_locale_count + 1;
     const char** locales = new const char*[locale_count + 1];
 
     std::size_t i = 0;
     const char* l;
-    for (l = quick_lint_js::translation_data.locale_table; *l != '\0';
+    for (l = translation_data.locale_table; *l != '\0';
          l += std::strlen(l) + 1, ++i) {
       locales[i] = l;
     }
