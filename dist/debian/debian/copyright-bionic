@@ -15,7 +15,7 @@ Files: dist/appstream/com.quick_lint.quick_lint_js.metainfo.xml
 Copyright: Copyright (C) 2020  Matthew "strager" Glazar
 License: CC-BY-SA-4.0
 
-Files: src/quick-lint-js/simd-neon-arm.h
+Files: src/quick-lint-js/port/simd-neon-arm.h
 Copyright: Copyright (C) 2020  Matthew "strager" Glazar
            Copyright (c) 2014-2020, Arm Limited.
 License: GPL-3.0-or-later and MIT
