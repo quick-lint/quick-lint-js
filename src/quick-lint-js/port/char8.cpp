@@ -1,6 +1,7 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <quick-lint-js/port/char8.h>
@@ -77,6 +78,36 @@ char8 tolower(char8 c) noexcept {
 bool islower(char8 c) noexcept { return u8'a' <= c && c <= u8'z'; }
 
 bool isupper(char8 c) noexcept { return u8'A' <= c && c <= u8'Z'; }
+
+bool haslower(string8_view s) {
+  for (auto const &c : s) {
+    if (islower(c)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool hasupper(string8_view s) {
+  for (auto const &c : s) {
+    if (isupper(c)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool find_case_insensitive(string8_view haystack, string8_view needle) {
+  auto predicate = [](char8 c1, char8 c2) {
+    return tolower(c1) == tolower(c2);
+  };
+
+  auto *res = std::search(haystack.begin(), haystack.end(), needle.begin(),
+                          needle.end(), predicate);
+
+  return res != haystack.end();
+}
+
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

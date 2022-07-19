@@ -1849,6 +1849,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "lower case letters compared with toUpperCase"_translatable,
+        {
+            u8"lower case letters compared with toUpperCase",
+            u8"Kleinbuchstaben werden mit toUpperCase verglichen",
+            u8"You sure you're getting what toUpperCase does?",
+            u8"lower case letters compared with toUpperCase",
+            u8"lower case letters compared with toUpperCase",
+        },
+    },
+    {
         "methods cannot be readonly"_translatable,
         {
             u8"methods cannot be readonly",
@@ -3146,6 +3156,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"/*",
             u8"commentaire de bloc non ouvert",
             u8"unopened block comment",
+        },
+    },
+    {
+        "upper case letters compared with toLowerCase"_translatable,
+        {
+            u8"upper case letters compared with toLowerCase",
+            u8"Gro\u00dfbuchstaben werden mit toLowerCase verglichen",
+            u8"You sure you're getting what toLowerCase does?",
+            u8"upper case letters compared with toLowerCase",
+            u8"upper case letters compared with toLowerCase",
         },
     },
     {

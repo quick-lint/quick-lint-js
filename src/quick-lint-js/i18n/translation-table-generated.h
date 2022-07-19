@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 335;
-constexpr std::size_t translation_table_string_table_size = 53109;
+constexpr std::uint16_t translation_table_mapping_table_size = 337;
+constexpr std::size_t translation_table_string_table_size = 53393;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -210,6 +210,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "legacy octal literal may not be BigInt"sv,
           "legacy octal literals may not contain underscores"sv,
           "let statement cannot declare variables named 'let'"sv,
+          "lower case letters compared with toUpperCase"sv,
           "methods cannot be readonly"sv,
           "methods should not use the 'function' keyword"sv,
           "mismatched JSX tags; expected '</{1}>'"sv,
@@ -340,6 +341,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "unmatched indexing bracket"sv,
           "unmatched parenthesis"sv,
           "unopened block comment"sv,
+          "upper case letters compared with toLowerCase"sv,
           "use ':' instead of '=' in object literals"sv,
           "use ':' instead of 'as' to type a function parameter"sv,
           "use 'while' instead to loop until a condition is false"sv,

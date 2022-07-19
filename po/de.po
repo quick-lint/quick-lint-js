@@ -1505,6 +1505,14 @@ msgstr ""
 msgid "continue can only be used inside of a loop"
 msgstr "continue ist nur innerhalb von Schleifen gültig"
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "lower case letters compared with toUpperCase"
+msgstr "Kleinbuchstaben werden mit toUpperCase verglichen"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "upper case letters compared with toLowerCase"
+msgstr "Großbuchstaben werden mit toLowerCase verglichen"
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

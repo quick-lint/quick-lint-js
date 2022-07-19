@@ -1519,6 +1519,14 @@ msgstr ""
 msgid "continue can only be used inside of a loop"
 msgstr "continue ne peut être utilisé qu'à l'intérieur d'une boucle"
 
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "lower case letters compared with toUpperCase"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "upper case letters compared with toLowerCase"
+msgstr ""
+
 #: test/test-diagnostic-formatter.cpp
 #: test/test-vim-qflist-json-diag-reporter.cpp
 msgid "something happened"

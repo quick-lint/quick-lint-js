@@ -321,6 +321,7 @@ class parser {
   void parse_and_visit_parenthesized_expression(parse_visitor_base &v);
 
   void error_on_sketchy_condition(expression *);
+  void error_on_pointless_string_compare(expression::binary_operator *);
 
   void error_on_class_statement(statement_kind statement_kind);
   void error_on_lexical_declaration(statement_kind statement_kind);

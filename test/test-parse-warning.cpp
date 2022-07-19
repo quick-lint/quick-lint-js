@@ -169,6 +169,155 @@ TEST_F(test_error_equals_does_not_distribute_over_or, non_constant) {
     EXPECT_THAT(p.errors, IsEmpty());
   }
 }
+
+TEST(test_parse, warn_on_pointless_string_comp) {
+  {
+    padded_string code(u8"toLowerCase() == 'banana'"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+  {
+    padded_string code(u8"toLowerCase() == 'BANANA'"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_pointless_string_comp_contains_upper,
+                    span_operator, strlen(u8"toLowerCase() "), u8"==")));
+  }
+  {
+    padded_string code(u8"toUpperCase() == 'BANANA'"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+  {
+    padded_string code(u8"toUpperCase() == 'banana'"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_pointless_string_comp_contains_lower,
+                    span_operator, strlen(u8"toUpperCase() "), u8"==")));
+  }
+  {
+    padded_string code(u8"toLowerCase() == \"BANANA\""_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_pointless_string_comp_contains_upper,
+                    span_operator, strlen(u8"toLowerCase() "), u8"==")));
+  }
+}
+
+TEST(test_parse, warn_on_pointless_string_comp_all_operators) {
+  {
+    for (const char8* op : {u8"==", u8"===", u8"!=", u8"!=="}) {
+      padded_string code(u8"x.toLowerCase() " + string8(op) + u8" 'Banana'");
+      spy_visitor v;
+      parser p(&code, &v);
+      EXPECT_TRUE(p.parse_and_visit_statement(v));
+      EXPECT_THAT(
+          v.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              &code, diag_pointless_string_comp_contains_upper, span_operator,
+              strlen(u8"x.toLowerCase() "), string8(op))));
+    }
+  }
+}
+
+TEST(test_parse, warn_on_pointless_string_comp_function_signatures) {
+  {
+    padded_string code(u8"tolowerCASE() == 'BANANA'"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_pointless_string_comp_contains_upper,
+                    span_operator, strlen(u8"toLowerCase() "), u8"==")));
+  }
+  {
+    padded_string code(
+        u8"s.ref().builder().customToLowerCaseWithPostfix() == 'BANANA'"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code, diag_pointless_string_comp_contains_upper, span_operator,
+            strlen(u8"s.ref().builder().customToLowerCaseWithPostfix() "),
+            u8"==")));
+  }
+  {
+    padded_string code(u8"toLowerCaseAndToUpperCase() == 'Banana'"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+  {
+    padded_string code(u8"'BANANA' == toLowerCase()"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code, diag_pointless_string_comp_contains_upper,
+                              span_operator, strlen(u8"'BANANA' "), u8"==")));
+  }
+}
+
+TEST(test_parse, warn_on_pointless_string_comp_complex_expressions) {
+  {
+    padded_string code(u8"if(tolowerCase() || 'BANANA') {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.errors, IsEmpty());
+  }
+  {
+    padded_string code(
+        u8"tolowerCase() == 'BANANA' && x.toUpperCase() !== 'orange'"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            DIAG_TYPE_OFFSETS(&code, diag_pointless_string_comp_contains_upper,
+                              span_operator, strlen(u8"toLowerCase() "),
+                              u8"=="),
+            DIAG_TYPE_OFFSETS(
+                &code, diag_pointless_string_comp_contains_lower, span_operator,
+                strlen(u8"tolowerCASE() == 'BANANA' && x.toUpperCase() "),
+                u8"!==")));
+  }
+  {
+    padded_string code(
+        u8"((tolowerCase() == 'BANANA') && x.toUpperCase() !== 'orange')"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(
+            DIAG_TYPE_OFFSETS(&code, diag_pointless_string_comp_contains_upper,
+                              span_operator, strlen(u8"((toLowerCase() "),
+                              u8"=="),
+            DIAG_TYPE_OFFSETS(
+                &code, diag_pointless_string_comp_contains_lower, span_operator,
+                strlen(u8"((tolowerCASE() == 'BANANA') && x.toUpperCase() "),
+                u8"!==")));
+  }
+}
 }
 }
 

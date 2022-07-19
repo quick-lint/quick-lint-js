@@ -314,6 +314,63 @@ void parser::error_on_sketchy_condition(expression* ast) {
   }
 }
 
+void parser::error_on_pointless_string_compare(
+    expression::binary_operator* ast) {
+  auto is_comparison_operator = [](string8_view s) {
+    return s.starts_with(u8"=="sv) || s.starts_with(u8"==="sv) ||
+           s.starts_with(u8"!="sv) || s.starts_with(u8"!=="sv);
+  };
+  auto check = [&](source_code_span op_span, string8_view call,
+                   string8_view literal) {
+    bool lower = find_case_insensitive(call, u8"toLowerCase"sv);
+    bool upper = find_case_insensitive(call, u8"toUpperCase"sv);
+
+    // Don't check if both or neither are found
+    if (lower == upper) {
+      return;
+    }
+
+    if (lower) {
+      if (hasupper(literal)) {
+        this->diag_reporter_->report(
+            diag_pointless_string_comp_contains_upper{op_span});
+      }
+    } else {
+      if (haslower(literal)) {
+        this->diag_reporter_->report(
+            diag_pointless_string_comp_contains_lower{op_span});
+      }
+    }
+  };
+
+  for (size_t i = 0; i < ast->child_count() - 1; i++) {
+    expression* lhs = ast->child(i);
+    expression* rhs = ast->child(i + 1);
+
+    if ((lhs->kind() == expression_kind::call &&
+         rhs->kind() == expression_kind::literal) ||
+        (lhs->kind() == expression_kind::literal &&
+         rhs->kind() == expression_kind::call)) {
+      source_code_span op_span = ast->operator_spans_[i];
+      if (!is_comparison_operator(op_span.string_view())) {
+        continue;
+      }
+
+      // make sure the call is on the "left" and the literal on the "right"
+      if (lhs->kind() == expression_kind::literal) {
+        expression* tmp = lhs;
+        lhs = rhs;
+        rhs = tmp;
+      }
+
+      source_code_span call = lhs->child_0()->variable_identifier().span();
+      source_code_span literal = rhs->span();
+
+      check(op_span, call.string_view(), literal.string_view());
+    }
+  }
+}
+
 void parser::error_on_class_statement(statement_kind statement_kind) {
   if (this->peek().type == token_type::kw_class) {
     this->diag_reporter_->report(diag_class_statement_not_allowed_in_body{
