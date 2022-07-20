@@ -1,4 +1,4 @@
-image: stragertest:latest
+image: 192.168.1.138:5005/src/quick-lint-js/gitlab-windows-msvc:latest
 
 build_job:
   stage: build
