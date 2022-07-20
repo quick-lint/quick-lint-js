@@ -1,0 +1,9 @@
+image: stragertest:latest
+
+build_job:
+  stage: build
+  script:
+    #- cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DQUICK_LINT_JS_ENABLE_BENCHMARKS=YES -DBUILD_TESTING=YES -S . -B .
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=YES -S . -B .
+    - cmake --build . --config Debug
+    - ctest --build-config Debug --verbose
