@@ -131,6 +131,53 @@
           end_or_text_2,                                                  \
       })
 
+// Equivalent to the following, but compiles much more quickly:
+//
+//   DIAG_TYPE_FIELD(type, member_0, source_code_span_matcher(span_0))
+//
+// but compiles much more quickly.
+#define DIAG_TYPE_SPAN(type, member_0, span_0)                           \
+  ::quick_lint_js::diag_spans_matcher(                                   \
+      ::quick_lint_js::diag_type::type,                                  \
+      ::quick_lint_js::diag_spans_matcher::field{                        \
+          ::quick_lint_js::diag_matcher_arg{                             \
+              #member_0,                                                 \
+              offsetof(type, member_0),                                  \
+              ::quick_lint_js::get_diagnostic_message_arg_type<decltype( \
+                  type::member_0)>(),                                    \
+          },                                                             \
+          span_0,                                                        \
+      })
+
+// Equivalent to the following, but compiles much more quickly:
+//
+//   DIAG_TYPE_2_FIELD(type,
+//                     member_0, source_code_span_matcher(span_0),
+//                     member_1, source_code_span_matcher(span_1))
+//
+// but compiles much more quickly.
+#define DIAG_TYPE_2_SPANS(type, member_0, span_0, member_1, span_1)      \
+  ::quick_lint_js::diag_spans_matcher(                                   \
+      ::quick_lint_js::diag_type::type,                                  \
+      ::quick_lint_js::diag_spans_matcher::field{                        \
+          ::quick_lint_js::diag_matcher_arg{                             \
+              #member_0,                                                 \
+              offsetof(type, member_0),                                  \
+              ::quick_lint_js::get_diagnostic_message_arg_type<decltype( \
+                  type::member_0)>(),                                    \
+          },                                                             \
+          span_0,                                                        \
+      },                                                                 \
+      ::quick_lint_js::diag_spans_matcher::field{                        \
+          ::quick_lint_js::diag_matcher_arg{                             \
+              #member_1,                                                 \
+              offsetof(type, member_1),                                  \
+              ::quick_lint_js::get_diagnostic_message_arg_type<decltype( \
+                  type::member_1)>(),                                    \
+          },                                                             \
+          span_1,                                                        \
+      })
+
 namespace quick_lint_js {
 class offsets_matcher {
  public:
@@ -247,6 +294,43 @@ class diag_matcher {
   struct state {
     diag_type type;
     std::optional<padded_string_view> input;
+    std::vector<field> fields;
+  };
+
+  state state_;
+};
+
+// A mix of ::testing::VariantWith, ::testing::Field, and
+// source_code_span_matcher. These are combined into one matcher to
+// significantly reduce compile times.
+//
+// See DIAG_TYPE_SPAN for example usage.
+class diag_spans_matcher {
+ public:
+  struct field {
+    // Must be identifier or source_code_span.
+    diag_matcher_arg arg;
+
+    source_code_span expected;
+  };
+
+  // Create a matcher which asserts that an error's source_code_span's
+  // begin and end pointers equal the expected span.
+  explicit diag_spans_matcher(diag_type type, field);
+  explicit diag_spans_matcher(diag_type type, field, field);
+
+  diag_spans_matcher(const diag_spans_matcher &) = default;
+  diag_spans_matcher(diag_spans_matcher &&) = default;
+  diag_spans_matcher &operator=(const diag_spans_matcher &) = default;
+  diag_spans_matcher &operator=(diag_spans_matcher &&) = default;
+
+  /*implicit*/ operator testing::Matcher<const diag_collector::diag &>() const;
+
+ private:
+  class impl;
+
+  struct state {
+    diag_type type;
     std::vector<field> fields;
   };
 

@@ -124,10 +124,10 @@ TEST(test_lint_enum, enum_conflicts_with_most_variables_in_same_scope) {
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_2_FIELDS(
-                      diag_redeclaration_of_variable,                 //
-                      redeclaration, span_matcher(enum_declaration),  //
-                      original_declaration, span_matcher(other_declaration))));
+                  ElementsAre(DIAG_TYPE_2_SPANS(
+                      diag_redeclaration_of_variable,            //
+                      redeclaration, span_of(enum_declaration),  //
+                      original_declaration, span_of(other_declaration))));
     }
 
     {
@@ -145,10 +145,10 @@ TEST(test_lint_enum, enum_conflicts_with_most_variables_in_same_scope) {
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_2_FIELDS(
-                      diag_redeclaration_of_variable,                  //
-                      redeclaration, span_matcher(other_declaration),  //
-                      original_declaration, span_matcher(enum_declaration))));
+                  ElementsAre(DIAG_TYPE_2_SPANS(
+                      diag_redeclaration_of_variable,             //
+                      redeclaration, span_of(other_declaration),  //
+                      original_declaration, span_of(enum_declaration))));
     }
   }
 }
@@ -205,10 +205,10 @@ TEST(test_lint_enum, var_conflicts_with_enum_in_outer_scope) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_redeclaration_of_variable,                //
-                    redeclaration, span_matcher(var_declaration),  //
-                    original_declaration, span_matcher(enum_declaration))));
+                ElementsAre(DIAG_TYPE_2_SPANS(
+                    diag_redeclaration_of_variable,           //
+                    redeclaration, span_of(var_declaration),  //
+                    original_declaration, span_of(enum_declaration))));
   }
 
   {
@@ -231,10 +231,10 @@ TEST(test_lint_enum, var_conflicts_with_enum_in_outer_scope) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_redeclaration_of_variable,                 //
-                    redeclaration, span_matcher(enum_declaration),  //
-                    original_declaration, span_matcher(var_declaration))));
+                ElementsAre(DIAG_TYPE_2_SPANS(
+                    diag_redeclaration_of_variable,            //
+                    redeclaration, span_of(enum_declaration),  //
+                    original_declaration, span_of(var_declaration))));
   }
 }
 

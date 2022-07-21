@@ -331,6 +331,70 @@ class diag_matcher::impl
     const diag_collector::diag &>() const {
   return testing::Matcher<const diag_collector::diag &>(new impl(this->state_));
 }
+
+diag_spans_matcher::diag_spans_matcher(diag_type type, field field_0)
+    : state_{type, {field_0}} {}
+
+diag_spans_matcher::diag_spans_matcher(diag_type type, field field_0,
+                                       field field_1)
+    : state_{type, {field_0, field_1}} {}
+
+class diag_spans_matcher::impl
+    : public testing::MatcherInterface<const diag_collector::diag &> {
+ public:
+  explicit impl(state s) : state_(std::move(s)) {}
+
+  void DescribeTo(std::ostream *out) const override {
+    *out << "has type " << this->state_.type;
+    this->describe_fields_to(out);
+  }
+
+  void DescribeNegationTo(std::ostream *out) const override {
+    *out << "doesn't have type " << this->state_.type;
+    this->describe_fields_to(out);
+  }
+
+  void describe_fields_to(std::ostream *) const {
+    // TODO(strager)
+  }
+
+  bool MatchAndExplain(const diag_collector::diag &error,
+                       testing::MatchResultListener *listener) const override {
+    bool type_matches = error.type() == this->state_.type;
+    if (!type_matches) {
+      *listener << "whose type (" << error.type() << ") isn't "
+                << this->state_.type;
+      return false;
+    }
+
+    bool result = true;
+    bool is_first_field = true;
+    for (const field &f : this->state_.fields) {
+      source_code_span span = f.arg.get_span(error.data());
+      bool span_matches = same_pointers(span, f.expected);
+      if (!is_first_field) {
+        *listener << " and ";
+      }
+      *listener << "whose ." << f.arg.member_name << " (`"
+                << out_string8(span.string_view()) << "` @"
+                << reinterpret_cast<const void *>(span.begin()) << ") "
+                << (span_matches ? "equals" : "doesn't equal") << " `"
+                << out_string8(f.expected.string_view()) << "` @"
+                << reinterpret_cast<const void *>(f.expected.begin());
+      result = result && span_matches;
+      is_first_field = false;
+    }
+    return result;
+  }
+
+ private:
+  state state_;
+};
+
+/*implicit*/ diag_spans_matcher::operator testing::Matcher<
+    const diag_collector::diag &>() const {
+  return testing::Matcher<const diag_collector::diag &>(new impl(this->state_));
+}
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

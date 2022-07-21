@@ -77,8 +77,8 @@ TEST(test_lint_type, type_use_with_no_declaration_is_an_error) {
   l.visit_variable_type_use(identifier_of(use));
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type,
-                                                    name, span_matcher(use))));
+  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type,
+                                                   name, span_of(use))));
 }
 
 TEST(test_lint_type, type_use_after_declaration_in_block_scope_is_an_error) {
@@ -103,8 +103,8 @@ TEST(test_lint_type, type_use_after_declaration_in_block_scope_is_an_error) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
-                                            span_matcher(use))));
+                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
+                                           span_of(use))));
   }
 }
 
@@ -304,8 +304,8 @@ TEST(test_lint_type, type_use_does_not_see_non_type_variables) {
       // TODO(strager): Report a more helpful message indicating that 'I' is a
       // function or variable, not a type.
       EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
-                                              span_matcher(use))));
+                  ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
+                                             span_of(use))));
     }
 
     {
@@ -325,8 +325,8 @@ TEST(test_lint_type, type_use_does_not_see_non_type_variables) {
       // TODO(strager): Report a more helpful message indicating that 'I' is a
       // function or variable, not a type.
       EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
-                                              span_matcher(use))));
+                  ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
+                                             span_of(use))));
     }
 
     {
@@ -347,8 +347,8 @@ TEST(test_lint_type, type_use_does_not_see_non_type_variables) {
       // TODO(strager): Report a more helpful message indicating that 'I' is a
       // function or variable, not a type.
       EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
-                                              span_matcher(use))));
+                  ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
+                                             span_of(use))));
     }
 
     {
@@ -374,8 +374,8 @@ TEST(test_lint_type, type_use_does_not_see_non_type_variables) {
       // TODO(strager): Report a more helpful message indicating that 'I' is a
       // function or variable, not a type.
       EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
-                                              span_matcher(use))));
+                  ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
+                                             span_of(use))));
     }
   }
 }
@@ -423,18 +423,18 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
               -> diags_matcher {
             if (runtime_var_kind.has_value()) {
               if (*runtime_var_kind == variable_kind::_const) {
-                return ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_assignment_to_const_variable,     //
-                    assignment, span_matcher(assignment),  //
-                    declaration, span_matcher(outer_declaration)));
+                return ElementsAre(
+                    DIAG_TYPE_2_SPANS(diag_assignment_to_const_variable,  //
+                                      assignment, span_of(assignment),    //
+                                      declaration, span_of(outer_declaration)));
               } else {
                 return IsEmpty();
               }
             } else {
               // TODO(strager): Report a more helpful message.
               return ElementsAre(
-                  DIAG_TYPE_FIELD(diag_assignment_to_undeclared_variable,
-                                  assignment, span_matcher(assignment)));
+                  DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable,
+                                 assignment, span_of(assignment)));
             }
           },
       },
@@ -467,8 +467,8 @@ TEST(test_lint_type, interfaces_are_ignored_in_runtime_expressions) {
            return IsEmpty();
          } else {
            // TODO(strager): Report a more helpful message.
-           return ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable,
-                                              name, span_matcher(use)));
+           return ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                                             name, span_of(use)));
          }
        }},
   };
@@ -803,11 +803,11 @@ TEST(test_lint_type, interfaces_conflict_with_generic_parameters) {
 
   EXPECT_THAT(
       v.errors,
-      ElementsAre(DIAG_TYPE_2_FIELDS(
-          diag_redeclaration_of_variable,  //
-          redeclaration,
-          span_matcher(interface_declaration),  //
-          original_declaration, span_matcher(generic_parameter_declaration))));
+      ElementsAre(DIAG_TYPE_2_SPANS(diag_redeclaration_of_variable,  //
+                                    redeclaration,
+                                    span_of(interface_declaration),  //
+                                    original_declaration,
+                                    span_of(generic_parameter_declaration))));
 }
 }
 }

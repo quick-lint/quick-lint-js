@@ -127,9 +127,9 @@ TEST(test_lint, immutable_global_variables_are_not_assignable) {
     l.visit_variable_assignment(identifier_of(global_variable));
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_SPAN(
                               diag_assignment_to_const_global_variable,
-                              assignment, span_matcher(global_variable))));
+                              assignment, span_of(global_variable))));
   }
 
   for (const char8 *global_variable : non_writable_global_variables) {
@@ -146,9 +146,9 @@ TEST(test_lint, immutable_global_variables_are_not_assignable) {
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_SPAN(
                               diag_assignment_to_const_global_variable,
-                              assignment, span_matcher(global_variable))));
+                              assignment, span_of(global_variable))));
   }
 }
 
@@ -299,10 +299,10 @@ TEST(test_lint, let_or_const_or_class_variable_use_before_declaration) {
                                  variable_init_kind::normal);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_SPANS(
                               diag_variable_used_before_declaration,  //
-                              use, span_matcher(use),                 //
-                              declaration, span_matcher(declaration))));
+                              use, span_of(use),                      //
+                              declaration, span_of(declaration))));
   }
 }
 
@@ -397,10 +397,10 @@ TEST(test_lint, let_variable_use_before_declaration_within_function) {
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
+  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_SPANS(
                             diag_variable_used_before_declaration,  //
-                            use, span_matcher(use),                 //
-                            declaration, span_matcher(declaration))));
+                            use, span_of(use),                      //
+                            declaration, span_of(declaration))));
 }
 
 TEST(test_lint, let_variable_use_before_declaration_within_for_loop_scope) {
@@ -421,10 +421,10 @@ TEST(test_lint, let_variable_use_before_declaration_within_for_loop_scope) {
   l.visit_exit_for_scope();
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
+  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_SPANS(
                             diag_variable_used_before_declaration,  //
-                            use, span_matcher(use),                 //
-                            declaration, span_matcher(declaration))));
+                            use, span_of(use),                      //
+                            declaration, span_of(declaration))));
 }
 
 TEST(test_lint, let_variable_use_before_declaration_of_shadowing_variable) {
@@ -448,10 +448,10 @@ TEST(test_lint, let_variable_use_before_declaration_of_shadowing_variable) {
                                variable_init_kind::normal);
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
+  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_SPANS(
                             diag_variable_used_before_declaration,  //
-                            use, span_matcher(use),                 //
-                            declaration, span_matcher(declaration))));
+                            use, span_of(use),                      //
+                            declaration, span_of(declaration))));
 }
 
 TEST(test_lint, var_or_function_variable_use_before_declaration) {
@@ -540,8 +540,8 @@ TEST(
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable,
-                                            name, span_matcher(use))));
+                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                                           name, span_of(use))));
   }
 }
 
@@ -587,10 +587,10 @@ TEST(test_lint, function_variable_use_before_declaration_in_block_scope) {
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_2_FIELDS(
+              ElementsAre(DIAG_TYPE_2_SPANS(
                   diag_function_call_before_declaration_in_block_scope,  //
-                  use, span_matcher(use),                                //
-                  declaration, span_matcher(declaration))));
+                  use, span_of(use),                                     //
+                  declaration, span_of(declaration))));
 }
 
 TEST(test_lint,
@@ -647,10 +647,10 @@ TEST(test_lint,
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_2_FIELDS(
+              ElementsAre(DIAG_TYPE_2_SPANS(
                   diag_function_call_before_declaration_in_block_scope,  //
-                  use, span_matcher(use),                                //
-                  declaration, span_matcher(declaration))));
+                  use, span_of(use),                                     //
+                  declaration, span_of(declaration))));
 }
 
 TEST(
@@ -710,8 +710,8 @@ TEST(test_lint, variable_use_with_no_declaration) {
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                          span_matcher(use))));
+              ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                         span_of(use))));
 }
 
 TEST(test_lint, variable_export_with_no_declaration) {
@@ -724,8 +724,8 @@ TEST(test_lint, variable_export_with_no_declaration) {
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                          span_matcher(use))));
+              ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                         span_of(use))));
 }
 
 TEST(test_lint, variable_use_in_function_with_no_declaration) {
@@ -743,8 +743,8 @@ TEST(test_lint, variable_use_in_function_with_no_declaration) {
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                          span_matcher(use))));
+              ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                         span_of(use))));
 }
 
 TEST(test_lint, variable_use_with_declaration_in_different_function) {
@@ -771,8 +771,8 @@ TEST(test_lint, variable_use_with_declaration_in_different_function) {
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                          span_matcher(use))));
+              ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                         span_of(use))));
 }
 
 TEST(test_lint,
@@ -801,10 +801,10 @@ TEST(test_lint,
   l.visit_exit_block_scope();
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
+  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_SPANS(
                             diag_variable_used_before_declaration,  //
-                            use, span_matcher(use),                 //
-                            declaration, span_matcher(inner_declaration))));
+                            use, span_of(use),                      //
+                            declaration, span_of(inner_declaration))));
 }
 
 TEST(test_lint, use_of_variable_declared_in_grandparent_scope) {
@@ -925,10 +925,10 @@ TEST(test_lint,
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                          span_matcher(use_before)),
-                          DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                          span_matcher(use_after))));
+              ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                         span_of(use_before)),
+                          DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                         span_of(use_after))));
 }
 
 TEST(test_lint, use_global_variable_within_functions) {
@@ -1180,10 +1180,10 @@ TEST(test_lint, assign_to_immutable_variable_before_declaration) {
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              UnorderedElementsAre(DIAG_TYPE_2_FIELDS(
+              UnorderedElementsAre(DIAG_TYPE_2_SPANS(
                   diag_assignment_to_const_variable_before_its_declaration,  //
-                  assignment, span_matcher(assignment),                      //
-                  declaration, span_matcher(declaration))));
+                  assignment, span_of(assignment),                           //
+                  declaration, span_of(declaration))));
 }
 
 TEST(test_lint, assign_to_shadowing_immutable_variable_before_declaration) {
@@ -1209,10 +1209,10 @@ TEST(test_lint, assign_to_shadowing_immutable_variable_before_declaration) {
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              UnorderedElementsAre(DIAG_TYPE_2_FIELDS(
+              UnorderedElementsAre(DIAG_TYPE_2_SPANS(
                   diag_assignment_to_const_variable_before_its_declaration,  //
-                  assignment, span_matcher(assignment),                      //
-                  declaration, span_matcher(inner_declaration))));
+                  assignment, span_of(assignment),                           //
+                  declaration, span_of(inner_declaration))));
 }
 
 TEST(test_lint, assign_to_immutable_variable_declared_in_parent_scope) {
@@ -1295,10 +1295,10 @@ TEST(test_lint,
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              UnorderedElementsAre(DIAG_TYPE_2_FIELDS(
+              UnorderedElementsAre(DIAG_TYPE_2_SPANS(
                   diag_assignment_to_const_variable_before_its_declaration,  //
-                  assignment, span_matcher(assignment),                      //
-                  declaration, span_matcher(inner_declaration))));
+                  assignment, span_of(assignment),                           //
+                  declaration, span_of(inner_declaration))));
 }
 
 TEST(test_lint, assignment_to_const_variable_declared_in_grandparent_scope) {
@@ -1341,9 +1341,9 @@ TEST(test_lint, assign_to_undeclared_variable) {
   l.visit_variable_assignment(identifier_of(assignment));
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
-                            diag_assignment_to_undeclared_variable, assignment,
-                            span_matcher(assignment))));
+  EXPECT_THAT(v.errors,
+              ElementsAre(DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable,
+                                         assignment, span_of(assignment))));
 }
 
 TEST(test_lint, assign_inside_function_to_undeclared_variable) {
@@ -1360,9 +1360,9 @@ TEST(test_lint, assign_inside_function_to_undeclared_variable) {
   l.visit_exit_function_scope();
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
-                            diag_assignment_to_undeclared_variable, assignment,
-                            span_matcher(assignment))));
+  EXPECT_THAT(v.errors,
+              ElementsAre(DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable,
+                                         assignment, span_of(assignment))));
 }
 
 TEST(test_lint, assign_to_variable_before_declaration) {
@@ -1378,10 +1378,10 @@ TEST(test_lint, assign_to_variable_before_declaration) {
                                variable_init_kind::normal);
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
+  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_SPANS(
                             diag_assignment_before_variable_declaration,  //
-                            assignment, span_matcher(assignment),         //
-                            declaration, span_matcher(declaration))));
+                            assignment, span_of(assignment),              //
+                            declaration, span_of(declaration))));
 }
 
 TEST(test_lint, assign_to_variable_before_hoistable_declaration) {
@@ -1486,10 +1486,10 @@ TEST(test_lint, use_for_loop_let_variable_before_or_after_loop) {
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                          span_matcher(use_before)),
-                          DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                          span_matcher(use_after))));
+              ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                         span_of(use_before)),
+                          DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                         span_of(use_after))));
 }
 
 TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
@@ -1550,10 +1550,10 @@ TEST(test_lint, use_variable_in_for_scope_declared_outside_for_scope) {
                                  variable_init_kind::normal);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_SPANS(
                               diag_variable_used_before_declaration,  //
-                              use, span_matcher(use),                 //
-                              declaration, span_matcher(declaration))));
+                              use, span_of(use),                      //
+                              declaration, span_of(declaration))));
   }
 }
 
@@ -1575,8 +1575,8 @@ TEST(test_lint, use_undeclared_variable_in_function_scope_in_for_scope) {
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                          span_matcher(use))));
+              ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                         span_of(use))));
 }
 
 TEST(test_lint,
@@ -1627,10 +1627,10 @@ TEST(test_lint,
   l.visit_exit_for_scope();
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
+  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_SPANS(
                             diag_variable_used_before_declaration,  //
-                            use, span_matcher(use),                 //
-                            declaration, span_matcher(inner_declaration))));
+                            use, span_of(use),                      //
+                            declaration, span_of(inner_declaration))));
 }
 
 TEST(
@@ -1657,10 +1657,10 @@ TEST(
   l.visit_exit_for_scope();
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
+  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_SPANS(
                             diag_assignment_before_variable_declaration,  //
-                            assignment, span_matcher(assignment),         //
-                            declaration, span_matcher(inner_declaration))));
+                            assignment, span_of(assignment),              //
+                            declaration, span_of(inner_declaration))));
 }
 
 TEST(test_lint, shadowing_variable_in_parent_block_scope_is_okay) {
@@ -1705,13 +1705,13 @@ TEST(test_lint, declaring_variable_twice_is_an_error) {
   EXPECT_THAT(
       v.errors,
       ElementsAre(
-          DIAG_TYPE_2_FIELDS(diag_redeclaration_of_variable,  //
-                             redeclaration,
-                             span_matcher(second_declaration),  //
-                             original_declaration, span_matcher(declaration)),
-          DIAG_TYPE_2_FIELDS(diag_redeclaration_of_variable,                  //
-                             redeclaration, span_matcher(third_declaration),  //
-                             original_declaration, span_matcher(declaration))));
+          DIAG_TYPE_2_SPANS(diag_redeclaration_of_variable,  //
+                            redeclaration,
+                            span_of(second_declaration),  //
+                            original_declaration, span_of(declaration)),
+          DIAG_TYPE_2_SPANS(diag_redeclaration_of_variable,             //
+                            redeclaration, span_of(third_declaration),  //
+                            original_declaration, span_of(declaration))));
 }
 
 TEST(test_lint, declaring_variable_twice_with_var_is_okay) {
@@ -1914,10 +1914,10 @@ TEST(
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_2_FIELDS(
-                      diag_redeclaration_of_variable,                   //
-                      redeclaration, span_matcher(second_declaration),  //
-                      original_declaration, span_matcher(declaration))));
+                  ElementsAre(DIAG_TYPE_2_SPANS(
+                      diag_redeclaration_of_variable,              //
+                      redeclaration, span_of(second_declaration),  //
+                      original_declaration, span_of(declaration))));
     }
   }
 
@@ -1938,10 +1938,10 @@ TEST(
       l.visit_end_of_module();
 
       EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_2_FIELDS(
-                      diag_redeclaration_of_variable,                   //
-                      redeclaration, span_matcher(second_declaration),  //
-                      original_declaration, span_matcher(declaration))));
+                  ElementsAre(DIAG_TYPE_2_SPANS(
+                      diag_redeclaration_of_variable,              //
+                      redeclaration, span_of(second_declaration),  //
+                      original_declaration, span_of(declaration))));
     }
   }
 }
@@ -1970,10 +1970,10 @@ TEST(test_lint, strict_variables_conflict_with_var_in_block_scope) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_redeclaration_of_variable,                  //
-                    redeclaration, span_matcher(other_declaration),  //
-                    original_declaration, span_matcher(var_declaration))));
+                ElementsAre(DIAG_TYPE_2_SPANS(
+                    diag_redeclaration_of_variable,             //
+                    redeclaration, span_of(other_declaration),  //
+                    original_declaration, span_of(var_declaration))));
   }
 
   for (variable_kind other_declaration_kind :
@@ -1996,10 +1996,10 @@ TEST(test_lint, strict_variables_conflict_with_var_in_block_scope) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_redeclaration_of_variable,                //
-                    redeclaration, span_matcher(var_declaration),  //
-                    original_declaration, span_matcher(other_declaration))));
+                ElementsAre(DIAG_TYPE_2_SPANS(
+                    diag_redeclaration_of_variable,           //
+                    redeclaration, span_of(var_declaration),  //
+                    original_declaration, span_of(other_declaration))));
   }
 }
 
@@ -2073,10 +2073,10 @@ TEST(test_lint, import_conflicts_with_any_variable_declaration) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_redeclaration_of_variable,                  //
-                    redeclaration, span_matcher(other_declaration),  //
-                    original_declaration, span_matcher(import_declaration))));
+                ElementsAre(DIAG_TYPE_2_SPANS(
+                    diag_redeclaration_of_variable,             //
+                    redeclaration, span_of(other_declaration),  //
+                    original_declaration, span_of(import_declaration))));
   }
 
   for (variable_kind other_declaration_kind :
@@ -2095,10 +2095,10 @@ TEST(test_lint, import_conflicts_with_any_variable_declaration) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_redeclaration_of_variable,                   //
-                    redeclaration, span_matcher(import_declaration),  //
-                    original_declaration, span_matcher(other_declaration))));
+                ElementsAre(DIAG_TYPE_2_SPANS(
+                    diag_redeclaration_of_variable,              //
+                    redeclaration, span_of(import_declaration),  //
+                    original_declaration, span_of(other_declaration))));
   }
 }
 
@@ -2125,10 +2125,10 @@ TEST(test_lint,
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_2_FIELDS(
-                  diag_redeclaration_of_variable,                    //
-                  redeclaration, span_matcher(catch_declaration_2),  //
-                  original_declaration, span_matcher(catch_declaration_1))));
+              ElementsAre(DIAG_TYPE_2_SPANS(
+                  diag_redeclaration_of_variable,               //
+                  redeclaration, span_of(catch_declaration_2),  //
+                  original_declaration, span_of(catch_declaration_1))));
 }
 
 TEST(test_lint, let_style_variable_in_same_scope_as_parameter_redeclares) {
@@ -2153,12 +2153,11 @@ TEST(test_lint, let_style_variable_in_same_scope_as_parameter_redeclares) {
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(DIAG_TYPE_2_FIELDS(
-            diag_redeclaration_of_variable,                  //
-            redeclaration, span_matcher(local_declaration),  //
-            original_declaration, span_matcher(parameter_declaration))));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_2_SPANS(
+                    diag_redeclaration_of_variable,             //
+                    redeclaration, span_of(local_declaration),  //
+                    original_declaration, span_of(parameter_declaration))));
   }
 }
 
@@ -2238,10 +2237,10 @@ TEST(test_lint, catch_variable_conflicts_with_non_var_variables) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
-                    diag_redeclaration_of_variable,                  //
-                    redeclaration, span_matcher(local_declaration),  //
-                    original_declaration, span_matcher(catch_declaration))));
+                ElementsAre(DIAG_TYPE_2_SPANS(
+                    diag_redeclaration_of_variable,             //
+                    redeclaration, span_of(local_declaration),  //
+                    original_declaration, span_of(catch_declaration))));
   }
 }
 
@@ -2268,9 +2267,9 @@ TEST(test_lint, parameter_default_value_cannot_refer_to_local_variables) {
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_SPAN(
                               diag_use_of_undeclared_variable, name,
-                              span_matcher(parameter_default_value))));
+                              span_of(parameter_default_value))));
   }
 
   {
@@ -2297,9 +2296,9 @@ TEST(test_lint, parameter_default_value_cannot_refer_to_local_variables) {
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_SPAN(
                               diag_use_of_undeclared_variable, name,
-                              span_matcher(parameter_default_value))));
+                              span_of(parameter_default_value))));
   }
 }
 
@@ -2321,9 +2320,9 @@ TEST(test_lint, parameter_default_value_uses_undeclared_variable) {
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_SPAN(
                               diag_use_of_undeclared_variable, name,
-                              span_matcher(parameter_default_value))));
+                              span_of(parameter_default_value))));
   }
 
   {
@@ -2346,9 +2345,9 @@ TEST(test_lint, parameter_default_value_uses_undeclared_variable) {
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_SPAN(
                               diag_use_of_undeclared_variable, name,
-                              span_matcher(parameter_default_value))));
+                              span_of(parameter_default_value))));
   }
 }
 
@@ -2414,10 +2413,10 @@ TEST(test_lint, let_shadows_named_function_name) {
     l.visit_exit_function_scope();
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_SPANS(
                               diag_variable_used_before_declaration,  //
-                              use, span_matcher(var_use),             //
-                              declaration, span_matcher(var_declaration))));
+                              use, span_of(var_use),                  //
+                              declaration, span_of(var_declaration))));
   }
 }
 
@@ -2448,10 +2447,10 @@ TEST(test_lint, let_shadows_global_variable) {
                                  variable_init_kind::normal);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_SPANS(
                               diag_variable_used_before_declaration,  //
-                              use, span_matcher(var_use),             //
-                              declaration, span_matcher(var_declaration))));
+                              use, span_of(var_use),                  //
+                              declaration, span_of(var_declaration))));
   }
 }
 
@@ -2471,8 +2470,8 @@ TEST(test_lint,
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable,
-                                            name, span_matcher(class_use))));
+                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                                           name, span_of(class_use))));
   }
 
   {
@@ -2522,9 +2521,9 @@ TEST(test_lint, class_extends_cannot_use_declared_class_name) {
                                  variable_init_kind::normal);
     l.visit_end_of_module();
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_FIELD(
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_SPAN(
                               diag_variable_used_before_declaration, use,
-                              span_matcher(class_use))));
+                              span_of(class_use))));
   }
 }
 
@@ -2713,8 +2712,8 @@ TEST(test_lint_interface, interface_body_can_reference_types_outside) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
-                                            span_matcher(type_use))));
+                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
+                                           span_of(type_use))));
   }
 }
 
@@ -2803,10 +2802,10 @@ TEST(test_lint_interface, interface_index_signature_can_use_outside_types) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors, UnorderedElementsAre(
-                              DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
-                                              span_matcher(type_use_1)),
-                              DIAG_TYPE_FIELD(diag_use_of_undeclared_type, name,
-                                              span_matcher(type_use_2))));
+                              DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
+                                             span_of(type_use_1)),
+                              DIAG_TYPE_SPAN(diag_use_of_undeclared_type, name,
+                                             span_of(type_use_2))));
   }
 }
 
@@ -2869,13 +2868,12 @@ TEST(test_lint_interface,
     l.visit_variable_use(identifier_of(index_use_outside_interface));
     l.visit_end_of_module();
 
-    EXPECT_THAT(
-        v.errors,
-        UnorderedElementsAre(
-            DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                            span_matcher(index_use_inside_interface)),
-            DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                            span_matcher(index_use_outside_interface))));
+    EXPECT_THAT(v.errors,
+                UnorderedElementsAre(
+                    DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                   span_of(index_use_inside_interface)),
+                    DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                   span_of(index_use_outside_interface))));
   }
 }
 
@@ -2908,8 +2906,8 @@ TEST(test_lint_magic_arguments,
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                          span_matcher(arguments_use))));
+              ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                         span_of(arguments_use))));
 }
 
 TEST(test_lint_magic_arguments, parameter_named_arguments_does_not_conflict) {
@@ -3038,10 +3036,10 @@ TEST(test_lint_magic_arguments, let_shadows_magic_arguments) {
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_FIELDS(
+                ElementsAre(DIAG_TYPE_2_SPANS(
                     diag_variable_used_before_declaration,  //
-                    use, span_matcher(arguments_use),       //
-                    declaration, span_matcher(arguments_declaration))));
+                    use, span_of(arguments_use),            //
+                    declaration, span_of(arguments_declaration))));
   }
 }
 
@@ -3466,10 +3464,10 @@ TEST(test_lint_typeof, typeof_variable_declared_later_is_an_error) {
                                variable_init_kind::normal);
   l.visit_end_of_module();
 
-  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_FIELDS(
+  EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_SPANS(
                             diag_variable_used_before_declaration,  //
-                            use, span_matcher(use),                 //
-                            declaration, span_matcher(declaration))));
+                            use, span_of(use),                      //
+                            declaration, span_of(declaration))));
 }
 
 TEST(
@@ -3499,10 +3497,10 @@ TEST(
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                          span_matcher(use_before)),
-                          DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                          span_matcher(use_after))));
+              ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                         span_of(use_before)),
+                          DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name,
+                                         span_of(use_after))));
 }
 
 TEST(test_lint_eval, disable_variable_lookup_in_presence_of_eval) {
@@ -3655,8 +3653,8 @@ TEST(test_lint_eval,
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable,
-                                            name, span_matcher(use))));
+                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                                           name, span_of(use))));
   }
 
   {
@@ -3674,8 +3672,8 @@ TEST(test_lint_eval,
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable,
-                                            name, span_matcher(use))));
+                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                                           name, span_of(use))));
   }
 
   {
@@ -3701,10 +3699,10 @@ TEST(test_lint_eval,
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                    span_matcher(use)),
-                    DIAG_TYPE_FIELD(diag_assignment_to_undeclared_variable,
-                                    assignment, span_matcher(use))));
+        ElementsAre(
+            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
+            DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable, assignment,
+                           span_of(use))));
   }
 
   {
@@ -3729,8 +3727,8 @@ TEST(test_lint_eval,
     l.visit_end_of_module();
 
     EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable,
-                                            name, span_matcher(use))));
+                ElementsAre(DIAG_TYPE_SPAN(diag_use_of_undeclared_variable,
+                                           name, span_of(use))));
   }
 
   {
@@ -3752,10 +3750,10 @@ TEST(test_lint_eval,
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                    span_matcher(use)),
-                    DIAG_TYPE_FIELD(diag_assignment_to_undeclared_variable,
-                                    assignment, span_matcher(use))));
+        ElementsAre(
+            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
+            DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable, assignment,
+                           span_of(use))));
   }
 
   {
@@ -3788,10 +3786,10 @@ TEST(test_lint_eval,
 
     EXPECT_THAT(
         v.errors,
-        ElementsAre(DIAG_TYPE_FIELD(diag_use_of_undeclared_variable, name,
-                                    span_matcher(use)),
-                    DIAG_TYPE_FIELD(diag_assignment_to_undeclared_variable,
-                                    assignment, span_matcher(use))));
+        ElementsAre(
+            DIAG_TYPE_SPAN(diag_use_of_undeclared_variable, name, span_of(use)),
+            DIAG_TYPE_SPAN(diag_assignment_to_undeclared_variable, assignment,
+                           span_of(use))));
   }
 }
 
@@ -3892,12 +3890,11 @@ TEST(test_lint_unused_shadow,
       l.visit_exit_block_scope();
       l.visit_end_of_module();
 
-      EXPECT_THAT(
-          v.errors,
-          ElementsAre(DIAG_TYPE_2_FIELDS(
-              diag_unused_variable_shadows,                            //
-              shadowing_declaration, span_matcher(inner_declaration),  //
-              shadowed_declaration, span_matcher(outer_declaration))));
+      EXPECT_THAT(v.errors,
+                  ElementsAre(DIAG_TYPE_2_SPANS(
+                      diag_unused_variable_shadows,                       //
+                      shadowing_declaration, span_of(inner_declaration),  //
+                      shadowed_declaration, span_of(outer_declaration))));
     }
 
     // TODO(strager): See NOTE[unused-var-shadows-nested-block].
@@ -3924,12 +3921,11 @@ TEST(test_lint_unused_shadow,
       l.visit_exit_block_scope();
       l.visit_end_of_module();
 
-      EXPECT_THAT(
-          v.errors,
-          ElementsAre(DIAG_TYPE_2_FIELDS(
-              diag_unused_variable_shadows,                            //
-              shadowing_declaration, span_matcher(inner_declaration),  //
-              shadowed_declaration, span_matcher(outer_declaration))));
+      EXPECT_THAT(v.errors,
+                  ElementsAre(DIAG_TYPE_2_SPANS(
+                      diag_unused_variable_shadows,                       //
+                      shadowing_declaration, span_of(inner_declaration),  //
+                      shadowed_declaration, span_of(outer_declaration))));
     }
   }
 }
