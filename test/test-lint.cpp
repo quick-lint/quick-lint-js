@@ -1176,7 +1176,7 @@ TEST(test_lint, assign_to_immutable_variable_before_declaration) {
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              UnorderedElementsAre(DIAG_TYPE_2_SPANS(
+              ElementsAre(DIAG_TYPE_2_SPANS(
                   diag_assignment_to_const_variable_before_its_declaration,  //
                   assignment, span_of(assignment),                           //
                   declaration, span_of(declaration))));
@@ -1205,7 +1205,7 @@ TEST(test_lint, assign_to_shadowing_immutable_variable_before_declaration) {
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              UnorderedElementsAre(DIAG_TYPE_2_SPANS(
+              ElementsAre(DIAG_TYPE_2_SPANS(
                   diag_assignment_to_const_variable_before_its_declaration,  //
                   assignment, span_of(assignment),                           //
                   declaration, span_of(inner_declaration))));
@@ -1291,7 +1291,7 @@ TEST(test_lint,
   l.visit_end_of_module();
 
   EXPECT_THAT(v.errors,
-              UnorderedElementsAre(DIAG_TYPE_2_SPANS(
+              ElementsAre(DIAG_TYPE_2_SPANS(
                   diag_assignment_to_const_variable_before_its_declaration,  //
                   assignment, span_of(assignment),                           //
                   declaration, span_of(inner_declaration))));
