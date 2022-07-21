@@ -5,10 +5,8 @@
 #define QUICK_LINT_JS_FE_PARSE_VISITOR_H
 
 #include <optional>
+#include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/language.h>
-#include <quick-lint-js/fe/lex.h>
-#include <quick-lint-js/port/have.h>
-#include <type_traits>
 
 namespace quick_lint_js {
 // TOdO(strager): Rename this class to parse_visitor.

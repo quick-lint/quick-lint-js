@@ -6,14 +6,16 @@
 
 #include <optional>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/fe/global-declared-variable-set.h>
+#include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/language.h>
-#include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/parse-visitor.h>
 #include <quick-lint-js/port/char8.h>
 #include <vector>
 
 namespace quick_lint_js {
+class diag_reporter;
+class global_declared_variable_set;
+
 // A linter is a parse_visitor which finds non-syntax bugs.
 //
 // linter-s detect the following bugs (and possibly more):
