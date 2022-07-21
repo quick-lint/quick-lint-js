@@ -4,7 +4,6 @@
 #include <cstring>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/fe/global-declared-variable-set.h>
@@ -12,6 +11,7 @@
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/identifier-support.h>
+#include <quick-lint-js/lint-support.h>
 #include <quick-lint-js/port/char8.h>
 
 using ::testing::ElementsAre;
@@ -20,8 +20,6 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-global_declared_variable_set default_globals = configuration().globals();
-
 constexpr const char8 *writable_global_variables[] = {
     // ECMA-262 18.1 Value Properties of the Global Object
     u8"globalThis",

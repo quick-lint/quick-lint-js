@@ -4,15 +4,14 @@
 #include <cstring>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <quick-lint-js/configuration/configuration.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
-#include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/fe/parse.h>
+#include <quick-lint-js/lint-support.h>
 #include <quick-lint-js/parse-support.h>
 #include <quick-lint-js/port/char8.h>
 
@@ -21,8 +20,6 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-global_declared_variable_set default_globals = configuration().globals();
-
 TEST(test_lint, let_variable_use_before_declaration_with_parsing) {
   padded_string input(u8"let x = y, y = x;"_sv);
   diag_collector v;

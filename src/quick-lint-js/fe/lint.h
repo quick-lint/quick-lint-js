@@ -15,6 +15,7 @@
 namespace quick_lint_js {
 class diag_reporter;
 class global_declared_variable_set;
+struct global_declared_variable;
 
 // A linter is a parse_visitor which finds non-syntax bugs.
 //

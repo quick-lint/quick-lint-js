@@ -10,6 +10,7 @@ quick_lint_js_add_executable(
   diag-collector.cpp
   diag-matcher.cpp
   fake-configuration-filesystem.cpp
+  lint-support.cpp
   parse-json.cpp
   parse-support.cpp
   quick-lint-js/array.h
@@ -19,6 +20,7 @@ quick_lint_js_add_executable(
   quick-lint-js/dirty-set.h
   quick-lint-js/file-matcher.h
   quick-lint-js/gtest.h
+  quick-lint-js/lint-support.h
   quick-lint-js/mock-inotify.h
   quick-lint-js/mock-kqueue.h
   quick-lint-js/mock-win32.h
