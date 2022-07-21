@@ -11,6 +11,7 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/i18n/translation.h>
+#include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/warning.h>
 #include <string_view>
 
@@ -22,7 +23,11 @@
 #endif
 
 namespace quick_lint_js {
+class identifier;
+class source_code_span;
 enum class diag_type;
+enum class enum_kind;
+enum class statement_kind;
 
 enum class diagnostic_severity : std::uint8_t {
   error,
@@ -93,6 +98,40 @@ struct diagnostic_info {
 const diagnostic_info &get_diagnostic_info(diag_type) noexcept;
 std::optional<diag_type> diag_type_from_code_slow(
     std::string_view code) noexcept;
+
+template <class ArgType>
+constexpr diagnostic_arg_type get_diagnostic_message_arg_type() noexcept;
+template <>
+constexpr diagnostic_arg_type
+get_diagnostic_message_arg_type<char8>() noexcept {
+  return diagnostic_arg_type::char8;
+}
+template <>
+constexpr diagnostic_arg_type
+get_diagnostic_message_arg_type<enum_kind>() noexcept {
+  return diagnostic_arg_type::enum_kind;
+}
+template <>
+constexpr diagnostic_arg_type
+get_diagnostic_message_arg_type<identifier>() noexcept {
+  return diagnostic_arg_type::identifier;
+}
+template <>
+constexpr diagnostic_arg_type
+get_diagnostic_message_arg_type<source_code_span>() noexcept {
+  return diagnostic_arg_type::source_code_span;
+}
+template <>
+constexpr diagnostic_arg_type
+get_diagnostic_message_arg_type<statement_kind>() noexcept {
+  return diagnostic_arg_type::statement_kind;
+}
+template <>
+constexpr diagnostic_arg_type
+get_diagnostic_message_arg_type<string8_view>() noexcept {
+  return diagnostic_arg_type::string8_view;
+}
+
 }
 
 #undef QLJS_WORK_AROUND_GCC_BUG_105191

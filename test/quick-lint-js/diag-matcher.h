@@ -11,6 +11,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/fe/diagnostic.h>
 #include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/char8.h>
@@ -50,7 +51,7 @@
       ::quick_lint_js::diag_matcher::field{                             \
           #member_0,                                                    \
           offsetof(type, member_0),                                     \
-          ::quick_lint_js::get_error_matcher_field_type<decltype(       \
+          ::quick_lint_js::get_diagnostic_message_arg_type<decltype(    \
               type::member_0)>(),                                       \
           start_0,                                                      \
           end_or_text_0,                                                \
@@ -68,7 +69,7 @@
       ::quick_lint_js::diag_matcher::field{                               \
           #member_0,                                                      \
           offsetof(type, member_0),                                       \
-          ::quick_lint_js::get_error_matcher_field_type<decltype(         \
+          ::quick_lint_js::get_diagnostic_message_arg_type<decltype(      \
               type::member_0)>(),                                         \
           start_0,                                                        \
           end_or_text_0,                                                  \
@@ -76,7 +77,7 @@
       ::quick_lint_js::diag_matcher::field{                               \
           #member_1,                                                      \
           offsetof(type, member_1),                                       \
-          ::quick_lint_js::get_error_matcher_field_type<decltype(         \
+          ::quick_lint_js::get_diagnostic_message_arg_type<decltype(      \
               type::member_1)>(),                                         \
           start_1,                                                        \
           end_or_text_1,                                                  \
@@ -96,7 +97,7 @@
       ::quick_lint_js::diag_matcher::field{                               \
           #member_0,                                                      \
           offsetof(type, member_0),                                       \
-          ::quick_lint_js::get_error_matcher_field_type<decltype(         \
+          ::quick_lint_js::get_diagnostic_message_arg_type<decltype(      \
               type::member_0)>(),                                         \
           start_0,                                                        \
           end_or_text_0,                                                  \
@@ -104,7 +105,7 @@
       ::quick_lint_js::diag_matcher::field{                               \
           #member_1,                                                      \
           offsetof(type, member_1),                                       \
-          ::quick_lint_js::get_error_matcher_field_type<decltype(         \
+          ::quick_lint_js::get_diagnostic_message_arg_type<decltype(      \
               type::member_1)>(),                                         \
           start_1,                                                        \
           end_or_text_1,                                                  \
@@ -112,7 +113,7 @@
       ::quick_lint_js::diag_matcher::field{                               \
           #member_2,                                                      \
           offsetof(type, member_2),                                       \
-          ::quick_lint_js::get_error_matcher_field_type<decltype(         \
+          ::quick_lint_js::get_diagnostic_message_arg_type<decltype(      \
               type::member_2)>(),                                         \
           start_2,                                                        \
           end_or_text_2,                                                  \
@@ -190,15 +191,11 @@ class source_code_span_matcher {
 // See DIAG_TYPE and DIAG_TYPE_OFFSETS for example usage.
 class diag_matcher {
  public:
-  enum class field_type {
-    identifier,
-    source_code_span,
-  };
-
   struct field {
     const char *member_name;
     std::size_t member_offset;
-    field_type member_type;
+    // Must be identifier or source_code_span.
+    diagnostic_arg_type member_type;
 
     cli_source_position::offset_type begin_offset;
     string8_view text;
@@ -237,21 +234,6 @@ class diag_matcher {
 
   state state_;
 };
-
-// Internal helper for DIAG_TYPE_OFFSETS macros.
-template <class>
-constexpr diag_matcher::field_type get_error_matcher_field_type() noexcept =
-    delete;
-template <>
-constexpr diag_matcher::field_type
-get_error_matcher_field_type<identifier>() noexcept {
-  return diag_matcher::field_type::identifier;
-}
-template <>
-constexpr diag_matcher::field_type
-get_error_matcher_field_type<source_code_span>() noexcept {
-  return diag_matcher::field_type::source_code_span;
-}
 }
 
 #endif

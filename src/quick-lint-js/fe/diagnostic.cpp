@@ -91,39 +91,6 @@ class diagnostic_info_builder {
   int current_message_index_ = 0;
 };
 
-template <class ArgType>
-constexpr diagnostic_arg_type get_diagnostic_message_arg_type() noexcept;
-template <>
-constexpr diagnostic_arg_type
-get_diagnostic_message_arg_type<char8>() noexcept {
-  return diagnostic_arg_type::char8;
-}
-template <>
-constexpr diagnostic_arg_type
-get_diagnostic_message_arg_type<enum_kind>() noexcept {
-  return diagnostic_arg_type::enum_kind;
-}
-template <>
-constexpr diagnostic_arg_type
-get_diagnostic_message_arg_type<identifier>() noexcept {
-  return diagnostic_arg_type::identifier;
-}
-template <>
-constexpr diagnostic_arg_type
-get_diagnostic_message_arg_type<source_code_span>() noexcept {
-  return diagnostic_arg_type::source_code_span;
-}
-template <>
-constexpr diagnostic_arg_type
-get_diagnostic_message_arg_type<statement_kind>() noexcept {
-  return diagnostic_arg_type::statement_kind;
-}
-template <>
-constexpr diagnostic_arg_type
-get_diagnostic_message_arg_type<string8_view>() noexcept {
-  return diagnostic_arg_type::string8_view;
-}
-
 template <class Diag>
 struct info_for_diagnostic;
 

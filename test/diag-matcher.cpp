@@ -238,10 +238,19 @@ source_code_span diag_matcher::field::get_span(const void *error_object) const
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;
   switch (this->member_type) {
-  case field_type::identifier:
+  case diagnostic_arg_type::identifier:
     return static_cast<const identifier *>(member_data)->span();
-  case field_type::source_code_span:
+  case diagnostic_arg_type::source_code_span:
     return *static_cast<const source_code_span *>(member_data);
+
+  case diagnostic_arg_type::char8:
+  case diagnostic_arg_type::enum_kind:
+  case diagnostic_arg_type::invalid:
+  case diagnostic_arg_type::statement_kind:
+  case diagnostic_arg_type::string8_view:
+  case diagnostic_arg_type::variable_kind:
+    QLJS_ASSERT(false && "invalid arg type");
+    break;
   }
   QLJS_UNREACHABLE();
 }
