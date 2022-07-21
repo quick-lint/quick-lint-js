@@ -43,6 +43,7 @@
 #include <string>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 
 #if QLJS_HAVE_KQUEUE
 #include <sys/event.h>
@@ -228,6 +229,7 @@ void run(options o) {
   configuration default_config;
   configuration_loader config_loader(
       basic_configuration_filesystem::instance());
+  std::unordered_set<loaded_config_file *> loaded_config_files;
   for (const file_to_lint &file : o.files_to_lint) {
     auto config_result = config_loader.load_for_file(file);
     if (!config_result.ok()) {
@@ -236,7 +238,7 @@ void run(options o) {
       std::exit(1);
     }
     loaded_config_file *config_file = *config_result;
-    if (config_file && !config_file->config.errors_were_reported) {
+    if (config_file && !loaded_config_files.count(config_file)) {
       reporter.set_source(&config_file->file_content,
                           file_to_lint{
                               .path = config_file->config_path->c_str(),
@@ -245,7 +247,9 @@ void run(options o) {
                               .vim_bufnr = std::nullopt,
                           });
       config_file->errors.copy_into(reporter.get());
-      config_file->config.errors_were_reported = true;
+      // To avoid repeating errors for a given config file, remember that we
+      // already reported errors for this config file.
+      loaded_config_files.insert(config_file);
     }
   }
 

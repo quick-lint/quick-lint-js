@@ -35,10 +35,6 @@ class configuration {
 
   void reset();
 
-  // TODO(strager): Move this out of the configuration class. It's only used by
-  // the CLI.
-  bool errors_were_reported = false;
-
  private:
   bool load_global_groups_from_json(simdjson::ondemand::value&, diag_reporter*);
   bool load_globals_from_json(simdjson::ondemand::object&, diag_reporter*);
