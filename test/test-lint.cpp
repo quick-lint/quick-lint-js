@@ -1,14 +1,12 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#include <cstring>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/fe/global-declared-variable-set.h>
 #include <quick-lint-js/fe/language.h>
-#include <quick-lint-js/fe/lex.h>
 #include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/identifier-support.h>
 #include <quick-lint-js/lint-support.h>

@@ -4,9 +4,6 @@
 #ifndef QUICK_LINT_JS_FE_SOURCE_CODE_SPAN_H
 #define QUICK_LINT_JS_FE_SOURCE_CODE_SPAN_H
 
-#include <cstddef>
-#include <iosfwd>
-#include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/util/narrow-cast.h>
