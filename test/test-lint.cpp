@@ -263,8 +263,8 @@ TEST(test_lint, non_module_nodejs_global_variables_are_shadowable) {
 TEST(test_lint, any_variable_is_declarable_and_usable_if_opted_into) {
   // This tests the "literally-anything" global group.
 
-  configuration config;
-  config.allow_literally_any_global_variable();
+  global_declared_variable_set globals;
+  globals.add_literally_everything();
 
   const char8 builtin_1_declaration[] = u8"Object";
   const char8 builtin_2_use[] = u8"Array";
@@ -272,7 +272,7 @@ TEST(test_lint, any_variable_is_declarable_and_usable_if_opted_into) {
   const char8 anything_2_use[] = u8"iDoNotExistInAnyList";
 
   diag_collector v;
-  linter l(&v, &config.globals());
+  linter l(&v, &globals);
   l.visit_variable_declaration(identifier_of(builtin_1_declaration),
                                variable_kind::_let, variable_init_kind::normal);
   l.visit_variable_use(identifier_of(builtin_2_use));
@@ -3312,8 +3312,8 @@ TEST(test_lint_delete, deleting_declared_global_variable_is_ok) {
   source_code_span deleted_variable_span(code.data() + 7, code.data() + 23);
   ASSERT_EQ(deleted_variable_span.string_view(), u8"myGlobalVariable"_sv);
 
-  configuration config;
-  config.add_global_variable(global_declared_variable{
+  global_declared_variable_set globals;
+  globals.add_global_variable(global_declared_variable{
       .name = u8"myGlobalVariable",
       .is_writable = true,
       .is_shadowable = true,
@@ -3322,7 +3322,7 @@ TEST(test_lint_delete, deleting_declared_global_variable_is_ok) {
   {
     // delete myGlobalVariable;
     diag_collector v;
-    linter l(&v, &config.globals());
+    linter l(&v, &globals);
     l.visit_variable_delete_use(identifier(deleted_variable_span),
                                 delete_keyword_span);
     l.visit_end_of_module();
@@ -3335,7 +3335,7 @@ TEST(test_lint_delete, deleting_declared_global_variable_is_ok) {
     //   delete myGlobalVariable;
     // });
     diag_collector v;
-    linter l(&v, &config.globals());
+    linter l(&v, &globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_delete_use(identifier(deleted_variable_span),
@@ -3354,12 +3354,10 @@ TEST(test_lint_delete, deleting_undeclared_global_variable_is_ok) {
   source_code_span deleted_variable_span(code.data() + 7, code.data() + 23);
   ASSERT_EQ(deleted_variable_span.string_view(), u8"myGlobalVariable"_sv);
 
-  configuration config;
-
   {
     // delete myGlobalVariable;
     diag_collector v;
-    linter l(&v, &config.globals());
+    linter l(&v, &default_globals);
     l.visit_variable_delete_use(identifier(deleted_variable_span),
                                 delete_keyword_span);
     l.visit_end_of_module();
@@ -3372,7 +3370,7 @@ TEST(test_lint_delete, deleting_undeclared_global_variable_is_ok) {
     //   delete myGlobalVariable;
     // });
     diag_collector v;
-    linter l(&v, &config.globals());
+    linter l(&v, &default_globals);
     l.visit_enter_function_scope();
     l.visit_enter_function_scope_body();
     l.visit_variable_delete_use(identifier(deleted_variable_span),
