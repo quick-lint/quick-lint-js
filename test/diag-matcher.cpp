@@ -233,7 +233,7 @@ source_code_span_matcher::operator testing::Matcher<const source_code_span &>()
       new span_impl(this->expected_));
 }
 
-source_code_span diag_matcher::field::get_span(const void *error_object) const
+source_code_span diag_matcher_arg::get_span(const void *error_object) const
     noexcept {
   const void *member_data =
       reinterpret_cast<const char *>(error_object) + this->member_offset;
@@ -301,7 +301,7 @@ class diag_matcher::impl
     bool is_first_field = true;
     for (const field &f : this->state_.fields) {
       QLJS_ASSERT(this->state_.input.has_value());
-      source_code_span span = f.get_span(error.data());
+      source_code_span span = f.arg.get_span(error.data());
       auto span_begin_offset = narrow_cast<cli_source_position::offset_type>(
           span.begin() - this->state_.input->data());
       auto span_end_offset = narrow_cast<cli_source_position::offset_type>(
@@ -313,7 +313,7 @@ class diag_matcher::impl
       if (!is_first_field) {
         *listener << " and ";
       }
-      *listener << "whose ." << f.member_name << " (" << span_begin_offset
+      *listener << "whose ." << f.arg.member_name << " (" << span_begin_offset
                 << "-" << span_end_offset << ") "
                 << (span_matches ? "equals" : "doesn't equal") << " "
                 << f.begin_offset << "-" << expected_end_offset;
