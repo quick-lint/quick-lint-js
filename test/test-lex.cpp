@@ -1802,10 +1802,9 @@ TEST_F(test_lex, lex_identifier_with_out_of_range_utf_8_sequence) {
       "too\xf4\x90\x80\x80\x62ig"_s8v, "too\xf4\x90\x80\x80\x62ig"_s8v,
       [](padded_string_view input, const auto& errors) {
         EXPECT_THAT(errors,
-                    ElementsAre(DIAG_TYPE_FIELD(
-                        diag_invalid_utf_8_sequence, sequence,
-                        offsets_matcher(input, std::strlen("too"),
-                                        std::strlen("too\xf4\x90\x80\x80")))));
+                    ElementsAre(DIAG_TYPE_OFFSETS(
+                        input, diag_invalid_utf_8_sequence,  //
+                        sequence, std::strlen("too"), "\xf4\x90\x80\x80"_s8v)));
       });
 }
 
@@ -1817,17 +1816,13 @@ TEST_F(test_lex, lex_identifier_with_malformed_utf_8_sequence) {
         EXPECT_THAT(
             errors,
             ElementsAre(
-                DIAG_TYPE_FIELD(
-                    diag_invalid_utf_8_sequence, sequence,
-                    offsets_matcher(
-                        input, std::strlen("illegal"),
-                        std::strlen("illegal\xc0\xc1\xc2\xc3\xc4"))),
-                DIAG_TYPE_FIELD(
-                    diag_invalid_utf_8_sequence, sequence,
-                    offsets_matcher(
-                        input, std::strlen("illegal\xc0\xc1\xc2\xc3\xc4utf8"),
-                        std::strlen(
-                            "illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff")))));
+                DIAG_TYPE_OFFSETS(input, diag_invalid_utf_8_sequence,  //
+                                  sequence, std::strlen("illegal"),
+                                  "\xc0\xc1\xc2\xc3\xc4"_s8v),
+                DIAG_TYPE_OFFSETS(
+                    input, diag_invalid_utf_8_sequence,  //
+                    sequence, std::strlen("illegal\xc0\xc1\xc2\xc3\xc4utf8"),
+                    "\xfe\xff"_s8v)));
       });
 }
 
@@ -2588,8 +2583,7 @@ TEST_F(test_lex, transaction_buffers_errors_until_commit) {
 
   l.commit_transaction(std::move(transaction));
   EXPECT_THAT(errors.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_no_digits_in_binary_number,
-                                          characters, testing::_)));
+              ElementsAre(DIAG_TYPE(diag_no_digits_in_binary_number)));
 }
 
 TEST_F(test_lex, nested_transaction_buffers_errors_until_outer_commit) {
@@ -2620,8 +2614,7 @@ TEST_F(test_lex, nested_transaction_buffers_errors_until_outer_commit) {
 
   l.commit_transaction(std::move(outer_transaction));
   EXPECT_THAT(errors.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_no_digits_in_binary_number,
-                                          characters, testing::_)))
+              ElementsAre(DIAG_TYPE(diag_no_digits_in_binary_number)))
       << "committing outer_transaction should report 0b error";
 }
 
@@ -2696,8 +2689,7 @@ TEST_F(test_lex, errors_after_transaction_commit_are_reported_unbuffered) {
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::number);
   EXPECT_THAT(errors.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_no_digits_in_binary_number,
-                                          characters, testing::_)));
+              ElementsAre(DIAG_TYPE(diag_no_digits_in_binary_number)));
 }
 
 TEST_F(test_lex, errors_after_transaction_rollback_are_reported_unbuffered) {
@@ -2721,8 +2713,7 @@ TEST_F(test_lex, errors_after_transaction_rollback_are_reported_unbuffered) {
   l.skip();
   EXPECT_EQ(l.peek().type, token_type::number);
   EXPECT_THAT(errors.errors,
-              ElementsAre(DIAG_TYPE_FIELD(diag_no_digits_in_binary_number,
-                                          characters, testing::_)));
+              ElementsAre(DIAG_TYPE(diag_no_digits_in_binary_number)));
 }
 
 TEST_F(test_lex, rolling_back_transaction) {
