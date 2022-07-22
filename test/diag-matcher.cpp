@@ -300,27 +300,33 @@ class diag_matcher::impl
     bool result = true;
     bool is_first_field = true;
     for (const field &f : this->state_.fields) {
-      QLJS_ASSERT(this->state_.input.has_value());
-      source_code_span span = f.arg.get_span(error.data());
-      auto span_begin_offset = narrow_cast<cli_source_position::offset_type>(
-          span.begin() - this->state_.input->data());
-      auto span_end_offset = narrow_cast<cli_source_position::offset_type>(
-          span.end() - this->state_.input->data());
-      auto expected_end_offset = f.begin_offset + f.text.size();
-
-      bool span_matches = span_begin_offset == f.begin_offset &&
-                          span_end_offset == expected_end_offset;
       if (!is_first_field) {
         *listener << " and ";
       }
-      *listener << "whose ." << f.arg.member_name << " (" << span_begin_offset
-                << "-" << span_end_offset << ") "
-                << (span_matches ? "equals" : "doesn't equal") << " "
-                << f.begin_offset << "-" << expected_end_offset;
-      result = result && span_matches;
+      bool matches = this->field_matches(error, f, listener);
+      result = result && matches;
       is_first_field = false;
     }
     return result;
+  }
+
+  bool field_matches(const diag_collector::diag &error, const field &f,
+                     testing::MatchResultListener *listener) const {
+    QLJS_ASSERT(this->state_.input.has_value());
+    source_code_span span = f.arg.get_span(error.data());
+    auto span_begin_offset = narrow_cast<cli_source_position::offset_type>(
+        span.begin() - this->state_.input->data());
+    auto span_end_offset = narrow_cast<cli_source_position::offset_type>(
+        span.end() - this->state_.input->data());
+    auto expected_end_offset = f.begin_offset + f.text.size();
+
+    bool span_matches = span_begin_offset == f.begin_offset &&
+                        span_end_offset == expected_end_offset;
+    *listener << "whose ." << f.arg.member_name << " (" << span_begin_offset
+              << "-" << span_end_offset << ") "
+              << (span_matches ? "equals" : "doesn't equal") << " "
+              << f.begin_offset << "-" << expected_end_offset;
+    return span_matches;
   }
 
  private:
@@ -370,21 +376,27 @@ class diag_spans_matcher::impl
     bool result = true;
     bool is_first_field = true;
     for (const field &f : this->state_.fields) {
-      source_code_span span = f.arg.get_span(error.data());
-      bool span_matches = same_pointers(span, f.expected);
       if (!is_first_field) {
         *listener << " and ";
       }
-      *listener << "whose ." << f.arg.member_name << " (`"
-                << out_string8(span.string_view()) << "` @"
-                << reinterpret_cast<const void *>(span.begin()) << ") "
-                << (span_matches ? "equals" : "doesn't equal") << " `"
-                << out_string8(f.expected.string_view()) << "` @"
-                << reinterpret_cast<const void *>(f.expected.begin());
-      result = result && span_matches;
+      bool matches = this->field_matches(error, f, listener);
+      result = result && matches;
       is_first_field = false;
     }
     return result;
+  }
+
+  bool field_matches(const diag_collector::diag &error, const field &f,
+                     testing::MatchResultListener *listener) const {
+    source_code_span span = f.arg.get_span(error.data());
+    bool span_matches = same_pointers(span, f.expected);
+    *listener << "whose ." << f.arg.member_name << " (`"
+              << out_string8(span.string_view()) << "` @"
+              << reinterpret_cast<const void *>(span.begin()) << ") "
+              << (span_matches ? "equals" : "doesn't equal") << " `"
+              << out_string8(f.expected.string_view()) << "` @"
+              << reinterpret_cast<const void *>(f.expected.begin());
+    return span_matches;
   }
 
  private:
