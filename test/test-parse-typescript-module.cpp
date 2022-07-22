@@ -353,6 +353,29 @@ TEST(test_parse_typescript_module,
                     namespace_keyword, strlen(u8"export "), u8"namespace")));
   }
 }
+
+TEST(test_parse_typescript_module, export_enum) {
+  {
+    spy_visitor v = parse_and_visit_typescript_module(u8"export enum E {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_exit_enum_scope",       // }
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(enum_decl(u8"E")));
+  }
+}
+
+TEST(test_parse_typescript_module, export_const_enum) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_module(u8"export const enum E {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+                                      "visit_enter_enum_scope",      // {
+                                      "visit_exit_enum_scope",       // }
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(enum_decl(u8"E")));
+  }
+}
 }
 }
 

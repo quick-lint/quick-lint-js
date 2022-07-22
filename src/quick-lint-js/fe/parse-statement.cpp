@@ -944,7 +944,8 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
         v, /*require_name=*/name_requirement::required_for_export);
     break;
 
-    // export let x = 42;
+  // export let x = 42;
+  // export const enum E {}  // TypeScript only.
   case token_type::kw_const:
   case token_type::kw_let:
   case token_type::kw_var:
@@ -972,6 +973,11 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
     this->parse_and_visit_typescript_namespace(v, namespace_keyword);
     break;
   }
+
+  // export enum E {}  // TypeScript only.
+  case token_type::kw_enum:
+    this->parse_and_visit_typescript_enum(v, enum_kind::normal);
+    break;
 
     // export stuff;    // Invalid.
     // export a, b, c;  // Invalid.
