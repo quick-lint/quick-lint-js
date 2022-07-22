@@ -299,7 +299,8 @@ class parser {
   void parse_and_visit_class_or_interface_member(parse_visitor_base &v,
                                                  bool is_interface);
 
-  void parse_and_visit_typescript_interface(parse_visitor_base &v);
+  void parse_and_visit_typescript_interface(
+      parse_visitor_base &v, source_code_span interface_keyword_span);
   void parse_and_visit_typescript_interface_extends(parse_visitor_base &v);
   void parse_and_visit_typescript_interface_body(parse_visitor_base &v);
 

@@ -992,13 +992,18 @@ void parser::parse_and_visit_class_or_interface_member(parse_visitor_base &v,
   state.parse_stuff();
 }
 
-void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
+void parser::parse_and_visit_typescript_interface(
+    parse_visitor_base &v, source_code_span interface_keyword_span) {
   typescript_only_construct_guard ts_guard =
       this->enter_typescript_only_construct();
 
-  QLJS_ASSERT(this->peek().type == token_type::kw_interface);
-  const char8 *interface_keyword_begin = this->peek().begin;
-  this->skip();
+  QLJS_ASSERT(!this->peek().has_leading_newline);
+  if (!this->options_.typescript) {
+    this->diag_reporter_->report(
+        diag_typescript_interfaces_not_allowed_in_javascript{
+            .interface_keyword = interface_keyword_span,
+        });
+  }
 
   switch (this->peek().type) {
   case token_type::kw_await:
@@ -1057,8 +1062,9 @@ void parser::parse_and_visit_typescript_interface(parse_visitor_base &v) {
     this->parse_and_visit_typescript_interface_body(v);
   } else {
     this->diag_reporter_->report(diag_missing_body_for_typescript_interface{
-        .interface_keyword_and_name_and_heritage = source_code_span(
-            interface_keyword_begin, this->lexer_.end_of_previous_token()),
+        .interface_keyword_and_name_and_heritage =
+            source_code_span(interface_keyword_span.begin(),
+                             this->lexer_.end_of_previous_token()),
     });
   }
   v.visit_exit_interface_scope();

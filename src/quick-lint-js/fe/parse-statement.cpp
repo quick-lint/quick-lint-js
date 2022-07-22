@@ -440,34 +440,13 @@ parse_statement:
         this->diag_reporter_);
     goto parse_loop_label_or_expression_starting_with_identifier;
 
-  case token_type::kw_interface:
-    if (this->options_.typescript) {
-      this->parse_and_visit_typescript_interface(v);
-    } else {
-      source_code_span interface_keyword_span = this->peek().span();
-      lexer_transaction transaction = this->lexer_.begin_transaction();
-      this->skip();
-      bool is_typescript_interface =
-          this->peek().type == token_type::identifier;
-      this->lexer_.roll_back_transaction(std::move(transaction));
-      if (is_typescript_interface) {
-        this->diag_reporter_->report(
-            diag_typescript_interfaces_not_allowed_in_javascript{
-                .interface_keyword = interface_keyword_span,
-            });
-        // TODO(strager): Would it be smarter to skip until '{' then skip until
-        // '}'?
-        this->parse_and_visit_typescript_interface(v);
-      } else {
-        goto parse_loop_label_or_expression_starting_with_identifier;
-      }
-    }
-    break;
-
   // type++;
   // type T = number;  // TypeScript only.
   // namespace.foo();
   // namespace ns {}   // TypeScript only.
+  // interface * x;
+  // interface I {}   // TypeScript only.
+  case token_type::kw_interface:
   case token_type::kw_namespace:
   case token_type::kw_type: {
     token initial_keyword = this->peek();
@@ -514,6 +493,9 @@ parse_statement:
         goto initial_keyword_is_expression;
       }
       switch (initial_keyword.type) {
+      case token_type::kw_interface:
+        this->parse_and_visit_typescript_interface(v, initial_keyword.span());
+        break;
       case token_type::kw_namespace:
         this->parse_and_visit_typescript_namespace(v, initial_keyword.span());
         break;
