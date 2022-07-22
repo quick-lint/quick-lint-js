@@ -45,19 +45,13 @@
 //                    offsets_matcher(code, start_0, end_or_text_0))
 //
 // but compiles much more quickly.
-#define DIAG_TYPE_OFFSETS(code, type, member_0, start_0, end_or_text_0)  \
-  ::quick_lint_js::diag_matcher(                                         \
-      code, ::quick_lint_js::diag_type::type,                            \
-      ::quick_lint_js::diag_matcher::field{                              \
-          ::quick_lint_js::diag_matcher_arg{                             \
-              #member_0,                                                 \
-              offsetof(type, member_0),                                  \
-              ::quick_lint_js::get_diagnostic_message_arg_type<decltype( \
-                  type::member_0)>(),                                    \
-          },                                                             \
-          start_0,                                                       \
-          end_or_text_0,                                                 \
-      })
+#define DIAG_TYPE_OFFSETS(code, type, member_0, start_0, end_or_text_0) \
+  ::quick_lint_js::diag_matcher(code, ::quick_lint_js::diag_type::type, \
+                                ::quick_lint_js::diag_matcher::field{   \
+                                    DIAG_MATCHER_ARG(type, member_0),   \
+                                    start_0,                            \
+                                    end_or_text_0,                      \
+                                })
 
 // Equivalent to the following, but compiles much more quickly:
 //
@@ -66,28 +60,17 @@
 //                    member_1, offsets_matcher(code, start_1, end_or_text_1))
 #define DIAG_TYPE_2_OFFSETS(code, type, member_0, start_0, end_or_text_0, \
                             member_1, start_1, end_or_text_1)             \
-  ::quick_lint_js::diag_matcher(                                          \
-      code, ::quick_lint_js::diag_type::type,                             \
-      ::quick_lint_js::diag_matcher::field{                               \
-          ::quick_lint_js::diag_matcher_arg{                              \
-              #member_0,                                                  \
-              offsetof(type, member_0),                                   \
-              ::quick_lint_js::get_diagnostic_message_arg_type<decltype(  \
-                  type::member_0)>(),                                     \
-          },                                                              \
-          start_0,                                                        \
-          end_or_text_0,                                                  \
-      },                                                                  \
-      ::quick_lint_js::diag_matcher::field{                               \
-          ::quick_lint_js::diag_matcher_arg{                              \
-              #member_1,                                                  \
-              offsetof(type, member_1),                                   \
-              ::quick_lint_js::get_diagnostic_message_arg_type<decltype(  \
-                  type::member_1)>(),                                     \
-          },                                                              \
-          start_1,                                                        \
-          end_or_text_1,                                                  \
-      })
+  ::quick_lint_js::diag_matcher(code, ::quick_lint_js::diag_type::type,   \
+                                ::quick_lint_js::diag_matcher::field{     \
+                                    DIAG_MATCHER_ARG(type, member_0),     \
+                                    start_0,                              \
+                                    end_or_text_0,                        \
+                                },                                        \
+                                ::quick_lint_js::diag_matcher::field{     \
+                                    DIAG_MATCHER_ARG(type, member_1),     \
+                                    start_1,                              \
+                                    end_or_text_1,                        \
+                                })
 
 // Equivalent to the following, but compiles much more quickly:
 //
@@ -98,55 +81,34 @@
 #define DIAG_TYPE_3_OFFSETS(code, type, member_0, start_0, end_or_text_0, \
                             member_1, start_1, end_or_text_1, member_2,   \
                             start_2, end_or_text_2)                       \
-  ::quick_lint_js::diag_matcher(                                          \
-      code, ::quick_lint_js::diag_type::type,                             \
-      ::quick_lint_js::diag_matcher::field{                               \
-          ::quick_lint_js::diag_matcher_arg{                              \
-              #member_0,                                                  \
-              offsetof(type, member_0),                                   \
-              ::quick_lint_js::get_diagnostic_message_arg_type<decltype(  \
-                  type::member_0)>(),                                     \
-          },                                                              \
-          start_0,                                                        \
-          end_or_text_0,                                                  \
-      },                                                                  \
-      ::quick_lint_js::diag_matcher::field{                               \
-          ::quick_lint_js::diag_matcher_arg{                              \
-              #member_1,                                                  \
-              offsetof(type, member_1),                                   \
-              ::quick_lint_js::get_diagnostic_message_arg_type<decltype(  \
-                  type::member_1)>(),                                     \
-          },                                                              \
-          start_1,                                                        \
-          end_or_text_1,                                                  \
-      },                                                                  \
-      ::quick_lint_js::diag_matcher::field{                               \
-          ::quick_lint_js::diag_matcher_arg{                              \
-              #member_2,                                                  \
-              offsetof(type, member_2),                                   \
-              ::quick_lint_js::get_diagnostic_message_arg_type<decltype(  \
-                  type::member_2)>(),                                     \
-          },                                                              \
-          start_2,                                                        \
-          end_or_text_2,                                                  \
-      })
+  ::quick_lint_js::diag_matcher(code, ::quick_lint_js::diag_type::type,   \
+                                ::quick_lint_js::diag_matcher::field{     \
+                                    DIAG_MATCHER_ARG(type, member_0),     \
+                                    start_0,                              \
+                                    end_or_text_0,                        \
+                                },                                        \
+                                ::quick_lint_js::diag_matcher::field{     \
+                                    DIAG_MATCHER_ARG(type, member_1),     \
+                                    start_1,                              \
+                                    end_or_text_1,                        \
+                                },                                        \
+                                ::quick_lint_js::diag_matcher::field{     \
+                                    DIAG_MATCHER_ARG(type, member_2),     \
+                                    start_2,                              \
+                                    end_or_text_2,                        \
+                                })
 
 // Equivalent to the following, but compiles much more quickly:
 //
 //   DIAG_TYPE_FIELD(type, member_0, source_code_span_matcher(span_0))
 //
 // but compiles much more quickly.
-#define DIAG_TYPE_SPAN(type, member_0, span_0)                           \
-  ::quick_lint_js::diag_spans_matcher(                                   \
-      ::quick_lint_js::diag_type::type,                                  \
-      ::quick_lint_js::diag_spans_matcher::field{                        \
-          ::quick_lint_js::diag_matcher_arg{                             \
-              #member_0,                                                 \
-              offsetof(type, member_0),                                  \
-              ::quick_lint_js::get_diagnostic_message_arg_type<decltype( \
-                  type::member_0)>(),                                    \
-          },                                                             \
-          span_0,                                                        \
+#define DIAG_TYPE_SPAN(type, member_0, span_0)    \
+  ::quick_lint_js::diag_spans_matcher(            \
+      ::quick_lint_js::diag_type::type,           \
+      ::quick_lint_js::diag_spans_matcher::field{ \
+          DIAG_MATCHER_ARG(type, member_0),       \
+          span_0,                                 \
       })
 
 // Equivalent to the following, but compiles much more quickly:
@@ -156,26 +118,16 @@
 //                     member_1, source_code_span_matcher(span_1))
 //
 // but compiles much more quickly.
-#define DIAG_TYPE_2_SPANS(type, member_0, span_0, member_1, span_1)      \
-  ::quick_lint_js::diag_spans_matcher(                                   \
-      ::quick_lint_js::diag_type::type,                                  \
-      ::quick_lint_js::diag_spans_matcher::field{                        \
-          ::quick_lint_js::diag_matcher_arg{                             \
-              #member_0,                                                 \
-              offsetof(type, member_0),                                  \
-              ::quick_lint_js::get_diagnostic_message_arg_type<decltype( \
-                  type::member_0)>(),                                    \
-          },                                                             \
-          span_0,                                                        \
-      },                                                                 \
-      ::quick_lint_js::diag_spans_matcher::field{                        \
-          ::quick_lint_js::diag_matcher_arg{                             \
-              #member_1,                                                 \
-              offsetof(type, member_1),                                  \
-              ::quick_lint_js::get_diagnostic_message_arg_type<decltype( \
-                  type::member_1)>(),                                    \
-          },                                                             \
-          span_1,                                                        \
+#define DIAG_TYPE_2_SPANS(type, member_0, span_0, member_1, span_1) \
+  ::quick_lint_js::diag_spans_matcher(                              \
+      ::quick_lint_js::diag_type::type,                             \
+      ::quick_lint_js::diag_spans_matcher::field{                   \
+          DIAG_MATCHER_ARG(type, member_0),                         \
+          span_0,                                                   \
+      },                                                            \
+      ::quick_lint_js::diag_spans_matcher::field{                   \
+          DIAG_MATCHER_ARG(type, member_1),                         \
+          span_1,                                                   \
       })
 
 namespace quick_lint_js {
@@ -253,6 +205,16 @@ struct diag_matcher_arg {
   // member_type must be identifier or source_code_span.
   source_code_span get_span(const void *error_object) const noexcept;
 };
+
+// Create a diag_matcher_arg from a diag_ struct type and the name of a member
+// of that struct.
+#define DIAG_MATCHER_ARG(type, member)                           \
+  (::quick_lint_js::diag_matcher_arg{                            \
+      #member,                                                   \
+      offsetof(type, member),                                    \
+      ::quick_lint_js::get_diagnostic_message_arg_type<decltype( \
+          type::member)>(),                                      \
+  })
 
 // A mix of ::testing::VariantWith, ::testing::Field, and offsets_matcher. These
 // are combined into one matcher to significantly reduce compile times.
