@@ -7,6 +7,7 @@
 #include <cstring>
 #include <iterator>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/container/vector.h>

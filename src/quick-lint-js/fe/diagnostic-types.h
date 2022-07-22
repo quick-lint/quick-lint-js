@@ -5,7 +5,6 @@
 #define QUICK_LINT_JS_FE_DIAGNOSTIC_TYPES_H
 
 #include <iosfwd>
-#include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/fe/identifier.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/source-code-span.h>
