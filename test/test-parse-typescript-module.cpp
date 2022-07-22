@@ -322,6 +322,37 @@ TEST(test_parse_typescript_module, export_default_interface) {
     EXPECT_THAT(v.variable_declarations, ElementsAre(interface_decl(u8"I")));
   }
 }
+
+TEST(test_parse_typescript_module, export_namespace) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_module(u8"export namespace ns {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_namespace_scope",  // {
+                                      "visit_exit_namespace_scope",   // }
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(namespace_decl(u8"ns")));
+  }
+}
+
+TEST(test_parse_typescript_module,
+     export_namespace_disallows_newline_after_namespace_keyword) {
+  {
+    padded_string code(u8"export namespace\nns {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // ns
+                                      "visit_enter_namespace_scope",  // {
+                                      "visit_exit_namespace_scope",   // }
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(namespace_decl(u8"ns")));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_newline_not_allowed_after_namespace_keyword,
+                    namespace_keyword, strlen(u8"export "), u8"namespace")));
+  }
+}
 }
 }
 

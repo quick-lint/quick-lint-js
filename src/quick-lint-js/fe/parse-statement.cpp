@@ -965,6 +965,14 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
     break;
   }
 
+  // export namespace ns {}  // TypeScript only.
+  case token_type::kw_namespace: {
+    source_code_span namespace_keyword = this->peek().span();
+    this->skip();
+    this->parse_and_visit_typescript_namespace(v, namespace_keyword);
+    break;
+  }
+
     // export stuff;    // Invalid.
     // export a, b, c;  // Invalid.
     // export 2 + 2;    // Invalid.
@@ -1555,8 +1563,12 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
 
 void parser::parse_and_visit_typescript_namespace(
     parse_visitor_base &v, source_code_span namespace_keyword_span) {
-  QLJS_ASSERT(!this->peek().has_leading_newline);
-
+  if (this->peek().has_leading_newline) {
+    this->diag_reporter_->report(
+        diag_newline_not_allowed_after_namespace_keyword{
+            .namespace_keyword = namespace_keyword_span,
+        });
+  }
   if (!this->options_.typescript) {
     this->diag_reporter_->report(
         diag_typescript_namespaces_not_allowed_in_javascript{

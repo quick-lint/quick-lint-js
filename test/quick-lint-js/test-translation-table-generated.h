@@ -2459,6 +2459,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "newline is not allowed after 'namespace'"_translatable,
+        {
+            u8"newline is not allowed after 'namespace'",
+            u8"newline is not allowed after 'namespace'",
+            u8"newline is not allowed after 'namespace'",
+            u8"newline is not allowed after 'namespace'",
+            u8"newline is not allowed after 'namespace'",
+        },
+    },
+    {
         "newline is not allowed between 'async' and arrow function parameter list"_translatable,
         {
             u8"newline is not allowed between 'async' and arrow function parameter list",

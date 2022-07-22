@@ -254,6 +254,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 48},             //
         {69, 26, 0, 0, 51},           //
         {0, 0, 0, 0, 39},             //
+        {0, 0, 0, 0, 41},             //
         {52, 31, 25, 21, 41},         //
         {63, 34, 103, 73, 73},        //
         {69, 23, 79, 51, 48},         //
@@ -1480,6 +1481,7 @@ const translation_table translation_data = {
         u8"move the 'extends' clause before 'implements' here\0"
         u8"new variable shadows existing variable\0"
         u8"newline is not allowed after 'interface'\0"
+        u8"newline is not allowed after 'namespace'\0"
         u8"newline is not allowed between 'async' and arrow function parameter list\0"
         u8"number literal contains consecutive underscores\0"
         u8"number literal contains trailing underscore(s)\0"
