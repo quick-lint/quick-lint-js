@@ -1328,6 +1328,12 @@
               async) MESSAGE(QLJS_TRANSLATABLE("arrow is here"), arrow))       \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_newline_not_allowed_after_interface_keyword, "E0275",               \
+      diagnostic_severity::error, { source_code_span interface_keyword; },     \
+      MESSAGE(QLJS_TRANSLATABLE("newline is not allowed after 'interface'"),   \
+              interface_keyword))                                              \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_number_literal_contains_consecutive_underscores, "E0028",           \
       diagnostic_severity::error, { source_code_span underscores; },           \
       MESSAGE(QLJS_TRANSLATABLE(                                               \

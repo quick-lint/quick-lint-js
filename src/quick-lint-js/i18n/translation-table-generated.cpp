@@ -253,7 +253,8 @@ const translation_table translation_data = {
         {20, 29, 0, 0, 22},           //
         {0, 0, 0, 0, 48},             //
         {69, 26, 0, 0, 51},           //
-        {52, 31, 25, 21, 39},         //
+        {0, 0, 0, 0, 39},             //
+        {52, 31, 25, 21, 41},         //
         {63, 34, 103, 73, 73},        //
         {69, 23, 79, 51, 48},         //
         {40, 26, 61, 56, 47},         //
@@ -1478,6 +1479,7 @@ const translation_table translation_data = {
         u8"misspelled React attribute; write '{1}' instead\0"
         u8"move the 'extends' clause before 'implements' here\0"
         u8"new variable shadows existing variable\0"
+        u8"newline is not allowed after 'interface'\0"
         u8"newline is not allowed between 'async' and arrow function parameter list\0"
         u8"number literal contains consecutive underscores\0"
         u8"number literal contains trailing underscore(s)\0"

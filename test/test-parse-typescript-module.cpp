@@ -268,6 +268,37 @@ TEST(test_parse_typescript_module, import_require) {
     EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"fs")));
   }
 }
+
+TEST(test_parse_typescript_module, export_interface) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_module(u8"export interface I {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  // {
+                                      "visit_exit_interface_scope",   // }
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(interface_decl(u8"I")));
+  }
+}
+
+TEST(test_parse_typescript_module,
+     export_interface_disallows_newline_after_interface_keyword) {
+  {
+    padded_string code(u8"export interface\nI {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  // {
+                                      "visit_exit_interface_scope",   // }
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(interface_decl(u8"I")));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_newline_not_allowed_after_interface_keyword,
+                    interface_keyword, strlen(u8"export "), u8"interface")));
+  }
+}
 }
 }
 

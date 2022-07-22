@@ -943,6 +943,14 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
     this->parse_and_visit_variable_declaration_statement(v);
     break;
 
+  // export interface I {}  // TypeScript only.
+  case token_type::kw_interface: {
+    source_code_span interface_keyword = this->peek().span();
+    this->skip();
+    this->parse_and_visit_typescript_interface(v, interface_keyword);
+    break;
+  }
+
     // export stuff;    // Invalid.
     // export a, b, c;  // Invalid.
     // export 2 + 2;    // Invalid.

@@ -829,6 +829,10 @@ msgid "arrow is here"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "newline is not allowed after 'interface'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "number literal contains consecutive underscores"
 msgstr ""
 
