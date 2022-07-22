@@ -507,6 +507,21 @@ TEST(test_options, no_following_filename_vim_file_bufnr) {
     dumped_errors.flush();
     EXPECT_EQ(dumped_errors.get_flushed_string8(), u8"");
   }
+  {
+    // test if the right argument gets inserted into the error message
+    options o =
+        parse_options({"--vim-file-bufnr=11", "--output-format=vim-qflist-json",
+                       "--vim-file-bufnr=22", "foo.js"});
+    o.output_format = output_format::vim_qflist_json;
+
+    memory_output_stream dumped_errors;
+    bool have_errors = o.dump_errors(dumped_errors);
+    EXPECT_FALSE(have_errors);
+    dumped_errors.flush();
+    EXPECT_EQ(dumped_errors.get_flushed_string8(),
+              u8"warning: flag: '--vim-file-bufnr=11' should be followed by an "
+              u8"input file name or --stdin\n");
+  }
 }
 
 TEST(test_options, using_vim_file_bufnr_without_format) {
