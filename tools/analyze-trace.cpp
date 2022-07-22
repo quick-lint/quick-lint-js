@@ -32,7 +32,7 @@ namespace quick_lint_js {
 namespace {
 struct analyze_options {
   std::vector<const char*> trace_files;
-  std::optional<std::uint64_t> dump_final_document_content_document_id;
+  std::optional<std::uint64_t> dump_document_content_document_id;
   bool check_document_consistency = false;
   std::uint64_t begin_event_index = 0;
   std::uint64_t end_event_index = (std::numeric_limits<std::uint64_t>::max)();
@@ -87,10 +87,13 @@ class counting_trace_stream_event_visitor : public trace_stream_event_visitor {
   }
 };
 
-class document_content_dumper : public trace_stream_event_visitor {
+class document_content_dumper : public counting_trace_stream_event_visitor {
  public:
-  explicit document_content_dumper(std::uint64_t document_id)
-      : document_id_(document_id) {}
+  using base = counting_trace_stream_event_visitor;
+
+  explicit document_content_dumper(std::uint64_t document_id,
+                                   std::uint64_t end_event_index)
+      : document_id_(document_id), end_event_index_(end_event_index) {}
 
   void visit_error_invalid_magic() override {
     std::fprintf(stderr, "error: invalid magic\n");
@@ -106,26 +109,32 @@ class document_content_dumper : public trace_stream_event_visitor {
 
   void visit_packet_header(const packet_header&) override {}
 
-  void visit_init_event(const init_event&) override {}
-
   void visit_vscode_document_opened_event(
       const vscode_document_opened_event& event) override {
+    base::visit_vscode_document_opened_event(event);
+    if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
       return;
     }
+
     this->doc_.set_text(utf_16_to_utf_8(event.content));
   }
 
   void visit_vscode_document_closed_event(
       const vscode_document_closed_event& event) override {
+    base::visit_vscode_document_closed_event(event);
+    if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
       return;
     }
+
     this->doc_.set_text(u8"(document closed)");
   }
 
   void visit_vscode_document_changed_event(
       const vscode_document_changed_event& event) override {
+    base::visit_vscode_document_changed_event(event);
+    if (!this->should_analyze()) return;
     if (event.document_id != this->document_id_) {
       return;
     }
@@ -136,20 +145,19 @@ class document_content_dumper : public trace_stream_event_visitor {
     }
   }
 
-  void visit_vscode_document_sync_event(
-      const vscode_document_sync_event&) override {}
-
-  void visit_lsp_client_to_server_message_event(
-      const lsp_client_to_server_message_event&) override {}
-
   void print_document_content() {
     padded_string_view s = this->doc_.string();
     std::fwrite(s.data(), 1, narrow_cast<std::size_t>(s.size()), stdout);
   }
 
  private:
+  bool should_analyze() const noexcept {
+    return this->event_index <= this->end_event_index_;
+  }
+
   document<lsp_locator> doc_;
   std::uint64_t document_id_;
+  std::uint64_t end_event_index_;
 };
 
 class document_content_checker : public counting_trace_stream_event_visitor {
@@ -405,7 +413,7 @@ analyze_options parse_analyze_options(int argc, char** argv) {
                                         "--check"sv)) {
       o.check_document_consistency = true;
     } else if (const char* arg_value = parser.match_option_with_value(
-                   "--dump-final-document-content"sv)) {
+                   "--dump-document-content"sv)) {
       errno = 0;
       char* end;
       unsigned long long document_id =
@@ -414,7 +422,7 @@ analyze_options parse_analyze_options(int argc, char** argv) {
         std::fprintf(stderr, "error: malformed document ID: %s\n", arg_value);
         std::exit(2);
       }
-      o.dump_final_document_content_document_id =
+      o.dump_document_content_document_id =
           narrow_cast<std::uint64_t>(document_id);
     } else if (const char* arg_value =
                    parser.match_option_with_value("--begin"sv)) {
@@ -469,8 +477,9 @@ int main(int argc, char** argv) {
                       checker);
   }
 
-  if (o.dump_final_document_content_document_id.has_value()) {
-    document_content_dumper dumper(*o.dump_final_document_content_document_id);
+  if (o.dump_document_content_document_id.has_value()) {
+    document_content_dumper dumper(*o.dump_document_content_document_id,
+                                   o.end_event_index);
     read_trace_stream(file->data(), narrow_cast<std::size_t>(file->size()),
                       dumper);
     dumper.print_document_content();
