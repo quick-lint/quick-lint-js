@@ -982,6 +982,22 @@ TEST(
     }
   }
 }
+
+TEST(test_parse_module, import_requires_semicolon_or_newline) {
+  {
+    padded_string code(u8"import fs from 'fs' nextStatement"_sv);
+    spy_visitor v;
+    parser p(&code, &v);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // fs
+                                      "visit_variable_use",  // nextStatement
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code,
+                              diag_missing_semicolon_after_statement,  //
+                              where, strlen(u8"import fs from 'fs'"), u8"")));
+  }
+}
 }
 }
 

@@ -141,6 +141,24 @@ TEST(test_parse_typescript_namespace, import_alias_of_namespace_member) {
 }
 
 TEST(test_parse_typescript_namespace,
+     import_alias_requires_semicolon_or_newline) {
+  {
+    padded_string code(u8"import A = ns nextStatement"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // A
+                                      "visit_variable_namespace_use",  // ns
+                                      "visit_variable_use",  // nextStatement
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              &code,
+                              diag_missing_semicolon_after_statement,  //
+                              where, strlen(u8"import A = ns"), u8"")));
+  }
+}
+
+TEST(test_parse_typescript_namespace,
      namespace_can_be_contextual_keyword_in_import_alias) {
   for (string8 name : contextual_keywords) {
     padded_string code(u8"import A = " + name + u8".Member;");

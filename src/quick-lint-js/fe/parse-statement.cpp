@@ -2856,6 +2856,8 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
           break;
         }
       }
+
+      this->consume_semicolon_after_statement();
       return;
     }
     [[fallthrough]];
@@ -2882,9 +2884,7 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
   }
   this->skip();
 
-  if (this->peek().type == token_type::semicolon) {
-    this->skip();
-  }
+  this->consume_semicolon_after_statement();
 }
 
 void parser::parse_and_visit_name_space_import(parse_visitor_base &v) {
