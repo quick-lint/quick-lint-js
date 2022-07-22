@@ -2833,28 +2833,41 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
       this->skip();
       switch (this->peek().type) {
       QLJS_CASE_CONTEXTUAL_KEYWORD:
-      case token_type::identifier:
-        v.visit_variable_namespace_use(this->peek().identifier_name());
+      case token_type::identifier: {
+        identifier namespace_name = this->peek().identifier_name();
         this->skip();
+        if (this->peek().type == token_type::left_paren &&
+            namespace_name.normalized_name() == u8"require"_sv) {
+          // import fs = require("fs");
+          this->skip();
+          QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::string);
+          this->skip();
+          QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+          this->skip();
+        } else {
+          // import myns = ns;
+          // import C = ns.C;
+          v.visit_variable_namespace_use(namespace_name);
+          while (this->peek().type == token_type::dot) {
+            this->skip();
+            switch (this->peek().type) {
+            QLJS_CASE_CONTEXTUAL_KEYWORD:
+            case token_type::identifier:
+              this->skip();
+              break;
+
+            default:
+              QLJS_PARSER_UNIMPLEMENTED();
+              break;
+            }
+          }
+        }
         break;
+      }
 
       default:
         QLJS_PARSER_UNIMPLEMENTED();
         break;
-      }
-
-      while (this->peek().type == token_type::dot) {
-        this->skip();
-        switch (this->peek().type) {
-        QLJS_CASE_CONTEXTUAL_KEYWORD:
-        case token_type::identifier:
-          this->skip();
-          break;
-
-        default:
-          QLJS_PARSER_UNIMPLEMENTED();
-          break;
-        }
       }
 
       this->consume_semicolon_after_statement();

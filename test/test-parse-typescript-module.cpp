@@ -258,6 +258,16 @@ TEST(test_parse_typescript_module, mixed_inline_type_and_type_only_import) {
             type_only_keyword, strlen(u8"import "), u8"type")));
   }
 }
+
+TEST(test_parse_typescript_module, import_require) {
+  {
+    spy_visitor v = parse_and_visit_typescript_module(
+        u8"import fs = require('node:fs');"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // fs
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"fs")));
+  }
+}
 }
 }
 
