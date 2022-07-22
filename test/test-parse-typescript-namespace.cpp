@@ -59,6 +59,23 @@ TEST(test_parse_typescript_namespace,
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"namespace", u8"ns"));
   }
 }
+
+TEST(test_parse_typescript_namespace, namespace_can_contain_exports) {
+  {
+    spy_visitor v = parse_and_visit_typescript_module(
+        u8"namespace ns { export function f() {} }"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // ns
+                                      "visit_enter_namespace_scope",      // {
+                                      "visit_variable_declaration",       // f
+                                      "visit_enter_function_scope",       // f
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope",        // }
+                                      "visit_exit_namespace_scope",       // }
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(namespace_decl(u8"ns"), function_decl(u8"f")));
+  }
+}
 }
 }
 

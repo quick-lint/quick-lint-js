@@ -1571,10 +1571,7 @@ void parser::parse_and_visit_typescript_namespace(
                                variable_init_kind::normal);
   this->skip();
   v.visit_enter_namespace_scope();
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
-  this->skip();
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
-  this->skip();
+  this->parse_and_visit_statement_block_no_scope(v);
   v.visit_exit_namespace_scope();
 }
 
