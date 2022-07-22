@@ -30,8 +30,9 @@ enum class variable_kind {
   _function,
   _generic_parameter,  // TypeScript only
   _import,
-  _import_type,  // TypeScript only
-  _interface,    // TypeScript only
+  _import_alias,  // TypeScript only
+  _import_type,   // TypeScript only
+  _interface,     // TypeScript only
   _let,
   _namespace,  // TypeScript only
   _parameter,

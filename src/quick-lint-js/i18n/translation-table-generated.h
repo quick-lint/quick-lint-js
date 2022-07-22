@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 322;
-constexpr std::size_t translation_table_string_table_size = 52503;
+constexpr std::uint16_t translation_table_mapping_table_size = 324;
+constexpr std::size_t translation_table_string_table_size = 52595;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -69,6 +69,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "TypeScript assignment-asserted fields are not supported in JavaScript"sv,
           "TypeScript call signatures are only allowed in classes"sv,
           "TypeScript generics are not allowed in JavaScript code"sv,
+          "TypeScript import aliases are not allowed in JavaScript"sv,
           "TypeScript interface fields cannot be initalized"sv,
           "TypeScript interface methods cannot be marked 'async'"sv,
           "TypeScript interface methods cannot be marked as a generator"sv,
@@ -343,6 +344,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "while loop needs parentheses around condition"sv,
           "with statement is missing '{1}' around expression"sv,
           "with statement needs parentheses around expression"sv,
+          "write 'const' instead of '{0}' here"sv,
           "write a name to declare a class method"sv,
           "{0} classes are not allowed in JavaScript"sv,
           "{0} is not allowed in JavaScript"sv,

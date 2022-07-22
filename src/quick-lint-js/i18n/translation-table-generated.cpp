@@ -52,7 +52,8 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 53},             //
         {0, 0, 0, 0, 70},             //
         {0, 0, 0, 0, 55},             //
-        {0, 38, 0, 0, 55},            //
+        {0, 0, 0, 0, 55},             //
+        {0, 38, 0, 0, 56},            //
         {0, 64, 0, 0, 49},            //
         {0, 41, 0, 0, 54},            //
         {0, 45, 0, 0, 61},            //
@@ -327,6 +328,7 @@ const translation_table translation_data = {
         {48, 44, 68, 45, 46},         //
         {43, 55, 61, 43, 50},         //
         {0, 0, 0, 0, 51},             //
+        {0, 0, 0, 0, 36},             //
         {0, 0, 0, 0, 39},             //
         {0, 0, 0, 0, 42},             //
         {47, 55, 72, 48, 33},         //
@@ -1275,6 +1277,7 @@ const translation_table translation_data = {
         u8"TypeScript assignment-asserted fields are not supported in JavaScript\0"
         u8"TypeScript call signatures are only allowed in classes\0"
         u8"TypeScript generics are not allowed in JavaScript code\0"
+        u8"TypeScript import aliases are not allowed in JavaScript\0"
         u8"TypeScript interface fields cannot be initalized\0"
         u8"TypeScript interface methods cannot be marked 'async'\0"
         u8"TypeScript interface methods cannot be marked as a generator\0"
@@ -1549,6 +1552,7 @@ const translation_table translation_data = {
         u8"while loop needs parentheses around condition\0"
         u8"with statement is missing '{1}' around expression\0"
         u8"with statement needs parentheses around expression\0"
+        u8"write 'const' instead of '{0}' here\0"
         u8"write a name to declare a class method\0"
         u8"{0} classes are not allowed in JavaScript\0"
         u8"{0} is not allowed in JavaScript\0"

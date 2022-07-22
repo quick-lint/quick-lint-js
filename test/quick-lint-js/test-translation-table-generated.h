@@ -439,6 +439,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript import aliases are not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript import aliases are not allowed in JavaScript",
+            u8"TypeScript import aliases are not allowed in JavaScript",
+            u8"TypeScript import aliases are not allowed in JavaScript",
+            u8"TypeScript import aliases are not allowed in JavaScript",
+            u8"TypeScript import aliases are not allowed in JavaScript",
+        },
+    },
+    {
         "TypeScript interface fields cannot be initalized"_translatable,
         {
             u8"TypeScript interface fields cannot be initalized",
@@ -3176,6 +3186,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"with statement needs you to stop programming right now",
             u8"une instruction with n\u00e9cessite des parenth\u00e8ses autour de l'expression",
             u8"with p\u00e5st\u00e5ende saknar paranteser runt uttryck",
+        },
+    },
+    {
+        "write 'const' instead of '{0}' here"_translatable,
+        {
+            u8"write 'const' instead of '{0}' here",
+            u8"write 'const' instead of '{0}' here",
+            u8"write 'const' instead of '{0}' here",
+            u8"write 'const' instead of '{0}' here",
+            u8"write 'const' instead of '{0}' here",
         },
     },
     {

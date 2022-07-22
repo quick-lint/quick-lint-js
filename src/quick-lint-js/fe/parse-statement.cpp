@@ -2626,6 +2626,7 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
   source_code_span import_span = this->peek().span();
   this->skip();
 
+  bool possibly_typescript_import_alias = false;
   switch (this->peek().type) {
     // import var from "module";  // Invalid.
   QLJS_CASE_STRICT_RESERVED_KEYWORD:
@@ -2640,8 +2641,9 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
         this->diag_reporter_);
     goto identifier;
 
-    // import let from "module";
-    // import fs from "fs";
+  // import let from "module";
+  // import fs from "fs";
+  // import fs = require("fs");  // TypeScript only.
   identifier:
   QLJS_CASE_CONTEXTUAL_KEYWORD_EXCEPT_ASYNC_AND_GET_AND_SET_AND_STATIC_AND_TYPE:
   case token_type::identifier:
@@ -2674,6 +2676,10 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
         QLJS_PARSER_UNIMPLEMENTED();
         break;
       }
+    } else {
+      // import fs from "fs";
+      // import fs = require("fs");  // TypeScript only.
+      possibly_typescript_import_alias = true;
     }
     break;
 
@@ -2811,6 +2817,48 @@ void parser::parse_and_visit_import(parse_visitor_base &v) {
     });
     break;
 
+  // import fs = require("fs");  // TypeScript only.
+  // import myns = ns;           // TypeScript only.
+  // import C = ns.C;            // TypeScript only.
+  case token_type::equal:
+    if (possibly_typescript_import_alias) {
+      if (!this->options_.typescript) {
+        this->diag_reporter_->report(
+            diag_typescript_import_alias_not_allowed_in_javascript{
+                .import_keyword = import_span,
+                .equal = this->peek().span(),
+            });
+      }
+
+      this->skip();
+      switch (this->peek().type) {
+      QLJS_CASE_CONTEXTUAL_KEYWORD:
+      case token_type::identifier:
+        v.visit_variable_namespace_use(this->peek().identifier_name());
+        this->skip();
+        break;
+
+      default:
+        QLJS_PARSER_UNIMPLEMENTED();
+        break;
+      }
+
+      while (this->peek().type == token_type::dot) {
+        this->skip();
+        switch (this->peek().type) {
+        QLJS_CASE_CONTEXTUAL_KEYWORD:
+        case token_type::identifier:
+          this->skip();
+          break;
+
+        default:
+          QLJS_PARSER_UNIMPLEMENTED();
+          break;
+        }
+      }
+      return;
+    }
+    [[fallthrough]];
   default:
     this->diag_reporter_->report(diag_expected_from_and_module_specifier{
         .where = source_code_span::unit(this->lexer_.end_of_previous_token()),

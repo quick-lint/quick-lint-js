@@ -1550,6 +1550,19 @@
                   implements_keyword))                                         \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_import_alias_not_allowed_in_javascript, "E0274",         \
+      diagnostic_severity::error,                                              \
+      {                                                                        \
+        source_code_span import_keyword;                                       \
+        source_code_span equal;                                                \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "TypeScript import aliases are not allowed in JavaScript"),  \
+              equal)                                                           \
+          MESSAGE(QLJS_TRANSLATABLE("write 'const' instead of '{0}' here"),    \
+                  import_keyword))                                             \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_index_signature_cannot_be_method, "E0227",               \
       diagnostic_severity::error, { source_code_span left_paren; },            \
       MESSAGE(                                                                 \

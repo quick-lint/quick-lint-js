@@ -966,6 +966,14 @@ msgid "move the 'extends' clause before 'implements' here"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "TypeScript import aliases are not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "write 'const' instead of '{0}' here"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "index signature must be a field, not a method"
 msgstr ""
 
