@@ -255,24 +255,11 @@ source_code_span diag_matcher_arg::get_span(const void *error_object) const
   QLJS_UNREACHABLE();
 }
 
-diag_matcher::diag_matcher(diag_type type) : state_{type, std::nullopt, {}} {}
-
-diag_matcher::diag_matcher(padded_string_view input, diag_type type,
-                           field field_0)
-    : state_{type, input, {field_0}} {}
-
-diag_matcher::diag_matcher(padded_string_view input, diag_type type,
-                           field field_0, field field_1)
-    : state_{type, input, {field_0, field_1}} {}
-
-diag_matcher::diag_matcher(padded_string_view input, diag_type type,
-                           field field_0, field field_1, field field_2)
-    : state_{type, input, {field_0, field_1, field_2}} {}
-
-class diag_matcher::impl
+template <class State, class Field>
+class diag_fields_matcher_impl_base
     : public testing::MatcherInterface<const diag_collector::diag &> {
  public:
-  explicit impl(state s) : state_(std::move(s)) {}
+  explicit diag_fields_matcher_impl_base(State s) : state_(std::move(s)) {}
 
   void DescribeTo(std::ostream *out) const override {
     *out << "has type " << this->state_.type;
@@ -299,7 +286,7 @@ class diag_matcher::impl
 
     bool result = true;
     bool is_first_field = true;
-    for (const field &f : this->state_.fields) {
+    for (const Field &f : this->state_.fields) {
       if (!is_first_field) {
         *listener << " and ";
       }
@@ -310,8 +297,39 @@ class diag_matcher::impl
     return result;
   }
 
+ protected:
+  virtual bool field_matches(const diag_collector::diag &error, const Field &f,
+                             testing::MatchResultListener *listener) const = 0;
+
+  State state_;
+};
+
+diag_matcher::diag_matcher(diag_type type) : state_{type, std::nullopt, {}} {}
+
+diag_matcher::diag_matcher(padded_string_view input, diag_type type,
+                           field field_0)
+    : state_{type, input, {field_0}} {}
+
+diag_matcher::diag_matcher(padded_string_view input, diag_type type,
+                           field field_0, field field_1)
+    : state_{type, input, {field_0, field_1}} {}
+
+diag_matcher::diag_matcher(padded_string_view input, diag_type type,
+                           field field_0, field field_1, field field_2)
+    : state_{type, input, {field_0, field_1, field_2}} {}
+
+class diag_matcher::impl
+    : public diag_fields_matcher_impl_base<diag_matcher::state,
+                                           diag_matcher::field> {
+ public:
+  using base =
+      diag_fields_matcher_impl_base<diag_matcher::state, diag_matcher::field>;
+
+  using base::base;
+
+ protected:
   bool field_matches(const diag_collector::diag &error, const field &f,
-                     testing::MatchResultListener *listener) const {
+                     testing::MatchResultListener *listener) const override {
     QLJS_ASSERT(this->state_.input.has_value());
     source_code_span span = f.arg.get_span(error.data());
     auto span_begin_offset = narrow_cast<cli_source_position::offset_type>(
@@ -328,9 +346,6 @@ class diag_matcher::impl
               << f.begin_offset << "-" << expected_end_offset;
     return span_matches;
   }
-
- private:
-  state state_;
 };
 
 /*implicit*/ diag_matcher::operator testing::Matcher<
@@ -346,48 +361,17 @@ diag_spans_matcher::diag_spans_matcher(diag_type type, field field_0,
     : state_{type, {field_0, field_1}} {}
 
 class diag_spans_matcher::impl
-    : public testing::MatcherInterface<const diag_collector::diag &> {
+    : public diag_fields_matcher_impl_base<diag_spans_matcher::state,
+                                           diag_spans_matcher::field> {
  public:
-  explicit impl(state s) : state_(std::move(s)) {}
+  using base = diag_fields_matcher_impl_base<diag_spans_matcher::state,
+                                             diag_spans_matcher::field>;
 
-  void DescribeTo(std::ostream *out) const override {
-    *out << "has type " << this->state_.type;
-    this->describe_fields_to(out);
-  }
+  using base::base;
 
-  void DescribeNegationTo(std::ostream *out) const override {
-    *out << "doesn't have type " << this->state_.type;
-    this->describe_fields_to(out);
-  }
-
-  void describe_fields_to(std::ostream *) const {
-    // TODO(strager)
-  }
-
-  bool MatchAndExplain(const diag_collector::diag &error,
-                       testing::MatchResultListener *listener) const override {
-    bool type_matches = error.type() == this->state_.type;
-    if (!type_matches) {
-      *listener << "whose type (" << error.type() << ") isn't "
-                << this->state_.type;
-      return false;
-    }
-
-    bool result = true;
-    bool is_first_field = true;
-    for (const field &f : this->state_.fields) {
-      if (!is_first_field) {
-        *listener << " and ";
-      }
-      bool matches = this->field_matches(error, f, listener);
-      result = result && matches;
-      is_first_field = false;
-    }
-    return result;
-  }
-
+ protected:
   bool field_matches(const diag_collector::diag &error, const field &f,
-                     testing::MatchResultListener *listener) const {
+                     testing::MatchResultListener *listener) const override {
     source_code_span span = f.arg.get_span(error.data());
     bool span_matches = same_pointers(span, f.expected);
     *listener << "whose ." << f.arg.member_name << " (`"
@@ -398,9 +382,6 @@ class diag_spans_matcher::impl
               << reinterpret_cast<const void *>(f.expected.begin());
     return span_matches;
   }
-
- private:
-  state state_;
 };
 
 /*implicit*/ diag_spans_matcher::operator testing::Matcher<
