@@ -827,6 +827,14 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
       break;
     }
 
+    // export default interface I {}  // TypeScript only.
+    case token_type::kw_interface: {
+      source_code_span interface_keyword = this->peek().span();
+      this->skip();
+      this->parse_and_visit_typescript_interface(v, interface_keyword);
+      break;
+    }
+
       // export default 2 + 2;
     default:
       this->parse_and_visit_expression(v);
@@ -947,6 +955,12 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
   case token_type::kw_interface: {
     source_code_span interface_keyword = this->peek().span();
     this->skip();
+    if (this->peek().has_leading_newline) {
+      this->diag_reporter_->report(
+          diag_newline_not_allowed_after_interface_keyword{
+              .interface_keyword = interface_keyword,
+          });
+    }
     this->parse_and_visit_typescript_interface(v, interface_keyword);
     break;
   }

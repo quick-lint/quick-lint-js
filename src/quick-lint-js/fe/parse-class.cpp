@@ -997,12 +997,6 @@ void parser::parse_and_visit_typescript_interface(
   typescript_only_construct_guard ts_guard =
       this->enter_typescript_only_construct();
 
-  if (this->peek().has_leading_newline) {
-    this->diag_reporter_->report(
-        diag_newline_not_allowed_after_interface_keyword{
-            .interface_keyword = interface_keyword_span,
-        });
-  }
   if (!this->options_.typescript) {
     this->diag_reporter_->report(
         diag_typescript_interfaces_not_allowed_in_javascript{

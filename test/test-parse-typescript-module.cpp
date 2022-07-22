@@ -299,6 +299,29 @@ TEST(test_parse_typescript_module,
                     interface_keyword, strlen(u8"export "), u8"interface")));
   }
 }
+
+TEST(test_parse_typescript_module, export_default_interface) {
+  {
+    spy_visitor v =
+        parse_and_visit_typescript_module(u8"export default interface I {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  // {
+                                      "visit_exit_interface_scope",   // }
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(interface_decl(u8"I")));
+  }
+
+  // A newline is allowed after 'interface' (unlike with 'export interface').
+  {
+    spy_visitor v = parse_and_visit_typescript_module(
+        u8"export default interface\nI {}"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+                                      "visit_enter_interface_scope",  // {
+                                      "visit_exit_interface_scope",   // }
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(interface_decl(u8"I")));
+  }
+}
 }
 }
 
