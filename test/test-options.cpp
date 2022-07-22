@@ -441,8 +441,6 @@ TEST(test_options, invalid_vim_file_bufnr) {
   }
 }
 
-// TODO(#201): Report warning for trailing (ununsed) --vim-file-bufnr.
-
 TEST(test_options, no_following_filename_vim_file_bufnr) {
   {
     options o = parse_options({"foo.js", "--vim-file-bufnr=1"});
@@ -511,8 +509,6 @@ TEST(test_options, no_following_filename_vim_file_bufnr) {
   }
 }
 
-// TODO(#201): Report warning for using --vim-file-bufnr without
-// --output-format.
 TEST(test_options, using_vim_file_bufnr_without_format) {
   for (const auto &format : {
            output_format::default_format,
