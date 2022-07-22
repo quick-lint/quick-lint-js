@@ -221,9 +221,14 @@ from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
 
 template from_chars_result from_chars<int>(const char *begin, const char *end,
                                            int &value);
-template from_chars_result from_chars<std::size_t>(const char *begin,
-                                                   const char *end,
-                                                   std::size_t &value);
+template from_chars_result from_chars<unsigned>(const char *begin,
+                                                const char *end,
+                                                unsigned &value);
+template from_chars_result from_chars<unsigned long>(const char *begin,
+                                                     const char *end,
+                                                     unsigned long &value);
+template from_chars_result from_chars<unsigned long long>(
+    const char *begin, const char *end, unsigned long long &value);
 
 template char8 *write_integer<int>(int, char8 *out);
 template char8 *write_integer<long>(long, char8 *out);

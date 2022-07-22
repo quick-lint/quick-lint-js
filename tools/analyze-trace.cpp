@@ -15,12 +15,16 @@
 #include <quick-lint-js/logging/trace-stream-reader.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/integer.h>
+#include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-16.h>
 #include <string>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
+
+QLJS_WARNING_IGNORE_GCC("-Wshadow=local")
 
 using namespace std::literals::string_view_literals;
 
@@ -30,6 +34,8 @@ struct analyze_options {
   std::vector<const char*> trace_files;
   std::optional<std::uint64_t> dump_final_document_content_document_id;
   bool check_document_consistency = false;
+  std::uint64_t begin_event_index = 0;
+  std::uint64_t end_event_index = (std::numeric_limits<std::uint64_t>::max)();
 };
 
 lsp_range to_lsp_range(
@@ -253,11 +259,18 @@ class document_content_checker : public counting_trace_stream_event_visitor {
   std::unordered_map<std::uint64_t, document_info> documents_;
 };
 
-class event_dumper : public trace_stream_event_visitor {
+class event_dumper : public counting_trace_stream_event_visitor {
  private:
   static constexpr int header_width = 16;
 
  public:
+  using base = counting_trace_stream_event_visitor;
+
+  explicit event_dumper(std::uint64_t begin_event_index,
+                        std::uint64_t end_event_index)
+      : begin_event_index_(begin_event_index),
+        end_event_index_(end_event_index) {}
+
   void visit_error_invalid_magic() override {
     std::printf("error: invalid magic\n");
   }
@@ -273,12 +286,18 @@ class event_dumper : public trace_stream_event_visitor {
   void visit_packet_header(const packet_header&) override {}
 
   void visit_init_event(const init_event& event) override {
+    base::visit_init_event(event);
+    if (!this->should_dump()) return;
+
     this->print_event_header(event);
     std::printf("init version='%s'\n", event.version);
   }
 
   void visit_vscode_document_opened_event(
       const vscode_document_opened_event& event) override {
+    base::visit_vscode_document_opened_event(event);
+    if (!this->should_dump()) return;
+
     this->print_event_header(event);
     std::printf("document ");
     this->print_document_id(event.document_id);
@@ -289,6 +308,9 @@ class event_dumper : public trace_stream_event_visitor {
 
   void visit_vscode_document_closed_event(
       const vscode_document_closed_event& event) override {
+    base::visit_vscode_document_closed_event(event);
+    if (!this->should_dump()) return;
+
     this->print_event_header(event);
     std::printf("document ");
     this->print_document_id(event.document_id);
@@ -299,6 +321,9 @@ class event_dumper : public trace_stream_event_visitor {
 
   void visit_vscode_document_changed_event(
       const vscode_document_changed_event& event) override {
+    base::visit_vscode_document_changed_event(event);
+    if (!this->should_dump()) return;
+
     this->print_event_header(event);
     std::printf("document ");
     this->print_document_id(event.document_id);
@@ -316,6 +341,9 @@ class event_dumper : public trace_stream_event_visitor {
 
   void visit_vscode_document_sync_event(
       const vscode_document_sync_event& event) override {
+    base::visit_vscode_document_sync_event(event);
+    if (!this->should_dump()) return;
+
     this->print_event_header(event);
     std::printf("document ");
     this->print_document_id(event.document_id);
@@ -326,6 +354,9 @@ class event_dumper : public trace_stream_event_visitor {
 
   void visit_lsp_client_to_server_message_event(
       const lsp_client_to_server_message_event& event) override {
+    base::visit_lsp_client_to_server_message_event(event);
+    if (!this->should_dump()) return;
+
     this->print_event_header(event);
     std::printf("client->server LSP message: ");
     this->print_utf8(event.body);
@@ -352,6 +383,15 @@ class event_dumper : public trace_stream_event_visitor {
   void print_utf8(string8_view s) {
     std::fwrite(s.data(), 1, s.size(), stdout);
   }
+
+  // Call this function after calling base::*.
+  bool should_dump() const noexcept {
+    return this->begin_event_index_ <= this->event_index &&
+           this->event_index <= this->end_event_index_;
+  }
+
+  std::uint64_t begin_event_index_;
+  std::uint64_t end_event_index_;
 };
 
 analyze_options parse_analyze_options(int argc, char** argv) {
@@ -376,6 +416,23 @@ analyze_options parse_analyze_options(int argc, char** argv) {
       }
       o.dump_final_document_content_document_id =
           narrow_cast<std::uint64_t>(document_id);
+    } else if (const char* arg_value =
+                   parser.match_option_with_value("--begin"sv)) {
+      from_chars_result result =
+          from_chars(&arg_value[0], &arg_value[std::strlen(arg_value)],
+                     o.begin_event_index);
+      if (*result.ptr != '\0' || result.ec != std::errc{}) {
+        std::fprintf(stderr, "error: unrecognized option: %s\n", arg_value);
+        std::exit(2);
+      }
+    } else if (const char* arg_value =
+                   parser.match_option_with_value("--end"sv)) {
+      from_chars_result result = from_chars(
+          &arg_value[0], &arg_value[std::strlen(arg_value)], o.end_event_index);
+      if (*result.ptr != '\0' || result.ec != std::errc{}) {
+        std::fprintf(stderr, "error: unrecognized option: %s\n", arg_value);
+        std::exit(2);
+      }
     } else {
       const char* unrecognized = parser.match_anything();
       std::fprintf(stderr, "error: unrecognized option: %s\n", unrecognized);
@@ -418,7 +475,7 @@ int main(int argc, char** argv) {
                       dumper);
     dumper.print_document_content();
   } else if (!o.check_document_consistency) {
-    event_dumper dumper;
+    event_dumper dumper(o.begin_event_index, o.end_event_index);
     read_trace_stream(file->data(), narrow_cast<std::size_t>(file->size()),
                       dumper);
   }
