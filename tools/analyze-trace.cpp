@@ -2,8 +2,10 @@
 // See end of file for extended copyright information.
 
 #include <cerrno>
+#include <cinttypes>
 #include <cstdint>
 #include <cstdio>
+#include <limits>
 #include <quick-lint-js/cli/arg-parser.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/document.h>
@@ -45,6 +47,39 @@ lsp_range to_lsp_range(
           },
   };
 }
+
+class counting_trace_stream_event_visitor : public trace_stream_event_visitor {
+ public:
+  // The first call to a visit_ function will set this to 0.
+  std::uint64_t event_index = (std::numeric_limits<std::uint64_t>::max)();
+
+  void visit_init_event(const init_event&) override { ++this->event_index; }
+
+  void visit_vscode_document_opened_event(
+      const vscode_document_opened_event&) override {
+    ++this->event_index;
+  }
+
+  void visit_vscode_document_closed_event(
+      const vscode_document_closed_event&) override {
+    ++this->event_index;
+  }
+
+  void visit_vscode_document_changed_event(
+      const vscode_document_changed_event&) override {
+    ++this->event_index;
+  }
+
+  void visit_vscode_document_sync_event(
+      const vscode_document_sync_event&) override {
+    ++this->event_index;
+  }
+
+  void visit_lsp_client_to_server_message_event(
+      const lsp_client_to_server_message_event&) override {
+    ++this->event_index;
+  }
+};
 
 class document_content_dumper : public trace_stream_event_visitor {
  public:
@@ -111,8 +146,10 @@ class document_content_dumper : public trace_stream_event_visitor {
   std::uint64_t document_id_;
 };
 
-class document_content_checker : public trace_stream_event_visitor {
+class document_content_checker : public counting_trace_stream_event_visitor {
  public:
+  using base = counting_trace_stream_event_visitor;
+
   void visit_error_invalid_magic() override {
     std::fprintf(stderr, "error: invalid magic\n");
   }
@@ -127,19 +164,20 @@ class document_content_checker : public trace_stream_event_visitor {
 
   void visit_packet_header(const packet_header&) override {}
 
-  void visit_init_event(const init_event&) override {}
-
   void visit_vscode_document_opened_event(
       const vscode_document_opened_event& event) override {
+    base::visit_vscode_document_opened_event(event);
     if (event.document_id == 0) {
       return;
     }
-    this->documents_[event.document_id].set_text(
-        utf_16_to_utf_8(event.content));
+    document_info& doc = this->documents_[event.document_id];
+    doc.data.set_text(utf_16_to_utf_8(event.content));
+    doc.last_sync = this->event_index;
   }
 
   void visit_vscode_document_closed_event(
       const vscode_document_closed_event& event) override {
+    base::visit_vscode_document_closed_event(event);
     if (event.document_id == 0) {
       return;
     }
@@ -148,6 +186,7 @@ class document_content_checker : public trace_stream_event_visitor {
 
   void visit_vscode_document_changed_event(
       const vscode_document_changed_event& event) override {
+    base::visit_vscode_document_changed_event(event);
     if (event.document_id == 0) {
       return;
     }
@@ -159,15 +198,16 @@ class document_content_checker : public trace_stream_event_visitor {
                    narrow_cast<unsigned long long>(event.document_id));
       return;
     }
-    document<lsp_locator>& doc = doc_it->second;
+    document_info& doc = doc_it->second;
     for (const auto& change : event.changes) {
-      doc.replace_text(to_lsp_range(change.range),
-                       utf_16_to_utf_8(change.text));
+      doc.data.replace_text(to_lsp_range(change.range),
+                            utf_16_to_utf_8(change.text));
     }
   }
 
   void visit_vscode_document_sync_event(
       const vscode_document_sync_event& event) override {
+    base::visit_vscode_document_sync_event(event);
     if (event.document_id == 0) {
       return;
     }
@@ -178,12 +218,15 @@ class document_content_checker : public trace_stream_event_visitor {
                    narrow_cast<unsigned long long>(event.document_id));
       return;
     }
-    document<lsp_locator>& doc = doc_it->second;
+    document_info& doc = doc_it->second;
 
-    string8_view actual = doc.string().string_view();
+    string8_view actual = doc.data.string().string_view();
     string8 expected = utf_16_to_utf_8(event.content);
     if (actual != expected) {
-      std::fprintf(stderr, "error: document mismatch\n");
+      std::fprintf(stderr,
+                   "error: document mismatch detected at event %" PRIu64
+                   " (last sync at event %" PRIu64 ")\n",
+                   this->event_index, doc.last_sync);
 
       std::string dir = make_temporary_directory();
       std::string expected_path =
@@ -197,13 +240,17 @@ class document_content_checker : public trace_stream_event_visitor {
       write_file_or_exit(actual_path, actual);
       std::fprintf(stderr, "note: actual written to %s\n", actual_path.c_str());
     }
+
+    doc.last_sync = this->event_index;
   }
 
-  void visit_lsp_client_to_server_message_event(
-      const lsp_client_to_server_message_event&) override {}
-
  private:
-  std::unordered_map<std::uint64_t, document<lsp_locator>> documents_;
+  struct document_info {
+    std::uint64_t last_sync = 0;
+    document<lsp_locator> data;
+  };
+
+  std::unordered_map<std::uint64_t, document_info> documents_;
 };
 
 class event_dumper : public trace_stream_event_visitor {
