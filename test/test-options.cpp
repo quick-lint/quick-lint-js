@@ -510,35 +510,35 @@ TEST(test_options, no_following_filename_vim_file_bufnr) {
 }
 
 TEST(test_options, using_vim_file_bufnr_without_format) {
-  for (const auto &format : {
-           output_format::default_format,
-           output_format::gnu_like,
-           output_format::vim_qflist_json,
-           output_format::emacs_lisp,
-       }) {
+  {
+    for (const auto &format : {
+             output_format::default_format,
+             output_format::gnu_like,
+             output_format::emacs_lisp,
+         }) {
+      options o = parse_options({"--vim-file-bufnr=1", "file.js"});
+      o.output_format = format;
+
+      memory_output_stream dumped_errors;
+      bool have_errors = o.dump_errors(dumped_errors);
+      EXPECT_FALSE(have_errors);
+      dumped_errors.flush();
+
+      EXPECT_EQ(dumped_errors.get_flushed_string8(),
+                u8"warning: --output-format selected which doesn't use "
+                u8"--vim-file-bufnr\n");
+    }
+  }
+  {
     options o = parse_options({"--vim-file-bufnr=1", "file.js"});
-    o.output_format = format;
+    o.output_format = output_format::vim_qflist_json;
 
     memory_output_stream dumped_errors;
     bool have_errors = o.dump_errors(dumped_errors);
     EXPECT_FALSE(have_errors);
     dumped_errors.flush();
 
-    string8 expected;
-    switch (format) {
-    case output_format::default_format:
-    case output_format::gnu_like:
-    case output_format::emacs_lisp:
-      expected =
-          u8"warning: --output-format selected which doesn't use "
-          u8"--vim-file-bufnr\n";
-      break;
-    case output_format::vim_qflist_json:
-      expected = u8"";
-      break;
-    }
-
-    EXPECT_EQ(dumped_errors.get_flushed_string8(), expected);
+    EXPECT_EQ(dumped_errors.get_flushed_string8(), u8"");
   }
 }
 
