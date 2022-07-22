@@ -233,6 +233,10 @@ void linter::visit_enter_named_function_scope(identifier function_name) {
   };
 }
 
+void linter::visit_enter_namespace_scope() {
+  QLJS_UNIMPLEMENTED();  // TODO(#690)
+}
+
 void linter::visit_enter_type_alias_scope() {
   QLJS_UNIMPLEMENTED();  // TODO(#690)
 }
@@ -307,6 +311,10 @@ void linter::visit_exit_interface_scope() {
       /*allow_variable_use_before_declaration=*/false,
       /*consume_arguments=*/false);
   this->scopes_.pop();
+}
+
+void linter::visit_exit_namespace_scope() {
+  QLJS_UNIMPLEMENTED();  // TODO(#690)
 }
 
 void linter::visit_exit_type_alias_scope() {
@@ -846,6 +854,9 @@ void linter::report_error_if_assignment_is_illegal(
   case variable_kind::_import_type:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
+  case variable_kind::_namespace:
+    QLJS_UNIMPLEMENTED();  // TODO(#690)
+    break;
   case variable_kind::_type_alias:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
@@ -946,6 +957,9 @@ void linter::report_error_if_variable_declaration_conflicts(
   case vk::_interface:
     break;
   case vk::_import_type:
+    QLJS_UNIMPLEMENTED();  // TODO(#690)
+    break;
+  case vk::_namespace:
     QLJS_UNIMPLEMENTED();  // TODO(#690)
     break;
   case vk::_type_alias:
@@ -1155,6 +1169,7 @@ bool is_runtime(variable_kind kind) noexcept {
   case variable_kind::_function:
   case variable_kind::_import:
   case variable_kind::_let:
+  case variable_kind::_namespace:
   case variable_kind::_parameter:
   case variable_kind::_var:
     return true;
@@ -1175,6 +1190,7 @@ bool is_type(variable_kind kind) noexcept {
   case variable_kind::_import:
   case variable_kind::_import_type:
   case variable_kind::_interface:
+  case variable_kind::_namespace:
   case variable_kind::_type_alias:
     return true;
   case variable_kind::_catch:

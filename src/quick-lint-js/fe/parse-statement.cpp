@@ -398,7 +398,6 @@ parse_statement:
   case token_type::kw_is:
   case token_type::kw_keyof:
   case token_type::kw_module:
-  case token_type::kw_namespace:
   case token_type::kw_never:
   case token_type::kw_number:
   case token_type::kw_object:
@@ -467,8 +466,11 @@ parse_statement:
 
   // type++;
   // type T = number;  // TypeScript only.
+  // namespace.foo();
+  // namespace ns {}   // TypeScript only.
+  case token_type::kw_namespace:
   case token_type::kw_type: {
-    source_code_span type_span = this->peek().span();
+    token initial_keyword = this->peek();
     lexer_transaction transaction = this->lexer_.begin_transaction();
     this->skip();
     switch (this->peek().type) {
@@ -509,13 +511,22 @@ parse_statement:
     case token_type::kw_type:
     case token_type::kw_unique:
       if (this->peek().has_leading_newline) {
-        goto type_keyword_is_expression;
+        goto initial_keyword_is_expression;
       }
-      this->parse_and_visit_typescript_type_alias(v, type_span);
+      switch (initial_keyword.type) {
+      case token_type::kw_namespace:
+        this->parse_and_visit_typescript_namespace(v, initial_keyword.span());
+        break;
+      case token_type::kw_type:
+        this->parse_and_visit_typescript_type_alias(v, initial_keyword.span());
+        break;
+      default:
+        QLJS_UNREACHABLE();
+      }
       break;
 
     // type++;  // Expression.
-    type_keyword_is_expression:
+    initial_keyword_is_expression:
     default:
       this->lexer_.roll_back_transaction(std::move(transaction));
       this->parse_and_visit_expression(v);
@@ -1559,6 +1570,30 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
   }
 
   v.visit_exit_block_scope();
+}
+
+void parser::parse_and_visit_typescript_namespace(
+    parse_visitor_base &v, source_code_span namespace_keyword_span) {
+  QLJS_ASSERT(!this->peek().has_leading_newline);
+
+  if (!this->options_.typescript) {
+    this->diag_reporter_->report(
+        diag_typescript_namespaces_not_allowed_in_javascript{
+            .namespace_keyword = namespace_keyword_span,
+        });
+  }
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+  v.visit_variable_declaration(this->peek().identifier_name(),
+                               variable_kind::_namespace,
+                               variable_init_kind::normal);
+  this->skip();
+  v.visit_enter_namespace_scope();
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_curly);
+  this->skip();
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_curly);
+  this->skip();
+  v.visit_exit_namespace_scope();
 }
 
 void parser::parse_and_visit_typescript_type_alias(

@@ -94,6 +94,12 @@ inline visited_variable_declaration let_noinit_decl(string8_view name) {
                                       variable_init_kind::normal};
 }
 
+// A TypeScript namespace (declared with the 'namespace' keyword).
+inline visited_variable_declaration namespace_decl(string8_view name) {
+  return visited_variable_declaration{string8(name), variable_kind::_namespace,
+                                      variable_init_kind::normal};
+}
+
 // An arrow/function/method parameter.
 inline visited_variable_declaration param_decl(string8_view name) {
   return visited_variable_declaration{string8(name), variable_kind::_parameter,
@@ -179,6 +185,10 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
     this->visits.emplace_back("visit_enter_named_function_scope");
   }
 
+  void visit_enter_namespace_scope() override {
+    this->visits.emplace_back("visit_enter_namespace_scope");
+  }
+
   void visit_enter_type_alias_scope() override {
     this->visits.emplace_back("visit_enter_type_alias_scope");
   }
@@ -215,6 +225,10 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
 
   void visit_exit_interface_scope() override {
     this->visits.emplace_back("visit_exit_interface_scope");
+  }
+
+  void visit_exit_namespace_scope() override {
+    this->visits.emplace_back("visit_exit_namespace_scope");
   }
 
   void visit_exit_type_alias_scope() override {

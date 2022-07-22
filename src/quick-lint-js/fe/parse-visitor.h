@@ -34,6 +34,7 @@ class parse_visitor_base {
   virtual void visit_enter_index_signature_scope() = 0;
   virtual void visit_enter_interface_scope() = 0;
   virtual void visit_enter_named_function_scope(identifier) = 0;
+  virtual void visit_enter_namespace_scope() = 0;
   virtual void visit_enter_type_alias_scope() = 0;
   virtual void visit_exit_block_scope() = 0;
   virtual void visit_exit_with_scope() = 0;
@@ -43,6 +44,7 @@ class parse_visitor_base {
   virtual void visit_exit_function_scope() = 0;
   virtual void visit_exit_index_signature_scope() = 0;
   virtual void visit_exit_interface_scope() = 0;
+  virtual void visit_exit_namespace_scope() = 0;
   virtual void visit_exit_type_alias_scope() = 0;
   virtual void visit_keyword_variable_use(identifier name) = 0;
   virtual void visit_property_declaration(

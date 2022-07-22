@@ -60,6 +60,7 @@ const translation_table translation_data = {
         {0, 36, 0, 0, 51},            //
         {0, 40, 0, 0, 50},            //
         {0, 0, 0, 0, 64},             //
+        {0, 0, 0, 0, 52},             //
         {0, 0, 0, 0, 59},             //
         {0, 0, 0, 0, 61},             //
         {0, 0, 0, 0, 66},             //
@@ -1281,6 +1282,7 @@ const translation_table translation_data = {
         u8"TypeScript interface properties cannot be 'static'\0"
         u8"TypeScript interface properties cannot be private\0"
         u8"TypeScript interfaces cannot be named 'await' in async function\0"
+        u8"TypeScript namespaces are not allowed in JavaScript\0"
         u8"TypeScript non-null assertion is not allowed on parameters\0"
         u8"TypeScript non-null assertions are not allowed in JavaScript\0"
         u8"TypeScript optional properties are not allowed in JavaScript code\0"

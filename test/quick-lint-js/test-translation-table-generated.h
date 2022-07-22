@@ -509,6 +509,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript namespaces are not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript namespaces are not allowed in JavaScript",
+            u8"TypeScript namespaces are not allowed in JavaScript",
+            u8"TypeScript namespaces are not allowed in JavaScript",
+            u8"TypeScript namespaces are not allowed in JavaScript",
+            u8"TypeScript namespaces are not allowed in JavaScript",
+        },
+    },
+    {
         "TypeScript non-null assertion is not allowed on parameters"_translatable,
         {
             u8"TypeScript non-null assertion is not allowed on parameters",

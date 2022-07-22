@@ -1616,6 +1616,13 @@
               interface_keyword))                                              \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_namespaces_not_allowed_in_javascript, "E0273",           \
+      diagnostic_severity::error, { source_code_span namespace_keyword; },     \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "TypeScript namespaces are not allowed in JavaScript"),      \
+              namespace_keyword))                                              \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_non_null_assertion_not_allowed_in_javascript, "E0261",   \
       diagnostic_severity::error, { source_code_span bang; },                  \
       MESSAGE(                                                                 \
