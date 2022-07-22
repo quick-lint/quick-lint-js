@@ -23,13 +23,8 @@ QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 namespace quick_lint_js {
 #if QLJS_HAVE_CHARCONV_HEADER
-from_chars_result from_chars(const char *begin, const char *end, int &value) {
-  std::from_chars_result result = std::from_chars(begin, end, value);
-  return from_chars_result{.ptr = result.ptr, .ec = result.ec};
-}
-
-from_chars_result from_chars(const char *begin, const char *end,
-                             std::size_t &value) {
+template <class T>
+from_chars_result from_chars(const char *begin, const char *end, T &value) {
   std::from_chars_result result = std::from_chars(begin, end, value);
   return from_chars_result{.ptr = result.ptr, .ec = result.ec};
 }
@@ -72,48 +67,52 @@ bool is_hexadecimal_digit(char c) noexcept {
 }
 }
 
-from_chars_result from_chars(const char *begin, const char *end, int &value) {
-  std::string buffer(begin, end);
-  if (!((buffer.size() >= 1 && is_decimal_digit(buffer[0])) ||
-        (buffer.size() >= 2 && buffer[0] == '-' &&
-         is_decimal_digit(buffer[1])))) {
-    return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
-  }
-  char *endptr;
-  errno = 0;
-  long long_value = std::strtol(buffer.c_str(), &endptr, /*base=*/10);
-  const char *ptr = (endptr - buffer.c_str()) + begin;
-  if (errno == ERANGE || !in_range<int>(long_value)) {
-    return from_chars_result{.ptr = ptr, .ec = std::errc::result_out_of_range};
-  }
-  value = static_cast<int>(long_value);
-  return from_chars_result{.ptr = ptr, .ec = std::errc{0}};
-}
+template <class T>
+from_chars_result from_chars(const char *begin, const char *end, T &value) {
+  if constexpr (std::is_same_v<T, int>) {
+    std::string buffer(begin, end);
+    if (!((buffer.size() >= 1 && is_decimal_digit(buffer[0])) ||
+          (buffer.size() >= 2 && buffer[0] == '-' &&
+           is_decimal_digit(buffer[1])))) {
+      return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
+    }
+    char *endptr;
+    errno = 0;
+    long long_value = std::strtol(buffer.c_str(), &endptr, /*base=*/10);
+    const char *ptr = (endptr - buffer.c_str()) + begin;
+    if (errno == ERANGE || !in_range<int>(long_value)) {
+      return from_chars_result{.ptr = ptr,
+                               .ec = std::errc::result_out_of_range};
+    }
+    value = static_cast<int>(long_value);
+    return from_chars_result{.ptr = ptr, .ec = std::errc{0}};
+  } else {
+    static_assert(std::is_unsigned_v<T>,
+                  "signed from_chars not yet implemented");
 
-from_chars_result from_chars(const char *begin, const char *end,
-                             std::size_t &value) {
-  std::string buffer(begin, end);
-  if (!(buffer.size() >= 1 && is_decimal_digit(buffer[0]))) {
-    return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
-  }
-  const char *c = begin;
-  auto out_of_range = [&c, end]() -> from_chars_result {
+    std::string buffer(begin, end);
+    if (!(buffer.size() >= 1 && is_decimal_digit(buffer[0]))) {
+      return from_chars_result{.ptr = begin, .ec = std::errc::invalid_argument};
+    }
+    const char *c = begin;
+    auto out_of_range = [&c, end]() -> from_chars_result {
+      for (; is_decimal_digit(*c) && c != end; ++c) {
+        // Skip digits.
+      }
+      return from_chars_result{.ptr = c, .ec = std::errc::result_out_of_range};
+    };
+
+    T result = 0;
     for (; is_decimal_digit(*c) && c != end; ++c) {
-      // Skip digits.
+      T new_result = result * 10 + (*c - '0');
+      if (new_result < result) {
+        return out_of_range();
+      }
+      result = new_result;
     }
-    return from_chars_result{.ptr = c, .ec = std::errc::result_out_of_range};
-  };
-
-  std::size_t result = 0;
-  for (; is_decimal_digit(*c) && c != end; ++c) {
-    std::size_t new_result = result * 10 + (*c - '0');
-    if (new_result < result) {
-      return out_of_range();
-    }
-    result = new_result;
+    value = result;
+    return from_chars_result{.ptr = c, .ec = std::errc{0}};
   }
-  value = result;
-  return from_chars_result{.ptr = c, .ec = std::errc{0}};
 }
 
 from_chars_result from_chars_hex(const char *begin, const char *end,
@@ -219,6 +218,12 @@ from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
       .ec = result.ec,
   };
 }
+
+template from_chars_result from_chars<int>(const char *begin, const char *end,
+                                           int &value);
+template from_chars_result from_chars<std::size_t>(const char *begin,
+                                                   const char *end,
+                                                   std::size_t &value);
 
 template char8 *write_integer<int>(int, char8 *out);
 template char8 *write_integer<long>(long, char8 *out);

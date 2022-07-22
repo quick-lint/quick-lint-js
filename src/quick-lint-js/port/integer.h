@@ -20,9 +20,14 @@ struct from_char8s_result {
   std::errc ec;
 };
 
-from_chars_result from_chars(const char *begin, const char *end, int &value);
-from_chars_result from_chars(const char *begin, const char *end,
-                             std::size_t &value);
+template <class T>
+from_chars_result from_chars(const char *begin, const char *end, T &value);
+extern template from_chars_result from_chars<int>(const char *begin,
+                                                  const char *end, int &value);
+extern template from_chars_result from_chars<std::size_t>(const char *begin,
+                                                          const char *end,
+                                                          std::size_t &value);
+
 from_char8s_result from_char8s(const char8 *begin, const char8 *end,
                                std::size_t &value);
 
