@@ -14,7 +14,7 @@ void buffering_visitor::move_into(parse_visitor_base &target) {
 }
 
 void buffering_visitor::copy_into(parse_visitor_base &target) const {
-  for (auto &v : this->visits_) {
+  this->visits_.for_each([&](const visit &v) {
     switch (v.kind) {
     case visit_kind::end_of_module:
       target.visit_end_of_module();
@@ -126,7 +126,7 @@ void buffering_visitor::copy_into(parse_visitor_base &target) const {
                                         v.var_decl.var_init_kind);
       break;
     }
-  }
+  });
 }
 
 void buffering_visitor::visit_end_of_module() {

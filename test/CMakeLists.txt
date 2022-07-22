@@ -62,6 +62,7 @@ quick_lint_js_add_executable(
   test-json.cpp
   test-lex.cpp
   test-linked-bump-allocator.cpp
+  test-linked-vector.cpp
   test-lint-enum.cpp
   test-lint-parse.cpp
   test-lint-type.cpp

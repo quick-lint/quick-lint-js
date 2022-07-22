@@ -5,12 +5,13 @@
 #define QUICK_LINT_JS_PARSE_SUPPORT_H
 
 #include <array>
-#include <deque>
+#include <boost/container/pmr/global_resource.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <optional>
 #include <quick-lint-js/array.h>
 #include <quick-lint-js/cli/cli-location.h>
+#include <quick-lint-js/container/linked-vector.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/dirty-set.h>
@@ -136,7 +137,8 @@ class test_parse_expression : public ::testing::Test {
   }
 
  private:
-  std::deque<test_parser> parsers_;
+  linked_vector<test_parser> parsers_ = linked_vector<test_parser>(
+      ::boost::container::pmr::new_delete_resource());
 };
 
 namespace {

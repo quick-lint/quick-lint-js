@@ -3,9 +3,9 @@
 
 #include <boost/container/pmr/memory_resource.hpp>
 #include <boost/container/pmr/polymorphic_allocator.hpp>
-#include <deque>
 #include <memory>
 #include <quick-lint-js/container/allocator.h>
+#include <quick-lint-js/container/linked-vector.h>
 #include <quick-lint-js/fe/buffering-diag-reporter.h>
 #include <quick-lint-js/fe/token.h>
 #include <quick-lint-js/port/char8.h>
@@ -34,8 +34,7 @@ struct buffering_diag_reporter::impl {
   };
 
   boost::container::pmr::memory_resource *memory_;
-  std::deque<any_diag, boost::container::pmr::polymorphic_allocator<any_diag>>
-      diagnostics_{this->memory_};
+  linked_vector<any_diag> diagnostics_{this->memory_};
 };
 
 void buffering_diag_reporter::impl_deleter::operator()(impl *i) noexcept {
@@ -70,9 +69,11 @@ void buffering_diag_reporter::report_impl(diag_type type, void *diag) {
 }
 
 void buffering_diag_reporter::copy_into(diag_reporter *other) const {
-  for (impl::any_diag &diag : this->impl_->diagnostics_) {
-    other->report_impl(diag.type, &diag.diag);
-  }
+  this->impl_->diagnostics_.for_each([&](const impl::any_diag &diag) {
+    // TODO(strager): Make report_impl accept a const pointer to remove this
+    // const_cast.
+    other->report_impl(diag.type, &const_cast<impl::any_diag &>(diag).diag);
+  });
 }
 
 void buffering_diag_reporter::move_into(diag_reporter *other) {

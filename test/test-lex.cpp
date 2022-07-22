@@ -2,14 +2,15 @@
 // See end of file for extended copyright information.
 
 #include <array>
+#include <boost/container/pmr/global_resource.hpp>
 #include <cstring>
-#include <deque>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <initializer_list>
 #include <iostream>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/characters.h>
+#include <quick-lint-js/container/linked-vector.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -88,8 +89,7 @@ class test_lex : public ::testing::Test {
                                 source_location = source_location::current());
 
   lexer& make_lexer(padded_string_view input, diag_collector* errors) {
-    this->lexers_.emplace_back(input, errors);
-    return this->lexers_.back();
+    return this->lexers_.emplace_back(input, errors);
   }
 
   // If true, tell check_tokens_with_errors, lex_to_eof, etc. to call
@@ -98,7 +98,8 @@ class test_lex : public ::testing::Test {
   bool lex_jsx_tokens = false;
 
  private:
-  std::deque<lexer> lexers_;
+  linked_vector<lexer> lexers_ =
+      linked_vector<lexer>(::boost::container::pmr::new_delete_resource());
 };
 
 TEST_F(test_lex, lex_block_comments) {

@@ -6,8 +6,8 @@
 
 #include <boost/container/pmr/memory_resource.hpp>
 #include <boost/container/pmr/polymorphic_allocator.hpp>
-#include <deque>
 #include <optional>
+#include <quick-lint-js/container/linked-vector.h>
 #include <quick-lint-js/container/winkable.h>
 #include <quick-lint-js/fe/language.h>
 #include <quick-lint-js/fe/lex.h>
@@ -114,7 +114,7 @@ class buffering_visitor final : public parse_visitor_base {
   };
 
   // These 'add' functions significantly reduces code size by discouraging the
-  // inlining of visit::visit and std::deque<>::emplace_back.
+  // inlining of visit::visit and linked_vector<>::emplace_back.
   [[gnu::noinline]] void add(visit_kind kind) {
     this->visits_.emplace_back(kind);
   }
@@ -161,8 +161,7 @@ class buffering_visitor final : public parse_visitor_base {
     };
   };
 
-  std::deque<visit, boost::container::pmr::polymorphic_allocator<visit>>
-      visits_;
+  linked_vector<visit> visits_;
 };
 
 template <>
