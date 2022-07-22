@@ -60,6 +60,17 @@ TEST(test_parse_typescript_namespace,
   }
 }
 
+TEST(test_parse_typescript_namespace,
+     namespace_name_can_be_contextual_keyword) {
+  for (string8 name :
+       contextual_keywords - dirty_set<string8>{u8"let", u8"static"}) {
+    padded_string code(u8"namespace " + name + u8" {}");
+    SCOPED_TRACE(code);
+    spy_visitor v = parse_and_visit_typescript_module(code.string_view());
+    EXPECT_THAT(v.variable_declarations, ElementsAre(namespace_decl(name)));
+  }
+}
+
 TEST(test_parse_typescript_namespace, namespace_can_contain_exports) {
   {
     spy_visitor v = parse_and_visit_typescript_module(

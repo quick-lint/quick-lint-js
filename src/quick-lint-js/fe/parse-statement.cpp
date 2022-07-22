@@ -463,32 +463,9 @@ parse_statement:
     //
     // type  // ASI
     // f();
-    case token_type::identifier:
-    case token_type::kw_abstract:
-    case token_type::kw_as:
-    case token_type::kw_assert:
-    case token_type::kw_asserts:
-    case token_type::kw_async:
+    QLJS_CASE_CONTEXTUAL_KEYWORD:
     case token_type::kw_await:
-    case token_type::kw_constructor:
-    case token_type::kw_declare:
-    case token_type::kw_from:
-    case token_type::kw_get:
-    case token_type::kw_global:
-    case token_type::kw_infer:
-    case token_type::kw_intrinsic:
-    case token_type::kw_is:
-    case token_type::kw_keyof:
-    case token_type::kw_module:
-    case token_type::kw_namespace:
-    case token_type::kw_of:
-    case token_type::kw_out:
-    case token_type::kw_override:
-    case token_type::kw_readonly:
-    case token_type::kw_require:
-    case token_type::kw_set:
-    case token_type::kw_type:
-    case token_type::kw_unique:
+    case token_type::identifier:
       if (this->peek().has_leading_newline) {
         goto initial_keyword_is_expression;
       }
@@ -1565,11 +1542,20 @@ void parser::parse_and_visit_typescript_namespace(
         });
   }
 
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-  v.visit_variable_declaration(this->peek().identifier_name(),
-                               variable_kind::_namespace,
-                               variable_init_kind::normal);
-  this->skip();
+  switch (this->peek().type) {
+  QLJS_CASE_CONTEXTUAL_KEYWORD:
+  case token_type::identifier:
+    v.visit_variable_declaration(this->peek().identifier_name(),
+                                 variable_kind::_namespace,
+                                 variable_init_kind::normal);
+    this->skip();
+    break;
+
+  default:
+    QLJS_PARSER_UNIMPLEMENTED();
+    break;
+  }
+
   v.visit_enter_namespace_scope();
   this->parse_and_visit_statement_block_no_scope(v);
   v.visit_exit_namespace_scope();
