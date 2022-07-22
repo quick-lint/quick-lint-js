@@ -22,8 +22,7 @@ QLJS_WARNING_IGNORE_MSVC(26495)  // Variable is uninitialized.
 namespace quick_lint_js {
 class buffering_visitor final : public parse_visitor_base {
  public:
-  explicit buffering_visitor(boost::container::pmr::memory_resource *memory)
-      : visits_(memory) {}
+  explicit buffering_visitor(boost::container::pmr::memory_resource *memory);
 
   // Copying is usually a bug, so disable copying.
   buffering_visitor(const buffering_visitor &) = delete;
@@ -35,153 +34,44 @@ class buffering_visitor final : public parse_visitor_base {
   void move_into(parse_visitor_base &target);
   void copy_into(parse_visitor_base &target) const;
 
-  void visit_end_of_module() override { this->add(visit_kind::end_of_module); }
-
-  void visit_enter_block_scope() override {
-    this->add(visit_kind::enter_block_scope);
-  }
-
-  void visit_enter_with_scope() override {
-    this->add(visit_kind::enter_with_scope);
-  }
-
-  void visit_enter_class_scope() override {
-    this->add(visit_kind::enter_class_scope);
-  }
-
+  void visit_end_of_module() override;
+  void visit_enter_block_scope() override;
+  void visit_enter_with_scope() override;
+  void visit_enter_class_scope() override;
   void visit_enter_class_scope_body(
-      const std::optional<identifier> &class_name) override {
-    if (class_name.has_value()) {
-      this->add(*class_name, visit_kind::enter_class_scope_body_with_name);
-    } else {
-      this->add(visit_kind::enter_class_scope_body_without_name);
-    }
-  }
-
-  void visit_enter_enum_scope() override {
-    this->add(visit_kind::enter_enum_scope);
-  }
-
-  void visit_enter_for_scope() override {
-    this->add(visit_kind::enter_for_scope);
-  }
-
-  void visit_enter_function_scope() override {
-    this->add(visit_kind::enter_function_scope);
-  }
-
-  void visit_enter_function_scope_body() override {
-    this->add(visit_kind::enter_function_scope_body);
-  }
-
-  void visit_enter_index_signature_scope() override {
-    this->add(visit_kind::enter_index_signature_scope);
-  }
-
-  void visit_enter_interface_scope() override {
-    this->add(visit_kind::enter_interface_scope);
-  }
-
-  void visit_enter_namespace_scope() override {
-    this->add(visit_kind::enter_namespace_scope);
-  }
-
-  void visit_enter_type_alias_scope() override {
-    this->add(visit_kind::enter_type_alias_scope);
-  }
-
-  void visit_enter_named_function_scope(identifier name) override {
-    this->add(name, visit_kind::enter_named_function_scope);
-  }
-
-  void visit_exit_block_scope() override {
-    this->add(visit_kind::exit_block_scope);
-  }
-
-  void visit_exit_with_scope() override {
-    this->add(visit_kind::exit_with_scope);
-  }
-
-  void visit_exit_class_scope() override {
-    this->add(visit_kind::exit_class_scope);
-  }
-
-  void visit_exit_enum_scope() override {
-    this->add(visit_kind::exit_enum_scope);
-  }
-
-  void visit_exit_for_scope() override {
-    this->add(visit_kind::exit_for_scope);
-  }
-
-  void visit_exit_function_scope() override {
-    this->add(visit_kind::exit_function_scope);
-  }
-
-  void visit_exit_index_signature_scope() override {
-    this->add(visit_kind::exit_index_signature_scope);
-  }
-
-  void visit_exit_namespace_scope() override {
-    this->add(visit_kind::exit_namespace_scope);
-  }
-
-  void visit_exit_type_alias_scope() override {
-    this->add(visit_kind::exit_type_alias_scope);
-  }
-
-  void visit_exit_interface_scope() override {
-    this->add(visit_kind::exit_interface_scope);
-  }
-
-  void visit_keyword_variable_use(identifier name) override {
-    this->add(name, visit_kind::keyword_variable_use);
-  }
-
+      const std::optional<identifier> &class_name) override;
+  void visit_enter_enum_scope() override;
+  void visit_enter_for_scope() override;
+  void visit_enter_function_scope() override;
+  void visit_enter_function_scope_body() override;
+  void visit_enter_index_signature_scope() override;
+  void visit_enter_interface_scope() override;
+  void visit_enter_namespace_scope() override;
+  void visit_enter_type_alias_scope() override;
+  void visit_enter_named_function_scope(identifier name) override;
+  void visit_exit_block_scope() override;
+  void visit_exit_with_scope() override;
+  void visit_exit_class_scope() override;
+  void visit_exit_enum_scope() override;
+  void visit_exit_for_scope() override;
+  void visit_exit_function_scope() override;
+  void visit_exit_index_signature_scope() override;
+  void visit_exit_namespace_scope() override;
+  void visit_exit_type_alias_scope() override;
+  void visit_exit_interface_scope() override;
+  void visit_keyword_variable_use(identifier name) override;
   void visit_property_declaration(
-      const std::optional<identifier> &name) override {
-    if (name.has_value()) {
-      this->add(*name, visit_kind::property_declaration_with_name);
-    } else {
-      this->add(visit_kind::property_declaration_without_name);
-    }
-  }
-
-  void visit_variable_assignment(identifier name) override {
-    this->add(name, visit_kind::variable_assignment);
-  }
-
+      const std::optional<identifier> &name) override;
+  void visit_variable_assignment(identifier name) override;
   void visit_variable_declaration(identifier name, variable_kind kind,
-                                  variable_init_kind init_kind) override {
-    this->visits_.emplace_back(visit_kind::variable_declaration, name, kind,
-                               init_kind);
-  }
-
+                                  variable_init_kind init_kind) override;
   void visit_variable_delete_use(identifier name,
-                                 source_code_span delete_keyword) override {
-    this->visits_.emplace_back(visit_kind::variable_delete_use, name,
-                               delete_keyword);
-  }
-
-  void visit_variable_export_use(identifier name) override {
-    this->add(name, visit_kind::variable_export_use);
-  }
-
-  void visit_variable_namespace_use(identifier name) override {
-    this->add(name, visit_kind::variable_namespace_use);
-  }
-
-  void visit_variable_type_use(identifier name) override {
-    this->add(name, visit_kind::variable_type_use);
-  }
-
-  void visit_variable_typeof_use(identifier name) override {
-    this->add(name, visit_kind::variable_typeof_use);
-  }
-
-  void visit_variable_use(identifier name) override {
-    this->add(name, visit_kind::variable_use);
-  }
+                                 source_code_span delete_keyword) override;
+  void visit_variable_export_use(identifier name) override;
+  void visit_variable_namespace_use(identifier name) override;
+  void visit_variable_type_use(identifier name) override;
+  void visit_variable_typeof_use(identifier name) override;
+  void visit_variable_use(identifier name) override;
 
  private:
   enum class visit_kind {

@@ -5,6 +5,10 @@
 #include <quick-lint-js/fe/parse-visitor.h>
 
 namespace quick_lint_js {
+buffering_visitor::buffering_visitor(
+    boost::container::pmr::memory_resource *memory)
+    : visits_(memory) {}
+
 void buffering_visitor::move_into(parse_visitor_base &target) {
   this->copy_into(target);
 }
@@ -123,6 +127,156 @@ void buffering_visitor::copy_into(parse_visitor_base &target) const {
       break;
     }
   }
+}
+
+void buffering_visitor::visit_end_of_module() {
+  this->add(visit_kind::end_of_module);
+}
+
+void buffering_visitor::visit_enter_block_scope() {
+  this->add(visit_kind::enter_block_scope);
+}
+
+void buffering_visitor::visit_enter_with_scope() {
+  this->add(visit_kind::enter_with_scope);
+}
+
+void buffering_visitor::visit_enter_class_scope() {
+  this->add(visit_kind::enter_class_scope);
+}
+
+void buffering_visitor::visit_enter_class_scope_body(
+    const std::optional<identifier> &class_name) {
+  if (class_name.has_value()) {
+    this->add(*class_name, visit_kind::enter_class_scope_body_with_name);
+  } else {
+    this->add(visit_kind::enter_class_scope_body_without_name);
+  }
+}
+
+void buffering_visitor::visit_enter_enum_scope() {
+  this->add(visit_kind::enter_enum_scope);
+}
+
+void buffering_visitor::visit_enter_for_scope() {
+  this->add(visit_kind::enter_for_scope);
+}
+
+void buffering_visitor::visit_enter_function_scope() {
+  this->add(visit_kind::enter_function_scope);
+}
+
+void buffering_visitor::visit_enter_function_scope_body() {
+  this->add(visit_kind::enter_function_scope_body);
+}
+
+void buffering_visitor::visit_enter_index_signature_scope() {
+  this->add(visit_kind::enter_index_signature_scope);
+}
+
+void buffering_visitor::visit_enter_interface_scope() {
+  this->add(visit_kind::enter_interface_scope);
+}
+
+void buffering_visitor::visit_enter_namespace_scope() {
+  this->add(visit_kind::enter_namespace_scope);
+}
+
+void buffering_visitor::visit_enter_type_alias_scope() {
+  this->add(visit_kind::enter_type_alias_scope);
+}
+
+void buffering_visitor::visit_enter_named_function_scope(identifier name) {
+  this->add(name, visit_kind::enter_named_function_scope);
+}
+
+void buffering_visitor::visit_exit_block_scope() {
+  this->add(visit_kind::exit_block_scope);
+}
+
+void buffering_visitor::visit_exit_with_scope() {
+  this->add(visit_kind::exit_with_scope);
+}
+
+void buffering_visitor::visit_exit_class_scope() {
+  this->add(visit_kind::exit_class_scope);
+}
+
+void buffering_visitor::visit_exit_enum_scope() {
+  this->add(visit_kind::exit_enum_scope);
+}
+
+void buffering_visitor::visit_exit_for_scope() {
+  this->add(visit_kind::exit_for_scope);
+}
+
+void buffering_visitor::visit_exit_function_scope() {
+  this->add(visit_kind::exit_function_scope);
+}
+
+void buffering_visitor::visit_exit_index_signature_scope() {
+  this->add(visit_kind::exit_index_signature_scope);
+}
+
+void buffering_visitor::visit_exit_namespace_scope() {
+  this->add(visit_kind::exit_namespace_scope);
+}
+
+void buffering_visitor::visit_exit_type_alias_scope() {
+  this->add(visit_kind::exit_type_alias_scope);
+}
+
+void buffering_visitor::visit_exit_interface_scope() {
+  this->add(visit_kind::exit_interface_scope);
+}
+
+void buffering_visitor::visit_keyword_variable_use(identifier name) {
+  this->add(name, visit_kind::keyword_variable_use);
+}
+
+void buffering_visitor::visit_property_declaration(
+    const std::optional<identifier> &name) {
+  if (name.has_value()) {
+    this->add(*name, visit_kind::property_declaration_with_name);
+  } else {
+    this->add(visit_kind::property_declaration_without_name);
+  }
+}
+
+void buffering_visitor::visit_variable_assignment(identifier name) {
+  this->add(name, visit_kind::variable_assignment);
+}
+
+void buffering_visitor::visit_variable_declaration(
+    identifier name, variable_kind kind, variable_init_kind init_kind) {
+  this->visits_.emplace_back(visit_kind::variable_declaration, name, kind,
+                             init_kind);
+}
+
+void buffering_visitor::visit_variable_delete_use(
+    identifier name, source_code_span delete_keyword) {
+  this->visits_.emplace_back(visit_kind::variable_delete_use, name,
+                             delete_keyword);
+}
+
+void buffering_visitor::visit_variable_export_use(identifier name) {
+  this->add(name, visit_kind::variable_export_use);
+}
+
+void buffering_visitor::visit_variable_namespace_use(identifier name) {
+  this->add(name, visit_kind::variable_namespace_use);
+}
+
+void buffering_visitor::visit_variable_type_use(identifier name) {
+  this->add(name, visit_kind::variable_type_use);
+}
+
+void buffering_visitor::visit_variable_typeof_use(identifier name) {
+  this->add(name, visit_kind::variable_typeof_use);
+}
+
+void buffering_visitor::visit_variable_use(identifier name) {
+  this->add(name, visit_kind::variable_use);
 }
 }
 
