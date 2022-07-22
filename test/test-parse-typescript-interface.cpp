@@ -182,6 +182,25 @@ TEST(test_parse, unclosed_interface_statement) {
   }
 }
 
+TEST(test_parse_typescript_interface,
+     interface_can_be_named_contextual_keyword) {
+  for (string8 name : contextual_keywords - typescript_builtin_type_keywords -
+                          typescript_special_type_keywords -
+                          dirty_set<string8>{
+                              u8"let",
+                              u8"static",
+                              u8"yield",
+                          }) {
+    padded_string code(u8"interface " + name + u8" {}");
+    SCOPED_TRACE(code);
+    spy_visitor v = parse_and_visit_typescript_statement(code.string_view());
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // (name)
+                                      "visit_enter_interface_scope",  //
+                                      "visit_exit_interface_scope"));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(interface_decl(name)));
+  }
+}
+
 TEST(test_parse_typescript_interface, property_without_type) {
   {
     padded_string code(u8"interface I { a;b\nc }"_sv);
