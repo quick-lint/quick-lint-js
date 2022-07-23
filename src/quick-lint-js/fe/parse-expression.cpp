@@ -99,6 +99,7 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
     }
     break;
   }
+  case expression_kind::as_cast:
   case expression_kind::await:
   case expression_kind::spread:
   case expression_kind::unary_operator:
@@ -219,6 +220,7 @@ void parser::maybe_visit_assignment(expression* ast, parse_visitor_base& v) {
       this->maybe_visit_assignment(value, v);
     }
     break;
+  case expression_kind::as_cast:
   case expression_kind::non_null_assertion:
   case expression_kind::paren:
     this->maybe_visit_assignment(ast->child_0(), v);
@@ -1648,9 +1650,36 @@ next:
     goto next;
   }
 
+  // x   // ASI
+  // as
+  //
+  // x as Type  // TypeScript only.
+  case token_type::kw_as: {
+    if (this->peek().has_leading_newline) {
+      // ASI. End this expression.
+      break;
+    }
+
+    source_code_span as_span = this->peek().span();
+    if (!this->options_.typescript) {
+      this->diag_reporter_->report(
+          diag_typescript_as_cast_not_allowed_in_javascript{
+              .as_keyword = as_span,
+          });
+    }
+    this->skip();
+
+    this->parse_and_visit_typescript_type_expression(v);
+    const char8* type_end = this->lexer_.end_of_previous_token();
+
+    expression* child = binary_builder.last_expression();
+    binary_builder.replace_last(
+        this->make_expression<expression::as_cast>(child, as_span, type_end));
+    goto next;
+  }
+
   QLJS_CASE_TYPESCRIPT_ONLY_CONTEXTUAL_KEYWORD:
   case token_type::end_of_file:
-  case token_type::kw_as:
   case token_type::kw_async:
   case token_type::kw_await:
   case token_type::kw_break:
@@ -1773,6 +1802,7 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::_template:
   case expression_kind::_typeof:
   case expression_kind::arrow_function:
+  case expression_kind::as_cast:
   case expression_kind::await:
   case expression_kind::compound_assignment:
   case expression_kind::conditional:
@@ -3197,6 +3227,9 @@ try_again:
     goto try_again;
   case expression_kind::non_null_assertion:
     ast = static_cast<expression::non_null_assertion*>(ast)->child_;
+    goto try_again;
+  case expression_kind::as_cast:
+    ast = static_cast<expression::as_cast*>(ast)->child_;
     goto try_again;
   case expression_kind::_invalid:
   case expression_kind::_missing:

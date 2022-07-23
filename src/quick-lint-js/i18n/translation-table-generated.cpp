@@ -50,6 +50,7 @@ const translation_table translation_data = {
         {21, 38, 23, 0, 18},          //
         {39, 37, 40, 0, 33},          //
         {0, 0, 0, 0, 52},             //
+        {0, 0, 0, 0, 52},             //
         {0, 0, 0, 0, 53},             //
         {0, 0, 0, 0, 70},             //
         {0, 0, 0, 0, 55},             //
@@ -320,7 +321,8 @@ const translation_table translation_data = {
         {38, 27, 34, 33, 27},         //
         {26, 41, 26, 0, 22},          //
         {0, 0, 0, 0, 23},             //
-        {27, 3, 31, 18, 42},          //
+        {0, 0, 0, 0, 42},             //
+        {27, 3, 31, 18, 53},          //
         {0, 33, 0, 0, 55},            //
         {64, 31, 79, 68, 28},         //
         {57, 29, 48, 41, 32},         //
@@ -1279,6 +1281,7 @@ const translation_table translation_data = {
         u8"JSON syntax error\0"
         u8"React/JSX is not yet implemented\0"
         u8"RegExp literal flags cannot contain Unicode escapes\0"
+        u8"TypeScript 'as' casts are not allowed in JavaScript\0"
         u8"TypeScript 'implements' is not allowed in JavaScript\0"
         u8"TypeScript assignment-asserted fields are not supported in JavaScript\0"
         u8"TypeScript call signatures are only allowed in classes\0"
@@ -1550,6 +1553,7 @@ const translation_table translation_data = {
         u8"unmatched parenthesis\0"
         u8"unopened block comment\0"
         u8"use ':' instead of '=' in object literals\0"
+        u8"use ':' instead of 'as' to type a function parameter\0"
         u8"use 'while' instead to loop until a condition is false\0"
         u8"use of undeclared type: {0}\0"
         u8"use of undeclared variable: {0}\0"

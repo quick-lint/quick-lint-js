@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 329;
-constexpr std::size_t translation_table_string_table_size = 52815;
+constexpr std::uint16_t translation_table_mapping_table_size = 331;
+constexpr std::size_t translation_table_string_table_size = 52920;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -66,6 +66,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "JSON syntax error"sv,
           "React/JSX is not yet implemented"sv,
           "RegExp literal flags cannot contain Unicode escapes"sv,
+          "TypeScript 'as' casts are not allowed in JavaScript"sv,
           "TypeScript 'implements' is not allowed in JavaScript"sv,
           "TypeScript assignment-asserted fields are not supported in JavaScript"sv,
           "TypeScript call signatures are only allowed in classes"sv,
@@ -337,6 +338,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "unmatched parenthesis"sv,
           "unopened block comment"sv,
           "use ':' instead of '=' in object literals"sv,
+          "use ':' instead of 'as' to type a function parameter"sv,
           "use 'while' instead to loop until a condition is false"sv,
           "use of undeclared type: {0}"sv,
           "use of undeclared variable: {0}"sv,

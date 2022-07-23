@@ -137,6 +137,102 @@ TEST(test_parse_expression_typescript_statement, non_null_assertion) {
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_assignment"));  // x
   }
 }
+
+TEST_F(test_parse_expression_typescript, as_expression) {
+  {
+    test_parser& p = this->make_parser(u8"x as y"_sv);
+
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(ast->kind(), expression_kind::as_cast);
+    EXPECT_EQ(summarize(ast->child_0()), "var x");
+    EXPECT_EQ(p.range(ast).begin_offset(), 0);
+    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"x as y"));
+
+    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));
+    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"y"));
+  }
+}
+
+TEST_F(test_parse_expression_typescript,
+       as_expression_not_allowed_in_javascript) {
+  {
+    test_parser& p = this->make_parser(u8"x as y"_sv, javascript_options);
+    EXPECT_EQ(summarize(p.parse_expression()), "as(var x)");
+    EXPECT_THAT(p.errors(),
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code(),
+                    diag_typescript_as_cast_not_allowed_in_javascript,  //
+                    as_keyword, strlen(u8"x "), u8"as")));
+  }
+}
+
+TEST(test_parse_expression_typescript_statement, as_cast) {
+  {
+    parse_visit_collector v =
+        parse_and_visit_typescript_statement(u8"f(x as T);"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // T
+                                      "visit_variable_use",       // f
+                                      "visit_variable_use"));     // x
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"T", u8"f", u8"x"));
+  }
+
+  {
+    parse_visit_collector v =
+        parse_and_visit_typescript_statement(u8"(lhs as T) = rhs;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",      // T
+                                      "visit_variable_use",           // rhs
+                                      "visit_variable_assignment"));  // lhs
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"T", u8"rhs"));
+    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"lhs"));
+  }
+}
+
+TEST(test_parse_expression_typescript_statement,
+     as_expression_is_not_allowed_in_function_parameter_list) {
+  {
+    padded_string code(u8"(x as T) => {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code,
+            diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
+            as_keyword, strlen(u8"(x "), u8"as")));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"x")));
+  }
+
+  {
+    padded_string code(u8"([x, y, z] as T) => {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE(
+            diag_typescript_as_keyword_used_for_parameter_type_annotation)));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(param_decl(u8"x"), param_decl(u8"y"), param_decl(u8"z")));
+  }
+
+  {
+    padded_string code(u8"function f(x as T) {}"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(
+        v.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            &code,
+            diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
+            as_keyword, strlen(u8"function f(x "), u8"as")));
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(function_decl(u8"f"), param_decl(u8"x")));
+  }
+}
 }
 }
 

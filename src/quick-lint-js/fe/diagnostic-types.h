@@ -1467,6 +1467,20 @@
               specifier))                                                      \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_as_cast_not_allowed_in_javascript, "E0281",              \
+      diagnostic_severity::error, { source_code_span as_keyword; },            \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "TypeScript 'as' casts are not allowed in JavaScript"),      \
+              as_keyword))                                                     \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_as_keyword_used_for_parameter_type_annotation, "E0282",  \
+      diagnostic_severity::error, { source_code_span as_keyword; },            \
+      MESSAGE(QLJS_TRANSLATABLE(                                               \
+                  "use ':' instead of 'as' to type a function parameter"),     \
+              as_keyword))                                                     \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,    \
       "E0238", diagnostic_severity::error, { source_code_span bang; },         \
       MESSAGE(QLJS_TRANSLATABLE("assignment-asserted fields are "              \

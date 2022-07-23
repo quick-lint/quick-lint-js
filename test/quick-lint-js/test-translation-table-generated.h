@@ -409,6 +409,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript 'as' casts are not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript 'as' casts are not allowed in JavaScript",
+            u8"TypeScript 'as' casts are not allowed in JavaScript",
+            u8"TypeScript 'as' casts are not allowed in JavaScript",
+            u8"TypeScript 'as' casts are not allowed in JavaScript",
+            u8"TypeScript 'as' casts are not allowed in JavaScript",
+        },
+    },
+    {
         "TypeScript 'implements' is not allowed in JavaScript"_translatable,
         {
             u8"TypeScript 'implements' is not allowed in JavaScript",
@@ -3116,6 +3126,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"use ':' instead of '=' in object literals",
             u8"use ':' instead of '=' in object literals",
             u8"use ':' instead of '=' in object literals",
+        },
+    },
+    {
+        "use ':' instead of 'as' to type a function parameter"_translatable,
+        {
+            u8"use ':' instead of 'as' to type a function parameter",
+            u8"use ':' instead of 'as' to type a function parameter",
+            u8"use ':' instead of 'as' to type a function parameter",
+            u8"use ':' instead of 'as' to type a function parameter",
+            u8"use ':' instead of 'as' to type a function parameter",
         },
     },
     {

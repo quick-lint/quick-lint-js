@@ -47,6 +47,7 @@ enum class expression_kind {
   _typeof,
   array,
   arrow_function,
+  as_cast,  // TypeScript only.
   assignment,
   await,
   binary_operator,
@@ -194,6 +195,7 @@ class expression {
   class _typeof;
   class array;
   class arrow_function;
+  class as_cast;
   class assignment;
   class await;
   class binary_operator;
@@ -489,6 +491,29 @@ class expression::arrow_function final : public expression {
   expression_arena::array_ptr<expression *> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::arrow_function>);
+
+class expression::as_cast final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::as_cast;
+
+  explicit as_cast(expression *child, source_code_span as_span,
+                   const char8 *span_end) noexcept
+      : expression(kind),
+        child_(child),
+        as_keyword_(as_span.begin()),
+        span_end_(span_end) {
+    QLJS_ASSERT(as_span.string_view() == u8"as"_sv);
+  }
+
+  source_code_span as_span() const noexcept {
+    return source_code_span(this->as_keyword_, this->as_keyword_ + 2);
+  }
+
+  expression *child_;
+  const char8 *as_keyword_;
+  const char8 *span_end_;
+};
+static_assert(expression_arena::is_allocatable<expression::as_cast>);
 
 class expression::assignment final : public expression {
  public:
@@ -1098,6 +1123,10 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     return static_cast<const expression::array *>(this)->children_;
   case expression_kind::arrow_function:
     return static_cast<const expression::arrow_function *>(this)->children_;
+  case expression_kind::as_cast: {
+    auto *cast = static_cast<const expression::as_cast *>(this);
+    return expression_arena::array_ptr<expression *>(&cast->child_, 1);
+  }
   case expression_kind::binary_operator:
     return static_cast<const expression::binary_operator *>(this)->children_;
   case expression_kind::call:
@@ -1227,6 +1256,10 @@ inline source_code_span expression::span() const noexcept {
       return source_code_span(arrow->children_.front()->span().begin(),
                               arrow->span_end_);
     }
+  }
+  case expression_kind::as_cast: {
+    auto *cast = static_cast<const as_cast *>(this);
+    return source_code_span(cast->child_->span().begin(), cast->span_end_);
   }
   case expression_kind::binary_operator: {
     auto *binary = static_cast<const expression::binary_operator *>(this);
