@@ -160,6 +160,7 @@ void lsp_locator::replace_text(lsp_range range, string8_view replacement_text,
                                        this->old_line_is_ascii_[start_line];
   }
   this->line_is_ascii_.push_back(last_line_of_replacement_is_ascii &&
+                                 this->old_line_is_ascii_[start_line] &&
                                  this->old_line_is_ascii_[end_line]);
 
   // Offsets after replacement: adjust with a fixed offset.

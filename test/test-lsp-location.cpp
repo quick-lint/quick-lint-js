@@ -532,6 +532,38 @@ TEST(test_lsp_location,
   check_positions_against_reference_locator(locator, &updated_code);
 }
 
+TEST(test_lsp_location, join_non_ascii_and_ascii_line) {
+  padded_string original_code(u8"first\nse\u00e7ond\nthird"_sv);
+  padded_string updated_code(u8"first\nse\u00e7ondthird"_sv);
+
+  lsp_locator locator(&original_code);
+  locator.replace_text(
+      lsp_range{
+          .start = {.line = 1, .character = 6},
+          .end = {.line = 2, .character = 0},
+      },
+      u8"", &updated_code);
+  locator.validate_caches_debug();
+
+  check_positions_against_reference_locator(locator, &updated_code);
+}
+
+TEST(test_lsp_location, join_ascii_and_non_ascii_line) {
+  padded_string original_code(u8"first\nsecond\nth\u00edrd"_sv);
+  padded_string updated_code(u8"first\nsecondth\u00edrd"_sv);
+
+  lsp_locator locator(&original_code);
+  locator.replace_text(
+      lsp_range{
+          .start = {.line = 1, .character = 6},
+          .end = {.line = 2, .character = 0},
+      },
+      u8"", &updated_code);
+  locator.validate_caches_debug();
+
+  check_positions_against_reference_locator(locator, &updated_code);
+}
+
 // TODO(strager): How should replace_text behave when given a negative
 // character or an out of range line?
 }
