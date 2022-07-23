@@ -634,7 +634,6 @@ TEST(test_parse, unimplemented_token_crashes) {
 }
 #endif
 
-#if QLJS_HAVE_SETJMP
 TEST(test_parse, unimplemented_token_doesnt_crash_if_caught) {
   {
     spy_visitor v;
@@ -648,9 +647,7 @@ TEST(test_parse, unimplemented_token_doesnt_crash_if_caught) {
                                               token, 0, u8"]")));
   }
 }
-#endif
 
-#if QLJS_HAVE_SETJMP
 TEST(test_parse, unimplemented_token_returns_to_innermost_handler) {
   {
     padded_string code(u8"hello world"_sv);
@@ -732,7 +729,6 @@ TEST(test_parse, unimplemented_token_is_reported_on_outer_diag_reporter) {
            "transaction";
   }
 }
-#endif
 
 TEST(test_escape_first_character_in_keyword,
      escaping_escapes_single_character) {
@@ -763,7 +759,6 @@ string8 repeated_str(string8_view before, string8_view inner,
   return reps;
 }
 
-#if QLJS_HAVE_SETJMP
 TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   for (const string8 &exps : {
            repeated_str(u8"(", u8"10", u8")", parser::stack_limit - 2),
@@ -845,9 +840,7 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 }
-#endif
 
-#if QLJS_HAVE_SETJMP
 TEST(test_overflow, parser_depth_limit_exceeded) {
   for (const string8 &exps : {
            repeated_str(u8"(", u8"10", u8")", parser::stack_limit + 1),
@@ -925,7 +918,6 @@ TEST(test_overflow, parser_depth_limit_exceeded) {
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
   }
 }
-#endif
 }
 }
 

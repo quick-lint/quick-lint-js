@@ -101,7 +101,6 @@ class parser {
   // For testing and internal use only.
   [[nodiscard]] function_guard enter_function(function_attributes);
 
-#if QLJS_HAVE_SETJMP
   // Returns true if parsing succeeded without QLJS_PARSER_UNIMPLEMENTED being
   // called.
   //
@@ -111,7 +110,6 @@ class parser {
     return this->catch_fatal_parse_errors(
         [this, &v] { this->parse_and_visit_module(v); });
   }
-#endif
 
   // Returns true if parsing succeeded without QLJS_PARSER_UNIMPLEMENTED being
   // called.

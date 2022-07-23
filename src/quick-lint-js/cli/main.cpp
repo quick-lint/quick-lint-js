@@ -286,11 +286,7 @@ void process_file(padded_string_view input, configuration &config,
   linter l(diag_reporter, &config.globals());
 
   auto run_parser = [&p](auto &visitor) -> void {
-#if QLJS_HAVE_SETJMP
     p.parse_and_visit_module_catching_fatal_parse_errors(visitor);
-#else
-    p.parse_and_visit_module(visitor);
-#endif
   };
 
   if (print_parser_visits) {

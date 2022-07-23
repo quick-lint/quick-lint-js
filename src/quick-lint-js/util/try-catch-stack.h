@@ -4,16 +4,13 @@
 #ifndef QUICK_LINT_JS_UTIL_TRY_CATCH_STACK_H
 #define QUICK_LINT_JS_UTIL_TRY_CATCH_STACK_H
 
+#include <csetjmp>
 #include <optional>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <utility>
 #include <vector>
-
-#if QLJS_HAVE_SETJMP
-#include <csetjmp>
-#endif
 
 namespace quick_lint_js {
 // Implements a limited form of exceptions using setjmp/longjmp.
@@ -22,7 +19,6 @@ namespace quick_lint_js {
 template <class Exception>
 class try_catch_stack {
  public:
-#if QLJS_HAVE_SETJMP
   // Calls try_func().
   //
   // If try_func() calls this->raise(e), calls catch_func(e) and returns its
@@ -47,41 +43,27 @@ class try_catch_stack {
       return result;
     }
   }
-#else
-  template <class TryFunc, class CatchFunc>
-  auto&& try_catch(TryFunc&& try_func, CatchFunc&&) {
-    return std::move(try_func)();
-  }
-#endif
 
-  // If setjmp is supported, and this->try_raise(e) was called by t in
-  // this->try_catch(t, c), then this function unwinds the stack and calls c(e).
+  // If this->try_raise(e) was called by t in this->try_catch(t, c), then this
+  // function unwinds the stack and calls c(e).
   //
-  // If setjmp is not supported, or if this->try_raise(e) was not called by t in
-  // this->try_catch(t, c), then this function does nothing and returns. The
-  // caller is responsible for figuring out what to do if setjmp is not
-  // supported.
+  // Otherwise, this function does nothing and returns. The caller is
+  // responsible for figuring out what to do in this case.
   void try_raise(Exception &&e) {
-#if QLJS_HAVE_SETJMP
     if (!this->catch_stack_.empty()) {
       catch_entry &c = this->catch_stack_.back();
       c.exception.emplace(std::move(e));
       std::longjmp(c.buf, 1);
       QLJS_UNREACHABLE();
     }
-#else
-    // Do nothing.
-#endif
   }
 
  private:
-#if QLJS_HAVE_SETJMP
   struct catch_entry {
     std::jmp_buf buf;
     std::optional<Exception> exception;
   };
   std::vector<catch_entry> catch_stack_;
-#endif
 };
 }
 

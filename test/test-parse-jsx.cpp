@@ -39,7 +39,6 @@ TEST(test_parse_jsx, jsx_is_not_supported_in_vanilla_javascript) {
                             jsx_start, 0, u8"<")));
 }
 
-#if QLJS_HAVE_SETJMP
 TEST(test_parse_jsx, parsing_stops_on_jsx_in_vanilla_javascript) {
   padded_string code(u8"<MyComponent attr={value}>hello</MyComponent>"_sv);
   spy_visitor v;
@@ -52,7 +51,6 @@ TEST(test_parse_jsx, parsing_stops_on_jsx_in_vanilla_javascript) {
                             &code, diag_jsx_not_yet_implemented,  //
                             jsx_start, 0, u8"<")));
 }
-#endif
 
 TEST(test_parse_jsx, empty_intrinsic_element) {
   padded_string code(u8"c = <div></div>;"_sv);

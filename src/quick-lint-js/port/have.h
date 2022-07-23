@@ -394,15 +394,6 @@
 #define QLJS_HAVE_MACH 0
 #endif
 
-#if !defined(QLJS_HAVE_SETJMP) && defined(__has_include)
-#if __has_include(<csetjmp>)
-#define QLJS_HAVE_SETJMP 1
-#endif
-#endif
-#if !defined(QLJS_HAVE_SETJMP)
-#define QLJS_HAVE_SETJMP 0
-#endif
-
 #if !defined(QLJS_HAVE_SYS_THR_H) && defined(__has_include)
 #if __has_include(<sys/thr.h>)
 #define QLJS_HAVE_SYS_THR_H 1
