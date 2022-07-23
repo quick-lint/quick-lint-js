@@ -105,6 +105,7 @@ class ProcessFactory {
       env: {
         // Called by setjmp.
         invoke_ii: invoke,
+        invoke_iii: invoke,
         invoke_v: invoke,
         invoke_vi: invoke,
         invoke_vii: invoke,

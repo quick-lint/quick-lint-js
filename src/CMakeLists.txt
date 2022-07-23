@@ -211,6 +211,7 @@ quick_lint_js_add_library(
   quick-lint-js/util/math-overflow.h
   quick-lint-js/util/narrow-cast.h
   quick-lint-js/util/pointer.h
+  quick-lint-js/util/try-catch-stack.h
   quick-lint-js/util/utf-16.cpp
   quick-lint-js/util/utf-16.h
   quick-lint-js/util/utf-8.cpp

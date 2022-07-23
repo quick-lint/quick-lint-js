@@ -19,10 +19,6 @@
 #include <quick-lint-js/port/unreachable.h>
 #include <utility>
 
-#if QLJS_HAVE_SETJMP
-#include <csetjmp>
-#endif
-
 // parser is a recursive-descent parser.
 //
 // The parser class currently does not build an abstract syntax tree (AST) for
@@ -546,12 +542,10 @@ void parser::roll_back_transaction(parser_transaction&& transaction) {
 void parser::crash_on_unimplemented_token(const char* qljs_file_name,
                                           int qljs_line,
                                           const char* qljs_function_name) {
-#if QLJS_HAVE_SETJMP
-  if (!this->fatal_parse_error_jmp_buf_stack_.empty()) {
-    this->fatal_parse_error(this->peek().span(),
-                            fatal_parse_error_kind::unexpected_token);
-  }
-#endif
+  this->fatal_parse_error_stack_.try_raise(fatal_parse_error{
+      this->peek().span(),
+      fatal_parse_error_kind::unexpected_token,
+  });
 
   std::fprintf(stderr, "%s:%d: fatal: token not implemented in %s: %s",
                qljs_file_name, qljs_line, qljs_function_name,
@@ -567,26 +561,15 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
 }
 
 void parser::crash_on_depth_limit_exceeded() {
-#if QLJS_HAVE_SETJMP
-  if (!this->fatal_parse_error_jmp_buf_stack_.empty()) {
-    this->fatal_parse_error(this->peek().span(),
-                            fatal_parse_error_kind::depth_limit_exceeded);
-  }
-#endif
+  this->fatal_parse_error_stack_.try_raise(fatal_parse_error{
+      this->peek().span(),
+      fatal_parse_error_kind::depth_limit_exceeded,
+  });
 
   std::fprintf(stderr, "Error: parser depth limit exceeded\n");
   std::fflush(stderr);
 
   QLJS_CRASH_ALLOWING_CORE_DUMP();
-}
-
-[[noreturn]] void parser::fatal_parse_error(source_code_span error_span,
-                                            fatal_parse_error_kind kind) {
-  catch_entry& c = this->fatal_parse_error_jmp_buf_stack_.back();
-  c.error_span = error_span;
-  c.kind = kind;
-  std::longjmp(c.buf, 1);
-  QLJS_UNREACHABLE();
 }
 
 parser::function_guard::function_guard(parser* p, bool was_in_top_level,
