@@ -2469,6 +2469,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "newline is not allowed after 'type'"_translatable,
+        {
+            u8"newline is not allowed after 'type'",
+            u8"newline is not allowed after 'type'",
+            u8"newline is not allowed after 'type'",
+            u8"newline is not allowed after 'type'",
+            u8"newline is not allowed after 'type'",
+        },
+    },
+    {
         "newline is not allowed between 'async' and arrow function parameter list"_translatable,
         {
             u8"newline is not allowed between 'async' and arrow function parameter list",

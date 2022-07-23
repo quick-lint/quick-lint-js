@@ -380,6 +380,37 @@ TEST(test_parse_typescript_module, export_const_enum) {
     EXPECT_THAT(v.variable_declarations, ElementsAre(enum_decl(u8"E")));
   }
 }
+
+TEST(test_parse_typescript_module, export_type_alias) {
+  {
+    parse_visit_collector v =
+        parse_and_visit_typescript_module(u8"export type T = C;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // T
+                                      "visit_enter_type_alias_scope",  //
+                                      "visit_variable_type_use",       // C
+                                      "visit_exit_type_alias_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.variable_declarations, ElementsAre(type_alias_decl(u8"T")));
+  }
+}
+
+TEST(test_parse_typescript_module,
+     export_type_alias_disallows_newline_after_type_keyword) {
+  {
+    padded_string code(u8"export type\nA = any;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_options);
+    p.parse_and_visit_module(v);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // A
+                                      "visit_enter_type_alias_scope",  //
+                                      "visit_exit_type_alias_scope",   //
+                                      "visit_end_of_module"));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    &code, diag_newline_not_allowed_after_type_keyword,
+                    type_keyword, strlen(u8"export "), u8"type")));
+  }
+}
 }
 }
 

@@ -966,6 +966,14 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
     break;
   }
 
+  // export type A = B;  // TypeScript only.
+  case token_type::kw_type: {
+    source_code_span type_keyword = this->peek().span();
+    this->skip();
+    this->parse_and_visit_typescript_type_alias(v, type_keyword);
+    break;
+  }
+
   // export namespace ns {}  // TypeScript only.
   case token_type::kw_namespace: {
     source_code_span namespace_keyword = this->peek().span();
@@ -1603,8 +1611,11 @@ void parser::parse_and_visit_typescript_namespace(
 
 void parser::parse_and_visit_typescript_type_alias(
     parse_visitor_base &v, source_code_span type_token) {
-  QLJS_ASSERT(!this->peek().has_leading_newline);
-
+  if (this->peek().has_leading_newline) {
+    this->diag_reporter_->report(diag_newline_not_allowed_after_type_keyword{
+        .type_keyword = type_token,
+    });
+  }
   if (!this->options_.typescript) {
     this->diag_reporter_->report(
         diag_typescript_type_alias_not_allowed_in_javascript{

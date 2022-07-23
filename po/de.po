@@ -885,6 +885,10 @@ msgid "newline is not allowed after 'namespace'"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "newline is not allowed after 'type'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "number literal contains consecutive underscores"
 msgstr "Zahlenliteral darf keine aufeinanderfolgenden Unterstriche enthalten"
 

@@ -1339,6 +1339,12 @@
               namespace_keyword))                                              \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_newline_not_allowed_after_type_keyword, "E0277",                    \
+      diagnostic_severity::error, { source_code_span type_keyword; },          \
+      MESSAGE(QLJS_TRANSLATABLE("newline is not allowed after 'type'"),        \
+              type_keyword))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_number_literal_contains_consecutive_underscores, "E0028",           \
       diagnostic_severity::error, { source_code_span underscores; },           \
       MESSAGE(QLJS_TRANSLATABLE(                                               \
