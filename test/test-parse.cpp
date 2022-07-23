@@ -266,19 +266,13 @@ TEST(test_parse, asi_between_expression_statements) {
   }
 
   {
-    spy_visitor v = parse_and_visit_module(u8"true\nnew Animal();"_sv);
-    EXPECT_THAT(v.errors, IsEmpty());
+    parse_visit_collector v =
+        parse_and_visit_module(u8"true\nnew Animal();"_sv);
   }
 
-  {
-    spy_visitor v = parse_and_visit_module(u8"true\nsuper();"_sv);
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  { parse_visit_collector v = parse_and_visit_module(u8"true\nsuper();"_sv); }
 
-  {
-    spy_visitor v = parse_and_visit_module(u8"true\ntypeof x;"_sv);
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  { parse_visit_collector v = parse_and_visit_module(u8"true\ntypeof x;"_sv); }
 
   {
     padded_string code(u8"true\nawait myPromise;"_sv);
@@ -303,8 +297,7 @@ TEST(test_parse, asi_between_expression_statements) {
   for (string8 keyword : contextual_keywords) {
     padded_string code(u8"true\n" + keyword);
     SCOPED_TRACE(code);
-    spy_visitor v = parse_and_visit_module(code.string_view());
-    EXPECT_THAT(v.errors, IsEmpty());
+    parse_visit_collector v = parse_and_visit_module(code.string_view());
   }
 
   {
@@ -321,7 +314,7 @@ TEST(test_parse, asi_between_expression_statements) {
 
 TEST(test_parse, asi_between_expression_statement_and_switch_label) {
   {
-    spy_visitor v = parse_and_visit_module(
+    parse_visit_collector v = parse_and_visit_module(
         u8R"(
       switch (x) {
         case a:
@@ -335,7 +328,7 @@ TEST(test_parse, asi_between_expression_statement_and_switch_label) {
   }
 
   {
-    spy_visitor v = parse_and_visit_module(
+    parse_visit_collector v = parse_and_visit_module(
         u8R"(
       switch (x) {
         case a:
@@ -350,7 +343,7 @@ TEST(test_parse, asi_between_expression_statement_and_switch_label) {
 
 TEST(test_parse, asi_between_expression_statement_and_declaration) {
   {
-    spy_visitor v = parse_and_visit_module(u8"f()\nclass C {}"_sv);
+    parse_visit_collector v = parse_and_visit_module(u8"f()\nclass C {}"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_use",            // f
                             "visit_enter_class_scope",       // {
@@ -363,8 +356,8 @@ TEST(test_parse, asi_between_expression_statement_and_declaration) {
 
 TEST(test_parse, asi_for_statement_at_end_of_file) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"console.log(2+2)"_sv);
-    EXPECT_THAT(v.errors, IsEmpty());
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"console.log(2+2)"_sv);
   }
 }
 

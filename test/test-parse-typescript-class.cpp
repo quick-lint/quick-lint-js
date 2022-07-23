@@ -43,7 +43,7 @@ TEST(test_parse, field_with_type_is_disallowed_in_javascript) {
 
 TEST(test_parse, field_with_type_is_allowed_in_typescript) {
   {
-    spy_visitor v = parse_and_visit_typescript_statement(
+    parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { fieldName: FieldType; }"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       // C
@@ -72,7 +72,7 @@ TEST(test_parse, class_index_signature_is_disallowed_in_javascript) {
 
 TEST(test_parse, class_index_signature_is_allowed_in_typescript) {
   {
-    spy_visitor v = parse_and_visit_typescript_statement(
+    parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { [key: KeyType]: ValueType; }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",            // C
                                       "visit_enter_class_scope_body",       //
@@ -161,7 +161,7 @@ TEST(test_parse, assignment_asserted_fields_are_disallowed_in_javascript) {
 
 TEST(test_parse, assignment_asserted_fields_are_allowed_in_typescript) {
   {
-    spy_visitor v = parse_and_visit_typescript_statement(
+    parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { field1!; field2! = init; }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // C
                                       "visit_enter_class_scope_body",  //
@@ -296,7 +296,7 @@ TEST(test_parse, readonly_fields_are_disallowed_in_javascript) {
 
 TEST(test_parse, readonly_fields_are_allowed_in_typescript) {
   {
-    spy_visitor v = parse_and_visit_typescript_statement(
+    parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { readonly field; }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // C
                                       "visit_enter_class_scope_body",  //
@@ -306,7 +306,7 @@ TEST(test_parse, readonly_fields_are_allowed_in_typescript) {
   }
 
   {
-    spy_visitor v = parse_and_visit_typescript_statement(
+    parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { static readonly field; }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // C
                                       "visit_enter_class_scope_body",  //
@@ -316,7 +316,7 @@ TEST(test_parse, readonly_fields_are_allowed_in_typescript) {
   }
 
   {
-    spy_visitor v = parse_and_visit_typescript_statement(
+    parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { readonly #field; }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // C
                                       "visit_enter_class_scope_body",  //
@@ -394,7 +394,8 @@ TEST(test_parse, generic_classes_are_disallowed_in_javascript) {
 
 TEST(test_parse, generic_classes_are_allowed_in_typescript) {
   {
-    spy_visitor v = parse_and_visit_typescript_statement(u8"class C<T> { }"_sv);
+    parse_visit_collector v =
+        parse_and_visit_typescript_statement(u8"class C<T> { }"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       // {
                             "visit_variable_declaration",    // T
@@ -433,7 +434,7 @@ TEST(test_parse, generic_methods_are_disallowed_in_javascript) {
 
 TEST(test_parse, generic_methods_are_allowed_in_typescript) {
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"class C { method<T>() {} }"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",          // C
@@ -621,7 +622,8 @@ TEST(test_parse, access_specifiers_are_allowed_in_typescript) {
   for (string8 specifier : {u8"public", u8"protected", u8"private"}) {
     padded_string code(u8"class C { " + specifier + u8" method() {} }");
     SCOPED_TRACE(code);
-    spy_visitor v = parse_and_visit_typescript_statement(code.string_view());
+    parse_visit_collector v =
+        parse_and_visit_typescript_statement(code.string_view());
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",          // C
                             "visit_enter_class_scope_body",     //
@@ -664,7 +666,7 @@ TEST(test_parse, static_blocks_are_disallowed_in_javascript) {
 
 TEST(test_parse, static_blocks_are_allowed_in_typescript) {
   {
-    spy_visitor v = parse_and_visit_typescript_statement(
+    parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { static #private; static { C.#private; } }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       // C
@@ -707,7 +709,7 @@ TEST(test_parse, method_return_type_annotations_are_disallowed_in_javascript) {
 
 TEST(test_parse, method_return_type_annotations_are_allowed_in_typescript) {
   {
-    spy_visitor v = parse_and_visit_typescript_statement(
+    parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { method(): T { } }"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",          // {
@@ -745,7 +747,7 @@ TEST(test_parse, abstract_classes_are_disallowed_in_javascript) {
 
 TEST(test_parse, abstract_classes_are_allowed_in_typescript) {
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"abstract class C { }"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       // {
@@ -757,7 +759,7 @@ TEST(test_parse, abstract_classes_are_allowed_in_typescript) {
 
 TEST(test_parse, newline_before_class_causes_abstract_to_be_identifier) {
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_typescript_module(u8"abstract\nclass C { }"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_use",            // abstract
@@ -790,7 +792,7 @@ TEST(test_parse_typescript_class, implements_is_not_allowed_in_javascript) {
 }
 
 TEST(test_parse_typescript_class, implements) {
-  spy_visitor v =
+  parse_visit_collector v =
       parse_and_visit_typescript_module(u8"class C implements Base {}"_sv);
   EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
                                     "visit_variable_type_use",       // Base
@@ -803,7 +805,7 @@ TEST(test_parse_typescript_class, implements) {
 
 TEST(test_parse_typescript_class, implements_comes_after_extends) {
   {
-    spy_visitor v = parse_and_visit_typescript_module(
+    parse_visit_collector v = parse_and_visit_typescript_module(
         u8"class C extends Base implements I {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_variable_use",            // Base
@@ -839,7 +841,7 @@ TEST(test_parse_typescript_class, implements_comes_after_extends) {
 }
 
 TEST(test_parse_typescript_class, implements_interface_from_namespace) {
-  spy_visitor v =
+  parse_visit_collector v =
       parse_and_visit_typescript_module(u8"class C implements ns.A {}"_sv);
   EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
                                     "visit_variable_namespace_use",  // ns
@@ -851,7 +853,7 @@ TEST(test_parse_typescript_class, implements_interface_from_namespace) {
 }
 
 TEST(test_parse_typescript_class, implement_multiple_things) {
-  spy_visitor v = parse_and_visit_typescript_module(
+  parse_visit_collector v = parse_and_visit_typescript_module(
       u8"class C implements Apple, Banana, Carrot {}"_sv);
   EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
                                     "visit_variable_type_use",       // Apple

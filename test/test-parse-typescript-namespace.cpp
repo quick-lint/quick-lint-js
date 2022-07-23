@@ -40,7 +40,8 @@ TEST(test_parse_typescript_namespace, not_supported_in_vanilla_javascript) {
 }
 
 TEST(test_parse_typescript_namespace, empty_namespace) {
-  spy_visitor v = parse_and_visit_typescript_statement(u8"namespace ns {}"_sv);
+  parse_visit_collector v =
+      parse_and_visit_typescript_statement(u8"namespace ns {}"_sv);
   EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // ns
                                     "visit_enter_namespace_scope",   // {
                                     "visit_exit_namespace_scope"));  // }
@@ -50,7 +51,8 @@ TEST(test_parse_typescript_namespace, empty_namespace) {
 TEST(test_parse_typescript_namespace,
      namespace_cannot_have_newline_after_namespace_keyword) {
   {
-    spy_visitor v = parse_and_visit_typescript_module(u8"namespace\nns\n{}"_sv);
+    parse_visit_collector v =
+        parse_and_visit_typescript_module(u8"namespace\nns\n{}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // namespace
                                       "visit_variable_use",       // ns
                                       "visit_enter_block_scope",  // {
@@ -66,14 +68,15 @@ TEST(test_parse_typescript_namespace,
        contextual_keywords - dirty_set<string8>{u8"let", u8"static"}) {
     padded_string code(u8"namespace " + name + u8" {}");
     SCOPED_TRACE(code);
-    spy_visitor v = parse_and_visit_typescript_module(code.string_view());
+    parse_visit_collector v =
+        parse_and_visit_typescript_module(code.string_view());
     EXPECT_THAT(v.variable_declarations, ElementsAre(namespace_decl(name)));
   }
 }
 
 TEST(test_parse_typescript_namespace, namespace_can_contain_exports) {
   {
-    spy_visitor v = parse_and_visit_typescript_module(
+    parse_visit_collector v = parse_and_visit_typescript_module(
         u8"namespace ns { export function f() {} }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // ns
                                       "visit_enter_namespace_scope",      // {
@@ -90,7 +93,8 @@ TEST(test_parse_typescript_namespace, namespace_can_contain_exports) {
 
 TEST(test_parse_typescript_namespace, namespace_alias) {
   {
-    spy_visitor v = parse_and_visit_typescript_statement(u8"import A = ns;"_sv);
+    parse_visit_collector v =
+        parse_and_visit_typescript_statement(u8"import A = ns;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",      // A
                                       "visit_variable_namespace_use"));  // ns
     // TODO(#793): Instead of emitting an import declaration, we should emit a
@@ -121,7 +125,8 @@ TEST(test_parse_typescript_namespace,
 
 TEST(test_parse_typescript_namespace, import_alias_of_namespace_member) {
   {
-    spy_visitor v = parse_and_visit_typescript_module(u8"import A = ns.B;"_sv);
+    parse_visit_collector v =
+        parse_and_visit_typescript_module(u8"import A = ns.B;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // ns
                                       "visit_end_of_module"));
@@ -131,7 +136,7 @@ TEST(test_parse_typescript_namespace, import_alias_of_namespace_member) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_typescript_module(u8"import A = ns.subns.B;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // ns
@@ -163,7 +168,8 @@ TEST(test_parse_typescript_namespace,
   for (string8 name : contextual_keywords) {
     padded_string code(u8"import A = " + name + u8".Member;");
     SCOPED_TRACE(code);
-    spy_visitor v = parse_and_visit_typescript_module(code.string_view());
+    parse_visit_collector v =
+        parse_and_visit_typescript_module(code.string_view());
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // (name)
                                       "visit_end_of_module"));
@@ -176,7 +182,8 @@ TEST(test_parse_typescript_namespace,
   for (string8 name : contextual_keywords) {
     padded_string code(u8"import A = ns." + name + u8";");
     SCOPED_TRACE(code);
-    spy_visitor v = parse_and_visit_typescript_module(code.string_view());
+    parse_visit_collector v =
+        parse_and_visit_typescript_module(code.string_view());
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // ns
                                       "visit_end_of_module"));

@@ -43,7 +43,7 @@ TEST(test_parse_typescript_function,
 
 TEST(test_parse_typescript_function, function_return_type_annotation) {
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"function f(): C { }"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_declaration",       // f
@@ -57,7 +57,7 @@ TEST(test_parse_typescript_function, function_return_type_annotation) {
 
 TEST(test_parse_typescript_function, arrow_return_type_annotation) {
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"((param): C => {})"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_function_scope",       //
@@ -69,7 +69,8 @@ TEST(test_parse_typescript_function, arrow_return_type_annotation) {
   }
 
   {
-    spy_visitor v = parse_and_visit_typescript_statement(u8"((): C => {})"_sv);
+    parse_visit_collector v =
+        parse_and_visit_typescript_statement(u8"((): C => {})"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_function_scope",       //
                             "visit_variable_type_use",          // C
@@ -79,7 +80,7 @@ TEST(test_parse_typescript_function, arrow_return_type_annotation) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"(async (param): C => {})"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_function_scope",       //
@@ -91,7 +92,7 @@ TEST(test_parse_typescript_function, arrow_return_type_annotation) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"(async (): C => {})"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_function_scope",       //
@@ -104,7 +105,7 @@ TEST(test_parse_typescript_function, arrow_return_type_annotation) {
 
 TEST(test_parse_typescript_function, object_method_return_type_annotation) {
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"({ method(param): C {} })"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_function_scope",       // method
@@ -118,7 +119,7 @@ TEST(test_parse_typescript_function, object_method_return_type_annotation) {
 
 TEST(test_parse_typescript_function, class_method_return_type_annotation) {
   {
-    spy_visitor v = parse_and_visit_typescript_statement(
+    parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { method(param): C {} }"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",          // C
@@ -137,7 +138,7 @@ TEST(test_parse_typescript_function, class_method_return_type_annotation) {
 
 TEST(test_parse_typescript_function, interface_method_return_type_annotation) {
   {
-    spy_visitor v = parse_and_visit_typescript_statement(
+    parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"interface I { method(param): C; }"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_declaration",    // I

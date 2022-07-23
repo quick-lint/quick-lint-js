@@ -44,7 +44,8 @@ TEST(test_parse_typescript, type_annotation_in_expression_is_an_error) {
 
 TEST(test_parse_typescript, type_alias) {
   {
-    spy_visitor v = parse_and_visit_typescript_statement(u8"type T = U;"_sv);
+    parse_visit_collector v =
+        parse_and_visit_typescript_statement(u8"type T = U;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",     // T
                                       "visit_enter_type_alias_scope",   // T
                                       "visit_variable_type_use",        // U
@@ -54,7 +55,7 @@ TEST(test_parse_typescript, type_alias) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"type MyAlias<T> = U;"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_declaration",     // MyAlias
@@ -71,7 +72,8 @@ TEST(test_parse_typescript, type_alias) {
 
 TEST(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
   {
-    spy_visitor v = parse_and_visit_typescript_statement(u8"type T = U"_sv);
+    parse_visit_collector v =
+        parse_and_visit_typescript_statement(u8"type T = U"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",     // T
                                       "visit_enter_type_alias_scope",   // T
                                       "visit_variable_type_use",        // U
@@ -79,7 +81,7 @@ TEST(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_typescript_module(u8"type T = U\ntype V = W;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // T
                                       "visit_enter_type_alias_scope",  // T
@@ -126,7 +128,7 @@ TEST(test_parse_typescript,
             })) {
     string8 code = u8"type " + name + u8" = T;";
     SCOPED_TRACE(out_string8(code));
-    spy_visitor v = parse_and_visit_typescript_statement(code);
+    parse_visit_collector v = parse_and_visit_typescript_statement(code);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_declaration",     // (name)
                             "visit_enter_type_alias_scope",   // (name)
@@ -138,7 +140,8 @@ TEST(test_parse_typescript,
 
 TEST(test_parse_typescript, type_alias_cannot_have_newline_after_type_keyword) {
   {
-    spy_visitor v = parse_and_visit_typescript_module(u8"type\nT = U;"_sv);
+    parse_visit_collector v =
+        parse_and_visit_typescript_module(u8"type\nT = U;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // type
                                       "visit_variable_use",         // U
                                       "visit_variable_assignment",  // T

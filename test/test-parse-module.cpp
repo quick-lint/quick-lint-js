@@ -26,31 +26,34 @@ namespace quick_lint_js {
 namespace {
 TEST(test_parse, export_variable) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"export let x;"_sv);
+    parse_visit_collector v = parse_and_visit_statement(u8"export let x;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"export let x = 42;"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"export let x = 42;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"x")));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"export var x;"_sv);
+    parse_visit_collector v = parse_and_visit_statement(u8"export var x;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations, ElementsAre(var_noinit_decl(u8"x")));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"export var x = 42;"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"export var x = 42;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations, ElementsAre(var_init_decl(u8"x")));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"export const x = null;"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"export const x = null;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(v.variable_declarations, ElementsAre(const_init_decl(u8"x")));
   }
@@ -58,12 +61,13 @@ TEST(test_parse, export_variable) {
 
 TEST(test_parse, export_default) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"export default x;"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"export default x;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"export default function f() {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       //
@@ -72,7 +76,7 @@ TEST(test_parse, export_default) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"export default function() {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
@@ -80,7 +84,7 @@ TEST(test_parse, export_default) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"export default async function f() {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       //
@@ -89,7 +93,7 @@ TEST(test_parse, export_default) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"export default async function() {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
@@ -97,7 +101,7 @@ TEST(test_parse, export_default) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"export default (function f() {})"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_named_function_scope",  // f
                                       "visit_enter_function_scope_body",   //
@@ -105,7 +109,8 @@ TEST(test_parse, export_default) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"export default class C {}"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"export default class C {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
                                       "visit_enter_class_scope_body",  //
                                       "visit_exit_class_scope",
@@ -113,14 +118,15 @@ TEST(test_parse, export_default) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"export default class {}"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"export default class {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       //
                                       "visit_enter_class_scope_body",  //
                                       "visit_exit_class_scope"));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"export default async (a) => b;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_declaration",  // a
@@ -235,13 +241,14 @@ TEST(test_parse, export_sometimes_does_not_require_semicolon) {
 
 TEST(test_parse, export_list) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"export {one, two};"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"export {one, two};"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_export_use",    // one
                                       "visit_variable_export_use"));  // two
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"export {one as two, three as four};"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_export_use",    // one
                                       "visit_variable_export_use"));  // three
@@ -249,7 +256,8 @@ TEST(test_parse, export_list) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"export {myVar as 'name'};"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"export {myVar as 'name'};"_sv);
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"myVar"));
   }
 }
@@ -333,41 +341,43 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
 
 TEST(test_parse, export_from) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"export * from 'other';"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"export * from 'other';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"export * as mother from 'other';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"export * as 'mother' from 'other';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"export {} from 'other';"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"export {} from 'other';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"export {util1, util2, util3} from 'other';");
     EXPECT_THAT(v.visits, IsEmpty());
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"export {readFileSync as readFile} from 'fs';");
     EXPECT_THAT(v.visits, IsEmpty());
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"export {promises as default} from 'fs';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
@@ -375,32 +385,32 @@ TEST(test_parse, export_from) {
   for (string8 keyword : keywords) {
     padded_string code(u8"export {" + keyword + u8"} from 'other';");
     SCOPED_TRACE(code);
-    spy_visitor v = parse_and_visit_statement(code.string_view());
+    parse_visit_collector v = parse_and_visit_statement(code.string_view());
     EXPECT_THAT(v.visits, IsEmpty());
   }
 
   {
     // Keywords are legal, even if Unicode-escaped.
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"export {\\u{76}ar} from 'fs';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
 
   {
     // Keywords are legal, even if Unicode-escaped.
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"export {\\u{76}ar as \\u{69}f} from 'fs';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"export {'name'} from 'other';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"export {'name' as 'othername'} from 'other';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
@@ -501,17 +511,19 @@ TEST(test_parse, invalid_export) {
 
 TEST(test_parse, parse_and_visit_import) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"import 'foo';"_sv);
+    parse_visit_collector v = parse_and_visit_statement(u8"import 'foo';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"import fs from 'fs'"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"import fs from 'fs'"_sv);
     EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"fs")));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"import * as fs from 'fs'"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"import * as fs from 'fs'"_sv);
     EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"fs")));
   }
 
@@ -527,7 +539,7 @@ TEST(test_parse, parse_and_visit_import) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"import { readFile, writeFile } from 'fs';");
     EXPECT_THAT(
         v.variable_declarations,
@@ -535,21 +547,21 @@ TEST(test_parse, parse_and_visit_import) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"import {readFileSync as rf} from 'fs';"_sv);
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"rf")));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"import {'read file sync' as readFileSync} from 'fs';"_sv);
     EXPECT_THAT(v.variable_declarations,
                 ElementsAre(import_decl(u8"readFileSync")));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"import fs, {readFileSync} from 'fs';"_sv);
     EXPECT_THAT(
         v.variable_declarations,
@@ -557,7 +569,7 @@ TEST(test_parse, parse_and_visit_import) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"import fsDefault, * as fsExports from 'fs';");
     EXPECT_THAT(
         v.variable_declarations,
@@ -638,12 +650,13 @@ TEST(test_parse, import_as_invalid_token) {
 
 TEST(test_parse, export_function) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"export function foo() {}"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"export function foo() {}"_sv);
     EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"foo")));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"export async function foo() {}"_sv);
     EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"foo")));
   }
@@ -681,7 +694,8 @@ TEST(test_parse, export_function_requires_a_name) {
 
 TEST(test_parse, export_class) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"export class C {}"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"export class C {}"_sv);
     EXPECT_THAT(v.variable_declarations, ElementsAre(class_decl(u8"C")));
   }
 }
@@ -715,36 +729,36 @@ TEST(test_parse, imported_variables_can_be_named_contextual_keywords) {
     SCOPED_TRACE(out_string8(name));
 
     {
-      spy_visitor v = parse_and_visit_statement(u8"import { " + name +
-                                                u8" } from 'other';");
+      parse_visit_collector v = parse_and_visit_statement(u8"import { " + name +
+                                                          u8" } from 'other';");
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
     }
 
     {
-      spy_visitor v = parse_and_visit_statement(u8"import { exportedName as " +
-                                                name + u8" } from 'other';");
+      parse_visit_collector v = parse_and_visit_statement(
+          u8"import { exportedName as " + name + u8" } from 'other';");
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
     }
 
     {
-      spy_visitor v = parse_and_visit_statement(
+      parse_visit_collector v = parse_and_visit_statement(
           u8"import { 'exportedName' as " + name + u8" } from 'other';");
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
     }
 
     {
-      spy_visitor v =
+      parse_visit_collector v =
           parse_and_visit_statement(u8"import " + name + u8" from 'other';");
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
     }
 
     {
-      spy_visitor v = parse_and_visit_statement(u8"import * as " + name +
-                                                u8" from 'other';");
+      parse_visit_collector v = parse_and_visit_statement(
+          u8"import * as " + name + u8" from 'other';");
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
     }
@@ -923,7 +937,7 @@ TEST(test_parse, exported_names_can_be_named_keywords) {
     {
       string8 code = u8"export {someFunction as " + export_name + u8"};";
       SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
+      parse_visit_collector v = parse_and_visit_statement(code.c_str());
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_export_use"));  // someFunction
       EXPECT_THAT(v.variable_uses, ElementsAre(u8"someFunction"));
@@ -932,7 +946,7 @@ TEST(test_parse, exported_names_can_be_named_keywords) {
     {
       string8 code = u8"export * as " + export_name + u8" from 'other-module';";
       SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
+      parse_visit_collector v = parse_and_visit_statement(code.c_str());
       EXPECT_THAT(v.visits, IsEmpty());
     }
   }
@@ -943,7 +957,7 @@ TEST(test_parse, imported_names_can_be_named_keywords) {
     string8 code =
         u8"import {" + import_name + u8" as someFunction} from 'somewhere';";
     SCOPED_TRACE(out_string8(code));
-    spy_visitor v = parse_and_visit_statement(code.c_str());
+    parse_visit_collector v = parse_and_visit_statement(code.c_str());
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_variable_declaration"));  // someFunction
     EXPECT_THAT(v.variable_declarations,
@@ -961,7 +975,7 @@ TEST(
       padded_string code(u8"import {" + exported_name +
                          u8" as someFunction} from 'somewhere';");
       SCOPED_TRACE(code);
-      spy_visitor v = parse_and_visit_statement(code.string_view());
+      parse_visit_collector v = parse_and_visit_statement(code.string_view());
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_declaration"));  // someFunction
     }
@@ -969,7 +983,7 @@ TEST(
     {
       padded_string code(u8"export {someFunction as " + exported_name + u8"};");
       SCOPED_TRACE(code);
-      spy_visitor v = parse_and_visit_statement(code.string_view());
+      parse_visit_collector v = parse_and_visit_statement(code.string_view());
       EXPECT_THAT(v.visits,
                   ElementsAre("visit_variable_export_use"));  // someFunction
     }
@@ -977,7 +991,7 @@ TEST(
     {
       padded_string code(u8"export * as " + exported_name + u8" from 'other';");
       SCOPED_TRACE(code);
-      spy_visitor v = parse_and_visit_statement(code.string_view());
+      parse_visit_collector v = parse_and_visit_statement(code.string_view());
       EXPECT_THAT(v.visits, IsEmpty());
     }
   }

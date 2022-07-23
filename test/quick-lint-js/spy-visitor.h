@@ -138,7 +138,7 @@ inline visited_variable_declaration var_noinit_decl(string8_view name) {
                                       variable_init_kind::normal};
 }
 
-struct spy_visitor final : public diag_collector, public parse_visitor_base {
+struct parse_visit_collector : public parse_visitor_base {
   std::vector<std::string_view> visits;
 
   void visit_end_of_module() override {
@@ -308,6 +308,10 @@ struct spy_visitor final : public diag_collector, public parse_visitor_base {
 
   std::vector<string8> variable_uses;
 };
+
+// TODO(strager): Rename this.
+struct spy_visitor final : public diag_collector,
+                           public parse_visit_collector {};
 
 void PrintTo(const visited_variable_declaration &, std::ostream *);
 }

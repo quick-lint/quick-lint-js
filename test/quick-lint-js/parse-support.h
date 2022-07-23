@@ -143,76 +143,80 @@ class test_parse_expression : public ::testing::Test {
 };
 
 namespace {
-inline spy_visitor parse_and_visit_module(string8_view raw_code) {
+inline parse_visit_collector parse_and_visit_module(string8_view raw_code) {
   padded_string code(raw_code);
   failing_diag_reporter reporter;
   parser p(&code, &reporter);
-  spy_visitor v;
+  parse_visit_collector v;
   p.parse_and_visit_module(v);
   return v;
 }
 
-inline spy_visitor parse_and_visit_statement(string8_view raw_code,
-                                             parser_options options) {
+inline parse_visit_collector parse_and_visit_statement(string8_view raw_code,
+                                                       parser_options options) {
   padded_string code(raw_code);
   failing_diag_reporter reporter;
   parser p(&code, &reporter, options);
-  spy_visitor v;
+  parse_visit_collector v;
   EXPECT_TRUE(p.parse_and_visit_statement(v));
   return v;
 }
 
-inline spy_visitor parse_and_visit_statement(string8_view raw_code) {
+inline parse_visit_collector parse_and_visit_statement(string8_view raw_code) {
   return parse_and_visit_statement(raw_code, parser_options());
 }
 
-inline spy_visitor parse_and_visit_statement(padded_string_view raw_code) {
+inline parse_visit_collector parse_and_visit_statement(
+    padded_string_view raw_code) {
   return parse_and_visit_statement(raw_code.string_view());
 }
 
-inline spy_visitor parse_and_visit_statement(string8_view raw_code,
-                                             function_attributes attributes) {
+inline parse_visit_collector parse_and_visit_statement(
+    string8_view raw_code, function_attributes attributes) {
   padded_string code(raw_code);
   failing_diag_reporter reporter;
   parser p(&code, &reporter);
-  spy_visitor v;
+  parse_visit_collector v;
   auto guard = p.enter_function(attributes);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
   return v;
 }
 
-inline spy_visitor parse_and_visit_typescript_module(string8_view raw_code) {
+inline parse_visit_collector parse_and_visit_typescript_module(
+    string8_view raw_code) {
   padded_string code(raw_code);
   failing_diag_reporter reporter;
   parser p(&code, &reporter, typescript_options);
-  spy_visitor v;
+  parse_visit_collector v;
   p.parse_and_visit_module(v);
   return v;
 }
 
-inline spy_visitor parse_and_visit_typescript_statement(string8_view raw_code) {
+inline parse_visit_collector parse_and_visit_typescript_statement(
+    string8_view raw_code) {
   padded_string code(raw_code);
   failing_diag_reporter reporter;
   parser p(&code, &reporter, typescript_options);
-  spy_visitor v;
+  parse_visit_collector v;
   EXPECT_TRUE(p.parse_and_visit_statement(v));
   return v;
 }
 
-inline spy_visitor parse_and_visit_typescript_type(string8_view raw_code) {
+inline parse_visit_collector parse_and_visit_typescript_type(
+    string8_view raw_code) {
   padded_string code(raw_code);
   failing_diag_reporter reporter;
   parser p(&code, &reporter, typescript_options);
-  spy_visitor v;
+  parse_visit_collector v;
   p.parse_and_visit_typescript_type_expression(v);
   return v;
 }
 
-inline spy_visitor parse_and_visit_expression(string8_view raw_code) {
+inline parse_visit_collector parse_and_visit_expression(string8_view raw_code) {
   padded_string code(raw_code);
   failing_diag_reporter reporter;
   parser p(&code, &reporter);
-  spy_visitor v;
+  parse_visit_collector v;
   p.parse_and_visit_expression(v);
   return v;
 }

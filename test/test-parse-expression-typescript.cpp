@@ -124,14 +124,16 @@ TEST_F(test_parse_expression_typescript,
 
 TEST(test_parse_expression_typescript_statement, non_null_assertion) {
   {
-    spy_visitor v = parse_and_visit_typescript_statement(u8"f(x!);"_sv);
+    parse_visit_collector v =
+        parse_and_visit_typescript_statement(u8"f(x!);"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // f
                                       "visit_variable_use"));  // x
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"f", u8"x"));
   }
 
   {
-    spy_visitor v = parse_and_visit_typescript_statement(u8"x! = null;"_sv);
+    parse_visit_collector v =
+        parse_and_visit_typescript_statement(u8"x! = null;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_assignment"));  // x
   }
 }

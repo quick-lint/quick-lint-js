@@ -26,15 +26,14 @@ namespace quick_lint_js {
 namespace {
 TEST(test_parse, super_in_class) {
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"class C extends Base { constructor() { super(); } }");
-    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
 TEST(test_parse, parse_class_statement) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C {}"_sv);
+    parse_visit_collector v = parse_and_visit_statement(u8"class C {}"_sv);
     EXPECT_THAT(v.variable_declarations, ElementsAre(class_decl(u8"C")));
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_enter_class_scope_body",  // C
@@ -43,7 +42,7 @@ TEST(test_parse, parse_class_statement) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class Derived extends Base {}"_sv);
     EXPECT_THAT(v.variable_declarations, ElementsAre(class_decl(u8"Derived")));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"Base"));
@@ -56,7 +55,7 @@ TEST(test_parse, parse_class_statement) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"class FileStream extends fs.ReadStream {}");
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"fs"));
   }
@@ -193,7 +192,8 @@ TEST(test_parse, unclosed_class_statement) {
 TEST(test_parse, class_statement_with_odd_heritage) {
   {
     // TODO(strager): Should this report errors?
-    spy_visitor v = parse_and_visit_statement(u8"class C extends 0 {}"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C extends 0 {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_enter_class_scope_body",  //
                                       "visit_exit_class_scope",        // }
@@ -201,7 +201,8 @@ TEST(test_parse, class_statement_with_odd_heritage) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C extends null {}"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C extends null {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_enter_class_scope_body",  //
                                       "visit_exit_class_scope",        // }
@@ -209,7 +210,8 @@ TEST(test_parse, class_statement_with_odd_heritage) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C extends (A, B) {}"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C extends (A, B) {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_variable_use",            // A
                                       "visit_variable_use",            // B
@@ -221,7 +223,7 @@ TEST(test_parse, class_statement_with_odd_heritage) {
 
 TEST(test_parse, class_statement_extending_class_expression) {
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"class C extends class B { x() {} } { y() {} }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          // C {
                                       "visit_enter_class_scope",          // B {
@@ -243,7 +245,7 @@ TEST(test_parse, class_statement_extending_class_expression) {
 
 TEST(test_parse, class_statement_with_methods) {
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"class Monster { eatMuffins(muffinCount) { } }");
 
     ASSERT_EQ(v.variable_declarations.size(), 2);
@@ -265,7 +267,7 @@ TEST(test_parse, class_statement_with_methods) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { static m() { } }"_sv);
 
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"m"));
@@ -281,35 +283,37 @@ TEST(test_parse, class_statement_with_methods) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C { async m() { } }"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { async m() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"m"));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { static async m() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"m"));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C { *m() { } }"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { *m() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"m"));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { get length() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"length"));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { set length(value) { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"length"));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"class C {\n"
         u8"  static get length() { }\n"
         u8"  static set length(l) { }\n"
@@ -318,41 +322,44 @@ TEST(test_parse, class_statement_with_methods) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { a(){} b(){} c(){} }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"a", u8"b", u8"c"));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { \"stringKey\"() {} }");
     EXPECT_THAT(v.property_declarations, ElementsAre(std::nullopt));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C { [x + y]() {} }"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { [x + y]() {} }"_sv);
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"x", u8"y"));
     EXPECT_THAT(v.property_declarations, ElementsAre(std::nullopt));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C { #m() { } }"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { #m() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"#m"));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { async #m() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"#m"));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C { *#m() { } }"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { *#m() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"#m"));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { async *#m() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"#m"));
   }
@@ -407,7 +414,7 @@ TEST(test_parse, missing_class_method_name_fails) {
 
 TEST(test_parse, class_statement_with_fields) {
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class FruitBasket { banana; }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       //
@@ -420,7 +427,8 @@ TEST(test_parse, class_statement_with_fields) {
 
   {
     // ASI after field without initializer.
-    spy_visitor v = parse_and_visit_statement(u8"class FruitBasket { banana }");
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class FruitBasket { banana }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       //
                             "visit_enter_class_scope_body",  //
@@ -431,7 +439,8 @@ TEST(test_parse, class_statement_with_fields) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C { prop = init; }");
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { prop = init; }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       //
                             "visit_enter_class_scope_body",  //
@@ -445,7 +454,8 @@ TEST(test_parse, class_statement_with_fields) {
 
   {
     // ASI after field with initializer.
-    spy_visitor v = parse_and_visit_statement(u8"class C { prop = init }");
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { prop = init }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       //
                             "visit_enter_class_scope_body",  //
@@ -458,7 +468,7 @@ TEST(test_parse, class_statement_with_fields) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { static prop = init }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       //
@@ -472,13 +482,14 @@ TEST(test_parse, class_statement_with_fields) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C { #prop = init; }");
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { #prop = init; }");
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"#prop"));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"init"));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"class C { #prop = init;\nf() {this.#prop;} }");
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"#prop", u8"f"));
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"init"));
@@ -486,19 +497,21 @@ TEST(test_parse, class_statement_with_fields) {
 
   {
     // ASI after field name before private identifier.
-    spy_visitor v = parse_and_visit_statement(u8"class C { #first\n#second }");
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { #first\n#second }");
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"#first", u8"#second"));
   }
 
   {
     // ASI after initializer before private identifier.
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { #first = x\n#second }");
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"#first", u8"#second"));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C { 'fieldName'; }");
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { 'fieldName'; }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       //
                             "visit_enter_class_scope_body",  //
@@ -510,7 +523,8 @@ TEST(test_parse, class_statement_with_fields) {
 
   {
     // ASI after field without initializer.
-    spy_visitor v = parse_and_visit_statement(u8"class C { 'fieldName' }");
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { 'fieldName' }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       //
                             "visit_enter_class_scope_body",  //
@@ -521,7 +535,7 @@ TEST(test_parse, class_statement_with_fields) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { 'fieldName' = init; }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       //
@@ -535,7 +549,8 @@ TEST(test_parse, class_statement_with_fields) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C { 3.14 = pi; }");
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { 3.14 = pi; }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       //
                             "visit_enter_class_scope_body",  //
@@ -548,7 +563,8 @@ TEST(test_parse, class_statement_with_fields) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C { [x + y]; }");
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { [x + y]; }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       //
                             "visit_enter_class_scope_body",  //
@@ -563,7 +579,8 @@ TEST(test_parse, class_statement_with_fields) {
 
   {
     // ASI after field without initializer.
-    spy_visitor v = parse_and_visit_statement(u8"class C { [x + y] }");
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { [x + y] }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       //
                             "visit_enter_class_scope_body",  //
@@ -577,7 +594,8 @@ TEST(test_parse, class_statement_with_fields) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C { [x + y] = init; }");
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { [x + y] = init; }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",       //
                             "visit_enter_class_scope_body",  //
@@ -600,7 +618,8 @@ TEST(test_parse, class_statement_with_fields) {
 
 TEST(test_parse, class_fields_without_initializer_allow_asi_after_name) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C { f\ng() {} }");
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { f\ng() {} }");
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",          // C
                             "visit_enter_class_scope_body",     //
@@ -625,7 +644,7 @@ TEST(test_parse, class_fields_without_initializer_allow_asi_after_name) {
     {
       padded_string code(u8"class C { myField\n" + second_member + u8" }");
       SCOPED_TRACE(code);
-      spy_visitor v = parse_and_visit_statement(code.string_view());
+      parse_visit_collector v = parse_and_visit_statement(code.string_view());
       EXPECT_THAT(v.property_declarations,
                   ElementsAre(u8"myField", ::testing::_));
     }
@@ -634,7 +653,7 @@ TEST(test_parse, class_fields_without_initializer_allow_asi_after_name) {
       padded_string code(u8"class C { " + first_member + u8"\n" +
                          second_member + u8" }");
       SCOPED_TRACE(code);
-      spy_visitor v = parse_and_visit_statement(code.string_view());
+      parse_visit_collector v = parse_and_visit_statement(code.string_view());
       EXPECT_THAT(v.property_declarations,
                   ElementsAre(std::nullopt, ::testing::_));
     }
@@ -702,14 +721,14 @@ TEST(test_parse, class_statement_with_keyword_property) {
     {
       string8 code = u8"class C { " + keyword + u8"(){} }";
       SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
+      parse_visit_collector v = parse_and_visit_statement(code.c_str());
       EXPECT_THAT(v.property_declarations, ElementsAre(keyword));
     }
 
     {
       string8 code = u8"class C { *" + keyword + u8"(){} }";
       SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
+      parse_visit_collector v = parse_and_visit_statement(code.c_str());
       EXPECT_THAT(v.property_declarations, ElementsAre(keyword));
     }
 
@@ -717,28 +736,28 @@ TEST(test_parse, class_statement_with_keyword_property) {
                            u8"static async", u8"static get", u8"static set"}) {
       string8 code = u8"class C { " + prefix + u8" " + keyword + u8"(){} }";
       SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
+      parse_visit_collector v = parse_and_visit_statement(code.c_str());
       EXPECT_THAT(v.property_declarations, ElementsAre(keyword));
     }
 
     {
       string8 code = u8"class C { " + keyword + u8" }";
       SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
+      parse_visit_collector v = parse_and_visit_statement(code.c_str());
       EXPECT_THAT(v.property_declarations, ElementsAre(keyword));
     }
 
     {
       string8 code = u8"class C { " + keyword + u8"; }";
       SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
+      parse_visit_collector v = parse_and_visit_statement(code.c_str());
       EXPECT_THAT(v.property_declarations, ElementsAre(keyword));
     }
 
     {
       string8 code = u8"class C { " + keyword + u8" = init; }";
       SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_statement(code.c_str());
+      parse_visit_collector v = parse_and_visit_statement(code.c_str());
       EXPECT_THAT(v.property_declarations, ElementsAre(keyword));
     }
   }
@@ -752,7 +771,7 @@ TEST(test_parse, class_statement_with_keyword_property) {
       padded_string code(u8"class C { " + prefix + u8" " + property +
                          u8"(){} }");
       SCOPED_TRACE(code);
-      spy_visitor v = parse_and_visit_statement(code.string_view());
+      parse_visit_collector v = parse_and_visit_statement(code.string_view());
       EXPECT_THAT(v.property_declarations, ElementsAre(keyword));
     }
   }
@@ -763,7 +782,8 @@ TEST(test_parse, typescript_class_statement_with_readonly_keyword_property) {
     {
       string8 code = u8"class C { readonly " + keyword + u8"; }";
       SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
+      parse_visit_collector v =
+          parse_and_visit_typescript_statement(code.c_str());
       EXPECT_THAT(v.property_declarations, ElementsAre(keyword));
     }
   }
@@ -774,14 +794,15 @@ TEST(test_parse, typescript_class_with_keyword_generic_method) {
     {
       string8 code = u8"class C { " + keyword + u8"<T>(){} }";
       SCOPED_TRACE(out_string8(code));
-      spy_visitor v = parse_and_visit_typescript_statement(code.c_str());
+      parse_visit_collector v =
+          parse_and_visit_typescript_statement(code.c_str());
       EXPECT_THAT(v.property_declarations, ElementsAre(keyword));
     }
   }
 
   {
     // A generic method named 'async' should not be async.
-    spy_visitor v = parse_and_visit_typescript_statement(
+    parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { async<T>() { let await; await(x); } }"_sv);
     EXPECT_THAT(v.visits,
                 ElementsAre("visit_enter_class_scope",          // C
@@ -801,7 +822,8 @@ TEST(test_parse, typescript_class_with_keyword_generic_method) {
 
 TEST(test_parse, class_statement_with_number_methods) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"class Wat { 42.0() { } }"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class Wat { 42.0() { } }"_sv);
 
     ASSERT_EQ(v.variable_declarations.size(), 1);
     EXPECT_EQ(v.variable_declarations[0].name, u8"Wat");
@@ -820,21 +842,21 @@ TEST(test_parse, class_statement_with_number_methods) {
 
 TEST(test_parse, class_expression) {
   {
-    spy_visitor v = parse_and_visit_statement(u8"(class C { })"_sv);
+    parse_visit_collector v = parse_and_visit_statement(u8"(class C { })"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_enter_class_scope_body",  // C
                                       "visit_exit_class_scope"));      // }
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"(class { })"_sv);
+    parse_visit_collector v = parse_and_visit_statement(u8"(class { })"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_enter_class_scope_body",  //
                                       "visit_exit_class_scope"));      // }
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"(class { a() {} [b]() {} })"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          //
                                       "visit_enter_class_scope_body",     //
@@ -851,7 +873,8 @@ TEST(test_parse, class_expression) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"(class A extends B {})"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"(class A extends B {})"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_variable_use",            // B
                                       "visit_enter_class_scope_body",  // A
@@ -859,7 +882,8 @@ TEST(test_parse, class_expression) {
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"(class extends C {})"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"(class extends C {})"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_variable_use",            // C
                                       "visit_enter_class_scope_body",  //
@@ -867,7 +891,7 @@ TEST(test_parse, class_expression) {
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"(class C {#x = 10; m() {this.#x;}})"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          // {
                                       "visit_enter_class_scope_body",     // C
@@ -877,12 +901,12 @@ TEST(test_parse, class_expression) {
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
                                       "visit_exit_class_scope"));         // }
-    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
 TEST(test_parse, class_statement_allows_stray_semicolons) {
-  spy_visitor v = parse_and_visit_statement(u8"class C{ ; f(){} ; }"_sv);
+  parse_visit_collector v =
+      parse_and_visit_statement(u8"class C{ ; f(){} ; }"_sv);
   EXPECT_THAT(v.property_declarations, ElementsAre(u8"f"));
 }
 
@@ -1194,26 +1218,21 @@ TEST(test_parse, class_statement_as_with_statement_body_is_disallowed) {
 
 TEST(test_parse, class_in_async_function_is_allowed) {
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"async function f() {"
         u8"  class C {}"
         u8"}");
-    EXPECT_THAT(v.errors, IsEmpty());
   }
 }
 
 TEST(test_parse, class_named_await_in_async_function) {
-  {
-    spy_visitor v = parse_and_visit_statement(u8"class await {}");
-    EXPECT_THAT(v.errors, IsEmpty());
-  }
+  { parse_visit_collector v = parse_and_visit_statement(u8"class await {}"); }
 
   {
-    spy_visitor v = parse_and_visit_statement(
+    parse_visit_collector v = parse_and_visit_statement(
         u8"function f() {"
         u8"class await {}"
         u8"}");
-    EXPECT_THAT(v.errors, IsEmpty());
   }
 
   {
@@ -1286,25 +1305,25 @@ TEST(test_parse, async_static_method_is_disallowed) {
 
 TEST(test_parse, static_method_allows_newline_after_static_keyword) {
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { static\n m() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"m"));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { static\n *m() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"m"));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { static\n async *m() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"m"));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { static\n async\n *m() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"async", u8"m"));
   }
@@ -1312,19 +1331,20 @@ TEST(test_parse, static_method_allows_newline_after_static_keyword) {
 
 TEST(test_parse, async_method_prohibits_newline_after_async_keyword) {
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { async\n m() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"async", u8"m"));
   }
 
   {
-    spy_visitor v =
+    parse_visit_collector v =
         parse_and_visit_statement(u8"class C { async\n static m() { } }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"async", u8"m"));
   }
 
   {
-    spy_visitor v = parse_and_visit_statement(u8"class C { async\n = 42 }"_sv);
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"class C { async\n = 42 }"_sv);
     EXPECT_THAT(v.property_declarations, ElementsAre(u8"async"));
   }
 }
@@ -1355,7 +1375,7 @@ TEST(test_parse, typescript_style_const_field) {
 TEST(test_parse, class_expression_body_is_visited_first_in_expression) {
   {
     padded_string code(u8"[before, class C { m() { inside; } }, after];"sv);
-    spy_visitor v = parse_and_visit_statement(&code);
+    parse_visit_collector v = parse_and_visit_statement(&code);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          // C {
                                       "visit_enter_class_scope_body",     // C
                                       "visit_property_declaration",       // m
@@ -1373,7 +1393,7 @@ TEST(test_parse, class_expression_body_is_visited_first_in_expression) {
   {
     padded_string code(
         u8"[before, class C { m() { inside; } }.prop, after] = [1,2,3];"sv);
-    spy_visitor v = parse_and_visit_statement(&code);
+    parse_visit_collector v = parse_and_visit_statement(&code);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          // C {
                                       "visit_enter_class_scope_body",     // C
                                       "visit_property_declaration",       // m
