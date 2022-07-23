@@ -411,6 +411,21 @@ TEST(test_parse_typescript_module,
                     type_keyword, strlen(u8"export "), u8"type")));
   }
 }
+
+TEST(test_parse_typescript_module, export_import_alias) {
+  {
+    parse_visit_collector v =
+        parse_and_visit_typescript_module(u8"export import A = B;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // A
+                                      "visit_variable_namespace_use",  // B
+                                      "visit_end_of_module"));
+    // TODO(#793): Emit a import alias declaration instead.
+    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"A")));
+  }
+}
+
+// TODO(#795): Report an error for other kinds of 'export import', such as
+// 'export import fs from "fs";'.
 }
 }
 

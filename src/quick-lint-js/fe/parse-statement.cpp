@@ -974,6 +974,13 @@ void parser::parse_and_visit_export(parse_visitor_base &v) {
     break;
   }
 
+  // export import A = ns;  // TypeScript only.
+  case token_type::kw_import:
+    this->parse_and_visit_import(v);
+    // TODO(#795): Report an error if the import is not a TypeScript import
+    // alias.
+    break;
+
   // export namespace ns {}  // TypeScript only.
   case token_type::kw_namespace: {
     source_code_span namespace_keyword = this->peek().span();
