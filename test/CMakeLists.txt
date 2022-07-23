@@ -9,6 +9,7 @@ quick_lint_js_add_executable(
   quick-lint-js-test
   diag-collector.cpp
   diag-matcher.cpp
+  failing-diag-reporter.cpp
   fake-configuration-filesystem.cpp
   lint-support.cpp
   parse-json.cpp
@@ -18,6 +19,7 @@ quick_lint_js_add_executable(
   quick-lint-js/diag-collector.h
   quick-lint-js/diag-matcher.h
   quick-lint-js/dirty-set.h
+  quick-lint-js/failing-diag-reporter.h
   quick-lint-js/file-matcher.h
   quick-lint-js/gtest.h
   quick-lint-js/lint-support.h

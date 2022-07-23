@@ -15,6 +15,7 @@
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/dirty-set.h>
+#include <quick-lint-js/failing-diag-reporter.h>
 #include <quick-lint-js/fe/null-visitor.h>
 #include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/port/char8.h>
@@ -144,20 +145,20 @@ class test_parse_expression : public ::testing::Test {
 namespace {
 inline spy_visitor parse_and_visit_module(string8_view raw_code) {
   padded_string code(raw_code);
+  failing_diag_reporter reporter;
+  parser p(&code, &reporter);
   spy_visitor v;
-  parser p(&code, &v);
   p.parse_and_visit_module(v);
-  EXPECT_THAT(v.errors, ::testing::IsEmpty());
   return v;
 }
 
 inline spy_visitor parse_and_visit_statement(string8_view raw_code,
                                              parser_options options) {
   padded_string code(raw_code);
+  failing_diag_reporter reporter;
+  parser p(&code, &reporter, options);
   spy_visitor v;
-  parser p(&code, &v, options);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
-  EXPECT_THAT(v.errors, ::testing::IsEmpty());
   return v;
 }
 
@@ -172,47 +173,47 @@ inline spy_visitor parse_and_visit_statement(padded_string_view raw_code) {
 inline spy_visitor parse_and_visit_statement(string8_view raw_code,
                                              function_attributes attributes) {
   padded_string code(raw_code);
+  failing_diag_reporter reporter;
+  parser p(&code, &reporter);
   spy_visitor v;
-  parser p(&code, &v);
   auto guard = p.enter_function(attributes);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
-  EXPECT_THAT(v.errors, ::testing::IsEmpty());
   return v;
 }
 
 inline spy_visitor parse_and_visit_typescript_module(string8_view raw_code) {
   padded_string code(raw_code);
+  failing_diag_reporter reporter;
+  parser p(&code, &reporter, typescript_options);
   spy_visitor v;
-  parser p(&code, &v, typescript_options);
   p.parse_and_visit_module(v);
-  EXPECT_THAT(v.errors, ::testing::IsEmpty());
   return v;
 }
 
 inline spy_visitor parse_and_visit_typescript_statement(string8_view raw_code) {
   padded_string code(raw_code);
+  failing_diag_reporter reporter;
+  parser p(&code, &reporter, typescript_options);
   spy_visitor v;
-  parser p(&code, &v, typescript_options);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
-  EXPECT_THAT(v.errors, ::testing::IsEmpty());
   return v;
 }
 
 inline spy_visitor parse_and_visit_typescript_type(string8_view raw_code) {
   padded_string code(raw_code);
+  failing_diag_reporter reporter;
+  parser p(&code, &reporter, typescript_options);
   spy_visitor v;
-  parser p(&code, &v, typescript_options);
   p.parse_and_visit_typescript_type_expression(v);
-  EXPECT_THAT(v.errors, ::testing::IsEmpty());
   return v;
 }
 
 inline spy_visitor parse_and_visit_expression(string8_view raw_code) {
   padded_string code(raw_code);
+  failing_diag_reporter reporter;
+  parser p(&code, &reporter);
   spy_visitor v;
-  parser p(&code, &v);
   p.parse_and_visit_expression(v);
-  EXPECT_THAT(v.errors, ::testing::IsEmpty());
   return v;
 }
 
