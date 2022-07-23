@@ -336,6 +336,7 @@ TEST(test_lsp_location, add_characters_within_line) {
           .end = {.line = 1, .character = 7},
       },
       u8"xxx ", &updated_code);
+  locator.validate_caches_debug();
 
   check_positions_against_reference_locator(locator, &updated_code);
 }
@@ -352,6 +353,7 @@ TEST(test_lsp_location, remove_characters_within_line) {
           .end = {.line = 1, .character = 7 + 7},
       },
       u8"", &updated_code);
+  locator.validate_caches_debug();
 
   check_positions_against_reference_locator(locator, &updated_code);
 }
@@ -371,6 +373,7 @@ TEST(test_lsp_location, add_newline_within_line) {
             .end = {.line = 1, .character = 6},
         },
         line_terminator, &updated_code);
+    locator.validate_caches_debug();
 
     check_positions_against_reference_locator(locator, &updated_code);
   }
@@ -391,6 +394,7 @@ TEST(test_lsp_location, delete_newline) {
             .end = {.line = 2, .character = 0},
         },
         u8"", &updated_code);
+    locator.validate_caches_debug();
 
     check_positions_against_reference_locator(locator, &updated_code);
   }
@@ -408,6 +412,7 @@ TEST(test_lsp_location, replace_newline_and_text_with_newline) {
           .end = {.line = 2, .character = 5},
       },
       u8"x\ny", &updated_code);
+  locator.validate_caches_debug();
 
   check_positions_against_reference_locator(locator, &updated_code);
 }
@@ -424,6 +429,7 @@ TEST(test_lsp_location, append_line_with_out_of_range_character) {
           .end = {.line = 1, .character = 200},
       },
       u8" extended", &updated_code);
+  locator.validate_caches_debug();
 
   check_positions_against_reference_locator(locator, &updated_code);
 }
@@ -439,6 +445,7 @@ TEST(test_lsp_location, replace_line_with_out_of_range_line) {
           .end = {.line = 3, .character = 0},
       },
       u8"last line", &updated_code);
+  locator.validate_caches_debug();
 
   check_positions_against_reference_locator(locator, &updated_code);
 }
@@ -454,6 +461,7 @@ TEST(test_lsp_location, change_ascii_line_into_non_ascii_line) {
           .end = {.line = 1, .character = 3},
       },
       u8"\u00e7", &updated_code);
+  locator.validate_caches_debug();
 
   check_positions_against_reference_locator(locator, &updated_code);
 }
@@ -469,6 +477,7 @@ TEST(test_lsp_location, split_ascii_line_into_non_ascii_line_and_ascii_line) {
           .end = {.line = 1, .character = 3},
       },
       u8"\u00e7\n", &updated_code);
+  locator.validate_caches_debug();
 
   check_positions_against_reference_locator(locator, &updated_code);
 }
@@ -484,6 +493,7 @@ TEST(test_lsp_location, split_ascii_line_into_ascii_line_and_non_ascii_line) {
           .end = {.line = 1, .character = 3},
       },
       u8"\n\u00e7", &updated_code);
+  locator.validate_caches_debug();
 
   check_positions_against_reference_locator(locator, &updated_code);
 }
@@ -500,6 +510,7 @@ TEST(test_lsp_location,
           .end = {.line = 1, .character = 2},
       },
       u8"\n", &updated_code);
+  locator.validate_caches_debug();
 
   check_positions_against_reference_locator(locator, &updated_code);
 }
@@ -516,6 +527,7 @@ TEST(test_lsp_location,
           .end = {.line = 1, .character = 3},
       },
       u8"\n", &updated_code);
+  locator.validate_caches_debug();
 
   check_positions_against_reference_locator(locator, &updated_code);
 }

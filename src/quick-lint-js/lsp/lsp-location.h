@@ -44,6 +44,8 @@ class lsp_locator {
   void replace_text(lsp_range, string8_view replacement_text,
                     padded_string_view new_input);
 
+  void validate_caches_debug() const;
+
  private:
   void cache_offsets_of_lines();
   void compute_offsets_of_lines(const char8 *begin, const char8 *end,

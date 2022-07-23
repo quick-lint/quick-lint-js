@@ -186,6 +186,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
     }
     document_info& doc = this->documents_[event.document_id];
     doc.data.set_text(utf_16_to_utf_8(event.content));
+    doc.data.locator().validate_caches_debug();
     doc.last_sync = this->event_index;
   }
 
@@ -216,6 +217,7 @@ class document_content_checker : public counting_trace_stream_event_visitor {
     for (const auto& change : event.changes) {
       doc.data.replace_text(to_lsp_range(change.range),
                             utf_16_to_utf_8(change.text));
+      doc.data.locator().validate_caches_debug();
     }
   }
 

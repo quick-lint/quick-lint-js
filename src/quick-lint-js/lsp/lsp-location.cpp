@@ -182,6 +182,26 @@ void lsp_locator::replace_text(lsp_range range, string8_view replacement_text,
   QLJS_ASSERT(this->offset_of_lines_.size() == this->line_is_ascii_.size());
 }
 
+void lsp_locator::validate_caches_debug() const {
+  lsp_locator temp(this->input_);
+
+  bool offsets_match =
+      std::equal(this->offset_of_lines_.begin(), this->offset_of_lines_.end(),
+                 temp.offset_of_lines_.begin(), temp.offset_of_lines_.end());
+  QLJS_ALWAYS_ASSERT(offsets_match);
+  bool asciinesses_match =
+      std::equal(this->line_is_ascii_.begin(), this->line_is_ascii_.end(),
+                 temp.line_is_ascii_.begin(), temp.line_is_ascii_.end(),
+                 [](bool actual_asciiness, bool expected_asciiness) -> bool {
+                   if (!actual_asciiness) {
+                     // It's okay if we think an ASCII-only line is non-ASCII.
+                     return true;
+                   }
+                   return actual_asciiness == expected_asciiness;
+                 });
+  QLJS_ALWAYS_ASSERT(asciinesses_match);
+}
+
 void lsp_locator::cache_offsets_of_lines() {
   QLJS_ASSERT(this->offset_of_lines_.empty());
   QLJS_ASSERT(this->line_is_ascii_.empty());
