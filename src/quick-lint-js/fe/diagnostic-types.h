@@ -1608,6 +1608,24 @@
               opening_less))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_inline_type_export_not_allowed_in_javascript, "E0278",   \
+      diagnostic_severity::error, { source_code_span type_keyword; },          \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript type exports are not "             \
+                                "allowed in JavaScript"),                      \
+              type_keyword))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_inline_type_export_not_allowed_in_type_only_export,      \
+      "E0280", diagnostic_severity::error,                                     \
+      {                                                                        \
+        source_code_span inline_type_keyword;                                  \
+        source_code_span type_only_keyword;                                    \
+      },                                                                       \
+      MESSAGE(QLJS_TRANSLATABLE("'type' cannot be used twice in export"),      \
+              inline_type_keyword)                                             \
+          MESSAGE(QLJS_TRANSLATABLE("remove this 'type'"), type_only_keyword)) \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
       diag_typescript_inline_type_import_not_allowed_in_javascript, "E0271",   \
       diagnostic_severity::error, { source_code_span type_keyword; },          \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript type imports are not "             \
@@ -1621,7 +1639,7 @@
         source_code_span inline_type_keyword;                                  \
         source_code_span type_only_keyword;                                    \
       },                                                                       \
-      MESSAGE(QLJS_TRANSLATABLE("'type' cannot be used twice"),                \
+      MESSAGE(QLJS_TRANSLATABLE("'type' cannot be used twice in import"),      \
               inline_type_keyword)                                             \
           MESSAGE(QLJS_TRANSLATABLE("remove this 'type'"), type_only_keyword)) \
                                                                                \
@@ -1719,6 +1737,13 @@
       "E0268", diagnostic_severity::error, { source_code_span type_keyword; }, \
       MESSAGE(QLJS_TRANSLATABLE("TypeScript type imports cannot import both "  \
                                 "default and named exports"),                  \
+              type_keyword))                                                   \
+                                                                               \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_typescript_type_only_export_not_allowed_in_javascript, "E0279",     \
+      diagnostic_severity::error, { source_code_span type_keyword; },          \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript type exports are not "             \
+                                "allowed in JavaScript"),                      \
               type_keyword))                                                   \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \

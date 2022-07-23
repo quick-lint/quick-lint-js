@@ -249,13 +249,23 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
-        "'type' cannot be used twice"_translatable,
+        "'type' cannot be used twice in export"_translatable,
         {
-            u8"'type' cannot be used twice",
-            u8"'type' cannot be used twice",
-            u8"'type' cannot be used twice",
-            u8"'type' cannot be used twice",
-            u8"'type' cannot be used twice",
+            u8"'type' cannot be used twice in export",
+            u8"'type' cannot be used twice in export",
+            u8"'type' cannot be used twice in export",
+            u8"'type' cannot be used twice in export",
+            u8"'type' cannot be used twice in export",
+        },
+    },
+    {
+        "'type' cannot be used twice in import"_translatable,
+        {
+            u8"'type' cannot be used twice in import",
+            u8"'type' cannot be used twice in import",
+            u8"'type' cannot be used twice in import",
+            u8"'type' cannot be used twice in import",
+            u8"'type' cannot be used twice in import",
         },
     },
     {
@@ -586,6 +596,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"TypeScript type annotations are not allowed in JavaScript code",
             u8"TypeScript type annotations are not allowed in JavaScript code",
             u8"TypeScript type annotations are not allowed in JavaScript code",
+        },
+    },
+    {
+        "TypeScript type exports are not allowed in JavaScript"_translatable,
+        {
+            u8"TypeScript type exports are not allowed in JavaScript",
+            u8"TypeScript type exports are not allowed in JavaScript",
+            u8"TypeScript type exports are not allowed in JavaScript",
+            u8"TypeScript type exports are not allowed in JavaScript",
+            u8"TypeScript type exports are not allowed in JavaScript",
         },
     },
     {

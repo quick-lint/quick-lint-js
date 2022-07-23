@@ -1002,15 +1002,23 @@ msgid "TypeScript generics are not allowed in JavaScript code"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "TypeScript type imports are not allowed in JavaScript"
+msgid "TypeScript type exports are not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "'type' cannot be used twice"
+msgid "'type' cannot be used twice in export"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "remove this 'type'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "TypeScript type imports are not allowed in JavaScript"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'type' cannot be used twice in import"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h

@@ -34,7 +34,8 @@ const translation_table translation_data = {
         {13, 24, 37, 31, 15},         //
         {0, 0, 0, 0, 48},             //
         {0, 0, 0, 0, 66},             //
-        {73, 31, 0, 0, 28},           //
+        {0, 0, 0, 0, 38},             //
+        {73, 31, 0, 0, 38},           //
         {15, 14, 0, 0, 13},           //
         {15, 38, 0, 0, 17},           //
         {15, 17, 0, 0, 17},           //
@@ -68,6 +69,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 57},             //
         {0, 0, 0, 0, 48},             //
         {0, 0, 0, 0, 63},             //
+        {0, 0, 0, 0, 54},             //
         {0, 0, 0, 0, 54},             //
         {0, 0, 0, 0, 69},             //
         {0, 0, 0, 0, 47},             //
@@ -1261,7 +1263,8 @@ const translation_table translation_data = {
         u8"'if' statement\0"
         u8"'in' disallowed in C-style for loop initializer\0"
         u8"'readonly static' is not allowed; write 'static readonly' instead\0"
-        u8"'type' cannot be used twice\0"
+        u8"'type' cannot be used twice in export\0"
+        u8"'type' cannot be used twice in import\0"
         u8"'while' loop\0"
         u8"'with' statement\0"
         u8"'{0}' found here\0"
@@ -1295,6 +1298,7 @@ const translation_table translation_data = {
         u8"TypeScript static blocks are not supported in JavaScript\0"
         u8"TypeScript type annotation requires parentheses\0"
         u8"TypeScript type annotations are not allowed in JavaScript code\0"
+        u8"TypeScript type exports are not allowed in JavaScript\0"
         u8"TypeScript type imports are not allowed in JavaScript\0"
         u8"TypeScript type imports cannot import both default and named exports\0"
         u8"TypeScript types are not allowed in JavaScript\0"

@@ -355,12 +355,9 @@ class parser {
       parse_visitor_base &v, source_code_span type_keyword);
 
   void parse_and_visit_export(parse_visitor_base &v);
-  void parse_and_visit_named_exports_for_export(
-      parse_visitor_base &v,
-      bump_vector<token, monotonic_allocator> &out_exported_bad_tokens);
   void parse_and_visit_named_exports(
       parse_visitor_base &v,
-      std::optional<source_code_span> typescript_type_only_import_keyword,
+      std::optional<source_code_span> typescript_type_only_keyword,
       bump_vector<token, monotonic_allocator> *out_exported_bad_tokens);
 
   void parse_and_visit_variable_declaration_statement(parse_visitor_base &v);

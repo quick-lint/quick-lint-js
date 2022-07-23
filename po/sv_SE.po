@@ -1058,15 +1058,24 @@ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
-msgid "TypeScript type imports are not allowed in JavaScript"
+msgid "TypeScript type exports are not allowed in JavaScript"
 msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
-msgid "'type' cannot be used twice"
+msgid "'type' cannot be used twice in export"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 msgid "remove this 'type'"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "TypeScript type imports are not allowed in JavaScript"
+msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "'type' cannot be used twice in import"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
