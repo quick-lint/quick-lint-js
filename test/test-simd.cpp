@@ -10,14 +10,6 @@
 #include <quick-lint-js/port/simd.h>
 #include <quick-lint-js/port/warning.h>
 
-#if QLJS_HAVE_ARM_NEON
-#include <arm_neon.h>
-#endif
-
-#if QLJS_HAVE_X86_SSE2
-#include <emmintrin.h>
-#endif
-
 QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
 
 namespace quick_lint_js {
