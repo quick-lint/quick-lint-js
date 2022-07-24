@@ -22,15 +22,34 @@ QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
 
 namespace quick_lint_js {
 namespace {
+#if QLJS_HAVE_ARM_NEON || QLJS_HAVE_WEB_ASSEMBLY_SIMD128 || QLJS_HAVE_X86_SSE2
+template <class CharVector16>
+class test_char_vector_16 : public ::testing::Test {};
+using char_vector_16_types = ::testing::Types<
+#if QLJS_HAVE_ARM_NEON
+    char_vector_16_neon
+#endif
+#if QLJS_HAVE_WEB_ASSEMBLY_SIMD128
+        char_vector_16_wasm_simd128
+#endif
 #if QLJS_HAVE_X86_SSE2
-TEST(test_char_vector_16_sse2, repeated) {
+            char_vector_16_sse2
+#endif
+    >;
+TYPED_TEST_SUITE(test_char_vector_16, char_vector_16_types,
+                 ::testing::internal::DefaultNameGenerator);
+
+TYPED_TEST(test_char_vector_16, repeated) {
+  using char_vector_16 = TypeParam;
   char8 expected[16];
   std::fill(std::begin(expected), std::end(expected), u8'x');
-  __m128i actual = char_vector_16_sse2::repeated('x').m128i();
-  EXPECT_EQ(std::memcmp(&actual, expected, sizeof(actual)), 0);
+  char8 actual[16];
+  char_vector_16::repeated('x').store(actual);
+  EXPECT_EQ(std::memcmp(actual, expected, sizeof(actual)), 0);
 }
 
-TEST(test_char_vector_16_sse2, bitwise_or) {
+TYPED_TEST(test_char_vector_16, bitwise_or) {
+  using char_vector_16 = TypeParam;
   constexpr std::uint8_t lhs[16] = {
       0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,  //
       0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,  //
@@ -39,46 +58,19 @@ TEST(test_char_vector_16_sse2, bitwise_or) {
       0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80,  //
       0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80,  //
   };
-  __m128i actual =
-      (char_vector_16_sse2::load(reinterpret_cast<const char8*>(lhs)) |
-       char_vector_16_sse2::load(reinterpret_cast<const char8*>(rhs)))
-          .m128i();
+  std::uint8_t actual[16];
+  (char_vector_16::load(reinterpret_cast<const char8*>(lhs)) |
+   char_vector_16::load(reinterpret_cast<const char8*>(rhs)))
+      .store(reinterpret_cast<char8*>(actual));
   constexpr std::uint8_t expected[16] = {
       0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,  //
       0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,  //
   };
-  EXPECT_EQ(std::memcmp(&actual, expected, sizeof(actual)), 0);
+  EXPECT_EQ(std::memcmp(actual, expected, sizeof(actual)), 0);
 }
 #endif
 
 #if QLJS_HAVE_ARM_NEON
-TEST(test_char_vector_16_neon, repeated) {
-  char8 expected[16];
-  std::fill(std::begin(expected), std::end(expected), u8'x');
-  ::uint8x16_t actual = char_vector_16_neon::repeated('x').uint8x16();
-  EXPECT_EQ(std::memcmp(&actual, expected, sizeof(actual)), 0);
-}
-
-TEST(test_char_vector_16_neon, bitwise_or) {
-  constexpr std::uint8_t lhs[16] = {
-      0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,  //
-      0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,  //
-  };
-  constexpr std::uint8_t rhs[16] = {
-      0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80,  //
-      0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80,  //
-  };
-  ::uint8x16_t actual =
-      (char_vector_16_neon::load(reinterpret_cast<const char8*>(lhs)) |
-       char_vector_16_neon::load(reinterpret_cast<const char8*>(rhs)))
-          .uint8x16();
-  constexpr std::uint8_t expected[16] = {
-      0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88,  //
-      0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,  //
-  };
-  EXPECT_EQ(std::memcmp(&actual, expected, sizeof(actual)), 0);
-}
-
 TEST(test_bool_vector_16_neon, first_false_of_all_false) {
   ::uint8x16_t bools_data = {
       0, 0, 0, 0, 0, 0, 0, 0,  //

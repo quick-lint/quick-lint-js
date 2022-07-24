@@ -62,8 +62,14 @@ class alignas(::v128_t) char_vector_16_wasm_simd128 {
   QLJS_FORCE_INLINE explicit char_vector_16_wasm_simd128(::v128_t data) noexcept
       : data_(data) {}
 
+  // data must point to at least 16 elements.
   QLJS_FORCE_INLINE static char_vector_16_wasm_simd128 load(const char8* data) {
     return char_vector_16_wasm_simd128(::wasm_v128_load(data));
+  }
+
+  // out_data must point to at least 16 elements.
+  QLJS_FORCE_INLINE void store(char8* out_data) {
+    ::wasm_v128_store(out_data, this->data_);
   }
 
   QLJS_FORCE_INLINE static char_vector_16_wasm_simd128 repeated(
@@ -139,10 +145,16 @@ class alignas(__m128i) char_vector_16_sse2 {
   QLJS_FORCE_INLINE explicit char_vector_16_sse2(__m128i data) noexcept
       : data_(data) {}
 
+  // data must point to at least 16 elements.
   QLJS_FORCE_INLINE static char_vector_16_sse2 load(const char8* data) {
     __m128i vector;
     std::memcpy(&vector, data, sizeof(vector));
     return char_vector_16_sse2(vector);
+  }
+
+  // out_data must point to at least 16 elements.
+  QLJS_FORCE_INLINE void store(char8* out_data) {
+    std::memcpy(out_data, &this->data_, sizeof(this->data_));
   }
 
   QLJS_FORCE_INLINE static char_vector_16_sse2 repeated(std::uint8_t c) {
@@ -207,10 +219,16 @@ class alignas(::uint8x16_t) char_vector_16_neon {
   QLJS_FORCE_INLINE explicit char_vector_16_neon(::uint8x16_t data) noexcept
       : data_(data) {}
 
+  // data must point to at least 16 elements.
   QLJS_FORCE_INLINE static char_vector_16_neon load(const char8* data) {
     ::uint8x16_t vector;
     std::memcpy(&vector, data, sizeof(vector));
     return char_vector_16_neon(vector);
+  }
+
+  // out_data must point to at least 16 elements.
+  QLJS_FORCE_INLINE void store(char8* out_data) {
+    std::memcpy(out_data, &this->data_, sizeof(this->data_));
   }
 
   QLJS_FORCE_INLINE static char_vector_16_neon repeated(std::uint8_t c) {
