@@ -219,7 +219,7 @@ if (ICU_FOUND)
 endif ()
 
 find_package(PythonInterp 3.7)
-if (PYTHONINTERP_FOUND)
+if (QUICK_LINT_JS_ENABLE_CLI AND PYTHONINTERP_FOUND)
   add_test(
     NAME quick-lint-js-test-cli
     COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test-cli.py

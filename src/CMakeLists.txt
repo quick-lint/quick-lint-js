@@ -19,24 +19,26 @@ if (NEED_THREADS)
   find_package(Threads REQUIRED)
 endif ()
 
-set(EXTRA_SOURCES)
-if (WIN32)
-  list(APPEND EXTRA_SOURCES quick-lint-js/cli/quick-lint-js.rc)
-  # TODO(strager): Add a dependency on dusty-icon.ico which is referenced by
-  # quick-lint-js.rc.
-endif ()
-quick_lint_js_add_executable(
-  quick-lint-js
-  quick-lint-js/cli/main.cpp
-  ${EXTRA_SOURCES}
-)
-set_target_properties(quick-lint-js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
-target_link_libraries(quick-lint-js PRIVATE quick-lint-js-lib)
-quick_lint_js_enable_windows_unicode(quick-lint-js)
+if (QUICK_LINT_JS_ENABLE_CLI)
+  set(EXTRA_SOURCES)
+  if (WIN32)
+    list(APPEND EXTRA_SOURCES quick-lint-js/cli/quick-lint-js.rc)
+    # TODO(strager): Add a dependency on dusty-icon.ico which is referenced by
+    # quick-lint-js.rc.
+  endif ()
+  quick_lint_js_add_executable(
+    quick-lint-js
+    quick-lint-js/cli/main.cpp
+    ${EXTRA_SOURCES}
+  )
+  set_target_properties(quick-lint-js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ..)
+  target_link_libraries(quick-lint-js PRIVATE quick-lint-js-lib)
+  quick_lint_js_enable_windows_unicode(quick-lint-js)
 
-# TODO(strager): Use the default DESTINATION for CMake versions which have a
-# default. (3.18.0 has a default; 3.12.4 doesn't have a default.)
-install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+  # TODO(strager): Use the default DESTINATION for CMake versions which have a
+  # default. (3.18.0 has a default; 3.12.4 doesn't have a default.)
+  install(TARGETS quick-lint-js RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+endif ()
 
 quick_lint_js_add_library(
   quick-lint-js-lib
@@ -309,17 +311,19 @@ if (
   target_compile_options(quick-lint-js-lib PRIVATE -fno-builtin)
 endif ()
 
-quick_lint_js_collect_copyright(
-  quick-lint-js-licenses
-  TARGET quick-lint-js
-  OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-licenses.txt"
-)
-if (TARGET quick-lint-js-licenses)
-  install(
-    FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-licenses.txt"
-    DESTINATION "${QUICK_LINT_JS_INSTALL_LICENSES_DIR}"
-    RENAME copyright
+if (QUICK_LINT_JS_ENABLE_CLI)
+  quick_lint_js_collect_copyright(
+    quick-lint-js-licenses
+    TARGET quick-lint-js
+    OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-licenses.txt"
   )
+  if (TARGET quick-lint-js-licenses)
+    install(
+      FILES "${CMAKE_CURRENT_BINARY_DIR}/quick-lint-js-licenses.txt"
+      DESTINATION "${QUICK_LINT_JS_INSTALL_LICENSES_DIR}"
+      RENAME copyright
+    )
+  endif ()
 endif ()
 
 quick_lint_js_add_library(

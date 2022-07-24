@@ -16,6 +16,16 @@ include(GNUInstallDirs)
 option(QUICK_LINT_JS_ENABLE_BENCHMARKS "Build microbenchmark programs" OFF)
 option(QUICK_LINT_JS_ENABLE_VSCODE "Build VS Code extension bits" OFF)
 
+set(QUICK_LINT_JS_ENABLE_CLI_DEFAULT ON)
+if (EMSCRIPTEN)
+  set(QUICK_LINT_JS_ENABLE_CLI_DEFAULT OFF)
+endif ()
+option(
+  QUICK_LINT_JS_ENABLE_CLI
+  "Build the command-line program and LSP server"
+  "${QUICK_LINT_JS_ENABLE_CLI_DEFAULT}"
+)
+
 if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.17.3)
   option(QUICK_LINT_JS_PRECOMPILE_HEADERS "Use CMake's target_precompile_headers" ON)
 else ()
