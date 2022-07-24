@@ -10,6 +10,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/util/bit-iterator.h>
 #include <quick-lint-js/util/narrow-cast.h>
 
 #if QLJS_HAVE_ARM_NEON
@@ -59,6 +60,11 @@ class alignas(::v128_t) bool_vector_16_wasm_simd128 {
 
   QLJS_FORCE_INLINE std::uint32_t mask() const noexcept {
     return ::wasm_i8x16_bitmask(this->data_);
+  }
+
+  QLJS_FORCE_INLINE one_bit_iterator<std::uint32_t> iterate_trues() const
+      noexcept {
+    return one_bit_iterator(this->mask());
   }
 
  private:
@@ -155,6 +161,11 @@ class alignas(__m128i) bool_vector_16_sse2 {
     return narrow_cast<std::uint32_t>(_mm_movemask_epi8(this->data_));
   }
 
+  QLJS_FORCE_INLINE one_bit_iterator<std::uint32_t> iterate_trues() const
+      noexcept {
+    return one_bit_iterator(this->mask());
+  }
+
  private:
   __m128i data_;
 };
@@ -212,6 +223,9 @@ class alignas(__m128i) char_vector_16_sse2 {
 #if QLJS_HAVE_ARM_NEON
 class alignas(::uint8x16_t) bool_vector_16_neon {
  public:
+  class mask_iterable;
+  class mask_iterator;
+
   static constexpr int size = 16;
 
   QLJS_FORCE_INLINE explicit bool_vector_16_neon(::uint8x16_t data) noexcept
@@ -239,6 +253,43 @@ class alignas(::uint8x16_t) bool_vector_16_neon {
   QLJS_FORCE_INLINE int find_first_false() const noexcept;
 
   QLJS_FORCE_INLINE std::uint32_t mask() const noexcept;
+
+  // TODO(strager): Make this more efficient.
+  class true_iterator {
+   public:
+    QLJS_FORCE_INLINE bool done() const noexcept {
+      return this->index_ == size;
+    }
+
+    // Precondition: !this->done()
+    QLJS_FORCE_INLINE int index() const noexcept { return this->index_; }
+
+    // Precondition: !this->done()
+    QLJS_FORCE_INLINE void next() noexcept {
+      this->index_ += 1;
+      this->advance_to_true();
+    }
+
+   private:
+    explicit true_iterator(::uint8x16_t data) noexcept : data_(data) {
+      this->advance_to_true();
+    }
+
+    QLJS_FORCE_INLINE void advance_to_true() noexcept {
+      while (!this->done() && this->data_[this->index_] == 0) {
+        this->index_ += 1;
+      }
+    }
+
+    ::uint8x16_t data_;
+    int index_ = 0;
+
+    friend class bool_vector_16_neon;
+  };
+
+  QLJS_FORCE_INLINE true_iterator iterate_trues() const noexcept {
+    return true_iterator(this->data_);
+  }
 
  private:
   ::uint8x16_t data_;
@@ -318,6 +369,29 @@ class bool_vector_1 {
 
   QLJS_FORCE_INLINE std::uint32_t mask() const noexcept {
     return this->data_ ? 1 : 0;
+  }
+
+  class true_iterator {
+   public:
+    QLJS_FORCE_INLINE bool done() const noexcept { return !this->data_; }
+
+    // Precondition: !this->done()
+    QLJS_FORCE_INLINE int index() const noexcept { return 0; }
+
+    // Precondition: !this->done()
+    QLJS_FORCE_INLINE void next() noexcept { this->data_ = false; }
+
+   private:
+    QLJS_FORCE_INLINE explicit true_iterator(bool data) noexcept
+        : data_(data) {}
+
+    bool data_;
+
+    friend class bool_vector_1;
+  };
+
+  QLJS_FORCE_INLINE true_iterator iterate_trues() const noexcept {
+    return true_iterator(this->data_);
   }
 
  private:

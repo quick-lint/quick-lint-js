@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <iterator>
 #include <quick-lint-js/port/char8.h>
@@ -11,6 +12,8 @@
 #include <quick-lint-js/port/warning.h>
 
 QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
+
+using ::testing::ElementsAre;
 
 namespace quick_lint_js {
 namespace {
@@ -138,6 +141,49 @@ TYPED_TEST(test_bool_vector_16, mask_all_true) {
   };
   bool_vector_16 bools = bool_vector_16::load_slow(bools_data);
   EXPECT_EQ(bools.mask(), 0xffff);
+}
+
+TYPED_TEST(test_bool_vector_16, iterate_trues) {
+  using bool_vector_16 = TypeParam;
+  constexpr char8 t = static_cast<char8>(0xff);
+
+  auto collect_true = [](const bool_vector_16& v) -> std::vector<int> {
+    std::vector<int> indexes;
+    for (auto iterator = v.iterate_trues(); !iterator.done(); iterator.next()) {
+      indexes.push_back(iterator.index());
+    }
+    return indexes;
+  };
+
+  {
+    char8 bools_data[] = {
+        0, 0, 0, 0, 0, 0, 0, 0,  //
+        0, 0, 0, 0, 0, 0, 0, 0,  //
+    };
+    EXPECT_THAT(collect_true(bool_vector_16::load_slow(bools_data)),
+                ElementsAre());
+  }
+
+  {
+    char8 bools_data[] = {
+        0, t, 0, 0,  // 1
+        t, t, 0, 0,  // 4, 5
+        0, t, t, t,  // 9, 10, 11
+        0, t, 0, t,  // 13, 15
+    };
+    EXPECT_THAT(collect_true(bool_vector_16::load_slow(bools_data)),
+                ElementsAre(1, 4, 5, 9, 10, 11, 13, 15));
+  }
+
+  {
+    char8 bools_data[] = {
+        t, t, t, t, t, t, t, t,  //
+        t, t, t, t, t, t, t, t,  //
+    };
+    EXPECT_THAT(collect_true(bool_vector_16::load_slow(bools_data)),
+                ElementsAre(0, 1, 2, 3, 4, 5, 6, 7, 8,  //
+                            9, 10, 11, 12, 13, 14, 15));
+  }
 }
 #endif
 }

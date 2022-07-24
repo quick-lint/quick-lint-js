@@ -1943,24 +1943,21 @@ void lexer::skip_block_comment() {
         (chars == char_vector::repeated(u8'\r')) |
         (chars == char_vector::repeated(static_cast<std::uint8_t>(
                       line_separator_paragraph_separator_first_byte)));
-    std::uint32_t mask = matches.mask();
-    if (mask != 0) {
-      for (int i = countr_zero(mask); i < chars.size; ++i) {
-        if (mask & (1U << i)) {
-          if (is_comment_end(&c[i])) {
-            c += i;
-            goto found_comment_end;
-          }
-          int newline_size = this->newline_character_size(&c[i]);
-          if (newline_size > 0) {
-            c += narrow_cast<std::ptrdiff_t>(i) + newline_size;
-            goto found_newline_in_comment;
-          }
-          if (c[i] == '\0') {
-            c += i;
-            goto found_end_of_file;
-          }
-        }
+    for (auto match_iterator = matches.iterate_trues(); !match_iterator.done();
+         match_iterator.next()) {
+      int i = match_iterator.index();
+      if (is_comment_end(&c[i])) {
+        c += i;
+        goto found_comment_end;
+      }
+      int newline_size = this->newline_character_size(&c[i]);
+      if (newline_size > 0) {
+        c += narrow_cast<std::ptrdiff_t>(i) + newline_size;
+        goto found_newline_in_comment;
+      }
+      if (c[i] == '\0') {
+        c += i;
+        goto found_end_of_file;
       }
     }
     c += chars.size;
@@ -1973,19 +1970,16 @@ found_newline_in_comment:
     char_vector chars = char_vector::load(c);
     bool_vector matches = (chars == char_vector::repeated(u8'\0')) |
                           (chars == char_vector::repeated(u8'*'));
-    std::uint32_t mask = matches.mask();
-    if (mask != 0) {
-      for (int i = countr_zero(mask); i < chars.size; ++i) {
-        if (mask & (1U << i)) {
-          if (is_comment_end(&c[i])) {
-            c += i;
-            goto found_comment_end;
-          }
-          if (c[i] == '\0') {
-            c += i;
-            goto found_end_of_file;
-          }
-        }
+    for (auto match_iterator = matches.iterate_trues(); !match_iterator.done();
+         match_iterator.next()) {
+      int i = match_iterator.index();
+      if (is_comment_end(&c[i])) {
+        c += i;
+        goto found_comment_end;
+      }
+      if (c[i] == '\0') {
+        c += i;
+        goto found_end_of_file;
       }
     }
     c += chars.size;
