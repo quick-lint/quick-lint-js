@@ -1604,6 +1604,8 @@ const char8* lexer::parse_identifier_fast_only(const char8* input) {
 
 #if QLJS_HAVE_ARM_NEON
   using char_vector = char_vector_16_neon;
+#elif QLJS_HAVE_WEB_ASSEMBLY_SIMD128
+  using char_vector = char_vector_16_wasm_simd128;
 #elif QLJS_HAVE_X86_SSE2
   using char_vector = char_vector_16_sse2;
 #else
@@ -1629,6 +1631,8 @@ const char8* lexer::parse_identifier_fast_only(const char8* input) {
 #else
 #if QLJS_HAVE_ARM_NEON
     using bool_vector = bool_vector_16_neon;
+#elif QLJS_HAVE_WEB_ASSEMBLY_SIMD128
+    using bool_vector = bool_vector_16_wasm_simd128;
 #elif QLJS_HAVE_X86_SSE2
     using bool_vector = bool_vector_16_sse2;
 #else

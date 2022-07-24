@@ -16,11 +16,86 @@
 #include <arm_neon.h>
 #endif
 
+#if QLJS_HAVE_WEB_ASSEMBLY_SIMD128
+#include <wasm_simd128.h>
+#endif
+
 #if QLJS_HAVE_X86_SSE2
 #include <emmintrin.h>
 #endif
 
 namespace quick_lint_js {
+#if QLJS_HAVE_WEB_ASSEMBLY_SIMD128
+class alignas(::v128_t) bool_vector_16_wasm_simd128 {
+ public:
+  static constexpr int size = 16;
+
+  QLJS_FORCE_INLINE explicit bool_vector_16_wasm_simd128(::v128_t data) noexcept
+      : data_(data) {}
+
+  QLJS_FORCE_INLINE friend bool_vector_16_wasm_simd128 operator|(
+      bool_vector_16_wasm_simd128 x, bool_vector_16_wasm_simd128 y) noexcept {
+    return bool_vector_16_wasm_simd128(::wasm_v128_or(x.data_, y.data_));
+  }
+
+  QLJS_FORCE_INLINE friend bool_vector_16_wasm_simd128 operator&(
+      bool_vector_16_wasm_simd128 x, bool_vector_16_wasm_simd128 y) noexcept {
+    return bool_vector_16_wasm_simd128(::wasm_v128_and(x.data_, y.data_));
+  }
+
+  QLJS_FORCE_INLINE int find_first_false() const noexcept {
+    return countr_one(this->mask());
+  }
+
+  QLJS_FORCE_INLINE std::uint32_t mask() const noexcept {
+    return ::wasm_i8x16_bitmask(this->data_);
+  }
+
+ private:
+  ::v128_t data_;
+};
+
+class alignas(::v128_t) char_vector_16_wasm_simd128 {
+ public:
+  static constexpr int size = 16;
+
+  QLJS_FORCE_INLINE explicit char_vector_16_wasm_simd128(::v128_t data) noexcept
+      : data_(data) {}
+
+  QLJS_FORCE_INLINE static char_vector_16_wasm_simd128 load(const char8* data) {
+    return char_vector_16_wasm_simd128(::wasm_v128_load(data));
+  }
+
+  QLJS_FORCE_INLINE static char_vector_16_wasm_simd128 repeated(
+      std::uint8_t c) {
+    return char_vector_16_wasm_simd128(::wasm_u8x16_splat(c));
+  }
+
+  QLJS_FORCE_INLINE friend char_vector_16_wasm_simd128 operator|(
+      char_vector_16_wasm_simd128 x, char_vector_16_wasm_simd128 y) noexcept {
+    return char_vector_16_wasm_simd128(::wasm_v128_or(x.data_, y.data_));
+  }
+
+  QLJS_FORCE_INLINE friend bool_vector_16_wasm_simd128 operator==(
+      char_vector_16_wasm_simd128 x, char_vector_16_wasm_simd128 y) noexcept {
+    return bool_vector_16_wasm_simd128(::wasm_i8x16_eq(x.data_, y.data_));
+  }
+
+  QLJS_FORCE_INLINE friend bool_vector_16_wasm_simd128 operator<(
+      char_vector_16_wasm_simd128 x, char_vector_16_wasm_simd128 y) noexcept {
+    return bool_vector_16_wasm_simd128(::wasm_u8x16_lt(x.data_, y.data_));
+  }
+
+  QLJS_FORCE_INLINE friend bool_vector_16_wasm_simd128 operator>(
+      char_vector_16_wasm_simd128 x, char_vector_16_wasm_simd128 y) noexcept {
+    return bool_vector_16_wasm_simd128(::wasm_u8x16_gt(x.data_, y.data_));
+  }
+
+ private:
+  ::v128_t data_;
+};
+#endif
+
 #if QLJS_HAVE_X86_SSE2
 class alignas(__m128i) bool_vector_16_sse2 {
  public:
