@@ -70,40 +70,59 @@ TYPED_TEST(test_char_vector_16, bitwise_or) {
 }
 #endif
 
+#if QLJS_HAVE_ARM_NEON || QLJS_HAVE_WEB_ASSEMBLY_SIMD128 || QLJS_HAVE_X86_SSE2
+template <class BoolVector16>
+class test_bool_vector_16 : public ::testing::Test {};
+using bool_vector_16_types = ::testing::Types<
 #if QLJS_HAVE_ARM_NEON
-TEST(test_bool_vector_16_neon, first_false_of_all_false) {
-  ::uint8x16_t bools_data = {
+    bool_vector_16_neon
+#endif
+#if QLJS_HAVE_WEB_ASSEMBLY_SIMD128
+        bool_vector_16_wasm_simd128
+#endif
+#if QLJS_HAVE_X86_SSE2
+            bool_vector_16_sse2
+#endif
+    >;
+TYPED_TEST_SUITE(test_bool_vector_16, bool_vector_16_types,
+                 ::testing::internal::DefaultNameGenerator);
+
+TYPED_TEST(test_bool_vector_16, first_false_of_all_false) {
+  using bool_vector_16 = TypeParam;
+  char8 bools_data[] = {
       0, 0, 0, 0, 0, 0, 0, 0,  //
       0, 0, 0, 0, 0, 0, 0, 0,  //
   };
-  bool_vector_16_neon bools(bools_data);
+  bool_vector_16 bools = bool_vector_16::load_slow(bools_data);
   EXPECT_EQ(bools.find_first_false(), 0);
 }
 
-TEST(test_bool_vector_16_neon, first_false_of_all_true) {
-  constexpr std::uint8_t t = 0xff;
-  ::uint8x16_t bools_data = {
+TYPED_TEST(test_bool_vector_16, first_false_of_all_true) {
+  using bool_vector_16 = TypeParam;
+  constexpr char8 t = static_cast<char8>(0xff);
+  char8 bools_data[] = {
       t, t, t, t, t, t, t, t,  //
       t, t, t, t, t, t, t, t,  //
   };
-  bool_vector_16_neon bools(bools_data);
+  bool_vector_16 bools = bool_vector_16::load_slow(bools_data);
   EXPECT_EQ(bools.find_first_false(), 16);
 }
 
-TEST(test_bool_vector_16_neon, find_first_false_exhaustive) {
+TYPED_TEST(test_bool_vector_16, find_first_false_exhaustive) {
+  using bool_vector_16 = TypeParam;
   for (std::uint32_t i = 0; i <= 0xffff; ++i) {
     SCOPED_TRACE(i);
-    ::uint8x16_t bools_data;
+    char8 bools_data[16];
     int first_false = 16;
     for (int bit = 0; bit < 16; ++bit) {
       bool bit_on = (i >> bit) & 1;
-      bools_data[bit] = bit_on ? 0xff : 0x00;
+      bools_data[bit] = bit_on ? static_cast<char8>(0xff) : 0x00;
       if (!bit_on) {
         first_false = std::min(first_false, bit);
       }
     }
 
-    bool_vector_16_neon bools(bools_data);
+    bool_vector_16 bools = bool_vector_16::load_slow(bools_data);
     ASSERT_EQ(bools.find_first_false(), first_false);
   }
 }

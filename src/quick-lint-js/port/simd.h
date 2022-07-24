@@ -33,6 +33,16 @@ class alignas(::v128_t) bool_vector_16_wasm_simd128 {
   QLJS_FORCE_INLINE explicit bool_vector_16_wasm_simd128(::v128_t data) noexcept
       : data_(data) {}
 
+  // data must point to at least 16 elements.
+  QLJS_FORCE_INLINE static bool_vector_16_wasm_simd128 load_slow(
+      const char8* data) {
+    std::uint8_t bytes[16];
+    for (int i = 0; i < 16; ++i) {
+      bytes[i] = data[i] == 0 ? 0x00 : 0xff;
+    }
+    return bool_vector_16_wasm_simd128(::wasm_v128_load(bytes));
+  }
+
   QLJS_FORCE_INLINE friend bool_vector_16_wasm_simd128 operator|(
       bool_vector_16_wasm_simd128 x, bool_vector_16_wasm_simd128 y) noexcept {
     return bool_vector_16_wasm_simd128(::wasm_v128_or(x.data_, y.data_));
@@ -109,6 +119,17 @@ class alignas(__m128i) bool_vector_16_sse2 {
 
   QLJS_FORCE_INLINE explicit bool_vector_16_sse2(__m128i data) noexcept
       : data_(data) {}
+
+  // data must point to at least 16 elements.
+  QLJS_FORCE_INLINE static bool_vector_16_sse2 load_slow(const char8* data) {
+    std::uint8_t bytes[16];
+    for (int i = 0; i < 16; ++i) {
+      bytes[i] = data[i] == 0 ? 0x00 : 0xff;
+    }
+    __m128i vector;
+    std::memcpy(&vector, bytes, sizeof(vector));
+    return bool_vector_16_sse2(vector);
+  }
 
   QLJS_FORCE_INLINE friend bool_vector_16_sse2 operator|(
       bool_vector_16_sse2 x, bool_vector_16_sse2 y) noexcept {
@@ -195,6 +216,15 @@ class alignas(::uint8x16_t) bool_vector_16_neon {
 
   QLJS_FORCE_INLINE explicit bool_vector_16_neon(::uint8x16_t data) noexcept
       : data_(data) {}
+
+  // data must point to at least 16 elements.
+  QLJS_FORCE_INLINE static bool_vector_16_neon load_slow(const char8* data) {
+    ::uint8x16_t vector;
+    for (int i = 0; i < 16; ++i) {
+      vector[i] = data[i] == 0 ? 0x00 : 0xff;
+    }
+    return bool_vector_16_neon(vector);
+  }
 
   QLJS_FORCE_INLINE friend bool_vector_16_neon operator|(
       bool_vector_16_neon x, bool_vector_16_neon y) noexcept {
