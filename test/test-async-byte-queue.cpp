@@ -11,6 +11,7 @@
 #include <gtest/gtest.h>
 #include <quick-lint-js/container/async-byte-queue.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/thread.h>
 #include <vector>
 
@@ -65,6 +66,7 @@ TEST(test_async_byte_queue, append_byte_after_take) {
   EXPECT_EQ(taken_data_2, u8"y");
 }
 
+#if QLJS_HAVE_THREADS
 TEST(test_async_byte_queue, appended_data_is_readable_by_another_thread) {
   constexpr int write_count = 1000;
 
@@ -91,6 +93,7 @@ TEST(test_async_byte_queue, appended_data_is_readable_by_another_thread) {
 
   EXPECT_EQ(taken_data, expected_data);
 }
+#endif
 
 TEST(test_async_byte_queue, append_small_pieces_within_single_chunk) {
   async_byte_queue q;

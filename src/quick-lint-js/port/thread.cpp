@@ -41,6 +41,25 @@
 #endif
 
 namespace quick_lint_js {
+#if defined(QLJS_THREADS_NONE)
+void mutex::lock() {}
+
+void mutex::unlock() {}
+
+condition_variable::condition_variable() {}
+
+condition_variable::~condition_variable() {}
+
+void condition_variable::wait(std::unique_lock<mutex>&) {
+  // For single-threaded programs, wait() would hang. Let's crash instead.
+  QLJS_CRASH_ALLOWING_CORE_DUMP();
+}
+
+void condition_variable::notify_one() {}
+
+void condition_variable::notify_all() {}
+#endif
+
 #if defined(QLJS_THREADS_WINDOWS)
 thread::thread() noexcept : thread_handle_(nullptr) {}
 

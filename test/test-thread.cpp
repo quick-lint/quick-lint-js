@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <iostream>
+#include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/thread.h>
 
 namespace quick_lint_js {
@@ -18,6 +19,7 @@ TEST(test_thread, thread_id_is_stable) {
   EXPECT_EQ(id, id2) << "thread ID should not change between calls";
 }
 
+#if QLJS_HAVE_THREADS
 TEST(test_thread, thread_ids_differ_between_threads) {
   std::uint64_t main_id = get_current_thread_id();
   std::uint64_t other_id;
@@ -27,6 +29,7 @@ TEST(test_thread, thread_ids_differ_between_threads) {
 
   EXPECT_NE(main_id, other_id) << "thread IDs should differ";
 }
+#endif
 }
 }
 

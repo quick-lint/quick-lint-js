@@ -124,6 +124,14 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_THREADS)
+#if defined(__EMSCRIPTEN__)
+#define QLJS_HAVE_THREADS 0
+#else
+#define QLJS_HAVE_THREADS 1
+#endif
+#endif
+
 #if !defined(QLJS_HAVE_STD_FILESYSTEM)
 #if defined(_WIN32)
 #define QLJS_HAVE_STD_FILESYSTEM 1

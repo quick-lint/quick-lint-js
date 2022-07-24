@@ -16,7 +16,9 @@
 #include <quick-lint-js/port/warning.h>
 #include <utility>
 
-#if QLJS_HAVE_WINDOWS_H
+#if !QLJS_HAVE_THREADS
+#define QLJS_THREADS_NONE
+#elif QLJS_HAVE_WINDOWS_H
 #define QLJS_THREADS_WINDOWS
 #elif QLJS_HAVE_PTHREAD_H
 #define QLJS_THREADS_POSIX
@@ -33,6 +35,7 @@
 #endif
 
 namespace quick_lint_js {
+#if QLJS_HAVE_THREADS
 // A reimplementation of std::thread.
 class thread {
 #if defined(QLJS_THREADS_WINDOWS)
@@ -102,6 +105,7 @@ class thread {
   bool thread_is_running_ = false;
 #endif
 };
+#endif
 
 // A reimplementation of std::mutex.
 class mutex {
@@ -110,12 +114,12 @@ class mutex {
   QLJS_WARNING_IGNORE_GCC("-Wzero-as-null-pointer-constant")
   explicit constexpr mutex() noexcept
 #if defined(QLJS_THREADS_WINDOWS)
-      : mutex_handle_(SRWLOCK_INIT) {
-  }
+      : mutex_handle_(SRWLOCK_INIT)
 #elif defined(QLJS_THREADS_POSIX)
-      : mutex_handle_(PTHREAD_MUTEX_INITIALIZER) {
-  }
+      : mutex_handle_(PTHREAD_MUTEX_INITIALIZER)
 #endif
+  {
+  }
   QLJS_WARNING_POP
 
   // This destructor is technically constexpr, but the constexpr keyword is not
