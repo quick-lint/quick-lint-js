@@ -1,6 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if defined(__EMSCRIPTEN__)
+// No LSP on the web.
+#else
+
 #include <array>
 #include <benchmark/benchmark.h>
 #include <cstddef>
@@ -270,6 +274,8 @@ void benchmark_lsp_tiny_change_on_large_document(::benchmark::State& state) {
 BENCHMARK(benchmark_lsp_tiny_change_on_large_document);
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

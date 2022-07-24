@@ -22,6 +22,7 @@ using boost::container::pmr::new_delete_resource;
 
 namespace quick_lint_js {
 namespace {
+#if !defined(__EMSCRIPTEN__)  // TODO(#800): Support Emscripten.
 void benchmark_lint(benchmark::State &state) {
   const char *source_path_env_var = "QLJS_LINT_BENCHMARK_SOURCE_FILE";
   const char *source_path = std::getenv(source_path_env_var);
@@ -45,7 +46,9 @@ void benchmark_lint(benchmark::State &state) {
   }
 }
 BENCHMARK(benchmark_lint);
+#endif
 
+#if !defined(__EMSCRIPTEN__)  // TODO(#800): Support Emscripten.
 void benchmark_parse_and_lint(benchmark::State &state) {
   const char *source_path_env_var = "QLJS_LINT_BENCHMARK_SOURCE_FILE";
   const char *source_path = std::getenv(source_path_env_var);
@@ -66,6 +69,7 @@ void benchmark_parse_and_lint(benchmark::State &state) {
   }
 }
 BENCHMARK(benchmark_parse_and_lint);
+#endif
 
 void benchmark_undeclared_variable_references(benchmark::State &state) {
   int global_variable_count = 1000;

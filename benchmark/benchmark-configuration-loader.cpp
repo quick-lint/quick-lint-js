@@ -12,6 +12,7 @@
 
 namespace quick_lint_js {
 namespace {
+#if !defined(__EMSCRIPTEN__)  // TODO(#800): Support Emscripten.
 void benchmark_no_config_file(::benchmark::State& state) {
   int extra_depth = narrow_cast<int>(state.range(0));
   std::string temp_dir = make_temporary_directory();
@@ -38,6 +39,7 @@ BENCHMARK(benchmark_no_config_file)
     ->Arg(32)
     ->Arg(48)
     ->Arg(64);
+#endif
 }  // namespace
 }  // namespace quick_lint_js
 

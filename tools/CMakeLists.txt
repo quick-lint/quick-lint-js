@@ -4,12 +4,14 @@
 cmake_minimum_required(VERSION 3.10)
 include(QuickLintJSTarget)
 
-quick_lint_js_add_executable(quick-lint-js-analyze-trace analyze-trace.cpp)
-target_link_libraries(
-  quick-lint-js-analyze-trace
-  PRIVATE
-  quick-lint-js-lib
-)
+if (NOT EMSCRIPTEN) # We don't support tools targeting Emscripten.
+  quick_lint_js_add_executable(quick-lint-js-analyze-trace analyze-trace.cpp)
+  target_link_libraries(
+    quick-lint-js-analyze-trace
+    PRIVATE
+    quick-lint-js-lib
+  )
+endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar

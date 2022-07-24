@@ -17,7 +17,11 @@ int main() {
 }"
   QUICK_LINT_JS_HAVE_FILESYSTEM_CHAR8
 )
-if (QUICK_LINT_JS_HAVE_EXPERIMENTAL_COROUTINE AND QUICK_LINT_JS_HAVE_FILESYSTEM_CHAR8)
+if (
+  QUICK_LINT_JS_HAVE_EXPERIMENTAL_COROUTINE AND
+  QUICK_LINT_JS_HAVE_FILESYSTEM_CHAR8 AND
+  NOT EMSCRIPTEN  # We don't support Emscripten.
+)
   quick_lint_js_add_executable(
     quick-lint-js-benchmark-lsp-servers
     benchmark-config.cpp

@@ -16,6 +16,7 @@ QLJS_WARNING_IGNORE_MSVC(4996)  // Function or variable may be unsafe.
 
 namespace quick_lint_js {
 namespace {
+#if !defined(__EMSCRIPTEN__)  // TODO(#800): Support Emscripten.
 void benchmark_parse_file(benchmark::State &state) {
   const char *source_path_env_var = "QLJS_PARSE_BENCHMARK_SOURCE_FILE";
   const char *source_path = std::getenv(source_path_env_var);
@@ -35,6 +36,7 @@ void benchmark_parse_file(benchmark::State &state) {
   }
 }
 BENCHMARK(benchmark_parse_file);
+#endif
 
 void benchmark_parse(benchmark::State &state, string8_view raw_source) {
   padded_string source(raw_source);
