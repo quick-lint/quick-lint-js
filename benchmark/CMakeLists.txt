@@ -17,6 +17,10 @@ function (quick_lint_js_add_benchmark_executable TARGET_NAME)
     quick-lint-js-benchmark-support
     quick-lint-js-lib
   )
+  if (EMSCRIPTEN)
+    # Enable --benchmark-out when running with Node.js.
+    target_link_libraries("${TARGET_NAME}" PRIVATE -sNODERAWFS=1)
+  endif ()
 endfunction ()
 
 quick_lint_js_add_benchmark_executable(
