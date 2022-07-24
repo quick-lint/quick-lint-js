@@ -118,6 +118,27 @@ TYPED_TEST(test_bool_vector_16, find_first_false_exhaustive) {
     ASSERT_EQ(bools.find_first_false(), first_false);
   }
 }
+
+TYPED_TEST(test_bool_vector_16, mask_all_false) {
+  using bool_vector_16 = TypeParam;
+  char8 bools_data[] = {
+      0, 0, 0, 0, 0, 0, 0, 0,  //
+      0, 0, 0, 0, 0, 0, 0, 0,  //
+  };
+  bool_vector_16 bools = bool_vector_16::load_slow(bools_data);
+  EXPECT_EQ(bools.mask(), 0x0000);
+}
+
+TYPED_TEST(test_bool_vector_16, mask_all_true) {
+  using bool_vector_16 = TypeParam;
+  constexpr char8 t = static_cast<char8>(0xff);
+  char8 bools_data[] = {
+      t, t, t, t, t, t, t, t,  //
+      t, t, t, t, t, t, t, t,  //
+  };
+  bool_vector_16 bools = bool_vector_16::load_slow(bools_data);
+  EXPECT_EQ(bools.mask(), 0xffff);
+}
 #endif
 }
 }

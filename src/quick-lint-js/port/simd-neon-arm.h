@@ -69,6 +69,13 @@ QLJS_FORCE_INLINE inline int bool_vector_16_neon::find_first_false() const
 #elif QLJS_HAVE_ARM_NEON
 QLJS_FORCE_INLINE inline int bool_vector_16_neon::find_first_false() const
     noexcept {
+  return countr_one(this->mask());
+}
+#endif
+
+#if QLJS_HAVE_ARM_NEON
+QLJS_FORCE_INLINE inline std::uint32_t bool_vector_16_neon::mask() const
+    noexcept {
   // Algorithm derived from sse2neon's _mm_movemask_epi8 function:
   // https://github.com/DLTcollab/sse2neon/blob/814935c9ba06f68e9549272dbf5df0db8dab2a00/sse2neon.h#L4752-L4830
   // clang-format off
@@ -77,11 +84,8 @@ QLJS_FORCE_INLINE inline int bool_vector_16_neon::find_first_false() const
   ::uint64x2_t paired32  = ::vreinterpretq_u64_u32(vsraq_n_u32(paired16,  paired16,  16 - 2));
   ::uint8x16_t paired64  = ::vreinterpretq_u8_u64 (vsraq_n_u64(paired32,  paired32,  32 - 4));
   // clang-format on
-
-  std::uint32_t mask =
-      static_cast<std::uint32_t>(vgetq_lane_u8(paired64, 0)) |
-      (static_cast<std::uint32_t>(vgetq_lane_u8(paired64, 8)) << 8);
-  return countr_one(mask);
+  return static_cast<std::uint32_t>(vgetq_lane_u8(paired64, 0)) |
+         (static_cast<std::uint32_t>(vgetq_lane_u8(paired64, 8)) << 8);
 }
 #endif
 }

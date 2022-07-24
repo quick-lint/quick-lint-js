@@ -238,6 +238,8 @@ class alignas(::uint8x16_t) bool_vector_16_neon {
 
   QLJS_FORCE_INLINE int find_first_false() const noexcept;
 
+  QLJS_FORCE_INLINE std::uint32_t mask() const noexcept;
+
  private:
   ::uint8x16_t data_;
 };
