@@ -4,6 +4,10 @@
 #ifndef QUICK_LINT_JS_FILESYSTEM_TEST_H
 #define QUICK_LINT_JS_FILESYSTEM_TEST_H
 
+#if defined(__EMSCRIPTEN__)
+// No filesystem on web.
+#else
+
 #include <optional>
 #include <quick-lint-js/io/temporary-directory.h>
 #include <string>
@@ -46,6 +50,8 @@ class filesystem_test {
   std::optional<std::string> old_working_directory_;
 };
 }
+
+#endif
 
 #endif
 

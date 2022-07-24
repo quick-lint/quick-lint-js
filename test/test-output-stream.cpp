@@ -133,6 +133,10 @@ TEST(test_memory_output_stream, append_with_callback_more_than_buffer_size) {
   EXPECT_EQ(s.get_flushed_string8(), message_0);
 }
 
+#if defined(__EMSCRIPTEN__)
+// No filesystem on web.
+#else
+
 class test_file_output_stream : public ::testing::Test,
                                 public filesystem_test {};
 
@@ -176,6 +180,8 @@ TEST_F(test_file_output_stream, destructing_flushes_pending_data) {
   EXPECT_EQ(after_contents->string_view(), u8"hello world"sv)
       << "data should be written after closing";
 }
+#endif
+
 #endif
 }
 }

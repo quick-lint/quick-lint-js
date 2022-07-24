@@ -1,6 +1,10 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if defined(__EMSCRIPTEN__)
+// No filesystem on web.
+#else
+
 #include <cerrno>
 #include <cstring>
 #include <gmock/gmock.h>
@@ -136,6 +140,8 @@ TEST(test_temporary_directory,
 }
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
