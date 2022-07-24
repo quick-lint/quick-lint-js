@@ -1,6 +1,11 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#if defined(__EMSCRIPTEN__)
+// FIXME(#799): On macOS AArch64, Node.js v18.0.0 and older crash when running
+// tests in this file. Disable the tests for now.
+#else
+
 #include <cstdint>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -344,6 +349,8 @@ TEST(test_trace_stream_reader, lsp_client_to_server_message_event) {
 }
 }
 }
+
+#endif
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
