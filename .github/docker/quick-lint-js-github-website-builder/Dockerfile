@@ -17,6 +17,7 @@ RUN \
         zip \ 
         unzip \
         tar \
+        xz-utils \
         curl && \
     # install Nodejs and node packages
     curl 'https://deb.nodesource.com/gpgkey/nodesource.gpg.key' | apt-key add - && \
