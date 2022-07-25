@@ -27,6 +27,7 @@
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/simdjson.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/version.h>
 #include <simdjson.h>
@@ -468,11 +469,10 @@ void linting_lsp_server_handler::handle_config_file_changes(
     const string8& document_uri = entry.first;
     document& doc = entry.second;
     if (doc.type == document_type::lintable) {
-      auto change_it =
-          std::find_if(config_changes.begin(), config_changes.end(),
-                       [&](const configuration_change& change) {
-                         return change.token == &doc;
-                       });
+      auto change_it = find_unique_if(config_changes,
+                                      [&](const configuration_change& change) {
+                                        return change.token == &doc;
+                                      });
       if (change_it == config_changes.end()) {
         continue;
       }
@@ -502,11 +502,10 @@ void linting_lsp_server_handler::handle_config_file_changes(
           to_json_escaped_string_with_quotes(document_uri), doc.version_json,
           notification_json);
     } else if (doc.type == document_type::config) {
-      auto change_it =
-          std::find_if(config_changes.begin(), config_changes.end(),
-                       [&](const configuration_change& change) {
-                         return change.token == &doc;
-                       });
+      auto change_it = find_unique_if(config_changes,
+                                      [&](const configuration_change& change) {
+                                        return change.token == &doc;
+                                      });
       if (change_it == config_changes.end()) {
         continue;
       }

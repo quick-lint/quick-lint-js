@@ -17,6 +17,7 @@
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/windows.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-16.h>
 #include <string>
@@ -261,19 +262,17 @@ bool change_detecting_filesystem_win32::watch_directory(
 void change_detecting_filesystem_win32::handle_oplock_aborted_event(
     watched_directory* dir) {
   auto directory_it =
-      std::find_if(this->cancelling_watched_directories_.begin(),
-                   this->cancelling_watched_directories_.end(),
-                   [&](const std::unique_ptr<watched_directory>& d) {
-                     return d.get() == dir;
-                   });
-  QLJS_ASSERT(directory_it != this->cancelling_watched_directories_.end());
+      find_unique_existing_if(this->cancelling_watched_directories_,
+                              [&](const std::unique_ptr<watched_directory>& d) {
+                                return d.get() == dir;
+                              });
   swap_erase(this->cancelling_watched_directories_, directory_it);
 }
 
 void change_detecting_filesystem_win32::handle_oplock_broke_event(
     watched_directory* dir,
     [[maybe_unused]] ::DWORD number_of_bytes_transferred) {
-  auto directory_it = std::find_if(
+  auto directory_it = find_unique_if(
       this->watched_directories_.begin(), this->watched_directories_.end(),
       [&](const auto& entry) { return entry.second.get() == dir; });
   bool is_watched = directory_it != this->watched_directories_.end();

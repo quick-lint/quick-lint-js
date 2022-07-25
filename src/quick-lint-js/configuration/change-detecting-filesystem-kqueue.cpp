@@ -19,6 +19,7 @@
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/logging/log.h>
 #include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-16.h>
 #include <string>
@@ -119,9 +120,8 @@ void change_detecting_filesystem_kqueue::handle_kqueue_event(
   QLJS_ASSERT(event.filter == EVFILT_VNODE);
 
   if (is_logging_enabled()) {
-    auto watched_file_it = std::find_if(
-        this->watched_files_.begin(), this->watched_files_.end(),
-        [&](auto& pair) -> bool {
+    auto watched_file_it =
+        find_unique_if(this->watched_files_, [&](auto& pair) -> bool {
           return pair.second.fd.get() == narrow_cast<int>(event.ident);
         });
     if (watched_file_it == this->watched_files_.end()) {

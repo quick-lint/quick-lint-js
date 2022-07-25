@@ -22,6 +22,7 @@
 #include <quick-lint-js/logging/trace-metadata.h>
 #include <quick-lint-js/logging/trace-writer.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/version.h>
 #include <string>
@@ -140,10 +141,9 @@ void trace_flusher::register_current_thread() {
 
 void trace_flusher::unregister_current_thread() {
   std::unique_lock<mutex> lock(this->mutex_);
-  auto registered_thread_it = std::find_if(
-      this->registered_threads_.begin(), this->registered_threads_.end(),
+  auto registered_thread_it = find_unique_existing_if(
+      this->registered_threads_,
       [](auto& t) { return t->thread_writer == &thread_stream_writer_; });
-  QLJS_ASSERT(registered_thread_it != this->registered_threads_.end());
   if (this->is_enabled(lock)) {
     this->flush_one_thread_sync(lock, **registered_thread_it);
   }

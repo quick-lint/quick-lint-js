@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <quick-lint-js/assert.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <utility>
 
@@ -59,7 +60,7 @@ class checked_binary_reader {
   // false.
   bool find_and_skip_byte(std::uint8_t end_byte) {
     const std::uint8_t* found =
-        std::find(this->data_, this->data_end_, end_byte);
+        find_first(this->data_, this->data_end_, end_byte);
     if (found == this->data_end_) {
       return false;
     }

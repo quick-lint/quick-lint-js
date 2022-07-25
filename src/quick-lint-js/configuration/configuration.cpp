@@ -11,6 +11,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <simdjson.h>
 #include <vector>
@@ -312,9 +313,7 @@ string8_view configuration::save_string(std::string_view s) {
 }
 
 bool configuration::should_remove_global_variable(string8_view name) {
-  return std::find(this->globals_to_remove_.begin(),
-                   this->globals_to_remove_.end(),
-                   name) != this->globals_to_remove_.end();
+  return contains(this->globals_to_remove_, name);
 }
 
 [[gnu::noinline]] void configuration::build_globals_from_groups() {

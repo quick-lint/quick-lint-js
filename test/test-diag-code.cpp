@@ -4,6 +4,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <string>
 #include <unordered_map>
 
@@ -24,12 +25,10 @@ std::string next_unused_diag_code() {
   for (int i = 1; i <= 9999; ++i) {
     char code[7];
     std::snprintf(code, sizeof(code), "E%04d", i);
-    auto existing_it =
-        std::find_if(std::begin(all_diags), std::end(all_diags),
-                     [&](const diag_name_and_code& diag) {
-                       return std::string_view(diag.code) == code;
-                     });
-    if (existing_it == std::end(all_diags)) {
+    bool in_use = any_of(all_diags, [&](const diag_name_and_code& diag) {
+      return std::string_view(diag.code) == code;
+    });
+    if (!in_use) {
       return std::string(code);
     }
   }

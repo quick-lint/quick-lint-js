@@ -7,20 +7,12 @@
 #include <quick-lint-js/fe/diag-code-list.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
 #include <quick-lint-js/fe/diagnostic.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <string>
 #include <string_view>
 #include <vector>
 
 namespace quick_lint_js {
-namespace {
-template <class Container, class T>
-bool contains(const Container& container, const T& item) {
-  using std::begin;
-  using std::end;
-  return std::find(begin(container), end(container), item) != end(container);
-}
-}
-
 bool parsed_diag_code_list::error_missing_predicate() const noexcept {
   return this->included_codes.empty() && this->excluded_codes.empty() &&
          this->included_categories.empty() && this->excluded_categories.empty();

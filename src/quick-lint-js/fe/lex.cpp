@@ -22,6 +22,7 @@
 #include <quick-lint-js/port/simd.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-8.h>
 #include <string>
@@ -852,7 +853,7 @@ const char8* lexer::parse_smart_quote_string_literal(
     static_assert(std::size(double_ending_quotes) ==
                   std::size(single_ending_quotes));
     const char32_t* end = ending_quotes + std::size(double_ending_quotes);
-    return std::find(ending_quotes, end, code_point) != end;
+    return contains(ending_quotes, end, code_point);
   };
 
   const char8* c = opening_quote_end;

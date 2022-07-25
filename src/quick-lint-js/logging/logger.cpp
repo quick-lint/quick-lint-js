@@ -13,6 +13,7 @@
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/thread.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string.h>
 #include <vector>
@@ -80,8 +81,7 @@ void enable_logger(logger* l) {
   std::lock_guard lock(global_loggers_mutex);
   initialize_global_loggers_if_needed(lock);
 
-  QLJS_ASSERT(std::find(global_loggers.begin(), global_loggers.end(), l) ==
-              global_loggers.end());
+  QLJS_ASSERT(!contains(global_loggers, l));
   global_loggers.push_back(l);
 }
 
@@ -89,9 +89,7 @@ void disable_logger(logger* l) {
   std::lock_guard lock(global_loggers_mutex);
   initialize_global_loggers_if_needed(lock);
 
-  auto it = std::find(global_loggers.begin(), global_loggers.end(), l);
-  QLJS_ASSERT(it != global_loggers.end());
-  global_loggers.erase(it);
+  global_loggers.erase(find_unique_existing(global_loggers, l));
 }
 
 bool is_logging_enabled() noexcept {

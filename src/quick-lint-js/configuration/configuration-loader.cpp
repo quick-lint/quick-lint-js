@@ -13,6 +13,7 @@
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <string_view>
 #include <unordered_map>
 #include <utility>
@@ -453,13 +454,11 @@ std::vector<configuration_change> configuration_loader::refresh() {
 
       for (const watched_config_path& watch : this->watched_config_paths_) {
         if (watch.actual_config_path == config_path) {
-          auto existing_change_it = std::find_if(
-              changes.begin(), changes.end(),
-              [&](const configuration_change& change) {
+          bool already_changed =
+              any_of(changes, [&](const configuration_change& change) {
                 return *change.watched_path == watch.input_config_path &&
                        change.token == watch.token;
               });
-          bool already_changed = existing_change_it != changes.end();
           if (!already_changed) {
             changes.emplace_back(configuration_change{
                 .watched_path = &watch.input_config_path,
@@ -473,12 +472,10 @@ std::vector<configuration_change> configuration_loader::refresh() {
 
       for (const watched_input_path& watch : this->watched_input_paths_) {
         if (watch.config_path == config_path) {
-          auto existing_change_it =
-              std::find_if(changes.begin(), changes.end(),
-                           [&](const configuration_change& change) {
-                             return *change.watched_path == watch.input_path;
-                           });
-          bool already_changed = existing_change_it != changes.end();
+          bool already_changed =
+              any_of(changes, [&](const configuration_change& change) {
+                return *change.watched_path == watch.input_path;
+              });
           if (!already_changed) {
             changes.emplace_back(configuration_change{
                 .watched_path = &watch.input_path,

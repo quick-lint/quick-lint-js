@@ -13,6 +13,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <vector>
 
 QLJS_WARNING_IGNORE_GCC("-Wsuggest-attribute=noreturn")
@@ -544,11 +545,9 @@ void linter::visit_end_of_module() {
     }
   }
   auto is_variable_declared_by_typeof = [&](const used_variable &var) -> bool {
-    return std::find_if(typeof_variables.begin(), typeof_variables.end(),
-                        [&](const identifier &typeof_variable) {
-                          return typeof_variable.normalized_name() ==
-                                 var.name.normalized_name();
-                        }) != typeof_variables.end();
+    return any_of(typeof_variables, [&](const identifier &typeof_variable) {
+      return typeof_variable.normalized_name() == var.name.normalized_name();
+    });
   };
   auto is_variable_declared = [&](const used_variable &var) -> bool {
     // If a variable appears in declared_variables, then

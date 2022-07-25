@@ -20,6 +20,7 @@
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>
 #include <string_view>
@@ -222,9 +223,7 @@ bool change_detecting_filesystem_inotify::watch_directory(
   }
   // TODO(strager): Use a more efficient data structure, such as a sorted
   // interval set, for watch descriptors.
-  if (std::find(this->watch_descriptors_.begin(),
-                this->watch_descriptors_.end(),
-                watch_descriptor) == this->watch_descriptors_.end()) {
+  if (!contains(this->watch_descriptors_, watch_descriptor)) {
     this->watch_descriptors_.emplace_back(watch_descriptor);
   }
 
