@@ -8,6 +8,7 @@
 #include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/lsp/lsp-location.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-8.h>
 
@@ -187,19 +188,17 @@ void lsp_locator::validate_caches_debug() const {
   lsp_locator temp(this->input_);
 
   bool offsets_match =
-      std::equal(this->offset_of_lines_.begin(), this->offset_of_lines_.end(),
-                 temp.offset_of_lines_.begin(), temp.offset_of_lines_.end());
+      ranges_equal(this->offset_of_lines_, temp.offset_of_lines_);
   QLJS_ALWAYS_ASSERT(offsets_match);
   bool asciinesses_match =
-      std::equal(this->line_is_ascii_.begin(), this->line_is_ascii_.end(),
-                 temp.line_is_ascii_.begin(), temp.line_is_ascii_.end(),
-                 [](bool actual_asciiness, bool expected_asciiness) -> bool {
-                   if (!actual_asciiness) {
-                     // It's okay if we think an ASCII-only line is non-ASCII.
-                     return true;
-                   }
-                   return actual_asciiness == expected_asciiness;
-                 });
+      ranges_equal(this->line_is_ascii_, temp.line_is_ascii_,
+                   [](bool actual_asciiness, bool expected_asciiness) -> bool {
+                     if (!actual_asciiness) {
+                       // It's okay if we think an ASCII-only line is non-ASCII.
+                       return true;
+                     }
+                     return actual_asciiness == expected_asciiness;
+                   });
   QLJS_ALWAYS_ASSERT(asciinesses_match);
 }
 

@@ -18,6 +18,7 @@
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-16.h>
 #include <string>
@@ -121,7 +122,7 @@ canonical_path::canonical_path(std::string &&path) : path_(std::move(path)) {
       p = p.substr(0, slash_index);
     }
   }
-  std::reverse(this->path_lengths_.begin(), this->path_lengths_.end());
+  reverse(this->path_lengths_);
 #elif QLJS_PATHS_WIN32
   // TODO(strager): Avoid string conversions and copying.
   std::optional<std::wstring> wpath = mbstring_to_wstring(this->path_.c_str());
@@ -141,7 +142,7 @@ canonical_path::canonical_path(std::string &&path) : path_(std::move(path)) {
     }
   }
 done:
-  std::reverse(this->path_lengths_.begin(), this->path_lengths_.end());
+  reverse(this->path_lengths_);
 #else
 #error "Unsupported platform"
 #endif

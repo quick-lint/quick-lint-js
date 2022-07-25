@@ -128,6 +128,43 @@ template <class Range, class T>
 bool contains(Range&& haystack, const T& needle) {
   return contains(std::begin(haystack), std::end(haystack), needle);
 }
+
+// An alias for std::ranges::equal.
+template <class RangeA, class RangeB>
+bool ranges_equal(RangeA&& a, RangeB&& b) {
+  return std::equal(std::begin(a), std::end(a), std::begin(b), std::end(b));
+}
+
+// An alias for std::ranges::equal.
+template <class RangeA, class RangeB, class Pred>
+auto ranges_equal(RangeA&& a, RangeB&& b, Pred&& predicate) {
+  return std::equal(std::begin(a), std::end(a), std::begin(b), std::end(b),
+                    predicate);
+}
+
+// An alias for std::ranges::fill.
+template <class Range, class T>
+void fill(Range&& r, const T& value) {
+  std::fill(std::begin(r), std::end(r), value);
+}
+
+// An alias for std::ranges::sort.
+template <class Range>
+void sort(Range&& r) {
+  std::sort(std::begin(r), std::end(r));
+}
+
+// An alias for std::ranges::sort.
+template <class Range, class Comparator>
+void sort(Range&& r, Comparator&& compare) {
+  std::sort(std::begin(r), std::end(r), compare);
+}
+
+// An alias for std::ranges::reverse.
+template <class Range>
+void reverse(Range&& r) {
+  std::reverse(std::begin(r), std::end(r));
+}
 }
 
 #endif

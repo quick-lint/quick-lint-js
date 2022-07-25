@@ -5,6 +5,7 @@
 #include <quick-lint-js/c-api.h>
 #include <quick-lint-js/i18n/translation-table.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/algorithm.h>
 
 namespace quick_lint_js {
 namespace {
@@ -98,7 +99,7 @@ TEST(test_c_api, locale_list) {
   for (const char* const* l = locales; *l; ++l) {
     locale_strings.push_back(*l);
   }
-  std::sort(locale_strings.begin(), locale_strings.end());
+  sort(locale_strings);
 
   std::vector<std::string> expected_locale_strings;
   for (const char* l = translation_data.locale_table; *l != '\0';
@@ -106,7 +107,7 @@ TEST(test_c_api, locale_list) {
     expected_locale_strings.push_back(l);
   }
   expected_locale_strings.push_back("");
-  std::sort(expected_locale_strings.begin(), expected_locale_strings.end());
+  sort(expected_locale_strings);
 
   EXPECT_EQ(locale_strings, expected_locale_strings);
 }

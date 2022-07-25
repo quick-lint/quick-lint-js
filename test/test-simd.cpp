@@ -9,6 +9,7 @@
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/simd.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/algorithm.h>
 
 QLJS_WARNING_IGNORE_CLANG("-Wconditional-uninitialized")
 
@@ -34,7 +35,7 @@ TYPED_TEST_SUITE(test_char_vector_16, char_vector_16_types,
 TYPED_TEST(test_char_vector_16, repeated) {
   using char_vector_16 = TypeParam;
   char8 expected[16];
-  std::fill(std::begin(expected), std::end(expected), u8'x');
+  fill(expected, u8'x');
   char8 actual[16];
   char_vector_16::repeated('x').store(actual);
   EXPECT_EQ(std::memcmp(actual, expected, sizeof(actual)), 0);

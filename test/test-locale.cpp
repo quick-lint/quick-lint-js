@@ -3,6 +3,7 @@
 
 #include <gmock/gmock.h>
 #include <quick-lint-js/i18n/locale.h>
+#include <quick-lint-js/util/algorithm.h>
 
 using ::testing::ElementsAre;
 
@@ -58,7 +59,7 @@ void for_each_permutation(const locale_entry<T>* original_files,
   for (const locale_entry<T>* file = original_files; file->valid(); ++file) {
     files.emplace_back(*file);
   }
-  std::sort(files.begin(), files.end(), order);
+  sort(files, order);
 
   do {
     const locale_entry<T>* current_files = files.data();

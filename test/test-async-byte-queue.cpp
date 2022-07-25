@@ -13,6 +13,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/thread.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <vector>
 
 namespace quick_lint_js {
@@ -119,7 +120,7 @@ TEST(test_async_byte_queue, append_small_pieces_within_multiple_chunks) {
   for (async_byte_queue::size_type i = 0; i < q.default_chunk_size * 5;
        i += piece_size) {
     std::array<char8, piece_size> piece;
-    std::fill(piece.begin(), piece.end(), u8'a' + (i % 26));
+    fill(piece, u8'a' + (i % 26));
     std::memcpy(q.append(piece.size()), piece.data(), piece.size());
     expected_data += string8_view(piece.data(), piece.size());
   }

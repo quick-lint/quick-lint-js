@@ -5,13 +5,14 @@
 #include <gtest/gtest.h>
 #include <limits>
 #include <quick-lint-js/port/integer.h>
+#include <quick-lint-js/util/algorithm.h>
 
 namespace quick_lint_js {
 namespace {
 template <class T>
 string8 write_integer(T value) {
   std::array<char8, integer_string_length<T>> chars;
-  std::fill(chars.begin(), chars.end(), 'x');
+  fill(chars, 'x');
   char8* end = quick_lint_js::write_integer(value, chars.data());
   EXPECT_LE(end - chars.data(), chars.size());
   return string8(chars.data(), end);

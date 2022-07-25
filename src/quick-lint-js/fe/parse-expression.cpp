@@ -24,6 +24,7 @@
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <utility>
 
 namespace quick_lint_js {
@@ -3019,13 +3020,12 @@ next:
           (tag->normalized_name() != closing_tag->normalized_name())) {
         mismatch = true;
       }
-      if (!std::equal(tag_members.begin(), tag_members.end(),
-                      closing_tag_members.begin(), closing_tag_members.end(),
-                      [](const identifier& tag_member,
-                         const identifier& closing_tag_member) {
-                        return tag_member.normalized_name() ==
-                               closing_tag_member.normalized_name();
-                      })) {
+      if (!ranges_equal(tag_members, closing_tag_members,
+                        [](const identifier& tag_member,
+                           const identifier& closing_tag_member) {
+                          return tag_member.normalized_name() ==
+                                 closing_tag_member.normalized_name();
+                        })) {
         mismatch = true;
       }
       if (mismatch) {

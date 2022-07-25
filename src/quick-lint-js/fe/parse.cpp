@@ -17,6 +17,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <utility>
 
 // parser is a recursive-descent parser.
@@ -177,7 +178,7 @@ void parser::check_jsx_attribute(const identifier& attribute_name) {
     }
   }
 
-  bool name_has_upper = std::any_of(name.begin(), name.end(), isupper);
+  bool name_has_upper = any_of(name, isupper);
 
   if (!name_has_upper && is_event_attribute) {
     bump_vector<char8, monotonic_allocator> fixed_name(

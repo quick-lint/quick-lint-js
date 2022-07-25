@@ -8,6 +8,7 @@
 #include <quick-lint-js/container/byte-buffer.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/have.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <vector>
 
 #if QLJS_HAVE_WRITEV
@@ -99,7 +100,7 @@ TEST(test_byte_buffer, append_small_pieces_within_multiple_chunks) {
   for (byte_buffer::size_type i = 0; i < bb.default_chunk_size * 5;
        i += piece_size) {
     std::array<char8, piece_size> piece;
-    std::fill(piece.begin(), piece.end(), u8'a' + (i % 26));
+    fill(piece, u8'a' + (i % 26));
     std::memcpy(bb.append(piece.size()), piece.data(), piece.size());
     expected_data.insert(expected_data.end(), piece.begin(), piece.end());
   }
@@ -117,12 +118,12 @@ TEST(test_byte_buffer, append_piece_larger_than_default_chunk_size) {
   std::vector<char8> piece;
 
   piece.resize(bb.default_chunk_size * 2);
-  std::fill(piece.begin(), piece.end(), u8'a');
+  fill(piece, u8'a');
   std::memcpy(bb.append(piece.size()), piece.data(), piece.size());
   expected_data.insert(expected_data.end(), piece.begin(), piece.end());
 
   piece.resize(bb.default_chunk_size * 3 / 2);
-  std::fill(piece.begin(), piece.end(), u8'b');
+  fill(piece, u8'b');
   std::memcpy(bb.append(piece.size()), piece.data(), piece.size());
   expected_data.insert(expected_data.end(), piece.begin(), piece.end());
 

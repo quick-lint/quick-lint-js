@@ -11,6 +11,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/integer.h>
 #include <quick-lint-js/port/warning.h>
+#include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <vector>
 
@@ -129,12 +130,10 @@ lsp_message_parser_base::parsed_header lsp_message_parser_base::parse_header(
 
 bool lsp_message_parser_base::header_is(string8_view header_name,
                                         string8_view expected_header_name) {
-  return std::equal(header_name.begin(), header_name.end(),
-                    expected_header_name.begin(), expected_header_name.end(),
-                    [](char8 x, char8 y) {
-                      QLJS_ASSERT(y == tolower(y));
-                      return tolower(x) == y;
-                    });
+  return ranges_equal(header_name, expected_header_name, [](char8 x, char8 y) {
+    QLJS_ASSERT(y == tolower(y));
+    return tolower(x) == y;
+  });
 }
 }
 
