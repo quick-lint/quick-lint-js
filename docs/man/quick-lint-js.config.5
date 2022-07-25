@@ -12,10 +12,10 @@
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.17
 .\"    Manual: \ \&
-.\"    Source: quick-lint-js version ﻿ 2.7.0
+.\"    Source: quick-lint-js version ﻿ 2.8.0
 .\"  Language: English
 .\"
-.TH "QUICK\-LINT\-JS.CONFIG" "5" "" "quick\-lint\-js version ﻿ 2.7.0" "\ \&"
+.TH "QUICK\-LINT\-JS.CONFIG" "5" "" "quick\-lint\-js version ﻿ 2.8.0" "\ \&"
 .ie \n(.g .ds Aq \(aq
 .el       .ds Aq '
 .ss \n[.ss] 0
@@ -312,6 +312,12 @@ This group is not enabled by default.
 \fBbrowser\fP
 .RS 4
 globals defined in HTML and DOM standards, including \fBwindow\fP, \fBalert\fP, and \fBconsole\fP.
+This group is enabled by default.
+.RE
+.sp
+\fBbun\fP
+.RS 4
+globals defined by the Bun JavaScript runtime, including \fBBun\fP, \fBfetch\fP, and \fBconsole\fP.
 This group is enabled by default.
 .RE
 .sp
