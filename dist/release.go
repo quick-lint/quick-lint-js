@@ -80,7 +80,7 @@ var Steps []Step = []Step{
 		Title: "Manually update version number and release date",
 		Run: func() {
 			fmt.Printf("Change these files containing version numbers:\n")
-			fmt.Printf("* dist/debian/debian/changelog-xenial\n")
+			fmt.Printf("* dist/debian/debian/changelog-bionic\n")
 			fmt.Printf("* dist/debian/debian/changelog\n")
 			fmt.Printf("* dist/msix/AppxManifest.xml\n")
 			fmt.Printf("* dist/winget/quick-lint.quick-lint-js.installer.template.yaml\n")
