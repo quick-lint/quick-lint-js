@@ -12,6 +12,7 @@ The following contributors are copyright holders of portions of quick-lint-js:
 
 * CodeItQuick; evanontario@hotmail.com
 * EdTheDagger
+* Mothi Ghimire; mothi.ghimire@gmail.com
 * david doroz; dd8788@rit.edu
 * spicyyboi
 
@@ -55,6 +56,7 @@ authored portions of quick-lint-js:
 * Peter Khalil; https://github.com/m5tfi; signed CLA-v1.md
 * Rebraws; nahuel.braian@gmail.com; signed CLA-v1.md
 * Rob Miner; robminer@umich.edu; signed CLA-v1.md
+* Roland Strasser; signed CLA-v1.md
 * Sarah Schulte; sarah.schulte@samsara.com; signed CLA-v1.md
 * Shivam Mehta; sm.cse17@gmail.com; signed CLA-v1.md
 * Tony Sathre; tony@ghostbit.org; signed CLA-v1.md

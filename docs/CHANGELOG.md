@@ -12,9 +12,14 @@ Semantic Versioning.
 
 * `await await f()` now reports [E0266][] ("redundant await") (implemented by
   [clegoz][]).
+* CLI: Misuse of `--vim-file-bufnr` now reports warnings (implemented by [Roland
+  Strasser][]).
 
 ### Fixed
 
+* LSP, VS Code: quick-lint-js now correctly handles merging lines containing
+  non-ASCII with lines containing ASCII. This fixes spurious diagnostics. Thanks
+  to T0x3139 and [mirabellier][] for reporting and helping fix this bug.
 * quick-lint-js now recognizes [Bun][]'s global variables, including `Bun` and
   `bunJSX`. This suppresses undesired [E0057][] ("use of undeclared variable")
   warnings.
@@ -625,6 +630,7 @@ Beta release.
 [Nico Sonack]: https://github.com/herrhotzenplotz
 [Piotr Dąbrowski]: https://github.com/yhnavein
 [Rob Miner]: https://github.com/robminer6
+[Roland Strasser]: https://github.com/rol1510
 [Sarah Schulte]: https://github.com/cgsdev0
 [Shivam Mehta]: https://github.com/maniac-en
 [Tony Sathre]: https://github.com/tonysathre
@@ -633,6 +639,7 @@ Beta release.
 [config-global-groups]: https://quick-lint-js.com/config/#global-groups
 [david doroz]: https://github.com/DaviddHub
 [install-powershell-completions]: https://github.com/quick-lint/quick-lint-js/blob/master/completions/README.md#powershell
+[mirabellier]: https://github.com/mirabellierr
 [ooblegork]: https://github.com/ooblegork
 [tiagovla]: https://github.com/tiagovla
 [wagner riffel]: https://github.com/wgrr
