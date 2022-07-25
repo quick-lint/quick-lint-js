@@ -19,6 +19,7 @@
 #include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/port/vector-erase.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <quick-lint-js/util/narrow-cast.h>
@@ -193,10 +194,7 @@ void change_detecting_filesystem_inotify::read_inotify() {
     }
     if (buffer.event.mask & IN_IGNORED) {
       QLJS_ASSERT(buffer.event.wd != -1);
-      this->watch_descriptors_.erase(
-          std::remove(this->watch_descriptors_.begin(),
-                      this->watch_descriptors_.end(), buffer.event.wd),
-          this->watch_descriptors_.end());
+      erase(this->watch_descriptors_, buffer.event.wd);
     }
   }
 }

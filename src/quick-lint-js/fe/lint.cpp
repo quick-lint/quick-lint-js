@@ -12,6 +12,7 @@
 #include <quick-lint-js/fe/lint.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/unreachable.h>
+#include <quick-lint-js/port/vector-erase.h>
 #include <quick-lint-js/port/warning.h>
 #include <quick-lint-js/util/algorithm.h>
 #include <vector>
@@ -361,11 +362,6 @@ void linter::declare_variable(scope &scope, identifier name, variable_kind kind,
           /*declaration_possibly_looks_like_assignment=*/
           declaration_possibly_looks_like_assignment);
 
-  auto erase_if = [](auto &variables, auto predicate) {
-    variables.erase(
-        std::remove_if(variables.begin(), variables.end(), predicate),
-        variables.end());
-  };
   erase_if(scope.variables_used, [&](const used_variable &used_var) {
     if (name.normalized_name() != used_var.name.normalized_name()) {
       return false;
