@@ -12,6 +12,7 @@ xyz;
 /* à */ xyz; // combining
 /* aa͜a */ xyz; // combining
 /* 👩‍🎤 */ xyz; // ZWJ
+/*️⃣ I'm a comment! */ xyz;
 
 let xyz;
 
