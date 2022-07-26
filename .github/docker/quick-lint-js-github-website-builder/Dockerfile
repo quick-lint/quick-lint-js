@@ -1,12 +1,18 @@
 FROM ubuntu:20.04
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update
 RUN \
-    apt-get install -y --no-install-recommends \
-        software-properties-common \
-        gnupg \ 
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      curl \
+      gnupg \
+      software-properties-common && \
+    curl 'https://deb.nodesource.com/gpgkey/nodesource.gpg.key' | apt-key add - && \
+    apt-add-repository 'deb https://deb.nodesource.com/node_14.x focal main' && \
+    sed -n -e 's/^deb /deb-src /p' /etc/apt/sources.list >/etc/apt/sources.list.d/quick-lint-js-sources.list 
+
+RUN \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         cmake \
         gcc \
         ninja-build \
@@ -18,14 +24,9 @@ RUN \
         unzip \
         tar \
         xz-utils \
-        curl 
+        nodejs
 
-RUN \
-    curl 'https://deb.nodesource.com/gpgkey/nodesource.gpg.key' | apt-key add - && \
-    apt-add-repository 'deb https://deb.nodesource.com/node_14.x focal main' && \
-    sed -n -e 's/^deb /deb-src /p' /etc/apt/sources.list >/etc/apt/sources.list.d/quick-lint-js-sources.list && \
-    apt-get install -y --no-install-recommends nodejs && \
-    npm install -g yarn 
+RUN npm install -g yarn 
 
 RUN pip install bs4 requests 
 

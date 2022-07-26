@@ -2,7 +2,7 @@
 # See end of file for extended copyright information.
 
 name: build website
-on: 
+on:
   push:
   pull_request:
     types: [opened, synchronize]
@@ -39,7 +39,7 @@ jobs:
         run: emmake cmake --build build --target quick-lint-js-vscode quick-lint-js-vscode-licenses
       - name: C++ install
         run: emmake cmake --install build --component vscode --prefix website/public/demo
-      
+
       - name: get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -77,7 +77,7 @@ jobs:
           kill %1
         shell: bash
 
-      - name: check links
+      - name: check links (apache2)
         run: |
           rsync --archive --delete website/www/ /var/www/html/
           service apache2 start
@@ -89,7 +89,7 @@ jobs:
           name: apache-error-log
           path: /var/log/apache2/error.log
           if-no-files-found: ignore
- 
+
       - name: upload build to workflow
         uses: actions/upload-artifact@v2
         with:
