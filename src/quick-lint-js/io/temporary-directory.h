@@ -33,15 +33,6 @@ result<void, create_directory_io_error> create_directory(
 // Crashes on failure.
 void create_directory_or_exit(const std::string& path);
 
-// Crashes on failure.
-void delete_directory_recursive(const std::string& path);
-
-// Crashes on failure.
-std::string get_current_working_directory();
-
-// Crashes on failure.
-void set_current_working_directory(const char* path);
-
 // format is a std::strftime format string.
 result<std::string, platform_file_io_error> make_timestamped_directory(
     std::string_view parent_directory, const char* format);

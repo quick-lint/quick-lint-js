@@ -11,6 +11,7 @@ quick_lint_js_add_executable(
   diag-matcher.cpp
   failing-diag-reporter.cpp
   fake-configuration-filesystem.cpp
+  filesystem-test.cpp
   lint-support.cpp
   parse-json.cpp
   parse-support.cpp

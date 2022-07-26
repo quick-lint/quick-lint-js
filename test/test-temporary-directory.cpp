@@ -10,6 +10,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <quick-lint-js/file-matcher.h>
+#include <quick-lint-js/filesystem-test.h>
 #include <quick-lint-js/io/file-path.h>
 #include <quick-lint-js/io/file.h>
 #include <quick-lint-js/io/temporary-directory.h>

@@ -70,11 +70,6 @@ result<platform_file, write_file_io_error> open_file_for_writing(
 #if QLJS_HAVE_WINDOWS_H
 bool file_ids_equal(const ::FILE_ID_INFO &, const ::FILE_ID_INFO &) noexcept;
 #endif
-
-// Excludes '.' and '..'.
-//
-// Result is not necessarily sorted.
-std::vector<std::string> list_files_in_directory(const std::string &directory);
 }
 
 #endif

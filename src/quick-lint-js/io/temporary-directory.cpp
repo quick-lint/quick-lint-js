@@ -42,7 +42,33 @@
 #include <unistd.h>
 #endif
 
+#if QLJS_HAVE_WINDOWS_H
+#include <quick-lint-js/port/windows-error.h>
+#include <quick-lint-js/port/windows.h>
+#endif
+
 namespace quick_lint_js {
+#if QLJS_HAVE_WINDOWS_H
+namespace {
+std::string get_temp_dir() {
+  std::string path;
+  // TODO(strager): Call GetTempPathW instead.
+  ::DWORD path_buffer_size = ::GetTempPathA(0, path.data());
+  if (path_buffer_size == 0) {
+    std::fprintf(stderr, "failed to get path to temporary directory: %s\n",
+                 windows_last_error_message().c_str());
+    std::abort();
+  }
+  ::DWORD path_length = path_buffer_size - 1;
+  path.resize(path_length);
+  ::DWORD rc = ::GetTempPathA(path.size() + 1, path.data());
+  QLJS_ALWAYS_ASSERT(rc == path_length);
+  QLJS_ASSERT(path.back() == '\\');
+  return path;
+}
+}
+#endif
+
 std::string create_directory_io_error::to_string() const {
   return this->io_error.to_string();
 }
@@ -64,7 +90,6 @@ result<void, platform_file_io_error> make_unique_directory(std::string &path) {
 
   std::random_device system_rng;
   std::mt19937 rng(/*seed=*/system_rng());
-  std::error_code error;
 
   for (int attempt = 0; attempt < 100; ++attempt) {
     std::string suffix = ".";
@@ -72,8 +97,9 @@ result<void, platform_file_io_error> make_unique_directory(std::string &path) {
       suffix += characters[character_index_distribution(rng)];
     }
 
-    std::filesystem::path directory_path = path + suffix;
-    if (!std::filesystem::create_directory(directory_path, error)) {
+    result<void, create_directory_io_error> create_result =
+        create_directory(path + suffix);
+    if (!create_result.ok()) {
       continue;
     }
 
@@ -81,7 +107,7 @@ result<void, platform_file_io_error> make_unique_directory(std::string &path) {
     return {};
   }
 
-  // TODO(strager): Return the proper error code from 'error'.
+  // TODO(strager): Return the proper error code from 'create_result'.
   return result<void, platform_file_io_error>::failure(platform_file_io_error{
       .error = 0,
   });
@@ -90,7 +116,18 @@ result<void, platform_file_io_error> make_unique_directory(std::string &path) {
 #error "Unsupported platform"
 #endif
 
-#if QLJS_HAVE_MKDTEMP
+#if QLJS_HAVE_WINDOWS_H
+std::string make_temporary_directory() {
+  std::string temp_directory_name = get_temp_dir() + "quick-lint-js";
+  auto result = make_unique_directory(temp_directory_name);
+  if (!result.ok()) {
+    std::fprintf(stderr, "failed to create temporary directory: %s\n",
+                 result.error_to_string().c_str());
+    std::abort();
+  }
+  return temp_directory_name;
+}
+#elif QLJS_HAVE_MKDTEMP
 std::string make_temporary_directory() {
   std::string temp_directory_name = "/tmp/quick-lint-js";
   auto result = make_unique_directory(temp_directory_name);
@@ -190,99 +227,6 @@ void create_directory_or_exit(const std::string &path) {
                  path.c_str(), result.error_to_string().c_str());
     std::terminate();
   }
-}
-
-#if QLJS_HAVE_FTS_H
-void delete_directory_recursive(const std::string &path) {
-  char *paths[] = {const_cast<char *>(path.c_str()), nullptr};
-  ::FTS *fts = ::fts_open(paths, FTS_PHYSICAL | FTS_XDEV, nullptr);
-  if (!fts) {
-    std::fprintf(stderr, "fatal: fts_open failed to open %s: %s\n",
-                 path.c_str(), std::strerror(errno));
-    std::abort();
-  }
-  while (::FTSENT *entry = ::fts_read(fts)) {
-    switch (entry->fts_info) {
-    case FTS_D: {
-      // Make sure the directory is traversable before traversing.
-      int rc = ::chmod(entry->fts_accpath, 0700);
-      if (rc != 0) {
-        std::fprintf(stderr,
-                     "warning: failed to change permissions for %s: %s\n",
-                     entry->fts_accpath, std::strerror(errno));
-      }
-      break;
-    }
-
-    case FTS_DP: {
-      int rc = ::rmdir(entry->fts_accpath);
-      if (rc != 0) {
-        std::fprintf(stderr, "warning: failed to delete %s: %s\n",
-                     entry->fts_accpath, std::strerror(errno));
-      }
-      break;
-    }
-
-    case FTS_F:
-    case FTS_SL:
-    case FTS_SLNONE:
-    case FTS_DEFAULT: {
-      int rc = ::unlink(entry->fts_accpath);
-      if (rc != 0) {
-        std::fprintf(stderr, "warning: failed to delete %s: %s\n",
-                     entry->fts_accpath, std::strerror(errno));
-      }
-      break;
-    }
-
-    case FTS_DNR:
-    case FTS_ERR:
-    case FTS_NS:
-      std::fprintf(stderr, "fatal: fts_read failed to read %s: %s\n",
-                   entry->fts_accpath, std::strerror(entry->fts_errno));
-      std::abort();
-      break;
-
-    case FTS_DC:
-    case FTS_DOT:
-    case FTS_NSOK:
-      QLJS_UNREACHABLE();
-      break;
-    }
-  }
-  ::fts_close(fts);
-}
-#elif QLJS_HAVE_STD_FILESYSTEM
-void delete_directory_recursive(const std::string &path) {
-  std::filesystem::remove_all(std::filesystem::path(path));
-}
-#endif
-
-std::string get_current_working_directory() {
-#if QLJS_HAVE_STD_FILESYSTEM
-  return std::filesystem::current_path().string();
-#else
-  std::string cwd;
-  cwd.resize(PATH_MAX);
-  if (!::getcwd(cwd.data(), cwd.size() + 1)) {
-    std::fprintf(stderr, "error: failed to get current directory: %s\n",
-                 std::strerror(errno));
-    std::terminate();
-  }
-  return cwd;
-#endif
-}
-
-void set_current_working_directory(const char *path) {
-#if QLJS_HAVE_STD_FILESYSTEM
-  std::filesystem::current_path(path);
-#else
-  if (::chdir(path) != 0) {
-    std::fprintf(stderr, "error: failed to set current directory to %s: %s\n",
-                 path, std::strerror(errno));
-    std::terminate();
-  }
-#endif
 }
 
 result<std::string, platform_file_io_error> make_timestamped_directory(

@@ -14,6 +14,20 @@
 #include <vector>
 
 namespace quick_lint_js {
+// Crashes on failure.
+void delete_directory_recursive(const std::string& path);
+
+// Crashes on failure.
+std::string get_current_working_directory();
+
+// Crashes on failure.
+void set_current_working_directory(const char* path);
+
+// Excludes '.' and '..'.
+//
+// Result is not necessarily sorted.
+std::vector<std::string> list_files_in_directory(const std::string& directory);
+
 // Mixin for tests which manipulate the filesystem.
 class filesystem_test {
  public:
