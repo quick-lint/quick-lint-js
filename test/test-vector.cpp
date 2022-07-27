@@ -10,6 +10,7 @@
 #include <quick-lint-js/feature.h>
 
 using ::testing::ElementsAre;
+using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
@@ -202,6 +203,34 @@ TEST(test_bump_vector, pop_back_then_push_back_reuses_memory) {
   EXPECT_THAT(v, ElementsAre(100, 200, 400));
   EXPECT_EQ(v_data_pointer, old_v_data_pointer);
   EXPECT_GE(v.capacity(), 3);
+}
+
+TEST(test_bump_vector, move_constructing_clears_old_vector) {
+  linked_bump_allocator<alignof(int)> alloc;
+  bump_vector<int, decltype(alloc)> v("test", &alloc);
+  v.emplace_back(100);
+  v.emplace_back(200);
+
+  bump_vector<int, decltype(alloc)> v2(std::move(v));
+  EXPECT_THAT(v, IsEmpty());
+}
+
+TEST(test_bump_vector, move_constructor_preserves_pointers) {
+  linked_bump_allocator<alignof(int)> alloc;
+  bump_vector<int, decltype(alloc)> v("test", &alloc);
+  v.emplace_back(100);
+  v.emplace_back(200);
+
+  std::uintptr_t old_v_data_pointer =
+      reinterpret_cast<std::uintptr_t>(v.data());
+  std::size_t old_v_capacity = v.capacity();
+  std::size_t old_v_size = v.size();
+
+  bump_vector<int, decltype(alloc)> v2(std::move(v));
+
+  EXPECT_EQ(reinterpret_cast<std::uintptr_t>(v2.data()), old_v_data_pointer);
+  EXPECT_EQ(v2.capacity(), old_v_capacity);
+  EXPECT_EQ(v2.size(), old_v_size);
 }
 }
 }

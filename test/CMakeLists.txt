@@ -94,6 +94,7 @@ quick_lint_js_add_executable(
   test-parse-loop.cpp
   test-parse-module.cpp
   test-parse-statement.cpp
+  test-parse-typescript-ambiguous.cpp
   test-parse-typescript-class.cpp
   test-parse-typescript-enum.cpp
   test-parse-typescript-function.cpp

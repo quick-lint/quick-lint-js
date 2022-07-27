@@ -722,6 +722,19 @@ TEST(test_parse, for_in_loop_with_var_initializer) {
   }
 
   {
+    parse_visit_collector v = parse_and_visit_statement(
+        u8"for (var x = <T,>() => y in []) {}"_sv, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+                                      "visit_variable_declaration",       // T
+                                      "visit_enter_function_scope_body",  //
+                                      "visit_variable_use",               // y
+                                      "visit_exit_function_scope",        //
+                                      "visit_variable_declaration",       // x
+                                      "visit_enter_block_scope",          //
+                                      "visit_exit_block_scope"));
+  }
+
+  {
     parse_visit_collector v =
         parse_and_visit_statement(u8"for (var x = y ? z : w in []) {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y

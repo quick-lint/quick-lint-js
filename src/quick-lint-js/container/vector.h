@@ -106,6 +106,16 @@ class raw_bump_vector {
   raw_bump_vector(const raw_bump_vector &) = delete;
   raw_bump_vector &operator=(const raw_bump_vector &) = delete;
 
+  raw_bump_vector(raw_bump_vector &&other)
+      : data_(other.data_),
+        data_end_(other.data_end_),
+        capacity_end_(other.capacity_end_),
+        allocator_(other.allocator_) {
+    other.data_ = nullptr;
+    other.data_end_ = nullptr;
+    other.capacity_end_ = nullptr;
+  }
+
   ~raw_bump_vector() { this->clear(); }
 
   BumpAllocator *get_allocator() const noexcept { return this->allocator_; }

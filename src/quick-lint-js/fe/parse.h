@@ -447,7 +447,14 @@ class parser {
                                               expression *callee);
   expression *parse_index_expression_remainder(parse_visitor_base &,
                                                expression *lhs);
+  expression_arena::vector<expression *>
+  parse_arrow_function_parameters_or_call_arguments(parse_visitor_base &v);
   expression *parse_arrow_function_body(
+      parse_visitor_base &, function_attributes,
+      const char8 *parameter_list_begin, bool allow_in_operator,
+      expression_arena::array_ptr<expression *> &&parameters,
+      buffering_visitor *return_type_visits);
+  expression *parse_arrow_function_body_no_scope(
       parse_visitor_base &, function_attributes,
       const char8 *parameter_list_begin, bool allow_in_operator,
       expression_arena::array_ptr<expression *> &&parameters,
@@ -458,6 +465,8 @@ class parser {
   expression *parse_object_literal(parse_visitor_base &);
   expression *parse_class_expression(parse_visitor_base &);
   expression *parse_jsx_expression(parse_visitor_base &);
+  expression *parse_jsx_or_typescript_generic_expression(
+      parse_visitor_base &, bool allow_in_operator);
   expression *parse_jsx_element_or_fragment(parse_visitor_base &);
   // tag is optional. If it is nullptr, parse a fragment. Otherwise, parse an
   // element.
@@ -469,6 +478,8 @@ class parser {
                                             identifier *tag,
                                             const char8 *less_begin);
   void check_jsx_attribute(const identifier &attribute_name);
+  expression *parse_typescript_generic_arrow_expression(parse_visitor_base &,
+                                                        bool allow_in_operator);
   expression *parse_tagged_template(parse_visitor_base &, expression *tag);
   expression *parse_untagged_template(parse_visitor_base &);
 

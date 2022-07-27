@@ -154,6 +154,22 @@ TEST(test_parse_typescript_function, interface_method_return_type_annotation) {
 }
 
 TEST(test_parse_typescript_function,
+     generic_arrow_function_expression_body_can_use_in_operator) {
+  {
+    parse_visit_collector v =
+        parse_and_visit_typescript_statement(u8"<T,>() => x in y"_sv);
+    EXPECT_THAT(v.visits,
+                ElementsAre("visit_enter_function_scope",       //
+                            "visit_variable_declaration",       // T
+                            "visit_enter_function_scope_body",  //
+                            "visit_variable_use",               // x
+                            "visit_variable_use",               // y
+                            "visit_exit_function_scope"));
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x", u8"y"));
+  }
+}
+
+TEST(test_parse_typescript_function,
      non_null_assertion_in_parameter_list_is_an_error) {
   {
     padded_string code(u8"function f(param!) {}"_sv);

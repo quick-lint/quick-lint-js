@@ -620,9 +620,13 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
     return ast;
   }
 
-  // <MyComponent /> (JSX)
+  // <MyComponent />     // JSX only.
+  // <T>(params) => {}   // TypeScript only.
+  // <T,>(params) => {}  // TypeScript only.
   case token_type::less:
-    return this->parse_jsx_expression(v);
+    return this->parse_jsx_or_typescript_generic_expression(
+        v,
+        /*allow_in_operator=*/prec.in_operator);
 
   // => expr  // Invalid. Treat as arrow function.
   // => {}    // Invalid. Treat as arrow function.
@@ -737,32 +741,10 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
   case token_type::left_paren: {
     bool newline_after_async = this->peek().has_leading_newline;
 
-    expression_arena::vector<expression*> parameters(
-        "parse_expression async arrow function parameters",
-        this->expressions_.allocator());
     source_code_span left_paren_span = this->peek().span();
     this->skip();
-
-    while (this->peek().type != token_type::right_paren) {
-      if (this->peek().type == token_type::comma) {
-        // TODO(strager): Emit a different error if this is an arrow function.
-        // diag_extra_comma_not_allowed_between_arguments only makes sense if
-        // this is a function call.
-        this->diag_reporter_->report(
-            diag_extra_comma_not_allowed_between_arguments{
-                .comma = this->peek().span(),
-            });
-        this->skip();
-        continue;
-      }
-      parameters.emplace_back(
-          this->parse_expression(v, precedence{.commas = false}));
-      if (this->peek().type != token_type::comma) {
-        break;
-      }
-      this->skip();
-    }
-
+    expression_arena::vector<expression*> parameters =
+        this->parse_arrow_function_parameters_or_call_arguments(v);
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
     source_code_span right_paren_span = this->peek().span();
     this->skip();
@@ -2033,14 +2015,53 @@ expression* parser::parse_index_expression_remainder(parse_visitor_base& v,
   return this->make_expression<expression::index>(lhs, subscript, end);
 }
 
+expression_arena::vector<expression*>
+parser::parse_arrow_function_parameters_or_call_arguments(
+    parse_visitor_base& v) {
+  expression_arena::vector<expression*> parameters(
+      "parse_arrow_function_parameters_or_call_arguments parameters",
+      this->expressions_.allocator());
+  while (this->peek().type != token_type::right_paren) {
+    if (this->peek().type == token_type::comma) {
+      // TODO(strager): Emit a different error if this is an arrow function.
+      // diag_extra_comma_not_allowed_between_arguments only makes sense if
+      // this is a function call.
+      this->diag_reporter_->report(
+          diag_extra_comma_not_allowed_between_arguments{
+              .comma = this->peek().span(),
+          });
+      this->skip();
+      continue;
+    }
+    parameters.emplace_back(
+        this->parse_expression(v, precedence{.commas = false}));
+    if (this->peek().type != token_type::comma) {
+      break;
+    }
+    this->skip();
+  }
+  return parameters;
+}
+
 expression* parser::parse_arrow_function_body(
     parse_visitor_base& v, function_attributes attributes,
     const char8* parameter_list_begin, bool allow_in_operator,
     expression_arena::array_ptr<expression*>&& parameters,
     buffering_visitor* return_type_visits) {
-  function_guard guard = this->enter_function(attributes);
-
   v.visit_enter_function_scope();
+  expression* arrow = this->parse_arrow_function_body_no_scope(
+      v, attributes, parameter_list_begin, allow_in_operator,
+      std::move(parameters), return_type_visits);
+  v.visit_exit_function_scope();
+  return arrow;
+}
+
+expression* parser::parse_arrow_function_body_no_scope(
+    parse_visitor_base& v, function_attributes attributes,
+    const char8* parameter_list_begin, bool allow_in_operator,
+    expression_arena::array_ptr<expression*>&& parameters,
+    buffering_visitor* return_type_visits) {
+  function_guard guard = this->enter_function(attributes);
 
   for (expression* parameter : parameters) {
     this->visit_binding_element(parameter, v, variable_kind::_parameter,
@@ -2060,7 +2081,6 @@ expression* parser::parse_arrow_function_body(
                                             .in_operator = allow_in_operator,
                                         });
   }
-  v.visit_exit_function_scope();
 
   const char8* span_end = this->lexer_.end_of_previous_token();
   return this->make_expression<expression::arrow_function>(
@@ -2728,6 +2748,33 @@ expression* parser::parse_class_expression(parse_visitor_base& v) {
       source_code_span(class_keyword_span.begin(), span_end));
 }
 
+expression* parser::parse_jsx_or_typescript_generic_expression(
+    parse_visitor_base& v, bool allow_in_operator) {
+  QLJS_ASSERT(this->peek().type == token_type::less);
+
+  // Disambiguate between:
+  // <Type,>(params) => {}    // Arrow function.
+  // <Component></Component>  // JSX element.
+  if (this->options_.typescript) {
+    lexer_transaction transaction = this->lexer_.begin_transaction();
+    this->skip();
+    if (this->peek().type == token_type::identifier) {
+      this->skip();
+      if (this->peek().type == token_type::comma ||
+          this->peek().type == token_type::kw_extends) {
+        // <T,>() => {}  // Generic arrow function.
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        return this->parse_typescript_generic_arrow_expression(
+            v,
+            /*allow_in_operator=*/allow_in_operator);
+      }
+    }
+    this->lexer_.roll_back_transaction(std::move(transaction));
+  }
+
+  return this->parse_jsx_expression(v);
+}
+
 expression* parser::parse_jsx_expression(parse_visitor_base& v) {
   QLJS_ASSERT(this->peek().type == token_type::less);
 
@@ -3116,6 +3163,41 @@ next:
   }
 
   QLJS_UNREACHABLE();
+}
+
+expression* parser::parse_typescript_generic_arrow_expression(
+    parse_visitor_base& v, bool allow_in_operator) {
+  const char8* begin = this->peek().begin;
+
+  v.visit_enter_function_scope();
+  this->parse_and_visit_typescript_generic_parameters(v);
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
+  this->skip();
+
+  expression_arena::vector<expression*> parameters =
+      this->parse_arrow_function_parameters_or_call_arguments(v);
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+  this->skip();
+
+  buffering_visitor return_type_visits(&this->type_expression_memory_);
+  if (this->peek().type == token_type::colon) {
+    this->parse_and_visit_typescript_colon_type_expression(return_type_visits);
+  }
+
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
+  this->skip();
+
+  expression* ast = this->parse_arrow_function_body_no_scope(
+      v, function_attributes::normal, begin,
+      /*allow_in_operator=*/allow_in_operator,
+      this->expressions_.make_array(std::move(parameters)),
+      /*return_type_visits=*/&return_type_visits);
+
+  v.visit_exit_function_scope();
+
+  return ast;
 }
 
 expression* parser::parse_tagged_template(parse_visitor_base& v,

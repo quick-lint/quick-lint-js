@@ -59,6 +59,13 @@ inline constexpr parser_options typescript_options = [] {
   return options;
 }();
 
+inline constexpr parser_options typescript_jsx_options = [] {
+  parser_options options;
+  options.jsx = true;
+  options.typescript = true;
+  return options;
+}();
+
 class test_parser {
  public:
   explicit test_parser(padded_string_view input)
