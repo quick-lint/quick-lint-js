@@ -1878,7 +1878,6 @@ void parser::parse_arrow_function_expression_remainder(
     // a + b => c
   }
   expression* lhs = binary_builder.last_expression();
-  function_attributes attributes = function_attributes::normal;
 
   buffering_visitor* return_type_visits = nullptr;
   const char8* left_paren_begin = nullptr;
@@ -2021,7 +2020,7 @@ void parser::parse_arrow_function_expression_remainder(
   }
 
   expression* arrow_function = this->parse_arrow_function_body(
-      v, /*attributes=*/attributes,
+      v, /*attributes=*/function_attributes::normal,
       /*parameter_list_begin=*/left_paren_begin,
       /*allow_in_operator=*/allow_in_operator,
       this->expressions_.make_array(std::move(parameters)),
