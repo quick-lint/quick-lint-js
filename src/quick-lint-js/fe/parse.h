@@ -443,10 +443,6 @@ class parser {
                                                  source_code_span arrow_span,
                                                  binary_expression_builder &,
                                                  bool allow_in_operator);
-  // Precondition: Current token is '=>'.
-  void parse_arrow_function_expression_remainder(parse_visitor_base &,
-                                                 binary_expression_builder &,
-                                                 bool allow_in_operator);
   expression *parse_call_expression_remainder(parse_visitor_base &,
                                               expression *callee);
   expression *parse_index_expression_remainder(parse_visitor_base &,

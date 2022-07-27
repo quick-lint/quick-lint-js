@@ -1844,16 +1844,6 @@ next:
 }
 
 void parser::parse_arrow_function_expression_remainder(
-    parse_visitor_base& v, binary_expression_builder& children,
-    bool allow_in_operator) {
-  QLJS_ASSERT(this->peek().type == token_type::equal_greater);
-  source_code_span arrow_span = this->peek().span();
-  this->skip();
-  this->parse_arrow_function_expression_remainder(v, arrow_span, children,
-                                                  allow_in_operator);
-}
-
-void parser::parse_arrow_function_expression_remainder(
     parse_visitor_base& v, [[maybe_unused]] source_code_span arrow_span,
     binary_expression_builder& binary_builder, bool allow_in_operator) {
   if (binary_builder.has_multiple_children()) {
