@@ -1854,7 +1854,7 @@ void parser::parse_arrow_function_expression_remainder(
 }
 
 void parser::parse_arrow_function_expression_remainder(
-    parse_visitor_base& v, [[maybe_unused]] /*@@@*/ source_code_span arrow_span,
+    parse_visitor_base& v, [[maybe_unused]] source_code_span arrow_span,
     binary_expression_builder& binary_builder, bool allow_in_operator) {
   if (binary_builder.has_multiple_children()) {
     // TODO(strager): We should report an error for code like this:
