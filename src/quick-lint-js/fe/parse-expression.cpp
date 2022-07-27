@@ -1613,8 +1613,69 @@ next:
 
   // (parameters, go, here) => expression-or-block // Arrow function.
   case token_type::equal_greater: {
+    source_code_span arrow_span = this->peek().span();
+    this->skip();
+    expression* lhs = binary_builder.last_expression();
+    expression* lhs_without_paren = lhs->without_paren();
+    switch (lhs_without_paren->kind()) {
+    // f(x, y) => {}      // Invalid.
+    // await(x, y) => {}  // Invalid.
+    // f.x => z           // Invalid.
+    // 42 => {}           // Invalid.
+    case expression_kind::call:
+    case expression_kind::dot:
+    case expression_kind::literal: {
+      if (lhs_without_paren->kind() == expression_kind::call) {
+        auto* call = expression_cast<expression::call>(lhs);
+        // FIXME(strager): This check is duplicated.
+        bool is_async_arrow_using_with_await_operator =
+            call->child_0()->kind() == expression_kind::variable &&
+            call->child_0()->variable_identifier_token_type() ==
+                token_type::kw_await;
+        if (this->peek().type == token_type::left_curly ||
+            is_async_arrow_using_with_await_operator) {
+          // await(x, y) => {}
+          // This is handled by parse_arrow_function_expression_remainder.
+          break;
+        }
+      }
+
+      source_code_span lhs_span = lhs->span();
+      switch (lhs_without_paren->kind()) {
+      case expression_kind::call:
+      case expression_kind::dot:
+        this->diag_reporter_->report(diag_unexpected_arrow_after_expression{
+            .arrow = arrow_span,
+            .expression = lhs_span,
+        });
+        break;
+      case expression_kind::literal:
+        this->diag_reporter_->report(diag_unexpected_arrow_after_literal{
+            .arrow = arrow_span,
+            .literal_parameter = lhs_span,
+        });
+        break;
+      default:
+        QLJS_UNREACHABLE();
+      }
+
+      if (this->peek().type != token_type::left_curly) {
+        // Treat the '=>' as if it was a binary operator (like '>=').
+        binary_builder.add_child(
+            arrow_span,
+            this->parse_expression(
+                v, precedence{.binary_operators = false, .commas = false}));
+        goto next;
+      }
+      break;
+    }
+
+    default:
+      break;
+    }
+
     this->parse_arrow_function_expression_remainder(
-        v, binary_builder, /*allow_in_operator=*/prec.in_operator);
+        v, arrow_span, binary_builder, /*allow_in_operator=*/prec.in_operator);
     goto next;
   }
 
@@ -1793,7 +1854,7 @@ void parser::parse_arrow_function_expression_remainder(
 }
 
 void parser::parse_arrow_function_expression_remainder(
-    parse_visitor_base& v, source_code_span arrow_span,
+    parse_visitor_base& v, [[maybe_unused]] /*@@@*/ source_code_span arrow_span,
     binary_expression_builder& binary_builder, bool allow_in_operator) {
   if (binary_builder.has_multiple_children()) {
     // TODO(strager): We should report an error for code like this:
@@ -1942,45 +2003,18 @@ void parser::parse_arrow_function_expression_remainder(
       // We will report
       // diag_missing_operator_between_expression_and_arrow_function
       // elsewhere.
-      break;
-    }
-    [[fallthrough]];
-  }
-
-  // f.x => z  // Invalid.
-  // 42 => {}  // Invalid.
-  case expression_kind::dot:
-  case expression_kind::literal: {
-    source_code_span lhs_span = lhs->span();
-    left_paren_begin = lhs_span.begin();
-    switch (lhs->kind()) {
-    case expression_kind::call:
-    case expression_kind::dot:
-      this->diag_reporter_->report(diag_unexpected_arrow_after_expression{
-          .arrow = arrow_span,
-          .expression = lhs_span,
-      });
-      break;
-    case expression_kind::literal:
-      this->diag_reporter_->report(diag_unexpected_arrow_after_literal{
-          .arrow = arrow_span,
-          .literal_parameter = lhs_span,
-      });
-      break;
-    default:
-      QLJS_UNREACHABLE();
-    }
-
-    if (this->peek().type != token_type::left_curly) {
-      // Treat the '=>' as if it was a binary operator (like '>=').
-      binary_builder.add_child(
-          arrow_span,
-          this->parse_expression(
-              v, precedence{.binary_operators = false, .commas = false}));
-      return;
+    } else {
+      // diag_unexpected_arrow_after_expression is reported elsewhere.
+      left_paren_begin = lhs->span().begin();
     }
     break;
   }
+
+  case expression_kind::dot:
+  case expression_kind::literal:
+    // The code is invalid. An error is reported elsewhere.
+    left_paren_begin = lhs->span().begin();
+    break;
 
   case expression_kind::import:
     break;
