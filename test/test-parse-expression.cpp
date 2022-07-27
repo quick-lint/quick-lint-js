@@ -977,6 +977,19 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
       return 0;  // No guard.
     });
   }
+
+  {
+    test_parser p(u8"await?.() => c"_sv);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "binary(call(var await), var c)")
+        << "'await' should not be treated as if it was 'async' in an arrow "
+           "function.";
+    EXPECT_THAT(p.errors(),
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    p.code(), diag_unexpected_arrow_after_expression,  //
+                    arrow, strlen(u8"await?.() "), u8"=>",             //
+                    expression, 0, u8"await?.()")));
+  }
 }
 
 TEST_F(test_parse_expression,

@@ -442,8 +442,8 @@ class parser {
   void parse_arrow_function_expression_remainder(parse_visitor_base &,
                                                  binary_expression_builder &,
                                                  bool allow_in_operator);
-  expression *parse_call_expression_remainder(parse_visitor_base &,
-                                              expression *callee);
+  expression::call *parse_call_expression_remainder(parse_visitor_base &,
+                                                    expression *callee);
   expression *parse_index_expression_remainder(parse_visitor_base &,
                                                expression *lhs);
   expression_arena::vector<expression *>

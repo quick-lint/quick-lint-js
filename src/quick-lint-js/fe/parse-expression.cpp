@@ -1308,7 +1308,7 @@ next:
     }
 
   // f(x, y, z)  // Function call.
-  case token_type::left_paren:
+  case token_type::left_paren: {
     if (binary_builder.last_expression()->kind() ==
         expression_kind::arrow_function) {
       // () => {}() // Invalid.
@@ -1319,9 +1319,40 @@ next:
               .invocation = this->peek().span(),
               .func_start = func_start_span});
     }
-    binary_builder.replace_last(this->parse_call_expression_remainder(
-        v, binary_builder.last_expression()));
+    expression* callee = binary_builder.last_expression();
+    expression::call* call = this->parse_call_expression_remainder(v, callee);
+    binary_builder.replace_last(call);
+
+    if (this->peek().type == token_type::equal_greater) {
+      // FIXME(strager): This check is duplicated.
+      bool is_async_arrow_using_with_await_operator =
+          callee->kind() == expression_kind::variable &&
+          callee->variable_identifier_token_type() == token_type::kw_await;
+      if (is_async_arrow_using_with_await_operator) {
+        // await (x) => {}   // Invalid.
+        // await () => expr  // Invalid.
+        this->skip();
+        this->diag_reporter_->report(diag_await_followed_by_arrow_function{
+            .await_operator = callee->span(),
+        });
+        // Parse as if the user wrote 'async' instead of 'await'.
+        expression* arrow_function = this->parse_arrow_function_body(
+            v, /*attributes=*/function_attributes::async,
+            /*parameter_list_begin=*/call->left_paren_span().begin(),
+            /*allow_in_operator=*/prec.in_operator,
+            /*parameters=*/
+            expression_arena::array_ptr<expression*>(
+                call->children_.begin() + 1,  // Drop the callee.
+                call->children_.end()),
+            /*return_type_visits=*/nullptr);
+        binary_builder.replace_last(arrow_function);
+        goto next;
+      }
+      goto arrow_function;
+    }
+
     goto next;
+  }
 
   // f().prop = other
   case token_type::equal:
@@ -1612,6 +1643,7 @@ next:
   }
 
   // (parameters, go, here) => expression-or-block // Arrow function.
+  arrow_function:
   case token_type::equal_greater: {
     source_code_span arrow_span = this->peek().span();
     this->skip();
@@ -1619,24 +1651,19 @@ next:
     expression* lhs_without_paren = lhs->without_paren();
     switch (lhs_without_paren->kind()) {
     // f(x, y) => {}      // Invalid.
-    // await(x, y) => {}  // Invalid.
+    // f(x, y) => {}      // Invalid.
     // f.x => z           // Invalid.
     // 42 => {}           // Invalid.
     case expression_kind::call:
     case expression_kind::dot:
     case expression_kind::literal: {
       if (lhs_without_paren->kind() == expression_kind::call) {
-        auto* call = expression_cast<expression::call>(lhs);
-        // FIXME(strager): This check is duplicated.
-        bool is_async_arrow_using_with_await_operator =
-            call->child_0()->kind() == expression_kind::variable &&
-            call->child_0()->variable_identifier_token_type() ==
-                token_type::kw_await;
-        if (this->peek().type == token_type::left_curly ||
-            is_async_arrow_using_with_await_operator) {
-          // await(x, y) => {}
+        if (this->peek().type == token_type::left_curly) {
+          // f(x, y) => {}
           // This is handled by parse_arrow_function_expression_remainder.
           break;
+        } else {
+          // f(x, y) => x+y
         }
       }
 
@@ -1968,24 +1995,7 @@ void parser::parse_arrow_function_expression_remainder(
   // f(x, y) => {}
   case expression_kind::call: {
     auto* call = expression_cast<expression::call>(lhs);
-    // FIXME(strager): This check is duplicated.
-    bool is_async_arrow_using_with_await_operator =
-        call->child_0()->kind() == expression_kind::variable &&
-        call->child_0()->variable_identifier_token_type() ==
-            token_type::kw_await;
-    if (this->peek().type == token_type::left_curly ||
-        is_async_arrow_using_with_await_operator) {
-      if (is_async_arrow_using_with_await_operator) {
-        // await (x) => {}   // Invalid.
-        // await () => expr  // Invalid.
-        this->diag_reporter_->report(diag_await_followed_by_arrow_function{
-            .await_operator = call->child_0()->span(),
-        });
-        // Parse as if the user wrote 'async' instead of 'await'.
-        attributes = function_attributes::async;
-      } else {
-        // f() => {}         // Invalid.
-      }
+    if (this->peek().type == token_type::left_curly) {
       left_paren_begin = call->left_paren_span().begin();
       for (int i = 1; i < call->child_count(); ++i) {
         parameters.emplace_back(call->child(i));
@@ -2020,8 +2030,8 @@ void parser::parse_arrow_function_expression_remainder(
       this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs));
 }
 
-expression* parser::parse_call_expression_remainder(parse_visitor_base& v,
-                                                    expression* callee) {
+expression::call* parser::parse_call_expression_remainder(parse_visitor_base& v,
+                                                          expression* callee) {
   source_code_span left_paren_span = this->peek().span();
   expression_arena::vector<expression*> call_children(
       "parse_expression_remainder call children",
@@ -2058,10 +2068,10 @@ expression* parser::parse_call_expression_remainder(parse_visitor_base& v,
         .left_paren = left_paren_span,
     });
   }
-  return this->make_expression<expression::call>(
+  return static_cast<expression::call*>(this->make_expression<expression::call>(
       this->expressions_.make_array(std::move(call_children)),
       /*left_paren_span=*/left_paren_span,
-      /*span_end=*/call_span_end);
+      /*span_end=*/call_span_end));
 }
 
 expression* parser::parse_index_expression_remainder(parse_visitor_base& v,

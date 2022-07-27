@@ -282,6 +282,9 @@ class expression_arena::array_ptr {
   explicit array_ptr(const T *data, int size) noexcept
       : data_(data), size_(size) {}
 
+  explicit array_ptr(const T *begin, const T *end) noexcept
+      : data_(begin), size_(narrow_cast<int>(end - begin)) {}
+
   T operator[](int index) const noexcept {
     QLJS_ASSERT(index >= 0);
     QLJS_ASSERT(index < this->size());
