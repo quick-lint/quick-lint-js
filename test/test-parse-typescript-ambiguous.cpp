@@ -66,6 +66,36 @@ TEST(test_typescript_ambiguous, generic_arrow_with_extends) {
   }
 }
 
+TEST(test_typescript_ambiguous,
+     angle_bracketed_type_without_arrow_is_cast_in_typescript_mode) {
+  {
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"<Type>expr;"_sv, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // Type
+                                      "visit_variable_use"));     // expr
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type", u8"expr"));
+  }
+
+  // '<Type>' shouldn't be confused as an opening JSX tag.
+  {
+    parse_visit_collector v = parse_and_visit_statement(
+        u8"<Type>expr;\n// </Type>;"_sv, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // Type
+                                      "visit_variable_use"));     // expr
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type", u8"expr"));
+  }
+}
+
+TEST(test_typescript_ambiguous,
+     angle_bracketed_type_without_arrow_is_jsx_tag_in_typescript_jsx_mode) {
+  {
+    parse_visit_collector v = parse_and_visit_statement(
+        u8"<Component>text;\n// </Component>;"_sv, typescript_jsx_options);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // Component
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Component"));
+  }
+}
+
 TEST(test_typescript_ambiguous, use_generic_variable_named_async) {
   {
     parse_visit_collector v =

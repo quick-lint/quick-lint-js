@@ -624,9 +624,7 @@ expression* parser::parse_primary_expression(parse_visitor_base& v,
   // <T>(params) => {}   // TypeScript only.
   // <T,>(params) => {}  // TypeScript only.
   case token_type::less:
-    return this->parse_jsx_or_typescript_generic_expression(
-        v,
-        /*allow_in_operator=*/prec.in_operator);
+    return this->parse_jsx_or_typescript_generic_expression(v, prec);
 
   // => expr  // Invalid. Treat as arrow function.
   // => {}    // Invalid. Treat as arrow function.
@@ -2816,7 +2814,7 @@ expression* parser::parse_class_expression(parse_visitor_base& v) {
 }
 
 expression* parser::parse_jsx_or_typescript_generic_expression(
-    parse_visitor_base& v, bool allow_in_operator) {
+    parse_visitor_base& v, precedence prec) {
   QLJS_ASSERT(this->peek().type == token_type::less);
 
   // Disambiguate between:
@@ -2827,13 +2825,25 @@ expression* parser::parse_jsx_or_typescript_generic_expression(
     this->skip();
     if (this->peek().type == token_type::identifier) {
       this->skip();
-      if (this->peek().type == token_type::comma ||
-          this->peek().type == token_type::kw_extends) {
-        // <T,>() => {}  // Generic arrow function.
+      switch (this->peek().type) {
+      // <T,>() => {}                 // Generic arrow function.
+      // <T extends U>(params) => {}  // Generic arrow function.
+      case token_type::comma:
+      case token_type::kw_extends:
         this->lexer_.roll_back_transaction(std::move(transaction));
         return this->parse_typescript_generic_arrow_expression(
             v,
-            /*allow_in_operator=*/allow_in_operator);
+            /*allow_in_operator=*/prec.in_operator);
+
+      case token_type::greater:
+        if (!this->options_.jsx) {
+          this->lexer_.roll_back_transaction(std::move(transaction));
+          return this->parse_typescript_cast_expression(v, prec);
+        }
+        break;
+
+      default:
+        break;
       }
     }
     this->lexer_.roll_back_transaction(std::move(transaction));
@@ -3265,6 +3275,16 @@ expression* parser::parse_typescript_generic_arrow_expression(
   v.visit_exit_function_scope();
 
   return ast;
+}
+
+expression* parser::parse_typescript_cast_expression(parse_visitor_base& v,
+                                                     precedence prec) {
+  QLJS_ASSERT(this->peek().type == token_type::less);
+  this->skip();
+  this->parse_and_visit_typescript_type_expression(v);
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
+  this->skip();
+  return this->parse_primary_expression(v, prec);
 }
 
 expression* parser::parse_tagged_template(parse_visitor_base& v,

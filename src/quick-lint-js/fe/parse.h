@@ -465,8 +465,8 @@ class parser {
   expression *parse_object_literal(parse_visitor_base &);
   expression *parse_class_expression(parse_visitor_base &);
   expression *parse_jsx_expression(parse_visitor_base &);
-  expression *parse_jsx_or_typescript_generic_expression(
-      parse_visitor_base &, bool allow_in_operator);
+  expression *parse_jsx_or_typescript_generic_expression(parse_visitor_base &,
+                                                         precedence);
   expression *parse_jsx_element_or_fragment(parse_visitor_base &);
   // tag is optional. If it is nullptr, parse a fragment. Otherwise, parse an
   // element.
@@ -480,6 +480,8 @@ class parser {
   void check_jsx_attribute(const identifier &attribute_name);
   expression *parse_typescript_generic_arrow_expression(parse_visitor_base &,
                                                         bool allow_in_operator);
+  expression *parse_typescript_cast_expression(parse_visitor_base &,
+                                               precedence);
   expression *parse_tagged_template(parse_visitor_base &, expression *tag);
   expression *parse_untagged_template(parse_visitor_base &);
 
