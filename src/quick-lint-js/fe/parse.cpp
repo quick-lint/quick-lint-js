@@ -270,33 +270,20 @@ expression* parser::maybe_wrap_erroneous_arrow_function(
     return arrow_function;
   }
 
+  // f() => {}         // Invalid.
   case expression_kind::call: {
     auto* call = expression_cast<expression::call>(lhs);
-    // FIXME(strager): This check is duplicated.
-    bool is_async_arrow_using_with_await_operator =
-        call->child_0()->kind() == expression_kind::variable &&
-        call->child_0()->variable_identifier_token_type() ==
-            token_type::kw_await;
-    if (is_async_arrow_using_with_await_operator) {
-      // await (x) => {}   // Invalid.
-      // await () => expr  // Invalid.
-      // We treated 'await' as 'async' elsewhere. Don't report any diagnostic
-      // here.
-      return arrow_function;
-    } else {
-      // f() => {}         // Invalid.
-      source_code_span missing_operator_span(call->span().begin(),
-                                             call->left_paren_span().end());
-      this->diag_reporter_->report(
-          diag_missing_operator_between_expression_and_arrow_function{
-              .where = missing_operator_span,
-          });
-      std::array<expression*, 2> children{lhs->child_0(), arrow_function};
-      std::array<source_code_span, 1> operators{missing_operator_span};
-      return this->make_expression<expression::binary_operator>(
-          this->expressions_.make_array(std::move(children)),
-          this->expressions_.make_array(std::move(operators)));
-    }
+    source_code_span missing_operator_span(call->span().begin(),
+                                           call->left_paren_span().end());
+    this->diag_reporter_->report(
+        diag_missing_operator_between_expression_and_arrow_function{
+            .where = missing_operator_span,
+        });
+    std::array<expression*, 2> children{lhs->child_0(), arrow_function};
+    std::array<source_code_span, 1> operators{missing_operator_span};
+    return this->make_expression<expression::binary_operator>(
+        this->expressions_.make_array(std::move(children)),
+        this->expressions_.make_array(std::move(operators)));
   }
   }
 }

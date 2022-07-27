@@ -1324,7 +1324,6 @@ next:
     binary_builder.replace_last(call);
 
     if (this->peek().type == token_type::equal_greater) {
-      // FIXME(strager): This check is duplicated.
       bool is_async_arrow_using_with_await_operator =
           callee->kind() == expression_kind::variable &&
           callee->variable_identifier_token_type() == token_type::kw_await;
