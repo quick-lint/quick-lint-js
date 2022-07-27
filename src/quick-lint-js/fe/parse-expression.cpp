@@ -1120,15 +1120,6 @@ expression* parser::parse_expression_remainder(parse_visitor_base& v,
   }
 
   binary_expression_builder binary_builder(this->expressions_.allocator(), ast);
-  auto build_expression = [&]() {
-    if (binary_builder.has_multiple_children()) {
-      return this->make_expression<expression::binary_operator>(
-          binary_builder.move_expressions(this->expressions_),
-          binary_builder.move_operator_spans(this->expressions_));
-    } else {
-      return binary_builder.last_expression();
-    }
-  };
 
 next:
   switch (this->peek().type) {
@@ -1361,7 +1352,7 @@ next:
     }
     source_code_span operator_span = this->peek().span();
     this->skip();
-    expression* lhs = build_expression();
+    expression* lhs = this->build_expression(binary_builder);
     this->check_assignment_lhs(lhs);
     expression* rhs = this->parse_expression(
         v, precedence{.commas = false, .in_operator = prec.in_operator});
@@ -1577,7 +1568,7 @@ next:
     source_code_span question_span = this->peek().span();
     this->skip();
 
-    expression* condition = build_expression();
+    expression* condition = this->build_expression(binary_builder);
 
     expression* true_expression;
     if (this->peek().type == token_type::colon) {
@@ -1788,7 +1779,7 @@ next:
     break;
   }
 
-  return build_expression();
+  return this->build_expression(binary_builder);
 }
 
 void parser::parse_arrow_function_expression_remainder(

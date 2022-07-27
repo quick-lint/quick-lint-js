@@ -144,6 +144,16 @@ parser::binary_expression_builder::move_operator_spans(
   return arena.make_array(std::move(this->operator_spans_));
 }
 
+expression* parser::build_expression(binary_expression_builder& builder) {
+  if (builder.has_multiple_children()) {
+    return this->make_expression<expression::binary_operator>(
+        builder.move_expressions(this->expressions_),
+        builder.move_operator_spans(this->expressions_));
+  } else {
+    return builder.last_expression();
+  }
+}
+
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wnull-dereference")
 void parser::check_jsx_attribute(const identifier& attribute_name) {

@@ -413,6 +413,10 @@ class parser {
     expression_arena::vector<source_code_span> operator_spans_;
   };
 
+  // Be sure to call builder.reset_after_build immediately after calling
+  // build_expression.
+  expression *build_expression(binary_expression_builder &builder);
+
   void parse_and_visit_expression(parse_visitor_base &v, precedence prec) {
     monotonic_allocator &alloc = *this->expressions_.allocator();
     auto rewind_guard = alloc.make_rewind_guard();
