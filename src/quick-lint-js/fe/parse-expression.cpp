@@ -1675,7 +1675,7 @@ next:
     }
 
     this->parse_arrow_function_expression_remainder(
-        v, arrow_span, binary_builder, /*allow_in_operator=*/prec.in_operator);
+        v, binary_builder, /*allow_in_operator=*/prec.in_operator);
     goto next;
   }
 
@@ -1728,7 +1728,7 @@ next:
               .where = arrow_span,
           });
       this->parse_arrow_function_expression_remainder(
-          v, /*arrow_span=*/arrow_span, binary_builder,
+          v, binary_builder,
           /*allow_in_operator=*/prec.in_operator);
     }
     break;
@@ -1844,8 +1844,8 @@ next:
 }
 
 void parser::parse_arrow_function_expression_remainder(
-    parse_visitor_base& v, [[maybe_unused]] source_code_span arrow_span,
-    binary_expression_builder& binary_builder, bool allow_in_operator) {
+    parse_visitor_base& v, binary_expression_builder& binary_builder,
+    bool allow_in_operator) {
   if (binary_builder.has_multiple_children()) {
     // TODO(strager): We should report an error for code like this:
     // a + b => c

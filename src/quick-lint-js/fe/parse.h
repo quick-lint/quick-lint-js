@@ -440,7 +440,6 @@ class parser {
   expression *parse_expression_remainder(parse_visitor_base &, expression *,
                                          precedence);
   void parse_arrow_function_expression_remainder(parse_visitor_base &,
-                                                 source_code_span arrow_span,
                                                  binary_expression_builder &,
                                                  bool allow_in_operator);
   expression *parse_call_expression_remainder(parse_visitor_base &,
