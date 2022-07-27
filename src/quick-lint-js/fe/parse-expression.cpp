@@ -1718,7 +1718,7 @@ next:
       }
     }
     binary_builder.replace_last(this->parse_arrow_function_expression_remainder(
-        v, lhs,
+        v, /*generic_parameter_visits=*/nullptr, lhs,
         /*return_type_visits=*/return_type_visits,
         /*allow_in_operator=*/prec.in_operator));
     goto next;
@@ -1774,7 +1774,9 @@ next:
           });
       binary_builder.replace_last(
           this->parse_arrow_function_expression_remainder(
-              v, binary_builder.last_expression(),
+              v,
+              /*generic_parameter_visits=*/nullptr,
+              binary_builder.last_expression(),
               /*return_type_visits=*/nullptr,
               /*allow_in_operator=*/prec.in_operator));
     }
@@ -1891,8 +1893,9 @@ next:
 }
 
 expression* parser::parse_arrow_function_expression_remainder(
-    parse_visitor_base& v, expression* parameters_expression,
-    buffering_visitor* return_type_visits, bool allow_in_operator) {
+    parse_visitor_base& v, buffering_visitor* generic_parameter_visits,
+    expression* parameters_expression, buffering_visitor* return_type_visits,
+    bool allow_in_operator) {
   const char8* parameter_list_begin = nullptr;
   if (parameters_expression->kind() == expression_kind::paren) {
     parameter_list_begin = parameters_expression->span().begin();
@@ -2022,14 +2025,20 @@ expression* parser::parse_arrow_function_expression_remainder(
     break;
   }
 
-  expression* arrow_function = this->parse_arrow_function_body(
+  v.visit_enter_function_scope();
+  if (generic_parameter_visits) {
+    std::move(*generic_parameter_visits).move_into(v);
+  }
+  expression* arrow_function = this->parse_arrow_function_body_no_scope(
       v, /*attributes=*/function_attributes::normal,
       /*parameter_list_begin=*/parameter_list_begin,
       /*allow_in_operator=*/allow_in_operator,
       this->expressions_.make_array(std::move(parameters)),
       /*return_type_visits=*/return_type_visits);
-  return this->maybe_wrap_erroneous_arrow_function(
+  arrow_function = this->maybe_wrap_erroneous_arrow_function(
       arrow_function, /*parameters_expression=*/parameters_expression);
+  v.visit_exit_function_scope();
+  return arrow_function;
 }
 
 expression::call* parser::parse_call_expression_remainder(parse_visitor_base& v,
@@ -2862,6 +2871,9 @@ expression* parser::parse_jsx_or_typescript_generic_expression(
             v,
             /*allow_in_operator=*/prec.in_operator);
 
+      // <T>() => {}  // Generic arrow function.
+      // <T>expr      // Cast.
+      // <T></T>      // JSX element.
       case token_type::greater:
         if (!this->options_.jsx) {
           this->lexer_.roll_back_transaction(std::move(transaction));
@@ -3308,10 +3320,36 @@ expression* parser::parse_typescript_cast_expression(parse_visitor_base& v,
                                                      precedence prec) {
   QLJS_ASSERT(this->peek().type == token_type::less);
   this->skip();
-  this->parse_and_visit_typescript_type_expression(v);
+  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
+  identifier type = this->peek().identifier_name();
+  this->skip();
   QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
   this->skip();
-  return this->parse_primary_expression(v, prec);
+
+  expression* ast = this->parse_primary_expression(v, prec);
+  if (ast->kind() == expression_kind::paren ||
+      ast->kind() == expression_kind::paren_empty) {
+    buffering_visitor return_type_visits(&this->type_expression_memory_);
+    if (this->peek().type == token_type::colon) {
+      this->parse_and_visit_typescript_colon_type_expression(
+          return_type_visits);
+    }
+    if (this->peek().type == token_type::equal_greater) {
+      // <T>(param) => body
+      this->skip();
+      buffering_visitor generic_parameter_visits(
+          &this->type_expression_memory_);
+      generic_parameter_visits.visit_variable_declaration(
+          type, variable_kind::_generic_parameter, variable_init_kind::normal);
+      return this->parse_arrow_function_expression_remainder(
+          v,
+          /*generic_parameter_visits=*/&generic_parameter_visits, ast,
+          /*return_type_visits=*/&return_type_visits,
+          /*allow_in_operator=*/prec.in_operator);
+    }
+  }
+  v.visit_variable_type_use(type);
+  return ast;
 }
 
 expression* parser::parse_tagged_template(parse_visitor_base& v,

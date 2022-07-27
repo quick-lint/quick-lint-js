@@ -440,8 +440,9 @@ class parser {
   expression *parse_expression_remainder(parse_visitor_base &, expression *,
                                          precedence);
   expression *parse_arrow_function_expression_remainder(
-      parse_visitor_base &, expression *parameters_expression,
-      buffering_visitor *return_type_visits, bool allow_in_operator);
+      parse_visitor_base &, buffering_visitor *generic_parameter_visits,
+      expression *parameters_expression, buffering_visitor *return_type_visits,
+      bool allow_in_operator);
   expression::call *parse_call_expression_remainder(parse_visitor_base &,
                                                     expression *callee);
   expression *parse_index_expression_remainder(parse_visitor_base &,

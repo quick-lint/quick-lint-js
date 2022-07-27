@@ -76,6 +76,14 @@ TEST(test_typescript_ambiguous,
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type", u8"expr"));
   }
 
+  {
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"<Type>(expr);"_sv, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // Type
+                                      "visit_variable_use"));     // expr
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type", u8"expr"));
+  }
+
   // '<Type>' shouldn't be confused as an opening JSX tag.
   {
     parse_visit_collector v = parse_and_visit_statement(
@@ -93,6 +101,49 @@ TEST(test_typescript_ambiguous,
         u8"<Component>text;\n// </Component>;"_sv, typescript_jsx_options);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // Component
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"Component"));
+  }
+}
+
+TEST(
+    test_typescript_ambiguous,
+    angle_bracketed_type_with_arrow_is_generic_arrow_function_in_typescript_mode) {
+  {
+    parse_visit_collector v =
+        parse_and_visit_statement(u8"<Type>() => {}"_sv, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // Type
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(v.variable_declarations,
+                ElementsAre(generic_param_decl(u8"Type")));
+  }
+
+  {
+    parse_visit_collector v = parse_and_visit_statement(
+        u8"<Type>(param) => {}"_sv, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // Type
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(generic_param_decl(u8"Type"), param_decl(u8"param")));
+  }
+
+  {
+    parse_visit_collector v = parse_and_visit_statement(
+        u8"<Type>(param): ReturnType => {}"_sv, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // Type
+                                      "visit_variable_declaration",  // param
+                                      "visit_variable_type_use",  // ReturnType
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ReturnType"));
+    EXPECT_THAT(
+        v.variable_declarations,
+        ElementsAre(generic_param_decl(u8"Type"), param_decl(u8"param")));
   }
 }
 
