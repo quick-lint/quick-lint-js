@@ -1879,7 +1879,7 @@ void parser::parse_arrow_function_expression_remainder(
   expression* lhs = binary_builder.last_expression();
 
   buffering_visitor* return_type_visits = nullptr;
-  const char8* left_paren_begin = nullptr;
+  const char8* parameter_list_begin = nullptr;
   if (lhs->kind() == expression_kind::type_annotated) {
     expression::type_annotated* annotated =
         static_cast<expression::type_annotated*>(lhs);
@@ -1892,7 +1892,7 @@ void parser::parse_arrow_function_expression_remainder(
     }
   }
   if (lhs->kind() == expression_kind::paren) {
-    left_paren_begin = lhs->span().begin();
+    parameter_list_begin = lhs->span().begin();
     lhs = static_cast<expression::paren*>(lhs)->child_;
   }
 
@@ -1957,7 +1957,7 @@ void parser::parse_arrow_function_expression_remainder(
   // (param: Type) => {}  // TypeScript only.
   case expression_kind::type_annotated: {
     // NOTE(strager): '(param): ReturnType => {}' is handled above.
-    if (!left_paren_begin) {
+    if (!parameter_list_begin) {
       expression::type_annotated* param =
           static_cast<expression::type_annotated*>(lhs);
       this->diag_reporter_->report(
@@ -1980,12 +1980,12 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::paren_empty: {
     expression::paren_empty* paren_empty =
         static_cast<expression::paren_empty*>(lhs);
-    if (left_paren_begin) {
+    if (parameter_list_begin) {
       // (()) => {}  // Invalid.
       paren_empty->report_missing_expression_error(this->diag_reporter_);
     } else {
       // () => {}
-      left_paren_begin = paren_empty->span_.begin();
+      parameter_list_begin = paren_empty->span_.begin();
     }
     break;
   }
@@ -1994,7 +1994,7 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::call: {
     auto* call = expression_cast<expression::call>(lhs);
     if (this->peek().type == token_type::left_curly) {
-      left_paren_begin = call->left_paren_span().begin();
+      parameter_list_begin = call->left_paren_span().begin();
       for (int i = 1; i < call->child_count(); ++i) {
         parameters.emplace_back(call->child(i));
       }
@@ -2003,7 +2003,7 @@ void parser::parse_arrow_function_expression_remainder(
       // elsewhere.
     } else {
       // diag_unexpected_arrow_after_expression is reported elsewhere.
-      left_paren_begin = lhs->span().begin();
+      parameter_list_begin = lhs->span().begin();
     }
     break;
   }
@@ -2011,7 +2011,7 @@ void parser::parse_arrow_function_expression_remainder(
   case expression_kind::dot:
   case expression_kind::literal:
     // The code is invalid. An error is reported elsewhere.
-    left_paren_begin = lhs->span().begin();
+    parameter_list_begin = lhs->span().begin();
     break;
 
   case expression_kind::import:
@@ -2020,7 +2020,7 @@ void parser::parse_arrow_function_expression_remainder(
 
   expression* arrow_function = this->parse_arrow_function_body(
       v, /*attributes=*/function_attributes::normal,
-      /*parameter_list_begin=*/left_paren_begin,
+      /*parameter_list_begin=*/parameter_list_begin,
       /*allow_in_operator=*/allow_in_operator,
       this->expressions_.make_array(std::move(parameters)),
       /*return_type_visits=*/return_type_visits);
