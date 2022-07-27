@@ -717,7 +717,8 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
 
   auto parse_arrow_function_arrow_and_body =
       [this, allow_in_operator, async_begin, &v](
-          auto&& parameters, buffering_visitor* return_type_visits) {
+          auto&& parameters, buffering_visitor* parameter_visits,
+          buffering_visitor* return_type_visits) {
         if (this->peek().type == token_type::equal_greater) {
           this->skip();
         } else {
@@ -727,11 +728,16 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
               });
         }
 
-        expression* ast = this->parse_arrow_function_body(
+        v.visit_enter_function_scope();
+        if (parameter_visits) {
+          std::move(*parameter_visits).move_into(v);
+        }
+        expression* ast = this->parse_arrow_function_body_no_scope(
             v, function_attributes::async, async_begin,
             /*allow_in_operator=*/allow_in_operator,
             this->expressions_.make_array(std::move(parameters)),
             /*return_type_visits=*/return_type_visits);
+        v.visit_exit_function_scope();
         return ast;
       };
 
@@ -781,6 +787,7 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
       }
       // TODO(strager): Should we call maybe_wrap_erroneous_arrow_function?
       return parse_arrow_function_arrow_and_body(std::move(parameters),
+                                                 /*parameter_visits=*/nullptr,
                                                  &return_type_visits);
     } else {
       // async as an identifier (variable reference)
@@ -806,6 +813,65 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
 
     QLJS_UNREACHABLE();
   }
+
+  // async < 42         // Variable.
+  // async <T>() => {}  // Arrow function. TypeScript only.
+  // async<T>()         // Function call. TypeScript only.
+  // async<T>           // Variable with generic arguments. TypeScript only.
+  case token_type::less:
+    if (this->options_.typescript) {
+      parser_transaction transaction = this->begin_transaction();
+
+      buffering_visitor& parameter_visits =
+          this->buffering_visitor_stack_.emplace(
+              boost::container::pmr::new_delete_resource());
+      std::optional<expression_arena::vector<expression*>> parameters;
+      bool parsed_arrow_function_parameters_without_fatal_error =
+          this->catch_fatal_parse_errors([&] {
+            this->parse_and_visit_typescript_generic_parameters(
+                parameter_visits);
+
+            // NOTE(strager): QLJS_PARSER_UNIMPLEMENTED here will make
+            // parsed_arrow_function_parameters_without_fatal_error false.
+            QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::left_paren);
+            this->skip();
+            parameters.emplace(
+                this->parse_arrow_function_parameters_or_call_arguments(
+                    parameter_visits));
+            QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::right_paren);
+            this->skip();
+
+            switch (this->peek().type) {
+            // async <T>() => {}
+            // async <T>(): ReturnType => {}
+            case token_type::colon:
+            case token_type::equal_greater:
+              break;
+            default:
+              QLJS_PARSER_UNIMPLEMENTED();
+              break;
+            }
+          });
+      if (parsed_arrow_function_parameters_without_fatal_error) {
+        // async <T>() => {}
+        this->commit_transaction(std::move(transaction));
+        // TODO(strager): Error if newline after 'async' token (like non-generic
+        // code path).
+        // TODO(strager): Error on parameters named 'await' (like non-generic
+        // code path).
+        buffering_visitor return_type_visits(&this->type_expression_memory_);
+        if (this->peek().type == token_type::colon) {
+          this->parse_and_visit_typescript_colon_type_expression(
+              return_type_visits);
+        }
+        QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::equal_greater);
+        return parse_arrow_function_arrow_and_body(
+            std::move(*parameters),
+            /*parameter_visits=*/&parameter_visits, &return_type_visits);
+      }
+      this->roll_back_transaction(std::move(transaction));
+    }
+    goto variable_reference;
 
   QLJS_CASE_STRICT_ONLY_RESERVED_KEYWORD:
     // TODO(#73): Disallow parameters named 'protected', 'implements', etc. in
@@ -850,6 +916,7 @@ expression* parser::parse_async_expression_only(parse_visitor_base& v,
     }
 
     return parse_arrow_function_arrow_and_body(std::move(parameters),
+                                               /*parameter_visits=*/nullptr,
                                                /*return_type_visits=*/nullptr);
   }
 
