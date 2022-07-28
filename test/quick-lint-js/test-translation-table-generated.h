@@ -429,6 +429,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "TypeScript <Type> casts are not allowed in JSX mode"_translatable,
+        {
+            u8"TypeScript <Type> casts are not allowed in JSX mode",
+            u8"TypeScript <Type> casts are not allowed in JSX mode",
+            u8"TypeScript <Type> casts are not allowed in JSX mode",
+            u8"TypeScript <Type> casts are not allowed in JSX mode",
+            u8"TypeScript <Type> casts are not allowed in JSX mode",
+        },
+    },
+    {
         "TypeScript assignment-asserted fields are not supported in JavaScript"_translatable,
         {
             u8"TypeScript assignment-asserted fields are not supported in JavaScript",
@@ -3276,6 +3286,16 @@ inline constexpr translated_string test_translation_table[] = {
             u8"write a name to declare a class method",
             u8"write a name to declare a class method",
             u8"write a name to declare a class method",
+        },
+    },
+    {
+        "write the cast with 'as' here instead"_translatable,
+        {
+            u8"write the cast with 'as' here instead",
+            u8"write the cast with 'as' here instead",
+            u8"write the cast with 'as' here instead",
+            u8"write the cast with 'as' here instead",
+            u8"write the cast with 'as' here instead",
         },
     },
     {

@@ -977,6 +977,17 @@ msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
 #, fuzzy
+msgid "TypeScript <Type> casts are not allowed in JSX mode"
+msgstr ""
+"Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+"implementiert"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "write the cast with 'as' here instead"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
 msgid "TypeScript 'as' casts are not allowed in JavaScript"
 msgstr ""
 "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "

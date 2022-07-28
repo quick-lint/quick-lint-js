@@ -129,6 +129,39 @@ TEST(test_typescript_ambiguous,
   }
 }
 
+TEST(test_typescript_ambiguous,
+     angle_bracketed_complex_type_is_error_cast_in_typescript_jsx_mode) {
+  {
+    padded_string code(u8"<Type1 | Type2>(expr);"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_jsx_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // Type1
+                                      "visit_variable_type_use",  // Type2
+                                      "visit_variable_use"));     // expr
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    &code,
+                    diag_typescript_angle_cast_not_allowed_in_tsx,  //
+                    bracketed_type, 0, u8"<Type1 | Type2>",         //
+                    expected_as, strlen(u8"<Type1 | Type2>(expr)"), u8"")));
+  }
+
+  {
+    padded_string code(u8"<(Type)>expr;"_sv);
+    spy_visitor v;
+    parser p(&code, &v, typescript_jsx_options);
+    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // Type
+                                      "visit_variable_use"));     // expr
+    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_OFFSETS(
+                              &code,
+                              diag_typescript_angle_cast_not_allowed_in_tsx,  //
+                              bracketed_type, 0, u8"<(Type)>",                //
+                              expected_as, strlen(u8"<(Type)>expr"), u8"")));
+  }
+}
+
 TEST(
     test_typescript_ambiguous,
     angle_bracketed_type_with_arrow_is_generic_arrow_function_in_typescript_mode) {

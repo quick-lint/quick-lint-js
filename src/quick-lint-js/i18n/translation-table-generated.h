@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 331;
-constexpr std::size_t translation_table_string_table_size = 52920;
+constexpr std::uint16_t translation_table_mapping_table_size = 333;
+constexpr std::size_t translation_table_string_table_size = 53010;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -68,6 +68,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "RegExp literal flags cannot contain Unicode escapes"sv,
           "TypeScript 'as' casts are not allowed in JavaScript"sv,
           "TypeScript 'implements' is not allowed in JavaScript"sv,
+          "TypeScript <Type> casts are not allowed in JSX mode"sv,
           "TypeScript assignment-asserted fields are not supported in JavaScript"sv,
           "TypeScript call signatures are only allowed in classes"sv,
           "TypeScript generics are not allowed in JavaScript code"sv,
@@ -353,6 +354,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "with statement needs parentheses around expression"sv,
           "write 'const' instead of '{0}' here"sv,
           "write a name to declare a class method"sv,
+          "write the cast with 'as' here instead"sv,
           "{0} classes are not allowed in JavaScript"sv,
           "{0} is not allowed in JavaScript"sv,
           "{0} with no bindings"sv,

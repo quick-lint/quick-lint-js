@@ -3342,15 +3342,27 @@ expression* parser::parse_typescript_generic_arrow_expression(
 expression* parser::parse_typescript_cast_expression(parse_visitor_base& v,
                                                      precedence prec) {
   QLJS_ASSERT(this->peek().type == token_type::less);
+  const char8* less_begin = this->peek().begin;
   this->skip();
 
   auto parse_as_cast = [&]() -> expression* {
     this->parse_and_visit_typescript_type_expression(v);
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
+    const char8* greater_end = this->peek().end;
+
     this->skip();
 
-    return this->parse_primary_expression(v, prec);
+    expression* ast = this->parse_primary_expression(v, prec);
+    if (this->options_.jsx) {
+      this->diag_reporter_->report(
+          diag_typescript_angle_cast_not_allowed_in_tsx{
+              .bracketed_type = source_code_span(less_begin, greater_end),
+              .expected_as =
+                  source_code_span::unit(this->lexer_.end_of_previous_token()),
+          });
+    }
+    return ast;
   };
 
   lexer_transaction transaction = this->lexer_.begin_transaction();

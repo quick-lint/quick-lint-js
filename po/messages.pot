@@ -918,6 +918,14 @@ msgid "{0} is not allowed in JavaScript"
 msgstr ""
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+msgid "TypeScript <Type> casts are not allowed in JSX mode"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
+msgid "write the cast with 'as' here instead"
+msgstr ""
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "TypeScript 'as' casts are not allowed in JavaScript"
 msgstr ""
 
