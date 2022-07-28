@@ -7,6 +7,7 @@ import path from "path";
 import {
   ErrorDocumentation,
   errorDocumentationExampleToHTML,
+  flattenDiagnostics,
 } from "../src/error-documentation.mjs";
 import { DiagnosticSeverity } from "../wasm/quick-lint-js.js";
 
@@ -338,6 +339,158 @@ wasn't that neat?
   });
 });
 
+describe("flattenDiagnostics", () => {
+  it("flattens nothing to nothing", () => {
+    expect(flattenDiagnostics([])).toEqual([]);
+  });
+
+  it("one diag flattens to two points", () => {
+    expect(flattenDiagnostics([{ begin: 0, end: 5 }])).toEqual([
+      { offset: 0, type: "begin", diagnostic: { begin: 0, end: 5 } },
+      { offset: 5, type: "end", diagnostic: { begin: 0, end: 5 } },
+    ]);
+  });
+
+  it("one diag point diag flattens to one point", () => {
+    expect(flattenDiagnostics([{ begin: 1, end: 1 }])).toEqual([
+      { offset: 1, type: "point", diagnostic: { begin: 1, end: 1 } },
+    ]);
+  });
+
+  it("two unrelated diags flatten to two points each", () => {
+    expect(
+      flattenDiagnostics([
+        { begin: 0, end: 5 },
+        { begin: 10, end: 15 },
+      ])
+    ).toEqual([
+      { offset: 0, type: "begin", diagnostic: { begin: 0, end: 5 } },
+      { offset: 5, type: "end", diagnostic: { begin: 0, end: 5 } },
+      { offset: 10, type: "begin", diagnostic: { begin: 10, end: 15 } },
+      { offset: 15, type: "end", diagnostic: { begin: 10, end: 15 } },
+    ]);
+
+    expect(
+      flattenDiagnostics([
+        { begin: 10, end: 15 },
+        { begin: 0, end: 5 },
+      ])
+    ).toEqual([
+      { offset: 0, type: "begin", diagnostic: { begin: 0, end: 5 } },
+      { offset: 5, type: "end", diagnostic: { begin: 0, end: 5 } },
+      { offset: 10, type: "begin", diagnostic: { begin: 10, end: 15 } },
+      { offset: 15, type: "end", diagnostic: { begin: 10, end: 15 } },
+    ]);
+  });
+
+  it("two fully overlapping diags", () => {
+    let a = { begin: 0, end: 5, message: "a" };
+    let b = { begin: 0, end: 5, message: "b" };
+    expect(flattenDiagnostics([a, b])).toEqual([
+      { offset: 0, type: "begin", diagnostic: a },
+      { offset: 0, type: "begin", diagnostic: b },
+      { offset: 5, type: "end", diagnostic: b },
+      { offset: 5, type: "end", diagnostic: a },
+    ]);
+    expect(flattenDiagnostics([b, a])).toEqual([
+      { offset: 0, type: "begin", diagnostic: b },
+      { offset: 0, type: "begin", diagnostic: a },
+      { offset: 5, type: "end", diagnostic: a },
+      { offset: 5, type: "end", diagnostic: b },
+    ]);
+  });
+
+  it("one diag fully nested within another", () => {
+    // OOOOO
+    //   i
+    let outer = { begin: 0, end: 5 };
+    let inner = { begin: 2, end: 3 };
+    expect(flattenDiagnostics([outer, inner])).toEqual([
+      { offset: 0, type: "begin", diagnostic: outer },
+      { offset: 2, type: "begin", diagnostic: inner },
+      { offset: 3, type: "end", diagnostic: inner },
+      { offset: 5, type: "end", diagnostic: outer },
+    ]);
+  });
+
+  it("one point diag fully nested within a diag", () => {
+    // OOOOO
+    //   <
+    let outer = { begin: 0, end: 5 };
+    let inner = { begin: 2, end: 2 };
+    let expectedPoints = [
+      { offset: 0, type: "begin", diagnostic: outer },
+      { offset: 2, type: "point", diagnostic: inner },
+      { offset: 5, type: "end", diagnostic: outer },
+    ];
+    expect(flattenDiagnostics([outer, inner])).toEqual(expectedPoints);
+    expect(flattenDiagnostics([inner, outer])).toEqual(expectedPoints);
+  });
+
+  it("one diag inside another touching end", () => {
+    // OOOOO
+    //   iii
+    let outer = { begin: 0, end: 5 };
+    let inner = { begin: 2, end: 5 };
+    let expectedPoints = [
+      { offset: 0, type: "begin", diagnostic: outer },
+      { offset: 2, type: "begin", diagnostic: inner },
+      { offset: 5, type: "end", diagnostic: inner },
+      { offset: 5, type: "end", diagnostic: outer },
+    ];
+    expect(flattenDiagnostics([outer, inner])).toEqual(expectedPoints);
+    expect(flattenDiagnostics([inner, outer])).toEqual(expectedPoints);
+  });
+
+  it("one diag inside another touching begin", () => {
+    // OOOOO
+    // iii
+    let outer = { begin: 0, end: 5 };
+    let inner = { begin: 0, end: 3 };
+    let expectedPoints = [
+      { offset: 0, type: "begin", diagnostic: outer },
+      { offset: 0, type: "begin", diagnostic: inner },
+      { offset: 3, type: "end", diagnostic: inner },
+      { offset: 5, type: "end", diagnostic: outer },
+    ];
+    expect(flattenDiagnostics([outer, inner])).toEqual(expectedPoints);
+    expect(flattenDiagnostics([inner, outer])).toEqual(expectedPoints);
+  });
+
+  it("two overlapping non-nested diags", () => {
+    // LLLLL
+    //    RRRR
+    let left = { begin: 0, end: 5, message: "left" };
+    let right = { begin: 3, end: 8, message: "right" };
+    expect(flattenDiagnostics([left, right])).toEqual([
+      { offset: 0, type: "begin", diagnostic: left },
+      { offset: 3, type: "begin", diagnostic: right },
+      { offset: 5, type: "end", diagnostic: right },
+      { offset: 5, type: "end", diagnostic: left },
+      { offset: 5, type: "begin", diagnostic: right },
+      { offset: 8, type: "end", diagnostic: right },
+    ]);
+  });
+
+  it("diag overlapping two adjacent diags", () => {
+    // LLLLLLLLLLRRRRRRRRRR
+    //      MMMMMMMMMM
+    let left = { begin: 0, end: 10, message: "left" };
+    let middle = { begin: 5, end: 15, message: "middle" };
+    let right = { begin: 10, end: 20, message: "right" };
+    expect(flattenDiagnostics([left, middle, right])).toEqual([
+      { offset: 0, type: "begin", diagnostic: left },
+      { offset: 5, type: "begin", diagnostic: middle },
+      { offset: 10, type: "end", diagnostic: middle },
+      { offset: 10, type: "end", diagnostic: left },
+      { offset: 10, type: "begin", diagnostic: right },
+      { offset: 10, type: "begin", diagnostic: middle },
+      { offset: 15, type: "end", diagnostic: middle },
+      { offset: 20, type: "end", diagnostic: right },
+    ]);
+  });
+});
+
 describe("errorDocumentationExampleToHTML", () => {
   it("escapes special HTML characters", () => {
     let html = errorDocumentationExampleToHTML({
@@ -420,7 +573,7 @@ describe("errorDocumentationExampleToHTML", () => {
     expect(html).toBe("<mark>hello</mark><mark></mark>world");
   });
 
-  it("identical marks are merged", () => {
+  it("identical marks are nested", () => {
     let html = errorDocumentationExampleToHTML({
       code: "helloworld",
       diagnostics: [
@@ -428,10 +581,10 @@ describe("errorDocumentationExampleToHTML", () => {
         { begin: 0, end: 5 },
       ],
     });
-    expect(html).toBe("<mark>hello</mark>world");
+    expect(html).toBe("<mark><mark>hello</mark></mark>world");
   });
 
-  it("overlapping marks with same begin are merged", () => {
+  it("overlapping marks with same begin are nested", () => {
     let html = errorDocumentationExampleToHTML({
       code: "two errors please thanks",
       diagnostics: [
@@ -439,7 +592,7 @@ describe("errorDocumentationExampleToHTML", () => {
         { begin: 4, end: 17 }, // "errors please"
       ],
     });
-    expect(html).toBe("two <mark>errors please</mark> thanks");
+    expect(html).toBe("two <mark><mark>errors</mark> please</mark> thanks");
   });
 
   it("wraps byte order mark", () => {

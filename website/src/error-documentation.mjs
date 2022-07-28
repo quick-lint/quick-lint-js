@@ -73,32 +73,36 @@ markdownParser.renderer.rules = {
 };
 
 export function errorDocumentationExampleToHTML({ code, diagnostics }) {
-  diagnostics = diagnostics === null ? [] : sanitizeMarks(diagnostics);
+  let diagPoints = diagnostics === null ? [] : flattenDiagnostics(diagnostics);
   let codeHTML = "";
-  let lastDiagnosticEnd = 0;
-  for (let diagnostic of diagnostics) {
-    codeHTML += textToHTML(code.slice(lastDiagnosticEnd, diagnostic.begin));
-    codeHTML += "<mark";
-    if (typeof diagnostic.code !== "undefined") {
-      codeHTML += ` data-code="${textToHTML(diagnostic.code)}"`;
+  let lastPointOffset = 0;
+  for (let point of diagPoints) {
+    let diagnostic = point.diagnostic;
+    codeHTML += textToHTML(code.slice(lastPointOffset, point.offset));
+    if (point.type === "begin" || point.type === "point") {
+      codeHTML += "<mark";
+      if (typeof diagnostic.code !== "undefined") {
+        codeHTML += ` data-code="${textToHTML(diagnostic.code)}"`;
+      }
+      if (typeof diagnostic.message !== "undefined") {
+        codeHTML += ` data-message="${textToHTML(diagnostic.message)}"`;
+      }
+      if (typeof diagnostic.severity !== "undefined") {
+        codeHTML += ` data-severity="${
+          {
+            [DiagnosticSeverity.ERROR]: "error",
+            [DiagnosticSeverity.WARNING]: "warning",
+          }[diagnostic.severity]
+        }"`;
+      }
+      codeHTML += ">";
     }
-    if (typeof diagnostic.message !== "undefined") {
-      codeHTML += ` data-message="${textToHTML(diagnostic.message)}"`;
+    if (point.type === "end" || point.type === "point") {
+      codeHTML += "</mark>";
     }
-    if (typeof diagnostic.severity !== "undefined") {
-      codeHTML += ` data-severity="${
-        {
-          [DiagnosticSeverity.ERROR]: "error",
-          [DiagnosticSeverity.WARNING]: "warning",
-        }[diagnostic.severity]
-      }"`;
-    }
-    codeHTML += ">";
-    codeHTML += textToHTML(code.slice(diagnostic.begin, diagnostic.end));
-    codeHTML += "</mark>";
-    lastDiagnosticEnd = diagnostic.end;
+    lastPointOffset = point.offset;
   }
-  codeHTML += textToHTML(code.slice(lastDiagnosticEnd));
+  codeHTML += textToHTML(code.slice(lastPointOffset));
 
   // Wrap BOM in a <span>.
   let hasBOM = code.startsWith("\ufeff");
@@ -394,6 +398,82 @@ function wrapASCIIControlCharacters(html) {
     let cssClass = CONTROL_CHARACTER_TO_CSS_CLASS[controlCharacter];
     return `<span class='${cssClass}'>${controlCharacter}</span>`;
   });
+}
+
+export function flattenDiagnostics(diagnostics) {
+  // TODO(strager): Use an interval map instead for efficiency.
+  let diagnosticsPerCharacter = [];
+  let maxOffset = Math.max(0, ...diagnostics.map((diag) => diag.end));
+  for (let offset = 0; offset < maxOffset + 1; ++offset) {
+    diagnosticsPerCharacter.push([]);
+  }
+
+  for (let diagnostic of diagnostics) {
+    if (diagnostic.begin === diagnostic.end) {
+      diagnosticsPerCharacter[diagnostic.begin].push(diagnostic);
+    } else {
+      for (let offset = diagnostic.begin; offset < diagnostic.end; ++offset) {
+        diagnosticsPerCharacter[offset].push(diagnostic);
+      }
+    }
+  }
+
+  // Sort diags to encourage nesting and reduce splitting.
+  //
+  // If two diags begin at the same character, and one is nested within the
+  // other (as determined by their 'end' properties), order them such that the
+  // inner diagnostic (i.e. the one with the smaller 'end') appears after the
+  // outer diagnostic (i.e. the one with the bigger 'end').
+  for (let diagnosticsAtCharacter of diagnosticsPerCharacter) {
+    diagnosticsAtCharacter.sort((a, b) => {
+      if (a.end < b.end) return +1;
+      if (a.end > b.end) return -1;
+      let aIndex = diagnosticsAtCharacter.indexOf(a);
+      let bIndex = diagnosticsAtCharacter.indexOf(b);
+      if (aIndex < bIndex) return -1;
+      if (aIndex > bIndex) return +1;
+      return 0; // This shouldn't happen.
+    });
+  }
+
+  let stack = [];
+  let points = [];
+  for (let offset = 0; offset <= maxOffset; ++offset) {
+    let diagnosticsAtOffset = diagnosticsPerCharacter[offset];
+    popInvalidStackEntries(offset, diagnosticsAtOffset);
+    pushMissingDiagnostics(offset, diagnosticsAtOffset);
+  }
+  return points;
+
+  function pushMissingDiagnostics(offset, diagnosticsAtOffset) {
+    for (let d of diagnosticsAtOffset) {
+      if (d.begin === d.end) {
+        points.push({ type: "point", offset: offset, diagnostic: d });
+      } else if (!stack.includes(d)) {
+        points.push({ type: "begin", offset: offset, diagnostic: d });
+        stack.push(d);
+      }
+    }
+  }
+
+  function popInvalidStackEntries(offset, diagnosticsAtOffset) {
+    let newStackHeight = countValidStackEntries(diagnosticsAtOffset);
+    for (let i = stack.length; i-- > newStackHeight; ) {
+      let d = stack[i];
+      points.push({ type: "end", offset: offset, diagnostic: d });
+    }
+    stack.length = newStackHeight;
+  }
+
+  function countValidStackEntries(diagnosticsAtOffset) {
+    for (let i = 0; i < stack.length; ++i) {
+      let d = stack[i];
+      if (!diagnosticsAtOffset.includes(d)) {
+        return i;
+      }
+    }
+    return stack.length;
+  }
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
