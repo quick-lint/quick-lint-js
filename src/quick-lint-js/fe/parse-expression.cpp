@@ -100,6 +100,7 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
     }
     break;
   }
+  case expression_kind::angle_type_assertion:
   case expression_kind::as_type_assertion:
   case expression_kind::await:
   case expression_kind::spread:
@@ -221,6 +222,7 @@ void parser::maybe_visit_assignment(expression* ast, parse_visitor_base& v) {
       this->maybe_visit_assignment(value, v);
     }
     break;
+  case expression_kind::angle_type_assertion:
   case expression_kind::as_type_assertion:
   case expression_kind::non_null_assertion:
   case expression_kind::paren:
@@ -1924,6 +1926,7 @@ expression* parser::parse_arrow_function_expression_remainder(
   case expression_kind::_new:
   case expression_kind::_template:
   case expression_kind::_typeof:
+  case expression_kind::angle_type_assertion:
   case expression_kind::arrow_function:
   case expression_kind::as_type_assertion:
   case expression_kind::await:
@@ -3364,7 +3367,9 @@ expression* parser::parse_typescript_angle_type_assertion_expression(
                   source_code_span::unit(this->lexer_.end_of_previous_token()),
           });
     }
-    return ast;
+    return this->make_expression<expression::angle_type_assertion>(
+        /*bracketed_type_span=*/source_code_span::unit(less_begin),
+        /*child=*/ast);
   };
 
   lexer_transaction transaction = this->lexer_.begin_transaction();
@@ -3409,8 +3414,11 @@ expression* parser::parse_typescript_angle_type_assertion_expression(
               /*allow_in_operator=*/prec.in_operator);
         }
       }
+
       v.visit_variable_type_use(type);
-      return ast;
+      return this->make_expression<expression::angle_type_assertion>(
+          /*bracketed_type_span=*/source_code_span::unit(less_begin),
+          /*child=*/ast);
     }
 
     default:
@@ -3536,6 +3544,9 @@ try_again:
     goto try_again;
   case expression_kind::non_null_assertion:
     ast = static_cast<expression::non_null_assertion*>(ast)->child_;
+    goto try_again;
+  case expression_kind::angle_type_assertion:
+    ast = static_cast<expression::angle_type_assertion*>(ast)->child_;
     goto try_again;
   case expression_kind::as_type_assertion:
     ast = static_cast<expression::as_type_assertion*>(ast)->child_;

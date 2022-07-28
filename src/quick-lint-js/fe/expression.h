@@ -47,7 +47,8 @@ enum class expression_kind {
   _typeof,
   array,
   arrow_function,
-  as_type_assertion,  // TypeScript only.
+  angle_type_assertion,  // TypeScript only.
+  as_type_assertion,     // TypeScript only.
   assignment,
   await,
   binary_operator,
@@ -195,6 +196,7 @@ class expression {
   class _typeof;
   class array;
   class arrow_function;
+  class angle_type_assertion;
   class as_type_assertion;
   class assignment;
   class await;
@@ -494,6 +496,22 @@ class expression::arrow_function final : public expression {
   expression_arena::array_ptr<expression *> children_;
 };
 static_assert(expression_arena::is_allocatable<expression::arrow_function>);
+
+class expression::angle_type_assertion final : public expression {
+ public:
+  static constexpr expression_kind kind = expression_kind::angle_type_assertion;
+
+  explicit angle_type_assertion(source_code_span bracketed_type_span,
+                                expression *child) noexcept
+      : expression(kind),
+        bracketed_type_span_(bracketed_type_span),
+        child_(child) {}
+
+  source_code_span bracketed_type_span_;
+  expression *child_;
+};
+static_assert(
+    expression_arena::is_allocatable<expression::angle_type_assertion>);
 
 class expression::as_type_assertion final : public expression {
  public:
@@ -1122,6 +1140,11 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     return static_cast<const expression::_new *>(this)->children_;
   case expression_kind::_template:
     return static_cast<const expression::_template *>(this)->children_;
+  case expression_kind::angle_type_assertion: {
+    auto *assertion =
+        static_cast<const expression::angle_type_assertion *>(this);
+    return expression_arena::array_ptr<expression *>(&assertion->child_, 1);
+  }
   case expression_kind::array:
     return static_cast<const expression::array *>(this)->children_;
   case expression_kind::arrow_function:
@@ -1249,6 +1272,11 @@ inline source_code_span expression::span() const noexcept {
     return static_cast<const _new *>(this)->span_;
   case expression_kind::_template:
     return static_cast<const _template *>(this)->span_;
+  case expression_kind::angle_type_assertion: {
+    auto *assertion = static_cast<const angle_type_assertion *>(this);
+    return source_code_span(assertion->bracketed_type_span_.begin(),
+                            assertion->child_->span().end());
+  }
   case expression_kind::array:
     return static_cast<const array *>(this)->span_;
   case expression_kind::arrow_function: {

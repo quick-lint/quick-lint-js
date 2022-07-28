@@ -1475,6 +1475,7 @@ void parser::parse_and_visit_function_parameters(parse_visitor_base &v) {
     case token_type::left_curly:
     case token_type::left_paren:
     case token_type::left_square:
+    case token_type::less:
     case token_type::number:
     case token_type::reserved_keyword_with_escape_sequence: {
       expression *parameter = this->parse_expression(
@@ -1918,6 +1919,7 @@ parser::enum_value_kind parser::classify_enum_value_expression(
   case expression_kind::_new:
   case expression_kind::_template:
   case expression_kind::_typeof:
+  case expression_kind::angle_type_assertion:
   case expression_kind::array:
   case expression_kind::arrow_function:
   case expression_kind::as_type_assertion:
@@ -3848,6 +3850,19 @@ void parser::visit_binding_element(
         diag_non_null_assertion_not_allowed_in_parameter{
             .bang = assertion->bang_span(),
         });
+    this->visit_binding_element(assertion->child_, v, declaration_kind,
+                                /*declaring_token=*/declaring_token,
+                                /*init_kind=*/init_kind);
+    break;
+  }
+
+  // function f(<T>p) {}  // Invalid.
+  case expression_kind::angle_type_assertion: {
+    auto *assertion =
+        static_cast<const expression::angle_type_assertion *>(ast);
+    this->diag_reporter_->report(diag_invalid_parameter{
+        .parameter = assertion->span(),
+    });
     this->visit_binding_element(assertion->child_, v, declaration_kind,
                                 /*declaring_token=*/declaring_token,
                                 /*init_kind=*/init_kind);

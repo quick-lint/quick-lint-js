@@ -66,6 +66,8 @@ std::string summarize(const expression& expression) {
     return "template(" + children() + ")";
   case expression_kind::_typeof:
     return "typeof(" + summarize(expression.child_0()) + ")";
+  case expression_kind::angle_type_assertion:
+    return "typeassert(" + summarize(expression.child_0()) + ")";
   case expression_kind::array:
     return "array(" + children() + ")";
   case expression_kind::arrow_function:
