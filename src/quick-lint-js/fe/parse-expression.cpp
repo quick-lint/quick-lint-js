@@ -1891,23 +1891,24 @@ next:
 }
 
 expression* parser::parse_arrow_function_expression_remainder(
-    parse_visitor_base& v, expression* lhs,
+    parse_visitor_base& v, expression* parameters_expression,
     buffering_visitor* return_type_visits, bool allow_in_operator) {
   const char8* parameter_list_begin = nullptr;
-  if (lhs->kind() == expression_kind::paren) {
-    parameter_list_begin = lhs->span().begin();
-    lhs = static_cast<expression::paren*>(lhs)->child_;
+  if (parameters_expression->kind() == expression_kind::paren) {
+    parameter_list_begin = parameters_expression->span().begin();
+    parameters_expression =
+        static_cast<expression::paren*>(parameters_expression)->child_;
   }
 
   expression_arena::vector<expression*> parameters(
       "parse_arrow_function_expression_remainder",
       this->expressions_.allocator());
-  switch (lhs->kind()) {
+  switch (parameters_expression->kind()) {
   case expression_kind::binary_operator:
   case expression_kind::trailing_comma:
     // TODO(strager): Only allow comma expressions, not '(2+3) => 5', for
     // example.
-    for (expression* parameter : lhs->children()) {
+    for (expression* parameter : parameters_expression->children()) {
       parameters.emplace_back(parameter);
     }
     break;
@@ -1953,7 +1954,7 @@ expression* parser::parse_arrow_function_expression_remainder(
   case expression_kind::object:
   case expression_kind::spread:
   case expression_kind::variable:
-    parameters.emplace_back(lhs);
+    parameters.emplace_back(parameters_expression);
     break;
 
   // param: Type => {}    // Invalid.
@@ -1962,14 +1963,14 @@ expression* parser::parse_arrow_function_expression_remainder(
     // NOTE(strager): '(param): ReturnType => {}' is handled above.
     if (!parameter_list_begin) {
       expression::type_annotated* param =
-          static_cast<expression::type_annotated*>(lhs);
+          static_cast<expression::type_annotated*>(parameters_expression);
       this->diag_reporter_->report(
           diag_arrow_parameter_with_type_annotation_requires_parentheses{
               .parameter_and_annotation = param->span(),
               .type_colon = param->colon_span(),
           });
     }
-    parameters.emplace_back(lhs);
+    parameters.emplace_back(parameters_expression);
     break;
   }
 
@@ -1982,7 +1983,7 @@ expression* parser::parse_arrow_function_expression_remainder(
   // (()) => {}  // Invalid.
   case expression_kind::paren_empty: {
     expression::paren_empty* paren_empty =
-        static_cast<expression::paren_empty*>(lhs);
+        static_cast<expression::paren_empty*>(parameters_expression);
     if (parameter_list_begin) {
       // (()) => {}  // Invalid.
       paren_empty->report_missing_expression_error(this->diag_reporter_);
@@ -1995,7 +1996,7 @@ expression* parser::parse_arrow_function_expression_remainder(
 
   // f(x, y) => {}
   case expression_kind::call: {
-    auto* call = expression_cast<expression::call>(lhs);
+    auto* call = expression_cast<expression::call>(parameters_expression);
     if (this->peek().type == token_type::left_curly) {
       parameter_list_begin = call->left_paren_span().begin();
       for (int i = 1; i < call->child_count(); ++i) {
@@ -2006,7 +2007,7 @@ expression* parser::parse_arrow_function_expression_remainder(
       // elsewhere.
     } else {
       // diag_unexpected_arrow_after_expression is reported elsewhere.
-      parameter_list_begin = lhs->span().begin();
+      parameter_list_begin = parameters_expression->span().begin();
     }
     break;
   }
@@ -2014,7 +2015,7 @@ expression* parser::parse_arrow_function_expression_remainder(
   case expression_kind::dot:
   case expression_kind::literal:
     // The code is invalid. An error is reported elsewhere.
-    parameter_list_begin = lhs->span().begin();
+    parameter_list_begin = parameters_expression->span().begin();
     break;
 
   case expression_kind::import:
@@ -2027,7 +2028,8 @@ expression* parser::parse_arrow_function_expression_remainder(
       /*allow_in_operator=*/allow_in_operator,
       this->expressions_.make_array(std::move(parameters)),
       /*return_type_visits=*/return_type_visits);
-  return this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs);
+  return this->maybe_wrap_erroneous_arrow_function(
+      arrow_function, /*parameters_expression=*/parameters_expression);
 }
 
 expression::call* parser::parse_call_expression_remainder(parse_visitor_base& v,
