@@ -439,9 +439,9 @@ class parser {
                                      const token &await_token, precedence prec);
   expression *parse_expression_remainder(parse_visitor_base &, expression *,
                                          precedence);
-  expression *parse_arrow_function_expression_remainder(parse_visitor_base &,
-                                                        expression *lhs,
-                                                        bool allow_in_operator);
+  expression *parse_arrow_function_expression_remainder(
+      parse_visitor_base &, expression *lhs,
+      buffering_visitor *return_type_visits, bool allow_in_operator);
   expression::call *parse_call_expression_remainder(parse_visitor_base &,
                                                     expression *callee);
   expression *parse_index_expression_remainder(parse_visitor_base &,

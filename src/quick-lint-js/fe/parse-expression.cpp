@@ -1704,8 +1704,22 @@ next:
       // TODO(strager): We should report an error for code like this:
       // a + b => c
     }
+
+    buffering_visitor* return_type_visits = nullptr;
+    if (lhs->kind() == expression_kind::type_annotated) {
+      expression::type_annotated* annotated =
+          static_cast<expression::type_annotated*>(lhs);
+      if (annotated->child_->kind() == expression_kind::paren ||
+          annotated->child_->kind() == expression_kind::paren_empty) {
+        // (): ReturnType => {}  // TypeScript only.
+        // (param): ReturnType => {}  // TypeScript only.
+        return_type_visits = &annotated->type_visits_;
+        lhs = annotated->child_;
+      }
+    }
     binary_builder.replace_last(this->parse_arrow_function_expression_remainder(
         v, lhs,
+        /*return_type_visits=*/return_type_visits,
         /*allow_in_operator=*/prec.in_operator));
     goto next;
   }
@@ -1761,6 +1775,7 @@ next:
       binary_builder.replace_last(
           this->parse_arrow_function_expression_remainder(
               v, binary_builder.last_expression(),
+              /*return_type_visits=*/nullptr,
               /*allow_in_operator=*/prec.in_operator));
     }
     break;
@@ -1876,20 +1891,9 @@ next:
 }
 
 expression* parser::parse_arrow_function_expression_remainder(
-    parse_visitor_base& v, expression* lhs, bool allow_in_operator) {
-  buffering_visitor* return_type_visits = nullptr;
+    parse_visitor_base& v, expression* lhs,
+    buffering_visitor* return_type_visits, bool allow_in_operator) {
   const char8* parameter_list_begin = nullptr;
-  if (lhs->kind() == expression_kind::type_annotated) {
-    expression::type_annotated* annotated =
-        static_cast<expression::type_annotated*>(lhs);
-    if (annotated->child_->kind() == expression_kind::paren ||
-        annotated->child_->kind() == expression_kind::paren_empty) {
-      // (): ReturnType => {}  // TypeScript only.
-      // (param): ReturnType => {}  // TypeScript only.
-      return_type_visits = &annotated->type_visits_;
-      lhs = annotated->child_;
-    }
-  }
   if (lhs->kind() == expression_kind::paren) {
     parameter_list_begin = lhs->span().begin();
     lhs = static_cast<expression::paren*>(lhs)->child_;
