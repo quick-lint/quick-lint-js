@@ -1920,7 +1920,7 @@ parser::enum_value_kind parser::classify_enum_value_expression(
   case expression_kind::_typeof:
   case expression_kind::array:
   case expression_kind::arrow_function:
-  case expression_kind::as_cast:
+  case expression_kind::as_type_assertion:
   case expression_kind::assignment:
   case expression_kind::await:
   case expression_kind::compound_assignment:
@@ -3855,13 +3855,13 @@ void parser::visit_binding_element(
   }
 
   // function f(x as y) {}  // Invalid.
-  case expression_kind::as_cast: {
-    auto *cast = static_cast<const expression::as_cast *>(ast);
+  case expression_kind::as_type_assertion: {
+    auto *assertion = static_cast<const expression::as_type_assertion *>(ast);
     this->diag_reporter_->report(
         diag_typescript_as_keyword_used_for_parameter_type_annotation{
-            .as_keyword = cast->as_span(),
+            .as_keyword = assertion->as_span(),
         });
-    this->visit_binding_element(cast->child_, v, declaration_kind,
+    this->visit_binding_element(assertion->child_, v, declaration_kind,
                                 /*declaring_token=*/declaring_token,
                                 /*init_kind=*/init_kind);
     break;

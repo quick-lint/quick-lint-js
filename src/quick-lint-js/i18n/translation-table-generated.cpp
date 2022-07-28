@@ -50,9 +50,9 @@ const translation_table translation_data = {
         {21, 38, 23, 0, 18},          //
         {39, 37, 40, 0, 33},          //
         {0, 0, 0, 0, 52},             //
-        {0, 0, 0, 0, 52},             //
+        {0, 0, 0, 0, 62},             //
         {0, 0, 0, 0, 53},             //
-        {0, 0, 0, 0, 52},             //
+        {0, 0, 0, 0, 62},             //
         {0, 0, 0, 0, 70},             //
         {0, 0, 0, 0, 55},             //
         {0, 0, 0, 0, 55},             //
@@ -338,7 +338,7 @@ const translation_table translation_data = {
         {0, 0, 0, 0, 51},             //
         {0, 0, 0, 0, 36},             //
         {0, 0, 0, 0, 39},             //
-        {0, 0, 0, 0, 38},             //
+        {0, 0, 0, 0, 48},             //
         {0, 0, 0, 0, 42},             //
         {47, 55, 72, 48, 33},         //
         {0, 0, 0, 0, 21},             //
@@ -1283,9 +1283,9 @@ const translation_table translation_data = {
         u8"JSON syntax error\0"
         u8"React/JSX is not yet implemented\0"
         u8"RegExp literal flags cannot contain Unicode escapes\0"
-        u8"TypeScript 'as' casts are not allowed in JavaScript\0"
+        u8"TypeScript 'as' type assertions are not allowed in JavaScript\0"
         u8"TypeScript 'implements' is not allowed in JavaScript\0"
-        u8"TypeScript <Type> casts are not allowed in JSX mode\0"
+        u8"TypeScript <Type> type assertions are not allowed in JSX mode\0"
         u8"TypeScript assignment-asserted fields are not supported in JavaScript\0"
         u8"TypeScript call signatures are only allowed in classes\0"
         u8"TypeScript generics are not allowed in JavaScript code\0"
@@ -1571,7 +1571,7 @@ const translation_table translation_data = {
         u8"with statement needs parentheses around expression\0"
         u8"write 'const' instead of '{0}' here\0"
         u8"write a name to declare a class method\0"
-        u8"write the cast with 'as' here instead\0"
+        u8"write the type assertion with 'as' here instead\0"
         u8"{0} classes are not allowed in JavaScript\0"
         u8"{0} is not allowed in JavaScript\0"
         u8"{0} with no bindings\0"

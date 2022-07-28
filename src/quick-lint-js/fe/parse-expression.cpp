@@ -100,7 +100,7 @@ void parser::visit_expression(expression* ast, parse_visitor_base& v,
     }
     break;
   }
-  case expression_kind::as_cast:
+  case expression_kind::as_type_assertion:
   case expression_kind::await:
   case expression_kind::spread:
   case expression_kind::unary_operator:
@@ -221,7 +221,7 @@ void parser::maybe_visit_assignment(expression* ast, parse_visitor_base& v) {
       this->maybe_visit_assignment(value, v);
     }
     break;
-  case expression_kind::as_cast:
+  case expression_kind::as_type_assertion:
   case expression_kind::non_null_assertion:
   case expression_kind::paren:
     this->maybe_visit_assignment(ast->child_0(), v);
@@ -1812,7 +1812,7 @@ next:
     source_code_span as_span = this->peek().span();
     if (!this->options_.typescript) {
       this->diag_reporter_->report(
-          diag_typescript_as_cast_not_allowed_in_javascript{
+          diag_typescript_as_type_assertion_not_allowed_in_javascript{
               .as_keyword = as_span,
           });
     }
@@ -1823,7 +1823,8 @@ next:
 
     expression* child = binary_builder.last_expression();
     binary_builder.replace_last(
-        this->make_expression<expression::as_cast>(child, as_span, type_end));
+        this->make_expression<expression::as_type_assertion>(child, as_span,
+                                                             type_end));
     goto next;
   }
 
@@ -1924,7 +1925,7 @@ expression* parser::parse_arrow_function_expression_remainder(
   case expression_kind::_template:
   case expression_kind::_typeof:
   case expression_kind::arrow_function:
-  case expression_kind::as_cast:
+  case expression_kind::as_type_assertion:
   case expression_kind::await:
   case expression_kind::compound_assignment:
   case expression_kind::conditional:
@@ -2868,7 +2869,7 @@ expression* parser::parse_jsx_or_typescript_generic_expression(
     case token_type::left_square:
     case token_type::pipe:
       this->lexer_.roll_back_transaction(std::move(transaction));
-      return this->parse_typescript_cast_expression(v, prec);
+      return this->parse_typescript_angle_type_assertion_expression(v, prec);
 
     // <Type>expr
     // <T,>(params) => {}    // Arrow function.
@@ -2891,14 +2892,15 @@ expression* parser::parse_jsx_or_typescript_generic_expression(
       case token_type::greater:
         if (!this->options_.jsx) {
           this->lexer_.roll_back_transaction(std::move(transaction));
-          return this->parse_typescript_cast_expression(v, prec);
+          return this->parse_typescript_angle_type_assertion_expression(v,
+                                                                        prec);
         }
         break;
 
       // <T | U>expr  // Cast.
       case token_type::pipe:
         this->lexer_.roll_back_transaction(std::move(transaction));
-        return this->parse_typescript_cast_expression(v, prec);
+        return this->parse_typescript_angle_type_assertion_expression(v, prec);
 
       default:
         break;
@@ -3339,13 +3341,13 @@ expression* parser::parse_typescript_generic_arrow_expression(
   return ast;
 }
 
-expression* parser::parse_typescript_cast_expression(parse_visitor_base& v,
-                                                     precedence prec) {
+expression* parser::parse_typescript_angle_type_assertion_expression(
+    parse_visitor_base& v, precedence prec) {
   QLJS_ASSERT(this->peek().type == token_type::less);
   const char8* less_begin = this->peek().begin;
   this->skip();
 
-  auto parse_as_cast = [&]() -> expression* {
+  auto parse_as_type_assertion = [&]() -> expression* {
     this->parse_and_visit_typescript_type_expression(v);
 
     QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
@@ -3356,7 +3358,7 @@ expression* parser::parse_typescript_cast_expression(parse_visitor_base& v,
     expression* ast = this->parse_primary_expression(v, prec);
     if (this->options_.jsx) {
       this->diag_reporter_->report(
-          diag_typescript_angle_cast_not_allowed_in_tsx{
+          diag_typescript_angle_type_assertion_not_allowed_in_tsx{
               .bracketed_type = source_code_span(less_begin, greater_end),
               .expected_as =
                   source_code_span::unit(this->lexer_.end_of_previous_token()),
@@ -3376,7 +3378,7 @@ expression* parser::parse_typescript_cast_expression(parse_visitor_base& v,
     // <T | U>expr
     case token_type::pipe:
       this->lexer_.roll_back_transaction(std::move(transaction));
-      return parse_as_cast();
+      return parse_as_type_assertion();
 
     // <T>(params) => {}
     // <Type>expr
@@ -3416,14 +3418,14 @@ expression* parser::parse_typescript_cast_expression(parse_visitor_base& v,
       break;
     }
 
-    return parse_as_cast();
+    return parse_as_type_assertion();
   }
 
   // <(Type)>expr
   // <typeof Type>expr
   case token_type::left_paren:
   default:
-    return parse_as_cast();
+    return parse_as_type_assertion();
   }
 }
 
@@ -3535,8 +3537,8 @@ try_again:
   case expression_kind::non_null_assertion:
     ast = static_cast<expression::non_null_assertion*>(ast)->child_;
     goto try_again;
-  case expression_kind::as_cast:
-    ast = static_cast<expression::as_cast*>(ast)->child_;
+  case expression_kind::as_type_assertion:
+    ast = static_cast<expression::as_type_assertion*>(ast)->child_;
     goto try_again;
   case expression_kind::_invalid:
   case expression_kind::_missing:

@@ -47,7 +47,7 @@ enum class expression_kind {
   _typeof,
   array,
   arrow_function,
-  as_cast,  // TypeScript only.
+  as_type_assertion,  // TypeScript only.
   assignment,
   await,
   binary_operator,
@@ -195,7 +195,7 @@ class expression {
   class _typeof;
   class array;
   class arrow_function;
-  class as_cast;
+  class as_type_assertion;
   class assignment;
   class await;
   class binary_operator;
@@ -495,12 +495,12 @@ class expression::arrow_function final : public expression {
 };
 static_assert(expression_arena::is_allocatable<expression::arrow_function>);
 
-class expression::as_cast final : public expression {
+class expression::as_type_assertion final : public expression {
  public:
-  static constexpr expression_kind kind = expression_kind::as_cast;
+  static constexpr expression_kind kind = expression_kind::as_type_assertion;
 
-  explicit as_cast(expression *child, source_code_span as_span,
-                   const char8 *span_end) noexcept
+  explicit as_type_assertion(expression *child, source_code_span as_span,
+                             const char8 *span_end) noexcept
       : expression(kind),
         child_(child),
         as_keyword_(as_span.begin()),
@@ -516,7 +516,7 @@ class expression::as_cast final : public expression {
   const char8 *as_keyword_;
   const char8 *span_end_;
 };
-static_assert(expression_arena::is_allocatable<expression::as_cast>);
+static_assert(expression_arena::is_allocatable<expression::as_type_assertion>);
 
 class expression::assignment final : public expression {
  public:
@@ -1126,9 +1126,9 @@ inline expression_arena::array_ptr<expression *> expression::children() const
     return static_cast<const expression::array *>(this)->children_;
   case expression_kind::arrow_function:
     return static_cast<const expression::arrow_function *>(this)->children_;
-  case expression_kind::as_cast: {
-    auto *cast = static_cast<const expression::as_cast *>(this);
-    return expression_arena::array_ptr<expression *>(&cast->child_, 1);
+  case expression_kind::as_type_assertion: {
+    auto *assertion = static_cast<const expression::as_type_assertion *>(this);
+    return expression_arena::array_ptr<expression *>(&assertion->child_, 1);
   }
   case expression_kind::binary_operator:
     return static_cast<const expression::binary_operator *>(this)->children_;
@@ -1260,9 +1260,10 @@ inline source_code_span expression::span() const noexcept {
                               arrow->span_end_);
     }
   }
-  case expression_kind::as_cast: {
-    auto *cast = static_cast<const as_cast *>(this);
-    return source_code_span(cast->child_->span().begin(), cast->span_end_);
+  case expression_kind::as_type_assertion: {
+    auto *assertion = static_cast<const as_type_assertion *>(this);
+    return source_code_span(assertion->child_->span().begin(),
+                            assertion->span_end_);
   }
   case expression_kind::binary_operator: {
     auto *binary = static_cast<const expression::binary_operator *>(this);

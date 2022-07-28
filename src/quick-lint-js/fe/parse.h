@@ -480,8 +480,8 @@ class parser {
   void check_jsx_attribute(const identifier &attribute_name);
   expression *parse_typescript_generic_arrow_expression(parse_visitor_base &,
                                                         bool allow_in_operator);
-  expression *parse_typescript_cast_expression(parse_visitor_base &,
-                                               precedence);
+  expression *parse_typescript_angle_type_assertion_expression(
+      parse_visitor_base &, precedence);
   expression *parse_tagged_template(parse_visitor_base &, expression *tag);
   expression *parse_untagged_template(parse_visitor_base &);
 

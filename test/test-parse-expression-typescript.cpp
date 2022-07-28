@@ -138,12 +138,12 @@ TEST(test_parse_expression_typescript_statement, non_null_assertion) {
   }
 }
 
-TEST_F(test_parse_expression_typescript, as_expression) {
+TEST_F(test_parse_expression_typescript, as_type_assertion) {
   {
     test_parser& p = this->make_parser(u8"x as y"_sv);
 
     expression* ast = p.parse_expression();
-    ASSERT_EQ(ast->kind(), expression_kind::as_cast);
+    ASSERT_EQ(ast->kind(), expression_kind::as_type_assertion);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(p.range(ast).begin_offset(), 0);
     EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"x as y"));
@@ -155,19 +155,20 @@ TEST_F(test_parse_expression_typescript, as_expression) {
 }
 
 TEST_F(test_parse_expression_typescript,
-       as_expression_not_allowed_in_javascript) {
+       as_type_assertion_not_allowed_in_javascript) {
   {
     test_parser& p = this->make_parser(u8"x as y"_sv, javascript_options);
     EXPECT_EQ(summarize(p.parse_expression()), "as(var x)");
-    EXPECT_THAT(p.errors(),
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    p.code(),
-                    diag_typescript_as_cast_not_allowed_in_javascript,  //
-                    as_keyword, strlen(u8"x "), u8"as")));
+    EXPECT_THAT(
+        p.errors(),
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code(),
+            diag_typescript_as_type_assertion_not_allowed_in_javascript,  //
+            as_keyword, strlen(u8"x "), u8"as")));
   }
 }
 
-TEST(test_parse_expression_typescript_statement, as_cast) {
+TEST(test_parse_expression_typescript_statement, as_type_assertion) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"f(x as T);"_sv);
@@ -189,7 +190,7 @@ TEST(test_parse_expression_typescript_statement, as_cast) {
 }
 
 TEST(test_parse_expression_typescript_statement,
-     as_expression_is_not_allowed_in_function_parameter_list) {
+     as_type_assertion_is_not_allowed_in_function_parameter_list) {
   {
     padded_string code(u8"(x as T) => {}"_sv);
     spy_visitor v;

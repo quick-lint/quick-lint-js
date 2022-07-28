@@ -70,7 +70,7 @@ std::string summarize(const expression& expression) {
     return "array(" + children() + ")";
   case expression_kind::arrow_function:
     return function_attributes() + "arrowfunc(" + children() + ")";
-  case expression_kind::as_cast:
+  case expression_kind::as_type_assertion:
     return "as(" + summarize(expression.child_0()) + ")";
   case expression_kind::assignment:
     return "assign(" + children() + ")";

@@ -409,13 +409,13 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
-        "TypeScript 'as' casts are not allowed in JavaScript"_translatable,
+        "TypeScript 'as' type assertions are not allowed in JavaScript"_translatable,
         {
-            u8"TypeScript 'as' casts are not allowed in JavaScript",
-            u8"TypeScript 'as' casts are not allowed in JavaScript",
-            u8"TypeScript 'as' casts are not allowed in JavaScript",
-            u8"TypeScript 'as' casts are not allowed in JavaScript",
-            u8"TypeScript 'as' casts are not allowed in JavaScript",
+            u8"TypeScript 'as' type assertions are not allowed in JavaScript",
+            u8"TypeScript 'as' type assertions are not allowed in JavaScript",
+            u8"TypeScript 'as' type assertions are not allowed in JavaScript",
+            u8"TypeScript 'as' type assertions are not allowed in JavaScript",
+            u8"TypeScript 'as' type assertions are not allowed in JavaScript",
         },
     },
     {
@@ -429,13 +429,13 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
-        "TypeScript <Type> casts are not allowed in JSX mode"_translatable,
+        "TypeScript <Type> type assertions are not allowed in JSX mode"_translatable,
         {
-            u8"TypeScript <Type> casts are not allowed in JSX mode",
-            u8"TypeScript <Type> casts are not allowed in JSX mode",
-            u8"TypeScript <Type> casts are not allowed in JSX mode",
-            u8"TypeScript <Type> casts are not allowed in JSX mode",
-            u8"TypeScript <Type> casts are not allowed in JSX mode",
+            u8"TypeScript <Type> type assertions are not allowed in JSX mode",
+            u8"TypeScript <Type> type assertions are not allowed in JSX mode",
+            u8"TypeScript <Type> type assertions are not allowed in JSX mode",
+            u8"TypeScript <Type> type assertions are not allowed in JSX mode",
+            u8"TypeScript <Type> type assertions are not allowed in JSX mode",
         },
     },
     {
@@ -3289,13 +3289,13 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
-        "write the cast with 'as' here instead"_translatable,
+        "write the type assertion with 'as' here instead"_translatable,
         {
-            u8"write the cast with 'as' here instead",
-            u8"write the cast with 'as' here instead",
-            u8"write the cast with 'as' here instead",
-            u8"write the cast with 'as' here instead",
-            u8"write the cast with 'as' here instead",
+            u8"write the type assertion with 'as' here instead",
+            u8"write the type assertion with 'as' here instead",
+            u8"write the type assertion with 'as' here instead",
+            u8"write the type assertion with 'as' here instead",
+            u8"write the type assertion with 'as' here instead",
         },
     },
     {

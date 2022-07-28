@@ -1467,23 +1467,24 @@
               specifier))                                                      \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_typescript_angle_cast_not_allowed_in_tsx, "E0283",                  \
+      diag_typescript_angle_type_assertion_not_allowed_in_tsx, "E0283",        \
       diagnostic_severity::error,                                              \
       {                                                                        \
         source_code_span bracketed_type;                                       \
         source_code_span expected_as;                                          \
       },                                                                       \
-      MESSAGE(QLJS_TRANSLATABLE(                                               \
-                  "TypeScript <Type> casts are not allowed in JSX mode"),      \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript <Type> type assertions are not "   \
+                                "allowed in JSX mode"),                        \
               bracketed_type)                                                  \
-          MESSAGE(QLJS_TRANSLATABLE("write the cast with 'as' here instead"),  \
+          MESSAGE(QLJS_TRANSLATABLE(                                           \
+                      "write the type assertion with 'as' here instead"),      \
                   expected_as))                                                \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \
-      diag_typescript_as_cast_not_allowed_in_javascript, "E0281",              \
+      diag_typescript_as_type_assertion_not_allowed_in_javascript, "E0281",    \
       diagnostic_severity::error, { source_code_span as_keyword; },            \
-      MESSAGE(QLJS_TRANSLATABLE(                                               \
-                  "TypeScript 'as' casts are not allowed in JavaScript"),      \
+      MESSAGE(QLJS_TRANSLATABLE("TypeScript 'as' type assertions are not "     \
+                                "allowed in JavaScript"),                      \
               as_keyword))                                                     \
                                                                                \
   QLJS_DIAG_TYPE(                                                              \

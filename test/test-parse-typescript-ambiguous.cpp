@@ -67,7 +67,7 @@ TEST(test_typescript_ambiguous, generic_arrow_with_extends) {
 }
 
 TEST(test_typescript_ambiguous,
-     angle_bracketed_type_without_arrow_is_cast_in_typescript_mode) {
+     angle_bracketed_type_without_arrow_is_type_assertion_in_typescript_mode) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"<Type>expr;"_sv, typescript_options);
@@ -129,8 +129,9 @@ TEST(test_typescript_ambiguous,
   }
 }
 
-TEST(test_typescript_ambiguous,
-     angle_bracketed_complex_type_is_error_cast_in_typescript_jsx_mode) {
+TEST(
+    test_typescript_ambiguous,
+    angle_bracketed_complex_type_is_error_type_assertion_in_typescript_jsx_mode) {
   {
     padded_string code(u8"<Type1 | Type2>(expr);"_sv);
     spy_visitor v;
@@ -142,8 +143,8 @@ TEST(test_typescript_ambiguous,
     EXPECT_THAT(v.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     &code,
-                    diag_typescript_angle_cast_not_allowed_in_tsx,  //
-                    bracketed_type, 0, u8"<Type1 | Type2>",         //
+                    diag_typescript_angle_type_assertion_not_allowed_in_tsx,  //
+                    bracketed_type, 0, u8"<Type1 | Type2>",                   //
                     expected_as, strlen(u8"<Type1 | Type2>(expr)"), u8"")));
   }
 
@@ -154,11 +155,12 @@ TEST(test_typescript_ambiguous,
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // Type
                                       "visit_variable_use"));     // expr
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_2_OFFSETS(
-                              &code,
-                              diag_typescript_angle_cast_not_allowed_in_tsx,  //
-                              bracketed_type, 0, u8"<(Type)>",                //
-                              expected_as, strlen(u8"<(Type)>expr"), u8"")));
+    EXPECT_THAT(v.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    &code,
+                    diag_typescript_angle_type_assertion_not_allowed_in_tsx,  //
+                    bracketed_type, 0, u8"<(Type)>",                          //
+                    expected_as, strlen(u8"<(Type)>expr"), u8"")));
   }
 }
 
