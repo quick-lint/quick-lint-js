@@ -1,18 +1,18 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-function showErrorMessageBox(mark, posCursorX, diagnostic) {
-  const div = createErrorBox(mark, posCursorX, diagnostic);
+function showErrorMessageBox(mark, posCursorX, diagnostics) {
+  const div = createErrorBox(mark, posCursorX, diagnostics);
   let body = document.querySelector("body");
   body.appendChild(div);
 }
 
-function createErrorBox(markedElement, posCursorX, diagnostic) {
+function createErrorBox(markedElement, posCursorX, diagnostics) {
   // TODO: Change background color based of the severity
   let div = document.createElement("div");
   const { bottom } = markedElement.getBoundingClientRect();
   div.setAttribute("id", "error-box");
-  div.innerText = formatDiagnostic(diagnostic);
+  div.innerText = diagnostics.map((d) => formatDiagnostic(d)).join("\n");
   div.style.position = "fixed";
   div.style.overflow = "auto";
   div.style.top = `${Math.trunc(bottom)}px`;
@@ -31,12 +31,18 @@ function showErrorMessage(event, markedElement) {
   removeErrorMessageBox();
 
   const marks = markedElement.querySelectorAll("mark");
+  let diagnostics = [];
+  let hoveredMarkElement = null;
   for (let mark of marks) {
     const markRect = mark.getBoundingClientRect();
     if (cursorOverMark(event.clientX, event.clientY, markRect)) {
-      showErrorMessageBox(mark, event.clientX, getDiagnosticFromMark(mark));
-      break;
+      diagnostics.push(getDiagnosticFromMark(mark));
+      // TODO(strager): Use the inner-most mark instead of the last mark.
+      hoveredMarkElement = mark;
     }
+  }
+  if (hoveredMarkElement !== null) {
+    showErrorMessageBox(hoveredMarkElement, event.clientX, diagnostics);
   }
 }
 
