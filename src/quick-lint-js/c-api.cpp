@@ -25,13 +25,14 @@ namespace {
 template <class Locator, class ErrorReporter>
 class qljs_document_base {
  public:
+  explicit qljs_document_base() { this->parser_options_.jsx = true; }
+
   const auto* lint() {
     this->diag_reporter_.reset();
     this->diag_reporter_.set_input(this->document_.string(),
                                    &this->document_.locator());
-    parser_options p_options;
-    p_options.jsx = true;
-    parser p(this->document_.string(), &this->diag_reporter_, p_options);
+    parser p(this->document_.string(), &this->diag_reporter_,
+             this->parser_options_);
     linter l(&this->diag_reporter_, &this->config_.globals());
     p.parse_and_visit_module_catching_fatal_parse_errors(l);
 
@@ -50,6 +51,7 @@ class qljs_document_base {
   quick_lint_js::document<Locator> document_;
   ErrorReporter diag_reporter_;
   configuration config_;
+  parser_options parser_options_;
 };
 }
 }
@@ -90,6 +92,13 @@ void qljs_web_demo_set_config_text(qljs_web_demo_document* p,
                                    size_t text_byte_count) {
   p->set_config_text(string8_view(reinterpret_cast<const char8*>(text_utf_8),
                                   text_byte_count));
+}
+
+void qljs_web_demo_set_language_options(qljs_web_demo_document* p,
+                                        qljs_language_options options) {
+  p->parser_options_.jsx = options & qljs_language_options_jsx_bit;
+  p->parser_options_.typescript =
+      options & qljs_language_options_typescript_bit;
 }
 
 void qljs_web_demo_set_locale(qljs_web_demo_document* p, const char* locale) {

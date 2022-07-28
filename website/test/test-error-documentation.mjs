@@ -161,7 +161,7 @@ wasn't that neat?
 first
 \`\`\`
 
-\`\`\`
+\`\`\`typescript
 second
 \`\`\`
 
@@ -174,7 +174,7 @@ wasn't that neat?
     );
     expect(doc.codeBlocks).toEqual([
       { language: "javascript", text: "first\n" },
-      { language: "javascript", text: "second\n" },
+      { language: "typescript", text: "second\n" },
       { language: "javascript", text: "third\n" },
     ]);
   });
@@ -249,6 +249,25 @@ wasn't that neat?
           severity: 1,
           begin: 11,
           end: 12,
+        },
+      ],
+    ]);
+  });
+
+  it("lint TypeScript", async () => {
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "```typescript\nabstract class C { }\nclass C { }\n```\n"
+    );
+    await doc.findDiagnosticsAsync();
+    expect(doc.diagnostics).toEqual([
+      [
+        {
+          code: "E0034",
+          message: "redeclaration of variable: C",
+          severity: 1,
+          begin: 27,
+          end: 28,
         },
       ],
     ]);

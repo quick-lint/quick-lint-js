@@ -93,6 +93,24 @@ TEST(test_c_api_web_demo, linting_uses_config) {
   qljs_web_demo_destroy_document(p);
 }
 
+TEST(test_c_api_web_demo, changing_language_options_affects_lint) {
+  qljs_web_demo_document* p = qljs_web_demo_create_document();
+
+  const char8* document_text = u8"abstract class C {}";
+  qljs_web_demo_set_text(p, document_text, strlen(document_text));
+
+  const qljs_web_demo_diagnostic* diagnostics = qljs_web_demo_lint(p);
+  EXPECT_STREQ(diagnostics[0].code, "E0244")
+      << "diag_typescript_abstract_class_not_allowed_in_javascript";
+  EXPECT_STREQ(diagnostics[1].code, "");
+
+  qljs_web_demo_set_language_options(p, qljs_language_options_typescript_bit);
+  diagnostics = qljs_web_demo_lint(p);
+  EXPECT_STREQ(diagnostics[0].code, "");
+
+  qljs_web_demo_destroy_document(p);
+}
+
 TEST(test_c_api, locale_list) {
   std::vector<std::string> locale_strings;
   const char* const* locales = qljs_list_locales();

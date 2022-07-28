@@ -216,6 +216,9 @@ class Process {
     this._webDemoDestroyDocument = wrap("qljs_web_demo_destroy_document");
     this._webDemoLint = wrap("qljs_web_demo_lint");
     this._webDemoLintAsConfigFile = wrap("qljs_web_demo_lint_as_config_file");
+    this._webDemoSetLanguageOptions = wrap(
+      "qljs_web_demo_set_language_options"
+    );
     this._webDemoSetLocale = wrap("qljs_web_demo_set_locale");
     this._webDemoSetText = wrap("qljs_web_demo_set_text");
     this._webDemoSetConfigText = wrap("qljs_web_demo_set_config_text");
@@ -243,6 +246,7 @@ class Process {
     this._webDemoCreateDocument = tainted;
     this._webDemoDestroyDocument = tainted;
     this._webDemoLint = tainted;
+    this._webDemoSetLanguageOptions = tainted;
     this._webDemoSetLocale = tainted;
     this._webDemoSetText = tainted;
   }
@@ -271,6 +275,10 @@ class DocumentForWebDemo {
   constructor(process) {
     this._process = process;
     this._wasmDoc = this._process._webDemoCreateDocument();
+  }
+
+  setLanguageOptions(languageOptions) {
+    this._process._webDemoSetLanguageOptions(this._wasmDoc, languageOptions);
   }
 
   setLocale(locale) {
@@ -383,6 +391,12 @@ let DiagnosticSeverity = {
   WARNING: 2,
 };
 exports.DiagnosticSeverity = DiagnosticSeverity;
+
+let LanguageOptions = {
+  JSX: 1 << 0,
+  TYPESCRIPT: 1 << 1,
+};
+exports.LanguageOptions = LanguageOptions;
 
 // Writes a null-terminated string into the process's heap.
 function encodeUTF8String(string, process) {

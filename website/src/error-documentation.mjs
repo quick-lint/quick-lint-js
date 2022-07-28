@@ -8,6 +8,7 @@ import path from "path";
 import url from "url";
 import {
   DiagnosticSeverity,
+  LanguageOptions,
   createProcessFactoryAsync,
 } from "../wasm/quick-lint-js.js";
 import { sanitizeMarks } from "../public/demo/editor.mjs";
@@ -170,6 +171,24 @@ export class ErrorDocumentation {
           doc.setConfigText(this.configForExamples);
         }
         doc.setText(text);
+        switch (language) {
+          case "javascript":
+            doc.setLanguageOptions(LanguageOptions.JSX);
+            break;
+          case "typescript":
+            doc.setLanguageOptions(LanguageOptions.TYPESCRIPT);
+            break;
+          case "typescript-jsx":
+            doc.setLanguageOptions(
+              LanguageOptions.TYPESCRIPT | LanguageOptions.JSX
+            );
+            break;
+          case "quick-lint-js.config":
+            break;
+          default:
+            // TODO(strager): Warn.
+            break;
+        }
         let diagnostics =
           language === "quick-lint-js.config"
             ? doc.lintAsConfigFile()
