@@ -12,9 +12,7 @@ function createErrorBox(markedElement, posCursorX, diagnostic) {
   let div = document.createElement("div");
   const { bottom } = markedElement.getBoundingClientRect();
   div.setAttribute("id", "error-box");
-  div.innerText = diagnostic.code
-    ? `${diagnostic.code} - ${diagnostic.message}`
-    : diagnostic.message;
+  div.innerText = formatDiagnostic(diagnostic);
   div.style.position = "fixed";
   div.style.overflow = "auto";
   div.style.top = `${Math.trunc(bottom)}px`;
@@ -47,6 +45,12 @@ function cursorOverMark(cursorPosX, cursorPosY, markRect) {
   const leftRightIn =
     cursorPosX >= markRect.left && cursorPosX <= markRect.left + markRect.width;
   return topDownIn && leftRightIn;
+}
+
+function formatDiagnostic(diagnostic) {
+  return diagnostic.code
+    ? `${diagnostic.code} - ${diagnostic.message}`
+    : diagnostic.message;
 }
 
 function getDiagnosticFromMark(markElement) {
