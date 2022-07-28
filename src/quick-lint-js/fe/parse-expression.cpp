@@ -1700,8 +1700,13 @@ next:
       break;
     }
 
-    this->parse_arrow_function_expression_remainder(
-        v, binary_builder, /*allow_in_operator=*/prec.in_operator);
+    if (binary_builder.has_multiple_children()) {
+      // TODO(strager): We should report an error for code like this:
+      // a + b => c
+    }
+    binary_builder.replace_last(this->parse_arrow_function_expression_remainder(
+        v, lhs,
+        /*allow_in_operator=*/prec.in_operator));
     goto next;
   }
 
@@ -1753,9 +1758,10 @@ next:
           diag_missing_arrow_operator_in_arrow_function{
               .where = arrow_span,
           });
-      this->parse_arrow_function_expression_remainder(
-          v, binary_builder,
-          /*allow_in_operator=*/prec.in_operator);
+      binary_builder.replace_last(
+          this->parse_arrow_function_expression_remainder(
+              v, binary_builder.last_expression(),
+              /*allow_in_operator=*/prec.in_operator));
     }
     break;
   }
@@ -1869,15 +1875,8 @@ next:
   return this->build_expression(binary_builder);
 }
 
-void parser::parse_arrow_function_expression_remainder(
-    parse_visitor_base& v, binary_expression_builder& binary_builder,
-    bool allow_in_operator) {
-  if (binary_builder.has_multiple_children()) {
-    // TODO(strager): We should report an error for code like this:
-    // a + b => c
-  }
-  expression* lhs = binary_builder.last_expression();
-
+expression* parser::parse_arrow_function_expression_remainder(
+    parse_visitor_base& v, expression* lhs, bool allow_in_operator) {
   buffering_visitor* return_type_visits = nullptr;
   const char8* parameter_list_begin = nullptr;
   if (lhs->kind() == expression_kind::type_annotated) {
@@ -2024,8 +2023,7 @@ void parser::parse_arrow_function_expression_remainder(
       /*allow_in_operator=*/allow_in_operator,
       this->expressions_.make_array(std::move(parameters)),
       /*return_type_visits=*/return_type_visits);
-  binary_builder.replace_last(
-      this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs));
+  return this->maybe_wrap_erroneous_arrow_function(arrow_function, /*lhs=*/lhs);
 }
 
 expression::call* parser::parse_call_expression_remainder(parse_visitor_base& v,
