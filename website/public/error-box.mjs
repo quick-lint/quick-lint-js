@@ -1,30 +1,20 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-function showErrorMessageBox(mark, posCursorX) {
-  const div = createErrorBox(
-    mark,
-    posCursorX,
-    mark.attributes["data-message"].value,
-    mark.attributes["data-code"]?.value,
-    mark.attributes["data-severity"].value
-  );
+function showErrorMessageBox(mark, posCursorX, diagnostic) {
+  const div = createErrorBox(mark, posCursorX, diagnostic);
   let body = document.querySelector("body");
   body.appendChild(div);
 }
 
-function createErrorBox(
-  markedElement,
-  posCursorX,
-  errorMessage,
-  code,
-  severity
-) {
+function createErrorBox(markedElement, posCursorX, diagnostic) {
   // TODO: Change background color based of the severity
   let div = document.createElement("div");
   const { bottom } = markedElement.getBoundingClientRect();
   div.setAttribute("id", "error-box");
-  div.innerText = code ? `${code} - ${errorMessage}` : errorMessage;
+  div.innerText = diagnostic.code
+    ? `${diagnostic.code} - ${diagnostic.message}`
+    : diagnostic.message;
   div.style.position = "fixed";
   div.style.overflow = "auto";
   div.style.top = `${Math.trunc(bottom)}px`;
@@ -46,7 +36,7 @@ function showErrorMessage(event, markedElement) {
   for (let mark of marks) {
     const markRect = mark.getBoundingClientRect();
     if (cursorOverMark(event.clientX, event.clientY, markRect)) {
-      showErrorMessageBox(mark, event.clientX);
+      showErrorMessageBox(mark, event.clientX, getDiagnosticFromMark(mark));
       break;
     }
   }
@@ -57,6 +47,14 @@ function cursorOverMark(cursorPosX, cursorPosY, markRect) {
   const leftRightIn =
     cursorPosX >= markRect.left && cursorPosX <= markRect.left + markRect.width;
   return topDownIn && leftRightIn;
+}
+
+function getDiagnosticFromMark(markElement) {
+  return {
+    message: markElement.attributes["data-message"].value,
+    code: markElement.attributes["data-code"]?.value,
+    severity: markElement.attributes["data-severity"].value,
+  };
 }
 
 // hoveredElement is an Element which the user might hover over.
