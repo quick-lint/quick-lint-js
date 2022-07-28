@@ -87,7 +87,7 @@ describe("error documentation", () => {
     expect(doc.shouldCheckCodeBlocks).toBeTrue();
   });
 
-  it("one indented code block", () => {
+  it("indented code blocks are ignored", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
       `see this code:
@@ -101,12 +101,7 @@ describe("error documentation", () => {
 wasn't that neat?
 `
     );
-    expect(doc.codeBlocks).toEqual([
-      {
-        language: "javascript",
-        text: "here is some code\nwith multiple lines\n\nand a blank line\n    and extra indentation\n",
-      },
-    ]);
+    expect(doc.codeBlocks).toEqual([]);
   });
 
   it("one bracketed code block", () => {
@@ -157,18 +152,22 @@ wasn't that neat?
     ]);
   });
 
-  it("multiple code blocks", () => {
+  it("multiple bracketed code blocks", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
       `see this code:
 
-    first
+\`\`\`
+first
+\`\`\`
 
 \`\`\`
 second
 \`\`\`
 
-    third
+\`\`\`javascript
+third
+\`\`\`
 
 wasn't that neat?
 `
@@ -183,7 +182,7 @@ wasn't that neat?
   it("html wraps byte order mark", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "code:\n\n    \ufeff--BOM\n"
+      "code:\n\n```\n\ufeff--BOM\n```\n"
     );
     expect(doc.toHTML()).toContain(
       "<span class='unicode-bom'>\u{feff}</span>--BOM"
@@ -193,7 +192,7 @@ wasn't that neat?
   it("html does not wrap fake byte order mark", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "code:\n\n    &#xfeff;--BOM\n"
+      "code:\n\n```\n&#xfeff;--BOM\n```\n"
     );
     expect(doc.toHTML()).toContain("&amp;#xfeff;--BOM");
   });
@@ -201,7 +200,7 @@ wasn't that neat?
   it("html wraps <mark>-d byte order mark", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "code:\n\n    \ufeff--BOM\n"
+      "code:\n\n```\n\ufeff--BOM\n```\n"
     );
     doc.diagnostics = [[{ begin: 0, end: 1 }]];
     expect(doc.toHTML()).toContain(
@@ -212,7 +211,7 @@ wasn't that neat?
   it("html does not wrap zero-width no break space", () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "code:\n\n    hello\ufeffworld\n"
+      "code:\n\n```\nhello\ufeffworld\n```\n"
     );
     expect(doc.toHTML()).toContain("hello\ufeffworld");
   });
@@ -229,14 +228,17 @@ wasn't that neat?
   });
 
   it("html has javascript class", () => {
-    let doc = ErrorDocumentation.parseString("file.md", "code:\n\n    hello\n");
+    let doc = ErrorDocumentation.parseString(
+      "file.md",
+      "code:\n\n```\nhello\n```\n"
+    );
     expect(doc.toHTML()).toContain('<code class="javascript">');
   });
 
   it("lint JavaScript", async () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      "    let x;\n    let x;\n"
+      "```javascript\nlet x;\nlet x;\n```\n"
     );
     await doc.findDiagnosticsAsync();
     expect(doc.diagnostics).toEqual([
@@ -284,7 +286,7 @@ wasn't that neat?
   it("config file for examples", async () => {
     let doc = ErrorDocumentation.parseString(
       "file.md",
-      '```config-for-examples\n{"global-groups": false}\n```\n\n    console.log();'
+      '```config-for-examples\n{"global-groups": false}\n```\n\n```\nconsole.log();\n```\n'
     );
     expect(doc.configForExamples).toEqual('{"global-groups": false}\n');
     expect(doc.codeBlocks).toEqual([

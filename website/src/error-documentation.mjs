@@ -49,7 +49,7 @@ markdownParser.renderer.rules = {
     }
   },
 
-  code_block(tokens, tokenIndex, options, env, self) {
+  fence(tokens, tokenIndex, options, env, self) {
     let token = tokens[tokenIndex];
     if (token.info === "config-for-examples") {
       // Don't show config snippets which configure other code blocks.
@@ -68,10 +68,6 @@ markdownParser.renderer.rules = {
     });
     env.codeBlockIndex += 1;
     return `<figure><pre><code class="javascript">${codeHTML}</code></pre></figure>`;
-  },
-
-  fence(tokens, tokenIndex, options, env, self) {
-    return this.code_block(tokens, tokenIndex, options, env, self);
   },
 };
 
@@ -226,7 +222,7 @@ export class ErrorDocumentation {
           break;
 
         case "code_block":
-          codeBlocks.push({ text: token.content, language: "javascript" });
+          // Ignore code blocks. Only respect code fences.
           break;
 
         case "fence":
