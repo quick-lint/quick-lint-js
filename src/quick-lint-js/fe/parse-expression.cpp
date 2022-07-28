@@ -2859,7 +2859,21 @@ expression* parser::parse_jsx_or_typescript_generic_expression(
   if (this->options_.typescript) {
     lexer_transaction transaction = this->lexer_.begin_transaction();
     this->skip();
-    if (this->peek().type == token_type::identifier) {
+    switch (this->peek().type) {
+    // <(Type)>expr
+    // < | Type>expr
+    case token_type::ampersand:
+    case token_type::left_curly:
+    case token_type::left_paren:
+    case token_type::left_square:
+    case token_type::pipe:
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return this->parse_typescript_cast_expression(v, prec);
+
+    // <Type>expr
+    // <T,>(params) => {}    // Arrow function.
+    // <Component></Component>  // JSX element.
+    case token_type::identifier:
       this->skip();
       switch (this->peek().type) {
       // <T,>() => {}                 // Generic arrow function.
@@ -2881,9 +2895,18 @@ expression* parser::parse_jsx_or_typescript_generic_expression(
         }
         break;
 
+      // <T | U>expr  // Cast.
+      case token_type::pipe:
+        this->lexer_.roll_back_transaction(std::move(transaction));
+        return this->parse_typescript_cast_expression(v, prec);
+
       default:
         break;
       }
+      break;
+
+    default:
+      break;
     }
     this->lexer_.roll_back_transaction(std::move(transaction));
   }
@@ -3320,36 +3343,76 @@ expression* parser::parse_typescript_cast_expression(parse_visitor_base& v,
                                                      precedence prec) {
   QLJS_ASSERT(this->peek().type == token_type::less);
   this->skip();
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::identifier);
-  identifier type = this->peek().identifier_name();
-  this->skip();
-  QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
-  this->skip();
 
-  expression* ast = this->parse_primary_expression(v, prec);
-  if (ast->kind() == expression_kind::paren ||
-      ast->kind() == expression_kind::paren_empty) {
-    buffering_visitor return_type_visits(&this->type_expression_memory_);
-    if (this->peek().type == token_type::colon) {
-      this->parse_and_visit_typescript_colon_type_expression(
-          return_type_visits);
-    }
-    if (this->peek().type == token_type::equal_greater) {
-      // <T>(param) => body
+  auto parse_as_cast = [&]() -> expression* {
+    this->parse_and_visit_typescript_type_expression(v);
+
+    QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::greater);
+    this->skip();
+
+    return this->parse_primary_expression(v, prec);
+  };
+
+  lexer_transaction transaction = this->lexer_.begin_transaction();
+  switch (this->peek().type) {
+  // <Type>expr
+  // <T>(params) => {}
+  case token_type::identifier: {
+    identifier type = this->peek().identifier_name();
+    this->skip();
+    switch (this->peek().type) {
+    // <T | U>expr
+    case token_type::pipe:
+      this->lexer_.roll_back_transaction(std::move(transaction));
+      return parse_as_cast();
+
+    // <T>(params) => {}
+    // <Type>expr
+    case token_type::greater: {
+      this->lexer_.commit_transaction(std::move(transaction));
       this->skip();
-      buffering_visitor generic_parameter_visits(
-          &this->type_expression_memory_);
-      generic_parameter_visits.visit_variable_declaration(
-          type, variable_kind::_generic_parameter, variable_init_kind::normal);
-      return this->parse_arrow_function_expression_remainder(
-          v,
-          /*generic_parameter_visits=*/&generic_parameter_visits, ast,
-          /*return_type_visits=*/&return_type_visits,
-          /*allow_in_operator=*/prec.in_operator);
+
+      expression* ast = this->parse_primary_expression(v, prec);
+      if (ast->kind() == expression_kind::paren ||
+          ast->kind() == expression_kind::paren_empty) {
+        buffering_visitor return_type_visits(&this->type_expression_memory_);
+        if (this->peek().type == token_type::colon) {
+          this->parse_and_visit_typescript_colon_type_expression(
+              return_type_visits);
+        }
+        if (this->peek().type == token_type::equal_greater) {
+          // <T>(param) => body
+          this->skip();
+          buffering_visitor generic_parameter_visits(
+              &this->type_expression_memory_);
+          generic_parameter_visits.visit_variable_declaration(
+              type, variable_kind::_generic_parameter,
+              variable_init_kind::normal);
+          return this->parse_arrow_function_expression_remainder(
+              v,
+              /*generic_parameter_visits=*/&generic_parameter_visits, ast,
+              /*return_type_visits=*/&return_type_visits,
+              /*allow_in_operator=*/prec.in_operator);
+        }
+      }
+      v.visit_variable_type_use(type);
+      return ast;
     }
+
+    default:
+      QLJS_PARSER_UNIMPLEMENTED();
+      break;
+    }
+
+    return parse_as_cast();
   }
-  v.visit_variable_type_use(type);
-  return ast;
+
+  // <(Type)>expr
+  // <typeof Type>expr
+  case token_type::left_paren:
+  default:
+    return parse_as_cast();
+  }
 }
 
 expression* parser::parse_tagged_template(parse_visitor_base& v,

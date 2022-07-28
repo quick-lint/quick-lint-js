@@ -92,6 +92,31 @@ TEST(test_typescript_ambiguous,
                                       "visit_variable_use"));     // expr
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type", u8"expr"));
   }
+
+  {
+    parse_visit_collector v = parse_and_visit_statement(
+        u8"<Type1 | Type2>(expr);"_sv, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // Type1
+                                      "visit_variable_type_use",  // Type2
+                                      "visit_variable_use"));     // expr
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type1", u8"Type2", u8"expr"));
+  }
+
+  for (string8_view code : {
+           u8"<Type>(expr);"_sv,
+           u8"<(Type)>(expr);"_sv,
+           u8"< | Type>(expr);"_sv,
+           u8"< & Type>(expr);"_sv,
+           u8"<[Type]>(expr);"_sv,
+           u8"<{k: Type}>(expr);"_sv,
+       }) {
+    SCOPED_TRACE(out_string8(code));
+    parse_visit_collector v =
+        parse_and_visit_statement(code, typescript_options);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // Type
+                                      "visit_variable_use"));     // expr
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type", u8"expr"));
+  }
 }
 
 TEST(test_typescript_ambiguous,
