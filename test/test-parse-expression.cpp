@@ -1223,11 +1223,11 @@ TEST_F(test_parse_expression, await_unary_operator_outside_async_functions) {
 TEST_F(test_parse_expression,
        yield_nullary_operator_inside_generator_functions) {
   auto parse_expression_in_generator =
-      [this](const char8* code) -> expression* {
+      [this](const char8* code) -> std::string {
     test_parser& p = this->errorless_parser(code);
     auto guard = p.parser().enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
-    return ast;
+    return summarize(ast);
   };
 
   {
@@ -1240,56 +1240,23 @@ TEST_F(test_parse_expression,
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
-  {
-    expression* ast = parse_expression_in_generator(u8"(yield)");
-    EXPECT_EQ(summarize(ast), "paren(yieldnone)");
-  }
-
-  {
-    expression* ast = parse_expression_in_generator(u8"[yield]");
-    EXPECT_EQ(summarize(ast), "array(yieldnone)");
-  }
-
-  {
-    expression* ast = parse_expression_in_generator(u8"f(yield, 42)");
-    EXPECT_EQ(summarize(ast), "call(var f, yieldnone, literal)");
-  }
-
-  {
-    expression* ast = parse_expression_in_generator(u8"yield ? a : b");
-    EXPECT_EQ(summarize(ast), "cond(yieldnone, var a, var b)");
-  }
-
-  {
-    expression* ast = parse_expression_in_generator(u8"yield in stuff");
-    EXPECT_EQ(summarize(ast), "binary(yieldnone, var stuff)");
-  }
-
-  {
-    expression* ast = parse_expression_in_generator(u8"yield;");
-    EXPECT_EQ(summarize(ast), "yieldnone");
-  }
-
-  {
-    // '}' is the end of a function's body, for example.
-    expression* ast = parse_expression_in_generator(u8"yield }");
-    EXPECT_EQ(summarize(ast), "yieldnone");
-  }
-
-  {
-    expression* ast = parse_expression_in_generator(u8"a ? yield : b");
-    EXPECT_EQ(summarize(ast), "cond(var a, yieldnone, var b)");
-  }
-
-  {
-    expression* ast = parse_expression_in_generator(u8"yield, yield");
-    EXPECT_EQ(summarize(ast), "binary(yieldnone, yieldnone)");
-  }
-
-  {
-    expression* ast = parse_expression_in_generator(u8"[yield, yield, yield]");
-    EXPECT_EQ(summarize(ast), "array(yieldnone, yieldnone, yieldnone)");
-  }
+  EXPECT_EQ(parse_expression_in_generator(u8"(yield)"), "paren(yieldnone)");
+  EXPECT_EQ(parse_expression_in_generator(u8"[yield]"), "array(yieldnone)");
+  EXPECT_EQ(parse_expression_in_generator(u8"f(yield, 42)"),
+            "call(var f, yieldnone, literal)");
+  EXPECT_EQ(parse_expression_in_generator(u8"yield ? a : b"),
+            "cond(yieldnone, var a, var b)");
+  EXPECT_EQ(parse_expression_in_generator(u8"yield in stuff"),
+            "binary(yieldnone, var stuff)");
+  EXPECT_EQ(parse_expression_in_generator(u8"yield;"), "yieldnone");
+  EXPECT_EQ(parse_expression_in_generator(u8"yield }"), "yieldnone")
+      << "'}' is the end of a function's body, for example";
+  EXPECT_EQ(parse_expression_in_generator(u8"a ? yield : b"),
+            "cond(var a, yieldnone, var b)");
+  EXPECT_EQ(parse_expression_in_generator(u8"yield, yield"),
+            "binary(yieldnone, yieldnone)");
+  EXPECT_EQ(parse_expression_in_generator(u8"[yield, yield, yield]"),
+            "array(yieldnone, yieldnone, yieldnone)");
 }
 
 TEST_F(test_parse_expression, yield_unary_operator_inside_generator_functions) {
