@@ -1192,10 +1192,9 @@ TEST_F(test_parse_expression,
        yield_nullary_operator_inside_generator_functions) {
   auto parse_expression_in_generator =
       [this](const char8* code) -> expression* {
-    test_parser& p = this->make_parser(code);
+    test_parser& p = this->errorless_parser(code);
     auto guard = p.parser().enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
-    EXPECT_THAT(p.errors(), IsEmpty());
     return ast;
   };
 

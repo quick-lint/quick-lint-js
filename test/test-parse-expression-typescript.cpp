@@ -29,10 +29,6 @@ class test_parse_expression_typescript : public test_parse_expression {
   using test_parse_expression::make_parser;
   using test_parse_expression::parse_expression;
 
-  test_parser& make_parser(string8_view input) {
-    return this->make_parser(input, typescript_options);
-  }
-
   expression* parse_expression(string8_view input) {
     return this->parse_expression(input, typescript_options);
   }
@@ -42,11 +38,10 @@ TEST_F(test_parse_expression_typescript, type_annotation) {
   // These would normally appear in arrow function parameter lists.
 
   {
-    test_parser& p = this->make_parser(u8"x: Type"_sv);
+    test_parser& p = this->errorless_parser(u8"x: Type"_sv, typescript_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::type_annotated);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
-    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x: Type"));
 
     spy_visitor v;
@@ -139,14 +134,11 @@ TEST(test_parse_expression_typescript_statement, non_null_assertion) {
 
 TEST_F(test_parse_expression_typescript, as_type_assertion) {
   {
-    test_parser& p = this->make_parser(u8"x as y"_sv);
-
+    test_parser& p = this->errorless_parser(u8"x as y"_sv, typescript_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::as_type_assertion);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x as y"));
-
-    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));
     EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"y"));
   }

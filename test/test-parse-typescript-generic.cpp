@@ -255,21 +255,20 @@ TEST_F(test_parse_typescript_generic,
 
 TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
   {
-    test_parser& p = this->make_typescript_parser(u8"foo<T>(p)"_sv);
+    test_parser& p =
+        this->errorless_parser(u8"foo<T>(p)"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
-    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
     EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
   }
 
   {
     SCOPED_TRACE("'<<' should be split into two tokens");
-    test_parser& p =
-        this->make_typescript_parser(u8"foo<<Param>() => ReturnType>(p)"_sv);
+    test_parser& p = this->errorless_parser(
+        u8"foo<<Param>() => ReturnType>(p)"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
-    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().visits,
                 ElementsAre("visit_enter_function_scope",  //
                             "visit_variable_declaration",  // Param
@@ -278,37 +277,36 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
   }
 
   {
-    test_parser& p = this->make_typescript_parser(u8"foo?.<T>(p)"_sv);
+    test_parser& p =
+        this->errorless_parser(u8"foo?.<T>(p)"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
-    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
     EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
   }
 
   {
     SCOPED_TRACE("'<<' should be split into two tokens");
-    test_parser& p =
-        this->make_typescript_parser(u8"foo?.<<Param>() => ReturnType>(p)"_sv);
+    test_parser& p = this->errorless_parser(
+        u8"foo?.<<Param>() => ReturnType>(p)"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
-    EXPECT_THAT(p.errors(), IsEmpty());
   }
 
   {
-    test_parser& p = this->make_typescript_parser(u8"foo<T>`bar`"_sv);
+    test_parser& p =
+        this->errorless_parser(u8"foo<T>`bar`"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var foo)");
-    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
     EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
   }
 
   {
-    test_parser& p = this->make_typescript_parser(u8"foo<T>`bar${baz}`"_sv);
+    test_parser& p =
+        this->errorless_parser(u8"foo<T>`bar${baz}`"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var foo, var baz)");
-    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
     EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
   }
@@ -316,39 +314,38 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
 
 TEST_F(test_parse_typescript_generic, new_with_generic_arguments) {
   {
-    test_parser& p = this->make_typescript_parser(u8"new Foo<T>;"_sv);
+    test_parser& p =
+        this->errorless_parser(u8"new Foo<T>;"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo)");
-    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
     EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
   }
 
   {
-    test_parser& p = this->make_typescript_parser(u8"new Foo<T>"_sv);
+    test_parser& p =
+        this->errorless_parser(u8"new Foo<T>"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo)");
-    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
     EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
   }
 
   {
-    test_parser& p = this->make_typescript_parser(u8"new Foo<T>(p)"_sv);
+    test_parser& p =
+        this->errorless_parser(u8"new Foo<T>(p)"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo, var p)");
-    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
     EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
   }
 
   {
     SCOPED_TRACE("'<<' should be split into two tokens");
-    test_parser& p =
-        this->make_typescript_parser(u8"new Foo<<Param>() => ReturnType>()"_sv);
+    test_parser& p = this->errorless_parser(
+        u8"new Foo<<Param>() => ReturnType>()"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo)");
-    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().visits,
                 ElementsAre("visit_enter_function_scope",  //
                             "visit_variable_declaration",  // Param
@@ -424,10 +421,9 @@ TEST_F(test_parse_typescript_generic,
            // clang-format on
        }) {
     SCOPED_TRACE(out_string8(tc.code));
-    test_parser& p = this->make_typescript_parser(tc.code);
+    test_parser& p = this->errorless_parser(tc.code, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), tc.expected_ast);
-    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));
     EXPECT_THAT(p.v().variable_uses, ElementsAre(tc.variable_type_use));
   }
@@ -515,10 +511,9 @@ TEST_F(test_parse_typescript_generic,
            // clang-format on
        }) {
     SCOPED_TRACE(out_string8(tc.code));
-    test_parser& p = this->make_typescript_parser(tc.code);
+    test_parser& p = this->errorless_parser(tc.code, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), tc.expected_ast);
-    EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().variable_uses, IsEmpty());
     EXPECT_THAT(
         p.v().visits,

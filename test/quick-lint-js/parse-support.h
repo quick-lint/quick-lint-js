@@ -69,6 +69,8 @@ inline constexpr parser_options typescript_jsx_options = [] {
 
 class test_parser {
  public:
+  struct fail_test_on_diag {};
+
   explicit test_parser(padded_string_view input)
       : test_parser(input.string_view()) {}
 
@@ -77,6 +79,11 @@ class test_parser {
 
   explicit test_parser(string8_view input, const parser_options& options)
       : code_(input), parser_(&this->code_, &this->errors_, options) {}
+
+  explicit test_parser(string8_view input, const parser_options& options,
+                       fail_test_on_diag)
+      : code_(input),
+        parser_(&this->code_, &this->failing_reporter_, options) {}
 
   expression* parse_expression() {
     expression* ast = this->parser_.parse_expression(this->errors_);
@@ -109,6 +116,7 @@ class test_parser {
  private:
   padded_string code_;
   spy_visitor errors_;
+  failing_diag_reporter failing_reporter_;
   quick_lint_js::parser parser_;
   std::vector<expression*> expressions_needing_cleanup_;
 };
@@ -142,6 +150,18 @@ class test_parse_expression : public ::testing::Test {
 
   test_parser& make_parser(string8_view input, const parser_options& options) {
     return this->parsers_.emplace_back(input, options);
+  }
+
+  // Fails the test if there are any diagnostics during parsing.
+  test_parser& errorless_parser(string8_view input) {
+    return this->errorless_parser(input, parser_options());
+  }
+
+  // Fails the test if there are any diagnostics during parsing.
+  test_parser& errorless_parser(string8_view input,
+                                const parser_options& options) {
+    return this->parsers_.emplace_back(input, options,
+                                       test_parser::fail_test_on_diag{});
   }
 
  private:
