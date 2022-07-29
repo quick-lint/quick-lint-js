@@ -103,6 +103,10 @@ class test_parser {
     this->parser_.parse_and_visit_module(this->errors_);
   }
 
+  void parse_and_visit_typescript_type_expression() {
+    this->parser_.parse_and_visit_typescript_type_expression(this->errors_);
+  }
+
   const std::vector<diag_collector::diag>& errors() const noexcept {
     return this->errors_.errors;
   }
@@ -217,16 +221,6 @@ inline parse_visit_collector parse_and_visit_statement(
   parse_visit_collector v;
   auto guard = p.enter_function(attributes);
   EXPECT_TRUE(p.parse_and_visit_statement(v));
-  return v;
-}
-
-inline parse_visit_collector parse_and_visit_typescript_type(
-    string8_view raw_code) {
-  padded_string code(raw_code);
-  failing_diag_reporter reporter;
-  parser p(&code, &reporter, typescript_options);
-  parse_visit_collector v;
-  p.parse_and_visit_typescript_type_expression(v);
   return v;
 }
 
