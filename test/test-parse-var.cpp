@@ -1108,28 +1108,26 @@ TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
 
   // import implies strict mode (because modules imply strict mode).
   {
-    padded_string code(u8"import { someName as let } from 'weird';"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
+    test_parser& p =
+        this->make_parser(u8"import { someName as let } from 'weird';"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_cannot_import_let,  //
+                    p.code(), diag_cannot_import_let,  //
                     import_name, strlen(u8"import { someName as "), u8"let")));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"let")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(u8"let")));
   }
 
   // import implies strict mode (because modules imply strict mode).
   {
-    padded_string code(u8"import { 'someName' as let } from 'weird';"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_cannot_import_let,  //
+    test_parser& p =
+        this->make_parser(u8"import { 'someName' as let } from 'weird';"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_cannot_import_let,  //
                               import_name, strlen(u8"import { 'someName' as "),
                               u8"let")));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"let")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(u8"let")));
   }
 
   {
@@ -2091,22 +2089,20 @@ TEST_F(test_parse_var,
 TEST_F(test_parse_var,
        let_as_statement_body_does_not_allow_asi_before_left_square) {
   {
-    padded_string code(u8"if (cond) let\n[x] = xs;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // cond
+    test_parser& p = this->make_parser(u8"if (cond) let\n[x] = xs;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                       "visit_variable_use",            // xs
                                       "visit_variable_declaration"));  // x
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_3_FIELDS(
             diag_lexical_declaration_not_allowed_in_body, kind_of_statement,
             statement_kind::if_statement,  //
             expected_body,
-            offsets_matcher(&code, strlen(u8"if (cond)"), u8""),  //
+            offsets_matcher(p.code(), strlen(u8"if (cond)"), u8""),  //
             declaring_keyword,
-            offsets_matcher(&code, strlen(u8"if (cond) "), u8"let"))));
+            offsets_matcher(p.code(), strlen(u8"if (cond) "), u8"let"))));
   }
 }
 }

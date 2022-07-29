@@ -244,15 +244,13 @@ TEST_F(test_parse_expression_statement,
   }
 
   {
-    padded_string code(u8".x; y;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_operand_for_operator,  //
+    test_parser& p = this->make_parser(u8".x; y;"_sv);
+    p.parse_and_visit_statement();
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
                               where, 0, u8".")));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // y
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // y
   }
 }
 
@@ -324,26 +322,22 @@ TEST_F(test_parse_expression_statement, invalid_identifier_after_expression) {
 
 TEST_F(test_parse_expression_statement, function_call_without_right_paren) {
   {
-    padded_string code(u8"f(x "_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"f(x "_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    &code, diag_expected_right_paren_for_function_call,  //
-                    expected_right_paren, strlen(u8"f(x"), u8"",         //
+                    p.code(), diag_expected_right_paren_for_function_call,  //
+                    expected_right_paren, strlen(u8"f(x"), u8"",            //
                     left_paren, strlen(u8"f"), u8"(")));
   }
 
   {
-    padded_string code(u8"{ f( }"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"{ f( }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    &code, diag_expected_right_paren_for_function_call,  //
-                    expected_right_paren, strlen(u8"{ f("), u8"",        //
+                    p.code(), diag_expected_right_paren_for_function_call,  //
+                    expected_right_paren, strlen(u8"{ f("), u8"",           //
                     left_paren, strlen(u8"{ f"), u8"(")));
   }
 
@@ -753,15 +747,13 @@ TEST_F(test_parse_expression_statement, expression_statement) {
   }
 
   {
-    padded_string code(u8"#myArray[index] = rhs;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"index", u8"rhs"));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // index
+    test_parser& p = this->make_parser(u8"#myArray[index] = rhs;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"index", u8"rhs"));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // index
                                       "visit_variable_use"));  // rhs
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(::testing::VariantWith<
                     diag_cannot_refer_to_private_variable_without_object>(
             ::testing::_)));
@@ -798,17 +790,15 @@ TEST_F(test_parse_expression_statement, delete_of_expression) {
 TEST_F(test_parse_expression_statement,
        cannot_reference_private_identifier_outside_class) {
   {
-    padded_string code(u8"this.#x = 10;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_uses, IsEmpty());
-    EXPECT_THAT(v.visits, IsEmpty());
+    test_parser& p = this->make_parser(u8"this.#x = 10;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, IsEmpty());
+    EXPECT_THAT(p.visits, IsEmpty());
 
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_cannot_access_private_identifier_outside_class,  //
+            p.code(), diag_cannot_access_private_identifier_outside_class,  //
             private_identifier, strlen(u8"this."), u8"#x")));
   }
 }

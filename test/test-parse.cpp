@@ -460,71 +460,61 @@ TEST_F(
     test_parse,
     reserved_keywords_with_escape_sequences_are_treated_as_identifiers_in_variable_declarations) {
   {
-    padded_string code(u8"const \\u{69}f = 42;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    test_parser& p = this->make_parser(u8"const \\u{69}f = 42;"_sv);
+    p.parse_and_visit_statement();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(const_init_decl(u8"if")));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(const_init_decl(u8"if")));
   }
 
   {
-    padded_string code(u8"let \\u{69}f;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    test_parser& p = this->make_parser(u8"let \\u{69}f;"_sv);
+    p.parse_and_visit_statement();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(let_noinit_decl(u8"if")));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(let_noinit_decl(u8"if")));
   }
 
   {
-    padded_string code(u8"var \\u{69}f;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    test_parser& p = this->make_parser(u8"var \\u{69}f;"_sv);
+    p.parse_and_visit_statement();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(var_noinit_decl(u8"if")));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(var_noinit_decl(u8"if")));
   }
 
   {
-    padded_string code(u8"function g(\\u{69}f) {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    test_parser& p = this->make_parser(u8"function g(\\u{69}f) {}"_sv);
+    p.parse_and_visit_statement();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // g
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // g
                                       "visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // if
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_declarations,
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(function_decl(u8"g"), param_decl(u8"if")));
   }
 
   {
-    padded_string code(u8"((\\u{69}f) => {})()"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    test_parser& p = this->make_parser(u8"((\\u{69}f) => {})()"_sv);
+    p.parse_and_visit_statement();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE(diag_keywords_cannot_contain_escape_sequences)));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // if
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"if")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"if")));
   }
 }
 

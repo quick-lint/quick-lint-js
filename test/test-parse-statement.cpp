@@ -823,15 +823,13 @@ TEST_F(test_parse_statement, block_statement) {
 
 TEST_F(test_parse_statement, incomplete_block_statement) {
   {
-    padded_string code(u8"{ a; "_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->make_parser(u8"{ a; "_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // a
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_unclosed_code_block,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_unclosed_code_block,  //
                               block_open, 0, u8"{")));
   }
 }
@@ -999,17 +997,16 @@ TEST_F(test_parse_statement, switch_without_body_curlies) {
 
 TEST_F(test_parse_statement, switch_case_without_expression) {
   {
-    padded_string code(u8"switch (cond) { case: banana; break; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // cond
+    test_parser& p =
+        this->make_parser(u8"switch (cond) { case: banana; break; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       // banana
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_expected_expression_for_switch_case,  //
+                    p.code(), diag_expected_expression_for_switch_case,  //
                     case_token, strlen(u8"switch (cond) { "), u8"case")));
   }
 }

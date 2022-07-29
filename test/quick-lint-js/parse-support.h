@@ -104,7 +104,8 @@ class test_parser {
   }
 
   void parse_and_visit_module_catching_fatal_parse_errors() {
-    this->parser_.parse_and_visit_module_catching_fatal_parse_errors(this->errors_);
+    this->parser_.parse_and_visit_module_catching_fatal_parse_errors(
+        this->errors_);
   }
 
   void parse_and_visit_typescript_type_expression() {

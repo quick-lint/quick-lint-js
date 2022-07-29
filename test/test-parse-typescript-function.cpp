@@ -29,15 +29,13 @@ class test_parse_typescript_function : public test_parse_expression {};
 TEST_F(test_parse_typescript_function,
        return_type_annotation_is_disallowed_in_javascript) {
   {
-    padded_string code(u8"function f(): C { }"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
+    test_parser& p = this->make_parser(u8"function f(): C { }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code,
+            p.code(),
             diag_typescript_type_annotations_not_allowed_in_javascript,  //
             type_colon, strlen(u8"function f()"), u8":")));
   }
