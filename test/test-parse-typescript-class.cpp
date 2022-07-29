@@ -126,12 +126,11 @@ TEST_F(test_parse_typescript_class,
        optional_methods_are_disallowed_in_classes) {
   for (parser_options options : {parser_options(), typescript_options}) {
     SCOPED_TRACE(options.typescript ? "typescript" : "javascript");
-    padded_string code(u8"class C { method?() {} }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code,
+    test_parser& p =
+        this->make_parser(u8"class C { method?() {} }"_sv, options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(),
                               diag_typescript_optional_class_method,  //
                               question, strlen(u8"class C { method"), u8"?")));
   }
@@ -183,11 +182,10 @@ TEST_F(test_parse_typescript_class,
 TEST_F(test_parse_typescript_class,
        assignment_asserted_methods_are_not_allowed) {
   {
-    padded_string code(u8"class C { method!() {} }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
+    test_parser& p =
+        this->make_parser(u8"class C { method!() {} }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",          // C
                             "visit_enter_class_scope_body",     //
                             "visit_property_declaration",       // method
@@ -196,8 +194,8 @@ TEST_F(test_parse_typescript_class,
                             "visit_exit_function_scope",        // method
                             "visit_exit_class_scope",           // C
                             "visit_variable_declaration"));     // C
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code,
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(),
                               diag_typescript_assignment_asserted_method,  //
                               bang, strlen(u8"class C { method"), u8"!")));
   }
@@ -354,19 +352,18 @@ TEST_F(test_parse_typescript_class, readonly_methods_are_invalid) {
 
 TEST_F(test_parse_typescript_class, readonly_static_field_is_disallowed) {
   {
-    padded_string code(u8"class C { readonly static field; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(
+        u8"class C { readonly static field; }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",       // C
                             "visit_enter_class_scope_body",  //
                             "visit_property_declaration",    // field
                             "visit_exit_class_scope",        // C
                             "visit_variable_declaration"));  // C
-    EXPECT_THAT(v.property_declarations, ElementsAre(u8"field"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code,
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"field"));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(),
                               diag_readonly_static_field,  //
                               readonly_static, strlen(u8"class C { "),
                               u8"readonly static")));
@@ -456,12 +453,11 @@ TEST_F(test_parse_typescript_class, generic_methods_are_allowed_in_typescript) {
 TEST_F(test_parse_typescript_class,
        call_signatures_are_disallowed_in_typescript_classes) {
   {
-    padded_string code(u8"class C { () {} }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    test_parser& p =
+        this->make_parser(u8"class C { () {} }"_sv, typescript_options);
+    p.parse_and_visit_statement();
     EXPECT_THAT(
-        v.visits,
+        p.visits,
         ElementsAre("visit_enter_class_scope",          // C
                     "visit_enter_class_scope_body",     //
                     "visit_property_declaration",       // (call signature)
@@ -470,20 +466,19 @@ TEST_F(test_parse_typescript_class,
                     "visit_exit_function_scope",        // (call signature)
                     "visit_exit_class_scope",           // C
                     "visit_variable_declaration"));     // C
-    EXPECT_THAT(v.property_declarations, ElementsAre(std::nullopt));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code,
+    EXPECT_THAT(p.property_declarations, ElementsAre(std::nullopt));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(),
                               diag_missing_class_method_name,  //
                               expected_name, strlen(u8"class C { "), u8"")));
   }
 
   {
-    padded_string code(u8"class C { <T>() {} }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    test_parser& p =
+        this->make_parser(u8"class C { <T>() {} }"_sv, typescript_options);
+    p.parse_and_visit_statement();
     EXPECT_THAT(
-        v.visits,
+        p.visits,
         ElementsAre("visit_enter_class_scope",          // C
                     "visit_enter_class_scope_body",     //
                     "visit_property_declaration",       // (call signature)
@@ -493,10 +488,10 @@ TEST_F(test_parse_typescript_class,
                     "visit_exit_function_scope",        // (call signature)
                     "visit_exit_class_scope",           // C
                     "visit_variable_declaration"));     // C
-    EXPECT_THAT(v.property_declarations, ElementsAre(std::nullopt));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.property_declarations, ElementsAre(std::nullopt));
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code,
+                    p.code(),
                     diag_typescript_call_signatures_not_allowed_in_classes,  //
                     expected_method_name, strlen(u8"class C { "), u8"")));
   }

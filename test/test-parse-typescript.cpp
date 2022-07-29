@@ -28,17 +28,16 @@ class test_parse_typescript : public test_parse_expression {};
 
 TEST_F(test_parse_typescript, type_annotation_in_expression_is_an_error) {
   {
-    padded_string code(u8"x = myVar: Type;"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // myVar
+    test_parser& p =
+        this->make_parser(u8"x = myVar: Type;"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // myVar
                                       "visit_variable_assignment"))  // x
         << "visit_variable_type_use for Type should not happen because it "
            "might produce spurious warnings about undeclared types";
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"myVar"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code,
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"myVar"));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(),
                               diag_typescript_type_annotation_in_expression,  //
                               type_colon, strlen(u8"x = myVar"), u8":")));
   }
@@ -160,18 +159,16 @@ TEST_F(test_parse_typescript,
 
 TEST_F(test_parse_typescript, type_alias_not_allowed_in_javascript) {
   {
-    padded_string code(u8"type T = U;"_sv);
-    spy_visitor v;
-    parser p(&code, &v, javascript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"type T = U;"_sv, javascript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",     // T
                             "visit_enter_type_alias_scope",   // (name)
                             "visit_variable_type_use",        // U
                             "visit_exit_type_alias_scope"));  // (name)
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code,
+                    p.code(),
                     diag_typescript_type_alias_not_allowed_in_javascript,  //
                     type_keyword, 0, u8"type")));
   }

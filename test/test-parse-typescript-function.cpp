@@ -182,36 +182,34 @@ TEST_F(test_parse_typescript_function,
 TEST_F(test_parse_typescript_function,
        non_null_assertion_in_parameter_list_is_an_error) {
   {
-    padded_string code(u8"function f(param!) {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
+    test_parser& p =
+        this->make_parser(u8"function f(param!) {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",       // f
                             "visit_enter_function_scope",       // f
                             "visit_variable_declaration",       // param
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code,
+                    p.code(),
                     diag_non_null_assertion_not_allowed_in_parameter,  //
                     bang, strlen(u8"function f(param"), u8"!")));
   }
 
   {
-    padded_string code(u8"(param!) => {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
+    test_parser& p =
+        this->make_parser(u8"(param!) => {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       // f
                             "visit_variable_declaration",       // param
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code,
+                    p.code(),
                     diag_non_null_assertion_not_allowed_in_parameter,  //
                     bang, strlen(u8"(param"), u8"!")));
   }

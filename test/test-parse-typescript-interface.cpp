@@ -333,15 +333,14 @@ TEST_F(test_parse_typescript_interface, optional_property) {
 TEST_F(test_parse_typescript_interface,
        assignment_asserted_field_is_disallowed) {
   {
-    padded_string code(u8"interface I { fieldName!; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.property_declarations, ElementsAre(u8"fieldName"));
+    test_parser& p = this->make_parser(u8"interface I { fieldName!; }"_sv,
+                                       typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"fieldName"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code,
+            p.code(),
             diag_typescript_assignment_asserted_fields_not_allowed_in_interfaces,  //
             bang, strlen(u8"interface I { fieldName"), u8"!")));
   }
@@ -482,11 +481,10 @@ TEST_F(test_parse_typescript_interface, interface_with_index_signature) {
   }
 
   {
-    padded_string code(u8"interface I { [key: KeyType]: ValueType; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, javascript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",         // I
+    test_parser& p = this->make_parser(
+        u8"interface I { [key: KeyType]: ValueType; }"_sv, javascript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",         // I
                                       "visit_enter_interface_scope",        // I
                                       "visit_enter_index_signature_scope",  //
                                       "visit_variable_type_use",     // KeyType
@@ -494,7 +492,7 @@ TEST_F(test_parse_typescript_interface, interface_with_index_signature) {
                                       "visit_variable_type_use",  // ValueType
                                       "visit_exit_index_signature_scope",  //
                                       "visit_exit_interface_scope"));      // I
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE(
                     diag_typescript_interfaces_not_allowed_in_javascript)))
         << "should parse index signature and not complain about it";
@@ -503,11 +501,10 @@ TEST_F(test_parse_typescript_interface, interface_with_index_signature) {
 
 TEST_F(test_parse_typescript_interface, index_signature_requires_type) {
   {
-    padded_string code(u8"interface I { [key: KeyType]; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",         // I
+    test_parser& p = this->make_parser(u8"interface I { [key: KeyType]; }"_sv,
+                                       typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",         // I
                                       "visit_enter_interface_scope",        // I
                                       "visit_enter_index_signature_scope",  //
                                       "visit_variable_type_use",     // KeyType
@@ -515,19 +512,18 @@ TEST_F(test_parse_typescript_interface, index_signature_requires_type) {
                                       "visit_exit_index_signature_scope",  //
                                       "visit_exit_interface_scope"));      // I
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_index_signature_needs_type,  //
+            p.code(), diag_typescript_index_signature_needs_type,  //
             expected_type, strlen(u8"interface I { [key: KeyType]"), u8"")));
   }
 
   {
     // ASI
-    padded_string code(u8"interface I { [key: KeyType]\n  method(); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",         // I
+    test_parser& p = this->make_parser(
+        u8"interface I { [key: KeyType]\n  method(); }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",         // I
                                       "visit_enter_interface_scope",        // I
                                       "visit_enter_index_signature_scope",  //
                                       "visit_variable_type_use",     // KeyType
@@ -538,21 +534,20 @@ TEST_F(test_parse_typescript_interface, index_signature_requires_type) {
                                       "visit_exit_function_scope",     // method
                                       "visit_exit_interface_scope"));  // I
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_index_signature_needs_type,  //
+            p.code(), diag_typescript_index_signature_needs_type,  //
             expected_type, strlen(u8"interface I { [key: KeyType]"), u8"")));
   }
 }
 
 TEST_F(test_parse_typescript_interface, index_signature_cannot_be_a_method) {
   {
-    padded_string code(u8"interface I { [key: KeyType](param); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    test_parser& p = this->make_parser(
+        u8"interface I { [key: KeyType](param); }"_sv, typescript_options);
+    p.parse_and_visit_statement();
     EXPECT_THAT(
-        v.visits,
+        p.visits,
         ElementsAre("visit_variable_declaration",         // I
                     "visit_enter_interface_scope",        // I
                     "visit_enter_index_signature_scope",  //
@@ -566,21 +561,20 @@ TEST_F(test_parse_typescript_interface, index_signature_cannot_be_a_method) {
                     "visit_exit_index_signature_scope",  //
                     "visit_exit_interface_scope"));      // I
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_index_signature_cannot_be_method,  //
+            p.code(), diag_typescript_index_signature_cannot_be_method,  //
             left_paren, strlen(u8"interface I { [key: KeyType]"), u8"(")));
   }
 }
 
 TEST_F(test_parse_typescript_interface, index_signature_requires_semicolon) {
   {
-    padded_string code(
-        u8"interface I { [key: KeyType]: ValueType method(); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",         // I
+    test_parser& p = this->make_parser(
+        u8"interface I { [key: KeyType]: ValueType method(); }"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",         // I
                                       "visit_enter_interface_scope",        // I
                                       "visit_enter_index_signature_scope",  //
                                       "visit_variable_type_use",     // KeyType
@@ -592,9 +586,9 @@ TEST_F(test_parse_typescript_interface, index_signature_requires_semicolon) {
                                       "visit_exit_function_scope",     // method
                                       "visit_exit_interface_scope"));  // I
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_missing_semicolon_after_index_signature,  //
+            p.code(), diag_missing_semicolon_after_index_signature,  //
             expected_semicolon,
             strlen(u8"interface I { [key: KeyType]: ValueType"), u8"")));
   }
@@ -1203,11 +1197,10 @@ TEST_F(test_parse_typescript_interface, call_signature) {
 TEST_F(test_parse_typescript_interface,
        call_signature_cannot_have_generator_star) {
   {
-    padded_string code(u8"interface I { *(param); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits,
+    test_parser& p =
+        this->make_parser(u8"interface I { *(param); }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",   // I
                             "visit_enter_interface_scope",  // I
                             // TODO(strager): Emit something other than
@@ -1217,9 +1210,9 @@ TEST_F(test_parse_typescript_interface,
                             "visit_variable_declaration",    // param
                             "visit_exit_function_scope",     // (call signature)
                             "visit_exit_interface_scope"));  // I
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_interface_methods_cannot_be_generators,  //
+                    p.code(), diag_interface_methods_cannot_be_generators,  //
                     star, strlen(u8"interface I { "), u8"*")));
   }
 }
@@ -1282,15 +1275,15 @@ TEST_F(test_parse_typescript_interface, access_specifiers_are_not_allowed) {
 
 TEST_F(test_parse_typescript_interface, static_blocks_are_not_allowed) {
   {
-    padded_string code(u8"interface I { static { console.log('hello'); } }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.property_declarations, IsEmpty());
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"console"));
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(
+        u8"interface I { static { console.log('hello'); } }"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.property_declarations, IsEmpty());
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"console"));
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code,
+                    p.code(),
                     diag_typescript_interfaces_cannot_contain_static_blocks,  //
                     static_token, strlen(u8"interface I { "), u8"static")));
   }
@@ -1299,11 +1292,10 @@ TEST_F(test_parse_typescript_interface, static_blocks_are_not_allowed) {
 TEST_F(test_parse_typescript_interface,
        type_annotations_dont_add_extra_diagnostic_in_javascript) {
   {
-    padded_string code(u8"interface I<T> { method(): Type; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, javascript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(
+        u8"interface I<T> { method(): Type; }"_sv, javascript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE(
                     diag_typescript_interfaces_not_allowed_in_javascript)))
         << "diag_typescript_type_annotations_not_allowed_in_javascript should "

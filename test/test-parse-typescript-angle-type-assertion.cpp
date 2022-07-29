@@ -115,31 +115,29 @@ TEST_F(test_parse_typescript_angle_type_assertion,
 TEST_F(test_parse_typescript_angle_type_assertion,
        angle_type_assertion_with_complex_type_is_error_in_typescript_jsx_mode) {
   {
-    padded_string code(u8"<Type1 | Type2>(expr);"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_jsx_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // Type1
+    test_parser& p = this->make_parser(u8"<Type1 | Type2>(expr);"_sv,
+                                       typescript_jsx_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // Type1
                                       "visit_variable_type_use",  // Type2
                                       "visit_variable_use"));     // expr
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    &code,
+                    p.code(),
                     diag_typescript_angle_type_assertion_not_allowed_in_tsx,  //
                     bracketed_type, 0, u8"<Type1 | Type2>",                   //
                     expected_as, strlen(u8"<Type1 | Type2>(expr)"), u8"")));
   }
 
   {
-    padded_string code(u8"<(Type)>expr;"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_jsx_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // Type
+    test_parser& p =
+        this->make_parser(u8"<(Type)>expr;"_sv, typescript_jsx_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // Type
                                       "visit_variable_use"));     // expr
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    &code,
+                    p.code(),
                     diag_typescript_angle_type_assertion_not_allowed_in_tsx,  //
                     bracketed_type, 0, u8"<(Type)>",                          //
                     expected_as, strlen(u8"<(Type)>expr"), u8"")));

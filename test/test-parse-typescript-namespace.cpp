@@ -27,16 +27,15 @@ namespace {
 class test_parse_typescript_namespace : public test_parse_expression {};
 
 TEST_F(test_parse_typescript_namespace, not_supported_in_vanilla_javascript) {
-  padded_string code(u8"namespace ns {}"_sv);
-  spy_visitor v;
-  parser p(&code, &v, javascript_options);
-  EXPECT_TRUE(p.parse_and_visit_statement(v));
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // ns
+  test_parser& p =
+      this->make_parser(u8"namespace ns {}"_sv, javascript_options);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // ns
                                     "visit_enter_namespace_scope",   // {
                                     "visit_exit_namespace_scope"));  // }
-  EXPECT_THAT(v.errors,
+  EXPECT_THAT(p.errors,
               ElementsAre(DIAG_TYPE_OFFSETS(
-                  &code,
+                  p.code(),
                   diag_typescript_namespaces_not_allowed_in_javascript,  //
                   namespace_keyword, 0, u8"namespace")));
 }
@@ -115,15 +114,14 @@ TEST_F(test_parse_typescript_namespace, namespace_alias) {
 TEST_F(test_parse_typescript_namespace,
        namespace_alias_not_allowed_in_javascript) {
   {
-    padded_string code(u8"import A = ns;"_sv);
-    spy_visitor v;
-    parser p(&code, &v, javascript_options);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",      // A
+    test_parser& p =
+        this->make_parser(u8"import A = ns;"_sv, javascript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",      // A
                                       "visit_variable_namespace_use"));  // ns
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    &code,
+                    p.code(),
                     diag_typescript_import_alias_not_allowed_in_javascript,  //
                     import_keyword, 0, u8"import",                           //
                     equal, strlen(u8"import A "), u8"=")));
