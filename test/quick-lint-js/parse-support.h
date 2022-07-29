@@ -91,6 +91,10 @@ class test_parser {
     return ast;
   }
 
+  void parse_and_visit_statement() {
+    EXPECT_TRUE(this->parser_.parse_and_visit_statement(this->errors_));
+  }
+
   const std::vector<diag_collector::diag>& errors() const noexcept {
     return this->errors_.errors;
   }
@@ -119,6 +123,19 @@ class test_parser {
   failing_diag_reporter failing_reporter_;
   quick_lint_js::parser parser_;
   std::vector<expression*> expressions_needing_cleanup_;
+
+ public:
+  // Aliases for convenience.
+  std::vector<std::string_view>& visits = this->errors_.visits;
+  std::vector<string8>& enter_named_function_scopes =
+      this->errors_.enter_named_function_scopes;
+  std::vector<std::optional<string8>>& property_declarations =
+      this->errors_.property_declarations;
+  std::vector<string8>& variable_assignments =
+      this->errors_.variable_assignments;
+  std::vector<visited_variable_declaration>& variable_declarations =
+      this->errors_.variable_declarations;
+  std::vector<string8>& variable_uses = this->errors_.variable_uses;
 };
 
 class test_parse_expression : public ::testing::Test {
