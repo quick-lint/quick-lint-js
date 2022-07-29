@@ -44,8 +44,7 @@ TEST_F(test_parse_typescript, type_annotation_in_expression_is_an_error) {
 
 TEST_F(test_parse_typescript, type_alias) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"type T = U;"_sv, typescript_options);
+    test_parser p(u8"type T = U;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",     // T
                                       "visit_enter_type_alias_scope",   // T
@@ -56,8 +55,7 @@ TEST_F(test_parse_typescript, type_alias) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"type MyAlias<T> = U;"_sv, typescript_options);
+    test_parser p(u8"type MyAlias<T> = U;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",     // MyAlias
@@ -74,8 +72,7 @@ TEST_F(test_parse_typescript, type_alias) {
 
 TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"type T = U"_sv, typescript_options);
+    test_parser p(u8"type T = U"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",     // T
                                       "visit_enter_type_alias_scope",   // T
@@ -84,8 +81,7 @@ TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"type T = U\ntype V = W;"_sv,
-                                            typescript_options);
+    test_parser p(u8"type T = U\ntype V = W;"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // T
                                       "visit_enter_type_alias_scope",  // T
@@ -131,7 +127,7 @@ TEST_F(test_parse_typescript,
             })) {
     string8 code = u8"type " + name + u8" = T;";
     SCOPED_TRACE(out_string8(code));
-    test_parser& p = this->errorless_parser(code, typescript_options);
+    test_parser p(code, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",     // (name)
@@ -145,8 +141,7 @@ TEST_F(test_parse_typescript,
 TEST_F(test_parse_typescript,
        type_alias_cannot_have_newline_after_type_keyword) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"type\nT = U;"_sv, typescript_options);
+    test_parser p(u8"type\nT = U;"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // type
                                       "visit_variable_use",         // U

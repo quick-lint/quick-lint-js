@@ -32,20 +32,20 @@ class test_parse_var : public test_parse_expression {};
 
 TEST_F(test_parse_var, parse_simple_let) {
   {
-    test_parser& p = this->errorless_parser(u8"let x"_sv);
+    test_parser p(u8"let x"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let a, b"_sv);
+    test_parser p(u8"let a, b"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAre(let_noinit_decl(u8"a"), let_noinit_decl(u8"b")));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let a, b, c, d, e, f, g"_sv);
+    test_parser p(u8"let a, b, c, d, e, f, g"_sv);
     p.parse_and_visit_statement();
     ASSERT_EQ(p.variable_declarations.size(), 7);
     EXPECT_EQ(p.variable_declarations[0].name, u8"a");
@@ -100,7 +100,7 @@ TEST_F(test_parse_var, parse_const_with_no_initializers) {
 
 TEST_F(test_parse_var, let_asi) {
   {
-    test_parser& p = this->errorless_parser(u8"let x\ny"_sv);
+    test_parser p(u8"let x\ny"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",  // x
@@ -112,20 +112,20 @@ TEST_F(test_parse_var, let_asi) {
 
 TEST_F(test_parse_var, parse_let_with_initializers) {
   {
-    test_parser& p = this->errorless_parser(u8"let x = 2"_sv);
+    test_parser p(u8"let x = 2"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(u8"x")));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let x = 2, y = 3"_sv);
+    test_parser p(u8"let x = 2, y = 3"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAre(let_init_decl(u8"x"), let_init_decl(u8"y")));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let x = other, y = x"_sv);
+    test_parser p(u8"let x = other, y = x"_sv);
     p.parse_and_visit_statement();
     ASSERT_EQ(p.variable_declarations.size(), 2);
     EXPECT_EQ(p.variable_declarations[0].name, u8"x");
@@ -134,7 +134,7 @@ TEST_F(test_parse_var, parse_let_with_initializers) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let x = y in z;"_sv);
+    test_parser p(u8"let x = y in z;"_sv);
     p.parse_and_visit_statement();
     ASSERT_EQ(p.variable_declarations.size(), 1);
     EXPECT_EQ(p.variable_declarations[0].name, u8"x");
@@ -144,13 +144,13 @@ TEST_F(test_parse_var, parse_let_with_initializers) {
 
 TEST_F(test_parse_var, parse_let_with_object_destructuring) {
   {
-    test_parser& p = this->errorless_parser(u8"let {x} = 2"_sv);
+    test_parser p(u8"let {x} = 2"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(u8"x")));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let {x, y, z} = 2"_sv);
+    test_parser p(u8"let {x, y, z} = 2"_sv);
     p.parse_and_visit_statement();
     ASSERT_EQ(p.variable_declarations.size(), 3);
     EXPECT_EQ(p.variable_declarations[0].name, u8"x");
@@ -159,7 +159,7 @@ TEST_F(test_parse_var, parse_let_with_object_destructuring) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let {key: variable} = 2"_sv);
+    test_parser p(u8"let {key: variable} = 2"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(p.variable_declarations,
@@ -167,15 +167,14 @@ TEST_F(test_parse_var, parse_let_with_object_destructuring) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let {} = x;"_sv);
+    test_parser p(u8"let {} = x;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, IsEmpty());
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"x"));
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"let {key = defaultValue} = x;"_sv);
+    test_parser p(u8"let {key = defaultValue} = x;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_variable_use",  // defaultValue
@@ -189,7 +188,7 @@ TEST_F(test_parse_var, parse_let_with_object_destructuring) {
 
 TEST_F(test_parse_var, parse_let_with_array_destructuring) {
   {
-    test_parser& p = this->errorless_parser(u8"let [first, second] = xs;"_sv);
+    test_parser p(u8"let [first, second] = xs;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // x
                                       "visit_variable_declaration",    // first
@@ -203,7 +202,7 @@ TEST_F(test_parse_var, parse_let_with_array_destructuring) {
 
 TEST_F(test_parse_var, let_does_not_insert_semicolon_after_let_keyword) {
   {
-    test_parser& p = this->errorless_parser(u8"let\nx = y;"_sv);
+    test_parser p(u8"let\nx = y;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // y
                                       "visit_variable_declaration"));  // x
@@ -833,7 +832,7 @@ TEST_F(test_parse_var, report_missing_semicolon_for_declarations) {
 
 TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
   {
-    test_parser& p = this->errorless_parser(u8"var let = initial;");
+    test_parser p(u8"var let = initial;");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",            // initial
@@ -842,7 +841,7 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"function let(let) {}");
+    test_parser p(u8"function let(let) {}");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",  // let (function)
@@ -855,7 +854,7 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"(function let() {})");
+    test_parser p(u8"(function let() {})");
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.visits,
@@ -866,7 +865,7 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"try { } catch (let) { }");
+    test_parser p(u8"try { } catch (let) { }");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_exit_block_scope",      //
@@ -877,7 +876,7 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let {x = let} = o;");
+    test_parser p(u8"let {x = let} = o;");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // o
                                       "visit_variable_use",            // let
@@ -886,7 +885,7 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"console.log(let);");
+    test_parser p(u8"console.log(let);");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // console
                                       "visit_variable_use"));  // let
@@ -894,7 +893,7 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let.method();");
+    test_parser p(u8"let.method();");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use"));  // let
@@ -908,7 +907,7 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
            u8"((let) => null)",
        }) {
     SCOPED_TRACE(out_string8(code));
-    test_parser& p = this->errorless_parser(code);
+    test_parser p(code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // let
@@ -918,7 +917,7 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"for (let in xs) ;");
+    test_parser p(u8"for (let in xs) ;");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 // TODO(strager): A for scope shouldn't be introduced by
@@ -931,31 +930,31 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"for (let.prop in xs) ;");
+    test_parser p(u8"for (let.prop in xs) ;");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"xs", u8"let"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let");
+    test_parser p(u8"let");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"let"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let;");
+    test_parser p(u8"let;");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"let"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let in other;");
+    test_parser p(u8"let in other;");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"let", u8"other"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let instanceof MyClass;");
+    test_parser p(u8"let instanceof MyClass;");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"let", u8"MyClass"));
   }
@@ -1063,7 +1062,7 @@ TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
 
 TEST_F(test_parse_var, use_await_in_non_async_function) {
   {
-    test_parser& p = this->errorless_parser(u8"await(x);"_sv);
+    test_parser p(u8"await(x);"_sv);
     auto guard = p.enter_function(function_attributes::normal);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses,
@@ -1072,7 +1071,7 @@ TEST_F(test_parse_var, use_await_in_non_async_function) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
+    test_parser p(
         u8"async function f() {\n"
         u8"  function g() { await(x); }\n"
         u8"}");
@@ -1083,7 +1082,7 @@ TEST_F(test_parse_var, use_await_in_non_async_function) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
+    test_parser p(
         u8"function f() {\n"
         u8"  async function g() {}\n"
         u8"  await();\n"
@@ -1093,7 +1092,7 @@ TEST_F(test_parse_var, use_await_in_non_async_function) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
+    test_parser p(
         u8"(() => {\n"
         u8"  async () => {};\n"
         u8"  await();\n"
@@ -1103,20 +1102,19 @@ TEST_F(test_parse_var, use_await_in_non_async_function) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"(async => { await(); })"_sv);
+    test_parser p(u8"(async => { await(); })"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"await"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"({ async() { await(); } })"_sv);
+    test_parser p(u8"({ async() { await(); } })"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"await"));
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"class C { async() { await(); } }"_sv);
+    test_parser p(u8"class C { async() { await(); } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"await"));
   }
@@ -1124,21 +1122,21 @@ TEST_F(test_parse_var, use_await_in_non_async_function) {
 
 TEST_F(test_parse_var, declare_await_in_non_async_function) {
   {
-    test_parser& p = this->errorless_parser(u8"function await() { }"_sv);
+    test_parser p(u8"function await() { }"_sv);
     auto guard = p.enter_function(function_attributes::normal);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"await")));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let await = 42;"_sv);
+    test_parser p(u8"let await = 42;"_sv);
     auto guard = p.enter_function(function_attributes::normal);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(u8"await")));
   }
 
   {
-    test_parser& p = this->errorless_parser(
+    test_parser p(
         u8"(async function() {\n"
         u8"  (function(await) { })\n"
         u8"})");
@@ -1147,7 +1145,7 @@ TEST_F(test_parse_var, declare_await_in_non_async_function) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
+    test_parser p(
         u8"(function() {\n"
         u8"  async function await() { }\n"
         u8"})");
@@ -1219,13 +1217,13 @@ TEST_F(test_parse_var, declare_await_in_async_function) {
 
 TEST_F(test_parse_var, declare_await_at_top_level) {
   {
-    test_parser& p = this->errorless_parser(u8"function await() { }"_sv);
+    test_parser p(u8"function await() { }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"await")));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let await = 42;"_sv);
+    test_parser p(u8"let await = 42;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(u8"await")));
   }
@@ -1233,48 +1231,48 @@ TEST_F(test_parse_var, declare_await_at_top_level) {
 
 TEST_F(test_parse_var, use_await_at_top_level_as_operator) {
   {
-    test_parser& p = this->errorless_parser(u8"await x;"_sv);
+    test_parser p(u8"await x;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"await(x);"_sv);
+    test_parser p(u8"await(x);"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"await +x;"_sv);
+    test_parser p(u8"await +x;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"await -x;"_sv);
+    test_parser p(u8"await -x;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"await[x]"_sv);
+    test_parser p(u8"await[x]"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"await`template`"_sv);
+    test_parser p(u8"await`template`"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"await`template${x}`"_sv);
+    test_parser p(u8"await`template${x}`"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
@@ -1283,28 +1281,28 @@ TEST_F(test_parse_var, use_await_at_top_level_as_operator) {
 
 TEST_F(test_parse_var, use_await_at_top_level_as_variable) {
   {
-    test_parser& p = this->errorless_parser(u8"await;"_sv);
+    test_parser p(u8"await;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // await
                                       "visit_end_of_module"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"await"_sv);
+    test_parser p(u8"await"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // await
                                       "visit_end_of_module"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"(await)"_sv);
+    test_parser p(u8"(await)"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // await
                                       "visit_end_of_module"));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"await = x"_sv);
+    test_parser p(u8"await = x"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // x
                                       "visit_variable_assignment",  // await
@@ -1312,7 +1310,7 @@ TEST_F(test_parse_var, use_await_at_top_level_as_variable) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"await.prop"_sv);
+    test_parser p(u8"await.prop"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
@@ -1320,7 +1318,7 @@ TEST_F(test_parse_var, use_await_at_top_level_as_variable) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"await?.prop"_sv);
+    test_parser p(u8"await?.prop"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
@@ -1328,7 +1326,7 @@ TEST_F(test_parse_var, use_await_at_top_level_as_variable) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"await ? x : y"_sv);
+    test_parser p(u8"await ? x : y"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // await
                                       "visit_variable_use",  // x
@@ -1344,7 +1342,7 @@ TEST_F(test_parse_var, use_await_at_top_level_as_variable) {
        }) {
     padded_string code(u8"await " + op + u8" x;");
     SCOPED_TRACE(code);
-    test_parser& p = this->errorless_parser(code.string_view());
+    test_parser p(code.string_view());
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // await
                                       "visit_variable_use",  // x
@@ -1370,7 +1368,7 @@ TEST_F(test_parse_var, use_await_at_top_level_as_variable) {
        }) {
     padded_string code(u8"await " + op + u8" x;");
     SCOPED_TRACE(code);
-    test_parser& p = this->errorless_parser(code.string_view());
+    test_parser p(code.string_view());
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // await
                                       "visit_variable_use",         // x
@@ -1380,8 +1378,7 @@ TEST_F(test_parse_var, use_await_at_top_level_as_variable) {
 
   // TODO(#464): Interpret / as divide, not a regular expression.
   if ((false)) {
-    test_parser& p =
-        this->errorless_parser(u8"await / await / await / await"_sv);
+    test_parser p(u8"await / await / await / await"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // await
                                       "visit_variable_use",  // await
@@ -1424,7 +1421,7 @@ TEST_F(
     test_parse_var,
     declare_await_in_async_function_is_allowed_for_named_function_expressions) {
   {
-    test_parser& p = this->errorless_parser(
+    test_parser p(
         u8"(async function() {\n"
         u8"  (function await() { await; })(); \n"
         u8"})();");
@@ -1443,13 +1440,13 @@ TEST_F(
 
 TEST_F(test_parse_var, use_yield_in_non_generator_function) {
   {
-    test_parser& p = this->errorless_parser(u8"yield(x);"_sv);
+    test_parser p(u8"yield(x);"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"yield", u8"x"));
   }
 
   {
-    test_parser& p = this->errorless_parser(
+    test_parser p(
         u8"function* f() {\n"
         u8"  function g() { yield(x); }\n"
         u8"}");
@@ -1458,7 +1455,7 @@ TEST_F(test_parse_var, use_yield_in_non_generator_function) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
+    test_parser p(
         u8"function f() {\n"
         u8"  function* g() {}\n"
         u8"  yield();\n"
@@ -1470,19 +1467,19 @@ TEST_F(test_parse_var, use_yield_in_non_generator_function) {
 
 TEST_F(test_parse_var, declare_yield_in_non_generator_function) {
   {
-    test_parser& p = this->errorless_parser(u8"function yield() { }"_sv);
+    test_parser p(u8"function yield() { }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"yield")));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"let yield = 42;"_sv);
+    test_parser p(u8"let yield = 42;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(u8"yield")));
   }
 
   {
-    test_parser& p = this->errorless_parser(
+    test_parser p(
         u8"(async function() {\n"
         u8"  (function(yield) { })\n"
         u8"})");
@@ -1491,7 +1488,7 @@ TEST_F(test_parse_var, declare_yield_in_non_generator_function) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
+    test_parser p(
         u8"(function() {\n"
         u8"  function* yield() { }\n"
         u8"})");
@@ -1569,8 +1566,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     SCOPED_TRACE(out_string8(name));
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"var " + name + u8" = initial;");
+      test_parser p(u8"var " + name + u8" = initial;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1580,8 +1576,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"let " + name + u8" = initial;");
+      test_parser p(u8"let " + name + u8" = initial;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1591,8 +1586,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"let {" + name + u8" = 10 } = initial;");
+      test_parser p(u8"let {" + name + u8" = 10 } = initial;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1602,8 +1596,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"const " + name + u8" = initial;");
+      test_parser p(u8"const " + name + u8" = initial;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1613,8 +1606,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p = this->errorless_parser(u8"function " + name + u8"(" +
-                                              name + u8") {}");
+      test_parser p(u8"function " + name + u8"(" + name + u8") {}");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(
@@ -1629,8 +1621,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"(function " + name + u8"() {})");
+      test_parser p(u8"(function " + name + u8"() {})");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(
@@ -1642,7 +1633,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p = this->errorless_parser(u8"class " + name + u8" {}");
+      test_parser p(u8"class " + name + u8" {}");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1654,7 +1645,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p = this->errorless_parser(u8"(class " + name + u8" {})");
+      test_parser p(u8"(class " + name + u8" {})");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1664,8 +1655,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"try { } catch (" + name + u8") { }");
+      test_parser p(u8"try { } catch (" + name + u8") { }");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
@@ -1677,8 +1667,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"let {x = " + name + u8"} = o;");
+      test_parser p(u8"let {x = " + name + u8"} = o;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // o
@@ -1688,7 +1677,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p = this->errorless_parser(u8"console.log(" + name + u8");");
+      test_parser p(u8"console.log(" + name + u8");");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // console
@@ -1699,7 +1688,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     {
       string8 code = name;
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code.c_str());
+      test_parser p(code.c_str());
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // (name)
@@ -1709,7 +1698,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     {
       string8 code = name + u8";";
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code.c_str());
+      test_parser p(code.c_str());
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // (name)
@@ -1717,7 +1706,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p = this->errorless_parser(name + u8".method();");
+      test_parser p(name + u8".method();");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1738,7 +1727,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
         continue;
       }
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code);
+      test_parser p(code);
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
@@ -1749,7 +1738,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p = this->errorless_parser(u8"for (" + name + u8" in xs) ;");
+      test_parser p(u8"for (" + name + u8" in xs) ;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
@@ -1759,8 +1748,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"for (" + name + u8".prop in xs) ;");
+      test_parser p(u8"for (" + name + u8".prop in xs) ;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, ElementsAre(name, u8"xs"));
@@ -1769,7 +1757,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     if (name != u8"async") {
       // NOTE(strager): async isn't allowed here. See
       // test_parse.cannot_assign_to_variable_named_async_in_for_of.
-      test_parser& p = this->errorless_parser(u8"for (" + name + u8" of xs) ;");
+      test_parser p(u8"for (" + name + u8" of xs) ;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_assignments, ElementsAre(name));
@@ -1777,8 +1765,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"for ((" + name + u8") of xs) ;");
+      test_parser p(u8"for ((" + name + u8") of xs) ;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_assignments, ElementsAre(name));
@@ -1786,8 +1773,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"for (" + name + u8".prop of xs) ;");
+      test_parser p(u8"for (" + name + u8".prop of xs) ;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_assignments, IsEmpty());
@@ -1795,8 +1781,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"for (let " + name + u8" of xs) ;");
+      test_parser p(u8"for (let " + name + u8" of xs) ;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, ElementsAre(let_noinit_decl(name)));
@@ -1804,8 +1789,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"for (var " + name + u8" of xs) ;");
+      test_parser p(u8"for (var " + name + u8" of xs) ;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, ElementsAre(var_noinit_decl(name)));
@@ -1813,8 +1797,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"for (" + name + u8"; cond;) ;");
+      test_parser p(u8"for (" + name + u8"; cond;) ;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_assignments, IsEmpty());
@@ -1822,8 +1805,7 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"for (" + name + u8".prop; cond;) ;");
+      test_parser p(u8"for (" + name + u8".prop; cond;) ;");
       auto guard = p.enter_function(function_attributes::normal);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_assignments, IsEmpty());

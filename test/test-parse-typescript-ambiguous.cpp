@@ -27,7 +27,7 @@ class test_parse_typescript_ambiguous : public test_parse_expression {};
 
 TEST_F(test_parse_typescript_ambiguous, generic_arrow_with_comma) {
   for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
-    test_parser& p = this->errorless_parser(u8"<T,>(param) => {}"_sv, o);
+    test_parser p(u8"<T,>(param) => {}"_sv, o);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_declaration",  // T
@@ -39,7 +39,7 @@ TEST_F(test_parse_typescript_ambiguous, generic_arrow_with_comma) {
   }
 
   for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
-    test_parser& p = this->errorless_parser(u8"<T,>(): ReturnType => {}"_sv, o);
+    test_parser p(u8"<T,>(): ReturnType => {}"_sv, o);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_declaration",  // param
@@ -54,8 +54,7 @@ TEST_F(test_parse_typescript_ambiguous, generic_arrow_with_comma) {
 
 TEST_F(test_parse_typescript_ambiguous, generic_arrow_with_extends) {
   for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
-    test_parser& p =
-        this->errorless_parser(u8"<T extends U>(param) => {}"_sv, o);
+    test_parser p(u8"<T extends U>(param) => {}"_sv, o);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_declaration",  // T
@@ -73,8 +72,7 @@ TEST_F(
     test_parse_typescript_ambiguous,
     angle_bracketed_type_with_arrow_is_generic_arrow_function_in_typescript_mode) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"<Type>() => {}"_sv, typescript_options);
+    test_parser p(u8"<Type>() => {}"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_declaration",  // Type
@@ -85,8 +83,7 @@ TEST_F(
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"<Type>(param) => {}"_sv, typescript_options);
+    test_parser p(u8"<Type>(param) => {}"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_declaration",  // Type
@@ -99,8 +96,7 @@ TEST_F(
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"<Type>(param): ReturnType => {}"_sv, typescript_options);
+    test_parser p(u8"<Type>(param): ReturnType => {}"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_declaration",  // Type
@@ -117,8 +113,7 @@ TEST_F(
 
 TEST_F(test_parse_typescript_ambiguous, use_generic_variable_named_async) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"async<T>();"_sv, typescript_options);
+    test_parser p(u8"async<T>();"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
                                       "visit_variable_use"));     // async
@@ -126,8 +121,7 @@ TEST_F(test_parse_typescript_ambiguous, use_generic_variable_named_async) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"async<T>;"_sv, typescript_options);
+    test_parser p(u8"async<T>;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
                                       "visit_variable_use"));     // async
@@ -137,8 +131,7 @@ TEST_F(test_parse_typescript_ambiguous, use_generic_variable_named_async) {
 
 TEST_F(test_parse_typescript_ambiguous, async_variable_less_than_expression) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"async < someexpr;"_sv, typescript_options);
+    test_parser p(u8"async < someexpr;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // async
                                       "visit_variable_use"));  // someexpr
@@ -148,8 +141,8 @@ TEST_F(test_parse_typescript_ambiguous, async_variable_less_than_expression) {
 
 TEST_F(test_parse_typescript_ambiguous, generic_async_arrow_function) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"async <T>() => { await myPromise; }"_sv, typescript_options);
+    test_parser p(u8"async <T>() => { await myPromise; }"_sv,
+                  typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // T
@@ -162,9 +155,8 @@ TEST_F(test_parse_typescript_ambiguous, generic_async_arrow_function) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"async <T extends U>() => { await myPromise; }"_sv,
-        typescript_options);
+    test_parser p(u8"async <T extends U>() => { await myPromise; }"_sv,
+                  typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // T
@@ -178,7 +170,7 @@ TEST_F(test_parse_typescript_ambiguous, generic_async_arrow_function) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
+    test_parser p(
         u8"async <T>(param: ParamType): ReturnType => { await myPromise; }"_sv,
         typescript_options);
     p.parse_and_visit_statement();

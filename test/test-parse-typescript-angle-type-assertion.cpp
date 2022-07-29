@@ -29,8 +29,7 @@ class test_parse_typescript_angle_type_assertion
 
 TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"<Type>expr"_sv, typescript_options);
+    test_parser p(u8"<Type>expr"_sv, typescript_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::angle_type_assertion);
     EXPECT_EQ(summarize(ast->child_0()), "var expr");
@@ -40,23 +39,20 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"<Type>(expr)"_sv, typescript_options);
+    test_parser p(u8"<Type>(expr)"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "typeassert(paren(var expr))");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"<Type>expr;\n// </Type>;"_sv,
-                                            typescript_options);
+    test_parser p(u8"<Type>expr;\n// </Type>;"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "typeassert(var expr)")
         << "'<Type>' shouldn't be confused as an opening JSX tag";
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"f(<T>x);"_sv, typescript_options);
+    test_parser p(u8"f(<T>x);"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
                                       "visit_variable_use",       // f
@@ -65,8 +61,7 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"(<T>lhs) = rhs;"_sv, typescript_options);
+    test_parser p(u8"(<T>lhs) = rhs;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",      // T
                                       "visit_variable_use",           // rhs
@@ -76,8 +71,7 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"<Type1 | Type2>(expr);"_sv,
-                                            typescript_options);
+    test_parser p(u8"<Type1 | Type2>(expr);"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // Type1
                                       "visit_variable_type_use",  // Type2
@@ -94,7 +88,7 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
            u8"<{k: Type}>(expr);"_sv,
        }) {
     SCOPED_TRACE(out_string8(code));
-    test_parser& p = this->errorless_parser(code, typescript_options);
+    test_parser p(code, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // Type
                                       "visit_variable_use"));     // expr
@@ -105,8 +99,8 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
 TEST_F(test_parse_typescript_angle_type_assertion,
        angle_bracketed_type_assertion_is_jsx_tag_in_typescript_jsx_mode) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"<Component>text;\n// </Component>;"_sv, typescript_jsx_options);
+    test_parser p(u8"<Component>text;\n// </Component>;"_sv,
+                  typescript_jsx_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "jsxelement(Component)");
   }

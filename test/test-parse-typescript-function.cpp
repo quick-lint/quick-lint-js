@@ -43,8 +43,7 @@ TEST_F(test_parse_typescript_function,
 
 TEST_F(test_parse_typescript_function, function_return_type_annotation) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"function f(): C { }"_sv, typescript_options);
+    test_parser p(u8"function f(): C { }"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",       // f
@@ -58,8 +57,7 @@ TEST_F(test_parse_typescript_function, function_return_type_annotation) {
 
 TEST_F(test_parse_typescript_function, arrow_return_type_annotation) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"((param): C => {})"_sv, typescript_options);
+    test_parser p(u8"((param): C => {})"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       //
@@ -71,8 +69,7 @@ TEST_F(test_parse_typescript_function, arrow_return_type_annotation) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"((): C => {})"_sv, typescript_options);
+    test_parser p(u8"((): C => {})"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       //
@@ -83,8 +80,7 @@ TEST_F(test_parse_typescript_function, arrow_return_type_annotation) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"(async (param): C => {})"_sv,
-                                            typescript_options);
+    test_parser p(u8"(async (param): C => {})"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       //
@@ -96,8 +92,7 @@ TEST_F(test_parse_typescript_function, arrow_return_type_annotation) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"(async (): C => {})"_sv, typescript_options);
+    test_parser p(u8"(async (): C => {})"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       //
@@ -110,8 +105,7 @@ TEST_F(test_parse_typescript_function, arrow_return_type_annotation) {
 
 TEST_F(test_parse_typescript_function, object_method_return_type_annotation) {
   {
-    test_parser& p = this->errorless_parser(u8"({ method(param): C {} })"_sv,
-                                            typescript_options);
+    test_parser p(u8"({ method(param): C {} })"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       // method
@@ -125,8 +119,7 @@ TEST_F(test_parse_typescript_function, object_method_return_type_annotation) {
 
 TEST_F(test_parse_typescript_function, class_method_return_type_annotation) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"class C { method(param): C {} }"_sv, typescript_options);
+    test_parser p(u8"class C { method(param): C {} }"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",          // C
@@ -146,8 +139,7 @@ TEST_F(test_parse_typescript_function, class_method_return_type_annotation) {
 TEST_F(test_parse_typescript_function,
        interface_method_return_type_annotation) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"interface I { method(param): C; }"_sv, typescript_options);
+    test_parser p(u8"interface I { method(param): C; }"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",    // I
@@ -165,8 +157,7 @@ TEST_F(test_parse_typescript_function,
 TEST_F(test_parse_typescript_function,
        generic_arrow_function_expression_body_can_use_in_operator) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"<T,>() => x in y"_sv, typescript_options);
+    test_parser p(u8"<T,>() => x in y"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       //

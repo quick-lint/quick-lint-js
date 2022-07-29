@@ -44,8 +44,7 @@ TEST_F(test_parse_typescript_class,
 
 TEST_F(test_parse_typescript_class, field_with_type_is_allowed_in_typescript) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"class C { fieldName: FieldType; }"_sv, typescript_options);
+    test_parser p(u8"class C { fieldName: FieldType; }"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",       // C
@@ -73,8 +72,8 @@ TEST_F(test_parse_typescript_class,
 TEST_F(test_parse_typescript_class,
        class_index_signature_is_allowed_in_typescript) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"class C { [key: KeyType]: ValueType; }"_sv, typescript_options);
+    test_parser p(u8"class C { [key: KeyType]: ValueType; }"_sv,
+                  typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",            // C
                                       "visit_enter_class_scope_body",       //
@@ -161,8 +160,8 @@ TEST_F(test_parse_typescript_class,
 TEST_F(test_parse_typescript_class,
        assignment_asserted_fields_are_allowed_in_typescript) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"class C { field1!; field2! = init; }"_sv, typescript_options);
+    test_parser p(u8"class C { field1!; field2! = init; }"_sv,
+                  typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
                                       "visit_enter_class_scope_body",  //
@@ -290,8 +289,7 @@ TEST_F(test_parse_typescript_class,
 
 TEST_F(test_parse_typescript_class, readonly_fields_are_allowed_in_typescript) {
   {
-    test_parser& p = this->errorless_parser(u8"class C { readonly field; }"_sv,
-                                            typescript_options);
+    test_parser p(u8"class C { readonly field; }"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
                                       "visit_enter_class_scope_body",  //
@@ -301,8 +299,8 @@ TEST_F(test_parse_typescript_class, readonly_fields_are_allowed_in_typescript) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"class C { static readonly field; }"_sv, typescript_options);
+    test_parser p(u8"class C { static readonly field; }"_sv,
+                  typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
                                       "visit_enter_class_scope_body",  //
@@ -312,8 +310,7 @@ TEST_F(test_parse_typescript_class, readonly_fields_are_allowed_in_typescript) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"class C { readonly #field; }"_sv,
-                                            typescript_options);
+    test_parser p(u8"class C { readonly #field; }"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
                                       "visit_enter_class_scope_body",  //
@@ -387,8 +384,7 @@ TEST_F(test_parse_typescript_class,
 
 TEST_F(test_parse_typescript_class, generic_classes_are_allowed_in_typescript) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"class C<T> { }"_sv, typescript_options);
+    test_parser p(u8"class C<T> { }"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",       // {
@@ -427,8 +423,7 @@ TEST_F(test_parse_typescript_class,
 
 TEST_F(test_parse_typescript_class, generic_methods_are_allowed_in_typescript) {
   {
-    test_parser& p = this->errorless_parser(u8"class C { method<T>() {} }"_sv,
-                                            typescript_options);
+    test_parser p(u8"class C { method<T>() {} }"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",          // C
@@ -607,8 +602,7 @@ TEST_F(test_parse_typescript_class,
   for (string8 specifier : {u8"public", u8"protected", u8"private"}) {
     padded_string code(u8"class C { " + specifier + u8" method() {} }");
     SCOPED_TRACE(code);
-    test_parser& p =
-        this->errorless_parser(code.string_view(), typescript_options);
+    test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",          // C
@@ -651,9 +645,8 @@ TEST_F(test_parse_typescript_class,
 
 TEST_F(test_parse_typescript_class, static_blocks_are_allowed_in_typescript) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"class C { static #private; static { C.#private; } }",
-        typescript_options);
+    test_parser p(u8"class C { static #private; static { C.#private; } }",
+                  typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",       // C
@@ -696,8 +689,7 @@ TEST_F(test_parse_typescript_class,
 TEST_F(test_parse_typescript_class,
        method_return_type_annotations_are_allowed_in_typescript) {
   {
-    test_parser& p = this->errorless_parser(u8"class C { method(): T { } }"_sv,
-                                            typescript_options);
+    test_parser p(u8"class C { method(): T { } }"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",          // {
@@ -735,8 +727,7 @@ TEST_F(test_parse_typescript_class,
 TEST_F(test_parse_typescript_class,
        abstract_classes_are_allowed_in_typescript) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"abstract class C { }"_sv, typescript_options);
+    test_parser p(u8"abstract class C { }"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",       // {
@@ -749,8 +740,7 @@ TEST_F(test_parse_typescript_class,
 TEST_F(test_parse_typescript_class,
        newline_before_class_causes_abstract_to_be_identifier) {
   {
-    test_parser& p = this->errorless_parser(u8"abstract\nclass C { }"_sv,
-                                            typescript_options);
+    test_parser p(u8"abstract\nclass C { }"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",            // abstract
@@ -782,8 +772,7 @@ TEST_F(test_parse_typescript_class, implements_is_not_allowed_in_javascript) {
 }
 
 TEST_F(test_parse_typescript_class, implements) {
-  test_parser& p = this->errorless_parser(u8"class C implements Base {}"_sv,
-                                          typescript_options);
+  test_parser p(u8"class C implements Base {}"_sv, typescript_options);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
                                     "visit_variable_type_use",       // Base
@@ -796,8 +785,8 @@ TEST_F(test_parse_typescript_class, implements) {
 
 TEST_F(test_parse_typescript_class, implements_comes_after_extends) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"class C extends Base implements I {}"_sv, typescript_options);
+    test_parser p(u8"class C extends Base implements I {}"_sv,
+                  typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_variable_use",            // Base
@@ -832,8 +821,7 @@ TEST_F(test_parse_typescript_class, implements_comes_after_extends) {
 }
 
 TEST_F(test_parse_typescript_class, implements_interface_from_namespace) {
-  test_parser& p = this->errorless_parser(u8"class C implements ns.A {}"_sv,
-                                          typescript_options);
+  test_parser p(u8"class C implements ns.A {}"_sv, typescript_options);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
                                     "visit_variable_namespace_use",  // ns
@@ -845,8 +833,8 @@ TEST_F(test_parse_typescript_class, implements_interface_from_namespace) {
 }
 
 TEST_F(test_parse_typescript_class, implement_multiple_things) {
-  test_parser& p = this->errorless_parser(
-      u8"class C implements Apple, Banana, Carrot {}"_sv, typescript_options);
+  test_parser p(u8"class C implements Apple, Banana, Carrot {}"_sv,
+                typescript_options);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
                                     "visit_variable_type_use",       // Apple

@@ -259,17 +259,17 @@ TEST_F(test_parse, asi_between_expression_statements) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"true\nnew Animal();"_sv);
+    test_parser p(u8"true\nnew Animal();"_sv);
     p.parse_and_visit_module();
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"true\nsuper();"_sv);
+    test_parser p(u8"true\nsuper();"_sv);
     p.parse_and_visit_module();
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"true\ntypeof x;"_sv);
+    test_parser p(u8"true\ntypeof x;"_sv);
     p.parse_and_visit_module();
   }
 
@@ -296,7 +296,7 @@ TEST_F(test_parse, asi_between_expression_statements) {
   for (string8 keyword : contextual_keywords) {
     padded_string code(u8"true\n" + keyword);
     SCOPED_TRACE(code);
-    test_parser& p = this->errorless_parser(code.string_view());
+    test_parser p(code.string_view());
     p.parse_and_visit_module();
   }
 
@@ -312,7 +312,7 @@ TEST_F(test_parse, asi_between_expression_statements) {
 
 TEST_F(test_parse, asi_between_expression_statement_and_switch_label) {
   {
-    test_parser& p = this->errorless_parser(
+    test_parser p(
         u8R"(
       switch (x) {
         case a:
@@ -327,7 +327,7 @@ TEST_F(test_parse, asi_between_expression_statement_and_switch_label) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
+    test_parser p(
         u8R"(
       switch (x) {
         case a:
@@ -343,7 +343,7 @@ TEST_F(test_parse, asi_between_expression_statement_and_switch_label) {
 
 TEST_F(test_parse, asi_between_expression_statement_and_declaration) {
   {
-    test_parser& p = this->errorless_parser(u8"f()\nclass C {}"_sv);
+    test_parser p(u8"f()\nclass C {}"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",            // f
@@ -357,7 +357,7 @@ TEST_F(test_parse, asi_between_expression_statement_and_declaration) {
 
 TEST_F(test_parse, asi_for_statement_at_end_of_file) {
   {
-    test_parser& p = this->errorless_parser(u8"console.log(2+2)"_sv);
+    test_parser p(u8"console.log(2+2)"_sv);
     p.parse_and_visit_statement();
   }
 }

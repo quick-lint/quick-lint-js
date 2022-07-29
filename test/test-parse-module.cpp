@@ -28,35 +28,35 @@ class test_parse_module : public test_parse_expression {};
 
 TEST_F(test_parse_module, export_variable) {
   {
-    test_parser& p = this->errorless_parser(u8"export let x;"_sv);
+    test_parser p(u8"export let x;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(p.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"export let x = 42;"_sv);
+    test_parser p(u8"export let x = 42;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(u8"x")));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"export var x;"_sv);
+    test_parser p(u8"export var x;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(p.variable_declarations, ElementsAre(var_noinit_decl(u8"x")));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"export var x = 42;"_sv);
+    test_parser p(u8"export var x = 42;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(p.variable_declarations, ElementsAre(var_init_decl(u8"x")));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"export const x = null;"_sv);
+    test_parser p(u8"export const x = null;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));
     EXPECT_THAT(p.variable_declarations, ElementsAre(const_init_decl(u8"x")));
@@ -65,14 +65,13 @@ TEST_F(test_parse_module, export_variable) {
 
 TEST_F(test_parse_module, export_default) {
   {
-    test_parser& p = this->errorless_parser(u8"export default x;"_sv);
+    test_parser p(u8"export default x;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"export default function f() {}"_sv);
+    test_parser p(u8"export default function f() {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       //
@@ -81,8 +80,7 @@ TEST_F(test_parse_module, export_default) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"export default function() {}"_sv);
+    test_parser p(u8"export default function() {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
@@ -90,8 +88,7 @@ TEST_F(test_parse_module, export_default) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"export default async function f() {}"_sv);
+    test_parser p(u8"export default async function f() {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       //
@@ -100,8 +97,7 @@ TEST_F(test_parse_module, export_default) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"export default async function() {}"_sv);
+    test_parser p(u8"export default async function() {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
@@ -109,8 +105,7 @@ TEST_F(test_parse_module, export_default) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"export default (function f() {})"_sv);
+    test_parser p(u8"export default (function f() {})"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_named_function_scope",  // f
                                       "visit_enter_function_scope_body",   //
@@ -118,7 +113,7 @@ TEST_F(test_parse_module, export_default) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"export default class C {}"_sv);
+    test_parser p(u8"export default class C {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       //
                                       "visit_enter_class_scope_body",  //
@@ -127,7 +122,7 @@ TEST_F(test_parse_module, export_default) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"export default class {}"_sv);
+    test_parser p(u8"export default class {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       //
                                       "visit_enter_class_scope_body",  //
@@ -135,8 +130,7 @@ TEST_F(test_parse_module, export_default) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"export default async (a) => b;"_sv);
+    test_parser p(u8"export default async (a) => b;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_declaration",  // a
@@ -243,15 +237,14 @@ TEST_F(test_parse_module, export_sometimes_does_not_require_semicolon) {
 
 TEST_F(test_parse_module, export_list) {
   {
-    test_parser& p = this->errorless_parser(u8"export {one, two};"_sv);
+    test_parser p(u8"export {one, two};"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_export_use",    // one
                                       "visit_variable_export_use"));  // two
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"export {one as two, three as four};"_sv);
+    test_parser p(u8"export {one as two, three as four};"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_export_use",    // one
                                       "visit_variable_export_use"));  // three
@@ -259,7 +252,7 @@ TEST_F(test_parse_module, export_list) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"export {myVar as 'name'};"_sv);
+    test_parser p(u8"export {myVar as 'name'};"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"myVar"));
   }
@@ -342,48 +335,43 @@ TEST_F(test_parse_module,
 
 TEST_F(test_parse_module, export_from) {
   {
-    test_parser& p = this->errorless_parser(u8"export * from 'other';"_sv);
+    test_parser p(u8"export * from 'other';"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"export * as mother from 'other';"_sv);
+    test_parser p(u8"export * as mother from 'other';"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"export * as 'mother' from 'other';"_sv);
+    test_parser p(u8"export * as 'mother' from 'other';"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"export {} from 'other';"_sv);
+    test_parser p(u8"export {} from 'other';"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"export {util1, util2, util3} from 'other';");
+    test_parser p(u8"export {util1, util2, util3} from 'other';");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"export {readFileSync as readFile} from 'fs';");
+    test_parser p(u8"export {readFileSync as readFile} from 'fs';");
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"export {promises as default} from 'fs';"_sv);
+    test_parser p(u8"export {promises as default} from 'fs';"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
@@ -391,37 +379,33 @@ TEST_F(test_parse_module, export_from) {
   for (string8 keyword : keywords) {
     padded_string code(u8"export {" + keyword + u8"} from 'other';");
     SCOPED_TRACE(code);
-    test_parser& p = this->errorless_parser(code.string_view());
+    test_parser p(code.string_view());
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
     // Keywords are legal, even if Unicode-escaped.
-    test_parser& p =
-        this->errorless_parser(u8"export {\\u{76}ar} from 'fs';"_sv);
+    test_parser p(u8"export {\\u{76}ar} from 'fs';"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
     // Keywords are legal, even if Unicode-escaped.
-    test_parser& p = this->errorless_parser(
-        u8"export {\\u{76}ar as \\u{69}f} from 'fs';"_sv);
+    test_parser p(u8"export {\\u{76}ar as \\u{69}f} from 'fs';"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"export {'name'} from 'other';"_sv);
+    test_parser p(u8"export {'name'} from 'other';"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"export {'name' as 'othername'} from 'other';"_sv);
+    test_parser p(u8"export {'name' as 'othername'} from 'other';"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
@@ -508,19 +492,19 @@ TEST_F(test_parse_module, invalid_export) {
 
 TEST_F(test_parse_module, parse_and_visit_import) {
   {
-    test_parser& p = this->errorless_parser(u8"import 'foo';"_sv);
+    test_parser p(u8"import 'foo';"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"import fs from 'fs'"_sv);
+    test_parser p(u8"import fs from 'fs'"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(u8"fs")));
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"import * as fs from 'fs'"_sv);
+    test_parser p(u8"import * as fs from 'fs'"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(u8"fs")));
   }
@@ -536,8 +520,7 @@ TEST_F(test_parse_module, parse_and_visit_import) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"import { readFile, writeFile } from 'fs';");
+    test_parser p(u8"import { readFile, writeFile } from 'fs';");
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.variable_declarations,
@@ -545,24 +528,21 @@ TEST_F(test_parse_module, parse_and_visit_import) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"import {readFileSync as rf} from 'fs';"_sv);
+    test_parser p(u8"import {readFileSync as rf} from 'fs';"_sv);
     p.parse_and_visit_statement();
     ASSERT_EQ(p.variable_declarations.size(), 1);
     EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(u8"rf")));
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"import {'read file sync' as readFileSync} from 'fs';"_sv);
+    test_parser p(u8"import {'read file sync' as readFileSync} from 'fs';"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAre(import_decl(u8"readFileSync")));
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"import fs, {readFileSync} from 'fs';"_sv);
+    test_parser p(u8"import fs, {readFileSync} from 'fs';"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.variable_declarations,
@@ -570,8 +550,7 @@ TEST_F(test_parse_module, parse_and_visit_import) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"import fsDefault, * as fsExports from 'fs';");
+    test_parser p(u8"import fsDefault, * as fsExports from 'fs';");
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.variable_declarations,
@@ -644,14 +623,13 @@ TEST_F(test_parse_module, import_as_invalid_token) {
 
 TEST_F(test_parse_module, export_function) {
   {
-    test_parser& p = this->errorless_parser(u8"export function foo() {}"_sv);
+    test_parser p(u8"export function foo() {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"foo")));
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"export async function foo() {}"_sv);
+    test_parser p(u8"export async function foo() {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"foo")));
   }
@@ -686,7 +664,7 @@ TEST_F(test_parse_module, export_function_requires_a_name) {
 
 TEST_F(test_parse_module, export_class) {
   {
-    test_parser& p = this->errorless_parser(u8"export class C {}"_sv);
+    test_parser p(u8"export class C {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(class_decl(u8"C")));
   }
@@ -717,40 +695,37 @@ TEST_F(test_parse_module, imported_variables_can_be_named_contextual_keywords) {
     SCOPED_TRACE(out_string8(name));
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"import { " + name + u8" } from 'other';");
+      test_parser p(u8"import { " + name + u8" } from 'other';");
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
     }
 
     {
-      test_parser& p = this->errorless_parser(u8"import { exportedName as " +
-                                              name + u8" } from 'other';");
+      test_parser p(u8"import { exportedName as " + name +
+                    u8" } from 'other';");
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
     }
 
     {
-      test_parser& p = this->errorless_parser(u8"import { 'exportedName' as " +
-                                              name + u8" } from 'other';");
+      test_parser p(u8"import { 'exportedName' as " + name +
+                    u8" } from 'other';");
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"import " + name + u8" from 'other';");
+      test_parser p(u8"import " + name + u8" from 'other';");
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
     }
 
     {
-      test_parser& p =
-          this->errorless_parser(u8"import * as " + name + u8" from 'other';");
+      test_parser p(u8"import * as " + name + u8" from 'other';");
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
@@ -923,7 +898,7 @@ TEST_F(test_parse_module, exported_names_can_be_named_keywords) {
     {
       string8 code = u8"export {someFunction as " + export_name + u8"};";
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code.c_str());
+      test_parser p(code.c_str());
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_export_use"));  // someFunction
@@ -933,7 +908,7 @@ TEST_F(test_parse_module, exported_names_can_be_named_keywords) {
     {
       string8 code = u8"export * as " + export_name + u8" from 'other-module';";
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code.c_str());
+      test_parser p(code.c_str());
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, IsEmpty());
     }
@@ -945,7 +920,7 @@ TEST_F(test_parse_module, imported_names_can_be_named_keywords) {
     string8 code =
         u8"import {" + import_name + u8" as someFunction} from 'somewhere';";
     SCOPED_TRACE(out_string8(code));
-    test_parser& p = this->errorless_parser(code.c_str());
+    test_parser p(code.c_str());
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration"));  // someFunction
@@ -964,7 +939,7 @@ TEST_F(
       padded_string code(u8"import {" + exported_name +
                          u8" as someFunction} from 'somewhere';");
       SCOPED_TRACE(code);
-      test_parser& p = this->errorless_parser(code.string_view());
+      test_parser p(code.string_view());
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // someFunction
@@ -973,7 +948,7 @@ TEST_F(
     {
       padded_string code(u8"export {someFunction as " + exported_name + u8"};");
       SCOPED_TRACE(code);
-      test_parser& p = this->errorless_parser(code.string_view());
+      test_parser p(code.string_view());
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_export_use"));  // someFunction
@@ -982,7 +957,7 @@ TEST_F(
     {
       padded_string code(u8"export * as " + exported_name + u8" from 'other';");
       SCOPED_TRACE(code);
-      test_parser& p = this->errorless_parser(code.string_view());
+      test_parser p(code.string_view());
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, IsEmpty());
     }

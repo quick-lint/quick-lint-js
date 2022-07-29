@@ -28,8 +28,7 @@ class test_parse_typescript_module : public test_parse_expression {};
 
 TEST_F(test_parse_typescript_module, type_only_import) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"import type { T } from 'mod';"_sv, typescript_options);
+    test_parser p(u8"import type { T } from 'mod';"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // T
                                       "visit_end_of_module"));
@@ -37,8 +36,7 @@ TEST_F(test_parse_typescript_module, type_only_import) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"import type {T as U} from 'mod';"_sv, typescript_options);
+    test_parser p(u8"import type {T as U} from 'mod';"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // U
                                       "visit_end_of_module"));
@@ -46,8 +44,7 @@ TEST_F(test_parse_typescript_module, type_only_import) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"import type T from 'mod';"_sv,
-                                            typescript_options);
+    test_parser p(u8"import type T from 'mod';"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // T
                                       "visit_end_of_module"));
@@ -55,8 +52,7 @@ TEST_F(test_parse_typescript_module, type_only_import) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"import type * as M from 'mod';"_sv, typescript_options);
+    test_parser p(u8"import type * as M from 'mod';"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // M
                                       "visit_end_of_module"));
@@ -74,8 +70,7 @@ TEST_F(test_parse_typescript_module,
     {
       padded_string code(u8"import type " + name + u8" from 'mod';");
       SCOPED_TRACE(code);
-      test_parser& p =
-          this->errorless_parser(code.string_view(), typescript_options);
+      test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // (name)
                                         "visit_end_of_module"));
@@ -141,8 +136,7 @@ TEST_F(test_parse_typescript_module,
 
 TEST_F(test_parse_typescript_module, inline_type_import) {
   {
-    test_parser& p = this->errorless_parser(u8"import {type T} from 'mod';"_sv,
-                                            typescript_options);
+    test_parser p(u8"import {type T} from 'mod';"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // T
                                       "visit_end_of_module"));
@@ -150,8 +144,8 @@ TEST_F(test_parse_typescript_module, inline_type_import) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"import {type T, type U} from 'mod';"_sv, typescript_options);
+    test_parser p(u8"import {type T, type U} from 'mod';"_sv,
+                  typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // T
                                       "visit_variable_declaration",  // U
@@ -161,8 +155,7 @@ TEST_F(test_parse_typescript_module, inline_type_import) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"import {type T as U} from 'mod';"_sv, typescript_options);
+    test_parser p(u8"import {type T as U} from 'mod';"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // U
                                       "visit_end_of_module"));
@@ -172,8 +165,7 @@ TEST_F(test_parse_typescript_module, inline_type_import) {
 
 TEST_F(test_parse_typescript_module, mixed_inline_type_and_normal_import) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"import {type T, f} from 'mod';"_sv, typescript_options);
+    test_parser p(u8"import {type T, f} from 'mod';"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // T
                                       "visit_variable_declaration",  // f
@@ -183,8 +175,7 @@ TEST_F(test_parse_typescript_module, mixed_inline_type_and_normal_import) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"import {f, type T} from 'mod';"_sv, typescript_options);
+    test_parser p(u8"import {f, type T} from 'mod';"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // f
                                       "visit_variable_declaration",  // T
@@ -202,8 +193,7 @@ TEST_F(test_parse_typescript_module,
     {
       padded_string code(u8"import {type " + name + u8"} from 'mod';");
       SCOPED_TRACE(code);
-      test_parser& p =
-          this->errorless_parser(code.string_view(), typescript_options);
+      test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // (name)
                                         "visit_end_of_module"));
@@ -213,8 +203,7 @@ TEST_F(test_parse_typescript_module,
     {
       padded_string code(u8"import {type " + name + u8", other} from 'mod';");
       SCOPED_TRACE(code);
-      test_parser& p =
-          this->errorless_parser(code.string_view(), typescript_options);
+      test_parser p(code.string_view(), typescript_options);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // (name)
                                         "visit_variable_declaration",  // other
@@ -276,8 +265,7 @@ TEST_F(test_parse_typescript_module, mixed_inline_type_and_type_only_import) {
 
 TEST_F(test_parse_typescript_module, type_only_export) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"export type { T };"_sv, typescript_options);
+    test_parser p(u8"export type { T };"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
                                       "visit_end_of_module"));
@@ -285,8 +273,7 @@ TEST_F(test_parse_typescript_module, type_only_export) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"export type {T as U};"_sv,
-                                            typescript_options);
+    test_parser p(u8"export type {T as U};"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
                                       "visit_end_of_module"));
@@ -294,8 +281,7 @@ TEST_F(test_parse_typescript_module, type_only_export) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"export type {T} from 'mod';"_sv,
-                                            typescript_options);
+    test_parser p(u8"export type {T} from 'mod';"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
   }
@@ -318,8 +304,7 @@ TEST_F(test_parse_typescript_module,
 
 TEST_F(test_parse_typescript_module, inline_type_export) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"export {type T};"_sv, typescript_options);
+    test_parser p(u8"export {type T};"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
                                       "visit_end_of_module"));
@@ -327,8 +312,7 @@ TEST_F(test_parse_typescript_module, inline_type_export) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"export {type T, type U};"_sv,
-                                            typescript_options);
+    test_parser p(u8"export {type T, type U};"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
                                       "visit_variable_type_use",  // U
@@ -337,8 +321,7 @@ TEST_F(test_parse_typescript_module, inline_type_export) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"export {type T as U};"_sv,
-                                            typescript_options);
+    test_parser p(u8"export {type T as U};"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
                                       "visit_end_of_module"));
@@ -395,8 +378,7 @@ TEST_F(test_parse_typescript_module, mixed_inline_type_and_type_only_export) {
 
 TEST_F(test_parse_typescript_module, import_require) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"import fs = require('node:fs');"_sv, typescript_options);
+    test_parser p(u8"import fs = require('node:fs');"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // fs
                                       "visit_end_of_module"));
@@ -406,8 +388,7 @@ TEST_F(test_parse_typescript_module, import_require) {
 
 TEST_F(test_parse_typescript_module, export_interface) {
   {
-    test_parser& p = this->errorless_parser(u8"export interface I {}"_sv,
-                                            typescript_options);
+    test_parser p(u8"export interface I {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  // {
@@ -437,8 +418,7 @@ TEST_F(test_parse_typescript_module,
 
 TEST_F(test_parse_typescript_module, export_default_interface) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"export default interface I {}"_sv, typescript_options);
+    test_parser p(u8"export default interface I {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  // {
@@ -449,8 +429,7 @@ TEST_F(test_parse_typescript_module, export_default_interface) {
 
   // A newline is allowed after 'interface' (unlike with 'export interface').
   {
-    test_parser& p = this->errorless_parser(
-        u8"export default interface\nI {}"_sv, typescript_options);
+    test_parser p(u8"export default interface\nI {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  // {
@@ -462,8 +441,7 @@ TEST_F(test_parse_typescript_module, export_default_interface) {
 
 TEST_F(test_parse_typescript_module, export_namespace) {
   {
-    test_parser& p = this->errorless_parser(u8"export namespace ns {}"_sv,
-                                            typescript_options);
+    test_parser p(u8"export namespace ns {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_namespace_scope",  // {
@@ -493,8 +471,7 @@ TEST_F(test_parse_typescript_module,
 
 TEST_F(test_parse_typescript_module, export_enum) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"export enum E {}"_sv, typescript_options);
+    test_parser p(u8"export enum E {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
@@ -506,8 +483,7 @@ TEST_F(test_parse_typescript_module, export_enum) {
 
 TEST_F(test_parse_typescript_module, export_const_enum) {
   {
-    test_parser& p = this->errorless_parser(u8"export const enum E {}"_sv,
-                                            typescript_options);
+    test_parser p(u8"export const enum E {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
@@ -519,8 +495,7 @@ TEST_F(test_parse_typescript_module, export_const_enum) {
 
 TEST_F(test_parse_typescript_module, export_type_alias) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"export type T = C;"_sv, typescript_options);
+    test_parser p(u8"export type T = C;"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // T
                                       "visit_enter_type_alias_scope",  //
@@ -550,8 +525,7 @@ TEST_F(test_parse_typescript_module,
 
 TEST_F(test_parse_typescript_module, export_import_alias) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"export import A = B;"_sv, typescript_options);
+    test_parser p(u8"export import A = B;"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // B

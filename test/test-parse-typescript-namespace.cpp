@@ -40,8 +40,7 @@ TEST_F(test_parse_typescript_namespace, not_supported_in_vanilla_javascript) {
 }
 
 TEST_F(test_parse_typescript_namespace, empty_namespace) {
-  test_parser& p =
-      this->errorless_parser(u8"namespace ns {}"_sv, typescript_options);
+  test_parser p(u8"namespace ns {}"_sv, typescript_options);
   p.parse_and_visit_statement();
   EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // ns
                                     "visit_enter_namespace_scope",   // {
@@ -52,8 +51,7 @@ TEST_F(test_parse_typescript_namespace, empty_namespace) {
 TEST_F(test_parse_typescript_namespace,
        namespace_cannot_have_newline_after_namespace_keyword) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"namespace\nns\n{}"_sv, typescript_options);
+    test_parser p(u8"namespace\nns\n{}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // namespace
                                       "visit_variable_use",       // ns
@@ -70,8 +68,7 @@ TEST_F(test_parse_typescript_namespace,
        contextual_keywords - dirty_set<string8>{u8"let", u8"static"}) {
     padded_string code(u8"namespace " + name + u8" {}");
     SCOPED_TRACE(code);
-    test_parser& p =
-        this->errorless_parser(code.string_view(), typescript_options);
+    test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_declarations, ElementsAre(namespace_decl(name)));
   }
@@ -79,8 +76,8 @@ TEST_F(test_parse_typescript_namespace,
 
 TEST_F(test_parse_typescript_namespace, namespace_can_contain_exports) {
   {
-    test_parser& p = this->errorless_parser(
-        u8"namespace ns { export function f() {} }"_sv, typescript_options);
+    test_parser p(u8"namespace ns { export function f() {} }"_sv,
+                  typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // ns
                                       "visit_enter_namespace_scope",      // {
@@ -97,8 +94,7 @@ TEST_F(test_parse_typescript_namespace, namespace_can_contain_exports) {
 
 TEST_F(test_parse_typescript_namespace, namespace_alias) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"import A = ns;"_sv, typescript_options);
+    test_parser p(u8"import A = ns;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",      // A
                                       "visit_variable_namespace_use"));  // ns
@@ -128,8 +124,7 @@ TEST_F(test_parse_typescript_namespace,
 
 TEST_F(test_parse_typescript_namespace, import_alias_of_namespace_member) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"import A = ns.B;"_sv, typescript_options);
+    test_parser p(u8"import A = ns.B;"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // ns
@@ -140,8 +135,7 @@ TEST_F(test_parse_typescript_namespace, import_alias_of_namespace_member) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"import A = ns.subns.B;"_sv,
-                                            typescript_options);
+    test_parser p(u8"import A = ns.subns.B;"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // ns
@@ -172,8 +166,7 @@ TEST_F(test_parse_typescript_namespace,
   for (string8 name : contextual_keywords) {
     padded_string code(u8"import A = " + name + u8".Member;");
     SCOPED_TRACE(code);
-    test_parser& p =
-        this->errorless_parser(code.string_view(), typescript_options);
+    test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // (name)
@@ -187,8 +180,7 @@ TEST_F(test_parse_typescript_namespace,
   for (string8 name : contextual_keywords) {
     padded_string code(u8"import A = ns." + name + u8";");
     SCOPED_TRACE(code);
-    test_parser& p =
-        this->errorless_parser(code.string_view(), typescript_options);
+    test_parser p(code.string_view(), typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // ns

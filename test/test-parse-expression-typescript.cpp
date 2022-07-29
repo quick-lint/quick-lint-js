@@ -30,7 +30,7 @@ TEST_F(test_parse_expression_typescript, type_annotation) {
   // These would normally appear in arrow function parameter lists.
 
   {
-    test_parser& p = this->errorless_parser(u8"x: Type"_sv, typescript_options);
+    test_parser p(u8"x: Type"_sv, typescript_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::type_annotated);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
@@ -43,16 +43,14 @@ TEST_F(test_parse_expression_typescript, type_annotation) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"{x}: Type"_sv, typescript_options);
+    test_parser p(u8"{x}: Type"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::type_annotated);
     EXPECT_EQ(summarize(ast->child_0()), "object(literal: var x)");
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"[x]: Type"_sv, typescript_options);
+    test_parser p(u8"[x]: Type"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::type_annotated);
     EXPECT_EQ(summarize(ast->child_0()), "array(var x)");
@@ -62,8 +60,7 @@ TEST_F(test_parse_expression_typescript, type_annotation) {
 TEST_F(test_parse_expression_typescript,
        conditional_colon_is_not_a_type_annotation) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"cond ? x: Type"_sv, typescript_options);
+    test_parser p(u8"cond ? x: Type"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(var cond, var x, var Type)");
   }
@@ -71,32 +68,31 @@ TEST_F(test_parse_expression_typescript,
 
 TEST_F(test_parse_expression_typescript, non_null_assertion) {
   {
-    test_parser& p = this->errorless_parser(u8"x!"_sv, typescript_options);
+    test_parser p(u8"x!"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "nonnull(var x)");
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"f()!.someprop"_sv, typescript_options);
+    test_parser p(u8"f()!.someprop"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(nonnull(call(var f)), someprop)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x! = y"_sv, typescript_options);
+    test_parser p(u8"x! = y"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(nonnull(var x), var y)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"async!"_sv, typescript_options);
+    test_parser p(u8"async!"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "nonnull(var async)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"f(x!);"_sv, typescript_options);
+    test_parser p(u8"f(x!);"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // f
                                       "visit_variable_use"));  // x
@@ -104,8 +100,7 @@ TEST_F(test_parse_expression_typescript, non_null_assertion) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"x! = null;"_sv, typescript_options);
+    test_parser p(u8"x! = null;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_assignment"));  // x
   }
@@ -116,7 +111,7 @@ TEST_F(test_parse_expression_typescript,
   {
     // HACK(strager): We rely on the fact that parse_expression stops parsing at
     // the end of the line. "!+y" part is unparsed.
-    test_parser& p = this->errorless_parser(u8"x\n!+y"_sv, typescript_options);
+    test_parser p(u8"x\n!+y"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "var x");
   }
@@ -151,8 +146,7 @@ TEST_F(test_parse_expression_typescript,
 
 TEST_F(test_parse_expression_typescript, as_type_assertion) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"f(x as T);"_sv, typescript_options);
+    test_parser p(u8"f(x as T);"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
                                       "visit_variable_use",       // f
@@ -161,8 +155,7 @@ TEST_F(test_parse_expression_typescript, as_type_assertion) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"(lhs as T) = rhs;"_sv, typescript_options);
+    test_parser p(u8"(lhs as T) = rhs;"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",      // T
                                       "visit_variable_use",           // rhs
@@ -172,7 +165,7 @@ TEST_F(test_parse_expression_typescript, as_type_assertion) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x as y"_sv, typescript_options);
+    test_parser p(u8"x as y"_sv, typescript_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::as_type_assertion);
     EXPECT_EQ(summarize(ast->child_0()), "var x");

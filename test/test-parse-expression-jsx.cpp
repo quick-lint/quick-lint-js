@@ -33,7 +33,7 @@ class test_parse_expression_jsx : public test_parse_expression {};
 
 TEST_F(test_parse_expression_jsx, intrinsic_element) {
   {
-    test_parser& p = this->errorless_parser(u8"<div />"_sv, jsx_options);
+    test_parser p(u8"<div />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::jsx_element);
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"div");
@@ -41,7 +41,7 @@ TEST_F(test_parse_expression_jsx, intrinsic_element) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"<\\u{64}iv />"_sv, jsx_options);
+    test_parser p(u8"<\\u{64}iv />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::jsx_element);
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"div");
@@ -49,8 +49,7 @@ TEST_F(test_parse_expression_jsx, intrinsic_element) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"<My-Web-Component />"_sv, jsx_options);
+    test_parser p(u8"<My-Web-Component />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::jsx_element);
     EXPECT_EQ(ast->variable_identifier().normalized_name(),
@@ -61,8 +60,7 @@ TEST_F(test_parse_expression_jsx, intrinsic_element) {
 
 TEST_F(test_parse_expression_jsx, user_element) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"<MyComponent />"_sv, jsx_options);
+    test_parser p(u8"<MyComponent />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::jsx_element);
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"MyComponent");
@@ -70,8 +68,7 @@ TEST_F(test_parse_expression_jsx, user_element) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"<\\u{4d}yComponent />"_sv, jsx_options);
+    test_parser p(u8"<\\u{4d}yComponent />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::jsx_element);
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"MyComponent");
@@ -195,16 +192,16 @@ TEST_F(test_parse_expression_jsx, fragment_with_element_children) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"<><span>hello</span><span>world</span></>"_sv, jsx_options);
+    test_parser p(u8"<><span>hello</span><span>world</span></>"_sv,
+                  jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast),
               "jsxfragment(jsxelement(span), jsxelement(span))");
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"<><ul><li><a><span>hello</span></a></li></ul></>"_sv, jsx_options);
+    test_parser p(u8"<><ul><li><a><span>hello</span></a></li></ul></>"_sv,
+                  jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast),
               "jsxfragment(jsxelement(ul, jsxelement(li, jsxelement(a, "
@@ -236,15 +233,13 @@ TEST_F(test_parse_expression_jsx, tag_with_expression_children) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"<ul>{...listItems}</ul>"_sv, jsx_options);
+    test_parser p(u8"<ul>{...listItems}</ul>"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxelement(ul, spread(var listItems))");
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"<div>{a}{b}{c}</div>"_sv, jsx_options);
+    test_parser p(u8"<div>{a}{b}{c}</div>"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxelement(div, var a, var b, var c)");
   }
@@ -271,15 +266,13 @@ TEST_F(test_parse_expression_jsx, tag_with_attributes) {
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"<input type=\"checkbox\" checked />"_sv, jsx_options);
+    test_parser p(u8"<input type=\"checkbox\" checked />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxelement(input)");
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"<input {...attributes} />"_sv, jsx_options);
+    test_parser p(u8"<input {...attributes} />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxelement(input, spread(var attributes))");
   }
@@ -287,29 +280,25 @@ TEST_F(test_parse_expression_jsx, tag_with_attributes) {
 
 TEST_F(test_parse_expression_jsx, tag_with_namespace_attributes) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"<div custom:attr='val' />"_sv, jsx_options);
+    test_parser p(u8"<div custom:attr='val' />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxelement(div)");
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"<div custom:attr />"_sv, jsx_options);
+    test_parser p(u8"<div custom:attr />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxelement(div)");
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"<div custom:attr={value} />"_sv, jsx_options);
+    test_parser p(u8"<div custom:attr={value} />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxelement(div, var value)");
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"<div my-custom-ns-:my-attr-={value} />"_sv, jsx_options);
+    test_parser p(u8"<div my-custom-ns-:my-attr-={value} />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxelement(div, var value)");
   }
@@ -317,28 +306,25 @@ TEST_F(test_parse_expression_jsx, tag_with_namespace_attributes) {
 
 TEST_F(test_parse_expression_jsx, tag_with_namespace) {
   {
-    test_parser& p = this->errorless_parser(u8"<svg:g />"_sv, jsx_options);
+    test_parser p(u8"<svg:g />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxnselement(svg, g)");
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"<svg:g></svg:g>"_sv, jsx_options);
+    test_parser p(u8"<svg:g></svg:g>"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxnselement(svg, g)");
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"<svg /* */ : /* */ g>< / svg : g >"_sv, jsx_options);
+    test_parser p(u8"<svg /* */ : /* */ g>< / svg : g >"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxnselement(svg, g)");
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"<s-v-g-:g-></s-v-g-:g->"_sv, jsx_options);
+    test_parser p(u8"<s-v-g-:g-></s-v-g-:g->"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxnselement(s-v-g-, g-)");
   }
@@ -346,15 +332,13 @@ TEST_F(test_parse_expression_jsx, tag_with_namespace) {
 
 TEST_F(test_parse_expression_jsx, tag_with_member_expression) {
   {
-    test_parser& p =
-        this->errorless_parser(u8"<mod.Component />"_sv, jsx_options);
+    test_parser p(u8"<mod.Component />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxmemberelement((mod, Component))");
   }
 
   {
-    test_parser& p = this->errorless_parser(
-        u8"<a.b.c.d.e>{child}</a.b.c.d.e>"_sv, jsx_options);
+    test_parser p(u8"<a.b.c.d.e>{child}</a.b.c.d.e>"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxmemberelement((a, b, c, d, e), var child)");
   }
@@ -362,8 +346,7 @@ TEST_F(test_parse_expression_jsx, tag_with_member_expression) {
   {
     // TODO(strager): Report an error for the following code. Both Babel and
     // TypeScript fail to transpile.
-    test_parser& p =
-        this->errorless_parser(u8"<a-b.c-d></a-b.c-d>"_sv, jsx_options);
+    test_parser p(u8"<a-b.c-d></a-b.c-d>"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "jsxmemberelement((a-b, c-d))");
   }
@@ -371,7 +354,7 @@ TEST_F(test_parse_expression_jsx, tag_with_member_expression) {
 
 TEST_F(test_parse_expression_jsx, jsx_with_binary_operator) {
   {
-    test_parser& p = this->errorless_parser(u8"x && <div />"_sv, jsx_options);
+    test_parser p(u8"x && <div />"_sv, jsx_options);
     expression* ast = p.parse_expression();
     ASSERT_EQ(summarize(ast), "binary(var x, jsxelement(div))");
   }

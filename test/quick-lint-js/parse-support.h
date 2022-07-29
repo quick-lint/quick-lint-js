@@ -164,23 +164,8 @@ class test_parser {
   std::vector<diag_collector::diag>& errors = this->errors_.errors;
 };
 
-class test_parse_expression : public ::testing::Test {
- protected:
-  // Fails the test if there are any diagnostics during parsing.
-  test_parser& errorless_parser(string8_view input) {
-    return this->errorless_parser(input, parser_options());
-  }
-
-  // Fails the test if there are any diagnostics during parsing.
-  test_parser& errorless_parser(string8_view input,
-                                const parser_options& options) {
-    return this->parsers_.emplace_back(input, options);
-  }
-
- private:
-  linked_vector<test_parser> parsers_ = linked_vector<test_parser>(
-      ::boost::container::pmr::new_delete_resource());
-};
+// TODO(strager): Delete.
+class test_parse_expression : public ::testing::Test {};
 
 namespace {
 // Identifiers which are ReservedWord-s only in strict mode.

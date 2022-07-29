@@ -90,14 +90,14 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
 
 TEST_F(test_parse_expression, keyword_variable_reference) {
   {
-    test_parser& p = this->errorless_parser(u8"async"_sv);
+    test_parser p(u8"async"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::variable);
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"async");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"async()"_sv);
+    test_parser p(u8"async()"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::call);
     EXPECT_EQ(ast->child_0()->kind(), expression_kind::variable);
@@ -106,7 +106,7 @@ TEST_F(test_parse_expression, keyword_variable_reference) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"async(a, b).c"_sv);
+    test_parser p(u8"async(a, b).c"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(call(var async, var a, var b), c)");
   }
@@ -167,13 +167,13 @@ TEST_F(test_parse_expression, parse_math_expression) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"+x"_sv);
+    test_parser p(u8"+x"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "unary(var x)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"~x"_sv);
+    test_parser p(u8"~x"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "unary(var x)");
   }
@@ -187,19 +187,19 @@ TEST_F(test_parse_expression, parse_math_expression) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x+y-z"_sv);
+    test_parser p(u8"x+y-z"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, var y, var z)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"2-4+1"_sv);
+    test_parser p(u8"2-4+1"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, literal, literal)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"-x+y"_sv);
+    test_parser p(u8"-x+y"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(unary(var x), var y)");
   }
@@ -208,7 +208,7 @@ TEST_F(test_parse_expression, parse_math_expression) {
        {u8"2+2", u8"2-2", u8"2*2", u8"2/2", u8"2%2", u8"2**2", u8"2^2", u8"2&2",
         u8"2|2", u8"2<<2", u8"2>>2", u8"2>>>2"}) {
     SCOPED_TRACE(out_string8(u8"input = " + string8(input)));
-    test_parser& p = this->errorless_parser(input);
+    test_parser p(input);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, literal)");
   }
@@ -328,7 +328,7 @@ TEST_F(test_parse_expression, parse_logical_expression) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"!x"_sv);
+    test_parser p(u8"!x"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "unary(var x)");
   }
@@ -336,13 +336,13 @@ TEST_F(test_parse_expression, parse_logical_expression) {
 
 TEST_F(test_parse_expression, parse_keyword_binary_operators) {
   {
-    test_parser& p = this->errorless_parser(u8"prop in object"_sv);
+    test_parser p(u8"prop in object"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var prop, var object)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"object instanceof Class"_sv);
+    test_parser p(u8"object instanceof Class"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var object, var Class)");
   }
@@ -350,19 +350,19 @@ TEST_F(test_parse_expression, parse_keyword_binary_operators) {
 
 TEST_F(test_parse_expression, parse_typeof_unary_operator) {
   {
-    test_parser& p = this->errorless_parser(u8"typeof o"_sv);
+    test_parser p(u8"typeof o"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "typeof(var o)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"typeof o === 'number'"_sv);
+    test_parser p(u8"typeof o === 'number'"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(typeof(var o), literal)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"typeof o.p"_sv);
+    test_parser p(u8"typeof o.p"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "typeof(dot(var o, p))");
   }
@@ -370,7 +370,7 @@ TEST_F(test_parse_expression, parse_typeof_unary_operator) {
 
 TEST_F(test_parse_expression, parse_typeof_conditional_operator) {
   {
-    test_parser& p = this->errorless_parser(u8"typeof o ? 10 : 20"_sv);
+    test_parser p(u8"typeof o ? 10 : 20"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(typeof(var o), literal, literal)");
   }
@@ -378,13 +378,13 @@ TEST_F(test_parse_expression, parse_typeof_conditional_operator) {
 
 TEST_F(test_parse_expression, delete_unary_operator) {
   {
-    test_parser& p = this->errorless_parser(u8"delete variable"_sv);
+    test_parser p(u8"delete variable"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "delete(var variable)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"delete variable.property"_sv);
+    test_parser p(u8"delete variable.property"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "delete(dot(var variable, property))");
   }
@@ -392,7 +392,7 @@ TEST_F(test_parse_expression, delete_unary_operator) {
 
 TEST_F(test_parse_expression, void_unary_operator) {
   {
-    test_parser& p = this->errorless_parser(u8"void 0"_sv);
+    test_parser p(u8"void 0"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "unary(literal)");
   }
@@ -421,7 +421,7 @@ TEST_F(test_parse_expression, conditional_expression) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x+x?y+y:z+z"_sv);
+    test_parser p(u8"x+x?y+y:z+z"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::conditional);
     EXPECT_EQ(summarize(ast->child_0()), "binary(var x, var x)");
@@ -430,7 +430,7 @@ TEST_F(test_parse_expression, conditional_expression) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"a ? b : c ? d : e"_sv);
+    test_parser p(u8"a ? b : c ? d : e"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(var a, var b, cond(var c, var d, var e))");
   }
@@ -539,7 +539,7 @@ TEST_F(test_parse_expression, parse_function_call) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"f(x)"_sv);
+    test_parser p(u8"f(x)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::call);
     EXPECT_EQ(summarize(ast->child_0()), "var f");
@@ -548,7 +548,7 @@ TEST_F(test_parse_expression, parse_function_call) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"f(x,y)"_sv);
+    test_parser p(u8"f(x,y)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::call);
     EXPECT_EQ(summarize(ast->child_0()), "var f");
@@ -597,7 +597,7 @@ TEST_F(test_parse_expression, function_call_with_invalid_extra_commas) {
 
 TEST_F(test_parse_expression, parse_optional_function_call) {
   {
-    test_parser& p = this->errorless_parser(u8"f?.(x,y)"_sv);
+    test_parser p(u8"f?.(x,y)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var f, var x, var y)");
   }
@@ -615,7 +615,7 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x.p1.p2"_sv);
+    test_parser p(u8"x.p1.p2"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(dot(var x, p1), p2)");
   }
@@ -623,7 +623,7 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
   for (string8 keyword : keywords) {
     SCOPED_TRACE(out_string8(keyword));
     string8 code = u8"promise." + keyword;
-    test_parser& p = this->errorless_parser(code.c_str());
+    test_parser p(code.c_str());
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(var promise, " + to_string(keyword) + ")");
   }
@@ -761,7 +761,7 @@ TEST_F(test_parse_expression, parse_optional_dot_expressions) {
   for (string8 keyword : keywords) {
     padded_string code(u8"obj?." + keyword);
     SCOPED_TRACE(code);
-    test_parser& p = this->errorless_parser(code.string_view());
+    test_parser p(code.string_view());
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::dot);
     EXPECT_EQ(summarize(ast->child_0()), "var obj");
@@ -769,7 +769,7 @@ TEST_F(test_parse_expression, parse_optional_dot_expressions) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x?.#private"_sv);
+    test_parser p(u8"x?.#private"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(var x, #private)");
   }
@@ -840,25 +840,25 @@ TEST_F(test_parse_expression, parse_parenthesized_expression) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x+(y)"_sv);
+    test_parser p(u8"x+(y)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, paren(var y))");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x+(y+z)"_sv);
+    test_parser p(u8"x+(y+z)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, paren(binary(var y, var z)))");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"(x+y)+z"_sv);
+    test_parser p(u8"(x+y)+z"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(paren(binary(var x, var y)), var z)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x+(y+z)+w"_sv);
+    test_parser p(u8"x+(y+z)+w"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "binary(var x, paren(binary(var y, var z)), var w)");
@@ -1222,9 +1222,8 @@ TEST_F(test_parse_expression, await_unary_operator_outside_async_functions) {
 
 TEST_F(test_parse_expression,
        yield_nullary_operator_inside_generator_functions) {
-  auto parse_expression_in_generator =
-      [this](const char8* code) -> std::string {
-    test_parser& p = this->errorless_parser(code);
+  auto parse_expression_in_generator = [](const char8* code) -> std::string {
+    test_parser p(code);
     auto guard = p.parser().enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
     return summarize(ast);
@@ -1370,7 +1369,7 @@ TEST_F(test_parse_expression, new_target) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"new.target()"_sv);
+    test_parser p(u8"new.target()"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(newtarget)");
   }
@@ -1420,7 +1419,7 @@ TEST_F(test_parse_expression, parse_assignment) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x.p=z"_sv);
+    test_parser p(u8"x.p=z"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::assignment);
     EXPECT_EQ(summarize(ast->child_0()), "dot(var x, p)");
@@ -1428,25 +1427,25 @@ TEST_F(test_parse_expression, parse_assignment) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"f().p=x"_sv);
+    test_parser p(u8"f().p=x"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(dot(call(var f), p), var x)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x=y=z"_sv);
+    test_parser p(u8"x=y=z"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(var x, assign(var y, var z))");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x,y=z,w"_sv);
+    test_parser p(u8"x,y=z,w"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, assign(var y, var z), var w)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"[x,y]=[z,w]"_sv);
+    test_parser p(u8"[x,y]=[z,w]"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "assign(array(var x, var y), array(var z, var w))");
@@ -1680,13 +1679,13 @@ TEST_F(test_parse_expression, parse_template) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"`${one}${two}${three}`"_sv);
+    test_parser p(u8"`${one}${two}${three}`"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "template(var one, var two, var three)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"`hello${world}` + rhs"_sv);
+    test_parser p(u8"`hello${world}` + rhs"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(template(var world), var rhs)");
   }
@@ -1715,19 +1714,19 @@ TEST_F(test_parse_expression, tagged_template_literal) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"a.b()`c`"_sv);
+    test_parser p(u8"a.b()`c`"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(call(dot(var a, b)))");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"tag`template`.property"_sv);
+    test_parser p(u8"tag`template`.property"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(taggedtemplate(var tag), property)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x + tag`template`"_sv);
+    test_parser p(u8"x + tag`template`"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, taggedtemplate(var tag))");
   }
@@ -1735,14 +1734,13 @@ TEST_F(test_parse_expression, tagged_template_literal) {
 
 TEST_F(test_parse_expression, optional_tagged_template_literal) {
   {
-    test_parser& p = this->errorless_parser(u8"hello?.`world`"_sv);
+    test_parser p(u8"hello?.`world`"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var hello)");
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"hello?.`template ${literal} thingy`"_sv);
+    test_parser p(u8"hello?.`template ${literal} thingy`"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var hello, var literal)");
   }
@@ -1789,27 +1787,25 @@ TEST_F(test_parse_expression, untagged_template_with_invalid_escape) {
 TEST_F(test_parse_expression,
        tagged_template_with_invalid_escape_reports_no_error) {
   {
-    test_parser& p = this->errorless_parser(u8R"(tag`invalid\uescape`)"_sv);
+    test_parser p(u8R"(tag`invalid\uescape`)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var tag)");
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8R"(tag`invalid\uescape${expr}`)"_sv);
+    test_parser p(u8R"(tag`invalid\uescape${expr}`)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var tag, var expr)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8R"(tag?.`invalid\uescape`)"_sv);
+    test_parser p(u8R"(tag?.`invalid\uescape`)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var tag)");
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8R"(tag?.`invalid\uescape${expr}`)"_sv);
+    test_parser p(u8R"(tag?.`invalid\uescape${expr}`)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var tag, var expr)");
   }
@@ -1825,7 +1821,7 @@ TEST_F(test_parse_expression, array_literal) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"[x]"_sv);
+    test_parser p(u8"[x]"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::array);
     EXPECT_EQ(ast->child_count(), 1);
@@ -1833,7 +1829,7 @@ TEST_F(test_parse_expression, array_literal) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"[x, y]"_sv);
+    test_parser p(u8"[x, y]"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::array);
     EXPECT_EQ(ast->child_count(), 2);
@@ -1842,7 +1838,7 @@ TEST_F(test_parse_expression, array_literal) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"[,,x,,y,,]"_sv);
+    test_parser p(u8"[,,x,,y,,]"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "array(var x, var y)");
   }
@@ -1900,7 +1896,7 @@ TEST_F(test_parse_expression, object_literal) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{key: value}"_sv);
+    test_parser p(u8"{key: value}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -1910,8 +1906,7 @@ TEST_F(test_parse_expression, object_literal) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"{key1: value1, key2: value2}"_sv);
+    test_parser p(u8"{key1: value1, key2: value2}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 2);
@@ -1922,7 +1917,7 @@ TEST_F(test_parse_expression, object_literal) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{'key': value}"_sv);
+    test_parser p(u8"{'key': value}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -1931,7 +1926,7 @@ TEST_F(test_parse_expression, object_literal) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{[key]: value}"_sv);
+    test_parser p(u8"{[key]: value}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -1954,8 +1949,7 @@ TEST_F(test_parse_expression, object_literal) {
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"{key1: value1, thing2, key3: value3}"_sv);
+    test_parser p(u8"{key1: value1, thing2, key3: value3}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "object(literal: var value1, literal: var thing2, literal: var "
@@ -1989,7 +1983,7 @@ TEST_F(test_parse_expression, object_literal) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{...other, k: v}"_sv);
+    test_parser p(u8"{...other, k: v}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 2);
@@ -2047,7 +2041,7 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{ async 'func'(a, b) { } }"_sv);
+    test_parser p(u8"{ async 'func'(a, b) { } }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -2056,7 +2050,7 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{ async [func](a, b) { } }"_sv);
+    test_parser p(u8"{ async [func](a, b) { } }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -2065,7 +2059,7 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{ *func(a, b) { } }"_sv);
+    test_parser p(u8"{ *func(a, b) { } }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -2074,7 +2068,7 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{ *'func'(a, b) { } }"_sv);
+    test_parser p(u8"{ *'func'(a, b) { } }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -2083,7 +2077,7 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{ *[func](a, b) { } }"_sv);
+    test_parser p(u8"{ *[func](a, b) { } }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -2092,7 +2086,7 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{ async *func(a, b) { } }"_sv);
+    test_parser p(u8"{ async *func(a, b) { } }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -2101,7 +2095,7 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{ async *'func'(a, b) { } }"_sv);
+    test_parser p(u8"{ async *'func'(a, b) { } }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -2110,7 +2104,7 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{ async *[func](a, b) { } }"_sv);
+    test_parser p(u8"{ async *[func](a, b) { } }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 1);
@@ -2143,20 +2137,19 @@ TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{get 1234() { }}"_sv);
+    test_parser p(u8"{get 1234() { }}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: function)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{get 'string key'() { }}"_sv);
+    test_parser p(u8"{get 'string key'() { }}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: function)");
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"{get [expression + key]() { }}"_sv);
+    test_parser p(u8"{get [expression + key]() { }}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "object(binary(var expression, var key): function)");
@@ -2170,42 +2163,42 @@ TEST_F(test_parse_expression, object_literal_with_keyword_key) {
 
     {
       string8 code = u8"{" + keyword + u8": null}";
-      test_parser& p = this->errorless_parser(code.c_str());
+      test_parser p(code.c_str());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: literal)");
     }
 
     {
       string8 code = u8"{" + keyword + u8"() { }}";
-      test_parser& p = this->errorless_parser(code.c_str());
+      test_parser p(code.c_str());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       string8 code = u8"{get " + keyword + u8"() {}}";
-      test_parser& p = this->errorless_parser(code.c_str());
+      test_parser p(code.c_str());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       string8 code = u8"{set " + keyword + u8"() {}}";
-      test_parser& p = this->errorless_parser(code.c_str());
+      test_parser p(code.c_str());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       string8 code = u8"{async " + keyword + u8"() {}}";
-      test_parser& p = this->errorless_parser(code.c_str());
+      test_parser p(code.c_str());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
 
     {
       string8 code = u8"{*" + keyword + u8"() {}}";
-      test_parser& p = this->errorless_parser(code.c_str());
+      test_parser p(code.c_str());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
@@ -2220,7 +2213,7 @@ TEST_F(test_parse_expression, object_literal_with_contextual_keyword_keyvalue) {
 
     {
       string8 code = u8"{" + keyword + u8"}";
-      test_parser& p = this->errorless_parser(code.c_str());
+      test_parser p(code.c_str());
       expression* ast = p.parse_expression();
       EXPECT_EQ(ast->kind(), expression_kind::object);
       EXPECT_EQ(ast->object_entry_count(), 1);
@@ -2233,7 +2226,7 @@ TEST_F(test_parse_expression, object_literal_with_contextual_keyword_keyvalue) {
 
     {
       string8 code = u8"{" + keyword + u8", other}";
-      test_parser& p = this->errorless_parser(code.c_str());
+      test_parser p(code.c_str());
       expression* ast = p.parse_expression();
       EXPECT_EQ(ast->kind(), expression_kind::object);
       EXPECT_EQ(ast->object_entry_count(), 2);
@@ -2291,19 +2284,19 @@ TEST_F(
 
 TEST_F(test_parse_expression, object_literal_with_number_key) {
   {
-    test_parser& p = this->errorless_parser(u8"{1234: null}"_sv);
+    test_parser p(u8"{1234: null}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: literal)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{async 42() {}}"_sv);
+    test_parser p(u8"{async 42() {}}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: function)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{*42() {}}"_sv);
+    test_parser p(u8"{*42() {}}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: function)");
   }
@@ -2756,20 +2749,20 @@ TEST_F(test_parse_expression, parse_comma_expression) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"(x+(y,z)+w)"_sv);
+    test_parser p(u8"(x+(y,z)+w)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "paren(binary(var x, paren(binary(var y, var z)), var w))");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"`${2+2, four}`"_sv);
+    test_parser p(u8"`${2+2, four}`"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "template(binary(literal, literal, var four))");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"i = 0, j = 0"_sv);
+    test_parser p(u8"i = 0, j = 0"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "binary(assign(var i, literal), assign(var j, literal))");
@@ -2855,13 +2848,13 @@ TEST_F(test_parse_expression, parse_function_expression) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"function(x, y){}"_sv);
+    test_parser p(u8"function(x, y){}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::function);
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"function(){}()"_sv);
+    test_parser p(u8"function(){}()"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::call);
     EXPECT_EQ(ast->child_count(), 1);
@@ -2869,7 +2862,7 @@ TEST_F(test_parse_expression, parse_function_expression) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"function f(){}"_sv);
+    test_parser p(u8"function f(){}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::named_function);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
@@ -2879,13 +2872,13 @@ TEST_F(test_parse_expression, parse_function_expression) {
 
 TEST_F(test_parse_expression, function_with_destructuring_parameters) {
   {
-    test_parser& p = this->errorless_parser(u8"function({a, b}) { c }"_sv);
+    test_parser p(u8"function({a, b}) { c }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "function");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"function([a, b]) { c }"_sv);
+    test_parser p(u8"function([a, b]) { c }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "function");
   }
@@ -2934,7 +2927,7 @@ TEST_F(test_parse_expression, generator_function_expression) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"function* f(){}"_sv);
+    test_parser p(u8"function* f(){}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "function f");
   }
@@ -2951,7 +2944,7 @@ TEST_F(test_parse_expression, async_generator_function_expression) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"async function* f(){}"_sv);
+    test_parser p(u8"async function* f(){}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "function f");
   }
@@ -3002,25 +2995,25 @@ TEST_F(test_parse_expression, arrow_function) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"() => a, b"_sv);
+    test_parser p(u8"() => a, b"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(arrowfunc(), var b)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"a => b, c"_sv);
+    test_parser p(u8"a => b, c"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(arrowfunc(var a), var c)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"(a,) => b"_sv);
+    test_parser p(u8"(a,) => b"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "arrowfunc(var a)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"async => value"_sv);
+    test_parser p(u8"async => value"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "arrowfunc(var async)");
   }
@@ -3115,7 +3108,7 @@ TEST_F(test_parse_expression, async_arrow_function) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"async (x, y, z) => { w; }"_sv);
+    test_parser p(u8"async (x, y, z) => { w; }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "asyncarrowfunc(var x, var y, var z)");
   }
@@ -3141,13 +3134,13 @@ TEST_F(test_parse_expression, async_arrow_function) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"async (x, y, z) => w"_sv);
+    test_parser p(u8"async (x, y, z) => w"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "asyncarrowfunc(var x, var y, var z)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"async (a,) => b"_sv);
+    test_parser p(u8"async (a,) => b"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "asyncarrowfunc(var a)");
   }
@@ -3378,13 +3371,13 @@ TEST_F(test_parse_expression, class_requires_a_body) {
 
 TEST_F(test_parse_expression, parse_mixed_expression) {
   {
-    test_parser& p = this->errorless_parser(u8"a+f()"_sv);
+    test_parser p(u8"a+f()"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var a, call(var f))");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"a+f(x+y,-z-w)+b"_sv);
+    test_parser p(u8"a+f(x+y,-z-w)+b"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "binary(var a, call(var f, binary(var x, var y), "
@@ -3392,33 +3385,32 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"(x+y).z"_sv);
+    test_parser p(u8"(x+y).z"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(paren(binary(var x, var y)), z)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"/hello/.test(string)"_sv);
+    test_parser p(u8"/hello/.test(string)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(dot(literal, test), var string)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"!/hello/.test(string)"_sv);
+    test_parser p(u8"!/hello/.test(string)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "unary(call(dot(literal, test), var string))");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"{a: new A(), b: new B()}"_sv);
+    test_parser p(u8"{a: new A(), b: new B()}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "object(literal: new(var A), literal: new(var B))");
   }
 
   {
-    test_parser& p =
-        this->errorless_parser(u8"o && typeof o === 'object' ? o[k] : null"_sv);
+    test_parser p(u8"o && typeof o === 'object' ? o[k] : null"_sv);
     expression* ast = p.parse_expression();
     if (false) {  // TODO(strager): Check AST.
       EXPECT_EQ(summarize(ast),
@@ -3428,37 +3420,37 @@ TEST_F(test_parse_expression, parse_mixed_expression) {
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"!!o && k in o"_sv);
+    test_parser p(u8"!!o && k in o"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(unary(unary(var o)), var k, var o)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"x --> 0"_sv);
+    test_parser p(u8"x --> 0"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(rwunarysuffix(var x), literal)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"class {} + 42"_sv);
+    test_parser p(u8"class {} + 42"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(class, literal)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"other + async(a)"_sv);
+    test_parser p(u8"other + async(a)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var other, call(var async, var a))");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"left + async() + right"_sv);
+    test_parser p(u8"left + async() + right"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var left, call(var async), var right)");
   }
 
   {
-    test_parser& p = this->errorless_parser(u8"left + async + right"_sv);
+    test_parser p(u8"left + async + right"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var left, var async, var right)");
   }
@@ -3472,7 +3464,7 @@ TEST_F(test_parse_expression,
     {
       string8 code = u8"obj." + property;
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code);
+      test_parser p(code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(ast->kind(), expression_kind::dot);
       EXPECT_EQ(summarize(ast->child_0()), "var obj");
@@ -3482,7 +3474,7 @@ TEST_F(test_parse_expression,
     {
       string8 code = u8"obj?." + property;
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code);
+      test_parser p(code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(ast->kind(), expression_kind::dot);
       EXPECT_EQ(summarize(ast->child_0()), "var obj");
@@ -3492,7 +3484,7 @@ TEST_F(test_parse_expression,
     {
       string8 code = u8"{ " + property + u8": value }";
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code);
+      test_parser p(code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: var value)");
     }
@@ -3500,7 +3492,7 @@ TEST_F(test_parse_expression,
     {
       string8 code = u8"{ " + property + u8"() {} }";
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code);
+      test_parser p(code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
@@ -3508,7 +3500,7 @@ TEST_F(test_parse_expression,
     {
       string8 code = u8"{ get " + property + u8"() {} }";
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code);
+      test_parser p(code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
@@ -3516,7 +3508,7 @@ TEST_F(test_parse_expression,
     {
       string8 code = u8"{ set " + property + u8"(v) {} }";
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code);
+      test_parser p(code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
@@ -3524,7 +3516,7 @@ TEST_F(test_parse_expression,
     {
       string8 code = u8"{ async " + property + u8"() {} }";
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code);
+      test_parser p(code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
@@ -3532,7 +3524,7 @@ TEST_F(test_parse_expression,
     {
       string8 code = u8"{ *" + property + u8"() {} }";
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code);
+      test_parser p(code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
@@ -3540,7 +3532,7 @@ TEST_F(test_parse_expression,
     {
       string8 code = u8"{ async *" + property + u8"() {} }";
       SCOPED_TRACE(out_string8(code));
-      test_parser& p = this->errorless_parser(code);
+      test_parser p(code);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
     }
