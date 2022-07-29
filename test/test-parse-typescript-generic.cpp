@@ -24,10 +24,7 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-class test_parse_typescript_generic : public test_parse_expression {
- public:
-  using test_parse_expression::make_typescript_parser;
-};
+class test_parse_typescript_generic : public test_parse_expression {};
 
 TEST_F(test_parse_typescript_generic, single_basic_generic_parameter) {
   {
@@ -410,7 +407,7 @@ TEST_F(test_parse_typescript_generic,
 TEST_F(test_parse_typescript_generic,
        generic_arguments_less_and_greater_are_operators_in_javascript) {
   {
-    test_parser& p = this->make_javascript_parser(u8"foo<T>(p)"_sv);
+    test_parser& p = this->make_parser(u8"foo<T>(p)"_sv, javascript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, paren(var p))");
     EXPECT_THAT(p.errors, IsEmpty());
@@ -418,7 +415,8 @@ TEST_F(test_parse_typescript_generic,
   }
 
   {
-    test_parser& p = this->make_javascript_parser(u8"foo<<T>()=>{}>(p)"_sv);
+    test_parser& p =
+        this->make_parser(u8"foo<<T>()=>{}>(p)"_sv, javascript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "binary(var foo, var T, arrowfunc(), paren(var p))");
@@ -426,29 +424,30 @@ TEST_F(test_parse_typescript_generic,
   }
 
   {
-    test_parser& p = this->make_javascript_parser(u8"foo<T>`bar`"_sv);
+    test_parser& p = this->make_parser(u8"foo<T>`bar`"_sv, javascript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, literal)");
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_javascript_parser(u8"foo<T>`bar${baz}`"_sv);
+    test_parser& p =
+        this->make_parser(u8"foo<T>`bar${baz}`"_sv, javascript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, template(var baz))");
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p =
-        this->make_javascript_parser(u8"foo<<T>() => number>`bar${baz}`"_sv);
+    test_parser& p = this->make_parser(u8"foo<<T>() => number>`bar${baz}`"_sv,
+                                       javascript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, arrowfunc())");
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_javascript_parser(u8"new Foo<T>;"_sv);
+    test_parser& p = this->make_parser(u8"new Foo<T>;"_sv, javascript_options);
     expression* ast = p.parse_expression();
     // FIXME(#557): Precedence is incorrect.
     EXPECT_EQ(summarize(ast), "new(binary(var Foo, var T, missing))");
@@ -457,7 +456,8 @@ TEST_F(test_parse_typescript_generic,
   }
 
   {
-    test_parser& p = this->make_javascript_parser(u8"new Foo<T>(p);"_sv);
+    test_parser& p =
+        this->make_parser(u8"new Foo<T>(p);"_sv, javascript_options);
     expression* ast = p.parse_expression();
     // FIXME(#557): Precedence is incorrect.
     EXPECT_EQ(summarize(ast), "new(binary(var Foo, var T, paren(var p)))");
@@ -509,7 +509,7 @@ TEST_F(test_parse_typescript_generic,
 TEST_F(test_parse_typescript_generic,
        unambiguous_generic_arguments_are_parsed_in_javascript) {
   {
-    test_parser& p = this->make_javascript_parser(u8"foo?.<T>(p)"_sv);
+    test_parser& p = this->make_parser(u8"foo?.<T>(p)"_sv, javascript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(
@@ -521,7 +521,7 @@ TEST_F(test_parse_typescript_generic,
 
   {
     test_parser& p =
-        this->make_javascript_parser(u8"foo?.<<T>() => void>(p)"_sv);
+        this->make_parser(u8"foo?.<<T>() => void>(p)"_sv, javascript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(

@@ -167,14 +167,6 @@ class test_parse_expression : public ::testing::Test {
     return this->parsers_.emplace_back(input);
   }
 
-  test_parser& make_javascript_parser(string8_view input) {
-    return this->make_parser(input, javascript_options);
-  }
-
-  test_parser& make_typescript_parser(string8_view input) {
-    return this->make_parser(input, typescript_options);
-  }
-
   test_parser& make_parser(string8_view input, const parser_options& options) {
     return this->parsers_.emplace_back(input, options);
   }
