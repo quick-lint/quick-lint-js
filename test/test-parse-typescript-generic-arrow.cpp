@@ -25,52 +25,7 @@ namespace quick_lint_js {
 namespace {
 class test_parse_typescript_generic_arrow : public test_parse_expression {};
 
-TEST_F(test_parse_typescript_generic_arrow, generic_arrow_with_comma) {
-  for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
-    test_parser p(u8"<T,>(param) => {}"_sv, o);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  // T
-                                      "visit_variable_declaration",  // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(generic_param_decl(u8"T"), param_decl(u8"param")));
-  }
-
-  for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
-    test_parser p(u8"<T,>(): ReturnType => {}"_sv, o);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  // param
-                                      "visit_variable_type_use",  // ReturnType
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"ReturnType"));
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(generic_param_decl(u8"T")));
-  }
-}
-
-TEST_F(test_parse_typescript_generic_arrow, generic_arrow_with_extends) {
-  for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
-    test_parser p(u8"<T extends U>(param) => {}"_sv, o);
-    p.parse_and_visit_statement();
-    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
-                                      "visit_variable_declaration",  // T
-                                      "visit_variable_type_use",     // U
-                                      "visit_variable_declaration",  // param
-                                      "visit_enter_function_scope_body",  // {
-                                      "visit_exit_function_scope"));      // }
-    EXPECT_THAT(p.variable_uses, ElementsAre(u8"U"));
-    EXPECT_THAT(p.variable_declarations,
-                ElementsAre(generic_param_decl(u8"T"), param_decl(u8"param")));
-  }
-}
-
-TEST_F(
-    test_parse_typescript_generic_arrow,
-    angle_bracketed_type_with_arrow_is_generic_arrow_function_in_typescript_mode) {
+TEST_F(test_parse_typescript_generic_arrow, generic_arrow_function) {
   {
     test_parser p(u8"<Type>() => {}"_sv, typescript_options);
     p.parse_and_visit_statement();
@@ -108,6 +63,51 @@ TEST_F(
     EXPECT_THAT(
         p.variable_declarations,
         ElementsAre(generic_param_decl(u8"Type"), param_decl(u8"param")));
+  }
+}
+
+TEST_F(test_parse_typescript_generic_arrow,
+       generic_arrow_with_comma_is_allowed_in_tsx) {
+  for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
+    test_parser p(u8"<T,>(param) => {}"_sv, o);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // T
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(generic_param_decl(u8"T"), param_decl(u8"param")));
+  }
+
+  for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
+    test_parser p(u8"<T,>(): ReturnType => {}"_sv, o);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // param
+                                      "visit_variable_type_use",  // ReturnType
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"ReturnType"));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(generic_param_decl(u8"T")));
+  }
+}
+
+TEST_F(test_parse_typescript_generic_arrow,
+       generic_arrow_with_extends_is_allowed_in_tsx) {
+  for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
+    test_parser p(u8"<T extends U>(param) => {}"_sv, o);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
+                                      "visit_variable_declaration",  // T
+                                      "visit_variable_type_use",     // U
+                                      "visit_variable_declaration",  // param
+                                      "visit_enter_function_scope_body",  // {
+                                      "visit_exit_function_scope"));      // }
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"U"));
+    EXPECT_THAT(p.variable_declarations,
+                ElementsAre(generic_param_decl(u8"T"), param_decl(u8"param")));
   }
 }
 
