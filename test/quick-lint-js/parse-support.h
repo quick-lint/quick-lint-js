@@ -122,8 +122,6 @@ class test_parser {
     return this->parser_.enter_function(attributes);
   }
 
-  quick_lint_js::parser& parser() noexcept { return this->parser_; }
-
   // See offsets_matcher's constructor.
   offsets_matcher matches_offsets(cli_source_position::offset_type begin_offset,
                                   string8_view text) {

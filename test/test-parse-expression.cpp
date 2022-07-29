@@ -865,7 +865,7 @@ TEST_F(test_parse_expression, parse_parenthesized_expression) {
 TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
   {
     test_parser p(u8"await myPromise"_sv, capture_diags);
-    auto guard = p.parser().enter_function(function_attributes::async);
+    auto guard = p.enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "await(var myPromise)");
     EXPECT_EQ(ast->kind(), expression_kind::await);
@@ -876,7 +876,7 @@ TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
 
   {
     test_parser p(u8"await(x)"_sv, capture_diags);
-    auto guard = p.parser().enter_function(function_attributes::async);
+    auto guard = p.enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "await(paren(var x))");
     EXPECT_THAT(p.errors, IsEmpty());
@@ -910,7 +910,7 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
   auto test = [](auto&& make_guard) -> void {
     {
       test_parser p(u8"await x => {}"_sv, capture_diags);
-      [[maybe_unused]] auto guard = make_guard(p.parser());
+      [[maybe_unused]] auto guard = make_guard(p);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "asyncarrowfunc(var x)");
       EXPECT_THAT(p.errors,
@@ -921,7 +921,7 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
 
     {
       test_parser p(u8"await () => {}"_sv, capture_diags);
-      [[maybe_unused]] auto guard = make_guard(p.parser());
+      [[maybe_unused]] auto guard = make_guard(p);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "asyncarrowfunc()");
       EXPECT_THAT(p.errors,
@@ -932,7 +932,7 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
 
     {
       test_parser p(u8"await (param) => {}"_sv, capture_diags);
-      [[maybe_unused]] auto guard = make_guard(p.parser());
+      [[maybe_unused]] auto guard = make_guard(p);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "asyncarrowfunc(var param)");
       EXPECT_THAT(p.errors,
@@ -943,7 +943,7 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
 
     {
       test_parser p(u8"await (param) => { await param; }"_sv, capture_diags);
-      [[maybe_unused]] auto guard = make_guard(p.parser());
+      [[maybe_unused]] auto guard = make_guard(p);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "asyncarrowfunc(var param)");
       EXPECT_THAT(p.errors,
@@ -955,20 +955,21 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
 
   {
     SCOPED_TRACE("in async function");
-    test(
-        [](parser& p) { return p.enter_function(function_attributes::async); });
+    test([](test_parser& p) {
+      return p.enter_function(function_attributes::async);
+    });
   }
 
   {
     SCOPED_TRACE("in non-async function");
-    test([](parser& p) {
+    test([](test_parser& p) {
       return p.enter_function(function_attributes::normal);
     });
   }
 
   {
     SCOPED_TRACE("top-level");
-    test([](parser&) -> int {
+    test([](test_parser&) -> int {
       return 0;  // No guard.
     });
   }
@@ -1127,7 +1128,7 @@ TEST_F(test_parse_expression,
     {
       // Normal function:
       test_parser p(test.code, test.options, capture_diags);
-      auto guard = p.parser().enter_function(function_attributes::normal);
+      auto guard = p.enter_function(function_attributes::normal);
       expression* ast = p.parse_expression();
 
       if (test.code == u8"await--x" || test.code == u8"await++x" ||
@@ -1163,7 +1164,7 @@ TEST_F(test_parse_expression,
     if (test.expected_async_function) {
       // Async function:
       test_parser p(test.code, test.options, capture_diags);
-      auto guard = p.parser().enter_function(function_attributes::async);
+      auto guard = p.enter_function(function_attributes::async);
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), test.expected_async_function);
       if (test.code == u8"await await x") {
@@ -1196,7 +1197,7 @@ TEST_F(test_parse_expression,
 TEST_F(test_parse_expression, await_variable_name_outside_async_functions) {
   {
     test_parser p(u8"await(x)"_sv, capture_diags);
-    auto guard = p.parser().enter_function(function_attributes::normal);
+    auto guard = p.enter_function(function_attributes::normal);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var await, var x)");
     EXPECT_THAT(p.errors, IsEmpty());
@@ -1206,7 +1207,7 @@ TEST_F(test_parse_expression, await_variable_name_outside_async_functions) {
 TEST_F(test_parse_expression, await_unary_operator_outside_async_functions) {
   {
     test_parser p(u8"await myPromise"_sv, capture_diags);
-    auto guard = p.parser().enter_function(function_attributes::normal);
+    auto guard = p.enter_function(function_attributes::normal);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "await(var myPromise)");
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1219,14 +1220,14 @@ TEST_F(test_parse_expression,
        yield_nullary_operator_inside_generator_functions) {
   auto parse_expression_in_generator = [](const char8* code) -> std::string {
     test_parser p(code);
-    auto guard = p.parser().enter_function(function_attributes::generator);
+    auto guard = p.enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
     return summarize(ast);
   };
 
   {
     test_parser p(u8"yield"_sv, capture_diags);
-    auto guard = p.parser().enter_function(function_attributes::generator);
+    auto guard = p.enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "yieldnone");
     EXPECT_EQ(ast->kind(), expression_kind::yield_none);
@@ -1256,7 +1257,7 @@ TEST_F(test_parse_expression,
 TEST_F(test_parse_expression, yield_unary_operator_inside_generator_functions) {
   {
     test_parser p(u8"yield v"_sv, capture_diags);
-    auto guard = p.parser().enter_function(function_attributes::generator);
+    auto guard = p.enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "yield(var v)");
     EXPECT_EQ(ast->kind(), expression_kind::yield_one);
@@ -1267,7 +1268,7 @@ TEST_F(test_parse_expression, yield_unary_operator_inside_generator_functions) {
 
   {
     test_parser p(u8"yield(x)"_sv, capture_diags);
-    auto guard = p.parser().enter_function(function_attributes::generator);
+    auto guard = p.enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "yield(paren(var x))");
     EXPECT_THAT(p.errors, IsEmpty());
@@ -1275,8 +1276,7 @@ TEST_F(test_parse_expression, yield_unary_operator_inside_generator_functions) {
 
   {
     test_parser p(u8"f(yield a, yield b, c)}"_sv, capture_diags);
-    auto generator_guard =
-        p.parser().enter_function(function_attributes::generator);
+    auto generator_guard = p.enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var f, yield(var a), yield(var b), var c)");
     EXPECT_THAT(p.errors, IsEmpty());
@@ -1287,7 +1287,7 @@ TEST_F(test_parse_expression,
        yield_many_unary_operator_inside_generator_functions) {
   {
     test_parser p(u8"yield *other"_sv, capture_diags);
-    auto guard = p.parser().enter_function(function_attributes::generator);
+    auto guard = p.enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "yieldmany(var other)");
     EXPECT_EQ(ast->kind(), expression_kind::yield_many);
@@ -1298,8 +1298,7 @@ TEST_F(test_parse_expression,
 
   {
     test_parser p(u8"f(yield *a, yield* b, c)}"_sv, capture_diags);
-    auto generator_guard =
-        p.parser().enter_function(function_attributes::generator);
+    auto generator_guard = p.enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "call(var f, yieldmany(var a), yieldmany(var b), var c)");
@@ -1310,7 +1309,7 @@ TEST_F(test_parse_expression,
 TEST_F(test_parse_expression, yield_variable_name_outside_generator_functions) {
   {
     test_parser p(u8"yield(x)"_sv, capture_diags);
-    auto guard = p.parser().enter_function(function_attributes::normal);
+    auto guard = p.enter_function(function_attributes::normal);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var yield, var x)");
     EXPECT_THAT(p.errors, IsEmpty());
@@ -1318,7 +1317,7 @@ TEST_F(test_parse_expression, yield_variable_name_outside_generator_functions) {
 
   {
     test_parser p(u8"yield*other"_sv, capture_diags);
-    auto guard = p.parser().enter_function(function_attributes::normal);
+    auto guard = p.enter_function(function_attributes::normal);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var yield, var other)");
     EXPECT_THAT(p.errors, IsEmpty());
@@ -1609,7 +1608,7 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
 
   {
     test_parser p(u8"await}"_sv, capture_diags);
-    auto guard = p.parser().enter_function(function_attributes::async);
+    auto guard = p.enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "await(missing)");
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1841,7 +1840,7 @@ TEST_F(test_parse_expression, array_literal) {
   {
     // Comma should be parsed as an array separator, not as a comma operator.
     test_parser p(u8"[await myPromise,]"_sv, capture_diags);
-    auto guard = p.parser().enter_function(function_attributes::async);
+    auto guard = p.enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
     EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_EQ(summarize(ast), "array(await(var myPromise))");
