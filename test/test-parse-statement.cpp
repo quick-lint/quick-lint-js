@@ -832,6 +832,17 @@ TEST_F(test_parse_statement, switch_statement) {
                                       "visit_variable_use",          // z
                                       "visit_exit_block_scope"));
   }
+
+  {
+    SCOPED_TRACE("':' should not be treated as a type annotation");
+    test_parser p(u8"switch (true) { case x: Type }", typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
+                                      "visit_variable_use",       // x
+                                      "visit_variable_use",       // Type
+                                      "visit_exit_block_scope"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"x", u8"Type"));
+  }
 }
 
 TEST_F(test_parse_statement, switch_without_parens) {
@@ -954,6 +965,19 @@ TEST_F(test_parse_statement, switch_clause_outside_switch_statement) {
     test_parser p(u8"case x:"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
+                                      "visit_end_of_module"));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code, diag_unexpected_case_outside_switch_statement,  //
+                    case_token, 0, u8"case")));
+  }
+
+  {
+    SCOPED_TRACE("':' should not be treated as a type annotation");
+    test_parser p(u8"case x: Type"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
+                                      "visit_variable_use",  // Type
                                       "visit_end_of_module"));
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(

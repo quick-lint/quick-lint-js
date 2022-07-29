@@ -730,7 +730,9 @@ parse_statement:
         .case_token = this->peek().span(),
     });
     this->skip();
-    this->parse_and_visit_expression(v);
+    this->parse_and_visit_expression(v, precedence{
+                                            .colon_type_annotation = false,
+                                        });
     if (this->peek().type == token_type::colon) {
       this->skip();
     }
@@ -1569,7 +1571,9 @@ void parser::parse_and_visit_switch(parse_visitor_base &v) {
         });
         this->skip();
       } else {
-        this->parse_and_visit_expression(v);
+        this->parse_and_visit_expression(v, precedence{
+                                                .colon_type_annotation = false,
+                                            });
         QLJS_PARSER_UNIMPLEMENTED_IF_NOT_TOKEN(token_type::colon);
         this->skip();
       }
