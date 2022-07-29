@@ -26,7 +26,9 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse_typescript_type, direct_type_reference) {
+class test_parse_typescript_type : public test_parse_expression {};
+
+TEST_F(test_parse_typescript_type, direct_type_reference) {
   {
     parse_visit_collector v = parse_and_visit_typescript_type(u8"Type"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
@@ -34,7 +36,7 @@ TEST(test_parse_typescript_type, direct_type_reference) {
   }
 }
 
-TEST(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
+TEST_F(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
   for (string8 keyword :
        contextual_keywords - typescript_builtin_type_keywords -
            typescript_special_type_keywords -
@@ -71,7 +73,7 @@ TEST(test_parse_typescript_type, direct_type_reference_with_keyword_name) {
   }
 }
 
-TEST(test_parse_typescript_type, direct_generic_type_reference) {
+TEST_F(test_parse_typescript_type, direct_generic_type_reference) {
   {
     parse_visit_collector v = parse_and_visit_typescript_type(u8"Type<T>"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type
@@ -109,7 +111,7 @@ TEST(test_parse_typescript_type, direct_generic_type_reference) {
   }
 }
 
-TEST(test_parse_typescript_type, namespaced_type_reference) {
+TEST_F(test_parse_typescript_type, namespaced_type_reference) {
   {
     parse_visit_collector v = parse_and_visit_typescript_type(u8"ns.Type"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_namespace_use"));  // ns
@@ -135,7 +137,7 @@ TEST(test_parse_typescript_type, namespaced_type_reference) {
   }
 }
 
-TEST(test_parse_typescript_type, builtin_types) {
+TEST_F(test_parse_typescript_type, builtin_types) {
   for (string8 type : typescript_builtin_type_keywords) {
     SCOPED_TRACE(out_string8(type));
     parse_visit_collector v = parse_and_visit_typescript_type(type);
@@ -145,7 +147,7 @@ TEST(test_parse_typescript_type, builtin_types) {
   }
 }
 
-TEST(test_parse_typescript_type, special_types) {
+TEST_F(test_parse_typescript_type, special_types) {
   for (string8 type : typescript_special_type_keywords) {
     SCOPED_TRACE(out_string8(type));
     parse_visit_collector v = parse_and_visit_typescript_type(type);
@@ -155,7 +157,7 @@ TEST(test_parse_typescript_type, special_types) {
   }
 }
 
-TEST(test_parse_typescript_type, unique_symbol_type) {
+TEST_F(test_parse_typescript_type, unique_symbol_type) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"unique symbol");
@@ -173,7 +175,7 @@ TEST(test_parse_typescript_type, unique_symbol_type) {
   }
 }
 
-TEST(test_parse_typescript_type, this_type) {
+TEST_F(test_parse_typescript_type, this_type) {
   {
     parse_visit_collector v = parse_and_visit_typescript_type(u8"this"_sv);
     // TODO(strager): Report an error if the 'this' type is used where 'this'
@@ -184,7 +186,7 @@ TEST(test_parse_typescript_type, this_type) {
   }
 }
 
-TEST(test_parse_typescript_type, literal_type) {
+TEST_F(test_parse_typescript_type, literal_type) {
   {
     parse_visit_collector v = parse_and_visit_typescript_type(u8"42"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
@@ -198,7 +200,7 @@ TEST(test_parse_typescript_type, literal_type) {
   }
 }
 
-TEST(test_parse_typescript_type, template_literal_type) {
+TEST_F(test_parse_typescript_type, template_literal_type) {
   {
     parse_visit_collector v = parse_and_visit_typescript_type(u8"`hello`"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
@@ -220,7 +222,7 @@ TEST(test_parse_typescript_type, template_literal_type) {
   }
 }
 
-TEST(test_parse_typescript_type, parenthesized_type) {
+TEST_F(test_parse_typescript_type, parenthesized_type) {
   {
     parse_visit_collector v = parse_and_visit_typescript_type(u8"(Type)"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
@@ -240,7 +242,7 @@ TEST(test_parse_typescript_type, parenthesized_type) {
   }
 }
 
-TEST(test_parse_typescript_type, tuple_type) {
+TEST_F(test_parse_typescript_type, tuple_type) {
   {
     parse_visit_collector v = parse_and_visit_typescript_type(u8"[]"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
@@ -265,13 +267,13 @@ TEST(test_parse_typescript_type, tuple_type) {
   }
 }
 
-TEST(test_parse_typescript_type, empty_object_type) {
+TEST_F(test_parse_typescript_type, empty_object_type) {
   parse_visit_collector v = parse_and_visit_typescript_type(u8"{}"_sv);
   EXPECT_THAT(v.visits, IsEmpty());
   EXPECT_THAT(v.variable_uses, IsEmpty());
 }
 
-TEST(test_parse_typescript_type, object_type_with_basic_properties) {
+TEST_F(test_parse_typescript_type, object_type_with_basic_properties) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"{ untypedProperty }"_sv);
@@ -314,7 +316,7 @@ TEST(test_parse_typescript_type, object_type_with_basic_properties) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_allows_asi_between_properties) {
+TEST_F(test_parse_typescript_type, object_type_allows_asi_between_properties) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"{\n  p1: Type1\n  p2: Type2\n}"_sv);
@@ -324,8 +326,8 @@ TEST(test_parse_typescript_type, object_type_allows_asi_between_properties) {
   }
 }
 
-TEST(test_parse_typescript_type,
-     object_type_requires_separator_between_properties) {
+TEST_F(test_parse_typescript_type,
+       object_type_requires_separator_between_properties) {
   {
     padded_string code(u8"{ p1: Type1 p2: Type2 }"_sv);
     spy_visitor v;
@@ -340,7 +342,7 @@ TEST(test_parse_typescript_type,
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_readonly_properties) {
+TEST_F(test_parse_typescript_type, object_type_with_readonly_properties) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"{ readonly untypedProperty }"_sv);
@@ -355,7 +357,7 @@ TEST(test_parse_typescript_type, object_type_with_readonly_properties) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_optional_properties) {
+TEST_F(test_parse_typescript_type, object_type_with_optional_properties) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"{ untypedProperty? }"_sv);
@@ -379,7 +381,7 @@ TEST(test_parse_typescript_type, object_type_with_optional_properties) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_method) {
+TEST_F(test_parse_typescript_type, object_type_with_method) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"{ method() }"_sv);
@@ -405,7 +407,7 @@ TEST(test_parse_typescript_type, object_type_with_method) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_generic_method) {
+TEST_F(test_parse_typescript_type, object_type_with_generic_method) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"{ method<T>() }"_sv);
@@ -417,7 +419,7 @@ TEST(test_parse_typescript_type, object_type_with_generic_method) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_getter) {
+TEST_F(test_parse_typescript_type, object_type_with_getter) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"{ get prop() }"_sv);
@@ -436,7 +438,7 @@ TEST(test_parse_typescript_type, object_type_with_getter) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_setter) {
+TEST_F(test_parse_typescript_type, object_type_with_setter) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"{ set prop(v) }"_sv);
@@ -457,7 +459,7 @@ TEST(test_parse_typescript_type, object_type_with_setter) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_computed_property) {
+TEST_F(test_parse_typescript_type, object_type_with_computed_property) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"{ ['prop'] }"_sv);
@@ -495,7 +497,7 @@ TEST(test_parse_typescript_type, object_type_with_computed_property) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_index_signature) {
+TEST_F(test_parse_typescript_type, object_type_with_index_signature) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"{ [key: KeyType]: PropType }"_sv);
@@ -509,7 +511,7 @@ TEST(test_parse_typescript_type, object_type_with_index_signature) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_mapped_types) {
+TEST_F(test_parse_typescript_type, object_type_with_mapped_types) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"{ [Key in Keys]: PropType }"_sv);
@@ -539,7 +541,7 @@ TEST(test_parse_typescript_type, object_type_with_mapped_types) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_modified_optional) {
+TEST_F(test_parse_typescript_type, object_type_with_modified_optional) {
   for (string8 modifier : {u8"-?", u8"+?", u8"?"}) {
     {
       padded_string code(u8"{ [key: KeyType]" + modifier + u8": PropType }");
@@ -581,7 +583,7 @@ TEST(test_parse_typescript_type, object_type_with_modified_optional) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_modified_readonly) {
+TEST_F(test_parse_typescript_type, object_type_with_modified_readonly) {
   for (string8 modifier : {u8"-readonly", u8"+readonly", u8"readonly"}) {
     {
       padded_string code(u8"{ " + modifier + u8" [key: KeyType]: PropType }");
@@ -623,7 +625,7 @@ TEST(test_parse_typescript_type, object_type_with_modified_readonly) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_call_signature) {
+TEST_F(test_parse_typescript_type, object_type_with_call_signature) {
   {
     parse_visit_collector v = parse_and_visit_typescript_type(u8"{ () }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
@@ -643,7 +645,7 @@ TEST(test_parse_typescript_type, object_type_with_call_signature) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_generic_call_signature) {
+TEST_F(test_parse_typescript_type, object_type_with_generic_call_signature) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"{ <T>(param): ReturnType }"_sv);
@@ -658,7 +660,7 @@ TEST(test_parse_typescript_type, object_type_with_generic_call_signature) {
   }
 }
 
-TEST(test_parse_typescript_type, object_type_with_keyword_named_properties) {
+TEST_F(test_parse_typescript_type, object_type_with_keyword_named_properties) {
   for (string8 keyword : keywords) {
     {
       padded_string code(u8"{ " + keyword + u8" }");
@@ -703,8 +705,8 @@ TEST(test_parse_typescript_type, object_type_with_keyword_named_properties) {
   }
 }
 
-TEST(test_parse_typescript_type,
-     object_type_with_contextual_keyword_named_index_key) {
+TEST_F(test_parse_typescript_type,
+       object_type_with_contextual_keyword_named_index_key) {
   for (string8 keyword :
        contextual_keywords - dirty_set<string8>{u8"let", u8"static"}) {
     {
@@ -726,7 +728,7 @@ TEST(test_parse_typescript_type,
   }
 }
 
-TEST(test_parse_typescript_type, arrow_function) {
+TEST_F(test_parse_typescript_type, arrow_function) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"() => ReturnType"_sv);
@@ -802,7 +804,7 @@ TEST(test_parse_typescript_type, arrow_function) {
   }
 }
 
-TEST(test_parse_typescript_type, generic_arrow_function) {
+TEST_F(test_parse_typescript_type, generic_arrow_function) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"<T>() => ReturnType"_sv);
@@ -828,7 +830,7 @@ TEST(test_parse_typescript_type, generic_arrow_function) {
   }
 }
 
-TEST(test_parse_typescript_type, constructor_function) {
+TEST_F(test_parse_typescript_type, constructor_function) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"new () => ReturnType"_sv);
@@ -852,7 +854,7 @@ TEST(test_parse_typescript_type, constructor_function) {
   }
 }
 
-TEST(test_parse_typescript_type, array) {
+TEST_F(test_parse_typescript_type, array) {
   {
     parse_visit_collector v = parse_and_visit_typescript_type(u8"T[]"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // T
@@ -872,7 +874,7 @@ TEST(test_parse_typescript_type, array) {
   }
 }
 
-TEST(test_parse_typescript_type, indexed) {
+TEST_F(test_parse_typescript_type, indexed) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"Type['key']"_sv);
@@ -887,7 +889,7 @@ TEST(test_parse_typescript_type, indexed) {
   }
 }
 
-TEST(test_parse_typescript_type, mixed_array_and_indexed) {
+TEST_F(test_parse_typescript_type, mixed_array_and_indexed) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"Type[][K1][][K2]"_sv);
@@ -895,7 +897,7 @@ TEST(test_parse_typescript_type, mixed_array_and_indexed) {
   }
 }
 
-TEST(test_parse_typescript_type, union_of_types) {
+TEST_F(test_parse_typescript_type, union_of_types) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"Type1 | Type2"_sv);
@@ -917,7 +919,7 @@ TEST(test_parse_typescript_type, union_of_types) {
   }
 }
 
-TEST(test_parse_typescript_type, union_disallows_consecutive_pipes) {
+TEST_F(test_parse_typescript_type, union_disallows_consecutive_pipes) {
   {
     padded_string code(u8"| | Type"_sv);
     spy_visitor v;
@@ -946,7 +948,7 @@ TEST(test_parse_typescript_type, union_disallows_consecutive_pipes) {
   }
 }
 
-TEST(test_parse_typescript_type, intersection) {
+TEST_F(test_parse_typescript_type, intersection) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"Type1 & Type2"_sv);
@@ -968,8 +970,8 @@ TEST(test_parse_typescript_type, intersection) {
   }
 }
 
-TEST(test_parse_typescript_type,
-     intersection_disallows_consecutive_ampersands) {
+TEST_F(test_parse_typescript_type,
+       intersection_disallows_consecutive_ampersands) {
   {
     padded_string code(u8"& & Type"_sv);
     spy_visitor v;
@@ -998,7 +1000,7 @@ TEST(test_parse_typescript_type,
   }
 }
 
-TEST(test_parse_typescript_type, typeof) {
+TEST_F(test_parse_typescript_type, typeof) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"typeof thing"_sv);
@@ -1057,7 +1059,7 @@ TEST(test_parse_typescript_type, typeof) {
   }
 }
 
-TEST(test_parse_typescript_type, typeof_generic) {
+TEST_F(test_parse_typescript_type, typeof_generic) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"typeof Class<T>"_sv);
@@ -1075,7 +1077,7 @@ TEST(test_parse_typescript_type, typeof_generic) {
   }
 }
 
-TEST(test_parse_typescript_type, typeof_import) {
+TEST_F(test_parse_typescript_type, typeof_import) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"typeof import('some-module')"_sv);
@@ -1089,7 +1091,7 @@ TEST(test_parse_typescript_type, typeof_import) {
   }
 }
 
-TEST(test_parse_typescript_type, typeof_this) {
+TEST_F(test_parse_typescript_type, typeof_this) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"typeof this"_sv);
@@ -1109,7 +1111,7 @@ TEST(test_parse_typescript_type, typeof_this) {
 // https://github.com/microsoft/TypeScript/issues/47595
 //
 // We support it anyway.
-TEST(test_parse_typescript_type, typeof_allows_private_properties) {
+TEST_F(test_parse_typescript_type, typeof_allows_private_properties) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"typeof Class.#myProperty"_sv);
@@ -1129,7 +1131,7 @@ TEST(test_parse_typescript_type, typeof_allows_private_properties) {
   }
 }
 
-TEST(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
+TEST_F(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
   {
     padded_string code(u8"typeof Class<T>.member"_sv);
     spy_visitor v;
@@ -1155,7 +1157,7 @@ TEST(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
   }
 }
 
-TEST(test_parse_typescript_type, typeof_allows_array_and_indexed) {
+TEST_F(test_parse_typescript_type, typeof_allows_array_and_indexed) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"typeof ns.subns.thingy[KeyType]"_sv);
@@ -1172,7 +1174,7 @@ TEST(test_parse_typescript_type, typeof_allows_array_and_indexed) {
   }
 }
 
-TEST(test_parse_typescript_type, keyof) {
+TEST_F(test_parse_typescript_type, keyof) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_type(u8"keyof Type"_sv);
@@ -1181,7 +1183,7 @@ TEST(test_parse_typescript_type, keyof) {
   }
 }
 
-TEST(test_parse_typescript_type, extends_condition) {
+TEST_F(test_parse_typescript_type, extends_condition) {
   {
     parse_visit_collector v = parse_and_visit_typescript_type(
         u8"Derived extends Base ? TrueType : FalseType"_sv);

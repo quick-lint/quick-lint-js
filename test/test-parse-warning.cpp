@@ -25,7 +25,13 @@ using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse, condition_with_assignment_from_literal) {
+class test_parse_warning : public test_parse_expression {};
+// TODO(strager): Move test_error_equals_does_not_distribute_over_or tests into
+// their own test file.
+class test_error_equals_does_not_distribute_over_or
+    : public test_parse_expression {};
+
+TEST_F(test_parse_warning, condition_with_assignment_from_literal) {
   {
     padded_string code(u8"if (x = 42) {}"_sv);
     spy_visitor v;
@@ -65,7 +71,7 @@ TEST(test_parse, condition_with_assignment_from_literal) {
   }
 }
 
-TEST(test_parse, non_condition_with_assignment_from_literal) {
+TEST_F(test_parse_warning, non_condition_with_assignment_from_literal) {
   for (string8_view code_view : {
            u8"with (x = 'hello') {}"_sv,
            u8"for (x = 'hello'; ; ) {}"_sv,
@@ -81,7 +87,8 @@ TEST(test_parse, non_condition_with_assignment_from_literal) {
   }
 }
 
-TEST(test_parse, condition_with_assignment_from_literal_with_parentheses) {
+TEST_F(test_parse_warning,
+       condition_with_assignment_from_literal_with_parentheses) {
   {
     padded_string code(u8"if ((x = 42)) {}"_sv);
     spy_visitor v;
@@ -92,7 +99,7 @@ TEST(test_parse, condition_with_assignment_from_literal_with_parentheses) {
   }
 }
 
-TEST(test_parse, condition_with_updating_assignment_from_literal) {
+TEST_F(test_parse_warning, condition_with_updating_assignment_from_literal) {
   {
     padded_string code(u8"if (x += 42) {}"_sv);
     spy_visitor v;
@@ -103,7 +110,7 @@ TEST(test_parse, condition_with_updating_assignment_from_literal) {
   }
 }
 
-TEST(test_parse, condition_with_assignment_from_non_literal) {
+TEST_F(test_parse_warning, condition_with_assignment_from_non_literal) {
   {
     padded_string code(u8"if (x = y) {}"_sv);
     spy_visitor v;
@@ -114,7 +121,7 @@ TEST(test_parse, condition_with_assignment_from_non_literal) {
   }
 }
 
-TEST(test_error_equals_does_not_distribute_over_or, examples) {
+TEST_F(test_error_equals_does_not_distribute_over_or, examples) {
   {
     padded_string code(u8"if (x === 'A' || 'B') {}"_sv);
     spy_visitor v;
@@ -153,7 +160,7 @@ TEST(test_error_equals_does_not_distribute_over_or, examples) {
   }
 }
 
-TEST(test_error_equals_does_not_distribute_over_or, not_equals) {
+TEST_F(test_error_equals_does_not_distribute_over_or, not_equals) {
   {
     padded_string code(u8"if (x != 'A' || 'B') {}"_sv);
     spy_visitor v;
@@ -171,7 +178,7 @@ TEST(test_error_equals_does_not_distribute_over_or, not_equals) {
   }
 }
 
-TEST(test_error_equals_does_not_distribute_over_or, logical_and) {
+TEST_F(test_error_equals_does_not_distribute_over_or, logical_and) {
   {
     padded_string code(u8"if (x == 'A' && 'B') {}"_sv);
     spy_visitor v;
@@ -181,7 +188,7 @@ TEST(test_error_equals_does_not_distribute_over_or, logical_and) {
   }
 }
 
-TEST(test_error_equals_does_not_distribute_over_or, non_constant) {
+TEST_F(test_error_equals_does_not_distribute_over_or, non_constant) {
   {
     padded_string code(u8"if (x === 'A' || y) {}"_sv);
     spy_visitor v;

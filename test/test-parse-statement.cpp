@@ -26,7 +26,9 @@ using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse, return_statement) {
+class test_parse_statement : public test_parse_expression {};
+
+TEST_F(test_parse_statement, return_statement) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"return a;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
@@ -81,7 +83,7 @@ TEST(test_parse, return_statement) {
   }
 }
 
-TEST(test_parse, return_statement_disallows_newline) {
+TEST_F(test_parse_statement, return_statement_disallows_newline) {
   {
     padded_string code(u8"return\nx"_sv);
     spy_visitor v;
@@ -209,7 +211,7 @@ TEST(test_parse, return_statement_disallows_newline) {
   }
 }
 
-TEST(test_parse, return_statement_disallows_newline_in_block) {
+TEST_F(test_parse_statement, return_statement_disallows_newline_in_block) {
   {
     parse_visit_collector v =
         parse_and_visit_module(u8"for (let x of []) return\nx"_sv);
@@ -251,7 +253,7 @@ TEST(test_parse, return_statement_disallows_newline_in_block) {
   }
 }
 
-TEST(test_parse, throw_statement) {
+TEST_F(test_parse_statement, throw_statement) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"throw new Error('ouch');"_sv);
@@ -282,7 +284,7 @@ TEST(test_parse, throw_statement) {
   }
 }
 
-TEST(test_parse, parse_and_visit_try) {
+TEST_F(test_parse_statement, parse_and_visit_try) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"try {} finally {}"_sv);
@@ -368,7 +370,7 @@ TEST(test_parse, parse_and_visit_try) {
   }
 }
 
-TEST(test_parse, catch_without_try) {
+TEST_F(test_parse_statement, catch_without_try) {
   {
     padded_string code(u8"catch (e) { body; }"_sv);
     spy_visitor v;
@@ -403,7 +405,7 @@ TEST(test_parse, catch_without_try) {
   }
 }
 
-TEST(test_parse, finally_without_try) {
+TEST_F(test_parse_statement, finally_without_try) {
   {
     padded_string code(u8"finally { body; }"_sv);
     spy_visitor v;
@@ -419,7 +421,7 @@ TEST(test_parse, finally_without_try) {
   }
 }
 
-TEST(test_parse, try_without_catch_or_finally) {
+TEST_F(test_parse_statement, try_without_catch_or_finally) {
   {
     padded_string code(u8"try { tryBody; }\nlet x = 3;"_sv);
     spy_visitor v;
@@ -439,7 +441,7 @@ TEST(test_parse, try_without_catch_or_finally) {
   }
 }
 
-TEST(test_parse, try_without_body) {
+TEST_F(test_parse_statement, try_without_body) {
   {
     padded_string code(u8"try\nlet x = 3;"_sv);
     spy_visitor v;
@@ -453,7 +455,7 @@ TEST(test_parse, try_without_body) {
   }
 }
 
-TEST(test_parse, catch_without_body) {
+TEST_F(test_parse_statement, catch_without_body) {
   {
     padded_string code(u8"try {} catch\nlet x = 3;"_sv);
     spy_visitor v;
@@ -471,7 +473,7 @@ TEST(test_parse, catch_without_body) {
   }
 }
 
-TEST(test_parse, finally_without_body) {
+TEST_F(test_parse_statement, finally_without_body) {
   {
     padded_string code(u8"try {} finally\nlet x = 3;"_sv);
     spy_visitor v;
@@ -488,7 +490,7 @@ TEST(test_parse, finally_without_body) {
   }
 }
 
-TEST(test_parse, catch_without_variable_name_in_parentheses) {
+TEST_F(test_parse_statement, catch_without_variable_name_in_parentheses) {
   {
     padded_string code(u8"try {} catch () { body; }"_sv);
     spy_visitor v;
@@ -531,7 +533,7 @@ TEST(test_parse, catch_without_variable_name_in_parentheses) {
   }
 }
 
-TEST(test_parse, if_without_else) {
+TEST_F(test_parse_statement, if_without_else) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"if (a) { b; }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       //
@@ -547,7 +549,7 @@ TEST(test_parse, if_without_else) {
   }
 }
 
-TEST(test_parse, if_with_else) {
+TEST_F(test_parse_statement, if_with_else) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"if (a) { b; } else { c; }"_sv);
@@ -569,7 +571,7 @@ TEST(test_parse, if_with_else) {
   }
 }
 
-TEST(test_parse, if_without_body) {
+TEST_F(test_parse_statement, if_without_body) {
   {
     spy_visitor v;
     padded_string code(u8"if (a)\nelse e;"_sv);
@@ -613,7 +615,7 @@ TEST(test_parse, if_without_body) {
   }
 }
 
-TEST(test_parse, if_without_parens) {
+TEST_F(test_parse_statement, if_without_parens) {
   {
     spy_visitor v;
     padded_string code(u8"if cond { body; }"_sv);
@@ -663,7 +665,7 @@ TEST(test_parse, if_without_parens) {
   }
 }
 
-TEST(test_parse, if_without_condition) {
+TEST_F(test_parse_statement, if_without_condition) {
   {
     spy_visitor v;
     padded_string code(u8"if { yay(); } else { nay(); }"_sv);
@@ -682,7 +684,7 @@ TEST(test_parse, if_without_condition) {
   }
 }
 
-TEST(test_parse, else_without_if) {
+TEST_F(test_parse_statement, else_without_if) {
   {
     spy_visitor v;
     padded_string code(u8"else { body; }"_sv);
@@ -697,7 +699,7 @@ TEST(test_parse, else_without_if) {
   }
 }
 
-TEST(test_parse, missing_if_after_else) {
+TEST_F(test_parse_statement, missing_if_after_else) {
   {
     spy_visitor v;
     padded_string code(u8"if (false) {} else (true) {}"_sv);
@@ -804,7 +806,7 @@ TEST(test_parse, missing_if_after_else) {
   }
 }
 
-TEST(test_parse, block_statement) {
+TEST_F(test_parse_statement, block_statement) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"{ }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
@@ -826,7 +828,7 @@ TEST(test_parse, block_statement) {
   }
 }
 
-TEST(test_parse, incomplete_block_statement) {
+TEST_F(test_parse_statement, incomplete_block_statement) {
   {
     padded_string code(u8"{ a; "_sv);
     spy_visitor v;
@@ -841,7 +843,7 @@ TEST(test_parse, incomplete_block_statement) {
   }
 }
 
-TEST(test_parse, switch_statement) {
+TEST_F(test_parse_statement, switch_statement) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"switch (x) {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // x
@@ -885,7 +887,7 @@ TEST(test_parse, switch_statement) {
   }
 }
 
-TEST(test_parse, switch_without_parens) {
+TEST_F(test_parse_statement, switch_without_parens) {
   {
     spy_visitor v;
     padded_string code(u8"switch cond { case ONE: break; }"_sv);
@@ -937,7 +939,7 @@ TEST(test_parse, switch_without_parens) {
   }
 }
 
-TEST(test_parse, switch_without_condition) {
+TEST_F(test_parse_statement, switch_without_condition) {
   {
     spy_visitor v;
     padded_string code(u8"switch { case ONE: break; }"_sv);
@@ -953,7 +955,7 @@ TEST(test_parse, switch_without_condition) {
   }
 }
 
-TEST(test_parse, switch_without_body) {
+TEST_F(test_parse_statement, switch_without_body) {
   {
     spy_visitor v;
     padded_string code(u8"switch (cond);"_sv);
@@ -967,7 +969,7 @@ TEST(test_parse, switch_without_body) {
   }
 }
 
-TEST(test_parse, switch_without_body_curlies) {
+TEST_F(test_parse_statement, switch_without_body_curlies) {
   {
     spy_visitor v;
     padded_string code(u8"switch (cond) case a: break; }"_sv);
@@ -999,7 +1001,7 @@ TEST(test_parse, switch_without_body_curlies) {
   }
 }
 
-TEST(test_parse, switch_case_without_expression) {
+TEST_F(test_parse_statement, switch_case_without_expression) {
   {
     padded_string code(u8"switch (cond) { case: banana; break; }"_sv);
     spy_visitor v;
@@ -1016,7 +1018,7 @@ TEST(test_parse, switch_case_without_expression) {
   }
 }
 
-TEST(test_parse, switch_clause_outside_switch_statement) {
+TEST_F(test_parse_statement, switch_clause_outside_switch_statement) {
   {
     padded_string code(u8"case x:"_sv);
     spy_visitor v;
@@ -1073,7 +1075,7 @@ TEST(test_parse, switch_clause_outside_switch_statement) {
   }
 }
 
-TEST(test_parse, with_statement) {
+TEST_F(test_parse_statement, with_statement) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"with (cond) body;"_sv);
@@ -1096,7 +1098,7 @@ TEST(test_parse, with_statement) {
   }
 }
 
-TEST(test_parse, statement_before_first_switch_case) {
+TEST_F(test_parse_statement, statement_before_first_switch_case) {
   {
     spy_visitor v;
     padded_string code(
@@ -1116,7 +1118,7 @@ TEST(test_parse, statement_before_first_switch_case) {
   }
 }
 
-TEST(test_parse, with_statement_without_parens) {
+TEST_F(test_parse_statement, with_statement_without_parens) {
   {
     spy_visitor v;
     padded_string code(u8"with cond { body; }"_sv);
@@ -1175,7 +1177,7 @@ TEST(test_parse, with_statement_without_parens) {
   }
 }
 
-TEST(test_parse, debugger_statement) {
+TEST_F(test_parse_statement, debugger_statement) {
   {
     spy_visitor v;
     padded_string code(u8"debugger; x;"_sv);
@@ -1188,7 +1190,7 @@ TEST(test_parse, debugger_statement) {
   }
 }
 
-TEST(test_parse, labelled_statement) {
+TEST_F(test_parse_statement, labelled_statement) {
   {
     spy_visitor v;
     padded_string code(u8"some_label: ; x;"_sv);
@@ -1215,7 +1217,7 @@ TEST(test_parse, labelled_statement) {
   }
 }
 
-TEST(test_parse, statement_label_can_be_a_contextual_keyword) {
+TEST_F(test_parse_statement, statement_label_can_be_a_contextual_keyword) {
   for (string8_view keyword : contextual_keywords) {
     padded_string code(string8(keyword) + u8": x;");
     SCOPED_TRACE(code);
@@ -1236,7 +1238,7 @@ TEST(test_parse, statement_label_can_be_a_contextual_keyword) {
   }
 }
 
-TEST(test_parse, disallow_label_named_await_in_async_function) {
+TEST_F(test_parse_statement, disallow_label_named_await_in_async_function) {
   spy_visitor v;
   padded_string code(u8"async function f() {await:}"_sv);
   parser p(&code, &v);
@@ -1253,7 +1255,7 @@ TEST(test_parse, disallow_label_named_await_in_async_function) {
           colon, strlen(u8"async function f() {await"), u8":")));
 }
 
-TEST(test_parse, disallow_label_named_yield_in_generator_function) {
+TEST_F(test_parse_statement, disallow_label_named_yield_in_generator_function) {
   spy_visitor v;
   padded_string code(u8"function *f() {yield:}"_sv);
   parser p(&code, &v);

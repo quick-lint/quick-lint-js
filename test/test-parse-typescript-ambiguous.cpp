@@ -23,7 +23,9 @@ using ::testing::ElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_typescript_ambiguous, generic_arrow_with_comma) {
+class test_parse_typescript_ambiguous : public test_parse_expression {};
+
+TEST_F(test_parse_typescript_ambiguous, generic_arrow_with_comma) {
   for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
     parse_visit_collector v =
         parse_and_visit_statement(u8"<T,>(param) => {}"_sv, o);
@@ -50,7 +52,7 @@ TEST(test_typescript_ambiguous, generic_arrow_with_comma) {
   }
 }
 
-TEST(test_typescript_ambiguous, generic_arrow_with_extends) {
+TEST_F(test_parse_typescript_ambiguous, generic_arrow_with_extends) {
   for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
     parse_visit_collector v =
         parse_and_visit_statement(u8"<T extends U>(param) => {}"_sv, o);
@@ -66,8 +68,8 @@ TEST(test_typescript_ambiguous, generic_arrow_with_extends) {
   }
 }
 
-TEST(
-    test_typescript_ambiguous,
+TEST_F(
+    test_parse_typescript_ambiguous,
     angle_bracketed_type_with_arrow_is_generic_arrow_function_in_typescript_mode) {
   {
     parse_visit_collector v =
@@ -109,7 +111,7 @@ TEST(
   }
 }
 
-TEST(test_typescript_ambiguous, use_generic_variable_named_async) {
+TEST_F(test_parse_typescript_ambiguous, use_generic_variable_named_async) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"async<T>();"_sv);
@@ -127,7 +129,7 @@ TEST(test_typescript_ambiguous, use_generic_variable_named_async) {
   }
 }
 
-TEST(test_typescript_ambiguous, async_variable_less_than_expression) {
+TEST_F(test_parse_typescript_ambiguous, async_variable_less_than_expression) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"async < someexpr;"_sv);
@@ -137,7 +139,7 @@ TEST(test_typescript_ambiguous, async_variable_less_than_expression) {
   }
 }
 
-TEST(test_typescript_ambiguous, generic_async_arrow_function) {
+TEST_F(test_parse_typescript_ambiguous, generic_async_arrow_function) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"async <T>() => { await myPromise; }"_sv);

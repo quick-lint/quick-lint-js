@@ -24,7 +24,9 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse_typescript_module, type_only_import) {
+class test_parse_typescript_module : public test_parse_expression {};
+
+TEST_F(test_parse_typescript_module, type_only_import) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"import type { T } from 'mod';"_sv);
@@ -59,7 +61,8 @@ TEST(test_parse_typescript_module, type_only_import) {
   }
 }
 
-TEST(test_parse, type_only_import_can_declare_contextual_keywords) {
+TEST_F(test_parse_typescript_module,
+       type_only_import_can_declare_contextual_keywords) {
   // TODO(strager): This probably allows more contextual keywords than
   // TypeScript allows.
   for (string8 name :
@@ -76,8 +79,8 @@ TEST(test_parse, type_only_import_can_declare_contextual_keywords) {
   }
 }
 
-TEST(test_parse_typescript_module,
-     type_only_import_is_not_allowed_in_javascript) {
+TEST_F(test_parse_typescript_module,
+       type_only_import_is_not_allowed_in_javascript) {
   {
     padded_string code(u8"import type {T} from 'mod';"_sv);
     spy_visitor v;
@@ -93,8 +96,8 @@ TEST(test_parse_typescript_module,
   }
 }
 
-TEST(test_parse_typescript_module,
-     type_only_import_cannot_import_default_and_named) {
+TEST_F(test_parse_typescript_module,
+       type_only_import_cannot_import_default_and_named) {
   {
     padded_string code(u8"import type A, {B} from 'mod';"_sv);
     spy_visitor v;
@@ -134,7 +137,7 @@ TEST(test_parse_typescript_module,
   }
 }
 
-TEST(test_parse_typescript_module, inline_type_import) {
+TEST_F(test_parse_typescript_module, inline_type_import) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"import {type T} from 'mod';"_sv);
@@ -162,7 +165,7 @@ TEST(test_parse_typescript_module, inline_type_import) {
   }
 }
 
-TEST(test_parse_typescript_module, mixed_inline_type_and_normal_import) {
+TEST_F(test_parse_typescript_module, mixed_inline_type_and_normal_import) {
   {
     parse_visit_collector v = parse_and_visit_typescript_module(
         u8"import {type T, f} from 'mod';"_sv);
@@ -184,7 +187,8 @@ TEST(test_parse_typescript_module, mixed_inline_type_and_normal_import) {
   }
 }
 
-TEST(test_parse, inline_type_import_can_declare_contextual_keywords) {
+TEST_F(test_parse_typescript_module,
+       inline_type_import_can_declare_contextual_keywords) {
   // TODO(strager): This probably allows more contextual keywords than
   // TypeScript allows.
   for (string8 name : contextual_keywords - dirty_set<string8>{u8"let"}) {
@@ -212,8 +216,8 @@ TEST(test_parse, inline_type_import_can_declare_contextual_keywords) {
   }
 }
 
-TEST(test_parse_typescript_module,
-     inline_type_import_is_not_allowed_in_javascript) {
+TEST_F(test_parse_typescript_module,
+       inline_type_import_is_not_allowed_in_javascript) {
   {
     padded_string code(u8"import {type T} from 'mod';"_sv);
     spy_visitor v;
@@ -243,7 +247,7 @@ TEST(test_parse_typescript_module,
   }
 }
 
-TEST(test_parse_typescript_module, mixed_inline_type_and_type_only_import) {
+TEST_F(test_parse_typescript_module, mixed_inline_type_and_type_only_import) {
   {
     padded_string code(u8"import type {type T} from 'mod';"_sv);
     spy_visitor v;
@@ -262,7 +266,7 @@ TEST(test_parse_typescript_module, mixed_inline_type_and_type_only_import) {
   }
 }
 
-TEST(test_parse_typescript_module, type_only_export) {
+TEST_F(test_parse_typescript_module, type_only_export) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"export type { T };"_sv);
@@ -286,8 +290,8 @@ TEST(test_parse_typescript_module, type_only_export) {
   }
 }
 
-TEST(test_parse_typescript_module,
-     type_only_export_is_not_allowed_in_javascript) {
+TEST_F(test_parse_typescript_module,
+       type_only_export_is_not_allowed_in_javascript) {
   {
     padded_string code(u8"export type {T};"_sv);
     spy_visitor v;
@@ -303,7 +307,7 @@ TEST(test_parse_typescript_module,
   }
 }
 
-TEST(test_parse_typescript_module, inline_type_export) {
+TEST_F(test_parse_typescript_module, inline_type_export) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"export {type T};"_sv);
@@ -330,8 +334,8 @@ TEST(test_parse_typescript_module, inline_type_export) {
   }
 }
 
-TEST(test_parse_typescript_module,
-     inline_type_export_is_not_allowed_in_javascript) {
+TEST_F(test_parse_typescript_module,
+       inline_type_export_is_not_allowed_in_javascript) {
   {
     padded_string code(u8"export {type T};"_sv);
     spy_visitor v;
@@ -361,7 +365,7 @@ TEST(test_parse_typescript_module,
   }
 }
 
-TEST(test_parse_typescript_module, mixed_inline_type_and_type_only_export) {
+TEST_F(test_parse_typescript_module, mixed_inline_type_and_type_only_export) {
   {
     padded_string code(u8"export type {type T};"_sv);
     spy_visitor v;
@@ -380,7 +384,7 @@ TEST(test_parse_typescript_module, mixed_inline_type_and_type_only_export) {
   }
 }
 
-TEST(test_parse_typescript_module, import_require) {
+TEST_F(test_parse_typescript_module, import_require) {
   {
     parse_visit_collector v = parse_and_visit_typescript_module(
         u8"import fs = require('node:fs');"_sv);
@@ -390,7 +394,7 @@ TEST(test_parse_typescript_module, import_require) {
   }
 }
 
-TEST(test_parse_typescript_module, export_interface) {
+TEST_F(test_parse_typescript_module, export_interface) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"export interface I {}"_sv);
@@ -402,8 +406,8 @@ TEST(test_parse_typescript_module, export_interface) {
   }
 }
 
-TEST(test_parse_typescript_module,
-     export_interface_disallows_newline_after_interface_keyword) {
+TEST_F(test_parse_typescript_module,
+       export_interface_disallows_newline_after_interface_keyword) {
   {
     padded_string code(u8"export interface\nI {}"_sv);
     spy_visitor v;
@@ -421,7 +425,7 @@ TEST(test_parse_typescript_module,
   }
 }
 
-TEST(test_parse_typescript_module, export_default_interface) {
+TEST_F(test_parse_typescript_module, export_default_interface) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"export default interface I {}"_sv);
@@ -444,7 +448,7 @@ TEST(test_parse_typescript_module, export_default_interface) {
   }
 }
 
-TEST(test_parse_typescript_module, export_namespace) {
+TEST_F(test_parse_typescript_module, export_namespace) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"export namespace ns {}"_sv);
@@ -456,8 +460,8 @@ TEST(test_parse_typescript_module, export_namespace) {
   }
 }
 
-TEST(test_parse_typescript_module,
-     export_namespace_disallows_newline_after_namespace_keyword) {
+TEST_F(test_parse_typescript_module,
+       export_namespace_disallows_newline_after_namespace_keyword) {
   {
     padded_string code(u8"export namespace\nns {}"_sv);
     spy_visitor v;
@@ -475,7 +479,7 @@ TEST(test_parse_typescript_module,
   }
 }
 
-TEST(test_parse_typescript_module, export_enum) {
+TEST_F(test_parse_typescript_module, export_enum) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"export enum E {}"_sv);
@@ -487,7 +491,7 @@ TEST(test_parse_typescript_module, export_enum) {
   }
 }
 
-TEST(test_parse_typescript_module, export_const_enum) {
+TEST_F(test_parse_typescript_module, export_const_enum) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"export const enum E {}"_sv);
@@ -499,7 +503,7 @@ TEST(test_parse_typescript_module, export_const_enum) {
   }
 }
 
-TEST(test_parse_typescript_module, export_type_alias) {
+TEST_F(test_parse_typescript_module, export_type_alias) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"export type T = C;"_sv);
@@ -512,8 +516,8 @@ TEST(test_parse_typescript_module, export_type_alias) {
   }
 }
 
-TEST(test_parse_typescript_module,
-     export_type_alias_disallows_newline_after_type_keyword) {
+TEST_F(test_parse_typescript_module,
+       export_type_alias_disallows_newline_after_type_keyword) {
   {
     padded_string code(u8"export type\nA = any;"_sv);
     spy_visitor v;
@@ -530,7 +534,7 @@ TEST(test_parse_typescript_module,
   }
 }
 
-TEST(test_parse_typescript_module, export_import_alias) {
+TEST_F(test_parse_typescript_module, export_import_alias) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"export import A = B;"_sv);

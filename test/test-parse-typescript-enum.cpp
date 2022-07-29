@@ -24,7 +24,9 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
+class test_parse_typescript_enum : public test_parse_expression {};
+
+TEST_F(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
   {
     padded_string code(u8"enum E {}\nlet x = y;"_sv);
     spy_visitor v;
@@ -92,7 +94,7 @@ TEST(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
   }
 }
 
-TEST(test_parse_typescript_enum, empty_enum) {
+TEST_F(test_parse_typescript_enum, empty_enum) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"enum E {}"_sv);
@@ -130,8 +132,8 @@ TEST(test_parse_typescript_enum, empty_enum) {
   }
 }
 
-TEST(test_parse_typescript_enum,
-     enum_can_be_named_certain_contextual_keywords) {
+TEST_F(test_parse_typescript_enum,
+       enum_can_be_named_certain_contextual_keywords) {
   for (string8 name : contextual_keywords - typescript_builtin_type_keywords -
                           typescript_special_type_keywords -
                           dirty_set<string8>{
@@ -148,7 +150,8 @@ TEST(test_parse_typescript_enum,
   }
 }
 
-TEST(test_parse_typescript_enum, enum_cannot_be_named_await_in_async_function) {
+TEST_F(test_parse_typescript_enum,
+       enum_cannot_be_named_await_in_async_function) {
   padded_string code(u8"enum await {}"_sv);
   spy_visitor v;
   parser p(&code, &v, typescript_options);
@@ -160,7 +163,7 @@ TEST(test_parse_typescript_enum, enum_cannot_be_named_await_in_async_function) {
                   name, strlen(u8"enum "), u8"await")));
 }
 
-TEST(test_parse_typescript_enum, enum_with_auto_members) {
+TEST_F(test_parse_typescript_enum, enum_with_auto_members) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"enum E { A }"_sv);
@@ -186,7 +189,7 @@ TEST(test_parse_typescript_enum, enum_with_auto_members) {
   }
 }
 
-TEST(test_parse_typescript_enum, enum_with_initialized_members) {
+TEST_F(test_parse_typescript_enum, enum_with_initialized_members) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"enum E { A = 10, B = 20 }"_sv);
@@ -206,7 +209,7 @@ TEST(test_parse_typescript_enum, enum_with_initialized_members) {
   }
 }
 
-TEST(test_parse_typescript_enum, enum_members_can_be_named_keywords) {
+TEST_F(test_parse_typescript_enum, enum_members_can_be_named_keywords) {
   for (string8 keyword : keywords) {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"enum E { " + keyword + u8" }");
@@ -216,7 +219,7 @@ TEST(test_parse_typescript_enum, enum_members_can_be_named_keywords) {
   }
 }
 
-TEST(test_parse_typescript_enum, enum_members_can_be_named_string_literals) {
+TEST_F(test_parse_typescript_enum, enum_members_can_be_named_string_literals) {
   parse_visit_collector v = parse_and_visit_typescript_statement(
       u8"enum E { 'member1', \"member2\" = init, }"_sv);
   EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
@@ -225,7 +228,8 @@ TEST(test_parse_typescript_enum, enum_members_can_be_named_string_literals) {
                                     "visit_exit_enum_scope"));     // }
 }
 
-TEST(test_parse_typescript_enum, enum_members_can_be_named_string_expressions) {
+TEST_F(test_parse_typescript_enum,
+       enum_members_can_be_named_string_expressions) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"enum E { ['member'] = init, }"_sv);
@@ -245,7 +249,7 @@ TEST(test_parse_typescript_enum, enum_members_can_be_named_string_expressions) {
   }
 }
 
-TEST(test_parse_typescript_enum, enum_members_can_be_named_number_literals) {
+TEST_F(test_parse_typescript_enum, enum_members_can_be_named_number_literals) {
   {
     padded_string code(u8"enum E { 42 = init, }"_sv);
     spy_visitor v;
@@ -289,8 +293,8 @@ TEST(test_parse_typescript_enum, enum_members_can_be_named_number_literals) {
   }
 }
 
-TEST(test_parse_typescript_enum,
-     enum_members_cannot_be_named_complex_expressions) {
+TEST_F(test_parse_typescript_enum,
+       enum_members_cannot_be_named_complex_expressions) {
   {
     padded_string code(u8"enum E { [ 'mem' + 'ber' ] = init, }"_sv);
     spy_visitor v;
@@ -329,7 +333,7 @@ TEST(test_parse_typescript_enum,
   }
 }
 
-TEST(test_parse_typescript_enum, extra_commas_are_not_allowed) {
+TEST_F(test_parse_typescript_enum, extra_commas_are_not_allowed) {
   {
     padded_string code(u8"enum E { , }"_sv);
     spy_visitor v;
@@ -359,7 +363,7 @@ TEST(test_parse_typescript_enum, extra_commas_are_not_allowed) {
   }
 }
 
-TEST(test_parse_typescript_enum, declare_must_not_have_newline_before_enum) {
+TEST_F(test_parse_typescript_enum, declare_must_not_have_newline_before_enum) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"declare\nenum E {}"_sv);
@@ -383,8 +387,8 @@ TEST(test_parse_typescript_enum, declare_must_not_have_newline_before_enum) {
   }
 }
 
-TEST(test_parse_typescript_enum,
-     const_and_declare_enums_require_constant_values) {
+TEST_F(test_parse_typescript_enum,
+       const_and_declare_enums_require_constant_values) {
   for (string8 decl :
        {u8"const enum", u8"declare enum", u8"declare const enum"}) {
     {
@@ -426,7 +430,7 @@ TEST(test_parse_typescript_enum,
   }
 }
 
-TEST(test_parse_typescript_enum, enums_allow_constant_values) {
+TEST_F(test_parse_typescript_enum, enums_allow_constant_values) {
   for (string8 decl :
        {u8"enum", u8"const enum", u8"declare enum", u8"declare const enum"}) {
     parse_and_visit_typescript_module(decl + u8" E { A = 1, B = A }");
@@ -441,20 +445,20 @@ TEST(test_parse_typescript_enum, enums_allow_constant_values) {
   }
 }
 
-TEST(test_parse_typescript_enum, normal_enum_allows_non_constant_values) {
+TEST_F(test_parse_typescript_enum, normal_enum_allows_non_constant_values) {
   parse_and_visit_typescript_module(u8"enum E { A = f() }"_sv);
   parse_and_visit_typescript_module(u8"enum E { A = someVariable }"_sv);
 }
 
-TEST(test_parse_typescript_enum,
-     normal_enum_auto_is_allowed_after_constant_value) {
+TEST_F(test_parse_typescript_enum,
+       normal_enum_auto_is_allowed_after_constant_value) {
   parse_and_visit_typescript_module(u8"enum E { A = 42, B }"_sv);
   parse_and_visit_typescript_module(u8"enum E { A = 2+2, B }"_sv);
   parse_and_visit_typescript_module(u8"enum E { A = OtherEnum.C, B }"_sv);
   parse_and_visit_typescript_module(u8"enum E { A, B = A, C, }"_sv);
 }
 
-TEST(test_parse_typescript_enum, normal_enum_auto_requires_constant_value) {
+TEST_F(test_parse_typescript_enum, normal_enum_auto_requires_constant_value) {
   {
     padded_string code(u8"enum E { A = f(), B, }"_sv);
     spy_visitor v;

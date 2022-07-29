@@ -2673,7 +2673,8 @@ TEST_F(test_parse_expression,
   }
 }
 
-TEST(test_parse, object_literal_generator_method_with_misplaced_star) {
+TEST_F(test_parse_expression,
+       object_literal_generator_method_with_misplaced_star) {
   {
     test_parser p(u8"{method*() { yield 42; }}"_sv);
     expression* ast = p.parse_expression();

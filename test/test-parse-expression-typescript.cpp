@@ -91,6 +91,20 @@ TEST_F(test_parse_expression_typescript, non_null_assertion) {
     expression* ast = this->parse_expression(u8"async!"_sv);
     EXPECT_EQ(summarize(ast), "nonnull(var async)");
   }
+
+  {
+    parse_visit_collector v =
+        parse_and_visit_typescript_statement(u8"f(x!);"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // f
+                                      "visit_variable_use"));  // x
+    EXPECT_THAT(v.variable_uses, ElementsAre(u8"f", u8"x"));
+  }
+
+  {
+    parse_visit_collector v =
+        parse_and_visit_typescript_statement(u8"x! = null;"_sv);
+    EXPECT_THAT(v.visits, ElementsAre("visit_variable_assignment"));  // x
+  }
 }
 
 TEST_F(test_parse_expression_typescript,
@@ -116,34 +130,6 @@ TEST_F(test_parse_expression_typescript,
           bang, strlen(u8"x"), u8"!")));
 }
 
-TEST(test_parse_expression_typescript_statement, non_null_assertion) {
-  {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"f(x!);"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // f
-                                      "visit_variable_use"));  // x
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"f", u8"x"));
-  }
-
-  {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"x! = null;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_assignment"));  // x
-  }
-}
-
-TEST_F(test_parse_expression_typescript, as_type_assertion) {
-  {
-    test_parser& p = this->errorless_parser(u8"x as y"_sv, typescript_options);
-    expression* ast = p.parse_expression();
-    ASSERT_EQ(ast->kind(), expression_kind::as_type_assertion);
-    EXPECT_EQ(summarize(ast->child_0()), "var x");
-    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x as y"));
-    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));
-    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"y"));
-  }
-}
-
 TEST_F(test_parse_expression_typescript,
        as_type_assertion_not_allowed_in_javascript) {
   {
@@ -158,7 +144,7 @@ TEST_F(test_parse_expression_typescript,
   }
 }
 
-TEST(test_parse_expression_typescript_statement, as_type_assertion) {
+TEST_F(test_parse_expression_typescript, as_type_assertion) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"f(x as T);"_sv);
@@ -177,10 +163,20 @@ TEST(test_parse_expression_typescript_statement, as_type_assertion) {
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"T", u8"rhs"));
     EXPECT_THAT(v.variable_assignments, ElementsAre(u8"lhs"));
   }
+
+  {
+    test_parser& p = this->errorless_parser(u8"x as y"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    ASSERT_EQ(ast->kind(), expression_kind::as_type_assertion);
+    EXPECT_EQ(summarize(ast->child_0()), "var x");
+    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x as y"));
+    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));
+    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"y"));
+  }
 }
 
-TEST(test_parse_expression_typescript_statement,
-     as_type_assertion_is_not_allowed_in_function_parameter_list) {
+TEST_F(test_parse_expression_typescript,
+       as_type_assertion_is_not_allowed_in_function_parameter_list) {
   {
     padded_string code(u8"(x as T) => {}"_sv);
     spy_visitor v;

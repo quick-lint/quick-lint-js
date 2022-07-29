@@ -24,8 +24,10 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse_typescript_function,
-     return_type_annotation_is_disallowed_in_javascript) {
+class test_parse_typescript_function : public test_parse_expression {};
+
+TEST_F(test_parse_typescript_function,
+       return_type_annotation_is_disallowed_in_javascript) {
   {
     padded_string code(u8"function f(): C { }"_sv);
     spy_visitor v;
@@ -41,7 +43,7 @@ TEST(test_parse_typescript_function,
   }
 }
 
-TEST(test_parse_typescript_function, function_return_type_annotation) {
+TEST_F(test_parse_typescript_function, function_return_type_annotation) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"function f(): C { }"_sv);
@@ -55,7 +57,7 @@ TEST(test_parse_typescript_function, function_return_type_annotation) {
   }
 }
 
-TEST(test_parse_typescript_function, arrow_return_type_annotation) {
+TEST_F(test_parse_typescript_function, arrow_return_type_annotation) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"((param): C => {})"_sv);
@@ -103,7 +105,7 @@ TEST(test_parse_typescript_function, arrow_return_type_annotation) {
   }
 }
 
-TEST(test_parse_typescript_function, object_method_return_type_annotation) {
+TEST_F(test_parse_typescript_function, object_method_return_type_annotation) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"({ method(param): C {} })"_sv);
@@ -117,7 +119,7 @@ TEST(test_parse_typescript_function, object_method_return_type_annotation) {
   }
 }
 
-TEST(test_parse_typescript_function, class_method_return_type_annotation) {
+TEST_F(test_parse_typescript_function, class_method_return_type_annotation) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { method(param): C {} }"_sv);
@@ -136,7 +138,8 @@ TEST(test_parse_typescript_function, class_method_return_type_annotation) {
   }
 }
 
-TEST(test_parse_typescript_function, interface_method_return_type_annotation) {
+TEST_F(test_parse_typescript_function,
+       interface_method_return_type_annotation) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"interface I { method(param): C; }"_sv);
@@ -153,8 +156,8 @@ TEST(test_parse_typescript_function, interface_method_return_type_annotation) {
   }
 }
 
-TEST(test_parse_typescript_function,
-     generic_arrow_function_expression_body_can_use_in_operator) {
+TEST_F(test_parse_typescript_function,
+       generic_arrow_function_expression_body_can_use_in_operator) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"<T,>() => x in y"_sv);
@@ -169,8 +172,8 @@ TEST(test_parse_typescript_function,
   }
 }
 
-TEST(test_parse_typescript_function,
-     non_null_assertion_in_parameter_list_is_an_error) {
+TEST_F(test_parse_typescript_function,
+       non_null_assertion_in_parameter_list_is_an_error) {
   {
     padded_string code(u8"function f(param!) {}"_sv);
     spy_visitor v;

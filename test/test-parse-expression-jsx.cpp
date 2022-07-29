@@ -29,7 +29,9 @@ using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {
-TEST_F(test_parse_expression, intrinsic_element) {
+class test_parse_expression_jsx : public test_parse_expression {};
+
+TEST_F(test_parse_expression_jsx, intrinsic_element) {
   {
     expression* ast = this->parse_expression(u8"<div />"_sv, jsx_options);
     ASSERT_EQ(ast->kind(), expression_kind::jsx_element);
@@ -54,7 +56,7 @@ TEST_F(test_parse_expression, intrinsic_element) {
   }
 }
 
-TEST_F(test_parse_expression, user_element) {
+TEST_F(test_parse_expression_jsx, user_element) {
   {
     expression* ast =
         this->parse_expression(u8"<MyComponent />"_sv, jsx_options);
@@ -72,7 +74,7 @@ TEST_F(test_parse_expression, user_element) {
   }
 }
 
-TEST_F(test_parse_expression, self_closing_tag) {
+TEST_F(test_parse_expression_jsx, self_closing_tag) {
   {
     test_parser p(u8"<div />"_sv, jsx_options);
     expression* ast = p.parse_expression();
@@ -90,7 +92,7 @@ TEST_F(test_parse_expression, self_closing_tag) {
   }
 }
 
-TEST_F(test_parse_expression, tag_with_no_children) {
+TEST_F(test_parse_expression_jsx, tag_with_no_children) {
   {
     test_parser p(u8"<div></div>"_sv, jsx_options);
     expression* ast = p.parse_expression();
@@ -110,7 +112,7 @@ TEST_F(test_parse_expression, tag_with_no_children) {
   }
 }
 
-TEST_F(test_parse_expression, tag_with_text_children) {
+TEST_F(test_parse_expression_jsx, tag_with_text_children) {
   {
     test_parser p(u8"<div>hello world</div>"_sv, jsx_options);
     expression* ast = p.parse_expression();
@@ -120,7 +122,7 @@ TEST_F(test_parse_expression, tag_with_text_children) {
   }
 }
 
-TEST_F(test_parse_expression, fragment_with_no_children) {
+TEST_F(test_parse_expression_jsx, fragment_with_no_children) {
   {
     test_parser p(u8"<></>"_sv, jsx_options);
     expression* ast = p.parse_expression();
@@ -130,7 +132,7 @@ TEST_F(test_parse_expression, fragment_with_no_children) {
   }
 }
 
-TEST_F(test_parse_expression, fragment_with_text_children) {
+TEST_F(test_parse_expression_jsx, fragment_with_text_children) {
   {
     test_parser p(u8"<>hello world</>"_sv, jsx_options);
     expression* ast = p.parse_expression();
@@ -140,7 +142,7 @@ TEST_F(test_parse_expression, fragment_with_text_children) {
   }
 }
 
-TEST_F(test_parse_expression, tag_with_element_children) {
+TEST_F(test_parse_expression_jsx, tag_with_element_children) {
   {
     test_parser p(u8"<div>hello <span>world</span>!</div>"_sv, jsx_options);
     expression* ast = p.parse_expression();
@@ -155,7 +157,7 @@ TEST_F(test_parse_expression, tag_with_element_children) {
   }
 }
 
-TEST_F(test_parse_expression, tag_with_fragment_children) {
+TEST_F(test_parse_expression_jsx, tag_with_fragment_children) {
   {
     test_parser p(u8"<div>hello <>world</>!</div>"_sv, jsx_options);
     expression* ast = p.parse_expression();
@@ -169,7 +171,7 @@ TEST_F(test_parse_expression, tag_with_fragment_children) {
   }
 }
 
-TEST_F(test_parse_expression, fragment_with_element_children) {
+TEST_F(test_parse_expression_jsx, fragment_with_element_children) {
   {
     test_parser p(u8"<>hello <span>world</span>!</>"_sv, jsx_options);
     expression* ast = p.parse_expression();
@@ -199,7 +201,7 @@ TEST_F(test_parse_expression, fragment_with_element_children) {
   }
 }
 
-TEST_F(test_parse_expression, fragment_with_fragment_children) {
+TEST_F(test_parse_expression_jsx, fragment_with_fragment_children) {
   {
     test_parser p(u8"<>hello <>world</>!</>"_sv, jsx_options);
     expression* ast = p.parse_expression();
@@ -212,7 +214,7 @@ TEST_F(test_parse_expression, fragment_with_fragment_children) {
   }
 }
 
-TEST_F(test_parse_expression, tag_with_expression_children) {
+TEST_F(test_parse_expression_jsx, tag_with_expression_children) {
   {
     test_parser p(u8"<div>hello {name}!</div>"_sv, jsx_options);
     expression* ast = p.parse_expression();
@@ -235,7 +237,7 @@ TEST_F(test_parse_expression, tag_with_expression_children) {
   }
 }
 
-TEST_F(test_parse_expression, tag_with_attributes) {
+TEST_F(test_parse_expression_jsx, tag_with_attributes) {
   {
     test_parser p(u8"<div className='header' />"_sv, jsx_options);
     expression* ast = p.parse_expression();
@@ -267,7 +269,7 @@ TEST_F(test_parse_expression, tag_with_attributes) {
   }
 }
 
-TEST_F(test_parse_expression, tag_with_namespace_attributes) {
+TEST_F(test_parse_expression_jsx, tag_with_namespace_attributes) {
   {
     expression* ast =
         this->parse_expression(u8"<div custom:attr='val' />"_sv, jsx_options);
@@ -293,7 +295,7 @@ TEST_F(test_parse_expression, tag_with_namespace_attributes) {
   }
 }
 
-TEST_F(test_parse_expression, tag_with_namespace) {
+TEST_F(test_parse_expression_jsx, tag_with_namespace) {
   {
     expression* ast = this->parse_expression(u8"<svg:g />"_sv, jsx_options);
     ASSERT_EQ(summarize(ast), "jsxnselement(svg, g)");
@@ -318,7 +320,7 @@ TEST_F(test_parse_expression, tag_with_namespace) {
   }
 }
 
-TEST_F(test_parse_expression, tag_with_member_expression) {
+TEST_F(test_parse_expression_jsx, tag_with_member_expression) {
   {
     expression* ast =
         this->parse_expression(u8"<mod.Component />"_sv, jsx_options);
@@ -340,7 +342,7 @@ TEST_F(test_parse_expression, tag_with_member_expression) {
   }
 }
 
-TEST_F(test_parse_expression, jsx_with_binary_operator) {
+TEST_F(test_parse_expression_jsx, jsx_with_binary_operator) {
   {
     expression* ast = this->parse_expression(u8"x && <div />"_sv, jsx_options);
     ASSERT_EQ(summarize(ast), "binary(var x, jsxelement(div))");

@@ -24,7 +24,9 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse, do_while) {
+class test_parse_loop : public test_parse_expression {};
+
+TEST_F(test_parse_loop, do_while) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"do { a; } while (b)"_sv);
@@ -55,7 +57,7 @@ TEST(test_parse, do_while) {
   }
 }
 
-TEST(test_parse, do_while_without_parens) {
+TEST_F(test_parse_loop, do_while_without_parens) {
   {
     spy_visitor v;
     padded_string code(u8"do {} while cond"_sv);
@@ -137,7 +139,7 @@ TEST(test_parse, do_while_without_parens) {
   }
 }
 
-TEST(test_parse, do_while_without_body) {
+TEST_F(test_parse_loop, do_while_without_body) {
   {
     padded_string code(u8"do\nwhile (cond);"_sv);
     spy_visitor v;
@@ -151,7 +153,7 @@ TEST(test_parse, do_while_without_body) {
   }
 }
 
-TEST(test_parse, do_while_without_while_and_condition) {
+TEST_F(test_parse_loop, do_while_without_while_and_condition) {
   {
     padded_string code(u8"do {} "_sv);
     spy_visitor v;
@@ -185,7 +187,7 @@ TEST(test_parse, do_while_without_while_and_condition) {
   }
 }
 
-TEST(test_parse, c_style_for_loop) {
+TEST_F(test_parse_loop, c_style_for_loop) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"for (;;) { a; }"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
@@ -241,7 +243,7 @@ TEST(test_parse, c_style_for_loop) {
   }
 }
 
-TEST(test_parse, c_style_for_loop_with_in_operator) {
+TEST_F(test_parse_loop, c_style_for_loop_with_in_operator) {
   {
     padded_string code(u8"for (a in b; c; d) {}"_sv);
     spy_visitor v;
@@ -295,7 +297,7 @@ TEST(test_parse, c_style_for_loop_with_in_operator) {
   }
 }
 
-TEST(test_parse, for_loop_with_missing_component) {
+TEST_F(test_parse_loop, for_loop_with_missing_component) {
   {
     padded_string code(u8"for () {}"_sv);
     spy_visitor v;
@@ -364,7 +366,7 @@ TEST(test_parse, for_loop_with_missing_component) {
   }
 }
 
-TEST(test_parse, for_loop_with_missing_semicolons) {
+TEST_F(test_parse_loop, for_loop_with_missing_semicolons) {
   {
     padded_string code(u8"for (a b; c) {}"_sv);
     spy_visitor v;
@@ -402,7 +404,7 @@ TEST(test_parse, for_loop_with_missing_semicolons) {
   }
 }
 
-TEST(test_parse, for_loop_with_extra_semicolons) {
+TEST_F(test_parse_loop, for_loop_with_extra_semicolons) {
   {
     padded_string code(u8"for (;;;) {}"_sv);
     spy_visitor v;
@@ -513,7 +515,7 @@ TEST(test_parse, for_loop_with_extra_semicolons) {
   }
 }
 
-TEST(test_parse, for_in_loop) {
+TEST_F(test_parse_loop, for_in_loop) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"for (x in xs) { body; }"_sv);
@@ -567,7 +569,7 @@ TEST(test_parse, for_in_loop) {
   }
 }
 
-TEST(test_parse, for_in_loop_with_destructuring) {
+TEST_F(test_parse_loop, for_in_loop_with_destructuring) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"for ([x] in xs) {}"_sv);
@@ -617,7 +619,7 @@ TEST(test_parse, for_in_loop_with_destructuring) {
   }
 }
 
-TEST(test_parse, for_in_loop_with_var_initializer) {
+TEST_F(test_parse_loop, for_in_loop_with_var_initializer) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"for (var x = init in xs) { body; }"_sv);
@@ -774,7 +776,7 @@ TEST(test_parse, for_in_loop_with_var_initializer) {
   }
 }
 
-TEST(test_parse, invalid_for_in_loop) {
+TEST_F(test_parse_loop, invalid_for_in_loop) {
   {
     padded_string code(u8"for (const x = 10 in []) {}"_sv);
     spy_visitor v;
@@ -814,7 +816,7 @@ TEST(test_parse, invalid_for_in_loop) {
   }
 }
 
-TEST(test_parse, for_of_loop) {
+TEST_F(test_parse_loop, for_of_loop) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"for (x of xs) { body; }"_sv);
@@ -895,7 +897,7 @@ TEST(test_parse, for_of_loop) {
   }
 }
 
-TEST(test_parse, for_of_loop_with_destructuring) {
+TEST_F(test_parse_loop, for_of_loop_with_destructuring) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"for ([x] of xs) {}"_sv);
@@ -945,7 +947,7 @@ TEST(test_parse, for_of_loop_with_destructuring) {
   }
 }
 
-TEST(test_parse, invalid_for_of_loop) {
+TEST_F(test_parse_loop, invalid_for_of_loop) {
   {
     padded_string code(u8"for (const x = 10 of []) {}"_sv);
     spy_visitor v;
@@ -1001,7 +1003,7 @@ TEST(test_parse, invalid_for_of_loop) {
   }
 }
 
-TEST(test_parse, for_loop_without_body) {
+TEST_F(test_parse_loop, for_loop_without_body) {
   {
     padded_string code(u8"for (let x of myArray) "_sv);
     spy_visitor v;
@@ -1035,7 +1037,7 @@ TEST(test_parse, for_loop_without_body) {
   }
 }
 
-TEST(test_parse, for_loop_without_header) {
+TEST_F(test_parse_loop, for_loop_without_header) {
   {
     padded_string code(u8"for x = y;"_sv);
     spy_visitor v;
@@ -1065,7 +1067,7 @@ TEST(test_parse, for_loop_without_header) {
   }
 }
 
-TEST(test_parse, while_statement) {
+TEST_F(test_parse_loop, while_statement) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"while (cond) body;"_sv);
@@ -1083,7 +1085,7 @@ TEST(test_parse, while_statement) {
   }
 }
 
-TEST(test_parse, while_without_parens) {
+TEST_F(test_parse_loop, while_without_parens) {
   {
     spy_visitor v;
     padded_string code(u8"while cond { body; }"_sv);
@@ -1133,7 +1135,7 @@ TEST(test_parse, while_without_parens) {
   }
 }
 
-TEST(test_parse, while_without_condition) {
+TEST_F(test_parse_loop, while_without_condition) {
   {
     spy_visitor v;
     padded_string code(u8"while { go(); break; }"_sv);
@@ -1149,7 +1151,7 @@ TEST(test_parse, while_without_condition) {
   }
 }
 
-TEST(test_parse, while_without_body) {
+TEST_F(test_parse_loop, while_without_body) {
   {
     padded_string code(u8"while (cond) "_sv);
     spy_visitor v;
@@ -1163,7 +1165,7 @@ TEST(test_parse, while_without_body) {
   }
 }
 
-TEST(test_parse, break_statement) {
+TEST_F(test_parse_loop, break_statement) {
   {
     spy_visitor v;
     padded_string code(u8"break;"_sv);
@@ -1265,7 +1267,7 @@ TEST(test_parse, break_statement) {
   }
 }
 
-TEST(test_parse, continue_statement) {
+TEST_F(test_parse_loop, continue_statement) {
   {
     spy_visitor v;
     padded_string code(u8"continue;"_sv);
@@ -1350,8 +1352,8 @@ TEST(test_parse, continue_statement) {
   }
 }
 
-TEST(test_parse,
-     break_and_continue_statements_do_not_allow_newline_before_label) {
+TEST_F(test_parse_loop,
+       break_and_continue_statements_do_not_allow_newline_before_label) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"for (;;) { break\nnotALabel; }"_sv);
@@ -1371,8 +1373,8 @@ TEST(test_parse,
   }
 }
 
-TEST(test_parse,
-     break_and_continue_statements_allows_contextual_keyword_as_label) {
+TEST_F(test_parse_loop,
+       break_and_continue_statements_allows_contextual_keyword_as_label) {
   for (const char8* statement : {u8"break", u8"continue"}) {
     for (string8 keyword : contextual_keywords) {
       padded_string code(keyword + u8": for (;;) { " + statement + u8" " +
@@ -1395,7 +1397,8 @@ TEST(test_parse,
   // TODO(#214): Disallow labels named 'yield' in generator functions.
 }
 
-TEST(test_parse, for_loop_async_arrow_with_of_parameter_is_init_expression) {
+TEST_F(test_parse_loop,
+       for_loop_async_arrow_with_of_parameter_is_init_expression) {
   parse_visit_collector v =
       parse_and_visit_statement(u8"for (async of => x; y; z);"_sv);
   EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
@@ -1407,8 +1410,8 @@ TEST(test_parse, for_loop_async_arrow_with_of_parameter_is_init_expression) {
                                     "visit_variable_use"));             // z
 }
 
-TEST(test_parse,
-     cannot_assign_to_variable_named_async_without_parentheses_in_for_of) {
+TEST_F(test_parse_loop,
+       cannot_assign_to_variable_named_async_without_parentheses_in_for_of) {
   padded_string code(u8"for (async of xs) ;"_sv);
   spy_visitor v;
   parser p(&code, &v);
@@ -1422,7 +1425,7 @@ TEST(test_parse,
           async_identifier, strlen(u8"for ("), u8"async")));
 }
 
-TEST(test_parse, for_loop_in_for_loop_header_crash) {
+TEST_F(test_parse_loop, for_loop_in_for_loop_header_crash) {
   // There used to be a use-after-free bug caused by a buffering_visitor copying
   // memory into another buffering_visitor, then the parser's
   // buffering_visitor_memory_ being rewind-ed. This test makes sure a

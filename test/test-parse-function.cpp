@@ -24,7 +24,10 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse, parse_function_parameters_with_object_destructuring) {
+class test_parse_function : public test_parse_expression {};
+
+TEST_F(test_parse_function,
+       parse_function_parameters_with_object_destructuring) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"function f({x, y, z}) {}"_sv);
@@ -45,7 +48,7 @@ TEST(test_parse, parse_function_parameters_with_object_destructuring) {
   }
 }
 
-TEST(test_parse, parse_function_statement) {
+TEST_F(test_parse_function, parse_function_statement) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"function foo() {}"_sv);
@@ -127,7 +130,7 @@ TEST(test_parse, parse_function_statement) {
   }
 }
 
-TEST(test_parse, function_with_arrow_operator) {
+TEST_F(test_parse_function, function_with_arrow_operator) {
   {
     spy_visitor v;
     padded_string code(u8"function f() => {}"_sv);
@@ -143,7 +146,7 @@ TEST(test_parse, function_with_arrow_operator) {
   }
 }
 
-TEST(test_parse, function_statement_with_no_name) {
+TEST_F(test_parse_function, function_statement_with_no_name) {
   {
     padded_string code(u8"function() {x;}"_sv);
     spy_visitor v;
@@ -195,7 +198,7 @@ TEST(test_parse, function_statement_with_no_name) {
   }
 }
 
-TEST(test_parse, async_function_statement) {
+TEST_F(test_parse_function, async_function_statement) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"async function f() {}"_sv);
@@ -211,7 +214,8 @@ TEST(test_parse, async_function_statement) {
   }
 }
 
-TEST(test_parse, async_function_cannot_have_newline_after_async_keyword) {
+TEST_F(test_parse_function,
+       async_function_cannot_have_newline_after_async_keyword) {
   {
     padded_string code(u8"async\nfunction f() { await myPromise; }"_sv);
     spy_visitor v;
@@ -230,7 +234,7 @@ TEST(test_parse, async_function_cannot_have_newline_after_async_keyword) {
   }
 }
 
-TEST(test_parse, generator_function_statement) {
+TEST_F(test_parse_function, generator_function_statement) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"function* f() {}"_sv);
@@ -238,7 +242,7 @@ TEST(test_parse, generator_function_statement) {
   }
 }
 
-TEST(test_parse, await_in_async_function) {
+TEST_F(test_parse_function, await_in_async_function) {
   {
     parse_visit_collector v = parse_and_visit_statement(
         u8"async function f() { await myPromise; }"_sv);
@@ -291,7 +295,7 @@ TEST(test_parse, await_in_async_function) {
   }
 }
 
-TEST(test_parse, await_asi_in_async_function) {
+TEST_F(test_parse_function, await_asi_in_async_function) {
   {
     parse_visit_collector v = parse_and_visit_statement(
         u8"async function f() { await a\nawait b }"_sv);
@@ -301,7 +305,7 @@ TEST(test_parse, await_asi_in_async_function) {
   }
 }
 
-TEST(test_parse, yield_in_generator_function) {
+TEST_F(test_parse_function, yield_in_generator_function) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"function *f() { yield myValue; }"_sv);
@@ -342,7 +346,7 @@ TEST(test_parse, yield_in_generator_function) {
   }
 }
 
-TEST(test_parse, parse_function_expression) {
+TEST_F(test_parse_function, parse_function_expression) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"(function() {});"_sv);
@@ -400,7 +404,7 @@ TEST(test_parse, parse_function_expression) {
   }
 }
 
-TEST(test_parse, arrow_function_expression) {
+TEST_F(test_parse_function, arrow_function_expression) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"(() => x);"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
@@ -463,7 +467,7 @@ TEST(test_parse, arrow_function_expression) {
   }
 }
 
-TEST(test_parse, arrow_function_expression_with_statements) {
+TEST_F(test_parse_function, arrow_function_expression_with_statements) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"(() => { x; });"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
@@ -485,7 +489,7 @@ TEST(test_parse, arrow_function_expression_with_statements) {
   }
 }
 
-TEST(test_parse, nested_arrow_function) {
+TEST_F(test_parse_function, nested_arrow_function) {
   for (string8_view code : {
            u8"(x => y => (x, y));"_sv,
            u8"(x => { (y => (x, y)); });"_sv,
@@ -524,7 +528,7 @@ TEST(test_parse, nested_arrow_function) {
   }
 }
 
-TEST(test_parse_function, empty_parens_parameter_is_an_error) {
+TEST_F(test_parse_function, empty_parens_parameter_is_an_error) {
   {
     padded_string code(u8"function f(()) {}"_sv);
     spy_visitor v;
@@ -549,7 +553,8 @@ TEST(test_parse_function, empty_parens_parameter_is_an_error) {
   }
 }
 
-TEST(test_parse, function_statements_allow_trailing_commas_in_parameter_list) {
+TEST_F(test_parse_function,
+       function_statements_allow_trailing_commas_in_parameter_list) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"function f(x,) { y; });"_sv);
@@ -562,7 +567,8 @@ TEST(test_parse, function_statements_allow_trailing_commas_in_parameter_list) {
   }
 }
 
-TEST(test_parse, arrow_functions_allow_trailing_commas_in_parameter_list) {
+TEST_F(test_parse_function,
+       arrow_functions_allow_trailing_commas_in_parameter_list) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"((x,) => { y; });"_sv);
@@ -574,7 +580,8 @@ TEST(test_parse, arrow_functions_allow_trailing_commas_in_parameter_list) {
   }
 }
 
-TEST(test_parse, function_statement_without_name_or_parameter_list_or_body) {
+TEST_F(test_parse_function,
+       function_statement_without_name_or_parameter_list_or_body) {
   {
     padded_string code(u8"{ function } x = y;"_sv);
     spy_visitor v;
@@ -592,7 +599,7 @@ TEST(test_parse, function_statement_without_name_or_parameter_list_or_body) {
   }
 }
 
-TEST(test_parse, function_statement_without_parameter_list_or_body) {
+TEST_F(test_parse_function, function_statement_without_parameter_list_or_body) {
   {
     padded_string code(u8"{ function f } x = y;"_sv);
     spy_visitor v;
@@ -677,7 +684,7 @@ TEST(test_parse, function_statement_without_parameter_list_or_body) {
   }
 }
 
-TEST(test_parse, named_function_statement_without_body) {
+TEST_F(test_parse_function, named_function_statement_without_body) {
   {
     padded_string code(u8"function f()\nf;"_sv);
     spy_visitor v;
@@ -769,7 +776,7 @@ TEST(test_parse, named_function_statement_without_body) {
   }
 }
 
-TEST(test_parse, unnamed_function_statement_without_body) {
+TEST_F(test_parse_function, unnamed_function_statement_without_body) {
   {
     padded_string code(u8"function*()"_sv);
     spy_visitor v;
@@ -818,7 +825,7 @@ TEST(test_parse, unnamed_function_statement_without_body) {
   }
 }
 
-TEST(test_parse, named_function_expression_without_body) {
+TEST_F(test_parse_function, named_function_expression_without_body) {
   {
     padded_string code(u8"(function f())"_sv);
     spy_visitor v;
@@ -832,7 +839,7 @@ TEST(test_parse, named_function_expression_without_body) {
   }
 }
 
-TEST(test_parse, unnamed_function_expression_without_body) {
+TEST_F(test_parse_function, unnamed_function_expression_without_body) {
   {
     padded_string code(u8"(function())"_sv);
     spy_visitor v;
@@ -846,7 +853,7 @@ TEST(test_parse, unnamed_function_expression_without_body) {
   }
 }
 
-TEST(test_parse, arrow_function_invoked_with_parens) {
+TEST_F(test_parse_function, arrow_function_invoked_with_parens) {
   {
     padded_string code(u8"(() => {})()"_sv);
     spy_visitor v;
@@ -860,7 +867,7 @@ TEST(test_parse, arrow_function_invoked_with_parens) {
   }
 }
 
-TEST(test_parse, async_arrow_function_invoked_with_parens) {
+TEST_F(test_parse_function, async_arrow_function_invoked_with_parens) {
   {
     padded_string code(u8"(async () => {})()"_sv);
     spy_visitor v;
@@ -874,7 +881,7 @@ TEST(test_parse, async_arrow_function_invoked_with_parens) {
   }
 }
 
-TEST(test_parse, arrow_function_invoked_no_parens) {
+TEST_F(test_parse_function, arrow_function_invoked_no_parens) {
   {
     padded_string code(u8"() => {}()"_sv);
     spy_visitor v;
@@ -894,7 +901,7 @@ TEST(test_parse, arrow_function_invoked_no_parens) {
   }
 }
 
-TEST(test_parse, async_arrow_function_invoked_no_parens) {
+TEST_F(test_parse_function, async_arrow_function_invoked_no_parens) {
   {
     padded_string code(u8"async () => {}()"_sv);
     spy_visitor v;
@@ -914,7 +921,7 @@ TEST(test_parse, async_arrow_function_invoked_no_parens) {
   }
 }
 
-TEST(test_parse, arrow_function_without_parameter_list) {
+TEST_F(test_parse_function, arrow_function_without_parameter_list) {
   {
     padded_string code(u8"=> x + y"_sv);
     spy_visitor v;
@@ -933,7 +940,7 @@ TEST(test_parse, arrow_function_without_parameter_list) {
   }
 }
 
-TEST(test_parse, function_with_invalid_parameters) {
+TEST_F(test_parse_function, function_with_invalid_parameters) {
   for (string8_view parameter_list : {
            u8"x << y"_sv,
            u8"x.prop"_sv,
@@ -958,7 +965,7 @@ TEST(test_parse, function_with_invalid_parameters) {
   }
 }
 
-TEST(test_parse, arrow_function_with_invalid_parameters) {
+TEST_F(test_parse_function, arrow_function_with_invalid_parameters) {
   for (string8_view parameter_list : {
            u8"(new C())"_sv,
            u8"(class{})"_sv,
@@ -1069,7 +1076,7 @@ TEST(test_parse, arrow_function_with_invalid_parameters) {
   }
 }
 
-TEST(test_parse, arrow_function_expression_without_arrow_operator) {
+TEST_F(test_parse_function, arrow_function_expression_without_arrow_operator) {
   {
     padded_string code(u8"(() {});"_sv);
     spy_visitor v;
@@ -1169,7 +1176,8 @@ TEST(test_parse, arrow_function_expression_without_arrow_operator) {
   // diag_missing_arrow_operator_in_arrow_function.
 }
 
-TEST(test_parse, not_arrow_function_expression_without_arrow_operator) {
+TEST_F(test_parse_function,
+       not_arrow_function_expression_without_arrow_operator) {
   // These aren't arrow expressions, but might look like arrow expressions to a
   // bad error-recovering parser.
 
@@ -1228,7 +1236,7 @@ TEST(test_parse, not_arrow_function_expression_without_arrow_operator) {
   }
 }
 
-TEST(test_parse, generator_function_with_misplaced_star) {
+TEST_F(test_parse_function, generator_function_with_misplaced_star) {
   {
     padded_string code(u8"function f*(x) { yield x; }"_sv);
     spy_visitor v;
@@ -1431,7 +1439,8 @@ TEST(test_parse, generator_function_with_misplaced_star) {
   }
 }
 
-TEST(test_parse, star_before_async_or_function_is_not_generator_star) {
+TEST_F(test_parse_function,
+       star_before_async_or_function_is_not_generator_star) {
   {
     padded_string code(u8"*\nfunction f() {}"_sv);
     spy_visitor v;
@@ -1491,7 +1500,7 @@ TEST(test_parse, star_before_async_or_function_is_not_generator_star) {
   }
 }
 
-TEST(test_parse, incomplete_function_body) {
+TEST_F(test_parse_function, incomplete_function_body) {
   {
     padded_string code(u8"function f() { a; "_sv);
     spy_visitor v;
@@ -1508,8 +1517,8 @@ TEST(test_parse, incomplete_function_body) {
   }
 }
 
-TEST(test_parse,
-     function_as_if_body_is_allowed_and_creates_implicit_block_scope) {
+TEST_F(test_parse_function,
+       function_as_if_body_is_allowed_and_creates_implicit_block_scope) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"if (cond) function f() {}"_sv);
@@ -1561,7 +1570,7 @@ TEST(test_parse,
   }
 }
 
-TEST(test_parse, function_as_do_while_loop_body_is_disallowed) {
+TEST_F(test_parse_function, function_as_do_while_loop_body_is_disallowed) {
   {
     padded_string code(u8"do function f() {} while (cond);"_sv);
     spy_visitor v;
@@ -1602,7 +1611,7 @@ TEST(test_parse, function_as_do_while_loop_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, function_as_for_loop_body_is_disallowed) {
+TEST_F(test_parse_function, function_as_for_loop_body_is_disallowed) {
   {
     padded_string code(u8"for (;cond;) function f() {}"_sv);
     spy_visitor v;
@@ -1644,7 +1653,7 @@ TEST(test_parse, function_as_for_loop_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, function_as_while_loop_body_is_disallowed) {
+TEST_F(test_parse_function, function_as_while_loop_body_is_disallowed) {
   {
     padded_string code(u8"while (cond) function f() {}"_sv);
     spy_visitor v;
@@ -1686,7 +1695,7 @@ TEST(test_parse, function_as_while_loop_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, function_as_with_statement_body_is_disallowed) {
+TEST_F(test_parse_function, function_as_with_statement_body_is_disallowed) {
   {
     padded_string code(u8"with (obj) function f() {}"_sv);
     spy_visitor v;
@@ -1732,7 +1741,7 @@ TEST(test_parse, function_as_with_statement_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, invalid_function_parameter) {
+TEST_F(test_parse_function, invalid_function_parameter) {
   {
     padded_string code(u8"function f(g(), p) {}"_sv);
     spy_visitor v;
@@ -1790,7 +1799,7 @@ TEST(test_parse, invalid_function_parameter) {
   }
 }
 
-TEST(test_parse, function_body_is_visited_first_in_expression) {
+TEST_F(test_parse_function, function_body_is_visited_first_in_expression) {
   for (string8_view function : {u8"function(){b;}"sv, u8"()=>{b;}"sv}) {
     padded_string code(u8"[a, " + string8(function) + u8", c];");
     SCOPED_TRACE(code);

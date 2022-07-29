@@ -28,7 +28,9 @@ using namespace std::literals::string_view_literals;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse, parse_simple_let) {
+class test_parse_var : public test_parse_expression {};
+
+TEST_F(test_parse_var, parse_simple_let) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"let x"_sv);
     EXPECT_THAT(v.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
@@ -71,7 +73,7 @@ TEST(test_parse, parse_simple_let) {
   }
 }
 
-TEST(test_parse, parse_simple_var) {
+TEST_F(test_parse_var, parse_simple_var) {
   spy_visitor v;
   padded_string code(u8"var x"_sv);
   parser p(&code, &v);
@@ -80,7 +82,7 @@ TEST(test_parse, parse_simple_var) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_parse, parse_simple_const) {
+TEST_F(test_parse_var, parse_simple_const) {
   spy_visitor v;
   padded_string code(u8"const x = null"_sv);
   parser p(&code, &v);
@@ -89,7 +91,7 @@ TEST(test_parse, parse_simple_const) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_parse, parse_const_with_no_initializers) {
+TEST_F(test_parse_var, parse_const_with_no_initializers) {
   spy_visitor v;
   padded_string code(u8"const x;"_sv);
   parser p(&code, &v);
@@ -102,7 +104,7 @@ TEST(test_parse, parse_const_with_no_initializers) {
                   variable_name, strlen(u8"const "), u8"x")));
 }
 
-TEST(test_parse, let_asi) {
+TEST_F(test_parse_var, let_asi) {
   {
     parse_visit_collector v = parse_and_visit_module(u8"let x\ny"_sv);
     EXPECT_THAT(v.visits,
@@ -113,7 +115,7 @@ TEST(test_parse, let_asi) {
   }
 }
 
-TEST(test_parse, parse_let_with_initializers) {
+TEST_F(test_parse_var, parse_let_with_initializers) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"let x = 2"_sv);
     EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"x")));
@@ -143,7 +145,7 @@ TEST(test_parse, parse_let_with_initializers) {
   }
 }
 
-TEST(test_parse, parse_let_with_object_destructuring) {
+TEST_F(test_parse_var, parse_let_with_object_destructuring) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"let {x} = 2"_sv);
     EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"x")));
@@ -185,7 +187,7 @@ TEST(test_parse, parse_let_with_object_destructuring) {
   }
 }
 
-TEST(test_parse, parse_let_with_array_destructuring) {
+TEST_F(test_parse_var, parse_let_with_array_destructuring) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"let [first, second] = xs;"_sv);
@@ -199,7 +201,7 @@ TEST(test_parse, parse_let_with_array_destructuring) {
   }
 }
 
-TEST(test_parse, let_does_not_insert_semicolon_after_let_keyword) {
+TEST_F(test_parse_var, let_does_not_insert_semicolon_after_let_keyword) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"let\nx = y;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // y
@@ -208,8 +210,8 @@ TEST(test_parse, let_does_not_insert_semicolon_after_let_keyword) {
   }
 }
 
-TEST(test_parse,
-     variables_used_in_let_initializer_are_used_before_variable_declaration) {
+TEST_F(test_parse_var,
+       variables_used_in_let_initializer_are_used_before_variable_declaration) {
   using namespace std::literals::string_view_literals;
 
   spy_visitor v;
@@ -226,7 +228,7 @@ TEST(test_parse,
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_parse, parse_valid_let) {
+TEST_F(test_parse_var, parse_valid_let) {
   {
     spy_visitor v;
     padded_string code(u8"let x\nclass C{}"_sv);
@@ -288,7 +290,7 @@ TEST(test_parse, parse_valid_let) {
   }
 }
 
-TEST(test_parse, parse_invalid_let) {
+TEST_F(test_parse_var, parse_invalid_let) {
   {
     spy_visitor v;
     padded_string code(u8"let a,"_sv);
@@ -618,7 +620,7 @@ TEST(test_parse, parse_invalid_let) {
   }
 }
 
-TEST(test_parse, parse_let_with_missing_equal) {
+TEST_F(test_parse_var, parse_let_with_missing_equal) {
   {
     spy_visitor v;
     padded_string code(u8"async function f() {return 1;}\nlet x await f()"_sv);
@@ -848,7 +850,7 @@ TEST(test_parse, parse_let_with_missing_equal) {
   }
 }
 
-TEST(test_parse, parse_invalid_var) {
+TEST_F(test_parse_var, parse_invalid_var) {
   {
     spy_visitor v;
     padded_string code(u8"var"_sv);
@@ -861,7 +863,7 @@ TEST(test_parse, parse_invalid_var) {
   }
 }
 
-TEST(test_parse, parse_invalid_const) {
+TEST_F(test_parse_var, parse_invalid_const) {
   {
     spy_visitor v;
     padded_string code(u8"const"_sv);
@@ -874,7 +876,7 @@ TEST(test_parse, parse_invalid_const) {
   }
 }
 
-TEST(test_parse, report_missing_semicolon_for_declarations) {
+TEST_F(test_parse_var, report_missing_semicolon_for_declarations) {
   {
     spy_visitor v;
     padded_string code(u8"let x = 2 for (;;) { console.log(); }"_sv);
@@ -903,7 +905,7 @@ TEST(test_parse, report_missing_semicolon_for_declarations) {
   }
 }
 
-TEST(test_parse, old_style_variables_can_be_named_let) {
+TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"var let = initial;");
     EXPECT_THAT(v.visits,
@@ -1024,7 +1026,7 @@ TEST(test_parse, old_style_variables_can_be_named_let) {
   }
 }
 
-TEST(test_parse, new_style_variables_cannot_be_named_let) {
+TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
   for (string8 declaration_kind : {u8"const", u8"let"}) {
     spy_visitor v;
     padded_string code(declaration_kind + u8" let = null;");
@@ -1139,7 +1141,7 @@ TEST(test_parse, new_style_variables_cannot_be_named_let) {
   }
 }
 
-TEST(test_parse, use_await_in_non_async_function) {
+TEST_F(test_parse_var, use_await_in_non_async_function) {
   {
     parse_visit_collector v = parse_and_visit_statement(
         u8"await(x);"_sv, function_attributes::normal);
@@ -1195,7 +1197,7 @@ TEST(test_parse, use_await_in_non_async_function) {
   }
 }
 
-TEST(test_parse, declare_await_in_non_async_function) {
+TEST_F(test_parse_var, declare_await_in_non_async_function) {
   {
     parse_visit_collector v = parse_and_visit_statement(
         u8"function await() { }"_sv, function_attributes::normal);
@@ -1225,7 +1227,7 @@ TEST(test_parse, declare_await_in_non_async_function) {
   }
 }
 
-TEST(test_parse, declare_await_in_async_function) {
+TEST_F(test_parse_var, declare_await_in_async_function) {
   {
     spy_visitor v;
     padded_string code(u8"function await() { }"_sv);
@@ -1287,7 +1289,7 @@ TEST(test_parse, declare_await_in_async_function) {
   }
 }
 
-TEST(test_parse, declare_await_at_top_level) {
+TEST_F(test_parse_var, declare_await_at_top_level) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"function await() { }"_sv);
@@ -1300,7 +1302,7 @@ TEST(test_parse, declare_await_at_top_level) {
   }
 }
 
-TEST(test_parse, use_await_at_top_level_as_operator) {
+TEST_F(test_parse_var, use_await_at_top_level_as_operator) {
   {
     parse_visit_collector v = parse_and_visit_module(u8"await x;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
@@ -1344,7 +1346,7 @@ TEST(test_parse, use_await_at_top_level_as_operator) {
   }
 }
 
-TEST(test_parse, use_await_at_top_level_as_variable) {
+TEST_F(test_parse_var, use_await_at_top_level_as_variable) {
   {
     parse_visit_collector v = parse_and_visit_module(u8"await;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // await
@@ -1444,7 +1446,7 @@ TEST(test_parse, use_await_at_top_level_as_variable) {
   }
 }
 
-TEST(test_parse, forced_top_level_await_operator) {
+TEST_F(test_parse_var, forced_top_level_await_operator) {
   {
     padded_string code(u8"await p;"_sv);
     spy_visitor v;
@@ -1475,8 +1477,8 @@ TEST(test_parse, forced_top_level_await_operator) {
   }
 }
 
-TEST(
-    test_parse,
+TEST_F(
+    test_parse_var,
     declare_await_in_async_function_is_allowed_for_named_function_expressions) {
   {
     parse_visit_collector v = parse_and_visit_statement(
@@ -1495,7 +1497,7 @@ TEST(
   }
 }
 
-TEST(test_parse, use_yield_in_non_generator_function) {
+TEST_F(test_parse_var, use_yield_in_non_generator_function) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"yield(x);"_sv);
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"yield", u8"x"));
@@ -1519,7 +1521,7 @@ TEST(test_parse, use_yield_in_non_generator_function) {
   }
 }
 
-TEST(test_parse, declare_yield_in_non_generator_function) {
+TEST_F(test_parse_var, declare_yield_in_non_generator_function) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"function yield() { }"_sv);
@@ -1548,7 +1550,7 @@ TEST(test_parse, declare_yield_in_non_generator_function) {
   }
 }
 
-TEST(test_parse, declare_yield_in_generator_function) {
+TEST_F(test_parse_var, declare_yield_in_generator_function) {
   {
     spy_visitor v;
     padded_string code(u8"function yield() { }"_sv);
@@ -1606,7 +1608,7 @@ TEST(test_parse, declare_yield_in_generator_function) {
   }
 }
 
-TEST(test_parse, variables_can_be_named_contextual_keywords) {
+TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
   dirty_set<string8> variable_names =
       (contextual_keywords - dirty_set<string8>{u8"let"}) |
       dirty_set<string8>{u8"await", u8"yield"} |
@@ -1844,7 +1846,8 @@ TEST(test_parse, variables_can_be_named_contextual_keywords) {
   }
 }
 
-TEST(test_parse, lexical_declaration_as_do_while_loop_body_is_disallowed) {
+TEST_F(test_parse_var,
+       lexical_declaration_as_do_while_loop_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
     padded_string code(u8"do " + variable_kind + u8" x = y; while (cond);");
     SCOPED_TRACE(code);
@@ -1865,7 +1868,7 @@ TEST(test_parse, lexical_declaration_as_do_while_loop_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, lexical_declaration_as_for_loop_body_is_disallowed) {
+TEST_F(test_parse_var, lexical_declaration_as_for_loop_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
     padded_string code(u8"for (;cond;) " + variable_kind + u8" x = y;");
     SCOPED_TRACE(code);
@@ -1887,7 +1890,7 @@ TEST(test_parse, lexical_declaration_as_for_loop_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, lexical_declaration_as_if_statement_body_is_disallowed) {
+TEST_F(test_parse_var, lexical_declaration_as_if_statement_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
     {
       padded_string code(u8"if (cond) " + variable_kind + u8" x = y;");
@@ -1956,7 +1959,7 @@ TEST(test_parse, lexical_declaration_as_if_statement_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, lexical_declaration_as_while_loop_body_is_disallowed) {
+TEST_F(test_parse_var, lexical_declaration_as_while_loop_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
     padded_string code(u8"while (cond) " + variable_kind + u8" x = y;");
     SCOPED_TRACE(code);
@@ -1978,7 +1981,8 @@ TEST(test_parse, lexical_declaration_as_while_loop_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, lexical_declaration_as_with_statement_body_is_disallowed) {
+TEST_F(test_parse_var,
+       lexical_declaration_as_with_statement_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
     padded_string code(u8"with (obj) " + variable_kind + u8" x = y;");
     SCOPED_TRACE(code);
@@ -2002,7 +2006,8 @@ TEST(test_parse, lexical_declaration_as_with_statement_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, let_as_statement_body_does_not_allow_asi_before_left_square) {
+TEST_F(test_parse_var,
+       let_as_statement_body_does_not_allow_asi_before_left_square) {
   {
     padded_string code(u8"if (cond) let\n[x] = xs;"_sv);
     spy_visitor v;

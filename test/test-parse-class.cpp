@@ -24,14 +24,16 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse, super_in_class) {
+class test_parse_class : public test_parse_expression {};
+
+TEST_F(test_parse_class, super_in_class) {
   {
     parse_visit_collector v = parse_and_visit_statement(
         u8"class C extends Base { constructor() { super(); } }");
   }
 }
 
-TEST(test_parse, parse_class_statement) {
+TEST_F(test_parse_class, parse_class_statement) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"class C {}"_sv);
     EXPECT_THAT(v.variable_declarations, ElementsAre(class_decl(u8"C")));
@@ -71,7 +73,7 @@ TEST(test_parse, parse_class_statement) {
   }
 }
 
-TEST(test_parse, class_statement_requires_a_name) {
+TEST_F(test_parse_class, class_statement_requires_a_name) {
   {
     spy_visitor v;
     padded_string code(u8"class {}"_sv);
@@ -86,7 +88,7 @@ TEST(test_parse, class_statement_requires_a_name) {
   }
 }
 
-TEST(test_parse, class_statement_requires_a_body) {
+TEST_F(test_parse_class, class_statement_requires_a_body) {
   {
     spy_visitor v;
     padded_string code(u8"class C "_sv);
@@ -138,7 +140,7 @@ TEST(test_parse, class_statement_requires_a_body) {
   }
 }
 
-TEST(test_parse, unclosed_class_statement) {
+TEST_F(test_parse_class, unclosed_class_statement) {
   {
     spy_visitor v;
     padded_string code(u8"class C { "_sv);
@@ -189,7 +191,7 @@ TEST(test_parse, unclosed_class_statement) {
   }
 }
 
-TEST(test_parse, class_statement_with_odd_heritage) {
+TEST_F(test_parse_class, class_statement_with_odd_heritage) {
   {
     // TODO(strager): Should this report errors?
     parse_visit_collector v =
@@ -221,7 +223,7 @@ TEST(test_parse, class_statement_with_odd_heritage) {
   }
 }
 
-TEST(test_parse, class_statement_extending_class_expression) {
+TEST_F(test_parse_class, class_statement_extending_class_expression) {
   {
     parse_visit_collector v = parse_and_visit_statement(
         u8"class C extends class B { x() {} } { y() {} }"_sv);
@@ -243,7 +245,7 @@ TEST(test_parse, class_statement_extending_class_expression) {
   }
 }
 
-TEST(test_parse, class_statement_with_methods) {
+TEST_F(test_parse_class, class_statement_with_methods) {
   {
     parse_visit_collector v = parse_and_visit_statement(
         u8"class Monster { eatMuffins(muffinCount) { } }");
@@ -365,7 +367,7 @@ TEST(test_parse, class_statement_with_methods) {
   }
 }
 
-TEST(test_parse, class_statement_methods_with_arrow_operator) {
+TEST_F(test_parse_class, class_statement_methods_with_arrow_operator) {
   {
     spy_visitor v;
     padded_string code(u8"class C { method() => {} }"_sv);
@@ -389,7 +391,7 @@ TEST(test_parse, class_statement_methods_with_arrow_operator) {
   }
 }
 
-TEST(test_parse, missing_class_method_name_fails) {
+TEST_F(test_parse_class, missing_class_method_name_fails) {
   {
     padded_string code(u8"class Monster { (muffinCount) { } }"_sv);
     spy_visitor v;
@@ -412,7 +414,7 @@ TEST(test_parse, missing_class_method_name_fails) {
   }
 }
 
-TEST(test_parse, class_statement_with_fields) {
+TEST_F(test_parse_class, class_statement_with_fields) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"class FruitBasket { banana; }");
@@ -616,7 +618,8 @@ TEST(test_parse, class_statement_with_fields) {
   // TODO(strager): 'set field=init' is an error.
 }
 
-TEST(test_parse, class_fields_without_initializer_allow_asi_after_name) {
+TEST_F(test_parse_class,
+       class_fields_without_initializer_allow_asi_after_name) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"class C { f\ng() {} }");
@@ -660,7 +663,7 @@ TEST(test_parse, class_fields_without_initializer_allow_asi_after_name) {
   }
 }
 
-TEST(test_parse, class_methods_should_not_use_function_keyword) {
+TEST_F(test_parse_class, class_methods_should_not_use_function_keyword) {
   {
     spy_visitor v;
     padded_string code(u8"class C { function f() {} }"_sv);
@@ -716,7 +719,7 @@ TEST(test_parse, class_methods_should_not_use_function_keyword) {
   }
 }
 
-TEST(test_parse, class_statement_with_keyword_property) {
+TEST_F(test_parse_class, class_statement_with_keyword_property) {
   for (string8 keyword : keywords) {
     {
       string8 code = u8"class C { " + keyword + u8"(){} }";
@@ -777,7 +780,8 @@ TEST(test_parse, class_statement_with_keyword_property) {
   }
 }
 
-TEST(test_parse, typescript_class_statement_with_readonly_keyword_property) {
+TEST_F(test_parse_class,
+       typescript_class_statement_with_readonly_keyword_property) {
   for (string8 keyword : keywords) {
     {
       string8 code = u8"class C { readonly " + keyword + u8"; }";
@@ -789,7 +793,7 @@ TEST(test_parse, typescript_class_statement_with_readonly_keyword_property) {
   }
 }
 
-TEST(test_parse, typescript_class_with_keyword_generic_method) {
+TEST_F(test_parse_class, typescript_class_with_keyword_generic_method) {
   for (string8 keyword : keywords) {
     {
       string8 code = u8"class C { " + keyword + u8"<T>(){} }";
@@ -820,7 +824,7 @@ TEST(test_parse, typescript_class_with_keyword_generic_method) {
   }
 }
 
-TEST(test_parse, class_statement_with_number_methods) {
+TEST_F(test_parse_class, class_statement_with_number_methods) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"class Wat { 42.0() { } }"_sv);
@@ -840,7 +844,7 @@ TEST(test_parse, class_statement_with_number_methods) {
   }
 }
 
-TEST(test_parse, class_expression) {
+TEST_F(test_parse_class, class_expression) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"(class C { })"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
@@ -904,13 +908,13 @@ TEST(test_parse, class_expression) {
   }
 }
 
-TEST(test_parse, class_statement_allows_stray_semicolons) {
+TEST_F(test_parse_class, class_statement_allows_stray_semicolons) {
   parse_visit_collector v =
       parse_and_visit_statement(u8"class C{ ; f(){} ; }"_sv);
   EXPECT_THAT(v.property_declarations, ElementsAre(u8"f"));
 }
 
-TEST(test_parse, class_method_without_parameter_list) {
+TEST_F(test_parse_class, class_method_without_parameter_list) {
   {
     spy_visitor v;
     padded_string code(u8"class C { method { body; } }"_sv);
@@ -955,7 +959,7 @@ TEST(test_parse, class_method_without_parameter_list) {
   }
 }
 
-TEST(test_parse, stray_identifier_before_class_method) {
+TEST_F(test_parse_class, stray_identifier_before_class_method) {
   {
     spy_visitor v;
     padded_string code(u8"class C { junkIdentifier method(arg) { body; } }"_sv);
@@ -1017,7 +1021,7 @@ TEST(test_parse, stray_identifier_before_class_method) {
   }
 }
 
-TEST(test_parse, stray_left_curly_in_class_is_ignored) {
+TEST_F(test_parse_class, stray_left_curly_in_class_is_ignored) {
   // TODO(strager): Is this the right approach? What about 'class C { { } }'?
   {
     spy_visitor v;
@@ -1031,7 +1035,7 @@ TEST(test_parse, stray_left_curly_in_class_is_ignored) {
   }
 }
 
-TEST(test_parse, stray_keyword_in_class_body) {
+TEST_F(test_parse_class, stray_keyword_in_class_body) {
   {
     spy_visitor v;
     padded_string code(
@@ -1049,7 +1053,8 @@ TEST(test_parse, stray_keyword_in_class_body) {
   }
 }
 
-TEST(test_parse, class_statement_as_do_while_statement_body_is_disallowed) {
+TEST_F(test_parse_class,
+       class_statement_as_do_while_statement_body_is_disallowed) {
   {
     padded_string code(u8"do class C {} while (cond);"_sv);
     spy_visitor v;
@@ -1071,7 +1076,7 @@ TEST(test_parse, class_statement_as_do_while_statement_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, class_statement_as_if_statement_body_is_disallowed) {
+TEST_F(test_parse_class, class_statement_as_if_statement_body_is_disallowed) {
   {
     padded_string code(u8"if (cond) class C {} after"_sv);
     spy_visitor v;
@@ -1145,7 +1150,7 @@ TEST(test_parse, class_statement_as_if_statement_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, class_statement_as_for_statement_body_is_disallowed) {
+TEST_F(test_parse_class, class_statement_as_for_statement_body_is_disallowed) {
   {
     padded_string code(u8"for (;cond;) class C {}"_sv);
     spy_visitor v;
@@ -1168,7 +1173,8 @@ TEST(test_parse, class_statement_as_for_statement_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, class_statement_as_while_statement_body_is_disallowed) {
+TEST_F(test_parse_class,
+       class_statement_as_while_statement_body_is_disallowed) {
   {
     padded_string code(u8"while (cond) class C {}"_sv);
     spy_visitor v;
@@ -1191,7 +1197,7 @@ TEST(test_parse, class_statement_as_while_statement_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, class_statement_as_with_statement_body_is_disallowed) {
+TEST_F(test_parse_class, class_statement_as_with_statement_body_is_disallowed) {
   {
     padded_string code(u8"with (obj) class C {}"_sv);
     spy_visitor v;
@@ -1216,7 +1222,7 @@ TEST(test_parse, class_statement_as_with_statement_body_is_disallowed) {
   }
 }
 
-TEST(test_parse, class_in_async_function_is_allowed) {
+TEST_F(test_parse_class, class_in_async_function_is_allowed) {
   {
     parse_visit_collector v = parse_and_visit_statement(
         u8"async function f() {"
@@ -1225,7 +1231,7 @@ TEST(test_parse, class_in_async_function_is_allowed) {
   }
 }
 
-TEST(test_parse, class_named_await_in_async_function) {
+TEST_F(test_parse_class, class_named_await_in_async_function) {
   { parse_visit_collector v = parse_and_visit_statement(u8"class await {}"); }
 
   {
@@ -1248,7 +1254,7 @@ TEST(test_parse, class_named_await_in_async_function) {
   }
 }
 
-TEST(test_parse, async_static_method_is_disallowed) {
+TEST_F(test_parse_class, async_static_method_is_disallowed) {
   {
     spy_visitor v;
     padded_string code(
@@ -1303,7 +1309,7 @@ TEST(test_parse, async_static_method_is_disallowed) {
   }
 }
 
-TEST(test_parse, static_method_allows_newline_after_static_keyword) {
+TEST_F(test_parse_class, static_method_allows_newline_after_static_keyword) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"class C { static\n m() { } }"_sv);
@@ -1329,7 +1335,7 @@ TEST(test_parse, static_method_allows_newline_after_static_keyword) {
   }
 }
 
-TEST(test_parse, async_method_prohibits_newline_after_async_keyword) {
+TEST_F(test_parse_class, async_method_prohibits_newline_after_async_keyword) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"class C { async\n m() { } }"_sv);
@@ -1349,7 +1355,7 @@ TEST(test_parse, async_method_prohibits_newline_after_async_keyword) {
   }
 }
 
-TEST(test_parse, typescript_style_const_field) {
+TEST_F(test_parse_class, typescript_style_const_field) {
   {
     spy_visitor v;
     padded_string code(u8"class C { const f = null }"_sv);
@@ -1372,7 +1378,7 @@ TEST(test_parse, typescript_style_const_field) {
   }
 }
 
-TEST(test_parse, class_expression_body_is_visited_first_in_expression) {
+TEST_F(test_parse_class, class_expression_body_is_visited_first_in_expression) {
   {
     padded_string code(u8"[before, class C { m() { inside; } }, after];"sv);
     parse_visit_collector v = parse_and_visit_statement(&code);

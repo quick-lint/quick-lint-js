@@ -24,7 +24,9 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse_typescript, type_annotation_in_expression_is_an_error) {
+class test_parse_typescript : public test_parse_expression {};
+
+TEST_F(test_parse_typescript, type_annotation_in_expression_is_an_error) {
   {
     padded_string code(u8"x = myVar: Type;"_sv);
     spy_visitor v;
@@ -42,7 +44,7 @@ TEST(test_parse_typescript, type_annotation_in_expression_is_an_error) {
   }
 }
 
-TEST(test_parse_typescript, type_alias) {
+TEST_F(test_parse_typescript, type_alias) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"type T = U;"_sv);
@@ -70,7 +72,7 @@ TEST(test_parse_typescript, type_alias) {
   }
 }
 
-TEST(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
+TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"type T = U"_sv);
@@ -115,8 +117,8 @@ TEST(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
   }
 }
 
-TEST(test_parse_typescript,
-     type_alias_can_be_named_certain_contextual_keywords) {
+TEST_F(test_parse_typescript,
+       type_alias_can_be_named_certain_contextual_keywords) {
   for (string8 name :
        dirty_set<string8>{u8"await"} |
            (contextual_keywords - typescript_builtin_type_keywords -
@@ -138,7 +140,8 @@ TEST(test_parse_typescript,
   }
 }
 
-TEST(test_parse_typescript, type_alias_cannot_have_newline_after_type_keyword) {
+TEST_F(test_parse_typescript,
+       type_alias_cannot_have_newline_after_type_keyword) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"type\nT = U;"_sv);
@@ -150,7 +153,7 @@ TEST(test_parse_typescript, type_alias_cannot_have_newline_after_type_keyword) {
   }
 }
 
-TEST(test_parse_typescript, type_alias_not_allowed_in_javascript) {
+TEST_F(test_parse_typescript, type_alias_not_allowed_in_javascript) {
   {
     padded_string code(u8"type T = U;"_sv);
     spy_visitor v;

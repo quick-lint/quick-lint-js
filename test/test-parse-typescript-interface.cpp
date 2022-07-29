@@ -24,7 +24,9 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse_typescript_interface, not_supported_in_vanilla_javascript) {
+class test_parse_typescript_interface : public test_parse_expression {};
+
+TEST_F(test_parse_typescript_interface, not_supported_in_vanilla_javascript) {
   padded_string code(u8"interface I {}"_sv);
   spy_visitor v;
   parser_options options;
@@ -42,7 +44,7 @@ TEST(test_parse_typescript_interface, not_supported_in_vanilla_javascript) {
                   interface_keyword, 0, u8"interface")));
 }
 
-TEST(test_parse_typescript_interface, empty_interface) {
+TEST_F(test_parse_typescript_interface, empty_interface) {
   padded_string code(u8"interface I {}"_sv);
   spy_visitor v;
   parser p(&code, &v, typescript_options);
@@ -55,7 +57,7 @@ TEST(test_parse_typescript_interface, empty_interface) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_parse_typescript_interface, interface_without_body) {
+TEST_F(test_parse_typescript_interface, interface_without_body) {
   {
     padded_string code(u8"interface I"_sv);
     spy_visitor v;
@@ -90,7 +92,7 @@ TEST(test_parse_typescript_interface, interface_without_body) {
   }
 }
 
-TEST(test_parse_typescript_interface, extends) {
+TEST_F(test_parse_typescript_interface, extends) {
   padded_string code(u8"interface I extends A {}"_sv);
   spy_visitor v;
   parser p(&code, &v, typescript_options);
@@ -104,7 +106,7 @@ TEST(test_parse_typescript_interface, extends) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_parse_typescript_interface, extends_interface_from_namespace) {
+TEST_F(test_parse_typescript_interface, extends_interface_from_namespace) {
   padded_string code(u8"interface I extends ns.A {}"_sv);
   spy_visitor v;
   parser p(&code, &v, typescript_options);
@@ -118,7 +120,7 @@ TEST(test_parse_typescript_interface, extends_interface_from_namespace) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_parse_typescript_interface, extends_multiple_things) {
+TEST_F(test_parse_typescript_interface, extends_multiple_things) {
   padded_string code(u8"interface I extends A, B, C {}"_sv);
   spy_visitor v;
   parser p(&code, &v, typescript_options);
@@ -134,7 +136,7 @@ TEST(test_parse_typescript_interface, extends_multiple_things) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_parse, unclosed_interface_statement) {
+TEST_F(test_parse_typescript_interface, unclosed_interface_statement) {
   {
     padded_string code(u8"interface I { "_sv);
     spy_visitor v;
@@ -182,8 +184,8 @@ TEST(test_parse, unclosed_interface_statement) {
   }
 }
 
-TEST(test_parse_typescript_interface,
-     interface_can_be_named_contextual_keyword) {
+TEST_F(test_parse_typescript_interface,
+       interface_can_be_named_contextual_keyword) {
   for (string8 name : contextual_keywords - typescript_builtin_type_keywords -
                           typescript_special_type_keywords -
                           dirty_set<string8>{
@@ -202,8 +204,8 @@ TEST(test_parse_typescript_interface,
   }
 }
 
-TEST(test_parse_typescript_interface,
-     interface_cannot_have_newline_after_interface_keyword) {
+TEST_F(test_parse_typescript_interface,
+       interface_cannot_have_newline_after_interface_keyword) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"interface\nI\n{}"_sv);
@@ -216,7 +218,7 @@ TEST(test_parse_typescript_interface,
   }
 }
 
-TEST(test_parse_typescript_interface, property_without_type) {
+TEST_F(test_parse_typescript_interface, property_without_type) {
   {
     padded_string code(u8"interface I { a;b\nc }"_sv);
     spy_visitor v;
@@ -270,7 +272,7 @@ TEST(test_parse_typescript_interface, property_without_type) {
   }
 }
 
-TEST(test_parse_typescript_interface, optional_property) {
+TEST_F(test_parse_typescript_interface, optional_property) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"interface I { fieldName?; }"_sv);
@@ -331,7 +333,8 @@ TEST(test_parse_typescript_interface, optional_property) {
   }
 }
 
-TEST(test_parse_typescript_interface, assignment_asserted_field_is_disallowed) {
+TEST_F(test_parse_typescript_interface,
+       assignment_asserted_field_is_disallowed) {
   {
     padded_string code(u8"interface I { fieldName!; }"_sv);
     spy_visitor v;
@@ -347,7 +350,7 @@ TEST(test_parse_typescript_interface, assignment_asserted_field_is_disallowed) {
   }
 }
 
-TEST(test_parse_typescript_interface, field_with_type) {
+TEST_F(test_parse_typescript_interface, field_with_type) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"interface I { fieldName: FieldType; }"_sv);
@@ -385,7 +388,7 @@ TEST(test_parse_typescript_interface, field_with_type) {
   }
 }
 
-TEST(test_parse_typescript_interface, interface_with_methods) {
+TEST_F(test_parse_typescript_interface, interface_with_methods) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"interface Monster { eatMuffins(muffinCount); }");
@@ -452,7 +455,7 @@ TEST(test_parse_typescript_interface, interface_with_methods) {
   }
 }
 
-TEST(test_parse_typescript_interface, interface_with_index_signature) {
+TEST_F(test_parse_typescript_interface, interface_with_index_signature) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"interface I { [key: KeyType]: ValueType; }"_sv);
@@ -491,7 +494,7 @@ TEST(test_parse_typescript_interface, interface_with_index_signature) {
   }
 }
 
-TEST(test_parse_typescript_interface, index_signature_requires_type) {
+TEST_F(test_parse_typescript_interface, index_signature_requires_type) {
   {
     padded_string code(u8"interface I { [key: KeyType]; }"_sv);
     spy_visitor v;
@@ -535,7 +538,7 @@ TEST(test_parse_typescript_interface, index_signature_requires_type) {
   }
 }
 
-TEST(test_parse_typescript_interface, index_signature_cannot_be_a_method) {
+TEST_F(test_parse_typescript_interface, index_signature_cannot_be_a_method) {
   {
     padded_string code(u8"interface I { [key: KeyType](param); }"_sv);
     spy_visitor v;
@@ -563,7 +566,7 @@ TEST(test_parse_typescript_interface, index_signature_cannot_be_a_method) {
   }
 }
 
-TEST(test_parse_typescript_interface, index_signature_requires_semicolon) {
+TEST_F(test_parse_typescript_interface, index_signature_requires_semicolon) {
   {
     padded_string code(
         u8"interface I { [key: KeyType]: ValueType method(); }"_sv);
@@ -590,7 +593,7 @@ TEST(test_parse_typescript_interface, index_signature_requires_semicolon) {
   }
 }
 
-TEST(test_parse_typescript_interface, interface_methods_cannot_have_bodies) {
+TEST_F(test_parse_typescript_interface, interface_methods_cannot_have_bodies) {
   {
     padded_string code(u8"interface I { method() { x } }"_sv);
     spy_visitor v;
@@ -629,7 +632,7 @@ TEST(test_parse_typescript_interface, interface_methods_cannot_have_bodies) {
   }
 }
 
-TEST(test_parse_typescript_interface, interface_with_keyword_property) {
+TEST_F(test_parse_typescript_interface, interface_with_keyword_property) {
   for (string8 suffix : {u8"", u8"?"}) {
     for (string8 keyword : keywords) {
       {
@@ -680,7 +683,7 @@ TEST(test_parse_typescript_interface, interface_with_keyword_property) {
   }
 }
 
-TEST(test_parse_typescript_interface, interface_with_number_methods) {
+TEST_F(test_parse_typescript_interface, interface_with_number_methods) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"interface Wat { 42.0(); }"_sv);
@@ -698,13 +701,13 @@ TEST(test_parse_typescript_interface, interface_with_number_methods) {
   }
 }
 
-TEST(test_parse_typescript_interface, interface_allows_stray_semicolons) {
+TEST_F(test_parse_typescript_interface, interface_allows_stray_semicolons) {
   parse_visit_collector v =
       parse_and_visit_typescript_statement(u8"interface I{ ; f() ; ; }"_sv);
   EXPECT_THAT(v.property_declarations, ElementsAre(u8"f"));
 }
 
-TEST(test_parse_typescript_interface, private_properties_are_not_allowed) {
+TEST_F(test_parse_typescript_interface, private_properties_are_not_allowed) {
   {
     padded_string code(u8"interface I { #method(); }"_sv);
     spy_visitor v;
@@ -782,7 +785,7 @@ TEST(test_parse_typescript_interface, private_properties_are_not_allowed) {
   }
 }
 
-TEST(test_parse_typescript_interface, static_properties_are_not_allowed) {
+TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
   for (string8 property_name : dirty_set<string8>{u8"myProperty"} | keywords) {
     SCOPED_TRACE(out_string8(property_name));
 
@@ -960,7 +963,7 @@ TEST(test_parse_typescript_interface, static_properties_are_not_allowed) {
   }
 }
 
-TEST(test_parse_typescript_interface, async_methods_are_not_allowed) {
+TEST_F(test_parse_typescript_interface, async_methods_are_not_allowed) {
   for (string8 method_name : dirty_set<string8>{u8"method"} | keywords) {
     SCOPED_TRACE(out_string8(method_name));
 
@@ -994,7 +997,7 @@ TEST(test_parse_typescript_interface, async_methods_are_not_allowed) {
   }
 }
 
-TEST(test_parse_typescript_interface, generator_methods_are_not_allowed) {
+TEST_F(test_parse_typescript_interface, generator_methods_are_not_allowed) {
   for (string8 method_name : dirty_set<string8>{u8"method"} | keywords) {
     SCOPED_TRACE(out_string8(method_name));
 
@@ -1046,8 +1049,8 @@ TEST(test_parse_typescript_interface, generator_methods_are_not_allowed) {
   }
 }
 
-TEST(test_parse_typescript_interface,
-     static_async_methods_are_definitely_not_allowed) {
+TEST_F(test_parse_typescript_interface,
+       static_async_methods_are_definitely_not_allowed) {
   {
     padded_string code(u8"interface I { static async method(); }"_sv);
     spy_visitor v;
@@ -1100,7 +1103,7 @@ TEST(test_parse_typescript_interface,
   }
 }
 
-TEST(test_parse_typescript_interface, field_initializers_are_not_allowed) {
+TEST_F(test_parse_typescript_interface, field_initializers_are_not_allowed) {
   for (string8 field_name : dirty_set<string8>{u8"field"} | keywords) {
     SCOPED_TRACE(out_string8(field_name));
 
@@ -1152,7 +1155,8 @@ TEST(test_parse_typescript_interface, field_initializers_are_not_allowed) {
   }
 }
 
-TEST(test_parse_typescript_interface, interface_named_await_in_async_function) {
+TEST_F(test_parse_typescript_interface,
+       interface_named_await_in_async_function) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"interface await {}");
@@ -1178,7 +1182,7 @@ TEST(test_parse_typescript_interface, interface_named_await_in_async_function) {
   }
 }
 
-TEST(test_parse_typescript_interface, call_signature) {
+TEST_F(test_parse_typescript_interface, call_signature) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"interface I { (param); }");
@@ -1195,8 +1199,8 @@ TEST(test_parse_typescript_interface, call_signature) {
   }
 }
 
-TEST(test_parse_typescript_interface,
-     call_signature_cannot_have_generator_star) {
+TEST_F(test_parse_typescript_interface,
+       call_signature_cannot_have_generator_star) {
   {
     padded_string code(u8"interface I { *(param); }"_sv);
     spy_visitor v;
@@ -1219,7 +1223,7 @@ TEST(test_parse_typescript_interface,
   }
 }
 
-TEST(test_parse_typescript_interface, generic_call_signature) {
+TEST_F(test_parse_typescript_interface, generic_call_signature) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"interface I { <T>(param); }");
@@ -1240,7 +1244,7 @@ TEST(test_parse_typescript_interface, generic_call_signature) {
   }
 }
 
-TEST(test_parse_typescript_interface, generic_interface) {
+TEST_F(test_parse_typescript_interface, generic_interface) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"interface I<T> { field: T; }");
@@ -1256,7 +1260,7 @@ TEST(test_parse_typescript_interface, generic_interface) {
   }
 }
 
-TEST(test_parse_typescript_interface, access_specifiers_are_not_allowed) {
+TEST_F(test_parse_typescript_interface, access_specifiers_are_not_allowed) {
   for (string8 specifier : {u8"public", u8"protected", u8"private"}) {
     padded_string code(u8"interface I { " + specifier + u8" method(); }");
     SCOPED_TRACE(code);
@@ -1273,7 +1277,7 @@ TEST(test_parse_typescript_interface, access_specifiers_are_not_allowed) {
   }
 }
 
-TEST(test_parse_typescript_interface, static_blocks_are_not_allowed) {
+TEST_F(test_parse_typescript_interface, static_blocks_are_not_allowed) {
   {
     padded_string code(u8"interface I { static { console.log('hello'); } }"_sv);
     spy_visitor v;
@@ -1289,8 +1293,8 @@ TEST(test_parse_typescript_interface, static_blocks_are_not_allowed) {
   }
 }
 
-TEST(test_parse_typescript_interface,
-     type_annotations_dont_add_extra_diagnostic_in_javascript) {
+TEST_F(test_parse_typescript_interface,
+       type_annotations_dont_add_extra_diagnostic_in_javascript) {
   {
     padded_string code(u8"interface I<T> { method(): Type; }"_sv);
     spy_visitor v;

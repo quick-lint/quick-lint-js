@@ -24,7 +24,9 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse_jsx, jsx_is_not_supported_in_vanilla_javascript) {
+class test_parse_jsx : public test_parse_expression {};
+
+TEST_F(test_parse_jsx, jsx_is_not_supported_in_vanilla_javascript) {
   // If parsing was not started with
   // parse_and_visit_module_catching_fatal_parse_errors, then we can't halt
   // parsing at the '<'. Error recovery will do a bad job.
@@ -39,7 +41,7 @@ TEST(test_parse_jsx, jsx_is_not_supported_in_vanilla_javascript) {
                             jsx_start, 0, u8"<")));
 }
 
-TEST(test_parse_jsx, parsing_stops_on_jsx_in_vanilla_javascript) {
+TEST_F(test_parse_jsx, parsing_stops_on_jsx_in_vanilla_javascript) {
   padded_string code(u8"<MyComponent attr={value}>hello</MyComponent>"_sv);
   spy_visitor v;
   parser_options options;
@@ -52,7 +54,7 @@ TEST(test_parse_jsx, parsing_stops_on_jsx_in_vanilla_javascript) {
                             jsx_start, 0, u8"<")));
 }
 
-TEST(test_parse_jsx, empty_intrinsic_element) {
+TEST_F(test_parse_jsx, empty_intrinsic_element) {
   padded_string code(u8"c = <div></div>;"_sv);
   spy_visitor v;
   parser p(&code, &v, jsx_options);
@@ -62,7 +64,7 @@ TEST(test_parse_jsx, empty_intrinsic_element) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_parse_jsx, empty_user_element) {
+TEST_F(test_parse_jsx, empty_user_element) {
   padded_string code(u8"c = <MyComponent></MyComponent>;"_sv);
   spy_visitor v;
   parser p(&code, &v, jsx_options);
@@ -74,7 +76,7 @@ TEST(test_parse_jsx, empty_user_element) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_parse_jsx, member_component) {
+TEST_F(test_parse_jsx, member_component) {
   padded_string code(
       u8"c = <module.submodule.MyComponent></module.submodule.MyComponent>;"_sv);
   spy_visitor v;
@@ -87,7 +89,7 @@ TEST(test_parse_jsx, member_component) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_parse_jsx, element_child_element) {
+TEST_F(test_parse_jsx, element_child_element) {
   {
     padded_string code(u8"c = <outer><INNER></INNER></outer>;"_sv);
     spy_visitor v;
@@ -135,7 +137,7 @@ TEST(test_parse_jsx, element_child_element) {
   }
 }
 
-TEST(test_parse_jsx, element_child_expression) {
+TEST_F(test_parse_jsx, element_child_expression) {
   {
     padded_string code(u8"c = <outer>{INNER}</outer>;"_sv);
     spy_visitor v;
@@ -182,7 +184,7 @@ TEST(test_parse_jsx, element_child_expression) {
   }
 }
 
-TEST(test_parse_jsx, element_attribute_expression) {
+TEST_F(test_parse_jsx, element_attribute_expression) {
   {
     padded_string code(u8"c = <outer attr={attrValue}></outer>;"_sv);
     spy_visitor v;
@@ -221,7 +223,7 @@ TEST(test_parse_jsx, element_attribute_expression) {
   }
 }
 
-TEST(test_parse_jsx, attribute_without_name_must_be_spread) {
+TEST_F(test_parse_jsx, attribute_without_name_must_be_spread) {
   {
     padded_string code(u8"c = <div {attr} />;"_sv);
     spy_visitor v;
@@ -234,7 +236,7 @@ TEST(test_parse_jsx, attribute_without_name_must_be_spread) {
   }
 }
 
-TEST(test_parse_jsx, begin_and_end_tags_must_match) {
+TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
   {
     padded_string code(u8"c = <div></span>;"_sv);
     spy_visitor v;
@@ -434,8 +436,8 @@ TEST(test_parse_jsx, begin_and_end_tags_must_match) {
   }
 }
 
-TEST(test_parse_jsx,
-     begin_and_end_tag_mismatch_message_excludes_comments_and_whitespace) {
+TEST_F(test_parse_jsx,
+       begin_and_end_tag_mismatch_message_excludes_comments_and_whitespace) {
   {
     padded_string code(u8"c = < div ></x>;"_sv);
     spy_visitor v;
@@ -467,8 +469,8 @@ TEST(test_parse_jsx,
   }
 }
 
-TEST(test_parse_jsx,
-     begin_and_end_tag_mismatch_message_include_unicode_escapes) {
+TEST_F(test_parse_jsx,
+       begin_and_end_tag_mismatch_message_include_unicode_escapes) {
   {
     padded_string code(u8R"(c = <d\u{69}v></x>;)"_sv);
     spy_visitor v;
@@ -500,7 +502,7 @@ TEST(test_parse_jsx,
   }
 }
 
-TEST(test_parse_jsx, begin_and_end_tags_match_after_normalization) {
+TEST_F(test_parse_jsx, begin_and_end_tags_match_after_normalization) {
   {
     padded_string code(u8R"(c = <div></\u{64}\u{69}\u{76}>;)"_sv);
     spy_visitor v;
@@ -511,7 +513,7 @@ TEST(test_parse_jsx, begin_and_end_tags_match_after_normalization) {
   }
 }
 
-TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
+TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
   {
     padded_string code(u8R"(c = <div></div> <div></div>;)"_sv);
     spy_visitor v;
@@ -598,7 +600,7 @@ TEST(test_parse_jsx, adjacent_tags_without_outer_fragment) {
   }
 }
 
-TEST(test_parse_jsx, correctly_capitalized_attribute) {
+TEST_F(test_parse_jsx, correctly_capitalized_attribute) {
   {
     padded_string code(u8R"(c = <td colSpan="2" />;)"_sv);
     spy_visitor v;
@@ -616,7 +618,7 @@ TEST(test_parse_jsx, correctly_capitalized_attribute) {
   }
 }
 
-TEST(test_parse_jsx, event_attributes_should_be_camel_case) {
+TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
   {
     padded_string code(u8R"(c = <div onclick={handler} />;)"_sv);
     spy_visitor v;
@@ -675,7 +677,7 @@ TEST(test_parse_jsx, event_attributes_should_be_camel_case) {
   }
 }
 
-TEST(test_parse_jsx, miscapitalized_attribute) {
+TEST_F(test_parse_jsx, miscapitalized_attribute) {
   {
     padded_string code(u8R"(c = <td colspan="2" />;)"_sv);
     spy_visitor v;
@@ -719,7 +721,7 @@ TEST(test_parse_jsx, miscapitalized_attribute) {
   }
 }
 
-TEST(test_parse_jsx, commonly_misspelled_attribute) {
+TEST_F(test_parse_jsx, commonly_misspelled_attribute) {
   {
     padded_string code(u8R"(c = <span class="item"></span>;)"_sv);
     spy_visitor v;
@@ -735,7 +737,7 @@ TEST(test_parse_jsx, commonly_misspelled_attribute) {
   }
 }
 
-TEST(test_parse_jsx, attribute_checking_ignores_namespaced_attributes) {
+TEST_F(test_parse_jsx, attribute_checking_ignores_namespaced_attributes) {
   {
     padded_string code(u8R"(c = <div ns:onmouseenter={handler} />;)"_sv);
     spy_visitor v;
@@ -762,7 +764,7 @@ TEST(test_parse_jsx, attribute_checking_ignores_namespaced_attributes) {
   }
 }
 
-TEST(test_parse_jsx, attribute_checking_ignores_namespaced_elements) {
+TEST_F(test_parse_jsx, attribute_checking_ignores_namespaced_elements) {
   {
     padded_string code(u8R"(c = <svg:g onmouseenter={handler} />;)"_sv);
     spy_visitor v;
@@ -780,7 +782,7 @@ TEST(test_parse_jsx, attribute_checking_ignores_namespaced_elements) {
   }
 }
 
-TEST(test_parse_jsx, attribute_checking_ignores_user_components) {
+TEST_F(test_parse_jsx, attribute_checking_ignores_user_components) {
   {
     padded_string code(u8R"(c = <MyComponent onmouseenter={handler} />;)"_sv);
     spy_visitor v;

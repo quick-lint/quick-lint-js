@@ -24,7 +24,9 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse_typescript_namespace, not_supported_in_vanilla_javascript) {
+class test_parse_typescript_namespace : public test_parse_expression {};
+
+TEST_F(test_parse_typescript_namespace, not_supported_in_vanilla_javascript) {
   padded_string code(u8"namespace ns {}"_sv);
   spy_visitor v;
   parser p(&code, &v, javascript_options);
@@ -39,7 +41,7 @@ TEST(test_parse_typescript_namespace, not_supported_in_vanilla_javascript) {
                   namespace_keyword, 0, u8"namespace")));
 }
 
-TEST(test_parse_typescript_namespace, empty_namespace) {
+TEST_F(test_parse_typescript_namespace, empty_namespace) {
   parse_visit_collector v =
       parse_and_visit_typescript_statement(u8"namespace ns {}"_sv);
   EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // ns
@@ -48,8 +50,8 @@ TEST(test_parse_typescript_namespace, empty_namespace) {
   EXPECT_THAT(v.variable_declarations, ElementsAre(namespace_decl(u8"ns")));
 }
 
-TEST(test_parse_typescript_namespace,
-     namespace_cannot_have_newline_after_namespace_keyword) {
+TEST_F(test_parse_typescript_namespace,
+       namespace_cannot_have_newline_after_namespace_keyword) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"namespace\nns\n{}"_sv);
@@ -62,8 +64,8 @@ TEST(test_parse_typescript_namespace,
   }
 }
 
-TEST(test_parse_typescript_namespace,
-     namespace_name_can_be_contextual_keyword) {
+TEST_F(test_parse_typescript_namespace,
+       namespace_name_can_be_contextual_keyword) {
   for (string8 name :
        contextual_keywords - dirty_set<string8>{u8"let", u8"static"}) {
     padded_string code(u8"namespace " + name + u8" {}");
@@ -74,7 +76,7 @@ TEST(test_parse_typescript_namespace,
   }
 }
 
-TEST(test_parse_typescript_namespace, namespace_can_contain_exports) {
+TEST_F(test_parse_typescript_namespace, namespace_can_contain_exports) {
   {
     parse_visit_collector v = parse_and_visit_typescript_module(
         u8"namespace ns { export function f() {} }"_sv);
@@ -91,7 +93,7 @@ TEST(test_parse_typescript_namespace, namespace_can_contain_exports) {
   }
 }
 
-TEST(test_parse_typescript_namespace, namespace_alias) {
+TEST_F(test_parse_typescript_namespace, namespace_alias) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"import A = ns;"_sv);
@@ -105,8 +107,8 @@ TEST(test_parse_typescript_namespace, namespace_alias) {
   }
 }
 
-TEST(test_parse_typescript_namespace,
-     namespace_alias_not_allowed_in_javascript) {
+TEST_F(test_parse_typescript_namespace,
+       namespace_alias_not_allowed_in_javascript) {
   {
     padded_string code(u8"import A = ns;"_sv);
     spy_visitor v;
@@ -123,7 +125,7 @@ TEST(test_parse_typescript_namespace,
   }
 }
 
-TEST(test_parse_typescript_namespace, import_alias_of_namespace_member) {
+TEST_F(test_parse_typescript_namespace, import_alias_of_namespace_member) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"import A = ns.B;"_sv);
@@ -145,8 +147,8 @@ TEST(test_parse_typescript_namespace, import_alias_of_namespace_member) {
   }
 }
 
-TEST(test_parse_typescript_namespace,
-     import_alias_requires_semicolon_or_newline) {
+TEST_F(test_parse_typescript_namespace,
+       import_alias_requires_semicolon_or_newline) {
   {
     padded_string code(u8"import A = ns nextStatement"_sv);
     spy_visitor v;
@@ -163,8 +165,8 @@ TEST(test_parse_typescript_namespace,
   }
 }
 
-TEST(test_parse_typescript_namespace,
-     namespace_can_be_contextual_keyword_in_import_alias) {
+TEST_F(test_parse_typescript_namespace,
+       namespace_can_be_contextual_keyword_in_import_alias) {
   for (string8 name : contextual_keywords) {
     padded_string code(u8"import A = " + name + u8".Member;");
     SCOPED_TRACE(code);
@@ -177,8 +179,8 @@ TEST(test_parse_typescript_namespace,
   }
 }
 
-TEST(test_parse_typescript_namespace,
-     namespace_member_can_be_contextual_keyword_in_import_alias) {
+TEST_F(test_parse_typescript_namespace,
+       namespace_member_can_be_contextual_keyword_in_import_alias) {
   for (string8 name : contextual_keywords) {
     padded_string code(u8"import A = ns." + name + u8";");
     SCOPED_TRACE(code);

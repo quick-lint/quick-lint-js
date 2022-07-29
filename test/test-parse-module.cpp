@@ -24,7 +24,9 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse, export_variable) {
+class test_parse_module : public test_parse_expression {};
+
+TEST_F(test_parse_module, export_variable) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"export let x;"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));
@@ -59,7 +61,7 @@ TEST(test_parse, export_variable) {
   }
 }
 
-TEST(test_parse, export_default) {
+TEST_F(test_parse_module, export_default) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"export default x;"_sv);
@@ -136,7 +138,7 @@ TEST(test_parse, export_default) {
   }
 }
 
-TEST(test_parse, export_default_of_variable_is_illegal) {
+TEST_F(test_parse_module, export_default_of_variable_is_illegal) {
   for (string8 declaration_kind : {u8"const", u8"let", u8"var"}) {
     padded_string code(u8"export default " + declaration_kind + u8" x = y;");
     SCOPED_TRACE(code);
@@ -152,7 +154,7 @@ TEST(test_parse, export_default_of_variable_is_illegal) {
   }
 }
 
-TEST(test_parse, export_sometimes_requires_semicolon) {
+TEST_F(test_parse_module, export_sometimes_requires_semicolon) {
   {
     padded_string code(u8"export {x} console.log();"_sv);
     spy_visitor v;
@@ -209,7 +211,7 @@ TEST(test_parse, export_sometimes_requires_semicolon) {
   }
 }
 
-TEST(test_parse, export_sometimes_does_not_require_semicolon) {
+TEST_F(test_parse_module, export_sometimes_does_not_require_semicolon) {
   {
     padded_string code(
         u8"export default async function f() {} console.log();"_sv);
@@ -239,7 +241,7 @@ TEST(test_parse, export_sometimes_does_not_require_semicolon) {
   }
 }
 
-TEST(test_parse, export_list) {
+TEST_F(test_parse_module, export_list) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"export {one, two};"_sv);
@@ -262,7 +264,8 @@ TEST(test_parse, export_list) {
   }
 }
 
-TEST(test_parse, exporting_by_string_name_is_only_allowed_for_export_from) {
+TEST_F(test_parse_module,
+       exporting_by_string_name_is_only_allowed_for_export_from) {
   {
     padded_string code(u8"export {'name'};"_sv);
     spy_visitor v;
@@ -277,7 +280,8 @@ TEST(test_parse, exporting_by_string_name_is_only_allowed_for_export_from) {
   }
 }
 
-TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
+TEST_F(test_parse_module,
+       exported_variables_cannot_be_named_reserved_keywords) {
   for (string8 keyword : strict_reserved_keywords) {
     padded_string code(u8"export {" + keyword + u8"};");
     SCOPED_TRACE(code);
@@ -339,7 +343,7 @@ TEST(test_parse, exported_variables_cannot_be_named_reserved_keywords) {
   }
 }
 
-TEST(test_parse, export_from) {
+TEST_F(test_parse_module, export_from) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"export * from 'other';"_sv);
@@ -416,7 +420,7 @@ TEST(test_parse, export_from) {
   }
 }
 
-TEST(test_parse, invalid_export_expression) {
+TEST_F(test_parse_module, invalid_export_expression) {
   {
     spy_visitor v;
     padded_string code(u8"export stuff;"_sv);
@@ -473,7 +477,7 @@ TEST(test_parse, invalid_export_expression) {
   }
 }
 
-TEST(test_parse, invalid_export) {
+TEST_F(test_parse_module, invalid_export) {
   {
     spy_visitor v;
     padded_string code(u8"export ;"_sv);
@@ -509,7 +513,7 @@ TEST(test_parse, invalid_export) {
   }
 }
 
-TEST(test_parse, parse_and_visit_import) {
+TEST_F(test_parse_module, parse_and_visit_import) {
   {
     parse_visit_collector v = parse_and_visit_statement(u8"import 'foo';"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
@@ -577,7 +581,7 @@ TEST(test_parse, parse_and_visit_import) {
   }
 }
 
-TEST(test_parse, import_star_without_as_keyword) {
+TEST_F(test_parse_module, import_star_without_as_keyword) {
   {
     padded_string code(u8"import * myExport from 'other';"_sv);
     spy_visitor v;
@@ -596,7 +600,7 @@ TEST(test_parse, import_star_without_as_keyword) {
   }
 }
 
-TEST(test_parse, import_without_from_keyword) {
+TEST_F(test_parse_module, import_without_from_keyword) {
   {
     padded_string code(u8"import { x } 'other';"_sv);
     spy_visitor v;
@@ -622,7 +626,7 @@ TEST(test_parse, import_without_from_keyword) {
   }
 }
 
-TEST(test_parse, import_as_invalid_token) {
+TEST_F(test_parse_module, import_as_invalid_token) {
   {
     padded_string code(u8"import {myExport as 'string'} from 'module';"_sv);
     spy_visitor v;
@@ -648,7 +652,7 @@ TEST(test_parse, import_as_invalid_token) {
   }
 }
 
-TEST(test_parse, export_function) {
+TEST_F(test_parse_module, export_function) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"export function foo() {}"_sv);
@@ -662,7 +666,7 @@ TEST(test_parse, export_function) {
   }
 }
 
-TEST(test_parse, export_function_requires_a_name) {
+TEST_F(test_parse_module, export_function_requires_a_name) {
   {
     padded_string code(u8"export function() {}"_sv);
     spy_visitor v;
@@ -692,7 +696,7 @@ TEST(test_parse, export_function_requires_a_name) {
   }
 }
 
-TEST(test_parse, export_class) {
+TEST_F(test_parse_module, export_class) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"export class C {}"_sv);
@@ -700,7 +704,7 @@ TEST(test_parse, export_class) {
   }
 }
 
-TEST(test_parse, export_class_requires_a_name) {
+TEST_F(test_parse_module, export_class_requires_a_name) {
   {
     padded_string code(u8"export class {}"_sv);
     spy_visitor v;
@@ -715,7 +719,7 @@ TEST(test_parse, export_class_requires_a_name) {
   }
 }
 
-TEST(test_parse, parse_empty_module) {
+TEST_F(test_parse_module, parse_empty_module) {
   spy_visitor v;
   padded_string code(u8""_sv);
   parser p(&code, &v);
@@ -724,7 +728,7 @@ TEST(test_parse, parse_empty_module) {
   EXPECT_THAT(v.visits, ElementsAre("visit_end_of_module"));
 }
 
-TEST(test_parse, imported_variables_can_be_named_contextual_keywords) {
+TEST_F(test_parse_module, imported_variables_can_be_named_contextual_keywords) {
   for (string8 name : contextual_keywords - dirty_set<string8>{u8"let"}) {
     SCOPED_TRACE(out_string8(name));
 
@@ -765,7 +769,7 @@ TEST(test_parse, imported_variables_can_be_named_contextual_keywords) {
   }
 }
 
-TEST(test_parse, imported_modules_must_be_quoted) {
+TEST_F(test_parse_module, imported_modules_must_be_quoted) {
   for (string8 import_name : {u8"module", u8"not_a_keyword"}) {
     padded_string code(u8"import { test } from " + import_name + u8";");
     spy_visitor v;
@@ -778,7 +782,8 @@ TEST(test_parse, imported_modules_must_be_quoted) {
   }
 }
 
-TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
+TEST_F(test_parse_module,
+       imported_variables_cannot_be_named_reserved_keywords) {
   for (string8 name : strict_reserved_keywords) {
     {
       padded_string code(u8"import { " + name + u8" } from 'other';");
@@ -932,7 +937,7 @@ TEST(test_parse, imported_variables_cannot_be_named_reserved_keywords) {
   }
 }
 
-TEST(test_parse, exported_names_can_be_named_keywords) {
+TEST_F(test_parse_module, exported_names_can_be_named_keywords) {
   for (string8 export_name : keywords) {
     {
       string8 code = u8"export {someFunction as " + export_name + u8"};";
@@ -952,7 +957,7 @@ TEST(test_parse, exported_names_can_be_named_keywords) {
   }
 }
 
-TEST(test_parse, imported_names_can_be_named_keywords) {
+TEST_F(test_parse_module, imported_names_can_be_named_keywords) {
   for (string8 import_name : keywords) {
     string8 code =
         u8"import {" + import_name + u8" as someFunction} from 'somewhere';";
@@ -965,8 +970,8 @@ TEST(test_parse, imported_names_can_be_named_keywords) {
   }
 }
 
-TEST(
-    test_parse,
+TEST_F(
+    test_parse_module,
     imported_and_exported_names_can_be_reserved_keywords_with_escape_sequences) {
   for (string8 keyword : keywords) {
     string8 exported_name = escape_first_character_in_keyword(keyword);
@@ -997,7 +1002,7 @@ TEST(
   }
 }
 
-TEST(test_parse_module, import_requires_semicolon_or_newline) {
+TEST_F(test_parse_module, import_requires_semicolon_or_newline) {
   {
     padded_string code(u8"import fs from 'fs' nextStatement"_sv);
     spy_visitor v;

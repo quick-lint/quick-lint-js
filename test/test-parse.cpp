@@ -30,7 +30,18 @@ using ::testing::VariantWith;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse, statement_starting_with_invalid_token) {
+class test_parse : public test_parse_expression {};
+
+// TODO(strager): Put test_escape_first_character_in_keyword tests into their
+// own test file.
+class test_escape_first_character_in_keyword : public ::testing::Test {};
+
+// TODO(strager): Put test_no_overflow and test_overflow tests into their own
+// test file.
+class test_no_overflow : public test_parse_expression {};
+class test_overflow : public test_parse_expression {};
+
+TEST_F(test_parse, statement_starting_with_invalid_token) {
   for (string8_view token : {
            u8":",
            u8"?",
@@ -48,7 +59,7 @@ TEST(test_parse, statement_starting_with_invalid_token) {
   }
 }
 
-TEST(test_parse, comma_not_allowed_between_class_methods) {
+TEST_F(test_parse, comma_not_allowed_between_class_methods) {
   {
     spy_visitor v;
     padded_string code(
@@ -80,7 +91,7 @@ TEST(test_parse, comma_not_allowed_between_class_methods) {
   }
 }
 
-TEST(test_parse, commas_not_allowed_between_class_methods) {
+TEST_F(test_parse, commas_not_allowed_between_class_methods) {
   {
     spy_visitor v;
     padded_string code(
@@ -140,7 +151,7 @@ TEST(test_parse, commas_not_allowed_between_class_methods) {
   }
 }
 
-TEST(test_parse, asi_for_statement_at_right_curly) {
+TEST_F(test_parse, asi_for_statement_at_right_curly) {
   {
     spy_visitor v;
     padded_string code(
@@ -154,7 +165,7 @@ TEST(test_parse, asi_for_statement_at_right_curly) {
   }
 }
 
-TEST(test_parse, asi_for_statement_at_newline) {
+TEST_F(test_parse, asi_for_statement_at_newline) {
   {
     spy_visitor v;
     padded_string code(u8"console.log('hello')\nconsole.log('world')\n"_sv);
@@ -240,7 +251,7 @@ TEST(test_parse, asi_for_statement_at_newline) {
   }
 }
 
-TEST(test_parse, asi_between_expression_statements) {
+TEST_F(test_parse, asi_between_expression_statements) {
   {
     padded_string code(u8"false\nfalse"_sv);
     spy_visitor v;
@@ -312,7 +323,7 @@ TEST(test_parse, asi_between_expression_statements) {
   }
 }
 
-TEST(test_parse, asi_between_expression_statement_and_switch_label) {
+TEST_F(test_parse, asi_between_expression_statement_and_switch_label) {
   {
     parse_visit_collector v = parse_and_visit_module(
         u8R"(
@@ -341,7 +352,7 @@ TEST(test_parse, asi_between_expression_statement_and_switch_label) {
   }
 }
 
-TEST(test_parse, asi_between_expression_statement_and_declaration) {
+TEST_F(test_parse, asi_between_expression_statement_and_declaration) {
   {
     parse_visit_collector v = parse_and_visit_module(u8"f()\nclass C {}"_sv);
     EXPECT_THAT(v.visits,
@@ -354,14 +365,14 @@ TEST(test_parse, asi_between_expression_statement_and_declaration) {
   }
 }
 
-TEST(test_parse, asi_for_statement_at_end_of_file) {
+TEST_F(test_parse, asi_for_statement_at_end_of_file) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"console.log(2+2)"_sv);
   }
 }
 
-TEST(test_parse, utter_garbage) {
+TEST_F(test_parse, utter_garbage) {
   {
     spy_visitor v;
     padded_string code(u8"if :\nkjaslkjd;kjaslkjd"_sv);
@@ -381,7 +392,7 @@ TEST(test_parse, utter_garbage) {
   }
 }
 
-TEST(test_parse, statement_starting_with_extends) {
+TEST_F(test_parse, statement_starting_with_extends) {
   {
     padded_string code(u8"extends Base"_sv);
     spy_visitor v;
@@ -395,7 +406,7 @@ TEST(test_parse, statement_starting_with_extends) {
   }
 }
 
-TEST(test_parse, stray_right_curly_at_top_level) {
+TEST_F(test_parse, stray_right_curly_at_top_level) {
   {
     padded_string code(u8"}"_sv);
     spy_visitor v;
@@ -408,8 +419,9 @@ TEST(test_parse, stray_right_curly_at_top_level) {
   }
 }
 
-TEST(test_parse,
-     reserved_keywords_except_await_and_yield_cannot_contain_escape_sequences) {
+TEST_F(
+    test_parse,
+    reserved_keywords_except_await_and_yield_cannot_contain_escape_sequences) {
   // TODO(#73): Test 'protected', 'implements', etc. in strict mode.
   for (string8 keyword : disallowed_binding_identifier_keywords) {
     string8 escaped_keyword = escape_first_character_in_keyword(keyword);
@@ -446,7 +458,7 @@ TEST(test_parse,
   }
 }
 
-TEST(
+TEST_F(
     test_parse,
     reserved_keywords_with_escape_sequences_are_treated_as_identifiers_in_variable_declarations) {
   {
@@ -518,8 +530,8 @@ TEST(
   }
 }
 
-TEST(test_parse,
-     contextual_keywords_and_await_and_yield_can_contain_escape_sequences) {
+TEST_F(test_parse,
+       contextual_keywords_and_await_and_yield_can_contain_escape_sequences) {
   for (string8 keyword : contextual_keywords) {
     string8 escaped_keyword = escape_first_character_in_keyword(keyword);
     SCOPED_TRACE(out_string8(keyword));
@@ -624,7 +636,7 @@ TEST(test_parse,
 padded_string unimplemented_token_code(u8"]"_sv);
 
 #if defined(GTEST_HAS_DEATH_TEST) && GTEST_HAS_DEATH_TEST
-TEST(test_parse, unimplemented_token_crashes) {
+TEST_F(test_parse, unimplemented_token_crashes) {
   auto check = [] {
     spy_visitor v;
     parser p(&unimplemented_token_code, &v);
@@ -634,7 +646,7 @@ TEST(test_parse, unimplemented_token_crashes) {
 }
 #endif
 
-TEST(test_parse, unimplemented_token_doesnt_crash_if_caught) {
+TEST_F(test_parse, unimplemented_token_doesnt_crash_if_caught) {
   {
     spy_visitor v;
     parser p(&unimplemented_token_code, &v);
@@ -648,7 +660,7 @@ TEST(test_parse, unimplemented_token_doesnt_crash_if_caught) {
   }
 }
 
-TEST(test_parse, unimplemented_token_returns_to_innermost_handler) {
+TEST_F(test_parse, unimplemented_token_returns_to_innermost_handler) {
   {
     padded_string code(u8"hello world"_sv);
     spy_visitor v;
@@ -666,8 +678,8 @@ TEST(test_parse, unimplemented_token_returns_to_innermost_handler) {
   }
 }
 
-TEST(test_parse,
-     unimplemented_token_after_handler_ends_returns_to_outer_handler) {
+TEST_F(test_parse,
+       unimplemented_token_after_handler_ends_returns_to_outer_handler) {
   {
     padded_string code(u8"hello world"_sv);
     spy_visitor v;
@@ -687,7 +699,7 @@ TEST(test_parse,
   }
 }
 
-TEST(test_parse, unimplemented_token_rolls_back_parser_depth) {
+TEST_F(test_parse, unimplemented_token_rolls_back_parser_depth) {
   {
     padded_string code(u8"hello world"_sv);
     spy_visitor v;
@@ -710,7 +722,7 @@ TEST(test_parse, unimplemented_token_rolls_back_parser_depth) {
   }
 }
 
-TEST(test_parse, unimplemented_token_is_reported_on_outer_diag_reporter) {
+TEST_F(test_parse, unimplemented_token_is_reported_on_outer_diag_reporter) {
   {
     padded_string code(u8"hello world"_sv);
     spy_visitor v;
@@ -730,15 +742,15 @@ TEST(test_parse, unimplemented_token_is_reported_on_outer_diag_reporter) {
   }
 }
 
-TEST(test_escape_first_character_in_keyword,
-     escaping_escapes_single_character) {
+TEST_F(test_escape_first_character_in_keyword,
+       escaping_escapes_single_character) {
   EXPECT_EQ(escape_first_character_in_keyword(u8"a"_sv), u8"\\u{61}");
   EXPECT_EQ(escape_first_character_in_keyword(u8"b"_sv), u8"\\u{62}");
   EXPECT_EQ(escape_first_character_in_keyword(u8"z"_sv), u8"\\u{7a}");
 }
 
-TEST(test_escape_first_character_in_keyword,
-     escaping_escapes_first_of_many_characters) {
+TEST_F(test_escape_first_character_in_keyword,
+       escaping_escapes_first_of_many_characters) {
   EXPECT_EQ(escape_first_character_in_keyword(u8"abcde"_sv), u8"\\u{61}bcde");
   EXPECT_EQ(escape_first_character_in_keyword(u8"b1n z"_sv), u8"\\u{62}1n z");
   EXPECT_EQ(escape_first_character_in_keyword(u8"ZYXW"_sv), u8"\\u{5a}YXW");
@@ -759,7 +771,7 @@ string8 repeated_str(string8_view before, string8_view inner,
   return reps;
 }
 
-TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
+TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
   for (const string8 &exps : {
            repeated_str(u8"(", u8"10", u8")", parser::stack_limit - 2),
            repeated_str(u8"[", u8"10", u8"]", parser::stack_limit - 2),
@@ -841,7 +853,7 @@ TEST(test_no_overflow, parser_depth_limit_not_exceeded) {
   }
 }
 
-TEST(test_overflow, parser_depth_limit_exceeded) {
+TEST_F(test_overflow, parser_depth_limit_exceeded) {
   for (const string8 &exps : {
            repeated_str(u8"(", u8"10", u8")", parser::stack_limit + 1),
            repeated_str(u8"[", u8"10", u8"]", parser::stack_limit + 1),

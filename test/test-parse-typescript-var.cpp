@@ -26,7 +26,9 @@ using ::testing::IsEmpty;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse_typescript_var, let_can_have_type_annotation) {
+class test_parse_typescript_var : public test_parse_expression {};
+
+TEST_F(test_parse_typescript_var, let_can_have_type_annotation) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"let x: C;"_sv);
@@ -68,7 +70,7 @@ TEST(test_parse_typescript_var, let_can_have_type_annotation) {
   }
 }
 
-TEST(test_parse_typescript_var, function_parameter_can_have_type_annotation) {
+TEST_F(test_parse_typescript_var, function_parameter_can_have_type_annotation) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"function f(p1: A, p2: B = init) {}"_sv);
@@ -97,7 +99,7 @@ TEST(test_parse_typescript_var, function_parameter_can_have_type_annotation) {
   }
 }
 
-TEST(test_parse_typescript_var, method_parameter_can_have_type_annotation) {
+TEST_F(test_parse_typescript_var, method_parameter_can_have_type_annotation) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { method(param: Type) {} }"_sv);
@@ -124,7 +126,7 @@ TEST(test_parse_typescript_var, method_parameter_can_have_type_annotation) {
   }
 }
 
-TEST(test_parse_typescript_var, arrow_parameter_can_have_type_annotation) {
+TEST_F(test_parse_typescript_var, arrow_parameter_can_have_type_annotation) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"((param: Type) => {});"_sv);
@@ -151,8 +153,8 @@ TEST(test_parse_typescript_var, arrow_parameter_can_have_type_annotation) {
   }
 }
 
-TEST(test_parse_typescript_var,
-     arrow_parameter_without_parens_cannot_have_type_annotation) {
+TEST_F(test_parse_typescript_var,
+       arrow_parameter_without_parens_cannot_have_type_annotation) {
   {
     padded_string code(u8"(param: Type => {});"_sv);
     spy_visitor v;
@@ -192,7 +194,7 @@ TEST(test_parse_typescript_var,
   }
 }
 
-TEST(test_parse_typescript_var, for_loop_init_can_have_type_annotation) {
+TEST_F(test_parse_typescript_var, for_loop_init_can_have_type_annotation) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"for (let i: N = 0; ;);"_sv);
@@ -203,7 +205,8 @@ TEST(test_parse_typescript_var, for_loop_init_can_have_type_annotation) {
   }
 }
 
-TEST(test_parse_typescript_var, for_of_loop_variable_can_have_type_annotation) {
+TEST_F(test_parse_typescript_var,
+       for_of_loop_variable_can_have_type_annotation) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"for (let x: C of xs);"_sv);
@@ -225,7 +228,8 @@ TEST(test_parse_typescript_var, for_of_loop_variable_can_have_type_annotation) {
   }
 }
 
-TEST(test_parse_typescript_var, for_in_loop_variable_can_have_type_annotation) {
+TEST_F(test_parse_typescript_var,
+       for_in_loop_variable_can_have_type_annotation) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"for (let x: C in xs);"_sv);
@@ -247,8 +251,8 @@ TEST(test_parse_typescript_var, for_in_loop_variable_can_have_type_annotation) {
   }
 }
 
-TEST(test_parse_typescript_var,
-     catch_variable_can_have_any_or_unknown_or_star_type_annotation) {
+TEST_F(test_parse_typescript_var,
+       catch_variable_can_have_any_or_unknown_or_star_type_annotation) {
   for (string8 type : {u8"*", u8"any", u8"unknown"}) {
     padded_string code(u8"try { } catch (e: " + type + u8") {} ");
     SCOPED_TRACE(code);
@@ -262,8 +266,8 @@ TEST(test_parse_typescript_var,
   }
 }
 
-TEST(test_parse_typescript_var,
-     catch_variable_cannot_have_arbitrary_type_annotation) {
+TEST_F(test_parse_typescript_var,
+       catch_variable_cannot_have_arbitrary_type_annotation) {
   {
     padded_string code(u8"try { } catch (e: SomeType) {} "_sv);
     spy_visitor v;
@@ -284,8 +288,8 @@ TEST(test_parse_typescript_var,
   }
 }
 
-TEST(test_parse_typescript_var,
-     catch_variable_type_annotations_are_not_allowed_in_javascript) {
+TEST_F(test_parse_typescript_var,
+       catch_variable_type_annotations_are_not_allowed_in_javascript) {
   for (string8 type : {u8"*", u8"any", u8"unknown", u8"SomeType"}) {
     padded_string code(u8"try { } catch (e: " + type + u8") {} ");
     SCOPED_TRACE(code);

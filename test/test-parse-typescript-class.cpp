@@ -24,7 +24,10 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse, field_with_type_is_disallowed_in_javascript) {
+class test_parse_typescript_class : public test_parse_expression {};
+
+TEST_F(test_parse_typescript_class,
+       field_with_type_is_disallowed_in_javascript) {
   {
     padded_string code(u8"class C { fieldName: FieldType; }"_sv);
     spy_visitor v;
@@ -41,7 +44,7 @@ TEST(test_parse, field_with_type_is_disallowed_in_javascript) {
   }
 }
 
-TEST(test_parse, field_with_type_is_allowed_in_typescript) {
+TEST_F(test_parse_typescript_class, field_with_type_is_allowed_in_typescript) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { fieldName: FieldType; }"_sv);
@@ -57,7 +60,8 @@ TEST(test_parse, field_with_type_is_allowed_in_typescript) {
   }
 }
 
-TEST(test_parse, class_index_signature_is_disallowed_in_javascript) {
+TEST_F(test_parse_typescript_class,
+       class_index_signature_is_disallowed_in_javascript) {
   {
     padded_string code(u8"class C { [key: KeyType]: ValueType; }"_sv);
     spy_visitor v;
@@ -70,7 +74,8 @@ TEST(test_parse, class_index_signature_is_disallowed_in_javascript) {
   }
 }
 
-TEST(test_parse, class_index_signature_is_allowed_in_typescript) {
+TEST_F(test_parse_typescript_class,
+       class_index_signature_is_allowed_in_typescript) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { [key: KeyType]: ValueType; }"_sv);
@@ -91,7 +96,8 @@ TEST(test_parse, class_index_signature_is_allowed_in_typescript) {
   }
 }
 
-TEST(test_parse, optional_properties_are_disallowed_in_javascript) {
+TEST_F(test_parse_typescript_class,
+       optional_properties_are_disallowed_in_javascript) {
   {
     padded_string code(u8"class C { field1?; field2? = init; }"_sv);
     spy_visitor v;
@@ -118,7 +124,8 @@ TEST(test_parse, optional_properties_are_disallowed_in_javascript) {
   }
 }
 
-TEST(test_parse, optional_methods_are_disallowed_in_classes) {
+TEST_F(test_parse_typescript_class,
+       optional_methods_are_disallowed_in_classes) {
   for (parser_options options : {parser_options(), typescript_options}) {
     SCOPED_TRACE(options.typescript ? "typescript" : "javascript");
     padded_string code(u8"class C { method?() {} }"_sv);
@@ -132,7 +139,8 @@ TEST(test_parse, optional_methods_are_disallowed_in_classes) {
   }
 }
 
-TEST(test_parse, assignment_asserted_fields_are_disallowed_in_javascript) {
+TEST_F(test_parse_typescript_class,
+       assignment_asserted_fields_are_disallowed_in_javascript) {
   {
     padded_string code(u8"class C { field1!; field2! = init; }"_sv);
     spy_visitor v;
@@ -159,7 +167,8 @@ TEST(test_parse, assignment_asserted_fields_are_disallowed_in_javascript) {
   }
 }
 
-TEST(test_parse, assignment_asserted_fields_are_allowed_in_typescript) {
+TEST_F(test_parse_typescript_class,
+       assignment_asserted_fields_are_allowed_in_typescript) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { field1!; field2! = init; }"_sv);
@@ -173,7 +182,8 @@ TEST(test_parse, assignment_asserted_fields_are_allowed_in_typescript) {
   }
 }
 
-TEST(test_parse, assignment_asserted_methods_are_not_allowed) {
+TEST_F(test_parse_typescript_class,
+       assignment_asserted_methods_are_not_allowed) {
   {
     padded_string code(u8"class C { method!() {} }"_sv);
     spy_visitor v;
@@ -195,7 +205,8 @@ TEST(test_parse, assignment_asserted_methods_are_not_allowed) {
   }
 }
 
-TEST(test_parse, readonly_fields_are_disallowed_in_javascript) {
+TEST_F(test_parse_typescript_class,
+       readonly_fields_are_disallowed_in_javascript) {
   {
     padded_string code(u8"class C { readonly field; }"_sv);
     spy_visitor v;
@@ -294,7 +305,7 @@ TEST(test_parse, readonly_fields_are_disallowed_in_javascript) {
   }
 }
 
-TEST(test_parse, readonly_fields_are_allowed_in_typescript) {
+TEST_F(test_parse_typescript_class, readonly_fields_are_allowed_in_typescript) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { readonly field; }"_sv);
@@ -326,7 +337,7 @@ TEST(test_parse, readonly_fields_are_allowed_in_typescript) {
   }
 }
 
-TEST(test_parse, readonly_methods_are_invalid) {
+TEST_F(test_parse_typescript_class, readonly_methods_are_invalid) {
   {
     padded_string code(u8"class C { readonly method() {} }"_sv);
     spy_visitor v;
@@ -349,7 +360,7 @@ TEST(test_parse, readonly_methods_are_invalid) {
   }
 }
 
-TEST(test_parse, readonly_static_field_is_disallowed) {
+TEST_F(test_parse_typescript_class, readonly_static_field_is_disallowed) {
   {
     padded_string code(u8"class C { readonly static field; }"_sv);
     spy_visitor v;
@@ -370,7 +381,8 @@ TEST(test_parse, readonly_static_field_is_disallowed) {
   }
 }
 
-TEST(test_parse, generic_classes_are_disallowed_in_javascript) {
+TEST_F(test_parse_typescript_class,
+       generic_classes_are_disallowed_in_javascript) {
   {
     padded_string code(u8"class C<T> { }"_sv);
     spy_visitor v;
@@ -392,7 +404,7 @@ TEST(test_parse, generic_classes_are_disallowed_in_javascript) {
   }
 }
 
-TEST(test_parse, generic_classes_are_allowed_in_typescript) {
+TEST_F(test_parse_typescript_class, generic_classes_are_allowed_in_typescript) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"class C<T> { }"_sv);
@@ -407,7 +419,8 @@ TEST(test_parse, generic_classes_are_allowed_in_typescript) {
   }
 }
 
-TEST(test_parse, generic_methods_are_disallowed_in_javascript) {
+TEST_F(test_parse_typescript_class,
+       generic_methods_are_disallowed_in_javascript) {
   {
     padded_string code(u8"class C { method<T>() {} }"_sv);
     spy_visitor v;
@@ -432,7 +445,7 @@ TEST(test_parse, generic_methods_are_disallowed_in_javascript) {
   }
 }
 
-TEST(test_parse, generic_methods_are_allowed_in_typescript) {
+TEST_F(test_parse_typescript_class, generic_methods_are_allowed_in_typescript) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"class C { method<T>() {} }"_sv);
@@ -450,7 +463,8 @@ TEST(test_parse, generic_methods_are_allowed_in_typescript) {
   }
 }
 
-TEST(test_parse, call_signatures_are_disallowed_in_typescript_classes) {
+TEST_F(test_parse_typescript_class,
+       call_signatures_are_disallowed_in_typescript_classes) {
   {
     padded_string code(u8"class C { () {} }"_sv);
     spy_visitor v;
@@ -498,7 +512,8 @@ TEST(test_parse, call_signatures_are_disallowed_in_typescript_classes) {
   }
 }
 
-TEST(test_parse, access_specifiers_are_disallowed_in_javascript) {
+TEST_F(test_parse_typescript_class,
+       access_specifiers_are_disallowed_in_javascript) {
   for (string8 specifier : {u8"public", u8"protected", u8"private"}) {
     {
       padded_string code(u8"class C { " + specifier + u8" method() {} }");
@@ -618,7 +633,8 @@ TEST(test_parse, access_specifiers_are_disallowed_in_javascript) {
   }
 }
 
-TEST(test_parse, access_specifiers_are_allowed_in_typescript) {
+TEST_F(test_parse_typescript_class,
+       access_specifiers_are_allowed_in_typescript) {
   for (string8 specifier : {u8"public", u8"protected", u8"private"}) {
     padded_string code(u8"class C { " + specifier + u8" method() {} }");
     SCOPED_TRACE(code);
@@ -637,7 +653,8 @@ TEST(test_parse, access_specifiers_are_allowed_in_typescript) {
   }
 }
 
-TEST(test_parse, static_blocks_are_disallowed_in_javascript) {
+TEST_F(test_parse_typescript_class,
+       static_blocks_are_disallowed_in_javascript) {
   {
     padded_string code(
         u8"class C { static #private; static { C.#private; } }"_sv);
@@ -664,7 +681,7 @@ TEST(test_parse, static_blocks_are_disallowed_in_javascript) {
   }
 }
 
-TEST(test_parse, static_blocks_are_allowed_in_typescript) {
+TEST_F(test_parse_typescript_class, static_blocks_are_allowed_in_typescript) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { static #private; static { C.#private; } }");
@@ -681,7 +698,8 @@ TEST(test_parse, static_blocks_are_allowed_in_typescript) {
   }
 }
 
-TEST(test_parse, method_return_type_annotations_are_disallowed_in_javascript) {
+TEST_F(test_parse_typescript_class,
+       method_return_type_annotations_are_disallowed_in_javascript) {
   {
     padded_string code(u8"class C { method(): T { } }"_sv);
     spy_visitor v;
@@ -707,7 +725,8 @@ TEST(test_parse, method_return_type_annotations_are_disallowed_in_javascript) {
   }
 }
 
-TEST(test_parse, method_return_type_annotations_are_allowed_in_typescript) {
+TEST_F(test_parse_typescript_class,
+       method_return_type_annotations_are_allowed_in_typescript) {
   {
     parse_visit_collector v = parse_and_visit_typescript_statement(
         u8"class C { method(): T { } }"_sv);
@@ -725,7 +744,8 @@ TEST(test_parse, method_return_type_annotations_are_allowed_in_typescript) {
   }
 }
 
-TEST(test_parse, abstract_classes_are_disallowed_in_javascript) {
+TEST_F(test_parse_typescript_class,
+       abstract_classes_are_disallowed_in_javascript) {
   {
     padded_string code(u8"abstract class C { }"_sv);
     spy_visitor v;
@@ -745,7 +765,8 @@ TEST(test_parse, abstract_classes_are_disallowed_in_javascript) {
   }
 }
 
-TEST(test_parse, abstract_classes_are_allowed_in_typescript) {
+TEST_F(test_parse_typescript_class,
+       abstract_classes_are_allowed_in_typescript) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_statement(u8"abstract class C { }"_sv);
@@ -757,7 +778,8 @@ TEST(test_parse, abstract_classes_are_allowed_in_typescript) {
   }
 }
 
-TEST(test_parse, newline_before_class_causes_abstract_to_be_identifier) {
+TEST_F(test_parse_typescript_class,
+       newline_before_class_causes_abstract_to_be_identifier) {
   {
     parse_visit_collector v =
         parse_and_visit_typescript_module(u8"abstract\nclass C { }"_sv);
@@ -772,7 +794,7 @@ TEST(test_parse, newline_before_class_causes_abstract_to_be_identifier) {
   }
 }
 
-TEST(test_parse_typescript_class, implements_is_not_allowed_in_javascript) {
+TEST_F(test_parse_typescript_class, implements_is_not_allowed_in_javascript) {
   padded_string code(u8"class C implements Base {}"_sv);
   spy_visitor v;
   parser p(&code, &v, javascript_options);
@@ -791,7 +813,7 @@ TEST(test_parse_typescript_class, implements_is_not_allowed_in_javascript) {
           implements_keyword, strlen(u8"class C "), u8"implements")));
 }
 
-TEST(test_parse_typescript_class, implements) {
+TEST_F(test_parse_typescript_class, implements) {
   parse_visit_collector v =
       parse_and_visit_typescript_module(u8"class C implements Base {}"_sv);
   EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
@@ -803,7 +825,7 @@ TEST(test_parse_typescript_class, implements) {
   EXPECT_THAT(v.variable_uses, ElementsAre(u8"Base"));
 }
 
-TEST(test_parse_typescript_class, implements_comes_after_extends) {
+TEST_F(test_parse_typescript_class, implements_comes_after_extends) {
   {
     parse_visit_collector v = parse_and_visit_typescript_module(
         u8"class C extends Base implements I {}"_sv);
@@ -840,7 +862,7 @@ TEST(test_parse_typescript_class, implements_comes_after_extends) {
   }
 }
 
-TEST(test_parse_typescript_class, implements_interface_from_namespace) {
+TEST_F(test_parse_typescript_class, implements_interface_from_namespace) {
   parse_visit_collector v =
       parse_and_visit_typescript_module(u8"class C implements ns.A {}"_sv);
   EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
@@ -852,7 +874,7 @@ TEST(test_parse_typescript_class, implements_interface_from_namespace) {
   EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns"));
 }
 
-TEST(test_parse_typescript_class, implement_multiple_things) {
+TEST_F(test_parse_typescript_class, implement_multiple_things) {
   parse_visit_collector v = parse_and_visit_typescript_module(
       u8"class C implements Apple, Banana, Carrot {}"_sv);
   EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {

@@ -24,7 +24,9 @@ using ::testing::UnorderedElementsAre;
 
 namespace quick_lint_js {
 namespace {
-TEST(test_parse, parse_math_expression) {
+class test_parse_expression_statement : public test_parse_expression {};
+
+TEST_F(test_parse_expression_statement, parse_math_expression) {
   for (const char8 *input :
        {u8"2", u8"2+2", u8"2^2", u8"2 + + 2", u8"2 * (3 + 4)", u8"1+1+1+1+1"}) {
     SCOPED_TRACE(out_string8(u8"input = " + string8(input)));
@@ -49,7 +51,7 @@ TEST(test_parse, parse_math_expression) {
   }
 }
 
-TEST(test_parse, parse_invalid_math_expression) {
+TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
   {
     spy_visitor v;
     padded_string code(u8"2 +"_sv);
@@ -140,7 +142,7 @@ TEST(test_parse, parse_invalid_math_expression) {
   }
 }
 
-TEST(test_parse, stray_right_parenthesis) {
+TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
   {
     spy_visitor v;
     padded_string code(u8")"_sv);
@@ -220,7 +222,8 @@ TEST(test_parse, stray_right_parenthesis) {
   }
 }
 
-TEST(test_parse, statement_starting_with_binary_only_operator) {
+TEST_F(test_parse_expression_statement,
+       statement_starting_with_binary_only_operator) {
   // '<' omitted. It is used for JSX.
   for (string8_view op : {
            u8"!=",  u8"!==", u8"%",          u8"&",  u8"&&",  u8"*",
@@ -252,7 +255,7 @@ TEST(test_parse, statement_starting_with_binary_only_operator) {
   }
 }
 
-TEST(test_parse, invalid_identifier_after_expression) {
+TEST_F(test_parse_expression_statement, invalid_identifier_after_expression) {
   {
     spy_visitor v;
     padded_string code(u8"one two"_sv);
@@ -318,7 +321,7 @@ TEST(test_parse, invalid_identifier_after_expression) {
   }
 }
 
-TEST(test_parse, function_call_without_right_paren) {
+TEST_F(test_parse_expression_statement, function_call_without_right_paren) {
   {
     padded_string code(u8"f(x "_sv);
     spy_visitor v;
@@ -377,7 +380,7 @@ TEST(test_parse, function_call_without_right_paren) {
   }
 }
 
-TEST(test_parse, parse_assignment) {
+TEST_F(test_parse_expression_statement, parse_assignment) {
   {
     parse_visit_collector v = parse_and_visit_expression(u8"x = y"_sv);
 
@@ -450,7 +453,7 @@ TEST(test_parse, parse_assignment) {
   }
 }
 
-TEST(test_parse, parse_compound_assignment) {
+TEST_F(test_parse_expression_statement, parse_compound_assignment) {
   {
     parse_visit_collector v = parse_and_visit_expression(u8"x += y"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",           // x
@@ -469,7 +472,7 @@ TEST(test_parse, parse_compound_assignment) {
   }
 }
 
-TEST(test_parse, parse_plusplus_minusminus) {
+TEST_F(test_parse_expression_statement, parse_plusplus_minusminus) {
   {
     parse_visit_collector v = parse_and_visit_expression(u8"++x"_sv);
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"x"));
@@ -487,7 +490,7 @@ TEST(test_parse, parse_plusplus_minusminus) {
   }
 }
 
-TEST(test_parse, parse_typeof_with_just_variable) {
+TEST_F(test_parse_expression_statement, parse_typeof_with_just_variable) {
   {
     parse_visit_collector v = parse_and_visit_expression(u8"typeof x"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_typeof_use"));
@@ -501,7 +504,7 @@ TEST(test_parse, parse_typeof_with_just_variable) {
   }
 }
 
-TEST(test_parse, parse_typeof_with_non_variable) {
+TEST_F(test_parse_expression_statement, parse_typeof_with_non_variable) {
   {
     parse_visit_collector v = parse_and_visit_expression(u8"typeof x.prop"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
@@ -509,7 +512,8 @@ TEST(test_parse, parse_typeof_with_non_variable) {
   }
 }
 
-TEST(test_parse, parse_typeof_with_conditional_operator) {
+TEST_F(test_parse_expression_statement,
+       parse_typeof_with_conditional_operator) {
   {
     parse_visit_collector v =
         parse_and_visit_expression(u8"typeof x ? 10 : 20"_sv);
@@ -525,7 +529,7 @@ TEST(test_parse, parse_typeof_with_conditional_operator) {
   }
 }
 
-TEST(test_parse, parse_array_subscript) {
+TEST_F(test_parse_expression_statement, parse_array_subscript) {
   {
     parse_visit_collector v = parse_and_visit_expression(u8"array[index]"_sv);
     EXPECT_THAT(v.visits,
@@ -534,7 +538,7 @@ TEST(test_parse, parse_array_subscript) {
   }
 }
 
-TEST(test_parse, array_literal) {
+TEST_F(test_parse_expression_statement, array_literal) {
   {
     parse_visit_collector v = parse_and_visit_expression(u8"[]"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
@@ -546,7 +550,7 @@ TEST(test_parse, array_literal) {
   }
 }
 
-TEST(test_parse, object_literal) {
+TEST_F(test_parse_expression_statement, object_literal) {
   {
     parse_visit_collector v = parse_and_visit_expression(u8"{key: value}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
@@ -584,7 +588,8 @@ TEST(test_parse, object_literal) {
   }
 }
 
-TEST(test_parse, object_literal_method_with_arrow_operator) {
+TEST_F(test_parse_expression_statement,
+       object_literal_method_with_arrow_operator) {
   {
     spy_visitor v;
     padded_string code(u8"let o = {method() => {}}"_sv);
@@ -600,7 +605,7 @@ TEST(test_parse, object_literal_method_with_arrow_operator) {
   }
 }
 
-TEST(test_parse, expression_statement) {
+TEST_F(test_parse_expression_statement, expression_statement) {
   {
     parse_visit_collector v =
         parse_and_visit_statement(u8"console.log('hello');"_sv);
@@ -746,7 +751,7 @@ TEST(test_parse, expression_statement) {
   }
 }
 
-TEST(test_parse, delete_of_variable) {
+TEST_F(test_parse_expression_statement, delete_of_variable) {
   spy_visitor v;
   padded_string code(u8"delete x;"_sv);
   parser p(&code, &v);
@@ -756,7 +761,7 @@ TEST(test_parse, delete_of_variable) {
   EXPECT_THAT(v.errors, IsEmpty());
 }
 
-TEST(test_parse, delete_of_expression) {
+TEST_F(test_parse_expression_statement, delete_of_expression) {
   spy_visitor v;
   padded_string code(u8"delete x.p;"_sv);
   parser p(&code, &v);
@@ -765,7 +770,8 @@ TEST(test_parse, delete_of_expression) {
   EXPECT_THAT(v.variable_uses, ElementsAre(u8"x"));
 }
 
-TEST(test_parse, cannot_reference_private_identifier_outside_class) {
+TEST_F(test_parse_expression_statement,
+       cannot_reference_private_identifier_outside_class) {
   {
     padded_string code(u8"this.#x = 10;"_sv);
     spy_visitor v;
@@ -782,7 +788,7 @@ TEST(test_parse, cannot_reference_private_identifier_outside_class) {
   }
 }
 
-TEST(test_parse, asi_plusplus_minusminus) {
+TEST_F(test_parse_expression_statement, asi_plusplus_minusminus) {
   {
     spy_visitor v;
     padded_string code(u8"x\n++\ny;"_sv);
@@ -802,7 +808,7 @@ TEST(test_parse, asi_plusplus_minusminus) {
   }
 }
 
-TEST(test_parse, asi_after_let) {
+TEST_F(test_parse_expression_statement, asi_after_let) {
   {
     parse_visit_collector v = parse_and_visit_module(u8"let\nwhile (x) {}"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // let
@@ -813,7 +819,7 @@ TEST(test_parse, asi_after_let) {
   }
 }
 
-TEST(test_parse, asi_between_identifiers) {
+TEST_F(test_parse_expression_statement, asi_between_identifiers) {
   {
     parse_visit_collector v = parse_and_visit_module(u8"a\nb"_sv);
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // a
@@ -822,7 +828,7 @@ TEST(test_parse, asi_between_identifiers) {
   }
 }
 
-TEST(test_parse, parse_function_calls) {
+TEST_F(test_parse_expression_statement, parse_function_calls) {
   {
     parse_visit_collector v = parse_and_visit_expression(u8"f(x)"_sv);
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"f", u8"x"));
@@ -845,7 +851,7 @@ TEST(test_parse, parse_function_calls) {
   }
 }
 
-TEST(test_parse, parse_templates_in_expressions) {
+TEST_F(test_parse_expression_statement, parse_templates_in_expressions) {
   {
     parse_visit_collector v = parse_and_visit_expression(u8"`hello`"_sv);
     EXPECT_THAT(v.visits, IsEmpty());
@@ -874,7 +880,7 @@ TEST(test_parse, parse_templates_in_expressions) {
   }
 }
 
-TEST(test_parse, parse_invalid_function_calls) {
+TEST_F(test_parse_expression_statement, parse_invalid_function_calls) {
   {
     spy_visitor v;
     padded_string code(u8"(x)f"_sv);
@@ -887,7 +893,7 @@ TEST(test_parse, parse_invalid_function_calls) {
   }
 }
 
-TEST(test_parse, parse_function_call_as_statement) {
+TEST_F(test_parse_expression_statement, parse_function_call_as_statement) {
   {
     spy_visitor v;
     padded_string code(u8"f(x); g(y);"_sv);
@@ -903,7 +909,7 @@ TEST(test_parse, parse_function_call_as_statement) {
   }
 }
 
-TEST(test_parse, parse_property_lookup) {
+TEST_F(test_parse_expression_statement, parse_property_lookup) {
   {
     parse_visit_collector v =
         parse_and_visit_expression(u8"some_var.some_property"_sv);
@@ -911,21 +917,21 @@ TEST(test_parse, parse_property_lookup) {
   }
 }
 
-TEST(test_parse, parse_new_expression) {
+TEST_F(test_parse_expression_statement, parse_new_expression) {
   {
     parse_visit_collector v = parse_and_visit_expression(u8"new Foo()"_sv);
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"Foo"));
   }
 }
 
-TEST(test_parse, conditional_expression) {
+TEST_F(test_parse_expression_statement, conditional_expression) {
   {
     parse_visit_collector v = parse_and_visit_expression(u8"x ? y : z"_sv);
     EXPECT_THAT(v.variable_uses, ElementsAre(u8"x", u8"y", u8"z"));
   }
 }
 
-TEST(test_parse, statement_beginning_with_async_or_let) {
+TEST_F(test_parse_expression_statement, statement_beginning_with_async_or_let) {
   for (string8 name : {u8"async", u8"let"}) {
     SCOPED_TRACE(out_string8(name));
 
@@ -1039,7 +1045,8 @@ TEST(test_parse, statement_beginning_with_async_or_let) {
   }
 }
 
-TEST(test_parse, async_followed_by_newline_is_a_variable_reference) {
+TEST_F(test_parse_expression_statement,
+       async_followed_by_newline_is_a_variable_reference) {
   {
     parse_visit_collector v = parse_and_visit_module(u8"x = async\na => b;");
     EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // async
@@ -1054,7 +1061,8 @@ TEST(test_parse, async_followed_by_newline_is_a_variable_reference) {
   }
 }
 
-TEST(test_parse, async_followed_by_newline_and_arrow_function) {
+TEST_F(test_parse_expression_statement,
+       async_followed_by_newline_and_arrow_function) {
   {
     padded_string code(u8"x = async\n(a) => b;"_sv);
     spy_visitor v;
@@ -1077,7 +1085,8 @@ TEST(test_parse, async_followed_by_newline_and_arrow_function) {
   }
 }
 
-TEST(test_parse, trailing_comma_in_comma_expression_is_disallowed) {
+TEST_F(test_parse_expression_statement,
+       trailing_comma_in_comma_expression_is_disallowed) {
   {
     spy_visitor v;
     padded_string code(u8"(a, b, );"_sv);
@@ -1089,7 +1098,8 @@ TEST(test_parse, trailing_comma_in_comma_expression_is_disallowed) {
   }
 }
 
-TEST(test_parse, handle_unexpected_keyword_in_expression) {
+TEST_F(test_parse_expression_statement,
+       handle_unexpected_keyword_in_expression) {
   //
   // keywords temporarily omitted because they will crash downstream
   // ---
@@ -1120,7 +1130,8 @@ TEST(test_parse, handle_unexpected_keyword_in_expression) {
   }
 }
 
-TEST(test_parse, incomplete_unary_expression_with_following_statement_keyword) {
+TEST_F(test_parse_expression_statement,
+       incomplete_unary_expression_with_following_statement_keyword) {
   for (string8_view statement : {
            u8"for(;x;);"_sv,
            u8"if(x);"_sv,
@@ -1169,7 +1180,7 @@ TEST(test_parse, incomplete_unary_expression_with_following_statement_keyword) {
   }
 }
 
-TEST(test_parse, let_is_an_identifier_if_escaped) {
+TEST_F(test_parse_expression_statement, let_is_an_identifier_if_escaped) {
   {
     // The following would instead be parsed as a declaration of a variable
     // named 'x':
@@ -1187,7 +1198,8 @@ TEST(test_parse, let_is_an_identifier_if_escaped) {
   }
 }
 
-TEST(test_parse, let_expression_as_statement_body_is_allowed) {
+TEST_F(test_parse_expression_statement,
+       let_expression_as_statement_body_is_allowed) {
   // do-while loops, for loops, if statements, while loops, and with statements
   // all disallow lexical declarations ('let x = y;') as their body. However,
   // they do allow expression statements in their body, including expression
@@ -1228,7 +1240,7 @@ TEST(test_parse, let_expression_as_statement_body_is_allowed) {
   }
 }
 
-TEST(test_parse, let_as_statement_body_allows_asi) {
+TEST_F(test_parse_expression_statement, let_as_statement_body_allows_asi) {
   // do-while loops, for loops, if statements, while loops, and with statements
   // all disallow lexical declarations ('let x = y;') as their body. However,
   // they do allow expression statements in their body, including expression
@@ -1317,7 +1329,8 @@ TEST(test_parse, let_as_statement_body_allows_asi) {
   }
 }
 
-TEST(test_parse, disallow_await_parameter_in_async_arrow_function) {
+TEST_F(test_parse_expression_statement,
+       disallow_await_parameter_in_async_arrow_function) {
   {
     spy_visitor v;
     padded_string code(u8"(async (await) => null)"_sv);
@@ -1387,7 +1400,8 @@ TEST(test_parse, disallow_await_parameter_in_async_arrow_function) {
   }
 }
 
-TEST(test_parse_expression_statement, object_property_default_is_not_allowed) {
+TEST_F(test_parse_expression_statement,
+       object_property_default_is_not_allowed) {
   {
     padded_string code(u8"({banana = 42})"_sv);
     spy_visitor v;
@@ -1400,7 +1414,7 @@ TEST(test_parse_expression_statement, object_property_default_is_not_allowed) {
   }
 }
 
-TEST(test_parse_expression_statement, invalid_parentheses) {
+TEST_F(test_parse_expression_statement, invalid_parentheses) {
   {
     padded_string code(u8"()"_sv);
     spy_visitor v;
