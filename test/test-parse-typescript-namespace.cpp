@@ -27,8 +27,7 @@ namespace {
 class test_parse_typescript_namespace : public test_parse_expression {};
 
 TEST_F(test_parse_typescript_namespace, not_supported_in_vanilla_javascript) {
-  test_parser& p =
-      this->make_parser(u8"namespace ns {}"_sv, javascript_options);
+  test_parser p(u8"namespace ns {}"_sv, javascript_options);
   p.parse_and_visit_statement();
   EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // ns
                                     "visit_enter_namespace_scope",   // {
@@ -114,8 +113,7 @@ TEST_F(test_parse_typescript_namespace, namespace_alias) {
 TEST_F(test_parse_typescript_namespace,
        namespace_alias_not_allowed_in_javascript) {
   {
-    test_parser& p =
-        this->make_parser(u8"import A = ns;"_sv, javascript_options);
+    test_parser p(u8"import A = ns;"_sv, javascript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",      // A
                                       "visit_variable_namespace_use"));  // ns
@@ -155,8 +153,7 @@ TEST_F(test_parse_typescript_namespace, import_alias_of_namespace_member) {
 TEST_F(test_parse_typescript_namespace,
        import_alias_requires_semicolon_or_newline) {
   {
-    test_parser& p = this->make_parser(u8"import A = ns nextStatement"_sv,
-                                       typescript_options);
+    test_parser p(u8"import A = ns nextStatement"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // ns

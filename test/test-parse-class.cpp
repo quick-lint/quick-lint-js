@@ -67,7 +67,7 @@ TEST_F(test_parse_class, parse_class_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"class A {} class B {}"_sv);
+    test_parser p(u8"class A {} class B {}"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
@@ -77,7 +77,7 @@ TEST_F(test_parse_class, parse_class_statement) {
 
 TEST_F(test_parse_class, class_statement_requires_a_name) {
   {
-    test_parser& p = this->make_parser(u8"class {}"_sv);
+    test_parser p(u8"class {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       //
                                       "visit_enter_class_scope_body",  //
@@ -91,7 +91,7 @@ TEST_F(test_parse_class, class_statement_requires_a_name) {
 
 TEST_F(test_parse_class, class_statement_requires_a_body) {
   {
-    test_parser& p = this->make_parser(u8"class C "_sv);
+    test_parser p(u8"class C "_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_enter_class_scope_body",  //
@@ -104,7 +104,7 @@ TEST_F(test_parse_class, class_statement_requires_a_body) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"class Derived extends Base "_sv);
+    test_parser p(u8"class Derived extends Base "_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",       // {
@@ -119,7 +119,7 @@ TEST_F(test_parse_class, class_statement_requires_a_body) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"class ;"_sv);
+    test_parser p(u8"class ;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_enter_class_scope_body",  //
@@ -137,7 +137,7 @@ TEST_F(test_parse_class, class_statement_requires_a_body) {
 
 TEST_F(test_parse_class, unclosed_class_statement) {
   {
-    test_parser& p = this->make_parser(u8"class C { "_sv);
+    test_parser p(u8"class C { "_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       //
                                       "visit_enter_class_scope_body",  //
@@ -149,7 +149,7 @@ TEST_F(test_parse_class, unclosed_class_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"class C { method() {} "_sv);
+    test_parser p(u8"class C { method() {} "_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",          // C
@@ -166,7 +166,7 @@ TEST_F(test_parse_class, unclosed_class_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"class C { property "_sv);
+    test_parser p(u8"class C { property "_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",       // C
@@ -363,7 +363,7 @@ TEST_F(test_parse_class, class_statement_with_methods) {
 
 TEST_F(test_parse_class, class_statement_methods_with_arrow_operator) {
   {
-    test_parser& p = this->make_parser(u8"class C { method() => {} }"_sv);
+    test_parser p(u8"class C { method() => {} }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",          //
@@ -385,8 +385,7 @@ TEST_F(test_parse_class, class_statement_methods_with_arrow_operator) {
 
 TEST_F(test_parse_class, missing_class_method_name_fails) {
   {
-    test_parser& p =
-        this->make_parser(u8"class Monster { (muffinCount) { } }"_sv);
+    test_parser p(u8"class Monster { (muffinCount) { } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",          //
@@ -661,7 +660,7 @@ TEST_F(test_parse_class,
 
 TEST_F(test_parse_class, class_methods_should_not_use_function_keyword) {
   {
-    test_parser& p = this->make_parser(u8"class C { function f() {} }"_sv);
+    test_parser p(u8"class C { function f() {} }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",          //
                                       "visit_enter_class_scope_body",     //
@@ -678,8 +677,7 @@ TEST_F(test_parse_class, class_methods_should_not_use_function_keyword) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"class C { async function f() {} }"_sv);
+    test_parser p(u8"class C { async function f() {} }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -689,7 +687,7 @@ TEST_F(test_parse_class, class_methods_should_not_use_function_keyword) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"class C { function* f() {} }"_sv);
+    test_parser p(u8"class C { function* f() {} }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -698,8 +696,7 @@ TEST_F(test_parse_class, class_methods_should_not_use_function_keyword) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"class C { static function f() {} }"_sv);
+    test_parser p(u8"class C { static function f() {} }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -917,7 +914,7 @@ TEST_F(test_parse_class, class_statement_allows_stray_semicolons) {
 
 TEST_F(test_parse_class, class_method_without_parameter_list) {
   {
-    test_parser& p = this->make_parser(u8"class C { method { body; } }"_sv);
+    test_parser p(u8"class C { method { body; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",          //
@@ -937,8 +934,7 @@ TEST_F(test_parse_class, class_method_without_parameter_list) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"class C { [method+name] { body; } }"_sv);
+    test_parser p(u8"class C { [method+name] { body; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -948,8 +944,7 @@ TEST_F(test_parse_class, class_method_without_parameter_list) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"class C { 'method name' { body; } }"_sv);
+    test_parser p(u8"class C { 'method name' { body; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -961,8 +956,7 @@ TEST_F(test_parse_class, class_method_without_parameter_list) {
 
 TEST_F(test_parse_class, stray_identifier_before_class_method) {
   {
-    test_parser& p = this->make_parser(
-        u8"class C { junkIdentifier method(arg) { body; } }"_sv);
+    test_parser p(u8"class C { junkIdentifier method(arg) { body; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",          //
@@ -983,8 +977,7 @@ TEST_F(test_parse_class, stray_identifier_before_class_method) {
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8"class C { #junkIdentifier #method(arg) { body; } }"_sv);
+    test_parser p(u8"class C { #junkIdentifier #method(arg) { body; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"#method"));
     EXPECT_THAT(p.errors,
@@ -994,8 +987,7 @@ TEST_F(test_parse_class, stray_identifier_before_class_method) {
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8"class C { junkIdentifier *method(arg) { body; } }"_sv);
+    test_parser p(u8"class C { junkIdentifier *method(arg) { body; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",          //
@@ -1019,7 +1011,7 @@ TEST_F(test_parse_class, stray_identifier_before_class_method) {
 TEST_F(test_parse_class, stray_left_curly_in_class_is_ignored) {
   // TODO(strager): Is this the right approach? What about 'class C { { } }'?
   {
-    test_parser& p = this->make_parser(u8"class C { { method() {} }"_sv);
+    test_parser p(u8"class C { { method() {} }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"method"));
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1030,7 +1022,7 @@ TEST_F(test_parse_class, stray_left_curly_in_class_is_ignored) {
 
 TEST_F(test_parse_class, stray_keyword_in_class_body) {
   {
-    test_parser& p = this->make_parser(
+    test_parser p(
         u8"class C { if method(arg) { body; } instanceof myField; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
@@ -1047,7 +1039,7 @@ TEST_F(test_parse_class, stray_keyword_in_class_body) {
 TEST_F(test_parse_class,
        class_statement_as_do_while_statement_body_is_disallowed) {
   {
-    test_parser& p = this->make_parser(u8"do class C {} while (cond);"_sv);
+    test_parser p(u8"do class C {} while (cond);"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
                                       "visit_enter_class_scope_body",  //
@@ -1067,7 +1059,7 @@ TEST_F(test_parse_class,
 
 TEST_F(test_parse_class, class_statement_as_if_statement_body_is_disallowed) {
   {
-    test_parser& p = this->make_parser(u8"if (cond) class C {} after"_sv);
+    test_parser p(u8"if (cond) class C {} after"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                       "visit_enter_class_scope",       // {
@@ -1088,7 +1080,7 @@ TEST_F(test_parse_class, class_statement_as_if_statement_body_is_disallowed) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (cond) class C {} else {}"_sv);
+    test_parser p(u8"if (cond) class C {} else {}"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                       "visit_enter_class_scope",       // {
@@ -1110,7 +1102,7 @@ TEST_F(test_parse_class, class_statement_as_if_statement_body_is_disallowed) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (cond) {} else class C {}"_sv);
+    test_parser p(u8"if (cond) {} else class C {}"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                       "visit_enter_block_scope",       // if
@@ -1135,7 +1127,7 @@ TEST_F(test_parse_class, class_statement_as_if_statement_body_is_disallowed) {
 
 TEST_F(test_parse_class, class_statement_as_for_statement_body_is_disallowed) {
   {
-    test_parser& p = this->make_parser(u8"for (;cond;) class C {}"_sv);
+    test_parser p(u8"for (;cond;) class C {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                       "visit_enter_class_scope",       // {
@@ -1157,7 +1149,7 @@ TEST_F(test_parse_class, class_statement_as_for_statement_body_is_disallowed) {
 TEST_F(test_parse_class,
        class_statement_as_while_statement_body_is_disallowed) {
   {
-    test_parser& p = this->make_parser(u8"while (cond) class C {}"_sv);
+    test_parser p(u8"while (cond) class C {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                       "visit_enter_class_scope",       // {
@@ -1178,7 +1170,7 @@ TEST_F(test_parse_class,
 
 TEST_F(test_parse_class, class_statement_as_with_statement_body_is_disallowed) {
   {
-    test_parser& p = this->make_parser(u8"with (obj) class C {}"_sv);
+    test_parser p(u8"with (obj) class C {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // obj
                                       "visit_enter_with_scope",        // with
@@ -1224,8 +1216,7 @@ TEST_F(test_parse_class, class_named_await_in_async_function) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"async function g() { class await {} }"_sv);
+    test_parser p(u8"async function g() { class await {} }"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -1237,8 +1228,7 @@ TEST_F(test_parse_class, class_named_await_in_async_function) {
 
 TEST_F(test_parse_class, async_static_method_is_disallowed) {
   {
-    test_parser& p = this->make_parser(
-        u8"class C { async static m() { await myPromise; } }"_sv);
+    test_parser p(u8"class C { async static m() { await myPromise; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"m"));
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"myPromise"));
@@ -1261,7 +1251,7 @@ TEST_F(test_parse_class, async_static_method_is_disallowed) {
   }
 
   {
-    test_parser& p = this->make_parser(
+    test_parser p(
         u8"class C { async static static() { await myPromise; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"static"));
@@ -1272,7 +1262,7 @@ TEST_F(test_parse_class, async_static_method_is_disallowed) {
   }
 
   {
-    test_parser& p = this->make_parser(
+    test_parser p(
         u8"class C { async static *m() { await myPromise; yield 42; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"m"));
@@ -1336,7 +1326,7 @@ TEST_F(test_parse_class, async_method_prohibits_newline_after_async_keyword) {
 
 TEST_F(test_parse_class, typescript_style_const_field) {
   {
-    test_parser& p = this->make_parser(u8"class C { const f = null }"_sv);
+    test_parser p(u8"class C { const f = null }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"f"));
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1344,7 +1334,7 @@ TEST_F(test_parse_class, typescript_style_const_field) {
                               const_token, strlen(u8"class C { "), u8"const")));
   }
   {
-    test_parser& p = this->make_parser(u8"class C { const f }"_sv);
+    test_parser p(u8"class C { const f }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.property_declarations, ElementsAre(u8"f"));
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(

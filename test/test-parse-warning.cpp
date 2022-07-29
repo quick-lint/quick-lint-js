@@ -33,7 +33,7 @@ class test_error_equals_does_not_distribute_over_or
 
 TEST_F(test_parse_warning, condition_with_assignment_from_literal) {
   {
-    test_parser& p = this->make_parser(u8"if (x = 42) {}"_sv);
+    test_parser p(u8"if (x = 42) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_assignments, ElementsAre(u8"x"));
     EXPECT_THAT(p.errors,
@@ -43,7 +43,7 @@ TEST_F(test_parse_warning, condition_with_assignment_from_literal) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (o.prop = 'hello') {}"_sv);
+    test_parser p(u8"if (o.prop = 'hello') {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -57,7 +57,7 @@ TEST_F(test_parse_warning, condition_with_assignment_from_literal) {
            u8"do {} while (x = 'hello');"_sv,
        }) {
     SCOPED_TRACE(out_string8(code));
-    test_parser& p = this->make_parser(code);
+    test_parser p(code);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -73,7 +73,7 @@ TEST_F(test_parse_warning, non_condition_with_assignment_from_literal) {
            u8"switch (x = 'hello') {}"_sv,
        }) {
     SCOPED_TRACE(out_string8(code));
-    test_parser& p = this->make_parser(code);
+    test_parser p(code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
   }
@@ -82,7 +82,7 @@ TEST_F(test_parse_warning, non_condition_with_assignment_from_literal) {
 TEST_F(test_parse_warning,
        condition_with_assignment_from_literal_with_parentheses) {
   {
-    test_parser& p = this->make_parser(u8"if ((x = 42)) {}"_sv);
+    test_parser p(u8"if ((x = 42)) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_assignments, ElementsAre(u8"x"));
     EXPECT_THAT(p.errors, IsEmpty());
@@ -91,7 +91,7 @@ TEST_F(test_parse_warning,
 
 TEST_F(test_parse_warning, condition_with_updating_assignment_from_literal) {
   {
-    test_parser& p = this->make_parser(u8"if (x += 42) {}"_sv);
+    test_parser p(u8"if (x += 42) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_assignments, ElementsAre(u8"x"));
     EXPECT_THAT(p.errors, IsEmpty());
@@ -100,7 +100,7 @@ TEST_F(test_parse_warning, condition_with_updating_assignment_from_literal) {
 
 TEST_F(test_parse_warning, condition_with_assignment_from_non_literal) {
   {
-    test_parser& p = this->make_parser(u8"if (x = y) {}"_sv);
+    test_parser p(u8"if (x = y) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_assignments, ElementsAre(u8"x"));
     EXPECT_THAT(p.errors, IsEmpty());
@@ -109,7 +109,7 @@ TEST_F(test_parse_warning, condition_with_assignment_from_non_literal) {
 
 TEST_F(test_error_equals_does_not_distribute_over_or, examples) {
   {
-    test_parser& p = this->make_parser(u8"if (x === 'A' || 'B') {}"_sv);
+    test_parser p(u8"if (x === 'A' || 'B') {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"x"));
     EXPECT_THAT(p.errors,
@@ -120,7 +120,7 @@ TEST_F(test_error_equals_does_not_distribute_over_or, examples) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (x === 10 || 0) {}"_sv);
+    test_parser p(u8"if (x === 10 || 0) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
@@ -130,7 +130,7 @@ TEST_F(test_error_equals_does_not_distribute_over_or, examples) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (x == 'A' || 'B') {}"_sv);
+    test_parser p(u8"if (x == 'A' || 'B') {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
@@ -142,13 +142,13 @@ TEST_F(test_error_equals_does_not_distribute_over_or, examples) {
 
 TEST_F(test_error_equals_does_not_distribute_over_or, not_equals) {
   {
-    test_parser& p = this->make_parser(u8"if (x != 'A' || 'B') {}"_sv);
+    test_parser p(u8"if (x != 'A' || 'B') {}"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (x !== 'A' || 'B') {}"_sv);
+    test_parser p(u8"if (x !== 'A' || 'B') {}"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
@@ -156,7 +156,7 @@ TEST_F(test_error_equals_does_not_distribute_over_or, not_equals) {
 
 TEST_F(test_error_equals_does_not_distribute_over_or, logical_and) {
   {
-    test_parser& p = this->make_parser(u8"if (x == 'A' && 'B') {}"_sv);
+    test_parser p(u8"if (x == 'A' && 'B') {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
   }
@@ -164,7 +164,7 @@ TEST_F(test_error_equals_does_not_distribute_over_or, logical_and) {
 
 TEST_F(test_error_equals_does_not_distribute_over_or, non_constant) {
   {
-    test_parser& p = this->make_parser(u8"if (x === 'A' || y) {}"_sv);
+    test_parser p(u8"if (x === 'A' || y) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
   }

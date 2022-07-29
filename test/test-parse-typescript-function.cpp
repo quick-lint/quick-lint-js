@@ -29,7 +29,7 @@ class test_parse_typescript_function : public test_parse_expression {};
 TEST_F(test_parse_typescript_function,
        return_type_annotation_is_disallowed_in_javascript) {
   {
-    test_parser& p = this->make_parser(u8"function f(): C { }"_sv);
+    test_parser p(u8"function f(): C { }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
     EXPECT_THAT(
@@ -182,8 +182,7 @@ TEST_F(test_parse_typescript_function,
 TEST_F(test_parse_typescript_function,
        non_null_assertion_in_parameter_list_is_an_error) {
   {
-    test_parser& p =
-        this->make_parser(u8"function f(param!) {}"_sv, typescript_options);
+    test_parser p(u8"function f(param!) {}"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",       // f
@@ -199,8 +198,7 @@ TEST_F(test_parse_typescript_function,
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"(param!) => {}"_sv, typescript_options);
+    test_parser p(u8"(param!) => {}"_sv, typescript_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       // f

@@ -115,8 +115,7 @@ TEST_F(test_parse_typescript_angle_type_assertion,
 TEST_F(test_parse_typescript_angle_type_assertion,
        angle_type_assertion_with_complex_type_is_error_in_typescript_jsx_mode) {
   {
-    test_parser& p = this->make_parser(u8"<Type1 | Type2>(expr);"_sv,
-                                       typescript_jsx_options);
+    test_parser p(u8"<Type1 | Type2>(expr);"_sv, typescript_jsx_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // Type1
                                       "visit_variable_type_use",  // Type2
@@ -130,8 +129,7 @@ TEST_F(test_parse_typescript_angle_type_assertion,
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"<(Type)>expr;"_sv, typescript_jsx_options);
+    test_parser p(u8"<(Type)>expr;"_sv, typescript_jsx_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // Type
                                       "visit_variable_use"));     // expr
@@ -147,7 +145,7 @@ TEST_F(test_parse_typescript_angle_type_assertion,
 TEST_F(test_parse_typescript_angle_type_assertion,
        angle_type_assertion_is_not_allowed_in_function_parameter_list) {
   {
-    test_parser& p = this->make_parser(u8"(<T>x) => {}"_sv, typescript_options);
+    test_parser p(u8"(<T>x) => {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(),
@@ -157,8 +155,7 @@ TEST_F(test_parse_typescript_angle_type_assertion,
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"function f(<T>x) {}"_sv, typescript_options);
+    test_parser p(u8"function f(<T>x) {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(),

@@ -55,7 +55,7 @@ TEST_F(test_parse_jsx, parsing_stops_on_jsx_in_vanilla_javascript) {
 }
 
 TEST_F(test_parse_jsx, empty_intrinsic_element) {
-  test_parser& p = this->make_parser(u8"c = <div></div>;"_sv, jsx_options);
+  test_parser p(u8"c = <div></div>;"_sv, jsx_options);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAre("visit_variable_assignment",  // c
                                     "visit_end_of_module"));
@@ -63,8 +63,7 @@ TEST_F(test_parse_jsx, empty_intrinsic_element) {
 }
 
 TEST_F(test_parse_jsx, empty_user_element) {
-  test_parser& p =
-      this->make_parser(u8"c = <MyComponent></MyComponent>;"_sv, jsx_options);
+  test_parser p(u8"c = <MyComponent></MyComponent>;"_sv, jsx_options);
   p.parse_and_visit_module();
   EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // MyComponent
                                     "visit_variable_assignment",  // c
@@ -74,7 +73,7 @@ TEST_F(test_parse_jsx, empty_user_element) {
 }
 
 TEST_F(test_parse_jsx, member_component) {
-  test_parser& p = this->make_parser(
+  test_parser p(
       u8"c = <module.submodule.MyComponent></module.submodule.MyComponent>;"_sv,
       jsx_options);
   p.parse_and_visit_module();
@@ -87,31 +86,29 @@ TEST_F(test_parse_jsx, member_component) {
 
 TEST_F(test_parse_jsx, element_child_element) {
   {
-    test_parser& p = this->make_parser(
-        u8"c = <outer><INNER></INNER></outer>;"_sv, jsx_options);
+    test_parser p(u8"c = <outer><INNER></INNER></outer>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"INNER"));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8"c = <OUTER><INNER></INNER></OUTER>;"_sv, jsx_options);
+    test_parser p(u8"c = <OUTER><INNER></INNER></OUTER>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"OUTER", u8"INNER"));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8"c = <NS:OUTER><INNER></INNER></NS:OUTER>;"_sv, jsx_options);
+    test_parser p(u8"c = <NS:OUTER><INNER></INNER></NS:OUTER>;"_sv,
+                  jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"INNER"));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(
+    test_parser p(
         u8"c = <outer.Component><INNER></INNER></outer.Component>;"_sv,
         jsx_options);
     p.parse_and_visit_module();
@@ -120,8 +117,7 @@ TEST_F(test_parse_jsx, element_child_element) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"c = <><INNER></INNER></>;"_sv, jsx_options);
+    test_parser p(u8"c = <><INNER></INNER></>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"INNER"));
     EXPECT_THAT(p.errors, IsEmpty());
@@ -130,39 +126,36 @@ TEST_F(test_parse_jsx, element_child_element) {
 
 TEST_F(test_parse_jsx, element_child_expression) {
   {
-    test_parser& p =
-        this->make_parser(u8"c = <outer>{INNER}</outer>;"_sv, jsx_options);
+    test_parser p(u8"c = <outer>{INNER}</outer>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"INNER"));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"c = <OUTER>{INNER}</OUTER>;"_sv, jsx_options);
+    test_parser p(u8"c = <OUTER>{INNER}</OUTER>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"OUTER", u8"INNER"));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(u8"c = <NS:OUTER>{INNER}</NS:OUTER>;"_sv,
-                                       jsx_options);
+    test_parser p(u8"c = <NS:OUTER>{INNER}</NS:OUTER>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"INNER"));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8"c = <outer.Component>{INNER}</outer.Component>;"_sv, jsx_options);
+    test_parser p(u8"c = <outer.Component>{INNER}</outer.Component>;"_sv,
+                  jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"outer", u8"INNER"));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(u8"c = <>{INNER}</>;"_sv, jsx_options);
+    test_parser p(u8"c = <>{INNER}</>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"INNER"));
     EXPECT_THAT(p.errors, IsEmpty());
@@ -171,31 +164,29 @@ TEST_F(test_parse_jsx, element_child_expression) {
 
 TEST_F(test_parse_jsx, element_attribute_expression) {
   {
-    test_parser& p = this->make_parser(
-        u8"c = <outer attr={attrValue}></outer>;"_sv, jsx_options);
+    test_parser p(u8"c = <outer attr={attrValue}></outer>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"attrValue"));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8"c = <OUTER attr={attrValue}></OUTER>;"_sv, jsx_options);
+    test_parser p(u8"c = <OUTER attr={attrValue}></OUTER>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"OUTER", u8"attrValue"));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8"c = <NS:OUTER attr={attrValue}></NS:OUTER>;"_sv, jsx_options);
+    test_parser p(u8"c = <NS:OUTER attr={attrValue}></NS:OUTER>;"_sv,
+                  jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"attrValue"));
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(
+    test_parser p(
         u8"c = <outer.Component attr={attrValue}></outer.Component>;"_sv,
         jsx_options);
     p.parse_and_visit_module();
@@ -206,7 +197,7 @@ TEST_F(test_parse_jsx, element_attribute_expression) {
 
 TEST_F(test_parse_jsx, attribute_without_name_must_be_spread) {
   {
-    test_parser& p = this->make_parser(u8"c = <div {attr} />;"_sv, jsx_options);
+    test_parser p(u8"c = <div {attr} />;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"attr"));
     EXPECT_THAT(p.errors,
@@ -218,7 +209,7 @@ TEST_F(test_parse_jsx, attribute_without_name_must_be_spread) {
 
 TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
   {
-    test_parser& p = this->make_parser(u8"c = <div></span>;"_sv, jsx_options);
+    test_parser p(u8"c = <div></span>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
@@ -229,7 +220,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
 
   // opening_tag_name span for normal tag:
   {
-    test_parser& p = this->make_parser(u8"c = < div ></span>;"_sv, jsx_options);
+    test_parser p(u8"c = < div ></span>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_mismatched_jsx_tags,  //
@@ -238,7 +229,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
 
   // opening_tag_name span for fragment tag:
   {
-    test_parser& p = this->make_parser(u8"c = <  ></span>;"_sv, jsx_options);
+    test_parser p(u8"c = <  ></span>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_mismatched_jsx_tags,  //
@@ -247,8 +238,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
 
   // opening_tag_name span for member tag:
   {
-    test_parser& p = this->make_parser(
-        u8"c = < module . Component ></span>;"_sv, jsx_options);
+    test_parser p(u8"c = < module . Component ></span>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_mismatched_jsx_tags,  //
@@ -258,8 +248,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
 
   // opening_tag_name span for namespaced tag:
   {
-    test_parser& p =
-        this->make_parser(u8"c = < svg : path ></span>;"_sv, jsx_options);
+    test_parser p(u8"c = < svg : path ></span>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -269,7 +258,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
 
   // closing_tag_name span for normal tag:
   {
-    test_parser& p = this->make_parser(u8"c = <div></ span >;"_sv, jsx_options);
+    test_parser p(u8"c = <div></ span >;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -279,7 +268,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
 
   // closing_tag_name span for fragment tag:
   {
-    test_parser& p = this->make_parser(u8"c = <div></  >;"_sv, jsx_options);
+    test_parser p(u8"c = <div></  >;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -289,8 +278,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
 
   // closing_tag_name span for member tag:
   {
-    test_parser& p = this->make_parser(u8"c = <div></ module . Component >;"_sv,
-                                       jsx_options);
+    test_parser p(u8"c = <div></ module . Component >;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_mismatched_jsx_tags,  //
@@ -300,8 +288,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
 
   // closing_tag_name span for namespaced tag:
   {
-    test_parser& p =
-        this->make_parser(u8"c = <div></ svg : path >;"_sv, jsx_options);
+    test_parser p(u8"c = <div></ svg : path >;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_mismatched_jsx_tags,  //
@@ -311,7 +298,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
 
   // opening_tag_name_pretty for normal tag:
   {
-    test_parser& p = this->make_parser(u8"c = <div></span>;"_sv, jsx_options);
+    test_parser p(u8"c = <div></span>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
                                                       opening_tag_name_pretty,
@@ -320,7 +307,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
 
   // opening_tag_name_pretty for fragment tag:
   {
-    test_parser& p = this->make_parser(u8"c = <  ></span>;"_sv, jsx_options);
+    test_parser p(u8"c = <  ></span>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
@@ -329,8 +316,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
 
   // opening_tag_name_pretty for member tag:
   {
-    test_parser& p =
-        this->make_parser(u8"c = <module.Component></span>;"_sv, jsx_options);
+    test_parser p(u8"c = <module.Component></span>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
                                                       opening_tag_name_pretty,
@@ -339,8 +325,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
 
   // opening_tag_name_pretty for namespaced tag:
   {
-    test_parser& p =
-        this->make_parser(u8"c = <svg:path></span>;"_sv, jsx_options);
+    test_parser p(u8"c = <svg:path></span>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
                                                       opening_tag_name_pretty,
@@ -399,7 +384,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_must_match) {
 TEST_F(test_parse_jsx,
        begin_and_end_tag_mismatch_message_excludes_comments_and_whitespace) {
   {
-    test_parser& p = this->make_parser(u8"c = < div ></x>;"_sv, jsx_options);
+    test_parser p(u8"c = < div ></x>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
                                                       opening_tag_name_pretty,
@@ -407,8 +392,7 @@ TEST_F(test_parse_jsx,
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8"c = < my . /* hello */ Component ></x>;"_sv, jsx_options);
+    test_parser p(u8"c = < my . /* hello */ Component ></x>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
                                                       opening_tag_name_pretty,
@@ -416,8 +400,7 @@ TEST_F(test_parse_jsx,
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"c = < svg /* */ : path ></x>;"_sv, jsx_options);
+    test_parser p(u8"c = < svg /* */ : path ></x>;"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
                                                       opening_tag_name_pretty,
@@ -428,8 +411,7 @@ TEST_F(test_parse_jsx,
 TEST_F(test_parse_jsx,
        begin_and_end_tag_mismatch_message_include_unicode_escapes) {
   {
-    test_parser& p =
-        this->make_parser(u8R"(c = <d\u{69}v></x>;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <d\u{69}v></x>;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(diag_mismatched_jsx_tags,
                                                       opening_tag_name_pretty,
@@ -437,8 +419,7 @@ TEST_F(test_parse_jsx,
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8R"(c = <s\u{76}g:p\u{69}th></x>;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <s\u{76}g:p\u{69}th></x>;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(
                               diag_mismatched_jsx_tags, opening_tag_name_pretty,
@@ -446,8 +427,7 @@ TEST_F(test_parse_jsx,
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <m\u{79}.Com\u{70}onent></x>;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <m\u{79}.Com\u{70}onent></x>;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_FIELD(
                               diag_mismatched_jsx_tags, opening_tag_name_pretty,
@@ -457,8 +437,7 @@ TEST_F(test_parse_jsx,
 
 TEST_F(test_parse_jsx, begin_and_end_tags_match_after_normalization) {
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <div></\u{64}\u{69}\u{76}>;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <div></\u{64}\u{69}\u{76}>;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty())
         << "shouldn't report diag_mismatched_jsx_tags";
@@ -467,8 +446,7 @@ TEST_F(test_parse_jsx, begin_and_end_tags_match_after_normalization) {
 
 TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
   {
-    test_parser& p =
-        this->make_parser(u8R"(c = <div></div> <div></div>;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <div></div> <div></div>;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -480,8 +458,8 @@ TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <div></div> <div></div> <div></div>;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <div></div> <div></div> <div></div>;)"_sv,
+                  jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -494,7 +472,7 @@ TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
 
   // Second element should be visited like normal.
   {
-    test_parser& p = this->make_parser(
+    test_parser p(
         u8R"(c = <FirstComponent></FirstComponent> <SecondComponent>{child}</SecondComponent>;)"_sv,
         jsx_options);
     p.parse_and_visit_module();
@@ -509,7 +487,7 @@ TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
   // TypeScript all agree that ASI does not kick in. Therefore, we report a
   // syntax error, despite what the specification says.
   {
-    test_parser& p = this->make_parser(
+    test_parser p(
         u8"c = <FirstComponent></FirstComponent>\n<SecondComponent></SecondComponent>;"_sv,
         jsx_options);
     p.parse_and_visit_module();
@@ -526,8 +504,7 @@ TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
   // https://github.com/facebook/jsx/issues/120
   {
     //                  binary operators  v v           v (according to spec)
-    test_parser& p = this->make_parser(
-        u8"c = <div></div> <i>/{child}</i>\ndone"_sv, jsx_options);
+    test_parser p(u8"c = <div></div> <i>/{child}</i>\ndone"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"child", u8"done"));
     EXPECT_THAT(p.errors,
@@ -535,8 +512,8 @@ TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8"c = <First></First><Second attr='value'></Second>;"_sv, jsx_options);
+    test_parser p(u8"c = <First></First><Second attr='value'></Second>;"_sv,
+                  jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"First", u8"Second"));
     EXPECT_THAT(p.errors,
@@ -546,15 +523,13 @@ TEST_F(test_parse_jsx, adjacent_tags_without_outer_fragment) {
 
 TEST_F(test_parse_jsx, correctly_capitalized_attribute) {
   {
-    test_parser& p =
-        this->make_parser(u8R"(c = <td colSpan="2" />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <td colSpan="2" />;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(u8R"(c = <div onClick={handler} />;)"_sv,
-                                       jsx_options);
+    test_parser p(u8R"(c = <div onClick={handler} />;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
@@ -562,8 +537,7 @@ TEST_F(test_parse_jsx, correctly_capitalized_attribute) {
 
 TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
   {
-    test_parser& p = this->make_parser(u8R"(c = <div onclick={handler} />;)"_sv,
-                                       jsx_options);
+    test_parser p(u8R"(c = <div onclick={handler} />;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -576,8 +550,7 @@ TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
 
   // TODO(strager): Should we also report that the handler's value is missing?
   {
-    test_parser& p =
-        this->make_parser(u8R"(c = <div onclick />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <div onclick />;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_FIELDS(
@@ -589,8 +562,7 @@ TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <div onmouseenter={handler} />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <div onmouseenter={handler} />;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_FIELDS(
@@ -602,8 +574,7 @@ TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <div oncustomevent={handler} />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <div oncustomevent={handler} />;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_FIELDS(
@@ -617,8 +588,7 @@ TEST_F(test_parse_jsx, event_attributes_should_be_camel_case) {
 
 TEST_F(test_parse_jsx, miscapitalized_attribute) {
   {
-    test_parser& p =
-        this->make_parser(u8R"(c = <td colspan="2" />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <td colspan="2" />;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -630,8 +600,7 @@ TEST_F(test_parse_jsx, miscapitalized_attribute) {
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <div onMouseenter={handler} />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <div onMouseenter={handler} />;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_FIELDS(
@@ -643,8 +612,7 @@ TEST_F(test_parse_jsx, miscapitalized_attribute) {
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <div onmouseENTER={handler} />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <div onmouseENTER={handler} />;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_FIELDS(
@@ -658,8 +626,7 @@ TEST_F(test_parse_jsx, miscapitalized_attribute) {
 
 TEST_F(test_parse_jsx, commonly_misspelled_attribute) {
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <span class="item"></span>;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <span class="item"></span>;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -673,23 +640,22 @@ TEST_F(test_parse_jsx, commonly_misspelled_attribute) {
 
 TEST_F(test_parse_jsx, attribute_checking_ignores_namespaced_attributes) {
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <div ns:onmouseenter={handler} />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <div ns:onmouseenter={handler} />;)"_sv,
+                  jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <div onmouseenter:onmouseenter={handler} />;)"_sv,
-        jsx_options);
+    test_parser p(u8R"(c = <div onmouseenter:onmouseenter={handler} />;)"_sv,
+                  jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <div class:class="my-css-class" />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <div class:class="my-css-class" />;)"_sv,
+                  jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
@@ -697,15 +663,13 @@ TEST_F(test_parse_jsx, attribute_checking_ignores_namespaced_attributes) {
 
 TEST_F(test_parse_jsx, attribute_checking_ignores_namespaced_elements) {
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <svg:g onmouseenter={handler} />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <svg:g onmouseenter={handler} />;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8R"(c = <svg:g class="red" />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <svg:g class="red" />;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
@@ -713,21 +677,20 @@ TEST_F(test_parse_jsx, attribute_checking_ignores_namespaced_elements) {
 
 TEST_F(test_parse_jsx, attribute_checking_ignores_user_components) {
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <MyComponent onmouseenter={handler} />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <MyComponent onmouseenter={handler} />;)"_sv,
+                  jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <MyComponent class="red" />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <MyComponent class="red" />;)"_sv, jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser& p = this->make_parser(
+    test_parser p(
         u8R"(c = <mymodule.mycomponent onmouseenter={handler} />;)"_sv,
         jsx_options);
     p.parse_and_visit_module();
@@ -735,8 +698,8 @@ TEST_F(test_parse_jsx, attribute_checking_ignores_user_components) {
   }
 
   {
-    test_parser& p = this->make_parser(
-        u8R"(c = <mymodule.mycomponent class="red" />;)"_sv, jsx_options);
+    test_parser p(u8R"(c = <mymodule.mycomponent class="red" />;)"_sv,
+                  jsx_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }

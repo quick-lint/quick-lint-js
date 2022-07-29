@@ -61,7 +61,7 @@ TEST_F(test_parse_loop, do_while) {
 
 TEST_F(test_parse_loop, do_while_without_parens) {
   {
-    test_parser& p = this->make_parser(u8"do {} while cond"_sv);
+    test_parser p(u8"do {} while cond"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
@@ -74,7 +74,7 @@ TEST_F(test_parse_loop, do_while_without_parens) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"do {} while cond;"_sv);
+    test_parser p(u8"do {} while cond;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
@@ -87,7 +87,7 @@ TEST_F(test_parse_loop, do_while_without_parens) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"{ do {} while cond }"_sv);
+    test_parser p(u8"{ do {} while cond }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",   //
                                       "visit_enter_block_scope",   //
@@ -102,7 +102,7 @@ TEST_F(test_parse_loop, do_while_without_parens) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"do {} while (cond"_sv);
+    test_parser p(u8"do {} while (cond"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
@@ -117,7 +117,7 @@ TEST_F(test_parse_loop, do_while_without_parens) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"do {} while cond)"_sv);
+    test_parser p(u8"do {} while cond)"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
@@ -134,7 +134,7 @@ TEST_F(test_parse_loop, do_while_without_parens) {
 
 TEST_F(test_parse_loop, do_while_without_body) {
   {
-    test_parser& p = this->make_parser(u8"do\nwhile (cond);"_sv);
+    test_parser p(u8"do\nwhile (cond);"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // cond
     EXPECT_THAT(p.errors,
@@ -146,7 +146,7 @@ TEST_F(test_parse_loop, do_while_without_body) {
 
 TEST_F(test_parse_loop, do_while_without_while_and_condition) {
   {
-    test_parser& p = this->make_parser(u8"do {} "_sv);
+    test_parser p(u8"do {} "_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope"));
@@ -159,7 +159,7 @@ TEST_F(test_parse_loop, do_while_without_while_and_condition) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"do {}; while (x);"_sv);
+    test_parser p(u8"do {}; while (x);"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
@@ -237,7 +237,7 @@ TEST_F(test_parse_loop, c_style_for_loop) {
 
 TEST_F(test_parse_loop, c_style_for_loop_with_in_operator) {
   {
-    test_parser& p = this->make_parser(u8"for (a in b; c; d) {}"_sv);
+    test_parser p(u8"for (a in b; c; d) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -252,7 +252,7 @@ TEST_F(test_parse_loop, c_style_for_loop_with_in_operator) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (let x = a in b; c; d) {}"_sv);
+    test_parser p(u8"for (let x = a in b; c; d) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -270,7 +270,7 @@ TEST_F(test_parse_loop, c_style_for_loop_with_in_operator) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (var x = a in b; c; d) {}"_sv);
+    test_parser p(u8"for (var x = a in b; c; d) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -288,7 +288,7 @@ TEST_F(test_parse_loop, c_style_for_loop_with_in_operator) {
 
 TEST_F(test_parse_loop, for_loop_with_missing_component) {
   {
-    test_parser& p = this->make_parser(u8"for () {}"_sv);
+    test_parser p(u8"for () {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_missing_header_of_for_loop,  //
@@ -298,7 +298,7 @@ TEST_F(test_parse_loop, for_loop_with_missing_component) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (myVar) {}"_sv);
+    test_parser p(u8"for (myVar) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -313,7 +313,7 @@ TEST_F(test_parse_loop, for_loop_with_missing_component) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (let myVar) {}"_sv);
+    test_parser p(u8"for (let myVar) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -332,7 +332,7 @@ TEST_F(test_parse_loop, for_loop_with_missing_component) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (init; cond) {}"_sv);
+    test_parser p(u8"for (init; cond) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -349,7 +349,7 @@ TEST_F(test_parse_loop, for_loop_with_missing_component) {
 
 TEST_F(test_parse_loop, for_loop_with_missing_semicolons) {
   {
-    test_parser& p = this->make_parser(u8"for (a b; c) {}"_sv);
+    test_parser p(u8"for (a b; c) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -365,7 +365,7 @@ TEST_F(test_parse_loop, for_loop_with_missing_semicolons) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (a; b c) {}"_sv);
+    test_parser p(u8"for (a; b c) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -383,7 +383,7 @@ TEST_F(test_parse_loop, for_loop_with_missing_semicolons) {
 
 TEST_F(test_parse_loop, for_loop_with_extra_semicolons) {
   {
-    test_parser& p = this->make_parser(u8"for (;;;) {}"_sv);
+    test_parser p(u8"for (;;;) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -394,7 +394,7 @@ TEST_F(test_parse_loop, for_loop_with_extra_semicolons) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (;; ;;;) {}"_sv);
+    test_parser p(u8"for (;; ;;;) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -411,7 +411,7 @@ TEST_F(test_parse_loop, for_loop_with_extra_semicolons) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (a;b;c;d) {}"_sv);
+    test_parser p(u8"for (a;b;c;d) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -427,7 +427,7 @@ TEST_F(test_parse_loop, for_loop_with_extra_semicolons) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (a of b; c; d) {}"_sv);
+    test_parser p(u8"for (a of b; c; d) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 UnorderedElementsAre(
@@ -447,7 +447,7 @@ TEST_F(test_parse_loop, for_loop_with_extra_semicolons) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (var a of b; c) {}"_sv);
+    test_parser p(u8"for (var a of b; c) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -461,7 +461,7 @@ TEST_F(test_parse_loop, for_loop_with_extra_semicolons) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (var a in b; c; d) {}"_sv);
+    test_parser p(u8"for (var a in b; c; d) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 UnorderedElementsAre(
@@ -520,7 +520,7 @@ TEST_F(test_parse_loop, for_in_loop) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (const x in []) {}"_sv);
+    test_parser p(u8"for (const x in []) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_for_scope",       //
@@ -598,7 +598,7 @@ TEST_F(test_parse_loop, for_in_loop_with_var_initializer) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (var x = 10 in []) {}"_sv);
+    test_parser p(u8"for (var x = 10 in []) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_enter_block_scope",     //
@@ -732,7 +732,7 @@ TEST_F(test_parse_loop, for_in_loop_with_var_initializer) {
   // Previously, there was a bug which caused errors in parse_expression after
   // 'in' to be reported twice.
   {
-    test_parser& p = this->make_parser(u8"for (var x = 0 in ()) {}"_sv);
+    test_parser p(u8"for (var x = 0 in ()) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_enter_block_scope",     //
@@ -745,7 +745,7 @@ TEST_F(test_parse_loop, for_in_loop_with_var_initializer) {
 
 TEST_F(test_parse_loop, invalid_for_in_loop) {
   {
-    test_parser& p = this->make_parser(u8"for (const x = 10 in []) {}"_sv);
+    test_parser p(u8"for (const x = 10 in []) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_for_scope",       //
@@ -762,7 +762,7 @@ TEST_F(test_parse_loop, invalid_for_in_loop) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (let x = 10 in []) {}"_sv);
+    test_parser p(u8"for (let x = 10 in []) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_for_scope",       //
@@ -832,7 +832,7 @@ TEST_F(test_parse_loop, for_of_loop) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (let of myArray) {}"_sv);
+    test_parser p(u8"for (let of myArray) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_for_scope",    //
                                       "visit_variable_use",       // myArray
@@ -845,7 +845,7 @@ TEST_F(test_parse_loop, for_of_loop) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (const x of []) {}"_sv);
+    test_parser p(u8"for (const x of []) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_for_scope",       //
@@ -909,7 +909,7 @@ TEST_F(test_parse_loop, for_of_loop_with_destructuring) {
 
 TEST_F(test_parse_loop, invalid_for_of_loop) {
   {
-    test_parser& p = this->make_parser(u8"for (const x = 10 of []) {}"_sv);
+    test_parser p(u8"for (const x = 10 of []) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_for_scope",       //
@@ -926,7 +926,7 @@ TEST_F(test_parse_loop, invalid_for_of_loop) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (let x = 10 of []) {}"_sv);
+    test_parser p(u8"for (let x = 10 of []) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_for_scope",       //
@@ -943,7 +943,7 @@ TEST_F(test_parse_loop, invalid_for_of_loop) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (var x = 10 of []) {}"_sv);
+    test_parser p(u8"for (var x = 10 of []) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  //
                                       "visit_enter_block_scope",     //
@@ -959,7 +959,7 @@ TEST_F(test_parse_loop, invalid_for_of_loop) {
 
 TEST_F(test_parse_loop, for_loop_without_body) {
   {
-    test_parser& p = this->make_parser(u8"for (let x of myArray) "_sv);
+    test_parser p(u8"for (let x of myArray) "_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_for_scope",       //
                                       "visit_variable_use",          // myArray
@@ -972,7 +972,7 @@ TEST_F(test_parse_loop, for_loop_without_body) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"{ for (let x of myArray) }"_sv);
+    test_parser p(u8"{ for (let x of myArray) }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",
                                       "visit_enter_for_scope",       //
@@ -989,7 +989,7 @@ TEST_F(test_parse_loop, for_loop_without_body) {
 
 TEST_F(test_parse_loop, for_loop_without_header) {
   {
-    test_parser& p = this->make_parser(u8"for x = y;"_sv);
+    test_parser p(u8"for x = y;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // y
                                       "visit_variable_assignment",  // x
@@ -1000,7 +1000,7 @@ TEST_F(test_parse_loop, for_loop_without_header) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"{ for } x = y;"_sv);
+    test_parser p(u8"{ for } x = y;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",    //
                                       "visit_exit_block_scope",     //
@@ -1033,7 +1033,7 @@ TEST_F(test_parse_loop, while_statement) {
 
 TEST_F(test_parse_loop, while_without_parens) {
   {
-    test_parser& p = this->make_parser(u8"while cond { body; }"_sv);
+    test_parser p(u8"while cond { body; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
@@ -1047,7 +1047,7 @@ TEST_F(test_parse_loop, while_without_parens) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"while (cond { body; }"_sv);
+    test_parser p(u8"while (cond { body; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
@@ -1062,7 +1062,7 @@ TEST_F(test_parse_loop, while_without_parens) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"while cond) { body; }"_sv);
+    test_parser p(u8"while cond) { body; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
@@ -1079,7 +1079,7 @@ TEST_F(test_parse_loop, while_without_parens) {
 
 TEST_F(test_parse_loop, while_without_condition) {
   {
-    test_parser& p = this->make_parser(u8"while { go(); break; }"_sv);
+    test_parser p(u8"while { go(); break; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // go
@@ -1093,7 +1093,7 @@ TEST_F(test_parse_loop, while_without_condition) {
 
 TEST_F(test_parse_loop, while_without_body) {
   {
-    test_parser& p = this->make_parser(u8"while (cond) "_sv);
+    test_parser p(u8"while (cond) "_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // cond
     EXPECT_THAT(p.errors,
@@ -1105,7 +1105,7 @@ TEST_F(test_parse_loop, while_without_body) {
 
 TEST_F(test_parse_loop, break_statement) {
   {
-    test_parser& p = this->make_parser(u8"break;"_sv);
+    test_parser p(u8"break;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.errors,
@@ -1114,7 +1114,7 @@ TEST_F(test_parse_loop, break_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (;;) { } break;"_sv);
+    test_parser p(u8"for (;;) { } break;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
@@ -1124,8 +1124,7 @@ TEST_F(test_parse_loop, break_statement) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"for (;;) { function f() { break; } }"_sv);
+    test_parser p(u8"for (;;) { function f() { break; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1135,7 +1134,7 @@ TEST_F(test_parse_loop, break_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (;;) { () => { break; } }"_sv);
+    test_parser p(u8"for (;;) { () => { break; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_invalid_break,  //
@@ -1204,7 +1203,7 @@ TEST_F(test_parse_loop, break_statement) {
 
 TEST_F(test_parse_loop, continue_statement) {
   {
-    test_parser& p = this->make_parser(u8"continue;"_sv);
+    test_parser p(u8"continue;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1213,8 +1212,7 @@ TEST_F(test_parse_loop, continue_statement) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"switch (0) { default: continue; }"_sv);
+    test_parser p(u8"switch (0) { default: continue; }"_sv);
     p.parse_and_visit_statement();
     ASSERT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1224,8 +1222,7 @@ TEST_F(test_parse_loop, continue_statement) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"for (;;) { function f() { continue; } }"_sv);
+    test_parser p(u8"for (;;) { function f() { continue; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1235,7 +1232,7 @@ TEST_F(test_parse_loop, continue_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"for (;;) { () => { continue; } }"_sv);
+    test_parser p(u8"for (;;) { () => { continue; } }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_invalid_continue,  //
@@ -1347,7 +1344,7 @@ TEST_F(test_parse_loop,
 
 TEST_F(test_parse_loop,
        cannot_assign_to_variable_named_async_without_parentheses_in_for_of) {
-  test_parser& p = this->make_parser(u8"for (async of xs) ;"_sv);
+  test_parser p(u8"for (async of xs) ;"_sv);
   p.parse_and_visit_statement();
   EXPECT_THAT(p.variable_assignments, ElementsAre(u8"async"));
   EXPECT_THAT(p.variable_uses, ElementsAre(u8"xs"));
@@ -1364,7 +1361,7 @@ TEST_F(test_parse_loop, for_loop_in_for_loop_header_crash) {
   // buffering_visitor_memory_ being rewind-ed. This test makes sure a
   // regression doesn't happen again (assuming Address Sanitizer catches the
   // use-after-free).
-  test_parser& p = this->make_parser(
+  test_parser p(
       u8R"(
         for (var f = () => {
           for (var xs = [x, x, x, x, x, x, x, x, x, x, x, x, x, x];;) {}

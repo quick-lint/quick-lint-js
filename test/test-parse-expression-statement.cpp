@@ -56,7 +56,7 @@ TEST_F(test_parse_expression_statement, parse_math_expression) {
 
 TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
   {
-    test_parser& p = this->make_parser(u8"2 +"_sv);
+    test_parser p(u8"2 +"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_missing_operand_for_operator,  //
@@ -64,7 +64,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"^ 2"_sv);
+    test_parser p(u8"^ 2"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_missing_operand_for_operator,  //
@@ -72,7 +72,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"2 * * 2"_sv);
+    test_parser p(u8"2 * * 2"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_missing_operand_for_operator,  //
@@ -80,7 +80,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"2 & & & 2"_sv);
+    test_parser p(u8"2 & & & 2"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(
         p.errors,
@@ -92,14 +92,14 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"(2 *)"_sv);
+    test_parser p(u8"(2 *)"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_missing_operand_for_operator,  //
                               where, strlen(u8"(2 "), u8"*")));
   }
   {
-    test_parser& p = this->make_parser(u8"2 * (3 + 4"_sv);
+    test_parser p(u8"2 * (3 + 4"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_unmatched_parenthesis,  //
@@ -107,7 +107,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"2 * (3 + (4"_sv);
+    test_parser p(u8"2 * (3 + (4"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(
         p.errors,
@@ -118,7 +118,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"x += ;"_sv);
+    test_parser p(u8"x += ;"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use", "visit_variable_assignment"));
@@ -131,7 +131,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
 
 TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
   {
-    test_parser& p = this->make_parser(u8")"_sv);
+    test_parser p(u8")"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_unmatched_parenthesis,  //
@@ -139,7 +139,7 @@ TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"x))"_sv);
+    test_parser p(u8"x))"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -150,7 +150,7 @@ TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"-x))"_sv);
+    test_parser p(u8"-x))"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -161,7 +161,7 @@ TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"await p)"_sv);
+    test_parser p(u8"await p)"_sv);
     auto guard = p.enter_function(function_attributes::async);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -170,7 +170,7 @@ TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"yield v)"_sv);
+    test_parser p(u8"yield v)"_sv);
     auto guard = p.enter_function(function_attributes::generator);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -179,7 +179,7 @@ TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"return result)"_sv);
+    test_parser p(u8"return result)"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_unmatched_parenthesis,  //
@@ -187,7 +187,7 @@ TEST_F(test_parse_expression_statement, stray_right_parenthesis) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"throw banana)"_sv);
+    test_parser p(u8"throw banana)"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_unmatched_parenthesis,  //
@@ -206,7 +206,7 @@ TEST_F(test_parse_expression_statement,
        }) {
     string8 code = string8(op) + u8" x";
     SCOPED_TRACE(out_string8(code));
-    test_parser& p = this->make_parser(code);
+    test_parser p(code);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_missing_operand_for_operator,  //
@@ -215,7 +215,7 @@ TEST_F(test_parse_expression_statement,
   }
 
   {
-    test_parser& p = this->make_parser(u8".x; y;"_sv);
+    test_parser p(u8".x; y;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -227,7 +227,7 @@ TEST_F(test_parse_expression_statement,
 
 TEST_F(test_parse_expression_statement, invalid_identifier_after_expression) {
   {
-    test_parser& p = this->make_parser(u8"one two"_sv);
+    test_parser p(u8"one two"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -236,7 +236,7 @@ TEST_F(test_parse_expression_statement, invalid_identifier_after_expression) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"(one two)"_sv);
+    test_parser p(u8"(one two)"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -246,7 +246,7 @@ TEST_F(test_parse_expression_statement, invalid_identifier_after_expression) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"f(one two)"_sv);
+    test_parser p(u8"f(one two)"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -256,7 +256,7 @@ TEST_F(test_parse_expression_statement, invalid_identifier_after_expression) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"xs[one two]"_sv);
+    test_parser p(u8"xs[one two]"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -266,7 +266,7 @@ TEST_F(test_parse_expression_statement, invalid_identifier_after_expression) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"(a b c d)"_sv);
+    test_parser p(u8"(a b c d)"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 UnorderedElementsAre(
@@ -284,7 +284,7 @@ TEST_F(test_parse_expression_statement, invalid_identifier_after_expression) {
 
 TEST_F(test_parse_expression_statement, function_call_without_right_paren) {
   {
-    test_parser& p = this->make_parser(u8"f(x "_sv);
+    test_parser p(u8"f(x "_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
@@ -294,7 +294,7 @@ TEST_F(test_parse_expression_statement, function_call_without_right_paren) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"{ f( }"_sv);
+    test_parser p(u8"{ f( }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
@@ -304,7 +304,7 @@ TEST_F(test_parse_expression_statement, function_call_without_right_paren) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"f(x; y;"_sv);
+    test_parser p(u8"f(x; y;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // f
                                       "visit_variable_use",  // x
@@ -318,7 +318,7 @@ TEST_F(test_parse_expression_statement, function_call_without_right_paren) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"f(x\n--y;"_sv);
+    test_parser p(u8"f(x\n--y;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // f
                                       "visit_variable_use",         // x
@@ -560,7 +560,7 @@ TEST_F(test_parse_expression_statement, object_literal) {
 TEST_F(test_parse_expression_statement,
        object_literal_method_with_arrow_operator) {
   {
-    test_parser& p = this->make_parser(u8"let o = {method() => {}}"_sv);
+    test_parser p(u8"let o = {method() => {}}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -635,8 +635,7 @@ TEST_F(test_parse_expression_statement, expression_statement) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"import(url).then(); secondStatement;"_sv);
+    test_parser p(u8"import(url).then(); secondStatement;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -647,7 +646,7 @@ TEST_F(test_parse_expression_statement, expression_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"import.meta; secondStatement;"_sv);
+    test_parser p(u8"import.meta; secondStatement;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -703,7 +702,7 @@ TEST_F(test_parse_expression_statement, expression_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"#myArray[index] = rhs;"_sv);
+    test_parser p(u8"#myArray[index] = rhs;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"index", u8"rhs"));
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // index
@@ -725,7 +724,7 @@ TEST_F(test_parse_expression_statement, expression_statement) {
 }
 
 TEST_F(test_parse_expression_statement, delete_of_variable) {
-  test_parser& p = this->make_parser(u8"delete x;"_sv);
+  test_parser p(u8"delete x;"_sv);
   p.parse_and_visit_expression();
   EXPECT_THAT(p.visits, ElementsAre("visit_variable_delete_use"));
   EXPECT_THAT(p.variable_uses, ElementsAre(u8"x"));
@@ -733,7 +732,7 @@ TEST_F(test_parse_expression_statement, delete_of_variable) {
 }
 
 TEST_F(test_parse_expression_statement, delete_of_expression) {
-  test_parser& p = this->make_parser(u8"delete x.p;"_sv);
+  test_parser p(u8"delete x.p;"_sv);
   p.parse_and_visit_expression();
   EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));
   EXPECT_THAT(p.variable_uses, ElementsAre(u8"x"));
@@ -742,7 +741,7 @@ TEST_F(test_parse_expression_statement, delete_of_expression) {
 TEST_F(test_parse_expression_statement,
        cannot_reference_private_identifier_outside_class) {
   {
-    test_parser& p = this->make_parser(u8"this.#x = 10;"_sv);
+    test_parser p(u8"this.#x = 10;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, IsEmpty());
     EXPECT_THAT(p.visits, IsEmpty());
@@ -757,7 +756,7 @@ TEST_F(test_parse_expression_statement,
 
 TEST_F(test_parse_expression_statement, asi_plusplus_minusminus) {
   {
-    test_parser& p = this->make_parser(u8"x\n++\ny;"_sv);
+    test_parser p(u8"x\n++\ny;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -855,7 +854,7 @@ TEST_F(test_parse_expression_statement, parse_templates_in_expressions) {
 
 TEST_F(test_parse_expression_statement, parse_invalid_function_calls) {
   {
-    test_parser& p = this->make_parser(u8"(x)f"_sv);
+    test_parser p(u8"(x)f"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -867,7 +866,7 @@ TEST_F(test_parse_expression_statement, parse_invalid_function_calls) {
 
 TEST_F(test_parse_expression_statement, parse_function_call_as_statement) {
   {
-    test_parser& p = this->make_parser(u8"f(x); g(y);"_sv);
+    test_parser p(u8"f(x); g(y);"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"f", u8"x"));
 
@@ -1045,7 +1044,7 @@ TEST_F(test_parse_expression_statement,
 TEST_F(test_parse_expression_statement,
        async_followed_by_newline_and_arrow_function) {
   {
-    test_parser& p = this->make_parser(u8"x = async\n(a) => b;"_sv);
+    test_parser p(u8"x = async\n(a) => b;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // a
@@ -1067,7 +1066,7 @@ TEST_F(test_parse_expression_statement,
 TEST_F(test_parse_expression_statement,
        trailing_comma_in_comma_expression_is_disallowed) {
   {
-    test_parser& p = this->make_parser(u8"(a, b, );"_sv);
+    test_parser p(u8"(a, b, );"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_missing_operand_for_operator,  //
@@ -1100,7 +1099,7 @@ TEST_F(test_parse_expression_statement,
        }) {
     string8 code = string8(u8"*\n"_sv) + string8(statement);
     SCOPED_TRACE(out_string8(code));
-    test_parser& p = this->make_parser(code);
+    test_parser p(code);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, Not(IsEmpty()));
   }
@@ -1117,7 +1116,7 @@ TEST_F(test_parse_expression_statement,
        }) {
     string8 code = string8(u8"!\n"_sv) + string8(statement);
     SCOPED_TRACE(out_string8(code));
-    test_parser& p = this->make_parser(code);
+    test_parser p(code);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
@@ -1127,7 +1126,7 @@ TEST_F(test_parse_expression_statement,
   }
 
   {
-    test_parser& p = this->make_parser(u8"!\nswitch(x){}"_sv);
+    test_parser p(u8"!\nswitch(x){}"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // x
                                       "visit_enter_block_scope",  //
@@ -1139,7 +1138,7 @@ TEST_F(test_parse_expression_statement,
   }
 
   {
-    test_parser& p = this->make_parser(u8"!\nenum E {}"_sv, typescript_options);
+    test_parser p(u8"!\nenum E {}"_sv, typescript_options);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
@@ -1307,7 +1306,7 @@ TEST_F(test_parse_expression_statement, let_as_statement_body_allows_asi) {
 TEST_F(test_parse_expression_statement,
        disallow_await_parameter_in_async_arrow_function) {
   {
-    test_parser& p = this->make_parser(u8"(async (await) => null)"_sv);
+    test_parser p(u8"(async (await) => null)"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",
                                       "visit_variable_declaration",
@@ -1320,7 +1319,7 @@ TEST_F(test_parse_expression_statement,
   }
 
   {
-    test_parser& p = this->make_parser(u8"(async await => null)"_sv);
+    test_parser p(u8"(async await => null)"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",
                                       "visit_variable_declaration",
@@ -1340,8 +1339,7 @@ TEST_F(test_parse_expression_statement,
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"(async (await, await, await) => {})"_sv);
+    test_parser p(u8"(async (await, await, await) => {})"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(
         p.errors,
@@ -1358,7 +1356,7 @@ TEST_F(test_parse_expression_statement,
   }
 
   {
-    test_parser& p = this->make_parser(u8"(async (await p) => {})"_sv);
+    test_parser p(u8"(async (await p) => {})"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1372,7 +1370,7 @@ TEST_F(test_parse_expression_statement,
 TEST_F(test_parse_expression_statement,
        object_property_default_is_not_allowed) {
   {
-    test_parser& p = this->make_parser(u8"({banana = 42})"_sv);
+    test_parser p(u8"({banana = 42})"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1383,7 +1381,7 @@ TEST_F(test_parse_expression_statement,
 
 TEST_F(test_parse_expression_statement, invalid_parentheses) {
   {
-    test_parser& p = this->make_parser(u8"()"_sv);
+    test_parser p(u8"()"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_3_OFFSETS(
@@ -1394,7 +1392,7 @@ TEST_F(test_parse_expression_statement, invalid_parentheses) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"x = ()"_sv);
+    test_parser p(u8"x = ()"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_3_OFFSETS(
@@ -1405,7 +1403,7 @@ TEST_F(test_parse_expression_statement, invalid_parentheses) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"() = x"_sv);
+    test_parser p(u8"() = x"_sv);
     p.parse_and_visit_expression();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_3_OFFSETS(

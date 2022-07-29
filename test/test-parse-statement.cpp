@@ -37,7 +37,7 @@ TEST_F(test_parse_statement, return_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"return a\nreturn b"_sv);
+    test_parser p(u8"return a\nreturn b"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -47,7 +47,7 @@ TEST_F(test_parse_statement, return_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"return a; return b;"_sv);
+    test_parser p(u8"return a; return b;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -57,7 +57,7 @@ TEST_F(test_parse_statement, return_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (true) return; x;"_sv);
+    test_parser p(u8"if (true) return; x;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -258,7 +258,7 @@ TEST_F(test_parse_statement, throw_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"throw;"_sv);
+    test_parser p(u8"throw;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -267,7 +267,7 @@ TEST_F(test_parse_statement, throw_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"throw\nnew Error();"_sv);
+    test_parser p(u8"throw\nnew Error();"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -369,7 +369,7 @@ TEST_F(test_parse_statement, parse_and_visit_try) {
 
 TEST_F(test_parse_statement, catch_without_try) {
   {
-    test_parser& p = this->make_parser(u8"catch (e) { body; }"_sv);
+    test_parser p(u8"catch (e) { body; }"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_variable_declaration",  // e
@@ -382,8 +382,7 @@ TEST_F(test_parse_statement, catch_without_try) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"catch (e) { body; } finally { body; }"_sv);
+    test_parser p(u8"catch (e) { body; } finally { body; }"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_variable_declaration",  // e
@@ -401,7 +400,7 @@ TEST_F(test_parse_statement, catch_without_try) {
 
 TEST_F(test_parse_statement, finally_without_try) {
   {
-    test_parser& p = this->make_parser(u8"finally { body; }"_sv);
+    test_parser p(u8"finally { body; }"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
@@ -415,7 +414,7 @@ TEST_F(test_parse_statement, finally_without_try) {
 
 TEST_F(test_parse_statement, try_without_catch_or_finally) {
   {
-    test_parser& p = this->make_parser(u8"try { tryBody; }\nlet x = 3;"_sv);
+    test_parser p(u8"try { tryBody; }\nlet x = 3;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     // (try)
                                       "visit_variable_use",          // tryBody
@@ -433,7 +432,7 @@ TEST_F(test_parse_statement, try_without_catch_or_finally) {
 
 TEST_F(test_parse_statement, try_without_body) {
   {
-    test_parser& p = this->make_parser(u8"try\nlet x = 3;"_sv);
+    test_parser p(u8"try\nlet x = 3;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_end_of_module"));
@@ -445,7 +444,7 @@ TEST_F(test_parse_statement, try_without_body) {
 
 TEST_F(test_parse_statement, catch_without_body) {
   {
-    test_parser& p = this->make_parser(u8"try {} catch\nlet x = 3;"_sv);
+    test_parser p(u8"try {} catch\nlet x = 3;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     // (try)
                                       "visit_exit_block_scope",      // (try)
@@ -461,7 +460,7 @@ TEST_F(test_parse_statement, catch_without_body) {
 
 TEST_F(test_parse_statement, finally_without_body) {
   {
-    test_parser& p = this->make_parser(u8"try {} finally\nlet x = 3;"_sv);
+    test_parser p(u8"try {} finally\nlet x = 3;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     // (try)
                                       "visit_exit_block_scope",      // (try)
@@ -476,7 +475,7 @@ TEST_F(test_parse_statement, finally_without_body) {
 
 TEST_F(test_parse_statement, catch_without_variable_name_in_parentheses) {
   {
-    test_parser& p = this->make_parser(u8"try {} catch () { body; }"_sv);
+    test_parser p(u8"try {} catch () { body; }"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  // (try)
                                       "visit_exit_block_scope",   // (try)
@@ -497,7 +496,7 @@ TEST_F(test_parse_statement, catch_without_variable_name_in_parentheses) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"try {} catch ('ball') { body; }"_sv);
+    test_parser p(u8"try {} catch ('ball') { body; }"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_block_scope",  // (try)
@@ -555,7 +554,7 @@ TEST_F(test_parse_statement, if_with_else) {
 
 TEST_F(test_parse_statement, if_without_body) {
   {
-    test_parser& p = this->make_parser(u8"if (a)\nelse e;"_sv);
+    test_parser p(u8"if (a)\nelse e;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // a
                                       "visit_variable_use"));  // e
@@ -565,7 +564,7 @@ TEST_F(test_parse_statement, if_without_body) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"{\nif (a)\n} b;"_sv);
+    test_parser p(u8"{\nif (a)\n} b;"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // a
@@ -581,7 +580,7 @@ TEST_F(test_parse_statement, if_without_body) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (a)"_sv);
+    test_parser p(u8"if (a)"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // a
                                       "visit_end_of_module"));
@@ -593,7 +592,7 @@ TEST_F(test_parse_statement, if_without_body) {
 
 TEST_F(test_parse_statement, if_without_parens) {
   {
-    test_parser& p = this->make_parser(u8"if cond { body; }"_sv);
+    test_parser p(u8"if cond { body; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
@@ -606,7 +605,7 @@ TEST_F(test_parse_statement, if_without_parens) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (cond { body; }"_sv);
+    test_parser p(u8"if (cond { body; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
@@ -621,7 +620,7 @@ TEST_F(test_parse_statement, if_without_parens) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if cond) { body; }"_sv);
+    test_parser p(u8"if cond) { body; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
@@ -637,7 +636,7 @@ TEST_F(test_parse_statement, if_without_parens) {
 
 TEST_F(test_parse_statement, if_without_condition) {
   {
-    test_parser& p = this->make_parser(u8"if { yay(); } else { nay(); }"_sv);
+    test_parser p(u8"if { yay(); } else { nay(); }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",   // (if)
                                       "visit_variable_use",        // yay
@@ -654,7 +653,7 @@ TEST_F(test_parse_statement, if_without_condition) {
 
 TEST_F(test_parse_statement, else_without_if) {
   {
-    test_parser& p = this->make_parser(u8"else { body; }"_sv);
+    test_parser p(u8"else { body; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
@@ -667,7 +666,7 @@ TEST_F(test_parse_statement, else_without_if) {
 
 TEST_F(test_parse_statement, missing_if_after_else) {
   {
-    test_parser& p = this->make_parser(u8"if (false) {} else (true) {}"_sv);
+    test_parser p(u8"if (false) {} else (true) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",   // if
                                       "visit_exit_block_scope",    // if
@@ -680,7 +679,7 @@ TEST_F(test_parse_statement, missing_if_after_else) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (x) {} else (y) {} else {}"_sv);
+    test_parser p(u8"if (x) {} else (y) {} else {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",        // x
@@ -697,7 +696,7 @@ TEST_F(test_parse_statement, missing_if_after_else) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (false) {} else true {}"_sv);
+    test_parser p(u8"if (false) {} else true {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope"));
@@ -707,7 +706,7 @@ TEST_F(test_parse_statement, missing_if_after_else) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (false) {} else (true)\n{}"_sv);
+    test_parser p(u8"if (false) {} else (true)\n{}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope"));
@@ -715,7 +714,7 @@ TEST_F(test_parse_statement, missing_if_after_else) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (false) {} else (true); {}"_sv);
+    test_parser p(u8"if (false) {} else (true); {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope"));
@@ -723,7 +722,7 @@ TEST_F(test_parse_statement, missing_if_after_else) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (false) {} else () {}"_sv);
+    test_parser p(u8"if (false) {} else () {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",   // if
                                       "visit_exit_block_scope",    // if
@@ -743,7 +742,7 @@ TEST_F(test_parse_statement, missing_if_after_else) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"if (false) {} else (x, y) {}"_sv);
+    test_parser p(u8"if (false) {} else (x, y) {}"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",   // if
                                       "visit_exit_block_scope",    // if
@@ -784,7 +783,7 @@ TEST_F(test_parse_statement, block_statement) {
 
 TEST_F(test_parse_statement, incomplete_block_statement) {
   {
-    test_parser& p = this->make_parser(u8"{ a; "_sv);
+    test_parser p(u8"{ a; "_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // a
@@ -844,7 +843,7 @@ TEST_F(test_parse_statement, switch_statement) {
 
 TEST_F(test_parse_statement, switch_without_parens) {
   {
-    test_parser& p = this->make_parser(u8"switch cond { case ONE: break; }"_sv);
+    test_parser p(u8"switch cond { case ONE: break; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
@@ -858,8 +857,7 @@ TEST_F(test_parse_statement, switch_without_parens) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"switch (cond { case ONE: break; }"_sv);
+    test_parser p(u8"switch (cond { case ONE: break; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
@@ -875,8 +873,7 @@ TEST_F(test_parse_statement, switch_without_parens) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"switch cond) { case ONE: break; }"_sv);
+    test_parser p(u8"switch cond) { case ONE: break; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
@@ -893,7 +890,7 @@ TEST_F(test_parse_statement, switch_without_parens) {
 
 TEST_F(test_parse_statement, switch_without_condition) {
   {
-    test_parser& p = this->make_parser(u8"switch { case ONE: break; }"_sv);
+    test_parser p(u8"switch { case ONE: break; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // ONE
@@ -907,7 +904,7 @@ TEST_F(test_parse_statement, switch_without_condition) {
 
 TEST_F(test_parse_statement, switch_without_body) {
   {
-    test_parser& p = this->make_parser(u8"switch (cond);"_sv);
+    test_parser p(u8"switch (cond);"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // cond
     EXPECT_THAT(p.errors,
@@ -919,7 +916,7 @@ TEST_F(test_parse_statement, switch_without_body) {
 
 TEST_F(test_parse_statement, switch_without_body_curlies) {
   {
-    test_parser& p = this->make_parser(u8"switch (cond) case a: break; }"_sv);
+    test_parser p(u8"switch (cond) case a: break; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
@@ -932,8 +929,7 @@ TEST_F(test_parse_statement, switch_without_body_curlies) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"switch (cond) default: body; break; }"_sv);
+    test_parser p(u8"switch (cond) default: body; break; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
@@ -948,8 +944,7 @@ TEST_F(test_parse_statement, switch_without_body_curlies) {
 
 TEST_F(test_parse_statement, switch_case_without_expression) {
   {
-    test_parser& p =
-        this->make_parser(u8"switch (cond) { case: banana; break; }"_sv);
+    test_parser p(u8"switch (cond) { case: banana; break; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // cond
                                       "visit_enter_block_scope",  //
@@ -964,7 +959,7 @@ TEST_F(test_parse_statement, switch_case_without_expression) {
 
 TEST_F(test_parse_statement, switch_clause_outside_switch_statement) {
   {
-    test_parser& p = this->make_parser(u8"case x:"_sv);
+    test_parser p(u8"case x:"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
@@ -975,7 +970,7 @@ TEST_F(test_parse_statement, switch_clause_outside_switch_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"case\nif (y) {}"_sv);
+    test_parser p(u8"case\nif (y) {}"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // y
                                       "visit_enter_block_scope",  //
@@ -988,7 +983,7 @@ TEST_F(test_parse_statement, switch_clause_outside_switch_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"default: next;"_sv);
+    test_parser p(u8"default: next;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // next
                                       "visit_end_of_module"));
@@ -1000,7 +995,7 @@ TEST_F(test_parse_statement, switch_clause_outside_switch_statement) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"default\nif (x) body;"_sv);
+    test_parser p(u8"default\nif (x) body;"_sv);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_variable_use",  // body
@@ -1038,8 +1033,7 @@ TEST_F(test_parse_statement, with_statement) {
 
 TEST_F(test_parse_statement, statement_before_first_switch_case) {
   {
-    test_parser& p = this->make_parser(
-        u8"switch (cond) { console.log('hi'); case ONE: break; }"_sv);
+    test_parser p(u8"switch (cond) { console.log('hi'); case ONE: break; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",       // cond
@@ -1056,7 +1050,7 @@ TEST_F(test_parse_statement, statement_before_first_switch_case) {
 
 TEST_F(test_parse_statement, with_statement_without_parens) {
   {
-    test_parser& p = this->make_parser(u8"with cond { body; }"_sv);
+    test_parser p(u8"with cond { body; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",       // cond
@@ -1073,7 +1067,7 @@ TEST_F(test_parse_statement, with_statement_without_parens) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"with (cond { body; }"_sv);
+    test_parser p(u8"with (cond { body; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",       // cond
@@ -1091,7 +1085,7 @@ TEST_F(test_parse_statement, with_statement_without_parens) {
   }
 
   {
-    test_parser& p = this->make_parser(u8"with cond) { body; }"_sv);
+    test_parser p(u8"with cond) { body; }"_sv);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",       // cond
@@ -1111,7 +1105,7 @@ TEST_F(test_parse_statement, with_statement_without_parens) {
 
 TEST_F(test_parse_statement, debugger_statement) {
   {
-    test_parser& p = this->make_parser(u8"debugger; x;"_sv);
+    test_parser p(u8"debugger; x;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -1122,7 +1116,7 @@ TEST_F(test_parse_statement, debugger_statement) {
 
 TEST_F(test_parse_statement, labelled_statement) {
   {
-    test_parser& p = this->make_parser(u8"some_label: ; x;"_sv);
+    test_parser p(u8"some_label: ; x;"_sv);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -1166,7 +1160,7 @@ TEST_F(test_parse_statement, statement_label_can_be_a_contextual_keyword) {
 }
 
 TEST_F(test_parse_statement, disallow_label_named_await_in_async_function) {
-  test_parser& p = this->make_parser(u8"async function f() {await:}"_sv);
+  test_parser p(u8"async function f() {await:}"_sv);
   p.parse_and_visit_statement();
   EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
                                     "visit_enter_function_scope",       //
@@ -1181,7 +1175,7 @@ TEST_F(test_parse_statement, disallow_label_named_await_in_async_function) {
 }
 
 TEST_F(test_parse_statement, disallow_label_named_yield_in_generator_function) {
-  test_parser& p = this->make_parser(u8"function *f() {yield:}"_sv);
+  test_parser p(u8"function *f() {yield:}"_sv);
   p.parse_and_visit_statement();
   EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
                                     "visit_enter_function_scope",       //

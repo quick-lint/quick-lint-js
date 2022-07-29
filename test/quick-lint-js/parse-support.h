@@ -163,14 +163,6 @@ class test_parser {
 
 class test_parse_expression : public ::testing::Test {
  protected:
-  test_parser& make_parser(string8_view input) {
-    return this->parsers_.emplace_back(input);
-  }
-
-  test_parser& make_parser(string8_view input, const parser_options& options) {
-    return this->parsers_.emplace_back(input, options);
-  }
-
   // Fails the test if there are any diagnostics during parsing.
   test_parser& errorless_parser(string8_view input) {
     return this->errorless_parser(input, parser_options());

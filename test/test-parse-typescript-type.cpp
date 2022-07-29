@@ -363,8 +363,7 @@ TEST_F(test_parse_typescript_type, object_type_allows_asi_between_properties) {
 TEST_F(test_parse_typescript_type,
        object_type_requires_separator_between_properties) {
   {
-    test_parser& p =
-        this->make_parser(u8"{ p1: Type1 p2: Type2 }"_sv, typescript_options);
+    test_parser p(u8"{ p1: Type1 p2: Type2 }"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // Type1
                                       "visit_variable_type_use"));  // Type2
@@ -1012,7 +1011,7 @@ TEST_F(test_parse_typescript_type, union_of_types) {
 
 TEST_F(test_parse_typescript_type, union_disallows_consecutive_pipes) {
   {
-    test_parser& p = this->make_parser(u8"| | Type"_sv, typescript_options);
+    test_parser p(u8"| | Type"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // Type
     EXPECT_THAT(p.errors,
@@ -1023,8 +1022,7 @@ TEST_F(test_parse_typescript_type, union_disallows_consecutive_pipes) {
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"Type1 | | Type2"_sv, typescript_options);
+    test_parser p(u8"Type1 | | Type2"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // Type1
                                       "visit_variable_type_use"));  // Type2
@@ -1064,7 +1062,7 @@ TEST_F(test_parse_typescript_type, intersection) {
 TEST_F(test_parse_typescript_type,
        intersection_disallows_consecutive_ampersands) {
   {
-    test_parser& p = this->make_parser(u8"& & Type"_sv, typescript_options);
+    test_parser p(u8"& & Type"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // Type
     EXPECT_THAT(p.errors,
@@ -1075,8 +1073,7 @@ TEST_F(test_parse_typescript_type,
   }
 
   {
-    test_parser& p =
-        this->make_parser(u8"Type1 & & Type2"_sv, typescript_options);
+    test_parser p(u8"Type1 & & Type2"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // Type1
                                       "visit_variable_type_use"));  // Type2
@@ -1235,8 +1232,7 @@ TEST_F(test_parse_typescript_type, typeof_allows_private_properties) {
 
 TEST_F(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
   {
-    test_parser& p =
-        this->make_parser(u8"typeof Class<T>.member"_sv, typescript_options);
+    test_parser p(u8"typeof Class<T>.member"_sv, typescript_options);
     p.parse_and_visit_typescript_type_expression();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"Class", u8"T"));
     EXPECT_THAT(
