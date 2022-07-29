@@ -363,16 +363,16 @@ TEST_F(test_parse_typescript_type, object_type_allows_asi_between_properties) {
 TEST_F(test_parse_typescript_type,
        object_type_requires_separator_between_properties) {
   {
-    padded_string code(u8"{ p1: Type1 p2: Type2 }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_type_expression(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
+    test_parser& p =
+        this->make_parser(u8"{ p1: Type1 p2: Type2 }"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // Type1
                                       "visit_variable_type_use"));  // Type2
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_separator_between_object_type_entries,
-                    expected_separator, strlen(u8"{ p1: Type1"), u8"")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code(), diag_missing_separator_between_object_type_entries,
+            expected_separator, strlen(u8"{ p1: Type1"), u8"")));
   }
 }
 
@@ -1012,28 +1012,25 @@ TEST_F(test_parse_typescript_type, union_of_types) {
 
 TEST_F(test_parse_typescript_type, union_disallows_consecutive_pipes) {
   {
-    padded_string code(u8"| | Type"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_type_expression(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"| | Type"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // Type
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    &code, diag_missing_type_between_intersection_or_union,
+                    p.code(), diag_missing_type_between_intersection_or_union,
                     left_operator, strlen(u8""), u8"|",  //
                     right_operator, strlen(u8"| "), u8"|")));
   }
 
   {
-    padded_string code(u8"Type1 | | Type2"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_type_expression(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
+    test_parser& p =
+        this->make_parser(u8"Type1 | | Type2"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // Type1
                                       "visit_variable_type_use"));  // Type2
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    &code, diag_missing_type_between_intersection_or_union,
+                    p.code(), diag_missing_type_between_intersection_or_union,
                     left_operator, strlen(u8"Type1 "), u8"|",  //
                     right_operator, strlen(u8"Type1 | "), u8"|")));
   }
@@ -1067,28 +1064,25 @@ TEST_F(test_parse_typescript_type, intersection) {
 TEST_F(test_parse_typescript_type,
        intersection_disallows_consecutive_ampersands) {
   {
-    padded_string code(u8"& & Type"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_type_expression(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use"));  // Type
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"& & Type"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // Type
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    &code, diag_missing_type_between_intersection_or_union,
+                    p.code(), diag_missing_type_between_intersection_or_union,
                     left_operator, strlen(u8""), u8"&",  //
                     right_operator, strlen(u8"& "), u8"&")));
   }
 
   {
-    padded_string code(u8"Type1 & & Type2"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_type_expression(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",    // Type1
+    test_parser& p =
+        this->make_parser(u8"Type1 & & Type2"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",    // Type1
                                       "visit_variable_type_use"));  // Type2
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    &code, diag_missing_type_between_intersection_or_union,
+                    p.code(), diag_missing_type_between_intersection_or_union,
                     left_operator, strlen(u8"Type1 "), u8"&",  //
                     right_operator, strlen(u8"Type1 & "), u8"&")));
   }
@@ -1241,16 +1235,16 @@ TEST_F(test_parse_typescript_type, typeof_allows_private_properties) {
 
 TEST_F(test_parse_typescript_type, typeof_generic_does_not_allow_dots_after) {
   {
-    padded_string code(u8"typeof Class<T>.member"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_type_expression(v);
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Class", u8"T"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    &code, diag_dot_not_allowed_after_generic_arguments_in_type,
-                    dot, strlen(u8"typeof Class<T>"), u8".",  //
-                    property_name, strlen(u8"typeof Class<T>."), u8"member")));
+    test_parser& p =
+        this->make_parser(u8"typeof Class<T>.member"_sv, typescript_options);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"Class", u8"T"));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_2_OFFSETS(
+            p.code(), diag_dot_not_allowed_after_generic_arguments_in_type, dot,
+            strlen(u8"typeof Class<T>"), u8".",  //
+            property_name, strlen(u8"typeof Class<T>."), u8"member")));
   }
 
   for (string8 keyword : keywords) {

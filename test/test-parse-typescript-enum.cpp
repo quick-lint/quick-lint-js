@@ -266,44 +266,41 @@ TEST_F(test_parse_typescript_enum,
 
 TEST_F(test_parse_typescript_enum, enum_members_can_be_named_number_literals) {
   {
-    padded_string code(u8"enum E { 42 = init, }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p =
+        this->make_parser(u8"enum E { 42 = init, }"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_variable_use",          // init
                                       "visit_exit_enum_scope",       // }
                                       "visit_end_of_module"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_enum_member_name_cannot_be_number,  //
+            p.code(), diag_typescript_enum_member_name_cannot_be_number,  //
             number, strlen(u8"enum E { "), u8"42")));
   }
 
   {
-    padded_string code(u8"enum E { 42n = init, }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p =
+        this->make_parser(u8"enum E { 42n = init, }"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_enum_member_name_cannot_be_number,  //
+            p.code(), diag_typescript_enum_member_name_cannot_be_number,  //
             number, strlen(u8"enum E { "), u8"42n")));
   }
 
   // TODO(#758)
   if ((false)) {
-    padded_string code(u8"enum E { [42] = init, }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p =
+        this->make_parser(u8"enum E { [42] = init, }"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_enum_member_name_cannot_be_number,  //
+            p.code(), diag_typescript_enum_member_name_cannot_be_number,  //
             number, strlen(u8"enum E { ["), u8"42")));
   }
 }
@@ -311,38 +308,36 @@ TEST_F(test_parse_typescript_enum, enum_members_can_be_named_number_literals) {
 TEST_F(test_parse_typescript_enum,
        enum_members_cannot_be_named_complex_expressions) {
   {
-    padded_string code(u8"enum E { [ 'mem' + 'ber' ] = init, }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p = this->make_parser(
+        u8"enum E { [ 'mem' + 'ber' ] = init, }"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_enum_computed_name_must_be_simple,  //
+            p.code(), diag_typescript_enum_computed_name_must_be_simple,  //
             expression, strlen(u8"enum E { [ "), u8"'mem' + 'ber'")));
   }
 
   {
-    padded_string code(u8"enum E { [('member')] = init, }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p = this->make_parser(u8"enum E { [('member')] = init, }"_sv,
+                                       typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_enum_computed_name_must_be_simple,  //
+            p.code(), diag_typescript_enum_computed_name_must_be_simple,  //
             expression, strlen(u8"enum E { ["), u8"('member')")));
   }
 
   {
-    padded_string code(u8"enum E { [`template${withVariable}`] = init, }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p =
+        this->make_parser(u8"enum E { [`template${withVariable}`] = init, }"_sv,
+                          typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_enum_computed_name_must_be_simple,  //
+            p.code(), diag_typescript_enum_computed_name_must_be_simple,  //
             expression, strlen(u8"enum E { ["),
             u8"`template${withVariable}`")));
   }
@@ -350,30 +345,27 @@ TEST_F(test_parse_typescript_enum,
 
 TEST_F(test_parse_typescript_enum, extra_commas_are_not_allowed) {
   {
-    padded_string code(u8"enum E { , }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p = this->make_parser(u8"enum E { , }"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_extra_comma_not_allowed_between_enum_members,  //
+            p.code(), diag_extra_comma_not_allowed_between_enum_members,  //
             comma, strlen(u8"enum E { "), u8",")));
   }
 
   {
-    padded_string code(u8"enum E { A,, B,, }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p =
+        this->make_parser(u8"enum E { A,, B,, }"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(
             DIAG_TYPE_OFFSETS(
-                &code, diag_extra_comma_not_allowed_between_enum_members,  //
+                p.code(), diag_extra_comma_not_allowed_between_enum_members,  //
                 comma, strlen(u8"enum E { A,"), u8","),
             DIAG_TYPE_OFFSETS(
-                &code, diag_extra_comma_not_allowed_between_enum_members,  //
+                p.code(), diag_extra_comma_not_allowed_between_enum_members,  //
                 comma, strlen(u8"enum E { A,, B,"), u8",")));
   }
 }
@@ -494,56 +486,52 @@ TEST_F(test_parse_typescript_enum,
 
 TEST_F(test_parse_typescript_enum, normal_enum_auto_requires_constant_value) {
   {
-    padded_string code(u8"enum E { A = f(), B, }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p =
+        this->make_parser(u8"enum E { A = f(), B, }"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
-            &code,
+            p.code(),
             diag_typescript_enum_auto_member_needs_initializer_after_computed,  //
             auto_member_name, strlen(u8"enum E { A = f(), "), u8"B",  //
             computed_expression, strlen(u8"enum E { A = "), u8"f()")));
   }
 
   {
-    padded_string code(u8"enum E { A, B = f(), C, D, E, }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p = this->make_parser(u8"enum E { A, B = f(), C, D, E, }"_sv,
+                                       typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE(
             diag_typescript_enum_auto_member_needs_initializer_after_computed)));
   }
 
   {
-    padded_string code(u8"enum E { ['A'] = f(), ['B'], }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p = this->make_parser(u8"enum E { ['A'] = f(), ['B'], }"_sv,
+                                       typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
-            &code,
+            p.code(),
             diag_typescript_enum_auto_member_needs_initializer_after_computed,  //
             auto_member_name, strlen(u8"enum E { ['A'] = f(), "), u8"['B']",  //
             computed_expression, strlen(u8"enum E { ['A'] = "), u8"f()")));
   }
 
   {
-    padded_string code(u8"enum E { 42 = f(), 69, }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p =
+        this->make_parser(u8"enum E { 42 = f(), 69, }"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         UnorderedElementsAre(
             DIAG_TYPE(diag_typescript_enum_member_name_cannot_be_number),
             DIAG_TYPE(diag_typescript_enum_member_name_cannot_be_number),
             DIAG_TYPE_2_OFFSETS(
-                &code,
+                p.code(),
                 diag_typescript_enum_auto_member_needs_initializer_after_computed,  //
                 auto_member_name, strlen(u8"enum E { 42 = f(), "), u8"69",  //
                 computed_expression, strlen(u8"enum E { 42 = "), u8"f()")));

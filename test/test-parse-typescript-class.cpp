@@ -809,20 +809,19 @@ TEST_F(test_parse_typescript_class,
 }
 
 TEST_F(test_parse_typescript_class, implements_is_not_allowed_in_javascript) {
-  padded_string code(u8"class C implements Base {}"_sv);
-  spy_visitor v;
-  parser p(&code, &v, javascript_options);
-  p.parse_and_visit_module(v);
-  EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+  test_parser& p =
+      this->make_parser(u8"class C implements Base {}"_sv, javascript_options);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
                                     "visit_variable_type_use",       // Base
                                     "visit_enter_class_scope_body",  // C
                                     "visit_exit_class_scope",        // }
                                     "visit_variable_declaration",    // C
                                     "visit_end_of_module"));
   EXPECT_THAT(
-      v.errors,
+      p.errors,
       ElementsAre(DIAG_TYPE_OFFSETS(
-          &code,
+          p.code(),
           diag_typescript_class_implements_not_allowed_in_javascript,  //
           implements_keyword, strlen(u8"class C "), u8"implements")));
 }
@@ -856,22 +855,21 @@ TEST_F(test_parse_typescript_class, implements_comes_after_extends) {
   }
 
   {
-    padded_string code(u8"class C implements I extends Base {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+    test_parser& p = this->make_parser(
+        u8"class C implements I extends Base {}"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_variable_type_use",       // I
                                       "visit_variable_use",            // Base
                                       "visit_enter_class_scope_body",  // C
                                       "visit_exit_class_scope",        // }
                                       "visit_variable_declaration",    // C
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"I", u8"Base"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"I", u8"Base"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
-            &code,
+            p.code(),
             diag_typescript_implements_must_be_after_extends,          //
             implements_keyword, strlen(u8"class C "), u8"implements",  //
             extends_keyword, strlen(u8"class C implements I "), u8"extends")));

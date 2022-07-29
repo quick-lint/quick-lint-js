@@ -1492,31 +1492,27 @@ TEST_F(test_parse_var, use_await_at_top_level_as_variable) {
 
 TEST_F(test_parse_var, forced_top_level_await_operator) {
   {
-    padded_string code(u8"await p;"_sv);
-    spy_visitor v;
-    parser p(
-        &code, &v,
+    test_parser& p = this->make_parser(
+        u8"await p;"_sv,
         parser_options{
             .top_level_await_mode = parser_top_level_await_mode::await_operator,
         });
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // p
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // p
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    padded_string code(u8"await;"_sv);
-    spy_visitor v;
-    parser p(
-        &code, &v,
+    test_parser& p = this->make_parser(
+        u8"await;"_sv,
         parser_options{
             .top_level_await_mode = parser_top_level_await_mode::await_operator,
         });
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_operand_for_operator,  //
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
                               where, 0, u8"await")));
   }
 }

@@ -45,141 +45,130 @@ TEST_F(test_parse_typescript_interface, not_supported_in_vanilla_javascript) {
 }
 
 TEST_F(test_parse_typescript_interface, empty_interface) {
-  padded_string code(u8"interface I {}"_sv);
-  spy_visitor v;
-  parser p(&code, &v, typescript_options);
-  p.parse_and_visit_module(v);
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+  test_parser& p = this->make_parser(u8"interface I {}"_sv, typescript_options);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                     "visit_enter_interface_scope",  // I
                                     "visit_exit_interface_scope",   // I
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.variable_declarations, ElementsAre(interface_decl(u8"I")));
-  EXPECT_THAT(v.errors, IsEmpty());
+  EXPECT_THAT(p.variable_declarations, ElementsAre(interface_decl(u8"I")));
+  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(test_parse_typescript_interface, interface_without_body) {
   {
-    padded_string code(u8"interface I"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+    test_parser& p = this->make_parser(u8"interface I"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  // I
                                       "visit_exit_interface_scope",   // I
                                       "visit_end_of_module"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_missing_body_for_typescript_interface,  //
+            p.code(), diag_missing_body_for_typescript_interface,  //
             interface_keyword_and_name_and_heritage, 0, u8"interface I")));
   }
 
   {
-    padded_string code(u8"interface I extends Other"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+    test_parser& p =
+        this->make_parser(u8"interface I extends Other"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  // I
                                       "visit_variable_type_use",      // J
                                       "visit_exit_interface_scope",   // I
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_body_for_typescript_interface,  //
+                    p.code(), diag_missing_body_for_typescript_interface,  //
                     interface_keyword_and_name_and_heritage, 0,
                     u8"interface I extends Other")));
   }
 }
 
 TEST_F(test_parse_typescript_interface, extends) {
-  padded_string code(u8"interface I extends A {}"_sv);
-  spy_visitor v;
-  parser p(&code, &v, typescript_options);
-  p.parse_and_visit_module(v);
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+  test_parser& p =
+      this->make_parser(u8"interface I extends A {}"_sv, typescript_options);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                     "visit_enter_interface_scope",  // I
                                     "visit_variable_type_use",      // A
                                     "visit_exit_interface_scope",   // I
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.variable_uses, ElementsAre(u8"A"));
-  EXPECT_THAT(v.errors, IsEmpty());
+  EXPECT_THAT(p.variable_uses, ElementsAre(u8"A"));
+  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(test_parse_typescript_interface, extends_interface_from_namespace) {
-  padded_string code(u8"interface I extends ns.A {}"_sv);
-  spy_visitor v;
-  parser p(&code, &v, typescript_options);
-  p.parse_and_visit_module(v);
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // I
+  test_parser& p =
+      this->make_parser(u8"interface I extends ns.A {}"_sv, typescript_options);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // I
                                     "visit_enter_interface_scope",   // I
                                     "visit_variable_namespace_use",  // ns
                                     "visit_exit_interface_scope",    // I
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns"));
-  EXPECT_THAT(v.errors, IsEmpty());
+  EXPECT_THAT(p.variable_uses, ElementsAre(u8"ns"));
+  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(test_parse_typescript_interface, extends_multiple_things) {
-  padded_string code(u8"interface I extends A, B, C {}"_sv);
-  spy_visitor v;
-  parser p(&code, &v, typescript_options);
-  p.parse_and_visit_module(v);
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+  test_parser& p = this->make_parser(u8"interface I extends A, B, C {}"_sv,
+                                     typescript_options);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                     "visit_enter_interface_scope",  // I
                                     "visit_variable_type_use",      // A
                                     "visit_variable_type_use",      // B
                                     "visit_variable_type_use",      // C
                                     "visit_exit_interface_scope",   // I
                                     "visit_end_of_module"));
-  EXPECT_THAT(v.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
-  EXPECT_THAT(v.errors, IsEmpty());
+  EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"B", u8"C"));
+  EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(test_parse_typescript_interface, unclosed_interface_statement) {
   {
-    padded_string code(u8"interface I { "_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+    test_parser& p =
+        this->make_parser(u8"interface I { "_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  //
                                       "visit_exit_interface_scope",   //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_unclosed_interface_block,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_unclosed_interface_block,  //
                               block_open, strlen(u8"interface I "), u8"{")));
   }
 
   {
-    padded_string code(u8"interface I { property "_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+    test_parser& p =
+        this->make_parser(u8"interface I { property "_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  //
                                       "visit_property_declaration",  // property
                                       "visit_exit_interface_scope",  //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_unclosed_interface_block,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_unclosed_interface_block,  //
                               block_open, strlen(u8"interface I "), u8"{")));
   }
 
   {
-    padded_string code(u8"interface I { method() "_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+    test_parser& p =
+        this->make_parser(u8"interface I { method() "_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  //
                                       "visit_property_declaration",   // method
                                       "visit_enter_function_scope",   // method
                                       "visit_exit_function_scope",    // method
                                       "visit_exit_interface_scope",   //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_unclosed_interface_block,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_unclosed_interface_block,  //
                               block_open, strlen(u8"interface I "), u8"{")));
   }
 }
@@ -222,19 +211,18 @@ TEST_F(test_parse_typescript_interface,
 
 TEST_F(test_parse_typescript_interface, property_without_type) {
   {
-    padded_string code(u8"interface I { a;b\nc }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+    test_parser& p =
+        this->make_parser(u8"interface I { a;b\nc }"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  // I
                                       "visit_property_declaration",   // a
                                       "visit_property_declaration",   // b
                                       "visit_property_declaration",   // c
                                       "visit_exit_interface_scope",   // I
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.property_declarations, ElementsAre(u8"a", u8"b", u8"c"));
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.property_declarations, ElementsAre(u8"a", u8"b", u8"c"));
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -292,14 +280,13 @@ TEST_F(test_parse_typescript_interface, optional_property) {
 
   {
     // Semicolon is required.
-    padded_string code(u8"interface I { fieldName? otherField }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.property_declarations,
+    test_parser& p = this->make_parser(
+        u8"interface I { fieldName? otherField }"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.property_declarations,
                 ElementsAre(u8"fieldName", u8"otherField"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_semicolon_after_field,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_semicolon_after_field,  //
                               expected_semicolon,
                               strlen(u8"interface I { fieldName?"), u8"")));
   }
@@ -377,15 +364,15 @@ TEST_F(test_parse_typescript_interface, field_with_type) {
 
   {
     // Semicolon is required.
-    padded_string code(u8"interface I { fieldName: FieldType otherField }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.property_declarations,
+    test_parser& p = this->make_parser(
+        u8"interface I { fieldName: FieldType otherField }"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.property_declarations,
                 ElementsAre(u8"fieldName", u8"otherField"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_semicolon_after_field,  //
+                    p.code(), diag_missing_semicolon_after_field,  //
                     expected_semicolon,
                     strlen(u8"interface I { fieldName: FieldType"), u8"")));
   }
@@ -615,11 +602,10 @@ TEST_F(test_parse_typescript_interface, index_signature_requires_semicolon) {
 
 TEST_F(test_parse_typescript_interface, interface_methods_cannot_have_bodies) {
   {
-    padded_string code(u8"interface I { method() { x } }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"interface I { method() { x } }"_sv,
+                                       typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",       // I
                             "visit_enter_interface_scope",      //
                             "visit_property_declaration",       // method
@@ -629,25 +615,24 @@ TEST_F(test_parse_typescript_interface, interface_methods_cannot_have_bodies) {
                             "visit_exit_function_scope",        // method
                             "visit_exit_interface_scope",       //
                             "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_interface_methods_cannot_contain_bodies,  //
+                    p.code(), diag_interface_methods_cannot_contain_bodies,  //
                     body_start, strlen(u8"interface I { method() "), u8"{")));
   }
 
   {
-    padded_string code(u8"interface I { method() => { x } }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p = this->make_parser(u8"interface I { method() => { x } }"_sv,
+                                       typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ::testing::UnorderedElementsAre(
             // TODO(strager): Report only one diagnostic:
             // diag_interface_methods_cannot_contain_bodies on the '=>'.
             DIAG_TYPE(diag_functions_or_methods_should_not_have_arrow_operator),
             DIAG_TYPE_OFFSETS(
-                &code, diag_interface_methods_cannot_contain_bodies,  //
+                p.code(), diag_interface_methods_cannot_contain_bodies,  //
                 body_start, strlen(u8"interface I { method() => "), u8"{")));
   }
 }
@@ -735,77 +720,74 @@ TEST_F(test_parse_typescript_interface, interface_allows_stray_semicolons) {
 
 TEST_F(test_parse_typescript_interface, private_properties_are_not_allowed) {
   {
-    padded_string code(u8"interface I { #method(); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+    test_parser& p = this->make_parser(u8"interface I { #method(); }"_sv,
+                                       typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  //
                                       "visit_property_declaration",   // #method
                                       "visit_enter_function_scope",   // #method
                                       "visit_exit_function_scope",    // #method
                                       "visit_exit_interface_scope",   //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_interface_properties_cannot_be_private,  //
+                    p.code(), diag_interface_properties_cannot_be_private,  //
                     property_name, strlen(u8"interface I { "), u8"#method")));
   }
 
   {
-    padded_string code(u8"interface I { #field; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+    test_parser& p =
+        this->make_parser(u8"interface I { #field; }"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  //
                                       "visit_property_declaration",   // #field
                                       "visit_exit_interface_scope",   //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_interface_properties_cannot_be_private,  //
+                    p.code(), diag_interface_properties_cannot_be_private,  //
                     property_name, strlen(u8"interface I { "), u8"#field")));
   }
 
   {
-    padded_string code(u8"interface I { async static #method(); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+    test_parser& p = this->make_parser(
+        u8"interface I { async static #method(); }"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  //
                                       "visit_property_declaration",   // #method
                                       "visit_enter_function_scope",   // #method
                                       "visit_exit_function_scope",    // #method
                                       "visit_exit_interface_scope",   //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ::testing::UnorderedElementsAre(
-                    DIAG_TYPE(diag_interface_methods_cannot_be_async),
-                    DIAG_TYPE(diag_interface_properties_cannot_be_static),
-                    DIAG_TYPE_OFFSETS(
-                        &code, diag_interface_properties_cannot_be_private,  //
-                        property_name, strlen(u8"interface I { async static "),
-                        u8"#method")));
+    EXPECT_THAT(
+        p.errors,
+        ::testing::UnorderedElementsAre(
+            DIAG_TYPE(diag_interface_methods_cannot_be_async),
+            DIAG_TYPE(diag_interface_properties_cannot_be_static),
+            DIAG_TYPE_OFFSETS(
+                p.code(), diag_interface_properties_cannot_be_private,  //
+                property_name, strlen(u8"interface I { async static "),
+                u8"#method")));
   }
 
   {
-    padded_string code(u8"interface I { readonly static #field; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+    test_parser& p = this->make_parser(
+        u8"interface I { readonly static #field; }"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  //
                                       "visit_property_declaration",   // #field
                                       "visit_exit_interface_scope",   //
                                       "visit_end_of_module"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ::testing::UnorderedElementsAre(
             DIAG_TYPE(diag_interface_properties_cannot_be_static),
             DIAG_TYPE_OFFSETS(
-                &code, diag_interface_properties_cannot_be_private,  //
+                p.code(), diag_interface_properties_cannot_be_private,  //
                 property_name, strlen(u8"interface I { readonly static "),
                 u8"#field")));
   }
@@ -816,11 +798,11 @@ TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
     SCOPED_TRACE(out_string8(property_name));
 
     {
-      padded_string code(u8"interface I { static " + property_name + u8"(); }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits,
+      test_parser& p = this->make_parser(
+          u8"interface I { static " + property_name + u8"(); }",
+          typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  //
                               "visit_property_declaration",   // property
@@ -828,19 +810,18 @@ TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
                               "visit_exit_function_scope",    // property
                               "visit_exit_interface_scope",   //
                               "visit_end_of_module"));
-      EXPECT_THAT(v.errors,
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_interface_properties_cannot_be_static,  //
+                      p.code(), diag_interface_properties_cannot_be_static,  //
                       static_keyword, strlen(u8"interface I { "), u8"static")));
     }
 
     {
-      padded_string code(u8"interface I { static get " + property_name +
-                         u8"(); }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits,
+      test_parser& p = this->make_parser(
+          u8"interface I { static get " + property_name + u8"(); }",
+          typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  //
                               "visit_property_declaration",   // property
@@ -848,19 +829,18 @@ TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
                               "visit_exit_function_scope",    // property
                               "visit_exit_interface_scope",   //
                               "visit_end_of_module"));
-      EXPECT_THAT(v.errors,
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_interface_properties_cannot_be_static,  //
+                      p.code(), diag_interface_properties_cannot_be_static,  //
                       static_keyword, strlen(u8"interface I { "), u8"static")));
     }
 
     {
-      padded_string code(u8"interface I { static set " + property_name +
-                         u8"(value); }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits,
+      test_parser& p = this->make_parser(
+          u8"interface I { static set " + property_name + u8"(value); }",
+          typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  //
                               "visit_property_declaration",   // property
@@ -869,123 +849,119 @@ TEST_F(test_parse_typescript_interface, static_properties_are_not_allowed) {
                               "visit_exit_function_scope",    // property
                               "visit_exit_interface_scope",   //
                               "visit_end_of_module"));
-      EXPECT_THAT(v.errors,
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_interface_properties_cannot_be_static,  //
+                      p.code(), diag_interface_properties_cannot_be_static,  //
                       static_keyword, strlen(u8"interface I { "), u8"static")));
     }
 
     {
-      padded_string code(u8"interface I { static " + property_name + u8"; }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits,
+      test_parser& p =
+          this->make_parser(u8"interface I { static " + property_name + u8"; }",
+                            typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  //
                               "visit_property_declaration",   // property
                               "visit_exit_interface_scope",   //
                               "visit_end_of_module"));
-      EXPECT_THAT(v.errors,
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_interface_properties_cannot_be_static,  //
+                      p.code(), diag_interface_properties_cannot_be_static,  //
                       static_keyword, strlen(u8"interface I { "), u8"static")));
     }
 
     // TODO(#736): Fix 'static readonly static'.
     if (property_name != u8"static") {
-      padded_string code(u8"interface I { static readonly " + property_name +
-                         u8"; }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits,
+      test_parser& p = this->make_parser(
+          u8"interface I { static readonly " + property_name + u8"; }",
+          typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  //
                               "visit_property_declaration",   // property
                               "visit_exit_interface_scope",   //
                               "visit_end_of_module"));
-      EXPECT_THAT(v.errors,
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_interface_properties_cannot_be_static,  //
+                      p.code(), diag_interface_properties_cannot_be_static,  //
                       static_keyword, strlen(u8"interface I { "), u8"static")));
     }
 
     {
-      padded_string code(u8"interface I { static async\n " + property_name +
-                         u8"(); }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.errors,
+      test_parser& p = this->make_parser(
+          u8"interface I { static async\n " + property_name + u8"(); }",
+          typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_interface_properties_cannot_be_static,  //
-                      static_keyword, strlen(u8"interface I { "), u8"static")));
-    }
-
-    {
-      // ASI doesn't activate after 'static'.
-      // TODO(strager): Is this a bug in the TypeScript compiler?
-      padded_string code(u8"interface I { static\n" + property_name +
-                         u8"(); }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.property_declarations, ElementsAre(property_name));
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_interface_properties_cannot_be_static,  //
+                      p.code(), diag_interface_properties_cannot_be_static,  //
                       static_keyword, strlen(u8"interface I { "), u8"static")));
     }
 
     {
       // ASI doesn't activate after 'static'.
       // TODO(strager): Is this a bug in the TypeScript compiler?
-      padded_string code(u8"interface I { static\n" + property_name + u8"; }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.property_declarations, ElementsAre(property_name));
-      EXPECT_THAT(v.errors,
+      test_parser& p = this->make_parser(
+          u8"interface I { static\n" + property_name + u8"(); }",
+          typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.property_declarations, ElementsAre(property_name));
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_interface_properties_cannot_be_static,  //
+                      p.code(), diag_interface_properties_cannot_be_static,  //
+                      static_keyword, strlen(u8"interface I { "), u8"static")));
+    }
+
+    {
+      // ASI doesn't activate after 'static'.
+      // TODO(strager): Is this a bug in the TypeScript compiler?
+      test_parser& p = this->make_parser(
+          u8"interface I { static\n" + property_name + u8"; }",
+          typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.property_declarations, ElementsAre(property_name));
+      EXPECT_THAT(p.errors,
+                  ElementsAre(DIAG_TYPE_OFFSETS(
+                      p.code(), diag_interface_properties_cannot_be_static,  //
                       static_keyword, strlen(u8"interface I { "), u8"static")));
     }
   }
 
   {
-    padded_string code(u8"interface I { static field\n method(); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(
+        u8"interface I { static field\n method(); }"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_interface_properties_cannot_be_static,  //
+                    p.code(), diag_interface_properties_cannot_be_static,  //
                     static_keyword, strlen(u8"interface I { "), u8"static")));
   }
 
   {
-    padded_string code(u8"interface I { static field\n ['methodName'](); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(
+        u8"interface I { static field\n ['methodName'](); }"_sv,
+        typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_interface_properties_cannot_be_static,  //
+                    p.code(), diag_interface_properties_cannot_be_static,  //
                     static_keyword, strlen(u8"interface I { "), u8"static")));
   }
 
   {
-    padded_string code(u8"interface I { static field? method(); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors,
-                ::testing::UnorderedElementsAre(
-                    DIAG_TYPE_OFFSETS(
-                        &code, diag_interface_properties_cannot_be_static,  //
-                        static_keyword, strlen(u8"interface I { "), u8"static"),
-                    DIAG_TYPE(diag_missing_semicolon_after_field)));
+    test_parser& p = this->make_parser(
+        u8"interface I { static field? method(); }"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ::testing::UnorderedElementsAre(
+            DIAG_TYPE_OFFSETS(
+                p.code(), diag_interface_properties_cannot_be_static,  //
+                static_keyword, strlen(u8"interface I { "), u8"static"),
+            DIAG_TYPE(diag_missing_semicolon_after_field)));
   }
 }
 
@@ -994,31 +970,31 @@ TEST_F(test_parse_typescript_interface, async_methods_are_not_allowed) {
     SCOPED_TRACE(out_string8(method_name));
 
     {
-      padded_string code(u8"interface I { async " + method_name + u8"(); }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+      test_parser& p =
+          this->make_parser(u8"interface I { async " + method_name + u8"(); }",
+                            typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                         "visit_enter_interface_scope",  //
                                         "visit_property_declaration",  // method
                                         "visit_enter_function_scope",  // method
                                         "visit_exit_function_scope",   // method
                                         "visit_exit_interface_scope",  //
                                         "visit_end_of_module"));
-      EXPECT_THAT(v.errors,
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_interface_methods_cannot_be_async,  //
+                      p.code(), diag_interface_methods_cannot_be_async,  //
                       async_keyword, strlen(u8"interface I { "), u8"async")));
     }
 
     {
       // ASI activates after 'async'.
-      padded_string code(u8"interface I { async\n" + method_name + u8"(); }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.property_declarations, ElementsAre(u8"async", method_name));
-      EXPECT_THAT(v.errors, IsEmpty());
+      test_parser& p =
+          this->make_parser(u8"interface I { async\n" + method_name + u8"(); }",
+                            typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.property_declarations, ElementsAre(u8"async", method_name));
+      EXPECT_THAT(p.errors, IsEmpty());
     }
   }
 }
@@ -1028,48 +1004,47 @@ TEST_F(test_parse_typescript_interface, generator_methods_are_not_allowed) {
     SCOPED_TRACE(out_string8(method_name));
 
     {
-      padded_string code(u8"interface I { *" + method_name + u8"(); }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+      test_parser& p = this->make_parser(
+          u8"interface I { *" + method_name + u8"(); }", typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                         "visit_enter_interface_scope",  //
                                         "visit_property_declaration",  // method
                                         "visit_enter_function_scope",  // method
                                         "visit_exit_function_scope",   // method
                                         "visit_exit_interface_scope",  //
                                         "visit_end_of_module"));
-      EXPECT_THAT(v.errors,
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_interface_methods_cannot_be_generators,  //
+                      p.code(), diag_interface_methods_cannot_be_generators,  //
                       star, strlen(u8"interface I { "), u8"*")));
     }
 
     {
-      padded_string code(u8"interface I { static *" + method_name + u8"(); }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
+      test_parser& p = this->make_parser(
+          u8"interface I { static *" + method_name + u8"(); }",
+          typescript_options);
+      p.parse_and_visit_module();
       EXPECT_THAT(
-          v.errors,
+          p.errors,
           ::testing::UnorderedElementsAre(
               DIAG_TYPE(diag_interface_properties_cannot_be_static),
               DIAG_TYPE_OFFSETS(
-                  &code, diag_interface_methods_cannot_be_generators,  //
+                  p.code(), diag_interface_methods_cannot_be_generators,  //
                   star, strlen(u8"interface I { static "), u8"*")));
     }
 
     {
-      padded_string code(u8"interface I { async *" + method_name + u8"(); }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
+      test_parser& p =
+          this->make_parser(u8"interface I { async *" + method_name + u8"(); }",
+                            typescript_options);
+      p.parse_and_visit_module();
       EXPECT_THAT(
-          v.errors,
+          p.errors,
           ::testing::UnorderedElementsAre(
               DIAG_TYPE(diag_interface_methods_cannot_be_async),
               DIAG_TYPE_OFFSETS(
-                  &code, diag_interface_methods_cannot_be_generators,  //
+                  p.code(), diag_interface_methods_cannot_be_generators,  //
                   star, strlen(u8"interface I { async "), u8"*")));
     }
   }
@@ -1078,53 +1053,50 @@ TEST_F(test_parse_typescript_interface, generator_methods_are_not_allowed) {
 TEST_F(test_parse_typescript_interface,
        static_async_methods_are_definitely_not_allowed) {
   {
-    padded_string code(u8"interface I { static async method(); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p = this->make_parser(
+        u8"interface I { static async method(); }"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ::testing::UnorderedElementsAre(
-            DIAG_TYPE_OFFSETS(&code, diag_interface_methods_cannot_be_async,  //
-                              async_keyword, strlen(u8"interface I { static "),
-                              u8"async"),
             DIAG_TYPE_OFFSETS(
-                &code, diag_interface_properties_cannot_be_static,  //
+                p.code(), diag_interface_methods_cannot_be_async,  //
+                async_keyword, strlen(u8"interface I { static "), u8"async"),
+            DIAG_TYPE_OFFSETS(
+                p.code(), diag_interface_properties_cannot_be_static,  //
                 static_keyword, strlen(u8"interface I { "), u8"static")));
   }
 
   {
-    padded_string code(u8"interface I { async static method(); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p = this->make_parser(
+        u8"interface I { async static method(); }"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ::testing::UnorderedElementsAre(
-            DIAG_TYPE_OFFSETS(&code, diag_interface_methods_cannot_be_async,  //
-                              async_keyword, strlen(u8"interface I { "),
-                              u8"async"),
             DIAG_TYPE_OFFSETS(
-                &code, diag_interface_properties_cannot_be_static,  //
+                p.code(), diag_interface_methods_cannot_be_async,  //
+                async_keyword, strlen(u8"interface I { "), u8"async"),
+            DIAG_TYPE_OFFSETS(
+                p.code(), diag_interface_properties_cannot_be_static,  //
                 static_keyword, strlen(u8"interface I { async "), u8"static")));
   }
 
   {
-    padded_string code(u8"interface I { async static *method(); }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p = this->make_parser(
+        u8"interface I { async static *method(); }"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ::testing::UnorderedElementsAre(
-            DIAG_TYPE_OFFSETS(&code, diag_interface_methods_cannot_be_async,  //
-                              async_keyword, strlen(u8"interface I { "),
-                              u8"async"),
             DIAG_TYPE_OFFSETS(
-                &code, diag_interface_methods_cannot_be_generators,  //
+                p.code(), diag_interface_methods_cannot_be_async,  //
+                async_keyword, strlen(u8"interface I { "), u8"async"),
+            DIAG_TYPE_OFFSETS(
+                p.code(), diag_interface_methods_cannot_be_generators,  //
                 star, strlen(u8"interface I { async static "), u8"*"),
             DIAG_TYPE_OFFSETS(
-                &code, diag_interface_properties_cannot_be_static,  //
+                p.code(), diag_interface_properties_cannot_be_static,  //
                 static_keyword, strlen(u8"interface I { async "), u8"static")));
   }
 }
@@ -1134,11 +1106,10 @@ TEST_F(test_parse_typescript_interface, field_initializers_are_not_allowed) {
     SCOPED_TRACE(out_string8(field_name));
 
     {
-      padded_string code(u8"interface I { " + field_name + u8" = y; }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits,
+      test_parser& p = this->make_parser(
+          u8"interface I { " + field_name + u8" = y; }", typescript_options);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration",   // I
                               "visit_enter_interface_scope",  //
                               "visit_variable_use",           // y
@@ -1146,23 +1117,23 @@ TEST_F(test_parse_typescript_interface, field_initializers_are_not_allowed) {
                               "visit_exit_interface_scope",   //
                               "visit_end_of_module"));
       EXPECT_THAT(
-          v.errors,
+          p.errors,
           ElementsAre(DIAG_TYPE_OFFSETS(
-              &code, diag_interface_fields_cannot_have_initializers,  //
+              p.code(), diag_interface_fields_cannot_have_initializers,  //
               equal, (u8"interface I { " + field_name + u8" ").size(), u8"=")));
     }
 
     {
-      padded_string code(u8"interface I { static " + field_name + u8" = y; }");
-      spy_visitor v;
-      parser p(&code, &v, typescript_options);
-      p.parse_and_visit_module(v);
+      test_parser& p = this->make_parser(
+          u8"interface I { static " + field_name + u8" = y; }",
+          typescript_options);
+      p.parse_and_visit_module();
       EXPECT_THAT(
-          v.errors,
+          p.errors,
           ::testing::UnorderedElementsAre(
               DIAG_TYPE(diag_interface_properties_cannot_be_static),
               DIAG_TYPE_OFFSETS(
-                  &code, diag_interface_fields_cannot_have_initializers,  //
+                  p.code(), diag_interface_fields_cannot_have_initializers,  //
                   equal,
                   (u8"interface I { static " + field_name + u8" ").size(),
                   u8"=")));
@@ -1170,14 +1141,14 @@ TEST_F(test_parse_typescript_interface, field_initializers_are_not_allowed) {
   }
 
   {
-    padded_string code(u8"interface I { 'fieldName' = init; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_interface_fields_cannot_have_initializers,  //
-                    equal, strlen(u8"interface I { 'fieldName' "), u8"=")));
+    test_parser& p = this->make_parser(
+        u8"interface I { 'fieldName' = init; }"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code(), diag_interface_fields_cannot_have_initializers,  //
+            equal, strlen(u8"interface I { 'fieldName' "), u8"=")));
   }
 }
 
@@ -1199,15 +1170,15 @@ TEST_F(test_parse_typescript_interface,
   }
 
   {
-    padded_string code(u8"async function g() { interface await {} }"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p = this->make_parser(
+        u8"async function g() { interface await {} }"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_cannot_declare_interface_named_await_in_async_function,
-            name, strlen(u8"async function g() { interface "), u8"await")));
+            p.code(),
+            diag_cannot_declare_interface_named_await_in_async_function, name,
+            strlen(u8"async function g() { interface "), u8"await")));
   }
 }
 

@@ -107,6 +107,10 @@ class test_parser {
     this->parser_.parse_and_visit_typescript_type_expression(this->errors_);
   }
 
+  void parse_and_visit_typescript_generic_parameters() {
+    this->parser_.parse_and_visit_typescript_generic_parameters(this->errors_);
+  }
+
   [[nodiscard]] quick_lint_js::parser::function_guard enter_function(
       function_attributes attributes) {
     return this->parser_.enter_function(attributes);

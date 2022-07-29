@@ -157,16 +157,15 @@ TEST_F(test_parse_typescript_namespace, import_alias_of_namespace_member) {
 TEST_F(test_parse_typescript_namespace,
        import_alias_requires_semicolon_or_newline) {
   {
-    padded_string code(u8"import A = ns nextStatement"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // A
+    test_parser& p = this->make_parser(u8"import A = ns nextStatement"_sv,
+                                       typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // ns
                                       "visit_variable_use",  // nextStatement
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code,
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(),
                               diag_missing_semicolon_after_statement,  //
                               where, strlen(u8"import A = ns"), u8"")));
   }

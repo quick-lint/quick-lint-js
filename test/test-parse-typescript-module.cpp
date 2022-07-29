@@ -87,56 +87,53 @@ TEST_F(test_parse_typescript_module,
 TEST_F(test_parse_typescript_module,
        type_only_import_is_not_allowed_in_javascript) {
   {
-    padded_string code(u8"import type {T} from 'mod';"_sv);
-    spy_visitor v;
-    parser p(&code, &v, javascript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // T
+    test_parser& p = this->make_parser(u8"import type {T} from 'mod';"_sv,
+                                       javascript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // T
                                       "visit_end_of_module"));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_type_only_import_not_allowed_in_javascript,
-            type_keyword, strlen(u8"import "), u8"type")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code(),
+                    diag_typescript_type_only_import_not_allowed_in_javascript,
+                    type_keyword, strlen(u8"import "), u8"type")));
   }
 }
 
 TEST_F(test_parse_typescript_module,
        type_only_import_cannot_import_default_and_named) {
   {
-    padded_string code(u8"import type A, {B} from 'mod';"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // A
+    test_parser& p = this->make_parser(u8"import type A, {B} from 'mod';"_sv,
+                                       typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // A
                                       "visit_variable_declaration",  // B
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_declarations,
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(import_type_decl(u8"A"), import_decl(u8"B")))
         << "B should be imported as an 'import' not an 'import_type' in case "
            "the user thought that the 'type' keyword only applied to 'A'";
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code,
+            p.code(),
             diag_typescript_type_only_import_cannot_import_default_and_named,
             type_keyword, strlen(u8"import "), u8"type")));
   }
 
   {
-    padded_string code(u8"import type A, * as B from 'mod';"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // A
+    test_parser& p = this->make_parser(u8"import type A, * as B from 'mod';"_sv,
+                                       typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // A
                                       "visit_variable_declaration",  // B
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_declarations,
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(import_type_decl(u8"A"), import_decl(u8"B")));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code,
+            p.code(),
             diag_typescript_type_only_import_cannot_import_default_and_named,
             type_keyword, strlen(u8"import "), u8"type")));
   }
@@ -231,47 +228,46 @@ TEST_F(test_parse_typescript_module,
 TEST_F(test_parse_typescript_module,
        inline_type_import_is_not_allowed_in_javascript) {
   {
-    padded_string code(u8"import {type T} from 'mod';"_sv);
-    spy_visitor v;
-    parser p(&code, &v, javascript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // T
+    test_parser& p = this->make_parser(u8"import {type T} from 'mod';"_sv,
+                                       javascript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // T
                                       "visit_end_of_module"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_inline_type_import_not_allowed_in_javascript,
+            p.code(),
+            diag_typescript_inline_type_import_not_allowed_in_javascript,
             type_keyword, strlen(u8"import {"), u8"type")));
   }
 
   {
-    padded_string code(u8"import {type as} from 'mod';"_sv);
-    spy_visitor v;
-    parser p(&code, &v, javascript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // as
+    test_parser& p = this->make_parser(u8"import {type as} from 'mod';"_sv,
+                                       javascript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // as
                                       "visit_end_of_module"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_inline_type_import_not_allowed_in_javascript,
+            p.code(),
+            diag_typescript_inline_type_import_not_allowed_in_javascript,
             type_keyword, strlen(u8"import {"), u8"type")));
   }
 }
 
 TEST_F(test_parse_typescript_module, mixed_inline_type_and_type_only_import) {
   {
-    padded_string code(u8"import type {type T} from 'mod';"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // T
+    test_parser& p = this->make_parser(u8"import type {type T} from 'mod';"_sv,
+                                       typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // T
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(import_type_decl(u8"T")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(import_type_decl(u8"T")));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
-            &code,
+            p.code(),
             diag_typescript_inline_type_import_not_allowed_in_type_only_import,
             inline_type_keyword, strlen(u8"import type {"), u8"type",  //
             type_only_keyword, strlen(u8"import "), u8"type")));
@@ -308,17 +304,16 @@ TEST_F(test_parse_typescript_module, type_only_export) {
 TEST_F(test_parse_typescript_module,
        type_only_export_is_not_allowed_in_javascript) {
   {
-    padded_string code(u8"export type {T};"_sv);
-    spy_visitor v;
-    parser p(&code, &v, javascript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // T
+    test_parser& p =
+        this->make_parser(u8"export type {T};"_sv, javascript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
                                       "visit_end_of_module"));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_type_only_export_not_allowed_in_javascript,
-            type_keyword, strlen(u8"export "), u8"type")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code(),
+                    diag_typescript_type_only_export_not_allowed_in_javascript,
+                    type_keyword, strlen(u8"export "), u8"type")));
   }
 }
 
@@ -355,47 +350,46 @@ TEST_F(test_parse_typescript_module, inline_type_export) {
 TEST_F(test_parse_typescript_module,
        inline_type_export_is_not_allowed_in_javascript) {
   {
-    padded_string code(u8"export {type T};"_sv);
-    spy_visitor v;
-    parser p(&code, &v, javascript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // T
+    test_parser& p =
+        this->make_parser(u8"export {type T};"_sv, javascript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
                                       "visit_end_of_module"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_inline_type_export_not_allowed_in_javascript,
+            p.code(),
+            diag_typescript_inline_type_export_not_allowed_in_javascript,
             type_keyword, strlen(u8"export {"), u8"type")));
   }
 
   {
-    padded_string code(u8"export {type as};"_sv);
-    spy_visitor v;
-    parser p(&code, &v, javascript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // as
+    test_parser& p =
+        this->make_parser(u8"export {type as};"_sv, javascript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // as
                                       "visit_end_of_module"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_typescript_inline_type_export_not_allowed_in_javascript,
+            p.code(),
+            diag_typescript_inline_type_export_not_allowed_in_javascript,
             type_keyword, strlen(u8"export {"), u8"type")));
   }
 }
 
 TEST_F(test_parse_typescript_module, mixed_inline_type_and_type_only_export) {
   {
-    padded_string code(u8"export type {type T};"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // T
+    test_parser& p =
+        this->make_parser(u8"export type {type T};"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"T"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
-            &code,
+            p.code(),
             diag_typescript_inline_type_export_not_allowed_in_type_only_export,
             inline_type_keyword, strlen(u8"export type {"), u8"type",  //
             type_only_keyword, strlen(u8"export "), u8"type")));
@@ -429,18 +423,17 @@ TEST_F(test_parse_typescript_module, export_interface) {
 TEST_F(test_parse_typescript_module,
        export_interface_disallows_newline_after_interface_keyword) {
   {
-    padded_string code(u8"export interface\nI {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // I
+    test_parser& p =
+        this->make_parser(u8"export interface\nI {}"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // I
                                       "visit_enter_interface_scope",  // {
                                       "visit_exit_interface_scope",   // }
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(interface_decl(u8"I")));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.variable_declarations, ElementsAre(interface_decl(u8"I")));
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_newline_not_allowed_after_interface_keyword,
+                    p.code(), diag_newline_not_allowed_after_interface_keyword,
                     interface_keyword, strlen(u8"export "), u8"interface")));
   }
 }
@@ -486,18 +479,17 @@ TEST_F(test_parse_typescript_module, export_namespace) {
 TEST_F(test_parse_typescript_module,
        export_namespace_disallows_newline_after_namespace_keyword) {
   {
-    padded_string code(u8"export namespace\nns {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",   // ns
+    test_parser& p =
+        this->make_parser(u8"export namespace\nns {}"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",   // ns
                                       "visit_enter_namespace_scope",  // {
                                       "visit_exit_namespace_scope",   // }
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(namespace_decl(u8"ns")));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.variable_declarations, ElementsAre(namespace_decl(u8"ns")));
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_newline_not_allowed_after_namespace_keyword,
+                    p.code(), diag_newline_not_allowed_after_namespace_keyword,
                     namespace_keyword, strlen(u8"export "), u8"namespace")));
   }
 }
@@ -545,17 +537,16 @@ TEST_F(test_parse_typescript_module, export_type_alias) {
 TEST_F(test_parse_typescript_module,
        export_type_alias_disallows_newline_after_type_keyword) {
   {
-    padded_string code(u8"export type\nA = any;"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // A
+    test_parser& p =
+        this->make_parser(u8"export type\nA = any;"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_enter_type_alias_scope",  //
                                       "visit_exit_type_alias_scope",   //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_newline_not_allowed_after_type_keyword,
+                    p.code(), diag_newline_not_allowed_after_type_keyword,
                     type_keyword, strlen(u8"export "), u8"type")));
   }
 }

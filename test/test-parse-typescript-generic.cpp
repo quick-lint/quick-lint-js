@@ -31,59 +31,52 @@ class test_parse_typescript_generic : public test_parse_expression {
 
 TEST_F(test_parse_typescript_generic, single_basic_generic_parameter) {
   {
-    padded_string code(u8"<T>"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // T
-    EXPECT_THAT(v.variable_declarations,
+    test_parser& p = this->make_parser(u8"<T>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));  // T
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(generic_param_decl(u8"T")));
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(test_parse_typescript_generic, multiple_basic_generic_parameter) {
   {
-    padded_string code(u8"<T1, T2, T3>"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // T1
+    test_parser& p = this->make_parser(u8"<T1, T2, T3>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // T1
                                       "visit_variable_declaration",    // T2
                                       "visit_variable_declaration"));  // T3
     EXPECT_THAT(
-        v.variable_declarations,
+        p.variable_declarations,
         ElementsAre(generic_param_decl(u8"T1"), generic_param_decl(u8"T2"),
                     generic_param_decl(u8"T3")));
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    padded_string code(u8"<T1, T2, T3,>"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // T1
+    test_parser& p =
+        this->make_parser(u8"<T1, T2, T3,>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // T1
                                       "visit_variable_declaration",    // T2
                                       "visit_variable_declaration"));  // T3
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
 TEST_F(test_parse_typescript_generic, parameters_require_commas_between) {
   {
-    padded_string code(u8"<T1 T2>"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // T1
+    test_parser& p = this->make_parser(u8"<T1 T2>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // T1
                                       "visit_variable_declaration"));  // T2
     EXPECT_THAT(
-        v.variable_declarations,
+        p.variable_declarations,
         ElementsAre(generic_param_decl(u8"T1"), generic_param_decl(u8"T2")));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_comma_between_generic_parameters,
+                    p.code(), diag_missing_comma_between_generic_parameters,
                     expected_comma, strlen(u8"<T1"), u8"")));
   }
 }
@@ -91,35 +84,31 @@ TEST_F(test_parse_typescript_generic, parameters_require_commas_between) {
 TEST_F(test_parse_typescript_generic,
        parameter_list_does_not_allow_leading_comma) {
   {
-    padded_string code(u8"<, T>"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // T
+    test_parser& p = this->make_parser(u8"<, T>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));  // T
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code, diag_comma_not_allowed_before_first_generic_parameter,
+            p.code(), diag_comma_not_allowed_before_first_generic_parameter,
             unexpected_comma, strlen(u8"<"), u8",")));
   }
 
   {
-    padded_string code(u8"<,,, T>"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // T
+    test_parser& p = this->make_parser(u8"<,,, T>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));  // T
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(
             DIAG_TYPE_OFFSETS(
-                &code, diag_comma_not_allowed_before_first_generic_parameter,
+                p.code(), diag_comma_not_allowed_before_first_generic_parameter,
                 unexpected_comma, strlen(u8"<"), u8","),
             DIAG_TYPE_OFFSETS(
-                &code, diag_comma_not_allowed_before_first_generic_parameter,
+                p.code(), diag_comma_not_allowed_before_first_generic_parameter,
                 unexpected_comma, strlen(u8"<,"), u8","),
             DIAG_TYPE_OFFSETS(
-                &code, diag_comma_not_allowed_before_first_generic_parameter,
+                p.code(), diag_comma_not_allowed_before_first_generic_parameter,
                 unexpected_comma, strlen(u8"<,,"), u8",")));
   }
 }
@@ -127,105 +116,94 @@ TEST_F(test_parse_typescript_generic,
 TEST_F(test_parse_typescript_generic,
        parameter_list_must_contain_at_least_one_parameter) {
   {
-    padded_string code(u8"<>"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, IsEmpty());
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"<>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, IsEmpty());
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_typescript_generic_parameter_list_is_empty,
+                    p.code(), diag_typescript_generic_parameter_list_is_empty,
                     expected_parameter, strlen(u8"<"), u8"")));
   }
 
   {
-    padded_string code(u8"<,>"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, IsEmpty());
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"<,>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, IsEmpty());
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_typescript_generic_parameter_list_is_empty,
+                    p.code(), diag_typescript_generic_parameter_list_is_empty,
                     expected_parameter, strlen(u8"<"), u8"")));
   }
 
   {
-    padded_string code(u8"<,,>"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, IsEmpty());
+    test_parser& p = this->make_parser(u8"<,,>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(
-        v.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-                        &code, diag_typescript_generic_parameter_list_is_empty,
-                        expected_parameter, strlen(u8"<"), u8""),
-                    DIAG_TYPE_OFFSETS(
-                        &code, diag_multiple_commas_in_generic_parameter_list,
-                        unexpected_comma, strlen(u8"<,"), u8",")));
+        p.errors,
+        ElementsAre(
+            DIAG_TYPE_OFFSETS(p.code(),
+                              diag_typescript_generic_parameter_list_is_empty,
+                              expected_parameter, strlen(u8"<"), u8""),
+            DIAG_TYPE_OFFSETS(p.code(),
+                              diag_multiple_commas_in_generic_parameter_list,
+                              unexpected_comma, strlen(u8"<,"), u8",")));
   }
 }
 
 TEST_F(test_parse_typescript_generic,
        parameter_list_does_not_allow_multiple_trailing_commas) {
   {
-    padded_string code(u8"<T,,>"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // T
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"<T,,>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));  // T
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_multiple_commas_in_generic_parameter_list,
+                    p.code(), diag_multiple_commas_in_generic_parameter_list,
                     unexpected_comma, strlen(u8"<T,"), u8",")));
   }
 
   {
-    padded_string code(u8"<T , , ,>"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration"));  // T
+    test_parser& p = this->make_parser(u8"<T , , ,>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration"));  // T
     EXPECT_THAT(
-        v.errors,
-        ElementsAre(DIAG_TYPE_OFFSETS(
-                        &code, diag_multiple_commas_in_generic_parameter_list,
-                        unexpected_comma, strlen(u8"<T , "), u8","),
-                    DIAG_TYPE_OFFSETS(
-                        &code, diag_multiple_commas_in_generic_parameter_list,
-                        unexpected_comma, strlen(u8"<T , , "), u8",")));
+        p.errors,
+        ElementsAre(
+            DIAG_TYPE_OFFSETS(p.code(),
+                              diag_multiple_commas_in_generic_parameter_list,
+                              unexpected_comma, strlen(u8"<T , "), u8","),
+            DIAG_TYPE_OFFSETS(p.code(),
+                              diag_multiple_commas_in_generic_parameter_list,
+                              unexpected_comma, strlen(u8"<T , , "), u8",")));
   }
 }
 
 TEST_F(test_parse_typescript_generic,
        parameter_list_does_not_allow_consecutive_interior_commas) {
   {
-    padded_string code(u8"<T,,U>"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // T
+    test_parser& p = this->make_parser(u8"<T,,U>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // T
                                       "visit_variable_declaration"));  // U
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_multiple_commas_in_generic_parameter_list,
+                    p.code(), diag_multiple_commas_in_generic_parameter_list,
                     unexpected_comma, strlen(u8"<T,"), u8",")));
   }
 }
 
 TEST_F(test_parse_typescript_generic, parameter_list_extends) {
   {
-    padded_string code(u8"<T extends U>"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_typescript_generic_parameters(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // T
+    test_parser& p =
+        this->make_parser(u8"<T extends U>"_sv, typescript_options);
+    p.parse_and_visit_typescript_generic_parameters();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // T
                                       "visit_variable_type_use"));   // U
-    EXPECT_THAT(v.variable_declarations,
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(generic_param_decl(u8"T")));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"U"));
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"U"));
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 

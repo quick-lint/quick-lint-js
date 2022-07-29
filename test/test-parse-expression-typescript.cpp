@@ -185,45 +185,42 @@ TEST_F(test_parse_expression_typescript, as_type_assertion) {
 TEST_F(test_parse_expression_typescript,
        as_type_assertion_is_not_allowed_in_function_parameter_list) {
   {
-    padded_string code(u8"(x as T) => {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p =
+        this->make_parser(u8"(x as T) => {}"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code,
+            p.code(),
             diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
             as_keyword, strlen(u8"(x "), u8"as")));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(u8"x")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(u8"x")));
   }
 
   {
-    padded_string code(u8"([x, y, z] as T) => {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p =
+        this->make_parser(u8"([x, y, z] as T) => {}"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE(
             diag_typescript_as_keyword_used_for_parameter_type_annotation)));
     EXPECT_THAT(
-        v.variable_declarations,
+        p.variable_declarations,
         ElementsAre(param_decl(u8"x"), param_decl(u8"y"), param_decl(u8"z")));
   }
 
   {
-    padded_string code(u8"function f(x as T) {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
+    test_parser& p =
+        this->make_parser(u8"function f(x as T) {}"_sv, typescript_options);
+    p.parse_and_visit_module();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
-            &code,
+            p.code(),
             diag_typescript_as_keyword_used_for_parameter_type_annotation,  //
             as_keyword, strlen(u8"function f(x "), u8"as")));
-    EXPECT_THAT(v.variable_declarations,
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(function_decl(u8"f"), param_decl(u8"x")));
   }
 }

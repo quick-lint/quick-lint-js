@@ -1217,16 +1217,14 @@ TEST_F(test_parse_expression_statement,
   }
 
   {
-    padded_string code(u8"!\nenum E {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p = this->make_parser(u8"!\nenum E {}"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope",       // }
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_operand_for_operator,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
                               where, 0, u8"!")));
   }
 }

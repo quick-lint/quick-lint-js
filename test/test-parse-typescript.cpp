@@ -101,11 +101,10 @@ TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
   }
 
   {
-    padded_string code(u8"type T = U type V = W;"_sv);
-    spy_visitor v;
-    parser p(&code, &v, typescript_options);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // T
+    test_parser& p =
+        this->make_parser(u8"type T = U type V = W;"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // T
                                       "visit_enter_type_alias_scope",  // T
                                       "visit_variable_type_use",       // U
                                       "visit_exit_type_alias_scope",   // T
@@ -114,8 +113,8 @@ TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
                                       "visit_variable_type_use",       // W
                                       "visit_exit_type_alias_scope",   // V
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code,
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(),
                               diag_missing_semicolon_after_statement,  //
                               where, strlen(u8"type T = U"), u8"")));
   }
