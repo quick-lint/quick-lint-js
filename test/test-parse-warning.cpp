@@ -51,35 +51,31 @@ TEST_F(test_parse_warning, condition_with_assignment_from_literal) {
                     assignment_operator, strlen(u8"if (o.prop "), u8"=")));
   }
 
-  for (string8_view code_view : {
+  for (string8_view code : {
            u8"while (x = 'hello') {}"_sv,
            u8"for (; x = 'hello'; ) {}"_sv,
            u8"do {} while (x = 'hello');"_sv,
        }) {
-    padded_string code(code_view);
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
+    SCOPED_TRACE(out_string8(code));
+    test_parser& p = this->make_parser(code);
+    p.parse_and_visit_statement();
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE(diag_assignment_makes_condition_constant)));
   }
 }
 
 TEST_F(test_parse_warning, non_condition_with_assignment_from_literal) {
-  for (string8_view code_view : {
+  for (string8_view code : {
            u8"with (x = 'hello') {}"_sv,
            u8"for (x = 'hello'; ; ) {}"_sv,
            u8"for (; ; x = 'hello') {}"_sv,
            u8"switch (x = 'hello') {}"_sv,
        }) {
-    padded_string code(code_view);
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, IsEmpty());
+    SCOPED_TRACE(out_string8(code));
+    test_parser& p = this->make_parser(code);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 

@@ -910,12 +910,11 @@ TEST_F(test_parse_function, function_with_invalid_parameters) {
            u8"x.prop"_sv,
            u8"html`<strong>hello</strong>`"_sv,
        }) {
-    padded_string code(u8"function f(" + string8(parameter_list) + u8") {}");
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v);
-    EXPECT_TRUE(p.parse_and_visit_statement(v));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_invalid_parameter)));
+    string8 code = u8"function f(" + string8(parameter_list) + u8") {}";
+    SCOPED_TRACE(out_string8(code));
+    test_parser& p = this->make_parser(code);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE(diag_invalid_parameter)));
   }
 
   {
