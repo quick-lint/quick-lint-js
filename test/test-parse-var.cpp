@@ -228,11 +228,9 @@ TEST_F(test_parse_var,
 
 TEST_F(test_parse_var, parse_valid_let) {
   {
-    spy_visitor v;
-    padded_string code(u8"let x\nclass C{}"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"let x\nclass C{}"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",    // x
                             "visit_enter_class_scope",       // {
                             "visit_enter_class_scope_body",  // C
@@ -240,41 +238,35 @@ TEST_F(test_parse_var, parse_valid_let) {
                             "visit_variable_declaration",    // C
                             "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x\nnew Array()"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"let x\nnew Array()"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",  // x
                             "visit_variable_use",          // Array
                             "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x\ntypeof Array"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"let x\ntypeof Array"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",  // x
                             "visit_variable_typeof_use",   // Array
                             "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x\nclass C{}\nx = new C();"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"let x\nclass C{}\nx = new C();"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",    // x
                             "visit_enter_class_scope",       // {
                             "visit_enter_class_scope_body",  // C
@@ -284,7 +276,7 @@ TEST_F(test_parse_var, parse_valid_let) {
                             "visit_variable_assignment",     // x
                             "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -375,41 +367,35 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let 42*69"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_EQ(v.variable_declarations.size(), 0);
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"let 42*69"_sv);
+    p.parse_and_visit_module();
+    EXPECT_EQ(p.variable_declarations.size(), 0);
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_unexpected_token_in_variable_declaration,  //
+                    p.code(), diag_unexpected_token_in_variable_declaration,  //
                     unexpected_token, strlen(u8"let "), u8"42")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x, `hello`;"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"let x, `hello`;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_unexpected_token_in_variable_declaration,  //
+                    p.code(), diag_unexpected_token_in_variable_declaration,  //
                     unexpected_token, strlen(u8"let x, "), u8"`hello`")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x, `hello${world}`;"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"let x, `hello${world}`;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",  // x
                             "visit_variable_use",          // world
                             "visit_end_of_module"));
     // TODO(strager): Improve the span.
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_unexpected_token_in_variable_declaration,  //
+                    p.code(), diag_unexpected_token_in_variable_declaration,  //
                     unexpected_token, strlen(u8"let x, "), u8"`hello${")));
   }
 
@@ -434,19 +420,17 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let true, true, y\nlet x;"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"let true, true, y\nlet x;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",          // y
                             "visit_variable_declaration",  // x
                             "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"y"));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"y"));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_unexpected_token_in_variable_declaration,  //
+                    p.code(), diag_unexpected_token_in_variable_declaration,  //
                     unexpected_token, strlen(u8"let "), u8"true")));
   }
 
@@ -469,65 +453,59 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"const = y, z = w, = x;"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // y
+    test_parser& p = this->make_parser(u8"const = y, z = w, = x;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // y
                                       "visit_variable_use",          // w
                                       "visit_variable_declaration",  // z
                                       "visit_variable_use",          // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 UnorderedElementsAre(
                     DIAG_TYPE_OFFSETS(
-                        &code, diag_missing_variable_name_in_declaration,  //
+                        p.code(), diag_missing_variable_name_in_declaration,  //
                         equal_token, strlen(u8"const "), u8"="),
                     DIAG_TYPE_OFFSETS(
-                        &code, diag_missing_variable_name_in_declaration,  //
+                        p.code(), diag_missing_variable_name_in_declaration,  //
                         equal_token, strlen(u8"const = y, z = w, "), u8"=")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x y = z w"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+    test_parser& p = this->make_parser(u8"let x y = z w"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_variable_use",          // z
                                       "visit_variable_declaration",  // y
                                       "visit_variable_declaration",  // z
                                       "visit_end_of_module"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(
-                &code, diag_missing_comma_between_variable_declarations,  //
+                p.code(), diag_missing_comma_between_variable_declarations,  //
                 expected_comma, strlen(u8"let x"), u8""),
             DIAG_TYPE_OFFSETS(
-                &code, diag_missing_comma_between_variable_declarations,  //
+                p.code(), diag_missing_comma_between_variable_declarations,  //
                 expected_comma, strlen(u8"let x y = z"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x [y]=ys {z}=zs"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+    test_parser& p = this->make_parser(u8"let x [y]=ys {z}=zs"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_variable_use",          // ys
                                       "visit_variable_declaration",  // y
                                       "visit_variable_use",          // zs
                                       "visit_variable_declaration",  // z
                                       "visit_end_of_module"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(
-                &code, diag_missing_comma_between_variable_declarations,  //
+                p.code(), diag_missing_comma_between_variable_declarations,  //
                 expected_comma, strlen(u8"let x"), u8""),
             DIAG_TYPE_OFFSETS(
-                &code, diag_missing_comma_between_variable_declarations,  //
+                p.code(), diag_missing_comma_between_variable_declarations,  //
                 expected_comma, strlen(u8"let x [y]=ys"), u8"")));
   }
 
@@ -606,11 +584,10 @@ TEST_F(test_parse_var, parse_invalid_let) {
 
 TEST_F(test_parse_var, parse_let_with_missing_equal) {
   {
-    spy_visitor v;
-    padded_string code(u8"async function f() {return 1;}\nlet x await f()"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+    test_parser& p = this->make_parser(
+        u8"async function f() {return 1;}\nlet x await f()"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
@@ -618,107 +595,93 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
                                       "visit_variable_declaration",       // x
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_equal_after_variable,  //
+                    p.code(), diag_missing_equal_after_variable,  //
                     expected_equal,
                     strlen(u8"async function f() {return 1;}\nlet x"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x class C{}"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"let x class C{}"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",       // {
                             "visit_enter_class_scope_body",  // C
                             "visit_exit_class_scope",        // }
                             "visit_variable_declaration",    // x
                             "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_equal_after_variable,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x function f() {}"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_named_function_scope",  // f
+    test_parser& p = this->make_parser(u8"let x function f() {}"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_named_function_scope",  // f
                                       "visit_enter_function_scope_body",   //
                                       "visit_exit_function_scope",         //
                                       "visit_variable_declaration",        // x
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_equal_after_variable,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x null"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+    test_parser& p = this->make_parser(u8"let x null"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_equal_after_variable,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x new Array()"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // Array
+    test_parser& p = this->make_parser(u8"let x new Array()"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // Array
                                       "visit_variable_declaration",  // x
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_equal_after_variable,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x this"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+    test_parser& p = this->make_parser(u8"let x this"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_equal_after_variable,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x typeof Array"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_typeof_use",   // Array
+    test_parser& p = this->make_parser(u8"let x typeof Array"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_typeof_use",   // Array
                                       "visit_variable_declaration",  // x
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_equal_after_variable,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(
+    test_parser& p = this->make_parser(
         u8"async function f() {return 1;}\nlet x await f(), y = x"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
@@ -728,19 +691,17 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
                                       "visit_variable_declaration",       // y
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_equal_after_variable,  //
+                    p.code(), diag_missing_equal_after_variable,  //
                     expected_equal,
                     strlen(u8"async function f() {return 1;}\nlet x"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x class C{}, y = x"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // {
+    test_parser& p = this->make_parser(u8"let x class C{}, y = x"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_enter_class_scope_body",  // C
                                       "visit_exit_class_scope",        // }
                                       "visit_variable_declaration",    // x
@@ -748,17 +709,15 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
                                       "visit_variable_declaration",    // y
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_equal_after_variable,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x function f() {}, y = x"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_named_function_scope",  // f
+    test_parser& p = this->make_parser(u8"let x function f() {}, y = x"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_named_function_scope",  // f
                                       "visit_enter_function_scope_body",   //
                                       "visit_exit_function_scope",         //
                                       "visit_variable_declaration",        // x
@@ -766,70 +725,62 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
                                       "visit_variable_declaration",        // y
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_equal_after_variable,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x null, y = x"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+    test_parser& p = this->make_parser(u8"let x null, y = x"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_variable_use",          // x
                                       "visit_variable_declaration",  // y
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_equal_after_variable,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x new Array(), y = x;"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // Array
+    test_parser& p = this->make_parser(u8"let x new Array(), y = x;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // Array
                                       "visit_variable_declaration",  // x
                                       "visit_variable_use",          // x
                                       "visit_variable_declaration",  // y
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_equal_after_variable,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x this, y = x"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+    test_parser& p = this->make_parser(u8"let x this, y = x"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_variable_use",          // x
                                       "visit_variable_declaration",  // y
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_equal_after_variable,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"let x typeof Array, y = x;"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_typeof_use",   // Array
+    test_parser& p = this->make_parser(u8"let x typeof Array, y = x;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_typeof_use",   // Array
                                       "visit_variable_declaration",  // x
                                       "visit_variable_use",          // x
                                       "visit_variable_declaration",  // y
                                       "visit_end_of_module"));
 
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_equal_after_variable,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_equal_after_variable,  //
                               expected_equal, strlen(u8"let x"), u8"")));
   }
 }

@@ -708,12 +708,10 @@ TEST_F(test_parse_module, export_class_requires_a_name) {
 }
 
 TEST_F(test_parse_module, parse_empty_module) {
-  spy_visitor v;
-  padded_string code(u8""_sv);
-  parser p(&code, &v);
-  p.parse_and_visit_module(v);
-  EXPECT_THAT(v.errors, IsEmpty());
-  EXPECT_THAT(v.visits, ElementsAre("visit_end_of_module"));
+  test_parser& p = this->make_parser(u8""_sv);
+  p.parse_and_visit_module();
+  EXPECT_THAT(p.errors, IsEmpty());
+  EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
 }
 
 TEST_F(test_parse_module, imported_variables_can_be_named_contextual_keywords) {

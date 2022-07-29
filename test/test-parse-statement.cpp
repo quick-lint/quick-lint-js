@@ -581,14 +581,12 @@ TEST_F(test_parse_statement, if_without_body) {
   }
 
   {
-    spy_visitor v;
-    padded_string code(u8"if (a)"_sv);
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // a
+    test_parser& p = this->make_parser(u8"if (a)"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // a
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_body_for_if_statement,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_body_for_if_statement,  //
                               expected_body, strlen(u8"if (a)"), u8"")));
   }
 }
