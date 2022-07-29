@@ -70,12 +70,16 @@ inline constexpr parser_options typescript_jsx_options = [] {
 struct fail_test_on_diag_tag {};
 constexpr fail_test_on_diag_tag fail_test_on_diag;
 
+struct capture_diags_tag {};
+constexpr capture_diags_tag capture_diags;
+
 class test_parser {
  public:
-  explicit test_parser(string8_view input)
-      : test_parser(input, parser_options()) {}
+  explicit test_parser(string8_view input, capture_diags_tag)
+      : test_parser(input, parser_options(), capture_diags) {}
 
-  explicit test_parser(string8_view input, const parser_options& options)
+  explicit test_parser(string8_view input, const parser_options& options,
+                       capture_diags_tag)
       : code_(input), parser_(&this->code_, &this->errors_, options) {}
 
   // Fails the test if there are any diagnostics during parsing.

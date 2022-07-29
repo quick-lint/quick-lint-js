@@ -48,7 +48,7 @@ TEST_F(test_parse, statement_starting_with_invalid_token) {
        }) {
     string8 code = string8(token) + u8" x";
     SCOPED_TRACE(out_string8(code));
-    test_parser p(code);
+    test_parser p(code, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_unexpected_token,  //
@@ -61,7 +61,8 @@ TEST_F(test_parse, statement_starting_with_invalid_token) {
 TEST_F(test_parse, comma_not_allowed_between_class_methods) {
   {
     test_parser p(
-        u8"class f { constructor() { this._a = false; }, ontext(text) { if (this._a) { process.stdout.write(text);}}}"_sv);
+        u8"class f { constructor() { this._a = false; }, ontext(text) { if (this._a) { process.stdout.write(text);}}}"_sv,
+        capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -91,7 +92,8 @@ TEST_F(test_parse, comma_not_allowed_between_class_methods) {
 TEST_F(test_parse, commas_not_allowed_between_class_methods) {
   {
     test_parser p(
-        u8"class f { ,,, constructor() { this._a = false; },,, ontext(text) { if (this._a) { process.stdout.write(text);}},,,}"_sv);
+        u8"class f { ,,, constructor() { this._a = false; },,, ontext(text) { if (this._a) { process.stdout.write(text);}},,,}"_sv,
+        capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -148,7 +150,8 @@ TEST_F(test_parse, commas_not_allowed_between_class_methods) {
 TEST_F(test_parse, asi_for_statement_at_right_curly) {
   {
     test_parser p(
-        u8"function f() { console.log(\"hello\") } function g() { }"_sv);
+        u8"function f() { console.log(\"hello\") } function g() { }"_sv,
+        capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -159,7 +162,8 @@ TEST_F(test_parse, asi_for_statement_at_right_curly) {
 
 TEST_F(test_parse, asi_for_statement_at_newline) {
   {
-    test_parser p(u8"console.log('hello')\nconsole.log('world')\n"_sv);
+    test_parser p(u8"console.log('hello')\nconsole.log('world')\n"_sv,
+                  capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -188,7 +192,8 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
 
   {
     // This code should emit an error, but also use ASI for error recovery.
-    test_parser p(u8"console.log('hello') console.log('world');"_sv);
+    test_parser p(u8"console.log('hello') console.log('world');"_sv,
+                  capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"console", u8"console"));
@@ -203,7 +208,7 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
   for (string8 variable_kind : {u8"const", u8"let", u8"var"}) {
     string8 code = variable_kind + u8" a = 1\n" + variable_kind + u8" b = 2\n";
     SCOPED_TRACE(out_string8(code));
-    test_parser p(code);
+    test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -213,7 +218,7 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
   }
 
   {
-    test_parser p(u8"let a = 1\n!b\n"_sv);
+    test_parser p(u8"let a = 1\n!b\n"_sv, capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -223,7 +228,7 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
   }
 
   {
-    test_parser p(u8"a + b\nimport {x} from 'module'\n"_sv);
+    test_parser p(u8"a + b\nimport {x} from 'module'\n"_sv, capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, IsEmpty());
@@ -236,19 +241,19 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
 
 TEST_F(test_parse, asi_between_expression_statements) {
   {
-    test_parser p(u8"false\nfalse"_sv);
+    test_parser p(u8"false\nfalse"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser p(u8"true\ntrue"_sv);
+    test_parser p(u8"true\ntrue"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    test_parser p(u8"true\nvoid x;"_sv);
+    test_parser p(u8"true\nvoid x;"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors, IsEmpty());
   }
@@ -296,7 +301,7 @@ TEST_F(test_parse, asi_between_expression_statements) {
   }
 
   {
-    test_parser p(u8"one\n#two\nthree"_sv);
+    test_parser p(u8"one\n#two\nthree"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_uses, ElementsAre(u8"one", u8"three"));
     EXPECT_THAT(p.errors,
@@ -359,7 +364,7 @@ TEST_F(test_parse, asi_for_statement_at_end_of_file) {
 
 TEST_F(test_parse, utter_garbage) {
   {
-    test_parser p(u8"if :\nkjaslkjd;kjaslkjd"_sv);
+    test_parser p(u8"if :\nkjaslkjd;kjaslkjd"_sv, capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // kjaslkjd
@@ -377,7 +382,7 @@ TEST_F(test_parse, utter_garbage) {
 
 TEST_F(test_parse, statement_starting_with_extends) {
   {
-    test_parser p(u8"extends Base"_sv);
+    test_parser p(u8"extends Base"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // Base
                                       "visit_end_of_module"));
@@ -389,7 +394,7 @@ TEST_F(test_parse, statement_starting_with_extends) {
 
 TEST_F(test_parse, stray_right_curly_at_top_level) {
   {
-    test_parser p(u8"}"_sv);
+    test_parser p(u8"}"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -408,7 +413,7 @@ TEST_F(
     {
       string8 code = escaped_keyword;
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_keyword_variable_use",  //
                                         "visit_end_of_module"));
@@ -423,7 +428,7 @@ TEST_F(
     {
       string8 code = u8"(" + escaped_keyword + u8")";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_keyword_variable_use",  //
                                         "visit_end_of_module"));
@@ -441,7 +446,7 @@ TEST_F(
     test_parse,
     reserved_keywords_with_escape_sequences_are_treated_as_identifiers_in_variable_declarations) {
   {
-    test_parser p(u8"const \\u{69}f = 42;"_sv);
+    test_parser p(u8"const \\u{69}f = 42;"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -451,7 +456,7 @@ TEST_F(
   }
 
   {
-    test_parser p(u8"let \\u{69}f;"_sv);
+    test_parser p(u8"let \\u{69}f;"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -461,7 +466,7 @@ TEST_F(
   }
 
   {
-    test_parser p(u8"var \\u{69}f;"_sv);
+    test_parser p(u8"var \\u{69}f;"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -471,7 +476,7 @@ TEST_F(
   }
 
   {
-    test_parser p(u8"function g(\\u{69}f) {}"_sv);
+    test_parser p(u8"function g(\\u{69}f) {}"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -486,7 +491,7 @@ TEST_F(
   }
 
   {
-    test_parser p(u8"((\\u{69}f) => {})()"_sv);
+    test_parser p(u8"((\\u{69}f) => {})()"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -508,7 +513,7 @@ TEST_F(test_parse,
     {
       string8 code = escaped_keyword;
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  //
                                         "visit_end_of_module"));
@@ -519,7 +524,7 @@ TEST_F(test_parse,
     {
       string8 code = u8"({ " + escaped_keyword + u8" })";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  //
                                         "visit_end_of_module"));
@@ -530,7 +535,7 @@ TEST_F(test_parse,
     {
       string8 code = u8"({ " + escaped_keyword + u8"() {} })";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                         "visit_enter_function_scope_body",  //
@@ -542,7 +547,7 @@ TEST_F(test_parse,
     {
       string8 code = u8"({ " + escaped_keyword + u8": null })";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
       EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
@@ -551,7 +556,7 @@ TEST_F(test_parse,
     {
       string8 code = u8"var " + escaped_keyword + u8" = null;";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  //
                                         "visit_end_of_module"));
@@ -562,7 +567,7 @@ TEST_F(test_parse,
     {
       string8 code = u8"var { " + escaped_keyword + u8" = a } = b;";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // a
                                         "visit_variable_use",          // b
@@ -575,7 +580,7 @@ TEST_F(test_parse,
     {
       string8 code = u8"class C { " + escaped_keyword + u8"() {} }";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",          //
                                         "visit_enter_class_scope_body",     //

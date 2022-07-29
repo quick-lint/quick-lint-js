@@ -150,7 +150,7 @@ TEST_F(test_parse_module, export_default_of_variable_is_illegal) {
   for (string8 declaration_kind : {u8"const", u8"let", u8"var"}) {
     string8 code = u8"export default " + declaration_kind + u8" x = y;";
     SCOPED_TRACE(out_string8(code));
-    test_parser p(code);
+    test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // y
                                       "visit_variable_declaration"));  // x
@@ -163,7 +163,7 @@ TEST_F(test_parse_module, export_default_of_variable_is_illegal) {
 
 TEST_F(test_parse_module, export_sometimes_requires_semicolon) {
   {
-    test_parser p(u8"export {x} console.log();"_sv);
+    test_parser p(u8"export {x} console.log();"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_export_use",  // x
                                       "visit_variable_use",         // console
@@ -175,7 +175,7 @@ TEST_F(test_parse_module, export_sometimes_requires_semicolon) {
   }
 
   {
-    test_parser p(u8"export * from 'other' console.log();"_sv);
+    test_parser p(u8"export * from 'other' console.log();"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // console
                                       "visit_end_of_module"));
@@ -186,7 +186,7 @@ TEST_F(test_parse_module, export_sometimes_requires_semicolon) {
   }
 
   {
-    test_parser p(u8"export default x+y console.log();"_sv);
+    test_parser p(u8"export default x+y console.log();"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_variable_use",  // y
@@ -199,7 +199,8 @@ TEST_F(test_parse_module, export_sometimes_requires_semicolon) {
   }
 
   {
-    test_parser p(u8"export default async () => {} console.log();"_sv);
+    test_parser p(u8"export default async () => {} console.log();"_sv,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
@@ -215,7 +216,8 @@ TEST_F(test_parse_module, export_sometimes_requires_semicolon) {
 
 TEST_F(test_parse_module, export_sometimes_does_not_require_semicolon) {
   {
-    test_parser p(u8"export default async function f() {} console.log();"_sv);
+    test_parser p(u8"export default async function f() {} console.log();"_sv,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       //
@@ -227,7 +229,8 @@ TEST_F(test_parse_module, export_sometimes_does_not_require_semicolon) {
   }
 
   {
-    test_parser p(u8"export default function() {} console.log();"_sv);
+    test_parser p(u8"export default function() {} console.log();"_sv,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
@@ -265,7 +268,7 @@ TEST_F(test_parse_module, export_list) {
 TEST_F(test_parse_module,
        exporting_by_string_name_is_only_allowed_for_export_from) {
   {
-    test_parser p(u8"export {'name'};"_sv);
+    test_parser p(u8"export {'name'};"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.errors,
@@ -281,7 +284,7 @@ TEST_F(test_parse_module,
   for (string8 keyword : strict_reserved_keywords) {
     string8 code = u8"export {" + keyword + u8"};";
     SCOPED_TRACE(out_string8(code));
-    test_parser p(code);
+    test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty());
@@ -294,7 +297,7 @@ TEST_F(test_parse_module,
   for (string8 keyword : strict_reserved_keywords) {
     string8 code = u8"export {" + keyword + u8" as thing};";
     SCOPED_TRACE(out_string8(code));
-    test_parser p(code);
+    test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, IsEmpty());
     EXPECT_THAT(p.variable_uses, IsEmpty());
@@ -312,7 +315,7 @@ TEST_F(test_parse_module,
     {
       string8 code = u8"export {" + exported_variable + u8"};";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, IsEmpty());
       EXPECT_THAT(
@@ -325,7 +328,7 @@ TEST_F(test_parse_module,
     {
       string8 code = u8"export {" + exported_variable + u8" as thing};";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_uses, IsEmpty());
       EXPECT_THAT(
@@ -426,7 +429,7 @@ TEST_F(test_parse_module, export_from) {
 
 TEST_F(test_parse_module, invalid_export_expression) {
   {
-    test_parser p(u8"export stuff;"_sv);
+    test_parser p(u8"export stuff;"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_exporting_requires_curlies,  //
@@ -435,7 +438,7 @@ TEST_F(test_parse_module, invalid_export_expression) {
   }
 
   {
-    test_parser p(u8"export a, b, c;"_sv);
+    test_parser p(u8"export a, b, c;"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -449,7 +452,7 @@ TEST_F(test_parse_module, invalid_export_expression) {
   }
 
   {
-    test_parser p(u8"export a, b, c+d;"_sv);
+    test_parser p(u8"export a, b, c+d;"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 // TODO(strager): Should we report
@@ -464,7 +467,7 @@ TEST_F(test_parse_module, invalid_export_expression) {
   }
 
   {
-    test_parser p(u8"export 2 + x;"_sv);
+    test_parser p(u8"export 2 + x;"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_exporting_requires_default,  //
@@ -475,7 +478,7 @@ TEST_F(test_parse_module, invalid_export_expression) {
 
 TEST_F(test_parse_module, invalid_export) {
   {
-    test_parser p(u8"export ;"_sv);
+    test_parser p(u8"export ;"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_missing_token_after_export,  //
@@ -484,7 +487,7 @@ TEST_F(test_parse_module, invalid_export) {
   }
 
   {
-    test_parser p(u8"export "_sv);
+    test_parser p(u8"export "_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_missing_token_after_export,  //
@@ -493,7 +496,7 @@ TEST_F(test_parse_module, invalid_export) {
   }
 
   {
-    test_parser p(u8"export = x"_sv);
+    test_parser p(u8"export = x"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_unexpected_token_after_export,  //
@@ -523,7 +526,8 @@ TEST_F(test_parse_module, parse_and_visit_import) {
   }
 
   {
-    test_parser p(u8"import fs from 'fs'; import net from 'net';"_sv);
+    test_parser p(u8"import fs from 'fs'; import net from 'net';"_sv,
+                  capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
@@ -577,7 +581,7 @@ TEST_F(test_parse_module, parse_and_visit_import) {
 
 TEST_F(test_parse_module, import_star_without_as_keyword) {
   {
-    test_parser p(u8"import * myExport from 'other';"_sv);
+    test_parser p(u8"import * myExport from 'other';"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -594,7 +598,7 @@ TEST_F(test_parse_module, import_star_without_as_keyword) {
 
 TEST_F(test_parse_module, import_without_from_keyword) {
   {
-    test_parser p(u8"import { x } 'other';"_sv);
+    test_parser p(u8"import { x } 'other';"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -604,7 +608,7 @@ TEST_F(test_parse_module, import_without_from_keyword) {
   }
 
   {
-    test_parser p(u8"import { x } ;"_sv);
+    test_parser p(u8"import { x } ;"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -616,7 +620,8 @@ TEST_F(test_parse_module, import_without_from_keyword) {
 
 TEST_F(test_parse_module, import_as_invalid_token) {
   {
-    test_parser p(u8"import {myExport as 'string'} from 'module';"_sv);
+    test_parser p(u8"import {myExport as 'string'} from 'module';"_sv,
+                  capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -626,7 +631,8 @@ TEST_F(test_parse_module, import_as_invalid_token) {
   }
 
   {
-    test_parser p(u8"import {'myExport' as 'string'} from 'module';"_sv);
+    test_parser p(u8"import {'myExport' as 'string'} from 'module';"_sv,
+                  capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -653,7 +659,7 @@ TEST_F(test_parse_module, export_function) {
 
 TEST_F(test_parse_module, export_function_requires_a_name) {
   {
-    test_parser p(u8"export function() {}"_sv);
+    test_parser p(u8"export function() {}"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
@@ -665,7 +671,7 @@ TEST_F(test_parse_module, export_function_requires_a_name) {
   }
 
   {
-    test_parser p(u8"export async function() {}"_sv);
+    test_parser p(u8"export async function() {}"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
@@ -688,7 +694,7 @@ TEST_F(test_parse_module, export_class) {
 
 TEST_F(test_parse_module, export_class_requires_a_name) {
   {
-    test_parser p(u8"export class {}"_sv);
+    test_parser p(u8"export class {}"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       //
                                       "visit_enter_class_scope_body",  //
@@ -700,7 +706,7 @@ TEST_F(test_parse_module, export_class_requires_a_name) {
 }
 
 TEST_F(test_parse_module, parse_empty_module) {
-  test_parser p(u8""_sv);
+  test_parser p(u8""_sv, capture_diags);
   p.parse_and_visit_module();
   EXPECT_THAT(p.errors, IsEmpty());
   EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
@@ -754,7 +760,8 @@ TEST_F(test_parse_module, imported_variables_can_be_named_contextual_keywords) {
 
 TEST_F(test_parse_module, imported_modules_must_be_quoted) {
   for (string8 import_name : {u8"module", u8"not_a_keyword"}) {
-    test_parser p(u8"import { test } from " + import_name + u8";");
+    test_parser p(u8"import { test } from " + import_name + u8";",
+                  capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_cannot_import_from_unquoted_module,
@@ -769,7 +776,7 @@ TEST_F(test_parse_module,
     {
       string8 code = u8"import { " + name + u8" } from 'other';";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
@@ -783,7 +790,7 @@ TEST_F(test_parse_module,
       string8 code =
           u8"import { someFunction as " + name + u8" } from 'other';";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
@@ -798,7 +805,7 @@ TEST_F(test_parse_module,
       string8 code =
           u8"import { 'someFunction' as " + name + u8" } from 'other';";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(name)));
       EXPECT_THAT(
@@ -811,7 +818,7 @@ TEST_F(test_parse_module,
     {
       string8 code = u8"import " + name + u8" from 'other';";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
@@ -824,7 +831,7 @@ TEST_F(test_parse_module,
     {
       string8 code = u8"import * as " + name + u8" from 'other';";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_declaration"));  // (name)
@@ -843,7 +850,7 @@ TEST_F(test_parse_module,
     {
       string8 code = u8"import { " + imported_variable + u8" } from 'other';";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(keyword)));
       EXPECT_THAT(
@@ -857,7 +864,7 @@ TEST_F(test_parse_module,
       string8 code = u8"import { someFunction as " + imported_variable +
                      u8" } from 'other';";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(keyword)));
       EXPECT_THAT(
@@ -872,7 +879,7 @@ TEST_F(test_parse_module,
       string8 code = u8"import { 'someFunction' as " + imported_variable +
                      u8" } from 'other';";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(keyword)));
       EXPECT_THAT(
@@ -886,7 +893,7 @@ TEST_F(test_parse_module,
     {
       string8 code = u8"import " + imported_variable + u8" from 'other';";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(keyword)));
       EXPECT_THAT(
@@ -899,7 +906,7 @@ TEST_F(test_parse_module,
     {
       string8 code = u8"import * as " + imported_variable + u8" from 'other';";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(keyword)));
       EXPECT_THAT(
@@ -984,7 +991,7 @@ TEST_F(
 
 TEST_F(test_parse_module, import_requires_semicolon_or_newline) {
   {
-    test_parser p(u8"import fs from 'fs' nextStatement"_sv);
+    test_parser p(u8"import fs from 'fs' nextStatement"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // fs
                                       "visit_variable_use",  // nextStatement

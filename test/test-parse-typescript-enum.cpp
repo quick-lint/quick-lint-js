@@ -28,7 +28,7 @@ class test_parse_typescript_enum : public test_parse_expression {};
 
 TEST_F(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
   {
-    test_parser p(u8"enum E {}\nlet x = y;"_sv);
+    test_parser p(u8"enum E {}\nlet x = y;"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
@@ -44,7 +44,7 @@ TEST_F(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
   }
 
   {
-    test_parser p(u8"const enum E {}"_sv);
+    test_parser p(u8"const enum E {}"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
@@ -58,7 +58,7 @@ TEST_F(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
   }
 
   {
-    test_parser p(u8"declare enum E {}"_sv);
+    test_parser p(u8"declare enum E {}"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
@@ -72,7 +72,7 @@ TEST_F(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
   }
 
   {
-    test_parser p(u8"declare const enum E {}"_sv);
+    test_parser p(u8"declare const enum E {}"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
@@ -258,7 +258,8 @@ TEST_F(test_parse_typescript_enum,
 
 TEST_F(test_parse_typescript_enum, enum_members_can_be_named_number_literals) {
   {
-    test_parser p(u8"enum E { 42 = init, }"_sv, typescript_options);
+    test_parser p(u8"enum E { 42 = init, }"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
@@ -273,7 +274,8 @@ TEST_F(test_parse_typescript_enum, enum_members_can_be_named_number_literals) {
   }
 
   {
-    test_parser p(u8"enum E { 42n = init, }"_sv, typescript_options);
+    test_parser p(u8"enum E { 42n = init, }"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -284,7 +286,8 @@ TEST_F(test_parse_typescript_enum, enum_members_can_be_named_number_literals) {
 
   // TODO(#758)
   if ((false)) {
-    test_parser p(u8"enum E { [42] = init, }"_sv, typescript_options);
+    test_parser p(u8"enum E { [42] = init, }"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -298,7 +301,7 @@ TEST_F(test_parse_typescript_enum,
        enum_members_cannot_be_named_complex_expressions) {
   {
     test_parser p(u8"enum E { [ 'mem' + 'ber' ] = init, }"_sv,
-                  typescript_options);
+                  typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -308,7 +311,8 @@ TEST_F(test_parse_typescript_enum,
   }
 
   {
-    test_parser p(u8"enum E { [('member')] = init, }"_sv, typescript_options);
+    test_parser p(u8"enum E { [('member')] = init, }"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -319,7 +323,7 @@ TEST_F(test_parse_typescript_enum,
 
   {
     test_parser p(u8"enum E { [`template${withVariable}`] = init, }"_sv,
-                  typescript_options);
+                  typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -332,7 +336,7 @@ TEST_F(test_parse_typescript_enum,
 
 TEST_F(test_parse_typescript_enum, extra_commas_are_not_allowed) {
   {
-    test_parser p(u8"enum E { , }"_sv, typescript_options);
+    test_parser p(u8"enum E { , }"_sv, typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -342,7 +346,7 @@ TEST_F(test_parse_typescript_enum, extra_commas_are_not_allowed) {
   }
 
   {
-    test_parser p(u8"enum E { A,, B,, }"_sv, typescript_options);
+    test_parser p(u8"enum E { A,, B,, }"_sv, typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -472,7 +476,8 @@ TEST_F(test_parse_typescript_enum,
 
 TEST_F(test_parse_typescript_enum, normal_enum_auto_requires_constant_value) {
   {
-    test_parser p(u8"enum E { A = f(), B, }"_sv, typescript_options);
+    test_parser p(u8"enum E { A = f(), B, }"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -484,7 +489,8 @@ TEST_F(test_parse_typescript_enum, normal_enum_auto_requires_constant_value) {
   }
 
   {
-    test_parser p(u8"enum E { A, B = f(), C, D, E, }"_sv, typescript_options);
+    test_parser p(u8"enum E { A, B = f(), C, D, E, }"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -493,7 +499,8 @@ TEST_F(test_parse_typescript_enum, normal_enum_auto_requires_constant_value) {
   }
 
   {
-    test_parser p(u8"enum E { ['A'] = f(), ['B'], }"_sv, typescript_options);
+    test_parser p(u8"enum E { ['A'] = f(), ['B'], }"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -505,7 +512,8 @@ TEST_F(test_parse_typescript_enum, normal_enum_auto_requires_constant_value) {
   }
 
   {
-    test_parser p(u8"enum E { 42 = f(), 69, }"_sv, typescript_options);
+    test_parser p(u8"enum E { 42 = f(), 69, }"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,

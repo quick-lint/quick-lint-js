@@ -61,7 +61,7 @@ TEST_F(test_parse_var, parse_simple_let) {
   }
 
   {
-    test_parser p(u8"let first; let second"_sv);
+    test_parser p(u8"let first; let second"_sv, capture_diags);
     p.parse_and_visit_statement();
     ASSERT_EQ(p.variable_declarations.size(), 1);
     EXPECT_EQ(p.variable_declarations[0].name, u8"first");
@@ -74,21 +74,21 @@ TEST_F(test_parse_var, parse_simple_let) {
 }
 
 TEST_F(test_parse_var, parse_simple_var) {
-  test_parser p(u8"var x"_sv);
+  test_parser p(u8"var x"_sv, capture_diags);
   p.parse_and_visit_statement();
   EXPECT_THAT(p.variable_declarations, ElementsAre(var_noinit_decl(u8"x")));
   EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(test_parse_var, parse_simple_const) {
-  test_parser p(u8"const x = null"_sv);
+  test_parser p(u8"const x = null"_sv, capture_diags);
   p.parse_and_visit_statement();
   EXPECT_THAT(p.variable_declarations, ElementsAre(const_init_decl(u8"x")));
   EXPECT_THAT(p.errors, IsEmpty());
 }
 
 TEST_F(test_parse_var, parse_const_with_no_initializers) {
-  test_parser p(u8"const x;"_sv);
+  test_parser p(u8"const x;"_sv, capture_diags);
   p.parse_and_visit_statement();
   ASSERT_EQ(p.variable_declarations.size(), 1);
   EXPECT_THAT(p.variable_declarations, ElementsAre(const_noinit_decl(u8"x")));
@@ -215,7 +215,7 @@ TEST_F(test_parse_var,
        variables_used_in_let_initializer_are_used_before_variable_declaration) {
   using namespace std::literals::string_view_literals;
 
-  test_parser p(u8"let x = x"_sv);
+  test_parser p(u8"let x = x"_sv, capture_diags);
   p.parse_and_visit_statement();
   EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  //
                                     "visit_variable_declaration"));
@@ -228,7 +228,7 @@ TEST_F(test_parse_var,
 
 TEST_F(test_parse_var, parse_valid_let) {
   {
-    test_parser p(u8"let x\nclass C{}"_sv);
+    test_parser p(u8"let x\nclass C{}"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",    // x
@@ -242,7 +242,7 @@ TEST_F(test_parse_var, parse_valid_let) {
   }
 
   {
-    test_parser p(u8"let x\nnew Array()"_sv);
+    test_parser p(u8"let x\nnew Array()"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",  // x
@@ -253,7 +253,7 @@ TEST_F(test_parse_var, parse_valid_let) {
   }
 
   {
-    test_parser p(u8"let x\ntypeof Array"_sv);
+    test_parser p(u8"let x\ntypeof Array"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",  // x
@@ -264,7 +264,7 @@ TEST_F(test_parse_var, parse_valid_let) {
   }
 
   {
-    test_parser p(u8"let x\nclass C{}\nx = new C();"_sv);
+    test_parser p(u8"let x\nclass C{}\nx = new C();"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",    // x
@@ -282,7 +282,7 @@ TEST_F(test_parse_var, parse_valid_let) {
 
 TEST_F(test_parse_var, parse_invalid_let) {
   {
-    test_parser p(u8"let a,"_sv);
+    test_parser p(u8"let a,"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_EQ(p.variable_declarations.size(), 1);
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -291,7 +291,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    test_parser p(u8"let a,;"_sv);
+    test_parser p(u8"let a,;"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_EQ(p.variable_declarations.size(), 1);
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -300,7 +300,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    test_parser p(u8"let x, 42"_sv);
+    test_parser p(u8"let x, 42"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_EQ(p.variable_declarations.size(), 1);
     EXPECT_THAT(p.errors,
@@ -314,7 +314,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
     {
       string8 code = u8"var " + keyword;
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, IsEmpty());
       EXPECT_THAT(
@@ -327,7 +327,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
     {
       string8 code = u8"var " + keyword + u8";";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, IsEmpty());
       EXPECT_THAT(
@@ -340,7 +340,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
     {
       string8 code = u8"var " + keyword + u8" = x;";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.variable_declarations, IsEmpty());
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // x
@@ -353,7 +353,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    test_parser p(u8"let while (x) { break; }"_sv);
+    test_parser p(u8"let while (x) { break; }"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.variable_declarations, IsEmpty());
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // x
@@ -367,7 +367,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    test_parser p(u8"let 42*69"_sv);
+    test_parser p(u8"let 42*69"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_EQ(p.variable_declarations.size(), 0);
     EXPECT_THAT(p.errors,
@@ -377,7 +377,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    test_parser p(u8"let x, `hello`;"_sv);
+    test_parser p(u8"let x, `hello`;"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -386,7 +386,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    test_parser p(u8"let x, `hello${world}`;"_sv);
+    test_parser p(u8"let x, `hello${world}`;"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",  // x
@@ -400,7 +400,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    test_parser p(u8"let {debugger}"_sv);
+    test_parser p(u8"let {debugger}"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_EQ(p.variable_declarations.size(), 0);
     EXPECT_THAT(p.errors,
@@ -410,7 +410,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    test_parser p(u8"let {42}"_sv);
+    test_parser p(u8"let {42}"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_EQ(p.variable_declarations.size(), 0);
     EXPECT_THAT(p.errors,
@@ -420,7 +420,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    test_parser p(u8"let true, true, y\nlet x;"_sv);
+    test_parser p(u8"let true, true, y\nlet x;"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",          // y
@@ -437,7 +437,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   for (string8 prefix_operator : {u8"--", u8"++"}) {
     string8 code = u8"var " + prefix_operator + u8"x;";
     SCOPED_TRACE(out_string8(code));
-    test_parser p(code);
+    test_parser p(code, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // x
                                       "visit_variable_assignment",  // x
@@ -452,7 +452,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    test_parser p(u8"const = y, z = w, = x;"_sv);
+    test_parser p(u8"const = y, z = w, = x;"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // y
                                       "visit_variable_use",          // w
@@ -470,7 +470,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    test_parser p(u8"let x y = z w"_sv);
+    test_parser p(u8"let x y = z w"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_variable_use",          // z
@@ -489,7 +489,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    test_parser p(u8"let x [y]=ys {z}=zs"_sv);
+    test_parser p(u8"let x [y]=ys {z}=zs"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_variable_use",          // ys
@@ -525,7 +525,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
     {
       string8 code = u8"let x " + compound_assignment_operator + u8" y, z";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use",          // y
@@ -547,7 +547,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
       string8 code =
           u8"const [x, y] " + compound_assignment_operator + u8" init;";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_module();
       EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use",          // init
@@ -567,7 +567,7 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    test_parser p(u8"let [42] = x;"_sv);
+    test_parser p(u8"let [42] = x;"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_EQ(p.variable_declarations.size(), 0);
     // TODO(strager): Report a better message. We should say 'let statement',
@@ -581,7 +581,8 @@ TEST_F(test_parse_var, parse_invalid_let) {
 
 TEST_F(test_parse_var, parse_let_with_missing_equal) {
   {
-    test_parser p(u8"async function f() {return 1;}\nlet x await f()"_sv);
+    test_parser p(u8"async function f() {return 1;}\nlet x await f()"_sv,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       //
@@ -599,7 +600,7 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
   }
 
   {
-    test_parser p(u8"let x class C{}"_sv);
+    test_parser p(u8"let x class C{}"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",       // {
@@ -614,7 +615,7 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
   }
 
   {
-    test_parser p(u8"let x function f() {}"_sv);
+    test_parser p(u8"let x function f() {}"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_named_function_scope",  // f
                                       "visit_enter_function_scope_body",   //
@@ -628,7 +629,7 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
   }
 
   {
-    test_parser p(u8"let x null"_sv);
+    test_parser p(u8"let x null"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_end_of_module"));
@@ -639,7 +640,7 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
   }
 
   {
-    test_parser p(u8"let x new Array()"_sv);
+    test_parser p(u8"let x new Array()"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // Array
                                       "visit_variable_declaration",  // x
@@ -651,7 +652,7 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
   }
 
   {
-    test_parser p(u8"let x this"_sv);
+    test_parser p(u8"let x this"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_end_of_module"));
@@ -662,7 +663,7 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
   }
 
   {
-    test_parser p(u8"let x typeof Array"_sv);
+    test_parser p(u8"let x typeof Array"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_typeof_use",   // Array
                                       "visit_variable_declaration",  // x
@@ -674,8 +675,8 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
   }
 
   {
-    test_parser p(
-        u8"async function f() {return 1;}\nlet x await f(), y = x"_sv);
+    test_parser p(u8"async function f() {return 1;}\nlet x await f(), y = x"_sv,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       //
@@ -695,7 +696,7 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
   }
 
   {
-    test_parser p(u8"let x class C{}, y = x"_sv);
+    test_parser p(u8"let x class C{}, y = x"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // {
                                       "visit_enter_class_scope_body",  // C
@@ -711,7 +712,7 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
   }
 
   {
-    test_parser p(u8"let x function f() {}, y = x"_sv);
+    test_parser p(u8"let x function f() {}, y = x"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_named_function_scope",  // f
                                       "visit_enter_function_scope_body",   //
@@ -727,7 +728,7 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
   }
 
   {
-    test_parser p(u8"let x null, y = x"_sv);
+    test_parser p(u8"let x null, y = x"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_variable_use",          // x
@@ -740,7 +741,7 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
   }
 
   {
-    test_parser p(u8"let x new Array(), y = x;"_sv);
+    test_parser p(u8"let x new Array(), y = x;"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // Array
                                       "visit_variable_declaration",  // x
@@ -754,7 +755,7 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
   }
 
   {
-    test_parser p(u8"let x this, y = x"_sv);
+    test_parser p(u8"let x this, y = x"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_variable_use",          // x
@@ -767,7 +768,7 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
   }
 
   {
-    test_parser p(u8"let x typeof Array, y = x;"_sv);
+    test_parser p(u8"let x typeof Array, y = x;"_sv, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_typeof_use",   // Array
                                       "visit_variable_declaration",  // x
@@ -783,7 +784,7 @@ TEST_F(test_parse_var, parse_let_with_missing_equal) {
 
 TEST_F(test_parse_var, parse_invalid_var) {
   {
-    test_parser p(u8"var"_sv);
+    test_parser p(u8"var"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, IsEmpty());
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -794,7 +795,7 @@ TEST_F(test_parse_var, parse_invalid_var) {
 
 TEST_F(test_parse_var, parse_invalid_const) {
   {
-    test_parser p(u8"const"_sv);
+    test_parser p(u8"const"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, IsEmpty());
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -805,7 +806,7 @@ TEST_F(test_parse_var, parse_invalid_const) {
 
 TEST_F(test_parse_var, report_missing_semicolon_for_declarations) {
   {
-    test_parser p(u8"let x = 2 for (;;) { console.log(); }"_sv);
+    test_parser p(u8"let x = 2 for (;;) { console.log(); }"_sv, capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(u8"x")));
@@ -818,7 +819,7 @@ TEST_F(test_parse_var, report_missing_semicolon_for_declarations) {
                     where, end_of_let_statement, u8"")));
   }
   {
-    test_parser p(u8"let x debugger"_sv);
+    test_parser p(u8"let x debugger"_sv, capture_diags);
     p.parse_and_visit_statement();
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
@@ -962,7 +963,7 @@ TEST_F(test_parse_var, old_style_variables_can_be_named_let) {
 
 TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
   for (string8 declaration_kind : {u8"const", u8"let"}) {
-    test_parser p(declaration_kind + u8" let = null;");
+    test_parser p(declaration_kind + u8" let = null;", capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -976,7 +977,7 @@ TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
   }
 
   {
-    test_parser p(u8"let {other, let} = stuff;"_sv);
+    test_parser p(u8"let {other, let} = stuff;"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(
         p.errors,
@@ -987,7 +988,7 @@ TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
 
   // import implies strict mode (because modules imply strict mode).
   {
-    test_parser p(u8"import let from 'weird';"_sv);
+    test_parser p(u8"import let from 'weird';"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_cannot_import_let,  //
@@ -997,7 +998,7 @@ TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
 
   // import implies strict mode (because modules imply strict mode).
   {
-    test_parser p(u8"import * as let from 'weird';"_sv);
+    test_parser p(u8"import * as let from 'weird';"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_cannot_import_let,  //
@@ -1007,7 +1008,7 @@ TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
 
   // import implies strict mode (because modules imply strict mode).
   {
-    test_parser p(u8"import { let } from 'weird';"_sv);
+    test_parser p(u8"import { let } from 'weird';"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_cannot_import_let,  //
@@ -1017,7 +1018,8 @@ TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
 
   // import implies strict mode (because modules imply strict mode).
   {
-    test_parser p(u8"import { someName as let } from 'weird';"_sv);
+    test_parser p(u8"import { someName as let } from 'weird';"_sv,
+                  capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1028,7 +1030,8 @@ TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
 
   // import implies strict mode (because modules imply strict mode).
   {
-    test_parser p(u8"import { 'someName' as let } from 'weird';"_sv);
+    test_parser p(u8"import { 'someName' as let } from 'weird';"_sv,
+                  capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_cannot_import_let,  //
@@ -1038,7 +1041,7 @@ TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
   }
 
   {
-    test_parser p(u8"export function let() {}"_sv);
+    test_parser p(u8"export function let() {}"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1049,7 +1052,7 @@ TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
 
   // class implies strict mode.
   {
-    test_parser p(u8"class let {}"_sv);
+    test_parser p(u8"class let {}"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
                               p.code(), diag_cannot_declare_class_named_let,  //
@@ -1197,7 +1200,7 @@ TEST_F(test_parse_var, declare_await_in_async_function) {
   }
 
   {
-    test_parser p(u8"async function f(await) {}"_sv);
+    test_parser p(u8"async function f(await) {}"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAre(function_decl(u8"f"),  //
@@ -1394,7 +1397,8 @@ TEST_F(test_parse_var, forced_top_level_await_operator) {
         u8"await p;"_sv,
         parser_options{
             .top_level_await_mode = parser_top_level_await_mode::await_operator,
-        });
+        },
+        capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // p
                                       "visit_end_of_module"));
@@ -1406,7 +1410,8 @@ TEST_F(test_parse_var, forced_top_level_await_operator) {
         u8"await;"_sv,
         parser_options{
             .top_level_await_mode = parser_top_level_await_mode::await_operator,
-        });
+        },
+        capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
     EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
@@ -1539,7 +1544,7 @@ TEST_F(test_parse_var, declare_yield_in_generator_function) {
   }
 
   {
-    test_parser p(u8"function* f(yield) {}"_sv);
+    test_parser p(u8"function* f(yield) {}"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.variable_declarations,
                 ElementsAre(function_decl(u8"f"),  //
@@ -1832,7 +1837,7 @@ TEST_F(test_parse_var,
   for (string8 variable_kind : {u8"const", u8"let"}) {
     string8 code = u8"do " + variable_kind + u8" x = y; while (cond);";
     SCOPED_TRACE(out_string8(code));
-    test_parser p(code);
+    test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // y
                                       "visit_variable_declaration",  // x
@@ -1852,7 +1857,7 @@ TEST_F(test_parse_var, lexical_declaration_as_for_loop_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
     string8 code = u8"for (;cond;) " + variable_kind + u8" x = y;";
     SCOPED_TRACE(out_string8(code));
-    test_parser p(code);
+    test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                       "visit_variable_use",            // y
@@ -1875,7 +1880,7 @@ TEST_F(test_parse_var, lexical_declaration_as_if_statement_body_is_disallowed) {
     {
       string8 code = u8"if (cond) " + variable_kind + u8" x = y;";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                         "visit_variable_use",            // y
@@ -1895,7 +1900,7 @@ TEST_F(test_parse_var, lexical_declaration_as_if_statement_body_is_disallowed) {
     {
       string8 code = u8"if (cond) " + variable_kind + u8" x = y; else {}";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // cond
                                         "visit_variable_use",          // y
@@ -1917,7 +1922,7 @@ TEST_F(test_parse_var, lexical_declaration_as_if_statement_body_is_disallowed) {
     {
       string8 code = u8"if (cond) {} else " + variable_kind + u8" x = y;";
       SCOPED_TRACE(out_string8(code));
-      test_parser p(code);
+      test_parser p(code, capture_diags);
       p.parse_and_visit_statement();
       EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                         "visit_enter_block_scope",       // if
@@ -1943,7 +1948,7 @@ TEST_F(test_parse_var, lexical_declaration_as_while_loop_body_is_disallowed) {
   for (string8 variable_kind : {u8"const", u8"let"}) {
     string8 code = u8"while (cond) " + variable_kind + u8" x = y;";
     SCOPED_TRACE(out_string8(code));
-    test_parser p(code);
+    test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                       "visit_variable_use",            // y
@@ -1966,7 +1971,7 @@ TEST_F(test_parse_var,
   for (string8 variable_kind : {u8"const", u8"let"}) {
     string8 code = u8"with (obj) " + variable_kind + u8" x = y;";
     SCOPED_TRACE(out_string8(code));
-    test_parser p(code);
+    test_parser p(code, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // obj
                                       "visit_enter_with_scope",      // with
@@ -1989,7 +1994,7 @@ TEST_F(test_parse_var,
 TEST_F(test_parse_var,
        let_as_statement_body_does_not_allow_asi_before_left_square) {
   {
-    test_parser p(u8"if (cond) let\n[x] = xs;"_sv);
+    test_parser p(u8"if (cond) let\n[x] = xs;"_sv, capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // cond
                                       "visit_variable_use",            // xs

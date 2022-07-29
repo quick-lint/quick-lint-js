@@ -124,7 +124,7 @@ TEST_F(test_parse_expression_typescript,
 
 TEST_F(test_parse_expression_typescript,
        non_null_assertion_not_allowed_in_javascript) {
-  test_parser p(u8"x!"_sv, javascript_options);
+  test_parser p(u8"x!"_sv, javascript_options, capture_diags);
   expression* ast = p.parse_expression();
   EXPECT_EQ(summarize(ast), "nonnull(var x)");
   EXPECT_THAT(
@@ -138,7 +138,7 @@ TEST_F(test_parse_expression_typescript,
 TEST_F(test_parse_expression_typescript,
        as_type_assertion_not_allowed_in_javascript) {
   {
-    test_parser p(u8"x as y"_sv, javascript_options);
+    test_parser p(u8"x as y"_sv, javascript_options, capture_diags);
     EXPECT_EQ(summarize(p.parse_expression()), "as(var x)");
     EXPECT_THAT(
         p.errors,
@@ -185,7 +185,7 @@ TEST_F(test_parse_expression_typescript, as_type_assertion) {
 TEST_F(test_parse_expression_typescript,
        as_type_assertion_is_not_allowed_in_function_parameter_list) {
   {
-    test_parser p(u8"(x as T) => {}"_sv, typescript_options);
+    test_parser p(u8"(x as T) => {}"_sv, typescript_options, capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -197,7 +197,8 @@ TEST_F(test_parse_expression_typescript,
   }
 
   {
-    test_parser p(u8"([x, y, z] as T) => {}"_sv, typescript_options);
+    test_parser p(u8"([x, y, z] as T) => {}"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,
@@ -209,7 +210,8 @@ TEST_F(test_parse_expression_typescript,
   }
 
   {
-    test_parser p(u8"function f(x as T) {}"_sv, typescript_options);
+    test_parser p(u8"function f(x as T) {}"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_module();
     EXPECT_THAT(
         p.errors,

@@ -167,7 +167,8 @@ TEST_F(test_parse_typescript_var, arrow_parameter_can_have_type_annotation) {
 TEST_F(test_parse_typescript_var,
        arrow_parameter_without_parens_cannot_have_type_annotation) {
   {
-    test_parser p(u8"(param: Type => {});"_sv, typescript_options);
+    test_parser p(u8"(param: Type => {});"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_type_use",     // Type
@@ -184,7 +185,8 @@ TEST_F(test_parse_typescript_var,
   }
 
   {
-    test_parser p(u8"(async param: Type => {});"_sv, typescript_options);
+    test_parser p(u8"(async param: Type => {});"_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_type_use",     // Type
@@ -282,7 +284,8 @@ TEST_F(test_parse_typescript_var,
 TEST_F(test_parse_typescript_var,
        catch_variable_cannot_have_arbitrary_type_annotation) {
   {
-    test_parser p(u8"try { } catch (e: SomeType) {} "_sv, typescript_options);
+    test_parser p(u8"try { } catch (e: SomeType) {} "_sv, typescript_options,
+                  capture_diags);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     // try {
                                       "visit_exit_block_scope",      // } try
