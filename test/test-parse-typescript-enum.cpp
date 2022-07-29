@@ -96,39 +96,43 @@ TEST_F(test_parse_typescript_enum, enum_is_not_allowed_in_javascript) {
 
 TEST_F(test_parse_typescript_enum, empty_enum) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"enum E {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p =
+        this->errorless_parser(u8"enum E {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
-    EXPECT_THAT(v.variable_declarations, ElementsAre(enum_decl(u8"E")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(enum_decl(u8"E")));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"const enum E {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p =
+        this->errorless_parser(u8"const enum E {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
-    EXPECT_THAT(v.variable_declarations, ElementsAre(enum_decl(u8"E")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(enum_decl(u8"E")));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"declare enum E {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p =
+        this->errorless_parser(u8"declare enum E {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
-    EXPECT_THAT(v.variable_declarations, ElementsAre(enum_decl(u8"E")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(enum_decl(u8"E")));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"declare const enum E {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p = this->errorless_parser(u8"declare const enum E {}"_sv,
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
-    EXPECT_THAT(v.variable_declarations, ElementsAre(enum_decl(u8"E")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(enum_decl(u8"E")));
   }
 }
 
@@ -142,11 +146,12 @@ TEST_F(test_parse_typescript_enum,
                               u8"yield",
                           }) {
     string8 code = u8"enum " + name + u8" {}";
-    parse_visit_collector v = parse_and_visit_typescript_statement(code);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // (name)
+    test_parser& p = this->errorless_parser(code, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // (name)
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
-    EXPECT_THAT(v.variable_declarations, ElementsAre(enum_decl(name)));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(enum_decl(name)));
   }
 }
 
@@ -165,25 +170,28 @@ TEST_F(test_parse_typescript_enum,
 
 TEST_F(test_parse_typescript_enum, enum_with_auto_members) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"enum E { A }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p =
+        this->errorless_parser(u8"enum E { A }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"enum E { A, }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p =
+        this->errorless_parser(u8"enum E { A, }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"enum E { A, B }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p =
+        this->errorless_parser(u8"enum E { A, B }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
   }
@@ -191,17 +199,20 @@ TEST_F(test_parse_typescript_enum, enum_with_auto_members) {
 
 TEST_F(test_parse_typescript_enum, enum_with_initialized_members) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"enum E { A = 10, B = 20 }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p = this->errorless_parser(u8"enum E { A = 10, B = 20 }"_sv,
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
   }
 
   {
-    parse_visit_collector v = parse_and_visit_typescript_statement(
-        u8"enum E { First = data[0], Second = data[1] }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p = this->errorless_parser(
+        u8"enum E { First = data[0], Second = data[1] }"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_variable_use",          // data
                                       "visit_variable_use",          // data
@@ -211,18 +222,20 @@ TEST_F(test_parse_typescript_enum, enum_with_initialized_members) {
 
 TEST_F(test_parse_typescript_enum, enum_members_can_be_named_keywords) {
   for (string8 keyword : keywords) {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"enum E { " + keyword + u8" }");
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p = this->errorless_parser(u8"enum E { " + keyword + u8" }",
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope"));     // }
   }
 }
 
 TEST_F(test_parse_typescript_enum, enum_members_can_be_named_string_literals) {
-  parse_visit_collector v = parse_and_visit_typescript_statement(
-      u8"enum E { 'member1', \"member2\" = init, }"_sv);
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+  test_parser& p = this->errorless_parser(
+      u8"enum E { 'member1', \"member2\" = init, }"_sv, typescript_options);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                     "visit_enter_enum_scope",      // {
                                     "visit_variable_use",          // init
                                     "visit_exit_enum_scope"));     // }
@@ -231,18 +244,20 @@ TEST_F(test_parse_typescript_enum, enum_members_can_be_named_string_literals) {
 TEST_F(test_parse_typescript_enum,
        enum_members_can_be_named_string_expressions) {
   {
-    parse_visit_collector v = parse_and_visit_typescript_statement(
-        u8"enum E { ['member'] = init, }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p = this->errorless_parser(
+        u8"enum E { ['member'] = init, }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_variable_use",          // init
                                       "visit_exit_enum_scope"));     // }
   }
 
   {
-    parse_visit_collector v = parse_and_visit_typescript_statement(
-        u8"enum E { [`member`] = init, }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // E
+    test_parser& p = this->errorless_parser(
+        u8"enum E { [`member`] = init, }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_variable_use",          // init
                                       "visit_exit_enum_scope"));     // }
@@ -365,25 +380,27 @@ TEST_F(test_parse_typescript_enum, extra_commas_are_not_allowed) {
 
 TEST_F(test_parse_typescript_enum, declare_must_not_have_newline_before_enum) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_module(u8"declare\nenum E {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // declare
+    test_parser& p =
+        this->errorless_parser(u8"declare\nenum E {}"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // declare
                                       "visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope",       // }
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"declare"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"declare"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_module(u8"declare\nconst enum E {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // declare
+    test_parser& p = this->errorless_parser(u8"declare\nconst enum E {}"_sv,
+                                            typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // declare
                                       "visit_variable_declaration",  // E
                                       "visit_enter_enum_scope",      // {
                                       "visit_exit_enum_scope",       // }
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"declare"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"declare"));
   }
 }
 

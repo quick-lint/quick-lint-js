@@ -94,11 +94,11 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
            u8"<{k: Type}>(expr);"_sv,
        }) {
     SCOPED_TRACE(out_string8(code));
-    parse_visit_collector v =
-        parse_and_visit_statement(code, typescript_options);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // Type
+    test_parser& p = this->errorless_parser(code, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // Type
                                       "visit_variable_use"));     // expr
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Type", u8"expr"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"Type", u8"expr"));
   }
 }
 

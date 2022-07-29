@@ -30,9 +30,10 @@ class test_parse_statement : public test_parse_expression {};
 
 TEST_F(test_parse_statement, return_statement) {
   {
-    parse_visit_collector v = parse_and_visit_statement(u8"return a;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"a"));
+    test_parser& p = this->errorless_parser(u8"return a;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"a"));
   }
 
   {
@@ -71,15 +72,16 @@ TEST_F(test_parse_statement, return_statement) {
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"if (true) { return } else { other }"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p =
+        this->errorless_parser(u8"if (true) { return } else { other }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_block_scope",  //
                             "visit_exit_block_scope",   //
                             "visit_enter_block_scope",  //
                             "visit_variable_use",       // other
                             "visit_exit_block_scope"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"other"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"other"));
   }
 }
 
@@ -213,9 +215,9 @@ TEST_F(test_parse_statement, return_statement_disallows_newline) {
 
 TEST_F(test_parse_statement, return_statement_disallows_newline_in_block) {
   {
-    parse_visit_collector v =
-        parse_and_visit_module(u8"for (let x of []) return\nx"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->errorless_parser(u8"for (let x of []) return\nx"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_for_scope",       //
                             "visit_variable_declaration",  // x
                             "visit_exit_for_scope",        //
@@ -224,18 +226,18 @@ TEST_F(test_parse_statement, return_statement_disallows_newline_in_block) {
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_module(u8"if (cond) return\nx"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->errorless_parser(u8"if (cond) return\nx"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",  // cond
                             "visit_variable_use",  // x
                             "visit_end_of_module"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_module(u8"if (cond) {} else return\nx"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->errorless_parser(u8"if (cond) {} else return\nx"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",       // cond
                             "visit_enter_block_scope",  // (if)
                             "visit_exit_block_scope",   // (if)
@@ -244,9 +246,9 @@ TEST_F(test_parse_statement, return_statement_disallows_newline_in_block) {
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_module(u8"while (cond) return\nx"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->errorless_parser(u8"while (cond) return\nx"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",  // cond
                             "visit_variable_use",  // x
                             "visit_end_of_module"));
@@ -255,10 +257,10 @@ TEST_F(test_parse_statement, return_statement_disallows_newline_in_block) {
 
 TEST_F(test_parse_statement, throw_statement) {
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"throw new Error('ouch');"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"Error"));
+    test_parser& p = this->errorless_parser(u8"throw new Error('ouch');"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"Error"));
   }
 
   {
@@ -286,51 +288,54 @@ TEST_F(test_parse_statement, throw_statement) {
 
 TEST_F(test_parse_statement, parse_and_visit_try) {
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"try {} finally {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->errorless_parser(u8"try {} finally {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
                                       "visit_enter_block_scope",  //
                                       "visit_exit_block_scope"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"try {} catch (e) {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+    test_parser& p = this->errorless_parser(u8"try {} catch (e) {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_exit_block_scope",      //
                                       "visit_enter_block_scope",     //
                                       "visit_variable_declaration",  //
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(catch_decl(u8"e")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(catch_decl(u8"e")));
   }
 
   {
-    parse_visit_collector v = parse_and_visit_statement(u8"try {} catch {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",   // try
+    test_parser& p = this->errorless_parser(u8"try {} catch {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",   // try
                                       "visit_exit_block_scope",    // try
                                       "visit_enter_block_scope",   // catch
                                       "visit_exit_block_scope"));  // catch
-    EXPECT_THAT(v.variable_declarations, IsEmpty());
+    EXPECT_THAT(p.variable_declarations, IsEmpty());
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"try {} catch (e) {} finally {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+    test_parser& p =
+        this->errorless_parser(u8"try {} catch (e) {} finally {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_exit_block_scope",      //
                                       "visit_enter_block_scope",     //
                                       "visit_variable_declaration",  //
                                       "visit_exit_block_scope",      //
                                       "visit_enter_block_scope",     //
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(catch_decl(u8"e")));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(catch_decl(u8"e")));
   }
 
   {
-    parse_visit_collector v = parse_and_visit_statement(
-        u8"try {f();} catch (e) {g();} finally {h();}");
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+    test_parser& p =
+        this->errorless_parser(u8"try {f();} catch (e) {g();} finally {h();}");
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_variable_use",          //
                                       "visit_exit_block_scope",      //
                                       "visit_enter_block_scope",     //
@@ -340,32 +345,34 @@ TEST_F(test_parse_statement, parse_and_visit_try) {
                                       "visit_enter_block_scope",     //
                                       "visit_variable_use",          //
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"f", u8"g", u8"h"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"f", u8"g", u8"h"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"try {} catch ({message, code}) {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+    test_parser& p =
+        this->errorless_parser(u8"try {} catch ({message, code}) {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_exit_block_scope",      //
                                       "visit_enter_block_scope",     // (catch)
                                       "visit_variable_declaration",  // message
                                       "visit_variable_declaration",  // code
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.variable_declarations,
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(catch_decl(u8"message"), catch_decl(u8"code")));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"try {} catch ([message, code]) {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+    test_parser& p =
+        this->errorless_parser(u8"try {} catch ([message, code]) {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_exit_block_scope",      //
                                       "visit_enter_block_scope",     // (catch)
                                       "visit_variable_declaration",  // message
                                       "visit_variable_declaration",  // code
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.variable_declarations,
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(catch_decl(u8"message"), catch_decl(u8"code")));
   }
 }
@@ -535,25 +542,27 @@ TEST_F(test_parse_statement, catch_without_variable_name_in_parentheses) {
 
 TEST_F(test_parse_statement, if_without_else) {
   {
-    parse_visit_collector v = parse_and_visit_statement(u8"if (a) { b; }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       //
+    test_parser& p = this->errorless_parser(u8"if (a) { b; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       //
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       //
                                       "visit_exit_block_scope"));
   }
 
   {
-    parse_visit_collector v = parse_and_visit_statement(u8"if (a) b;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+    test_parser& p = this->errorless_parser(u8"if (a) b;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  //
                                       "visit_variable_use"));
   }
 }
 
 TEST_F(test_parse_statement, if_with_else) {
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"if (a) { b; } else { c; }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       //
+    test_parser& p = this->errorless_parser(u8"if (a) { b; } else { c; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       //
                                       "visit_enter_block_scope",  //
                                       "visit_variable_use",       //
                                       "visit_exit_block_scope",   //
@@ -563,9 +572,9 @@ TEST_F(test_parse_statement, if_with_else) {
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"if (a) b; else c;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+    test_parser& p = this->errorless_parser(u8"if (a) b; else c;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  //
                                       "visit_variable_use",  //
                                       "visit_variable_use"));
   }
@@ -808,20 +817,21 @@ TEST_F(test_parse_statement, missing_if_after_else) {
 
 TEST_F(test_parse_statement, block_statement) {
   {
-    parse_visit_collector v = parse_and_visit_statement(u8"{ }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->errorless_parser(u8"{ }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"{ first; second; third; }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->errorless_parser(u8"{ first; second; third; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       //
                                       "visit_variable_use",       //
                                       "visit_variable_use",       //
                                       "visit_exit_block_scope"));
-    EXPECT_THAT(v.variable_uses,
+    EXPECT_THAT(p.variable_uses,
                 ElementsAre(u8"first",   //
                             u8"second",  //
                             u8"third"));
@@ -845,31 +855,33 @@ TEST_F(test_parse_statement, incomplete_block_statement) {
 
 TEST_F(test_parse_statement, switch_statement) {
   {
-    parse_visit_collector v = parse_and_visit_statement(u8"switch (x) {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // x
+    test_parser& p = this->errorless_parser(u8"switch (x) {}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // x
                                       "visit_enter_block_scope",  //
                                       "visit_exit_block_scope"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"switch (true) {case y:}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->errorless_parser(u8"switch (true) {case y:}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // y
                                       "visit_exit_block_scope"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"switch (true) {default:}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->errorless_parser(u8"switch (true) {default:}"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope"));
   }
 
   {
-    parse_visit_collector v = parse_and_visit_statement(
+    test_parser& p = this->errorless_parser(
         u8"switch (true) {case x: case y: default: case z:}");
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // x
                                       "visit_variable_use",       // y
                                       "visit_variable_use",       // z
@@ -877,9 +889,10 @@ TEST_F(test_parse_statement, switch_statement) {
   }
 
   {
-    parse_visit_collector v = parse_and_visit_statement(
-        u8"switch (true) { case true: x; let y; z; }");
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+    test_parser& p =
+        this->errorless_parser(u8"switch (true) { case true: x; let y; z; }");
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_variable_use",          // x
                                       "visit_variable_declaration",  // y
                                       "visit_variable_use",          // z
@@ -1077,18 +1090,18 @@ TEST_F(test_parse_statement, switch_clause_outside_switch_statement) {
 
 TEST_F(test_parse_statement, with_statement) {
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"with (cond) body;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",      // cond
+    test_parser& p = this->errorless_parser(u8"with (cond) body;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",      // cond
                                       "visit_enter_with_scope",  // with
                                       "visit_variable_use",      // body
                                       "visit_exit_with_scope"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"with (cond) { body; }"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->errorless_parser(u8"with (cond) { body; }"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",       // cond
                             "visit_enter_with_scope",   // with
                             "visit_enter_block_scope",  //
@@ -1203,17 +1216,16 @@ TEST_F(test_parse_statement, labelled_statement) {
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"foob: for (;;) body"_sv);
-    // TODO(strager): Announce the label with a visit.
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // body
+    test_parser& p = this->errorless_parser(u8"foob: for (;;) body"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // body
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"one: two: three: while (false) body;"_sv);
-    // TODO(strager): Announce the labels with a visit or visits.
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // body
+    test_parser& p =
+        this->errorless_parser(u8"one: two: three: while (false) body;"_sv);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // body
   }
 }
 
@@ -1224,9 +1236,9 @@ TEST_F(test_parse_statement, statement_label_can_be_a_contextual_keyword) {
 
     {
       // Top-level.
-      parse_visit_collector v = parse_and_visit_statement(code.string_view());
-      // TODO(strager): Announce the label with a visit?
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+      test_parser& p = this->errorless_parser(code.string_view());
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // x
     }
 
     {

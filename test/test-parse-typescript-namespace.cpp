@@ -42,25 +42,27 @@ TEST_F(test_parse_typescript_namespace, not_supported_in_vanilla_javascript) {
 }
 
 TEST_F(test_parse_typescript_namespace, empty_namespace) {
-  parse_visit_collector v =
-      parse_and_visit_typescript_statement(u8"namespace ns {}"_sv);
-  EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // ns
+  test_parser& p =
+      this->errorless_parser(u8"namespace ns {}"_sv, typescript_options);
+  p.parse_and_visit_statement();
+  EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // ns
                                     "visit_enter_namespace_scope",   // {
                                     "visit_exit_namespace_scope"));  // }
-  EXPECT_THAT(v.variable_declarations, ElementsAre(namespace_decl(u8"ns")));
+  EXPECT_THAT(p.variable_declarations, ElementsAre(namespace_decl(u8"ns")));
 }
 
 TEST_F(test_parse_typescript_namespace,
        namespace_cannot_have_newline_after_namespace_keyword) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_module(u8"namespace\nns\n{}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // namespace
+    test_parser& p =
+        this->errorless_parser(u8"namespace\nns\n{}"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // namespace
                                       "visit_variable_use",       // ns
                                       "visit_enter_block_scope",  // {
                                       "visit_exit_block_scope",   // }
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"namespace", u8"ns"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"namespace", u8"ns"));
   }
 }
 
@@ -70,17 +72,19 @@ TEST_F(test_parse_typescript_namespace,
        contextual_keywords - dirty_set<string8>{u8"let", u8"static"}) {
     padded_string code(u8"namespace " + name + u8" {}");
     SCOPED_TRACE(code);
-    parse_visit_collector v =
-        parse_and_visit_typescript_module(code.string_view());
-    EXPECT_THAT(v.variable_declarations, ElementsAre(namespace_decl(name)));
+    test_parser& p =
+        this->errorless_parser(code.string_view(), typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(namespace_decl(name)));
   }
 }
 
 TEST_F(test_parse_typescript_namespace, namespace_can_contain_exports) {
   {
-    parse_visit_collector v = parse_and_visit_typescript_module(
-        u8"namespace ns { export function f() {} }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // ns
+    test_parser& p = this->errorless_parser(
+        u8"namespace ns { export function f() {} }"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // ns
                                       "visit_enter_namespace_scope",      // {
                                       "visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       // f
@@ -88,22 +92,23 @@ TEST_F(test_parse_typescript_namespace, namespace_can_contain_exports) {
                                       "visit_exit_function_scope",        // }
                                       "visit_exit_namespace_scope",       // }
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_declarations,
+    EXPECT_THAT(p.variable_declarations,
                 ElementsAre(namespace_decl(u8"ns"), function_decl(u8"f")));
   }
 }
 
 TEST_F(test_parse_typescript_namespace, namespace_alias) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"import A = ns;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",      // A
+    test_parser& p =
+        this->errorless_parser(u8"import A = ns;"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",      // A
                                       "visit_variable_namespace_use"));  // ns
     // TODO(#793): Instead of emitting an import declaration, we should emit a
     // import alias declaration. Use-before-declaration is okay for ES imports,
     // but is problematic for namespace aliases.
-    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"A")));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns"));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(u8"A")));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"ns"));
   }
 }
 
@@ -127,23 +132,25 @@ TEST_F(test_parse_typescript_namespace,
 
 TEST_F(test_parse_typescript_namespace, import_alias_of_namespace_member) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_module(u8"import A = ns.B;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // A
+    test_parser& p =
+        this->errorless_parser(u8"import A = ns.B;"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // ns
                                       "visit_end_of_module"));
     // TODO(#793): Emit a import alias declaration instead.
-    EXPECT_THAT(v.variable_declarations, ElementsAre(import_decl(u8"A")));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns"));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(import_decl(u8"A")));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"ns"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_module(u8"import A = ns.subns.B;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // A
+    test_parser& p = this->errorless_parser(u8"import A = ns.subns.B;"_sv,
+                                            typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // ns
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"ns"));
   }
 }
 
@@ -170,12 +177,13 @@ TEST_F(test_parse_typescript_namespace,
   for (string8 name : contextual_keywords) {
     padded_string code(u8"import A = " + name + u8".Member;");
     SCOPED_TRACE(code);
-    parse_visit_collector v =
-        parse_and_visit_typescript_module(code.string_view());
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // A
+    test_parser& p =
+        this->errorless_parser(code.string_view(), typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // (name)
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(name));
+    EXPECT_THAT(p.variable_uses, ElementsAre(name));
   }
 }
 
@@ -184,12 +192,13 @@ TEST_F(test_parse_typescript_namespace,
   for (string8 name : contextual_keywords) {
     padded_string code(u8"import A = ns." + name + u8";");
     SCOPED_TRACE(code);
-    parse_visit_collector v =
-        parse_and_visit_typescript_module(code.string_view());
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // A
+    test_parser& p =
+        this->errorless_parser(code.string_view(), typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // A
                                       "visit_variable_namespace_use",  // ns
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"ns"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"ns"));
   }
 }
 }

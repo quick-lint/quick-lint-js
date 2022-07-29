@@ -91,8 +91,16 @@ class test_parser {
     return ast;
   }
 
+  void parse_and_visit_expression() {
+    this->parser_.parse_and_visit_expression(this->errors_);
+  }
+
   void parse_and_visit_statement() {
     EXPECT_TRUE(this->parser_.parse_and_visit_statement(this->errors_));
+  }
+
+  void parse_and_visit_module() {
+    this->parser_.parse_and_visit_module(this->errors_);
   }
 
   const std::vector<diag_collector::diag>& errors() const noexcept {

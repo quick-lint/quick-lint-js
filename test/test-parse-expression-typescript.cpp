@@ -93,17 +93,18 @@ TEST_F(test_parse_expression_typescript, non_null_assertion) {
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"f(x!);"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // f
+    test_parser& p = this->errorless_parser(u8"f(x!);"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // f
                                       "visit_variable_use"));  // x
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"f", u8"x"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"f", u8"x"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"x! = null;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_assignment"));  // x
+    test_parser& p =
+        this->errorless_parser(u8"x! = null;"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_assignment"));  // x
   }
 }
 
@@ -146,22 +147,24 @@ TEST_F(test_parse_expression_typescript,
 
 TEST_F(test_parse_expression_typescript, as_type_assertion) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"f(x as T);"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",  // T
+    test_parser& p =
+        this->errorless_parser(u8"f(x as T);"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",  // T
                                       "visit_variable_use",       // f
                                       "visit_variable_use"));     // x
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"T", u8"f", u8"x"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T", u8"f", u8"x"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"(lhs as T) = rhs;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",      // T
+    test_parser& p =
+        this->errorless_parser(u8"(lhs as T) = rhs;"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",      // T
                                       "visit_variable_use",           // rhs
                                       "visit_variable_assignment"));  // lhs
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"T", u8"rhs"));
-    EXPECT_THAT(v.variable_assignments, ElementsAre(u8"lhs"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T", u8"rhs"));
+    EXPECT_THAT(p.variable_assignments, ElementsAre(u8"lhs"));
   }
 
   {

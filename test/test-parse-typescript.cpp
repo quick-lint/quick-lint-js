@@ -46,46 +46,50 @@ TEST_F(test_parse_typescript, type_annotation_in_expression_is_an_error) {
 
 TEST_F(test_parse_typescript, type_alias) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"type T = U;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",     // T
+    test_parser& p =
+        this->errorless_parser(u8"type T = U;"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",     // T
                                       "visit_enter_type_alias_scope",   // T
                                       "visit_variable_type_use",        // U
                                       "visit_exit_type_alias_scope"));  // T
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"U"));
-    EXPECT_THAT(v.variable_declarations, ElementsAre(type_alias_decl(u8"T")));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"U"));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(type_alias_decl(u8"T")));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"type MyAlias<T> = U;"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p =
+        this->errorless_parser(u8"type MyAlias<T> = U;"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",     // MyAlias
                             "visit_enter_type_alias_scope",   // MyAlias
                             "visit_variable_declaration",     // T
                             "visit_variable_type_use",        // U
                             "visit_exit_type_alias_scope"));  // MyAlias
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"U"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"U"));
     EXPECT_THAT(
-        v.variable_declarations,
+        p.variable_declarations,
         ElementsAre(type_alias_decl(u8"MyAlias"), generic_param_decl(u8"T")));
   }
 }
 
 TEST_F(test_parse_typescript, type_alias_requires_semicolon_or_asi) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"type T = U"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",     // T
+    test_parser& p =
+        this->errorless_parser(u8"type T = U"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",     // T
                                       "visit_enter_type_alias_scope",   // T
                                       "visit_variable_type_use",        // U
                                       "visit_exit_type_alias_scope"));  // T
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_module(u8"type T = U\ntype V = W;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",    // T
+    test_parser& p = this->errorless_parser(u8"type T = U\ntype V = W;"_sv,
+                                            typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",    // T
                                       "visit_enter_type_alias_scope",  // T
                                       "visit_variable_type_use",       // U
                                       "visit_exit_type_alias_scope",   // T
@@ -130,26 +134,28 @@ TEST_F(test_parse_typescript,
             })) {
     string8 code = u8"type " + name + u8" = T;";
     SCOPED_TRACE(out_string8(code));
-    parse_visit_collector v = parse_and_visit_typescript_statement(code);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->errorless_parser(code, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",     // (name)
                             "visit_enter_type_alias_scope",   // (name)
                             "visit_variable_type_use",        // T
                             "visit_exit_type_alias_scope"));  // (name)
-    EXPECT_THAT(v.variable_declarations, ElementsAre(type_alias_decl(name)));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(type_alias_decl(name)));
   }
 }
 
 TEST_F(test_parse_typescript,
        type_alias_cannot_have_newline_after_type_keyword) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_module(u8"type\nT = U;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // type
+    test_parser& p =
+        this->errorless_parser(u8"type\nT = U;"_sv, typescript_options);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // type
                                       "visit_variable_use",         // U
                                       "visit_variable_assignment",  // T
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"type", u8"U"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"type", u8"U"));
   }
 }
 

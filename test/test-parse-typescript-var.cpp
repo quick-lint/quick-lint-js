@@ -30,51 +30,56 @@ class test_parse_typescript_var : public test_parse_expression {};
 
 TEST_F(test_parse_typescript_var, let_can_have_type_annotation) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"let x: C;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",       // C
+    test_parser& p =
+        this->errorless_parser(u8"let x: C;"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",       // C
                                       "visit_variable_declaration"));  // x
-    EXPECT_THAT(v.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.variable_declarations, ElementsAre(let_noinit_decl(u8"x")));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"let x: C = init;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",       // C
+    test_parser& p =
+        this->errorless_parser(u8"let x: C = init;"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",       // C
                                       "visit_variable_use",            // init
                                       "visit_variable_declaration"));  // x
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C", u8"init"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C", u8"init"));
   }
 
   {
-    parse_visit_collector v = parse_and_visit_typescript_statement(
-        u8"let [x, y, z]: Array = init;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",            // init
+    test_parser& p = this->errorless_parser(u8"let [x, y, z]: Array = init;"_sv,
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",            // init
                                       "visit_variable_type_use",       // Array
                                       "visit_variable_declaration",    // x
                                       "visit_variable_declaration",    // y
                                       "visit_variable_declaration"));  // z
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"init", u8"Array"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"init", u8"Array"));
   }
 
   {
-    parse_visit_collector v = parse_and_visit_typescript_statement(
-        u8"let {p1, p2: x, p3 = y}: T;"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_type_use",       // T
+    test_parser& p = this->errorless_parser(u8"let {p1, p2: x, p3 = y}: T;"_sv,
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use",       // T
                                       "visit_variable_declaration",    // p1
                                       "visit_variable_declaration",    // p2
                                       "visit_variable_use",            // y
                                       "visit_variable_declaration"));  // p3
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"T", u8"y"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T", u8"y"));
   }
 }
 
 TEST_F(test_parse_typescript_var, function_parameter_can_have_type_annotation) {
   {
-    parse_visit_collector v = parse_and_visit_typescript_statement(
-        u8"function f(p1: A, p2: B = init) {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // f
+    test_parser& p = this->errorless_parser(
+        u8"function f(p1: A, p2: B = init) {}"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // f
                                       "visit_enter_function_scope",  // f
                                       "visit_variable_type_use",     // A
                                       "visit_variable_declaration",  // p1
@@ -83,13 +88,14 @@ TEST_F(test_parse_typescript_var, function_parameter_can_have_type_annotation) {
                                       "visit_variable_declaration",  // p2
                                       "visit_enter_function_scope_body",  // {
                                       "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"A", u8"init", u8"B"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"A", u8"init", u8"B"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"function f([a, b]: C) {}"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+    test_parser& p = this->errorless_parser(u8"function f([a, b]: C) {}"_sv,
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       // f
                                       "visit_variable_type_use",          // C
                                       "visit_variable_declaration",       // a
@@ -101,9 +107,10 @@ TEST_F(test_parse_typescript_var, function_parameter_can_have_type_annotation) {
 
 TEST_F(test_parse_typescript_var, method_parameter_can_have_type_annotation) {
   {
-    parse_visit_collector v = parse_and_visit_typescript_statement(
-        u8"class C { method(param: Type) {} }"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",       // C
+    test_parser& p = this->errorless_parser(
+        u8"class C { method(param: Type) {} }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",       // C
                                       "visit_enter_class_scope_body",  // {
                                       "visit_property_declaration",    // f
                                       "visit_enter_function_scope",    // f
@@ -116,9 +123,10 @@ TEST_F(test_parse_typescript_var, method_parameter_can_have_type_annotation) {
   }
 
   {
-    parse_visit_collector v = parse_and_visit_typescript_statement(
-        u8"({ method(param: Type) {} });"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  // f
+    test_parser& p = this->errorless_parser(
+        u8"({ method(param: Type) {} });"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  // f
                                       "visit_variable_type_use",     // Type
                                       "visit_variable_declaration",  // param
                                       "visit_enter_function_scope_body",  // {
@@ -128,9 +136,10 @@ TEST_F(test_parse_typescript_var, method_parameter_can_have_type_annotation) {
 
 TEST_F(test_parse_typescript_var, arrow_parameter_can_have_type_annotation) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"((param: Type) => {});"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+    test_parser& p = this->errorless_parser(u8"((param: Type) => {});"_sv,
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_type_use",     // Type
                                       "visit_variable_declaration",  // param
                                       "visit_enter_function_scope_body",  // {
@@ -138,9 +147,11 @@ TEST_F(test_parse_typescript_var, arrow_parameter_can_have_type_annotation) {
   }
 
   {
-    parse_visit_collector v = parse_and_visit_typescript_statement(
-        u8"((p1: T1, {p2}: T2 = init, [p3]: T3) => {});"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+    test_parser& p = this->errorless_parser(
+        u8"((p1: T1, {p2}: T2 = init, [p3]: T3) => {});"_sv,
+        typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
                                       "visit_variable_type_use",     // T1
                                       "visit_variable_declaration",  // p1
                                       "visit_variable_use",          // init
@@ -196,9 +207,10 @@ TEST_F(test_parse_typescript_var,
 
 TEST_F(test_parse_typescript_var, for_loop_init_can_have_type_annotation) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"for (let i: N = 0; ;);"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+    test_parser& p = this->errorless_parser(u8"for (let i: N = 0; ;);"_sv,
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_for_scope",       //
                                       "visit_variable_type_use",     // N
                                       "visit_variable_declaration",  // i
                                       "visit_exit_for_scope"));
@@ -208,9 +220,10 @@ TEST_F(test_parse_typescript_var, for_loop_init_can_have_type_annotation) {
 TEST_F(test_parse_typescript_var,
        for_of_loop_variable_can_have_type_annotation) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"for (let x: C of xs);"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+    test_parser& p = this->errorless_parser(u8"for (let x: C of xs);"_sv,
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_for_scope",       //
                                       "visit_variable_use",          // xs
                                       "visit_variable_type_use",     // C
                                       "visit_variable_declaration",  // x
@@ -218,9 +231,10 @@ TEST_F(test_parse_typescript_var,
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"for (const x: C of xs);"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+    test_parser& p = this->errorless_parser(u8"for (const x: C of xs);"_sv,
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_for_scope",       //
                                       "visit_variable_use",          // xs
                                       "visit_variable_type_use",     // C
                                       "visit_variable_declaration",  // x
@@ -231,9 +245,10 @@ TEST_F(test_parse_typescript_var,
 TEST_F(test_parse_typescript_var,
        for_in_loop_variable_can_have_type_annotation) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"for (let x: C in xs);"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+    test_parser& p = this->errorless_parser(u8"for (let x: C in xs);"_sv,
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_for_scope",       //
                                       "visit_variable_use",          // xs
                                       "visit_variable_type_use",     // C
                                       "visit_variable_declaration",  // x
@@ -241,9 +256,10 @@ TEST_F(test_parse_typescript_var,
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"for (const x: C in xs);"_sv);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_for_scope",       //
+    test_parser& p = this->errorless_parser(u8"for (const x: C in xs);"_sv,
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_for_scope",       //
                                       "visit_variable_use",          // xs
                                       "visit_variable_type_use",     // C
                                       "visit_variable_declaration",  // x
@@ -256,9 +272,10 @@ TEST_F(test_parse_typescript_var,
   for (string8 type : {u8"*", u8"any", u8"unknown"}) {
     padded_string code(u8"try { } catch (e: " + type + u8") {} ");
     SCOPED_TRACE(code);
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(code.string_view());
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     // try {
+    test_parser& p =
+        this->errorless_parser(code.string_view(), typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     // try {
                                       "visit_exit_block_scope",      // } try
                                       "visit_enter_block_scope",     // catch {
                                       "visit_variable_declaration",  // e

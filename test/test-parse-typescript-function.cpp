@@ -45,85 +45,92 @@ TEST_F(test_parse_typescript_function,
 
 TEST_F(test_parse_typescript_function, function_return_type_annotation) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"function f(): C { }"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p =
+        this->errorless_parser(u8"function f(): C { }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",       // f
                             "visit_enter_function_scope",       // f
                             "visit_variable_type_use",          // C
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
   }
 }
 
 TEST_F(test_parse_typescript_function, arrow_return_type_annotation) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"((param): C => {})"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p =
+        this->errorless_parser(u8"((param): C => {})"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       //
                             "visit_variable_declaration",       // param
                             "visit_variable_type_use",          // C
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"((): C => {})"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p =
+        this->errorless_parser(u8"((): C => {})"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       //
                             "visit_variable_type_use",          // C
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"(async (param): C => {})"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->errorless_parser(u8"(async (param): C => {})"_sv,
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       //
                             "visit_variable_declaration",       // param
                             "visit_variable_type_use",          // C
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"(async (): C => {})"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p =
+        this->errorless_parser(u8"(async (): C => {})"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       //
                             "visit_variable_type_use",          // C
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
   }
 }
 
 TEST_F(test_parse_typescript_function, object_method_return_type_annotation) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"({ method(param): C {} })"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->errorless_parser(u8"({ method(param): C {} })"_sv,
+                                            typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       // method
                             "visit_variable_declaration",       // param
                             "visit_variable_type_use",          // C
                             "visit_enter_function_scope_body",  // {
                             "visit_exit_function_scope"));      // }
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
   }
 }
 
 TEST_F(test_parse_typescript_function, class_method_return_type_annotation) {
   {
-    parse_visit_collector v = parse_and_visit_typescript_statement(
-        u8"class C { method(param): C {} }"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->errorless_parser(
+        u8"class C { method(param): C {} }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_class_scope",          // C
                             "visit_enter_class_scope_body",     // {
                             "visit_property_declaration",       // method
@@ -134,16 +141,17 @@ TEST_F(test_parse_typescript_function, class_method_return_type_annotation) {
                             "visit_exit_function_scope",        // }
                             "visit_exit_class_scope",           // }
                             "visit_variable_declaration"));     // C
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
   }
 }
 
 TEST_F(test_parse_typescript_function,
        interface_method_return_type_annotation) {
   {
-    parse_visit_collector v = parse_and_visit_typescript_statement(
-        u8"interface I { method(param): C; }"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->errorless_parser(
+        u8"interface I { method(param): C; }"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_declaration",    // I
                             "visit_enter_interface_scope",   // I
                             "visit_property_declaration",    // method
@@ -152,23 +160,24 @@ TEST_F(test_parse_typescript_function,
                             "visit_variable_type_use",       // C
                             "visit_exit_function_scope",     // method
                             "visit_exit_interface_scope"));  // }
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"C"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"C"));
   }
 }
 
 TEST_F(test_parse_typescript_function,
        generic_arrow_function_expression_body_can_use_in_operator) {
   {
-    parse_visit_collector v =
-        parse_and_visit_typescript_statement(u8"<T,>() => x in y"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p =
+        this->errorless_parser(u8"<T,>() => x in y"_sv, typescript_options);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",       //
                             "visit_variable_declaration",       // T
                             "visit_enter_function_scope_body",  //
                             "visit_variable_use",               // x
                             "visit_variable_use",               // y
                             "visit_exit_function_scope"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x", u8"y"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"x", u8"y"));
   }
 }
 

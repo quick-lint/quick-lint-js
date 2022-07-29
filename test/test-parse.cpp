@@ -277,13 +277,19 @@ TEST_F(test_parse, asi_between_expression_statements) {
   }
 
   {
-    parse_visit_collector v =
-        parse_and_visit_module(u8"true\nnew Animal();"_sv);
+    test_parser& p = this->errorless_parser(u8"true\nnew Animal();"_sv);
+    p.parse_and_visit_module();
   }
 
-  { parse_visit_collector v = parse_and_visit_module(u8"true\nsuper();"_sv); }
+  {
+    test_parser& p = this->errorless_parser(u8"true\nsuper();"_sv);
+    p.parse_and_visit_module();
+  }
 
-  { parse_visit_collector v = parse_and_visit_module(u8"true\ntypeof x;"_sv); }
+  {
+    test_parser& p = this->errorless_parser(u8"true\ntypeof x;"_sv);
+    p.parse_and_visit_module();
+  }
 
   {
     padded_string code(u8"true\nawait myPromise;"_sv);
@@ -308,7 +314,8 @@ TEST_F(test_parse, asi_between_expression_statements) {
   for (string8 keyword : contextual_keywords) {
     padded_string code(u8"true\n" + keyword);
     SCOPED_TRACE(code);
-    parse_visit_collector v = parse_and_visit_module(code.string_view());
+    test_parser& p = this->errorless_parser(code.string_view());
+    p.parse_and_visit_module();
   }
 
   {
@@ -325,7 +332,7 @@ TEST_F(test_parse, asi_between_expression_statements) {
 
 TEST_F(test_parse, asi_between_expression_statement_and_switch_label) {
   {
-    parse_visit_collector v = parse_and_visit_module(
+    test_parser& p = this->errorless_parser(
         u8R"(
       switch (x) {
         case a:
@@ -334,12 +341,13 @@ TEST_F(test_parse, asi_between_expression_statement_and_switch_label) {
           g()
       }
     )"_sv);
-    EXPECT_THAT(v.variable_uses,
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_uses,
                 ElementsAre(u8"x", u8"a", u8"f", u8"b", u8"g"));
   }
 
   {
-    parse_visit_collector v = parse_and_visit_module(
+    test_parser& p = this->errorless_parser(
         u8R"(
       switch (x) {
         case a:
@@ -348,14 +356,16 @@ TEST_F(test_parse, asi_between_expression_statement_and_switch_label) {
           g()
       }
     )"_sv);
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x", u8"a", u8"f", u8"g"));
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"x", u8"a", u8"f", u8"g"));
   }
 }
 
 TEST_F(test_parse, asi_between_expression_statement_and_declaration) {
   {
-    parse_visit_collector v = parse_and_visit_module(u8"f()\nclass C {}"_sv);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->errorless_parser(u8"f()\nclass C {}"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use",            // f
                             "visit_enter_class_scope",       // {
                             "visit_enter_class_scope_body",  // C
@@ -367,8 +377,8 @@ TEST_F(test_parse, asi_between_expression_statement_and_declaration) {
 
 TEST_F(test_parse, asi_for_statement_at_end_of_file) {
   {
-    parse_visit_collector v =
-        parse_and_visit_statement(u8"console.log(2+2)"_sv);
+    test_parser& p = this->errorless_parser(u8"console.log(2+2)"_sv);
+    p.parse_and_visit_statement();
   }
 }
 
@@ -772,7 +782,7 @@ string8 repeated_str(string8_view before, string8_view inner,
 }
 
 TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
-  for (const string8 &exps : {
+  for (const string8& exps : {
            repeated_str(u8"(", u8"10", u8")", parser::stack_limit - 2),
            repeated_str(u8"[", u8"10", u8"]", parser::stack_limit - 2),
            repeated_str(u8"{", u8"10", u8"}", parser::stack_limit - 2),
@@ -820,7 +830,7 @@ TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
-  for (const string8 &jsx : {
+  for (const string8& jsx : {
            repeated_str(u8"<div>", u8"", u8"</div>", parser::stack_limit - 2),
            u8"<>" +
                repeated_str(u8"<div>", u8"", u8"</div>",
@@ -840,7 +850,7 @@ TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
     EXPECT_THAT(v.errors, IsEmpty());
   }
 
-  for (const string8 &type : {
+  for (const string8& type : {
            repeated_str(u8"(", u8"T", u8")", parser::stack_limit - 2),
        }) {
     padded_string code(u8"let x: " + type + u8";");
@@ -854,7 +864,7 @@ TEST_F(test_no_overflow, parser_depth_limit_not_exceeded) {
 }
 
 TEST_F(test_overflow, parser_depth_limit_exceeded) {
-  for (const string8 &exps : {
+  for (const string8& exps : {
            repeated_str(u8"(", u8"10", u8")", parser::stack_limit + 1),
            repeated_str(u8"[", u8"10", u8"]", parser::stack_limit + 1),
            repeated_str(u8"{", u8"10", u8"}", parser::stack_limit + 1),
@@ -898,7 +908,7 @@ TEST_F(test_overflow, parser_depth_limit_exceeded) {
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
   }
 
-  for (const string8 &jsx : {
+  for (const string8& jsx : {
            repeated_str(u8"<div>", u8"", u8"</div>", parser::stack_limit + 1),
            u8"<>" +
                repeated_str(u8"<div>", u8"", u8"</div>",
@@ -918,7 +928,7 @@ TEST_F(test_overflow, parser_depth_limit_exceeded) {
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_depth_limit_exceeded)));
   }
 
-  for (const string8 &type : {
+  for (const string8& type : {
            repeated_str(u8"(", u8"T", u8")", parser::stack_limit + 1),
        }) {
     padded_string code(u8"let x: " + type + u8";");
