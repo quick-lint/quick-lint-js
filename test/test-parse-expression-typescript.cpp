@@ -24,15 +24,7 @@ using namespace std::literals::string_literals;
 
 namespace quick_lint_js {
 namespace {
-class test_parse_expression_typescript : public test_parse_expression {
- public:
-  using test_parse_expression::make_parser;
-  using test_parse_expression::parse_expression;
-
-  expression* parse_expression(string8_view input) {
-    return this->parse_expression(input, typescript_options);
-  }
-};
+class test_parse_expression_typescript : public test_parse_expression {};
 
 TEST_F(test_parse_expression_typescript, type_annotation) {
   // These would normally appear in arrow function parameter lists.
@@ -51,13 +43,15 @@ TEST_F(test_parse_expression_typescript, type_annotation) {
   }
 
   {
-    expression* ast = this->parse_expression(u8"{x}: Type"_sv);
+    expression* ast =
+        this->parse_expression(u8"{x}: Type"_sv, typescript_options);
     EXPECT_EQ(ast->kind(), expression_kind::type_annotated);
     EXPECT_EQ(summarize(ast->child_0()), "object(literal: var x)");
   }
 
   {
-    expression* ast = this->parse_expression(u8"[x]: Type"_sv);
+    expression* ast =
+        this->parse_expression(u8"[x]: Type"_sv, typescript_options);
     EXPECT_EQ(ast->kind(), expression_kind::type_annotated);
     EXPECT_EQ(summarize(ast->child_0()), "array(var x)");
   }
@@ -66,29 +60,31 @@ TEST_F(test_parse_expression_typescript, type_annotation) {
 TEST_F(test_parse_expression_typescript,
        conditional_colon_is_not_a_type_annotation) {
   {
-    expression* ast = this->parse_expression(u8"cond ? x: Type"_sv);
+    expression* ast =
+        this->parse_expression(u8"cond ? x: Type"_sv, typescript_options);
     EXPECT_EQ(summarize(ast), "cond(var cond, var x, var Type)");
   }
 }
 
 TEST_F(test_parse_expression_typescript, non_null_assertion) {
   {
-    expression* ast = this->parse_expression(u8"x!"_sv);
+    expression* ast = this->parse_expression(u8"x!"_sv, typescript_options);
     EXPECT_EQ(summarize(ast), "nonnull(var x)");
   }
 
   {
-    expression* ast = this->parse_expression(u8"f()!.someprop"_sv);
+    expression* ast =
+        this->parse_expression(u8"f()!.someprop"_sv, typescript_options);
     EXPECT_EQ(summarize(ast), "dot(nonnull(call(var f)), someprop)");
   }
 
   {
-    expression* ast = this->parse_expression(u8"x! = y"_sv);
+    expression* ast = this->parse_expression(u8"x! = y"_sv, typescript_options);
     EXPECT_EQ(summarize(ast), "assign(nonnull(var x), var y)");
   }
 
   {
-    expression* ast = this->parse_expression(u8"async!"_sv);
+    expression* ast = this->parse_expression(u8"async!"_sv, typescript_options);
     EXPECT_EQ(summarize(ast), "nonnull(var async)");
   }
 
@@ -113,7 +109,7 @@ TEST_F(test_parse_expression_typescript,
   {
     // HACK(strager): We rely on the fact that parse_expression stops parsing at
     // the end of the line. "!+y" part is unparsed.
-    expression* ast = this->parse_expression(u8"x\n!+y"_sv);
+    expression* ast = this->parse_expression(u8"x\n!+y"_sv, typescript_options);
     EXPECT_EQ(summarize(ast), "var x");
   }
 }
