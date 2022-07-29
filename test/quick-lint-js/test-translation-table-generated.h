@@ -1949,6 +1949,16 @@ inline constexpr translated_string test_translation_table[] = {
         },
     },
     {
+        "missing TypeScript type"_translatable,
+        {
+            u8"missing TypeScript type",
+            u8"missing TypeScript type",
+            u8"missing TypeScript type",
+            u8"missing TypeScript type",
+            u8"missing TypeScript type",
+        },
+    },
+    {
         "missing arrow operator for arrow function"_translatable,
         {
             u8"missing arrow operator for arrow function",

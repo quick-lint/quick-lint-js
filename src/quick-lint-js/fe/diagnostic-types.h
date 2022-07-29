@@ -1292,6 +1292,13 @@
       MESSAGE(QLJS_TRANSLATABLE("missing type between '{1}' and '{0}'"),       \
               right_operator, left_operator))                                  \
                                                                                \
+  /* TODO(strager): Make more specific errors, like 'missing type after :',    \
+     'missing type after keyof', etc. */                                       \
+  QLJS_DIAG_TYPE(                                                              \
+      diag_missing_typescript_type, "E0284", diagnostic_severity::error,       \
+      { source_code_span expected_type; },                                     \
+      MESSAGE(QLJS_TRANSLATABLE("missing TypeScript type"), expected_type))    \
+                                                                               \
   QLJS_DIAG_TYPE(                                                              \
       diag_missing_value_for_object_literal_entry, "E0083",                    \
       diagnostic_severity::error, { source_code_span key; },                   \

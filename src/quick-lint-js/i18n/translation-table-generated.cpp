@@ -203,7 +203,8 @@ const translation_table translation_data = {
         {58, 48, 46, 28, 52},         //
         {0, 40, 0, 0, 27},            //
         {29, 22, 33, 26, 26},         //
-        {48, 27, 63, 0, 51},          //
+        {0, 0, 0, 0, 51},             //
+        {48, 27, 63, 0, 24},          //
         {40, 4, 58, 50, 42},          //
         {31, 22, 36, 30, 28},         //
         {31, 11, 39, 36, 32},         //
@@ -1437,6 +1438,7 @@ const translation_table translation_data = {
         u8"missing '=' after variable\0"
         u8"missing 'if' after 'else'\0"
         u8"missing 'while (condition)' for do-while statement\0"
+        u8"missing TypeScript type\0"
         u8"missing arrow operator for arrow function\0"
         u8"missing body for 'for' loop\0"
         u8"missing body for 'if' statement\0"

@@ -1220,6 +1220,39 @@ TEST_F(test_parse_typescript_type, extends_condition) {
                             u8"TK", u8"FalseType", u8"FK"));
   }
 }
+
+TEST_F(test_parse_typescript_type, missing) {
+  // TODO(strager): Point to the ':' if there was one.
+
+  {
+    test_parser p(u8" "_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, IsEmpty());
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code, diag_missing_typescript_type,  //
+                              expected_type, strlen(u8" "), u8"")));
+  }
+
+  {
+    // Example: const f = (param: ) => {};
+    test_parser p(u8" )"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, IsEmpty());
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code, diag_missing_typescript_type,  //
+                              expected_type, strlen(u8" "), u8"")));
+  }
+
+  {
+    // Example: interface I { myMethod(): }
+    test_parser p(u8" }"_sv, typescript_options, capture_diags);
+    p.parse_and_visit_typescript_type_expression();
+    EXPECT_THAT(p.visits, IsEmpty());
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code, diag_missing_typescript_type,  //
+                              expected_type, strlen(u8" "), u8"")));
+  }
+}
 }
 }
 

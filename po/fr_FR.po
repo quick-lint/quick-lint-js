@@ -862,6 +862,11 @@ msgid "missing type between '{1}' and '{0}'"
 msgstr "nom de propriété manquante entre '.' et '.'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "missing TypeScript type"
+msgstr "corps manquant pour la fonction"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing value for object property"
 msgstr "valeur manquante pour la propriété d'objet"
 

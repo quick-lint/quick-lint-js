@@ -842,6 +842,11 @@ msgid "missing type between '{1}' and '{0}'"
 msgstr "saknar egenskaps namn efter '.' operatör"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "missing TypeScript type"
+msgstr "saknar stycke för klass"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing value for object property"
 msgstr "saknar värde för objektegenskap"
 

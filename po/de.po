@@ -852,6 +852,11 @@ msgid "missing type between '{1}' and '{0}'"
 msgstr "Eigenschaftsname fehlt zwischen '.' und '.'"
 
 #: src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "missing TypeScript type"
+msgstr "Körper der Funktion fehlt"
+
+#: src/quick-lint-js/fe/diagnostic-types.h
 msgid "missing value for object property"
 msgstr "Wert der Objekteigenschaft fehlt"
 

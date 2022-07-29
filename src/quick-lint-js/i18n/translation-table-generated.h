@@ -20,8 +20,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 4;
-constexpr std::uint16_t translation_table_mapping_table_size = 333;
-constexpr std::size_t translation_table_string_table_size = 53040;
+constexpr std::uint16_t translation_table_mapping_table_size = 334;
+constexpr std::size_t translation_table_string_table_size = 53064;
 constexpr std::size_t translation_table_locale_table_size = 29;
 
 QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
@@ -220,6 +220,7 @@ QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
           "missing '=' after variable"sv,
           "missing 'if' after 'else'"sv,
           "missing 'while (condition)' for do-while statement"sv,
+          "missing TypeScript type"sv,
           "missing arrow operator for arrow function"sv,
           "missing body for 'for' loop"sv,
           "missing body for 'if' statement"sv,
