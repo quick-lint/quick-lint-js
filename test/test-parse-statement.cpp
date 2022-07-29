@@ -379,26 +379,23 @@ TEST_F(test_parse_statement, parse_and_visit_try) {
 
 TEST_F(test_parse_statement, catch_without_try) {
   {
-    padded_string code(u8"catch (e) { body; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+    test_parser& p = this->make_parser(u8"catch (e) { body; }"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_variable_declaration",  // e
                                       "visit_variable_use",          // body
                                       "visit_exit_block_scope",      //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(&code, diag_catch_without_try,  //
-                                              catch_token, 0, u8"catch")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_catch_without_try,  //
+                              catch_token, 0, u8"catch")));
   }
 
   {
-    padded_string code(u8"catch (e) { body; } finally { body; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+    test_parser& p =
+        this->make_parser(u8"catch (e) { body; } finally { body; }"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
                                       "visit_variable_declaration",  // e
                                       "visit_variable_use",          // body
                                       "visit_exit_block_scope",      //
@@ -406,136 +403,122 @@ TEST_F(test_parse_statement, catch_without_try) {
                                       "visit_variable_use",          // body
                                       "visit_exit_block_scope",      //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(&code, diag_catch_without_try,  //
-                                              catch_token, 0, u8"catch")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_catch_without_try,  //
+                              catch_token, 0, u8"catch")));
   }
 }
 
 TEST_F(test_parse_statement, finally_without_try) {
   {
-    padded_string code(u8"finally { body; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->make_parser(u8"finally { body; }"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope",   //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_finally_without_try,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_finally_without_try,  //
                               finally_token, 0, u8"finally")));
   }
 }
 
 TEST_F(test_parse_statement, try_without_catch_or_finally) {
   {
-    padded_string code(u8"try { tryBody; }\nlet x = 3;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     // (try)
+    test_parser& p = this->make_parser(u8"try { tryBody; }\nlet x = 3;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     // (try)
                                       "visit_variable_use",          // tryBody
                                       "visit_exit_block_scope",      // (try)
                                       "visit_variable_declaration",  // x
                                       "visit_end_of_module"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
-            &code, diag_missing_catch_or_finally_for_try_statement,  //
-            try_token, 0, u8"try",                                   //
+            p.code(), diag_missing_catch_or_finally_for_try_statement,  //
+            try_token, 0, u8"try",                                      //
             expected_catch_or_finally, strlen(u8"try { tryBody; }"), u8"")));
   }
 }
 
 TEST_F(test_parse_statement, try_without_body) {
   {
-    padded_string code(u8"try\nlet x = 3;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // x
+    test_parser& p = this->make_parser(u8"try\nlet x = 3;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_body_for_try_statement,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_body_for_try_statement,  //
                               try_token, 0, u8"try")));
   }
 }
 
 TEST_F(test_parse_statement, catch_without_body) {
   {
-    padded_string code(u8"try {} catch\nlet x = 3;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     // (try)
+    test_parser& p = this->make_parser(u8"try {} catch\nlet x = 3;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     // (try)
                                       "visit_exit_block_scope",      // (try)
                                       "visit_enter_block_scope",     // (catch)
                                       "visit_exit_block_scope",      // (catch)
                                       "visit_variable_declaration",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_body_for_catch_clause,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_body_for_catch_clause,  //
                               catch_token, strlen(u8"try {} catch"), u8"")));
   }
 }
 
 TEST_F(test_parse_statement, finally_without_body) {
   {
-    padded_string code(u8"try {} finally\nlet x = 3;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     // (try)
+    test_parser& p = this->make_parser(u8"try {} finally\nlet x = 3;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     // (try)
                                       "visit_exit_block_scope",      // (try)
                                       "visit_variable_declaration",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_body_for_finally_clause,  //
+                    p.code(), diag_missing_body_for_finally_clause,  //
                     finally_token, strlen(u8"try {} "), u8"finally")));
   }
 }
 
 TEST_F(test_parse_statement, catch_without_variable_name_in_parentheses) {
   {
-    padded_string code(u8"try {} catch () { body; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  // (try)
+    test_parser& p = this->make_parser(u8"try {} catch () { body; }"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  // (try)
                                       "visit_exit_block_scope",   // (try)
                                       "visit_enter_block_scope",  // (catch)
                                       "visit_variable_use",       // body
                                       "visit_exit_block_scope",   // (catch)
                                       "visit_end_of_module"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_3_FIELDS(
             diag_missing_catch_variable_between_parentheses,
             left_paren_to_right_paren,
-            offsets_matcher(&code, strlen(u8"try {} catch "), u8"()"),  //
+            offsets_matcher(p.code(), strlen(u8"try {} catch "), u8"()"),  //
             left_paren,
-            offsets_matcher(&code, strlen(u8"try {} catch "), u8"("),  //
+            offsets_matcher(p.code(), strlen(u8"try {} catch "), u8"("),  //
             right_paren,
-            offsets_matcher(&code, strlen(u8"try {} catch ("), u8")"))));
+            offsets_matcher(p.code(), strlen(u8"try {} catch ("), u8")"))));
   }
 
   {
-    padded_string code(u8"try {} catch ('ball') { body; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"try {} catch ('ball') { body; }"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_block_scope",  // (try)
                             "visit_exit_block_scope",   // (try)
                             "visit_enter_block_scope",  // (catch)
                             "visit_variable_use",       // body
                             "visit_exit_block_scope",   // (catch)
                             "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_expected_variable_name_for_catch,  //
+                    p.code(), diag_expected_variable_name_for_catch,  //
                     unexpected_token, strlen(u8"try {} catch ("), u8"'ball'")));
   }
 }
@@ -1033,58 +1016,52 @@ TEST_F(test_parse_statement, switch_case_without_expression) {
 
 TEST_F(test_parse_statement, switch_clause_outside_switch_statement) {
   {
-    padded_string code(u8"case x:"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
+    test_parser& p = this->make_parser(u8"case x:"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_unexpected_case_outside_switch_statement,  //
+                    p.code(), diag_unexpected_case_outside_switch_statement,  //
                     case_token, 0, u8"case")));
   }
 
   {
-    padded_string code(u8"case\nif (y) {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // y
+    test_parser& p = this->make_parser(u8"case\nif (y) {}"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // y
                                       "visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_unexpected_case_outside_switch_statement,  //
+                    p.code(), diag_unexpected_case_outside_switch_statement,  //
                     case_token, 0, u8"case")));
   }
 
   {
-    padded_string code(u8"default: next;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // next
+    test_parser& p = this->make_parser(u8"default: next;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // next
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_unexpected_default_outside_switch_statement,  //
-                    default_token, 0, u8"default")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code(), diag_unexpected_default_outside_switch_statement,  //
+            default_token, 0, u8"default")));
   }
 
   {
-    padded_string code(u8"default\nif (x) body;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
+    test_parser& p = this->make_parser(u8"default\nif (x) body;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_variable_use",  // body
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_unexpected_default_outside_switch_statement,  //
-                    default_token, 0, u8"default")));
+    EXPECT_THAT(
+        p.errors,
+        ElementsAre(DIAG_TYPE_OFFSETS(
+            p.code(), diag_unexpected_default_outside_switch_statement,  //
+            default_token, 0, u8"default")));
   }
 }
 

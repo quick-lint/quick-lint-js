@@ -103,6 +103,10 @@ class test_parser {
     this->parser_.parse_and_visit_module(this->errors_);
   }
 
+  void parse_and_visit_module_catching_fatal_parse_errors() {
+    this->parser_.parse_and_visit_module_catching_fatal_parse_errors(this->errors_);
+  }
+
   void parse_and_visit_typescript_type_expression() {
     this->parser_.parse_and_visit_typescript_type_expression(this->errors_);
   }

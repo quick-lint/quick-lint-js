@@ -164,88 +164,83 @@ TEST_F(test_parse_module, export_default_of_variable_is_illegal) {
 
 TEST_F(test_parse_module, export_sometimes_requires_semicolon) {
   {
-    padded_string code(u8"export {x} console.log();"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_export_use",  // x
+    test_parser& p = this->make_parser(u8"export {x} console.log();"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_export_use",  // x
                                       "visit_variable_use",         // console
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_semicolon_after_statement,  //
-                              where, strlen(u8"export {x}"), u8"")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code(), diag_missing_semicolon_after_statement,  //
+                    where, strlen(u8"export {x}"), u8"")));
   }
 
   {
-    padded_string code(u8"export * from 'other' console.log();"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // console
+    test_parser& p =
+        this->make_parser(u8"export * from 'other' console.log();"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // console
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_semicolon_after_statement,  //
-                              where, strlen(u8"export * from 'other'"), u8"")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code(), diag_missing_semicolon_after_statement,  //
+                    where, strlen(u8"export * from 'other'"), u8"")));
   }
 
   {
-    padded_string code(u8"export default x+y console.log();"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
+    test_parser& p =
+        this->make_parser(u8"export default x+y console.log();"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_variable_use",  // y
                                       "visit_variable_use",  // console
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_semicolon_after_statement,  //
-                              where, strlen(u8"export default x+y"), u8"")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_OFFSETS(
+                    p.code(), diag_missing_semicolon_after_statement,  //
+                    where, strlen(u8"export default x+y"), u8"")));
   }
 
   {
-    padded_string code(u8"export default async () => {} console.log();"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+    test_parser& p =
+        this->make_parser(u8"export default async () => {} console.log();"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
                                       "visit_variable_use",  // console
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_missing_semicolon_after_statement,  //
+                    p.code(), diag_missing_semicolon_after_statement,  //
                     where, strlen(u8"export default async () => {}"), u8"")));
   }
 }
 
 TEST_F(test_parse_module, export_sometimes_does_not_require_semicolon) {
   {
-    padded_string code(
+    test_parser& p = this->make_parser(
         u8"export default async function f() {} console.log();"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",       // f
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",       // f
                                       "visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
                                       "visit_variable_use",  // console
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    padded_string code(u8"export default function() {} console.log();"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+    test_parser& p =
+        this->make_parser(u8"export default function() {} console.log();"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_enter_function_scope_body",  //
                                       "visit_exit_function_scope",        //
                                       "visit_variable_use",  // console
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1041,15 +1036,14 @@ TEST_F(
 
 TEST_F(test_parse_module, import_requires_semicolon_or_newline) {
   {
-    padded_string code(u8"import fs from 'fs' nextStatement"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  // fs
+    test_parser& p =
+        this->make_parser(u8"import fs from 'fs' nextStatement"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  // fs
                                       "visit_variable_use",  // nextStatement
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code,
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(),
                               diag_missing_semicolon_after_statement,  //
                               where, strlen(u8"import fs from 'fs'"), u8"")));
   }

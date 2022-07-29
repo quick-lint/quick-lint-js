@@ -378,18 +378,16 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   {
-    padded_string code(u8"let while (x) { break; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_declarations, IsEmpty());
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // x
+    test_parser& p = this->make_parser(u8"let while (x) { break; }"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_declarations, IsEmpty());
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // x
                                       "visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_unexpected_token_in_variable_declaration,  //
+                    p.code(), diag_unexpected_token_in_variable_declaration,  //
                     unexpected_token, strlen(u8"let "), u8"while")));
   }
 

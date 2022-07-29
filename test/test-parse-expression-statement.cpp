@@ -132,15 +132,13 @@ TEST_F(test_parse_expression_statement, parse_invalid_math_expression) {
   }
 
   {
-    padded_string code(u8"x += ;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_expression(v);
-    EXPECT_THAT(v.visits,
+    test_parser& p = this->make_parser(u8"x += ;"_sv);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_variable_use", "visit_variable_assignment"));
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"x"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_operand_for_operator,  //
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"x"));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
                               where, strlen(u8"x "), u8"+=")));
   }
 }
@@ -350,35 +348,31 @@ TEST_F(test_parse_expression_statement, function_call_without_right_paren) {
   }
 
   {
-    padded_string code(u8"f(x; y;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // f
+    test_parser& p = this->make_parser(u8"f(x; y;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // f
                                       "visit_variable_use",  // x
                                       "visit_variable_use",  // y
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    &code, diag_expected_right_paren_for_function_call,  //
-                    expected_right_paren, strlen(u8"f(x"), u8"",         //
+                    p.code(), diag_expected_right_paren_for_function_call,  //
+                    expected_right_paren, strlen(u8"f(x"), u8"",            //
                     left_paren, strlen(u8"f"), u8"(")));
   }
 
   {
-    padded_string code(u8"f(x\n--y;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // f
+    test_parser& p = this->make_parser(u8"f(x\n--y;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // f
                                       "visit_variable_use",         // x
                                       "visit_variable_use",         // y
                                       "visit_variable_assignment",  // y
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    &code, diag_expected_right_paren_for_function_call,  //
-                    expected_right_paren, strlen(u8"f(x"), u8"",         //
+                    p.code(), diag_expected_right_paren_for_function_call,  //
+                    expected_right_paren, strlen(u8"f(x"), u8"",            //
                     left_paren, strlen(u8"f"), u8"(")));
   }
 }
@@ -1115,11 +1109,9 @@ TEST_F(test_parse_expression_statement,
 TEST_F(test_parse_expression_statement,
        async_followed_by_newline_and_arrow_function) {
   {
-    padded_string code(u8"x = async\n(a) => b;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+    test_parser& p = this->make_parser(u8"x = async\n(a) => b;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                       "visit_variable_declaration",       // a
                                       "visit_enter_function_scope_body",  //
                                       "visit_variable_use",               // b
@@ -1127,9 +1119,9 @@ TEST_F(test_parse_expression_statement,
                                       "visit_variable_assignment",        // x
                                       "visit_end_of_module"));
     EXPECT_THAT(
-        v.errors,
+        p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
-            &code,
+            p.code(),
             diag_newline_not_allowed_between_async_and_parameter_list,  //
             async, strlen(u8"x = "), u8"async",                         //
             arrow, strlen(u8"x = async\n(x) "), u8"=>")));
@@ -1203,16 +1195,14 @@ TEST_F(test_parse_expression_statement,
   }
 
   {
-    padded_string code(u8"!\nswitch(x){}"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",       // x
+    test_parser& p = this->make_parser(u8"!\nswitch(x){}"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",       // x
                                       "visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_operand_for_operator,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
                               where, 0, u8"!")));
   }
 
@@ -1457,54 +1447,46 @@ TEST_F(test_parse_expression_statement,
 TEST_F(test_parse_expression_statement,
        object_property_default_is_not_allowed) {
   {
-    padded_string code(u8"({banana = 42})"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_expression(v);
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"({banana = 42})"_sv);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
-                    &code, diag_object_literal_default_in_expression,  //
+                    p.code(), diag_object_literal_default_in_expression,  //
                     equal, strlen(u8"({banana "), u8"=")));
   }
 }
 
 TEST_F(test_parse_expression_statement, invalid_parentheses) {
   {
-    padded_string code(u8"()"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_expression(v);
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"()"_sv);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_3_OFFSETS(
-                    &code, diag_missing_expression_between_parentheses,  //
-                    left_paren_to_right_paren, 0, u8"()",                //
-                    left_paren, 0, u8"(",                                //
+                    p.code(), diag_missing_expression_between_parentheses,  //
+                    left_paren_to_right_paren, 0, u8"()",                   //
+                    left_paren, 0, u8"(",                                   //
                     right_paren, strlen(u8"("), u8")")));
   }
 
   {
-    padded_string code(u8"x = ()"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_expression(v);
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"x = ()"_sv);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_3_OFFSETS(
-                    &code, diag_missing_expression_between_parentheses,   //
-                    left_paren_to_right_paren, strlen(u8"x = "), u8"()",  //
-                    left_paren, strlen(u8"x = "), u8"(",                  //
+                    p.code(), diag_missing_expression_between_parentheses,  //
+                    left_paren_to_right_paren, strlen(u8"x = "), u8"()",    //
+                    left_paren, strlen(u8"x = "), u8"(",                    //
                     right_paren, strlen(u8"x = ("), u8")")));
   }
 
   {
-    padded_string code(u8"() = x"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_expression(v);
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"() = x"_sv);
+    p.parse_and_visit_expression();
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_3_OFFSETS(
-                    &code, diag_missing_expression_between_parentheses,  //
-                    left_paren_to_right_paren, 0, u8"()",                //
-                    left_paren, 0, u8"(",                                //
+                    p.code(), diag_missing_expression_between_parentheses,  //
+                    left_paren_to_right_paren, 0, u8"()",                   //
+                    left_paren, 0, u8"(",                                   //
                     right_paren, strlen(u8"("), u8")")));
   }
 }

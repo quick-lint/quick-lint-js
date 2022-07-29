@@ -253,27 +253,21 @@ TEST_F(test_parse, asi_for_statement_at_newline) {
 
 TEST_F(test_parse, asi_between_expression_statements) {
   {
-    padded_string code(u8"false\nfalse"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, IsEmpty());
+    test_parser& p = this->make_parser(u8"false\nfalse"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    padded_string code(u8"true\ntrue"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, IsEmpty());
+    test_parser& p = this->make_parser(u8"true\ntrue"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    padded_string code(u8"true\nvoid x;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, IsEmpty());
+    test_parser& p = this->make_parser(u8"true\nvoid x;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -319,12 +313,10 @@ TEST_F(test_parse, asi_between_expression_statements) {
   }
 
   {
-    padded_string code(u8"one\n#two\nthree"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.variable_uses, ElementsAre(u8"one", u8"three"));
-    EXPECT_THAT(v.errors,
+    test_parser& p = this->make_parser(u8"one\n#two\nthree"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"one", u8"three"));
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE(
                     diag_cannot_refer_to_private_variable_without_object)));
   }
@@ -404,27 +396,23 @@ TEST_F(test_parse, utter_garbage) {
 
 TEST_F(test_parse, statement_starting_with_extends) {
   {
-    padded_string code(u8"extends Base"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // Base
+    test_parser& p = this->make_parser(u8"extends Base"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // Base
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(&code, diag_unexpected_token,  //
-                                              token, 0, u8"extends")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_unexpected_token,  //
+                              token, 0, u8"extends")));
   }
 }
 
 TEST_F(test_parse, stray_right_curly_at_top_level) {
   {
-    padded_string code(u8"}"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_unmatched_right_curly,  //
+    test_parser& p = this->make_parser(u8"}"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_unmatched_right_curly,  //
                               right_curly, 0, u8"}")));
   }
 }

@@ -162,19 +162,15 @@ TEST_F(test_error_equals_does_not_distribute_over_or, examples) {
 
 TEST_F(test_error_equals_does_not_distribute_over_or, not_equals) {
   {
-    padded_string code(u8"if (x != 'A' || 'B') {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, IsEmpty());
+    test_parser& p = this->make_parser(u8"if (x != 'A' || 'B') {}"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
-    padded_string code(u8"if (x !== 'A' || 'B') {}"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, IsEmpty());
+    test_parser& p = this->make_parser(u8"if (x !== 'A' || 'B') {}"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 

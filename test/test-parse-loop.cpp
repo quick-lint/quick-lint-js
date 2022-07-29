@@ -172,20 +172,18 @@ TEST_F(test_parse_loop, do_while_without_while_and_condition) {
   }
 
   {
-    padded_string code(u8"do {}; while (x);"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",  //
+    test_parser& p = this->make_parser(u8"do {}; while (x);"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",  //
                                       "visit_exit_block_scope",   //
                                       "visit_variable_use",       // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(
-        v.errors,
-        ElementsAre(DIAG_TYPE_2_OFFSETS(
-            &code, diag_missing_while_and_condition_for_do_while_statement,  //
-            do_token, 0, u8"do",                                             //
-            expected_while, strlen(u8"do {}"), u8"")));
+    EXPECT_THAT(p.errors,
+                ElementsAre(DIAG_TYPE_2_OFFSETS(
+                    p.code(),
+                    diag_missing_while_and_condition_for_do_while_statement,  //
+                    do_token, 0, u8"do",                                      //
+                    expected_while, strlen(u8"do {}"), u8"")));
   }
 }
 
@@ -1055,30 +1053,26 @@ TEST_F(test_parse_loop, for_loop_without_body) {
 
 TEST_F(test_parse_loop, for_loop_without_header) {
   {
-    padded_string code(u8"for x = y;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // y
+    test_parser& p = this->make_parser(u8"for x = y;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // y
                                       "visit_variable_assignment",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_for_loop_header,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_for_loop_header,  //
                               for_token, 0, u8"for")));
   }
 
   {
-    padded_string code(u8"{ for } x = y;"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",    //
+    test_parser& p = this->make_parser(u8"{ for } x = y;"_sv);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",    //
                                       "visit_exit_block_scope",     //
                                       "visit_variable_use",         // y
                                       "visit_variable_assignment",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_for_loop_header,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_for_loop_header,  //
                               for_token, strlen(u8"{ "), u8"for")));
   }
 }

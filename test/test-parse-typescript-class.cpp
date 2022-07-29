@@ -64,13 +64,11 @@ TEST_F(test_parse_typescript_class, field_with_type_is_allowed_in_typescript) {
 TEST_F(test_parse_typescript_class,
        class_index_signature_is_disallowed_in_javascript) {
   {
-    padded_string code(u8"class C { [key: KeyType]: ValueType; }"_sv);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module_catching_fatal_parse_errors(v);
-    // TODO(strager): Improve this error message.
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_unexpected_token,  //
+    test_parser& p =
+        this->make_parser(u8"class C { [key: KeyType]: ValueType; }"_sv);
+    p.parse_and_visit_module_catching_fatal_parse_errors();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_unexpected_token,  //
                               token, strlen(u8"class C { [key"), u8":")));
   }
 }
