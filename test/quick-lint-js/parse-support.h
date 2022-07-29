@@ -72,9 +72,6 @@ constexpr fail_test_on_diag_tag fail_test_on_diag;
 
 class test_parser {
  public:
-  explicit test_parser(padded_string_view input)
-      : test_parser(input.string_view()) {}
-
   explicit test_parser(string8_view input)
       : test_parser(input, parser_options()) {}
 

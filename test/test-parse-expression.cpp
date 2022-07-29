@@ -2815,9 +2815,9 @@ TEST_F(test_parse_expression, binary_operator_span) {
            u8",",  u8"-",   u8"/",  u8"<",   u8"<<", u8"<=", u8"==", u8"===",
            u8">",  u8">=",  u8">>", u8">>>", u8"??", u8"^",  u8"|",  u8"||",
        }) {
-    padded_string code(u8"x" + op + u8"y");
-    SCOPED_TRACE(code);
-    test_parser p(&code);
+    string8 code = u8"x" + op + u8"y";
+    SCOPED_TRACE(out_string8(code));
+    test_parser p(code);
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::binary_operator);
     auto* binary = static_cast<expression::binary_operator*>(ast);
