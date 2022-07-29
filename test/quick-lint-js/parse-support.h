@@ -157,19 +157,6 @@ class test_parser {
 
 class test_parse_expression : public ::testing::Test {
  protected:
-  expression* parse_expression(string8_view input) {
-    return this->parse_expression(input, parser_options());
-  }
-
-  expression* parse_expression(string8_view input,
-                               const parser_options& options) {
-    test_parser& p = this->make_parser(input, options);
-
-    expression* ast = p.parse_expression();
-    EXPECT_THAT(p.errors(), ::testing::IsEmpty()) << out_string8(input);
-    return ast;
-  }
-
   test_parser& make_parser(string8_view input) {
     return this->parsers_.emplace_back(input);
   }
