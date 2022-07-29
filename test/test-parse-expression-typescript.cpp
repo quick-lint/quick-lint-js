@@ -170,8 +170,8 @@ TEST_F(test_parse_expression_typescript, as_type_assertion) {
     ASSERT_EQ(ast->kind(), expression_kind::as_type_assertion);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x as y"));
-    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));
-    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"y"));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"y"));
   }
 }
 

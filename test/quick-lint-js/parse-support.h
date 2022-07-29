@@ -124,8 +124,6 @@ class test_parser {
     return this->parser_.enter_function(attributes);
   }
 
-  spy_visitor& v() noexcept { return this->errors_; }
-
   padded_string_view code() const noexcept { return &this->code_; }
 
   quick_lint_js::parser& parser() noexcept { return this->parser_; }

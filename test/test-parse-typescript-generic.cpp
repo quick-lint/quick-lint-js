@@ -231,8 +231,8 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
     test_parser p(u8"foo<T>(p)"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
-    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
-    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // T
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T"));
   }
 
   {
@@ -240,7 +240,7 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
     test_parser p(u8"foo<<Param>() => ReturnType>(p)"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
-    EXPECT_THAT(p.v().visits,
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",  //
                             "visit_variable_declaration",  // Param
                             "visit_variable_type_use",     // ReturnType
@@ -251,8 +251,8 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
     test_parser p(u8"foo?.<T>(p)"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
-    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
-    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // T
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T"));
   }
 
   {
@@ -266,16 +266,16 @@ TEST_F(test_parse_typescript_generic, function_call_with_generic_arguments) {
     test_parser p(u8"foo<T>`bar`"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var foo)");
-    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
-    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // T
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T"));
   }
 
   {
     test_parser p(u8"foo<T>`bar${baz}`"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "taggedtemplate(var foo, var baz)");
-    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
-    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // T
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T"));
   }
 }
 
@@ -284,24 +284,24 @@ TEST_F(test_parse_typescript_generic, new_with_generic_arguments) {
     test_parser p(u8"new Foo<T>;"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo)");
-    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
-    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // T
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T"));
   }
 
   {
     test_parser p(u8"new Foo<T>"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo)");
-    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
-    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // T
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T"));
   }
 
   {
     test_parser p(u8"new Foo<T>(p)"_sv, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo, var p)");
-    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));  // T
-    EXPECT_THAT(p.v().variable_uses, ElementsAre(u8"T"));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));  // T
+    EXPECT_THAT(p.variable_uses, ElementsAre(u8"T"));
   }
 
   {
@@ -310,7 +310,7 @@ TEST_F(test_parse_typescript_generic, new_with_generic_arguments) {
                   typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Foo)");
-    EXPECT_THAT(p.v().visits,
+    EXPECT_THAT(p.visits,
                 ElementsAre("visit_enter_function_scope",  //
                             "visit_variable_declaration",  // Param
                             "visit_variable_type_use",     // ReturnType
@@ -388,8 +388,8 @@ TEST_F(test_parse_typescript_generic,
     test_parser p(tc.code, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), tc.expected_ast);
-    EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));
-    EXPECT_THAT(p.v().variable_uses, ElementsAre(tc.variable_type_use));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_type_use"));
+    EXPECT_THAT(p.variable_uses, ElementsAre(tc.variable_type_use));
   }
 }
 
@@ -400,7 +400,7 @@ TEST_F(test_parse_typescript_generic,
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, paren(var p))");
     EXPECT_THAT(p.errors, IsEmpty());
-    EXPECT_THAT(p.v().visits, IsEmpty());
+    EXPECT_THAT(p.visits, IsEmpty());
   }
 
   {
@@ -478,16 +478,15 @@ TEST_F(test_parse_typescript_generic,
     test_parser p(tc.code, typescript_options);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), tc.expected_ast);
-    EXPECT_THAT(p.v().variable_uses, IsEmpty());
-    EXPECT_THAT(
-        p.v().visits,
-        ::testing::AnyOf(IsEmpty(),
-                         ElementsAre("visit_enter_class_scope",          //
-                                     "visit_enter_class_scope_body",     //
-                                     "visit_exit_class_scope"),          //
-                         ElementsAre("visit_enter_function_scope",       //
-                                     "visit_enter_function_scope_body",  //
-                                     "visit_exit_function_scope")))
+    EXPECT_THAT(p.variable_uses, IsEmpty());
+    EXPECT_THAT(p.visits, ::testing::AnyOf(
+                              IsEmpty(),
+                              ElementsAre("visit_enter_class_scope",          //
+                                          "visit_enter_class_scope_body",     //
+                                          "visit_exit_class_scope"),          //
+                              ElementsAre("visit_enter_function_scope",       //
+                                          "visit_enter_function_scope_body",  //
+                                          "visit_exit_function_scope")))
         << "there should be no generic arguments (visit_variable_type_use)";
   }
 }
