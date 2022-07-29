@@ -46,15 +46,14 @@ TEST_F(test_parse, statement_starting_with_invalid_token) {
            u8":",
            u8"?",
        }) {
-    padded_string code(string8(token) + u8" x");
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors,
-                ElementsAre(DIAG_TYPE_OFFSETS(&code, diag_unexpected_token,  //
-                                              token, 0, token)));
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
+    string8 code = string8(token) + u8" x";
+    SCOPED_TRACE(out_string8(code));
+    test_parser& p = this->make_parser(code);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_unexpected_token,  //
+                              token, 0, token)));
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
   }
 }
@@ -410,33 +409,33 @@ TEST_F(
     string8 escaped_keyword = escape_first_character_in_keyword(keyword);
 
     {
-      padded_string code(escaped_keyword);
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_keyword_variable_use",  //
+      string8 code = escaped_keyword;
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits, ElementsAre("visit_keyword_variable_use",  //
                                         "visit_end_of_module"));
-      EXPECT_THAT(v.variable_uses, ElementsAre(keyword));
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_keywords_cannot_contain_escape_sequences,  //
-                      escape_sequence, 0, u8"\\u{??}")));
+      EXPECT_THAT(p.variable_uses, ElementsAre(keyword));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              p.code(), diag_keywords_cannot_contain_escape_sequences,  //
+              escape_sequence, 0, u8"\\u{??}")));
     }
 
     {
-      padded_string code(u8"(" + escaped_keyword + u8")");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_keyword_variable_use",  //
+      string8 code = u8"(" + escaped_keyword + u8")";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits, ElementsAre("visit_keyword_variable_use",  //
                                         "visit_end_of_module"));
-      EXPECT_THAT(v.variable_uses, ElementsAre(keyword));
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_OFFSETS(
-                      &code, diag_keywords_cannot_contain_escape_sequences,  //
-                      escape_sequence, strlen(u8"("), u8"\\u{??}")));
+      EXPECT_THAT(p.variable_uses, ElementsAre(keyword));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAre(DIAG_TYPE_OFFSETS(
+              p.code(), diag_keywords_cannot_contain_escape_sequences,  //
+              escape_sequence, strlen(u8"("), u8"\\u{??}")));
     }
   }
 }
@@ -510,85 +509,78 @@ TEST_F(test_parse,
     SCOPED_TRACE(out_string8(keyword));
 
     {
-      padded_string code(escaped_keyword);
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+      string8 code = escaped_keyword;
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  //
                                         "visit_end_of_module"));
-      EXPECT_THAT(v.variable_uses, ElementsAre(keyword));
-      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+      EXPECT_THAT(p.variable_uses, ElementsAre(keyword));
+      EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
 
     {
-      padded_string code(u8"({ " + escaped_keyword + u8" })");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  //
+      string8 code = u8"({ " + escaped_keyword + u8" })";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  //
                                         "visit_end_of_module"));
-      EXPECT_THAT(v.variable_uses, ElementsAre(keyword));
-      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+      EXPECT_THAT(p.variable_uses, ElementsAre(keyword));
+      EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
 
     {
-      padded_string code(u8"({ " + escaped_keyword + u8"() {} })");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",       //
+      string8 code = u8"({ " + escaped_keyword + u8"() {} })";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",       //
                                         "visit_enter_function_scope_body",  //
                                         "visit_exit_function_scope",        //
                                         "visit_end_of_module"));
-      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+      EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
 
     {
-      padded_string code(u8"({ " + escaped_keyword + u8": null })");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_end_of_module"));
-      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+      string8 code = u8"({ " + escaped_keyword + u8": null })";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits, ElementsAre("visit_end_of_module"));
+      EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
 
     {
-      padded_string code(u8"var " + escaped_keyword + u8" = null;");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_declaration",  //
+      string8 code = u8"var " + escaped_keyword + u8" = null;";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits, ElementsAre("visit_variable_declaration",  //
                                         "visit_end_of_module"));
-      EXPECT_THAT(v.variable_declarations, ElementsAre(var_init_decl(keyword)));
-      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+      EXPECT_THAT(p.variable_declarations, ElementsAre(var_init_decl(keyword)));
+      EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
 
     {
-      padded_string code(u8"var { " + escaped_keyword + u8" = a } = b;");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",          // a
+      string8 code = u8"var { " + escaped_keyword + u8" = a } = b;";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",          // a
                                         "visit_variable_use",          // b
                                         "visit_variable_declaration",  //
                                         "visit_end_of_module"));
-      EXPECT_THAT(v.variable_declarations, ElementsAre(var_init_decl(keyword)));
-      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+      EXPECT_THAT(p.variable_declarations, ElementsAre(var_init_decl(keyword)));
+      EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
 
     {
-      padded_string code(u8"class C { " + escaped_keyword + u8"() {} }");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits, ElementsAre("visit_enter_class_scope",          //
+      string8 code = u8"class C { " + escaped_keyword + u8"() {} }";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits, ElementsAre("visit_enter_class_scope",          //
                                         "visit_enter_class_scope_body",     //
                                         "visit_property_declaration",       //
                                         "visit_enter_function_scope",       //
@@ -597,8 +589,8 @@ TEST_F(test_parse,
                                         "visit_exit_class_scope",           //
                                         "visit_variable_declaration",       // C
                                         "visit_end_of_module"));
-      EXPECT_THAT(v.property_declarations, ElementsAre(keyword));
-      EXPECT_THAT(v.errors, IsEmpty()) << "escaped character is legal";
+      EXPECT_THAT(p.property_declarations, ElementsAre(keyword));
+      EXPECT_THAT(p.errors, IsEmpty()) << "escaped character is legal";
     }
   }
 }

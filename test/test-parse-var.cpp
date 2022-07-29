@@ -435,21 +435,20 @@ TEST_F(test_parse_var, parse_invalid_let) {
   }
 
   for (string8 prefix_operator : {u8"--", u8"++"}) {
-    padded_string code(u8"var " + prefix_operator + u8"x;");
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",         // x
+    string8 code = u8"var " + prefix_operator + u8"x;";
+    SCOPED_TRACE(out_string8(code));
+    test_parser& p = this->make_parser(code);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",         // x
                                       "visit_variable_assignment",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(
-        v.errors,
-        UnorderedElementsAre(
-            DIAG_TYPE_OFFSETS(&code, diag_let_with_no_bindings,  //
-                              where, 0, u8"let"),
-            DIAG_TYPE_OFFSETS(&code, diag_missing_semicolon_after_statement,  //
-                              where, strlen(u8"let"), u8"")));
+    EXPECT_THAT(p.errors,
+                UnorderedElementsAre(
+                    DIAG_TYPE_OFFSETS(p.code(), diag_let_with_no_bindings,  //
+                                      where, 0, u8"let"),
+                    DIAG_TYPE_OFFSETS(
+                        p.code(), diag_missing_semicolon_after_statement,  //
+                        where, strlen(u8"let"), u8"")));
   }
 
   {
@@ -524,48 +523,46 @@ TEST_F(test_parse_var, parse_invalid_let) {
            u8"|=",
        }) {
     {
-      padded_string code(u8"let x " + compound_assignment_operator + u8" y, z");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      p.parse_and_visit_module(v);
-      // TODO(strager): We should signal to the linter that duplicate-definition
-      // errors should be ignored for 'x'.
-      EXPECT_THAT(v.visits,
+      string8 code = u8"let x " + compound_assignment_operator + u8" y, z";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use",          // y
                               "visit_variable_declaration",  // x
                               "visit_variable_declaration",  // z
                               "visit_end_of_module"));
-      EXPECT_THAT(v.variable_declarations,
+      EXPECT_THAT(p.variable_declarations,
                   ElementsAre(let_init_decl(u8"x"), let_noinit_decl(u8"z")));
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_2_OFFSETS(
-                      &code, diag_cannot_update_variable_during_declaration,  //
-                      updating_operator, strlen(u8"let x "),
-                      compound_assignment_operator,  //
-                      declaring_token, 0, u8"let")));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAre(DIAG_TYPE_2_OFFSETS(
+              p.code(), diag_cannot_update_variable_during_declaration,  //
+              updating_operator, strlen(u8"let x "),
+              compound_assignment_operator,  //
+              declaring_token, 0, u8"let")));
     }
 
     {
-      padded_string code(u8"const [x, y] " + compound_assignment_operator +
-                         u8" init;");
-      SCOPED_TRACE(code);
-      spy_visitor v;
-      parser p(&code, &v);
-      p.parse_and_visit_module(v);
-      EXPECT_THAT(v.visits,
+      string8 code =
+          u8"const [x, y] " + compound_assignment_operator + u8" init;";
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->make_parser(code);
+      p.parse_and_visit_module();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use",          // init
                               "visit_variable_declaration",  // x
                               "visit_variable_declaration",  // y
                               "visit_end_of_module"));
-      EXPECT_THAT(v.variable_declarations,
+      EXPECT_THAT(p.variable_declarations,
                   ElementsAre(const_init_decl(u8"x"), const_init_decl(u8"y")));
-      EXPECT_THAT(v.errors,
-                  ElementsAre(DIAG_TYPE_2_OFFSETS(
-                      &code, diag_cannot_update_variable_during_declaration,  //
-                      updating_operator, strlen(u8"const [x, y] "),
-                      compound_assignment_operator,  //
-                      declaring_token, 0, u8"const")));
+      EXPECT_THAT(
+          p.errors,
+          ElementsAre(DIAG_TYPE_2_OFFSETS(
+              p.code(), diag_cannot_update_variable_during_declaration,  //
+              updating_operator, strlen(u8"const [x, y] "),
+              compound_assignment_operator,  //
+              declaring_token, 0, u8"const")));
     }
   }
 

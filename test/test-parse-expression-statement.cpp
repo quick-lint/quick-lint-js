@@ -1098,12 +1098,11 @@ TEST_F(test_parse_expression_statement,
            u8"try"_sv,
            u8"var"_sv,
        }) {
-    padded_string code(string8(u8"*\n"_sv) + string8(statement));
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.errors, Not(IsEmpty()));
+    string8 code = string8(u8"*\n"_sv) + string8(statement);
+    SCOPED_TRACE(out_string8(code));
+    test_parser& p = this->make_parser(code);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.errors, Not(IsEmpty()));
   }
 }
 
@@ -1116,15 +1115,14 @@ TEST_F(test_parse_expression_statement,
            u8"throw x;"_sv,
            u8"while(x);"_sv,
        }) {
-    padded_string code(string8(u8"!\n"_sv) + string8(statement));
-    SCOPED_TRACE(code);
-    spy_visitor v;
-    parser p(&code, &v);
-    p.parse_and_visit_module(v);
-    EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // x
+    string8 code = string8(u8"!\n"_sv) + string8(statement);
+    SCOPED_TRACE(out_string8(code));
+    test_parser& p = this->make_parser(code);
+    p.parse_and_visit_module();
+    EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // x
                                       "visit_end_of_module"));
-    EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE_OFFSETS(
-                              &code, diag_missing_operand_for_operator,  //
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
                               where, 0, u8"!")));
   }
 
