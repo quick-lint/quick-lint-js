@@ -120,7 +120,7 @@ TEST_F(test_parse_typescript_class,
 
 TEST_F(test_parse_typescript_class,
        optional_methods_are_disallowed_in_classes) {
-  for (parser_options options : {parser_options(), typescript_options}) {
+  for (parser_options options : {javascript_options, typescript_options}) {
     SCOPED_TRACE(options.typescript ? "typescript" : "javascript");
     test_parser p(u8"class C { method?() {} }"_sv, options, capture_diags);
     p.parse_and_visit_statement();

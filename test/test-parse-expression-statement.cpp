@@ -715,9 +715,7 @@ TEST_F(test_parse_expression_statement, expression_statement) {
   }
 
   {
-    parser_options options;
-    options.jsx = true;
-    test_parser p(u8"<MyJSXComponent />", options);
+    test_parser p(u8"<MyJSXComponent />", jsx_options);
     p.parse_and_visit_statement();
     EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // MyJSXComponent
   }

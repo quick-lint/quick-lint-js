@@ -945,9 +945,7 @@ TEST_F(test_parse_function, arrow_function_with_invalid_parameters) {
     padded_string code(u8"(" + string8(parameter_list) + u8" => {});");
     SCOPED_TRACE(code);
     spy_visitor v;
-    parser_options options;
-    options.jsx = true;
-    parser p(&code, &v, options);
+    parser p(&code, &v, jsx_options);
     auto guard = p.enter_function(function_attributes::async_generator);
     EXPECT_TRUE(p.parse_and_visit_statement(v));
     EXPECT_THAT(v.errors, ElementsAre(DIAG_TYPE(diag_invalid_parameter)));
