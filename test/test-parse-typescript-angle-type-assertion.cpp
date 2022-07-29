@@ -97,6 +97,24 @@ TEST_F(test_parse_typescript_angle_type_assertion, angle_type_assertion) {
 }
 
 TEST_F(test_parse_typescript_angle_type_assertion,
+       angle_type_assertion_with_parenthesized_arrow) {
+  // NOTE(strager): The following syntax is a generic arrow function, not an
+  // angle type assertion: <Type>(param) => body
+
+  {
+    test_parser p(u8"<Type>(param => body)"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    EXPECT_THAT(summarize(ast), "typeassert(paren(arrowfunc(var param)))");
+  }
+
+  {
+    test_parser p(u8"<Type>((param) => body)"_sv, typescript_options);
+    expression* ast = p.parse_expression();
+    EXPECT_THAT(summarize(ast), "typeassert(paren(arrowfunc(var param)))");
+  }
+}
+
+TEST_F(test_parse_typescript_angle_type_assertion,
        angle_bracketed_type_assertion_is_jsx_tag_in_typescript_jsx_mode) {
   {
     test_parser p(u8"<Component>text;\n// </Component>;"_sv,
