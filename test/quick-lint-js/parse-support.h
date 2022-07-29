@@ -220,16 +220,6 @@ inline parse_visit_collector parse_and_visit_statement(
   return v;
 }
 
-inline parse_visit_collector parse_and_visit_typescript_module(
-    string8_view raw_code) {
-  padded_string code(raw_code);
-  failing_diag_reporter reporter;
-  parser p(&code, &reporter, typescript_options);
-  parse_visit_collector v;
-  p.parse_and_visit_module(v);
-  return v;
-}
-
 inline parse_visit_collector parse_and_visit_typescript_type(
     string8_view raw_code) {
   padded_string code(raw_code);

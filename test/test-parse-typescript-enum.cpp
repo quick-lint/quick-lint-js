@@ -450,29 +450,46 @@ TEST_F(test_parse_typescript_enum,
 TEST_F(test_parse_typescript_enum, enums_allow_constant_values) {
   for (string8 decl :
        {u8"enum", u8"const enum", u8"declare enum", u8"declare const enum"}) {
-    parse_and_visit_typescript_module(decl + u8" E { A = 1, B = A }");
-    parse_and_visit_typescript_module(decl + u8" E { A = 1, B = E.A }");
-    parse_and_visit_typescript_module(decl + u8" E { A = OtherEnum.B }");
-    parse_and_visit_typescript_module(decl + u8" E { A = (((1))) }");
-    // Test all allowed binary operators:
-    parse_and_visit_typescript_module(
-        decl + u8" E { A = 2+2-2*2/2%2<<2>>2>>>2&2|2^2 }");
-    // Test all allowed unary operators:
-    parse_and_visit_typescript_module(decl + u8" E { A = +-~2 }");
+    for (string8 code : {
+             decl + u8" E { A = 1, B = A }",
+             decl + u8" E { A = 1, B = E.A }",
+             decl + u8" E { A = OtherEnum.B }",
+             decl + u8" E { A = (((1))) }",
+             // Test all allowed binary operators:
+             decl + u8" E { A = 2+2-2*2/2%2<<2>>2>>>2&2|2^2 }",
+             // Test all allowed unary operators:
+             decl + u8" E { A = +-~2 }",
+         }) {
+      SCOPED_TRACE(out_string8(code));
+      test_parser& p = this->errorless_parser(code, typescript_options);
+      p.parse_and_visit_module();
+    }
   }
 }
 
 TEST_F(test_parse_typescript_enum, normal_enum_allows_non_constant_values) {
-  parse_and_visit_typescript_module(u8"enum E { A = f() }"_sv);
-  parse_and_visit_typescript_module(u8"enum E { A = someVariable }"_sv);
+  for (string8_view code : {
+           u8"enum E { A = f() }"_sv,
+           u8"enum E { A = someVariable }"_sv,
+       }) {
+    SCOPED_TRACE(out_string8(code));
+    test_parser& p = this->errorless_parser(code, typescript_options);
+    p.parse_and_visit_module();
+  }
 }
 
 TEST_F(test_parse_typescript_enum,
        normal_enum_auto_is_allowed_after_constant_value) {
-  parse_and_visit_typescript_module(u8"enum E { A = 42, B }"_sv);
-  parse_and_visit_typescript_module(u8"enum E { A = 2+2, B }"_sv);
-  parse_and_visit_typescript_module(u8"enum E { A = OtherEnum.C, B }"_sv);
-  parse_and_visit_typescript_module(u8"enum E { A, B = A, C, }"_sv);
+  for (string8_view code : {
+           u8"enum E { A = 42, B }"_sv,
+           u8"enum E { A = 2+2, B }"_sv,
+           u8"enum E { A = OtherEnum.C, B }"_sv,
+           u8"enum E { A, B = A, C, }"_sv,
+       }) {
+    SCOPED_TRACE(out_string8(code));
+    test_parser& p = this->errorless_parser(code, typescript_options);
+    p.parse_and_visit_module();
+  }
 }
 
 TEST_F(test_parse_typescript_enum, normal_enum_auto_requires_constant_value) {
