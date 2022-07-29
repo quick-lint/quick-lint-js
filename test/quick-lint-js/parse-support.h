@@ -76,9 +76,7 @@ class test_parser {
       : test_parser(input, parser_options()) {}
 
   explicit test_parser(string8_view input, const parser_options& options)
-      : code_(input),
-        locator(&this->code_),
-        parser_(&this->code_, &this->errors_, options) {}
+      : code_(input), parser_(&this->code_, &this->errors_, options) {}
 
   expression* parse_expression() {
     expression* ast = this->parser_.parse_expression(this->errors_);
@@ -110,11 +108,6 @@ class test_parser {
 
  private:
   padded_string code_;
-
- public:
-  cli_locator locator;
-
- private:
   spy_visitor errors_;
   quick_lint_js::parser parser_;
   std::vector<expression*> expressions_needing_cleanup_;
