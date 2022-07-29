@@ -128,7 +128,7 @@ TEST_F(test_parse_expression_typescript,
   expression* ast = p.parse_expression();
   EXPECT_EQ(summarize(ast), "nonnull(var x)");
   EXPECT_THAT(
-      p.errors(),
+      p.errors,
       ElementsAre(DIAG_TYPE_OFFSETS(
           p.code(),
           diag_typescript_non_null_assertion_not_allowed_in_javascript,  //
@@ -141,7 +141,7 @@ TEST_F(test_parse_expression_typescript,
     test_parser& p = this->make_parser(u8"x as y"_sv, javascript_options);
     EXPECT_EQ(summarize(p.parse_expression()), "as(var x)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(),
             diag_typescript_as_type_assertion_not_allowed_in_javascript,  //

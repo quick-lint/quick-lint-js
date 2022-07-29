@@ -435,7 +435,7 @@ TEST_F(test_parse_typescript_generic,
     test_parser& p = this->make_javascript_parser(u8"foo<T>(p)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, paren(var p))");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(p.v().visits, IsEmpty());
   }
 
@@ -444,21 +444,21 @@ TEST_F(test_parse_typescript_generic,
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "binary(var foo, var T, arrowfunc(), paren(var p))");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
     test_parser& p = this->make_javascript_parser(u8"foo<T>`bar`"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, literal)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
     test_parser& p = this->make_javascript_parser(u8"foo<T>`bar${baz}`"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, template(var baz))");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -466,7 +466,7 @@ TEST_F(test_parse_typescript_generic,
         this->make_javascript_parser(u8"foo<<T>() => number>`bar${baz}`"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var foo, var T, arrowfunc())");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -474,7 +474,7 @@ TEST_F(test_parse_typescript_generic,
     expression* ast = p.parse_expression();
     // FIXME(#557): Precedence is incorrect.
     EXPECT_EQ(summarize(ast), "new(binary(var Foo, var T, missing))");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE(diag_missing_operand_for_operator)));
   }
 
@@ -483,7 +483,7 @@ TEST_F(test_parse_typescript_generic,
     expression* ast = p.parse_expression();
     // FIXME(#557): Precedence is incorrect.
     EXPECT_EQ(summarize(ast), "new(binary(var Foo, var T, paren(var p)))");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -535,7 +535,7 @@ TEST_F(test_parse_typescript_generic,
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(), diag_typescript_generics_not_allowed_in_javascript,
             opening_less, strlen(u8"foo?."), u8"<")));
@@ -547,7 +547,7 @@ TEST_F(test_parse_typescript_generic,
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var foo, var p)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(), diag_typescript_generics_not_allowed_in_javascript,
             opening_less, strlen(u8"foo?."), u8"<")));

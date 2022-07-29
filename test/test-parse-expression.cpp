@@ -35,7 +35,7 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::variable);
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"x");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 1));
   }
 
@@ -43,7 +43,7 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
     test_parser p(u8"42"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::literal);
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 2));
   }
 
@@ -51,7 +51,7 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
     test_parser p(u8"'hello'"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::literal);
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
   }
 
@@ -59,7 +59,7 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
     test_parser p(u8"null"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::literal);
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 4));
   }
 
@@ -67,7 +67,7 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
     test_parser p(u8"true"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::literal);
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 4));
   }
 
@@ -75,7 +75,7 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
     test_parser p(u8"false"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::literal);
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
   }
 
@@ -83,7 +83,7 @@ TEST_F(test_parse_expression, parse_single_token_expression) {
     test_parser p(u8"this"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::literal);
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 4));
   }
 }
@@ -118,7 +118,7 @@ TEST_F(test_parse_expression, private_identifiers_are_not_valid_expressions) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::private_variable);
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(), diag_cannot_refer_to_private_variable_without_object,  //
             private_identifier, 0, u8"#myPrivateField")));
@@ -130,7 +130,7 @@ TEST_F(test_parse_expression, private_identifiers_are_not_valid_expressions) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::assignment);
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(), diag_cannot_refer_to_private_variable_without_object,  //
             private_identifier, 0, u8"#myPrivateField")));
@@ -143,7 +143,7 @@ TEST_F(test_parse_expression, parse_regular_expression) {
     test_parser p(u8"/regexp/"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::literal);
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 8));
   }
 
@@ -151,7 +151,7 @@ TEST_F(test_parse_expression, parse_regular_expression) {
     test_parser p(u8"/=regexp/"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::literal);
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 9));
   }
 }
@@ -162,7 +162,7 @@ TEST_F(test_parse_expression, parse_math_expression) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::unary_operator);
     EXPECT_EQ(ast->child_0()->kind(), expression_kind::variable);
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 2));
   }
 
@@ -182,7 +182,7 @@ TEST_F(test_parse_expression, parse_math_expression) {
     test_parser p(u8"x+y"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, var y)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
   }
 
@@ -219,18 +219,18 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
     test_parser p(u8"2+"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, missing)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, strlen(u8"2"), u8"+")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, strlen(u8"2"), u8"+")));
   }
 
   {
     test_parser p(u8"^2"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(missing, literal)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, 0, u8"^")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, 0, u8"^")));
   }
 
   // NOTE(strager): "/=" is not tested here because "/=/" is a regular
@@ -242,18 +242,18 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
     test_parser p(code);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "upassign(missing, literal)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, 0, op)));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, 0, op)));
   }
 
   {
     test_parser p(u8"2 * * 2"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, missing, literal)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, strlen(u8"2 "), u8"*")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, strlen(u8"2 "), u8"*")));
   }
 
   {
@@ -262,7 +262,7 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
     EXPECT_EQ(summarize(ast), "binary(literal, missing, missing, literal)");
 
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(
             DIAG_TYPE_OFFSETS(p.code(), diag_missing_operand_for_operator,  //
                               where, strlen(u8"2 "), u8"&"),
@@ -274,9 +274,9 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
     test_parser p(u8"(2*)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(binary(literal, missing))");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, 2, u8"*")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, 2, u8"*")));
   }
 
   {
@@ -284,9 +284,9 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "binary(literal, paren(binary(literal, literal)))");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_unmatched_parenthesis,  //
-                                where, strlen(u8"2 * "), u8"(")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_unmatched_parenthesis,  //
+                              where, strlen(u8"2 * "), u8"(")));
   }
 
   {
@@ -296,7 +296,7 @@ TEST_F(test_parse_expression, parse_broken_math_expression) {
               "binary(literal, paren(binary(literal, paren(literal))))");
 
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(p.code(), diag_unmatched_parenthesis,  //
                                       where, strlen(u8"2 * (3 + "), u8"("),
                     DIAG_TYPE_OFFSETS(p.code(), diag_unmatched_parenthesis,  //
@@ -311,7 +311,7 @@ TEST_F(test_parse_expression, comma_expression_with_trailing_comma) {
     test_parser p(u8"(a, b, c,)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(trailingcomma(var a, var b, var c))");
-    EXPECT_THAT(p.errors(), IsEmpty())
+    EXPECT_THAT(p.errors, IsEmpty())
         << "trailing comma expression emits no errors; errors are emitted "
            "depending on the context";
   }
@@ -404,7 +404,7 @@ TEST_F(test_parse_expression, spread) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "spread(var args)");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -417,7 +417,7 @@ TEST_F(test_parse_expression, conditional_expression) {
     EXPECT_EQ(summarize(ast->child_1()), "var y");
     EXPECT_EQ(summarize(ast->child_2()), "var z");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -441,9 +441,9 @@ TEST_F(test_parse_expression, conditional_expression_with_missing_condition) {
     test_parser p(u8"? b : c"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(missing, var b, var c)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, 0, u8"?")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, 0, u8"?")));
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"? b : c"));
   }
 }
@@ -454,9 +454,9 @@ TEST_F(test_parse_expression,
     test_parser p(u8"a ? : c"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(var a, missing, var c)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, strlen(u8"a "), u8"?")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, strlen(u8"a "), u8"?")));
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"a ? : c"));
   }
 }
@@ -467,9 +467,9 @@ TEST_F(test_parse_expression,
     test_parser p(u8"a ? b : "_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, strlen(u8"a ? b "), u8":")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, strlen(u8"a ? b "), u8":")));
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"a ? b : "));
   }
 
@@ -477,9 +477,9 @@ TEST_F(test_parse_expression,
     test_parser p(u8"(a ? b :)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(cond(var a, var b, missing))");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, strlen(u8"(a ? b "), u8":")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, strlen(u8"(a ? b "), u8":")));
     EXPECT_THAT(ast->child_0()->span(),
                 p.matches_offsets(strlen(u8"("), u8"a ? b :)"));
   }
@@ -491,7 +491,7 @@ TEST_F(test_parse_expression,
     test_parser p(u8"a ? b "_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_missing_colon_in_conditional_expression,  //
                     expected_colon, strlen(u8"a ? b"), u8"",                 //
@@ -503,7 +503,7 @@ TEST_F(test_parse_expression,
     test_parser p(u8"a ? b c"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(var a, var b, missing)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_missing_colon_in_conditional_expression,  //
                     expected_colon, strlen(u8"a ? b"), u8"",                 //
@@ -515,7 +515,7 @@ TEST_F(test_parse_expression,
     test_parser p(u8"(a ? b)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(cond(var a, var b, missing))");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_missing_colon_in_conditional_expression,  //
                     expected_colon, strlen(u8"(a ? b"), u8"",                //
@@ -532,7 +532,7 @@ TEST_F(test_parse_expression, parse_function_call) {
     EXPECT_EQ(ast->kind(), expression_kind::call);
     EXPECT_EQ(summarize(ast->child_0()), "var f");
     EXPECT_EQ(ast->child_count(), 1);
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
     expression::call* call = expression_cast<expression::call>(ast);
     EXPECT_THAT(call->left_paren_span(), p.matches_offsets(1, 2));
@@ -564,7 +564,7 @@ TEST_F(test_parse_expression, function_call_with_invalid_extra_commas) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var f)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(), diag_extra_comma_not_allowed_between_arguments,  //
             comma, strlen(u8"f("), u8",")));
@@ -575,7 +575,7 @@ TEST_F(test_parse_expression, function_call_with_invalid_extra_commas) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var f, var a, var b)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(), diag_extra_comma_not_allowed_between_arguments,  //
             comma, strlen(u8"f(a,"), u8",")));
@@ -588,7 +588,7 @@ TEST_F(test_parse_expression, function_call_with_invalid_extra_commas) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var async, var a, var b)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(), diag_extra_comma_not_allowed_between_arguments,  //
             comma, strlen(u8"async(a,"), u8",")));
@@ -610,7 +610,7 @@ TEST_F(test_parse_expression, parse_dot_expressions) {
     EXPECT_EQ(ast->kind(), expression_kind::dot);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(ast->variable_identifier().normalized_name(), u8"prop");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 6));
   }
 
@@ -643,9 +643,9 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
     test_parser p(u8"x.''"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var x, literal)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_invalid_rhs_for_dot_operator,  //
-                                dot, strlen(u8"x"), u8".")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_invalid_rhs_for_dot_operator,  //
+                              dot, strlen(u8"x"), u8".")));
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x.''"));
   }
 
@@ -653,7 +653,7 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
     test_parser p(u8"x. "_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(var x, )");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_property_name_for_dot_operator,  //
                     dot, strlen(u8"x"), u8".")));
@@ -663,7 +663,7 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
     test_parser p(u8"(x.)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(dot(var x, ))");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_property_name_for_dot_operator,  //
                     dot, strlen(u8"(x"), u8".")));
@@ -684,7 +684,7 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
                                  "binary(dot(var x, ), var y)",      //
                                  "condassign(dot(var x, ), var y)",  //
                                  "upassign(dot(var x, ), var y)"));
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_property_name_for_dot_operator,  //
                     dot, strlen(u8"x"), u8".")));
@@ -695,7 +695,7 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "cond(dot(var x, ), dot(var y, ), var z)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(p.code(),
                               diag_missing_property_name_for_dot_operator,  //
@@ -709,7 +709,7 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
     test_parser p(u8"x.;"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(var x, )");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_property_name_for_dot_operator,  //
                     dot, strlen(u8"x"), u8".")));
@@ -720,7 +720,7 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(missing, )");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(
             DIAG_TYPE_OFFSETS(p.code(), diag_missing_operand_for_operator,  //
                               where, 0, u8"."),
@@ -733,7 +733,7 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
     test_parser p(u8"console.('hello');"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(dot(var console, ), literal)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_property_name_for_dot_operator,  //
                     dot, strlen(u8"console"), u8".")));
@@ -743,9 +743,9 @@ TEST_F(test_parse_expression, invalid_dot_expression) {
     test_parser p(u8"'hello' .. 'world'"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, literal)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_dot_dot_is_not_an_operator,  //
-                                dots, strlen(u8"'hello' "), u8"..")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_dot_dot_is_not_an_operator,  //
+                              dots, strlen(u8"'hello' "), u8"..")));
   }
 }
 
@@ -754,7 +754,7 @@ TEST_F(test_parse_expression, parse_optional_dot_expressions) {
     test_parser p(u8"x?.prop"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(var x, prop)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x?.prop"));
   }
 
@@ -782,7 +782,7 @@ TEST_F(test_parse_expression, parse_indexing_expression) {
     EXPECT_EQ(ast->kind(), expression_kind::index);
     EXPECT_EQ(summarize(ast->child_0()), "var xs");
     EXPECT_EQ(summarize(ast->child_1()), "var i");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
   }
 }
@@ -792,7 +792,7 @@ TEST_F(test_parse_expression, parse_optional_indexing_expression) {
     test_parser p(u8"xs?.[i]"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "index(var xs, var i)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"xs?.[i]"));
   }
 }
@@ -802,18 +802,18 @@ TEST_F(test_parse_expression, parse_unclosed_indexing_expression) {
     test_parser p(u8"xs[i"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "index(var xs, var i)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_unmatched_indexing_bracket,  //
-                                left_square, strlen(u8"xs"), u8"[")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_unmatched_indexing_bracket,  //
+                              left_square, strlen(u8"xs"), u8"[")));
   }
 
   {
     test_parser p(u8"(xs[i)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(index(var xs, var i))");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_unmatched_indexing_bracket,  //
-                                left_square, strlen(u8"(xs"), u8"[")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_unmatched_indexing_bracket,  //
+                              left_square, strlen(u8"(xs"), u8"[")));
   }
 }
 
@@ -822,9 +822,9 @@ TEST_F(test_parse_expression, empty_indexing_expression) {
     test_parser p(u8"xs[]"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "index(var xs, missing)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_indexing_requires_expression,  //
-                                squares, strlen(u8"xs"), u8"[]")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_indexing_requires_expression,  //
+                              squares, strlen(u8"xs"), u8"[]")));
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"xs[]"));
   }
 }
@@ -834,7 +834,7 @@ TEST_F(test_parse_expression, parse_parenthesized_expression) {
     test_parser p(u8"(x)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(var x)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"(x)"));
     EXPECT_THAT(ast->child_0()->span(), p.matches_offsets(1, 2));
   }
@@ -874,7 +874,7 @@ TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
     EXPECT_EQ(ast->kind(), expression_kind::await);
     EXPECT_EQ(summarize(ast->child_0()), "var myPromise");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 15));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -882,7 +882,7 @@ TEST_F(test_parse_expression, await_unary_operator_inside_async_functions) {
     auto guard = p.parser().enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "await(paren(var x))");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -891,7 +891,7 @@ TEST_F(test_parse_expression, redundant_await) {
     test_parser p(u8"await await p"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "await(await(var p))");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(p.code(), diag_redundant_await,
                                               await_operator, 0, u8"await")));
   }
@@ -901,7 +901,7 @@ TEST_F(test_parse_expression, redundant_await) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "await(await(await(var p)))");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(p.code(), diag_redundant_await, await_operator, 0,
                               u8"await"),
@@ -917,7 +917,7 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
       [[maybe_unused]] auto guard = make_guard(p.parser());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "asyncarrowfunc(var x)");
-      EXPECT_THAT(p.errors(),
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_await_followed_by_arrow_function,  //
                       await_operator, 0, u8"await")));
@@ -928,7 +928,7 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
       [[maybe_unused]] auto guard = make_guard(p.parser());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "asyncarrowfunc()");
-      EXPECT_THAT(p.errors(),
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_await_followed_by_arrow_function,  //
                       await_operator, 0, u8"await")));
@@ -939,7 +939,7 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
       [[maybe_unused]] auto guard = make_guard(p.parser());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "asyncarrowfunc(var param)");
-      EXPECT_THAT(p.errors(),
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_await_followed_by_arrow_function,  //
                       await_operator, 0, u8"await")));
@@ -950,7 +950,7 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
       [[maybe_unused]] auto guard = make_guard(p.parser());
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "asyncarrowfunc(var param)");
-      EXPECT_THAT(p.errors(),
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_await_followed_by_arrow_function,  //
                       await_operator, 0, u8"await")));
@@ -983,7 +983,7 @@ TEST_F(test_parse_expression, await_followed_by_arrow_function) {
     EXPECT_EQ(summarize(ast), "binary(call(var await), var c)")
         << "'await' should not be treated as if it was 'async' in an arrow "
            "function.";
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_unexpected_arrow_after_expression,  //
                     arrow, strlen(u8"await?.() "), u8"=>",             //
@@ -1140,14 +1140,14 @@ TEST_F(test_parse_expression,
       } else if (test.expected_normal_function) {
         // 'await' should look like an identifier.
         EXPECT_EQ(summarize(ast), test.expected_normal_function);
-        EXPECT_THAT(p.errors(), IsEmpty());
+        EXPECT_THAT(p.errors, IsEmpty());
       } else {
         // 'await' doesn't look like an identifier. We should report an error
         // and recover as if 'await' was an operator.
         EXPECT_EQ(summarize(ast), test.expected_async_function);
         if (test.code == u8"await await x") {
           EXPECT_THAT(
-              p.errors(),
+              p.errors,
               ::testing::IsSupersetOf(
                   {DIAG_TYPE_OFFSETS(p.code(),
                                      diag_await_operator_outside_async,
@@ -1157,7 +1157,7 @@ TEST_F(test_parse_expression,
                        await_operator, strlen(u8"await "), u8"await")}));
         } else {
           std::size_t await_offset = test.code.find(u8"await");
-          EXPECT_THAT(p.errors(),
+          EXPECT_THAT(p.errors,
                       ElementsAre(DIAG_TYPE_OFFSETS(
                           p.code(), diag_await_operator_outside_async,  //
                           await_operator, await_offset, u8"await")));
@@ -1172,11 +1172,11 @@ TEST_F(test_parse_expression,
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), test.expected_async_function);
       if (test.code == u8"await await x") {
-        EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                    p.code(), diag_redundant_await,
-                                    await_operator, 0, u8"await")));
+        EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                                  p.code(), diag_redundant_await,
+                                  await_operator, 0, u8"await")));
       } else {
-        EXPECT_THAT(p.errors(), IsEmpty());
+        EXPECT_THAT(p.errors, IsEmpty());
       }
     }
 
@@ -1188,11 +1188,11 @@ TEST_F(test_parse_expression,
                                     ? test.expected_async_function
                                     : test.expected_normal_function);
       if (test.code == u8"await await x") {
-        EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                    p.code(), diag_redundant_await,
-                                    await_operator, 0, u8"await")));
+        EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                                  p.code(), diag_redundant_await,
+                                  await_operator, 0, u8"await")));
       } else {
-        EXPECT_THAT(p.errors(), IsEmpty());
+        EXPECT_THAT(p.errors, IsEmpty());
       }
     }
   }
@@ -1204,7 +1204,7 @@ TEST_F(test_parse_expression, await_variable_name_outside_async_functions) {
     auto guard = p.parser().enter_function(function_attributes::normal);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var await, var x)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1214,9 +1214,9 @@ TEST_F(test_parse_expression, await_unary_operator_outside_async_functions) {
     auto guard = p.parser().enter_function(function_attributes::normal);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "await(var myPromise)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_await_operator_outside_async,  //
-                                await_operator, 0, u8"await")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_await_operator_outside_async,  //
+                              await_operator, 0, u8"await")));
   }
 }
 
@@ -1237,7 +1237,7 @@ TEST_F(test_parse_expression,
     EXPECT_EQ(summarize(ast), "yieldnone");
     EXPECT_EQ(ast->kind(), expression_kind::yield_none);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1301,7 +1301,7 @@ TEST_F(test_parse_expression, yield_unary_operator_inside_generator_functions) {
     EXPECT_EQ(ast->kind(), expression_kind::yield_one);
     EXPECT_EQ(summarize(ast->child_0()), "var v");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1309,7 +1309,7 @@ TEST_F(test_parse_expression, yield_unary_operator_inside_generator_functions) {
     auto guard = p.parser().enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "yield(paren(var x))");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1318,7 +1318,7 @@ TEST_F(test_parse_expression, yield_unary_operator_inside_generator_functions) {
         p.parser().enter_function(function_attributes::generator);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var f, yield(var a), yield(var b), var c)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1332,7 +1332,7 @@ TEST_F(test_parse_expression,
     EXPECT_EQ(ast->kind(), expression_kind::yield_many);
     EXPECT_EQ(summarize(ast->child_0()), "var other");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 12));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1342,7 +1342,7 @@ TEST_F(test_parse_expression,
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "call(var f, yieldmany(var a), yieldmany(var b), var c)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1352,7 +1352,7 @@ TEST_F(test_parse_expression, yield_variable_name_outside_generator_functions) {
     auto guard = p.parser().enter_function(function_attributes::normal);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(var yield, var x)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1360,7 +1360,7 @@ TEST_F(test_parse_expression, yield_variable_name_outside_generator_functions) {
     auto guard = p.parser().enter_function(function_attributes::normal);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var yield, var other)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1372,7 +1372,7 @@ TEST_F(test_parse_expression, parse_new_expression) {
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child_0()), "var Date");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 8));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1382,14 +1382,14 @@ TEST_F(test_parse_expression, parse_new_expression) {
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child_0()), "var Date");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 10));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
     test_parser p(u8"new Date(y,m,d)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "new(var Date, var y, var m, var d)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1399,7 +1399,7 @@ TEST_F(test_parse_expression, new_target) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "newtarget");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 10));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1414,14 +1414,14 @@ TEST_F(test_parse_expression, super) {
     test_parser p(u8"super()"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(super)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
     test_parser p(u8"super.method()"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(dot(super, method))");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1430,14 +1430,14 @@ TEST_F(test_parse_expression, import) {
     test_parser p(u8"import(url)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "call(import, var url)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
     test_parser p(u8"import.meta"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "dot(import, meta)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1448,7 +1448,7 @@ TEST_F(test_parse_expression, parse_assignment) {
     EXPECT_EQ(ast->kind(), expression_kind::assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
   }
 
@@ -1496,7 +1496,7 @@ TEST_F(test_parse_expression, parse_compound_assignment) {
     EXPECT_EQ(ast->kind(), expression_kind::compound_assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, code.size()));
   }
 }
@@ -1510,7 +1510,7 @@ TEST_F(test_parse_expression, parse_conditional_assignment) {
     EXPECT_EQ(ast->kind(), expression_kind::conditional_assignment);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_EQ(summarize(ast->child_1()), "var y");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_THAT(ast->span(), p.matches_offsets(0, code.size()));
   }
 }
@@ -1521,7 +1521,7 @@ TEST_F(test_parse_expression, parse_invalid_assignment) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(binary(var x, var y), var z)");
 
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_invalid_expression_left_of_assignment,  //
                     where, 0, u8"x+y")));
@@ -1538,7 +1538,7 @@ TEST_F(test_parse_expression, parse_invalid_assignment) {
     p.parse_expression();
 
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE(diag_invalid_expression_left_of_assignment)));
   }
 
@@ -1550,7 +1550,7 @@ TEST_F(test_parse_expression, parse_invalid_assignment) {
     p.parse_expression();
 
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE(diag_invalid_expression_left_of_assignment)));
   }
 }
@@ -1562,7 +1562,7 @@ TEST_F(test_parse_expression, parse_prefix_plusplus_minusminus) {
     EXPECT_EQ(ast->kind(), expression_kind::rw_unary_prefix);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1571,7 +1571,7 @@ TEST_F(test_parse_expression, parse_prefix_plusplus_minusminus) {
     EXPECT_EQ(ast->kind(), expression_kind::rw_unary_prefix);
     EXPECT_EQ(summarize(ast->child_0()), "var y");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1581,7 +1581,7 @@ TEST_F(test_parse_expression, parse_prefix_plusplus_plus_operand) {
 
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(rwunary(var x), var y)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1589,7 +1589,7 @@ TEST_F(test_parse_expression, parse_prefix_plusplus_plus_operand) {
 
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(rwunary(var x), var y)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1597,7 +1597,7 @@ TEST_F(test_parse_expression, parse_prefix_plusplus_plus_operand) {
 
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "rwunary(dot(var x, y))");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1605,7 +1605,7 @@ TEST_F(test_parse_expression, parse_prefix_plusplus_plus_operand) {
 
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "rwunary(index(var x, var y))");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1614,36 +1614,36 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
     test_parser p(u8"--"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "rwunary(missing)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, 0, u8"--")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, 0, u8"--")));
   }
 
   {
     test_parser p(u8"++;"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "rwunary(missing)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, 0, u8"++")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, 0, u8"++")));
   }
 
   {
     test_parser p(u8"(-)"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(unary(missing))");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, strlen(u8"("), u8"-")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, strlen(u8"("), u8"-")));
   }
 
   {
     test_parser p(u8"!;"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "unary(missing)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, 0, u8"!")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, 0, u8"!")));
   }
 
   {
@@ -1651,9 +1651,9 @@ TEST_F(test_parse_expression, parse_unary_prefix_operator_with_no_operand) {
     auto guard = p.parser().enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "await(missing)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_missing_operand_for_operator,  //
-                                where, 0, u8"await")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_missing_operand_for_operator,  //
+                              where, 0, u8"await")));
   }
 }
 
@@ -1664,7 +1664,7 @@ TEST_F(test_parse_expression, parse_suffix_plusplus_minusminus) {
     EXPECT_EQ(ast->kind(), expression_kind::rw_unary_suffix);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 3));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1678,7 +1678,7 @@ TEST_F(test_parse_expression, suffix_plusplus_minusminus_disallows_line_break) {
     expression* ast_2 = p.parse_expression();
     EXPECT_EQ(summarize(ast_2), "rwunary(var y)");
 
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -1699,7 +1699,7 @@ TEST_F(test_parse_expression, parse_template) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::literal);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1709,7 +1709,7 @@ TEST_F(test_parse_expression, parse_template) {
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var world");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 15));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1733,7 +1733,7 @@ TEST_F(test_parse_expression, tagged_template_literal) {
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var hello");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 12));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1744,7 +1744,7 @@ TEST_F(test_parse_expression, tagged_template_literal) {
     EXPECT_EQ(summarize(ast->child(0)), "var hello");
     EXPECT_EQ(summarize(ast->child(1)), "var literal");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 33));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1787,7 +1787,7 @@ TEST_F(test_parse_expression, untagged_template_with_invalid_escape) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "literal");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE(diag_expected_hex_digits_in_unicode_escape)));
   }
 
@@ -1796,7 +1796,7 @@ TEST_F(test_parse_expression, untagged_template_with_invalid_escape) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "template(var expr)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE(diag_expected_hex_digits_in_unicode_escape)));
   }
 
@@ -1805,7 +1805,7 @@ TEST_F(test_parse_expression, untagged_template_with_invalid_escape) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "template(var expr)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE(diag_expected_hex_digits_in_unicode_escape)));
   }
 
@@ -1814,7 +1814,7 @@ TEST_F(test_parse_expression, untagged_template_with_invalid_escape) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "template(var expr1, var expr2)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE(diag_expected_hex_digits_in_unicode_escape)));
   }
 }
@@ -1885,7 +1885,7 @@ TEST_F(test_parse_expression, array_literal) {
     test_parser p(u8"[await myPromise,]"_sv);
     auto guard = p.parser().enter_function(function_attributes::async);
     expression* ast = p.parse_expression();
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
     EXPECT_EQ(summarize(ast), "array(await(var myPromise))");
   }
 }
@@ -1894,30 +1894,30 @@ TEST_F(test_parse_expression, malformed_array_literal) {
   {
     test_parser p(u8"[ "_sv);
     expression* ast = p.parse_expression();
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_2_OFFSETS(
-                                p.code(), diag_missing_array_close,  //
-                                left_square, 0, u8"[",               //
-                                expected_right_square, strlen(u8"["), u8"")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_2_OFFSETS(
+                              p.code(), diag_missing_array_close,  //
+                              left_square, 0, u8"[",               //
+                              expected_right_square, strlen(u8"["), u8"")));
     EXPECT_EQ(summarize(ast), "array()");
   }
 
   {
     test_parser p(u8"[ x "_sv);
     expression* ast = p.parse_expression();
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_2_OFFSETS(
-                                p.code(), diag_missing_array_close,  //
-                                left_square, 0, u8"[",               //
-                                expected_right_square, strlen(u8"[ x"), u8"")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_2_OFFSETS(
+                              p.code(), diag_missing_array_close,  //
+                              left_square, 0, u8"[",               //
+                              expected_right_square, strlen(u8"[ x"), u8"")));
     EXPECT_EQ(summarize(ast), "array(var x)");
   }
 
   {
     test_parser p(u8"[\nif (true) {}"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_2_OFFSETS(
-                                p.code(), diag_missing_array_close,  //
-                                left_square, 0, u8"[",               //
-                                expected_right_square, strlen(u8"["), u8"")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_2_OFFSETS(
+                              p.code(), diag_missing_array_close,  //
+                              left_square, 0, u8"[",               //
+                              expected_right_square, strlen(u8"["), u8"")));
     EXPECT_EQ(summarize(ast), "array()");
   }
 }
@@ -1929,7 +1929,7 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(ast->kind(), expression_kind::object);
     EXPECT_EQ(ast->object_entry_count(), 0);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 2));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -1983,7 +1983,7 @@ TEST_F(test_parse_expression, object_literal) {
     EXPECT_EQ(summarize(entry.value), "var thing");
     EXPECT_THAT(entry.value->span(), p.matches_offsets(1, 6));
     EXPECT_FALSE(entry.init);
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2043,7 +2043,7 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
     EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 16));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2054,7 +2054,7 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
     EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 18));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2065,7 +2065,7 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
     EXPECT_EQ(summarize(ast->object_entry(0).property), "var func");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
     EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 18));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2076,7 +2076,7 @@ TEST_F(test_parse_expression, object_literal_with_method_key) {
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
     EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 22));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2161,7 +2161,7 @@ TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
     EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 16));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2172,7 +2172,7 @@ TEST_F(test_parse_expression, object_literal_with_getter_setter_key) {
     EXPECT_EQ(summarize(ast->object_entry(0).property), "literal");
     EXPECT_EQ(summarize(ast->object_entry(0).value), "function");
     EXPECT_THAT(ast->object_entry(0).value->span(), p.matches_offsets(2, 17));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2290,7 +2290,7 @@ TEST_F(test_parse_expression,
       test_parser p(u8"{" + keyword + u8"}");
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: missing)");
-      EXPECT_THAT(p.errors(),
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_missing_value_for_object_literal_entry,  //
                       key, strlen(u8"{"), keyword)));
@@ -2300,7 +2300,7 @@ TEST_F(test_parse_expression,
       test_parser p(u8"{" + keyword + u8", other}");
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: missing, literal: var other)");
-      EXPECT_THAT(p.errors(),
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_missing_value_for_object_literal_entry,  //
                       key, strlen(u8"{"), keyword)));
@@ -2315,7 +2315,7 @@ TEST_F(
     test_parser p(u8"{ \\u{69}f }");
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: var if)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_keywords_cannot_contain_escape_sequences,  //
                     escape_sequence, strlen(u8"{ "), u8"\\u{69}")));
@@ -2347,29 +2347,27 @@ TEST_F(test_parse_expression, incomplete_object_literal) {
     test_parser p(u8"{ p1 "_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: var p1)");
-    EXPECT_THAT(p.errors(),
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(), diag_unclosed_object_literal,  //
-                    object_open, 0, u8"{",                   //
-                    expected_object_close, strlen(u8"{ p1"), u8"")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_2_OFFSETS(
+                              p.code(), diag_unclosed_object_literal,  //
+                              object_open, 0, u8"{",                   //
+                              expected_object_close, strlen(u8"{ p1"), u8"")));
   }
 
   {
     test_parser p(u8"{ p1, "_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: var p1)");
-    EXPECT_THAT(p.errors(),
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(), diag_unclosed_object_literal,  //
-                    object_open, 0, u8"{",                   //
-                    expected_object_close, strlen(u8"{ p1,"), u8"")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_2_OFFSETS(
+                              p.code(), diag_unclosed_object_literal,  //
+                              object_open, 0, u8"{",                   //
+                              expected_object_close, strlen(u8"{ p1,"), u8"")));
   }
 
   {
     test_parser p(u8"({ p1, )"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "paren(object(literal: var p1))");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_unclosed_object_literal,  //
                     object_open, strlen(u8"("), u8"{",       //
@@ -2380,7 +2378,7 @@ TEST_F(test_parse_expression, incomplete_object_literal) {
     test_parser p(u8"[{ p1, ]"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "array(object(literal: var p1))");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_unclosed_object_literal,  //
                     object_open, strlen(u8"["), u8"{",       //
@@ -2394,7 +2392,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: var v1, literal: var p2)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(), diag_missing_comma_between_object_literal_entries,  //
             where, strlen(u8"{p1: v1"), u8"")));
@@ -2404,7 +2402,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     test_parser p(u8"{1234}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: missing)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_invalid_lone_literal_in_object_literal,  //
                     where, strlen(u8"{"), u8"1234")));
@@ -2414,7 +2412,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     test_parser p(u8"{'x'}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: missing)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_invalid_lone_literal_in_object_literal,  //
                     where, strlen(u8"{"), u8"'x'")));
@@ -2425,7 +2423,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: var a, literal: var c)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(), diag_missing_comma_between_object_literal_entries,  //
             where, strlen(u8"{a"), u8"")));
@@ -2436,7 +2434,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: var a, literal: function)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(), diag_missing_comma_between_object_literal_entries,  //
             where, strlen(u8"{a"), u8"")));
@@ -2446,7 +2444,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     test_parser p(u8"{async f}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: function)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_function_parameter_list,  //
                     expected_parameter_list, strlen(u8"{async f"), u8"")));
@@ -2456,7 +2454,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     test_parser p(u8"{*f}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: function)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_function_parameter_list,  //
                     expected_parameter_list, strlen(u8"{*f"), u8"")));
@@ -2466,7 +2464,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     test_parser p(u8"{function a(){}}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: function)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_methods_should_not_use_function_keyword,  //
                     function_token, strlen(u8"{"), u8"function")));
@@ -2476,7 +2474,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     test_parser p(u8"{async function a(){}}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: function)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_methods_should_not_use_function_keyword,  //
                     function_token, strlen(u8"{async "), u8"function")));
@@ -2486,7 +2484,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     test_parser p(u8"{function *a(){}}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: function)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_methods_should_not_use_function_keyword,  //
                     function_token, strlen(u8"{"), u8"function")));
@@ -2496,7 +2494,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     test_parser p(u8"{ [x] }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(var x: missing)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_value_for_object_literal_entry,  //
                     key, strlen(u8"{ "), u8"[x]")));
@@ -2506,7 +2504,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     test_parser p(u8"{ [x], other }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(var x: missing, literal: var other)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_value_for_object_literal_entry,  //
                     key, strlen(u8"{ "), u8"[x]")));
@@ -2530,7 +2528,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
                          "object(literal: condassign(var one, var two))",
                          "object(literal: dot(var one, two))",
                          "object(literal: upassign(var one, var two))"));
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_key_for_object_entry,  //
                     expression, strlen(u8"{"), u8"one " + op + u8" two")));
@@ -2551,7 +2549,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
                                    "object(literal: binary(literal, var two))",
                                    "object(literal: dot(literal, two))",
                                    "object(literal: literal = var two)"));
-      EXPECT_THAT(p.errors(),
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_missing_key_for_object_entry,  //
                       expression, strlen(u8"{"), u8"'one' " + op + u8" two")));
@@ -2567,7 +2565,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
                                    "object(literal: binary(literal, var two))",
                                    "object(literal: dot(literal, two))",
                                    "object(literal: literal = var two)"));
-      EXPECT_THAT(p.errors(),
+      EXPECT_THAT(p.errors,
                   ElementsAre(DIAG_TYPE_OFFSETS(
                       p.code(), diag_missing_key_for_object_entry,  //
                       expression, strlen(u8"{"), u8"1234 " + op + u8" two")));
@@ -2582,7 +2580,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     EXPECT_EQ(summarize(ast),
               "object(literal: rwunarysuffix(var one), literal: var two)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(p.code(), diag_missing_key_for_object_entry,  //
                               expression, strlen(u8"{"), u8"one " + op),
@@ -2596,7 +2594,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: var value)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(),
             diag_private_properties_are_not_allowed_in_object_literals,  //
@@ -2608,7 +2606,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(var other: var value)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(),
             diag_private_properties_are_not_allowed_in_object_literals,  //
@@ -2623,7 +2621,7 @@ TEST_F(test_parse_expression, malformed_object_literal) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: function)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(),
             diag_private_properties_are_not_allowed_in_object_literals,  //
@@ -2640,7 +2638,7 @@ TEST_F(test_parse_expression,
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast),
               "object(literal: var value, literal: var second)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(),
                     diag_expected_comma_to_separate_object_literal_entries,  //
@@ -2654,7 +2652,7 @@ TEST_F(test_parse_expression,
               "object(literal: var first, literal: var get, "
               "literal: var set, literal: var async)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(
                 p.code(),
@@ -2680,7 +2678,7 @@ TEST_F(test_parse_expression,
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(var key: missing, literal: var other)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(
                 p.code(),
@@ -2702,7 +2700,7 @@ TEST_F(test_parse_expression,
               "object(literal: var first, literal: var get, "
               "literal: var set, literal: var async)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(
                 p.code(),
@@ -2728,7 +2726,7 @@ TEST_F(test_parse_expression,
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(var key: missing, literal: var other)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         UnorderedElementsAre(
             DIAG_TYPE_OFFSETS(
                 p.code(),
@@ -2743,7 +2741,7 @@ TEST_F(test_parse_expression,
     test_parser p(u8"{ method() {}< other }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: function, literal: var other)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(),
                     diag_expected_comma_to_separate_object_literal_entries,  //
@@ -2758,7 +2756,7 @@ TEST_F(test_parse_expression,
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(literal: function)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
             p.code(), diag_generator_function_star_belongs_before_name,  //
             function_name, strlen(u8"{"), u8"method",                    //
@@ -2770,7 +2768,7 @@ TEST_F(test_parse_expression,
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "object(var computed: function)");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_2_OFFSETS(
             p.code(), diag_generator_function_star_belongs_before_name,  //
             function_name, strlen(u8"{ "), u8"[computed]",               //
@@ -2787,7 +2785,7 @@ TEST_F(test_parse_expression, parse_comma_expression) {
     EXPECT_EQ(summarize(ast->child(1)), "var y");
     EXPECT_EQ(summarize(ast->child(2)), "var z");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 5));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2886,7 +2884,7 @@ TEST_F(test_parse_expression, parse_function_expression) {
     EXPECT_EQ(ast->kind(), expression_kind::function);
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 12));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2930,7 +2928,7 @@ TEST_F(test_parse_expression, function_with_spread_and_comma) {
   {
     test_parser p(u8"function(...a, ) { b; }"_sv);
     p.parse_expression();
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_comma_not_allowed_after_spread_parameter,  //
                     comma, strlen(u8"function(...a"), u8",",                  //
@@ -2945,7 +2943,7 @@ TEST_F(test_parse_expression, async_function_expression) {
     EXPECT_EQ(ast->kind(), expression_kind::function);
     EXPECT_EQ(ast->attributes(), function_attributes::async);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 18));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2954,7 +2952,7 @@ TEST_F(test_parse_expression, async_function_expression) {
     EXPECT_EQ(ast->kind(), expression_kind::named_function);
     EXPECT_EQ(ast->attributes(), function_attributes::async);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 20));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -2965,7 +2963,7 @@ TEST_F(test_parse_expression, generator_function_expression) {
     EXPECT_EQ(ast->kind(), expression_kind::function);
     EXPECT_EQ(ast->attributes(), function_attributes::generator);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 13));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -2982,7 +2980,7 @@ TEST_F(test_parse_expression, async_generator_function_expression) {
     EXPECT_EQ(ast->kind(), expression_kind::function);
     EXPECT_EQ(ast->attributes(), function_attributes::async_generator);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 19));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3000,7 +2998,7 @@ TEST_F(test_parse_expression, arrow_function) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 0);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 7));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3011,7 +3009,7 @@ TEST_F(test_parse_expression, arrow_function) {
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 6));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3022,7 +3020,7 @@ TEST_F(test_parse_expression, arrow_function) {
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 8));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3033,7 +3031,7 @@ TEST_F(test_parse_expression, arrow_function) {
     EXPECT_EQ(ast->child_count(), 2);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_EQ(summarize(ast->child(1)), "var b");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3067,7 +3065,7 @@ TEST_F(test_parse_expression, arrow_function) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 0);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 12));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3078,7 +3076,7 @@ TEST_F(test_parse_expression, arrow_function) {
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var a");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 11));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -3086,7 +3084,7 @@ TEST_F(test_parse_expression, arrow_function_with_spread_and_comma) {
   {
     test_parser p(u8"(...b, ) => { c; }"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_comma_not_allowed_after_spread_parameter,  //
                     comma, strlen(u8"(...b"), u8",",                          //
@@ -3104,7 +3102,7 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)),
               "object(literal: var a, literal: var b)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3114,7 +3112,7 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "array(var a, var b)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3124,7 +3122,7 @@ TEST_F(test_parse_expression, arrow_function_with_destructuring_parameters) {
     EXPECT_EQ(ast->attributes(), function_attributes::normal);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "spread(var args)");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -3136,7 +3134,7 @@ TEST_F(test_parse_expression, async_arrow_function) {
     EXPECT_EQ(ast->attributes(), function_attributes::async);
     EXPECT_EQ(ast->child_count(), 0);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 18));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3146,7 +3144,7 @@ TEST_F(test_parse_expression, async_arrow_function) {
     EXPECT_EQ(ast->attributes(), function_attributes::async);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var x");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3162,7 +3160,7 @@ TEST_F(test_parse_expression, async_arrow_function) {
     EXPECT_EQ(ast->attributes(), function_attributes::async);
     EXPECT_EQ(ast->child_count(), 0);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 13));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3172,7 +3170,7 @@ TEST_F(test_parse_expression, async_arrow_function) {
     EXPECT_EQ(ast->attributes(), function_attributes::async);
     EXPECT_EQ(ast->child_count(), 1);
     EXPECT_EQ(summarize(ast->child(0)), "var x");
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3192,7 +3190,7 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
   {
     test_parser p(u8"a() => b"_sv);
     expression* ast = p.parse_expression();
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_unexpected_arrow_after_expression,  //
                     arrow, strlen(u8"a() "), u8"=>",                   //
@@ -3205,7 +3203,7 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
     test_parser p(u8"a(b) => c"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(call(var a, var b), var c)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_unexpected_arrow_after_expression,  //
                     arrow, strlen(u8"a(b) "), u8"=>",                  //
@@ -3217,7 +3215,7 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var a, arrowfunc())");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(),
             diag_missing_operator_between_expression_and_arrow_function,  //
@@ -3230,7 +3228,7 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(var a, arrowfunc(var b))");
     EXPECT_THAT(
-        p.errors(),
+        p.errors,
         ElementsAre(DIAG_TYPE_OFFSETS(
             p.code(),
             diag_missing_operator_between_expression_and_arrow_function,  //
@@ -3241,7 +3239,7 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
     test_parser p(u8"=> a"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "arrowfunc()");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_arrow_function_parameter_list,  //
                     arrow, 0, u8"=>")));
@@ -3251,7 +3249,7 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
     test_parser p(u8"=> { body; }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "arrowfunc()");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_arrow_function_parameter_list,  //
                     arrow, 0, u8"=>")));
@@ -3261,7 +3259,7 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
     test_parser p(u8"=> { body; }, other"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(arrowfunc(), var other)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_arrow_function_parameter_list,  //
                     arrow, 0, u8"=>")));
@@ -3271,29 +3269,27 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
     test_parser p(u8"42 => body"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(literal, var body)");
-    EXPECT_THAT(p.errors(),
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(), diag_unexpected_arrow_after_literal,  //
-                    arrow, strlen(u8"42 "), u8"=>",                 //
-                    literal_parameter, 0, u8"42")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_2_OFFSETS(
+                              p.code(), diag_unexpected_arrow_after_literal,  //
+                              arrow, strlen(u8"42 "), u8"=>",                 //
+                              literal_parameter, 0, u8"42")));
   }
 
   {
     test_parser p(u8"42 => {body();}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "arrowfunc()");
-    EXPECT_THAT(p.errors(),
-                ElementsAre(DIAG_TYPE_2_OFFSETS(
-                    p.code(), diag_unexpected_arrow_after_literal,  //
-                    arrow, strlen(u8"42 "), u8"=>",                 //
-                    literal_parameter, 0, u8"42")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_2_OFFSETS(
+                              p.code(), diag_unexpected_arrow_after_literal,  //
+                              arrow, strlen(u8"42 "), u8"=>",                 //
+                              literal_parameter, 0, u8"42")));
   }
 
   {
     test_parser p(u8"x.p => rhs"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(dot(var x, p), var rhs)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_unexpected_arrow_after_expression,  //
                     arrow, strlen(u8"x.p "), u8"=>",                   //
@@ -3304,7 +3300,7 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
     test_parser p(u8"x.p => {body();}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "arrowfunc()");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(), diag_unexpected_arrow_after_expression,  //
                     arrow, strlen(u8"x.p "), u8"=>",                   //
@@ -3315,10 +3311,10 @@ TEST_F(test_parse_expression, invalid_arrow_function) {
     test_parser p(u8"(x, 42, y) => {body();}"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "arrowfunc(var x, literal, var y)");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(),
-                                diag_unexpected_literal_in_parameter_list,  //
-                                literal, strlen(u8"(x, "), u8"42")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(),
+                              diag_unexpected_literal_in_parameter_list,  //
+                              literal, strlen(u8"(x, "), u8"42")));
   }
 }
 
@@ -3327,7 +3323,7 @@ TEST_F(test_parse_expression, function_without_parameter_list) {
     test_parser p(u8"function { return 42; }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "function");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_function_parameter_list,  //
                     expected_parameter_list, strlen(u8"function"), u8"")));
@@ -3338,7 +3334,7 @@ TEST_F(test_parse_expression, function_without_parameter_list) {
     test_parser p(u8"function }"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "function");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_function_parameter_list,  //
                     expected_parameter_list, strlen(u8"function"), u8"")));
@@ -3350,7 +3346,7 @@ TEST_F(test_parse_expression, invalid_parentheses) {
     test_parser p(u8"()"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "parenempty");
-    EXPECT_THAT(p.errors(), IsEmpty())
+    EXPECT_THAT(p.errors, IsEmpty())
         << "errors should be reported during visitation";
   }
 
@@ -3358,7 +3354,7 @@ TEST_F(test_parse_expression, invalid_parentheses) {
     test_parser p(u8"x = ()"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(var x, parenempty)");
-    EXPECT_THAT(p.errors(), IsEmpty())
+    EXPECT_THAT(p.errors, IsEmpty())
         << "errors should be reported during visitation";
   }
 
@@ -3366,7 +3362,7 @@ TEST_F(test_parse_expression, invalid_parentheses) {
     test_parser p(u8"() = x"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "assign(parenempty, var x)");
-    EXPECT_THAT(p.errors(), IsEmpty())
+    EXPECT_THAT(p.errors, IsEmpty())
         << "errors should be reported during visitation";
   }
 }
@@ -3376,9 +3372,9 @@ TEST_F(test_parse_expression, invalid_keyword_in_expression) {
     test_parser p(u8"debugger"_sv);
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "invalid");
-    EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                                p.code(), diag_unexpected_token,  //
-                                token, 0, u8"debugger")));
+    EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                              p.code(), diag_unexpected_token,  //
+                              token, 0, u8"debugger")));
   }
 }
 
@@ -3388,7 +3384,7 @@ TEST_F(test_parse_expression, anonymous_class) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::_class);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 8));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 
   {
@@ -3396,7 +3392,7 @@ TEST_F(test_parse_expression, anonymous_class) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(ast->kind(), expression_kind::_class);
     EXPECT_THAT(ast->span(), p.matches_offsets(0, 10));
-    EXPECT_THAT(p.errors(), IsEmpty());
+    EXPECT_THAT(p.errors, IsEmpty());
   }
 }
 
@@ -3406,7 +3402,7 @@ TEST_F(test_parse_expression, class_requires_a_body) {
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "class");
     EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"class C"));
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_OFFSETS(
                     p.code(), diag_missing_body_for_class,  //
                     class_keyword_and_name_and_heritage, 0, u8"class C")));
@@ -3587,7 +3583,7 @@ TEST_F(test_parse_expression,
       expression* ast = p.parse_expression();
       EXPECT_EQ(summarize(ast), "object(literal: function)");
       EXPECT_THAT(
-          p.errors(),
+          p.errors,
           ElementsAre(DIAG_TYPE(diag_methods_should_not_use_function_keyword)));
     }
   }
@@ -3605,7 +3601,7 @@ TEST_F(test_parse_expression, unary_cannot_mix_with_star_star) {
     SCOPED_TRACE(p.code());
     expression* ast = p.parse_expression();
     EXPECT_EQ(summarize(ast), "binary(unary(var a), var b)");
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(),
                     diag_missing_parentheses_around_unary_lhs_of_exponent,  //
@@ -3621,7 +3617,7 @@ TEST_F(test_parse_expression, unary_cannot_mix_with_star_star) {
       // TODO(strager): Rewrite the AST into something like the following:
       EXPECT_EQ(summarize(ast), "typeof(binary(var a, var b))");
     }
-    EXPECT_THAT(p.errors(),
+    EXPECT_THAT(p.errors,
                 ElementsAre(DIAG_TYPE_2_OFFSETS(
                     p.code(),
                     diag_missing_parentheses_around_exponent_with_unary_lhs,  //
@@ -3637,9 +3633,9 @@ TEST_F(test_parse_expression, jsx_is_not_supported) {
   // operator.
   test_parser p(u8"<MyComponent attr={value}>hello</MyComponent>"_sv);
   expression* ast = p.parse_expression();
-  EXPECT_THAT(p.errors(), ElementsAre(DIAG_TYPE_OFFSETS(
-                              p.code(), diag_jsx_not_yet_implemented,  //
-                              jsx_start, 0, u8"<")));
+  EXPECT_THAT(p.errors, ElementsAre(DIAG_TYPE_OFFSETS(
+                            p.code(), diag_jsx_not_yet_implemented,  //
+                            jsx_start, 0, u8"<")));
   EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"<MyComponent"));
   EXPECT_EQ(summarize(ast), "binary(missing, var MyComponent)");
 }

@@ -112,10 +112,6 @@ class test_parser {
     return this->parser_.enter_function(attributes);
   }
 
-  const std::vector<diag_collector::diag>& errors() const noexcept {
-    return this->errors_.errors;
-  }
-
   spy_visitor& v() noexcept { return this->errors_; }
 
   padded_string_view code() const noexcept { return &this->code_; }
@@ -153,6 +149,7 @@ class test_parser {
   std::vector<visited_variable_declaration>& variable_declarations =
       this->errors_.variable_declarations;
   std::vector<string8>& variable_uses = this->errors_.variable_uses;
+  std::vector<diag_collector::diag>& errors = this->errors_.errors;
 };
 
 class test_parse_expression : public ::testing::Test {
