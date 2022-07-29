@@ -1387,7 +1387,11 @@ next:
     expression* lhs = this->build_expression(binary_builder);
     this->check_assignment_lhs(lhs);
     expression* rhs = this->parse_expression(
-        v, precedence{.commas = false, .in_operator = prec.in_operator});
+        v, precedence{
+               .commas = false,
+               .in_operator = prec.in_operator,
+               .colon_type_annotation = prec.colon_type_annotation,
+           });
     if (rhs->kind() == expression_kind::_missing) {
       this->diag_reporter_->report(diag_missing_operand_for_operator{
           .where = operator_span,

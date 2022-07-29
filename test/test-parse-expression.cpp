@@ -3737,9 +3737,12 @@ TEST_F(test_parse_expression, precedence) {
   static auto check_expression =
       [](string8_view code, std::string_view expected_ast_summary) -> void {
     SCOPED_TRACE(out_string8(code));
-    test_parser p(code, capture_diags);
-    expression* ast = p.parse_expression();
-    EXPECT_EQ(summarize(ast), expected_ast_summary);
+    for (const parser_options& options :
+         {javascript_options, typescript_options}) {
+      test_parser p(code, options, capture_diags);
+      expression* ast = p.parse_expression();
+      EXPECT_EQ(summarize(ast), expected_ast_summary);
+    }
   };
 
   static auto test = [](level_type lo_type, operator_type lo_op,
