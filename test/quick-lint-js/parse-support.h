@@ -107,6 +107,11 @@ class test_parser {
     this->parser_.parse_and_visit_typescript_type_expression(this->errors_);
   }
 
+  [[nodiscard]] quick_lint_js::parser::function_guard enter_function(
+      function_attributes attributes) {
+    return this->parser_.enter_function(attributes);
+  }
+
   const std::vector<diag_collector::diag>& errors() const noexcept {
     return this->errors_.errors;
   }
@@ -199,17 +204,6 @@ class test_parse_expression : public ::testing::Test {
 };
 
 namespace {
-inline parse_visit_collector parse_and_visit_statement(
-    string8_view raw_code, function_attributes attributes) {
-  padded_string code(raw_code);
-  failing_diag_reporter reporter;
-  parser p(&code, &reporter);
-  parse_visit_collector v;
-  auto guard = p.enter_function(attributes);
-  EXPECT_TRUE(p.parse_and_visit_statement(v));
-  return v;
-}
-
 // Identifiers which are ReservedWord-s only in strict mode.
 // https://262.ecma-international.org/11.0/#sec-keywords-and-reserved-words
 const inline dirty_set<string8> strict_only_reserved_keywords = {

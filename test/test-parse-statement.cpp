@@ -1242,10 +1242,10 @@ TEST_F(test_parse_statement, statement_label_can_be_a_contextual_keyword) {
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          code.string_view(), function_attributes::normal);
-      // TODO(strager): Announce the label with a visit?
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // x
+      test_parser& p = this->errorless_parser(code.string_view());
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // x
     }
   }
 }

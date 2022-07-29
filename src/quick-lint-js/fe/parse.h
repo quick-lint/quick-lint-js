@@ -87,10 +87,9 @@ class parser {
   template <bool parser::*Member>
   class bool_guard;
 
-  class function_guard;
-
  public:
   class depth_guard;
+  class function_guard;
 
   explicit parser(padded_string_view input, diag_reporter *diag_reporter);
   explicit parser(padded_string_view input, diag_reporter *diag_reporter,
@@ -572,6 +571,7 @@ class parser {
         std::forward<Args>(args)...);
   }
 
+ public:
   class function_guard {
    public:
     explicit function_guard(parser *, bool was_in_top_level,
@@ -594,6 +594,7 @@ class parser {
     bool was_in_switch_statement_;
   };
 
+ private:
   template <bool parser::*Member>
   class bool_guard {
    public:

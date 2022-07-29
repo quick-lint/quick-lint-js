@@ -1161,9 +1161,10 @@ TEST_F(test_parse_var, new_style_variables_cannot_be_named_let) {
 
 TEST_F(test_parse_var, use_await_in_non_async_function) {
   {
-    parse_visit_collector v = parse_and_visit_statement(
-        u8"await(x);"_sv, function_attributes::normal);
-    EXPECT_THAT(v.variable_uses,
+    test_parser& p = this->errorless_parser(u8"await(x);"_sv);
+    auto guard = p.enter_function(function_attributes::normal);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_uses,
                 ElementsAre(u8"await",  //
                             u8"x"));
   }
@@ -1221,15 +1222,17 @@ TEST_F(test_parse_var, use_await_in_non_async_function) {
 
 TEST_F(test_parse_var, declare_await_in_non_async_function) {
   {
-    parse_visit_collector v = parse_and_visit_statement(
-        u8"function await() { }"_sv, function_attributes::normal);
-    EXPECT_THAT(v.variable_declarations, ElementsAre(function_decl(u8"await")));
+    test_parser& p = this->errorless_parser(u8"function await() { }"_sv);
+    auto guard = p.enter_function(function_attributes::normal);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(function_decl(u8"await")));
   }
 
   {
-    parse_visit_collector v = parse_and_visit_statement(
-        u8"let await = 42;"_sv, function_attributes::normal);
-    EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(u8"await")));
+    test_parser& p = this->errorless_parser(u8"let await = 42;"_sv);
+    auto guard = p.enter_function(function_attributes::normal);
+    p.parse_and_visit_statement();
+    EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(u8"await")));
   }
 
   {
@@ -1668,140 +1671,160 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
     SCOPED_TRACE(out_string8(name));
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"var " + name + u8" = initial;", function_attributes::normal);
-      EXPECT_THAT(v.visits,
+      test_parser& p =
+          this->errorless_parser(u8"var " + name + u8" = initial;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use",            // initial
                               "visit_variable_declaration"));  // (name)
-      EXPECT_THAT(v.variable_declarations, ElementsAre(var_init_decl(name)));
+      EXPECT_THAT(p.variable_declarations, ElementsAre(var_init_decl(name)));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"let " + name + u8" = initial;", function_attributes::normal);
-      EXPECT_THAT(v.visits,
+      test_parser& p =
+          this->errorless_parser(u8"let " + name + u8" = initial;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use",            // initial
                               "visit_variable_declaration"));  // (name)
-      EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(name)));
+      EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(name)));
     }
 
     {
-      parse_visit_collector v =
-          parse_and_visit_statement(u8"let {" + name + u8" = 10 } = initial;",
-                                    function_attributes::normal);
-      EXPECT_THAT(v.visits,
+      test_parser& p =
+          this->errorless_parser(u8"let {" + name + u8" = 10 } = initial;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use",            // initial
                               "visit_variable_declaration"));  // (name)
-      EXPECT_THAT(v.variable_declarations, ElementsAre(let_init_decl(name)));
+      EXPECT_THAT(p.variable_declarations, ElementsAre(let_init_decl(name)));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"const " + name + u8" = initial;", function_attributes::normal);
-      EXPECT_THAT(v.visits,
+      test_parser& p =
+          this->errorless_parser(u8"const " + name + u8" = initial;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use",            // initial
                               "visit_variable_declaration"));  // (name)
-      EXPECT_THAT(v.variable_declarations, ElementsAre(const_init_decl(name)));
+      EXPECT_THAT(p.variable_declarations, ElementsAre(const_init_decl(name)));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"function " + name + u8"(" + name + u8") {}",
-          function_attributes::normal);
+      test_parser& p = this->errorless_parser(u8"function " + name + u8"(" +
+                                              name + u8") {}");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
       EXPECT_THAT(
-          v.visits,
+          p.visits,
           ElementsAre("visit_variable_declaration",       // (name) (function)
                       "visit_enter_function_scope",       //
                       "visit_variable_declaration",       // (name) (parameter)
                       "visit_enter_function_scope_body",  //
                       "visit_exit_function_scope"));
-      EXPECT_THAT(v.variable_declarations,
+      EXPECT_THAT(p.variable_declarations,
                   ElementsAre(function_decl(name), param_decl(name)));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"(function " + name + u8"() {})", function_attributes::normal);
+      test_parser& p =
+          this->errorless_parser(u8"(function " + name + u8"() {})");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
       EXPECT_THAT(
-          v.visits,
+          p.visits,
           ElementsAre("visit_enter_named_function_scope",  // (name) (function)
                       "visit_enter_function_scope_body",   //
                       "visit_exit_function_scope"));
-      EXPECT_THAT(v.enter_named_function_scopes, ElementsAre(name));
+      EXPECT_THAT(p.enter_named_function_scopes, ElementsAre(name));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"class " + name + u8" {}", function_attributes::normal);
-      EXPECT_THAT(v.visits,
+      test_parser& p = this->errorless_parser(u8"class " + name + u8" {}");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_enter_class_scope",       //
                               "visit_enter_class_scope_body",  //
                               "visit_exit_class_scope",
                               "visit_variable_declaration"));  // (name)
-      EXPECT_THAT(v.variable_declarations, ElementsAre(class_decl(name)));
+      EXPECT_THAT(p.variable_declarations, ElementsAre(class_decl(name)));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"(class " + name + u8" {})", function_attributes::normal);
-      EXPECT_THAT(v.visits,
+      test_parser& p = this->errorless_parser(u8"(class " + name + u8" {})");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_enter_class_scope",       // {
                               "visit_enter_class_scope_body",  // (name)
                               "visit_exit_class_scope"));      // }
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"try { } catch (" + name + u8") { }", function_attributes::normal);
-      EXPECT_THAT(v.visits, ElementsAre("visit_enter_block_scope",     //
+      test_parser& p =
+          this->errorless_parser(u8"try { } catch (" + name + u8") { }");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAre("visit_enter_block_scope",     //
                                         "visit_exit_block_scope",      //
                                         "visit_enter_block_scope",     //
                                         "visit_variable_declaration",  // (name)
                                         "visit_exit_block_scope"));
-      EXPECT_THAT(v.variable_declarations, ElementsAre(catch_decl(name)));
+      EXPECT_THAT(p.variable_declarations, ElementsAre(catch_decl(name)));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"let {x = " + name + u8"} = o;", function_attributes::normal);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",  // o
+      test_parser& p =
+          this->errorless_parser(u8"let {x = " + name + u8"} = o;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",  // o
                                         "visit_variable_use",  // (name)
                                         "visit_variable_declaration"));  // x
-      EXPECT_THAT(v.variable_uses, ::testing::Contains(name));
+      EXPECT_THAT(p.variable_uses, ::testing::Contains(name));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"console.log(" + name + u8");", function_attributes::normal);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use",    // console
+      test_parser& p = this->errorless_parser(u8"console.log(" + name + u8");");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAre("visit_variable_use",    // console
                                         "visit_variable_use"));  // (name)
-      EXPECT_THAT(v.variable_uses, ::testing::Contains(name));
+      EXPECT_THAT(p.variable_uses, ::testing::Contains(name));
     }
 
     {
       string8 code = name;
       SCOPED_TRACE(out_string8(code));
-      parse_visit_collector v =
-          parse_and_visit_statement(code.c_str(), function_attributes::normal);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // (name)
-      EXPECT_THAT(v.variable_uses, ElementsAre(name));
+      test_parser& p = this->errorless_parser(code.c_str());
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // (name)
+      EXPECT_THAT(p.variable_uses, ElementsAre(name));
     }
 
     {
       string8 code = name + u8";";
       SCOPED_TRACE(out_string8(code));
-      parse_visit_collector v =
-          parse_and_visit_statement(code.c_str(), function_attributes::normal);
-      EXPECT_THAT(v.visits, ElementsAre("visit_variable_use"));  // (name)
-      EXPECT_THAT(v.variable_uses, ElementsAre(name));
+      test_parser& p = this->errorless_parser(code.c_str());
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAre("visit_variable_use"));  // (name)
+      EXPECT_THAT(p.variable_uses, ElementsAre(name));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          name + u8".method();", function_attributes::normal);
-      EXPECT_THAT(v.visits,
+      test_parser& p = this->errorless_parser(name + u8".method();");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use"));  // (name)
-      EXPECT_THAT(v.variable_uses, ElementsAre(name));
+      EXPECT_THAT(p.variable_uses, ElementsAre(name));
     }
 
     for (string8 code : {
@@ -1817,79 +1840,96 @@ TEST_F(test_parse_var, variables_can_be_named_contextual_keywords) {
         continue;
       }
       SCOPED_TRACE(out_string8(code));
-      parse_visit_collector v =
-          parse_and_visit_statement(code, function_attributes::normal);
-      EXPECT_THAT(v.visits, ElementsAre("visit_enter_function_scope",  //
+      test_parser& p = this->errorless_parser(code);
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits, ElementsAre("visit_enter_function_scope",  //
                                         "visit_variable_declaration",  // (name)
                                         "visit_enter_function_scope_body",  //
                                         "visit_exit_function_scope"));
-      EXPECT_THAT(v.variable_declarations, ElementsAre(param_decl(name)));
+      EXPECT_THAT(p.variable_declarations, ElementsAre(param_decl(name)));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"for (" + name + u8" in xs) ;", function_attributes::normal);
-      EXPECT_THAT(v.visits,
+      test_parser& p = this->errorless_parser(u8"for (" + name + u8" in xs) ;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.visits,
                   ElementsAre("visit_variable_use",           // xs
                               "visit_variable_assignment"));  // (name)
-      EXPECT_THAT(v.variable_assignments, ElementsAre(name));
+      EXPECT_THAT(p.variable_assignments, ElementsAre(name));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"for (" + name + u8".prop in xs) ;", function_attributes::normal);
-      EXPECT_THAT(v.variable_uses, ElementsAre(name, u8"xs"));
+      test_parser& p =
+          this->errorless_parser(u8"for (" + name + u8".prop in xs) ;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_uses, ElementsAre(name, u8"xs"));
     }
 
     if (name != u8"async") {
       // NOTE(strager): async isn't allowed here. See
       // test_parse.cannot_assign_to_variable_named_async_in_for_of.
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"for (" + name + u8" of xs) ;", function_attributes::normal);
-      EXPECT_THAT(v.variable_assignments, ElementsAre(name));
-      EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
+      test_parser& p = this->errorless_parser(u8"for (" + name + u8" of xs) ;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_assignments, ElementsAre(name));
+      EXPECT_THAT(p.variable_uses, ElementsAre(u8"xs"));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"for ((" + name + u8") of xs) ;", function_attributes::normal);
-      EXPECT_THAT(v.variable_assignments, ElementsAre(name));
-      EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
+      test_parser& p =
+          this->errorless_parser(u8"for ((" + name + u8") of xs) ;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_assignments, ElementsAre(name));
+      EXPECT_THAT(p.variable_uses, ElementsAre(u8"xs"));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"for (" + name + u8".prop of xs) ;", function_attributes::normal);
-      EXPECT_THAT(v.variable_assignments, IsEmpty());
-      EXPECT_THAT(v.variable_uses, ElementsAre(name, u8"xs"));
+      test_parser& p =
+          this->errorless_parser(u8"for (" + name + u8".prop of xs) ;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_assignments, IsEmpty());
+      EXPECT_THAT(p.variable_uses, ElementsAre(name, u8"xs"));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"for (let " + name + u8" of xs) ;", function_attributes::normal);
-      EXPECT_THAT(v.variable_declarations, ElementsAre(let_noinit_decl(name)));
-      EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
+      test_parser& p =
+          this->errorless_parser(u8"for (let " + name + u8" of xs) ;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_declarations, ElementsAre(let_noinit_decl(name)));
+      EXPECT_THAT(p.variable_uses, ElementsAre(u8"xs"));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"for (var " + name + u8" of xs) ;", function_attributes::normal);
-      EXPECT_THAT(v.variable_declarations, ElementsAre(var_noinit_decl(name)));
-      EXPECT_THAT(v.variable_uses, ElementsAre(u8"xs"));
+      test_parser& p =
+          this->errorless_parser(u8"for (var " + name + u8" of xs) ;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_declarations, ElementsAre(var_noinit_decl(name)));
+      EXPECT_THAT(p.variable_uses, ElementsAre(u8"xs"));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"for (" + name + u8"; cond;) ;", function_attributes::normal);
-      EXPECT_THAT(v.variable_assignments, IsEmpty());
-      EXPECT_THAT(v.variable_uses, ElementsAre(name, u8"cond"));
+      test_parser& p =
+          this->errorless_parser(u8"for (" + name + u8"; cond;) ;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_assignments, IsEmpty());
+      EXPECT_THAT(p.variable_uses, ElementsAre(name, u8"cond"));
     }
 
     {
-      parse_visit_collector v = parse_and_visit_statement(
-          u8"for (" + name + u8".prop; cond;) ;", function_attributes::normal);
-      EXPECT_THAT(v.variable_assignments, IsEmpty());
-      EXPECT_THAT(v.variable_uses, ElementsAre(name, u8"cond"));
+      test_parser& p =
+          this->errorless_parser(u8"for (" + name + u8".prop; cond;) ;");
+      auto guard = p.enter_function(function_attributes::normal);
+      p.parse_and_visit_statement();
+      EXPECT_THAT(p.variable_assignments, IsEmpty());
+      EXPECT_THAT(p.variable_uses, ElementsAre(name, u8"cond"));
     }
   }
 }
