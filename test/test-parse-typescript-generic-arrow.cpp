@@ -66,6 +66,42 @@ TEST_F(test_parse_typescript_generic_arrow, generic_arrow_function) {
   }
 }
 
+// In non-JSX mode, this is an assignment with a generic arrow function:
+//
+//   f = <T>(p) => {}
+//
+// In JSX mode, this is two assignments (joined with ','), one with a JSX
+// element and another with a non-generic arrow function:
+//
+//   f = <T>(text)</T>,
+//   f = () => {}
+string8_view ambiguous_jsx_generic_arrow =
+    u8R"(
+    f = <T>(
+        p // </T>, f = (
+    ) => {}
+)"_sv;
+
+TEST_F(test_parse_typescript_generic_arrow,
+       generic_arrow_function_in_ts_mode_can_look_like_jsx_element) {
+  {
+    test_parser p(ambiguous_jsx_generic_arrow, typescript_options);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(summarize(ast), "assign(var f, arrowfunc(var p))");
+  }
+}
+
+TEST_F(test_parse_typescript_generic_arrow,
+       jsx_element_in_tsx_mode_can_look_like_generic_arrow_function) {
+  {
+    test_parser p(ambiguous_jsx_generic_arrow, typescript_jsx_options);
+    expression* ast = p.parse_expression();
+    EXPECT_EQ(
+        summarize(ast),
+        "binary(assign(var f, jsxelement(T)), assign(var f, arrowfunc()))");
+  }
+}
+
 TEST_F(test_parse_typescript_generic_arrow,
        generic_arrow_with_comma_is_allowed_in_tsx) {
   for (const parser_options& o : {typescript_options, typescript_jsx_options}) {
