@@ -89,9 +89,7 @@ class test_parser {
         parser_(&this->code_, &this->failing_reporter_, options) {}
 
   expression* parse_expression() {
-    expression* ast = this->parser_.parse_expression(this->errors_);
-    this->expressions_needing_cleanup_.push_back(ast);
-    return ast;
+    return this->parser_.parse_expression(this->errors_);
   }
 
   void parse_and_visit_expression() {
@@ -145,7 +143,6 @@ class test_parser {
   spy_visitor errors_;
   failing_diag_reporter failing_reporter_;
   quick_lint_js::parser parser_;
-  std::vector<expression*> expressions_needing_cleanup_;
 
  public:
   // Aliases for convenience.
