@@ -151,6 +151,9 @@ class offsets_matcher {
   offsets_matcher(const offsets_matcher &) = delete;
   offsets_matcher &operator=(const offsets_matcher &) = delete;
 
+  offsets_matcher(offsets_matcher &&);
+  offsets_matcher &operator=(offsets_matcher &&);
+
   ~offsets_matcher();
 
   /*implicit*/ operator testing::Matcher<const identifier &>() const;

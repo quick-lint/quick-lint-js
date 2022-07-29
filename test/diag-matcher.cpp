@@ -91,6 +91,10 @@ offsets_matcher::offsets_matcher(padded_string_view input,
       begin_offset_(begin_offset),
       end_offset_(begin_offset + text.size()) {}
 
+offsets_matcher::offsets_matcher(offsets_matcher &&) = default;
+
+offsets_matcher &offsets_matcher::operator=(offsets_matcher &&) = default;
+
 offsets_matcher::~offsets_matcher() = default;
 
 /*implicit*/ offsets_matcher::operator testing::Matcher<const identifier &>()

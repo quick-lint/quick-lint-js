@@ -14,6 +14,7 @@
 #include <quick-lint-js/container/linked-vector.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
+#include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/dirty-set.h>
 #include <quick-lint-js/failing-diag-reporter.h>
 #include <quick-lint-js/fe/null-visitor.h>
@@ -91,15 +92,21 @@ class test_parser {
 
   spy_visitor& v() noexcept { return this->errors_; }
 
-  cli_source_range range(expression* ast) { return this->range(ast->span()); }
-
-  cli_source_range range(source_code_span span) {
-    return this->locator.range(span);
-  }
-
   padded_string_view code() const noexcept { return &this->code_; }
 
   quick_lint_js::parser& parser() noexcept { return this->parser_; }
+
+  // See offsets_matcher's constructor.
+  offsets_matcher matches_offsets(cli_source_position::offset_type begin_offset,
+                                  string8_view text) {
+    return offsets_matcher(&this->code_, begin_offset, text);
+  }
+
+  // See offsets_matcher's constructor.
+  offsets_matcher matches_offsets(cli_source_position::offset_type begin_offset,
+                                  cli_source_position::offset_type end_offset) {
+    return offsets_matcher(&this->code_, begin_offset, end_offset);
+  }
 
  private:
   padded_string code_;

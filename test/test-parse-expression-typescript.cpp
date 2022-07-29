@@ -47,8 +47,7 @@ TEST_F(test_parse_expression_typescript, type_annotation) {
     ASSERT_EQ(ast->kind(), expression_kind::type_annotated);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
     EXPECT_THAT(p.errors(), IsEmpty());
-    EXPECT_EQ(p.range(ast).begin_offset(), 0);
-    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"x: Type"));
+    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x: Type"));
 
     spy_visitor v;
     static_cast<expression::type_annotated*>(ast)->visit_type_annotation(v);
@@ -145,8 +144,7 @@ TEST_F(test_parse_expression_typescript, as_type_assertion) {
     expression* ast = p.parse_expression();
     ASSERT_EQ(ast->kind(), expression_kind::as_type_assertion);
     EXPECT_EQ(summarize(ast->child_0()), "var x");
-    EXPECT_EQ(p.range(ast).begin_offset(), 0);
-    EXPECT_EQ(p.range(ast).end_offset(), strlen(u8"x as y"));
+    EXPECT_THAT(ast->span(), p.matches_offsets(0, u8"x as y"));
 
     EXPECT_THAT(p.errors(), IsEmpty());
     EXPECT_THAT(p.v().visits, ElementsAre("visit_variable_type_use"));
